@@ -29,7 +29,7 @@ import {
   ProgramPrivilegeIds
 } from '../../services/model/model.enum';
 import {AppForm} from "../../../core/form/form.class";
-import {FormArrayHelper} from "../../../core/form/form.utils";
+import {AppFormUtils, FormArrayHelper} from "../../../core/form/form.utils";
 import {EntityUtils} from "../../../core/services/model/entity.model";
 import {PmfmUtils} from "../../services/model/pmfm.model";
 import {
@@ -177,9 +177,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.form.get('label').setAsyncValidators([
       async (control) => {
         console.debug('[sampling-strategy-form] Checking of label is unique...');
-        const exists = await this.strategyService.existLabel(control.value, {
+        const exists = await this.strategyService.existsByLabel(control.value, {
           programId: this.program && this.program.id,
-          excludedIds: isNotNil(idControl.value) ? [idControl.value] : undefined
+          excludedIds: isNotNil(idControl.value) ? [idControl.value] : undefined,
+          fetchPolicy: 'network-only' // Force to check remotely
         });
         if (exists) {
           console.warn('[sampling-strategy-form] Label not unique!');
@@ -944,7 +945,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return sex;
   }
 
-
   /**
    * get pmfm
    * @param label
@@ -961,4 +961,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       });
     return res.data;
   }
+
+  selectInputContent = AppFormUtils.selectInputContent;
+
 }

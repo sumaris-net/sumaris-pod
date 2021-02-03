@@ -13,6 +13,7 @@ import {PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
 import {SortDirection} from "@angular/material/sort";
 import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
 import {isNil, isNotNil} from "../../shared/functions";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 @Directive()
 export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
@@ -23,7 +24,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
   private _onRefreshPmfms = new EventEmitter<any>();
   private _delegate: IEntitiesService<T, F>;
 
-  protected programService: ProgramService;
+  protected programRefService: ProgramRefService;
 
   loadingPmfms = false;
   $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
@@ -76,7 +77,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     }) {
 
     this._delegate = delegate;
-    this.programService = injector.get(ProgramService);
+    this.programRefService = injector.get(ProgramRefService);
 
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
@@ -170,7 +171,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     this.loadingPmfms = true;
 
     // Load pmfms
-    let pmfms = (await this.programService.loadProgramPmfms(
+    let pmfms = (await this.programRefService.loadProgramPmfms(
       this._program,
       {
         acquisitionLevel: this._acquisitionLevel

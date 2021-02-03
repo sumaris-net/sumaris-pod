@@ -2,7 +2,7 @@ import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 
-import {FetchPolicy, MutationUpdaterFn} from "@apollo/client/core";
+import {FetchPolicy, MutationUpdaterFn, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {SortDirection} from "@angular/material/sort";
 
 import {ReferentialFilter} from "./referential.service";
@@ -15,7 +15,7 @@ import {environment} from "../../../environments/environment";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {chainPromises} from "../../shared/observables";
 import {isEmptyArray, isNil, isNotNil} from "../../shared/functions";
-import {Optional} from "@angular/core";
+import {Directive} from "@angular/core";
 
 export interface BaseReferentialEntityQueries {
   load: any;
@@ -39,25 +39,40 @@ export interface BaseReferentialEntitiesMutations {
 export interface BaseReferentialSubscriptions {
   listenChanges: any;
 }
+export interface BaseReferentialServiceOptions<E extends Referential, F extends ReferentialFilter> {
+  queries: Partial<BaseReferentialEntitiesQueries & BaseReferentialEntityQueries>;
+  mutations?: Partial<BaseReferentialEntityMutations & BaseReferentialEntitiesMutations>;
+  subscriptions?: Partial<BaseReferentialSubscriptions>;
+  filterAsObjectFn?: (filter: F) => any;
+  createFilterFn?: (filter: F) => ((data: E) => boolean);
+}
 
+@Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class BaseReferentialService<E extends Referential, F extends ReferentialFilter>
   extends BaseEntityService<E>
   implements IEntitiesService<E, F> {
 
   private readonly _entityName: string;
 
+  protected readonly queries: Partial<BaseReferentialEntitiesQueries & BaseReferentialEntityQueries>;
+  protected readonly mutations: Partial<BaseReferentialEntityMutations & BaseReferentialEntitiesMutations>;
+  protected readonly subscriptions: Partial<BaseReferentialSubscriptions>;
+  protected readonly filterAsObjectFn: (filter: F) => any;
+  protected readonly createFilterFn: (filter: F) => ((data: E) => boolean);
+
   protected constructor(
     protected graphql: GraphqlService,
     protected platform: PlatformService,
-    //protected environment: Environment, // TODO q3
     protected dataType: new() => E,
-    @Optional() protected queries: Partial<BaseReferentialEntitiesQueries & BaseReferentialEntityQueries>,
-    @Optional() protected mutations: Partial<BaseReferentialEntityMutations & BaseReferentialEntitiesMutations> = {},
-    @Optional() protected subscriptions: Partial<BaseReferentialSubscriptions> = {},
-    @Optional() protected filterAsObjectFn: (filter: F) => any = ReferentialFilter.asPodObject,
-    @Optional() protected createFilterFn: (filter: F) => ((data: E) => boolean) = ReferentialFilter.searchFilter
+    options: BaseReferentialServiceOptions<E, F>
   ) {
     super(graphql, environment);
+    this.queries = options.queries;
+    this.mutations = options.mutations || {};
+    this.subscriptions = options.subscriptions || {};
+    this.filterAsObjectFn = options.filterAsObjectFn || ReferentialFilter.asPodObject;
+    this.createFilterFn = options.createFilterFn || ReferentialFilter.searchFilter;
 
     platform.ready().then(() => {
       // No limit for updatable watch queries, if desktop
@@ -73,19 +88,50 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
     this._debug = !environment.production;
   }
 
-  async load(id: number, options?: EntityServiceLoadOptions): Promise<E> {
+  watch(id: number, opts?: EntityServiceLoadOptions & {
+    query?: any;
+    toEntity?: boolean;
+  }): Observable<E> {
+
+    if (this._debug) console.debug(`[referential-service] Watching ${this._entityName} {${id}}...`);
+
+    const query = opts && opts.query || this.queries.load;
+    return this.graphql.watchQuery<{data: any}>({
+      query,
+      variables: { id },
+      fetchPolicy: opts && (opts.fetchPolicy as FetchPolicy) || undefined,
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"}
+    })
+      .pipe(
+        map(({data}) => {
+          const entity = (!opts || opts.toEntity !== false)
+            ? (data && this.fromObject(data))
+            : (data as E);
+          return entity;
+        })
+      );
+  }
+
+  async load(id: number, opts?: EntityServiceLoadOptions & {
+    query?: any;
+    toEntity?: boolean;
+  }): Promise<E> {
 
     if (this._debug) console.debug(`[referential-service] Loading ${this._entityName} {${id}}...`);
 
-    const res = await this.graphql.query<{data: any}>({
-      query: this.queries.load,
+    const query = opts && opts.query || this.queries.load;
+    const { data } = await this.graphql.query<{data: any}>({
+      query,
       variables: {
         id: id
       },
-      fetchPolicy: options && (options.fetchPolicy as FetchPolicy) || undefined,
+      fetchPolicy: opts && (opts.fetchPolicy as FetchPolicy) || undefined,
       error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"}
     });
-    return res && res.data && this.fromObject(res.data);
+    const entity = (!opts || opts.toEntity !== false)
+      ? (data && this.fromObject(data))
+      : (data as E);
+    return entity;
   }
 
   watchAll(offset: number,
@@ -94,8 +140,9 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
            sortDirection?: SortDirection,
            filter?: F,
            opts?: {
-             fetchPolicy?: FetchPolicy;
+             fetchPolicy?: WatchQueryFetchPolicy;
              withTotal: boolean;
+             toEntity?: boolean;
            }
   ): Observable<LoadResult<E>> {
 
@@ -124,7 +171,11 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
     })
       .pipe(
         map(({data, total}) => {
-          const entities = (data || []).map(json => this.fromObject(json));
+          // Convert to entity (if need)
+          const entities = (!opts || opts.toEntity !== false)
+            ? (data || []).map(json => this.fromObject(json))
+            : (data || []) as E[];
+
           if (now) {
             console.debug(`[referential-service] ${this._entityName} loaded in ${Date.now() - now}ms`, entities);
             now = null;
@@ -165,7 +216,6 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
     const now = Date.now();
     if (debug) console.debug(`[referential-service] Loading ${this._entityName}...`, variables);
 
-
     const query = (opts && opts.query) // use given query
       // Or get loadAll or loadAllWithTotal query
       || ((!opts || opts.withTotal !== false) ? this.queries.loadAllWithTotal : this.queries.loadAll);
@@ -183,8 +233,9 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
       data: entities,
       total
     };
-
   }
+
+
   async saveAll(entities: E[], options?: any): Promise<E[]> {
     if (!this.mutations.saveAll) throw Error('Not implemented');
 
@@ -233,9 +284,12 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
   async save(entity: E, options?: any): Promise<E> {
     if (!this.mutations.save) throw Error('Not implemented');
 
+    // Fill default properties
+    this.fillDefaultProperties(entity);
+
     // Transform into json
     const json = entity.asObject();
-    const isNew = !json.id;
+    const isNew = isNil(json.id);
 
     const now = Date.now();
     if (this._debug) console.debug(`[referential-service] Saving ${this._entityName}...`, json);
@@ -250,6 +304,7 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
         // Update entity
         const savedEntity = data && data.data;
         this.copyIdAndUpdateDate(savedEntity, entity);
+
         if (this._debug) console.debug(`[referential-service] ${entity.entityName} saved in ${Date.now() - now}ms`, entity);
 
         // Update the cache
@@ -258,6 +313,9 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
             query: this.queries.loadAll,
             data: savedEntity
           });
+
+          // TODO BLA: should also clean referential ref queries ?
+          // How to clean
         }
 
       }
@@ -343,7 +401,7 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
     });
   }
 
-  public listenChanges(id: number, opts?: {
+  listenChanges(id: number, opts?: {
     interval?: number
   }): Observable<E> {
     if (isNil(id)) throw Error("Missing argument 'id' ");
@@ -380,6 +438,7 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
     return e1 && e2 && (e1.id === e2.id || e1.label === e2.label || e1.name === e2.name);
   }
 
+
   copyIdAndUpdateDate(source: E | undefined, target: E) {
     if (!source) return;
 
@@ -393,6 +452,13 @@ export abstract class BaseReferentialService<E extends Referential, F extends Re
     target.fromObject(source);
     return target;
   }
+
+  /* -- protected functions -- */
+
+  protected fillDefaultProperties(source: E) {
+    // Can be override by subclasses
+  }
+
 
   /**
    * Workaround to enable delete() and deleteAll() even when some mutation are missing

@@ -13,10 +13,9 @@ import {FloatLabelType} from "@angular/material/form-field";
 import {BehaviorSubject} from 'rxjs';
 import {filter, throttleTime} from "rxjs/operators";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {ProgramService} from "../../referential/services/program.service";
 import {FormBuilder} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {sleep, isNil, isNotNil} from '../../shared/functions';
+import {isNil, isNotNil, sleep} from '../../shared/functions';
 import {
   Measurement,
   MeasurementType,
@@ -26,6 +25,7 @@ import {
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AppForm} from "../../core/form/form.class";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 @Component({
   selector: 'app-form-measurements',
@@ -130,7 +130,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   constructor(protected dateAdapter: DateAdapter<Moment>,
               protected measurementValidatorService: MeasurementsValidatorService,
               protected formBuilder: FormBuilder,
-              protected programService: ProgramService,
+              protected programRefService: ProgramRefService,
               protected settings: LocalSettingsService,
               protected cd: ChangeDetectorRef
   ) {
@@ -242,7 +242,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
     try {
       // Load pmfms
-      let pmfms = (await this.programService.loadProgramPmfms(
+      let pmfms = (await this.programRefService.loadProgramPmfms(
         this._program,
         {
           acquisitionLevel: this._acquisitionLevel,

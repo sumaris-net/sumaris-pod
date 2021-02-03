@@ -27,7 +27,7 @@ export class StrategyFilter extends ReferentialFilter {
 }
 
 
-const StrategyRefQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQueries = {
+const STRATEGY_REF_QUERIES: BaseReferentialEntityQueries & BaseReferentialEntitiesQueries = {
   load: gql`query StrategyRef($id: Int!) {
     data: strategy(id: $id) {
       ...StrategyRefFragment
@@ -117,10 +117,11 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
     protected entities: EntitiesStorage
   ) {
     super(graphql, platform, Strategy,
-      StrategyRefQueries,
-      null, // no mutations
-      null, // no subscription
-      StrategyFilter.asPodObject, StrategyFilter.searchFilter);
+      {
+        queries: STRATEGY_REF_QUERIES,
+        filterAsObjectFn: StrategyFilter.asPodObject,
+        createFilterFn: StrategyFilter.searchFilter
+      });
   }
 
   /**
@@ -174,7 +175,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
             );
         }
         else {
-          const query = opts && opts.query || StrategyRefQueries.load;
+          const query = opts && opts.query || STRATEGY_REF_QUERIES.load;
           res = this.graphql.watchQuery<{ data: any }>({
             query: query,
             variables: {

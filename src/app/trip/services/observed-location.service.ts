@@ -667,7 +667,7 @@ export class ObservedLocationService
 
     const programLabel = entity.program && entity.program.label || null;
     if (!programLabel) throw new Error("Missing entity's program. Unable to control the entity");
-    const program = await this.programService.loadByLabel(programLabel);
+    const program = await this.programRefService.loadByLabel(programLabel);
 
     const form = this.validatorService.getFormGroup(entity, {
       program,

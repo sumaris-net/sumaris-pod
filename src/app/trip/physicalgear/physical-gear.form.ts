@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Vi
 import {PhysicalGearValidatorService} from "../services/validator/physicalgear.validator";
 import {Moment} from 'moment';
 import {BehaviorSubject} from 'rxjs';
-import {distinctUntilChanged, filter} from 'rxjs/operators';
+import {distinctUntilChanged, filter, mergeMap} from 'rxjs/operators';
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {FormBuilder} from "@angular/forms";
@@ -15,9 +15,8 @@ import {DateAdapter} from "@angular/material/core";
 import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {ProgramService} from "../../referential/services/program.service";
 import {environment} from "../../../environments/environment";
-import {mergeMap} from "rxjs/operators";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 @Component({
   selector: 'app-physical-gear-form',
@@ -47,14 +46,14 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected platform: PlatformService,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
     protected validatorService: PhysicalGearValidatorService,
     protected referentialRefService: ReferentialRefService,
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd, validatorService.getFormGroup());
+    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup());
     this._enable = true;
     this.mobile = platform.mobile;
     this.requiredGear = true;
@@ -68,7 +67,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
         .pipe(
           filter(isNotNil),
           distinctUntilChanged(),
-          mergeMap(program => this.programService.loadGears(program))
+          mergeMap(program => this.programRefService.loadGears(program))
         )
         .subscribe(gears => this.gearsSubject.next(gears))
     );

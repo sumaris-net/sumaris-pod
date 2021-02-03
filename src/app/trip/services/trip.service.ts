@@ -60,6 +60,7 @@ import {IDataSynchroService, RootDataSynchroService} from "../../data/services/r
 import {Entity, EntityUtils} from "../../core/services/model/entity.model";
 import {environment} from "../../../environments/environment";
 import {fromDateISOString, toDateISOString} from 'src/app/shared/dates';
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -461,7 +462,7 @@ export class TripService
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected personService: PersonService,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected entities: EntitiesStorage,
     protected operationService: OperationService,
     protected settings: LocalSettingsService,
@@ -922,7 +923,7 @@ export class TripService
 
     const programLabel = entity.program && entity.program.label || null;
     if (!programLabel) throw new Error("Missing trip's program. Unable to control the trip");
-    const program = await this.programService.loadByLabel(programLabel);
+    const program = await this.programRefService.loadByLabel(programLabel);
 
     const form = this.validatorService.getFormGroup(entity, {
       isOnFieldMode: false, // Always disable 'on field mode'

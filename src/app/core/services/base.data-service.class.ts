@@ -6,7 +6,9 @@ import {FetchResult} from "@apollo/client/link/core";
 import {EntityUtils} from "./model/entity.model";
 import {ApolloCache} from "@apollo/client/core";
 import {Environment} from "../../../environments/environment.class";
-import {changeCaseToUnderscore, isNotEmptyArray} from "../../shared/functions";
+import {changeCaseToUnderscore, isNotEmptyArray, toBoolean} from "../../shared/functions";
+import {environment} from "../../../environments/environment";
+import {Optional} from "@angular/core";
 
 const sha256 =  require('hash.js/lib/hash/sha/256');
 
@@ -45,6 +47,10 @@ export interface MutableWatchQueryInfo<D, T = any, V = EmptyObject> {
   counter: number;
 }
 
+export class BaseEntityServiceOptions {
+  debug?: boolean;
+}
+
 export abstract class BaseEntityService<T = any, F = any> {
 
   protected _debug: boolean;
@@ -59,11 +65,11 @@ export abstract class BaseEntityService<T = any, F = any> {
 
   protected constructor(
     protected graphql: GraphqlService,
-    protected environment: Environment
+    @Optional() options?: BaseEntityServiceOptions | Environment
   ) {
 
     // for DEV only
-    this._debug = !environment.production;
+    this._debug = toBoolean(options && options['debug'], !options['production']);
     this._debugPrefix = this._debug && `[${changeCaseToUnderscore(this.constructor.name).replace(/_/g, '-' )}]`;
   }
 

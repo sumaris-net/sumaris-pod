@@ -24,6 +24,8 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {ReferentialRefService} from "./referential-ref.service";
 import {ObjectMap} from "../../shared/types";
+import {CacheService} from "ionic-cache";
+import {CryptoService} from "../../core/services/crypto.service";
 
 const LoadAllQuery: any = gql`
   query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -89,6 +91,13 @@ export class PmfmFilter extends ReferentialFilter {
   entityName?: 'Pmfm';
 }
 
+
+const PmfmCacheKeys = {
+  CACHE_GROUP: 'pmfm',
+
+  PMFM_IDS_BY_PARAMETER_LABEL: 'pmfmIdsByParameter'
+};
+
 // TODO BLA: étendre la class BaseReferentialService
 @Injectable({providedIn: 'root'})
 export class PmfmService extends BaseEntityService implements IEntityService<Pmfm>,
@@ -100,7 +109,9 @@ export class PmfmService extends BaseEntityService implements IEntityService<Pmf
     protected graphql: GraphqlService,
     protected accountService: AccountService,
     protected referentialService: ReferentialService,
-    protected referentialRefService: ReferentialRefService
+    protected referentialRefService: ReferentialRefService,
+    protected cache: CacheService,
+    protected cryptoService: CryptoService
   ) {
     super(graphql, environment);
   }
@@ -299,19 +310,27 @@ export class PmfmService extends BaseEntityService implements IEntityService<Pmf
    */
   async loadIdsGroupByParameterLabels(parameterLabelsMap: ObjectMap<string[]>): Promise<ObjectMap<number[]>> {
 
-    // TODO BLA: voir si a besoin d'un cache ici
-    const pmfmMap = await this.referentialRefService.loadAllGroupByLevels({
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      },
-      { levelLabels: parameterLabelsMap },
-      { toEntity: false });
+    const cacheKey = [
+      PmfmCacheKeys.PMFM_IDS_BY_PARAMETER_LABEL,
+      this.cryptoService.sha256(JSON.stringify(parameterLabelsMap)).substring(0, 8) // Create a unique hash, from args
+    ].join('|');
 
-    // Keep only Pmfm.id
-    return Object.keys(parameterLabelsMap).reduce((res, key) => {
-      res[key] = pmfmMap[key].map(e => e.id);
-      return res;
-    }, {});
+    return this.cache.getOrSetItem<ObjectMap<number[]>>(cacheKey,
+      async () => {
+      // Load pmfms grouped by parameter labels
+      const map = await this.referentialRefService.loadAllGroupByLevels({
+          entityName: 'Pmfm',
+          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        },
+        { levelLabels: parameterLabelsMap },
+        { toEntity: false, debug: this._debug });
+
+      // Keep only id
+      return Object.keys(map).reduce((res, key) => {
+        res[key] = map[key].map(e => e.id);
+        return res;
+      }, {});
+    }, PmfmCacheKeys.CACHE_GROUP);
   }
 
   /* -- protected methods -- */

@@ -24,13 +24,8 @@ export class Strategy<T extends Strategy<any> = Strategy<any>> extends Referenti
     return res;
   }
 
-  label: string;
-  name: string;
-  description: string;
-  comments: string;
   analyticReference: string;
   creationDate: Moment;
-  statusId: number;
   appliedStrategies: AppliedStrategy[];
   pmfmStrategies: PmfmStrategy[];
   departments: StrategyDepartment[];
@@ -46,6 +41,7 @@ export class Strategy<T extends Strategy<any> = Strategy<any>> extends Referenti
     name?: string
   }) {
     super();
+    this.__typename = Strategy.TYPENAME;
     this.id = data && data.id;
     this.label = data && data.label;
     this.name = data && data.name;
@@ -78,14 +74,8 @@ export class Strategy<T extends Strategy<any> = Strategy<any>> extends Referenti
 
   fromObject(source: any) {
     super.fromObject(source);
-    this.label = source.label;
-    this.name = source.name;
-    this.description = source.description;
-    this.comments = source.comments;
     this.analyticReference = source.analyticReference;
-    this.statusId = source.statusId;
     this.programId = source.programId;
-    this.creationDate = fromDateISOString(source.creationDate);
     this.appliedStrategies = source.appliedStrategies && source.appliedStrategies.map(AppliedStrategy.fromObject) || [];
     this.pmfmStrategies = source.pmfmStrategies && source.pmfmStrategies.map(PmfmStrategy.fromObject) || [];
     this.departments = source.departments && source.departments.map(StrategyDepartment.fromObject) || [];
@@ -144,9 +134,6 @@ export class StrategyDepartment extends Entity<StrategyDepartment> {
     this.department = source.department && ReferentialRef.fromObject(source.department);
   }
 
-  convertToString(): string {
-    return this && this.strategyId && (this.department.name) || undefined;
-  }
 }
 
 export class AppliedStrategy extends Entity<AppliedStrategy> {

@@ -333,7 +333,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       this.$metiers.next(data.metiers);
 
       // fixme trouver un meilleur moment pour charger les pmfms
-      this.productSalePmfms = await this.programService.loadProgramPmfms(data.program.label, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE});
+      this.productSalePmfms = await this.programRefService.loadProgramPmfms(data.program.label, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE});
 
     }
 

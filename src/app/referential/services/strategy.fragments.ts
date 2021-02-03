@@ -182,5 +182,35 @@ export const StrategyFragments = {
         __typename
       }
       __typename
-    }`
+    }`,
+  samplingStrategy: gql`fragment SamplingStrategyFragment on StrategyVO {
+    id
+    label
+    name
+    description
+    comments
+    analyticReference
+    updateDate
+    creationDate
+    statusId
+    programId
+    gears {
+      ...ReferentialFragment
+    }
+    taxonGroups {
+      ...TaxonGroupStrategyFragment
+    }
+    taxonNames {
+      ...TaxonNameStrategyFragment
+    }
+    appliedStrategies {
+      ...AppliedStrategyFragment
+    }
+    pmfmStrategies {
+      ...PmfmStrategyFragment
+    }
+    departments {
+      ...StrategyDepartmentFragment
+    }
+  }`
 };

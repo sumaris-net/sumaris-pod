@@ -4,7 +4,6 @@ import {DateAdapter} from "@angular/material/core";
 import {FloatLabelType} from "@angular/material/form-field";
 import {BehaviorSubject, isObservable, Observable} from 'rxjs';
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {ProgramService} from "../../referential/services/program.service";
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
 import {filter, throttleTime} from "rxjs/operators";
@@ -13,6 +12,7 @@ import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AppForm} from "../../core/form/form.class";
 import {isEmptyArray, isNil, isNotNil} from "../../shared/functions";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
@@ -126,7 +126,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   protected constructor(protected dateAdapter: DateAdapter<Moment>,
                         protected measurementValidatorService: MeasurementsValidatorService,
                         protected formBuilder: FormBuilder,
-                        protected programService: ProgramService,
+                        protected programRefService: ProgramRefService,
                         protected settings: LocalSettingsService,
                         protected cd: ChangeDetectorRef,
                         form?: FormGroup,
@@ -316,7 +316,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     try {
       // Load pmfms
-      let pmfms = (await this.programService.loadProgramPmfms(
+      let pmfms = (await this.programRefService.loadProgramPmfms(
         this.program,
         {
           strategyLabel: this.strategy,

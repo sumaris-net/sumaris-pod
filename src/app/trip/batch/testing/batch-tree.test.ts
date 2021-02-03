@@ -12,6 +12,7 @@ import {PmfmIds} from "../../../referential/services/model/model.enum";
 import {isEmptyArray, isNotNil, toNumber} from "../../../shared/functions";
 import {EntityUtils} from "../../../core/services/model/entity.model";
 import {EntitiesStorage} from "../../../core/services/storage/entities-storage.service";
+import {ProgramRefService} from "../../../referential/services/program-ref.service";
 
 function getSortingMeasValues(opts?: {
   weight?: number;
@@ -133,7 +134,7 @@ export class BatchTreeTestPage implements OnInit {
   constructor(
     formBuilder: FormBuilder,
     protected referentialRefService: ReferentialRefService,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     private entities: EntitiesStorage
   ) {
 
@@ -168,7 +169,7 @@ export class BatchTreeTestPage implements OnInit {
       items: this.programSubject.pipe(
         mergeMap((programLabel) => {
           if (!programLabel) return Promise.resolve([]);
-          return this.programService.loadGears(programLabel);
+          return this.programRefService.loadGears(programLabel);
         })
       ),
       attributes: ['label', 'name']

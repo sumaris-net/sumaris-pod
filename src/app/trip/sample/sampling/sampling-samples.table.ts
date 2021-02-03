@@ -5,14 +5,13 @@ import {isEmptyArray, isNotEmptyArray, isNotNil} from "../../../shared/functions
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {environment} from "../../../../environments/environment";
-import {ProgramService} from "../../../referential/services/program.service";
-import {StrategyService} from "../../../referential/services/strategy.service";
 import {BehaviorSubject} from "rxjs";
 import {ObjectMap} from "../../../shared/types";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {SelectReferentialModal} from "../../../referential/list/select-referential.modal";
 import {SamplesTable, SamplesTableOptions} from "../samples.table";
 import {PmfmService} from "../../../referential/services/pmfm.service";
+import {ProgramRefService} from "../../../referential/services/program-ref.service";
 
 export interface SampleFilter {
   operationId?: number;
@@ -57,7 +56,7 @@ export class SamplingSamplesTable extends SamplesTable {
 
   constructor(
     protected injector: Injector,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected pmfmService: PmfmService
   ) {
     super(injector,

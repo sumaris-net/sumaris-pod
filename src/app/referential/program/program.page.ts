@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup} from "@angular/forms";
+import {FormBuilder, FormGroup, ValidationErrors} from "@angular/forms";
 import {Program} from "../services/model/program.model";
 import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
@@ -18,7 +18,7 @@ import {Subscription} from "rxjs";
 
 import {AppEntityEditor} from "../../core/form/editor.class";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {changeCaseToUnderscore, isNil} from "../../shared/functions";
+import {changeCaseToUnderscore, isNil, isNotNil} from "../../shared/functions";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {HistoryPageReference} from "../../core/services/model/history.model";
 import {SelectReferentialModal} from "../list/select-referential.modal";
@@ -28,6 +28,7 @@ import {Strategy} from "../services/model/strategy.model";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {AppTable} from "../../core/table/table.class";
 import {SamplingStrategiesTable} from "../strategy/sampling/sampling-strategies.table";
+import {SharedValidators} from "../../shared/validator/validators";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -97,15 +98,22 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
     // Check label is unique
     // TODO BLA: FIXME: le control reste en pending !
-    /*const labelControl = this.form.get('label');
-    const $errors = new BehaviorSubject<ValidationErrors | null>(null);
-    labelControl.valueChanges
-      .pipe(
-        mergeMap((label) => this.isNewData && label ? this.programService.existsByLabel(label) : of(false))
-      ).subscribe(exists => {
-        $errors.next(exists ? {unique: true} : undefined);
-      });
-    labelControl.setAsyncValidators(() => $errors.toPromise());*/
+    const idControl = this.form.get('id');
+    this.form.get('label').setAsyncValidators([
+      async (control) => {
+        console.debug('[program-page] Checking of label is unique...');
+        const exists = await this.programService.existsByLabel(control.value, {
+          excludedIds: isNotNil(idControl.value) ? [idControl.value] : undefined
+        });
+        if (exists) {
+          console.warn('[program-page] Label not unique!');
+          return <ValidationErrors>{ unique: true };
+        }
+
+        console.debug('[program-page] Checking of label is unique [OK]');
+        SharedValidators.clearError(control, 'unique');
+      }
+    ]);
 
     this.registerFormField('gearClassification', {
       type: 'entity',

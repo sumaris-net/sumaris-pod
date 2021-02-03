@@ -15,7 +15,6 @@ import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {MeasurementsValidatorService} from "../../services/validator/measurement.validator";
 import {AbstractControl, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {ProgramService} from "../../../referential/services/program.service";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {SubBatchValidatorService} from "../../services/validator/sub-batch.validator";
 import {EntityUtils} from "../../../core/services/model/entity.model";
@@ -47,6 +46,7 @@ import {BatchGroup} from "../../services/model/batch-group.model";
 import {TranslateService} from "@ngx-translate/core";
 import {FloatLabelType} from "@angular/material/form-field";
 import {AppFormUtils} from "../../../core/form/form.utils";
+import {ProgramRefService} from "../../../referential/services/program-ref.service";
 
 
 @Component({
@@ -176,7 +176,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected validatorService: SubBatchValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected settings: LocalSettingsService,
@@ -184,7 +184,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
+    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
       validatorService.getFormGroup(null, {
         rankOrderRequired: false, // Avoid to have form.invalid, in Burst mode
       }),
@@ -542,7 +542,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     if (isNil(parentGroup)) return Promise.resolve([]);
     //if (this.debug)
       console.debug(`[sub-batch-form] Searching taxon name {${value || '*'}}...`);
-    return this.programService.suggestTaxonNames(value,
+    return this.programRefService.suggestTaxonNames(value,
       {
         program: this.program,
         searchAttribute: options && options.searchAttribute,

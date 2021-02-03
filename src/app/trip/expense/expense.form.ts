@@ -2,8 +2,11 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component, EventEmitter, Input,
-  OnInit, Output,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
   QueryList,
   ViewChild,
   ViewChildren
@@ -14,7 +17,6 @@ import {FormArray, FormBuilder} from "@angular/forms";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MeasurementsForm} from "../measurement/measurements.form.component";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {ProgramService} from "../../referential/services/program.service";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {PlatformService} from "../../core/services/platform.service";
 import {BehaviorSubject} from "rxjs";
@@ -27,6 +29,7 @@ import {getMaxRankOrder} from "../../data/services/model/model.utils";
 import {TypedExpenseForm} from "./typed-expense.form";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {ObjectMap} from "../../shared/types";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 type TupleType = 'quantity' | 'unitPrice' | 'total';
 
@@ -110,10 +113,10 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     protected formBuilder: FormBuilder,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected platform: PlatformService
   ) {
-    super(dateAdapter, validatorService, formBuilder, programService, settings, cd);
+    super(dateAdapter, validatorService, formBuilder, programRefService, settings, cd);
     this.mobile = platform.mobile;
     this.keepRankOrder = true;
     this.tabindex = 0;

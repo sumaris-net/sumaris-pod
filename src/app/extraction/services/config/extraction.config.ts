@@ -1,5 +1,6 @@
 import {TypePolicies} from "@apollo/client/core";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
+import {UserProfileLabels} from "../../../core/services/model/person.model";
 
 export const EXTRACTION_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'ExtractionTypeVO': {
@@ -29,4 +30,13 @@ export const EXTRACTION_CONFIG_OPTIONS = Object.freeze({
     type: 'boolean',
     defaultValue: 'false'
   },
+  EXTRACTION_NOT_SELF_ACCESS_ROLE: <FormFieldDefinition>{
+    key: "sumaris.auth.notSelfExtractionAccess.role",
+    label: "EXTRACTION.OPTIONS.NOT_SELF_ACCESS_MIN_ROLE",
+    type: 'enum',
+    values: Object.keys(UserProfileLabels).map(key => ({
+      key: 'ROLE_' + key,
+      value: 'USER.PROFILE_ENUM.' + key
+    }))
+  }
 });

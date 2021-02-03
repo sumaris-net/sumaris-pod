@@ -18,6 +18,7 @@ import {
 import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 import {Strategy} from "../../referential/services/model/strategy.model";
 import {StrategyRefService} from "../../referential/services/strategy-ref.service";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 
 @Directive()
@@ -29,7 +30,7 @@ export abstract class AppRootDataEditor<
   extends AppEntityEditor<T, S>
   implements OnInit {
 
-  protected programService: ProgramService;
+  protected programRefService: ProgramRefService;
   protected strategyRefService: StrategyRefService;
   protected autocompleteHelper: MatAutocompleteConfigHolder;
 
@@ -59,7 +60,7 @@ export abstract class AppRootDataEditor<
       dataService,
       options);
 
-    this.programService = injector.get(ProgramService);
+    this.programRefService = injector.get(ProgramRefService);
     this.strategyRefService = injector.get(StrategyRefService);
 
     // Create autocomplete fields registry
@@ -81,7 +82,9 @@ export abstract class AppRootDataEditor<
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
-          switchMap(programLabel => this.programService.watchByLabel(programLabel)),
+          // DEBUG --
+          //tap(programLabel => console.debug('DEV - Getting programLabel=' + programLabel)),
+          switchMap(programLabel => this.programRefService.watchByLabel(programLabel, {debug: this.debug})),
           tap(program => this.$program.next(program))
         )
         .subscribe());
@@ -91,10 +94,10 @@ export abstract class AppRootDataEditor<
       this.strategySubject
         .pipe(
           distinctUntilChanged(),
-          // TODO BLA: prefer to use watch by label, in case strategy changed
-          switchMap(strategyLabel => strategyLabel
-            ? this.strategyRefService.loadByLabel(strategyLabel)
-            : Promise.resolve(undefined)),
+          switchMap(strategyLabel => isNotNilOrBlank(strategyLabel)
+            ? this.strategyRefService.watchByLabel(strategyLabel)
+            : Promise.resolve(undefined) // Allow to have empty strategy (e.g. when user reset the strategy field)
+          ),
           tap(strategy => this.$strategy.next(strategy))
         )
         .subscribe());
@@ -157,7 +160,7 @@ export abstract class AppRootDataEditor<
   }
 
   protected canUserWrite(data: T): boolean {
-    return isNil(data.validationDate) && this.programService.canUserWrite(data);
+    return isNil(data.validationDate) && this.programRefService.canUserWrite(data);
   }
 
   /**

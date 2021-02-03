@@ -161,8 +161,7 @@
                              [tabIndex]="61"
                              [defaultSampleDate]="data?.dateTime"
                              [usageMode]="usageMode"
-                             (onStartEditingRow)="startEditingSampleRow($event)"
-                             (onInitForm)="onStartEditingSampleRow($event)"
+                             (onPrepareRowForm)="onPrepareSampleForm($event)"
                              [debug]="debug">
             <ion-buttons slot="end">
               <!-- Help button -->

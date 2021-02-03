@@ -8,6 +8,7 @@ import {LocalSettingsService} from "../../../core/services/local-settings.servic
 import {Measurement, MeasurementUtils, MeasurementValuesUtils} from "../model/measurement.model";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
+import {ProgramRefService} from "../../../referential/services/program-ref.service";
 
 export interface MeasurementsValidatorOptions {
   isOnFieldMode?: boolean;
@@ -22,8 +23,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
 
   constructor(
     protected formBuilder: FormBuilder,
-    protected settings: LocalSettingsService,
-    protected programService: ProgramService) {
+    protected settings: LocalSettingsService) {
   }
 
   getRowValidator(opts?: O): FormGroup {

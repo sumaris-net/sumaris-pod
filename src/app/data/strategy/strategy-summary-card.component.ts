@@ -4,11 +4,11 @@ import {merge, Subscription} from "rxjs";
 import {Router} from "@angular/router";
 import {environment} from "../../../environments/environment";
 import {AppRootDataEditor} from "../form/root-data-editor.class";
-import {isNil, isNotNil} from "../../shared/functions";
+import {isNil} from "../../shared/functions";
 import {fadeInAnimation} from "../../shared/material/material.animations";
 import {Strategy} from "../../referential/services/model/strategy.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ProgramService} from "../../referential/services/program.service";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {StrategyService} from "../../referential/services/strategy.service";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 
@@ -36,7 +36,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
 
   @Input() i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX;
   @Input() title: string;
-  @Input() canOpen = false;
+  @Input() showOpenLink = false;
 
   @Input("value")
   set value(value: T) {
@@ -51,7 +51,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
   constructor (
     protected router: Router,
     protected localSettings: LocalSettingsService,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected strategyService: StrategyService,
     protected cd: ChangeDetectorRef
   ) {
@@ -87,18 +87,18 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
   /* -- protected method -- */
 
   protected updateView(data?: T) {
-    data = data || this.data || (this.editor && this.editor.strategy as T)
+    data = data || this.data || (this.editor && this.editor.strategy as T);
 
     if (isNil(data) || isNil(data.id)) {
       this.loading = true;
       this.data = null;
-      this.canOpen = false;
+      this.showOpenLink = false;
       this.markForCheck();
     }
     else if (this.data !== data){
       console.debug('[strategy-summary-card] updating view using strategy:', data);
       this.data = data;
-      this.canOpen = this.strategyService.canUserWrite(data);
+      this.showOpenLink = this.strategyService.canUserWrite(data);
       this.loading = false;
       this.markForCheck();
     }
@@ -109,7 +109,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
     const programId = this.data && this.data.programId;
     if (isNil(programId) || isNil(this.data.id)) return; // Skip
 
-    const program = await this.programService.load(programId, {fetchPolicy: "cache-first"});
+    const program = await this.programRefService.load(programId, {fetchPolicy: "cache-first"});
     const strategyEditor = program.getProperty(ProgramProperties.LANDING_EDITOR);
     return this.router.navigateByUrl(`/referential/programs/${programId}/strategies/${strategyEditor}/${this.data.id}`);
   }

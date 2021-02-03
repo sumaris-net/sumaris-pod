@@ -569,10 +569,9 @@ export abstract class AppTable<T extends Entity<T>, F = any>
               AppFormUtils.logFormErrors(row.validator, '[table] ');
             }
           }
+          // fix: mark all controls as touched to show errors
           row.validator.markAllAsTouched();
         }
-        // fix: mark all controls as touched to show errors
-        row.validator.markAllAsTouched();
         return false;
       }
       // If edit finished, forget edited row
@@ -614,8 +613,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   addRow(event?: any): boolean {
+    /*if (this.debug) */console.debug("[table] Asking for new row...");
     if (!this._enabled) return false;
-    if (this.debug) console.debug("[table] Asking for new row...");
 
     // Use modal if inline edition is disabled
     if (!this.inlineEdition) {
@@ -745,6 +744,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   clickRow(event: MouseEvent|undefined, row: TableElement<T>): boolean {
+    // DEBUG
+    //console.debug("[table] Detect click on row");
     if (row.id === -1 || row.editing) return true; // Already in edition
     if (event && event.defaultPrevented || this.loading) return false; // Cancelled by event
 

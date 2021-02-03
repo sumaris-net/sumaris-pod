@@ -20,7 +20,6 @@ import {firstNotNil, firstNotNilPromise} from "../../shared/observables";
 import {Operation, Trip} from "../services/model/trip.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
-import {ProgramService} from "../../referential/services/program.service";
 import {EntityUtils, IEntity} from "../../core/services/model/entity.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {BatchTreeComponent} from "../batch/batch-tree.component";
@@ -28,6 +27,7 @@ import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {AppEntityEditor} from "../../core/form/editor.class";
 import {environment} from "../../../environments/environment";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 @Component({
   selector: 'app-operation-page',
@@ -81,7 +81,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     injector: Injector,
     dataService: OperationService,
     protected tripService: TripService,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected platform: PlatformService
   ) {
     super(injector, Operation, dataService, {
@@ -110,7 +110,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
-          switchMap(programLabel => this.programService.watchByLabel(programLabel))
+          switchMap(programLabel => this.programRefService.watchByLabel(programLabel))
         )
         .subscribe(program => this.$program.next(program)));
 
@@ -421,6 +421,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   /**
    * Compute the title
    * @param data
+   * @param opts
    */
   protected async computeTitle(data: Operation, opts?: {
     withPrefix?: boolean;
@@ -703,7 +704,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (qvMeasurement && ReferentialUtils.isNotEmpty(qvMeasurement.qualitativeValue)) {
 
       // Retrieve QV from the program pmfm (because measurement's QV has only the 'id' attribute)
-      const tripPmfms = await this.programService.loadProgramPmfms(this.programSubject.getValue(), {acquisitionLevel: AcquisitionLevelCodes.TRIP});
+      const tripPmfms = await this.programRefService.loadProgramPmfms(this.programSubject.getValue(), {acquisitionLevel: AcquisitionLevelCodes.TRIP});
       const pmfm = (tripPmfms || []).find(pmfm => pmfm.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
       const qualitativeValue = (pmfm && pmfm.qualitativeValues || []).find(qv => qv.id === qvMeasurement.qualitativeValue.id);
 

@@ -123,7 +123,7 @@
         <input matInput autocomplete="off"
                [formControl]="row.validator.controls.label"
                [placeholder]="i18nFieldPrefix + 'LABEL_PLACEHOLDER'|translate"
-               (click)="$event.target.select()"
+               (click)="selectInputContent($event)"
                [readonly]="!row.editing">
         <mat-error *ngIf="row.validator.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
         </mat-error>

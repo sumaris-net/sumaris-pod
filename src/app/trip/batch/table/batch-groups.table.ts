@@ -905,7 +905,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     console.debug("[batch-group-table] Loading available taxon groups, using options:", opts);
 
     const sortAttributes = this.autocompleteFields.taxonGroup && this.autocompleteFields.taxonGroup.attributes || ['label', 'name'];
-    const taxonGroups = ((await this.programService.loadTaxonGroups(this.program)) || [])
+    const taxonGroups = ((await this.programRefService.loadTaxonGroups(this.program)) || [])
       // Filter on expected labels (as prefix)
       .filter(taxonGroup => !defaultTaxonGroups || taxonGroup.label && defaultTaxonGroups.findIndex(label => taxonGroup.label.startsWith(label)) !== -1)
       // Sort using order configure in the taxon group column

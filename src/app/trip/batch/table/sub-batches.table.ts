@@ -503,7 +503,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
     const parent = this.editedRow && this.editedRow.validator.get('parentGroup').value;
     if (isNilOrBlank(value) && isNil(parent)) return [];
-    return this.programService.suggestTaxonNames(value,
+    return this.programRefService.suggestTaxonNames(value,
       {
         program: this.program,
         searchAttribute: options && options.searchAttribute,

@@ -15,7 +15,7 @@ export declare interface LoadResult<T> {
   errors?: any[];
 }
 
-export declare type SuggestFn<T, F> = (value: any, filter?: F, sortBy?: string, sortDirection?: SortDirection) => Promise<T[]>;
+export declare type SuggestFn<T, F> = (value: any, filter?: F, sortBy?: string, sortDirection?: SortDirection) => Promise<T[] | LoadResult<T>>;
 
 export declare interface SuggestService<T, F> {
   suggest: SuggestFn<T, F>;

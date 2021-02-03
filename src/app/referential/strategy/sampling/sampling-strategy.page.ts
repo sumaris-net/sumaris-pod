@@ -163,7 +163,6 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
     // Add default PmfmStrategy
     this.fillPmfmStrategyDefaults(json);
 
-    console.log('TODO BLA json to save: ', json);
     return json;
   }
 

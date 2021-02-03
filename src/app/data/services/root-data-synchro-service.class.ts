@@ -15,6 +15,7 @@ import {Moment} from "moment";
 import {isNil} from "../../shared/functions";
 import {SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "./model/data-entity.model";
 import {JobUtils} from "../../shared/services/job.utils";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 
 export interface IDataSynchroService<T extends RootDataEntity<T>, O = EntityServiceLoadOptions> {
@@ -50,7 +51,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>, F = an
   protected referentialRefService: ReferentialRefService;
   protected personService: PersonService;
   protected vesselSnapshotService: VesselSnapshotService;
-  protected programService: ProgramService;
+  protected programRefService: ProgramRefService;
   protected entities: EntitiesStorage;
   protected network: NetworkService;
   protected settings: LocalSettingsService;
@@ -68,7 +69,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>, F = an
     this.referentialRefService = injector.get(ReferentialRefService);
     this.personService = injector.get(PersonService);
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
-    this.programService = injector.get(ProgramService);
+    this.programRefService = injector.get(ProgramRefService);
     this.entities = injector.get(EntitiesStorage);
     this.network = injector.get(NetworkService);
     this.settings = injector.get(LocalSettingsService);
@@ -228,7 +229,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>, F = an
       (p, o) => this.referentialRefService.executeImport(p, o),
       (p, o) => this.personService.executeImport(p, o),
       (p, o) => this.vesselSnapshotService.executeImport(p, o),
-      (p, o) => this.programService.executeImport(p, o)
+      (p, o) => this.programRefService.executeImport(p, o)
     ], opts);
   }
 }

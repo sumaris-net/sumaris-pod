@@ -62,8 +62,8 @@ const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQue
   ${ReferentialFragments.pmfm}
   ${ReferentialFragments.parameter}
   ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.taxonName}
-  `,
+  ${ReferentialFragments.taxonName}`,
+
   loadAll: gql`query Strategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...StrategyFragment
@@ -80,8 +80,8 @@ const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQue
   ${ReferentialFragments.pmfm}
   ${ReferentialFragments.parameter}
   ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.taxonName}
-  `,
+  ${ReferentialFragments.taxonName}`,
+
   loadAllWithTotal: gql`query StrategiesWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...StrategyFragment
@@ -99,12 +99,12 @@ const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQue
   ${ReferentialFragments.pmfm}
   ${ReferentialFragments.parameter}
   ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.taxonName}
-  `,
+  ${ReferentialFragments.taxonName}`,
+
   count: gql`query StrategyCount($filter: StrategyFilterVOInput!) {
       total: strategiesCount(filter: $filter)
-    }
-  `,
+    }`,
+
   loadAllRef: gql`query StrategiesRef($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
       data: strategies(filter: $filter) {
         ...StrategyRefFragment
@@ -125,12 +125,11 @@ const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQue
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
     ${ReferentialFragments.referential}
-    ${ReferentialFragments.taxonName}
-    `
+    ${ReferentialFragments.taxonName}`
 };
 
 const StrategyMutations: BaseReferentialEntityMutations = {
-  save: gql`mutation SaveStrategy($data:StrategyVOInput!){
+  save: gql`mutation SaveStrategy($data: StrategyVOInput!){
     data: saveStrategy(strategy: $data){
       ...StrategyFragment
     }
@@ -146,12 +145,11 @@ const StrategyMutations: BaseReferentialEntityMutations = {
   ${ReferentialFragments.pmfm}
   ${ReferentialFragments.parameter}
   ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.taxonName}
-  `,
+  ${ReferentialFragments.taxonName}`,
+
   delete: gql`mutation DeleteAllStrategies($id:Int!){
     deleteStrategy(id: $id)
-  }
-  `,
+  }`,
 };
 
 const strategySubscriptions: BaseReferentialSubscriptions = {
@@ -160,8 +158,7 @@ const strategySubscriptions: BaseReferentialSubscriptions = {
       ...ReferentialFragment
     }
   }
-  ${ReferentialFragments.referential}
-  `
+  ${ReferentialFragments.referential}`
 };
 
 @Injectable({providedIn: 'root'})
@@ -176,15 +173,19 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     protected entities: EntitiesStorage
   ) {
     super(graphql, platform, Strategy,
-      StrategyQueries,
-      StrategyMutations,
-      strategySubscriptions,
-      StrategyFilter.asPodObject, StrategyFilter.searchFilter);
+      {
+        queries: StrategyQueries,
+        mutations: StrategyMutations,
+        subscriptions: strategySubscriptions,
+        filterAsObjectFn: StrategyFilter.asPodObject,
+        createFilterFn: StrategyFilter.searchFilter
+      });
   }
 
-  async existLabel(label: string, opts?: {
+  async existsByLabel(label: string, opts?: {
     programId?: number;
     excludedIds?: number[];
+    fetchPolicy?: FetchPolicy
   }): Promise<boolean> {
     if (isNilOrBlank(label)) throw new Error("Missing argument 'label' ");
 
@@ -193,58 +194,13 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       levelId: opts && isNotNil(opts.programId) ? opts.programId : undefined,
       excludedIds: opts && isNotNil(opts.excludedIds) ? opts.excludedIds : undefined,
     });
-    // Load from pod
     const {total} = await this.graphql.query<{ total: number }>({
       query: StrategyQueries.count,
       variables: { filter },
       error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "ERROR.LOAD_ERROR"},
-      fetchPolicy: undefined,
-
+      fetchPolicy: opts && opts.fetchPolicy || undefined
     });
     return toNumber(total, 0) > 0;
-  }
-
-  /**
-   *
-   * @param label
-   * @param options
-   */
-  async loadAllRef(offset: number,
-                   size: number,
-                   sortBy?: string,
-                   sortDirection?: SortDirection,
-                   filter?: StrategyFilter,
-                   opts?: {
-                     [key: string]: any;
-                     fetchPolicy?: FetchPolicy;
-                     debug?: boolean;
-                     withTotal?: boolean;
-                     toEntity?: boolean;
-                   }): Promise<LoadResult<Strategy>> {
-
-    return super.loadAll(offset, size, sortBy, sortDirection, filter, {
-      ...opts,
-      query: StrategyQueries.loadAllRef
-    });
-  }
-
-  /**
-   *
-   * @param label
-   * @param options
-   */
-  async loadRefByLabel(label: string, opts?: {
-    programId?: number;
-    fetchPolicy?: FetchPolicy;
-  }): Promise<Strategy> {
-
-    const res = await this.loadAllRef(0, 1, null,null, {
-      label,
-      levelId: toNumber(opts && opts.programId, undefined)
-    }, {
-      ...opts
-    });
-    return res && firstArrayValue(res.data);
   }
 
   async computeNextLabel(programId: number, labelPrefix?: string, nbDigit?: number): Promise<string> {

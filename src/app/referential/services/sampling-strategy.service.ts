@@ -23,47 +23,14 @@ import {mergeMap} from "rxjs/internal/operators";
 import {DateUtils} from "../../shared/dates";
 import {SamplingStrategy, StrategyEffort} from "./model/sampling-strategy.model";
 
-const DenormalizedStrategyFragments = {
-  denormalizedStrategy: gql`fragment DenormalizedStrategyFragment on StrategyVO {
-    id
-    label
-    name
-    description
-    comments
-    analyticReference
-    updateDate
-    creationDate
-    statusId
-    programId
-    gears {
-      ...ReferentialFragment
-    }
-    taxonGroups {
-      ...TaxonGroupStrategyFragment
-    }
-    taxonNames {
-      ...TaxonNameStrategyFragment
-    }
-    appliedStrategies {
-      ...AppliedStrategyFragment
-    }
-    pmfmStrategies {
-      ...PmfmStrategyFragment
-    }
-    departments {
-      ...StrategyDepartmentFragment
-    }
-  }`
-}
-;
 const DenormalizedStrategyQueries = {
   loadAll: gql`query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...DenormalizedStrategyFragment
+      ...SamplingStrategyFragment
     }
     total: strategiesCount(filter: $filter)
   }
-  ${DenormalizedStrategyFragments.denormalizedStrategy}
+  ${StrategyFragments.samplingStrategy}
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.pmfmStrategy}
@@ -78,11 +45,11 @@ const DenormalizedStrategyQueries = {
 
   loadAllWithTotal: gql`query DenormalizedStrategiesWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...DenormalizedStrategyFragment
+      ...SamplingStrategyFragment
     }
     total: strategiesCount(filter: $filter)
   }
-  ${DenormalizedStrategyFragments.denormalizedStrategy}
+  ${StrategyFragments.samplingStrategy}
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.pmfmStrategy}
@@ -138,18 +105,20 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     protected referentialRefService: ReferentialRefService
   ) {
     super(graphql, platform, SamplingStrategy,
-      DenormalizedStrategyQueries,
-      null,
-      null,
-      StrategyFilter.asPodObject, StrategyFilter.searchFilter);
+      {
+        queries: DenormalizedStrategyQueries,
+        filterAsObjectFn: StrategyFilter.asPodObject,
+        createFilterFn: StrategyFilter.searchFilter
+      });
   }
 
   watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: StrategyFilter,
            opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean; withEffort?: boolean; }
            ): Observable<LoadResult<SamplingStrategy>> {
+    // Call classic watch all
     return super.watchAll(offset, size, sortBy, sortDirection, filter, opts)
+      // Then fill entities (effort, parameter groups, etc)
       .pipe(
-        // Fill entities (parameter groups, effort, etc)
         mergeMap(res => this.fillEntities(res, opts)
           .then(() => res)
       ));

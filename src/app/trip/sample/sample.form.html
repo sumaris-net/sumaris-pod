@@ -17,7 +17,7 @@
                  [appAutofocus]="enabled &&  focusFieldName === 'label'"
                  [tabindex]="tabindex"
                  [placeholder]="'TRIP.SAMPLE.TABLE.LABEL_PLACEHOLDER'|translate"
-                 (click)="$event.target.select()"
+                 (click)="selectInputContent($event)"
                  [required]="showLabel">
           <mat-error *ngIf="form.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
           </mat-error>

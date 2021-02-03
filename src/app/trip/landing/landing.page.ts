@@ -246,7 +246,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     }
   }
 
-  onStartEditingSampleRow({form, pmfms}) {
+  onPrepareSampleForm({form, pmfms}) {
+    console.debug('[landing-page] Initializing sample form (validators...)');
+
     // Remove previous subscription
     if (this._rowValidatorSubscription) {
       this._rowValidatorSubscription.unsubscribe();
@@ -327,7 +329,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected async setStrategy(strategy: Strategy) {
-    if (!strategy) return; // Skip if empty
+
+    if (!strategy) {
+      console.warn('FIXME settings strategy=', strategy);
+      return; // Skip if empty
+    }
 
     this.landingForm.strategy = strategy.label;
     if (this.strategyCard) {
@@ -337,6 +343,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     // Set table defaults
     const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
     this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
+    this.samplesTable.showTaxonGroupColumn = false;
+
     // TODO BLA : give default
     this.samplesTable.pmfms = (strategy.pmfmStrategies || []).filter(p => p.acquisitionLevel === this.samplesTable.acquisitionLevel);
   }
@@ -441,10 +449,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         injectionPoint.append(content.nativeElement);
       });
     }
-  }
-
-  startEditingSampleRow(row: TableElement<Sample>) {
-    console.log('TODO BLA', row);
   }
 
   protected computeSampleRowValidator(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {

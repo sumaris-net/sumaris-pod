@@ -31,8 +31,8 @@ export class SamplingLandingPage extends LandingPage {
     this.pmfmService = injector.get(PmfmService);
   }
 
-  ngOnInit() {
-    super.ngOnInit();
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
 
     // Load Pmfm IDS, group by parameter labels
     this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups)
@@ -59,6 +59,7 @@ export class SamplingLandingPage extends LandingPage {
   }
 
   protected computeSampleRowValidator(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {
+    console.debug('[sampling-landing-page] Adding row validator');
     return BiologicalSamplingValidators.addSampleValidators(form, pmfms, this.$pmfmGroups.getValue() || {}, {
       markForCheck: () => this.markForCheck()
     });

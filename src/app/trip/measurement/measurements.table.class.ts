@@ -1,4 +1,4 @@
-import {Directive, Injector, Input, OnDestroy, OnInit} from "@angular/core";
+import {Directive, Injector, Input, OnDestroy, OnInit, Optional} from "@angular/core";
 import {BehaviorSubject, Observable} from 'rxjs';
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {ModalController, Platform} from "@ionic/angular";
@@ -16,14 +16,14 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Alerts} from "../../shared/alerts";
 import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
-import {ProgramService} from "../../referential/services/program.service";
 import {IEntitiesService} from "../../shared/services/entity-service.class";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {Entity} from "../../core/services/model/entity.model";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 
-export class AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T> {
+export class AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T>{
   reservedStartColumns?: string[];
   reservedEndColumns?: string[];
   mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
@@ -42,9 +42,10 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   protected measurementsDataService: MeasurementsDataService<T, F>;
   protected measurementsValidatorService: MeasurementsValidatorService;
 
-  protected programService: ProgramService;
+  protected programRefService: ProgramRefService;
   protected translate: TranslateService;
   protected formBuilder: FormBuilder;
+  protected readonly options: AppMeasurementsTableOptions<T>;
 
   measurementValuesFormGroupConfig: { [key: string]: any };
   readonly hasRankOrder: boolean;
@@ -114,7 +115,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     protected dataType: new() => T,
     dataService?: IEntitiesService<T, F>,
     protected validatorService?: ValidatorService,
-    protected options?: AppMeasurementsTableOptions<T>
+    @Optional() options?: AppMeasurementsTableOptions<T>
   ) {
     super(injector.get(ActivatedRoute),
       injector.get(Router),
@@ -131,21 +132,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
       null,
       injector
     );
-
-    this.measurementsValidatorService = injector.get(MeasurementsValidatorService);
-    this.programService = injector.get(ProgramService);
-    this.translate = injector.get(TranslateService);
-    this.formBuilder = injector.get(FormBuilder);
-    this.defaultPageSize = -1; // Do not use paginator
-    this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
-    this.setLoading(false, {emitEvent: false});
-
-    this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService, options && {
-      mapPmfms: options.mapPmfms
-    });
-    this.measurementsDataService.program = this._program;
-    this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
-
     // Default options
     this.options = {
       prependNewElements: false,
@@ -153,12 +139,27 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
       debug: false,
       ...options
     };
-    if (!this.options.onRowCreated) {
-      this.options.onRowCreated = (row) => this.onRowCreated(row);
-    }
+
+    this.measurementsValidatorService = injector.get(MeasurementsValidatorService);
+    this.programRefService = injector.get(ProgramRefService);
+    this.translate = injector.get(TranslateService);
+    this.formBuilder = injector.get(FormBuilder);
+    this.defaultPageSize = -1; // Do not use paginator
+    this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
+    this.setLoading(false, {emitEvent: false});
+
+    this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService, {
+      mapPmfms: options.mapPmfms || undefined
+    });
+    this.measurementsDataService.program = this._program;
+    this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
 
     const encapsulatedValidator = this.validatorService ? this : null;
-    this.setDatasource(new EntitiesTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, options));
+    this.setDatasource(new EntitiesTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, {
+      ...this.options,
+      // IMPORTANT: Always use this custom onRowCreated, that will call options.onRowCreated is need
+      onRowCreated: (row) => this.onRowCreated(row)
+    }));
 
     // For DEV only
     //this.debug = !environment.production;
@@ -324,7 +325,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     }
   }
 
-  protected async onRowCreated(row: TableElement<T>): Promise<void> {
+  private async onRowCreated(row: TableElement<T>): Promise<void> {
     const data = row.currentData; // if validator enable, this will call a getter function
 
     await this.onNewEntity(data);
@@ -334,6 +335,12 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
     // Set row data
     row.currentData = data; // if validator enable, this will call a setter function
+
+    // Execute function from constructor's options (is any)
+    if (this.options.onRowCreated) {
+      const res = this.options.onRowCreated(row);
+      if (res instanceof Promise) await res;
+    }
 
     this.markForCheck();
   }

@@ -3,6 +3,7 @@ import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {MethodIds, PmfmIds} from "../services/model/model.enum";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
 import {Pmfm} from "../services/model/pmfm.model";
+import {isNil} from "../../shared/functions";
 
 @Pipe({
     name: 'pmfmName'
@@ -48,6 +49,7 @@ export class IsDatePmfmPipe implements PipeTransform {
 export class IsComputedPmfmPipe implements PipeTransform {
 
   transform(pmfm: PmfmStrategy): any {
+    if (isNil(pmfm && pmfm.methodId))console.log('TODO cannot check if computed - no method :', pmfm.name);
     return pmfm.type && (pmfm.methodId === MethodIds.CALCULATED);
   }
 }

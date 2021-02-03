@@ -131,7 +131,12 @@ const LoadAllQuery: any = gql`
   }
   ${ReferentialFragments.fullReferential}
 `;
-
+const CountQuery: any = gql`
+  query ReferentialsCount($entityName: String, $filter: ReferentialFilterVOInput){
+    total: referentialsCount(entityName: $entityName, filter: $filter)
+  }
+  ${ReferentialFragments.fullReferential}
+`;
 const LoadReferentialTypes: any = gql`
   query ReferentialTypes{
     data: referentialTypes {
@@ -367,41 +372,26 @@ export class ReferentialService extends BaseEntityService<Referential> implement
   }
 
   async existsByLabel(label: string,
-                      filter?: ReferentialFilter & {
-                        excludeId?: number;
-                      },
+                      filter?: ReferentialFilter,
                       opts?: {
-                        fetchPolicy: FetchPolicy
+                        fetchPolicy: FetchPolicy;
                       }): Promise<boolean> {
     if (!filter || !filter.entityName || !label) {
       console.error("[referential-service] Missing 'filter.entityName' or 'label'");
       throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
     }
 
-    const variables: any = {
-      entityName: filter.entityName,
-      offset: 0,
-      size: 2,
-      sortBy: 'id',
-      sortDirection: 'asc',
-      filter: ReferentialFilter.asPodObject(filter)
-    };
-
-    const res = await this.graphql.query<{ referentials: any }>({
-      query: LoadAllQuery,
-      variables,
+    const {total} = await this.graphql.query<{ total: number; }>({
+      query: CountQuery,
+      variables : {
+        entityName: filter.entityName,
+        filter: ReferentialFilter.asPodObject(filter)
+      },
       error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" },
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'
     });
 
-    let matches = (res && res.referentials || []);
-
-    // Remove excluded id
-    if (filter && isNotNil(filter.excludeId)) {
-      matches = matches.filter(item => item.id !== filter.excludeId);
-    }
-
-    return matches.length > 0;
+    return total > 0;
   }
 
   /**

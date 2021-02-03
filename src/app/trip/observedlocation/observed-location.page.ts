@@ -18,7 +18,7 @@ import {LandingEditor, ProgramProperties} from "../../referential/services/confi
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {BehaviorSubject} from "rxjs";
 import {firstNotNilPromise, firstTruePromise} from "../../shared/observables";
-import {filter, first} from "rxjs/operators";
+import {filter, first, tap} from "rxjs/operators";
 import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings.table";
 import {showError} from "../../shared/alerts";
 import {Program} from "../../referential/services/model/program.model";
@@ -106,7 +106,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.$program.subscribe(program => this.setProgram(program))
+      this.$program
+        .pipe(
+          //tap(program => console.debug('DEV - Setting program=' + program)),
+          tap(program => this.setProgram(program))
+        )
+        .subscribe()
     );
   }
 

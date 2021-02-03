@@ -238,7 +238,7 @@ export class ReferentialRefService extends BaseEntityService
       filter: ReferentialRefFilter.asPodObject(filter)
     };
     const now = debug && Date.now();
-    if (debug) console.debug(`[referential-ref-service] Loading ${uniqueEntityName} items...`, variables);
+    if (debug) console.debug(`[referential-ref-service] Loading ${uniqueEntityName} references...`, variables);
 
 
     // Online mode: use graphQL
@@ -259,7 +259,7 @@ export class ReferentialRefService extends BaseEntityService
       entities.forEach(item => item.entityName = uniqueEntityName);
     }
 
-    if (debug) console.debug(`[referential-ref-service] ${uniqueEntityName} items loaded in ${Date.now() - now}ms`);
+    if (debug) console.debug(`[referential-ref-service] Loading ${uniqueEntityName} references [OK] ${entities.length} items, in ${Date.now() - now}ms`);
     return {
       data: entities,
       total
@@ -445,17 +445,18 @@ export class ReferentialRefService extends BaseEntityService
     const groupKeys = Object.keys(groupBy.levelIds || groupBy.levelLabels); // AGE, SEX, MATURITY, etc
 
     // Check arguments
-    if (!entityName) throw Error("Missing 'filter.entityName' argument");
-    if (isEmptyArray(groupKeys)) throw Error("Missing 'levelLabelsMap' argument");
-    if ((groupBy.levelIds && groupBy.levelLabels) || (!groupBy.levelIds && !groupBy.levelLabels))
-      throw Error("Invalid groupBy value: one (and only one) required: 'levelIds' or 'levelLabels'");
+    if (!entityName) throw new Error("Missing 'filter.entityName' argument");
+    if (isEmptyArray(groupKeys)) throw new Error("Missing 'levelLabelsMap' argument");
+    if ((groupBy.levelIds && groupBy.levelLabels) || (!groupBy.levelIds && !groupBy.levelLabels)) {
+      throw new Error("Invalid groupBy value: one (and only one) required: 'levelIds' or 'levelLabels'");
+    }
 
-    const now = Date.now();
-    console.debug(`[referential-ref-service] Loading grouped ${entityName}...`);
+    const debug = this._debug || (opts && opts.debug);
+    const now = debug && Date.now();
+    if (debug) console.debug(`[referential-ref-service] Loading grouped ${entityName}...`);
 
     const result: { [key: string]: ReferentialRef[]; } = {};
-    await Promise.all(groupKeys.map(key => {
-      return this.loadAll(0, 1000, 'id', 'asc', {
+    await Promise.all(groupKeys.map(key => this.loadAll(0, 1000, 'id', 'asc', {
         ...filter,
         levelIds: groupBy.levelIds && groupBy.levelIds[key],
         levelLabels: groupBy.levelLabels && groupBy.levelLabels[key]
@@ -463,11 +464,12 @@ export class ReferentialRefService extends BaseEntityService
         withTotal: false,
         ...opts
       })
-        .then(({data}) => {
-          result[key] = data || [];
-        });
-    }));
-    console.debug(`[referential-ref-service] Grouped ${entityName} loaded in ${Date.now() - now}ms`, result);
+      .then(({data}) => {
+        result[key] = data || [];
+      })
+    ));
+
+    if (debug) console.debug(`[referential-ref-service] Grouped ${entityName} loaded in ${Date.now() - now}ms`, result);
 
     return result;
   }

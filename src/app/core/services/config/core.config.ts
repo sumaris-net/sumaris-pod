@@ -51,15 +51,6 @@ export const CORE_CONFIG_OPTIONS = Object.freeze({
             value: 'USER.PROFILE_ENUM.' + key
         }))
     },
-    EXTRACTION_NOT_SELF_ACCESS_ROLE: <FormFieldDefinition>{
-      key: "sumaris.auth.notSelfExtractionAccess.role",
-      label: "CONFIGURATION.OPTIONS.NOT_SELF_EXTRACTION_ACCESS_MIN_ROLE",
-      type: 'enum',
-      values: Object.keys(UserProfileLabels).map(key => ({
-        key: 'ROLE_' + key,
-        value: 'USER.PROFILE_ENUM.' + key
-      }))
-    },
     ENTITY_TRASH: <FormFieldDefinition> {
         key: 'sumaris.persistence.trash.enable',
         label: 'CONFIGURATION.OPTIONS.ENTITY_TRASH',

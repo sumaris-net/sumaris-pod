@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Output} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
-import {debounceTime, distinctUntilChanged, filter, map, pluck, tap} from 'rxjs/operators';
+import {debounceTime, map} from 'rxjs/operators';
 import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../referential/services/model/model.enum';
 import {LandingValidatorService} from "../services/validator/landing.validator";
 import {PersonService} from "../../admin/services/person.service";
@@ -16,15 +16,14 @@ import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.
 import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {Landing} from "../services/model/landing.model";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {ProgramService} from "../../referential/services/program.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
 import {FormArrayHelper} from "../../core/form/form.utils";
-import {BehaviorSubject} from "rxjs";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {SharedValidators} from "../../shared/validator/validators";
 import {EntityUtils} from "../../core/services/model/entity.model";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -90,7 +89,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected validatorService: LandingValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService,
@@ -99,7 +98,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected modalCtrl: ModalController,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd, validatorService.getFormGroup(), {
+    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup(), {
       mapPmfms: pmfms => this.mapPmfms(pmfms)
     });
     // Add a strategy field (not in validator)

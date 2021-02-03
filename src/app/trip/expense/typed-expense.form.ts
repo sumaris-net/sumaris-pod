@@ -4,7 +4,6 @@ import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {FormBuilder} from "@angular/forms";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ProgramService} from "../../referential/services/program.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {TypedExpenseValidatorService} from "../services/validator/typed-expense.validator";
 import {BehaviorSubject} from "rxjs";
@@ -14,6 +13,7 @@ import {isNotEmptyArray, isNotNilOrNaN, remove, removeAll} from "../../shared/fu
 import {Measurement} from "../services/model/measurement.model";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {debounceTime, filter} from "rxjs/operators";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 @Component({
   selector: 'app-typed-expense-form',
@@ -50,10 +50,10 @@ export class TypedExpenseForm extends MeasurementsForm {
     protected formBuilder: FormBuilder,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected platform: PlatformService
   ) {
-    super(dateAdapter, validatorService, formBuilder, programService, settings, cd);
+    super(dateAdapter, validatorService, formBuilder, programRefService, settings, cd);
     this.mobile = platform.mobile;
     this.keepRankOrder = true;
   }

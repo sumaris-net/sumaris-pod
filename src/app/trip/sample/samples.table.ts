@@ -27,6 +27,8 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
 import {PlatformService} from "../../core/services/platform.service";
 import {IReferentialRef, ReferentialRef} from "../../core/services/model/referential.model";
 import {environment} from "../../../environments/environment";
+import {AppFormUtils} from "../../core/form/form.utils";
+import {filter, map, tap} from "rxjs/operators";
 
 const moment = momentImported;
 
@@ -100,7 +102,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     return this.getShowColumn('taxonName');
   }
 
-  @Output() onInitForm = new EventEmitter<{form: FormGroup, pmfms: PmfmStrategy[]}>();
+  @Output() onPrepareRowForm = new EventEmitter<{form: FormGroup, pmfms: PmfmStrategy[]}>();
 
   constructor(
     injector: Injector,
@@ -135,17 +137,20 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.debug = !environment.production;
 
     // If init form callback exists, apply it when start row edition
-    if (this.onInitForm) {
-      this.registerSubscription(
-        this.onStartEditingRow.subscribe(row => this.onInitForm.emit({
-              form: row.validator,
-              pmfms: this.$pmfms.getValue()
-            })));
-    }
+    this.registerSubscription(
+      this.onStartEditingRow
+        .pipe(
+          filter(row => row && row.validator && true),
+          map(row => ({form: row.validator, pmfms: this.$pmfms.getValue()})),
+          // DEBUG
+          //tap(() => console.debug('[samples-table] will sent onPrepareRowForm event:', event))
+          tap(event => this.onPrepareRowForm.emit(event))
+        )
+        .subscribe());
   }
 
-  ngOnInit() {
-    super.ngOnInit();
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
 
     this.setShowColumn('label', this.showLabelColumn);
     this.setShowColumn('sampleDate', this.showDateTimeColumn);
@@ -171,7 +176,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
     //if (isNilOrBlank(value)) return [];
-    return this.programService.suggestTaxonGroups(value,
+    return this.programRefService.suggestTaxonGroups(value,
       {
         program: this.program,
         searchAttribute: options && options.searchAttribute
@@ -184,7 +189,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     // IF taxonGroup column exists: taxon group must be filled first
     if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return [];
 
-    return this.programService.suggestTaxonNames(value,
+    return this.programRefService.suggestTaxonNames(value,
       {
         program: this.program,
         searchAttribute: options && options.searchAttribute,
@@ -253,24 +258,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     return true;
   }
 
-  protected async addRowToTable(): Promise<TableElement<Sample>> {
-    this.focusFirstColumn = true;
-    await this._dataSource.asyncCreateNew();
-    this.editedRow = this._dataSource.getRow(-1);
-    const sample = this.editedRow.currentData;
-    // Initialize default parameters
-    await this.onNewEntity(sample);
-    // Update row
-    await this.updateEntityToTable(sample, this.editedRow);
-
-    // Emit start editing event
-    this.onStartEditingRow.emit(this.editedRow);
-    this._dirty = true;
-    this.resultsLength++;
-    this.visibleRowCount++;
-    this.markForCheck();
-    return this.editedRow;
-  }
 
   async openDetailModal(sample?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
     console.debug('[samples-table] Opening detail modal...');
@@ -297,7 +284,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         showDateTime: this.showDateTimeColumn,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
-        onReady: (obj) => this.onInitForm && this.onInitForm.emit({form: obj.form.form, pmfms: obj.$pmfms.getValue()}),
+        onReady: (obj) => this.onPrepareRowForm.emit({form: obj.form.form, pmfms: obj.$pmfms.getValue()}),
         onSaveAndNew: async (data) => {
           if (isNil(data.id)) {
             await this.addEntityToTable(data);
@@ -371,6 +358,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     }
     return canDeleteRow;
   }
+
+  selectInputContent = AppFormUtils.selectInputContent;
 
   public markForCheck() {
     this.cd.markForCheck();

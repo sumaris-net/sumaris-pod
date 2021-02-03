@@ -1,10 +1,9 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Inject, Input, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean} from '../../shared/functions';
 import {AlertController, ModalController} from "@ionic/angular";
 import {BehaviorSubject, defer} from "rxjs";
 import {FormGroup} from "@angular/forms";
 import {OperationService} from "../services/operation.service";
-import {ProgramService} from "../../referential/services/program.service";
 import {debounceTime, filter, map, switchMap} from "rxjs/operators";
 import {TripService} from "../services/trip.service";
 import {Batch, BatchUtils} from "../services/model/batch.model";
@@ -25,6 +24,8 @@ import {InMemoryEntitiesService} from "../../shared/services/memory-entity-servi
 import {AppTabEditor} from "../../core/form/tab-editor.class";
 import {AppTableUtils} from "../../core/table/table.utils";
 import {environment} from "../../../environments/environment";
+import {Program} from "../../referential/services/model/program.model";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 @Component({
   selector: 'app-batch-tree',
@@ -99,7 +100,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     protected router: Router,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected tripService: TripService,
     protected operationService: OperationService,
     protected modalCtrl: ModalController,
@@ -140,26 +141,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         this.programSubject
           .pipe(
             filter(isNotNilOrBlank),
-            switchMap(programLabel => this.programService.watchByLabel(programLabel))
+            switchMap(programLabel => this.programRefService.watchByLabel(programLabel))
           )
-          .subscribe(program => {
-            if (this.debug) console.debug(`[batch-tree] Program ${program.label} loaded, with properties: `, program.properties);
-
-            this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
-            this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
-
-            // Some specific taxon groups have no weight collected
-            const taxonGroupsNoWeight = program.getProperty(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
-            this.batchGroupsTable.taxonGroupsNoWeight = taxonGroupsNoWeight && taxonGroupsNoWeight.split(',')
-              .map(label => label.trim().toUpperCase())
-              .filter(isNotNilOrBlank) || undefined;
-
-            // Force taxon name in sub batches, if not filled in root batch
-            if (this.subBatchesTable) {
-              this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn;
-              this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
-            }
-          })
+          .subscribe(program => this.setProgram(program))
       );
 
       if (this.showSubBatchesTable) {
@@ -192,7 +176,26 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         );
       }
     }
+  }
 
+  protected setProgram(program: Program) {
+    if (!program) return;
+    if (this.debug) console.debug(`[batch-tree] Program ${program.label} loaded, with properties: `, program.properties);
+
+    this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
+    this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
+
+    // Some specific taxon groups have no weight collected
+    const taxonGroupsNoWeight = program.getProperty(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
+    this.batchGroupsTable.taxonGroupsNoWeight = taxonGroupsNoWeight && taxonGroupsNoWeight.split(',')
+      .map(label => label.trim().toUpperCase())
+      .filter(isNotNilOrBlank) || undefined;
+
+    // Force taxon name in sub batches, if not filled in root batch
+    if (this.subBatchesTable) {
+      this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn;
+      this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
+    }
   }
 
   async load(id?: number, options?: any): Promise<any> {

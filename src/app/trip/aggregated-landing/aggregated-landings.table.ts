@@ -30,7 +30,6 @@ import {TableElement} from "@e-is/ngx-material-table";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {ProgramService} from "../../referential/services/program.service";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {AggregatedLandingModal} from "./aggregated-landing.modal";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
@@ -38,6 +37,7 @@ import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {referentialToString} from "../../core/services/model/referential.model";
 import {environment} from "../../../environments/environment";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 const moment = momentImported;
 
@@ -110,7 +110,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     protected accountService: AccountService,
     protected service: AggregatedLandingService,
     protected referentialRefService: ReferentialRefService,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
@@ -239,7 +239,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     if (isNil(this._program) || isNil(this._acquisitionLevel)) return;
 
     // Load pmfms
-    const pmfms = (await this.programService.loadProgramPmfms(
+    const pmfms = (await this.programRefService.loadProgramPmfms(
       this._program,
       {
         acquisitionLevel: this._acquisitionLevel

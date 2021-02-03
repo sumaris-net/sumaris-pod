@@ -1,6 +1,6 @@
 import {Entity, EntityUtils} from "../../../core/services/model/entity.model";
 import {Moment} from "moment";
-import {ReferentialAsObjectOptions, ReferentialRef} from "../../../core/services/model/referential.model";
+import {Referential, ReferentialAsObjectOptions, ReferentialRef} from "../../../core/services/model/referential.model";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {Strategy} from "./strategy.model";
 import {PropertiesMap} from "../../../shared/types";
@@ -8,7 +8,7 @@ import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 import {isNotNil} from "../../../shared/functions";
 
 
-export class Program extends Entity<Program> {
+export class Program extends Referential<Program> {
 
   static TYPENAME = 'ProgramVO';
 
@@ -19,19 +19,11 @@ export class Program extends Entity<Program> {
     return res;
   }
 
-  label: string;
-  name: string;
-  description: string;
-  comments: string;
-  creationDate: Moment;
-  statusId: number;
   properties: PropertiesMap;
-
   gearClassification: ReferentialRef;
   taxonGroupType: ReferentialRef;
   locationClassifications: ReferentialRef[];
   locations: ReferentialRef[];
-
   strategies: Strategy[];
 
   constructor() {
@@ -54,7 +46,6 @@ export class Program extends Entity<Program> {
       };
     }
     const target: any = super.asObject(opts);
-    target.creationDate = toDateISOString(this.creationDate);
     target.properties = {...this.properties};
     target.gearClassification = this.gearClassification && this.gearClassification.asObject(opts);
     target.taxonGroupType = this.taxonGroupType && this.taxonGroupType.asObject(opts);
@@ -67,12 +58,6 @@ export class Program extends Entity<Program> {
 
   fromObject(source: any) {
     super.fromObject(source);
-    this.label = source.label;
-    this.name = source.name;
-    this.description = source.description;
-    this.comments = source.comments;
-    this.statusId = source.statusId;
-    this.creationDate = fromDateISOString(source.creationDate);
     if (source.properties && source.properties instanceof Array) {
       this.properties = EntityUtils.getPropertyArrayAsObject(source.properties);
     } else {

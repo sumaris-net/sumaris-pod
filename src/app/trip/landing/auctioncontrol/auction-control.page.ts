@@ -21,6 +21,7 @@ import {SharedValidators} from "../../../shared/validator/validators";
 import {Program} from "../../../referential/services/model/program.model";
 import {fadeInOutAnimation} from "../../../shared/material/material.animations";
 import {ProgramService} from "../../../referential/services/program.service";
+import {ProgramRefService} from "../../../referential/services/program-ref.service";
 
 @Component({
   selector: 'app-auction-control',
@@ -46,10 +47,8 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   constructor(
     injector: Injector,
-    protected referentialRefService: ReferentialRefService,
     protected formBuilder: FormBuilder,
-    protected modalCtrl: ModalController,
-    protected programService: ProgramService
+    protected modalCtrl: ModalController
   ) {
     super(injector, {
       pathIdAttribute: 'controlId',
@@ -86,7 +85,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       this.programSubject
         .pipe(
           filter(isNotNil),
-          mergeMap((programLabel) => this.programService.loadTaxonGroups(programLabel))
+          mergeMap((programLabel) => this.programRefService.loadTaxonGroups(programLabel))
         )
         .subscribe(taxonGroups => {
           console.debug("[control] Program taxonGroups: ", taxonGroups);
@@ -166,7 +165,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       this.selectedTaxonGroup$
       .pipe(
         filter(isNotNil),
-        mergeMap(taxonGroup => this.programService.loadProgramPmfms(this.programSubject.getValue(), {
+        mergeMap(taxonGroup => this.programRefService.loadProgramPmfms(this.programSubject.getValue(), {
           acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
           taxonGroupId: toNumber(taxonGroup && taxonGroup.id, undefined)
         })),
