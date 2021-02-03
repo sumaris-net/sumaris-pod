@@ -1,16 +1,14 @@
-import {ChangeDetectionStrategy, Component, Injector, Optional} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
 import {FormGroup} from "@angular/forms";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {Program} from "../../../referential/services/model/program.model";
 import {ParameterLabelGroups} from "../../../referential/services/model/model.enum";
 import {PmfmService} from "../../../referential/services/pmfm.service";
 import {ObjectMap} from "../../../shared/types";
 import {BiologicalSamplingValidators} from "../../services/validator/biological-sampling.validators";
-import {AppEditorOptions} from "../../../core/form/editor.class";
 import {LandingPage} from "../landing.page";
+import {Landing} from "../../services/model/landing.model";
 
-const DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
 @Component({
   selector: 'app-sampling-landing-page',
@@ -24,31 +22,35 @@ export class SamplingLandingPage extends LandingPage {
   $pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
 
   constructor(
-    injector: Injector,
-    @Optional() options: AppEditorOptions
+    injector: Injector
   ) {
     super(injector, {
       pathIdAttribute: 'samplingId',
-      tabCount: 2,
-      autoUpdateRoute: false,
-      autoOpenNextTab: false,
-      ...options
+      autoOpenNextTab: false
     });
     this.pmfmService = injector.get(PmfmService);
   }
 
-  protected async setProgram(program: Program) {
-    if (!program) return; // Skip
+  ngOnInit() {
+    super.ngOnInit();
 
-    super.setProgram(program);
-
-    this.samplesTable.program = program.label;
-
-    // TODO: load pmfm map by program properties ?
     // Load Pmfm IDS, group by parameter labels
-    const pmfmGroups = await this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups);
-    this.$pmfmGroups.next(pmfmGroups);
+    this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups)
+      .then(pmfmGroups => this.$pmfmGroups.next(pmfmGroups));
+  }
 
+  protected async setValue(data: Landing): Promise<void> {
+    if (!data) return; // Skip
+
+    // find all pmfms from samples
+    // TODO : force PMFM from data
+    /*this.samplesTable.dataPmfms = (data.samples || []).reduce((res, sample) => {
+      const pmfmIds = Object.keys(sample.measurementValues || {});
+      const newPmfmIds = pmfmIds.filter(pmfmId => !res.includes(pmfmId));
+      return res.concat(...newPmfmIds);
+    }, []);*/
+
+    await super.setValue(data);
   }
 
   protected computePageUrl(id: number|'new') {
@@ -56,18 +58,7 @@ export class SamplingLandingPage extends LandingPage {
     return `${parentUrl}/sampling/${id}`;
   }
 
-  /*async updateRoute(data: Landing, opts?: { openTabIndex?: number }): Promise<boolean> {
-
-    if (data && isNotNil(data.id)) {
-      await this.router.navigateByUrl(`/observations/${this.parent.id}/sampling/${data.id}`, {
-        replaceUrl: true
-      });
-      return true;
-    }
-    return false;
-  }*/
-
-  protected computeSampleValidator(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {
+  protected computeSampleRowValidator(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {
     return BiologicalSamplingValidators.addSampleValidators(form, pmfms, this.$pmfmGroups.getValue() || {}, {
       markForCheck: () => this.markForCheck()
     });

@@ -49,6 +49,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   measurementValuesFormGroupConfig: { [key: string]: any };
   readonly hasRankOrder: boolean;
 
+  @Input() requiredStrategy = false;
+
   /**
    * Allow to override the rankOrder. See physical-gear, on ADAP program
    */

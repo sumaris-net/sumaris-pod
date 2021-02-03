@@ -329,15 +329,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         strategyPmfm = PmfmStrategy.fromObject({
           id: -1, // Fake id (should never be used)
           pmfmId: PmfmIds.STRATEGY_LABEL,
-          type: 'string',
-          isMandatory: this.requiredStrategy
+          type: 'string'
         });
 
         // Prepend
         pmfms = [strategyPmfm, ...pmfms];
       }
-      strategyPmfm.hidden = true;// Do not display it in measurement
-      strategyPmfm.required = false; // Nopt need to be required, because of strategyControl validator
+      strategyPmfm.hidden = true; // Do not display it in measurement
+      strategyPmfm.isMandatory = false; // Nopt need to be required, because of strategyControl validator
     }
 
     return pmfms;

@@ -134,27 +134,13 @@
     </mat-cell>
   </ng-container>
 
-  <!-- Morse code column => Already in pmfm columns -->
-  <!-- TODO BLA: à transformer en measurement sur PSFM ? -->
-  <ng-container matColumnDef="morseCode" [sticky]="useSticky">
-    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-      <span translate>{{i18nFieldPrefix + 'MORSE_CODE'}}</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls.comments"
-               [placeholder]="i18nFieldPrefix + 'MORSE_CODE_PLACEHOLDER'|translate"
-               [readonly]="!row.editing">
-      </mat-form-field>
-    </mat-cell>
-  </ng-container>
-
   <!-- Comment column -->
    <ng-container matColumnDef="comment">
      <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
        <span translate>{{i18nFieldPrefix + 'COMMENTS'}}</span>
      </mat-header-cell>
      <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
+       <!-- TODO BLA replace with an icon + popup comment -->
        <mat-form-field floatLabel="never">
          <input matInput [formControl]="row.validator.controls.comments"
                 [placeholder]="i18nFieldPrefix + 'COMMENTS_PLACEHOLDER'|translate"
@@ -166,10 +152,12 @@
   <!-- Pmfms columns -->
   <ng-container *ngFor="let pmfm of $pmfms | async">
     <ng-container *ngIf="pmfm.pmfmId" [matColumnDef]="pmfm.pmfmId.toString()">
-      <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
-        <ion-label color="primary"
-                   (click)="openChangePmfmsModal($event)"
-                   [innerHTML]="pmfm|pmfmName: {withUnit : true, html: true, withDetails: true}">
+      <mat-header-cell *matHeaderCellDef
+                       mat-sort-header
+                       class="mat-header-cell-pmfm"
+                       [class.mat-cell-date-time]="pmfm.isDate">
+        <ion-label [innerHTML]="pmfm|pmfmName: {withUnit : true, html: true, withDetails: true}"
+                   (click)="openChangePmfmsModal($event)">
         </ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm|isDatePmfm"
@@ -221,7 +209,7 @@
   </ng-container>
 
   <mat-header-row *matHeaderRowDef="displayedColumns"
-                  class="mat-header-row-pmfm">
+                  class="second-header-row">
   </mat-header-row>
   <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
            [class.mat-row-dirty]="row.validator.dirty" [class.mat-row-disabled]="!row.editing"

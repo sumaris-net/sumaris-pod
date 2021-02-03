@@ -98,6 +98,7 @@ export const MethodIds = {
 };
 
 export const ParameterLabelGroups: ObjectMap = {
+  ANALYTIC_REFERENCE: ['MORSE_CODE'], // TODO BLA voir le code
   AGE: ['AGE'],
   SEX: ['SEX'],
   WEIGHT: ['WEIGHT'],

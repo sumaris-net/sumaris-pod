@@ -35,10 +35,10 @@ export abstract class AppRootDataEditor<
 
   autocompleteFields: { [key: string]: MatAutocompleteFieldConfig };
 
-  programSubject = new BehaviorSubject<string>(null);
-  $program = new BehaviorSubject<Program>(null);
-  strategySubject = new BehaviorSubject<string>(null);
-  $strategy = new BehaviorSubject<Strategy>(null);
+  programSubject = new BehaviorSubject<string>(undefined);
+  $program = new BehaviorSubject<Program>(undefined);
+  strategySubject = new BehaviorSubject<string>(undefined);
+  $strategy = new BehaviorSubject<Strategy>(undefined);
 
   get program(): Program {
     return this.$program.getValue();
@@ -90,10 +90,11 @@ export abstract class AppRootDataEditor<
     this.registerSubscription(
       this.strategySubject
         .pipe(
-          filter(isNotNilOrBlank),
           distinctUntilChanged(),
           // TODO BLA: prefer to use watch by label, in case strategy changed
-          switchMap(strategyLabel => this.strategyRefService.loadByLabel(strategyLabel)),
+          switchMap(strategyLabel => strategyLabel
+            ? this.strategyRefService.loadByLabel(strategyLabel)
+            : Promise.resolve(undefined)),
           tap(strategy => this.$strategy.next(strategy))
         )
         .subscribe());

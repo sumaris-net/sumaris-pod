@@ -2,8 +2,12 @@
              color="primary"
              [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
+             (onValidateAndClose)="saveAndClose($event)"
+             [hasClose]="!loading && !dirty"
+             (onClose)="close($event)"
              [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
+
   <ion-buttons slot="end">
     <ion-spinner *ngIf="loading"></ion-spinner>
 
@@ -54,26 +58,29 @@
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>LANDING.EDIT.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && landingForm.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && landingForm.invalid"></ion-icon>
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="landingForm.error" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="landingForm.error||error" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+        <ion-label color="danger" class="error" [innerHTML]="(landingForm.error||error) | translate"></ion-label>
       </ion-item>
 
       <ion-grid class="ion-no-padding">
         <ion-row class="ion-no-padding">
-          <ion-col class="ion-no-padding ion-padding-top">
+          <ion-col class="ion-padding">
 
             <!-- landing form-->
             <app-landing-form #landingForm
-                               [program]="programSubject|async"
-                               [showError]="false"
-                               [showComment]="!oneTabMode"
-                               [debug]="debug"
-                               (onSubmit)="save($event)">
+                              [program]="programSubject|async"
+                              [i18nPrefix]="i18nPrefix"
+                              [requiredStrategy]="true"
+                              [showMeasurements]="false"
+                              [showError]="false"
+                              [showComment]="!oneTabMode"
+                              (onSubmit)="save($event)"
+                              [debug]="debug">
             </app-landing-form>
           </ion-col>
 
@@ -87,11 +94,10 @@
 
             <!-- data quality -->
             <app-entity-metadata [value]="data">
-              <app-entity-quality-form #qualityForm [editor]="this" *ngIf="showQualityForm">
+              <app-entity-quality-form [editor]="this" *ngIf="showQualityForm">
               </app-entity-quality-form>
             </app-entity-metadata>
           </ion-col>
-
         </ion-row>
       </ion-grid>
 
@@ -117,13 +123,14 @@
         </ion-item>
 
         <app-sampling-samples-table #samplesTable
+                                    [class.cdk-visually-hidden]="!(strategySubject|async)"
                                     [showLabelColumn]="true"
                                     [showDateTimeColumn]="false"
                                     [defaultSampleDate]="data?.dateTime"
                                     [pmfmGroups]="$pmfmGroups|async"
                                     [usageMode]="usageMode"
-                                    (onInitForm)="addSampleRowValidator($event)"
                                     [useSticky]="true"
+                                    (onInitForm)="onStartEditingSampleRow($event)"
                                     [debug]="debug">
         </app-sampling-samples-table>
 
@@ -134,7 +141,7 @@
 
     <!-- TAB: comments -->
     <mat-tab label="{{'COMMON.COMMENTS'|translate}}"
-             [disabled]="!oneTabMode">
+             [disabled]="loading || !oneTabMode">
       <ng-template mat-tab-label>
         <mat-icon>chat_bubble</mat-icon>
         <ion-label translate>COMMON.COMMENTS</ion-label>
@@ -171,3 +178,13 @@
 
   </form-buttons-bar>
 </ion-footer>
+
+<!-- FAB button -->
+<ion-fab vertical="bottom" horizontal="end" slot="fixed"
+         *ngIf="selectedTabIndex === 1 && samplesTable.defaultTaxonGroup"
+         @fadeInOutAnimation
+         visible-xs visible-sm visible-mobile>
+  <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

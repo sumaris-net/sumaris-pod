@@ -10,7 +10,7 @@ import {
   ViewChildren
 } from '@angular/core';
 
-import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
+import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil, toBoolean} from '../../shared/functions';
 import * as moment from "moment";
 import {LandingForm} from "./landing.form";
 import {SamplesTable} from "../sample/samples.table";
@@ -42,8 +42,13 @@ import {merge, Subscription} from "rxjs";
 import {Strategy} from "../../referential/services/model/strategy.model";
 import {firstNotNilPromise} from "../../shared/observables";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {TableElement} from "@e-is/ngx-material-table";
+import {Sample} from "../services/model/sample.model";
 
-const DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
+const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
+
+export class LandingEditorOptions extends AppEditorOptions {
+}
 
 @Component({
   selector: 'app-landing-page',
@@ -70,7 +75,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   mobile: boolean;
   showQualityForm = false;
-  i18nPrefix = DEFAULT_I18N_PREFIX;
+  i18nPrefix = LANDING_DEFAULT_I18N_PREFIX;
   oneTabMode = false;
 
 
@@ -87,7 +92,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   constructor(
     injector: Injector,
-    @Optional() options: AppEditorOptions
+    @Optional() options: LandingEditorOptions
   ) {
     super(injector, Landing, injector.get(LandingService), {
         tabCount: 2,
@@ -241,14 +246,14 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     }
   }
 
-  addSampleRowValidator({form, pmfms}) {
+  onStartEditingSampleRow({form, pmfms}) {
     // Remove previous subscription
     if (this._rowValidatorSubscription) {
       this._rowValidatorSubscription.unsubscribe();
     }
 
     // Add computation and validation
-    this._rowValidatorSubscription = this.computeSampleValidator(form, pmfms);
+    this._rowValidatorSubscription = this.computeSampleRowValidator(form, pmfms);
   }
 
   updateView(data: Landing | null, opts?: {
@@ -287,34 +292,37 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     // Customize the UI, using program options
     this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
     this.landingForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
-    this.landingForm.showStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
+    this.landingForm.requiredStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
+    this.landingForm.showStrategy = this.landingForm.requiredStrategy;
     this.landingForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
     this.landingForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
     this.landingForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
+
+
 
     this.samplesTable.modalOptions = {
       ...this.samplesTable.modalOptions,
       maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
     };
 
+    // Compute i18n prefix
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    i18nSuffix = (i18nSuffix && i18nSuffix !== 'legacy') ? i18nSuffix : '';
+    this.i18nPrefix = LANDING_DEFAULT_I18N_PREFIX + i18nSuffix;
+    this.landingForm.i18nPrefix = this.i18nPrefix;
+    if (this.strategyCard) {
+      this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
+    }
+
+    // Applying the "one tab" mode
     const oneTabMode = program.getPropertyAsBoolean(ProgramProperties.LANDING_ONE_TAB_ENABLE);
     if (this.oneTabMode !== oneTabMode) {
       this.oneTabMode = oneTabMode;
       this.refreshTabLayout();
     }
 
-    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    i18nSuffix = (i18nSuffix && i18nSuffix !== 'legacy') ? i18nSuffix : '';
-    this.i18nPrefix = DEFAULT_I18N_PREFIX + i18nSuffix;
-    this.landingForm.i18nPrefix = this.i18nPrefix;
-    if (this.strategyCard) {
-      this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
-    }
-    this.samplesTable.program = program.label; // TODO BLA: remplacer par un async dans le template ?
-
-    if (this.strategyCard) {
-      this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
-    }
+    // Propagate program to children components
+    this.samplesTable.program = program.label;
 
   }
 
@@ -329,10 +337,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     // Set table defaults
     const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
     this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
+    // TODO BLA : give default
     this.samplesTable.pmfms = (strategy.pmfmStrategies || []).filter(p => p.acquisitionLevel === this.samplesTable.acquisitionLevel);
   }
-
-
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {
     let parent: Trip|ObservedLocation;
@@ -436,7 +443,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     }
   }
 
-  protected computeSampleValidator(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {
+  startEditingSampleRow(row: TableElement<Sample>) {
+    console.log('TODO BLA', row);
+  }
+
+  protected computeSampleRowValidator(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {
+    console.warn('[landing-page] No row validator override');
     // Can be override by subclasses (e.g auction control, biological sampling samples table)
     return null;
   }
