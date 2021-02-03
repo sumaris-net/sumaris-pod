@@ -253,6 +253,25 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     return true;
   }
 
+  protected async addRowToTable(): Promise<TableElement<Sample>> {
+    this.focusFirstColumn = true;
+    await this._dataSource.asyncCreateNew();
+    this.editedRow = this._dataSource.getRow(-1);
+    const sample = this.editedRow.currentData;
+    // Initialize default parameters
+    await this.onNewEntity(sample);
+    // Update row
+    await this.updateEntityToTable(sample, this.editedRow);
+
+    // Emit start editing event
+    this.onStartEditingRow.emit(this.editedRow);
+    this._dirty = true;
+    this.resultsLength++;
+    this.visibleRowCount++;
+    this.markForCheck();
+    return this.editedRow;
+  }
+
   async openDetailModal(sample?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
     console.debug('[samples-table] Opening detail modal...');
 
