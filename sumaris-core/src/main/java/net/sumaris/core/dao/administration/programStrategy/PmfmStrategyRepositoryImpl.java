@@ -222,10 +222,8 @@ public class PmfmStrategyRepositoryImpl
         }
         if (source.getMethod() != null) {
             target.setMethodId(source.getMethod().getId());
-            target.setFraction(referentialDao.toVO(source.getFraction()));
+            target.setMethod(referentialDao.toVO(source.getMethod()));
         }
-
-
 
         // Acquisition Level
         if (source.getAcquisitionLevel() != null) {
