@@ -140,13 +140,17 @@
        <span translate>{{i18nFieldPrefix + 'COMMENTS'}}</span>
      </mat-header-cell>
      <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
-       <!-- TODO BLA replace with an icon + popup comment -->
-       <mat-form-field floatLabel="never">
+       <mat-form-field  *ngIf="row.editing" floatLabel="never">
          <input matInput [formControl]="row.validator.controls.comments"
                 [placeholder]="i18nFieldPrefix + 'COMMENTS_PLACEHOLDER'|translate"
                 [readonly]="!row.editing">
        </mat-form-field>
+       <mat-icon color="primary" class="comment"
+                 *ngIf="row.currentData.comments && !row.editing"
+                 [title]="row.currentData.comments">chat_bubble</mat-icon>
      </mat-cell>
+
+
    </ng-container>
 
   <!-- Pmfms columns -->
