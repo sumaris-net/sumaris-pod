@@ -238,8 +238,8 @@
         <ion-label>&nbsp;</ion-label>
       </ion-col>
       <ion-col>
-        <mat-error *ngIf="form.touched && form.get('pmfmStrategies').hasError('minLength')">
-          {{'PROGRAM.STRATEGY.ERROR.PARAMETERS.MIN_LENGTH' | translate: form.get('pmfmStrategies').errors.minLength }}
+        <mat-error *ngIf="form.touched && form.hasError('minLength')">
+          {{'PROGRAM.STRATEGY.ERROR.PARAMETERS.MIN_LENGTH' | translate: form.errors.minLength }}
         </mat-error>
         <mat-error *ngIf="form.touched && form.get('pmfmStrategies').hasError('weightOrSize')">
           {{'PROGRAM.STRATEGY.ERROR.PARAMETERS.WEIGHT_OR_SIZE' | translate}}
@@ -300,7 +300,7 @@
       </ion-col>
       <ion-col size="12" size-sm="auto">
        <mat-boolean-field [placeholder]="i18nFieldPrefix + 'SEX_PLACEHOLDER'|translate"
-                          [formControl]="sexAndAgeHelper.at(0)"
+                          formControlName="sex"
                           [required]="true">
        </mat-boolean-field>
       </ion-col>
@@ -336,7 +336,7 @@
         <ion-label class="ion-float-end">{{i18nFieldPrefix + 'AGE'|translate}}</ion-label>
       </ion-col>
       <ion-col size="12" size-sm="auto">
-        <mat-boolean-field [placeholder]="i18nFieldPrefix + 'AGE_PLACEHOLDER'|translate" [formControl]="sexAndAgeHelper.at(1)" [required]="true" >
+        <mat-boolean-field [placeholder]="i18nFieldPrefix + 'AGE_PLACEHOLDER'|translate" formControlName="age" [required]="true" >
         </mat-boolean-field>
       </ion-col>
     </ion-row>
