@@ -299,12 +299,13 @@ export class PmfmService extends BaseEntityService implements IEntityService<Pmf
    */
   async loadIdsGroupByParameterLabels(parameterLabelsMap: ObjectMap<string[]>): Promise<ObjectMap<number[]>> {
 
-      const pmfmMap = await this.referentialRefService.loadAllGroupByLevels({
-          entityName: 'Pmfm',
-          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-        },
-        { levelLabels: parameterLabelsMap },
-        { toEntity: false });
+    // TODO BLA: voir si a besoin d'un cache ici
+    const pmfmMap = await this.referentialRefService.loadAllGroupByLevels({
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      },
+      { levelLabels: parameterLabelsMap },
+      { toEntity: false });
 
     // Keep only Pmfm.id
     return Object.keys(parameterLabelsMap).reduce((res, key) => {

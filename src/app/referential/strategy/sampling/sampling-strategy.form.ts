@@ -46,6 +46,8 @@ import {ProgramProperties} from "../../services/config/program.config";
 import {BehaviorSubject, merge} from "rxjs";
 import {SamplingStrategyService} from '../../services/sampling-strategy.service';
 import {PmfmService} from "../../services/pmfm.service";
+import {firstNotNilPromise} from "../../../shared/observables";
+import {MatAutocompleteField} from "../../../shared/material/autocomplete/material.autocomplete";
 
 @Component({
   selector: 'app-sampling-strategy-form',
@@ -118,7 +120,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   @ViewChild('weightPmfmStrategiesTable', { static: true }) weightPmfmStrategiesTable: PmfmStrategiesTable;
-  @ViewChild('sizePmfmStrategiesTable', { static: true }) sizePmfmStrategiesTable: PmfmStrategiesTable;
+  @ViewChild('lengthPmfmStrategiesTable', { static: true }) lengthPmfmStrategiesTable: PmfmStrategiesTable;
   @ViewChild('maturityPmfmStrategiesTable', { static: true }) maturityPmfmStrategiesTable: PmfmStrategiesTable;
 
   analyticsReferenceItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
@@ -149,26 +151,45 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     this.registerSubscription(
       merge(
+        // Delete a row
         this.weightPmfmStrategiesTable.onCancelOrDeleteRow,
-        this.sizePmfmStrategiesTable.onCancelOrDeleteRow,
+        this.lengthPmfmStrategiesTable.onCancelOrDeleteRow,
         this.maturityPmfmStrategiesTable.onCancelOrDeleteRow,
+
+        // Add a row
         this.weightPmfmStrategiesTable.onConfirmEditCreateRow,
-        this.sizePmfmStrategiesTable.onConfirmEditCreateRow,
+        this.lengthPmfmStrategiesTable.onConfirmEditCreateRow,
         this.maturityPmfmStrategiesTable.onConfirmEditCreateRow
       )
         .subscribe(() => this.initPmfmStrategies())
     );
 
 
-    this.form.addControl('year', new FormControl);
+    this.form.addControl('year', new FormControl());
+    // Add age and sex has controls
 
     // register year field changes
     this.registerSubscription(
-      this.form.get('year').valueChanges.subscribe((date: Moment) => {
-        this.onDateChange(date);
-        this.form.markAsTouched();
-      })
+      this.form.get('year').valueChanges.subscribe(date => this.onDateChange(date))
     );
+
+    const idControl = this.form.get('id');
+    this.form.get('label').setAsyncValidators([
+      async (control) => {
+        console.debug('[sampling-strategy-form] Checking of label is unique...');
+        const exists = await this.strategyService.existLabel(control.value, {
+          programId: this.program && this.program.id,
+          excludedIds: isNotNil(idControl.value) ? [idControl.value] : undefined
+        });
+        if (exists) {
+          console.warn('[sampling-strategy-form] Label not unique!');
+          return <ValidationErrors>{ unique: true };
+        }
+
+        console.debug('[sampling-strategy-form] Checking of label is unique [OK]');
+        SharedValidators.clearError(control, 'unique');
+      }
+    ]);
 
     // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
@@ -242,7 +263,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         this.markForCheck();
       }
 
-      this.onDateChange(this.form.get('year').value);
+      this.onDateChange();
     }
   }
 
@@ -320,27 +341,27 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     // TODO BLA: review this code
 
-    /*await this.weightPmfmStrategiesTable.save();
-    await this.sizePmfmStrategiesTable.save();
+    await this.weightPmfmStrategiesTable.save();
+    await this.lengthPmfmStrategiesTable.save();
     await this.maturityPmfmStrategiesTable.save();
 
     const weights = this.weightPmfmStrategiesTable.value.filter(p => p.pmfm || p.parameterId);
-    const sizes = this.sizePmfmStrategiesTable.value.filter(p => p.pmfm || p.parameterId);
+    const lengths = this.lengthPmfmStrategiesTable.value.filter(p => p.pmfm || p.parameterId);
     const maturities = this.maturityPmfmStrategiesTable.value.filter(p => p.pmfm || p.parameterId);
 
-    pmfms.push(this.pmfmStrategiesHelper.at(0).value);
-    pmfms.push(this.pmfmStrategiesHelper.at(1).value);
+    pmfms.push(this.sexAndAgeHelper.at(0).value);
+    pmfms.push(this.sexAndAgeHelper.at(1).value);
     pmfms.push(weights);
-    pmfms.push(sizes);
+    pmfms.push(lengths);
     pmfms.push(maturities);
 
     if (weights.length <= 0) { this.weightPmfmStrategiesTable.value = [new PmfmStrategy()]; }
-    if (sizes.length <= 0) { this.sizePmfmStrategiesTable.value = [new PmfmStrategy()]; }
+    if (lengths.length <= 0) { this.lengthPmfmStrategiesTable.value = [new PmfmStrategy()]; }
     if (maturities.length <= 0) { this.maturityPmfmStrategiesTable.value = [new PmfmStrategy()]; }
 
     this.form.controls.pmfmStrategies.patchValue(pmfms);
     this.pmfmStrategiesForm.markAsTouched();
-    this.markAsDirty();*/
+    this.markAsDirty();
   }
 
   /**
@@ -357,11 +378,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     input.setSelectionRange(startIndex, endIndex, "backward");
   }
 
-  toggleFilter(fieldName: string) {
+  toggleFilter(fieldName: string, field?: MatAutocompleteField) {
     this.autocompleteFilters[fieldName] = !this.autocompleteFilters[fieldName];
     this.markForCheck();
 
-    // TODO: force update autocomplete
+    if (field) field.reloadItems();
   }
 
   /**
@@ -450,21 +471,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     console.debug("[sampling-strategy-form] Setting Strategy value", data);
     if (!data) return;
 
-    this.form.get('label').setAsyncValidators([
-      async (control) => {
-        if (data && control.value !== data.label) {
-          const exists = await this.strategyService.existLabel(control.value);
-          if (exists) {
-            return <ValidationErrors>{ unique: true };
-          }
-
-          SharedValidators.clearError(control, 'unique');
-        }
-        return null;
-      }
-    ]);
-
-
     // Resize strategy department array
     this.departmentsHelper.resize(Math.max(1, data.departments.length));
 
@@ -543,7 +549,17 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     }
 
     //Weights
-    // TODO BLA: revoir ces sélections: utliser PmfmUtils
+    // TODO BLA: revoir ces sélections
+    // Dans le ngOnInit() :
+    //   pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups)
+    //    .then(map => this._$pmfmGroups.next(map));
+    //
+    // ICI:
+    // const pmfmGroups = await firstNotNilPromise(this._$pmfmGroups);
+    // (data.pmfmStrategies || []).filter(p => {
+    //   const pmfmId = toNumber(p.pmfmId, p.pmfm && p.pmfm.id);
+    //   return pmfmGroups.WEIGHT.includes(pmfmId)
+    // }
     const weightPmfmStrategy = (data.pmfmStrategies || []).filter(
       p =>
         (p.pmfm && p.pmfm.parameter && ParameterLabelGroups.WEIGHT.includes(p.pmfm.parameter.label)) ||
@@ -552,16 +568,16 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     pmfmStrategies.push(weightPmfmStrategy.length > 0 ? weightPmfmStrategy : []);
     this.weightPmfmStrategiesTable.value = weightPmfmStrategy.length > 0 ? weightPmfmStrategy : [new PmfmStrategy()];
 
-    //Sizes
-    const sizePmfmStrategy = (data.pmfmStrategies || []).filter(
+    // Length
+    const lengthPmfmStrategies = (data.pmfmStrategies || []).filter(
       p =>
         (p.pmfm && p.pmfm.parameter && ParameterLabelGroups.LENGTH.includes(p.pmfm.parameter.label)) ||
         (p['parameter'] && ParameterLabelGroups.LENGTH.includes(p['parameter'].label))
     );
-    pmfmStrategies.push(sizePmfmStrategy.length > 0 ? sizePmfmStrategy : []);
-    this.sizePmfmStrategiesTable.value = sizePmfmStrategy.length > 0 ? sizePmfmStrategy : [new PmfmStrategy()];
+    pmfmStrategies.push(lengthPmfmStrategies.length > 0 ? lengthPmfmStrategies : []);
+    this.lengthPmfmStrategiesTable.value = lengthPmfmStrategies.length > 0 ? lengthPmfmStrategies : [new PmfmStrategy()];
 
-    //Maturities
+    // Maturities
     const maturityPmfmStrategy = (data.pmfmStrategies || []).filter(
       p =>
         (p.pmfm && p.pmfm.parameter && ParameterLabelGroups.MATURITY.includes(p.pmfm.parameter.label)) ||
@@ -591,6 +607,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.calcifiedFractionsHelper.resize(Math.max(1, PmfmStrategiesFraction.length));
       calcifiedTypeControl.patchValue(fractions);
     });
+  }
+
+  markAsUntouched(opts?: { onlySelf?: boolean }) {
+    console.log("TODO NOE: markAsUntouched()");
+    super.markAsUntouched(opts);
   }
 
   async getValue(): Promise<any> {
@@ -640,11 +661,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     // Save before get PMFM values
     await this.weightPmfmStrategiesTable.save();
-    await this.sizePmfmStrategiesTable.save();
+    await this.lengthPmfmStrategiesTable.save();
 
     let pmfmStrategies = [
       ...this.weightPmfmStrategiesTable.value,
-      ...this.sizePmfmStrategiesTable.value
+      ...this.lengthPmfmStrategiesTable.value
     ];
 
     if (sex) {
@@ -706,32 +727,29 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return json;
   }
 
-  protected async onDateChange(date: Moment) {
+  protected async onDateChange(date?: Moment) {
+    date = fromDateISOString(date || this.form.get('year').value);
+
+    if (!date || !this.program) return; // Skip if date or program are missing
 
     const labelControl = this.form.get('label');
 
     //update mask
-    let year;
-    if (date && (typeof date === 'object') && (date.year())) {
-      year = date.toDate().getFullYear().toString();
-    }
-    else if (date && (typeof date === 'string')) {
-      const dateAsString = date as string;
-      year = moment(dateAsString).toDate().getFullYear().toString();
-    }
+    const year = date.year().toString();
     this.labelMask = [...year.split(''), '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
 
     // get new label sample row code
-    const updatedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${year}-BIO-`, 4));
+    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${year}-BIO-`, 4));
+    console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
 
     const label = labelControl.value;
     if (isNil(label)) {
-      labelControl.setValue(updatedLabel);
+      labelControl.setValue(computedLabel);
     } else {
       const oldYear = label.split('-').shift();
       // Update the label, if year change
       if (year && oldYear && year !== oldYear) {
-        labelControl.setValue(updatedLabel);
+        labelControl.setValue(computedLabel);
       } else {
         labelControl.setValue(label);
       }

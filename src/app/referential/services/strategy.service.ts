@@ -182,12 +182,16 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       StrategyFilter.asPodObject, StrategyFilter.searchFilter);
   }
 
-  async existLabel(label: string, programId?: number): Promise<boolean> {
+  async existLabel(label: string, opts?: {
+    programId?: number;
+    excludedIds?: number[];
+  }): Promise<boolean> {
     if (isNilOrBlank(label)) throw new Error("Missing argument 'label' ");
 
     const filter = StrategyFilter.asPodObject({
       label,
-      levelId: isNotNil(programId) ? programId : undefined
+      levelId: opts && isNotNil(opts.programId) ? opts.programId : undefined,
+      excludedIds: opts && isNotNil(opts.excludedIds) ? opts.excludedIds : undefined,
     });
     // Load from pod
     const {total} = await this.graphql.query<{ total: number }>({

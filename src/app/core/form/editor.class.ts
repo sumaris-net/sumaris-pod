@@ -345,9 +345,6 @@ export abstract class AppEntityEditor<
     // Save the opened tab into the queryParams
     this.queryParams.tab = this.selectedTabIndex;
 
-    const done = await this.updateRoute(data, this.queryParams);
-    if (done) return;
-
     // Update route location
     const forcedQueryParams = {};
     forcedQueryParams[this._pathIdAttribute] = data && isNotNil(data.id) ? data.id : 'new';
@@ -363,6 +360,8 @@ export abstract class AppEntityEditor<
         queryParams: {...this.queryParams, ...forcedQueryParams}
       });
     }
+
+    await this.updateRoute(data, this.queryParams);
   }
 
   /**
