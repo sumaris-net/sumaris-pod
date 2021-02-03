@@ -53,7 +53,8 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   ) {
     super(injector, {
       pathIdAttribute: 'controlId',
-      tabCount: 2
+      autoOpenNextTab: false,
+      tabGroupAnimationDuration: '0s' // Disable tab animation
     });
 
     this.taxonGroupControl = this.formBuilder.control(null, [SharedValidators.entity]);
@@ -359,7 +360,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     return `${parentUrl}/control/${id}`;
   }
 
-  protected computeSampleValidator(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {
+  protected computeSampleRowValidator(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {
     return AuctionControlValidators.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
   }
 
@@ -367,4 +368,5 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     return this.landingForm.invalid && !this.landingForm.measurementValuesForm.invalid ? 0 : (
       (this.samplesTable.invalid || this.landingForm.measurementValuesForm.invalid) ? 1 : -1);
   }
+
 }

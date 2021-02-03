@@ -372,38 +372,40 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
 
 
     const updateFilteredItemsEvents$ = merge(
-      // Focus or click => Load all
-      merge(this.onFocus, this.onClick)
-      .pipe(
-         filter(_ => this.searchable && this.enabled),
-         map((_) => this.showAllOnFocus ? '*' : this.formControl.value)
-      ),
-        this.onDropButtonClick
+        // Events (WITH the distinctUntilChanged() pipe)
+        merge(
+          // Focus or click => Load all
+          merge(this.onFocus, this.onClick)
           .pipe(
-            filter(event => (!event || !event.defaultPrevented) && this.formControl.enabled),
-            map((_) =>  this.showAllOnFocus ? '*' : this.formControl.value)
+             filter(_ => this.searchable && this.enabled),
+             map((_) => this.showAllOnFocus ? '*' : this.formControl.value)
           ),
-        this.formControl.valueChanges
-          .pipe(
-            startWith<any, any>(this.formControl.value),
-            filter(value => isNotNil(value)),
-            //tap((value) => console.debug(this.logPrefix + " valueChanges:", value)),
-            debounceTime(this.debounceTime)
-          ),
-        this.$inputItems
-          .pipe(
-            map(items => this.formControl.value)
-          ),
-        this._$filter
-          .pipe(
-            map(items => this.formControl.value)
-          )
-    );
+          this.onDropButtonClick
+            .pipe(
+              filter(event => (!event || !event.defaultPrevented) && this.formControl.enabled),
+              map((_) =>  this.showAllOnFocus ? '*' : this.formControl.value)
+            ),
+          this.formControl.valueChanges
+            .pipe(
+              startWith<any, any>(this.formControl.value),
+              filter(value => isNotNil(value)),
+              //tap((value) => console.debug(this.logPrefix + " valueChanges:", value)),
+              debounceTime(this.debounceTime)
+            ),
+          this.$inputItems
+            .pipe(
+              map(items => this.formControl.value)
+            )
+      ).pipe(distinctUntilChanged()),
+      // Other events (WITHOUT the distinctUntilChanged() pipe)
+      this._$filter
+        .pipe(
+          map(items => this.formControl.value)
+        ));
 
 
     this.filteredItems$ = updateFilteredItemsEvents$
       .pipe(
-        distinctUntilChanged(),
         //tap(value => console.debug(this.logPrefix + " Received update event: ", value)),
         switchMap(async (value) => {
           const res = await this.suggestFn(value, this.filter);
@@ -448,13 +450,8 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
    * Allow to reload content. Useful when filter has been changed but not detected
    */
   reloadItems() {
-    if (!this.searchable) {
-      // Re sent the filter, to force a refresh
-      this._$filter.next(this._$filter.getValue());
-    }
-    else {
-      this.onDropButtonClick.emit();
-    }
+    // Re sent the filter, to force a refresh
+    this._$filter.next(this.filter);
   }
 
   writeValue(value: any): void {

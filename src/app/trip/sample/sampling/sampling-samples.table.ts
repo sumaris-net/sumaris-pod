@@ -12,15 +12,16 @@ import {ObjectMap} from "../../../shared/types";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {SelectReferentialModal} from "../../../referential/list/select-referential.modal";
 import {SamplesTable, SamplesTableOptions} from "../samples.table";
+import {PmfmService} from "../../../referential/services/pmfm.service";
 
 export interface SampleFilter {
   operationId?: number;
   landingId?: number;
 }
 
-const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'morseCode', 'comment'];
-const SAMPLE_RESERVED_END_COLUMNS: string[] = []; // TODO mettre comment ici ?
-const SAMPLE_PARAMETER_GROUPS = ['WEIGHT', 'LENGTH', 'MATURITY', 'SEX', 'AGE', 'OTHER'];
+const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label'];
+const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comment'];
+const SAMPLE_PARAMETER_GROUPS = ['ANALYTIC_REFERENCE', 'WEIGHT', 'LENGTH', 'MATURITY', 'SEX', 'AGE', 'OTHER'];
 
 declare interface GroupColumnDefinition {
   key: string;
@@ -57,7 +58,7 @@ export class SamplingSamplesTable extends SamplesTable {
   constructor(
     protected injector: Injector,
     protected programService: ProgramService,
-    protected strategyService: StrategyService
+    protected pmfmService: PmfmService
   ) {
     super(injector,
       <SamplesTableOptions>{
@@ -78,6 +79,78 @@ export class SamplingSamplesTable extends SamplesTable {
   trackColumnDef(index: number, column: GroupColumnDefinition) {
     return column.key;
   }
+
+  async openChangePmfmsModal(event?: UIEvent): Promise<any> {
+    //const columns = this.displayedColumns;
+    const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.pmfmId).filter(isNotNil);
+
+    const modal = await this.modalCtrl.create({
+      component: SelectReferentialModal,
+      componentProps: {
+        filter: {
+          entityName: 'Pmfm',
+          excludedIds: existingPmfmIds
+        }
+      }
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // On dismiss
+    const res = await modal.onDidDismiss();
+    if (!res) return; // CANCELLED
+
+    console.log('TODO Modal result ', res);
+    // this.pmfms = [
+    //   ...pmfms,
+    //   ...res.pmfms
+    // ];
+
+    // Apply new pmfm
+    //this.markForCheck();
+  }
+
+
+  async openAddPmfmsModal(event?: UIEvent): Promise<any> {
+    //const columns = this.displayedColumns;
+    const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.pmfmId).filter(isNotNil);
+
+    const modal = await this.modalCtrl.create({
+      component: SelectReferentialModal,
+      componentProps: {
+        filter: {
+          entityName: 'Pmfm',
+          excludedIds: existingPmfmIds
+        }
+      }
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // On dismiss
+    const res = await modal.onDidDismiss();
+    if (!res || isEmptyArray(res.data)) return; // CANCELLED
+
+    const pmfmIds = res.data.map(p => p.id);
+    await this.addPmfmColumns(pmfmIds);
+
+  }
+
+  async addPmfmColumns(pmfmIds: number[]) {
+    if (isEmptyArray(pmfmIds)) return; // Skip if empty
+
+    const pmfms = (await Promise.all(pmfmIds.map(pmfmId => this.pmfmService.load(pmfmId))))
+      .map(PmfmStrategy.fromPmfm);
+
+    this.pmfms = [
+      ...this.$pmfms.getValue(),
+      ...pmfms
+    ];
+  }
+
+  /* -- protected methods -- */
 
   /**
    * Force to wait PMFM map to be loaded
@@ -112,91 +185,25 @@ export class SamplingSamplesTable extends SamplesTable {
 
       orderedPmfms = orderedPmfms.concat(groupPmfms);
       const groupPmfmCount = groupPmfms.length;
-      const cssClass = (++groupIndex) % 2 === 0 ? 'odd' : 'even';
+      let cssClass = (++groupIndex) % 2 === 0 ? 'odd' : 'even';
+      if (group === 'ANALYTIC_REFERENCE') cssClass += ' hidden';
       return res.concat(
-          ...groupPmfms.reduce((res, pmfm, index) => {
-            if (orderedPmfmIds.includes(pmfm.pmfmId)) return res; // Skip
-            orderedPmfmIds.push(pmfm.pmfmId);
-            return res.concat(<GroupColumnDefinition>{
-              key: pmfm.pmfmId.toString(),
-              label: group,
-              name: this.i18nColumnPrefix + group,
-              cssClass,
-              colSpan: index === 0 ? groupPmfmCount : 0
-            });
-          }, []));
+        ...groupPmfms.reduce((res, pmfm, index) => {
+          if (orderedPmfmIds.includes(pmfm.pmfmId)) return res; // Skip
+          orderedPmfmIds.push(pmfm.pmfmId);
+          return res.concat(<GroupColumnDefinition>{
+            key: pmfm.pmfmId.toString(),
+            label: group,
+            name: this.i18nColumnPrefix + group,
+            cssClass,
+            colSpan: index === 0 ? groupPmfmCount : 0
+          });
+        }, []));
     }, []);
 
     this.$pmfmGroupColumns.next(pmfmGroupColumns);
 
     return orderedPmfms;
   }
-
-  async getMaxRankOrder(): Promise<number> {
-    return super.getMaxRankOrder();
-  }
-
-  /* -- protected methods -- */
-
-  async openAddPmfmsModal(event?: UIEvent): Promise<any> {
-    //const columns = this.displayedColumns;
-    const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.pmfmId).filter(isNotNil);
-
-    const modal = await this.modalCtrl.create({
-      component: SelectReferentialModal,
-      componentProps: {
-        filter: {
-          entityName: 'Pmfm',
-          excludedIds: existingPmfmIds
-        }
-      }
-    });
-
-    // Open the modal
-    await modal.present();
-
-    // On dismiss
-    const res = await modal.onDidDismiss();
-    if (!res) return; // CANCELLED
-
-    console.log('TODO Modal result ', res);
-    // this.pmfms = [
-    //   ...pmfms,
-    //   ...res.pmfms
-    // ];
-
-  }
-
-  async openChangePmfmsModal(event?: UIEvent): Promise<any> {
-//const columns = this.displayedColumns;
-    const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.pmfmId).filter(isNotNil);
-
-    const modal = await this.modalCtrl.create({
-      component: SelectReferentialModal,
-      componentProps: {
-        filter: {
-          entityName: 'Pmfm',
-          excludedIds: existingPmfmIds
-        }
-      }
-    });
-
-    // Open the modal
-    await modal.present();
-
-    // On dismiss
-    const res = await modal.onDidDismiss();
-    if (!res) return; // CANCELLED
-
-    console.log('TODO Modal result ', res);
-    // this.pmfms = [
-    //   ...pmfms,
-    //   ...res.pmfms
-    // ];
-
-    // Apply new pmfm
-    //this.markForCheck();
-  }
-
 
 }

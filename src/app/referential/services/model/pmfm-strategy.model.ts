@@ -71,9 +71,20 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
 
   static fromObject(source: any, opts?: PmfmStrategyFromObjectOptions): PmfmStrategy {
     if (!source || source instanceof PmfmStrategy) return source;
-    const res = new PmfmStrategy();
-    res.fromObject(source, opts);
-    return res;
+    const target = new PmfmStrategy();
+    target.fromObject(source, opts);
+    return target;
+  }
+
+  static fromPmfm(source: Pmfm): PmfmStrategy {
+    if (!source || !(source instanceof Pmfm)) return undefined;
+    const target = new PmfmStrategy();
+    target.fromObject({
+      id: -1,
+      pmfmId: source.id,
+      pmfm: source.asObject()
+    });
+    return target;
   }
 
   pmfmId: number;
