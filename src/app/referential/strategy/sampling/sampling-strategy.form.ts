@@ -34,6 +34,7 @@ import {EntityUtils} from "../../../core/services/model/entity.model";
 import {PmfmUtils} from "../../services/model/pmfm.model";
 import {
   firstArrayValue,
+  isEmptyArray,
   isNil,
   isNotNil,
   isNotNilOrBlank,
@@ -48,6 +49,7 @@ import {SamplingStrategyService} from '../../services/sampling-strategy.service'
 import {PmfmService} from "../../services/pmfm.service";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {MatAutocompleteField} from "../../../shared/material/autocomplete/material.autocomplete";
+import { ObjectMap } from 'src/app/shared/types';
 
 @Component({
   selector: 'app-sampling-strategy-form',
@@ -129,6 +131,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   fractionItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
   taxonNameItems: BehaviorSubject<TaxonNameRef[]> = new BehaviorSubject(null);
 
+  _$pmfmGroups: BehaviorSubject<ObjectMap<number[]>> = new BehaviorSubject(null);
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected validatorService: StrategyValidatorService,
@@ -149,6 +153,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
 
+    this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups).then(map => this._$pmfmGroups.next(map));
+
     this.registerSubscription(
       merge(
         // Delete a row
@@ -166,7 +172,52 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
 
     this.form.addControl('year', new FormControl());
-    // Add age and sex has controls
+    this.form.addControl('sex', new FormControl());
+    this.form.addControl('age', new FormControl());
+
+    this.form.get('pmfmStrategies').setAsyncValidators([
+      //Check if WEIGHT or LENGTH
+      async (control) => {
+        console.log(control);
+          const pmfms = control.value.flat();
+          if (!isEmptyArray(pmfms)) {
+            const pmfmGroups = await firstNotNilPromise(this._$pmfmGroups);
+            const weight = this.getPmfmsByType(pmfms, pmfmGroups.WEIGHT);
+            const length = this.getPmfmsByType(pmfms, pmfmGroups.LENGTH);
+            if (isEmptyArray(weight) && isEmptyArray(length)) {
+              return <ValidationErrors>{ weightOrSize: true };
+            }
+            SharedValidators.clearError(control, 'weightOrSize');
+          } else {
+            return <ValidationErrors>{ weightOrSize: true };
+          }
+        }
+    ]);
+
+    this.form.setAsyncValidators([
+      //Check number of selected pmfms
+      async (control) => {
+        const minLength = 2;
+        const pmfms = control.get('pmfmStrategies').value.flat();
+        const sex = control.get('sex').value;
+        const age = control.get('age').value;
+        let length = 0;
+        if (age) length++;
+        if (sex) length++;
+
+        if (!isEmptyArray(pmfms)) {
+          const pmfmGroups = await firstNotNilPromise(this._$pmfmGroups);
+          length += this.getPmfmsByType(pmfms, pmfmGroups.WEIGHT).length;
+          length += this.getPmfmsByType(pmfms, pmfmGroups.LENGTH).length;
+          if (sex) length += this.getPmfmsByType(pmfms, pmfmGroups.MATURITY).length
+        }
+          
+        if (length < minLength) {
+          return <ValidationErrors>{ minLength: {minLength: minLength} };
+        }
+        SharedValidators.clearError(control, 'minLength');
+      }
+    ])
 
     // register year field changes
     this.registerSubscription(
@@ -245,6 +296,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.initAppliedStrategiesHelper();
     this.initAppliedPeriodHelper();
     this.initPmfmStrategiesFractionHelper();
+
   }
 
 
@@ -263,6 +315,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         this.markForCheck();
       }
 
+      // When program is loaded, reload increment
       this.onDateChange();
     }
   }
@@ -345,12 +398,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     await this.lengthPmfmStrategiesTable.save();
     await this.maturityPmfmStrategiesTable.save();
 
-    const weights = this.weightPmfmStrategiesTable.value.filter(p => p.pmfm || p.parameterId);
-    const lengths = this.lengthPmfmStrategiesTable.value.filter(p => p.pmfm || p.parameterId);
-    const maturities = this.maturityPmfmStrategiesTable.value.filter(p => p.pmfm || p.parameterId);
+    const weights = this.weightPmfmStrategiesTable.value.filter(p => p.pmfm || toNumber(p.parameterId, null));
+    const lengths = this.lengthPmfmStrategiesTable.value.filter(p => p.pmfm || toNumber(p.parameterId, null));
+    const maturities = this.maturityPmfmStrategiesTable.value.filter(p => p.pmfm || toNumber(p.parameterId, null));
 
-    pmfms.push(this.sexAndAgeHelper.at(0).value);
-    pmfms.push(this.sexAndAgeHelper.at(1).value);
+    // pmfms.push(this.sexAndAgeHelper.at(0).value);
+    // pmfms.push(this.sexAndAgeHelper.at(1).value);
     pmfms.push(weights);
     pmfms.push(lengths);
     pmfms.push(maturities);
@@ -495,32 +548,18 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     const year = moment().year();
 
     // format periods for applied conrol period in view and init default period by quarter if no set
-    const quarter1 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 1) || {
-      appliedStrategyId: appliedStrategyId,
-      startDate: moment(`${year}-01-01`),
-      endDate: moment(`${year}-03-31`),
-      acquisitionNumber: undefined
-    };
-
-    const quarter2 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 4) || {
-      appliedStrategyId: appliedStrategyId,
-      startDate: moment(`${year}-04-01`),
-      endDate: moment(`${year}-06-30`),
-      acquisitionNumber: undefined
-    };
-    const quarter3 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 7) || {
-      appliedStrategyId: appliedStrategyId,
-      startDate: moment(`${year}-07-01`),
-      endDate: moment(`${year}-09-30`),
-      acquisitionNumber: undefined
-    };
-    const quarter4 = appliedPeriods.find(period => (fromDateISOString(period.startDate).month() + 1) === 10) || {
-      appliedStrategyId: appliedStrategyId,
-      startDate: moment(`${year}-10-01`),
-      endDate: moment(`${year}-12-31`),
-      acquisitionNumber: undefined
-    };
-    const formattedAppliedPeriods = [quarter1, quarter2, quarter3, quarter4];
+    // let quarter = 1;
+    const formattedAppliedPeriods = []
+    for (let quarter = 1; quarter <= 10; quarter = quarter+3) {
+      formattedAppliedPeriods.push(
+        appliedPeriods.find(period => (period.startDate.month() + 1) === quarter) || {
+          appliedStrategyId: appliedStrategyId,
+          startDate: moment(`${year}-${quarter}-01`).startOf('month'),
+          endDate: moment(`${year}-${quarter+2}-01`).endOf('month'),
+          acquisitionNumber: undefined
+        }
+      );
+    }
 
     // patch the control value
     appliedPeriodControl.patchValue(formattedAppliedPeriods);
@@ -541,11 +580,13 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     // If new
     if (!data.id) {
-      pmfmStrategies = [null, null];
+      // pmfmStrategies = [null, null];
+      this.form.get('sex').patchValue(null);
+      this.form.get('age').patchValue(null);
     } else {
-      const hasAge = (data.pmfmStrategies || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.AGE)) !== -1;
-      const hasSex = (data.pmfmStrategies || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.SEX)) !== -1;
-      pmfmStrategies = [hasSex, hasAge];
+      this.form.get('age').patchValue((data.pmfmStrategies || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.AGE)) !== -1);
+      this.form.get('sex').patchValue((data.pmfmStrategies || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.SEX)) !== -1);
+      // pmfmStrategies = [hasSex, hasAge];
     }
 
     //Weights
@@ -555,38 +596,28 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     //    .then(map => this._$pmfmGroups.next(map));
     //
     // ICI:
-    // const pmfmGroups = await firstNotNilPromise(this._$pmfmGroups);
-    // (data.pmfmStrategies || []).filter(p => {
-    //   const pmfmId = toNumber(p.pmfmId, p.pmfm && p.pmfm.id);
-    //   return pmfmGroups.WEIGHT.includes(pmfmId)
-    // }
-    const weightPmfmStrategy = (data.pmfmStrategies || []).filter(
-      p =>
-        (p.pmfm && p.pmfm.parameter && ParameterLabelGroups.WEIGHT.includes(p.pmfm.parameter.label)) ||
-        (p['parameter'] && ParameterLabelGroups.WEIGHT.includes(p['parameter'].label))
-    );
-    pmfmStrategies.push(weightPmfmStrategy.length > 0 ? weightPmfmStrategy : []);
-    this.weightPmfmStrategiesTable.value = weightPmfmStrategy.length > 0 ? weightPmfmStrategy : [new PmfmStrategy()];
 
-    // Length
-    const lengthPmfmStrategies = (data.pmfmStrategies || []).filter(
-      p =>
-        (p.pmfm && p.pmfm.parameter && ParameterLabelGroups.LENGTH.includes(p.pmfm.parameter.label)) ||
-        (p['parameter'] && ParameterLabelGroups.LENGTH.includes(p['parameter'].label))
-    );
-    pmfmStrategies.push(lengthPmfmStrategies.length > 0 ? lengthPmfmStrategies : []);
-    this.lengthPmfmStrategiesTable.value = lengthPmfmStrategies.length > 0 ? lengthPmfmStrategies : [new PmfmStrategy()];
+    pmfmStrategies = [];
 
-    // Maturities
-    const maturityPmfmStrategy = (data.pmfmStrategies || []).filter(
-      p =>
-        (p.pmfm && p.pmfm.parameter && ParameterLabelGroups.MATURITY.includes(p.pmfm.parameter.label)) ||
-        (p['parameter'] && ParameterLabelGroups.MATURITY.includes(p['parameter'].label))
-    );
-    pmfmStrategies.push(maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : []);
-    this.maturityPmfmStrategiesTable.value = maturityPmfmStrategy.length > 0 ? maturityPmfmStrategy : [new PmfmStrategy()];
+    firstNotNilPromise(this._$pmfmGroups).then((pmfmGroups) => {
 
-    pmfmStrategiesControl.patchValue(pmfmStrategies);
+      //WEIGHT
+      const weightPmfmStrategy = this.getPmfmsByType(data.pmfmStrategies, pmfmGroups.WEIGHT);
+      pmfmStrategies.push(weightPmfmStrategy.length > 0 ? weightPmfmStrategy : []);
+      this.weightPmfmStrategiesTable.value = weightPmfmStrategy.length > 0 ? weightPmfmStrategy : [new PmfmStrategy()];
+
+      // LENGTH
+      const lengthPmfmStrategies = this.getPmfmsByType(data.pmfmStrategies, pmfmGroups.LENGTH);
+      pmfmStrategies.push(lengthPmfmStrategies.length > 0 ? lengthPmfmStrategies : []);
+      this.lengthPmfmStrategiesTable.value = lengthPmfmStrategies.length > 0 ? lengthPmfmStrategies : [new PmfmStrategy()];
+
+      // MATURITY
+      const maturityPmfmStrategies = this.getPmfmsByType(data.pmfmStrategies, pmfmGroups.MATURITY);
+      pmfmStrategies.push(maturityPmfmStrategies.length > 0 ? maturityPmfmStrategies : []);
+      this.maturityPmfmStrategiesTable.value = maturityPmfmStrategies.length > 0 ? maturityPmfmStrategies : [new PmfmStrategy()];
+
+      pmfmStrategiesControl.patchValue(pmfmStrategies);
+    });
 
     // TODO
     this.referentialRefService.loadAll(0, 0, null, null,
@@ -657,7 +688,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     json.appliedStrategies = appliedStrategy ? [appliedStrategy] : [];
 
     // PMFM + Fractions -------------------------------------------------------------------------------------------------
-    const [sex, age] = this.pmfmStrategiesForm.value;
+    const sex = this.form.get('sex').value;
+    const age = this.form.get('age').value;
 
     // Save before get PMFM values
     await this.weightPmfmStrategiesTable.save();
@@ -705,7 +737,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         // Set defaults attributes
         pmfm.strategyId = json.id;
         pmfm.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
-        pmfm.pmfmId = toNumber(pmfm.pmfmId, pmfm.pmfm && pmfm.pmfm.id);
+        pmfm.pmfmId = toNumber(pmfm.pmfmId, toNumber((pmfm.pmfm && pmfm.pmfm.id) ? pmfm.pmfm.id : null, null));
         pmfm.parameterId = toNumber(pmfm.parameterId, pmfm.parameter && pmfm.parameter.id);
         pmfm.matrixId = toNumber(pmfm.matrixId, pmfm.matrix && pmfm.matrix.id);
         pmfm.fractionId = toNumber(pmfm.fractionId, pmfm.fraction && pmfm.fraction.id);
@@ -785,14 +817,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       {
         allowEmptyArray: false,
         validators: [
-          this.requiredPmfmMinLength(2),
-          this.requiredWeightOrSize()
+          // this.requiredPmfmMinLength(2),
+          // this.requiredWeightOrSize()
         ]
       }
     );
     // Create at least one fishing Area
     if (this.sexAndAgeHelper.size() === 0) {
-      this.sexAndAgeHelper.resize(5);
+      this.sexAndAgeHelper.resize(3);
     }
   }
 
@@ -916,32 +948,13 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     };
   }
 
-  requiredWeightOrSize(): ValidatorFn {
-    return (array: FormArray): ValidationErrors | null => {
-      if (Array.isArray(array.value[2])) {
-        const weight = (array.value[2] || []).filter(p => p.pmfm);
-        if (weight && weight.length > 0) {
-          return null;
-        }
-      }
-      if (Array.isArray(array.value[3])) {
-        const size = (array.value[3] || []).filter(p => p.pmfm);
-        if (size && size.length > 0) {
-          return null;
-        }
-      }
-      return { weightOrSize: { weightOrSize: false } };
-    };
-  }
 
   ifSex(): boolean {
-    const sex = this.pmfmStrategiesForm.value[0];
-    return sex;
+    return this.form.get('sex').value;
   }
 
   ifAge(): boolean {
-    const sex = this.pmfmStrategiesForm.value[1];
-    return sex;
+    return this.form.get('age').value;
   }
 
 
@@ -961,4 +974,22 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       });
     return res.data;
   }
+
+  /**
+   * get pmfm by type
+   * @param pmfmStrategies
+   * @param pmfmGroups
+   * @protected
+   */
+  protected getPmfmsByType(pmfmStrategies: PmfmStrategy[], pmfmGroups: number[]) {
+    return (pmfmStrategies || []).filter(p => {
+      const pmfmId = toNumber(p.pmfmId, p.pmfm && p.pmfm.id);
+      const parameterId = toNumber(p.parameterId, p.parameter && p.parameter.id);
+      return pmfmGroups.includes(pmfmId) || pmfmGroups.includes(parameterId);
+    });
+  }
+
+
+
+
 }
