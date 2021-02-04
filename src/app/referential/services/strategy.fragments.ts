@@ -207,11 +207,11 @@ export const StrategyFragments = {
     appliedStrategies {
       ...AppliedStrategyFragment
     }
-    pmfmStrategies {
-      ...PmfmStrategyFragment
-    }
     departments {
       ...StrategyDepartmentFragment
+    }
+    pmfmStrategies {
+      ...PmfmStrategyRefFragment
     }
   }`
 };

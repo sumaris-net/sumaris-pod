@@ -33,14 +33,11 @@ const DenormalizedStrategyQueries = {
   ${StrategyFragments.samplingStrategy}
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.pmfmStrategy}
+  ${StrategyFragments.pmfmStrategyRef}
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.pmfm}
-  ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.parameter}
   ${ReferentialFragments.taxonName}`,
 
   loadAllWithTotal: gql`query DenormalizedStrategiesWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -52,14 +49,11 @@ const DenormalizedStrategyQueries = {
   ${StrategyFragments.samplingStrategy}
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.pmfmStrategy}
+  ${StrategyFragments.pmfmStrategyRef}
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.pmfm}
-  ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.parameter}
   ${ReferentialFragments.taxonName}
   `,
   loadEffort: gql`query StrategyEffort($extractionType: String!,
@@ -113,24 +107,50 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
   }
 
   watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: StrategyFilter,
-           opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean; withEffort?: boolean; }
-           ): Observable<LoadResult<SamplingStrategy>> {
+           opts?: {
+             fetchPolicy?: FetchPolicy;
+             withTotal: boolean;
+             withEffort?: boolean;
+             toEntity?: boolean;
+          }): Observable<LoadResult<SamplingStrategy>> {
     // Call classic watch all
-    return super.watchAll(offset, size, sortBy, sortDirection, filter, opts)
-      // Then fill entities (effort, parameter groups, etc)
+    return super.watchAll(offset, size, sortBy, sortDirection, filter,
+      {
+        ...opts,
+        toEntity: false // not need here
+      })
+
       .pipe(
+
+        // Convert to entities
+        map(({data, total}) => {
+          const entities = (!opts || opts.toEntity !== false)
+            ? (data || []).map(SamplingStrategy.fromObject)
+            : (data || []) as SamplingStrategy[];
+          return {data: entities, total};
+        }),
+
+        // Then fill entities (effort, parameter groups, etc)
         mergeMap(res => this.fillEntities(res, opts)
           .then(() => res)
       ));
   }
 
   async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: StrategyFilter,
-           opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean; withEffort?: boolean; withParameterGroups?: boolean; }
+           opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean; withEffort?: boolean; withParameterGroups?: boolean; toEntity?: boolean; }
   ): Promise<LoadResult<SamplingStrategy>> {
-    const res = await super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+    const {data, total} = await super.loadAll(offset, size, sortBy, sortDirection, filter, {
+      ...opts,
+      toEntity: false // not need here
+    });
+
+    // Convert to entities
+    const entities = (!opts || opts.toEntity !== false)
+     ? (data || []).map(SamplingStrategy.fromObject)
+     : (data || []) as SamplingStrategy[];
 
     // Fill entities (parameter groups, effort, etc)
-    return this.fillEntities(res, opts);
+    return this.fillEntities({ data: entities, total }, opts);
   }
 
   async deleteAll(entities: SamplingStrategy[], options?: any): Promise<any> {
@@ -154,6 +174,8 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
   async fillEntities(res: LoadResult<SamplingStrategy>, opts?: {
     withEffort?: boolean; withParameterGroups?: boolean;
   }): Promise<LoadResult<SamplingStrategy>> {
+    if (!res) return res;
+
     const jobs: Promise<void>[] = [];
     // Fill parameters groups
     if (!opts || opts.withParameterGroups !== false) {

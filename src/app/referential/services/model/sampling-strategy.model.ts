@@ -23,6 +23,7 @@ export class SamplingStrategy extends Strategy<SamplingStrategy> {
 
   constructor() {
     super();
+    this.efforts = [];
     this.effortByQuarter = {}; // Init, for easier use in UI
   }
 
@@ -33,7 +34,7 @@ export class SamplingStrategy extends Strategy<SamplingStrategy> {
   }
 
   get hasRealizedEffort(): boolean {
-    return this.efforts.findIndex(e => e.hasRealizedEffort) !== -1;
+    return (this.efforts || []).findIndex(e => e.hasRealizedEffort) !== -1;
   }
 }
 
