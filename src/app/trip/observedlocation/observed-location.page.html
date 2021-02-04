@@ -69,7 +69,7 @@
 
             <!-- observed location -->
             <form-observed-location #observedLocationForm
-                                    [program]="programSubject|async"
+                                    [programLabel]="$programLabel|async"
                                     [showError]="false"
                                     [showEndDateTime]="false"
                                     [debug]="debug"
@@ -94,10 +94,8 @@
         <mat-icon>
           <ion-icon matPrefix slot="start" name="boat"></ion-icon>
         </mat-icon>
-        <ion-label *ngIf="$ready|async; else skeletonTabText">{{i18nPrefix + 'TAB_LANDINGS'|translate}}</ion-label>
-        <ng-template #skeletonTabText>
-          &nbsp;<ion-skeleton-text style="min-width: 100px"></ion-skeleton-text>
-        </ng-template>
+        <ion-label *ngIf="$ready|async; else skeletonText100">{{i18nPrefix + 'TAB_LANDINGS'|translate}}</ion-label>
+
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="landingsTable?.invalid"></ion-icon>
       </ng-template>
 
@@ -112,7 +110,7 @@
         <app-landings-table #landingsTable
                             [debug]="debug"
                             acquisitionLevel="LANDING"
-                            [program]="programSubject|async"
+                            [programLabel]="$programLabel|async"
                             [showObserversColumn]="false"
                             [showDateTimeColumn]="false"
                             (onOpenRow)="onOpenLanding($event)"
@@ -165,3 +163,7 @@
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
+
+<ng-template #skeletonText100>
+  &nbsp;<ion-skeleton-text style="min-width: 100px"></ion-skeleton-text>
+</ng-template>

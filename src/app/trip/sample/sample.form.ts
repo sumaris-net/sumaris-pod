@@ -96,7 +96,7 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
     return this.programRefService.suggestTaxonGroups(value,
       {
-        program: this.program,
+        program: this.programLabel,
         searchAttribute: options && options.searchAttribute
       });
   }
@@ -109,7 +109,7 @@ export class SampleForm extends MeasurementValuesForm<Sample>
 
     return this.programRefService.suggestTaxonNames(value,
       {
-        program: this.program,
+        program: this.programLabel,
         searchAttribute: options && options.searchAttribute,
         taxonGroupId: taxonGroup && taxonGroup.id || undefined
       });

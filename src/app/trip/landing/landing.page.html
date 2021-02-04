@@ -69,7 +69,7 @@
 
             <!-- landing form-->
             <app-landing-form #landingForm
-                              [program]="programSubject|async"
+                              [programLabel]="$programLabel|async"
                               [showError]="false"
                               [showComment]="!oneTabMode"
                               [debug]="debug"
@@ -116,7 +116,7 @@
         </ion-item>
 
         <app-samples-table #samplesTable
-                           [program]="programSubject|async"
+                           [programLabel]="$programLabel|async"
                            [showLabelColumn]="true"
                            [showDateTimeColumn]="false"
                            [showTaxonNameColumn]="false"

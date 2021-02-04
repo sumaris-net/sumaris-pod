@@ -36,8 +36,8 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   loadingPmfms = true; // Important, must be true
   $loadingControls = new BehaviorSubject<boolean>(true);
   applyingValue = false;
-  programSubject = new BehaviorSubject<string>(undefined);
-  strategySubject = new BehaviorSubject<string>(undefined);
+  $programLabel = new BehaviorSubject<string>(undefined);
+  $strategyLabel = new BehaviorSubject<string>(undefined);
   $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
 
 
@@ -51,20 +51,20 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   @Output() valueChanges = new EventEmitter<any>();
 
   @Input()
-  set program(value: string) {
+  set programLabel(value: string) {
     this.setProgram(value);
   }
 
-  get program(): string {
-    return this.programSubject.getValue();
+  get programLabel(): string {
+    return this.$programLabel.getValue();
   }
 
-  get strategy(): string {
-    return this.strategySubject.getValue();
+  get strategyLabel(): string {
+    return this.$strategyLabel.getValue();
   }
 
   @Input()
-  set strategy(value: string) {
+  set strategyLabel(value: string) {
     this.setStrategy(value);
   }
 
@@ -235,9 +235,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   /* -- protected methods -- */
 
   protected setProgram(value: string) {
-    if (isNotNil(value) && this.programSubject.getValue() !== value) {
+    if (isNotNil(value) && this.$programLabel.getValue() !== value) {
 
-      this.programSubject.next(value);
+      this.$programLabel.next(value);
 
       // Reload pmfms
       if (!this.loading) this._onRefreshPmfms.emit();
@@ -245,9 +245,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   protected setStrategy(value: string) {
-    if (isNotNil(value) && this.strategySubject.getValue() !== value) {
+    if (isNotNil(value) && this.$strategyLabel.getValue() !== value) {
 
-      this.strategySubject.next(value);
+      this.$strategyLabel.next(value);
 
       // Reload pmfms
       if (!this.loading && this.requiredStrategy) this._onRefreshPmfms.emit();
@@ -302,7 +302,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   protected async refreshPmfms(event?: any) {
     // Skip if missing: program, acquisition (or gear, if required)
-    if (isNil(this.program) || (this.requiredStrategy && isNil(this.strategy))
+    if (isNil(this.programLabel) || (this.requiredStrategy && isNil(this.strategyLabel))
       || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gearId))) {
       return;
     }
@@ -317,15 +317,15 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     try {
       // Load pmfms
       let pmfms = (await this.programRefService.loadProgramPmfms(
-        this.program,
+        this.programLabel,
         {
-          strategyLabel: this.strategy,
+          strategyLabel: this.strategyLabel,
           acquisitionLevel: this._acquisitionLevel,
           gearId: this._gearId
         })) || [];
 
       if (isEmptyArray(pmfms)) {
-        if (this.debug) console.warn(`${this.logPrefix} No pmfm found, for {program: ${this.program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
+        if (this.debug) console.warn(`${this.logPrefix} No pmfm found, for {program: ${this.programLabel}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
         pmfms = []; // Create a new array, to force refresh in components that use '!==' to filter events
       }
       else {

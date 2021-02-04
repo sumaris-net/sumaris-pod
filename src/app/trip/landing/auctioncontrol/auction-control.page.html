@@ -73,7 +73,7 @@
 
             <!-- landing form-->
             <app-landing-form #landingForm
-                              [program]="programSubject|async"
+                              [programLabel]="$programLabel|async"
                               [i18nPrefix]="i18nPrefix"
                               [showError]="false"
                               [showMeasurements]="false"

@@ -46,7 +46,6 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
   }
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
-  //@ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
 
   constructor(
     protected injector: Injector,

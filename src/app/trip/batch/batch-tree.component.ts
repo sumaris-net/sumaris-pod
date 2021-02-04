@@ -43,7 +43,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   subBatchesService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
 
   data: Batch;
-  programSubject = new BehaviorSubject<string>(undefined);
+  $programLabel = new BehaviorSubject<string>(undefined);
 
   @Input() debug: boolean;
   @Input() mobile: boolean;
@@ -67,8 +67,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
   @Input()
-  set program(value: string) {
-    this.programSubject.next(value);
+  set programLabel(value: string) {
+    this.$programLabel.next(value);
   }
 
   @Input()
@@ -138,7 +138,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
       // Watch program, to configure tables from program properties
       this.registerSubscription(
-        this.programSubject
+        this.$programLabel
           .pipe(
             filter(isNotNilOrBlank),
             switchMap(programLabel => this.programRefService.watchByLabel(programLabel))
@@ -247,10 +247,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       this.catchBatchForm.ready()
     ];
     if (this.showBatchTables) {
-      promises.push(this.batchGroupsTable.onReady());
+      promises.push(this.batchGroupsTable.ready());
 
       if (this.showSubBatchesTable) {
-        promises.push(this.subBatchesTable.onReady());
+        promises.push(this.subBatchesTable.ready());
       }
     }
     return Promise.all(promises);
@@ -287,7 +287,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       this.batchGroupsTable.value = batchGroups;
 
       // Wait batch group table ready (need to be sure the QV pmfm is set)
-      await this.batchGroupsTable.onReady();
+      await this.batchGroupsTable.ready();
       const groupQvPmfm = this.batchGroupsTable.qvPmfm;
       const subBatches: SubBatch[] = SubBatchUtils.fromBatchGroups(batchGroups, {
         groupQvPmfm

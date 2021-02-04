@@ -42,7 +42,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   readonly acquisitionLevel = AcquisitionLevelCodes.OPERATION;
 
   trip: Trip;
-  programSubject = new BehaviorSubject<string>(null);
+  $programLabel = new BehaviorSubject<string>(null);
   $program = new Subject<Program>();
   saveOptions: OperationSaveOptions = {};
   readonly dateTimePattern: string;
@@ -106,7 +106,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.programSubject
+      this.$programLabel
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
@@ -534,7 +534,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // Set measurements form
     this.measurementsForm.gearId = gearId;
-    this.measurementsForm.program = program;
+    this.measurementsForm.programLabel = program;
     this.measurementsForm.value = data && data.measurements || [];
 
     // Set batch tree
@@ -556,7 +556,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
 
     // Applying program to tables (async)
-    if (program) this.programSubject.next(program);
+    if (program) this.$programLabel.next(program);
   }
 
   isCurrentData(other: IEntity<any>): boolean {
@@ -704,7 +704,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (qvMeasurement && ReferentialUtils.isNotEmpty(qvMeasurement.qualitativeValue)) {
 
       // Retrieve QV from the program pmfm (because measurement's QV has only the 'id' attribute)
-      const tripPmfms = await this.programRefService.loadProgramPmfms(this.programSubject.getValue(), {acquisitionLevel: AcquisitionLevelCodes.TRIP});
+      const tripPmfms = await this.programRefService.loadProgramPmfms(this.$programLabel.getValue(), {acquisitionLevel: AcquisitionLevelCodes.TRIP});
       const pmfm = (tripPmfms || []).find(pmfm => pmfm.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
       const qualitativeValue = (pmfm && pmfm.qualitativeValues || []).find(qv => qv.id === qvMeasurement.qualitativeValue.id);
 
@@ -726,13 +726,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
   }
 
-  protected async updateRoute(data: Operation, queryParams: any): Promise<boolean> {
-    const id = data && isNotNil(data.id) ? data.id : 'new';
-    return await this.router.navigate(['trips', this.trip.id, 'operations', id], {
-      replaceUrl: true,
-      queryParams: queryParams,
-      queryParamsHandling: "preserve"
-    });
+  protected computePageUrl(id: number | "new"): string | any[] {
+    const parentUrl = this.getParentPageUrl();
+    return parentUrl && `${parentUrl}/operation/${id}`;
   }
 
   protected markForCheck() {

@@ -135,6 +135,7 @@ export const StrategyFragments = {
       updateDate
       creationDate
       statusId
+      programId
       gears {
         ...ReferentialFragment
       }

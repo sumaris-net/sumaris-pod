@@ -101,23 +101,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   }
 
-  ngAfterViewInit() {
-    super.ngAfterViewInit();
-
-    // Watch program, to configure tables from program properties
-    this.registerSubscription(
-      this.$program
-        .pipe(
-          //tap(program => console.debug('DEV - Setting program=' + program)),
-          tap(program => this.setProgram(program))
-        )
-        .subscribe()
-    );
-  }
-
   /* -- protected methods  -- */
 
-  protected setProgram(program: Program) {
+  protected async setProgram(program: Program) {
     if (!program) return; // Skip
 
     if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
@@ -169,7 +155,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         // program
         if (searchFilter.program && searchFilter.program.label) {
           data.program = ReferentialRef.fromObject(searchFilter.program);
-          this.programSubject.next(data.program.label);
+          this.$programLabel.next(data.program.label);
         }
 
         // Location
@@ -219,7 +205,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     const isNew = isNil(data.id);
     if (!isNew) {
       // Propagate program to form
-      this.programSubject.next(data.program.label);
+      this.$programLabel.next(data.program.label);
     }
 
     // Wait for child table ready

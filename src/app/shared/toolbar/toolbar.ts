@@ -140,6 +140,7 @@ export class ToolbarComponent implements OnInit {
   }
 
   async goBack(): Promise<void> {
+    console.debug('[toolbar] calling goBack()');
     if (this._backHref) {
       await this.router.navigateByUrl(this._backHref);
     }

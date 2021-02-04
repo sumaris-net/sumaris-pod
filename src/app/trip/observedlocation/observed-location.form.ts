@@ -138,7 +138,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
           pluck('label'),
           distinctUntilChanged()
         )
-        .subscribe(programLabel => this.program = programLabel as string));
+        .subscribe(programLabel => this.programLabel = programLabel as string));
 
     // Combo location
     this.registerAutocompleteField('location', {
@@ -204,7 +204,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
 
     // Propagate the program
     if (value.program && value.program.label) {
-      this.program = value.program.label;
+      this.programLabel = value.program.label;
     }
     // New data: copy the program into json value
     else if (isNil(value.id)){

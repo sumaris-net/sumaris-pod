@@ -35,7 +35,7 @@ export class SelectLandingsModal implements OnInit {
 
   ngOnInit() {
     this.table.filter = this.filter;
-    this.table.program = this.program;
+    this.table.programLabel = this.program;
     this.table.acquisitionLevel = this.acquisitionLevel;
     setTimeout(() => {
       this.table.onRefresh.next("modal");

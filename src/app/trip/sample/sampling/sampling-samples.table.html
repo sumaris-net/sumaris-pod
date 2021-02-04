@@ -57,10 +57,6 @@
     <mat-header-cell *matHeaderCellDef [style.flex]="1"></mat-header-cell>
   </ng-container>
 
-  <!-- Comment column -->
-  <ng-container matColumnDef="comment">
-    <mat-header-cell *matHeaderCellDef [style.flex]="1"></mat-header-cell>
-  </ng-container>
 
   <!-- Group pmfm columns -->
   <ng-container *ngFor="let col of $pmfmGroupColumns | async; trackBy: trackColumnDef" [matColumnDef]="col.key">
@@ -70,6 +66,11 @@
         <span translate>{{col.name}}</span>
       </mat-label>
     </mat-header-cell>
+  </ng-container>
+
+  <!-- Comment column -->
+  <ng-container matColumnDef="comments">
+    <mat-header-cell *matHeaderCellDef [style.flex]="1"></mat-header-cell>
   </ng-container>
 
   <!-- Actions buttons column -->
@@ -134,24 +135,6 @@
     </mat-cell>
   </ng-container>
 
-  <!-- Comment column -->
-   <ng-container matColumnDef="comment">
-     <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-       <span translate>{{i18nFieldPrefix + 'COMMENTS'}}</span>
-     </mat-header-cell>
-     <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
-       <mat-form-field  *ngIf="row.editing" floatLabel="never">
-         <input matInput [formControl]="row.validator.controls.comments"
-                [placeholder]="i18nFieldPrefix + 'COMMENTS_PLACEHOLDER'|translate"
-                [readonly]="!row.editing">
-       </mat-form-field>
-       <mat-icon color="primary" class="comment"
-                 *ngIf="row.currentData.comments && !row.editing"
-                 [title]="row.currentData.comments">chat_bubble</mat-icon>
-     </mat-cell>
-
-
-   </ng-container>
 
   <!-- Pmfms columns -->
   <ng-container *ngFor="let pmfm of $pmfms | async">
@@ -172,6 +155,26 @@
           [compact]="true" floatLabel="never"></app-pmfm-field>
       </mat-cell>
     </ng-container>
+  </ng-container>
+
+  <!-- Comment column -->
+  <ng-container matColumnDef="comments">
+    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+      &nbsp;
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row"
+              class="hidden-xs hidden-sm">
+      <mat-form-field *ngIf="row.editing; else readonlyComment"
+                      floatLabel="never">
+        <input matInput [formControl]="row.validator.controls.comments"
+               [placeholder]="i18nFieldPrefix + 'COMMENTS_PLACEHOLDER'|translate">
+      </mat-form-field>
+      <ng-template #readonlyComment>
+        <mat-icon *ngIf="row.currentData.comments"
+                  [title]="row.currentData.comments"
+                  class="comment">chat_bubble</mat-icon>
+      </ng-template>
+    </mat-cell>
   </ng-container>
 
   <!-- Actions buttons column -->
@@ -215,8 +218,8 @@
   <mat-header-row *matHeaderRowDef="displayedColumns"
                   class="second-header-row">
   </mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
-           [class.mat-row-dirty]="row.validator.dirty" [class.mat-row-disabled]="!row.editing"
+  <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator?.invalid"
+           [class.mat-row-dirty]="row.validator?.dirty" [class.mat-row-disabled]="!row.editing"
            (click)="clickRow($event, row)"></mat-row>
 </mat-table>
 

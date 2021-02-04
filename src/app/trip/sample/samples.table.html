@@ -149,14 +149,20 @@
   <!-- Comment column -->
   <ng-container matColumnDef="comments">
     <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-      <span translate>REFERENTIAL.COMMENTS</span>
+      &nbsp;
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never">
+    <mat-cell *matCellDef="let row"
+              class="hidden-xs hidden-sm">
+      <mat-form-field *ngIf="row.editing; else readonlyComment"
+                      floatLabel="never">
         <input matInput [formControl]="row.validator.controls.comments"
-               [placeholder]="'REFERENTIAL.COMMENTS'|translate"
-               [readonly]="!row.editing">
+               [placeholder]="i18nFieldPrefix + 'COMMENTS_PLACEHOLDER'|translate">
       </mat-form-field>
+      <ng-template #readonlyComment>
+        <mat-icon *ngIf="row.currentData.comments"
+                  [title]="row.currentData.comments"
+                  class="comment">chat_bubble</mat-icon>
+      </ng-template>
     </mat-cell>
   </ng-container>
 

@@ -32,7 +32,7 @@ import {Program} from "../../../referential/services/model/program.model";
 })
 export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
 
-  private programSubject = new BehaviorSubject<string>(undefined);
+  private $programLabel = new BehaviorSubject<string>(undefined);
   private $program = new BehaviorSubject<Program>(undefined);
 
   // -- Map Layers --
@@ -89,13 +89,13 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
 
   @Input()
   set program(value: string) {
-    if (isNotNil(value) && this.programSubject.getValue() !== value) {
-      this.programSubject.next(value);
+    if (isNotNil(value) && this.$programLabel.getValue() !== value) {
+      this.$programLabel.next(value);
     }
   }
 
   get program(): string {
-    return this.programSubject.getValue();
+    return this.$programLabel.getValue();
   }
 
   constructor(
@@ -124,7 +124,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
   ngOnInit() {
 
     this.registerSubscription(
-      this.programSubject
+      this.$programLabel
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),

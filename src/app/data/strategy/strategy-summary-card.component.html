@@ -1,8 +1,12 @@
 
 <ion-card @fadeInAnimation *ngIf="!loading">
   <ion-card-header color="light" *ngIf="title">
-    <ion-card-title>
-      <ion-text color="primary">{{title|translate}}</ion-text>
+    <ion-card-title (click)="open($event)" [title]="i18nPrefix+'BTN_SHOW'|translate">
+      <ion-text color="primary" >
+        <span>{{title|translate}}</span>
+        <small class="mouseover">&nbsp;<ion-icon name="eye"></ion-icon></small>
+      </ion-text>
+
     </ion-card-title>
   </ion-card-header>
 
@@ -44,14 +48,5 @@
     </ng-container>
 
   </ion-card-content>
-
-  <ion-card-header color="light">
-    <!-- Show more link -->
-    <a mat-button *ngIf="showOpenLink"
-        (click)="open($event)"
-        color="primary">
-      <ion-text class="ion-text-wrap" translate>COMMON.BTN_SHOW_MORE</ion-text>
-    </a>
-  </ion-card-header>
 
 </ion-card>

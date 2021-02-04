@@ -34,7 +34,7 @@ export class AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> ex
 export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, F> extends AppTable<T, F>
   implements OnInit, OnDestroy, ValidatorService {
 
-  private _program: string;
+  private _programLabel: string;
   private _autoLoadAfterPmfm = true;
 
   protected _acquisitionLevel: AcquisitionLevelType;
@@ -58,15 +58,15 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   @Input() canEditRankOrder = false;
 
   @Input()
-  set program(value: string) {
-    this._program = value;
+  set programLabel(value: string) {
+    this._programLabel = value;
     if (this.measurementsDataService) {
-      this.measurementsDataService.program = value;
+      this.measurementsDataService.programLabel = value;
     }
   }
 
-  get program(): string {
-    return this._program;
+  get programLabel(): string {
+    return this._programLabel;
   }
 
   @Input()
@@ -151,7 +151,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService, {
       mapPmfms: options.mapPmfms || undefined
     });
-    this.measurementsDataService.program = this._program;
+    this.measurementsDataService.programLabel = this._programLabel;
     this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
 
     const encapsulatedValidator = this.validatorService ? this : null;
@@ -223,7 +223,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   protected generateTableId(): string {
     // Append the program, if any
-    return super.generateTableId() + (isNotNil(this._program) ? ('-' + this._program) : '');
+    return super.generateTableId() + (isNotNil(this._programLabel) ? ('-' + this._programLabel) : '');
   }
 
   protected getDisplayColumns(): string[] {
@@ -262,7 +262,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     }
   }
 
-  public async onReady() {
+  async ready() {
     // Wait pmfms load, and controls load
     if (isNil(this.$pmfms.getValue())) {
       await firstNotNilPromise(this.$pmfms);

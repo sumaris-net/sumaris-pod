@@ -50,7 +50,7 @@ export class SelectPhysicalGearModal implements OnInit {
     this.filter = this.filter || {};
     this.table.filter = this.filter;
     this.table.acquisitionLevel = this.acquisitionLevel || AcquisitionLevelCodes.PHYSICAL_GEAR;
-    this.table.program = this.program;
+    this.table.programLabel = this.program;
 
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);

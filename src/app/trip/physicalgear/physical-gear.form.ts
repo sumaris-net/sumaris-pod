@@ -63,7 +63,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
     // Load gears from program
     this.registerSubscription(
-      this.programSubject
+      this.$programLabel
         .pipe(
           filter(isNotNil),
           distinctUntilChanged(),

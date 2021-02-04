@@ -23,7 +23,7 @@ import {AppTabEditor, AppTabFormOptions} from "./tab-editor.class";
 import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
 import {ErrorCodes, ServerErrorCodes} from "../services/errors";
-import {toNumber} from "../../shared/functions";
+import {isNotEmptyArray, toNumber} from "../../shared/functions";
 import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
 import {isNil, isNilOrBlank, isNotNil, toBoolean} from "../../shared/functions";
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
@@ -225,7 +225,7 @@ export abstract class AppEntityEditor<
         openTabIndex: 0,
         ...opts
       });
-      this.loading = false;
+      this.markAsLoaded({emitEvent: false});
     }
 
     // Load existing data
@@ -236,13 +236,13 @@ export abstract class AppEntityEditor<
         this._usageMode = this.computeUsageMode(data);
         await this.onEntityLoaded(data, opts);
         this.updateView(data, opts);
-        this.loading = false;
+        this.markAsLoaded({emitEvent: false});
         this.startListenRemoteChanges();
       }
       catch (err) {
         this.setError(err);
         this.selectedTabIndex = 0;
-        this.loading = false;
+        this.markAsLoaded({emitEvent: false});
       }
     }
   }
@@ -613,10 +613,6 @@ export abstract class AppEntityEditor<
     // can be overwrite by subclasses
   }
 
-  protected async updateRoute(data: T, queryParams: any): Promise<boolean> {
-    // can be overwrite by subclasses
-    return false;
-  }
 
   protected computeUsageMode(data: T): UsageMode {
     return this.settings.isUsageMode('FIELD') ? 'FIELD' : 'DESK';
@@ -677,32 +673,51 @@ export abstract class AppEntityEditor<
     return this.settings.removePageHistory(this.router.url, opts);
   }
 
-  /**
-   * Open the first tab that is invalid
-   */
-  protected openFirstInvalidTab() {
-    const invalidTabIndex = this.getFirstInvalidTabIndex();
-    if (invalidTabIndex !== -1 && this.selectedTabIndex !== invalidTabIndex) {
-      this.selectedTabIndex = invalidTabIndex;
-    }
+
+  protected computePageUrl(id: number|'new'): string | any[] {
+    const parentUrl = this.getParentPageUrl();
+    return parentUrl && `${parentUrl}/${id}`;
   }
 
+  protected getParentPageUrl(withQueryParams?: boolean) {
+    let parentUrl = this.defaultBackHref;
 
-  protected async scrollToTop(duration?: number) {
-    duration = toNumber(duration, 500);
-
-    if (!this.content) {
-      console.warn(`[root-data-editor] Cannot scroll to top. Missing a 'content' child in the page ${this.constructor.name}`);
-      return;
+    // Remove query params
+    if (withQueryParams !== true && parentUrl && parentUrl.indexOf('?') !== -1) {
+      parentUrl = parentUrl.substr(0, parentUrl.indexOf('?'));
     }
 
-    return this.content.scrollToTop(duration);
+    return parentUrl;
   }
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
 
+  /* -- private functions -- */
 
+  /**
+   * Open the first tab that is invalid
+   */
+  private openFirstInvalidTab() {
+    const invalidTabIndex = this.getFirstInvalidTabIndex();
+    if (invalidTabIndex !== -1 && this.selectedTabIndex !== invalidTabIndex) {
+      this.selectedTabIndex = invalidTabIndex;
+    }
+  }
+
+  private async updateRoute(data: T, queryParams: any): Promise<boolean> {
+    const path = this.computePageUrl(isNotNil(data.id) ? data.id : 'new');
+    const commands: any[] = (path && typeof path === 'string') ? path.split('/') : path as any[];
+    if (isNotEmptyArray(commands)) {
+      return await this.router.navigate(commands, {
+        replaceUrl: true,
+        queryParams: this.queryParams
+      });
+    }
+    else {
+      console.warn('Skip page route update. Invalid page path: ', path);
+    }
+  }
 }
 

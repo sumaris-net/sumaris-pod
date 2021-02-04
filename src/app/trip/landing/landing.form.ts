@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
-import {debounceTime, map} from 'rxjs/operators';
+import {debounceTime, map, tap} from 'rxjs/operators';
 import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../referential/services/model/model.enum';
 import {LandingValidatorService} from "../services/validator/landing.validator";
 import {PersonService} from "../../admin/services/person.service";
@@ -54,7 +54,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() showMeasurements = true;
   @Input() showError = true;
   @Input() showButtons = true;
-  @Input() showStrategy = true; // TODO BLA change to false
+  @Input() showStrategy = false;
   @Input() locationLevelIds: number[];
   @Input() allowAddNewVessel: boolean;
 
@@ -137,7 +137,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       service: this.referentialRefService,
       filter: {
         entityName: 'Strategy',
-        levelLabel: this.programSubject.getValue() // is empty, will be set in setProgram()
+        levelLabel: this.$programLabel.getValue() // is empty, will be set in setProgram()
       },
       attributes: ['label'],
       columnSizes: [12]
@@ -179,18 +179,20 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       this.form.get('program').valueChanges
         .pipe(
           debounceTime(250),
-          map(value => EntityUtils.isNotEmpty(value, 'label') ? value.label : value as string)
+          map(value => (value && typeof value === 'string') ? value : (value && value.label || undefined))
         )
-        .subscribe(programLabel => this.program = programLabel));
+        .subscribe(programLabel => this.programLabel = programLabel));
 
     // Propagate strategy changes
     this.registerSubscription(
       this.strategyControl.valueChanges
         .pipe(
           debounceTime(250),
-          map(value => EntityUtils.isNotEmpty(value, 'label') ? value.label : value as string)
+          map(value => (value && typeof value === 'string') ? value : (value && value.label || undefined)),
+          // DEBUG
+          //tap(strategyLabel => console.debug('[landing-form] Sending strategy label: ' + strategyLabel))
         )
-        .subscribe(strategyLabel => this.strategy = strategyLabel));
+        .subscribe(strategyLabel => this.strategyLabel = strategyLabel));
   }
 
   async safeSetValue(data: Landing, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }) {
@@ -208,7 +210,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     // Propagate the program
     if (data.program && data.program.label) {
-      this.program = data.program.label;
+      this.programLabel = data.program.label;
     }
 
     // Propagate the strategy
@@ -217,7 +219,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       .map(([_, value]) => value)
       .find(isNotNil) as string;
     this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
-    this.strategy = strategyLabel;
+    this.strategyLabel = strategyLabel;
 
     await super.safeSetValue(data, opts);
   }
@@ -320,9 +322,11 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     if (this.showStrategy) {
       // Create the missing Pmfm, to hold strategy (if need)
-      let strategyPmfm: PmfmStrategy = (pmfms || []).find(pmfm => pmfm.pmfmId === PmfmIds.STRATEGY_LABEL);
-      if (strategyPmfm) {
-        strategyPmfm = strategyPmfm.clone(); // Copy, to leave original PMFM unchanged
+      const existingIndex = (pmfms || []).findIndex(pmfm => pmfm.pmfmId === PmfmIds.STRATEGY_LABEL);
+      let strategyPmfm: PmfmStrategy;
+      if (existingIndex !== -1) {
+        // Remove existing, then copy it (to leave original unchanged)
+        strategyPmfm = pmfms.splice(existingIndex, 1)[0].clone();
       }
       else {
         strategyPmfm = PmfmStrategy.fromObject({
@@ -330,12 +334,13 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           pmfmId: PmfmIds.STRATEGY_LABEL,
           type: 'string'
         });
-
-        // Prepend
-        pmfms = [strategyPmfm, ...pmfms];
       }
+
       strategyPmfm.hidden = true; // Do not display it in measurement
       strategyPmfm.isMandatory = false; // Nopt need to be required, because of strategyControl validator
+
+      // Prepend to list
+      pmfms = [strategyPmfm, ...pmfms];
     }
 
     return pmfms;

@@ -190,7 +190,7 @@
                                            [forceOptional]="usageMode|isOnField"
                                            [acquisitionLevel]="acquisitionLevel"
                                            [debug]="debug"
-                                           [program]="programSubject|async"
+                                           [programLabel]="$programLabel|async"
                                            [tabindex]="30">
                     </app-form-measurements>
                   </ion-col>
@@ -216,7 +216,7 @@
       <app-batch-tree #batchTree
                       queryTabIndexParamName="subtab"
                       [showBatchTables]="showBatchTables"
-                      [program]="programSubject | async"
+                      [programLabel]="$programLabel | async"
                       [usageMode]="usageMode"
                       [debug]="debug">
       </app-batch-tree>
@@ -239,7 +239,7 @@
 
           <app-samples-table #samplesTable [debug]="debug"
                              acquisitionLevel="SURVIVAL_TEST"
-                             [program]="programSubject|async"
+                             [programLabel]="$programLabel|async"
                              [usageMode]="usageMode"
                              [showLabelColumn]="false"
                              [showDateTimeColumn]="true"
@@ -261,7 +261,7 @@
           </ng-template>
 
           <app-individual-monitoring-table #individualMonitoringTable [debug]="true"
-                                           [program]="programSubject | async"
+                                           [programLabel]="$programLabel | async"
                                            [usageMode]="usageMode"
           ></app-individual-monitoring-table>
 
@@ -280,7 +280,7 @@
 
           <app-sub-samples-table #individualReleaseTable [debug]="debug"
                                  acquisitionLevel="INDIVIDUAL_RELEASE"
-                                 [program]="programSubject | async"
+                                 [programLabel]="$programLabel | async"
                                  [showLabelColumn]="false">
           </app-sub-samples-table>
 

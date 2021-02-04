@@ -108,7 +108,7 @@
                                            [forceOptional]="forceMeasurementAsOptional"
                                            [acquisitionLevel]="acquisitionLevel"
                                            [debug]="debug"
-                                           [program]="programSubject|async"
+                                           [programLabel]="$programLabel|async"
                                            [tabindex]="30">
                     </app-form-measurements>
                   </ion-col>
@@ -148,7 +148,7 @@
         </ion-item>
 
         <app-physicalgears-table #physicalGearsTable
-                                 [program]="programSubject|async"
+                                 [programLabel]="$programLabel|async"
                                  [debug]="debug"
                                  (onSelectPreviousGear)="openSelectPreviousGearsModal($event)">
         </app-physicalgears-table>
@@ -169,7 +169,7 @@
       <app-operations-table #operationsTable
                             (onOpenRow)="onOpenOperation($event)"
                             (onNewRow)="onNewOperation($event)"
-                            [program]="programSubject|async"
+                            [program]="$programLabel|async"
                             [defaultSortBy]="mobile ? 'startDateTime': 'endDateTime'"
                             [defaultSortDirection]="mobile ?'desc': 'asc'">
       </app-operations-table>

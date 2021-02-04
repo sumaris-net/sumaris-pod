@@ -82,7 +82,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
     // Get program taxon groups
     this.registerSubscription(
-      this.programSubject
+      this.$programLabel
         .pipe(
           filter(isNotNil),
           mergeMap((programLabel) => this.programRefService.loadTaxonGroups(programLabel))
@@ -112,7 +112,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
                   const taxonGroup = taxonGroups.find(tg => tg.label === qv.label);
                   // If not found in strategy's taxonGroups: ignore
                   if (!taxonGroup) {
-                    console.warn(`Ignore invalid QualitativeValue {label: ${qv.label}} (not found in taxon groups of the program ${this.landingForm.program})`);
+                    console.warn(`Ignore invalid QualitativeValue {label: ${qv.label}} (not found in taxon groups of the program ${this.landingForm.programLabel})`);
                     return res;
                   }
                   // Replace the QV name, using the taxon group name
@@ -165,7 +165,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       this.selectedTaxonGroup$
       .pipe(
         filter(isNotNil),
-        mergeMap(taxonGroup => this.programRefService.loadProgramPmfms(this.programSubject.getValue(), {
+        mergeMap(taxonGroup => this.programRefService.loadProgramPmfms(this.$programLabel.getValue(), {
           acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
           taxonGroupId: toNumber(taxonGroup && taxonGroup.id, undefined)
         })),

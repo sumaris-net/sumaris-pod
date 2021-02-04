@@ -19,7 +19,7 @@ export interface SampleFilter {
 }
 
 const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label'];
-const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comment'];
+const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
 const SAMPLE_PARAMETER_GROUPS = ['ANALYTIC_REFERENCE', 'WEIGHT', 'LENGTH', 'MATURITY', 'SEX', 'AGE', 'OTHER'];
 
 declare interface GroupColumnDefinition {

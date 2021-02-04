@@ -176,7 +176,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     }
     else {
       this.registerAutocompleteField('taxonGroup', {
-        suggestFn: (value: any, filter?: any) => this.programRefService.suggestTaxonGroups(value, {...filter, program: this.program}),
+        suggestFn: (value: any, filter?: any) => this.programRefService.suggestTaxonGroups(value, {...filter, program: this.programLabel}),
         mobile: this.settings.mobile
     });
 
@@ -402,7 +402,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     }
     else {
       this.taxonNameFilter = {
-          program: this.program,
+          program: this.programLabel,
           taxonGroupId: opts && opts.taxonGroup && opts.taxonGroup.id
         };
     }

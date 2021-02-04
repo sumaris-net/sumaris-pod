@@ -53,7 +53,7 @@
         <!-- strategy details-->
         <app-strategy-form #strategyForm
                            [showBaseForm]="false"
-                           [program]="programSubject|async">
+                           [program]="$program|async">
         </app-strategy-form>
       </div>
     </mat-tab>

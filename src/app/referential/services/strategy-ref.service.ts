@@ -132,15 +132,19 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
   async loadByLabel(label: string, opts?: {
     programId?: number;
     fetchPolicy?: FetchPolicy;
+    toEntity?: boolean;
   }): Promise<Strategy> {
+    console.debug(`[strategy-ref-service] Loading strategy {${label}}...`);
 
     const res = await this.loadAll(0, 1, null, null, {
       label,
       levelId: toNumber(opts && opts.programId, undefined)
-    }, {
-      ...opts
-    });
-    return res && firstArrayValue(res.data);
+    }, opts);
+
+    const entity = res && firstArrayValue(res.data);
+
+    console.debug(`[strategy-ref-service] Loading strategy {${label}} [OK]`, entity);
+    return entity;
   }
 
   /**
@@ -175,12 +179,10 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
             );
         }
         else {
-          const query = opts && opts.query || STRATEGY_REF_QUERIES.load;
+          const query = opts && opts.query || this.queries.load;
           res = this.graphql.watchQuery<{ data: any }>({
-            query: query,
-            variables: {
-              label
-            },
+            query,
+            variables: { label },
             error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "ERROR.LOAD_ERROR"}
           });
         }

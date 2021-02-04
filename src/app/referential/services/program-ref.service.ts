@@ -62,7 +62,15 @@ export class ProgramFilter extends ReferentialFilter {
 
 }
 
-const PROGRAM_REF_QUERIES: BaseReferentialEntityQueries & BaseReferentialEntitiesQueries = {
+const ProgramRefQueries = {
+  // Load by id, with only properties
+  loadLight: gql`query ProgramRef($id: Int, $label: String){
+        data: program(id: $id, label: $label){
+          ...LightProgramFragment
+        }
+    }
+    ${ProgramFragments.lightProgram}
+  `,
   // Load by id
   load: gql`query ProgramRef($id: Int, $label: String){
         data: program(id: $id, label: $label){
@@ -139,7 +147,7 @@ export class ProgramRefService
   ) {
     super(graphql, platform, Program,
       {
-        queries: PROGRAM_REF_QUERIES,
+        queries: ProgramRefQueries,
         filterAsObjectFn: ProgramFilter.asPodObject,
         createFilterFn: ProgramFilter.searchFilter,
       });

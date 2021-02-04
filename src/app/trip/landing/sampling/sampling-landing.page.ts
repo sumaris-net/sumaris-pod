@@ -8,6 +8,11 @@ import {ObjectMap} from "../../../shared/types";
 import {BiologicalSamplingValidators} from "../../services/validator/biological-sampling.validators";
 import {LandingPage} from "../landing.page";
 import {Landing} from "../../services/model/landing.model";
+import {filter, first, switchMap, tap} from "rxjs/operators";
+import {isNotNil} from "../../../shared/functions";
+import {mergeMap} from "rxjs/internal/operators";
+import {firstNotNilPromise} from "../../../shared/observables";
+import {HistoryPageReference} from "../../../core/services/model/settings.model";
 
 
 @Component({
@@ -20,6 +25,7 @@ export class SamplingLandingPage extends LandingPage {
   protected pmfmService: PmfmService;
 
   $pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
+  showSamplesTable = false;
 
   constructor(
     injector: Injector
@@ -39,6 +45,19 @@ export class SamplingLandingPage extends LandingPage {
       .then(pmfmGroups => this.$pmfmGroups.next(pmfmGroups));
   }
 
+  markAsLoaded(opts?: { emitEvent?: boolean }) {
+    super.markAsLoaded(opts);
+
+    // When data loaded, wait table is ready before show it
+    Promise.all([
+      firstNotNilPromise(this.$strategy),
+      this.samplesTable.ready()
+    ])
+      .then(() => this.showSamplesTable = true);
+  }
+
+  /* -- protected functions -- */
+
   protected async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
 
@@ -51,6 +70,16 @@ export class SamplingLandingPage extends LandingPage {
     }, []);*/
 
     await super.setValue(data);
+  }
+
+
+
+
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ... (await super.computePageHistory(title)),
+      icon: 'boat'
+    };
   }
 
   protected computePageUrl(id: number|'new') {

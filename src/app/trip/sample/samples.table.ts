@@ -178,7 +178,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     //if (isNilOrBlank(value)) return [];
     return this.programRefService.suggestTaxonGroups(value,
       {
-        program: this.program,
+        program: this.programLabel,
         searchAttribute: options && options.searchAttribute
       });
   }
@@ -191,7 +191,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     return this.programRefService.suggestTaxonNames(value,
       {
-        program: this.program,
+        program: this.programLabel,
         searchAttribute: options && options.searchAttribute,
         taxonGroupId: taxonGroup && taxonGroup.id || undefined
       });

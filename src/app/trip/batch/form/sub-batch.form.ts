@@ -544,7 +544,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
       console.debug(`[sub-batch-form] Searching taxon name {${value || '*'}}...`);
     return this.programRefService.suggestTaxonNames(value,
       {
-        program: this.program,
+        program: this.programLabel,
         searchAttribute: options && options.searchAttribute,
         taxonGroupId: parentGroup && parentGroup.taxonGroup && parentGroup.taxonGroup.id || undefined
       });

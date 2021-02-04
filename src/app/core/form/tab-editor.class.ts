@@ -11,7 +11,7 @@ import {AppFormHolder, AppFormUtils, IAppForm, IAppFormFactory} from "./form.uti
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
 import {ToolbarComponent} from "../../shared/toolbar/toolbar";
-import {isNotNil} from "../../shared/functions";
+import {isNotNil, toNumber} from "../../shared/functions";
 
 export class AppTabFormOptions {
 
@@ -485,16 +485,25 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
 
   /* -- protected methods -- */
 
-  protected async scrollToTop() {
-    // TODO: FIXME (not working as the page is not the window)
-    const scrollToTop = window.setInterval(() => {
-      const pos = window.pageYOffset;
-      if (pos > 0) {
-        window.scrollTo(0, pos - 20); // how far to scroll on each step
-      } else {
-        window.clearInterval(scrollToTop);
-      }
-    }, 16);
+  protected async scrollToTop(duration?: number) {
+    duration = toNumber(duration, 500);
+
+    if (!this.content) {
+      console.warn(`[tab-editor] Cannot scroll to top. (no 'ion-content' tag found ${this.constructor.name}`);
+
+      // TODO: FIXME (not working as the page is not the window)
+      const scrollToTop = window.setInterval(() => {
+        const pos = window.pageYOffset;
+        if (pos > 0) {
+          window.scrollTo(0, pos - 20); // how far to scroll on each step
+        } else {
+          window.clearInterval(scrollToTop);
+        }
+      }, 16);
+      return;
+    }
+
+    return this.content.scrollToTop(duration);
   }
 
   protected registerSubscription(sub: Subscription|TeardownLogic) {

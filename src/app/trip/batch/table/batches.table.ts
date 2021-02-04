@@ -205,7 +205,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     const modal = await this.modalCtrl.create({
       component: BatchModal,
       componentProps: {
-        program: this.program,
+        program: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         value: batch,
@@ -243,7 +243,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     //if (isNilOrBlank(value)) return [];
     return this.programRefService.suggestTaxonGroups(value,
       {
-        program: this.program,
+        program: this.programLabel,
         searchAttribute: options && options.searchAttribute
       });
   }
@@ -256,7 +256,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
     return this.programRefService.suggestTaxonNames(value,
       {
-        program: this.program,
+        program: this.programLabel,
         searchAttribute: options && options.searchAttribute,
         taxonGroupId: taxonGroup && taxonGroup.id || undefined
       });

@@ -73,12 +73,13 @@
 
             <!-- landing form-->
             <app-landing-form #landingForm
-                              [program]="programSubject|async"
+                              [programLabel]="$programLabel|async"
                               [i18nPrefix]="i18nPrefix"
                               [requiredStrategy]="true"
                               [showMeasurements]="false"
                               [showError]="false"
                               [showComment]="!oneTabMode"
+                              [showStrategy]="true"
                               (onSubmit)="save($event)"
                               [debug]="debug">
             </app-landing-form>
@@ -107,10 +108,10 @@
 
     <!-- TAB: samples -->
     <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES'|translate"
-             [disabled]="isNewData || oneTabMode">
+             [disabled]="oneTabMode">
       <ng-template mat-tab-label>
-        <mat-icon>center_focus_strong</mat-icon>
-        <ion-label>{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
+        <!--<mat-icon *ngIf="!showSamplesTable">center_focus_strong</mat-icon>-->
+        <ion-label *ngIf="showSamplesTable && !oneTabMode; else skeletonText100">{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
 
@@ -123,7 +124,7 @@
         </ion-item>
 
         <app-sampling-samples-table #samplesTable
-                                    [class.cdk-visually-hidden]="!(strategySubject|async)"
+                                    [class.cdk-visually-hidden]="!showSamplesTable"
                                     [showLabelColumn]="true"
                                     [showDateTimeColumn]="false"
                                     [defaultSampleDate]="data?.dateTime"
@@ -141,7 +142,7 @@
 
     <!-- TAB: comments -->
     <mat-tab label="{{'COMMON.COMMENTS'|translate}}"
-             [disabled]="loading || !oneTabMode">
+             [disabled]="!showSamplesTable || !oneTabMode">
       <ng-template mat-tab-label>
         <mat-icon>chat_bubble</mat-icon>
         <ion-label translate>COMMON.COMMENTS</ion-label>
@@ -188,3 +189,7 @@
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
+
+<ng-template #skeletonText100>
+  &nbsp;<ion-skeleton-text style="min-width: 100px"></ion-skeleton-text>
+</ng-template>

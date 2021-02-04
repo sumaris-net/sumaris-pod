@@ -4,7 +4,7 @@ import {merge, Subscription} from "rxjs";
 import {Router} from "@angular/router";
 import {environment} from "../../../environments/environment";
 import {AppRootDataEditor} from "../form/root-data-editor.class";
-import {isNil} from "../../shared/functions";
+import {isNil, isNotNil} from "../../shared/functions";
 import {fadeInAnimation} from "../../shared/material/material.animations";
 import {Strategy} from "../../referential/services/model/strategy.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -98,20 +98,21 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
     else if (this.data !== data){
       console.debug('[strategy-summary-card] updating view using strategy:', data);
       this.data = data;
-      this.showOpenLink = this.strategyService.canUserWrite(data);
+      this.showOpenLink = isNotNil(data.programId);
       this.loading = false;
       this.markForCheck();
     }
   }
 
   async open(event?: UIEvent): Promise<boolean> {
+    console.debug('[strategy-summary-card] Opening strategy...');
 
     const programId = this.data && this.data.programId;
-    if (isNil(programId) || isNil(this.data.id)) return; // Skip
+    if (isNil(programId) || isNil(this.data.id)) return; // Skip if missing ids
 
     const program = await this.programRefService.load(programId, {fetchPolicy: "cache-first"});
     const strategyEditor = program.getProperty(ProgramProperties.LANDING_EDITOR);
-    return this.router.navigateByUrl(`/referential/programs/${programId}/strategies/${strategyEditor}/${this.data.id}`);
+    return this.router.navigateByUrl(`/referential/programs/${programId}/strategy/${strategyEditor}/${this.data.id}`);
   }
 
   protected markForCheck() {

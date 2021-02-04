@@ -19,7 +19,7 @@ import {ProgramRefService} from "../../referential/services/program-ref.service"
 export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     implements IEntitiesService<T, F> {
 
-  private _program: string;
+  private _programLabel: string;
   private _acquisitionLevel: string;
   private _onRefreshPmfms = new EventEmitter<any>();
   private _delegate: IEntitiesService<T, F>;
@@ -32,15 +32,15 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
   debug = false;
 
   @Input()
-  set program(value: string) {
-    if (this._program !== value && isNotNil(value)) {
-      this._program = value;
+  set programLabel(value: string) {
+    if (this._programLabel !== value && isNotNil(value)) {
+      this._programLabel = value;
       if (!this.loadingPmfms) this._onRefreshPmfms.emit('set program');
     }
   }
 
-  get program(): string {
-    return this._program;
+  get programLabel(): string {
+    return this._programLabel;
   }
 
   @Input()
@@ -166,19 +166,19 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
   /* -- protected methods -- */
 
   protected async refreshPmfms(): Promise<PmfmStrategy[]> {
-    if (isNil(this._program) || isNil(this._acquisitionLevel)) return undefined;
+    if (isNil(this._programLabel) || isNil(this._acquisitionLevel)) return undefined;
 
     this.loadingPmfms = true;
 
     // Load pmfms
     let pmfms = (await this.programRefService.loadProgramPmfms(
-      this._program,
+      this._programLabel,
       {
         acquisitionLevel: this._acquisitionLevel
       })) || [];
 
     if (!pmfms.length && this.debug) {
-      console.debug(`[meas-service] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
+      console.debug(`[meas-service] No pmfm found (program=${this.programLabel}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
     }
 
     pmfms = await this.setPmfms(pmfms);

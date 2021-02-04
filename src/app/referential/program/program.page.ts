@@ -268,7 +268,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     if (savedOrContinue) {
       this.markAsLoading();
       setTimeout(async () => {
-        await this.router.navigate(['referential', 'programs',  this.data.id, 'strategies', this.strategyEditor, id], {
+        await this.router.navigate(['referential', 'programs',  this.data.id, 'strategy', this.strategyEditor, id], {
           queryParams: {}
         });
         this.markAsLoaded();
@@ -282,7 +282,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       this.markAsLoading();
 
       setTimeout(async () => {
-        await this.router.navigate(['referential', 'programs',  this.data.id, 'strategies', this.strategyEditor, 'new'], {
+        await this.router.navigate(['referential', 'programs',  this.data.id, 'strategy', this.strategyEditor, 'new'], {
           queryParams: {}
         });
         this.markAsLoaded();

@@ -92,7 +92,7 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
     // Init landing table
     this.landingFilter = this.landingFilter || {};
     this.landingsTable.filter = this.landingFilter;
-    this.landingsTable.program = this.landingFilter.programLabel;
+    this.landingsTable.programLabel = this.landingFilter.programLabel;
     this.landingsTable.acquisitionLevel = AcquisitionLevelCodes.LANDING;
 
     // Set defaults

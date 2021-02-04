@@ -36,7 +36,7 @@ import {ProgramRefService} from "../../referential/services/program-ref.service"
 export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   private _onRefreshPmfms = new EventEmitter<any>();
-  private _program: string;
+  private _programLabel: string;
   private _gearId: number;
   private _acquisitionLevel: string;
   private _forceOptional = false;
@@ -66,15 +66,15 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   valueChanges = new EventEmitter<any>();
 
   @Input()
-  set program(value: string) {
-    if (this._program !== value && isNotNil(value)) {
-      this._program = value;
+  set programLabel(value: string) {
+    if (this._programLabel !== value && isNotNil(value)) {
+      this._programLabel = value;
       this.loaded().then(() => this._onRefreshPmfms.emit());
     }
   }
 
-  get program(): string {
-    return this._program;
+  get programLabel(): string {
+    return this._programLabel;
   }
 
   @Input()
@@ -231,7 +231,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   protected async refreshPmfms(event?: any) {
     // Skip if missing: program, acquisition (or gear, if required)
-    if (isNil(this._program) || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gearId))) {
+    if (isNil(this._programLabel) || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gearId))) {
       return;
     }
 
@@ -243,14 +243,14 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     try {
       // Load pmfms
       let pmfms = (await this.programRefService.loadProgramPmfms(
-        this._program,
+        this._programLabel,
         {
           acquisitionLevel: this._acquisitionLevel,
           gearId: this._gearId
         })) || [];
 
       if (!pmfms.length && this.debug) {
-        console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
+        console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._programLabel}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
       }
       else {
 

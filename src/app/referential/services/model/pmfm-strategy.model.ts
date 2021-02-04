@@ -1,7 +1,7 @@
 import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
 import {Pmfm, PMFM_NAME_REGEXP, PmfmType} from "./pmfm.model";
 import {ReferentialRef} from "../../../core/services/model/referential.model";
-import {isNotNilOrBlank, toNumber} from "../../../shared/functions";
+import {toNumber} from "../../../shared/functions";
 import {PmfmValue, PmfmValueUtils} from "./pmfm-value.model";
 import {MethodIds} from "./model.enum";
 import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";

@@ -41,6 +41,7 @@
     "BTN_SHOW_HELP": "Aide en ligne",
     "BTN_HIDE": "Masquer",
     "BTN_HIDE_MENU": "Masquer le menu",
+    "BTN_SHOW": "Afficher",
     "BTN_SHOW_MENU": "Afficher le menu",
     "BTN_SHOW_MORE": "Afficher plus",
     "BTN_SHOW_TRASH_DOTS": "Ouvrir la corbeille...",
@@ -664,6 +665,7 @@
         "SAMPLE_DATE": "Date/Heure de la mesure",
         "PARENT": "Echantillon parent",
         "COMMENTS": "Commentaires",
+        "COMMENTS_PLACEHOLDER": "Commentaires",
         "BTN_AUTO_FILL": "Remplir automatiquement",
         "WEIGHT": "Poids",
         "LENGTH": "Taille",
@@ -1340,13 +1342,15 @@
       "SUMMARY": {
         "TITLE": "Stratégie",
         "LOCATIONS" :"Lieux applicables :",
-        "TAXON_NAMES" :"Espèces scientifiques :",
-        "TAXON_GROUPS" :"Espèces commerciales :",
+        "TAXON_NAMES" :"Espèce(s) scientifique(s) :",
+        "TAXON_GROUPS" :"Espèce(s) commerciale(s) :",
+        "BTN_SHOW" :"Ouvrir la stratégie",
         "SAMPLING" : {
           "TITLE": "Plan d'échantillonnage",
           "LOCATIONS" :"Zone(s) de pêche :",
           "TAXON_NAMES" :"Espèce cible :",
-          "TAXON_GROUPS" :"Espèces commerciales :"
+          "TAXON_GROUPS" :"Espèces commerciales :",
+          "BTN_SHOW": "Ouvrir la ligne de plan"
         }
       },
       "PMFM_STRATEGY": {

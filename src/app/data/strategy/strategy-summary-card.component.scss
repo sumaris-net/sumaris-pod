@@ -1,5 +1,16 @@
 ion-card {
 
+  ion-card-title {
+    .mouseover {
+      visibility: hidden;
+    }
+    &:hover {
+      cursor: pointer;
+      .mouseover {
+        visibility: visible;
+      }
+    }
+  }
   ion-card-content {
     background-color: var(--ion-color-light-tint);
 

@@ -265,7 +265,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
    */
   async autoFillTable(opts?: {defaultTaxonGroups?: string[]; }) {
     // Wait table is ready
-    await this.onReady();
+    await this.ready();
 
     // Wait table loaded
     if (this.loading) {
@@ -699,7 +699,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       component: SubBatchesModal,
       backdropDismiss: false,
       componentProps: {
-        program: this.program,
+        program: this.programLabel,
         acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
         usageMode: this.usageMode,
         showParentGroup,
@@ -752,7 +752,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       component: BatchGroupModal,
       backdropDismiss: false,
       componentProps: {
-        program: this.program,
+        program: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         value: batch,
@@ -905,7 +905,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     console.debug("[batch-group-table] Loading available taxon groups, using options:", opts);
 
     const sortAttributes = this.autocompleteFields.taxonGroup && this.autocompleteFields.taxonGroup.attributes || ['label', 'name'];
-    const taxonGroups = ((await this.programRefService.loadTaxonGroups(this.program)) || [])
+    const taxonGroups = ((await this.programRefService.loadTaxonGroups(this.programLabel)) || [])
       // Filter on expected labels (as prefix)
       .filter(taxonGroup => !defaultTaxonGroups || taxonGroup.label && defaultTaxonGroups.findIndex(label => taxonGroup.label.startsWith(label)) !== -1)
       // Sort using order configure in the taxon group column

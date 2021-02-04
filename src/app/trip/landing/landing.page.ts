@@ -10,7 +10,7 @@ import {
   ViewChildren
 } from '@angular/core';
 
-import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil, toBoolean} from '../../shared/functions';
+import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
 import * as moment from "moment";
 import {LandingForm} from "./landing.form";
 import {SamplesTable} from "../sample/samples.table";
@@ -22,7 +22,7 @@ import {FormGroup} from "@angular/forms";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {TripService} from "../services/trip.service";
-import {debounceTime, filter, throttleTime} from "rxjs/operators";
+import {debounceTime, filter, tap, throttleTime} from "rxjs/operators";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
@@ -42,8 +42,6 @@ import {merge, Subscription} from "rxjs";
 import {Strategy} from "../../referential/services/model/strategy.model";
 import {firstNotNilPromise} from "../../shared/observables";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {TableElement} from "@e-is/ngx-material-table";
-import {Sample} from "../services/model/sample.model";
 
 const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -113,29 +111,23 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
-    // Watch program, to configure tables from program properties
-    this.registerSubscription(
-      this.$program.subscribe(program => this.setProgram(program))
-    );
-
     // Use landing date as default dateTime for samples
     this.registerSubscription(
       this.landingForm.form.get('dateTime').valueChanges
-        .pipe(throttleTime(200), filter(isNotNil))
-        .subscribe((dateTime) => {
-          this.samplesTable.defaultSampleDate = fromDateISOString(dateTime);
-        })
-    );
+        .pipe(
+          throttleTime(200),
+          filter(isNotNil),
+          tap(dateTime => this.samplesTable.defaultSampleDate = fromDateISOString(dateTime))
+        )
+        .subscribe());
 
     this.registerSubscription(
-      this.landingForm.strategySubject
-        .subscribe((strategy: string) => this.strategySubject.next(strategy))
-    );
-
-    // Watch strategy
-    this.registerSubscription(
-      this.$strategy.subscribe(strategy => this.setStrategy(strategy))
-    );
+      this.landingForm.$strategyLabel
+        .pipe(
+          tap(strategyLabel => console.debug("[landing-page] Received strategy label: ", strategyLabel)),
+          tap(strategyLabel => this.$strategyLabel.next(strategyLabel))
+        )
+        .subscribe());
 
     // Watch table events, to avoid strategy edition, when has sample rows
     this.registerSubscription(
@@ -288,6 +280,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected async setProgram(program: Program) {
+    await super.setProgram(program);
+
     if (!program) return; // Skip
     if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
 
@@ -324,18 +318,16 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     }
 
     // Propagate program to children components
-    this.samplesTable.program = program.label;
+    this.samplesTable.programLabel = program.label;
 
   }
 
   protected async setStrategy(strategy: Strategy) {
+    await super.setStrategy(strategy);
 
-    if (!strategy) {
-      console.warn('FIXME settings strategy=', strategy);
-      return; // Skip if empty
-    }
+    if (!strategy) return; // Skip if empty
 
-    this.landingForm.strategy = strategy.label;
+    this.landingForm.strategyLabel = strategy.label;
     if (this.strategyCard) {
       this.strategyCard.value = strategy;
     }
@@ -368,7 +360,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Emit program
     if (parent.program && parent.program.label) {
-      this.programSubject.next(parent.program.label);
+      this.$programLabel.next(parent.program.label);
     }
 
     return parent;
@@ -382,7 +374,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Set samples to table
     this.samplesTable.value = data.samples || [];
+
   }
+
 
   protected async computeTitle(data: Landing): Promise<string> {
 

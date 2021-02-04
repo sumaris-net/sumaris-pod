@@ -66,7 +66,7 @@ const routes: Routes = [
             }
           },
           {
-            path: 'strategies/legacy/:strategyId',
+            path: 'strategy/legacy/:strategyId',
             data: {
               profile: 'SUPERVISOR',
               pathIdParam: 'strategyId'
@@ -81,7 +81,7 @@ const routes: Routes = [
           },
 
           {
-            path: 'strategies/sampling/:strategyId',
+            path: 'strategy/sampling/:strategyId',
             component: SamplingStrategyPage,
             data: {
               profile: 'SUPERVISOR',

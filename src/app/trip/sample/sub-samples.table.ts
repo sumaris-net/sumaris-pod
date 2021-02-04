@@ -150,7 +150,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
 
   async autoFillTable() {
     // Wait table is ready
-    await this.onReady();
+    await this.ready();
 
     // Wait table is loaded
     if (this.loading) {

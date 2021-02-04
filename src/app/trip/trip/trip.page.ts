@@ -91,11 +91,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
-    // Watch program, to configure tables from program properties
-    this.registerSubscription(
-      this.$program.subscribe(program => this.setProgram(program))
-    );
-
     // Cascade refresh to operation tables
     this.registerSubscription(
       this.onUpdateView
@@ -137,7 +132,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     ]);
   }
 
-  protected setProgram(program: Program) {
+  protected async setProgram(program: Program) {
     if (!program) return; // Skip
 
     if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
@@ -193,7 +188,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
         // program
         if (searchFilter.program && searchFilter.program.label) {
           data.program = ReferentialRef.fromObject(searchFilter.program);
-          this.programSubject.next(data.program.label);
+          this.$programLabel.next(data.program.label);
         }
 
         // Vessel
@@ -231,7 +226,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
 
   updateTabsState(data: Trip) {
     // Enable gears tab if a program has been selected
-    this.showGearTable = !this.isNewData || ReferentialUtils.isNotEmpty(this.programSubject.getValue());
+    this.showGearTable = !this.isNewData || ReferentialUtils.isNotEmpty(this.$programLabel.getValue());
 
     // Enable operations tab if has gears
     this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
@@ -243,7 +238,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
 
     const isNew = isNil(data.id);
     if (!isNew) {
-      this.programSubject.next(data.program.label);
+      this.$programLabel.next(data.program.label);
     }
     this.saleForm.value = data && data.sale;
     this.measurementsForm.value = data && data.measurements || [];
@@ -264,7 +259,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
       this.markAsLoading();
 
      setTimeout(async () => {
-        await this.router.navigate(['trips', this.data.id, 'operations', id], {
+        await this.router.navigate(['trips', this.data.id, 'operation', id], {
           queryParams: {}
         });
 
@@ -285,7 +280,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
       this.markAsLoading();
 
       setTimeout(async () => {
-        await this.router.navigate(['trips', this.data.id, 'operations', 'new'], {
+        await this.router.navigate(['trips', this.data.id, 'operation', 'new'], {
           queryParams: {}
         });
         this.markAsLoaded();
@@ -350,7 +345,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
       componentProps: {
         filter,
         allowMultiple: false,
-        program: this.programSubject.getValue(),
+        program: this.$programLabel.getValue(),
         acquisitionLevel: this.physicalGearsTable.acquisitionLevel
       }
     });
