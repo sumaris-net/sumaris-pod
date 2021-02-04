@@ -77,4 +77,9 @@ export class StrategyEffort {
       Math.max(0, this.expectedEffort - (this.realizedEffort || 0));
   }
 
-}
+  get hasRealizedEffort(): boolean {
+    return (this.realizedEffort && this.realizedEffort > 0);
+  }
+
+
+  }
