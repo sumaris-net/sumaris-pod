@@ -9,17 +9,14 @@ import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ReferentialFilter} from "./referential.service";
 import {Strategy} from "./model/strategy.model";
-import {
-  BaseReferentialEntitiesQueries,
-  BaseReferentialEntityQueries,
-  BaseReferentialService
-} from "./base-referential.service";
+import {BaseEntityGraphqlQueries} from "./base-entity-service.class";
 import {PlatformService} from "../../core/services/platform.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {StrategyFragments} from "./strategy.fragments";
 import {firstArrayValue, isNotNil, toNumber} from "../../shared/functions";
 import {defer, Observable} from "rxjs";
 import {filter, map} from "rxjs/operators";
+import {BaseReferentialService} from "./base-referential-service.class";
 
 
 export class StrategyFilter extends ReferentialFilter {
@@ -27,7 +24,7 @@ export class StrategyFilter extends ReferentialFilter {
 }
 
 
-const STRATEGY_REF_QUERIES: BaseReferentialEntityQueries & BaseReferentialEntitiesQueries = {
+const StrategyRefQueries: BaseEntityGraphqlQueries = {
   load: gql`query StrategyRef($id: Int!) {
     data: strategy(id: $id) {
       ...StrategyRefFragment
@@ -118,9 +115,9 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
   ) {
     super(graphql, platform, Strategy,
       {
-        queries: STRATEGY_REF_QUERIES,
+        queries: StrategyRefQueries,
         filterAsObjectFn: StrategyFilter.asPodObject,
-        createFilterFn: StrategyFilter.searchFilter
+        filterFnFactory: StrategyFilter.searchFilter
       });
   }
 
@@ -150,7 +147,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
   /**
    * Watch strategy by label
    * @param label
-   * @param toEntity
+   * @param opts
    */
   watchByLabel(label: string, opts?: {
     toEntity?: boolean;
@@ -202,15 +199,4 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
       );
   }
 
-  async suggest(value: any, filter?: StrategyFilter): Promise<Strategy[]> {
-    if (ReferentialUtils.isNotEmpty(value)) return [value];
-    value = (typeof value === "string" && value !== '*') && value || undefined;
-    const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
-      {
-        ...filter,
-        searchText: value as string
-      }
-    );
-    return res.data;
-  }
 }

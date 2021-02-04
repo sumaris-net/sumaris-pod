@@ -9,32 +9,48 @@ import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {ErrorCodes} from "./trip.errors";
 import {IWithRecorderDepartmentEntity} from "../../data/services/model/model.utils";
 import {Department} from "../../core/services/model/department.model";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {isNil, isNotNil} from "../../shared/functions";
 import {EntityUtils} from "../../core/services/model/entity.model";
-import {environment} from "../../../environments/environment";
+import {Person} from "../../core/services/model/person.model";
+import {
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlQueries,
+  BaseEntityGraphqlSubscriptions,
+  BaseEntityService,
+  BaseEntityServiceOptions
+} from "../../referential/services/base-entity-service.class";
+import {PlatformService} from "../../core/services/platform.service";
 
 
-export interface RootEntityMutations {
-  terminate: any;
-  validate: any;
-  unvalidate: any;
-  qualify: any;
+export interface BaseRootEntityGraphqlMutations extends BaseEntityGraphqlMutations {
+  terminate?: any;
+  validate?: any;
+  unvalidate?: any;
+  qualify?: any;
 }
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
-  extends BaseEntityService<T, F>
+export abstract class BaseRootDataService<T extends RootDataEntity<T>,
+  F = any,
+  Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
+  M extends BaseRootEntityGraphqlMutations = BaseRootEntityGraphqlMutations,
+  S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions>
+  extends BaseEntityService<T, F, Q, M, S>
   implements IDataEntityQualityService<T> {
 
   protected accountService: AccountService;
 
   protected constructor(
     injector: Injector,
-    protected mutations: RootEntityMutations
+    dataType: new() => T,
+    options: BaseEntityServiceOptions<T, F, Q, M, S>
   ) {
-    super(injector.get(GraphqlService), environment);
+    super(
+      injector.get(GraphqlService),
+      injector.get(PlatformService),
+      dataType,
+      options);
 
     this.accountService = this.accountService || injector && injector.get(AccountService) || undefined;
   }
@@ -54,6 +70,7 @@ export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
   abstract control(entity: T, opts?: any): Promise<FormErrors>;
 
   async terminate(entity: T): Promise<T> {
+    if (!this.mutations.terminate) throw Error('Not implemented');
     if (isNil(entity.id) || entity.id < 0) {
       throw new Error("Entity must be saved before terminate!");
     }
@@ -67,14 +84,14 @@ export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
     const now = this._debug && Date.now();
     if (this._debug) console.debug(this._debugPrefix + `Terminate entity {${entity.id}}...`, json);
 
-    await this.graphql.mutate<{ entity: T }>({
+    await this.graphql.mutate<{ data: T }>({
       mutation: this.mutations.terminate,
       variables: {
-        entity: json
+        data: json
       },
       error: { code: ErrorCodes.TERMINATE_ENTITY_ERROR, message: "ERROR.TERMINATE_ENTITY_ERROR" },
       update: (proxy, {data}) => {
-        this.copyIdAndUpdateDate(data && data.entity, entity);
+        this.copyIdAndUpdateDate(data && data.data, entity);
         if (this._debug) console.debug(this._debugPrefix + `Entity terminated in ${Date.now() - now}ms`, entity);
       }
     });
@@ -88,7 +105,7 @@ export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
    * @param entity
    */
   async validate(entity: T): Promise<T> {
-
+    if (!this.mutations.validate) throw Error('Not implemented');
     if (isNil(entity.id) || entity.id < 0) {
       throw new Error("Entity must be saved once before validate !");
     }
@@ -108,14 +125,14 @@ export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
     const now = Date.now();
     if (this._debug) console.debug(this._debugPrefix + `Validate entity {${entity.id}}...`, json);
 
-    await this.graphql.mutate<{ entity: T }>({
+    await this.graphql.mutate<{ data: T }>({
       mutation: this.mutations.validate,
       variables: {
-        entity: json
+        data: json
       },
       error: { code: ErrorCodes.VALIDATE_ENTITY_ERROR, message: "ERROR.VALIDATE_ENTITY_ERROR" },
       update: (cache, {data}) => {
-        this.copyIdAndUpdateDate(data && data.entity, entity);
+        this.copyIdAndUpdateDate(data && data.data, entity);
         if (this._debug) console.debug(this._debugPrefix + `Entity validated in ${Date.now() - now}ms`, entity);
       }
     });
@@ -124,7 +141,7 @@ export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
   }
 
   async unvalidate(entity: T): Promise<T> {
-
+    if (!this.mutations.unvalidate) throw Error('Not implemented');
     if (isNil(entity.validationDate)) {
       throw new Error("Entity is not validated yet !");
     }
@@ -138,10 +155,10 @@ export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
     const now = Date.now();
     if (this._debug) console.debug(this._debugPrefix + "Unvalidate entity...", json);
 
-    await this.graphql.mutate<{ entity: T }>({
+    await this.graphql.mutate<{ data: T }>({
       mutation: this.mutations.unvalidate,
       variables: {
-        entity: json
+        data: json
       },
       context: {
         // TODO serializationKey:
@@ -149,7 +166,7 @@ export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
       },
       error: { code: ErrorCodes.UNVALIDATE_ENTITY_ERROR, message: "ERROR.UNVALIDATE_ENTITY_ERROR" },
       update: (proxy, {data}) => {
-        const savedEntity = data && data.entity;
+        const savedEntity = data && data.data;
         if (savedEntity) {
           if (savedEntity !== entity) {
             this.copyIdAndUpdateDate(savedEntity, entity);
@@ -164,6 +181,7 @@ export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
   }
 
   async qualify(entity: T, qualityFlagId: number): Promise<T> {
+    if (!this.mutations.qualify) throw Error('Not implemented');
 
     if (isNil(entity.validationDate)) {
       throw new Error("Entity is not validated yet !");
@@ -180,14 +198,14 @@ export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
     const now = Date.now();
     if (this._debug) console.debug(this._debugPrefix + "Qualifying entity...", json);
 
-    await this.graphql.mutate<{ entity: T }>({
+    await this.graphql.mutate<{ data: T }>({
       mutation: this.mutations.qualify,
       variables: {
-        entity: json
+        data: json
       },
       error: { code: ErrorCodes.QUALIFY_ENTITY_ERROR, message: "ERROR.QUALIFY_ENTITY_ERROR" },
       update: (cache, {data}) => {
-        const savedEntity = data && data.entity;
+        const savedEntity = data && data.data;
         this.copyIdAndUpdateDate(savedEntity, entity);
         DataRootEntityUtils.copyQualificationDateAndFlag(savedEntity, entity);
 
@@ -198,16 +216,32 @@ export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
     return entity;
   }
 
-  /* -- protected methods -- */
+  copyIdAndUpdateDate(source: T | undefined, target: T) {
+    if (!source) return;
 
+    EntityUtils.copyIdAndUpdateDate(source, target);
+
+    // Copy control and validation date
+    DataRootEntityUtils.copyControlAndValidationDate(source, target);
+
+  }
+
+  /* -- protected methods -- */
 
   protected asObject(entity: T, opts?: DataEntityAsObjectOptions): any {
     opts = { ...MINIFY_OPTIONS, ...opts };
     const copy: any = entity.asObject(opts);
 
     if (opts && opts.minify) {
-      // Keep id only, on person and department
-      copy.recorderPerson = {id: entity.recorderPerson && entity.recorderPerson.id};
+
+      // Comment because need to keep recorder person
+      copy.recorderPerson = entity.recorderPerson && <Person>{
+        id: entity.recorderPerson.id,
+        firstName: entity.recorderPerson.firstName,
+        lastName: entity.recorderPerson.lastName
+      };
+
+      // Keep id only, on department
       copy.recorderDepartment = entity.recorderDepartment && {id: entity.recorderDepartment && entity.recorderDepartment.id} || undefined;
     }
 
@@ -258,12 +292,5 @@ export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
     entity.qualityFlagId = undefined;
   }
 
-  protected copyIdAndUpdateDate(source: T | undefined, target: T) {
 
-    EntityUtils.copyIdAndUpdateDate(source, target);
-
-    // Copy control and validation date
-    DataRootEntityUtils.copyControlAndValidationDate(source, target);
-
-  }
 }

@@ -1,5 +1,5 @@
 import {Inject, Injectable} from "@angular/core";
-import {BaseEntityService} from "./base.data-service.class";
+import {BaseGraphqlService} from "./base-graphql-service.class";
 import {GraphqlService} from "../graphql/graphql.service";
 import {ErrorCodes} from "./errors";
 import {gql} from "@apollo/client/core";
@@ -20,7 +20,7 @@ const DeleteMutation: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class TrashRemoteService extends BaseEntityService<string, any> {
+export class TrashRemoteService extends BaseGraphqlService<string, any> {
 
 
   constructor(

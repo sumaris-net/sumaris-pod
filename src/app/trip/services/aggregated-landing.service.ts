@@ -16,7 +16,7 @@ import {SortDirection} from "@angular/material/sort";
 import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {environment} from "../../../environments/environment";
 import {toDateISOString} from "../../shared/dates";
 
@@ -109,7 +109,7 @@ const SaveAllQuery: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class AggregatedLandingService
-  extends BaseEntityService<AggregatedLanding, AggregatedLandingFilter>
+  extends BaseGraphqlService<AggregatedLanding, AggregatedLandingFilter>
   implements IEntitiesService<AggregatedLanding, AggregatedLandingFilter> {
 
   protected loading = false;

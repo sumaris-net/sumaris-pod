@@ -1,5 +1,5 @@
 import {Injectable, InjectionToken} from "@angular/core";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {LoadResult, IEntitiesService} from "../../shared/services/entity-service.class";
 import {PhysicalGear, Trip} from "./model/trip.model";
 import {GraphqlService} from "../../core/graphql/graphql.service";
@@ -56,7 +56,7 @@ export const PHYSICAL_GEAR_DATA_SERVICE = new InjectionToken<IEntitiesService<Ph
 
 
 @Injectable({providedIn: 'root'})
-export class PhysicalGearService extends BaseEntityService
+export class PhysicalGearService extends BaseGraphqlService
   implements IEntitiesService<PhysicalGear, PhysicalGearFilter> {
 
   loading = false;

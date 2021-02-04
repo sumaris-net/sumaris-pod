@@ -12,7 +12,7 @@ import {VesselSnapshotFragments} from "../../referential/services/vessel-snapsho
 import {Sale} from "./model/sale.model";
 import {Sample} from "./model/sample.model";
 import {SortDirection} from "@angular/material/sort";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {environment} from "../../../environments/environment";
@@ -130,7 +130,7 @@ const sortByEndDateOrStartDateFn = (n1: Sale, n2: Sale) => {
 };
 
 @Injectable({providedIn: 'root'})
-export class SaleService extends BaseEntityService<Sale, SaleFilter> implements IEntitiesService<Sale, SaleFilter>{
+export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements IEntitiesService<Sale, SaleFilter>{
 
   constructor(
     protected graphql: GraphqlService,

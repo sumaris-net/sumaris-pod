@@ -12,7 +12,7 @@ import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {VesselSnapshot} from "./model/vessel-snapshot.model";
 import {SortDirection} from "@angular/material/sort";
 import {JobUtils} from "../../shared/services/job.utils";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {isNotNil} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
@@ -74,7 +74,7 @@ const LoadQuery: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class VesselSnapshotService
-  extends BaseEntityService<VesselSnapshot, VesselFilter>
+  extends BaseGraphqlService<VesselSnapshot, VesselFilter>
   implements SuggestService<VesselSnapshot, VesselFilter> {
 
   constructor(

@@ -18,11 +18,11 @@ import {Moment} from "moment";
 import {isEmptyArray, isNotEmptyArray, isNotNil, toNumber} from "../../shared/functions";
 import {JobUtils} from "../../shared/services/job.utils";
 import {chainPromises} from "../../shared/observables";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {environment} from "../../../environments/environment";
 import {fromDateISOString} from "../../shared/dates";
-import {BaseReferentialEntitiesQueries} from "./base-referential.service";
+import {BaseEntitiesGraphqlQueries} from "./base-entity-service.class";
 import {ObjectMap} from "../../shared/types";
 
 export class ReferentialRefFilter extends ReferentialFilter {
@@ -99,13 +99,13 @@ const LoadAllTaxonNamesQuery: any = gql`
   ${ReferentialFragments.fullTaxonName}
 `;
 
-export const ReferentialRefQueries: BaseReferentialEntitiesQueries = {
+export const ReferentialRefQueries: BaseEntitiesGraphqlQueries = {
   loadAll: LoadAllQuery,
   loadAllWithTotal: LoadAllWithTotalQuery,
 };
 
 @Injectable({providedIn: 'root'})
-export class ReferentialRefService extends BaseEntityService
+export class ReferentialRefService extends BaseGraphqlService
   implements SuggestService<ReferentialRef, ReferentialRefFilter>,
       IEntitiesService<ReferentialRef, ReferentialRefFilter> {
 

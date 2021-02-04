@@ -13,7 +13,7 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {SortDirection} from "@angular/material/sort";
 import {PlatformService} from "../../core/services/platform.service";
 import {FilterFn, IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {EntityUtils} from "../../core/services/model/entity.model";
 
 export class ReferentialFilter<ID = number> {
@@ -177,7 +177,7 @@ export const ReferentialQueries = {
 };
 
 @Injectable({providedIn: 'root'})
-export class ReferentialService extends BaseEntityService<Referential> implements IEntitiesService<Referential, ReferentialFilter> {
+export class ReferentialService extends BaseGraphqlService<Referential> implements IEntitiesService<Referential, ReferentialFilter> {
 
   constructor(
     protected graphql: GraphqlService,

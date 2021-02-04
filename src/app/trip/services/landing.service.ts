@@ -19,7 +19,7 @@ import {
   isNotEmptyArray,
   isNotNil,
 } from "../../shared/functions";
-import {RootDataService} from "./root-data-service.class";
+import {BaseRootDataService} from "./root-data-service.class";
 import {Sample} from "./model/sample.model";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {
@@ -43,6 +43,11 @@ import {JobUtils} from "../../shared/services/job.utils";
 import {environment} from "../../../environments/environment";
 import {fromDateISOString, toDateISOString} from "../../shared/dates";
 import {Person} from "../../core/services/model/person.model";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {
+  BaseEntityGraphqlMutations, BaseEntityGraphqlQueries,
+  BaseEntityGraphqlSubscriptions
+} from "../../referential/services/base-entity-service.class";
 
 
 export class LandingFilter {
@@ -167,6 +172,7 @@ export declare interface LandingServiceWatchOptions
   computeRankOrder?: boolean;
   fullLoad?: boolean;
   toEntity?: boolean;
+  withTotal?: boolean;
 }
 
 export const LandingFragments = {
@@ -242,76 +248,99 @@ export const LandingFragments = {
     samples {
       ...SampleFragment
     }
+  }`
+};
+
+const LandingQueries = {
+  load: gql`query Landing($id: Int!){
+    data: landing(id: $id){
+      ...LandingFragment
+    }
   }
+  ${LandingFragments.landing}
   ${Fragments.location}
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
-  ${DataFragments.sample}
-  `
-};
+  ${DataFragments.sample}`,
 
-// Search query
-const LoadAllQuery: any = gql`
-  query Landings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  loadFullAllWithTotal: gql`query Landings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LandingFragment
     }
     total: landingsCount(filter: $filter)
   }
   ${LandingFragments.landing}
-`;
-const LoadAllLightQuery: any = gql`
-  query LightLandings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  ${Fragments.location}
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
+  ${VesselSnapshotFragments.vesselSnapshot}
+  ${DataFragments.sample}`,
+
+  loadAll: gql`query Landings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...LightLandingFragment
+    }
+  }
+  ${LandingFragments.lightLanding}`,
+
+  loadAllWithTotal: gql`query LightLandings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightLandingFragment
     }
     total: landingsCount(filter: $filter)
   }
   ${LandingFragments.lightLanding}
-`;
+`
+};
 
-const LoadQuery: any = gql`
-  query Landing($id: Int!){
-    data: landing(id: $id){
+const LandingMutations: BaseEntityGraphqlMutations = {
+  save: gql`mutation SaveLanding($data:LandingVOInput!){
+    data: saveLanding(landing: $data){
       ...LandingFragment
     }
   }
   ${LandingFragments.landing}
-`;
-// Save query
-const SaveQuery: any = gql`
-  mutation SaveLanding($data:LandingVOInput!){
-    saveLanding(landing: $data){
-      ...LandingFragment
-    }
-  }
-  ${LandingFragments.landing}
-`;
-const SaveAllQuery: any = gql`
-  mutation SaveLandings($data:[LandingVOInput!]!){
-    saveLandings(landings: $data){
-      ...LandingFragment
-    }
-  }
-  ${LandingFragments.landing}
-`;
+  ${Fragments.location}
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
+  ${VesselSnapshotFragments.vesselSnapshot}
+  ${DataFragments.sample}`,
 
-const DeleteByIdsMutation: any = gql`
-  mutation DeleteLandings($ids:[Int!]!){
+  saveAll: gql`mutation SaveLandings($data:[LandingVOInput!]!){
+    data: saveLandings(landings: $data){
+      ...LandingFragment
+    }
+  }
+  ${LandingFragments.landing}
+  ${Fragments.location}
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
+  ${VesselSnapshotFragments.vesselSnapshot}
+  ${DataFragments.sample}`,
+
+  deleteAll: gql`mutation DeleteLandings($ids:[Int!]!){
     deleteLandings(ids: $ids)
-  }
-`;
+  }`
+};
 
-const UpdateSubscription = gql`
-  subscription UpdateLanding($id: Int!, $interval: Int){
-    updateLanding(id: $id, interval: $interval) {
+const LandingSubscriptions: BaseEntityGraphqlSubscriptions = {
+  listenChanges: gql`subscription UpdateLanding($id: Int!, $interval: Int){
+    data: updateLanding(id: $id, interval: $interval) {
       ...LandingFragment
     }
   }
   ${LandingFragments.landing}
-`;
+  ${Fragments.location}
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
+  ${VesselSnapshotFragments.vesselSnapshot}
+  ${DataFragments.sample}`
+};
 
+export interface LandingGraphqlQueries extends BaseEntityGraphqlQueries {
+  loadFullAllWithTotal: any;
+}
 
 const sortByDateFn = (n1: Landing, n2: Landing) => {
   return n1.dateTime.isSame(n2.dateTime)
@@ -320,7 +349,7 @@ const sortByDateFn = (n1: Landing, n2: Landing) => {
 };
 
 @Injectable({providedIn: 'root'})
-export class LandingService extends RootDataService<Landing, LandingFilter>
+export class LandingService extends BaseRootDataService<Landing, LandingFilter, LandingGraphqlQueries>
   implements
     IEntitiesService<Landing, LandingFilter, LandingServiceWatchOptions>,
     IEntityService<Landing> {
@@ -331,13 +360,18 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     injector: Injector,
     protected network: NetworkService,
     protected entities: EntitiesStorage,
+    protected programRefService: ProgramRefService
   ) {
     super(injector,
-      null // TODO: add root mutations ? (control, validate, unvalidate, qualify)
+      Landing,
+      {
+        queries: LandingQueries,
+        mutations: LandingMutations,
+        subscriptions: LandingSubscriptions,
+        filterAsObjectFn: LandingFilter.toPodObject,
+        filterFnFactory: LandingFilter.searchFilter
+      }
     );
-
-    // FOR DEV ONLY
-    this._debug = !environment.production;
   }
 
   async loadAllByObservedLocation(filter?: LandingFilter & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
@@ -374,20 +408,21 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
       size: size || 20,
       sortBy: (sortBy !== 'id' && sortBy) || 'dateTime',
       sortDirection: sortDirection || 'asc',
-      filter: LandingFilter.toPodObject(dataFilter)
+      filter: this.filterAsObjectFn(dataFilter)
     };
 
     let now = this._debug && Date.now();
     if (this._debug) console.debug("[landing-service] Watching landings... using variables:", variables);
 
-    const query = (!opts || opts.fullLoad !== false) ? LoadAllQuery : LoadAllLightQuery;
+    const withTotal = (!opts || opts.withTotal !== false);
+    const query = withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
 
     return this.mutableWatchQuery<{ data: any[]; total: number; }>({
-        queryName: (!opts || opts.fullLoad !== false) ? 'LoadAll' : 'LoadAllLight',
-        query: query,
+        queryName: 'LoadAll',
+        query,
         arrayFieldName: "data",
-        totalFieldName: "total",
-        insertFilterFn: LandingFilter.searchFilter(dataFilter),
+        totalFieldName: withTotal ? "total" : undefined,
+        insertFilterFn: this.filterFnFactory(dataFilter),
         variables,
         error: {code: ErrorCodes.LOAD_LANDINGS_ERROR, message: "LANDING.ERROR.LOAD_ALL_ERROR"},
         fetchPolicy: opts && opts.fetchPolicy || undefined
@@ -456,7 +491,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
       else {
         // Load remotely
         const res = await this.graphql.query<{ data: any }>({
-          query: LoadQuery,
+          query: this.queries.load,
           variables: {
             id: id
           },
@@ -498,8 +533,8 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     const now = Date.now();
     if (this._debug) console.debug("[landing-service] Saving landings...", json);
 
-    await this.graphql.mutate<{saveLandings: any[]}>({
-      mutation: SaveAllQuery,
+    await this.graphql.mutate<{data: any[]}>({
+      mutation: this.mutations.saveAll,
       variables: {
         data: json
       },
@@ -510,9 +545,9 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
 
         // For each result, copy ID+updateDate to source entity
         // Then filter to keep only new landings (need to cache update)
-        const newSavedLandings = (data.saveLandings && entities || [])
+        const newSavedLandings = (data.data && entities || [])
           .map(entity => {
-            const savedEntity = data.saveLandings.find(obj => entity.equals(obj));
+            const savedEntity = data.data.find(obj => entity.equals(obj));
             const isNew = isNil(entity.id);
             this.copyIdAndUpdateDate(savedEntity, entity);
             return isNew ? savedEntity : null;
@@ -521,7 +556,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
         // Add to cache
         if (isNotEmptyArray(newSavedLandings)) {
           this.insertIntoMutableCachedQuery(proxy, {
-            query: LoadAllQuery,
+            queryName: 'LoadAll',
             data: newSavedLandings
           });
         }
@@ -569,22 +604,22 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
         context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
         if (isNotNil(entity.id)) context.serializationKey = `${Landing.TYPENAME}:${entity.id}`;
 
-        return { saveLanding: [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)] };
+        return { data: [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)] };
       } : undefined;
 
     // Transform into json
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
     if (this._debug) console.debug("[landing-service] Using minify object, to send:", json);
 
-    await this.graphql.mutate<{ saveLanding: any }>({
-      mutation: SaveQuery,
+    await this.graphql.mutate<{ data: any }>({
+      mutation: this.mutations.save,
       variables: {
         data: json
       },
       offlineResponse,
       error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "ERROR.SAVE_ERROR"},
       update: async (proxy, {data}) => {
-        const savedEntity = data && data.saveLanding && data.saveLanding;
+        const savedEntity = data && data.data ;
 
         // Local entity: save it
         if (savedEntity.id < 0) {
@@ -611,7 +646,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
           if (isNew) {
             // Cache load by parent
             this.insertIntoMutableCachedQuery(proxy, {
-              query: LoadAllQuery,
+              queryName: 'LoadAll',
               data: savedEntity
             });
           }
@@ -620,11 +655,6 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     });
 
     return entity;
-  }
-
-  async delete(data: Landing): Promise<any> {
-    if (!data) return;
-    await this.deleteAll([data]);
   }
 
   /**
@@ -715,14 +745,14 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     if (this._debug) console.debug("[landing-service] Deleting landings... ids:", ids);
 
     await this.graphql.mutate<any>({
-      mutation: DeleteByIdsMutation,
+      mutation: this.mutations.deleteAll,
       variables: {
         ids
       },
       update: (proxy) => {
 
         // Remove from cache
-        this.removeFromMutableCachedQueryByIds(proxy, {query: LoadAllQuery, ids});
+        this.removeFromMutableCachedQueryByIds(proxy, {queryName: 'LoadAll', ids});
 
         if (this._debug) console.debug(`[landing-service] Landings deleted in ${Date.now() - now}ms`);
       }
@@ -735,8 +765,8 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
 
     if (this._debug) console.debug(`[landing-service] [WS] Listening changes for trip {${id}}...`);
 
-    return this.graphql.subscribe<{ updateLanding: Landing }, { id: number, interval: number }>({
-      query: UpdateSubscription,
+    return this.graphql.subscribe<{ data: any }, { id: number, interval: number }>({
+      query: this.subscriptions.listenChanges,
       variables: {
         id: id,
         interval: 10
@@ -748,7 +778,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     })
       .pipe(
         map(res => {
-          const data = res && res.updateLanding && Landing.fromObject(res.updateLanding);
+          const data = res && Landing.fromObject(res.data);
           if (data && this._debug) console.debug(`[landing-service] Landing {${id}} updated on server !`, data);
           return data;
         })
@@ -763,8 +793,8 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     return await this.synchronize(entity);
   }
 
-  /* -- TODO implement this methods -- */
   async synchronize(data: Landing): Promise<Landing> {
+    console.warn('Not implemented', new Error());
     return data;
   }
 
@@ -773,35 +803,19 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     return undefined;
   }
 
-  async terminate(data: Landing): Promise<Landing> {
-    console.warn('Not implemented', new Error());
-    return data;
-  }
-
-  async validate(data: Landing): Promise<Landing> {
-    console.warn('Not implemented', new Error());
-    return data;
-  }
-
-  async unvalidate(data: Landing): Promise<Landing> {
-    console.warn('Not implemented', new Error());
-    return data;
-  }
-
-  async qualify(data: Landing, qualityFlagId: number): Promise<Landing> {
-    console.warn('Not implemented', new Error());
-    return data;
-  }
-
   async executeImport(progression: BehaviorSubject<number>,
                 opts?: {
                   maxProgression?: number;
                 }) {
     const now = this._debug && Date.now();
-    if (this._debug) console.debug('[landing-service] Importing Landing predoc...');
     const maxProgression = opts && opts.maxProgression || 100;
-
     const startDate = moment().startOf('day').add(-15, 'day');
+
+    if (this._debug) console.debug(`[landing-service] Importing Landing historical data, from ${startDate.toLocaleString()}...`);
+
+    // Read programs, to kwown time limit to import
+    //this.programRef
+
     const filter: LandingFilter = {
       startDate
     };
@@ -819,9 +833,33 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
         logPrefix: '[landing-service]'
       });
 
-    // Save locally
-    if (this._debug) console.debug(`[landing-service] Loaded Landing predoc in ${Date.now() - now}ms`, data);
 
+    // Change entityName, to avoid error when using this data
+    (data || []).forEach(source => {
+      source.entityName = 'LandingHistoryVO';
+      delete source.samples;
+    });
+
+    if (this._debug) console.debug(`[landing-service] Importing Landing historical data [OK] in ${Date.now() - now}ms`, data);
+
+    // Save locally
+    await this.entities.saveAll(data, {
+      entityName: 'LandingHistoryVO',
+      emitEvent: false,
+      reset: true
+    });
+
+  }
+
+  copyIdAndUpdateDate(source: Landing | undefined, target: Landing) {
+    if (!source) return;
+
+    super.copyIdAndUpdateDate(source, target);
+
+    // Update samples (recursively)
+    if (target.samples && source.samples) {
+      this.copyIdAndUpdateDateOnSamples(source.samples, target.samples);
+    }
   }
 
   /* -- protected methods -- */
@@ -907,21 +945,13 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     await EntityUtils.fillLocalIds(samples, (_, count) => this.entities.nextValues(Sample.TYPENAME, count));
   }
 
-  protected copyIdAndUpdateDate(source: Landing | undefined, target: Landing) {
-    super.copyIdAndUpdateDate(source, target);
-
-    // Update samples (recursively)
-    if (target.samples && source.samples) {
-      this.copyIdAndUpdateDateOnSamples(source.samples, target.samples);
-    }
-  }
 
   /**
    * Copy Id and update, in sample tree (recursively)
    * @param sources
    * @param targets
    */
-  copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[]) {
+  protected copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[]) {
     // Update samples
     if (sources && targets) {
       targets.forEach(target => {
