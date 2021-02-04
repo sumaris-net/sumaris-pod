@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.dao.administration.program;
+package net.sumaris.core.extraction.dao.administration;
 
 /*-
  * #%L
@@ -25,16 +25,15 @@ package net.sumaris.core.extraction.dao.administration.program;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import net.sumaris.core.extraction.dao.ExtractionDao;
-import net.sumaris.core.extraction.specification.administration.program.ProgSpecification;
+import net.sumaris.core.extraction.specification.administration.StratSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterCriterionVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramContextVO;
-import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramFilterVO;
+import net.sumaris.core.extraction.vo.administration.ExtractionStrategyContextVO;
+import net.sumaris.core.extraction.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.Arrays;
@@ -45,15 +44,15 @@ import java.util.stream.Collectors;
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface ExtractionProgramDao<C extends ExtractionProgramContextVO, F extends ExtractionFilterVO>
+public interface ExtractionStrategyDao<C extends ExtractionStrategyContextVO, F extends ExtractionFilterVO>
         extends ExtractionDao {
 
     <R extends C> R execute(F filter);
 
     void clean(C context);
 
-    default ExtractionProgramFilterVO toProgramFilterVO(ExtractionFilterVO source){
-        ExtractionProgramFilterVO target = new ExtractionProgramFilterVO();
+    default ExtractionStrategyFilterVO toStrategyFilterVO(ExtractionFilterVO source){
+        ExtractionStrategyFilterVO target = new ExtractionStrategyFilterVO();
         if (source == null) return target;
 
         Beans.copyProperties(source, target);
@@ -63,17 +62,17 @@ public interface ExtractionProgramDao<C extends ExtractionProgramContextVO, F ex
             ExtractionFilterOperatorEnum operator = ExtractionFilterOperatorEnum.fromSymbol(criterion.getOperator());
             if (StringUtils.isNotBlank(criterion.getValue())) {
                 switch (criterion.getName().toLowerCase()) {
-                    case ProgSpecification.COLUMN_PROJECT:
+                    case StratSpecification.COLUMN_PROJECT:
                         if (operator == ExtractionFilterOperatorEnum.EQUALS) {
                             target.setProgramLabel(criterion.getValue());
                         }
                         break;
-                    case ProgSpecification.COLUMN_STRATEGY:
+                    case StratSpecification.COLUMN_STRATEGY:
                         if (operator == ExtractionFilterOperatorEnum.EQUALS) {
                             target.setStrategyLabels(ImmutableList.of(criterion.getValue()));
                         }
                         break;
-                    case ProgSpecification.COLUMN_START_DATE:
+                    case StratSpecification.COLUMN_START_DATE:
                         if (operator == ExtractionFilterOperatorEnum.GREATER_THAN_OR_EQUALS) {
                             Date startDate = Dates.fromISODateTimeString(criterion.getValue());
                             target.setStartDate(startDate);
@@ -84,7 +83,7 @@ public interface ExtractionProgramDao<C extends ExtractionProgramContextVO, F ex
                             target.setStartDate(Dates.addMilliseconds(startDate, 1));
                         }
                         break;
-                    case ProgSpecification.COLUMN_END_DATE:
+                    case StratSpecification.COLUMN_END_DATE:
                         if (operator == ExtractionFilterOperatorEnum.LESS_THAN_OR_EQUALS) {
                             Date endDate = Dates.fromISODateTimeString(criterion.getValue());
                             target.setEndDate(endDate);
@@ -99,13 +98,13 @@ public interface ExtractionProgramDao<C extends ExtractionProgramContextVO, F ex
             }
             else if (operator == ExtractionFilterOperatorEnum.IN && ArrayUtils.isNotEmpty(criterion.getValues())) {
                 switch (criterion.getName().toLowerCase()) {
-                    case ProgSpecification.COLUMN_PROJECT:
+                    case StratSpecification.COLUMN_PROJECT:
                         target.setProgramLabel(criterion.getValue());
                         break;
-                    case ProgSpecification.COLUMN_STRATEGY:
+                    case StratSpecification.COLUMN_STRATEGY:
                         target.setStrategyLabels(Arrays.asList(criterion.getValues()));
                         break;
-                    case ProgSpecification.COLUMN_STRATEGY_ID:
+                    case StratSpecification.COLUMN_STRATEGY_ID:
                         List<Integer> strategyIds = Arrays.stream(criterion.getValues())
                                 .map(Integer::parseInt)
                                 .collect(Collectors.toList());
@@ -117,8 +116,8 @@ public interface ExtractionProgramDao<C extends ExtractionProgramContextVO, F ex
         return target;
     }
 
-    default ExtractionFilterVO toExtractionFilterVO(ExtractionProgramFilterVO source,
-                                                    String programSheetName){
+    default ExtractionFilterVO toExtractionFilterVO(ExtractionStrategyFilterVO source,
+                                                    String strategySheetName){
         ExtractionFilterVO target = new ExtractionFilterVO();
         if (source == null) return target;
 
@@ -130,8 +129,8 @@ public interface ExtractionProgramDao<C extends ExtractionProgramContextVO, F ex
         // Program
         if (StringUtils.isNotBlank(source.getProgramLabel())) {
             criteria.add(ExtractionFilterCriterionVO.builder()
-                    .sheetName(programSheetName)
-                    .name(ProgSpecification.COLUMN_PROJECT)
+                    .sheetName(strategySheetName)
+                    .name(StratSpecification.COLUMN_PROJECT)
                     .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
                     .value(source.getProgramLabel())
                     .build());

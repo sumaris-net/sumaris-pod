@@ -38,7 +38,7 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.dao.administration.program.ExtractionProgramDao;
+import net.sumaris.core.extraction.dao.administration.ExtractionStrategyDao;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.csv.ExtractionCsvDao;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
@@ -51,12 +51,12 @@ import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestDao;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
-import net.sumaris.core.extraction.specification.administration.program.ProgSpecification;
+import net.sumaris.core.extraction.specification.administration.StratSpecification;
 import net.sumaris.core.extraction.util.ExtractionFormats;
 import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.extraction.vo.*;
-import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramContextVO;
-import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramFilterVO;
+import net.sumaris.core.extraction.vo.administration.ExtractionStrategyContextVO;
+import net.sumaris.core.extraction.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
@@ -129,7 +129,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     protected ExtractionSurvivalTestDao extractionSurvivalTestDao;
 
     @Autowired
-    protected ExtractionProgramDao extractionProgramDao;
+    protected ExtractionStrategyDao extractionStrategyDao;
 
     @Autowired
     protected ExtractionProductRepository extractionProductRepository;
@@ -343,9 +343,9 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     @Override
-    public File executeAndDumpPrograms(LiveFormatEnum format, ExtractionProgramFilterVO programFilter) {
-        String programSheetName = ArrayUtils.isNotEmpty(format.getSheetNames()) ? format.getSheetNames()[0] : ProgSpecification.ST_SHEET_NAME;
-        ExtractionFilterVO filter = extractionProgramDao.toExtractionFilterVO(programFilter, programSheetName);
+    public File executeAndDumpStrategies(LiveFormatEnum format, ExtractionStrategyFilterVO strategyFilter) {
+        String strategySheetName = ArrayUtils.isNotEmpty(format.getSheetNames()) ? format.getSheetNames()[0] : StratSpecification.ST_SHEET_NAME;
+        ExtractionFilterVO filter = extractionStrategyDao.toExtractionFilterVO(strategyFilter, strategySheetName);
         return extractRawDataAndDumpToFile(format, filter);
     }
 
@@ -608,8 +608,8 @@ public class ExtractionServiceImpl implements ExtractionService {
             case SURVIVAL_TEST:
                 context = extractionSurvivalTestDao.execute(filter);
                 break;
-            case PROG:
-                context = extractionProgramDao.execute(filter);
+            case STRAT:
+                context = extractionStrategyDao.execute(filter);
                 break;
             default:
                 throw new SumarisTechnicalException("Unknown extraction type: " + format);
@@ -774,9 +774,9 @@ public class ExtractionServiceImpl implements ExtractionService {
             log.info("Cleaning extraction #{}-{}", context.getLabel(), context.getId());
             extractionRdbTripDao.clean((ExtractionRdbTripContextVO) context);
         }
-        else if (context instanceof ExtractionProgramContextVO) {
+        else if (context instanceof ExtractionStrategyContextVO) {
             log.info("Cleaning extraction #{}-{}", context.getLabel(), context.getId());
-            extractionProgramDao.clean((ExtractionProgramContextVO) context);
+            extractionStrategyDao.clean((ExtractionStrategyContextVO) context);
         }
     }
 
