@@ -793,7 +793,8 @@ public class StrategyRepositoryImpl
         Integer fractionId = pmfmStrategy.getFraction() != null ? pmfmStrategy.getFraction().getId() : null;
         Integer methodId = pmfmStrategy.getMethod() != null ? pmfmStrategy.getMethod().getId() : null;
         try {
-            return pmfmRepository.findByPmfmParts(parameterId, matrixId, fractionId, methodId).stream();
+            List<Pmfm> pmfms = pmfmRepository.findByPmfmParts(parameterId, matrixId, fractionId, methodId);
+            return pmfms.stream();
         } catch (Exception e) {
             String errorMessage = String.format("Unable to compute PMFMs corresponding to %s: %s", pmfmStrategy.toString(), e.getMessage());
             if (failIfMissing) {

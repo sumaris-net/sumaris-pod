@@ -22,6 +22,7 @@ package net.sumaris.core.dao.referential;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -34,6 +35,7 @@ import net.sumaris.core.vo.filter.IReferentialFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Predicate;
@@ -99,31 +101,27 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     }
 
     default Specification<E> inJoinPropertyIds(String joinPropertyName, Integer[] ids) {
+        // If empty: skip to avoid an unused join
+        if (ArrayUtils.isEmpty(ids)) return null;
+
         BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Collection> levelParam = criteriaBuilder.parameter(Collection.class, LEVEL_PARAMETER);
-            ParameterExpression<Boolean> levelSetParam = criteriaBuilder.parameter(Boolean.class, LEVEL_SET_PARAMETER);
-            return criteriaBuilder.or(
-                    criteriaBuilder.isFalse(levelSetParam),
-                    criteriaBuilder.in(root.join(joinPropertyName, JoinType.INNER).get(IEntity.Fields.ID)).value(levelParam)
-            );
+            return criteriaBuilder.in(root.join(joinPropertyName, JoinType.INNER).get(IEntity.Fields.ID)).value(levelParam);
         });
-        specification.addBind(LEVEL_SET_PARAMETER, ArrayUtils.isNotEmpty(ids));
-        specification.addBind(LEVEL_PARAMETER, ArrayUtils.isEmpty(ids) ? null : Arrays.asList(ids));
+        specification.addBind(LEVEL_PARAMETER, Arrays.asList(ids));
         return specification;
     }
 
     default Specification<E> inLevelLabels(Class<E> entityClass, String[] levelLabels) {
+        // If empty: skip to avoid an unused join
+        if (ArrayUtils.isEmpty(levelLabels)) return null;
+
         return ReferentialEntities.getLevelPropertyNameByClass(entityClass).map(levelPropertyName -> {
             BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
                 ParameterExpression<Collection> levelParam = criteriaBuilder.parameter(Collection.class, LEVEL_LABEL_PARAMETER);
-                ParameterExpression<Boolean> levelSetParam = criteriaBuilder.parameter(Boolean.class, LEVEL_LABEL_SET_PARAMETER);
-                return criteriaBuilder.or(
-                        criteriaBuilder.isFalse(levelSetParam),
-                        criteriaBuilder.in(root.join(levelPropertyName, JoinType.INNER).get(IItemReferentialEntity.Fields.LABEL)).value(levelParam)
-                );
+                return criteriaBuilder.in(root.join(levelPropertyName, JoinType.INNER).get(IItemReferentialEntity.Fields.LABEL)).value(levelParam);
             });
-            specification.addBind(LEVEL_LABEL_SET_PARAMETER, ArrayUtils.isNotEmpty(levelLabels));
-            specification.addBind(LEVEL_LABEL_PARAMETER, ArrayUtils.isEmpty(levelLabels) ? null : Arrays.asList(levelLabels));
+            specification.addBind(LEVEL_LABEL_PARAMETER, Arrays.asList(levelLabels));
             return specification;
         })
         .orElse(null);
@@ -132,7 +130,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     default Specification<E> searchOrJoinSearchText(IReferentialFilter filter) {
         String searchText = Daos.getEscapedSearchText(filter.getSearchText());
         String searchJoinProperty = filter.getSearchJoin() != null ? StringUtils.uncapitalize(filter.getSearchJoin()) : null;
-        if (searchJoinProperty != null) {
+        if (StringUtils.isNotBlank(searchJoinProperty)) {
             return joinSearchText(searchJoinProperty, filter.getSearchAttribute(), searchText);
         } else {
             return searchText(
@@ -171,19 +169,30 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     }
 
     default Specification<E> joinSearchText(String joinProperty, String searchAttribute, String searchText) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(joinProperty), "'joinProperty' cannot be empty");
         BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> searchTextParam = criteriaBuilder.parameter(String.class, SEARCH_TEXT_PARAMETER);
+
+            // Avoid duplication, for 'one to many' join
+            query.distinct(true);
+
+            // Get the class join, using properties
+            String[] joinProperties = joinProperty.split("[./]");
+            Join<Object, Object> join = root.join(joinProperties[0]);
+            for(int i = 1; i < joinProperties.length; i++) {
+                join = join.join(joinProperties[i]);
+            }
 
             if (StringUtils.isNotBlank(searchAttribute)) {
                 return criteriaBuilder.or(
                     criteriaBuilder.isNull(searchTextParam),
-                    criteriaBuilder.like(criteriaBuilder.upper(root.join(joinProperty).get(searchAttribute)), criteriaBuilder.upper(searchTextParam)));
+                    criteriaBuilder.like(criteriaBuilder.upper(join.get(searchAttribute)), criteriaBuilder.upper(searchTextParam)));
             }
             // Search on label+name
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(searchTextParam),
-                criteriaBuilder.like(criteriaBuilder.upper(root.join(joinProperty).get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(searchTextParam)),
-                criteriaBuilder.like(criteriaBuilder.upper(root.join(joinProperty).get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.upper(criteriaBuilder.concat("%", searchTextParam)))
+                criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(searchTextParam)),
+                criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.upper(criteriaBuilder.concat("%", searchTextParam)))
             );
         });
         specification.addBind(SEARCH_TEXT_PARAMETER, searchText);
