@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} 
 import {DefaultStatusList} from "../../../core/services/model/referential.model";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
 import {Program} from "../../services/model/program.model";
-import {isNotNil} from "../../../shared/functions";
+import {isEmptyArray, isNotNil} from "../../../shared/functions";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
@@ -14,7 +14,7 @@ import {ReferentialRefService} from "../../services/referential-ref.service";
 import {StatusIds} from "../../../core/services/model/model.enum";
 import {ProgramProperties} from "../../services/config/program.config";
 import {environment} from "../../../../environments/environment";
-import {SamplingStrategy} from "../../services/model/sampling-strategy.model";
+import {SamplingStrategy, StrategyEffort} from "../../services/model/sampling-strategy.model";
 import {SamplingStrategyService} from "../../services/sampling-strategy.service";
 
 
@@ -30,6 +30,7 @@ import {SamplingStrategyService} from "../../services/sampling-strategy.service"
 export class SamplingStrategiesTable extends AppTable<SamplingStrategy, ReferentialFilter> {
 
   private _program: Program;
+  errorDetails : any;
 
   statusList = DefaultStatusList;
   statusById: any;
@@ -156,6 +157,32 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Referent
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  async deleteSelection(event: UIEvent): Promise<number> {
+    const rowsToDelete = this.selection.selected;
+
+    for(let row  of rowsToDelete){
+      let hasRealizedEffort= false
+      row.currentData.efforts.map(StrategyEffort.fromObject).forEach(effort => {
+        if(effort.quarter){
+          const realizedEffort = row.currentData.effortByQuarter[effort.quarter].hasRealizedEffort;
+          if(realizedEffort){
+            hasRealizedEffort = realizedEffort;
+          }
+        }
+      });
+      // send error when  effort exist
+      if(hasRealizedEffort){
+        this.errorDetails = {errorDetails: row.currentData.label};
+        this.error = 'PROGRAM.STRATEGY.ERROR.EFFORT.EXIST';
+        return 0;
+      }
+    }
+    // delete if strategy has not effort
+    await super.deleteSelection(event);
+    this.error = null;
+  }
+
 
 }
 
