@@ -5,6 +5,13 @@ import {isNil} from "../../../shared/functions";
 
 export class SamplingStrategy extends Strategy<SamplingStrategy> {
 
+  static fromObject(source: any): SamplingStrategy {
+    if (!source || source instanceof SamplingStrategy) return source;
+    const res = new SamplingStrategy();
+    res.fromObject(source);
+    return res;
+  }
+
   parameterGroups: string[];
   efforts: StrategyEffort[];
   effortByQuarter: {
@@ -25,6 +32,9 @@ export class SamplingStrategy extends Strategy<SamplingStrategy> {
     return target;
   }
 
+  get hasRealizedEffort(): boolean {
+    return this.efforts.findIndex(e => e.hasRealizedEffort) !== -1;
+  }
 }
 
 
@@ -80,6 +90,4 @@ export class StrategyEffort {
   get hasRealizedEffort(): boolean {
     return (this.realizedEffort && this.realizedEffort > 0);
   }
-
-
-  }
+}

@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} 
 import {DefaultStatusList} from "../../../core/services/model/referential.model";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
 import {Program} from "../../services/model/program.model";
-import {isEmptyArray, isNotNil} from "../../../shared/functions";
+import {isEmptyArray, isNotEmptyArray, isNotNil} from "../../../shared/functions";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
@@ -161,23 +161,21 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Referent
   async deleteSelection(event: UIEvent): Promise<number> {
     const rowsToDelete = this.selection.selected;
 
-    for(let row  of rowsToDelete){
-      let hasRealizedEffort= false
-      row.currentData.efforts.map(StrategyEffort.fromObject).forEach(effort => {
-        if(effort.quarter){
-          const realizedEffort = row.currentData.effortByQuarter[effort.quarter].hasRealizedEffort;
-          if(realizedEffort){
-            hasRealizedEffort = realizedEffort;
-          }
-        }
-      });
-      // send error when  effort exist
-      if(hasRealizedEffort){
-        this.errorDetails = {errorDetails: row.currentData.label};
-        this.error = 'PROGRAM.STRATEGY.ERROR.EFFORT.EXIST';
-        return 0;
-      }
+    const strategyLabelsWithRealizedEffort = (rowsToDelete || [])
+      .map(row => row.currentData as SamplingStrategy)
+      .map(SamplingStrategy.fromObject)
+      .filter(strategy => strategy.hasRealizedEffort)
+      .map(s => s.label);
+
+    // send error if one strategy has realized effort
+    if (isNotEmptyArray(strategyLabelsWithRealizedEffort)) {
+      this.errorDetails = {label: strategyLabelsWithRealizedEffort.join(', ')};
+      this.error = strategyLabelsWithRealizedEffort.length === 1
+        ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_REALIZED_EFFORT'
+        : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_REALIZED_EFFORT';
+      return 0;
     }
+
     // delete if strategy has not effort
     await super.deleteSelection(event);
     this.error = null;

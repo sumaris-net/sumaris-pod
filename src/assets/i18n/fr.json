@@ -1384,7 +1384,8 @@
         "PARAMETERS.WEIGHT_OR_SIZE": "Le poids ou la taille est obligatoire",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
         "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà",
-        "EFFORT.EXIST": "Une observation individuelle est liée à la ligne de plan {{errorDetails}}"
+        "STRATEGY_HAS_REALIZED_EFFORT": "La ligne de plan {{label}} est liée à une ou plusieurs observations individuelles",
+        "STRATEGIES_HAS_REALIZED_EFFORT": "Les lignes de plan {{label}} sont liées à une ou plusieurs observations individuelles"
       }
     },
     "ERROR": {
