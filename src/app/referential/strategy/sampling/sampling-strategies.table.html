@@ -120,8 +120,8 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <mat-icon color="primary" class="comment"
-                *ngIf="row.currentData.description"
-                [title]="row.currentData.description">chat_bubble</mat-icon>
+                *ngIf="row.currentData.comments"
+                [title]="row.currentData.comments">chat_bubble</mat-icon>
     </mat-cell>
   </ng-container>
 

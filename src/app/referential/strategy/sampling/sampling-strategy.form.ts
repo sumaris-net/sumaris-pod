@@ -642,10 +642,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     const json = this.form.value;
 
     json.name = json.label || json.name;
+    json.description = json.label || json.description;
     json.analyticReference = (typeof json.analyticReference === 'object') ? json.analyticReference.label : json.analyticReference;
-
-    // FIXME : description is not nullable in database so we init it with an empty string if nothing provided in the
-    json.description = json.description || ' ';
 
     // get taxonName and
     (json.taxonNames || []).forEach(taxonNameStrategy => {
