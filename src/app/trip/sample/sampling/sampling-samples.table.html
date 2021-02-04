@@ -52,12 +52,6 @@
     <mat-header-cell *matHeaderCellDef [style.flex]="1"></mat-header-cell>
   </ng-container>
 
-  <!-- Morse code column => Already in pmfm columns -->
-  <ng-container matColumnDef="morseCode" sticky="true">
-    <mat-header-cell *matHeaderCellDef [style.flex]="1"></mat-header-cell>
-  </ng-container>
-
-
   <!-- Group pmfm columns -->
   <ng-container *ngFor="let col of $pmfmGroupColumns | async; trackBy: trackColumnDef" [matColumnDef]="col.key">
     <mat-header-cell *matHeaderCellDef class="mat-column-pmfm-group {{col.cssClass}}"
