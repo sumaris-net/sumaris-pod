@@ -25,7 +25,7 @@ import {PmfmStrategiesTable} from "../pmfm-strategies.table";
 import {
   AcquisitionLevelCodes,
   LocationLevelIds,
-  ParameterLabelGroups,
+  ParameterLabelGroups, PmfmIds,
   ProgramPrivilegeIds
 } from '../../services/model/model.enum';
 import {AppForm} from "../../../core/form/form.class";
@@ -721,6 +721,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
           pmfmStrategies.push(pmfmStrategiesFraction);
         });
     }
+
+    // Add analytic reference pmfm strategy
+    const pmfmStrategyAnalyticReference = <PmfmStrategy>{
+      pmfmId: PmfmIds.MORSE_CODE
+    };
+    pmfmStrategies.push(pmfmStrategyAnalyticReference);
 
     let rankOrder = 1;
     json.pmfmStrategies = pmfmStrategies

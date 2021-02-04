@@ -188,21 +188,6 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
       pmfmStrategyLabel.rankOrder = 1; // Should be the only one PmfmStrategy on Landing
       data.pmfmStrategies.push(pmfmStrategyLabel);
     }
-
-    // Find existing analytic reference pmfm and create if not exists
-    let pmfmAnalyticReference: PmfmStrategy = data.pmfmStrategies.find(pmfm =>
-      toNumber(pmfm.pmfmId, pmfm.pmfm && pmfm.pmfm.id) === PmfmIds.MORSE_CODE);
-
-    if (!pmfmAnalyticReference) {
-      console.debug(`[simple-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.MORSE_CODE}} to hold the analytic reference, on ${AcquisitionLevelCodes.SAMPLE}`);
-      pmfmAnalyticReference = <PmfmStrategy>{};
-      pmfmAnalyticReference.pmfmId = PmfmIds.MORSE_CODE;
-      pmfmAnalyticReference.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
-      pmfmAnalyticReference.isMandatory = false;
-      pmfmAnalyticReference.acquisitionNumber = 1;
-      pmfmAnalyticReference.rankOrder = 1; // Should be the first
-      data.pmfmStrategies.push(pmfmAnalyticReference);
-    }
   }
 
 
