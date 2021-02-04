@@ -112,18 +112,11 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
         String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
 
         // -- Execute the extraction --
-
         try {
             // Strategy
             long rowCount = createStrategyTable(context);
-            if (rowCount == 0) return context;
-            if (sheetName != null && context.hasSheet(sheetName)) return context;
-
-            // Program
-             rowCount = createProgramTable(context);
             if (rowCount == 0) throw new DataNotFoundException(t("sumaris.extraction.noData"));
             if (sheetName != null && context.hasSheet(sheetName)) return context;
-
 
             // StrategyMonitoring
             rowCount = createStrategyMonitoringTable(context);

@@ -344,7 +344,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @Override
     public File executeAndDumpPrograms(LiveFormatEnum format, ExtractionProgramFilterVO programFilter) {
-        String programSheetName = ArrayUtils.isNotEmpty(format.getSheetNames()) ? format.getSheetNames()[0] : ProgSpecification.PR_SHEET_NAME;
+        String programSheetName = ArrayUtils.isNotEmpty(format.getSheetNames()) ? format.getSheetNames()[0] : ProgSpecification.ST_SHEET_NAME;
         ExtractionFilterVO filter = extractionProgramDao.toExtractionFilterVO(programFilter, programSheetName);
         return extractRawDataAndDumpToFile(format, filter);
     }
