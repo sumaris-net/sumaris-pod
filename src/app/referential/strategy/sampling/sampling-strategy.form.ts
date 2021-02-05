@@ -175,10 +175,24 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.form.addControl('sex', new FormControl());
     this.form.addControl('age', new FormControl());
 
+    this.form.get('appliedPeriods').setAsyncValidators([
+      async (control) => {
+        const minLength = 1;
+        const appliedPeriods = control.value;
+        if (!isEmptyArray(appliedPeriods)) {
+          const values = appliedPeriods.filter(appliedPeriod => toNumber(appliedPeriod.acquisitionNumber, 0) >= 1);
+          if (!isEmptyArray(values) && values.length >= minLength) {
+            SharedValidators.clearError(control, 'minLength');
+            return null;
+          }
+        }
+        return <ValidationErrors>{ minLength: {minLength} };
+      }
+    ]);
+
     this.form.get('pmfmStrategies').setAsyncValidators([
       //Check if WEIGHT or LENGTH
       async (control) => {
-        console.log(control);
           const pmfms = control.value.flat();
           if (!isEmptyArray(pmfms)) {
             const pmfmGroups = await firstNotNilPromise(this._$pmfmGroups);
@@ -812,11 +826,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
-        allowEmptyArray: false,
-        validators: [
-          // this.requiredPmfmMinLength(2),
-          // this.requiredWeightOrSize()
-        ]
+        allowEmptyArray: false
       }
     );
     // Create at least one fishing Area
@@ -862,7 +872,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       {
         allowEmptyArray: false,
         validators: [
-          this.requiredPeriodMinLength(1)
+          // this.requiredPeriodMinLength(1)
         ]
       }
     );
@@ -915,23 +925,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   protected markForCheck() {
     if (this.cd) this.cd.markForCheck();
-  }
-
-  requiredPmfmMinLength(minLength?: number): ValidatorFn {
-    minLength = minLength || 2;
-    return (array: FormArray): ValidationErrors | null => {
-      //Check if sex parameter check
-      const data = array.value;
-      if (data[0] === false) {
-        // Sex = false => remove maturity
-        data[4] = [];
-      }
-      const values = data.flat().filter(pmfm => pmfm && pmfm !== false);
-      if (!values || values.length < minLength) {
-        return { minLength: { minLength: minLength } };
-      }
-      return null;
-    };
   }
 
   requiredPeriodMinLength(minLength?: number): ValidatorFn {
