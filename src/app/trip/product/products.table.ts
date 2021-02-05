@@ -119,7 +119,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
       filterNotNil(this.$pmfms)
         .subscribe(() => {
           // if main pmfms are loaded, then other pmfm can be loaded
-          this.programService.loadProgramPmfms(this.program, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE})
+          this.programRefService.loadProgramPmfms(this.programLabel, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE})
             .then(productSalePmfms => this.productSalePmfms = productSalePmfms);
         }));
 
@@ -129,9 +129,9 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
   /* -- protected methods -- */
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
-    return this.programService.suggestTaxonGroups(value,
+    return this.programRefService.suggestTaxonGroups(value,
       {
-        program: this.program,
+        program: this.programLabel,
         searchAttribute: options && options.searchAttribute
       });
   }

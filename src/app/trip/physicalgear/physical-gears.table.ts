@@ -143,7 +143,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     const modal = await this.modalCtrl.create({
       component: PhysicalGearModal,
       componentProps: {
-        program: this.program,
+        program: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         value: gear.clone(), // Do a copy, because edition can be cancelled

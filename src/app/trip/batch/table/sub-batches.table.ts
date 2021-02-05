@@ -420,7 +420,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
   public async resetForm(previousBatch?: SubBatch, opts?: {focusFirstEmpty?: boolean, emitEvent?: boolean}) {
     if (!this.form) throw new Error('Form not exists');
-    await this.onReady();
+    await this.ready();
 
     this.form.availableParents = this._availableSortedParents;
 
@@ -503,9 +503,9 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
     const parent = this.editedRow && this.editedRow.validator.get('parentGroup').value;
     if (isNilOrBlank(value) && isNil(parent)) return [];
-    return this.programService.suggestTaxonNames(value,
+    return this.programRefService.suggestTaxonNames(value,
       {
-        program: this.program,
+        program: this.programLabel,
         searchAttribute: options && options.searchAttribute,
         taxonGroupId: parent && parent.taxonGroup && parent.taxonGroup.id || undefined
       });
@@ -589,7 +589,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     const modal = await this.modalCtrl.create({
       component: SubBatchModal,
       componentProps: {
-        program: this.program,
+        program: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         availableParents: this.availableParents,
         value: batch,
@@ -657,7 +657,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       this._availableSortedParents = EntityUtils.sort(parents.slice(), 'rankOrder');
     }
 
-    await this.onReady();
+    await this.ready();
 
     if (this.form) this.form.availableParents = this._availableSortedParents;
 

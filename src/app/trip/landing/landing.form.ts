@@ -1,30 +1,31 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
-import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
-import {AcquisitionLevelCodes, LocationLevelIds} from '../../referential/services/model/model.enum';
+import {debounceTime, map, tap} from 'rxjs/operators';
+import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../referential/services/model/model.enum';
 import {LandingValidatorService} from "../services/validator/landing.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {FormArray, FormBuilder} from "@angular/forms";
+import {FormArray, FormBuilder, FormControl, Validators} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
-import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
-import {Person, personToString, UserProfileLabel} from "../../core/services/model/person.model";
+import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
+import {Person, personToString, UserProfileLabels} from "../../core/services/model/person.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {Landing} from "../services/model/landing.model";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {ProgramService} from "../../referential/services/program.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
 import {FormArrayHelper} from "../../core/form/form.utils";
-import {
-  MatAutocompleteFieldAddOptions,
-  MatAutocompleteFieldConfig
-} from "../../shared/material/autocomplete/material.autocomplete";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {SharedValidators} from "../../shared/validator/validators";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
+
+export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
 @Component({
   selector: 'app-landing-form',
@@ -39,6 +40,10 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   observerFocusIndex = -1;
   mobile: boolean;
 
+  strategyControl: FormControl;
+
+  @Input() i18nPrefix = LANDING_DEFAULT_I18N_PREFIX;
+  @Input() canEditStrategy = true;
   @Input() required = true;
 
   @Input() showProgram = true;
@@ -49,7 +54,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() showMeasurements = true;
   @Input() showError = true;
   @Input() showButtons = true;
+  @Input() showStrategy = false;
   @Input() locationLevelIds: number[];
+  @Input() allowAddNewVessel: boolean;
 
   @Input() set showObservers(value: boolean) {
     if (this._showObservers !== value) {
@@ -82,7 +89,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected validatorService: LandingValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService,
@@ -91,12 +98,20 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected modalCtrl: ModalController,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd, validatorService.getFormGroup());
+    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup(), {
+      mapPmfms: pmfms => this.mapPmfms(pmfms)
+    });
+    // Add a strategy field (not in validator)
+    this.strategyControl = formBuilder.control(null, [Validators.required, SharedValidators.entity]);
+
     this._enable = false;
     this.mobile = this.settings.mobile;
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
+
+    // Add a strategy field (not in validator)
+    this.strategyControl = formBuilder.control(null, [Validators.required]);
   }
 
   ngOnInit() {
@@ -117,6 +132,17 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       }
     });
 
+    // Combo: strategy
+    this.registerAutocompleteField('strategy', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Strategy',
+        levelLabel: this.$programLabel.getValue() // is empty, will be set in setProgram()
+      },
+      attributes: ['label'],
+      columnSizes: [12]
+    });
+
     // Combo: vessels
     const vesselField = this.registerAutocompleteField('vesselSnapshot', {
       service: this.vesselSnapshotService,
@@ -128,17 +154,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     // Add base port location
     vesselField.attributes = vesselField.attributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key));
 
-    // Propagate program
-    this.registerSubscription(
-      this.form.get('program').valueChanges
-        .pipe(
-          debounceTime(250),
-          filter(ReferentialUtils.isNotEmpty),
-          pluck('label'),
-          distinctUntilChanged()
-        )
-        .subscribe(programLabel => this.program = programLabel as string));
-
     // Combo location
     this.registerAutocompleteField('location', {
       service: this.referentialRefService,
@@ -149,39 +164,78 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     });
 
     // Combo: observers
-    const profileLabels: UserProfileLabel[] = ['SUPERVISOR', 'USER', 'GUEST'];
     this.registerAutocompleteField('person', {
       service: this.personService,
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: profileLabels
+        userProfiles: [UserProfileLabels.SUPERVISOR, UserProfileLabels.USER, UserProfileLabels.GUEST]
       },
       attributes: ['lastName', 'firstName', 'department.name'],
       displayWith: personToString
     });
+
+    // Propagate program
+    this.registerSubscription(
+      this.form.get('program').valueChanges
+        .pipe(
+          debounceTime(250),
+          map(value => (value && typeof value === 'string') ? value : (value && value.label || undefined))
+        )
+        .subscribe(programLabel => this.programLabel = programLabel));
+
+    // Propagate strategy changes
+    this.registerSubscription(
+      this.strategyControl.valueChanges
+        .pipe(
+          debounceTime(250),
+          map(value => (value && typeof value === 'string') ? value : (value && value.label || undefined)),
+          // DEBUG
+          //tap(strategyLabel => console.debug('[landing-form] Sending strategy label: ' + strategyLabel))
+        )
+        .subscribe(strategyLabel => this.strategyLabel = strategyLabel));
   }
 
-  public setValue(value: Landing) {
-    if (!value) return;
+  async safeSetValue(data: Landing, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }) {
+    if (!data) return;
 
     // Make sure to have (at least) one observer
-    value.observers = value.observers && value.observers.length ? value.observers : [null];
+    data.observers = data.observers && data.observers.length ? data.observers : [null];
 
     // Resize observers array
     if (this._showObservers) {
-      this.observersHelper.resize(Math.max(1, value.observers.length));
-    }
-    else {
+      this.observersHelper.resize(Math.max(1, data.observers.length));
+    } else {
       this.observersHelper.removeAllEmpty();
     }
 
     // Propagate the program
-    if (value.program && value.program.label) {
-      this.program = value.program.label;
+    if (data.program && data.program.label) {
+      this.programLabel = data.program.label;
     }
 
-    // Send value for form
-    super.setValue(value);
+    // Propagate the strategy
+    const strategyLabel = Object.entries(data.measurementValues || {})
+      .filter(([pmfmId, _]) => +pmfmId === PmfmIds.STRATEGY_LABEL)
+      .map(([_, value]) => value)
+      .find(isNotNil) as string;
+    this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
+    this.strategyLabel = strategyLabel;
+
+    await super.safeSetValue(data, opts);
+  }
+
+  protected getValue(): Landing {
+    const data = super.getValue();
+
+    // Re add the strategy label
+    if (this.showStrategy) {
+      const strategyValue = this.strategyControl.value;
+      const strategyLabel = EntityUtils.isNotEmpty(strategyValue, 'label') ? strategyValue.label : strategyValue as string;
+      data.measurementValues = data.measurementValues || {};
+      data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()] = strategyLabel;
+    }
+
+    return data;
   }
 
   addObserver() {
@@ -198,10 +252,13 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     super.enable(opts);
 
     // Leave program disable once data has been saved
-    if (isNotNil(this.data.id) && !this.form.controls['program'].disabled) {
+    const isNew = !this.data || isNil(this.data.id);
+    if (!isNew && !this.form.controls['program'].disabled) {
       this.form.controls['program'].disable({emitEvent: false});
       this.markForCheck();
     }
+
+    // TODO BLA: same for strategy
   }
 
   async addVesselModal(): Promise<any> {
@@ -221,6 +278,15 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   }
 
   /* -- protected method -- */
+
+  protected setProgram(program: string) {
+    super.setProgram(program);
+
+    // Update the strategy filter (if autocomplete field exists. If not, program will set later in ngOnInit())
+    if (this.autocompleteFields.strategy) {
+      this.autocompleteFields.strategy.filter.levelLabel = program;
+    }
+  }
 
   protected initObserversHelper() {
     if (isNil(this._showObservers)) return; // skip if not loading yet
@@ -245,5 +311,38 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  /**
+   * Make sure a pmfmStrategy exists to store the Strategy.label
+   */
+  protected async mapPmfms(pmfms: PmfmStrategy[]): Promise<PmfmStrategy[]> {
+
+    if (this.debug) console.debug(`${this.logPrefix} calling mapPmfms()`);
+
+    if (this.showStrategy) {
+      // Create the missing Pmfm, to hold strategy (if need)
+      const existingIndex = (pmfms || []).findIndex(pmfm => pmfm.pmfmId === PmfmIds.STRATEGY_LABEL);
+      let strategyPmfm: PmfmStrategy;
+      if (existingIndex !== -1) {
+        // Remove existing, then copy it (to leave original unchanged)
+        strategyPmfm = pmfms.splice(existingIndex, 1)[0].clone();
+      }
+      else {
+        strategyPmfm = PmfmStrategy.fromObject({
+          id: -1, // Fake id (should never be used)
+          pmfmId: PmfmIds.STRATEGY_LABEL,
+          type: 'string'
+        });
+      }
+
+      strategyPmfm.hidden = true; // Do not display it in measurement
+      strategyPmfm.isMandatory = false; // Nopt need to be required, because of strategyControl validator
+
+      // Prepend to list
+      pmfms = [strategyPmfm, ...pmfms];
+    }
+
+    return pmfms;
   }
 }

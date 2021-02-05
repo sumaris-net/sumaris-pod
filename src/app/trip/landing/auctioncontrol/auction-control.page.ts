@@ -1,42 +1,36 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from "../../referential/services/model/model.enum";
-import {LandingPage} from "../landing/landing.page";
-import {LandingValidatorService} from "../services/validator/landing.validator";
+import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from "../../../referential/services/model/model.enum";
+import {LandingPage} from "../landing.page";
 import {debounceTime, filter, map, mergeMap, startWith, switchMap, tap} from "rxjs/operators";
 import {BehaviorSubject, Observable, Subscription} from "rxjs";
-import {Landing} from "../services/model/landing.model";
-import {AuctionControlValidators} from "../services/validator/auction-control.validators";
+import {Landing} from "../../services/model/landing.model";
+import {AuctionControlValidators} from "../../services/validator/auction-control.validators";
 import {ModalController} from "@ionic/angular";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {IReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {HistoryPageReference} from "../../core/services/model/settings.model";
-import {ObservedLocation} from "../services/model/observed-location.model";
-import {FormBuilder, FormControl} from "@angular/forms";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {TaxonGroupLabels, TaxonGroupRef} from "../../referential/services/model/taxon.model";
-import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
-import {isNil, isNotEmptyArray, isNotNil, toNumber} from "../../shared/functions";
-import {AppHelpModal} from "../../shared/help/help.modal";
-import {SharedValidators} from "../../shared/validator/validators";
-import {Program} from "../../referential/services/model/program.model";
-import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
+import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
+import {HistoryPageReference} from "../../../core/services/model/settings.model";
+import {ObservedLocation} from "../../services/model/observed-location.model";
+import {FormBuilder, FormControl, FormGroup} from "@angular/forms";
+import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {TaxonGroupLabels, TaxonGroupRef} from "../../../referential/services/model/taxon.model";
+import {filterNotNil, firstNotNilPromise} from "../../../shared/observables";
+import {isNil, isNotEmptyArray, isNotNil, toNumber} from "../../../shared/functions";
+import {AppHelpModal} from "../../../shared/help/help.modal";
+import {SharedValidators} from "../../../shared/validator/validators";
+import {Program} from "../../../referential/services/model/program.model";
+import {fadeInOutAnimation} from "../../../shared/material/material.animations";
+import {ProgramService} from "../../../referential/services/program.service";
+import {ProgramRefService} from "../../../referential/services/program-ref.service";
 
 @Component({
   selector: 'app-auction-control',
   styleUrls: ['auction-control.page.scss'],
   templateUrl: './auction-control.page.html',
-  providers: [
-    {provide: ValidatorService, useExisting: LandingValidatorService}
-  ],
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AuctionControlPage extends LandingPage implements OnInit {
-
-
-  private _rowValidatorSubscription: Subscription;
 
   $taxonGroupTypeId = new BehaviorSubject<number>(null);
   taxonGroupControl: FormControl;
@@ -53,13 +47,13 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   constructor(
     injector: Injector,
-    protected referentialRefService: ReferentialRefService,
     protected formBuilder: FormBuilder,
     protected modalCtrl: ModalController
   ) {
     super(injector, {
       pathIdAttribute: 'controlId',
-      tabCount: 2
+      autoOpenNextTab: false,
+      tabGroupAnimationDuration: '0s' // Disable tab animation
     });
 
     this.taxonGroupControl = this.formBuilder.control(null, [SharedValidators.entity]);
@@ -88,10 +82,10 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
     // Get program taxon groups
     this.registerSubscription(
-      this.programSubject
+      this.$programLabel
         .pipe(
           filter(isNotNil),
-          mergeMap((programLabel) => this.programService.loadTaxonGroups(programLabel))
+          mergeMap((programLabel) => this.programRefService.loadTaxonGroups(programLabel))
         )
         .subscribe(taxonGroups => {
           console.debug("[control] Program taxonGroups: ", taxonGroups);
@@ -118,7 +112,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
                   const taxonGroup = taxonGroups.find(tg => tg.label === qv.label);
                   // If not found in strategy's taxonGroups: ignore
                   if (!taxonGroup) {
-                    console.warn(`Ignore invalid QualitativeValue {label: ${qv.label}} (not found in taxon groups of the program ${this.landingForm.program})`);
+                    console.warn(`Ignore invalid QualitativeValue {label: ${qv.label}} (not found in taxon groups of the program ${this.landingForm.programLabel})`);
                     return res;
                   }
                   // Replace the QV name, using the taxon group name
@@ -171,7 +165,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       this.selectedTaxonGroup$
       .pipe(
         filter(isNotNil),
-        mergeMap(taxonGroup => this.programService.loadProgramPmfms(this.programSubject.getValue(), {
+        mergeMap(taxonGroup => this.programRefService.loadProgramPmfms(this.$programLabel.getValue(), {
           acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
           taxonGroupId: toNumber(taxonGroup && taxonGroup.id, undefined)
         })),
@@ -216,18 +210,8 @@ export class AuctionControlPage extends LandingPage implements OnInit {
         }));
   }
 
-  onInitSampleForm({form, pmfms}) {
-    // Remove previous subscription
-    if (this._rowValidatorSubscription) {
-      this._rowValidatorSubscription.unsubscribe();
-    }
-
-    // Add computation and validation
-    this._rowValidatorSubscription = AuctionControlValidators.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
-  }
-
-  protected setProgram(program: Program) {
-    super.setProgram(program);
+  protected async setProgram(program: Program) {
+    await super.setProgram(program);
 
     this.$taxonGroupTypeId.next(program && program.taxonGroupType ? program.taxonGroupType.id : null);
   }
@@ -314,25 +298,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       });
   }
 
-  // protected async getValue(): Promise<Landing> {
-  //   const data = await super.getValue();
-  //
-  //   // Make sure to set all samples attributes
-  //   const generatedPrefix = this.samplesTable.acquisitionLevel + '#';
-  //   console.log("Will update generate label");
-  //   (data.samples || []).forEach(s => {
-  //     // Always fill label
-  //     if (isNilOrBlank(s.label)) {
-  //       s.label = generatedPrefix + s.rankOrder;
-  //     }
-  //
-  //     // Always use same taxon group
-  //     s.taxonGroup = this.samplesTable.defaultTaxonGroup;
-  //   });
-  //
-  //   return data;
-  // }
-
   /* -- protected method -- */
 
   protected async setValue(data: Landing): Promise<void> {
@@ -394,8 +359,13 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     return `${parentUrl}/control/${id}`;
   }
 
+  protected computeSampleRowValidator(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {
+    return AuctionControlValidators.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
+  }
+
   protected getFirstInvalidTabIndex(): number {
     return this.landingForm.invalid && !this.landingForm.measurementValuesForm.invalid ? 0 : (
       (this.samplesTable.invalid || this.landingForm.measurementValuesForm.invalid) ? 1 : -1);
   }
+
 }

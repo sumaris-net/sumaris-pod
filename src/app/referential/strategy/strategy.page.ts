@@ -6,7 +6,7 @@ import {AccountService} from "../../core/services/account.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {ModalController} from "@ionic/angular";
-import {StrategyForm} from "../strategy/strategy.form";
+import {StrategyForm} from "./strategy.form";
 import {HistoryPageReference} from "../../core/services/model/history.model";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {StrategyService} from "../services/strategy.service";
@@ -20,6 +20,7 @@ import {EntityServiceLoadOptions} from "../../shared/services/entity-service.cla
 import {AppEntityEditor} from "../../core/form/editor.class";
 import {isNil, isNotNil} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
+import {ProgramRefService} from "../services/program-ref.service";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -36,7 +37,7 @@ export enum AnimationState {
 })
 export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> implements OnInit {
 
-  programSubject = new BehaviorSubject<Program>(null);
+  $program = new BehaviorSubject<Program>(null);
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('strategyForm', { static: true }) strategyForm: StrategyForm;
@@ -51,7 +52,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     protected accountService: AccountService,
     protected validatorService: StrategyValidatorService,
     dataService: StrategyService,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController
   ) {
@@ -63,7 +64,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
       });
 
     // default values
-    this.defaultBackHref = "/referential?entity=Program";
+    this.defaultBackHref = "/referential/programs";
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
 
@@ -75,9 +76,9 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
 
     // Update back href, when program changed
     this.registerSubscription(
-      this.programSubject.subscribe(program => {
+      this.$program.subscribe(program => {
         if (program && isNotNil(program.id)) {
-          this.defaultBackHref = `/referential/program/${program.id}?tab=1`;
+          this.defaultBackHref = `/referential/programs/${program.id}?tab=1`;
           this.markForCheck();
         }
       }));
@@ -120,8 +121,8 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
   protected async onNewEntity(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onNewEntity(data, options);
 
-    const program = await this.programService.load(options.programId);
-    this.programSubject.next(program);
+    const program = await this.programRefService.load(options.programId);
+    this.$program.next(program);
 
     data.programId = program.id;
   }
@@ -129,8 +130,8 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
   protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onEntityLoaded(data, options);
 
-    const program = await this.programService.load(data.programId);
-    this.programSubject.next(program);
+    const program = await this.programRefService.load(data.programId);
+    this.$program.next(program);
   }
 
   protected setValue(data: Strategy) {
@@ -164,7 +165,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     }
 
     // Existing data
-    const program = await firstNotNilPromise(this.programSubject);
+    const program = await firstNotNilPromise(this.$program);
     return this.translate.get('PROGRAM.STRATEGY.EDIT.TITLE', {
       program: program.label,
       label: data.label

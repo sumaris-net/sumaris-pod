@@ -1,4 +1,6 @@
-<app-toolbar [title]="'OBSERVED_LOCATION.TABLE.TITLE'|translate" color="primary"
+<app-toolbar [title]="$title|async|translate" color="primary"
+             (onValidate)="save()"
+             [hasValidate]="(loadingSubject|async) && dirty"
              [canGoBack]="false">
 
   <ion-buttons slot="end" *ngIf="synchronizationStatus as syncStatus">
@@ -351,11 +353,11 @@
 
     <!-- Observers -->
     <ng-container matColumnDef="observers">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <mat-header-cell *matHeaderCellDef>
         <ion-label translate>OBSERVED_LOCATION.TABLE.OBSERVERS</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <ion-text>{{ row.currentData?.observers | personToString }}</ion-text>
+        <ion-text>{{ row.currentData.observers | personToString }}</ion-text>
       </mat-cell>
     </ng-container>
 

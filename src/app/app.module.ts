@@ -50,8 +50,12 @@ import {TypePolicies} from "@apollo/client/core";
 import {APP_GRAPHQL_TYPE_POLICIES} from "./core/graphql/graphql.service";
 import {SocialModule} from "./social/social.module";
 import {TRIP_TESTING_PAGES} from "./trip/trip.testing.module";
-import {EXTRACTION_GRAPHQL_TYPE_POLICIES} from "./extraction/services/config/extraction.config";
 import {
+  EXTRACTION_CONFIG_OPTIONS,
+  EXTRACTION_GRAPHQL_TYPE_POLICIES
+} from "./extraction/services/config/extraction.config";
+import {
+  REFERENTIAL_CONFIG_OPTIONS,
   REFERENTIAL_GRAPHQL_TYPE_POLICIES,
   REFERENTIAL_LOCAL_SETTINGS_OPTIONS
 } from "./referential/services/config/referential.config";
@@ -183,6 +187,8 @@ import {DATE_ISO_PATTERN} from "./shared/dates";
     // Config options definition (Core + trip)
     { provide: APP_CONFIG_OPTIONS, useValue: <FormFieldDefinitionMap>{
       ...CORE_CONFIG_OPTIONS,
+      ...REFERENTIAL_CONFIG_OPTIONS,
+      ...EXTRACTION_CONFIG_OPTIONS,
       ...TRIP_CONFIG_OPTIONS
     }},
 
@@ -210,12 +216,13 @@ import {DATE_ISO_PATTERN} from "./shared/dates";
         // Data extraction
         {title: 'MENU.DATA_ACCESS_DIVIDER', profile: 'GUEST'},
         {title: 'MENU.DOWNLOADS', path: '/extraction/data', icon: 'cloud-download', profile: 'GUEST'},
-        {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', profile: 'GUEST'},
+        {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', ifProperty: 'sumaris.extraction.map.enable', profile: 'GUEST'},
 
         // Referential
         {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
-        {title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', profile: 'USER'},
-        {title: 'MENU.REFERENTIAL', path: '/referential', icon: 'list', profile: 'ADMIN'},
+        {title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', ifProperty: 'sumaris.referential.vessel.enable', profile: 'USER'},
+        {title: 'MENU.PROGRAMS', path: '/referential/programs', icon: 'contract', profile: 'SUPERVISOR'},
+        {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
         {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
         {title: 'MENU.SERVER', path: '/admin/config', icon: 'server', profile: 'ADMIN'},
 

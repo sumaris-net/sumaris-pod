@@ -1,5 +1,5 @@
 import {Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {BehaviorSubject, Observable, of} from "rxjs";
+import {BehaviorSubject, Observable, of, Subject} from "rxjs";
 import {debounceTime, filter, first, map} from "rxjs/operators";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {ReferentialValidatorService} from "../services/validator/referential.validator";
@@ -19,9 +19,9 @@ import {environment} from "../../../environments/environment";
 
 
 @Component({
-  selector: 'page-referentials',
-  templateUrl: 'referentials.html',
-  styleUrls: ['referentials.scss'],
+  selector: 'app-referential-page',
+  templateUrl: 'referentials.page.html',
+  styleUrls: ['referentials.page.scss'],
   providers: [
     {provide: ValidatorService, useExisting: ReferentialValidatorService}
   ],
@@ -30,12 +30,11 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
   static DEFAULT_ENTITY_NAME = "Program";
 
-  protected entityName: string;
+  protected _entityName: string;
 
   canEdit = false;
-  showLevelColumn = true;
   filterForm: FormGroup;
-  $entity = new BehaviorSubject<{ id: string, label: string, level?: string, levelLabel?: string }>(undefined);
+  $selectedEntity = new BehaviorSubject<{ id: string, label: string, level?: string, levelLabel?: string }>(undefined);
   $entities = new BehaviorSubject<{ id: string, label: string, level?: string, levelLabel?: string }[]>(undefined);
   levels: Observable<Referential[]>;
   statusList = DefaultStatusList;
@@ -44,11 +43,23 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
   canOpenDetail = false;
   detailsPath = {
-    'Program': '/referential/program/:id',
-    'Software': '/referential/software/:id?label=:label',
+    'Program': '/referential/programs/:id',
+    'Software': '/referential/list/software/:id?label=:label',
     'Pmfm': '/referential/pmfm/:id?label=:label',
     'Parameter': '/referential/parameter/:id?label=:label'
   };
+
+  @Input() showLevelColumn = true;
+  @Input() canSelectEntity = true;
+  @Input() title = 'REFERENTIAL.LIST.TITLE';
+
+  @Input() set entityName(value: string) {
+    this.setEntityName(value, {skipLocationChange: true, emitEvent: !this.loadingSubject.getValue()});
+  }
+
+  get entityName(): string {
+    return this._entityName;
+  }
 
   constructor(
     protected injector: Injector,
@@ -75,7 +86,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
           'updateDate',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, environment, validatorService, {
+      new EntitiesTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, validatorService, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
@@ -174,7 +185,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   async setEntityName(entityName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {
     opts = opts || {emitEvent: true, skipLocationChange: false};
     // No change: skip
-    if (this.entityName === entityName) return;
+    if (this._entityName === entityName) return;
 
     this.canOpenDetail = false;
 
@@ -194,8 +205,12 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       throw new Error(`[referential] Entity {${entityName}} not found !`);
     }
 
-    this.entityName = entityName;
-    this.$entity.next(entity);
+    this._entityName = entityName;
+
+    if (this.canSelectEntity) {
+      this.$selectedEntity.next(entity);
+    }
+
     this.filterForm.get('entityName').setValue(entityName);
     this.paginator.pageIndex = 0;
     this.setFilter(this.filterForm.value, {emitEvent: false});
@@ -211,7 +226,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       this.onRefresh.emit();
     }
 
-    if (opts.skipLocationChange === false) {
+    if (opts.skipLocationChange !== false) {
       this.router.navigate(['.'], {
         relativeTo: this.route,
         skipLocationChange: false,
@@ -224,7 +239,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
   async onEntityNameChange(entityName: string): Promise<any> {
     // No change: skip
-    if (this.entityName === entityName) return;
+    if (this._entityName === entityName) return;
     this.setEntityName(entityName);
   }
 
@@ -234,7 +249,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     if (!result) return result;
 
     const row = this.dataSource.getRow(-1);
-    row.validator.controls['entityName'].setValue(this.entityName);
+    row.validator.controls['entityName'].setValue(this._entityName);
     return true;
   }
 
@@ -271,7 +286,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   }
 
   async openRow(id: number, row: TableElement<Referential>): Promise<boolean> {
-    const path = this.detailsPath[this.entityName];
+    const path = this.detailsPath[this._entityName];
 
     if (isNotNilOrBlank(path)) {
       await this.router.navigateByUrl(
@@ -294,7 +309,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
-    const path = this.detailsPath[this.entityName];
+    const path = this.detailsPath[this._entityName];
 
     if (path) {
       await this.router.navigateByUrl(path

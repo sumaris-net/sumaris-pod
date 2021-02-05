@@ -29,7 +29,7 @@ import {
   IEntitiesService,
   IEntityService, LoadResult
 } from "../../shared/services/entity-service.class";
-import {BaseEntityService, QueryVariables} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService, QueryVariables} from "../../core/services/base-graphql-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {chainPromises, firstNotNilPromise} from "../../shared/observables";
 import {Department} from "../../core/services/model/department.model";
@@ -229,7 +229,7 @@ export declare interface OperationServiceWatchOptions extends
 
 
 @Injectable({providedIn: 'root'})
-export class OperationService extends BaseEntityService<Operation, OperationFilter>
+export class OperationService extends BaseGraphqlService<Operation, OperationFilter>
   implements IEntitiesService<Operation, OperationFilter, OperationServiceWatchOptions>,
              IEntityService<Operation>{
 

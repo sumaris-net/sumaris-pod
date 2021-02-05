@@ -16,7 +16,7 @@ import {FilterFn} from "../../shared/services/entity-service.class";
 import {firstNotNilPromise} from "../../shared/observables";
 import {AggregationType, IAggregationStrata} from "./model/aggregation-type.model";
 import {ExtractionFragments, LoadExtractionTypesQuery} from "./extraction.service";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {isNil, isNotNil} from "../../shared/functions";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {EntityUtils} from "../../core/services/model/entity.model";
@@ -165,7 +165,7 @@ export class AggregationTypeFilter {
 }
 
 @Injectable({providedIn: 'root'})
-export class AggregationService extends BaseEntityService {
+export class AggregationService extends BaseGraphqlService {
 
   constructor(
     protected graphql: GraphqlService,

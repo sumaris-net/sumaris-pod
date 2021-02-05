@@ -24,7 +24,7 @@ import {LoadRegistrationsQuery, RegistrationFragments, VesselRegistrationService
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {Vessel} from "./model/vessel.model";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {Person} from "../../core/services/model/person.model";
 import {Department} from "../../core/services/model/department.model";
 import {StatusIds} from "../../core/services/model/model.enum";
@@ -184,7 +184,7 @@ const DeleteVessels: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class VesselService
-  extends BaseEntityService
+  extends BaseGraphqlService
   implements IEntitiesService<Vessel, VesselFilter>, IEntityService<Vessel> {
 
   constructor(

@@ -19,7 +19,7 @@ import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {mergeMap} from "rxjs/operators";
 import {LocalSettingsService} from "../../services/local-settings.service";
 import {MatAutocompleteConfigHolder} from "../../../shared/material/autocomplete/material.autocomplete";
-import {EnvironmentService} from "../../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../../environments/environment.class";
 
 
 @Component({
@@ -54,7 +54,7 @@ export class RegisterForm implements OnInit {
     private accountService: AccountService,
     private accountValidatorService: AccountValidatorService,
     public formBuilder: FormBuilder,
-    @Inject(EnvironmentService) protected environment,
+    @Inject(ENVIRONMENT) protected environment,
     protected settings?: LocalSettingsService
   ) {
 

@@ -9,7 +9,7 @@ import {ReferentialFragments} from "./referential.fragments";
 import {VesselFilter} from "./vessel-service";
 import {SortDirection} from "@angular/material/sort";
 import {VesselFeaturesHistoryComponent} from "../vessel/page/vessel-features-history.component";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
 import {environment} from "../../../environments/environment";
 
@@ -53,7 +53,7 @@ export const LoadFeaturesQuery: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class VesselFeaturesService
-  extends BaseEntityService
+  extends BaseGraphqlService
   implements IEntitiesService<VesselFeatures, VesselFilter> {
 
   constructor(

@@ -7,6 +7,19 @@ export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 export const DATE_UNIX_TIMESTAMP = 'X';
 export const DATE_UNIX_MS_TIMESTAMP = 'x';
 
+export class DateUtils {
+  toDateISOString = toDateISOString;
+  fromDateISOString = fromDateISOString;
+  toDuration = toDuration;
+
+  static min(date1: Moment, date2: Moment): Moment {
+    return date1 && date2 && date1.isSameOrBefore(date2) ? date1 : date2;
+  }
+  static max(date1: Moment, date2: Moment): Moment {
+    return date1 && date2 && date1.isSameOrAfter(date2) ? date1 : date2;
+  }
+}
+
 export function toDateISOString(value: any): string | undefined {
   if (!value) return undefined;
 

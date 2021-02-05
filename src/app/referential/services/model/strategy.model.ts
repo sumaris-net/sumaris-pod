@@ -5,15 +5,17 @@ import {
   ReferentialAsObjectOptions,
   ReferentialRef
 } from "../../../core/services/model/referential.model";
+import {Entity} from "../../../core/services/model/entity.model";
 import {Moment} from "moment";
 import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
 import {TaxonGroupRef, TaxonNameRef} from "./taxon.model";
 import {PmfmStrategy} from "./pmfm-strategy.model";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
-export class Strategy extends Referential<Strategy> {
 
-  static TYPENAME = "StrategyVO";
+export class Strategy<T extends Strategy<any> = Strategy<any>> extends Referential<Strategy> {
+
+  static TYPENAME = 'StrategyVO';
 
   static fromObject(source: any): Strategy {
     if (!source || source instanceof Strategy) return source;
@@ -22,13 +24,11 @@ export class Strategy extends Referential<Strategy> {
     return res;
   }
 
-  label: string;
-  name: string;
-  description: string;
-  comments: string;
+  analyticReference: string;
   creationDate: Moment;
-  statusId: number;
+  appliedStrategies: AppliedStrategy[];
   pmfmStrategies: PmfmStrategy[];
+  departments: StrategyDepartment[];
 
   gears: any[];
   taxonGroups: TaxonGroupStrategy[];
@@ -41,26 +41,31 @@ export class Strategy extends Referential<Strategy> {
     name?: string
   }) {
     super();
+    this.__typename = Strategy.TYPENAME;
     this.id = data && data.id;
     this.label = data && data.label;
     this.name = data && data.name;
+    this.appliedStrategies = [];
     this.pmfmStrategies = [];
+    this.departments = [];
     this.gears = [];
     this.taxonGroups = [];
     this.taxonNames = [];
   }
 
-  clone(): Strategy {
+  clone(): T {
     const target = new Strategy();
     target.fromObject(this);
-    return target;
+    return target as T;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target: any = super.asObject(opts);
     target.programId = this.programId;
     target.creationDate = toDateISOString(this.creationDate);
+    target.appliedStrategies = this.appliedStrategies && this.appliedStrategies.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.pmfmStrategies = this.pmfmStrategies && this.pmfmStrategies.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    target.departments = this.departments && this.departments.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.gears = this.gears && this.gears.map(s => s.asObject(opts));
     target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
@@ -69,21 +74,18 @@ export class Strategy extends Referential<Strategy> {
 
   fromObject(source: any) {
     super.fromObject(source);
-    this.label = source.label;
-    this.name = source.name;
-    this.description = source.description;
-    this.comments = source.comments;
-    this.statusId = source.statusId;
+    this.analyticReference = source.analyticReference;
     this.programId = source.programId;
-    this.creationDate = fromDateISOString(source.creationDate);
+    this.appliedStrategies = source.appliedStrategies && source.appliedStrategies.map(AppliedStrategy.fromObject) || [];
     this.pmfmStrategies = source.pmfmStrategies && source.pmfmStrategies.map(PmfmStrategy.fromObject) || [];
+    this.departments = source.departments && source.departments.map(StrategyDepartment.fromObject) || [];
     this.gears = source.gears && source.gears.map(ReferentialRef.fromObject) || [];
     // Taxon groups, sorted by priority level
     this.taxonGroups = source.taxonGroups && source.taxonGroups.map(TaxonGroupStrategy.fromObject) || [];
     this.taxonNames = source.taxonNames && source.taxonNames.map(TaxonNameStrategy.fromObject) || [];
   }
 
-  equals(other: Strategy): boolean {
+  equals(other: T): boolean {
     return super.equals(other)
       // Or by functional attributes
       || (
@@ -92,6 +94,118 @@ export class Strategy extends Referential<Strategy> {
         // Same program
         && ((!this.programId && !other.programId) || this.programId === other.programId)
       );
+  }
+}
+
+export class StrategyDepartment extends Entity<StrategyDepartment> {
+
+  strategyId: number;
+  location: ReferentialRef;
+  privilege: ReferentialRef;
+  department: ReferentialRef;
+
+  static fromObject(source: any): StrategyDepartment {
+    if (!source || source instanceof StrategyDepartment) return source;
+    const res = new StrategyDepartment();
+    res.fromObject(source);
+    return res;
+  }
+
+  clone(): StrategyDepartment {
+    const target = new StrategyDepartment();
+    target.fromObject(this);
+    return target;
+  }
+
+  asObject(opts?: ReferentialAsObjectOptions): any {
+    const target: any = super.asObject(opts);
+    if (!opts || opts.keepTypename !== true) delete target.__typename;
+    target.location = this.location && this.location.asObject(opts) || undefined;
+    target.privilege = this.privilege && this.privilege.asObject(opts);
+    target.department = this.department && this.department.asObject(opts);
+    return target;
+  }
+
+  fromObject(source: any) {
+    super.fromObject(source);
+    this.strategyId = source.strategyId;
+    this.location = source.location && ReferentialRef.fromObject(source.location);
+    this.privilege = source.privilege && ReferentialRef.fromObject(source.privilege);
+    this.department = source.department && ReferentialRef.fromObject(source.department);
+  }
+
+}
+
+export class AppliedStrategy extends Entity<AppliedStrategy> {
+
+  static TYPENAME = 'AppliedStrategyVO';
+
+  strategyId: number;
+  location: ReferentialRef;
+  appliedPeriods: AppliedPeriod[];
+
+  static fromObject(source: any): AppliedStrategy {
+    if (!source || source instanceof AppliedStrategy) return source;
+    const res = new AppliedStrategy();
+    res.fromObject(source);
+    return res;
+  }
+
+  constructor() {
+    super();
+    this.__typename = AppliedStrategy.TYPENAME;
+  }
+
+  clone(): AppliedStrategy {
+    const target = new AppliedStrategy();
+    target.fromObject(this);
+    return target;
+  }
+
+  asObject(opts?: ReferentialAsObjectOptions): any {
+    const target: any = super.asObject(opts);
+    if (!opts || opts.keepTypename !== true) delete target.__typename;
+    target.location = this.location && this.location.asObject(opts);
+    target.appliedPeriods = this.appliedPeriods && this.appliedPeriods.map(p => p.asObject(opts)) || undefined;
+    return target;
+  }
+
+  fromObject(source: any) {
+    super.fromObject(source);
+    this.strategyId = source.strategyId;
+    this.location = source.location && ReferentialRef.fromObject(source.location);
+    this.appliedPeriods = source.appliedPeriods && source.appliedPeriods.map(AppliedPeriod.fromObject) || [];
+  }
+
+}
+
+export class AppliedPeriod {
+
+  appliedStrategyId: number;
+  startDate: Moment;
+  endDate: Moment;
+  acquisitionNumber: number;
+
+  static fromObject(source: any): AppliedPeriod {
+    if (!source || source instanceof AppliedPeriod) return source;
+    const res = new AppliedPeriod();
+    res.fromObject(source);
+    return res;
+  }
+
+  asObject(opts?: ReferentialAsObjectOptions): any {
+    const target: any = Object.assign({}, this); //= {...this};
+    if (!opts || opts.keepTypename !== true) delete target.__typename;
+    target.startDate = toDateISOString(this.startDate);
+    target.endDate = toDateISOString(this.endDate);
+    return target;
+  }
+
+  fromObject(source: any) {
+    this.appliedStrategyId = source.appliedStrategyId;
+    this.startDate = fromDateISOString(source.startDate);
+    this.endDate = fromDateISOString(source.endDate);
+    this.acquisitionNumber = source.acquisitionNumber;
   }
 }
 
@@ -137,8 +251,7 @@ export class TaxonNameStrategy {
 
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target: any = Object.assign({}, this); //= {...this};
-    if (!opts || opts.keepTypename !== true) delete target.__typename;
-    target.taxonGroup = this.taxonName && this.taxonName.asObject({ ...opts, ...MINIFY_OPTIONS });
+    if (!opts || opts.keepTypename !== true) delete target.taxonName.__typename;
     return target;
   }
 
@@ -147,5 +260,5 @@ export class TaxonNameStrategy {
     this.priorityLevel = source.priorityLevel;
     this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName);
   }
-}
 
+}

@@ -33,7 +33,7 @@ import {HighlightPipe} from "./pipes/highlight.pipe";
 import {NumberFormatPipe} from "./pipes/number-format.pipe";
 import {MarkdownModule} from "ngx-markdown";
 import {AppHelpModal} from "./help/help.modal";
-import {Environment, EnvironmentService} from "../../environments/environment.class";
+import {Environment, ENVIRONMENT} from "../../environments/environment.class";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -99,7 +99,7 @@ export class SharedModule {
       ngModule: SharedModule,
       providers: [
 
-        { provide: EnvironmentService, useValue: environment },
+        { provide: ENVIRONMENT, useValue: environment },
 
         ProgressBarService,
         AudioProvider,

@@ -4,7 +4,7 @@ import * as uuidv4Imported from "uuid/v4";
 import {Base64ImageReader, Base64ImageResizeOptions} from "./base64-image-reader";
 import {chainPromises, firstNotNilPromise} from "../observables";
 import {HttpClient} from "@angular/common/http";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 const uuidv4 = uuidv4Imported;
 
@@ -33,7 +33,7 @@ export class FileService {
     //private transfer: FileTransfer,
     //@Optional() private file: File,
     private http: HttpClient,
-    @Inject(EnvironmentService) protected environment) {
+    @Inject(ENVIRONMENT) protected environment) {
 
     this._debug = !environment.production;
 

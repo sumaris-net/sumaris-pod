@@ -131,6 +131,7 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
   protected async addRowToTable(): Promise<TableElement<OperationGroup>> {
     const row = await super.addRowToTable();
 
+    // TODO BLA: a mettre dans onNewEntity() ?
     row.validator.controls['rankOrderOnPeriod'].setValue(this.getNextRankOrderOnPeriod());
     // row.validator.controls['rankOrderOnPeriod'].updateValueAndValidity();
 

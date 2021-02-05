@@ -14,10 +14,10 @@ import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {AcquisitionLevelCodes, LocationLevelIds} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {ProgramService} from "../../referential/services/program.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {fromDateISOString} from "../../shared/dates";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 @Component({
   selector: 'form-observed-location',
@@ -91,14 +91,14 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected validatorService: ObservedLocationValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
+    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
       validatorService.getFormGroup());
     this._enable = false;
     this.mobile = this.settings.mobile;
@@ -138,7 +138,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
           pluck('label'),
           distinctUntilChanged()
         )
-        .subscribe(programLabel => this.program = programLabel as string));
+        .subscribe(programLabel => this.programLabel = programLabel as string));
 
     // Combo location
     this.registerAutocompleteField('location', {
@@ -204,7 +204,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
 
     // Propagate the program
     if (value.program && value.program.label) {
-      this.program = value.program.label;
+      this.programLabel = value.program.label;
     }
     // New data: copy the program into json value
     else if (isNil(value.id)){

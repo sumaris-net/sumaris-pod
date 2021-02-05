@@ -1,6 +1,6 @@
 import {RouterModule, Routes} from "@angular/router";
 import {NgModule} from "@angular/core";
-import {ReferentialsPage} from "./list/referentials";
+import {ReferentialsPage} from "./list/referentials.page";
 import {VesselsPage} from "./vessel/list/vessels.page";
 import {VesselPage} from "./vessel/page/vessel.page";
 import {ProgramPage} from "./program/program.page";
@@ -10,10 +10,12 @@ import {PmfmPage} from "./pmfm/pmfm.page";
 import {SharedRoutingModule} from "../shared/shared-routing.module";
 import {ReferentialModule} from "./referential.module";
 import {StrategyPage} from "./strategy/strategy.page";
+import {ProgramsPage} from "./program/programs.page";
+import {SamplingStrategyPage} from "./strategy/sampling/sampling-strategy.page";
 
 const routes: Routes = [
   {
-    path: '',
+    path: 'list',
     pathMatch: 'full',
     component: ReferentialsPage,
     data: {
@@ -40,28 +42,58 @@ const routes: Routes = [
     ]
   },
   {
-    path: 'program/:programId',
+    path: 'programs',
     children: [
       {
         path: '',
-        pathMatch: 'full',
-        component: ProgramPage,
+        component: ProgramsPage,
+        runGuardsAndResolvers: 'pathParamsChange',
         data: {
-          profile: 'ADMIN',
-          pathIdParam: 'programId'
+          profile: 'SUPERVISOR'
         }
       },
       {
-        path: 'strategies/:strategyId',
+        path: ':programId',
+        runGuardsAndResolvers: 'pathParamsChange',
         children: [
           {
             path: '',
             pathMatch: 'full',
-            component: StrategyPage,
+            component: ProgramPage,
             data: {
-              profile: 'ADMIN',
-              pathIdParam: 'strategyId'
+              profile: 'SUPERVISOR',
+              pathIdParam: 'programId'
             }
+          },
+          {
+            path: 'strategy/legacy/:strategyId',
+            data: {
+              profile: 'SUPERVISOR',
+              pathIdParam: 'strategyId'
+            },
+            children: [
+              {
+                path: '',
+                pathMatch: 'full',
+                component: StrategyPage
+              }
+            ]
+          },
+
+          {
+            path: 'strategy/sampling/:strategyId',
+            component: SamplingStrategyPage,
+            data: {
+              profile: 'SUPERVISOR',
+              pathIdParam: 'strategyId'
+            },
+            children: [
+              {
+                path: '',
+                pathMatch: 'full',
+                component: StrategyPage
+              }
+            ]
           }
         ]
       }

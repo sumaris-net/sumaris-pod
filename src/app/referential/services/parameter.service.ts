@@ -9,7 +9,7 @@ import {Parameter} from "./model/parameter.model";
 import {ReferentialFragments} from "./referential.fragments";
 import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
 import {isNil, isNotNil} from "../../shared/functions";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {environment} from "../../../environments/environment";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {EntityUtils} from "../../core/services/model/entity.model";
@@ -17,25 +17,25 @@ import {EntityUtils} from "../../core/services/model/entity.model";
 const SaveQuery: any = gql`
   mutation SaveParameter($parameter:ParameterVOInput){
     saveParameter(parameter: $parameter){
-      ...FullParameterFragment
+      ...ParameterFragment
     }
   }
   ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.fullParameter}
+  ${ReferentialFragments.parameter}
 `;
 
 const LoadQuery: any = gql`
   query Parameter($label: String, $id: Int){
     parameter(label: $label, id: $id){
-      ...FullParameterFragment
+      ...ParameterFragment
     }
   }
   ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.fullParameter}
+  ${ReferentialFragments.parameter}
 `;
 
 @Injectable({providedIn: 'root'})
-export class ParameterService extends BaseEntityService implements IEntityService<Parameter> {
+export class ParameterService extends BaseGraphqlService implements IEntityService<Parameter> {
 
   constructor(
     protected graphql: GraphqlService,

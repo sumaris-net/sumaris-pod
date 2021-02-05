@@ -1,6 +1,7 @@
 <ng-container *ngIf="value && value.id">
   <ion-card @fadeInAnimation>
-    <ion-item color="light">
+    <ion-item color="light"
+              *ngIf="value &&  (value.recorderDepartment || value.recorderPerson)">
       <ion-avatar slot="start">
         <img src="{{ (value.recorderPerson?.avatar || value.recorderDepartment?.logo ) || './assets/img/person.png' }}">
       </ion-avatar>

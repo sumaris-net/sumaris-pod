@@ -75,12 +75,12 @@
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="qualitativeValuesTable.invalid"></ion-icon>
       </ng-template>
 
-      <app-referential-table #qualitativeValuesTable entityName="QualitiveValue"
+      <app-simple-referential-table #qualitativeValuesTable entityName="QualitiveValue"
                              [canEdit]="canEdit"
                              [canDelete]="canEdit"
                              [hasRankOrder]="false"
                              [showUpdateDateColumn]="false">
-      </app-referential-table>
+      </app-simple-referential-table>
 
       <!-- final space-->
       <p visible-xs visible-sm visible-mobile>&nbsp;</p>

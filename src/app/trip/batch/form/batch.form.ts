@@ -5,7 +5,6 @@ import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {MeasurementsValidatorService} from "../../services/validator/measurement.validator";
 import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {ProgramService} from "../../../referential/services/program.service";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {EntityUtils} from "../../../core/services/model/entity.model";
 import {IReferentialRef, referentialToString, ReferentialUtils} from "../../../core/services/model/referential.model";
@@ -23,6 +22,7 @@ import {PlatformService} from "../../../core/services/platform.service";
 import {SharedFormGroupValidators} from "../../../shared/validator/validators";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {AppFormUtils, FormArrayHelper} from "../../../core/form/form.utils";
+import {ProgramRefService} from "../../../referential/services/program-ref.service";
 
 @Component({
   selector: 'app-batch-form',
@@ -47,15 +47,19 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   childrenFormHelper: FormArrayHelper<Batch>;
   samplingFormValidator: Subscription;
   taxonNameFilter: any;
-
+  $allPmfms = new BehaviorSubject<PmfmStrategy[]>(null);
 
   @Input() tabindex: number;
-
   @Input() usageMode: UsageMode;
-
   @Input() showTaxonGroup = true;
-
   @Input() showTaxonName = true;
+  @Input() showTotalIndividualCount = false;
+  @Input() showIndividualCount = false;
+  @Input() showEstimatedWeight = false;
+  @Input() showSampleBatch = false;
+  @Input() showError = true;
+  @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
+  @Input() mapPmfmFn: (pmfms: PmfmStrategy[]) => PmfmStrategy[];
 
   @Input() set showWeight(value: boolean) {
     if (this._showWeight !== value) {
@@ -67,22 +71,6 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   get showWeight(): boolean {
     return this._showWeight;
   }
-
-  @Input() showTotalIndividualCount = false;
-
-  @Input() showIndividualCount = false;
-
-  @Input() showEstimatedWeight = false;
-
-  @Input() showSampleBatch = false;
-
-  @Input() showError = true;
-
-  @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
-
-  @Input() mapPmfmFn: (pmfms: PmfmStrategy[]) => PmfmStrategy[];
-
-  $allPmfms = new BehaviorSubject<PmfmStrategy[]>(null);
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
     super.enable(opts);
@@ -140,14 +128,14 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected platform: PlatformService,
     protected validatorService: BatchValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
+    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
       validatorService.getFormGroup(null, {
         withWeight: true,
         rankOrderRequired: false, // Allow to be set by parent component
@@ -188,7 +176,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     }
     else {
       this.registerAutocompleteField('taxonGroup', {
-        suggestFn: (value: any, filter?: any) => this.programService.suggestTaxonGroups(value, {...filter, program: this.program}),
+        suggestFn: (value: any, filter?: any) => this.programRefService.suggestTaxonGroups(value, {...filter, program: this.programLabel}),
         mobile: this.settings.mobile
     });
 
@@ -197,7 +185,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     // Taxon name combo
     this.updateTaxonNameFilter();
     this.registerAutocompleteField('taxonName', {
-      suggestFn: (value: any, filter?: any) => this.programService.suggestTaxonNames(value, filter),
+      suggestFn: (value: any, filter?: any) => this.programRefService.suggestTaxonNames(value, filter),
       filter: this.taxonNameFilter,
       mobile: this.settings.mobile
     });
@@ -414,7 +402,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     }
     else {
       this.taxonNameFilter = {
-          program: this.program,
+          program: this.programLabel,
           taxonGroupId: opts && opts.taxonGroup && opts.taxonGroup.id
         };
     }
@@ -517,7 +505,6 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     if (weightFormGroup) weightFormGroup.disable(opts);
   }
 
-  referentialToString = referentialToString;
   selectInputContent = AppFormUtils.selectInputContent;
 
   protected getChildrenFormHelper(form: FormGroup): FormArrayHelper<Batch> {

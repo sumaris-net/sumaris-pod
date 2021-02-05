@@ -1,7 +1,9 @@
 <ion-grid class="ion-no-padding">
   <ion-row>
     <ion-col class="ion-no-padding">
-      <mat-form-field [floatLabel]="floatLabel" [class.mat-form-field-disabled]="disabled">
+      <mat-form-field [floatLabel]="floatLabel"
+                      [class.mat-form-field-disabled]="disabled"
+                      [title]="value && displayWith(value)" >
 
         <div matPrefix><ng-content select="[matPrefix]"></ng-content></div>
 
@@ -18,7 +20,7 @@
 
           <!-- Basic select -->
           <mat-select #matSelect
-                      *ngIf="!readonly && !searchable"
+                      *ngIf="!searchable"
                       [placeholder]="placeholder"
                       [formControl]="formControl"
                       [tabindex]="_tabindex"
@@ -70,7 +72,7 @@
             NOTE :
              - "selectInputContent($event) || onFocus.emit($event)" : call onFocus only when to the input is empty (nothing to select)
           -->
-          <ng-container *ngIf="readonly || searchable">
+          <ng-container *ngIf="searchable">
             <input matInput #matInputText type="text"
                    [matAutocomplete]="autoCombo"
                    [formControl]="formControl"

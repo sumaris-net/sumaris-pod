@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Inject, Injector, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import * as momentImported from "moment";
@@ -8,7 +8,7 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripForm} from "../trip/trip.form";
 import {BehaviorSubject} from "rxjs";
-import {TripService, TripSaveOptions} from "../services/trip.service";
+import {TripSaveOptions, TripService} from "../services/trip.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ObservedLocationService} from "../services/observed-location.service";
@@ -31,13 +31,13 @@ import {FishingAreaForm} from "../fishing-area/fishing-area.form";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {Landing} from "../services/model/landing.model";
-import {Sample} from "../services/model/sample.model";
-import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {ReferentialRef} from "../../core/services/model/referential.model";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {Program} from "../../referential/services/model/program.model";
 import {environment} from "../../../environments/environment";
+import {Sample} from "../services/model/sample.model";
+import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 
 const moment = momentImported;
 
@@ -109,7 +109,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.onProgramChanged.subscribe(program => this.setProgram(program))
+      this.$program.subscribe(program => this.setProgram(program))
     );
 
     this.catchFilterForm = this.formBuilder.group({
@@ -187,7 +187,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     ]);
   }
 
-  protected setProgram(program: Program) {
+  protected async setProgram(program: Program) {
     if (!program) return; // Skip
     if (this.debug) console.debug(`[landedTrip] Program ${program.label} loaded, with properties: `, program.properties);
 
@@ -240,7 +240,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
         // program
         data.program = observedLocation.program;
-        this.programSubject.next(data.program.label);
+        this.$programLabel.next(data.program.label);
 
         // location
         const location = observedLocation.location;
@@ -331,11 +331,11 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     this.tripForm.value = data;
     const isNew = isNil(data.id);
     if (!isNew) {
-      this.programSubject.next(data.program.label);
+      this.$programLabel.next(data.program.label);
       this.$metiers.next(data.metiers);
 
       // fixme trouver un meilleur moment pour charger les pmfms
-      this.productSalePmfms = await this.programService.loadProgramPmfms(data.program.label, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE});
+      this.productSalePmfms = await this.programRefService.loadProgramPmfms(data.program.label, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE});
 
     }
 
@@ -427,7 +427,10 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     if (savedOrContinue) {
       this.loading = true;
       try {
-        await this.router.navigateByUrl(`/trips/${this.data.id}/operations/${id}`);
+        await this.router.navigate(['trips', this.data.id, 'operation', id],
+          {
+            queryParams: {}
+          });
       } finally {
         this.loading = false;
       }
@@ -447,7 +450,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       this.loading = true;
       this.markForCheck();
       try {
-        await this.router.navigateByUrl(`/trips/${this.data.id}/operations/new`);
+        await this.router.navigateByUrl(`/trips/${this.data.id}/operation/new`);
       } finally {
         this.loading = false;
         this.markForCheck();
@@ -477,7 +480,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     if (!this.data) return;
 
     // Copy the trip
-    await (this.dataService as TripService).copyLocallyById(this.data.id, {isLandedTrip: true, withOperationGroup: true});
+    await this.dataService.copyLocallyById(this.data.id, {isLandedTrip: true, withOperationGroup: true});
 
   }
 
@@ -646,22 +649,10 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     return firstInvalidTab > -1 ? firstInvalidTab : this.selectedTabIndex;
   }
 
-  /**
-   * Update route with correct url
-   * workaround for #185
-   *
-   * @param data
-   * @param queryParams
-   */
-  protected async updateRoute(data: Trip, queryParams: any): Promise<boolean> {
-    const commands = this.defaultBackHref.split('/').concat(['trip', data.id.toString()]);
-    return await this.router.navigate(commands, {
-      replaceUrl: true,
-      queryParams: this.queryParams
-    });
+  protected computePageUrl(id: number|'new'): string | any[] {
+    const parentUrl = this.getParentPageUrl();
+    return `${parentUrl}/trip/${id}`;
   }
-
-
 
   protected markForCheck() {
     this.cd.markForCheck();

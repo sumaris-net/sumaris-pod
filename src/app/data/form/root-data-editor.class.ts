@@ -1,24 +1,36 @@
-import {Directive, Injector, OnInit, ViewChild} from '@angular/core';
+import {Directive, Injector, OnInit} from '@angular/core';
 
-import {BehaviorSubject, Subject} from 'rxjs';
-import {changeCaseToUnderscore, isNil, isNotNil, isNotNilOrBlank, toNumber} from '../../shared/functions';
+import {BehaviorSubject, merge} from 'rxjs';
+import {
+  changeCaseToUnderscore,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank
+} from '../../shared/functions';
 import {distinctUntilChanged, filter, switchMap, tap} from "rxjs/operators";
 import {Program} from "../../referential/services/model/program.model";
 import {ProgramService} from "../../referential/services/program.service";
-import {IEntityService, EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {AppEntityEditor, AppEditorOptions} from "../../core/form/editor.class";
+import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
+import {AppEditorOptions, AppEntityEditor} from "../../core/form/editor.class";
 import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {RootDataEntity} from "../services/model/root-data-entity.model";
 import {
-  MatAutocompleteConfigHolder, MatAutocompleteFieldAddOptions,
+  MatAutocompleteConfigHolder,
+  MatAutocompleteFieldAddOptions,
   MatAutocompleteFieldConfig
 } from "../../shared/material/autocomplete/material.autocomplete";
 import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
-import {IonContent} from "@ionic/angular";
+import {Strategy} from "../../referential/services/model/strategy.model";
+import {StrategyRefService} from "../../referential/services/strategy-ref.service";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {mergeMap} from "rxjs/internal/operators";
 
 
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class AppRootDataEditor<
     T extends RootDataEntity<T>,
     S extends IEntityService<T> = IEntityService<T>
@@ -26,13 +38,36 @@ export abstract class AppRootDataEditor<
   extends AppEntityEditor<T, S>
   implements OnInit {
 
-  protected programService: ProgramService;
+  protected programRefService: ProgramRefService;
+  protected strategyRefService: StrategyRefService;
   protected autocompleteHelper: MatAutocompleteConfigHolder;
 
   autocompleteFields: { [key: string]: MatAutocompleteFieldConfig };
 
-  programSubject = new BehaviorSubject<string>(null);
-  onProgramChanged = new BehaviorSubject<Program>(null);
+  $programLabel = new BehaviorSubject<string>(undefined);
+  $program = new BehaviorSubject<Program>(undefined);
+  $strategyLabel = new BehaviorSubject<string>(undefined);
+  $strategy = new BehaviorSubject<Strategy>(undefined);
+
+  set program(value: Program) {
+    if (isNotNil(value) && this.$program.getValue() !== value) {
+      this.$program.next(value);
+    }
+  }
+
+  get program(): Program {
+    return this.$program.getValue();
+  }
+
+  set strategy(value: Strategy) {
+    if (isNotNil(value) && this.$strategy.getValue() !== value) {
+      this.$strategy.next(value);
+    }
+  }
+
+  get strategy(): Strategy {
+    return this.$strategy.getValue();
+  }
 
   protected constructor(
     injector: Injector,
@@ -45,7 +80,8 @@ export abstract class AppRootDataEditor<
       dataService,
       options);
 
-    this.programService = injector.get(ProgramService);
+    this.programRefService = injector.get(ProgramRefService);
+    this.strategyRefService = injector.get(StrategyRefService);
 
     // Create autocomplete fields registry
     this.autocompleteHelper = new MatAutocompleteConfigHolder(this.settings && {
@@ -60,14 +96,42 @@ export abstract class AppRootDataEditor<
   ngOnInit() {
     super.ngOnInit();
 
+
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.programSubject
+      this.$programLabel
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
-          switchMap(programLabel => this.programService.watchByLabel(programLabel)),
-          tap(program => this.onProgramChanged.next(program))
+          // DEBUG --
+          //tap(programLabel => console.debug('DEV - Getting programLabel=' + programLabel)),
+          switchMap(programLabel => this.programRefService.watchByLabel(programLabel, {debug: this.debug})),
+          tap(program => this.$program.next(program))
+        )
+        .subscribe());
+
+    this.registerSubscription(
+      merge(
+        this.$program.pipe(tap(program => this.setProgram(program))),
+        this.$strategy.pipe(tap(strategy => this.setStrategy(strategy)))
+      ).subscribe()
+    )
+
+    // Watch strategy
+    this.registerSubscription(
+      this.$strategyLabel
+        .pipe(
+          distinctUntilChanged(),
+          // DEBUG
+          tap(strategyLabel => console.debug("[root-data-editor] Received strategy label: ", strategyLabel)),
+          mergeMap( async (strategyLabel) => isNilOrBlank(strategyLabel)
+            ? undefined // Allow to have empty strategy (e.g. when user reset the strategy field)
+            : this.strategyRefService.loadByLabel(strategyLabel)
+          ),
+          // DEBUG
+          tap(strategy => console.debug("[root-data-editor] Received strategy: ", strategy)),
+          filter(strategy => strategy !== this.$strategy.getValue()),
+          tap(strategy => this.$strategy.next(strategy))
         )
         .subscribe());
   }
@@ -92,6 +156,14 @@ export abstract class AppRootDataEditor<
     }
 
     this.markForCheck();
+  }
+
+  protected async setProgram(value: Program) {
+    // Can be override by subclasses
+  }
+
+  protected async setStrategy(value: Strategy) {
+    // Can be override by subclasses
   }
 
   setError(error: any) {
@@ -129,20 +201,20 @@ export abstract class AppRootDataEditor<
   }
 
   protected canUserWrite(data: T): boolean {
-    return isNil(data.validationDate) && this.programService.canUserWrite(data);
+    return isNil(data.validationDate) && this.programRefService.canUserWrite(data);
   }
 
   /**
    * Listen program changes (only if new data)
    * @protected
    */
-  protected startListenProgramChanges() {
+  private startListenProgramChanges() {
     this.registerSubscription(
       this.form.controls.program.valueChanges
         .subscribe(program => {
           if (ReferentialUtils.isNotEmpty(program)) {
             console.debug("[root-data-editor] Propagate program change: " + program.label);
-            this.programSubject.next(program.label);
+            this.$programLabel.next(program.label);
           }
         }));
   }
@@ -156,38 +228,19 @@ export abstract class AppRootDataEditor<
     return super.addToPageHistory(page, opts);
   }
 
-  protected getParentPageUrl(withQueryParams?: boolean) {
-    let parentUrl = this.defaultBackHref;
 
-    // Remove query params
-    if (withQueryParams !== true && parentUrl && parentUrl.indexOf('?') !== -1) {
-      parentUrl = parentUrl.substr(0, parentUrl.indexOf('?'));
-    }
-
-    return parentUrl;
-  }
-
-  protected computePageUrl(id: number|'new') {
-    const parentUrl = this.getParentPageUrl();
-    return `${parentUrl}/${id}`;
-  }
-
-  protected async updateRoute(data: T, queryParams: any): Promise<boolean> {
-    const pageUrl = this.computePageUrl(isNotNil(data.id) ? data.id : 'new');
-    return await this.router.navigate(pageUrl.split('/') as any[], {
-      replaceUrl: true,
-      queryParams: this.queryParams
-    });
-  }
 
   protected async getValue(): Promise<T> {
 
-    const res = await super.getValue();
+    const data = await super.getValue();
 
     // Re add program, because program control can be disabled
-    res.program = ReferentialRef.fromObject(this.form.controls['program'].value);
+    data.program = ReferentialRef.fromObject(this.form.controls['program'].value);
 
-    return res;
+    return data;
   }
 
+  protected computeStrategy(program: Program, data: T): Strategy {
+    return null; // TODO BLA
+  }
 }

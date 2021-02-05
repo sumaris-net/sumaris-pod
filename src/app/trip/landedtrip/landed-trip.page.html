@@ -96,7 +96,7 @@
                                            [forceOptional]="usageMode|isOnField"
                                            [acquisitionLevel]="acquisitionLevel"
                                            [debug]="debug"
-                                           [program]="programSubject|async"
+                                           [programLabel]="$programLabel|async"
                                            [tabindex]="30">
                     </app-form-measurements>
                   </ion-col>
@@ -127,7 +127,7 @@
       </ng-template>
 
       <app-operation-group-table #operationGroupTable
-                                 [program]="programSubject | async"
+                                 [programLabel]="$programLabel | async"
                                  acquisitionLevel="OPERATION"
                                  [$metiers]="$metiers"
                                  (onOpenRow)="onOpenOperationGroup($event)"
@@ -176,7 +176,7 @@
 
           <app-products-table #productsTable
                               [debug]="debug"
-                              [program]="programSubject | async"
+                              [programLabel]="$programLabel | async"
                               acquisitionLevel="PRODUCT"
                               [$parents]="$operationGroups"
                               [parentFilter]="$productFilter | async"
@@ -194,7 +194,7 @@
 
           <app-packets-table #packetsTable
                              [debug]="debug"
-                             [program]="programSubject | async"
+                             [program]="$programLabel | async"
                              [$parents]="$operationGroups"
                              [parentFilter]="$packetFilter | async"
                              [parentAttributes]="operationGroupAttributes"
@@ -215,7 +215,7 @@
 
       <app-expense-form #expenseForm
                         entityName="VesselUseMeasurement"
-                        [program]="programSubject|async"
+                        [programLabel]="$programLabel|async"
                         acquisitionLevel="EXPENSE"
                         [forceOptional]="usageMode|isOnField"
                         [showError]="true"

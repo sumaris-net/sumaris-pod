@@ -11,10 +11,8 @@ import {
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {Strategy} from "../services/model/strategy.model";
-import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
-import {toBoolean} from "../../shared/functions";
+import {isNotNil, toBoolean} from "../../shared/functions";
 import {DefaultStatusList} from "../../core/services/model/referential.model";
-import {AppInMemoryTable} from "../../core/table/memory-table.class";
 import {StrategyFilter, StrategyService} from "../services/strategy.service";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
@@ -23,7 +21,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Program} from "../services/model/program.model";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {environment} from "../../../environments/environment";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 
 @Component({
@@ -37,11 +35,28 @@ import {environment} from "../../../environments/environment";
 })
 export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implements OnInit, OnDestroy {
 
+  private _program: Program;
+
   statusList = DefaultStatusList;
   statusById: any;
 
   @Input() canEdit = false;
   @Input() canDelete = false;
+
+  @Input() set program(program: Program) {
+    if (program && isNotNil(program.id) && this._program !== program) {
+      this._program = program;
+      console.debug('[strategy-table] Setting program:', program);
+      this.setFilter( {
+        ...this.filter,
+        levelId: program.id
+      });
+    }
+  }
+
+  get program(): Program {
+    return this._program;
+  }
 
   constructor(
     route: ActivatedRoute,
@@ -54,6 +69,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     dataService: StrategyService,
     validatorService: ValidatorService,
     protected cd: ChangeDetectorRef,
+    @Inject(ENVIRONMENT) environment
   ) {
     super(route,
       router,
@@ -70,9 +86,9 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
           'status',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource(Strategy, dataService, environment, validatorService, {
+      new EntitiesTableDataSource(Strategy, dataService, validatorService, {
         prependNewElements: false,
-        suppressErrors: false,
+        suppressErrors: environment.production,
         dataServiceOptions: {
           saveOnlyDirtyRows: false
         }
@@ -93,16 +109,10 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
   }
 
   ngOnInit() {
-    this.inlineEdition = toBoolean(this.inlineEdition, true);
+    this.inlineEdition = toBoolean(this.inlineEdition, false);
     super.ngOnInit();
   }
 
-  setProgram(program: Program) {
-    console.debug('[strategy-table] Setting program:', program);
-    this.setFilter( {
-      levelId: program && program.id
-    });
-  }
 
   protected markForCheck() {
     this.cd.markForCheck();

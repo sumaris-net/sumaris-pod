@@ -10,8 +10,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {firstNotNilPromise} from "../../shared/observables";
 import {Batch} from "../services/model/batch.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {ProgramService} from "../../referential/services/program.service";
-import {MeasurementValuesUtils} from "../services/model/measurement.model";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 @Component({
   selector: 'form-catch-batch',
@@ -32,13 +31,13 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected validatorService: BatchValidatorService,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
 
-    super(dateAdapter, measurementsValidatorService, formBuilder, programService, settings, cd, validatorService.getFormGroup());
+    super(dateAdapter, measurementsValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup());
   }
 
   ngOnInit() {

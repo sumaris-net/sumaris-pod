@@ -18,7 +18,7 @@
                                entityName="SaleMeasurement"
                                acquisitionLevel="SALE"
                                [debug]="debug"
-                               [program]="program"
+                               [programLabel]="program"
                                [tabindex]="30">
         </app-form-measurements>
       </ion-col>
@@ -39,7 +39,7 @@
 
 
   <app-products-table #productsTable
-                      [program]="program"
+                      [programLabel]="program"
                       acquisitionLevel="PRODUCT_SALE"
                       [showParent]="false"
                       [readOnly]="true"

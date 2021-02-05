@@ -75,10 +75,10 @@
         <ion-col size="12">
 
           <app-batch-tree #mobileBatchTree
-                          [program]="programSubject|async"
-                          [gearId]="gearIdSubject|async"
+                          [programLabel]="$programLabel|async"
+                          [gearId]="$gearId|async"
                           queryTabIndexParamName="mobileTab"
-                          [program]="programSubject | async"
+                          [programLabel]="$programLabel | async"
                           [usageMode]="'FIELD'"
                           mobile="true"
                           debug="true">
@@ -123,8 +123,8 @@
        <ion-col size="12">
 
          <app-batch-tree #desktopBatchTree
-                         [program]="programSubject|async"
-                         [gearId]="gearIdSubject|async"
+                         [programLabel]="$programLabel|async"
+                         [gearId]="$gearId|async"
                          queryTabIndexParamName="desktopTab"
                          [usageMode]="'FIELD'"
                          [mobile]="false"

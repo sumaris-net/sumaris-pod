@@ -10,7 +10,6 @@ import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap} from "rxjs/operators";
 import {FormGroup, Validators} from "@angular/forms";
 import * as momentImported from "moment";
-const moment = momentImported;
 import {IndividualMonitoringSubSamplesTable} from "../sample/individualmonitoring/individual-monitoring-samples.table";
 import {Program} from "../../referential/services/model/program.model";
 import {SubSamplesTable} from "../sample/sub-samples.table";
@@ -21,7 +20,6 @@ import {firstNotNil, firstNotNilPromise} from "../../shared/observables";
 import {Operation, Trip} from "../services/model/trip.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
-import {ProgramService} from "../../referential/services/program.service";
 import {EntityUtils, IEntity} from "../../core/services/model/entity.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {BatchTreeComponent} from "../batch/batch-tree.component";
@@ -29,6 +27,9 @@ import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {AppEntityEditor} from "../../core/form/editor.class";
 import {environment} from "../../../environments/environment";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
+
+const moment = momentImported;
 
 @Component({
   selector: 'app-operation-page',
@@ -43,8 +44,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   readonly acquisitionLevel = AcquisitionLevelCodes.OPERATION;
 
   trip: Trip;
-  programSubject = new BehaviorSubject<string>(null);
-  onProgramChanged = new Subject<Program>();
+  $programLabel = new BehaviorSubject<string>(null);
+  $program = new Subject<Program>();
   saveOptions: OperationSaveOptions = {};
   readonly dateTimePattern: string;
 
@@ -80,9 +81,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   constructor(
     injector: Injector,
-    protected dataService: OperationService,
+    dataService: OperationService,
     protected tripService: TripService,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected platform: PlatformService
   ) {
     super(injector, Operation, dataService, {
@@ -107,13 +108,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.programSubject
+      this.$programLabel
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
-          switchMap(programLabel => this.programService.watchByLabel(programLabel))
+          switchMap(programLabel => this.programRefService.watchByLabel(programLabel))
         )
-        .subscribe(program => this.onProgramChanged.next(program)));
+        .subscribe(program => this.$program.next(program)));
 
     // Watch trip, to load last operations
     this.registerSubscription(
@@ -184,7 +185,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // Configure page, from Program's properties
     this.registerSubscription(
-      this.onProgramChanged.subscribe(program => this.setProgram(program))
+      this.$program.subscribe(program => this.setProgram(program))
     );
 
     // Manage tab group
@@ -422,6 +423,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   /**
    * Compute the title
    * @param data
+   * @param opts
    */
   protected async computeTitle(data: Operation, opts?: {
     withPrefix?: boolean;
@@ -534,7 +536,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // Set measurements form
     this.measurementsForm.gearId = gearId;
-    this.measurementsForm.program = program;
+    this.measurementsForm.programLabel = program;
     this.measurementsForm.value = data && data.measurements || [];
 
     // Set batch tree
@@ -556,7 +558,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
 
     // Applying program to tables (async)
-    if (program) this.programSubject.next(program);
+    if (program) this.$programLabel.next(program);
   }
 
   isCurrentData(other: IEntity<any>): boolean {
@@ -635,7 +637,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   protected async getValue(): Promise<Operation> {
     const data = await super.getValue();
 
-    await this.batchTree.save()
+    await this.batchTree.save();
 
     // Get batch tree,rom the batch tree component
     data.catchBatch = this.batchTree.value;
@@ -659,7 +661,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           sample.children = subSamples.filter(childSample => childSample.parent && sample.equals(childSample.parent));
           return sample;
         });
-      console.log(data.samples);
 
     } else {
       data.samples = undefined;
@@ -705,7 +706,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (qvMeasurement && ReferentialUtils.isNotEmpty(qvMeasurement.qualitativeValue)) {
 
       // Retrieve QV from the program pmfm (because measurement's QV has only the 'id' attribute)
-      const tripPmfms = await this.programService.loadProgramPmfms(this.programSubject.getValue(), {acquisitionLevel: AcquisitionLevelCodes.TRIP});
+      const tripPmfms = await this.programRefService.loadProgramPmfms(this.$programLabel.getValue(), {acquisitionLevel: AcquisitionLevelCodes.TRIP});
       const pmfm = (tripPmfms || []).find(pmfm => pmfm.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
       const qualitativeValue = (pmfm && pmfm.qualitativeValues || []).find(qv => qv.id === qvMeasurement.qualitativeValue.id);
 
@@ -727,13 +728,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
   }
 
-  protected async updateRoute(data: Operation, queryParams: any): Promise<boolean> {
-    const id = data && isNotNil(data.id) ? data.id : 'new';
-    return await this.router.navigate(['trips', this.trip.id, 'operations', id], {
-      replaceUrl: true,
-      queryParams: queryParams,
-      queryParamsHandling: "preserve"
-    });
+  protected computePageUrl(id: number | "new"): string | any[] {
+    const parentUrl = this.getParentPageUrl();
+    return parentUrl && `${parentUrl}/operation/${id}`;
   }
 
   protected markForCheck() {

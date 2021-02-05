@@ -36,7 +36,7 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<!-- writable -->
+<!-- writable table -->
 <mat-table *ngIf="inlineEdition; else readonly"
            [dataSource]="dataSource"
            class="table-samples"
@@ -68,17 +68,17 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
   </ng-container>
 
-  <!-- label Column -->
-  <ng-container matColumnDef="label">
+  <!-- Label column -->
+  <ng-container matColumnDef="label" >
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.SAMPLE.TABLE.LABEL</ion-label>
+      <ion-label translate>{{i18nFieldPrefix + 'LABEL'}}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <mat-form-field floatLabel="never">
         <input matInput autocomplete="off"
                [formControl]="row.validator.controls.label"
-               [placeholder]="'TRIP.SAMPLE.TABLE.LABEL_PLACEHOLDER'|translate"
-               (click)="$event.target.select()">
+               [placeholder]="i18nFieldPrefix + 'LABEL_PLACEHOLDER'|translate"
+               (click)="selectInputContent($event)">
         <mat-error *ngIf="row.validator.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
         </mat-error>
         <!-- Need by auction control (label as an additional validator) -->
@@ -140,7 +140,7 @@
     <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm|isDatePmfm"
               [class.mat-cell-computed]="pmfm|isComputedPmfm">
       <app-pmfm-field
-        [readonly]="!row.editing || mobile"
+        [readonly]="!row.editing"
         [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
         [compact]="true" floatLabel="never"></app-pmfm-field>
     </mat-cell>
@@ -149,14 +149,20 @@
   <!-- Comment column -->
   <ng-container matColumnDef="comments">
     <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-      <span translate>REFERENTIAL.COMMENTS</span>
+      &nbsp;
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never">
+    <mat-cell *matCellDef="let row"
+              class="hidden-xs hidden-sm">
+      <mat-form-field *ngIf="row.editing; else readonlyComment"
+                      floatLabel="never">
         <input matInput [formControl]="row.validator.controls.comments"
-               [placeholder]="'REFERENTIAL.COMMENTS'|translate"
-               [readonly]="!row.editing">
+               [placeholder]="i18nFieldPrefix + 'COMMENTS_PLACEHOLDER'|translate">
       </mat-form-field>
+      <ng-template #readonlyComment>
+        <mat-icon *ngIf="row.currentData.comments"
+                  [title]="row.currentData.comments"
+                  class="comment">chat_bubble</mat-icon>
+      </ng-template>
     </mat-cell>
   </ng-container>
 

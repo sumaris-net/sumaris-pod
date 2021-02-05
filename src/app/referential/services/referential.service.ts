@@ -13,7 +13,7 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {SortDirection} from "@angular/material/sort";
 import {PlatformService} from "../../core/services/platform.service";
 import {FilterFn, IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {EntityUtils} from "../../core/services/model/entity.model";
 
 export class ReferentialFilter<ID = number> {
@@ -28,6 +28,9 @@ export class ReferentialFilter<ID = number> {
 
   levelId?: number;
   levelIds?: number[];
+
+  levelLabel?: string;
+  levelLabels?: string[];
 
   searchJoin?: string; // If search is on a sub entity (e.g. Metier can search on TaxonGroup)
   searchText?: string;
@@ -55,6 +58,7 @@ export class ReferentialFilter<ID = number> {
       searchAttribute: filter.searchAttribute,
       searchJoin: filter.searchJoin,
       levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
+      levelLabels: isNotNil(filter.levelLabel) ? [filter.levelLabel] : filter.levelLabels,
       statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE]),
       excludedIds: filter.excludedIds
     };
@@ -98,6 +102,8 @@ export const ReferentialFilterKeys: KeysEnum<ReferentialFilter> = {
   statusIds: true,
   levelId: true,
   levelIds: true,
+  levelLabel: true,
+  levelLabels: true,
   searchJoin: true,
   searchText: true,
   searchAttribute: true,
@@ -125,7 +131,12 @@ const LoadAllQuery: any = gql`
   }
   ${ReferentialFragments.fullReferential}
 `;
-
+const CountQuery: any = gql`
+  query ReferentialsCount($entityName: String, $filter: ReferentialFilterVOInput){
+    total: referentialsCount(entityName: $entityName, filter: $filter)
+  }
+  ${ReferentialFragments.fullReferential}
+`;
 const LoadReferentialTypes: any = gql`
   query ReferentialTypes{
     data: referentialTypes {
@@ -166,7 +177,7 @@ export const ReferentialQueries = {
 };
 
 @Injectable({providedIn: 'root'})
-export class ReferentialService extends BaseEntityService<Referential> implements IEntitiesService<Referential, ReferentialFilter> {
+export class ReferentialService extends BaseGraphqlService<Referential> implements IEntitiesService<Referential, ReferentialFilter> {
 
   constructor(
     protected graphql: GraphqlService,
@@ -219,7 +230,7 @@ export class ReferentialService extends BaseEntityService<Referential> implement
 
     const withTotal = (!opts || opts.withTotal !== false);
     const query = withTotal ? LoadAllWithTotalQuery : LoadAllQuery;
-    return this.mutableWatchQuery<{ data: any[]; total?: number }>({
+    return this.mutableWatchQuery<LoadResult<any>>({
       queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
       query,
       arrayFieldName: 'data',
@@ -361,41 +372,26 @@ export class ReferentialService extends BaseEntityService<Referential> implement
   }
 
   async existsByLabel(label: string,
-                      filter?: ReferentialFilter & {
-                        excludeId?: number;
-                      },
+                      filter?: ReferentialFilter,
                       opts?: {
-                        fetchPolicy: FetchPolicy
+                        fetchPolicy: FetchPolicy;
                       }): Promise<boolean> {
     if (!filter || !filter.entityName || !label) {
       console.error("[referential-service] Missing 'filter.entityName' or 'label'");
       throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
     }
 
-    const variables: any = {
-      entityName: filter.entityName,
-      offset: 0,
-      size: 2,
-      sortBy: 'id',
-      sortDirection: 'asc',
-      filter: ReferentialFilter.asPodObject(filter)
-    };
-
-    const res = await this.graphql.query<{ referentials: any }>({
-      query: LoadAllQuery,
-      variables,
+    const {total} = await this.graphql.query<{ total: number; }>({
+      query: CountQuery,
+      variables : {
+        entityName: filter.entityName,
+        filter: ReferentialFilter.asPodObject(filter)
+      },
       error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" },
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'
     });
 
-    let matches = (res && res.referentials || []);
-
-    // Remove excluded id
-    if (filter && isNotNil(filter.excludeId)) {
-      matches = matches.filter(item => item.id !== filter.excludeId);
-    }
-
-    return matches.length > 0;
+    return total > 0;
   }
 
   /**

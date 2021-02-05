@@ -20,9 +20,9 @@ import {OverlayEventDetail} from "@ionic/core";
 import {ToastController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
 import {NetworkService} from "../../core/services/network.service";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {Entity, EntityUtils} from "../../core/services/model/entity.model";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 export class UserEventFilter {
   issuer?: string;
@@ -71,7 +71,7 @@ export interface UserEventActionDefinition extends UserEventAction<any> {
 }
 
 @Injectable({providedIn: 'root'})
-export class UserEventService extends BaseEntityService<UserEvent>
+export class UserEventService extends BaseGraphqlService<UserEvent>
   implements IEntitiesService<UserEvent, UserEventFilter, UserEventWatchOptions> {
 
   private _userEventActions: UserEventActionDefinition[] = [];
@@ -82,7 +82,7 @@ export class UserEventService extends BaseEntityService<UserEvent>
     protected network: NetworkService,
     protected translate: TranslateService,
     protected toastController: ToastController,
-    @Inject(EnvironmentService) protected environment,
+    @Inject(ENVIRONMENT) protected environment,
   ) {
     super(graphql, environment);
 

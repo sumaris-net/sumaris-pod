@@ -17,11 +17,12 @@ export declare interface AppTableDataServiceOptions<O extends EntitiesServiceWat
   readOnly?: boolean;
   [key: string]: any;
 }
-export declare interface AppTableDataSourceOptions<T extends Entity<T>, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> {
+export class AppTableDataSourceOptions<T extends Entity<T>, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> {
   prependNewElements: boolean;
   suppressErrors: boolean;
   onRowCreated?: (row: TableElement<T>) => Promise<void> | void;
   dataServiceOptions?: AppTableDataServiceOptions<O>;
+  debug?: boolean;
   [key: string]: any;
 }
 
@@ -68,20 +69,18 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
    */
   constructor(dataType: new() => T,
               public readonly dataService: IEntitiesService<T, F, O>,
-              environment: Environment,
               validatorService?: ValidatorService,
               config?: AppTableDataSourceOptions<T, O>) {
     super([], dataType, validatorService, config);
     this._config = {
-      prependNewElements: false,
-      suppressErrors: true,
       dataServiceOptions: {},
+      debug: !config.suppressErrors,
       ...config
     };
     this._useValidator = isNotNil(validatorService);
 
     // For DEV ONLY
-    this._debug = !environment.production;
+    this._debug = this._config.debug === true;
   }
 
   ngOnDestroy() {

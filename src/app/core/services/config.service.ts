@@ -12,13 +12,15 @@ import {NetworkService} from "./network.service";
 import {PlatformService} from "./platform.service";
 import {CORE_CONFIG_OPTIONS} from "./config/core.config";
 import {SoftwareService} from "../../referential/services/software.service";
-import {LocationLevelIds} from "../../referential/services/model/model.enum";
+import {LocationLevelIds, ParameterLabelGroups} from "../../referential/services/model/model.enum";
 import {ToastController} from "@ionic/angular";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {TranslateService} from "@ngx-translate/core";
 import {filter} from "rxjs/operators";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
+import {UserProfileLabels} from "./model/person.model";
+import {REFERENTIAL_CONFIG_OPTIONS} from "../../referential/services/config/referential.config";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -95,7 +97,6 @@ const CacheStatistics: any = gql`
 
 export const APP_CONFIG_OPTIONS = new InjectionToken<FormFieldDefinitionMap>('defaultOptions');
 
-
 @Injectable({
   providedIn: 'root',
   deps: [APP_CONFIG_OPTIONS]
@@ -130,7 +131,7 @@ export class ConfigService extends SoftwareService<Configuration> {
     protected file: FileService,
     protected toastController: ToastController,
     protected translate: TranslateService,
-    @Inject(EnvironmentService) protected environment,
+    @Inject(ENVIRONMENT) protected environment,
     @Optional() @Inject(APP_CONFIG_OPTIONS) defaultOptionsMap: FormFieldDefinitionMap
   ) {
     super(graphql, environment);
@@ -377,9 +378,9 @@ export class ConfigService extends SoftwareService<Configuration> {
     // Override enumerations
     this.updateModelEnumerations(data);
 
-    // CHeck compatible version
+    // Check compatible version
     if (wasJustLoaded) {
-
+      // TODO
     }
 
     this.$data.next(data);
@@ -496,14 +497,30 @@ export class ConfigService extends SoftwareService<Configuration> {
   }
 
   private updateModelEnumerations(config: Configuration) {
+    if (!config.properties) {
+      console.warn("[config] No properties found in pod config! Skip model enumerations update");
+      return;
+    }
     console.info("[config] Updating model enumerations...");
 
-    // Location Levels
-    LocationLevelIds.COUNTRY = config.getProperty(CORE_CONFIG_OPTIONS.LOCATION_LEVEL_COUNTRY_ID);
-    LocationLevelIds.PORT = config.getProperty(CORE_CONFIG_OPTIONS.LOCATION_LEVEL_PORT_ID);
-    LocationLevelIds.AUCTION = config.getProperty(CORE_CONFIG_OPTIONS.LOCATION_LEVEL_AUCTION_ID);
+    // User profiles
+    UserProfileLabels.ADMIN = config.getProperty(CORE_CONFIG_OPTIONS.PROFILE_ADMIN_LABEL);
+    UserProfileLabels.SUPERVISOR = config.getProperty(CORE_CONFIG_OPTIONS.PROFILE_SUPERVISOR_LABEL);
+    UserProfileLabels.USER = config.getProperty(CORE_CONFIG_OPTIONS.PROFILE_USER_LABEL);
 
-    // User profiles Label ?
+    // Location Levels
+    LocationLevelIds.COUNTRY = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_COUNTRY_ID);
+    LocationLevelIds.PORT = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_PORT_ID);
+    LocationLevelIds.AUCTION = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_AUCTION_ID);
+    LocationLevelIds.ICES_RECTANGLE = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_RECTANGLE_ID);
+    LocationLevelIds.ICES_DIVISION = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_DIVISION_ID);
+
+    // Parameters
+    ParameterLabelGroups.AGE = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_AGE_LABEL);
+    ParameterLabelGroups.SEX = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_SEX_LABEL);
+    ParameterLabelGroups.WEIGHT = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_WEIGHT_LABELS);
+    ParameterLabelGroups.LENGTH = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_LENGTH_LABELS);
+    ParameterLabelGroups.MATURITY = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_MATURITY_LABELS);
 
     // Taxon group
     // TODO: add all enumerations

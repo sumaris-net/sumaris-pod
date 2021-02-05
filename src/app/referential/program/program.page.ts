@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
+import {FormBuilder, FormGroup, ValidationErrors} from "@angular/forms";
 import {Program} from "../services/model/program.model";
 import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
@@ -12,15 +12,23 @@ import {AppPropertiesForm} from "../../core/form/properties.form";
 import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
 import {ModalController} from "@ionic/angular";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {ProgramProperties} from "../services/config/program.config";
+import {ProgramProperties, StrategyEditor} from "../services/config/program.config";
+import {ActivatedRoute} from "@angular/router";
+import {Subscription} from "rxjs";
+
 import {AppEntityEditor} from "../../core/form/editor.class";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {changeCaseToUnderscore, isNil} from "../../shared/functions";
+import {changeCaseToUnderscore, isNil, isNotNil} from "../../shared/functions";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {HistoryPageReference} from "../../core/services/model/history.model";
 import {SelectReferentialModal} from "../list/select-referential.modal";
 import {AppListForm} from "../../core/form/list.form";
 import {environment} from "../../../environments/environment";
+import {Strategy} from "../services/model/strategy.model";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {AppTable} from "../../core/table/table.class";
+import {SamplingStrategiesTable} from "../strategy/sampling/sampling-strategies.table";
+import {SharedValidators} from "../../shared/validator/validators";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -33,6 +41,7 @@ export enum AnimationState {
   providers: [
     {provide: ValidatorService, useExisting: ProgramValidatorService}
   ],
+  animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProgramPage extends AppEntityEditor<Program, ProgramService> implements OnInit {
@@ -41,26 +50,35 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   fieldDefinitions: FormFieldDefinitionMap = {};
   form: FormGroup;
   i18nFieldPrefix = 'PROGRAM.';
+  strategyEditor: StrategyEditor = 'legacy';
+
+  onRefreshListener: Subscription; // TODO BLA: à supprimer ?
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
-  @ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
   @ViewChild('locationClassificationList', { static: true }) locationClassificationList: AppListForm;
+  @ViewChild('legacyStrategiesTable', { static: true }) legacyStrategiesTable: StrategiesTable;
+  @ViewChild('samplingStrategiesTable', { static: true }) samplingStrategiesTable: SamplingStrategiesTable;
+
+  get strategiesTable(): AppTable<Strategy> {
+    return this.strategyEditor !== 'sampling' ? this.legacyStrategiesTable : this.samplingStrategiesTable;
+  }
 
   constructor(
     protected injector: Injector,
+    protected programService: ProgramService,
     protected formBuilder: FormBuilder,
     protected accountService: AccountService,
     protected validatorService: ProgramValidatorService,
-    dataService: ProgramService,
     protected referentialRefService: ReferentialRefService,
-    protected modalCtrl: ModalController
+    protected modalCtrl: ModalController,
+    protected activatedRoute: ActivatedRoute
   ) {
     super(injector,
       Program,
-      dataService, {
-        autoOpenNextTab: false,
-        pathIdAttribute: 'programId'
+      programService, {
+        pathIdAttribute: 'programId',
+        tabCount: 3
       });
     this.form = validatorService.getFormGroup();
 
@@ -79,11 +97,23 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.referentialForm.entityName = 'Program';
 
     // Check label is unique
-    this.form.get('label')
-      .setAsyncValidators(async (control: AbstractControl) => {
-        const label = control.enabled && control.value;
-        return label && (await this.service.existsByLabel(label)) ? {unique: true} : null;
-      });
+    // TODO BLA: FIXME: le control reste en pending !
+    const idControl = this.form.get('id');
+    this.form.get('label').setAsyncValidators([
+      async (control) => {
+        console.debug('[program-page] Checking of label is unique...');
+        const exists = await this.programService.existsByLabel(control.value, {
+          excludedIds: isNotNil(idControl.value) ? [idControl.value] : undefined
+        });
+        if (exists) {
+          console.warn('[program-page] Label not unique!');
+          return <ValidationErrors>{ unique: true };
+        }
+
+        console.debug('[program-page] Checking of label is unique [OK]');
+        SharedValidators.clearError(control, 'unique');
+      }
+    ]);
 
     this.registerFormField('gearClassification', {
       type: 'entity',
@@ -106,7 +136,6 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       }
     });
 
-
   }
 
   /* -- protected methods -- */
@@ -115,6 +144,13 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     // Force the load from network
     return super.load(id, {...opts, fetchPolicy: "network-only"});
   }
+  updateView(data: Program | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
+
+    this.strategyEditor = data && data.getProperty<StrategyEditor>(ProgramProperties.PROGRAM_STRATEGY_EDITOR) || 'legacy';
+
+    super.updateView(data, opts);
+  }
+
 
   protected registerFormField(fieldName: string, def: Partial<FormFieldDefinition>) {
     const definition = <FormFieldDefinition>{
@@ -135,6 +171,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
     super.enable(opts);
 
+    // TODO BLA remove this ?
     this.locationClassificationList.enable(opts);
 
     if (!this.isNewData) {
@@ -146,8 +183,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.addChildForms([
       this.referentialForm,
       this.propertiesForm,
-      this.locationClassificationList,
-      this.strategiesTable
+      this.locationClassificationList
     ]);
   }
 
@@ -165,19 +201,17 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     // Location classification
     this.locationClassificationList.setValue(data.locationClassifications);
 
-    // strategies
-    this.strategiesTable.setProgram(data); // Will load strategies
 
-    this.markAsPristine();
+    this.markForCheck();
   }
 
+  // TOD BLA: remove this override
   async save(event?: Event, options?: any): Promise<boolean> {
     //console.debug('TODO saving program...');
     return super.save(event, options);
   }
 
   protected async getJsonValueToSave(): Promise<any> {
-
     const data = await super.getJsonValueToSave();
 
     // Re add label, because missing when field disable
@@ -208,7 +242,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
-    if (this.strategiesTable.invalid) return 1;
+    if (this.strategiesTable && this.strategiesTable.invalid) return 1;
     if (this.propertiesForm.invalid) return 2;
     // TODO users rights
     return 0;
@@ -233,9 +267,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
       this.markAsLoading();
-
       setTimeout(async () => {
-        await this.router.navigate(['referential', 'program',  this.data.id, 'strategies', id], {
+        await this.router.navigate(['referential', 'programs',  this.data.id, 'strategy', this.strategyEditor, id], {
           queryParams: {}
         });
         this.markAsLoaded();
@@ -249,7 +282,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       this.markAsLoading();
 
       setTimeout(async () => {
-        await this.router.navigate(['referential', 'program', this.data.id, 'strategies', 'new'], {
+        await this.router.navigate(['referential', 'programs',  this.data.id, 'strategy', this.strategyEditor, 'new'], {
           queryParams: {}
         });
         this.markAsLoaded();

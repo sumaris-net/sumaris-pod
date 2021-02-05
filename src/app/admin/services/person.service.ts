@@ -1,7 +1,7 @@
 import {Inject, Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {BehaviorSubject, Observable} from 'rxjs';
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
 import {GraphqlService} from "../../core/graphql/graphql.service";
@@ -15,7 +15,7 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {SortDirection} from "@angular/material/sort";
 import {JobUtils} from "../../shared/services/job.utils";
 import {FilterFn, IEntitiesService, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 export const PersonFragments = {
   person: gql`fragment PersonFragment on PersonVO {
@@ -128,14 +128,14 @@ const DeletePersons: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class PersonService extends BaseEntityService<Person, PersonFilter>
+export class PersonService extends BaseGraphqlService<Person, PersonFilter>
   implements IEntitiesService<Person, PersonFilter>, SuggestService<Person, PersonFilter> {
 
   constructor(
     protected graphql: GraphqlService,
     protected network: NetworkService,
     protected entities: EntitiesStorage,
-    @Inject(EnvironmentService) protected environment
+    @Inject(ENVIRONMENT) protected environment
   ) {
     super(graphql, environment);
 

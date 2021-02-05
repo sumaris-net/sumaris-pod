@@ -12,9 +12,10 @@ export declare interface Page {
 export declare interface LoadResult<T> {
   data: T[];
   total?: number;
+  errors?: any[];
 }
 
-export declare type SuggestFn<T, F> = (value: any, filter?: F, sortBy?: string, sortDirection?: SortDirection) => Promise<T[]>;
+export declare type SuggestFn<T, F> = (value: any, filter?: F, sortBy?: string, sortDirection?: SortDirection) => Promise<T[] | LoadResult<T>>;
 
 export declare interface SuggestService<T, F> {
   suggest: SuggestFn<T, F>;
@@ -46,6 +47,8 @@ export declare interface IEntityService<T, O = EntityServiceLoadOptions> {
 export declare interface EntitiesServiceWatchOptions {
   fetchPolicy?: WatchQueryFetchPolicy;
   trash?: boolean;
+  withTotal?: boolean;
+  toEntity?: boolean;
   [key: string]: any;
 }
 

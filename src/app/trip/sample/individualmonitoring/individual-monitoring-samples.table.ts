@@ -26,8 +26,8 @@ export class IndividualMonitoringSubSamplesTable extends SubSamplesTable impleme
     this.acquisitionLevel = AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
   }
 
-  ngOnInit() {
-    super.ngOnInit();
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
 
     this.registerSubscription(
       this.$pmfms

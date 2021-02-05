@@ -28,8 +28,9 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {environment} from "../../../environments/environment";
+import {isNotNil} from "../../shared/functions";
 
-export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'dateTime', 'observers'];
+export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
@@ -45,6 +46,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   private _parentDateTime;
   private _detailEditor: LandingEditor;
+  private _strategyPmfmId: number;
 
   protected cd: ChangeDetectorRef;
   protected vesselSnapshotService: VesselSnapshotService;
@@ -56,6 +58,17 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   @Input() canDelete = true;
   @Input() showFabButton = false;
   @Input() showError = true;
+
+  @Input() set strategyPmfmId(value: number) {
+    if (this._strategyPmfmId !== value) {
+      this._strategyPmfmId = value;
+      this.setShowColumn('strategy', isNotNil(this._strategyPmfmId));
+    }
+  }
+
+  get strategyPmfmId(): number {
+    return this._strategyPmfmId;
+  }
 
   @Input() set detailEditor(value: LandingEditor) {
     if (value !== this._detailEditor) {
@@ -108,6 +121,33 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     return this.getShowColumn('vesselType');
   }
 
+  @Input()
+  set showLocationColumn(value: boolean) {
+    this.setShowColumn('location', value);
+  }
+
+  get showLocationColumn(): boolean {
+    return this.getShowColumn('location');
+  }
+
+  @Input()
+  set showCreationDateColumn(value: boolean) {
+    this.setShowColumn('creationDate', value);
+  }
+
+  get showCreationDateColumn(): boolean {
+    return this.getShowColumn('creationDate');
+  }
+
+  @Input()
+  set showRecorderPersonColumn(value: boolean) {
+    this.setShowColumn('recorderPerson', value);
+  }
+
+  get showRecorderPersonColumn(): boolean {
+    return this.getShowColumn('recorderPerson');
+  }
+
   constructor(
     injector: Injector
   ) {
@@ -131,6 +171,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     this.defaultPageSize = 200; // normal high value
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
     this.referentialRefService = injector.get(ReferentialRefService);
+    this.saveBeforeDelete = true;
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
@@ -181,6 +222,10 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     return rows
       .filter(row => vessel.equals(row.currentData.vesselSnapshot))
       .reduce((res, row) => Math.max(res, row.currentData.rankOrderOnVessel || 0), 0);
+  }
+
+  async getMaxRankOrder(): Promise<number> {
+    return super.getMaxRankOrder();
   }
 
   referentialToString = referentialToString;

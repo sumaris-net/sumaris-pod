@@ -3,7 +3,6 @@ import {Batch, BatchUtils} from "../../services/model/batch.model";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {AbstractControl, FormBuilder, FormControl} from "@angular/forms";
-import {ProgramService} from "../../../referential/services/program.service";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
@@ -22,6 +21,7 @@ import {AppFormUtils} from "../../../core/form/form.utils";
 import {InputElement} from "../../../shared/inputs";
 import {isNotNil} from "../../../shared/functions";
 import {fadeInAnimation} from "../../../shared/material/material.animations";
+import {ProgramRefService} from "../../../referential/services/program-ref.service";
 
 @Component({
   selector: 'app-batch-group-form',
@@ -158,7 +158,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     protected measurementValidatorService: MeasurementsValidatorService,
     protected dateAdapter: DateAdapter<Moment>,
     protected formBuilder: FormBuilder,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected platform: PlatformService,
     protected validatorService: BatchGroupValidatorService,
     protected referentialRefService: ReferentialRefService,
@@ -168,7 +168,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     super(dateAdapter,
       measurementValidatorService,
       formBuilder,
-      programService,
+      programRefService,
       platform,
       validatorService,
       referentialRefService,

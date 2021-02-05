@@ -56,7 +56,8 @@ export const DATA_TYPE_ACCESSOR = new InjectionToken<new() => Batch>('BatchesTab
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilter = BatchFilter> extends AppMeasurementsTable<T, F>
+export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilter = BatchFilter>
+  extends AppMeasurementsTable<T, F>
   implements OnInit, OnDestroy {
 
   protected _initialPmfms: PmfmStrategy[];
@@ -204,7 +205,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     const modal = await this.modalCtrl.create({
       component: BatchModal,
       componentProps: {
-        program: this.program,
+        program: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         value: batch,
@@ -240,9 +241,9 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
     //if (isNilOrBlank(value)) return [];
-    return this.programService.suggestTaxonGroups(value,
+    return this.programRefService.suggestTaxonGroups(value,
       {
-        program: this.program,
+        program: this.programLabel,
         searchAttribute: options && options.searchAttribute
       });
   }
@@ -253,9 +254,9 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     // IF taxonGroup column exists: taxon group must be filled first
     if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return [];
 
-    return this.programService.suggestTaxonNames(value,
+    return this.programRefService.suggestTaxonNames(value,
       {
-        program: this.program,
+        program: this.programLabel,
         searchAttribute: options && options.searchAttribute,
         taxonGroupId: taxonGroup && taxonGroup.id || undefined
       });

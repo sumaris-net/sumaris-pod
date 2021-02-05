@@ -24,7 +24,7 @@ import {SortDirection} from "@angular/material/sort";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {PredefinedColors} from "@ionic/core";
 import {IEntity} from "../../core/services/model/entity.model";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 
 export interface UserEventDetail<T extends IEntity<T>> {
@@ -111,7 +111,7 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventWatchOptions>
     protected service: UserEventService,
     protected entities: EntitiesStorage,
     protected cd: ChangeDetectorRef,
-    @Inject(EnvironmentService) protected environment
+    @Inject(ENVIRONMENT) protected environment
   ) {
     super(injector.get(ActivatedRoute),
       injector.get(Router),
@@ -155,7 +155,6 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventWatchOptions>
 
     this.setDatasource(new EntitiesTableDataSource<UserEvent, UserEventFilter>(UserEvent,
       this.service,
-      this.environment,
       null,
       {
         prependNewElements: false,

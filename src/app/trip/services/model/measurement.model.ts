@@ -296,6 +296,10 @@ export class MeasurementValuesUtils {
 
     // Normalize all pmfms from the list
     (pmfms || []).forEach(pmfm => {
+      if (isNil(pmfm.pmfmId)) {
+        console.warn('Invalid pmfmStrategy instance: missing required pmfmId. Please make sure to load PmfmStrategy with inheritance', pmfm);
+        return;
+      }
       const pmfmId = pmfm.pmfmId.toString();
       target[pmfmId] = PmfmValueUtils.fromModelValue(source[pmfmId], pmfm);
     });

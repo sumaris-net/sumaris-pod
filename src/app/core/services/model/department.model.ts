@@ -1,5 +1,6 @@
 import {EntityAsObjectOptions} from "./entity.model";
 import {Referential} from "./referential.model";
+import {Person} from "./person.model";
 
 export class Department extends Referential<Department> {
 
@@ -35,4 +36,12 @@ export class Department extends Referential<Department> {
     this.siteUrl = source.siteUrl;
     delete this.entityName; // not need
   }
+}
+
+export function departmentToString(obj: Department): string {
+  return obj && obj.id && (obj.name) || undefined;
+}
+
+export function departmentsToString(data: Department[], separator?: string): string {
+  return (data || []).map(departmentToString).join(separator || ", ");
 }

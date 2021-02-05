@@ -1,7 +1,10 @@
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../../shared/form/field.model";
 import {LocationLevelIds} from "../model/model.enum";
+import {StatusIds} from "../../../core/services/model/model.enum";
 
-export type LandingEditor = 'landing' | 'control' | 'trip';
+export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
+
+export type StrategyEditor = 'legacy' | 'sampling';
 
 export const ProgramProperties = Object.freeze({
   // Trip
@@ -194,6 +197,19 @@ export const ProgramProperties = Object.freeze({
     defaultValue: "true",
     type: 'boolean'
   },
+  OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.createLanding.history.enable',
+    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY",
+    defaultValue: "true",
+    type: 'boolean'
+  },
+
+  VESSEL_TYPE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.vessel.type.enable',
+    label: "PROGRAM.OPTIONS.VESSEL_TYPE_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
 
   // Landing
   LANDING_EDITOR: <FormFieldDefinition>{
@@ -212,15 +228,13 @@ export const ProgramProperties = Object.freeze({
       {
         key: 'trip',
         value: 'PROGRAM.OPTIONS.LANDING_EDITOR_TRIP'
+      },
+      {
+        key: 'sampling',
+        value: 'PROGRAM.OPTIONS.LANDING_EDITOR_SAMPLING'
       }
     ],
     defaultValue: 'landing'
-  },
-  VESSEL_TYPE_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.vessel.type.enable',
-    label: "PROGRAM.OPTIONS.VESSEL_TYPE_ENABLE",
-    defaultValue: "false",
-    type: 'boolean'
   },
   LANDING_DATE_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.dateTime.enable',
@@ -228,10 +242,40 @@ export const ProgramProperties = Object.freeze({
     defaultValue: "false",
     type: 'boolean'
   },
+  LANDING_CREATION_DATE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.creationDate.enable',
+    label: "PROGRAM.OPTIONS.LANDING_CREATION_DATE_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
+  LANDING_RECORDER_PERSON_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.recorderPerson.enable',
+    label: "PROGRAM.OPTIONS.LANDING_RECORDER_PERSON_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
+  LANDING_LOCATION_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.location.enable',
+    label: "PROGRAM.OPTIONS.LANDING_LOCATION_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
   LANDING_OBSERVERS_ENABLE: <FormFieldDefinition>{
     key: "sumaris.landing.observers.enable",
     label: "PROGRAM.OPTIONS.LANDING_OBSERVERS_ENABLE",
-    defaultValue: "true",
+    defaultValue: "false",
+    type: 'boolean'
+  },
+  LANDING_STRATEGY_ENABLE: <FormFieldDefinition>{
+    key: "sumaris.landing.strategy.enable",
+    label: "PROGRAM.OPTIONS.LANDING_STRATEGY_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
+  LANDING_ONE_TAB_ENABLE: <FormFieldDefinition>{
+    key: "sumaris.landing.oneTab.enable",
+    label: "PROGRAM.OPTIONS.LANDING_ONE_TAB_ENABLE",
+    defaultValue: "false",
     type: 'boolean'
   },
 
@@ -244,10 +288,64 @@ export const ProgramProperties = Object.freeze({
     autocomplete: {
       filter: {
         entityName: 'LocationLevel',
-        statusIds: [0,1]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
     defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
+  },
+
+  /* -- Program / Strategy options -- */
+
+  PROGRAM_STRATEGY_EDITOR: <FormFieldDefinition>{
+    key: "sumaris.program.strategy.editor",
+    label: "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR",
+    type: 'enum',
+    values: [
+      {
+        key: 'legacy',
+        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_LEGACY'
+      },
+      {
+        key: 'sampling',
+        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_SAMPLING'
+      }
+    ],
+    defaultValue: "legacy"
+  },
+
+  I18N_SUFFIX: <FormFieldDefinition>{
+    key: "sumaris.i18nSuffix",
+    label: "PROGRAM.OPTIONS.I18N_SUFFIX",
+    type: 'enum',
+    values: [
+      {
+        key: 'legacy',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_LEGACY'
+      },
+      {
+        key: 'SAMPLING.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_SAMPLING'
+      }
+    ],
+    defaultValue: 'legacy'
+  },
+
+  // PROGRAM STRATEGY EDITOR column name
+  PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME: <FormFieldDefinition>{
+    key: 'sumaris.program.strategy.editor.pmfm.table.column.name',
+    label: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME',
+    type: 'enum',
+    values: [
+      {
+        key: 'shortName',
+        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME'
+      },
+      {
+        key: 'longName',
+        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME'
+      }
+    ],
+    defaultValue: 'longName'
   },
 
   /* -- QUalitative value options -- */
