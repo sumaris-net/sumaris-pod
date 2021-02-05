@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.dao.administration.program;
+package net.sumaris.core.extraction.dao.administration;
 
 /*-
  * #%L
@@ -30,13 +30,11 @@ import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
-import net.sumaris.core.extraction.specification.administration.program.ProgSpecification;
+import net.sumaris.core.extraction.specification.administration.StratSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramFilterVO;
-import net.sumaris.core.extraction.vo.administration.program.ExtractionProgramContextVO;
+import net.sumaris.core.extraction.vo.administration.ExtractionStrategyContextVO;
+import net.sumaris.core.extraction.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
-import net.sumaris.core.service.administration.programStrategy.ProgramService;
-import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -58,51 +56,44 @@ import static org.nuiton.i18n.I18n.t;
  * @author Ludovic Pecquot <ludovic.pecquot@e-is.pro>
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-@Repository("extractionProgramDao")
+@Repository("extractionStrategyDao")
 @Lazy
-public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F extends ExtractionFilterVO>
+public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F extends ExtractionFilterVO>
         extends ExtractionBaseDaoImpl
-        implements ExtractionProgramDao<C, F> {
+        implements ExtractionStrategyDao<C, F> {
 
-    private static final Logger log = LoggerFactory.getLogger(ExtractionProgramDaoImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ExtractionStrategyDaoImpl.class);
 
-    private static final String PR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ProgSpecification.PR_SHEET_NAME + "_%s";
-    private static final String ST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ProgSpecification.ST_SHEET_NAME + "_%s";
-    private static final String SM_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ProgSpecification.SM_SHEET_NAME + "_%s";
+    private static final String ST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + StratSpecification.ST_SHEET_NAME + "_%s";
+    private static final String SM_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + StratSpecification.SM_SHEET_NAME + "_%s";
 
     protected static final String XML_QUERY_PATH = "xmlQuery";
-
-    @Autowired
-    protected StrategyService strategyService;
-
-    @Autowired
-    protected ProgramService programService;
 
     @Autowired
     protected ResourceLoader resourceLoader;
 
     @Override
     public <R extends C> R execute(F filter) {
-        ExtractionProgramFilterVO programFilter = toProgramFilterVO(filter);
+        ExtractionStrategyFilterVO strategyFilter = toStrategyFilterVO(filter);
 
         // Init context
         R context = createNewContext();
-        context.setProgramFilter(programFilter);
+        context.setStrategyFilter(strategyFilter);
         context.setFilter(filter);
         context.setId(System.currentTimeMillis());
-        context.setFormat(LiveFormatEnum.PROG);
+        context.setFormat(LiveFormatEnum.STRAT);
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
 
         if (log.isInfoEnabled()) {
             StringBuilder filterInfo = new StringBuilder();
-            String filterStr = filter != null ? programFilter.toString("\n - ") : null;
+            String filterStr = filter != null ? strategyFilter.toString("\n - ") : null;
             if (StringUtils.isNotBlank(filterStr)) {
                 filterInfo.append("with filter:").append(filterStr);
             }
             else {
                 filterInfo.append("(without filter)");
             }
-            log.info(String.format("Starting extraction #%s-%s (raw data / programs)... %s", context.getLabel(), context.getId(), filterInfo.toString()));
+            log.info(String.format("Starting extraction #%s-%s (raw data / strategies)... %s", context.getLabel(), context.getId(), filterInfo.toString()));
         }
 
         // Fill context table names
@@ -112,18 +103,11 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
         String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
 
         // -- Execute the extraction --
-
         try {
             // Strategy
             long rowCount = createStrategyTable(context);
-            if (rowCount == 0) return context;
-            if (sheetName != null && context.hasSheet(sheetName)) return context;
-
-            // Program
-             rowCount = createProgramTable(context);
             if (rowCount == 0) throw new DataNotFoundException(t("sumaris.extraction.noData"));
             if (sheetName != null && context.hasSheet(sheetName)) return context;
-
 
             // StrategyMonitoring
             rowCount = createStrategyMonitoringTable(context);
@@ -147,7 +131,7 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
     /* -- protected methods -- */
 
     protected <R extends C> R createNewContext() {
-        Class<? extends ExtractionProgramContextVO> contextClass = getContextClass();
+        Class<? extends ExtractionStrategyContextVO> contextClass = getContextClass();
         Preconditions.checkNotNull(contextClass);
 
         try {
@@ -157,63 +141,19 @@ public class ExtractionProgramDaoImpl<C extends ExtractionProgramContextVO, F ex
         }
     }
 
-    protected Class<? extends ExtractionProgramContextVO> getContextClass() {
-        return ExtractionProgramContextVO.class;
+    protected Class<? extends ExtractionStrategyContextVO> getContextClass() {
+        return ExtractionStrategyContextVO.class;
     }
 
     protected void fillContextTableNames(C context) {
 
         // Set unique table names
-        context.setProgramTableName(String.format(PR_TABLE_NAME_PATTERN, context.getId()));
         context.setStrategyTableName(String.format(ST_TABLE_NAME_PATTERN, context.getId()));
         context.setStrategyMonitoringTableName(String.format(SM_TABLE_NAME_PATTERN, context.getId()));
 
         // Set sheetname
-        context.setProgramSheetName(ProgSpecification.PR_SHEET_NAME);
-        context.setStrategySheetName(ProgSpecification.ST_SHEET_NAME);
-        context.setStrategyMonitoringSheetName(ProgSpecification.SM_SHEET_NAME);
-    }
-
-    protected long createProgramTable(C context) {
-
-        XMLQuery xmlQuery = createProgramQuery(context);
-
-        // aggregate insertion
-        execute(xmlQuery);
-        long count = countFrom(context.getProgramTableName());
-
-        // Clean row using generic filter
-        if (count > 0) {
-            count -= cleanRow(context.getProgramTableName(), context.getFilter(), context.getProgramSheetName());
-        }
-
-        // Add result table to context
-        if (count > 0) {
-            context.addTableName(context.getProgramTableName(),
-                    context.getProgramSheetName(),
-                    xmlQuery.getHiddenColumnNames(),
-                    xmlQuery.hasDistinctOption());
-            log.debug(String.format("Program table: %s rows inserted", count));
-        }
-        else {
-            context.addRawTableName(context.getProgramTableName());
-        }
-        return count;
-    }
-
-    protected XMLQuery createProgramQuery(C context) {
-        XMLQuery xmlQuery = createXMLQuery(context, "createProgramTable");
-        xmlQuery.bind("programTableName", context.getProgramTableName());
-        xmlQuery.bind("strategyTableName", context.getStrategyTableName());
-
-        // Labels Filter
-        xmlQuery.setGroup("labelsFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
-        xmlQuery.bind("labels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
-
-        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
-        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
-
-        return xmlQuery;
+        context.setStrategySheetName(StratSpecification.ST_SHEET_NAME);
+        context.setStrategyMonitoringSheetName(StratSpecification.SM_SHEET_NAME);
     }
 
     protected long createStrategyTable(C context) {

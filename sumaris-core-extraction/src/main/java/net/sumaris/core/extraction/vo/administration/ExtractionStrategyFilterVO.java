@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.vo.administration.program;
+package net.sumaris.core.extraction.vo.administration;
 
 /*-
  * #%L
@@ -33,7 +33,7 @@ import java.util.List;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @Data
-public class ExtractionProgramFilterVO implements IRootDataFilter {
+public class ExtractionStrategyFilterVO implements IRootDataFilter {
 
     private boolean preview;
 

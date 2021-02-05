@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.vo.administration.program;
+package net.sumaris.core.extraction.vo.administration;
 
 /*-
  * #%L
@@ -39,50 +39,48 @@ import java.util.List;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @EqualsAndHashCode(callSuper = true)
-public class ExtractionProgramContextVO extends ExtractionContextVO {
+public class ExtractionStrategyContextVO extends ExtractionContextVO {
 
     // Table names
-    String programTableName; // PR table
     String strategyTableName; // ST table
     String strategyMonitoringTableName; // SM table
 
     // Sheet names
-    String programSheetName; // PR
     String strategySheetName; // ST
     String strategyMonitoringSheetName; // SM
 
-    ExtractionProgramFilterVO programFilter;
+    ExtractionStrategyFilterVO strategyFilter;
 
     public Date getStartDate() {
-        return programFilter != null ? programFilter.getStartDate() : null;
+        return strategyFilter != null ? strategyFilter.getStartDate() : null;
     }
 
     public Date getEndDate() {
-        return programFilter != null ? programFilter.getEndDate() : null;
+        return strategyFilter != null ? strategyFilter.getEndDate() : null;
     }
 
     public List<String> getProgramLabels() {
-        return programFilter != null && StringUtils.isNotBlank(programFilter.getProgramLabel()) ? ImmutableList.of(programFilter.getProgramLabel()) : null;
+        return strategyFilter != null && StringUtils.isNotBlank(strategyFilter.getProgramLabel()) ? ImmutableList.of(strategyFilter.getProgramLabel()) : null;
     }
 
     public List<Integer> getStrategyIds() {
-        return programFilter != null && programFilter.getStrategyIds() != null ? programFilter.getStrategyIds() : null;
+        return strategyFilter != null && strategyFilter.getStrategyIds() != null ? strategyFilter.getStrategyIds() : null;
     }
 
     public List<String> getStrategyLabels() {
-        return programFilter != null && programFilter.getStrategyLabels() != null ? programFilter.getStrategyLabels() : null;
+        return strategyFilter != null && strategyFilter.getStrategyLabels() != null ? strategyFilter.getStrategyLabels() : null;
     }
 
     public List<Integer> getRecorderPersonIds() {
-        return programFilter != null && programFilter.getRecorderPersonId() != null ? ImmutableList.of(programFilter.getRecorderPersonId()) : null;
+        return strategyFilter != null && strategyFilter.getRecorderPersonId() != null ? ImmutableList.of(strategyFilter.getRecorderPersonId()) : null;
     }
 
     public List<Integer> getRecorderDepartmentIds() {
-        return programFilter != null && programFilter.getRecorderDepartmentId() != null ? ImmutableList.of(programFilter.getRecorderDepartmentId()) : null;
+        return strategyFilter != null && strategyFilter.getRecorderDepartmentId() != null ? ImmutableList.of(strategyFilter.getRecorderDepartmentId()) : null;
     }
 
     public List<Integer> getLocationIds() {
-        return programFilter != null && programFilter.getLocationId() != null ? ImmutableList.of(programFilter.getLocationId()) : null;
+        return strategyFilter != null && strategyFilter.getLocationId() != null ? ImmutableList.of(strategyFilter.getLocationId()) : null;
     }
 
 }

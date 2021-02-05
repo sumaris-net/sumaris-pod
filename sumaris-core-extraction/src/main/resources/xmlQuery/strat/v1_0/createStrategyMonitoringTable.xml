@@ -33,7 +33,8 @@
     <select alias="START_DATE" type="date">APP.START_DATE</select>
     <select alias="END_DATE" type="date">APP.END_DATE</select>
     <select alias="EXPECTED_EFFORT" type="number">APP.ACQUISITION_NUMBER</select>
-    <select alias="REALIZED_EFFORT" type="number">count(L.ID)</select>
+    <select alias="REALIZED_EFFORT" type="number">count(distinct S.ID)</select>
+    <select alias="LANDING_COUNT" type="number">count(distinct L.ID)</select>
 
     <!-- hidden columns -->
     <select alias="PROGRAM_ID" type="hidden">ST.PROGRAM_ID</select>
@@ -55,6 +56,7 @@
             AND LM.ALPHANUMERICAL_VALUE = ST.STRATEGY
         )
     </from>
+    <from join="true">LEFT OUTER JOIN SAMPLE S ON S.LANDING_FK = L.ID</from>
 
     <groupby>
       ST.PROJECT, ST.STRATEGY,

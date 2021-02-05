@@ -20,16 +20,15 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.specification.administration.program;
+package net.sumaris.core.extraction.specification.administration;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface ProgSpecification {
-    String FORMAT = "PROG";
+public interface StratSpecification {
+    String FORMAT = "STRAT";
     String VERSION_1_0 = "1.0";
 
-    String PR_SHEET_NAME = "PR"; // Program
     String ST_SHEET_NAME = "ST"; // Strategy
     String SM_SHEET_NAME = "SM"; // Strategy Monitoring
 
@@ -39,5 +38,5 @@ public interface ProgSpecification {
     String COLUMN_START_DATE = "start_date";
     String COLUMN_END_DATE = "end_date";
 
-    String[] SHEET_NAMES = {PR_SHEET_NAME, ST_SHEET_NAME, SM_SHEET_NAME};
+    String[] SHEET_NAMES = {ST_SHEET_NAME, SM_SHEET_NAME};
 }

@@ -22,6 +22,7 @@ package net.sumaris.core.service.referential.taxon;
  * #L%
  */
 
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -30,7 +31,6 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.VersionNotFoundException;
 import net.sumaris.core.vo.filter.IReferentialFilter;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
@@ -49,6 +49,9 @@ public class TaxonGroupServiceImpl implements TaxonGroupService {
     private static final Logger log = LoggerFactory.getLogger(TaxonGroupServiceImpl.class);
 
     @Autowired
+    protected SumarisConfiguration configuration;
+
+    @Autowired
     protected TaxonGroupRepository taxonGroupRepository;
 
     @Autowired
@@ -59,8 +62,10 @@ public class TaxonGroupServiceImpl implements TaxonGroupService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
-        // Use self, to force transaction creation
-        self.updateTaxonGroupHierarchies();
+        if (configuration.enableTechnicalTablesUpdate()) {
+            // Use self, to force transaction creation
+            self.updateTaxonGroupHierarchies();
+        }
     }
 
     @Override
