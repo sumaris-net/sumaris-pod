@@ -47,6 +47,7 @@ export interface BaseEntityServiceOptions<
 }
 
 
+// @dynamic
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class BaseEntityService<T extends Entity<any>,

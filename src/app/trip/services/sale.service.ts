@@ -1,11 +1,10 @@
 import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {WatchQueryFetchPolicy} from "@apollo/client/core";
 import {AccountService} from "../../core/services/account.service";
 import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
@@ -38,6 +37,7 @@ export const SaleFragments = {
   ${Fragments.location}
   ${Fragments.lightDepartment}
   ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${Fragments.referential}
   `,
   sale: gql`fragment SaleFragment_PENDING on SaleVO {
     id
@@ -74,6 +74,7 @@ export const SaleFragments = {
   ${Fragments.location}
   ${DataFragments.sample}
   ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${Fragments.referential}
   `
 };
 

@@ -48,6 +48,7 @@ import {
   BaseEntityGraphqlMutations, BaseEntityGraphqlQueries,
   BaseEntityGraphqlSubscriptions
 } from "../../referential/services/base-entity-service.class";
+import {ReferentialFragments} from "../../referential/services/referential.fragments";
 
 
 export class LandingFilter {
@@ -207,11 +208,13 @@ export const LandingFragments = {
     observers {
       ...LightPersonFragment
     }
+    measurementValues
   }
   ${Fragments.location}
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${ReferentialFragments.referential}
   `,
   landing: gql`fragment LandingFragment on LandingVO {
     id

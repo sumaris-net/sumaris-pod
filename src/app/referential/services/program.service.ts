@@ -20,7 +20,6 @@ import {ReferentialFilter, ReferentialService} from "./referential.service";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {ProgramFragments} from "./program.fragments";
 import {
-  BaseEntitiesGraphqlQueries,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlQueries
 } from "./base-entity-service.class";
@@ -32,7 +31,7 @@ import {BaseReferentialService} from "./base-referential-service.class";
 export class ProgramFilter extends ReferentialFilter {
 }
 
-const ProgramQueries: BaseEntityGraphqlQueries & BaseEntitiesGraphqlQueries = {
+const ProgramQueries: BaseEntityGraphqlQueries = {
   // Load by id
   load: gql`query Program($id: Int, $label: String){
     data: program(id: $id, label: $label){
@@ -60,7 +59,7 @@ const ProgramQueries: BaseEntityGraphqlQueries & BaseEntitiesGraphqlQueries = {
   ${ProgramFragments.lightProgram}`
 };
 
-const PROGRAM_MUTATIONS: BaseEntityGraphqlMutations = {
+const ProgramMutations: BaseEntityGraphqlMutations = {
   save: gql`mutation SaveProgram($data: ProgramVOInput!){
     data: saveProgram(program: $data){
       ...ProgramFragment
@@ -92,7 +91,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
   ) {
     super(graphql, platform, Program, {
       queries: ProgramQueries,
-      mutations: PROGRAM_MUTATIONS,
+      mutations: ProgramMutations,
       filterAsObjectFn: ProgramFilter.asPodObject,
       filterFnFactory: ProgramFilter.searchFilter
     });

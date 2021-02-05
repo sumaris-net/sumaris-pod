@@ -86,6 +86,7 @@ const AggregatedLandingFragment = gql`fragment AggregatedLandingFragment on Aggr
 }
 ${VesselSnapshotFragments.lightVesselSnapshot}
 ${ReferentialFragments.location}
+${ReferentialFragments.referential}
 ${VesselActivityFragment}`;
 
 // Search query

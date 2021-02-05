@@ -98,7 +98,8 @@ export const TripFragments = {
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  `,
+  ${Fragments.referential}`,
+
   trip: gql`fragment TripFragment on TripVO {
     id
     program {
@@ -153,8 +154,8 @@ export const TripFragments = {
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${PhysicalGearFragments.physicalGear}
   ${Fragments.metier},
-  ${SaleFragments.lightSale}
-  `,
+  ${SaleFragments.lightSale}`,
+
   landedTrip: gql`fragment LandedTripFragment on TripVO {
     id
     program {
@@ -221,8 +222,7 @@ export const TripFragments = {
   ${Fragments.metier}
   ${OperationGroupFragment.operationGroup}
   ${SaleFragments.sale}
-  ${DataFragments.fishingArea}
-  `
+  ${DataFragments.fishingArea}`
 };
 
 

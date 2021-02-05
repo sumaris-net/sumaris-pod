@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {FormArray, FormBuilder, FormControl, ValidationErrors, ValidatorFn} from "@angular/forms";
 import {DateAdapter} from "@angular/material/core";
-import * as moment from "moment";
+import * as momentImported from "moment";
 import {Moment} from 'moment';
 import {DEFAULT_PLACEHOLDER_CHAR} from 'src/app/shared/constants';
 import {SharedValidators} from 'src/app/shared/validator/validators';
@@ -50,6 +50,8 @@ import {PmfmService} from "../../services/pmfm.service";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {MatAutocompleteField} from "../../../shared/material/autocomplete/material.autocomplete";
 import { ObjectMap } from 'src/app/shared/types';
+
+const moment = momentImported;
 
 @Component({
   selector: 'app-sampling-strategy-form',

@@ -1233,7 +1233,7 @@
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PSFM",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Paramètre collecté (PMFM)",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
-      "VESSEL_TYPE_ENABLE": "Nouveau navire > Saisir le type de navire ?"
+      "VESSEL_TYPE_ENABLE": "Navires > Activer le type de navire ?"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Niveaux d'acquisition",

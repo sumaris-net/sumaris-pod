@@ -26,6 +26,9 @@ export const VesselSnapshotFragments = {
     basePortLocation {
       ...LocationFragment
     }
+    vesselType {
+      ...ReferentialFragment
+    }
     vesselStatusId
   }`,
   vesselSnapshot: gql`fragment VesselSnapshotFragment on VesselSnapshotVO {
@@ -50,6 +53,7 @@ const LoadAllQuery: any = gql`
     }
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${ReferentialFragments.referential}
   ${ReferentialFragments.location}
 `;
 const LoadAllWithTotalQuery: any = gql`
@@ -61,6 +65,7 @@ const LoadAllWithTotalQuery: any = gql`
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${ReferentialFragments.location}
+  ${ReferentialFragments.referential}
 `;
 const LoadQuery: any = gql`
   query VesselSnapshot($vesselId: Int, $vesselFeaturesId: Int) {

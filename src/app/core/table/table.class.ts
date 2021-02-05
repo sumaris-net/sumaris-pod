@@ -70,8 +70,8 @@ export interface IModalDetailOptions<T = any> {
 }
 
 // @dynamic
-// tslint:disable-next-line:directive-class-suffix
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class AppTable<T extends Entity<T>, F = any>
   implements OnInit, OnDestroy, AfterViewInit, IAppForm {
 

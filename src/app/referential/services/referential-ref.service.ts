@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql} from "@apollo/client/core";
-import {BehaviorSubject, Observable, Subject} from "rxjs";
+import {BehaviorSubject, Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
@@ -15,15 +15,15 @@ import {EntitiesStorage} from "../../core/services/storage/entities-storage.serv
 import {ReferentialFragments} from "./referential.fragments";
 import {SortDirection} from "@angular/material/sort";
 import {Moment} from "moment";
-import {isEmptyArray, isNotEmptyArray, isNotNil, toNumber} from "../../shared/functions";
+import {isEmptyArray, isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {JobUtils} from "../../shared/services/job.utils";
 import {chainPromises} from "../../shared/observables";
 import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {environment} from "../../../environments/environment";
 import {fromDateISOString} from "../../shared/dates";
-import {BaseEntitiesGraphqlQueries} from "./base-entity-service.class";
 import {ObjectMap} from "../../shared/types";
+import {BaseEntityGraphqlQueries} from "./base-entity-service.class";
 
 export class ReferentialRefFilter extends ReferentialFilter {
   searchAttributes?: string[];
@@ -99,13 +99,13 @@ const LoadAllTaxonNamesQuery: any = gql`
   ${ReferentialFragments.fullTaxonName}
 `;
 
-export const ReferentialRefQueries: BaseEntitiesGraphqlQueries = {
+export const ReferentialRefQueries: BaseEntityGraphqlQueries = {
   loadAll: LoadAllQuery,
   loadAllWithTotal: LoadAllWithTotalQuery,
 };
 
 @Injectable({providedIn: 'root'})
-export class ReferentialRefService extends BaseGraphqlService
+export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, ReferentialRefFilter>
   implements SuggestService<ReferentialRef, ReferentialRefFilter>,
       IEntitiesService<ReferentialRef, ReferentialRefFilter> {
 

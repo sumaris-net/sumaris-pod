@@ -8,7 +8,7 @@ import {ApolloCache} from "@apollo/client/core";
 import {Environment} from "../../../environments/environment.class";
 import {changeCaseToUnderscore, isNotEmptyArray, toBoolean} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
-import {Optional} from "@angular/core";
+import {Directive, Optional} from "@angular/core";
 
 const sha256 =  require('hash.js/lib/hash/sha/256');
 
@@ -51,6 +51,7 @@ export class BaseGraphqlServiceOptions {
   production?: boolean;
 }
 
+@Directive()
 export abstract class BaseGraphqlService<T = any, F = any> {
 
   protected _debug: boolean;
