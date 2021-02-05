@@ -221,7 +221,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     const {data} = await this.graphql.query<{data: { strategy: string; startDate: string; endDate: string; expectedEffort}[]}>({
       query: DenormalizedStrategyQueries.loadEffort,
       variables: {
-        extractionType: "prog",
+        extractionType: "strat",
         viewSheetName: "SM",
         offset: 0,
         size: 1000, // All rows
@@ -259,7 +259,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
         }
       }
       else {
-        console.warn(`[denormalized-strategy-service] An effort has unknown strategy '${effort.strategyLabel}'. Skipping. Please check GraphQL query 'extraction' of type 'prog'.`);
+        console.warn(`[denormalized-strategy-service] An effort has unknown strategy '${effort.strategyLabel}'. Skipping. Please check GraphQL query 'extraction' of type 'strat'.`);
       }
     });
 
