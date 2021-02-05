@@ -12,6 +12,7 @@ import {SelectReferentialModal} from "../../../referential/list/select-referenti
 import {SamplesTable, SamplesTableOptions} from "../samples.table";
 import {PmfmService} from "../../../referential/services/pmfm.service";
 import {ProgramRefService} from "../../../referential/services/program-ref.service";
+import {SelectPmfmModal} from "../../../referential/pmfm/select-pmfm.modal";
 
 export interface SampleFilter {
   operationId?: number;
@@ -84,7 +85,7 @@ export class SamplingSamplesTable extends SamplesTable {
     const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.pmfmId).filter(isNotNil);
 
     const modal = await this.modalCtrl.create({
-      component: SelectReferentialModal,
+      component: SelectPmfmModal,
       componentProps: {
         filter: {
           entityName: 'Pmfm',

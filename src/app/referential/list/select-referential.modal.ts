@@ -6,22 +6,34 @@ import {Subject} from "rxjs";
 import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {ReferentialRefTable} from "./referential-ref.table";
-import {ReferentialRef} from "../../core/services/model/referential.model";
+import {Referential, ReferentialAsObjectOptions, ReferentialRef} from "../../core/services/model/referential.model";
 import {environment} from "../../../environments/environment";
+import {Entity} from "../../core/services/model/entity.model";
+import {EntitiesServiceWatchOptions, IEntitiesService} from "../../shared/services/entity-service.class";
 
 @Component({
   selector: 'app-select-referential-modal',
   templateUrl: './select-referential.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SelectReferentialModal implements OnInit {
+export class SelectReferentialModal <T extends Entity<T>, F extends ReferentialFilter> implements OnInit {
+// export class SelectReferentialModal<T extends IEntitiesService<T, F extends ReferentialFilter, EntitiesServiceWatchOptions>> implements OnInit {
 
   selectedTabIndex = 0;
   $title = new Subject<string>();
+  datasource :EntitiesTableDataSource<any, any>;
 
-  @ViewChild(ReferentialRefTable, { static: true }) table: ReferentialRefTable;
+  // @ViewChild(ReferentialRefTable, { static: true }) table: ReferentialRefTable;
+  // @ViewChild(ReferentialRefTable, { static: true }) table: ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilter>;
+  //@ViewChild(ReferentialRefTable, { static: true }) table: ReferentialRefTable<ReferentialRef, ReferentialFilter>;
+  // @ViewChild(ReferentialRefTable, { static: true }) table: ReferentialRefTable<T extends Entity<T>, ReferentialFilter>;
+  // @ViewChild(ReferentialRefTable, { static: true }) table: ReferentialRefTable<T extends Entity<T> = Entity<any>, ReferentialFilter>;
+  // @ViewChild(ReferentialRefTable, { static: true }) table: ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilter>;
+
+  @ViewChild(ReferentialRefTable, { static: true }) table: ReferentialRefTable<ReferentialRef, ReferentialFilter>;
 
   @Input() filter: ReferentialFilter;
+  //@Input() filter: F;
   @Input() entityName: string;
   @Input() allowMultiple: boolean;
 
@@ -34,6 +46,13 @@ export class SelectReferentialModal implements OnInit {
     protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef,
   ) {
+    this.datasource = new EntitiesTableDataSource<ReferentialRef, ReferentialFilter>(/*this.dataType*/Referential,
+      this.referentialRefService,
+      null,
+      {
+        prependNewElements: false,
+        suppressErrors: environment.production
+      });
   }
 
   ngOnInit() {
@@ -41,14 +60,28 @@ export class SelectReferentialModal implements OnInit {
     if (!this.filter || !this.filter.entityName) {
       throw new Error("Missing argument 'filter'");
     }
-    this.table.setDatasource(new EntitiesTableDataSource<ReferentialRef, ReferentialRefFilter>(ReferentialRef,
-      this.referentialRefService,
-      null,
-      {
-        prependNewElements: false,
-        suppressErrors: environment.production
-      }));
+
+    //Referential<T extends Referential<any> = Referential<any>, O extends ReferentialAsObjectOptions = ReferentialAsObjectOptions>
+    // this.table.setDatasource(new EntitiesTableDataSource<ReferentialRef, ReferentialFilter>(/*this.dataType*/Referential,
+    this.table.setDatasource(this.datasource);
     this.table.filter = this.filter;
+
+    //this.table.setDatasource(new EntitiesTableDataSource<ReferentialRef, ReferentialFilter>(ReferentialRef,
+    //   this.referentialRefService,
+    //   null,
+    //   {
+    //     prependNewElements: false,
+    //     suppressErrors: environment.production
+    //   }));
+
+    // this.table.setDatasource(new EntitiesTableDataSource<T, F>(this.dataType,
+    //   this.referentialRefService,
+    //   null,
+    //   {
+    //         prependNewElements: false,
+    //         suppressErrors: environment.production
+    //       }));
+    // this.table.filter = this.filter;
 
     // Compute title
     this.$title.next('REFERENTIAL.ENTITY.' + changeCaseToUnderscore(this.filter.entityName).toUpperCase());

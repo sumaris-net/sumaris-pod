@@ -1,14 +1,16 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {DefaultStatusList, ReferentialRef} from "../../core/services/model/referential.model";
+import {DefaultStatusList} from "../../core/services/model/referential.model";
 import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {debounceTime, filter} from "rxjs/operators";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {environment} from "../../../environments/environment";
+import {Entity} from "../../core/services/model/entity.model";
+import {ReferentialFilter} from "../services/referential.service";
 
 
 @Component({
@@ -17,7 +19,8 @@ import {environment} from "../../../environments/environment";
   styleUrls: ['./referential-ref.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ReferentialRefTable extends AppTable<ReferentialRef, ReferentialRefFilter> {
+// export class ReferentialRefTable extends AppTable<ReferentialRef, ReferentialRefFilter> {
+export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilter> extends AppTable<T, F> {
 
   statusList = DefaultStatusList;
   statusById: any;

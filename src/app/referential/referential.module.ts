@@ -33,6 +33,8 @@ import {SamplingStrategyForm} from "./strategy/sampling/sampling-strategy.form";
 import {SamplingStrategyPage} from "./strategy/sampling/sampling-strategy.page";
 import {SamplingStrategiesTable} from "./strategy/sampling/sampling-strategies.table";
 import {SimpleReferentialTable} from "./list/referential-simple.table";
+import {PmfmRefTable} from "./pmfm/pmfm-ref.table";
+import {SelectPmfmModal} from "./pmfm/select-pmfm.modal";
 
 @NgModule({
   imports: [
@@ -75,7 +77,9 @@ import {SimpleReferentialTable} from "./list/referential-simple.table";
     ReferentialRefTable,
     SelectReferentialModal,
     PmfmFormField,
-    PmfmQvFormField
+    PmfmQvFormField,
+    PmfmRefTable,
+    SelectPmfmModal
   ],
   exports: [
     TranslateModule,
@@ -106,7 +110,9 @@ import {SimpleReferentialTable} from "./list/referential-simple.table";
     ReferentialRefTable,
     SelectReferentialModal,
     PmfmFormField,
-    PmfmQvFormField
+    PmfmQvFormField,
+    PmfmRefTable,
+    SelectPmfmModal
   ]
 })
 export class ReferentialModule {
