@@ -154,6 +154,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   @Output() onBeforeDeleteRows = createPromiseEventEmitter<boolean, {rows: TableElement<T>[]}>();
 
+  @Output() onDeletedRows = new EventEmitter<TableElement<T>[]>();
+
   @Output()
   get dirty(): boolean {
     return this._dirty;
@@ -578,9 +580,12 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       // If edit finished, forget edited row
       if (row === this.editedRow) {
         this.editedRow = undefined; // unselect row
-        this.onConfirmEditCreateRow.next(row);
+      }
+      if (row.validator && row.validator.dirty) {
+        // Mark table as dirty only if row is dirty
         this.markAsDirty();
       }
+      this.onConfirmEditCreateRow.next(row);
     }
     return true;
   }
@@ -719,6 +724,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       this.editedRow = undefined;
       this.markAsDirty({emitEvent: false /*markForCheck() is called just after*/});
       this.markForCheck();
+      this.onDeletedRows.next(rowsToDelete);
       return deleteCount;
     } catch (err) {
       this.error = err && err.message || err;
@@ -740,7 +746,6 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
     this.editedRow = row;
     this.onStartEditingRow.emit(row);
-    this._dirty = true;
     return true;
   }
 
@@ -955,10 +960,10 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.editedRow = this._dataSource.getRow(-1);
     // Emit start editing event
     this.onStartEditingRow.emit(this.editedRow);
-    this._dirty = true;
     this.resultsLength++;
     this.visibleRowCount++;
-    this.markForCheck();
+    this.markAsDirty();
+    this.markForCheck(); // should be unnecessary because of markAsDirty(), but still here for compatibility
     return this.editedRow;
   }
 

@@ -103,6 +103,7 @@ export * from './src/app/core/services/validator/base.validator.class';
 // Core components
 export * from './src/app/core/form/form-buttons-bar.component';
 export * from './src/app/core/form/form.class';
+export * from './src/app/core/form/list.form';
 export * from './src/app/core/form/form.utils';
 export * from './src/app/core/table/table.class';
 export * from './src/app/core/table/memory-table.class';

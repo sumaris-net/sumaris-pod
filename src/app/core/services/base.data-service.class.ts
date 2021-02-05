@@ -32,6 +32,7 @@ export interface MutableWatchQueryOptions<D, T = any, V = EmptyObject> extends W
   arrayFieldName: keyof D;
   totalFieldName?: keyof D ;
   insertFilterFn?: (data: T) => boolean;
+  sortFn?: (a: T, b: T) => number;
 }
 
 export interface MutableWatchQueryInfo<D, T = any, V = EmptyObject> {
@@ -96,6 +97,7 @@ export abstract class BaseEntityService<T = any, F = any> {
           variables: opts.variables,
           arrayFieldName: opts.arrayFieldName,
           insertFilterFn: opts.insertFilterFn,
+          sortFn: opts.sortFn,
           counter: 1
         });
       }
