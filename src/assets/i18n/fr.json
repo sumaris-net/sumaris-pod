@@ -1601,11 +1601,11 @@
       "SURVIVAL_TEST": {
         "TITLE": "Données brutes (SUMARiS v1.0)"
       },
-      "PROG": {
-        "TITLE": "Strategies de collecte",
+      "STRAT": {
+        "TITLE": "Stratégies de collecte",
         "SHEET": {
-          "ST": "Strategies",
-          "SM": "Suivi de strategie"
+          "ST": "Stratégies",
+          "SM": "Suivi de stratégies"
         }
       }
     },
