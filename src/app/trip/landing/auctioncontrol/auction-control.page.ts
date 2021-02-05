@@ -11,7 +11,6 @@ import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/re
 import {HistoryPageReference} from "../../../core/services/model/settings.model";
 import {ObservedLocation} from "../../services/model/observed-location.model";
 import {FormBuilder, FormControl, FormGroup} from "@angular/forms";
-import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {TaxonGroupLabels, TaxonGroupRef} from "../../../referential/services/model/taxon.model";
 import {filterNotNil, firstNotNilPromise} from "../../../shared/observables";
@@ -20,8 +19,6 @@ import {AppHelpModal} from "../../../shared/help/help.modal";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {Program} from "../../../referential/services/model/program.model";
 import {fadeInOutAnimation} from "../../../shared/material/material.animations";
-import {ProgramService} from "../../../referential/services/program.service";
-import {ProgramRefService} from "../../../referential/services/program-ref.service";
 
 @Component({
   selector: 'app-auction-control',

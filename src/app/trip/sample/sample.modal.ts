@@ -29,6 +29,7 @@ export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
   // UI Options
   maxVisibleButtons: number;
   enableBurstMode: boolean;
+  i18nPrefix?: string;
 
   // Callback actions
   onSaveAndNew: (data: Sample) => Promise<Sample>;
@@ -47,6 +48,7 @@ export class SampleModal implements OnInit, ISampleModalOptions {
   data: Sample;
   $title = new BehaviorSubject<string>(undefined);
 
+  @Input() i18nPrefix: string;
   @Input() acquisitionLevel: string;
   @Input() program: string;
   @Input() pmfms: Observable<PmfmStrategy[]> | PmfmStrategy[]; // Avoid to load PMFM from program

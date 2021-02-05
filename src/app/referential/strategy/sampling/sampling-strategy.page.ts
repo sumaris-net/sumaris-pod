@@ -175,11 +175,10 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
   fillPmfmStrategyDefaults(data: Strategy) {
     data.pmfmStrategies = data.pmfmStrategies || [];
 
-    // Find existing pmfm
+    // Find existing strategy label pmfm and create if not exists
     let pmfmStrategyLabel: PmfmStrategy = data.pmfmStrategies.find(pmfm =>
       toNumber(pmfm.pmfmId, pmfm.pmfm && pmfm.pmfm.id) === PmfmIds.STRATEGY_LABEL);
 
-    // Create if not exists
     if (!pmfmStrategyLabel) {
       console.debug(`[simple-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.STRATEGY_LABEL}} to hold the strategy label, on ${AcquisitionLevelCodes.LANDING}`);
       pmfmStrategyLabel = <PmfmStrategy>{};

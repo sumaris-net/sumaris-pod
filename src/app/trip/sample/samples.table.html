@@ -5,14 +5,14 @@
           (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="selection.hasValue() && enabled"
+  <button mat-icon-button color="light" *ngIf="selection.hasValue() && enabled"
           [title]="'COMMON.BTN_DELETE'|translate"
           (click)="deleteSelection($event)">
     <mat-icon>delete</mat-icon>
   </button>
 
   <!-- refresh (debug only) -->
-  <button mat-icon-button small color="light" *ngIf="debug && !selection.hasValue()"
+  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()"
           [title]="'COMMON.BTN_REFRESH'|translate"
           (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
@@ -71,13 +71,13 @@
   <!-- Label column -->
   <ng-container matColumnDef="label" >
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>{{i18nFieldPrefix + 'LABEL'}}</ion-label>
+      <ion-label>{{i18nColumnPrefix + 'LABEL' | translate}}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <mat-form-field floatLabel="never">
         <input matInput autocomplete="off"
                [formControl]="row.validator.controls.label"
-               [placeholder]="i18nFieldPrefix + 'LABEL_PLACEHOLDER'|translate"
+               [placeholder]="i18nColumnPrefix + 'LABEL_PLACEHOLDER'|translate"
                (click)="selectInputContent($event)">
         <mat-error *ngIf="row.validator.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
         </mat-error>
@@ -123,11 +123,11 @@
   <!-- Date -->
   <ng-container matColumnDef="sampleDate">
     <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-      <ion-label translate>TRIP.SAMPLE.TABLE.SAMPLE_DATE</ion-label>
+      <ion-label>{{i18nColumnPrefix + 'SAMPLE_DATE' | translate}}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" class="mat-cell-date-time">
       <mat-date-time-field floatLabel="never" [formControl]="row.validator.controls.sampleDate"
-                           [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
+                           [placeholder]="i18nColumnPrefix + 'SAMPLE_DATE_PLACEHOLDER'|translate"
                            [compact]="true" [readonly]="!row.editing" [required]="true"></mat-date-time-field>
     </mat-cell>
   </ng-container>
@@ -156,7 +156,7 @@
       <mat-form-field *ngIf="row.editing; else readonlyComment"
                       floatLabel="never">
         <input matInput [formControl]="row.validator.controls.comments"
-               [placeholder]="i18nFieldPrefix + 'COMMENTS_PLACEHOLDER'|translate">
+               [placeholder]="i18nColumnPrefix + 'COMMENTS_PLACEHOLDER'|translate">
       </mat-form-field>
       <ng-template #readonlyComment>
         <mat-icon *ngIf="row.currentData.comments"
@@ -203,8 +203,6 @@
            (click)="clickRow($event, row)"></mat-row>
 </mat-table>
 
-
-
 <!-- readonly table (e.g. for mobile) -->
 <ng-template #readonly>
   <mat-table [dataSource]="dataSource"
@@ -238,7 +236,7 @@
     <!-- label Column -->
     <ng-container matColumnDef="label">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <ion-label translate>TRIP.SAMPLE.TABLE.LABEL</ion-label>
+        <ion-label>{{i18nColumnPrefix + 'LABEL'|translate}}</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <ion-text>{{row.currentData.label}}</ion-text>
@@ -293,7 +291,7 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row" >
         <mat-icon class="comment"
-                  *ngIf="row.currentData.comments"
+                  *ngIf="row.currentData.comments | isNotNilOrBlank"
                   [title]="row.currentData.comments">chat_bubble</mat-icon>
       </mat-cell>
     </ng-container>

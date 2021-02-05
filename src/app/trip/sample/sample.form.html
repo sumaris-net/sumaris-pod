@@ -16,7 +16,7 @@
                  formControlName="label"
                  [appAutofocus]="enabled &&  focusFieldName === 'label'"
                  [tabindex]="tabindex"
-                 [placeholder]="'TRIP.SAMPLE.TABLE.LABEL_PLACEHOLDER'|translate"
+                 [placeholder]="i18nPrefix + 'LABEL_PLACEHOLDER'|translate"
                  (click)="selectInputContent($event)"
                  [required]="showLabel">
           <mat-error *ngIf="form.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
@@ -28,7 +28,7 @@
       </ion-col>
       <ion-col *ngIf="showSampleDate" size="6">
         <mat-date-time-field formControlName="sampleDate"
-                             [placeholder]="'TRIP.SAMPLE.EDIT.DATE_TIME'|translate"
+                             [placeholder]="i18nPrefix + 'DATE_TIME_PLACEHOLDER'|translate"
                              [tabindex]="tabindex+1"
                              [required]="usageMode|isNotOnField"
                              [clearable]="usageMode|isOnField">
@@ -44,7 +44,7 @@
                [hidden]="!showTaxonGroup">
         <mat-autocomplete-field formControlName="taxonGroup"
                                 [appAutofocus]="enabled && focusFieldName === 'taxonGroup'"
-                                [placeholder]="'TRIP.SAMPLE.EDIT.TAXON_GROUP'|translate"
+                                [placeholder]="i18nPrefix + 'TAXON_GROUP_PLACEHOLDER'|translate"
                                 [tabindex]="tabindex+2"
                                 [required]="showTaxonGroup"
                                 [config]="autocompleteFields.taxonGroup">
@@ -57,7 +57,7 @@
                *ngIf="showTaxonName">
         <mat-autocomplete-field formControlName="taxonName"
                                 [appAutofocus]="enabled && focusFieldName === 'taxonName'"
-                                [placeholder]="'TRIP.SAMPLE.EDIT.TAXON_NAME'|translate"
+                                [placeholder]="i18nPrefix + 'TAXON_NAME_PLACEHOLDER'|translate"
                                 [tabindex]="tabindex+3"
                                 [required]="showTaxonName"
                                 [config]="autocompleteFields.taxonName">

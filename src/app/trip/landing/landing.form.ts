@@ -192,7 +192,17 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           // DEBUG
           //tap(strategyLabel => console.debug('[landing-form] Sending strategy label: ' + strategyLabel))
         )
-        .subscribe(strategyLabel => this.strategyLabel = strategyLabel));
+        .subscribe( async (strategyLabel) => {
+          this.strategyLabel = strategyLabel;
+
+          await this.ready();
+
+          // Propagate to measurement values
+          const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
+          if (measControl && measControl.value !== strategyLabel) {
+            measControl.setValue(strategyLabel);
+          }
+        }));
   }
 
   async safeSetValue(data: Landing, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }) {
@@ -234,6 +244,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       data.measurementValues = data.measurementValues || {};
       data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()] = strategyLabel;
     }
+
+    // DEBUG
+    //console.debug('[landing-form] DEV Get getValue() result:', data);
 
     return data;
   }
@@ -279,8 +292,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   /* -- protected method -- */
 
-  protected setProgram(program: string) {
-    super.setProgram(program);
+  protected setProgramLabel(program: string) {
+    super.setProgramLabel(program);
 
     // Update the strategy filter (if autocomplete field exists. If not, program will set later in ngOnInit())
     if (this.autocompleteFields.strategy) {

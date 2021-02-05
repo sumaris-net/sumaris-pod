@@ -132,7 +132,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.setShowColumn('defaultValue', value);
 
     // Inverse visibility of the parameter columns
-    this.setShowColumn('parameterId', !value);
+    this.setShowColumn('parameter', !value);
 
   }
 
@@ -177,7 +177,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           'acquisitionLevel',
           'rankOrder',
           'pmfm',
-          'parameterId',
+          'parameter',
           'isMandatory',
           'acquisitionNumber',
           'minValue',
@@ -307,10 +307,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     // PMFM.PARAMETER
     const pmfmParameterAttributes = ['label', 'name'];
-    this.registerFormField('parameterId', {
+    this.registerFormField('parameter', {
       type: 'entity',
       required: false,
-      autocomplete: this.registerAutocompleteField('parameterId', {
+      autocomplete: this.registerAutocompleteField('parameter', {
         items: this.$pmfms
         .pipe(
           filter(isNotNil),
@@ -319,7 +319,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           })
         ),
         attributes: pmfmParameterAttributes,
-        displayWith: (obj) => this.displayParameter(obj),
+        // displayWith: (obj) => this.displayParameter(obj),
         columnSizes: [4, 8],
         columnNames: ['REFERENTIAL.PARAMETER.CODE', 'REFERENTIAL.PARAMETER.NAME'],
         showAllOnFocus: false,
@@ -606,12 +606,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     const parameterId = (obj instanceof Referential) ? obj.id : obj as number;
     const pmfm = (this.$pmfms.getValue() || []).find(pmfm => pmfm.parameter?.id === parameterId);
     return pmfm && pmfm.parameter && pmfm.parameter.name || '';
-  }
-
-  displayMethod(obj: number|ReferentialRef) {
-    const methodId = (obj instanceof ReferentialRef) ? obj.id : obj as number;
-    const pmfm = (this.$pmfms.getValue() || []).find(pmfm => pmfm.method?.id === methodId);
-    return pmfm && pmfm.method && pmfm.method.name || "";
   }
 
   async deleteRow(event: UIEvent, row: TableElement<PmfmStrategy>) {

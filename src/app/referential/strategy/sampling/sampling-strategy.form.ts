@@ -25,7 +25,7 @@ import {PmfmStrategiesTable} from "../pmfm-strategies.table";
 import {
   AcquisitionLevelCodes,
   LocationLevelIds,
-  ParameterLabelGroups,
+  ParameterLabelGroups, PmfmIds,
   ProgramPrivilegeIds
 } from '../../services/model/model.enum';
 import {AppForm} from "../../../core/form/form.class";
@@ -50,6 +50,7 @@ import {PmfmService} from "../../services/pmfm.service";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {MatAutocompleteField} from "../../../shared/material/autocomplete/material.autocomplete";
 import { ObjectMap } from 'src/app/shared/types';
+import { SamplingStrategy } from '../../services/model/sampling-strategy.model';
 
 const moment = momentImported;
 
@@ -64,6 +65,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   mobile: boolean;
   $program = new BehaviorSubject<Program>(null);
   labelMask: (string | RegExp)[];
+
+  hasEffort = false;
 
   taxonNamesHelper: FormArrayHelper<TaxonNameStrategy>;
   departmentsHelper: FormArrayHelper<StrategyDepartment>;
@@ -150,7 +153,20 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.mobile = this.settings.mobile;
   }
 
-
+  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    super.enable(opts);
+    if (this.hasEffort) {
+      this.weightPmfmStrategiesTable.disable();
+      this.lengthPmfmStrategiesTable.disable();
+      this.maturityPmfmStrategiesTable.disable();
+      this.taxonNamesFormArray.disable();
+      this.form.get('analyticReference').disable();
+      this.form.get('year').disable();
+      this.form.get('label').disable();
+      this.form.get('age').disable();
+      this.form.get('sex').disable();
+    }
+  };
 
   ngOnInit() {
     super.ngOnInit();
@@ -177,10 +193,24 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.form.addControl('sex', new FormControl());
     this.form.addControl('age', new FormControl());
 
+    this.form.get('appliedPeriods').setAsyncValidators([
+      async (control) => {
+        const minLength = 1;
+        const appliedPeriods = control.value;
+        if (!isEmptyArray(appliedPeriods)) {
+          const values = appliedPeriods.filter(appliedPeriod => toNumber(appliedPeriod.acquisitionNumber, 0) >= 1);
+          if (!isEmptyArray(values) && values.length >= minLength) {
+            SharedValidators.clearError(control, 'minLength');
+            return null;
+          }
+        }
+        return <ValidationErrors>{ minLength: {minLength} };
+      }
+    ]);
+
     this.form.get('pmfmStrategies').setAsyncValidators([
       //Check if WEIGHT or LENGTH
       async (control) => {
-        console.log(control);
           const pmfms = control.value.flat();
           if (!isEmptyArray(pmfms)) {
             const pmfmGroups = await firstNotNilPromise(this._$pmfmGroups);
@@ -277,7 +307,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // eotp combo -------------------------------------------------------------------
     this.registerAutocompleteField('analyticReference', {
       suggestFn: (value, filter) => this.suggestAnalyticReferences(value, {
-        ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY] // TODO BLA why disable ??
+        ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }),
       columnSizes: [4, 6],
       mobile: this.settings.mobile
@@ -445,8 +475,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * Suggest autocomplete values
    * @param value
    * @param filter - filters to apply
-   * @param entityName - referential to request
-   * @param filtered - boolean telling if we load prefilled data
    */
   protected async suggestLocations(value: string, filter: any): Promise<IReferentialRef[]> {
     if (this.autocompleteFilters.location) {
@@ -478,8 +506,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * Suggest autocomplete values, for age fraction
    * @param value
    * @param filter - filters to apply
-   * @param entityName - referential to request
-   * @param filtered - boolean telling if we load prefilled data
    */
   protected async suggestAgeFractions(value: string, filter: any): Promise<IReferentialRef[]> {
     if (this.autocompleteFilters.fraction) {
@@ -496,8 +522,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * Suggest autocomplete values
    * @param value
    * @param filter - filters to apply
-   * @param entityName - referential to request
-   * @param filtered - boolean telling if we load prefilled data
    */
   protected async suggestDepartments(value: string, filter: any): Promise<IReferentialRef[]> {
     if (this.autocompleteFilters.department) {
@@ -526,6 +550,13 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   setValue(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     console.debug("[sampling-strategy-form] Setting Strategy value", data);
     if (!data) return;
+
+    const samplingStrategy = new SamplingStrategy();
+    samplingStrategy.fromObject(data);
+    this.samplingStrategyService.hasEffort(samplingStrategy).then((hasEffort) => {
+      this.hasEffort = hasEffort;
+      this.enable();
+    });
 
     // Resize strategy department array
     this.departmentsHelper.resize(Math.max(1, data.departments.length));
@@ -573,7 +604,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     const period = appliedPeriods[0];
     this.form.get('year').patchValue(period ? period.startDate : moment());
 
-    // fixme get eotp from referential by label = data.analyticReference
     this.form.patchValue({
       analyticReference: { label: data.analyticReference }
     });
@@ -678,7 +708,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
           return p;
         });
     }
-    json.appliedStrategies = appliedStrategy ? [appliedStrategy] : [];
+    if (appliedStrategy) {
+      json.appliedStrategies[0] = appliedStrategy;
+    }
+    // json.appliedStrategies = appliedStrategy ? [appliedStrategy] : [];
 
     // PMFM + Fractions -------------------------------------------------------------------------------------------------
     const sex = this.form.get('sex').value;
@@ -723,6 +756,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
           pmfmStrategies.push(pmfmStrategiesFraction);
         });
     }
+
+    // Add analytic reference pmfm strategy
+    const pmfmStrategyAnalyticReference = <PmfmStrategy>{
+      pmfmId: PmfmIds.MORSE_CODE
+    };
+    pmfmStrategies.push(pmfmStrategyAnalyticReference);
 
     let rankOrder = 1;
     json.pmfmStrategies = pmfmStrategies
@@ -808,11 +847,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
-        allowEmptyArray: false,
-        validators: [
-          // this.requiredPmfmMinLength(2),
-          // this.requiredWeightOrSize()
-        ]
+        allowEmptyArray: false
       }
     );
     // Create at least one fishing Area
@@ -858,7 +893,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       {
         allowEmptyArray: false,
         validators: [
-          this.requiredPeriodMinLength(1)
+          // this.requiredPeriodMinLength(1)
         ]
       }
     );
@@ -913,23 +948,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     if (this.cd) this.cd.markForCheck();
   }
 
-  requiredPmfmMinLength(minLength?: number): ValidatorFn {
-    minLength = minLength || 2;
-    return (array: FormArray): ValidationErrors | null => {
-      //Check if sex parameter check
-      const data = array.value;
-      if (data[0] === false) {
-        // Sex = false => remove maturity
-        data[4] = [];
-      }
-      const values = data.flat().filter(pmfm => pmfm && pmfm !== false);
-      if (!values || values.length < minLength) {
-        return { minLength: { minLength: minLength } };
-      }
-      return null;
-    };
-  }
-
   requiredPeriodMinLength(minLength?: number): ValidatorFn {
     minLength = minLength || 1;
     return (array: FormArray): ValidationErrors | null => {
@@ -951,8 +969,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   /**
-   * get pmfm
-   * @param label
+   * get pmfms
+   * @param parameterLabels
    * @protected
    */
   protected async getPmfmsByParameterLabels(parameterLabels: string[]) {
@@ -973,6 +991,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * get pmfm by type
    * @param pmfmStrategies
    * @param pmfmGroups
+   * @param type
    * @protected
    */
   protected getPmfmsByType(pmfmStrategies: PmfmStrategy[], pmfmGroups: number[], type: any) {

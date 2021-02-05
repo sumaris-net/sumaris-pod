@@ -54,7 +54,7 @@ export class PmfmStrategyValidatorService implements ValidatorService {
       controlsConfig.method = [data && data.pmfm.method || null];
       
       // controlsConfig.pmfm = [data && data.pmfm || null, SharedValidators.entity];
-      controlsConfig.parameterId = [data && data.parameterId || null];
+      controlsConfig.parameter = [data && data.parameter || null];
       controlsConfig.matrixId = [data && data.matrixId || null];
       controlsConfig.fractionId = [data && data.fractionId || null];
       controlsConfig.methodId = [data && data.methodId || null];
@@ -86,7 +86,7 @@ export class PmfmStrategyValidatorService implements ValidatorService {
       return {
         validator: (fg: FormGroup) => {
           const pmfm = fg.get('pmfm').value;
-          const parameter = fg.get('parameterId').value;
+          const parameter = fg.get('parameter').value;
           if ((pmfm && !parameter) || (!pmfm && parameter)) {
             return null;
           }

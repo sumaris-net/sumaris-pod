@@ -18,6 +18,8 @@ import {AppFormUtils} from "../../core/form/form.utils";
 import {environment} from "../../../environments/environment";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 
+const SAMPLE_FORM_DEFAULT_I18N_PREFIX = "TRIP.SAMPLE.TABLE.";
+
 @Component({
   selector: 'app-sample-form',
   templateUrl: 'sample.form.html',
@@ -29,6 +31,7 @@ export class SampleForm extends MeasurementValuesForm<Sample>
 
   focusFieldName: string;
 
+  @Input() i18nPrefix = SAMPLE_FORM_DEFAULT_I18N_PREFIX;
   @Input() mobile: boolean;
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
