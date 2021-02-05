@@ -126,6 +126,9 @@ export class AppFormField implements OnInit, ControlValueAccessor {
     }
     else if (this.type === 'date') {
       obj = toDateISOString(obj);
+    } 
+    else if (this.type === 'entity' && typeof obj === "string") {
+      obj = null;
     }
     if (obj !== this.formControl.value) {
       //console.debug("Set config value ", this.formControl.value, obj);

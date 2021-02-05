@@ -157,7 +157,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.weightPmfmStrategiesTable.disable();
       this.lengthPmfmStrategiesTable.disable();
       this.maturityPmfmStrategiesTable.disable();
-      this.pmfmStrategiesFractionForm.disable();
       this.taxonNamesFormArray.disable();
       this.form.get('analyticReference').disable();
       this.form.get('year').disable();
@@ -306,7 +305,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // eotp combo -------------------------------------------------------------------
     this.registerAutocompleteField('analyticReference', {
       suggestFn: (value, filter) => this.suggestAnalyticReferences(value, {
-        ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY] // TODO BLA why disable ??
+        ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }),
       columnSizes: [4, 6],
       mobile: this.settings.mobile
@@ -474,8 +473,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * Suggest autocomplete values
    * @param value
    * @param filter - filters to apply
-   * @param entityName - referential to request
-   * @param filtered - boolean telling if we load prefilled data
    */
   protected async suggestLocations(value: string, filter: any): Promise<IReferentialRef[]> {
     if (this.autocompleteFilters.location) {
@@ -507,8 +504,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * Suggest autocomplete values, for age fraction
    * @param value
    * @param filter - filters to apply
-   * @param entityName - referential to request
-   * @param filtered - boolean telling if we load prefilled data
    */
   protected async suggestAgeFractions(value: string, filter: any): Promise<IReferentialRef[]> {
     if (this.autocompleteFilters.fraction) {
@@ -525,8 +520,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * Suggest autocomplete values
    * @param value
    * @param filter - filters to apply
-   * @param entityName - referential to request
-   * @param filtered - boolean telling if we load prefilled data
    */
   protected async suggestDepartments(value: string, filter: any): Promise<IReferentialRef[]> {
     if (this.autocompleteFilters.department) {
@@ -609,7 +602,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     const period = appliedPeriods[0];
     this.form.get('year').patchValue(period ? period.startDate : moment());
 
-    // fixme get eotp from referential by label = data.analyticReference
     this.form.patchValue({
       analyticReference: { label: data.analyticReference }
     });
@@ -975,8 +967,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   /**
-   * get pmfm
-   * @param label
+   * get pmfms
+   * @param parameterLabels
    * @protected
    */
   protected async getPmfmsByParameterLabels(parameterLabels: string[]) {
@@ -997,6 +989,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * get pmfm by type
    * @param pmfmStrategies
    * @param pmfmGroups
+   * @param type
    * @protected
    */
   protected getPmfmsByType(pmfmStrategies: PmfmStrategy[], pmfmGroups: number[], type: any) {
