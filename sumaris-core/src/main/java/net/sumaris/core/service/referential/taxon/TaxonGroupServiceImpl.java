@@ -46,8 +46,6 @@ import java.util.List;
 @Slf4j
 public class TaxonGroupServiceImpl implements TaxonGroupService {
 
-    private static final Logger log = LoggerFactory.getLogger(TaxonGroupServiceImpl.class);
-
     @Autowired
     protected SumarisConfiguration configuration;
 
