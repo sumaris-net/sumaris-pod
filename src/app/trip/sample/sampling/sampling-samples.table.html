@@ -114,13 +114,12 @@
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label>{{i18nColumnPrefix + 'LABEL' | translate}}</ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
+    <mat-cell *matCellDef="let row">
       <mat-form-field floatLabel="never">
         <input matInput autocomplete="off"
                [formControl]="row.validator.controls.label"
                [placeholder]="i18nColumnPrefix + 'LABEL_PLACEHOLDER'|translate"
-               (click)="selectInputContent($event)"
-               [readonly]="!row.editing">
+               (click)="selectInputContent($event)">
         <mat-error *ngIf="row.validator.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
         </mat-error>
         <!-- Need by auction control (label as an additional validator) -->
@@ -266,13 +265,16 @@
     <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
       <mat-header-cell *matHeaderCellDef
                        mat-sort-header
-                       class="mat-header-cell-pmfm"
-                       [class.mat-cell-date-time]="pmfm|isDatePmfm">
+                       class="mat-column-pmfm"
+                       [class.mat-cell-date-time]="pmfm|isDatePmfm"
+                       [class.even]="pmfm.rankOrder % 2 === 0">
         <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: true}"></ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row"
+                class="mat-column-pmfm"
                 [class.mat-cell-date-time]="pmfm|isDatePmfm"
-                [class.mat-cell-computed]="pmfm|isComputedPmfm">
+                [class.mat-cell-computed]="pmfm|isComputedPmfm"
+                [class.even]="pmfm.rankOrder % 2 === 0">
         <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.pmfmId] | pmfmValueToString: {pmfm: pmfm, html: true}"></ion-text>
       </mat-cell>
     </ng-container>

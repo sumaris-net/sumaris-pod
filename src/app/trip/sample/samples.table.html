@@ -236,7 +236,7 @@
     <!-- label Column -->
     <ng-container matColumnDef="label">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <ion-label translate>TRIP.SAMPLE.TABLE.LABEL</ion-label>
+        <ion-label>{{i18nColumnPrefix + 'LABEL'|translate}}</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <ion-text>{{row.currentData.label}}</ion-text>
@@ -291,7 +291,7 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row" >
         <mat-icon class="comment"
-                  *ngIf="row.currentData.comments"
+                  *ngIf="row.currentData.comments | isNotNilOrBlank"
                   [title]="row.currentData.comments">chat_bubble</mat-icon>
       </mat-cell>
     </ng-container>
