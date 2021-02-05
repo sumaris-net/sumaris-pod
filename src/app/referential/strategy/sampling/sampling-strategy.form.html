@@ -252,10 +252,9 @@
       </ion-col>
       <ion-col>
         <app-pmfm-strategies-table #weightPmfmStrategiesTable
-                                   [title]=""
-                                   [canEdit]="enabled"
-                                   [canDelete]="enabled"
-                                   [canDisplayToolbar]="false"
+                                   [canEdit]="enabled && !hasEffort"
+                                   [canDelete]="enabled && !hasEffort"
+                                   [showToolbar]="false"
                                    [showHeaderRow]="false"
                                    [showSelectColumn]="false"
                                    [showIdColumn]="false"
@@ -276,10 +275,9 @@
       </ion-col>
       <ion-col>
         <app-pmfm-strategies-table #lengthPmfmStrategiesTable
-                                   [title]=""
-                                   [canEdit]="enabled"
-                                   [canDelete]="enabled"
-                                   [canDisplayToolbar]="false"
+                                   [canEdit]="enabled && !hasEffort"
+                                   [canDelete]="enabled && !hasEffort"
+                                   [showToolbar]="false"
                                    [showHeaderRow]="false"
                                    [showSelectColumn]="false"
                                    [showIdColumn]="false"
@@ -313,10 +311,9 @@
       </ion-col>
       <ion-col>
         <app-pmfm-strategies-table #maturityPmfmStrategiesTable
-                                   [title]=""
-                                   [canEdit]="enabled"
-                                   [canDelete]="enabled"
-                                   [canDisplayToolbar]="false"
+                                   [canEdit]="enabled && !hasEffort"
+                                   [canDelete]="enabled && !hasEffort"
+                                   [showToolbar]="false"
                                    [showHeaderRow]="false"
                                    [showSelectColumn]="false"
                                    [showIdColumn]="false"

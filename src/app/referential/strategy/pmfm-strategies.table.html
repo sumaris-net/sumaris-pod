@@ -1,4 +1,4 @@
-<mat-toolbar *ngIf="canDisplayToolbar">
+<mat-toolbar *ngIf="showToolbar">
 
   <button mat-icon-button
           *ngIf="canEdit && !selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()"
@@ -133,14 +133,14 @@
         </button>
 
         <!-- add -->
-        <button mat-icon-button color="light" *ngIf="!row.editing || row.validator.valid"
+        <button mat-icon-button color="light" [hidden]="!canEdit" *ngIf="!row.editing || row.validator.valid"
                 [title]="'COMMON.BTN_ADD'|translate"
                 (click)="addRow()">
           <mat-icon>add</mat-icon>
         </button>
 
         <!-- delete -->
-        <button mat-icon-button color="light"
+        <button mat-icon-button color="light" [hidden]="!canDelete"
                 [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
                 (click)="deleteRow($event, row)">
           <mat-icon>close</mat-icon>
