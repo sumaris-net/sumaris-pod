@@ -20,19 +20,18 @@ import {ReferentialFilter, ReferentialService} from "./referential.service";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {ProgramFragments} from "./program.fragments";
 import {
-  BaseReferentialEntitiesQueries,
-  BaseReferentialEntityMutations,
-  BaseReferentialEntityQueries,
-  BaseReferentialService
-} from "./base-referential.service";
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlQueries
+} from "./base-entity-service.class";
 import {ProgramRefService} from "./program-ref.service";
 import {PlatformService} from "../../core/services/platform.service";
+import {BaseReferentialService} from "./base-referential-service.class";
 
 
 export class ProgramFilter extends ReferentialFilter {
 }
 
-const PROGRAM_QUERIES: BaseReferentialEntityQueries & BaseReferentialEntitiesQueries = {
+const ProgramQueries: BaseEntityGraphqlQueries = {
   // Load by id
   load: gql`query Program($id: Int, $label: String){
     data: program(id: $id, label: $label){
@@ -60,7 +59,7 @@ const PROGRAM_QUERIES: BaseReferentialEntityQueries & BaseReferentialEntitiesQue
   ${ProgramFragments.lightProgram}`
 };
 
-const PROGRAM_MUTATIONS: BaseReferentialEntityMutations = {
+const ProgramMutations: BaseEntityGraphqlMutations = {
   save: gql`mutation SaveProgram($data: ProgramVOInput!){
     data: saveProgram(program: $data){
       ...ProgramFragment
@@ -91,10 +90,10 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     protected entities: EntitiesStorage
   ) {
     super(graphql, platform, Program, {
-      queries: PROGRAM_QUERIES,
-      mutations: PROGRAM_MUTATIONS,
+      queries: ProgramQueries,
+      mutations: ProgramMutations,
       filterAsObjectFn: ProgramFilter.asPodObject,
-      createFilterFn: ProgramFilter.searchFilter
+      filterFnFactory: ProgramFilter.searchFilter
     });
     if (this._debug) console.debug('[program-service] Creating service');
   }
@@ -128,7 +127,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     const now = Date.now();
     if (this._debug) console.debug("[program-service] Watching programs using options:", variables);
 
-    const query = (!opts || opts.withTotal !== false) ? PROGRAM_QUERIES.loadAllWithTotal : PROGRAM_QUERIES.loadAll;
+    const query = (!opts || opts.withTotal !== false) ? ProgramQueries.loadAllWithTotal : ProgramQueries.loadAll;
     return this.mutableWatchQuery<LoadResult<any>>({
       queryName: (!opts || opts.withTotal !== false) ? 'LoadAllWithTotal' : 'LoadAll',
       arrayFieldName: 'data',
@@ -200,8 +199,8 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     // Online mode
     else {
       const query = opts && opts.query
-        || opts && opts.withTotal && PROGRAM_QUERIES.loadAllWithTotal
-        || PROGRAM_QUERIES.loadAll;
+        || opts && opts.withTotal && ProgramQueries.loadAllWithTotal
+        || ProgramQueries.loadAll;
       res = await this.graphql.query<LoadResult<any>>({
         query,
         variables,

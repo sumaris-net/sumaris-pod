@@ -1,7 +1,7 @@
 import {Inject, Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {BehaviorSubject, Observable} from 'rxjs';
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
 import {GraphqlService} from "../../core/graphql/graphql.service";
@@ -128,7 +128,7 @@ const DeletePersons: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class PersonService extends BaseEntityService<Person, PersonFilter>
+export class PersonService extends BaseGraphqlService<Person, PersonFilter>
   implements IEntitiesService<Person, PersonFilter>, SuggestService<Person, PersonFilter> {
 
   constructor(

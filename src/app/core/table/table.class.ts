@@ -70,8 +70,8 @@ export interface IModalDetailOptions<T = any> {
 }
 
 // @dynamic
-// tslint:disable-next-line:directive-class-suffix
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class AppTable<T extends Entity<T>, F = any>
   implements OnInit, OnDestroy, AfterViewInit, IAppForm {
 
@@ -1017,7 +1017,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  setShowColumn(columnName: string, show: boolean, opts?: { emitEvent?: boolean; }) {
+  protected setShowColumn(columnName: string, show: boolean, opts?: { emitEvent?: boolean; }) {
     if (!this.excludesColumns.includes(columnName) !== show) {
       if (!show) {
         this.excludesColumns.push(columnName);
@@ -1033,7 +1033,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  getShowColumn(columnName: string): boolean {
+  protected getShowColumn(columnName: string): boolean {
     return !this.excludesColumns.includes(columnName);
   }
 

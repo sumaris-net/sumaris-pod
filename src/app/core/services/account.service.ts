@@ -9,7 +9,7 @@ import {FetchPolicy, gql} from "@apollo/client/core";
 import {Storage} from '@ionic/storage';
 
 import {sleep} from "../../shared/functions";
-import {BaseEntityService} from "./base.data-service.class";
+import {BaseGraphqlService} from "./base-graphql-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {GraphqlService} from "../graphql/graphql.service";
 import {LocalSettingsService} from "./local-settings.service";
@@ -169,7 +169,7 @@ const UpdateSubscription: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class AccountService extends BaseEntityService {
+export class AccountService extends BaseGraphqlService {
 
   private data: AccountHolder = {
     loaded: false,

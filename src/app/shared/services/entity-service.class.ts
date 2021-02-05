@@ -47,6 +47,8 @@ export declare interface IEntityService<T, O = EntityServiceLoadOptions> {
 export declare interface EntitiesServiceWatchOptions {
   fetchPolicy?: WatchQueryFetchPolicy;
   trash?: boolean;
+  withTotal?: boolean;
+  toEntity?: boolean;
   [key: string]: any;
 }
 

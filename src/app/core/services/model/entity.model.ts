@@ -90,7 +90,7 @@ export abstract class EntityUtils {
     return !obj || obj[checkedAttribute] === null || obj[checkedAttribute] === undefined;
   }
 
-  static equals<T extends IEntity<any>|any>(o1: T, o2: T, checkAttribute: keyof T): boolean {
+  static equals<T extends IEntity<any>|any>(o1: T, o2: T, checkAttribute?: keyof T): boolean {
     return (o1 === o2) || (isNil(o1) && isNil(o2))  || (o1 && o2 && o1[checkAttribute] === o2[checkAttribute]);
   }
 

@@ -31,6 +31,7 @@ import {ReferentialModule} from "../referential/referential.module";
 import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal";
 import {DataModule} from "../data/data.module";
 import {TranslateModule} from "@ngx-translate/core";
+import {SamplesModal} from "./sample/samples.modal";
 import {SamplingLandingPage} from "./landing/sampling/sampling-landing.page";
 
 
@@ -70,7 +71,8 @@ import {SamplingLandingPage} from "./landing/sampling/sampling-landing.page";
     PacketSaleForm,
     PacketSaleModal,
     FishingAreaForm,
-    SelectVesselsModal
+    SelectVesselsModal,
+    SamplesModal
   ],
   exports: [
     // Modules

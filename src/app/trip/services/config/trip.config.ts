@@ -84,6 +84,12 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
 
   'LandingVO': <EntityStoreTypePolicy<Landing>>{
     mode: 'by-id',
+    skipNonLocalEntities: true,
+    lightFieldsExcludes: ["samples"]
+  },
+
+  'LandingHistoryVO': <EntityStoreTypePolicy<Landing>>{
+    mode: 'by-id',
     skipNonLocalEntities: false, // TODO BLA: vérifier que la prédoc hors ligne fonctionne
     lightFieldsExcludes: ["samples"]
   }

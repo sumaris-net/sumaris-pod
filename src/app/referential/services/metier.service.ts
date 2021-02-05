@@ -14,7 +14,7 @@ import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {SortDirection} from "@angular/material/sort";
 import {isNil, isNotNil} from "../../shared/functions";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {environment} from "../../../environments/environment";
 
@@ -77,7 +77,7 @@ const LoadQuery: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class MetierService extends BaseEntityService
+export class MetierService extends BaseGraphqlService
   implements SuggestService<Metier, MetierFilter> {
 
   constructor(

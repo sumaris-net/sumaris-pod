@@ -547,6 +547,8 @@ type OperationGroupVO {
   qualityFlagId: Int
   rankOrderOnPeriod: Int
   recorderDepartment: DepartmentVO
+  "Get operation group's samples"
+  samples: [SampleVO]
   trip: TripVO
   tripId: Int
   updateDate: Date
@@ -615,7 +617,6 @@ type PacketVO {
   rankOrder: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
-  saleProducts: [ProductVO]
   sampledWeights: [Float]
   updateDate: Date
   validationDate: Date
@@ -784,7 +785,6 @@ type ProductVO {
   recorderPerson: PersonVO
   sale: SaleVO
   saleId: Int
-  saleProducts: [ProductVO]
   saleType: ReferentialVO
   sizeCategoryId: Int
   subgroupCount: Float
@@ -1904,6 +1904,7 @@ input OperationGroupVOInput {
   qualityFlagId: Int
   rankOrderOnPeriod: Int
   recorderDepartment: DepartmentVOInput
+  samples: [SampleVOInput]
   trip: TripVOInput
   tripId: Int
   updateDate: Date
@@ -1963,7 +1964,6 @@ input PacketVOInput {
   rankOrder: Int
   recorderDepartment: DepartmentVOInput
   recorderPerson: PersonVOInput
-  saleProducts: [ProductVOInput]
   sampledWeights: [Float]
   updateDate: Date
   validationDate: Date
@@ -2153,7 +2153,6 @@ input ProductVOInput {
   recorderPerson: PersonVOInput
   sale: SaleVOInput
   saleId: Int
-  saleProducts: [ProductVOInput]
   saleType: ReferentialVOInput
   sizeCategoryId: Int
   subgroupCount: Float

@@ -551,6 +551,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
   measurementValues: MeasurementModelValues | MeasurementFormValues;
 
   products: Product[];
+  samples: Sample[];
   packets: Packet[];
   fishingAreas: FishingArea[];
 
@@ -563,6 +564,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
     this.measurements = [];
     this.gearMeasurements = [];
     this.products = [];
+    this.samples = [];
     this.packets = [];
     this.fishingAreas = [];
   }
@@ -594,8 +596,15 @@ export class OperationGroup extends DataEntity<OperationGroup>
       const p = product.asObject(opts);
       // Affect parent link
       p.operationId = target.id;
-      delete p.parent;
       return p;
+    }) || undefined;
+
+    // Samples
+    target.samples = this.samples && this.samples.map(sample => {
+      const s = sample.asObject({...opts, withChildren: true});
+      // Affect parent link
+      s.operationId = target.id;
+      return s;
     }) || undefined;
 
     // Packets
@@ -603,7 +612,6 @@ export class OperationGroup extends DataEntity<OperationGroup>
       const p = packet.asObject(opts);
       // Affect parent link
       p.operationId = target.id;
-      delete p.parent;
       return p;
     }) || undefined;
 
@@ -640,6 +648,14 @@ export class OperationGroup extends DataEntity<OperationGroup>
     // Affect parent
     this.products.forEach(product => {
       product.parent = this;
+      product.operationId = this.id;
+    });
+
+    // Samples
+    this.samples = source.samples && source.samples.map(source => Sample.fromObject(source, {withChildren: true})) || [];
+    // Affect parent
+    this.samples.forEach(sample => {
+      sample.operationId = this.id;
     });
 
     // Packets

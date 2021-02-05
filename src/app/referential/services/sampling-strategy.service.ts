@@ -6,7 +6,6 @@ import {CacheService} from "ionic-cache";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {BaseReferentialService} from "../services/base-referential.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {SortDirection} from "@angular/material/sort";
 import {StrategyFragments} from "../services/strategy.fragments";
@@ -22,8 +21,9 @@ import {ReferentialRefService} from "../services/referential-ref.service";
 import {mergeMap} from "rxjs/internal/operators";
 import {DateUtils} from "../../shared/dates";
 import {SamplingStrategy, StrategyEffort} from "./model/sampling-strategy.model";
+import {BaseReferentialService} from "./base-referential-service.class";
 
-const DenormalizedStrategyQueries = {
+const SamplingStrategyQueries = {
   loadAll: gql`query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...SamplingStrategyFragment
@@ -100,9 +100,9 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
   ) {
     super(graphql, platform, SamplingStrategy,
       {
-        queries: DenormalizedStrategyQueries,
+        queries: SamplingStrategyQueries,
         filterAsObjectFn: StrategyFilter.asPodObject,
-        createFilterFn: StrategyFilter.searchFilter
+        filterFnFactory: StrategyFilter.searchFilter
       });
   }
 
@@ -113,24 +113,10 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
              withEffort?: boolean;
              toEntity?: boolean;
           }): Observable<LoadResult<SamplingStrategy>> {
-    // Call classic watch all
-    return super.watchAll(offset, size, sortBy, sortDirection, filter,
-      {
-        ...opts,
-        toEntity: false // not need here
-      })
-
+    // Call normal watch all
+    return super.watchAll(offset, size, sortBy, sortDirection, filter, opts)
+      // Then fill content, using additional queries (effort, parameter groups, etc)
       .pipe(
-
-        // Convert to entities
-        map(({data, total}) => {
-          const entities = (!opts || opts.toEntity !== false)
-            ? (data || []).map(SamplingStrategy.fromObject)
-            : (data || []) as SamplingStrategy[];
-          return {data: entities, total};
-        }),
-
-        // Then fill entities (effort, parameter groups, etc)
         mergeMap(res => this.fillEntities(res, opts)
           .then(() => res)
       ));
@@ -139,18 +125,10 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
   async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: StrategyFilter,
            opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean; withEffort?: boolean; withParameterGroups?: boolean; toEntity?: boolean; }
   ): Promise<LoadResult<SamplingStrategy>> {
-    const {data, total} = await super.loadAll(offset, size, sortBy, sortDirection, filter, {
-      ...opts,
-      toEntity: false // not need here
-    });
-
-    // Convert to entities
-    const entities = (!opts || opts.toEntity !== false)
-     ? (data || []).map(SamplingStrategy.fromObject)
-     : (data || []) as SamplingStrategy[];
+    const res = await super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
 
     // Fill entities (parameter groups, effort, etc)
-    return this.fillEntities({ data: entities, total }, opts);
+    return this.fillEntities(res, opts);
   }
 
   async deleteAll(entities: SamplingStrategy[], options?: any): Promise<any> {
@@ -224,7 +202,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
     console.debug(`[denormalized-strategy-service] Loading effort of ${entities.length} strategies...`);
     const {data} = await this.graphql.query<{data: { strategy: string; startDate: string; endDate: string; expectedEffort}[]}>({
-      query: DenormalizedStrategyQueries.loadEffort,
+      query: SamplingStrategyQueries.loadEffort,
       variables: {
         extractionType: "strat",
         viewSheetName: "SM",

@@ -11,7 +11,6 @@ import {
 } from '@angular/core';
 
 import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
-import * as moment from "moment";
 import {LandingForm} from "./landing.form";
 import {SamplesTable} from "../sample/samples.table";
 import {UsageMode} from "../../core/services/model/settings.model";
@@ -42,6 +41,9 @@ import {merge, Subscription} from "rxjs";
 import {Strategy} from "../../referential/services/model/strategy.model";
 import {firstNotNilPromise} from "../../shared/observables";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import * as momentImported from "moment";
+
+const moment = momentImported;
 
 const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
