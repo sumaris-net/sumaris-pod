@@ -27,6 +27,7 @@ export class PmfmRefTable extends ReferentialRefTable<any, any> {
     protected cd: ChangeDetectorRef,
   ) {
     super(injector, referentialRefService, formBuilder, cd);
+    console.log('TODO CLT PmfmRefTable constructor');
     // super(injector, new ReferentialRefService, formBuilder, cd);
 
     this.columns = RESERVED_START_COLUMNS

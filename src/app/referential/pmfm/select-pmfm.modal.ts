@@ -13,25 +13,27 @@ import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {IEntitiesService} from "../../shared/services/entity-service.class";
 import {PmfmFilter, PmfmService} from "../services/pmfm.service";
 import {PmfmRefTable} from "./pmfm-ref.table";
+import {Pmfm} from "../services/model/pmfm.model";
 
 @Component({
   selector: 'app-select-pmfm-modal',
   templateUrl: './select-pmfm.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SelectPmfmModal extends SelectReferentialModal<any, any> implements OnInit {
+export class SelectPmfmModal extends SelectReferentialModal<Pmfm, PmfmFilter> implements OnInit {
 
   // @ViewChild(ReferentialRefTable, { static: true }) table: ReferentialRefTable;
-  @ViewChild(ReferentialRefTable, { static: true }) table: PmfmRefTable;
+  //@ViewChild(ReferentialRefTable, { static: true }) table: PmfmRefTable;
 constructor(
     protected viewCtrl: ModalController,
-    protected referentialRefService: ReferentialRefService,
+    protected pmfmService: PmfmService,
     protected cd: ChangeDetectorRef,
 ) {
-  super(viewCtrl, referentialRefService, cd);
+  super(viewCtrl, null, cd);
+  console.log('TODO CLT SelectPmfmModal constructor');
 
-  this.datasource = new EntitiesTableDataSource<ReferentialRef, ReferentialFilter>(/*this.dataType*/Referential,
-    this.referentialRefService,
+  this.datasource = new EntitiesTableDataSource<Pmfm, PmfmFilter>(/*this.dataType*/Pmfm,
+    this.pmfmService,
     null,
     {
       prependNewElements: false,
