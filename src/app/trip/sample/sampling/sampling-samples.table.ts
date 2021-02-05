@@ -166,10 +166,10 @@ export class SamplingSamplesTable extends SamplesTable {
     const groupedPmfmIds = Object.values(groupedPmfmIdsMap).reduce((res, pmfmIds) => res.concat(...pmfmIds), []);
 
     // Create pmfms group
-    let orderedPmfmIds: number[] = [];
-    let orderedPmfms: PmfmStrategy[] = [];
+    const orderedPmfmIds: number[] = [];
+    const orderedPmfms: PmfmStrategy[] = [];
     let groupIndex = 0;
-    const pmfmGroupColumns: GroupColumnDefinition[] = SAMPLE_PARAMETER_GROUPS.reduce((res, group) => {
+    const pmfmGroupColumns: GroupColumnDefinition[] = SAMPLE_PARAMETER_GROUPS.reduce((pmfmGroups, group) => {
       let groupPmfms: PmfmStrategy[];
       if (group === 'OTHER') {
         groupPmfms = pmfms.filter(p => !groupedPmfmIds.includes(p.pmfmId));
@@ -181,15 +181,29 @@ export class SamplingSamplesTable extends SamplesTable {
         }
       }
 
-      if (isEmptyArray(groupPmfms)) return res; // Skip group
+      if (isEmptyArray(groupPmfms)) return pmfmGroups; // Skip group
 
-      orderedPmfms = orderedPmfms.concat(groupPmfms);
+
       const groupPmfmCount = groupPmfms.length;
-      let cssClass = (++groupIndex) % 2 === 0 ? 'odd' : 'even';
+      let cssClass = (++groupIndex) % 2 === 0 ? 'even' : 'odd';
+
+
+      groupPmfms.forEach(pmfm =>  {
+        pmfm = pmfm.clone(); // Clone, to leave original PMFM unchanged
+
+        // Use rankOrder as a group index (will be used in template, to computed column class)
+        pmfm.rankOrder = groupIndex;
+
+        // Add pmfm into the final list of ordered pmfms
+        orderedPmfms.push(pmfm);
+      });
+
+      // The analytic reference has no visible header group
       if (group === 'ANALYTIC_REFERENCE') cssClass += ' hidden';
-      return res.concat(
+
+      return pmfmGroups.concat(
         ...groupPmfms.reduce((res, pmfm, index) => {
-          if (orderedPmfmIds.includes(pmfm.pmfmId)) return res; // Skip
+          if (orderedPmfmIds.includes(pmfm.pmfmId)) return res; // Skip if already proceed
           orderedPmfmIds.push(pmfm.pmfmId);
           return res.concat(<GroupColumnDefinition>{
             key: pmfm.pmfmId.toString(),

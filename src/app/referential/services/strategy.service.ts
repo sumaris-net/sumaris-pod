@@ -10,24 +10,23 @@ import {EntitiesStorage} from "../../core/services/storage/entities-storage.serv
 import {ReferentialFilter} from "./referential.service";
 import {Strategy} from "./model/strategy.model";
 import {
-  BaseReferentialEntitiesQueries,
-  BaseReferentialEntityMutations,
-  BaseReferentialEntityQueries,
-  BaseReferentialService,
-  BaseReferentialSubscriptions
-} from "./base-referential.service";
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlQueries,
+  BaseEntityGraphqlSubscriptions
+} from "./base-entity-service.class";
 import {PlatformService} from "../../core/services/platform.service";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {SortDirection} from "@angular/material/sort";
 import {ReferentialRefFilter} from "./referential-ref.service";
 import {Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {StrategyFragments} from "./strategy.fragments";
-import {firstArrayValue, isNil, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
+import {isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
 import {LoadResult} from "../../shared/services/entity-service.class";
+import {BaseReferentialService} from "./base-referential-service.class";
 
 
 export class StrategyFilter extends ReferentialFilter {
-  //entityName: 'Strategy';
+
 }
 
 const FindStrategyNextLabel: any = gql`
@@ -45,7 +44,7 @@ const LoadAllAnalyticReferencesQuery: any = gql`
   ${ReferentialFragments.referential}
 `;
 
-const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQueries & { count: any; loadAllRef: any; } = {
+const StrategyQueries: BaseEntityGraphqlQueries & { count: any; loadAllRef: any; } = {
   load: gql`query Strategy($id: Int!) {
     data: strategy(id: $id) {
       ...StrategyFragment
@@ -128,7 +127,7 @@ const StrategyQueries: BaseReferentialEntityQueries & BaseReferentialEntitiesQue
     ${ReferentialFragments.taxonName}`
 };
 
-const StrategyMutations: BaseReferentialEntityMutations = {
+const StrategyMutations: BaseEntityGraphqlMutations = {
   save: gql`mutation SaveStrategy($data: StrategyVOInput!){
     data: saveStrategy(strategy: $data){
       ...StrategyFragment
@@ -152,7 +151,7 @@ const StrategyMutations: BaseReferentialEntityMutations = {
   }`,
 };
 
-const strategySubscriptions: BaseReferentialSubscriptions = {
+const strategySubscriptions: BaseEntityGraphqlSubscriptions = {
   listenChanges: gql`subscription UpdateReferential($entityName: String!, $id: Int!, $interval: Int){
     updateReferential(entityName: $entityName, id: $id, interval: $interval) {
       ...ReferentialFragment
@@ -178,7 +177,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
         mutations: StrategyMutations,
         subscriptions: strategySubscriptions,
         filterAsObjectFn: StrategyFilter.asPodObject,
-        createFilterFn: StrategyFilter.searchFilter
+        filterFnFactory: StrategyFilter.searchFilter
       });
   }
 
@@ -296,15 +295,4 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     }
   }
 
-  async suggest(value: any, filter?: StrategyFilter): Promise<Strategy[]> {
-    if (ReferentialUtils.isNotEmpty(value)) return [value];
-    value = (typeof value === "string" && value !== '*') && value || undefined;
-    const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
-      {
-        ...filter,
-        searchText: value as string
-      }
-    );
-    return res.data;
-  }
 }

@@ -8,16 +8,15 @@ import {ObjectMap} from "../../../shared/types";
 import {BiologicalSamplingValidators} from "../../services/validator/biological-sampling.validators";
 import {LandingPage} from "../landing.page";
 import {Landing} from "../../services/model/landing.model";
-import {filter, first, switchMap, tap} from "rxjs/operators";
-import {isNotNil} from "../../../shared/functions";
-import {mergeMap} from "rxjs/internal/operators";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {HistoryPageReference} from "../../../core/services/model/settings.model";
+import {fadeInOutAnimation} from "../../../shared/material/material.animations";
 
 
 @Component({
   selector: 'app-sampling-landing-page',
   templateUrl: './sampling-landing.page.html',
+  animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SamplingLandingPage extends LandingPage {
@@ -71,9 +70,6 @@ export class SamplingLandingPage extends LandingPage {
 
     await super.setValue(data);
   }
-
-
-
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
     return {

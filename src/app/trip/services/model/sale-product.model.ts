@@ -10,7 +10,7 @@ import {ObjectMap} from "../../../shared/types";
 
 export class SaleProduct extends Product {
 
-  static TYPENAME = 'SaleProductVO';
+  // static TYPENAME = 'SaleProductVO'; // fixme: This VO don't exists, keep its TYPENAME ?
 
   static fromObject(source: any): SaleProduct {
     const target = new SaleProduct();
@@ -32,7 +32,7 @@ export class SaleProduct extends Product {
 
   constructor() {
     super();
-    this.__typename = Product.TYPENAME;
+    this.__typename = undefined; //Product.TYPENAME;
     this.saleProducts = [];
     this.productIdByTaxonGroup = {};
   }
@@ -184,7 +184,7 @@ export class SaleProductUtils {
     // even a calculated ratio need to be saved
     MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.SALE_ESTIMATED_RATIO, saleProduct.ratio);
     // if (saleProduct.batchId && saleProduct.rankOrder) {
-    //   // for a packet sale, the rankOrder is stored in measurement (SIH)
+    //   // TODO for a packet sale, the rankOrder is stored in measurement (SIH)
     //   MeasurementValuesUtils.setValue(target.measurementValues, pmfms, 'SALE_RANK_ORDER', saleProduct.rankOrder);
     // }
     // add measurements for each non calculated values

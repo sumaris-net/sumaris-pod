@@ -13,9 +13,10 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {SortDirection} from "@angular/material/sort";
 import {PlatformService} from "../../core/services/platform.service";
 import {FilterFn, IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {EntityUtils} from "../../core/services/model/entity.model";
 
+// TODO BLA: move some attributes into ReferentialRefFilter
 export class ReferentialFilter<ID = number> {
   entityName?: string;
 
@@ -32,10 +33,12 @@ export class ReferentialFilter<ID = number> {
   levelLabel?: string;
   levelLabels?: string[];
 
+  // TODO BLA replace by 'searchAttributes' (s) ? (that manage 'xxx.yyy')
   searchJoin?: string; // If search is on a sub entity (e.g. Metier can search on TaxonGroup)
   searchText?: string;
   searchAttribute?: string;
 
+  // TODO BLA add 'includedIds'
   excludedIds?: number[];
 
   static isEmpty(f: ReferentialFilter|any): boolean {
@@ -177,7 +180,7 @@ export const ReferentialQueries = {
 };
 
 @Injectable({providedIn: 'root'})
-export class ReferentialService extends BaseEntityService<Referential> implements IEntitiesService<Referential, ReferentialFilter> {
+export class ReferentialService extends BaseGraphqlService<Referential> implements IEntitiesService<Referential, ReferentialFilter> {
 
   constructor(
     protected graphql: GraphqlService,

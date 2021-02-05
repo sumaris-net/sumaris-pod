@@ -1,21 +1,14 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {BehaviorSubject, defer, Observable, of} from "rxjs";
+import {BehaviorSubject, defer, Observable} from "rxjs";
 import {filter, map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {
-  EntityServiceLoadOptions,
-  FilterFn,
-  IEntitiesService,
-  IEntityService,
-  LoadResult
-} from "../../shared/services/entity-service.class";
+import {IEntitiesService, IEntityService} from "../../shared/services/entity-service.class";
 import {TaxonGroupRef, TaxonGroupTypeIds, TaxonNameRef} from "./model/taxon.model";
 import {
   firstArrayValue,
-  isNil,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
@@ -28,34 +21,21 @@ import {firstNotNilPromise} from "../../shared/observables";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {
-  IReferentialRef,
-  NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions,
-  ReferentialRef,
-  ReferentialUtils,
-  SAVE_AS_OBJECT_OPTIONS
-} from "../../core/services/model/referential.model";
+import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {Program} from "./model/program.model";
 
 import {PmfmStrategy} from "./model/pmfm-strategy.model";
 import {IWithProgramEntity} from "../../data/services/model/model.utils";
-import {SortDirection} from "@angular/material/sort";
-import {ReferentialFilter, ReferentialQueries} from "./referential.service";
+import {ReferentialFilter} from "./referential.service";
 import {StrategyFragments} from "./strategy.fragments";
 import {AcquisitionLevelCodes} from "./model/model.enum";
 import {JobUtils} from "../../shared/services/job.utils";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {
-  BaseReferentialEntitiesQueries,
-  BaseReferentialEntityQueries,
-  BaseReferentialService
-} from "./base-referential.service";
 import {ProgramFragments} from "./program.fragments";
 import {PlatformService} from "../../core/services/platform.service";
 import {ConfigService} from "../../core/services/config.service";
 import {PmfmService} from "./pmfm.service";
+import {BaseReferentialService} from "./base-referential-service.class";
 
 
 export class ProgramFilter extends ReferentialFilter {
@@ -149,7 +129,7 @@ export class ProgramRefService
       {
         queries: ProgramRefQueries,
         filterAsObjectFn: ProgramFilter.asPodObject,
-        createFilterFn: ProgramFilter.searchFilter,
+        filterFnFactory: ProgramFilter.searchFilter,
       });
   }
 
@@ -276,7 +256,7 @@ export class ProgramRefService
   /**
    * Watch program pmfms
    */
-  watchProgramPmfms(programLabel: string, options: {
+  watchProgramPmfms(programLabel: string, opts: {
     acquisitionLevel: string;
     strategyLabel?: string;
     gearId?: number;
@@ -284,14 +264,14 @@ export class ProgramRefService
     referenceTaxonId?: number;
   }, debug?: boolean): Observable<PmfmStrategy[]> {
 
-    const cacheKey = [ProgramRefCacheKeys.PMFMS, programLabel, JSON.stringify(options)].join('|');
+    const cacheKey = [ProgramRefCacheKeys.PMFMS, programLabel, JSON.stringify(opts)].join('|');
 
     return this.cache.loadFromObservable(cacheKey,
       this.watchByLabel(programLabel, {toEntity: false, debug: false}) // Watch the program
           .pipe(
             map(program => {
               // Find strategy
-              const strategy = (program && program.strategies || []).find(s => !options.strategyLabel || s.label === options.strategyLabel);
+              const strategy = (program && program.strategies || []).find(s => !opts || !opts.strategyLabel || s.label === opts.strategyLabel);
 
               const pmfmIds = []; // used to avoid duplicated pmfms
               const res = (strategy && strategy.pmfmStrategies || [])
@@ -299,14 +279,14 @@ export class ProgramRefService
                 .filter(p =>
                   pmfmIds.indexOf(p.pmfmId) === -1
                   && (
-                    !options || (
-                      (!options.acquisitionLevel || p.acquisitionLevel === options.acquisitionLevel)
+                    !opts || (
+                      (!opts.acquisitionLevel || p.acquisitionLevel === opts.acquisitionLevel)
                       // Filter on gear (if PMFM has gears = compatible with all gears)
-                      && (!options.gearId || !p.gearIds || !p.gearIds.length || p.gearIds.findIndex(id => id === options.gearId) !== -1)
+                      && (!opts.gearId || !p.gearIds || !p.gearIds.length || p.gearIds.findIndex(id => id === opts.gearId) !== -1)
                       // Filter on taxon group
-                      && (!options.taxonGroupId || !p.taxonGroupIds || !p.taxonGroupIds.length || p.taxonGroupIds.findIndex(g => g === options.taxonGroupId) !== -1)
+                      && (!opts.taxonGroupId || !p.taxonGroupIds || !p.taxonGroupIds.length || p.taxonGroupIds.findIndex(g => g === opts.taxonGroupId) !== -1)
                       // Filter on reference taxon
-                      && (!options.referenceTaxonId || !p.referenceTaxonIds || !p.referenceTaxonIds.length || p.referenceTaxonIds.findIndex(g => g === options.referenceTaxonId) !== -1)
+                      && (!opts.referenceTaxonId || !p.referenceTaxonIds || !p.referenceTaxonIds.length || p.referenceTaxonIds.findIndex(g => g === opts.referenceTaxonId) !== -1)
                       // Add to list of IDs
                       && pmfmIds.push(p.pmfmId)
                     )
@@ -315,7 +295,7 @@ export class ProgramRefService
                 // Sort on rank order
                 .sort((p1, p2) => p1.rankOrder - p2.rankOrder);
 
-              if (debug) console.debug(`[program-ref-service] PMFM for ${options.acquisitionLevel} (filtered):`, res);
+              if (debug) console.debug(`[program-ref-service] PMFM for ${opts.acquisitionLevel} (filtered):`, res);
 
               // TODO: translate name/label using translate service ?
               return res;
@@ -356,7 +336,9 @@ export class ProgramRefService
       this.watchByLabel(programLabel, {toEntity: false}) // Load the program
         .pipe(
           map(program => {
-            const strategy = (program && program.strategies || []).find(s => !opts.strategyLabel || s.label === opts.strategyLabel);
+            // Find strategy
+            const strategy = (program && program.strategies || []).find(s => !opts || !opts.strategyLabel || s.label === opts.strategyLabel);
+
             const gears = (strategy && strategy.gears || []);
             if (this._debug) console.debug(`[program-ref-service] Found ${gears.length} gears on program {${program.label}}`);
             return gears;
@@ -388,7 +370,7 @@ export class ProgramRefService
         .pipe(
           map(program => {
             // Find strategy
-            const strategy = (program && program.strategies || []).find(s => !opts.strategyLabel || s.label === opts.strategyLabel);
+            const strategy = (program && program.strategies || []).find(s => !opts || !opts.strategyLabel || s.label === opts.strategyLabel);
 
             const res = (strategy && strategy.taxonGroups || [])
 

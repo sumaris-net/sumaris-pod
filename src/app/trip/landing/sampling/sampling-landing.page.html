@@ -85,19 +85,27 @@
             </app-landing-form>
           </ion-col>
 
-          <ion-col class="ion-no-padding" size="12" size-xl="3">
+          <ion-col class="ion-no-padding" size="12" size-xl="5">
 
-            <!-- strategy summary -->
-            <app-strategy-summary-card #strategyCard
-                                       [editor]="this"
-                                       [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate">
-            </app-strategy-summary-card>
+            <ion-grid class="ion-no-padding">
+              <ion-row class="ion-no-padding">
+                <!-- strategy summary -->
+                <ion-col class="ion-no-padding">
+                  <app-strategy-summary-card #strategyCard
+                                             [editor]="this"
+                                             [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate">
+                  </app-strategy-summary-card>
+                </ion-col>
 
-            <!-- data quality -->
-            <app-entity-metadata [value]="data">
-              <app-entity-quality-form [editor]="this" *ngIf="showQualityForm">
-              </app-entity-quality-form>
-            </app-entity-metadata>
+                <!-- data quality -->
+                <ion-col class="ion-no-padding">
+                  <app-entity-metadata [value]="data">
+                    <app-entity-quality-form [editor]="this" *ngIf="showQualityForm">
+                    </app-entity-quality-form>
+                  </app-entity-metadata>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
           </ion-col>
         </ion-row>
       </ion-grid>
@@ -110,7 +118,7 @@
     <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES'|translate"
              [disabled]="oneTabMode">
       <ng-template mat-tab-label>
-        <!--<mat-icon *ngIf="!showSamplesTable">center_focus_strong</mat-icon>-->
+        <mat-icon *ngIf="showSamplesTable && !oneTabMode">center_focus_strong</mat-icon>
         <ion-label *ngIf="showSamplesTable && !oneTabMode; else skeletonText100">{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
@@ -144,7 +152,10 @@
     <mat-tab label="{{'COMMON.COMMENTS'|translate}}"
              [disabled]="!showSamplesTable || !oneTabMode">
       <ng-template mat-tab-label>
-        <mat-icon>chat_bubble</mat-icon>
+        <mat-icon color="primary" *ngIf="form.controls.comments.valueChanges | async | isNotNilOrBlank; else emptyComment">chat_bubble</mat-icon>
+        <ng-template #emptyComment>
+          <mat-icon>chat_bubble_outline</mat-icon>
+        </ng-template>
         <ion-label translate>COMMON.COMMENTS</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="form.controls.invalid"></ion-icon>
       </ng-template>
@@ -182,7 +193,7 @@
 
 <!-- FAB button -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed"
-         *ngIf="selectedTabIndex === 1 && samplesTable.defaultTaxonGroup"
+         *ngIf="showSamplesTable && ((oneTabMode && selectedTabIndex === 0) || (!oneTabMode && selectedTabIndex === 1))"
          @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">

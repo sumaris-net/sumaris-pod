@@ -11,7 +11,7 @@ import {GraphqlService} from "../../core/graphql/graphql.service";
 import {Fragments} from "../../trip/services/trip.queries";
 import {SortDirection} from "@angular/material/sort";
 import {firstNotNilPromise} from "../../shared/observables";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {environment} from "../../../environments/environment";
 
 
@@ -74,7 +74,7 @@ const GetFileQuery: any = gql`
 
 
 @Injectable({providedIn: 'root'})
-export class ExtractionService extends BaseEntityService {
+export class ExtractionService extends BaseGraphqlService {
 
   constructor(
     protected graphql: GraphqlService,

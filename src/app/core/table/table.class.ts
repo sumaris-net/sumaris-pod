@@ -70,8 +70,8 @@ export interface IModalDetailOptions<T = any> {
 }
 
 // @dynamic
-// tslint:disable-next-line:directive-class-suffix
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class AppTable<T extends Entity<T>, F = any>
   implements OnInit, OnDestroy, AfterViewInit, IAppForm {
 
@@ -154,6 +154,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   @Output() onCancelOrDeleteRow = new EventEmitter<TableElement<T>>();
 
   @Output() onBeforeDeleteRows = createPromiseEventEmitter<boolean, {rows: TableElement<T>[]}>();
+
+  @Output() onAfterDeletedRows = new EventEmitter<TableElement<T>[]>();
 
   @Output()
   get dirty(): boolean {
@@ -577,9 +579,12 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       // If edit finished, forget edited row
       if (row === this.editedRow) {
         this.editedRow = undefined; // unselect row
-        this.onConfirmEditCreateRow.next(row);
+      }
+      if (row.validator && row.validator.dirty) {
+        // Mark table as dirty only if row is dirty
         this.markAsDirty();
       }
+      this.onConfirmEditCreateRow.next(row);
     }
     return true;
   }
@@ -718,6 +723,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       this.editedRow = undefined;
       this.markAsDirty({emitEvent: false /*markForCheck() is called just after*/});
       this.markForCheck();
+      this.onAfterDeletedRows.next(rowsToDelete);
       return deleteCount;
     } catch (err) {
       this.error = err && err.message || err;
@@ -739,7 +745,6 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
     this.editedRow = row;
     this.onStartEditingRow.emit(row);
-    this._dirty = true;
     return true;
   }
 
@@ -956,9 +961,9 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.editedRow = this._dataSource.getRow(-1);
     // Emit start editing event
     this.onStartEditingRow.emit(this.editedRow);
-    this._dirty = true;
     this.resultsLength++;
     this.visibleRowCount++;
+    this.markAsDirty({emitEvent: false /*markForCheck() is called just after*/});
     this.markForCheck();
     return this.editedRow;
   }
@@ -1017,7 +1022,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  setShowColumn(columnName: string, show: boolean, opts?: { emitEvent?: boolean; }) {
+  protected setShowColumn(columnName: string, show: boolean, opts?: { emitEvent?: boolean; }) {
     if (!this.excludesColumns.includes(columnName) !== show) {
       if (!show) {
         this.excludesColumns.push(columnName);
@@ -1033,7 +1038,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  getShowColumn(columnName: string): boolean {
+  protected getShowColumn(columnName: string): boolean {
     return !this.excludesColumns.includes(columnName);
   }
 

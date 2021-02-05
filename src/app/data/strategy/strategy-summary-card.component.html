@@ -2,10 +2,10 @@
 <ion-card @fadeInAnimation *ngIf="!loading">
   <ion-card-header color="light" *ngIf="title">
     <ion-card-title (click)="open($event)" [title]="i18nPrefix+'BTN_SHOW'|translate">
-      <ion-text color="primary" >
+      <ion-label color="primary" >
         <span>{{title|translate}}</span>
         <small class="mouseover">&nbsp;<ion-icon name="eye"></ion-icon></small>
-      </ion-text>
+      </ion-label>
 
     </ion-card-title>
   </ion-card-header>

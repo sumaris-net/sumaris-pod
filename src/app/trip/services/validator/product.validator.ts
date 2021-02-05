@@ -68,7 +68,8 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
         taxonGroup: [data && data.taxonGroup || null, Validators.compose([Validators.required, SharedValidators.entity])],
         weight: [data && data.weight || '', SharedValidators.double({maxDecimals: 2})],
         individualCount: [data && data.individualCount || '', SharedValidators.integer],
-        measurementValues: this.formBuilder.group({})
+        measurementValues: this.formBuilder.group({}),
+        samples: [data && data.samples || null]
         // comments: [data && data.comments || null, Validators.maxLength(2000)]
       });
 

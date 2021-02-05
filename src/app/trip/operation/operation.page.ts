@@ -9,7 +9,7 @@ import {BehaviorSubject, Subject} from 'rxjs';
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap} from "rxjs/operators";
 import {FormGroup, Validators} from "@angular/forms";
-import * as moment from "moment";
+import * as momentImported from "moment";
 import {IndividualMonitoringSubSamplesTable} from "../sample/individualmonitoring/individual-monitoring-samples.table";
 import {Program} from "../../referential/services/model/program.model";
 import {SubSamplesTable} from "../sample/sub-samples.table";
@@ -28,6 +28,8 @@ import {EntityServiceLoadOptions} from "../../shared/services/entity-service.cla
 import {AppEntityEditor} from "../../core/form/editor.class";
 import {environment} from "../../../environments/environment";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
+
+const moment = momentImported;
 
 @Component({
   selector: 'app-operation-page',

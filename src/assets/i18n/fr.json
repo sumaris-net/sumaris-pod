@@ -651,9 +651,10 @@
       },
       "EDIT": {
         "TITLE": "Echantillon {{label}}",
-        "DATE_TIME": "Date échantillon",
-        "TAXON_GROUP": "Espèce commerciale (FAO)",
-        "TAXON_NAME": "Espèce scientifique (FAO)"
+        "LABEL_PLACEHOLDER": "Lot",
+        "DATE_TIME_PLACEHOLDER": "Date échantillon",
+        "TAXON_GROUP_PLACEHOLDER": "Espèce commerciale (FAO)",
+        "TAXON_NAME_PLACEHOLDER": "Espèce scientifique (FAO)"
       },
       "TABLE": {
         "LABEL": "Lot",
@@ -663,6 +664,7 @@
         "TAXON_NAME": "Espèce scientifique (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Code espèce",
         "SAMPLE_DATE": "Date/Heure de la mesure",
+        "SAMPLE_DATE_PLACEHOLDER": "Date/Heure",
         "PARENT": "Echantillon parent",
         "COMMENTS": "Commentaires",
         "COMMENTS_PLACEHOLDER": "Commentaires",
@@ -1233,7 +1235,7 @@
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PSFM",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Paramètre collecté (PMFM)",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
-      "VESSEL_TYPE_ENABLE": "Nouveau navire > Saisir le type de navire ?"
+      "VESSEL_TYPE_ENABLE": "Navires > Activer le type de navire ?"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Niveaux d'acquisition",

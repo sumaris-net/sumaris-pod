@@ -11,7 +11,7 @@ import {ReferentialFragments} from "./referential.fragments";
 import {map} from "rxjs/operators";
 import {ReferentialUtils, SAVE_AS_OBJECT_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {
   EntityServiceLoadOptions,
   IEntitiesService,
@@ -100,7 +100,7 @@ const PmfmCacheKeys = {
 
 // TODO BLA: étendre la class BaseReferentialService
 @Injectable({providedIn: 'root'})
-export class PmfmService extends BaseEntityService implements IEntityService<Pmfm>,
+export class PmfmService extends BaseGraphqlService implements IEntityService<Pmfm>,
   IEntitiesService<Pmfm, PmfmFilter>,
   SuggestService<Pmfm, PmfmFilter>
 {

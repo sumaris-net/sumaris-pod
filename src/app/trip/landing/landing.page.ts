@@ -11,9 +11,8 @@ import {
 } from '@angular/core';
 
 import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
-import * as moment from "moment";
 import {LandingForm} from "./landing.form";
-import {SamplesTable} from "../sample/samples.table";
+import {SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable} from "../sample/samples.table";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {LandingService} from "../services/landing.service";
@@ -42,6 +41,10 @@ import {merge, Subscription} from "rxjs";
 import {Strategy} from "../../referential/services/model/strategy.model";
 import {firstNotNilPromise} from "../../shared/observables";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import * as momentImported from "moment";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+
+const moment = momentImported;
 
 const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -52,6 +55,7 @@ export class LandingEditorOptions extends AppEditorOptions {
   selector: 'app-landing-page',
   templateUrl: './landing.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [fadeInOutAnimation],
   providers: [
     {
       provide: AppEditorOptions,
@@ -294,8 +298,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.landingForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
     this.landingForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
 
-
-
     this.samplesTable.modalOptions = {
       ...this.samplesTable.modalOptions,
       maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
@@ -309,9 +311,10 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     if (this.strategyCard) {
       this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
     }
+    this.samplesTable.i18nColumnPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX + i18nSuffix;
 
     // Applying the "one tab" mode
-    const oneTabMode = program.getPropertyAsBoolean(ProgramProperties.LANDING_ONE_TAB_ENABLE);
+    const oneTabMode = !this.mobile && program.getPropertyAsBoolean(ProgramProperties.LANDING_ONE_TAB_ENABLE);
     if (this.oneTabMode !== oneTabMode) {
       this.oneTabMode = oneTabMode;
       this.refreshTabLayout();
@@ -427,9 +430,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     }
     data.samples = this.samplesTable.value;
 
-    // Apply rank Order
-    // TODO BLA: pourquoi fixer la rankOrder à 1 ? Cela empêche de retrouver l'ordre de saisie
-    //data.samples.map(s => s.rankOrder = 1);
+    // DEBUG
+    //console.debug('[landing-page] DEV check getValue() result:', data);
 
     return data;
   }

@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {ActivatedRoute} from "@angular/router";
-import * as moment from "moment";
+import * as momentImported from "moment";
 import {HistoryPageReference} from "src/app/core/services/model/settings.model";
 import {PlatformService} from "src/app/core/services/platform.service";
 import {AccountService} from "../../../core/services/account.service";
@@ -21,6 +21,7 @@ import {ProgramService} from "../../services/program.service";
 import {AcquisitionLevelCodes, PmfmIds} from "../../services/model/model.enum";
 import {StatusIds} from "../../../core/services/model/model.enum";
 
+const moment = momentImported;
 
 @Component({
   selector: 'app-sampling-strategy-page',

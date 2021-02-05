@@ -61,7 +61,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
 
-  @Input() i18nFieldPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX;
   @Input() useSticky = false;
 
   @Input() usageMode: UsageMode;
@@ -279,6 +278,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         disabled: this.disabled,
         value: sample,
         isNew,
+        i18nPrefix: SAMPLE_TABLE_DEFAULT_I18N_PREFIX,
         usageMode: this.usageMode,
         showLabel: this.showLabelColumn,
         showDateTime: this.showDateTimeColumn,
