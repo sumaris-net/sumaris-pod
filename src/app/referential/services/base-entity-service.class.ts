@@ -51,7 +51,7 @@ export interface BaseEntityServiceOptions<
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class BaseEntityService<T extends Entity<any>,
-  F = any,
+  F = any, // TODO BLA use EntityFilter avec 'includedIds', 'excludedIds'
   Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
   M extends BaseEntityGraphqlMutations = BaseEntityGraphqlMutations,
   S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions>

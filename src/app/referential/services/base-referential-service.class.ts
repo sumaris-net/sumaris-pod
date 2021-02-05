@@ -11,8 +11,6 @@ import {PlatformService} from "../../core/services/platform.service";
 import {isNotNil} from "../../shared/functions";
 import {Directive} from "@angular/core";
 import {BaseEntityService, BaseEntityServiceOptions} from "./base-entity-service.class";
-import {Strategy} from "./model/strategy.model";
-import {StrategyFilter} from "./strategy-ref.service";
 
 
 @Directive()

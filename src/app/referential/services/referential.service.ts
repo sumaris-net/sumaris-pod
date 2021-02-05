@@ -16,6 +16,7 @@ import {FilterFn, IEntitiesService, LoadResult} from "../../shared/services/enti
 import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {EntityUtils} from "../../core/services/model/entity.model";
 
+// TODO BLA: move some attributes into ReferentialRefFilter
 export class ReferentialFilter<ID = number> {
   entityName?: string;
 
@@ -32,10 +33,12 @@ export class ReferentialFilter<ID = number> {
   levelLabel?: string;
   levelLabels?: string[];
 
+  // TODO BLA replace by 'searchAttributes' (s) ? (that manage 'xxx.yyy')
   searchJoin?: string; // If search is on a sub entity (e.g. Metier can search on TaxonGroup)
   searchText?: string;
   searchAttribute?: string;
 
+  // TODO BLA add 'includedIds'
   excludedIds?: number[];
 
   static isEmpty(f: ReferentialFilter|any): boolean {

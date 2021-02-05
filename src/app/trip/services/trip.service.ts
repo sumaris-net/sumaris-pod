@@ -550,7 +550,7 @@ export class TripService
           filter(() => !this.loading),
           map(({data, total}) => {
             const entities = (!opts || opts.toEntity !== false)
-              ? (data || []).map(Trip.fromObject)
+              ? (data || []).map((json) => this.fromObject(json))
               : (data || []) as Trip[];
 
             if (now) {
