@@ -52,7 +52,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   @Input()
   set programLabel(value: string) {
-    this.setProgram(value);
+    this.setProgramLabel(value);
   }
 
   get programLabel(): string {
@@ -65,7 +65,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   @Input()
   set strategyLabel(value: string) {
-    this.setStrategy(value);
+    this.setStrategyLabel(value);
   }
 
   @Input()
@@ -234,7 +234,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   /* -- protected methods -- */
 
-  protected setProgram(value: string) {
+  protected setProgramLabel(value: string) {
     if (isNotNil(value) && this.$programLabel.getValue() !== value) {
 
       this.$programLabel.next(value);
@@ -244,7 +244,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
-  protected setStrategy(value: string) {
+  protected setStrategyLabel(value: string) {
     if (isNotNil(value) && this.$strategyLabel.getValue() !== value) {
 
       this.$strategyLabel.next(value);

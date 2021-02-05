@@ -40,12 +40,8 @@
         text-align: center;
         margin: 0;
         width: 100%;
-
-        mat-checkbox {
-          margin-left: 5px;
-          margin-right: 5px;
-        }
       }
+
     }
   }
 
@@ -53,17 +49,37 @@
     height: 90px;
     max-height: 90px;
 
-    .mat-header-cell-pmfm:hover {
-      ion-label {
-        color: var(--ion-color-primary);
-        //text-decoration: underline;
+    .mat-header-cell.mat-column-pmfm {
+      height: 100%;
+      text-overflow: ellipsis;
+
+      &.even {
+        background-color: var(--ion-color-light, whitesmoke) !important;
+      }
+
+      &:hover {
+        mat-label,
+        ion-label {
+          color: var(--ion-color-primary);
+          //text-decoration: underline;
+        }
       }
     }
 
+    mat-label,
     ion-label {
       max-height: 90px;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+  }
+
+  .mat-row {
+
+    .mat-cell.mat-column-pmfm {
+      &.even {
+        background-color: var(--ion-color-light, whitesmoke) !important;
+      }
     }
   }
 }

@@ -54,7 +54,7 @@
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>LANDING.EDIT.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && landingForm.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && landingForm.invalid"></ion-icon>
       </ng-template>
 
       <!-- error -->
@@ -70,27 +70,28 @@
             <!-- landing form-->
             <app-landing-form #landingForm
                               [programLabel]="$programLabel|async"
+                              [i18nPrefix]="i18nPrefix"
                               [showError]="false"
                               [showComment]="!oneTabMode"
-                              [debug]="debug"
-                              (onSubmit)="save($event)">
+                              (onSubmit)="save($event)"
+                              [debug]="debug">
             </app-landing-form>
           </ion-col>
 
           <ion-col class="ion-no-padding" size="12" size-xl="3">
 
             <!-- strategy summary -->
-            <app-strategy-summary-card #strategyCard [editor]="this"
+            <app-strategy-summary-card #strategyCard
+                                       [editor]="this"
                                        [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate">
             </app-strategy-summary-card>
 
             <!-- data quality -->
             <app-entity-metadata [value]="data">
-              <app-entity-quality-form #qualityForm [editor]="this" *ngIf="showQualityForm">
+              <app-entity-quality-form [editor]="this" *ngIf="showQualityForm">
               </app-entity-quality-form>
             </app-entity-metadata>
           </ion-col>
-
         </ion-row>
       </ion-grid>
 
@@ -100,10 +101,10 @@
 
     <!-- TAB: samples -->
     <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES'|translate"
-             [disabled]="isNewData || oneTabMode">
+             [disabled]="oneTabMode">
       <ng-template mat-tab-label>
-        <mat-icon>center_focus_strong</mat-icon>
-        <ion-label>{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
+        <mat-icon *ngIf="!oneTabMode">center_focus_strong</mat-icon>
+        <ion-label *ngIf="!oneTabMode; else skeletonText100">{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
 
@@ -135,7 +136,7 @@
     <mat-tab label="{{'COMMON.COMMENTS'|translate}}"
              [disabled]="!oneTabMode">
       <ng-template mat-tab-label>
-        <mat-icon>chat_bubble</mat-icon>
+        <mat-icon>{{ (form.controls.comments.valueChanges | async | isNotNilOrBlank) ? 'chat_bubble' : 'chat_bubble_outline'}}}</mat-icon>
         <ion-label translate>COMMON.COMMENTS</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="form.controls.invalid"></ion-icon>
       </ng-template>
@@ -170,3 +171,17 @@
 
   </form-buttons-bar>
 </ion-footer>
+
+<!-- FAB button -->
+<ion-fab vertical="bottom" horizontal="end" slot="fixed"
+         *ngIf="(oneTabMode && selectedTabIndex === 0) || (!oneTabMode && selectedTabIndex === 1)"
+         @fadeInOutAnimation
+         visible-xs visible-sm visible-mobile>
+  <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>
+
+<ng-template #skeletonText100>
+  &nbsp;<ion-skeleton-text style="min-width: 100px"></ion-skeleton-text>
+</ng-template>
