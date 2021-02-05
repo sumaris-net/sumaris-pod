@@ -202,7 +202,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     const modal = await this.modalCtrl.create({
       component: SamplesModal,
       componentProps: {
-        program: this.program,
+        programLabel: this.programLabel,
         disabled: this.disabled,
         value: samples,
         defaultSampleDate: new Date(), // trick to valid sample row, should be set with correct date
