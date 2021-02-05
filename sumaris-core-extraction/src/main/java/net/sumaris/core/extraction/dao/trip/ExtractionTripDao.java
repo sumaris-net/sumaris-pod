@@ -24,7 +24,7 @@ package net.sumaris.core.extraction.dao.trip;
 
 import com.google.common.collect.Lists;
 import net.sumaris.core.extraction.dao.ExtractionDao;
-import net.sumaris.core.extraction.format.specification.RdbSpecification;
+import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterCriterionVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;

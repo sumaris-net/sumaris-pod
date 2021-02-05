@@ -23,20 +23,15 @@ package net.sumaris.core.extraction.dao.trip.rdb;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
-import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
-import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
-import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
-import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
-import net.sumaris.core.extraction.format.specification.RdbSpecification;
+import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionPmfmInfoVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;

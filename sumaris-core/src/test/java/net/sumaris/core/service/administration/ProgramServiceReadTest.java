@@ -103,7 +103,7 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
 
         List<ProgramVO> programs = service.getAll();
         Assert.assertNotNull(programs);
-        Assert.assertEquals(8, programs.size());
+        Assert.assertEquals(9, programs.size());
 
     }
 

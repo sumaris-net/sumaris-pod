@@ -20,12 +20,11 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.format.specification;
+package net.sumaris.core.extraction.specification.data.trip;
 
-/**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
- */
-public interface CostSpecification extends RdbSpecification {
-    String FORMAT = "COST";
-    String VERSION_1_4 = "1.4";
+public interface AggCostSpecification extends AggRdbSpecification {
+
+    String FORMAT = AggSpecification.FORMAT_PREFIX + CostSpecification.FORMAT;
+    String VERSION_1_4 = CostSpecification.VERSION_1_4;
+
 }

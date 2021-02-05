@@ -32,20 +32,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.*;
-import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.grouping.Grouping;
-import net.sumaris.core.model.referential.grouping.GroupingLevel;
-import net.sumaris.core.model.referential.location.LocationLevel;
-import net.sumaris.core.model.referential.metier.Metier;
-import net.sumaris.core.model.referential.pmfm.Fraction;
-import net.sumaris.core.model.referential.pmfm.Pmfm;
-import net.sumaris.core.model.referential.pmfm.QualitativeValue;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
@@ -81,79 +68,6 @@ public class ReferentialDaoImpl
     extends HibernateDaoSupport
     implements ReferentialDao {
 
-    private final Map<String, Class<? extends IReferentialEntity>> REFERENTIAL_CLASSES_BY_NAME = Maps.uniqueIndex(
-            REFERENTIAL_CLASSES,
-            Class::getSimpleName);
-
-    private final Map<String, PropertyDescriptor> levelPropertyNameMap = initLevelPropertyNameMap();
-
-    static {
-        I18n.n("sumaris.persistence.table.location");
-        I18n.n("sumaris.persistence.table.locationLevel");
-        I18n.n("sumaris.persistence.table.gear");
-        I18n.n("sumaris.persistence.table.gearLevel");
-        I18n.n("sumaris.persistence.table.parameter");
-        I18n.n("sumaris.persistence.table.userProfile");
-        I18n.n("sumaris.persistence.table.saleType");
-        I18n.n("sumaris.persistence.table.taxonGroup");
-        I18n.n("sumaris.persistence.table.taxonGroupType");
-        I18n.n("sumaris.persistence.table.taxonomicLevel");
-        I18n.n("sumaris.persistence.table.referenceTaxon");
-        I18n.n("sumaris.persistence.table.taxonName");
-        I18n.n("sumaris.persistence.table.metier");
-        I18n.n("sumaris.persistence.table.parameter");
-        I18n.n("sumaris.persistence.table.pmfm");
-        I18n.n("sumaris.persistence.table.matrix");
-        I18n.n("sumaris.persistence.table.fraction");
-        I18n.n("sumaris.persistence.table.method");
-        I18n.n("sumaris.persistence.table.unit");
-        I18n.n("sumaris.persistence.table.qualitativeValue");
-        I18n.n("sumaris.persistence.table.program");
-        I18n.n("sumaris.persistence.table.acquisitionLevel");
-        I18n.n("sumaris.persistence.table.transcribingItem");
-        I18n.n("sumaris.persistence.table.groupingClassification");
-        I18n.n("sumaris.persistence.table.groupingLevel");
-        I18n.n("sumaris.persistence.table.grouping");
-        I18n.n("sumaris.persistence.table.distanceToCoastGradient");
-        I18n.n("sumaris.persistence.table.depthGradient");
-        I18n.n("sumaris.persistence.table.nearbySpecificArea");
-        I18n.n("sumaris.persistence.table.extractionProduct");
-        I18n.n("sumaris.persistence.table.extractionProductTable");
-        I18n.n("sumaris.persistence.table.systemVersion");
-        I18n.n("sumaris.persistence.table.originItemType");
-    }
-
-    protected static Map<String, PropertyDescriptor> initLevelPropertyNameMap() {
-        Map<String, PropertyDescriptor> result = new HashMap<>();
-
-        // Detect level properties, by name
-        REFERENTIAL_CLASSES.forEach((clazz) -> {
-            PropertyDescriptor[] pds = BeanUtils.getPropertyDescriptors(clazz);
-            Arrays.stream(pds)
-                .filter(propertyDescriptor -> propertyDescriptor.getName().matches("^.*[Ll]evel([A−Z].*)?$"))
-                .findFirst()
-                .ifPresent(propertyDescriptor -> result.put(clazz.getSimpleName(), propertyDescriptor));
-        });
-
-        // Other level (not having "level" in id)
-        result.put(Pmfm.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Pmfm.class, Pmfm.Fields.PARAMETER));
-        result.put(Fraction.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Fraction.class, Fraction.Fields.MATRIX));
-        result.put(QualitativeValue.class.getSimpleName(), BeanUtils.getPropertyDescriptor(QualitativeValue.class, QualitativeValue.Fields.PARAMETER));
-        result.put(TaxonGroup.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TaxonGroup.class, TaxonGroup.Fields.TAXON_GROUP_TYPE));
-        result.put(TaxonName.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TaxonName.class, TaxonName.Fields.TAXONOMIC_LEVEL));
-        result.put(Strategy.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Strategy.class, Strategy.Fields.PROGRAM));
-        result.put(Metier.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Metier.class, Metier.Fields.GEAR));
-        result.put(GroupingLevel.class.getSimpleName(), BeanUtils.getPropertyDescriptor(GroupingLevel.class, GroupingLevel.Fields.GROUPING_CLASSIFICATION));
-        result.put(Grouping.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Grouping.class, Grouping.Fields.GROUPING_LEVEL));
-        result.put(ExtractionProductTable.class.getSimpleName(), BeanUtils.getPropertyDescriptor(ExtractionProductTable.class, ExtractionProductTable.Fields.PRODUCT));
-        result.put(LocationLevel.class.getSimpleName(), BeanUtils.getPropertyDescriptor(LocationLevel.class, LocationLevel.Fields.LOCATION_CLASSIFICATION));
-        result.put(Gear.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Gear.class, Gear.Fields.GEAR_CLASSIFICATION));
-        result.put(Program.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Program.class, Program.Fields.GEAR_CLASSIFICATION));
-        result.put(Program.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Program.class, Program.Fields.TAXON_GROUP_TYPE));
-
-        return result;
-    }
-
     protected  <T extends IReferentialEntity> Stream<T> streamByFilter(final Class<T> entityClass,
                                                                    IReferentialFilter filter,
                                                                    int offset,
@@ -181,7 +95,7 @@ public class ReferentialDaoImpl
         Preconditions.checkNotNull(entityName, "Missing entityName argument");
 
         // Get entity class from entityName
-        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+        Class<? extends IReferentialEntity> entityClass = ReferentialEntities.getEntityClass(entityName);
 
         return streamByFilter(entityClass, filter, offset, size, sortAttribute, sortDirection)
             .map(s -> toVO(entityName, s))
@@ -195,7 +109,7 @@ public class ReferentialDaoImpl
         Preconditions.checkNotNull(filter);
 
         // Get entity class from entityName
-        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+        Class<? extends IReferentialEntity> entityClass = ReferentialEntities.getEntityClass(entityName);
 
         return createCountQuery(entityClass, filter).getSingleResult();
     }
@@ -207,7 +121,7 @@ public class ReferentialDaoImpl
         Preconditions.checkNotNull(label);
 
         // Get entity class from entityName
-        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+        Class<? extends IReferentialEntity> entityClass = ReferentialEntities.getEntityClass(entityName);
 
         IReferentialEntity result = null;
         try {
@@ -237,14 +151,14 @@ public class ReferentialDaoImpl
     @Override
     @Cacheable(cacheNames = CacheNames.REFERENTIAL_TYPES)
     public List<ReferentialTypeVO> getAllTypes() {
-        return REFERENTIAL_CLASSES_BY_NAME.keySet().stream()
+        return ReferentialEntities.REFERENTIAL_CLASSES_BY_NAME.keySet().stream()
             .map(this::getTypeByEntityName)
             .collect(Collectors.toList());
     }
 
     @Override
     public ReferentialVO get(String entityName, int id) {
-        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+        Class<? extends IReferentialEntity> entityClass = ReferentialEntities.getEntityClass(entityName);
         return get(entityClass, id);
     }
 
@@ -255,25 +169,21 @@ public class ReferentialDaoImpl
 
     @Override
     public List<ReferentialVO> getAllLevels(final String entityName) {
-        Preconditions.checkNotNull(entityName, "Missing entityName argument");
 
-        PropertyDescriptor levelDescriptor = levelPropertyNameMap.get(entityName);
-        if (levelDescriptor == null) {
-            return ImmutableList.of();
-        }
-
-        String levelEntityName = levelDescriptor.getPropertyType().getSimpleName();
-        return findByFilter(levelEntityName, ReferentialFilterVO.builder().build(), 0, 1000, IItemReferentialEntity.Fields.NAME, SortDirection.ASC);
+        return ReferentialEntities.getLevelProperty(entityName)
+                .map(levelDescriptor -> {
+                    String levelEntityName = levelDescriptor.getPropertyType().getSimpleName();
+                    return findByFilter(levelEntityName, ReferentialFilterVO.builder().build(), 0, 1000, IItemReferentialEntity.Fields.NAME, SortDirection.ASC);
+                })
+                .orElseGet(ImmutableList::of);
     }
 
     @Override
     public ReferentialVO getLevelById(String entityName, int levelId) {
         Preconditions.checkNotNull(entityName, "Missing entityName argument");
 
-        PropertyDescriptor levelDescriptor = levelPropertyNameMap.get(entityName);
-        if (levelDescriptor == null) {
-            throw new DataRetrievalFailureException("Unable to find level with id=" + levelId + " for entityName=" + entityName);
-        }
+        PropertyDescriptor levelDescriptor = ReferentialEntities.getLevelProperty(entityName)
+                .orElseThrow(() -> new DataRetrievalFailureException("Unable to find level with id=" + levelId + " for entityName=" + entityName));
 
         Class<?> levelClass = levelDescriptor.getPropertyType();
         if (!IReferentialEntity.class.isAssignableFrom(levelClass)) {
@@ -321,7 +231,7 @@ public class ReferentialDaoImpl
     public void delete(final String entityName, int id) {
 
         // Get the entity class
-        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+        Class<? extends IReferentialEntity> entityClass = ReferentialEntities.getEntityClass(entityName);
 
         log.debug(String.format("Deleting %s {id=%s}...", entityName, id));
         IReferentialEntity entity = find(entityClass, id);
@@ -336,7 +246,7 @@ public class ReferentialDaoImpl
         Preconditions.checkNotNull(entityName, "Missing entityName argument");
 
         // Get entity class from entityName
-        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+        Class<? extends IReferentialEntity> entityClass = ReferentialEntities.getEntityClass(entityName);
 
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
@@ -350,7 +260,7 @@ public class ReferentialDaoImpl
         Preconditions.checkNotNull(entityName, "Missing entityName argument");
 
         // Get entity class from entityName
-        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+        Class<? extends IReferentialEntity> entityClass = ReferentialEntities.getEntityClass(entityName);
 
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
@@ -361,7 +271,7 @@ public class ReferentialDaoImpl
         // Level ids
         Predicate levelClause = null;
         ParameterExpression<Collection> levelIdsParam = builder.parameter(Collection.class);
-        PropertyDescriptor pd = levelPropertyNameMap.get(entityClass.getSimpleName());
+        PropertyDescriptor pd = ReferentialEntities.getLevelProperty(entityClass.getSimpleName()).orElse(null);
         if (pd != null && ArrayUtils.isNotEmpty(levelIds)) {
             levelClause = builder.in(entityRoot.get(pd.getName()).get(IReferentialEntity.Fields.ID)).value(levelIdsParam);
             criteriaQuery.where(levelClause);
@@ -397,7 +307,7 @@ public class ReferentialDaoImpl
         Preconditions.checkNotNull(source);
 
         // Get the entity class
-        Class<? extends IReferentialEntity> entityClass = getEntityClass(source.getEntityName());
+        Class<? extends IReferentialEntity> entityClass = ReferentialEntities.getEntityClass(source.getEntityName());
 
         EntityManager entityManager = getEntityManager();
 
@@ -455,7 +365,7 @@ public class ReferentialDaoImpl
 
         try {
             // Get entity class from entityName
-            Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+            Class<? extends IReferentialEntity> entityClass = ReferentialEntities.getEntityClass(entityName);
 
             String hql = String.format("SELECT max(%s) FROM %s",
                     IReferentialEntity.Fields.UPDATE_DATE,
@@ -469,28 +379,16 @@ public class ReferentialDaoImpl
         }
     }
 
-    public Class<? extends IReferentialEntity> getEntityClass(String entityName) {
-        Preconditions.checkNotNull(entityName);
-
-        // Get entity class from entityName
-        Class<? extends IReferentialEntity> entityClass = REFERENTIAL_CLASSES_BY_NAME.get(entityName);
-        if (entityClass == null)
-            throw new IllegalArgumentException(String.format("Referential entity [%s] not exists", entityName));
-
-        return entityClass;
-    }
-
     /* -- protected methods -- */
 
     protected ReferentialTypeVO getTypeByEntityName(final String entityName) {
 
-        ReferentialTypeVO type = new ReferentialTypeVO();
+        final ReferentialTypeVO type = new ReferentialTypeVO();
         type.setId(entityName);
 
-        PropertyDescriptor levelDescriptor = levelPropertyNameMap.get(entityName);
-        if (levelDescriptor != null) {
-            type.setLevel(levelDescriptor.getPropertyType().getSimpleName());
-        }
+        ReferentialEntities.getLevelProperty(entityName).ifPresent(levelProperty ->
+                type.setLevel(levelProperty.getPropertyType().getSimpleName()));
+
         return type;
     }
 
@@ -511,8 +409,7 @@ public class ReferentialDaoImpl
         }
 
         // Level
-        PropertyDescriptor levelDescriptor = levelPropertyNameMap.get(entityName);
-        if (levelDescriptor != null) {
+        ReferentialEntities.getLevelProperty(entityName).ifPresent(levelDescriptor -> {
             try {
                 IReferentialEntity level = (IReferentialEntity) levelDescriptor.getReadMethod().invoke(source, new Object[0]);
                 if (level != null) {
@@ -521,7 +418,7 @@ public class ReferentialDaoImpl
             } catch (Exception e) {
                 throw new SumarisTechnicalException(e);
             }
-        }
+        });
 
         // EntityName (as metadata)
         target.setEntityName(entityName);
@@ -604,13 +501,15 @@ public class ReferentialDaoImpl
     ) {
         Integer levelId = filter.getLevelId();
         Integer[] levelIds = filter.getLevelIds();
+        String levelLabel = filter.getLevelLabel();
+        String[] levelLabels = filter.getLevelLabels();
         String searchText = StringUtils.trimToNull(filter.getSearchText());
         String searchAttribute = StringUtils.trimToNull(filter.getSearchAttribute());
         Integer[] statusIds = filter.getStatusIds();
         Integer[] excludedIds = filter.getExcludedIds();
 
         // Level Ids
-        Predicate levelClause = null;
+        Predicate levelIdClause = null;
         ParameterExpression<Collection> levelIdsParam = null;
         if (ArrayUtils.isNotEmpty(levelIds)) {
             if (levelIds.length == 1) {
@@ -619,21 +518,49 @@ public class ReferentialDaoImpl
             } else {
                 levelId = null;
                 levelIdsParam = builder.parameter(Collection.class);
-                PropertyDescriptor pd = levelPropertyNameMap.get(entityClass.getSimpleName());
-                if (pd != null) {
-                    levelClause = builder.in(entityRoot.get(pd.getName()).get(IReferentialEntity.Fields.ID)).value(levelIdsParam);
+                String levelPropertyName = ReferentialEntities.getLevelPropertyName(entityClass.getSimpleName()).orElse(null);
+                if (levelPropertyName != null) {
+                    levelIdClause = builder.in(entityRoot.get(levelPropertyName).get(IReferentialEntity.Fields.ID)).value(levelIdsParam);
                 } else {
                     log.warn(String.format("Trying to request  on level, but no level found for entity {%s}", entityClass.getSimpleName()));
                 }
             }
         }
-        // Level Id
         ParameterExpression<Integer> levelIdParam = null;
         if (levelId != null) {
             levelIdParam = builder.parameter(Integer.class);
-            PropertyDescriptor pd = levelPropertyNameMap.get(entityClass.getSimpleName());
-            if (pd != null) {
-                levelClause = builder.equal(entityRoot.get(pd.getName()).get(IReferentialEntity.Fields.ID), levelIdParam);
+            String levelPropertyName = ReferentialEntities.getLevelPropertyName(entityClass.getSimpleName()).orElse(null);
+            if (levelPropertyName != null) {
+                levelIdClause = builder.equal(entityRoot.get(levelPropertyName).get(IReferentialEntity.Fields.ID), levelIdParam);
+            } else {
+                log.warn(String.format("Trying to request on level, but no level found for entity {%s}", entityClass.getSimpleName()));
+            }
+        }
+
+        // Level Labels
+        Predicate levelLabelClause = null;
+        ParameterExpression<Collection> levelLabelsParam = null;
+        if (ArrayUtils.isNotEmpty(levelLabels)) {
+            if (levelLabels.length == 1) {
+                levelLabel = levelLabels[0];
+                levelLabels = null;
+            } else {
+                levelLabel = null;
+                levelLabelsParam = builder.parameter(Collection.class);
+                String levelPropertyName = ReferentialEntities.getLevelPropertyName(entityClass.getSimpleName()).orElse(null);
+                if (levelPropertyName != null) {
+                    levelLabelClause = builder.in(entityRoot.get(levelPropertyName).get(IItemReferentialEntity.Fields.LABEL)).value(levelLabelsParam);
+                } else {
+                    log.warn(String.format("Trying to request on level, but no level found for entity {%s}", entityClass.getSimpleName()));
+                }
+            }
+        }
+        ParameterExpression<String> levelLabelParam = null;
+        if (StringUtils.isNotBlank(levelLabel)) {
+            levelLabelParam = builder.parameter(String.class);
+            String levelPropertyName = ReferentialEntities.getLevelPropertyName(entityClass.getSimpleName()).orElse(null);
+            if (levelPropertyName != null) {
+                levelLabelClause = builder.equal(entityRoot.get(levelPropertyName).get(IItemReferentialEntity.Fields.LABEL), levelLabelParam);
             } else {
                 log.warn(String.format("Trying to request  on level, but no level found for entity {%s}", entityClass.getSimpleName()));
             }
@@ -707,8 +634,11 @@ public class ReferentialDaoImpl
 
         // Compute where clause
         Expression<Boolean> whereClause = null;
-        if (levelClause != null) {
-            whereClause = levelClause;
+        if (levelIdClause != null) {
+            whereClause = levelIdClause;
+        }
+        if (levelLabelClause != null) {
+            whereClause = (whereClause == null) ? levelLabelClause : builder.and(whereClause, levelLabelClause);
         }
         if (idClause != null) {
             whereClause = (whereClause == null) ? idClause : builder.and(whereClause, idClause);
@@ -752,11 +682,18 @@ public class ReferentialDaoImpl
             typedQuery.setParameter(searchAsPrefixParam, searchTextAsPrefix);
             typedQuery.setParameter(searchAnyMatchParam, searchTextAnyMatch);
         }
-        if (levelClause != null) {
+        if (levelIdClause != null) {
             if (levelIds != null) {
                 typedQuery.setParameter(levelIdsParam, ImmutableList.copyOf(levelIds));
             } else {
                 typedQuery.setParameter(levelIdParam, levelId);
+            }
+        }
+        if (levelLabelClause != null) {
+            if (levelLabels != null) {
+                typedQuery.setParameter(levelLabelsParam, ImmutableList.copyOf(levelLabels));
+            } else {
+                typedQuery.setParameter(levelLabelParam, levelLabel);
             }
         }
         if (statusIdsClause != null) {
@@ -813,8 +750,7 @@ public class ReferentialDaoImpl
         // Level
         Integer levelID = source.getLevelId();
         if (copyIfNull || levelID != null) {
-            PropertyDescriptor levelDescriptor = levelPropertyNameMap.get(source.getEntityName());
-            if (levelDescriptor != null) {
+            ReferentialEntities.getLevelProperty(source.getEntityName()).ifPresent(levelDescriptor -> {
                 try {
                     if (levelID == null) {
                         levelDescriptor.getWriteMethod().invoke(target, new Object[]{null});
@@ -825,7 +761,7 @@ public class ReferentialDaoImpl
                 } catch (Exception e) {
                     throw new SumarisTechnicalException(e);
                 }
-            }
+            });
         }
 
         // Validity status

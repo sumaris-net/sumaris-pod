@@ -22,10 +22,12 @@ package net.sumaris.core.dao.referential;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.util.StringUtils;
@@ -33,13 +35,13 @@ import net.sumaris.core.vo.filter.IReferentialFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.beans.FeatureDescriptor;
+import java.beans.PropertyDescriptor;
+import java.util.*;
 
 public interface ReferentialSpecifications<E extends IReferentialWithStatusEntity> {
 
@@ -49,6 +51,8 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     String LABEL_PARAMETER = "label";
     String LEVEL_PARAMETER = "level";
     String LEVEL_SET_PARAMETER = "levelSet";
+    String LEVEL_LABEL_PARAMETER = "levelLabel";
+    String LEVEL_LABEL_SET_PARAMETER = "levelLabelSet";
     String SEARCH_TEXT_PARAMETER = "searchText";
     String EXCLUDED_IDS_PARAMETER = "excludedIds";
 
@@ -74,7 +78,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
                 criteriaBuilder.in(root.get(IReferentialWithStatusEntity.Fields.STATUS).get(Status.Fields.ID)).value(statusParam)
             );
         });
-        specification.addBind(STATUS_SET_PARAMETER, !ArrayUtils.isEmpty(statusIds));
+        specification.addBind(STATUS_SET_PARAMETER, ArrayUtils.isNotEmpty(statusIds));
         specification.addBind(STATUS_PARAMETER, ArrayUtils.isEmpty(statusIds) ? null : Arrays.asList(statusIds));
         return specification;
     }
@@ -91,29 +95,42 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
         return specification;
     }
 
-    default Specification<E> inLevelIds(String levelProperty, IReferentialFilter filter) {
-        Integer[] levelIds = (filter.getLevelId() != null) ? new Integer[]{filter.getLevelId()} : filter.getLevelIds();
-        return inLevelIds(levelProperty, levelIds);
+    default Specification<E> inLevelIds(Class<E> entityClass, Integer[] levelIds) {
+        return ReferentialEntities.getLevelPropertyNameByClass(entityClass).map(p -> inJoinPropertyIds(p, levelIds))
+            .orElse(null);
     }
 
-    default Specification<E> inLevelIds(String levelProperty, Integer[] levelIds) {
+    default Specification<E> inJoinPropertyIds(String joinPropertyName, Integer[] ids) {
+        // If empty: skip to avoid an unused join
+        if (ArrayUtils.isEmpty(ids)) return null;
+
         BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Collection> levelParam = criteriaBuilder.parameter(Collection.class, LEVEL_PARAMETER);
-            ParameterExpression<Boolean> levelSetParam = criteriaBuilder.parameter(Boolean.class, LEVEL_SET_PARAMETER);
-            return criteriaBuilder.or(
-                criteriaBuilder.isFalse(levelSetParam),
-                criteriaBuilder.in(root.join(levelProperty, JoinType.INNER).get(IEntity.Fields.ID)).value(levelParam)
-            );
+            return criteriaBuilder.in(root.join(joinPropertyName, JoinType.INNER).get(IEntity.Fields.ID)).value(levelParam);
         });
-        specification.addBind(LEVEL_SET_PARAMETER, !ArrayUtils.isEmpty(levelIds));
-        specification.addBind(LEVEL_PARAMETER, ArrayUtils.isEmpty(levelIds) ? null : Arrays.asList(levelIds));
+        specification.addBind(LEVEL_PARAMETER, Arrays.asList(ids));
         return specification;
+    }
+
+    default Specification<E> inLevelLabels(Class<E> entityClass, String[] levelLabels) {
+        // If empty: skip to avoid an unused join
+        if (ArrayUtils.isEmpty(levelLabels)) return null;
+
+        return ReferentialEntities.getLevelPropertyNameByClass(entityClass).map(levelPropertyName -> {
+            BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+                ParameterExpression<Collection> levelParam = criteriaBuilder.parameter(Collection.class, LEVEL_LABEL_PARAMETER);
+                return criteriaBuilder.in(root.join(levelPropertyName, JoinType.INNER).get(IItemReferentialEntity.Fields.LABEL)).value(levelParam);
+            });
+            specification.addBind(LEVEL_LABEL_PARAMETER, Arrays.asList(levelLabels));
+            return specification;
+        })
+        .orElse(null);
     }
 
     default Specification<E> searchOrJoinSearchText(IReferentialFilter filter) {
         String searchText = Daos.getEscapedSearchText(filter.getSearchText());
         String searchJoinProperty = filter.getSearchJoin() != null ? StringUtils.uncapitalize(filter.getSearchJoin()) : null;
-        if (searchJoinProperty != null) {
+        if (StringUtils.isNotBlank(searchJoinProperty)) {
             return joinSearchText(searchJoinProperty, filter.getSearchAttribute(), searchText);
         } else {
             return searchText(
@@ -152,19 +169,30 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     }
 
     default Specification<E> joinSearchText(String joinProperty, String searchAttribute, String searchText) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(joinProperty), "'joinProperty' cannot be empty");
         BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> searchTextParam = criteriaBuilder.parameter(String.class, SEARCH_TEXT_PARAMETER);
+
+            // Avoid duplication, for 'one to many' join
+            query.distinct(true);
+
+            // Get the class join, using properties
+            String[] joinProperties = joinProperty.split("[./]");
+            Join<Object, Object> join = root.join(joinProperties[0]);
+            for(int i = 1; i < joinProperties.length; i++) {
+                join = join.join(joinProperties[i]);
+            }
 
             if (StringUtils.isNotBlank(searchAttribute)) {
                 return criteriaBuilder.or(
                     criteriaBuilder.isNull(searchTextParam),
-                    criteriaBuilder.like(criteriaBuilder.upper(root.join(joinProperty).get(searchAttribute)), criteriaBuilder.upper(searchTextParam)));
+                    criteriaBuilder.like(criteriaBuilder.upper(join.get(searchAttribute)), criteriaBuilder.upper(searchTextParam)));
             }
             // Search on label+name
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(searchTextParam),
-                criteriaBuilder.like(criteriaBuilder.upper(root.join(joinProperty).get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(searchTextParam)),
-                criteriaBuilder.like(criteriaBuilder.upper(root.join(joinProperty).get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.upper(criteriaBuilder.concat("%", searchTextParam)))
+                criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(searchTextParam)),
+                criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.upper(criteriaBuilder.concat("%", searchTextParam)))
             );
         });
         specification.addBind(SEARCH_TEXT_PARAMETER, searchText);
@@ -182,4 +210,6 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
         specification.addBind(EXCLUDED_IDS_PARAMETER, Arrays.asList(excludedIds));
         return specification;
     }
+
+
 }

@@ -26,6 +26,7 @@ package net.sumaris.core.service.referential;
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -161,7 +162,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 	private void initConverters() {
 
 		// Entity->ReferentialVO converters
-		referentialDao.REFERENTIAL_CLASSES.forEach(entityClass -> {
+		ReferentialEntities.REFERENTIAL_CLASSES.forEach(entityClass -> {
 			conversionService.addConverter(entityClass, ReferentialVO.class, referentialDao::toVO);
 		});
 	}

@@ -23,13 +23,13 @@ package net.sumaris.core.extraction.service;
  */
 
 import net.sumaris.core.extraction.DatabaseResource;
-import net.sumaris.core.extraction.format.specification.Free2Specification;
-import net.sumaris.core.extraction.format.specification.SurvivalTestSpecification;
-import net.sumaris.core.extraction.vo.AggregationTypeVO;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
+import net.sumaris.core.extraction.specification.data.trip.Free2Specification;
+import net.sumaris.core.extraction.specification.data.trip.SurvivalTestSpecification;
+import net.sumaris.core.extraction.vo.AggregationTypeVO;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -50,6 +50,14 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     @Autowired
     private ExtractionService service;
 
+
+    @Test
+    public void exportStratFormat() {
+
+        // Test the Strategy format
+        File outputFile = service.executeAndDumpStrategies(LiveFormatEnum.STRAT, null);
+        unpack(outputFile, LiveFormatEnum.STRAT.getLabel());
+    }
 
     @Test
     public void exportRdbFormat() {
@@ -102,7 +110,6 @@ public class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertTrue(countLineInCsvFile(stFile) > 1);
     }
 
-
     @Test
     public void save() {
 
@@ -119,7 +126,6 @@ public class ExtractionServiceTest extends AbstractServiceTest {
 
         Assert.assertNotNull(savedType);
     }
-
 
     @Test
     public void getByFormat() {

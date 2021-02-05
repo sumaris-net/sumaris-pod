@@ -166,4 +166,8 @@ public class Sample implements IRootDataEntity<Integer>,
     @JoinColumn(name = "landing_fk")
     @ToString.Exclude
     private Landing landing;
+
+    public String toString() {
+        return String.format("Sample{id=%s,label=%s}", id, label);
+    }
 }

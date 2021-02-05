@@ -92,6 +92,8 @@ public enum PmfmEnum implements Serializable  {
     SALE_ESTIMATED_RATIO(278, "SALE_ESTIMATED_RATIO"),
     SALE_RANK_ORDER(279, "SALE_RANK_ORDER"),
 
+    STRATEGY_LABEL(359, "STRATEGY_LABEL"),
+
     ;
 
     public static PmfmEnum valueOf(final int id) {

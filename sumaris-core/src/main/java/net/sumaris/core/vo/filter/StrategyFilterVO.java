@@ -27,9 +27,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
-import org.apache.commons.lang3.ArrayUtils;
-
-import java.util.Arrays;
 
 @Data
 @FieldNameConstants
@@ -57,6 +54,10 @@ public class StrategyFilterVO implements IReferentialFilter {
 
     private Integer programId;
     private Integer[] programIds;
+
+    // TODO BLA renommer en programLabel ?
+    private String levelLabel;
+    private String[] levelLabels;
 
     /* -- Synonym properties (need by IReferentialFilter) -- */
 

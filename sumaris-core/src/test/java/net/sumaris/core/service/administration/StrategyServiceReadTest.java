@@ -25,10 +25,7 @@ package net.sumaris.core.service.administration;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
-import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
-import net.sumaris.core.vo.administration.programStrategy.TaxonGroupStrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -67,6 +64,21 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
     }
 
     @Test
+    public void getAppliedStrategies() {
+
+        List<AppliedStrategyVO> appliedStrategies = service.getAppliedStrategies(30);
+        Assert.assertNotNull(appliedStrategies);
+        Assert.assertTrue(appliedStrategies.size() > 0);
+        AppliedStrategyVO appliedStrategy = appliedStrategies.get(0);
+        Assert.assertNotNull(appliedStrategy.getLocation());
+        List<AppliedPeriodVO> appliedPeriods = appliedStrategy.getAppliedPeriods();
+        Assert.assertNotNull(appliedPeriods);
+        Assert.assertEquals(3, appliedPeriods.size());
+        AppliedPeriodVO appliedPeriod = appliedPeriods.get(0);
+        Assert.assertNotNull(appliedPeriod.getStartDate());
+    }
+
+    @Test
     public void findPmfmStrategiesByStrategy() {
 
         List<PmfmStrategyVO> pmfmStrategies = service.findPmfmStrategiesByStrategy(1, StrategyFetchOptions.builder().build());
@@ -80,12 +92,33 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
     }
 
     @Test
+    public void getStrategyDepartments() {
+
+        List<StrategyDepartmentVO> strategyDepartments = service.getStrategyDepartments(30);
+        Assert.assertNotNull(strategyDepartments);
+        Assert.assertTrue(strategyDepartments.size() > 0);
+        StrategyDepartmentVO strategyDepartment = strategyDepartments.get(0);
+        Assert.assertNotNull(strategyDepartment.getDepartment());
+        Assert.assertNotNull(strategyDepartment.getPrivilege());
+
+    }
+
+    @Test
     public void findPmfmStrategiesByProgramAndAcquisitionLevel() {
 
         List<PmfmStrategyVO> pmfmStrategies = service.findPmfmStrategiesByProgramAndAcquisitionLevel(fixtures.getDefaultProgram().getId(), 2, StrategyFetchOptions.builder().build());
         Assert.assertNotNull(pmfmStrategies);
         Assert.assertEquals(24, pmfmStrategies.size());
 
+    }
+
+    @Test
+    public void computeNextLabelByProgramId() {
+        String label = service.computeNextLabelByProgramId(40, "BIO", 0);
+        Assert.assertEquals("BIO1", label);
+
+        label = service.computeNextLabelByProgramId(40, "2020-BIO-", 4);
+        Assert.assertEquals("2020-BIO-0003", label);
     }
 
 }

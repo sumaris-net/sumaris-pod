@@ -25,6 +25,7 @@ package net.sumaris.server.http.graphql.referential;
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.Trip;
@@ -172,7 +173,7 @@ public class ReferentialGraphQLService {
         Preconditions.checkArgument(id >= 0, "Invalid 'id'");
 
         return changesPublisherService.getPublisher(
-                referentialDao.getEntityClass(entityName),
+                ReferentialEntities.getEntityClass(entityName),
                 ReferentialVO.class, id, minIntervalInSecond, true);
     }
 

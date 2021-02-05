@@ -81,6 +81,8 @@
   <include relativeToChangelogFile="true" file="all/db-changelog-1.4.2.xml"/>
   <include relativeToChangelogFile="true" file="adap/db-changelog-1.4.2.xml"/>
 
+  <include relativeToChangelogFile="true" file="db-changelog-1.4.3.xml"/>
+
   <include relativeToChangelogFile="true" file="db-changelog-1.4.6.xml"/>
   <include relativeToChangelogFile="true" file="sumaris/db-changelog-1.4.6.xml"/>
   <include relativeToChangelogFile="true" file="adap/db-changelog-1.4.6.xml"/>

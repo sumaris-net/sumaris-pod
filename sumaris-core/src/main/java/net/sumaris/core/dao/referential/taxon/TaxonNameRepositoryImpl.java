@@ -110,7 +110,19 @@ public class TaxonNameRepositoryImpl
             .and(withTaxonGroupIds(filter.getTaxonGroupIds()))
             .and(withSynonyms(filter.getWithSynonyms()))
             .and(withReferenceTaxonId(filter.getReferenceTaxonId()))
-            .and(inLevelIds(TaxonName.Fields.TAXONOMIC_LEVEL, filter));
+            .and(inLevelIds(TaxonName.class, filter.getLevelIds()));
+    }
+
+    @Override
+    public TaxonNameVO toVO(TaxonName source) {
+        TaxonNameVO target = super.toVO(source);
+
+        if (source.getReferenceTaxon() != null) {
+            target.setReferenceTaxonId(source.getReferenceTaxon().getId());
+            target.setIsReferent(source.isReferent());
+        }
+
+        return target;
     }
 
     protected List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, Pageable pageable) {

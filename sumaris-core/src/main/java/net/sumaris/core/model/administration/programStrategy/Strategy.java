@@ -75,14 +75,24 @@ public class Strategy implements IItemReferentialEntity {
     @Column(length = 2000)
     private String comments;
 
+    private String analyticReference;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "program_fk", nullable = false)
     @ToString.Include
     private Program program;
 
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = AppliedStrategy.class, mappedBy = AppliedStrategy.Fields.STRATEGY)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<AppliedStrategy> appliedStrategies = new ArrayList<>();
+
     @OneToMany(fetch = FetchType.LAZY, targetEntity = PmfmStrategy.class, mappedBy = PmfmStrategy.Fields.STRATEGY)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<PmfmStrategy> pmfmStrategies = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = StrategyDepartment.class, mappedBy = StrategyDepartment.Fields.STRATEGY)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<StrategyDepartment> departments = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "strategy2gear", joinColumns = {
@@ -98,10 +108,6 @@ public class Strategy implements IItemReferentialEntity {
     @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroupStrategy.class, mappedBy = TaxonGroupStrategy.Fields.STRATEGY)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<TaxonGroupStrategy> taxonGroups = new ArrayList<>();
-
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = AppliedStrategy.class, mappedBy = AppliedStrategy.Fields.STRATEGY)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<AppliedStrategy> appliedStrategies = new ArrayList<>();
 
     public void addPmfmStrategy(PmfmStrategy pmfmStrategy, boolean setReverse) {
         if (pmfmStrategy != null) {

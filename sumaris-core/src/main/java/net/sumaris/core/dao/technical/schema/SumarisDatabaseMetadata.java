@@ -241,13 +241,15 @@ public class SumarisDatabaseMetadata {
 
 					for (Iterator columnIterator = property.getColumnIterator();
 						 columnIterator.hasNext(); ) {
-						Column column = (Column) columnIterator.next();
-
-						log.debug(String.format("Property: %s is mapped on table column: %s of type: %s",
-								property.getName(),
-								column.getName(),
-								column.getSqlType())
-						);
+						Selectable columnSelectable = (Selectable) columnIterator.next();
+						if (columnSelectable instanceof Column) {
+							Column column = (Column) columnSelectable;
+							log.debug(String.format("Property: %s is mapped on table column: %s of type: %s",
+									property.getName(),
+									column.getName(),
+									column.getSqlType())
+							);
+						}
 					}
 				}
 			}

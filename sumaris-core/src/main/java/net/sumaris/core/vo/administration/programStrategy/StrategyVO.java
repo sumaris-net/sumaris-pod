@@ -39,13 +39,17 @@ public class StrategyVO implements IReferentialVO {
     private String name;
     private String description;
     private String comments;
+    private String analyticReference;
     private Date updateDate;
     private Date creationDate;
 
     private Integer statusId;
     private Integer programId;
 
+    private List<AppliedStrategyVO> appliedStrategies;
     private List<PmfmStrategyVO> pmfmStrategies;
+
+    private List<StrategyDepartmentVO> departments;
 
     private List<Integer> gearIds;
     private List<ReferentialVO> gears;

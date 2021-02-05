@@ -20,16 +20,25 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.format.specification;
+package net.sumaris.core.extraction.specification.data.trip;
 
-public interface SurvivalTestSpecification extends RdbSpecification {
+/**
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
+ */
+public interface Free2Specification  {
+    String FORMAT = "FREE2";
+    String VERSION_1_9 = "1.9";
 
-    String FORMAT = "SURVIVAL_TEST";
-    String VERSION_1_0 = "1.0";
+    String TRIP_SHEET_NAME = "MAREE";
+    String STATION_SHEET_NAME = "OPERATION_PECHE";
+    String GEAR_SHEET_NAME = "ENGINS";
+    String STRATEGY_SHEET_NAME = "STRATEGIE";
+    String DETAIL_SHEET_NAME = "DETAIL";
+    String SPECIES_LIST_SHEET_NAME = "CAPTURES";
+    String SPECIES_LENGTH_SHEET_NAME = "MESURES";
 
+    String[] SHEET_NAMES = {TRIP_SHEET_NAME, STATION_SHEET_NAME, GEAR_SHEET_NAME,
+            STRATEGY_SHEET_NAME, DETAIL_SHEET_NAME,
+            SPECIES_LIST_SHEET_NAME, SPECIES_LENGTH_SHEET_NAME};
 
-    String ST_SHEET_NAME = "ST"; // Survival test
-    String RL_SHEET_NAME = "RL"; // Release
-
-    String[] SHEET_NAMES = {TR_SHEET_NAME, HH_SHEET_NAME, SL_SHEET_NAME, HL_SHEET_NAME, ST_SHEET_NAME, RL_SHEET_NAME};
 }

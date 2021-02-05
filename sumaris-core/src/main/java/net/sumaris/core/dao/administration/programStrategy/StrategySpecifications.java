@@ -23,12 +23,10 @@ package net.sumaris.core.dao.administration.programStrategy;
  */
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.TaxonGroupStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.TaxonNameStrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.ArrayUtils;
@@ -70,4 +68,23 @@ public interface StrategySpecifications {
 
     List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId);
 
+    List<AppliedStrategyVO> getAppliedStrategies(int strategyId);
+
+    List<StrategyDepartmentVO> getDepartmentsById(int strategyId);
+
+    List<TaxonGroupStrategyVO> saveTaxonGroupStrategiesByStrategyId(int strategyId, List<TaxonGroupStrategyVO> sources);
+
+    List<TaxonNameStrategyVO> saveReferenceTaxonStrategiesByStrategyId(int strategyId, List<TaxonNameStrategyVO> sources);
+
+    List<AppliedStrategyVO> saveAppliedStrategiesByStrategyId(int strategyId, List<AppliedStrategyVO> sources);
+
+    List<StrategyDepartmentVO> saveDepartmentsByStrategyId(int strategyId, List<StrategyDepartmentVO> sources);
+
+    String computeNextLabelByProgramId(int programId, String labelPrefix, int nbDigit);
+
+    void saveProgramLocationsByStrategyId(int strategyId);
+
+    boolean hasUserPrivilege(int strategyId, int personId, ProgramPrivilegeEnum privilege);
+
+    boolean hasDepartmentPrivilege(int strategyId, int departmentId, ProgramPrivilegeEnum privilege);
 }

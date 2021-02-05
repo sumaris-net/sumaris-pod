@@ -374,6 +374,34 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             String.class,
             false),
 
+    ENABLE_ANALYTIC_REFERENCES (
+            "sumaris.analyticReferences.enable",
+            n("sumaris.config.option.analyticReferences.enable.description"),
+            Boolean.FALSE.toString(),
+            Boolean.class,
+            false),
+
+    ANALYTIC_REFERENCES_SERVICE_URL(
+            "sumaris.analyticReferences.service.url",
+            n("sumaris.config.option.analyticReferences.service.url.description"),
+            "http://vsap7-dgw.ifremer.fr:8001/sap/opu/odata/sap/ZUI5_WS_EOTP_SRV/EotpSet/?$format=json",
+            String.class,
+            false),
+
+    ANALYTIC_REFERENCES_SERVICE_AUTH(
+            "sumaris.analyticReferences.service.auth",
+            n("sumaris.config.option.analyticReferences.service.auth.description"),
+            "ws_eotp:eotp-sap-20201022",
+            String.class,
+            false),
+
+    ANALYTIC_REFERENCES_SERVICE_DELAY(
+            "sumaris.analyticReferences.service.delay",
+            n("sumaris.config.option.analyticReferences.service.delay.description"),
+            String.valueOf(30), /* 30 days */
+            Integer.class,
+            false),
+
     CLI_OUTPUT_FILE(
             "sumaris.cli.output.file",
             n("sumaris.config.option.cli.output.file.description"),
@@ -448,10 +476,10 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "_SEQ",
             String.class),
 
-    INIT_STATISTICAL_RECTANGLES(
-            "sumaris.persistence.init.statisticalRectangles",
-            n("sumaris.config.option.persistence.init.statisticalRectangles.description"),
-            Boolean.TRUE.toString(),
+    ENABLE_TECHNICAL_TABLES_UPDATE(
+            "sumaris.persistence.technicalTables.update",
+            n("sumaris.config.option.persistence.technicalTables.update.description"),
+            Boolean.FALSE.toString(),
             Boolean.class),
 
     ENABLE_BATCH_HASH_OPTIMIZATION(
@@ -470,6 +498,12 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "sumaris.persistence.vessel.defaultProgram.label",
             n("sumaris.config.option.persistence.vessel.defaultProgram.label.description"),
             "SIH",
+            Boolean.class),
+
+    ENABLE_EXTRACTION_PRODUCT(
+            "sumaris.extraction.product.enable",
+            n("sumaris.config.option.extraction.product.enable.description"),
+            Boolean.FALSE.toString(),
             Boolean.class)
     ;
 

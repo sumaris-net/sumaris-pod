@@ -32,10 +32,7 @@ import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.programStrategy.ProgramProperty;
-import net.sumaris.core.model.administration.programStrategy.Strategy;
-import net.sumaris.core.model.administration.programStrategy.TaxonGroupStrategy;
+import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
@@ -77,6 +74,9 @@ public class ProgramRepositoryImpl
 
     @Autowired
     private TaxonGroupRepository taxonGroupRepository;
+
+    @Autowired
+    private StrategyRepository strategyRepository;
 
     public ProgramRepositoryImpl(EntityManager entityManager) {
         super(Program.class, ProgramVO.class, entityManager);
@@ -155,6 +155,14 @@ public class ProgramRepositoryImpl
             target.setLocations(
                 Beans.getStream(source.getLocations())
                     .map(referentialDao::toVO)
+                    .collect(Collectors.toList()));
+        }
+
+        // strategies
+        if (fetchOptions != null && fetchOptions.isWithStrategies()) {
+            target.setStrategies(
+                Beans.getStream(source.getStrategies())
+                    .map(strategyRepository::toVO)
                     .collect(Collectors.toList()));
         }
     }
@@ -260,6 +268,8 @@ public class ProgramRepositoryImpl
             }
         }
         else {
+            // WARN: database can stored many values for the same keys.
+            // Only the first existing instance will be reused. Duplicate properties will be removed
             ListMultimap<String, ProgramProperty> existingPropertiesMap = Beans.splitByNotUniqueProperty(
                 Beans.getList(parent.getProperties()),
                 ProgramProperty.Fields.LABEL);
@@ -377,5 +387,23 @@ public class ProgramRepositoryImpl
             .getResultStream()
             .map(referentialDao::toVO)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean hasUserPrivilege(int id, int personId, ProgramPrivilegeEnum privilege) {
+        return getEntityManager().createNamedQuery("ProgramPerson.count", Long.class)
+                .setParameter("programId", id)
+                .setParameter("personId", personId)
+                .setParameter("privilegeId", privilege.getId())
+                .getSingleResult() > 0;
+    }
+
+    @Override
+    public boolean hasDepartmentPrivilege(int id, int departmentId, ProgramPrivilegeEnum privilege) {
+        return getEntityManager().createNamedQuery("ProgramDepartment.count", Long.class)
+                .setParameter("programId", id)
+                .setParameter("departmentId", departmentId)
+                .setParameter("privilegeId", privilege.getId())
+                .getSingleResult() > 0;
     }
 }

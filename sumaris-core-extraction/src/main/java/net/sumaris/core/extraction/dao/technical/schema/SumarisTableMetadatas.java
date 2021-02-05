@@ -32,6 +32,7 @@ import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.vo.ExtractionFilterCriterionVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
+import net.sumaris.core.util.Dates;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -164,7 +165,10 @@ public class SumarisTableMetadatas {
     }
 
     public static String getSingleValue(SumarisColumnMetadata column, ExtractionFilterCriterionVO criterion) {
-        return isNumericColumn(column) ? criterion.getValue() : ("'" + criterion.getValue() + "'");
+        if (isDateColumn(column)) return Daos.getSqlToDate(Dates.fromISODateTimeString(criterion.getValue()));
+        if (isNumericColumn(column)) return criterion.getValue();
+        // else alphanumeric column
+        return "'" + criterion.getValue() + "'";
     }
 
     public static String getInValues(SumarisColumnMetadata column, ExtractionFilterCriterionVO criterion) {
@@ -195,6 +199,11 @@ public class SumarisTableMetadatas {
                 || column.getTypeCode() == Types.BIGINT
                 || column.getTypeCode() == Types.DECIMAL
                 || column.getTypeCode() == Types.FLOAT;
+    }
+
+    public static boolean isDateColumn(SumarisColumnMetadata column) {
+        return column.getTypeCode() == Types.DATE
+                || column.getTypeCode() == Types.TIMESTAMP;
     }
 
     public static boolean isNotNumericColumn(SumarisColumnMetadata column) {

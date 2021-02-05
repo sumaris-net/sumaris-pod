@@ -30,20 +30,15 @@ import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.config.ApplicationConfigHelper;
 import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ArgumentsParserException;
-import org.nuiton.i18n.I18n;
-import org.nuiton.i18n.init.DefaultI18nInitializer;
-import org.nuiton.i18n.init.UserI18nInitializer;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
-import org.springframework.context.annotation.Configuration;
 
 import java.io.File;
 import java.io.IOException;
@@ -698,6 +693,43 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
+     * <p>find the analytic references service URL.</p>
+     *
+     * @return a {@link String}
+     */
+    public boolean enableAnalyticReferencesService() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_ANALYTIC_REFERENCES.getKey());
+    }
+
+
+    /**
+     * <p>find the analytic references service URL.</p>
+     *
+     * @return a {@link String}
+     */
+    public String getAnalyticReferencesServiceUrl() {
+        return applicationConfig.getOption(SumarisConfigurationOption.ANALYTIC_REFERENCES_SERVICE_URL.getKey());
+    }
+
+    /**
+     * <p>find the analytic references service authorization key (format "user:pass").</p>
+     *
+     * @return a {@link String}
+     */
+    public String getAnalyticReferencesServiceAuth() {
+        return applicationConfig.getOption(SumarisConfigurationOption.ANALYTIC_REFERENCES_SERVICE_AUTH.getKey());
+    }
+
+    /**
+     * <p>get the delay in days between two calls to the analytic references service.</p>
+     *
+     * @return a {@link int}.
+     */
+    public int getAnalyticReferencesServiceDelay() {
+        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.ANALYTIC_REFERENCES_SERVICE_DELAY.getKey());
+    }
+
+    /**
      * <p>Get the output file, for action (e.g. a file to create, when executing a dump action).</p>
      * <p>Used by CLI (Command Line Interface) actions</p>
      *
@@ -756,8 +788,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOption(SumarisConfigurationOption.CSV_SEPARATOR.getKey());
     }
 
-    public boolean isInitStatisticalRectangles() {
-        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.INIT_STATISTICAL_RECTANGLES.getKey());
+    public boolean enableTechnicalTablesUpdate() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_TECHNICAL_TABLES_UPDATE.getKey());
     }
 
     public boolean enableBatchHashOptimization() {
@@ -770,6 +802,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     public String getVesselDefaultProgramLabel() {
         return applicationConfig.getOption(SumarisConfigurationOption.VESSEL_DEFAULT_PROGRAM_LABEL.getKey());
+    }
+
+    public boolean enableExtractionProduct() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_EXTRACTION_PRODUCT.getKey());
     }
 
 
