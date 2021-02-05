@@ -504,10 +504,10 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "_SEQ",
             String.class),
 
-    INIT_STATISTICAL_RECTANGLES(
-            "sumaris.persistence.init.statisticalRectangles",
-            n("sumaris.config.option.persistence.init.statisticalRectangles.description"),
-            Boolean.TRUE.toString(),
+    ENABLE_TECHNICAL_TABLES_UPDATE(
+            "sumaris.persistence.technicalTables.update",
+            n("sumaris.config.option.persistence.technicalTables.update.description"),
+            Boolean.FALSE.toString(),
             Boolean.class),
 
     ENABLE_BATCH_HASH_OPTIMIZATION(

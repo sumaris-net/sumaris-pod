@@ -163,7 +163,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
         includeProductTypes = configuration.enableExtractionProduct();
-        if (configuration.isInitStatisticalRectangles()) {
+        if (configuration.enableTechnicalTablesUpdate()) {
             initRectangleLocations();
         }
     }
