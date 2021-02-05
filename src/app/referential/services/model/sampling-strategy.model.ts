@@ -36,6 +36,10 @@ export class SamplingStrategy extends Strategy<SamplingStrategy> {
   get hasRealizedEffort(): boolean {
     return (this.efforts || []).findIndex(e => e.hasRealizedEffort) !== -1;
   }
+
+  get hasExpectedEffort(): boolean {
+    return (this.efforts || []).findIndex(e => e.hasExpectedEffort) !== -1;
+  }
 }
 
 
@@ -90,5 +94,9 @@ export class StrategyEffort {
 
   get hasRealizedEffort(): boolean {
     return (this.realizedEffort && this.realizedEffort > 0);
+  }
+
+  get hasExpectedEffort(): boolean {
+    return (this.expectedEffort && this.expectedEffort > 0);
   }
 }

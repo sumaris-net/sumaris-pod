@@ -50,6 +50,7 @@ import {PmfmService} from "../../services/pmfm.service";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {MatAutocompleteField} from "../../../shared/material/autocomplete/material.autocomplete";
 import { ObjectMap } from 'src/app/shared/types';
+import { SamplingStrategy } from '../../services/model/sampling-strategy.model';
 
 @Component({
   selector: 'app-sampling-strategy-form',
@@ -62,6 +63,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   mobile: boolean;
   $program = new BehaviorSubject<Program>(null);
   labelMask: (string | RegExp)[];
+
+  hasEffort = false;
 
   taxonNamesHelper: FormArrayHelper<TaxonNameStrategy>;
   departmentsHelper: FormArrayHelper<StrategyDepartment>;
@@ -148,7 +151,21 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.mobile = this.settings.mobile;
   }
 
-
+  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    super.enable(opts);
+    if (this.hasEffort) {
+      this.weightPmfmStrategiesTable.disable();
+      this.lengthPmfmStrategiesTable.disable();
+      this.maturityPmfmStrategiesTable.disable();
+      this.pmfmStrategiesFractionForm.disable();
+      this.taxonNamesFormArray.disable();
+      this.form.get('analyticReference').disable();
+      this.form.get('year').disable();
+      this.form.get('label').disable();
+      this.form.get('age').disable();
+      this.form.get('sex').disable();
+    }
+  };
 
   ngOnInit() {
     super.ngOnInit();
@@ -539,6 +556,13 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     console.debug("[sampling-strategy-form] Setting Strategy value", data);
     if (!data) return;
 
+    const samplingStrategy = new SamplingStrategy();
+    samplingStrategy.fromObject(data);
+    this.samplingStrategyService.hasEffort(samplingStrategy).then((hasEffort) => {
+      this.hasEffort = hasEffort;
+      this.enable();
+    });
+
     // Resize strategy department array
     this.departmentsHelper.resize(Math.max(1, data.departments.length));
 
@@ -690,7 +714,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
           return p;
         });
     }
-    json.appliedStrategies = appliedStrategy ? [appliedStrategy] : [];
+    if (appliedStrategy) {
+      json.appliedStrategies[0] = appliedStrategy;
+    }
+    // json.appliedStrategies = appliedStrategy ? [appliedStrategy] : [];
 
     // PMFM + Fractions -------------------------------------------------------------------------------------------------
     const sex = this.form.get('sex').value;

@@ -171,6 +171,11 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
       }));
   }
 
+  async hasEffort(samplingStrategy: SamplingStrategy): Promise<boolean> {
+    await this.fillEfforts([samplingStrategy]);
+    return samplingStrategy.hasRealizedEffort;
+  }
+
   async fillEntities(res: LoadResult<SamplingStrategy>, opts?: {
     withEffort?: boolean; withParameterGroups?: boolean;
   }): Promise<LoadResult<SamplingStrategy>> {

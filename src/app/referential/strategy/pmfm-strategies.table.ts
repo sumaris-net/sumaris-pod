@@ -608,12 +608,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     return pmfm && pmfm.parameter && pmfm.parameter.name || '';
   }
 
-  displayMethod(obj: number|ReferentialRef) {
-    const methodId = (obj instanceof ReferentialRef) ? obj.id : obj as number;
-    const pmfm = (this.$pmfms.getValue() || []).find(pmfm => pmfm.method?.id === methodId);
-    return pmfm && pmfm.method && pmfm.method.name || "";
-  }
-
   async deleteRow(event: UIEvent, row: TableElement<PmfmStrategy>) {
     let deleteCount: number;
     if (row.editing) {
