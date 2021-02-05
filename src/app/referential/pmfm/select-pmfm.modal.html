@@ -1,35 +1,18 @@
-<ion-header>
-  <ion-toolbar color="secondary">
-    <ion-buttons slot="start">
-      <ion-button (click)="cancel()"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-
-    <ion-title>
-      {{($title | async) | translate }}
-    </ion-title>
-
-    <ion-buttons slot="end">
-      <ion-button *ngIf="!loading && allowMultiple && hasSelection()" (click)="close($event)"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon name="checkmark"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<app-modal-toolbar color="secondary"
+                   [title]="$title|async|translate"
+                   (cancel)="cancel()"
+                   (validate)="close($event)"
+                   [showSpinner]="loading"
+                   [canValidate]="!loading && allowMultiple && hasSelection()">
+</app-modal-toolbar>
 
 <ion-content class="ion-no-padding">
 
-  <app-referential-ref-table #table
-                             (onOpenRow)="selectRow($event)"
-                             (onNewRow)="close($event)">
-  </app-referential-ref-table>
-<!--  <app-pmfm-ref-table #table-->
-<!--                             (onOpenRow)="selectRow($event)"-->
-<!--                             (onNewRow)="close($event)">-->
-<!--  </app-pmfm-ref-table>-->
+  <!-- main table -->
+  <app-pmfms-table #table
+                      (onOpenRow)="selectRow($event)"
+                      (onNewRow)="close($event)">
+  </app-pmfms-table>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>

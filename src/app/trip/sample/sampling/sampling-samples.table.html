@@ -117,6 +117,7 @@
     <mat-cell *matCellDef="let row">
       <mat-form-field floatLabel="never">
         <input matInput autocomplete="off"
+               [appAutofocus]="row.id == -1 && row.editing"
                [formControl]="row.validator.controls.label"
                [placeholder]="i18nColumnPrefix + 'LABEL_PLACEHOLDER'|translate"
                (click)="selectInputContent($event)">

@@ -195,10 +195,13 @@ export class PmfmService extends BaseGraphqlService implements IEntityService<Pm
     sortDirection?: SortDirection,
     filter?: PmfmFilter,
     opts?: {
+      query?: any;
       fetchPolicy?: WatchQueryFetchPolicy;
       withTotal?: boolean;
+      withDetails?: boolean;
     }
   ): Observable<LoadResult<Pmfm>> {
+    opts = opts || {};
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
@@ -209,7 +212,11 @@ export class PmfmService extends BaseGraphqlService implements IEntityService<Pm
     const now = Date.now();
     if (this._debug) console.debug("[pmfm-service] Watching pmfms using options:", variables);
 
-    const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
+    const query = opts.query ? opts.query : (
+      opts.withDetails ? LoadAllWithDetailsQuery : (
+        opts.withTotal ? LoadAllWithTotalQuery : LoadAllQuery
+      )
+    );
     return this.graphql.watchQuery<LoadResult<any>>({
       query,
       variables,

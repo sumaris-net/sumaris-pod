@@ -1,7 +1,7 @@
 <mat-toolbar *ngIf="showToolbar">
 
   <!-- refresh (debug only) -->
-  <button mat-icon-button small color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
           (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>

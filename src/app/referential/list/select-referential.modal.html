@@ -1,28 +1,13 @@
-<ion-header>
-  <ion-toolbar color="secondary">
-    <ion-buttons slot="start">
-      <ion-button (click)="cancel()"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-
-    <ion-title>
-      {{($title | async) | translate }}
-    </ion-title>
-
-    <ion-buttons slot="end">
-      <ion-button *ngIf="!loading && allowMultiple && hasSelection()" (click)="close($event)"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon name="checkmark"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<app-modal-toolbar color="secondary"
+                   [title]="$title|async"
+                   (cancel)="cancel()"
+                   (validate)="close($event)"
+                   [showSpinner]="loading"
+                   [canValidate]="!loading && allowMultiple && hasSelection()">
+</app-modal-toolbar>
 
 <ion-content class="ion-no-padding">
-
-
+  <!-- main table -->
   <app-referential-ref-table #table
                              (onOpenRow)="selectRow($event)"
                              (onNewRow)="close($event)">
