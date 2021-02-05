@@ -83,7 +83,7 @@ public class TaxonGroupServiceImpl implements TaxonGroupService {
             // ok continue (schema seems to be new)
         }
 
-        //taxonGroupRepository.updateTaxonGroupHierarchies();
+        taxonGroupRepository.updateTaxonGroupHierarchies();
         return true;
     }
 
