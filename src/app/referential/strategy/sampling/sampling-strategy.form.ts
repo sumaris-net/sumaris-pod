@@ -650,7 +650,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       pmfmStrategiesControl.patchValue(pmfmStrategies);
     });
 
-    // TODO
+    
     this.referentialRefService.loadAll(0, 0, null, null,
       {
         entityName: 'Fraction'
@@ -671,15 +671,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     });
   }
 
-  markAsUntouched(opts?: { onlySelf?: boolean }) {
-    console.log("TODO NOE: markAsUntouched()");
-    super.markAsUntouched(opts);
-  }
 
   async getValue(): Promise<any> {
     const json = this.form.value;
 
     json.name = json.label || json.name;
+    json.label = json.label || json.name;
     json.description = json.label || json.description;
     json.analyticReference = (typeof json.analyticReference === 'object') ? json.analyticReference.label : json.analyticReference;
 
