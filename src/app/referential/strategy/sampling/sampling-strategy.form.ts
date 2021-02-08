@@ -270,16 +270,20 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
           console.warn('[sampling-strategy-form] Label not unique!');
           return <ValidationErrors>{ unique: true };
         }
+        if (control.value.includes('0000')) {
+          return <ValidationErrors>{ zero: true };
+        }
 
         console.debug('[sampling-strategy-form] Checking of label is unique [OK]');
         SharedValidators.clearError(control, 'unique');
+        SharedValidators.clearError(control, 'zero');
       }
     ]);
 
     // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value, filter) => this.suggestTaxonName(value, {
-        ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        
       }),
       attributes: ['name'],
       columnNames: ['REFERENTIAL.NAME'],
@@ -650,7 +654,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       pmfmStrategiesControl.patchValue(pmfmStrategies);
     });
 
-    
+
     this.referentialRefService.loadAll(0, 0, null, null,
       {
         entityName: 'Fraction'

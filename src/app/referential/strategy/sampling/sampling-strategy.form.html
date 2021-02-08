@@ -19,6 +19,8 @@
                  placeholder="{{ i18nFieldPrefix + 'LABEL' | translate }}" >
           <mat-error *ngIf="form.controls.label.hasError('unique')"
                      translate>PROGRAM.STRATEGY.ERROR.LABEL.UNIQUE</mat-error>
+          <mat-error *ngIf="form.controls.label.hasError('zero')"
+                     translate>PROGRAM.STRATEGY.ERROR.LABEL.ZERO</mat-error>
         </mat-form-field>
 
         <ng-template #noLabelMask>
@@ -30,6 +32,8 @@
                    placeholder="{{ i18nFieldPrefix + 'LABEL' | translate }}" >
             <mat-error *ngIf="form.controls.label.hasError('unique')"
                        translate>PROGRAM.STRATEGY.ERROR.LABEL.UNIQUE</mat-error>
+            <mat-error *ngIf="form.controls.label.hasError('zero')"
+                       translate>PROGRAM.STRATEGY.ERROR.LABEL.ZERO</mat-error>
           </mat-form-field>
         </ng-template>
       </ion-col>
