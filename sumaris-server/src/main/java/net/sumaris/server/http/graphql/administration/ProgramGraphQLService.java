@@ -30,9 +30,12 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
-import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.model.referential.gear.GearClassification;
 import net.sumaris.core.model.referential.location.LocationClassification;
+import net.sumaris.core.model.referential.pmfm.Fraction;
+import net.sumaris.core.model.referential.pmfm.Matrix;
+import net.sumaris.core.model.referential.pmfm.Method;
+import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
@@ -208,6 +211,50 @@ public class ProgramGraphQLService {
         }
         else if (pmfmStrategy.getPmfmId() != null) {
             return pmfmService.get(pmfmStrategy.getPmfmId());
+        }
+        return null;
+    }
+
+    @GraphQLQuery(name = "parameter", description = "Get strategy parameter")
+    public ReferentialVO getPmfmStrategyParameter(@GraphQLContext PmfmStrategyVO pmfmStrategy) {
+        if (pmfmStrategy.getParameter() != null) {
+            return pmfmStrategy.getParameter();
+        }
+        else if (pmfmStrategy.getParameterId() != null) {
+            return referentialService.get(Parameter.class, pmfmStrategy.getParameterId());
+        }
+        return null;
+    }
+
+    @GraphQLQuery(name = "matrix", description = "Get strategy matrix")
+    public ReferentialVO getPmfmStrategyMatrix(@GraphQLContext PmfmStrategyVO pmfmStrategy) {
+        if (pmfmStrategy.getMatrix() != null) {
+            return pmfmStrategy.getMatrix();
+        }
+        else if (pmfmStrategy.getMatrixId() != null) {
+            return referentialService.get(Matrix.class, pmfmStrategy.getMatrixId());
+        }
+        return null;
+    }
+
+    @GraphQLQuery(name = "fraction", description = "Get strategy fraction")
+    public ReferentialVO getPmfmStrategyFraction(@GraphQLContext PmfmStrategyVO pmfmStrategy) {
+        if (pmfmStrategy.getFraction() != null) {
+            return pmfmStrategy.getFraction();
+        }
+        else if (pmfmStrategy.getFractionId() != null) {
+            return referentialService.get(Fraction.class, pmfmStrategy.getFractionId());
+        }
+        return null;
+    }
+
+    @GraphQLQuery(name = "method", description = "Get strategy method")
+    public ReferentialVO getPmfmStrategyMethod(@GraphQLContext PmfmStrategyVO pmfmStrategy) {
+        if (pmfmStrategy.getMethod() != null) {
+            return pmfmStrategy.getMethod();
+        }
+        else if (pmfmStrategy.getMethodId() != null) {
+            return referentialService.get(Method.class, pmfmStrategy.getMethodId());
         }
         return null;
     }
