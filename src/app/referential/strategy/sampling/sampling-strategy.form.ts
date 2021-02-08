@@ -36,6 +36,7 @@ import {
   firstArrayValue,
   isEmptyArray,
   isNil,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   removeDuplicatesFromArray,
@@ -558,12 +559,17 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.enable();
     });
 
+
+    // Make sure to have (at least) one department
+    data.departments = data.departments && data.departments.length ? data.departments : [null];
     // Resize strategy department array
     this.departmentsHelper.resize(Math.max(1, data.departments.length));
 
+    data.appliedStrategies = data.appliedStrategies && data.appliedStrategies.length ? data.appliedStrategies : [null];
     // Resize strategy department array
     this.appliedStrategiesHelper.resize(Math.max(1, data.appliedStrategies.length));
 
+    data.taxonNames = data.taxonNames && data.taxonNames.length ? data.taxonNames : [null];
     // Resize pmfm strategy array
     this.taxonNamesHelper.resize(Math.max(1, data.taxonNames.length));
 
@@ -576,8 +582,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // APPLIED_PERIODS
     // get model appliedPeriods which are stored in first applied strategy
     const appliedPeriodControl = this.appliedPeriodsForm;
-    const appliedPeriods = data.appliedStrategies.length && data.appliedStrategies[0].appliedPeriods || [];
-    const appliedStrategyId = data.appliedStrategies.length && data.appliedStrategies[0].strategyId || undefined;
+    const appliedPeriods = (isNotEmptyArray(data.appliedStrategies) && data.appliedStrategies[0] && data.appliedStrategies[0].appliedPeriods) || [];
+    const appliedStrategyId = (isNotEmptyArray(data.appliedStrategies) && data.appliedStrategies[0] && data.appliedStrategies[0].strategyId) || undefined;
 
     const year = moment().year();
 
