@@ -157,7 +157,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
       // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: ['SUPERVISOR', 'USER']
+        // TODO
+        // userProfiles: ['ALLEGRO_UTILISATEUR', 'USER']
       },
       attributes: ['lastName', 'firstName', 'department.name'],
       displayWith: personToString

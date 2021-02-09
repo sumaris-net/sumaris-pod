@@ -12,7 +12,7 @@ import {PmfmService} from "../../services/pmfm.service";
 import {StrategyService} from "../../services/strategy.service";
 import {SamplingStrategyForm} from "./sampling-strategy.form";
 import {AppEntityEditor} from "../../../core/form/editor.class";
-import {isNil, isNotNil, toNumber} from "../../../shared/functions";
+import {isNil, isNotEmptyArray, isNotNil, toNumber} from "../../../shared/functions";
 import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {BehaviorSubject} from "rxjs";
@@ -199,6 +199,24 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
       title: `${this.data.label} - ${this.data.name}`,
       subtitle: 'REFERENTIAL.ENTITY.PROGRAM'
     };
+  }
+
+  protected async updateRoute(data: Strategy, queryParams: any): Promise<boolean> {
+    const path = this.computePageUrl(isNotNil(data.id) ? data.id : 'new');
+    const commands: any[] = (path && typeof path === 'string') ? path.split('/') : path as any[];
+    if (isNotEmptyArray(commands)) {
+      commands.pop();
+      commands.push('strategy');
+      commands.push('sampling');
+      commands.push(data.id);
+      return await this.router.navigate(commands, {
+        replaceUrl: true,
+        queryParams: this.queryParams
+      });
+    }
+    else {
+      console.warn('Skip page route update. Invalid page path: ', path);
+    }
   }
 }
 
