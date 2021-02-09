@@ -206,9 +206,9 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
     const commands: any[] = (path && typeof path === 'string') ? path.split('/') : path as any[];
     if (isNotEmptyArray(commands)) {
       commands.pop();
-      commands.push('strategy');
-      commands.push('sampling');
-      commands.push(data.id);
+      // commands.push('strategy');
+      // commands.push('sampling');
+      // commands.push(data.id);
       return await this.router.navigate(commands, {
         replaceUrl: true,
         queryParams: this.queryParams
