@@ -1,7 +1,7 @@
 import {TypePolicies} from "@apollo/client/core";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../../shared/form/field.model";
 import {changeCaseToUnderscore} from "../../../shared/functions";
-import {LocationLevelIds, ParameterLabelGroups} from "../model/model.enum";
+import {LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds} from "../model/model.enum";
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'MetierVO': {
@@ -97,6 +97,54 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
       }
     },
     defaultValue: LocationLevelIds.ICES_DIVISION
+  },
+  TAXONOMIC_LEVEL_FAMILY_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.taxonomicLevel.FAMILY.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXONOMIC_LEVEL_FAMILY_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'TaxonomicLevel',
+        statusIds: [0, 1]
+      }
+    },
+    defaultValue: TaxonomicLevelIds.FAMILY
+  },
+  TAXONOMIC_LEVEL_GENUS_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.taxonomicLevel.GENUS.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXONOMIC_LEVEL_GENUS_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'TaxonomicLevel',
+        statusIds: [0, 1]
+      }
+    },
+    defaultValue: TaxonomicLevelIds.GENUS
+  },
+  TAXONOMIC_LEVEL_SPECIES_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.taxonomicLevel.SPECIES.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXONOMIC_LEVEL_SPECIES_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'TaxonomicLevel',
+        statusIds: [0, 1]
+      }
+    },
+    defaultValue: TaxonomicLevelIds.SPECIES
+  },
+  TAXONOMIC_LEVEL_SUBSPECIES_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.taxonomicLevel.SUBSPECIES.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXONOMIC_LEVEL_SUBSPECIES_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'TaxonomicLevel',
+        statusIds: [0, 1]
+      }
+    },
+    defaultValue: TaxonomicLevelIds.SUBSPECIES
   },
   STRATEGY_PARAMETER_AGE_LABEL: <FormFieldDefinition>{
     key: 'sumaris.enumeration.parameter.age.label',
