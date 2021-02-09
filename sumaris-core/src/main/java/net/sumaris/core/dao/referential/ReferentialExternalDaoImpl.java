@@ -175,7 +175,7 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
 
     private Predicate<ReferentialVO> getAnalyticReferencesPredicate(ReferentialFilterVO filter) {
         Preconditions.checkNotNull(filter, "Missing 'filter' argument");
-        filter.setSearchText(StringUtils.trimToNull(filter.getSearchText().toUpperCase()));
+        filter.setSearchText(StringUtils.trimToNull(filter.getSearchText()));
 
         return s -> (filter.getId() == null || filter.getId().equals(s.getId()))
                 && (filter.getLabel() == null || filter.getLabel().equalsIgnoreCase(s.getLabel()))
@@ -183,7 +183,7 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
                 && (filter.getLevelId() == null || filter.getLevelId().equals(s.getLevelId()))
                 && (filter.getLevelIds() == null || Arrays.asList(filter.getLevelIds()).contains(s.getLevelId()))
                 && (filter.getStatusIds() == null || Arrays.asList(filter.getStatusIds()).contains(s.getStatusId()))
-                && (filter.getSearchText() == null || s.getLabel().toUpperCase().startsWith(filter.getSearchText()) || s.getName().toUpperCase().contains(filter.getSearchText()));
+                && (filter.getSearchText() == null || s.getLabel().toUpperCase().startsWith(filter.getSearchText().toUpperCase()) || s.getName().toUpperCase().contains(filter.getSearchText().toUpperCase()));
     }
 
 }
