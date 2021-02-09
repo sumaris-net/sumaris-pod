@@ -176,6 +176,10 @@
         "LOCATION_LEVEL_AUCTION_ID": "Referential > Location level > Sale auction",
         "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Referential > Location level > CIEM/ICES Statistical Rectangle",
         "LOCATION_LEVEL_ICES_DIVISION_ID": "Referential > Location level > CIEM/ICES Division",
+        "TAXONOMIC_LEVEL_FAMILY_ID": "Referential > Taxonomic level > Family",
+        "TAXONOMIC_LEVEL_GENUS_ID": "Referential > Taxonomic level > Genus",
+        "TAXONOMIC_LEVEL_SPECIES_ID": "Referential > Taxonomic level > Species",
+        "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Referential > Taxonomic level > Subspecies",
         "STRATEGY_PARAMETER_AGE_LABEL": "Strategy > Parameter > Age label",
         "STRATEGY_PARAMETER_SEX_LABEL": "Strategy > Parameter > Sex label",
         "STRATEGY_PARAMETER_WEIGHT_LABELS": "Strategy > Parameter > Weight labels",
@@ -1169,8 +1173,7 @@
       "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Date?",
       "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
-      "MEASUREMENTS_MOBILE_MAX_VISIBLE_BUTTONS": "Qualitative values > Max nb buttons  (mobile)"
-      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
+      "MEASUREMENTS_MOBILE_MAX_VISIBLE_BUTTONS": "Qualitative values > Max nb buttons  (mobile)",
       "SIMPLE_STRATEGIES": "Simple strategies",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Strategy > PMFM array > Column name",
       "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PMFM",
@@ -1225,6 +1228,7 @@
       "PARAMETERS.WEIGHT_OR_SIZE": "Weight or size is mandatory",
       "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}",
       "LABEL.UNIQUE": "The code of the sampling plan line already exists",
+      "LABEL.ZERO": "The minimum increment is 0001",
       "EFFORT.EXIST": "Sampling plan {{errorDetails}} used by observed locations"
     },
     "CREATE_SAMPLING_PLAN": "Creating a sampling plan line",

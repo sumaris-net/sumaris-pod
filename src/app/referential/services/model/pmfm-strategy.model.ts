@@ -167,9 +167,8 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
     this.pmfmId = toNumber(source.pmfmId, source.pmfm && source.pmfm.id);
     this.parameter = source.parameter;
     this.parameterId =  toNumber(source.parameterId, source.parameter && source.parameter.id);
-    this.parameter = source.parameter;
     this.matrixId = source.matrixId;
-    this.fractionId = source.fractionId;
+    this.fractionId = toNumber(source.fractionId, source.fraction && source.fraction.id);
     this.methodId = source.methodId;
     this.label = source.label;
     this.name = source.name || (source.pmfm && source.pmfm.name);

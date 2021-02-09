@@ -36,6 +36,7 @@ import {
   firstArrayValue,
   isEmptyArray,
   isNil,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   removeDuplicatesFromArray,
@@ -269,16 +270,20 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
           console.warn('[sampling-strategy-form] Label not unique!');
           return <ValidationErrors>{ unique: true };
         }
+        if (control.value.includes('0000')) {
+          return <ValidationErrors>{ zero: true };
+        }
 
         console.debug('[sampling-strategy-form] Checking of label is unique [OK]');
         SharedValidators.clearError(control, 'unique');
+        SharedValidators.clearError(control, 'zero');
       }
     ]);
 
     // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value, filter) => this.suggestTaxonName(value, {
-        ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        
       }),
       attributes: ['name'],
       columnNames: ['REFERENTIAL.NAME'],
@@ -558,12 +563,17 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.enable();
     });
 
+
+    // Make sure to have (at least) one department
+    data.departments = data.departments && data.departments.length ? data.departments : [null];
     // Resize strategy department array
     this.departmentsHelper.resize(Math.max(1, data.departments.length));
 
+    data.appliedStrategies = data.appliedStrategies && data.appliedStrategies.length ? data.appliedStrategies : [null];
     // Resize strategy department array
     this.appliedStrategiesHelper.resize(Math.max(1, data.appliedStrategies.length));
 
+    data.taxonNames = data.taxonNames && data.taxonNames.length ? data.taxonNames : [null];
     // Resize pmfm strategy array
     this.taxonNamesHelper.resize(Math.max(1, data.taxonNames.length));
 
@@ -576,8 +586,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // APPLIED_PERIODS
     // get model appliedPeriods which are stored in first applied strategy
     const appliedPeriodControl = this.appliedPeriodsForm;
-    const appliedPeriods = data.appliedStrategies.length && data.appliedStrategies[0].appliedPeriods || [];
-    const appliedStrategyId = data.appliedStrategies.length && data.appliedStrategies[0].strategyId || undefined;
+    const appliedPeriods = (isNotEmptyArray(data.appliedStrategies) && data.appliedStrategies[0] && data.appliedStrategies[0].appliedPeriods) || [];
+    const appliedStrategyId = (isNotEmptyArray(data.appliedStrategies) && data.appliedStrategies[0] && data.appliedStrategies[0].strategyId) || undefined;
 
     const year = moment().year();
 
@@ -644,7 +654,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       pmfmStrategiesControl.patchValue(pmfmStrategies);
     });
 
-    // TODO
+
     this.referentialRefService.loadAll(0, 0, null, null,
       {
         entityName: 'Fraction'
@@ -665,15 +675,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     });
   }
 
-  markAsUntouched(opts?: { onlySelf?: boolean }) {
-    console.log("TODO NOE: markAsUntouched()");
-    super.markAsUntouched(opts);
-  }
 
   async getValue(): Promise<any> {
     const json = this.form.value;
 
     json.name = json.label || json.name;
+    json.label = json.label || json.name;
     json.description = json.label || json.description;
     json.analyticReference = (typeof json.analyticReference === 'object') ? json.analyticReference.label : json.analyticReference;
 

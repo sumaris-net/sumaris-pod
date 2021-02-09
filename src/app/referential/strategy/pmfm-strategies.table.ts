@@ -112,7 +112,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   fieldDefinitionsMap: FormFieldDefinitionMap = {};
   fieldDefinitions: FormFieldDefinition[] = [];
 
-  @Input() canDisplayToolbar = true;
+  @Input() showToolbar = true;
   @Input() showHeaderRow = true;
   @Input() canDisplaySimpleStrategyValidators = true;
   @Input() pmfmFilterApplied = 'all';
