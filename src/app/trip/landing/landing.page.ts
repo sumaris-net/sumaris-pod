@@ -43,6 +43,7 @@ import {firstNotNilPromise} from "../../shared/observables";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import * as momentImported from "moment";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {PmfmService} from "../../referential/services/pmfm.service";
 
 const moment = momentImported;
 
@@ -70,6 +71,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected parent: Trip | ObservedLocation;
   protected observedLocationService: ObservedLocationService;
   protected tripService: TripService;
+  protected pmfmService: PmfmService;
   protected referentialRefService: ReferentialRefService;
   protected vesselService: VesselSnapshotService;
   protected platform: PlatformService;
@@ -340,8 +342,26 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
     this.samplesTable.showTaxonGroupColumn = false;
 
-    // TODO BLA : give default
-    this.samplesTable.pmfms = (strategy.pmfmStrategies || []).filter(p => p.acquisitionLevel === this.samplesTable.acquisitionLevel);
+    // We use pmfms from strategy and from sampling data. Some pmfms are only stored in data.
+    const newPmfms = (strategy.pmfmStrategies || []).filter(p => p.acquisitionLevel === this.samplesTable.acquisitionLevel);
+
+    // pmfms from sampling data
+    const dataPmfms = (this.data.samples || []).reduce((res, sample) => {
+      const pmfmIds = Object.keys(sample.measurementValues || {});
+      const newPmfmIds = pmfmIds.filter(pmfmId => !res.includes(pmfmId));
+      return res.concat(...newPmfmIds);
+    }, []);
+    const pmfmsFromSamples = (await Promise.all(dataPmfms.map(pmfmId => this.pmfmService.load(pmfmId))))
+      .map(PmfmStrategy.fromPmfm);
+
+    let pmfmsFromStrategyAndSamples = newPmfms;
+    pmfmsFromSamples.forEach(pmfmFromSamples => {
+      if (!pmfmsFromStrategyAndSamples.find(pmfmIter => pmfmIter.pmfmId == pmfmFromSamples.pmfmId)) {pmfmsFromStrategyAndSamples = pmfmsFromStrategyAndSamples.concat(pmfmFromSamples)};
+    });
+    // Hide fractions pmfms
+    const pmfmsFromSamplesWithoutFractions = (pmfmsFromStrategyAndSamples || []).filter(pmfmStrategy => (isNil(pmfmStrategy.fractionId) && isNil(pmfmStrategy.fraction))) || [];
+
+    this.samplesTable.pmfms = pmfmsFromSamplesWithoutFractions;
   }
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {

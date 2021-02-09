@@ -80,6 +80,10 @@ export class SamplingSamplesTable extends SamplesTable {
     return column.key;
   }
 
+  /**
+   * Not used yet. Implementation must manage stored samples values and different pmfms types (number, string, qualitative values...)
+   * @param event
+   */
   async openChangePmfmsModal(event?: UIEvent) {
     const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.pmfmId).filter(isNotNil);
 
