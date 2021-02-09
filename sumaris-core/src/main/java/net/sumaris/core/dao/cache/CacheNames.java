@@ -35,6 +35,8 @@ public interface CacheNames {
     String PROGRAM_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programByIdCache";
     String PROGRAM_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabelCache";
 
+    String STRATEGY_BY_ID = "net.sumaris.core.dao.administration.programStrategy.strategyByIdCache";
+    String STRATEGY_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.strategyByLabelCache";
     String STRATEGIES_BY_ID = "net.sumaris.core.dao.administration.programStrategy.strategiesByIdCache";
     String STRATEGIES_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.strategiesByLabelCache";
     String STRATEGIES_BY_PROGRAM_ID = "net.sumaris.core.dao.administration.programStrategy.strategiesByProgramId";
