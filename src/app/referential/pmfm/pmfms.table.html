@@ -51,7 +51,9 @@
   </ion-grid>
 </form>
 
-<mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
+<mat-table [dataSource]="dataSource" matSort
+           [matSortActive]="defaultSortBy"
+           [matSortDirection]="defaultSortDirection"
            matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
@@ -74,34 +76,53 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.id }}</mat-cell>
   </ng-container>
 
-  <!-- Label column -->
-  <ng-container matColumnDef="label">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>REFERENTIAL.LABEL</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-label>{{row.currentData.label}}</ion-label>
-    </mat-cell>
-  </ng-container>
-
-  <!-- Name column -->
+  <!-- Parameter column -->
   <ng-container matColumnDef="name">
     <mat-header-cell *matHeaderCellDef>
       <span translate>REFERENTIAL.NAME</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>{{row.currentData.name}}</ion-label>
+      <ion-label>{{row.currentData.parameter.name}}</ion-label>
     </mat-cell>
   </ng-container>
 
-
-  <!-- Description column -->
-  <ng-container matColumnDef="description">
+  <!-- Unit column -->
+  <ng-container matColumnDef="unit">
     <mat-header-cell *matHeaderCellDef>
-      <span translate>REFERENTIAL.DESCRIPTION</span>
+      <span translate>REFERENTIAL.PMFM.UNIT</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>{{row.currentData.description}}</ion-label>
+      <ion-label>{{row.currentData.unit?.label}}</ion-label>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Matrix column -->
+  <ng-container matColumnDef="matrix">
+    <mat-header-cell *matHeaderCellDef>
+      <span translate>REFERENTIAL.PMFM.MATRIX</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-label>{{row.currentData.matrix?.name}}</ion-label>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Fraction column -->
+  <ng-container matColumnDef="fraction">
+    <mat-header-cell *matHeaderCellDef>
+      <span translate>REFERENTIAL.PMFM.FRACTION</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-label>{{row.currentData.fraction?.name}}</ion-label>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Method column -->
+  <ng-container matColumnDef="method">
+    <mat-header-cell *matHeaderCellDef>
+      <span translate>REFERENTIAL.PMFM.METHOD</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-label>{{row.currentData.method?.name}}</ion-label>
     </mat-cell>
   </ng-container>
 
@@ -132,9 +153,9 @@
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef [hidden]="true">
+    <mat-header-cell *matHeaderCellDef hidden>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="true">
+    <mat-cell *matCellDef="let row" hidden>
     </mat-cell>
   </ng-container>
 

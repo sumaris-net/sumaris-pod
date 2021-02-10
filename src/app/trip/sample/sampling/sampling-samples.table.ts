@@ -10,8 +10,9 @@ import {ObjectMap} from "../../../shared/types";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {SelectReferentialModal} from "../../../referential/list/select-referential.modal";
 import {SamplesTable, SamplesTableOptions} from "../samples.table";
-import {PmfmService} from "../../../referential/services/pmfm.service";
+import {PmfmFilter, PmfmService} from "../../../referential/services/pmfm.service";
 import {ProgramRefService} from "../../../referential/services/program-ref.service";
+import {SelectPmfmModal} from "../../../referential/pmfm/select-pmfm.modal";
 
 export interface SampleFilter {
   operationId?: number;
@@ -79,75 +80,37 @@ export class SamplingSamplesTable extends SamplesTable {
     return column.key;
   }
 
-  async openChangePmfmsModal(event?: UIEvent): Promise<any> {
-    //const columns = this.displayedColumns;
+  /**
+   * Not used yet. Implementation must manage stored samples values and different pmfms types (number, string, qualitative values...)
+   * @param event
+   */
+  async openChangePmfmsModal(event?: UIEvent) {
     const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.pmfmId).filter(isNotNil);
 
-    const modal = await this.modalCtrl.create({
-      component: SelectReferentialModal,
-      componentProps: {
-        filter: {
-          entityName: 'Pmfm',
-          excludedIds: existingPmfmIds
-        }
-      }
+    const pmfmIds = await this.openSelectPmfmsModal(event, {
+      excludedIds: existingPmfmIds
+    }, {
+      allowMultiple: false
     });
+    if (!pmfmIds) return; // USer cancelled
 
-    // Open the modal
-    await modal.present();
-
-    // On dismiss
-    const res = await modal.onDidDismiss();
-    if (!res) return; // CANCELLED
-
-    console.log('TODO Modal result ', res);
-    // this.pmfms = [
-    //   ...pmfms,
-    //   ...res.pmfms
-    // ];
-
-    // Apply new pmfm
-    //this.markForCheck();
+    console.debug('TODO changes to pmfm: ', pmfmIds);
   }
 
 
-  async openAddPmfmsModal(event?: UIEvent): Promise<any> {
-    //const columns = this.displayedColumns;
+  async openAddPmfmsModal(event?: UIEvent) {
     const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.pmfmId).filter(isNotNil);
 
-    const modal = await this.modalCtrl.create({
-      component: SelectReferentialModal,
-      componentProps: {
-        filter: {
-          entityName: 'Pmfm',
-          excludedIds: existingPmfmIds
-        }
-      }
+    const pmfmIds = await this.openSelectPmfmsModal(event, {
+      excludedIds: existingPmfmIds
+    }, {
+      allowMultiple: false
     });
-
-    // Open the modal
-    await modal.present();
-
-    // On dismiss
-    const res = await modal.onDidDismiss();
-    if (!res || isEmptyArray(res.data)) return; // CANCELLED
-
-    const pmfmIds = res.data.map(p => p.id);
+    if (!pmfmIds) return; // USer cancelled
     await this.addPmfmColumns(pmfmIds);
 
   }
 
-  async addPmfmColumns(pmfmIds: number[]) {
-    if (isEmptyArray(pmfmIds)) return; // Skip if empty
-
-    const pmfms = (await Promise.all(pmfmIds.map(pmfmId => this.pmfmService.load(pmfmId))))
-      .map(PmfmStrategy.fromPmfm);
-
-    this.pmfms = [
-      ...this.$pmfms.getValue(),
-      ...pmfms
-    ];
-  }
 
   /* -- protected methods -- */
 
@@ -219,4 +182,42 @@ export class SamplingSamplesTable extends SamplesTable {
     return orderedPmfms;
   }
 
+
+  protected async openSelectPmfmsModal(event?: UIEvent, filter?: PmfmFilter,
+                                       opts?: {
+                                         allowMultiple?: boolean;
+                                       }): Promise<number[]> {
+
+    const modal = await this.modalCtrl.create({
+      component: SelectPmfmModal,
+      componentProps: {
+        filter,
+        allowMultiple: opts && opts.allowMultiple
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // On dismiss
+    const res = await modal.onDidDismiss();
+    if (!res || isEmptyArray(res.data)) return; // CANCELLED
+
+    // Return pmfm ids
+    return res.data.map(p => p.id);
+  }
+
+  protected async addPmfmColumns(pmfmIds: number[]) {
+    if (isEmptyArray(pmfmIds)) return; // Skip if empty
+
+    const pmfms = (await Promise.all(pmfmIds.map(pmfmId => this.pmfmService.load(pmfmId))))
+      .map(PmfmStrategy.fromPmfm);
+
+    this.pmfms = [
+      ...this.$pmfms.getValue(),
+      ...pmfms
+    ];
+  }
 }

@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
 import {FormGroup} from "@angular/forms";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {ParameterLabelGroups} from "../../../referential/services/model/model.enum";
+import {ParameterLabelGroups, PmfmIds} from "../../../referential/services/model/model.enum";
 import {PmfmService} from "../../../referential/services/pmfm.service";
 import {ObjectMap} from "../../../shared/types";
 import {BiologicalSamplingValidators} from "../../services/validator/biological-sampling.validators";
@@ -60,14 +60,7 @@ export class SamplingLandingPage extends LandingPage {
   protected async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
 
-    // find all pmfms from samples
-    // TODO : force PMFM from data
-    /*this.samplesTable.dataPmfms = (data.samples || []).reduce((res, sample) => {
-      const pmfmIds = Object.keys(sample.measurementValues || {});
-      const newPmfmIds = pmfmIds.filter(pmfmId => !res.includes(pmfmId));
-      return res.concat(...newPmfmIds);
-    }, []);*/
-
+    this.samplesTable.strategyLabel = data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()];
     await super.setValue(data);
   }
 
