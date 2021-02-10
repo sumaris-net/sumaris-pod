@@ -40,7 +40,7 @@ import {PlatformService} from "../services/platform.service";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {Alerts} from "../../shared/alerts";
 import {createPromiseEventEmitter, emitPromiseEvent} from "../../shared/events";
-import {Environment, EnvironmentService} from "../../../environments/environment.class";
+import {Environment, ENVIRONMENT} from "../../../environments/environment.class";
 import {
   MatAutocompleteConfigHolder,
   MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig
@@ -71,6 +71,7 @@ export interface IModalDetailOptions<T = any> {
 
 // @dynamic
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class AppTable<T extends Entity<T>, F = any>
   implements OnInit, OnDestroy, AfterViewInit, IAppForm {
 
@@ -116,7 +117,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   @Input() saveBeforeDelete: boolean;
   @Input() saveBeforeSort: boolean;
   @Input() saveBeforeFilter: boolean;
-  @Input() debug = false;
+  @Input() debug: boolean;
 
   @Input() defaultSortBy: string;
   @Input() defaultSortDirection: SortDirection;
@@ -306,7 +307,6 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.translate = injector && injector.get(TranslateService);
     this.alertCtrl = injector && injector.get(AlertController);
     this.toastController = injector && injector.get(ToastController);
-    this.environment = injector && injector.get(EnvironmentService);
     this._autocompleteConfigHolder = new MatAutocompleteConfigHolder({
       getUserAttributes: (a, b) => settings.getFieldDisplayAttributes(a, b)
     });
@@ -391,7 +391,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   ngAfterViewInit() {
-    if (!this.environment.production) {
+    if (this.debug) {
       // Warn if table not exists
       if (!this.table) {
         setTimeout(() => {
@@ -466,7 +466,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   setDatasource(datasource: EntitiesTableDataSource<T, F>) {
     if (this._dataSource) throw new Error("[table] dataSource already set !");
-    if (datasource && this._dataSource != datasource) {
+    if (datasource && this._dataSource !== datasource) {
       this._dataSource = datasource;
       if (this._initialized) this.listenDatasource(datasource);
     }
@@ -502,7 +502,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   /* -- internal method -- */
 
   private applyFilter(filter: F, opts: { emitEvent: boolean; }) {
-    console.debug('[table] applyFilter', filter);
+    if (this.debug) console.debug('[table] Applying filter', filter);
     this._filter = filter;
     if (opts.emitEvent) {
       if (this.paginator && this.paginator.pageIndex > 0) {
@@ -571,10 +571,9 @@ export abstract class AppTable<T extends Entity<T>, F = any>
               AppFormUtils.logFormErrors(row.validator, '[table] ');
             }
           }
+          // fix: mark all controls as touched to show errors
           row.validator.markAllAsTouched();
         }
-        // fix: mark all controls as touched to show errors
-        row.validator.markAllAsTouched();
         return false;
       }
       // If edit finished, forget edited row
@@ -619,8 +618,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   addRow(event?: any): boolean {
+    /*if (this.debug) */console.debug("[table] Asking for new row...");
     if (!this._enabled) return false;
-    if (this.debug) console.debug("[table] Asking for new row...");
 
     // Use modal if inline edition is disabled
     if (!this.inlineEdition) {
@@ -750,6 +749,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   clickRow(event: MouseEvent|undefined, row: TableElement<T>): boolean {
+    // DEBUG
+    //console.debug("[table] Detect click on row");
     if (row.id === -1 || row.editing) return true; // Already in edition
     if (event && event.defaultPrevented || this.loading) return false; // Cancelled by event
 
@@ -1021,7 +1022,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  setShowColumn(columnName: string, show: boolean, opts?: { emitEvent?: boolean; }) {
+  protected setShowColumn(columnName: string, show: boolean, opts?: { emitEvent?: boolean; }) {
     if (!this.excludesColumns.includes(columnName) !== show) {
       if (!show) {
         this.excludesColumns.push(columnName);
@@ -1037,7 +1038,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  getShowColumn(columnName: string): boolean {
+  protected getShowColumn(columnName: string): boolean {
     return !this.excludesColumns.includes(columnName);
   }
 

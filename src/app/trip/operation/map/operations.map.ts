@@ -4,22 +4,24 @@ import {Operation} from "../../services/model/trip.model";
 import * as L from "leaflet";
 import {CRS, LayerGroup, MapOptions, PathOptions} from "leaflet";
 import {PlatformService} from "../../../core/services/platform.service";
-import {BBox, Feature, LineString, Polygon} from "geojson";
+import {Feature, LineString} from "geojson";
 import {AlertController, ModalController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
 import {isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../../shared/functions";
-import {filter, tap, throttleTime} from "rxjs/operators";
+import {distinctUntilChanged, filter, switchMap, tap, throttleTime} from "rxjs/operators";
 import {AppTabEditor} from "../../../core/form/tab-editor.class";
 import {fadeInOutAnimation} from "../../../shared/material/material.animations";
 import {ActivatedRoute, Router} from "@angular/router";
 import {DateFormatPipe} from "../../../shared/pipes/date-format.pipe";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {EntityUtils} from "../../../core/services/model/entity.model";
-import {ProgramService} from "../../../referential/services/program.service";
 import {ProgramProperties} from "../../../referential/services/config/program.config";
 import {LeafletControlLayersConfig} from "@asymmetrik/ngx-leaflet/src/leaflet/layers/control/leaflet-control-layers-config.model";
 import {LatLongPattern} from "../../../shared/material/latlong/latlong.utils";
 import {DateDiffDurationPipe} from "../../../shared/pipes/date-diff-duration.pipe";
+import {ProgramRefService} from "../../../referential/services/program-ref.service";
+import {mergeMap} from "rxjs/operators";
+import {Program} from "../../../referential/services/model/program.model";
 
 @Component({
   selector: 'app-operations-map',
@@ -30,7 +32,8 @@ import {DateDiffDurationPipe} from "../../../shared/pipes/date-diff-duration.pip
 })
 export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
 
-  private _program: string;
+  private $programLabel = new BehaviorSubject<string>(undefined);
+  private $program = new BehaviorSubject<Program>(undefined);
 
   // -- Map Layers --
   osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -86,14 +89,13 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
 
   @Input()
   set program(value: string) {
-    if (this._program !== value && isNotNil(value)) {
-      this._program = value;
-      if (this.ready && !this.loading) this.loadDefaultsFromProgram();
+    if (isNotNil(value) && this.$programLabel.getValue() !== value) {
+      this.$programLabel.next(value);
     }
   }
 
   get program(): string {
-    return this._program;
+    return this.$programLabel.getValue();
   }
 
   constructor(
@@ -108,7 +110,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
     protected settings: LocalSettingsService,
     protected zone: NgZone,
     protected cd: ChangeDetectorRef,
-    protected programService: ProgramService
+    protected programRefService: ProgramRefService
   ) {
     super(route, router, alertCtrl, translate);
     this.loading = false;
@@ -120,6 +122,23 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
   }
 
   ngOnInit() {
+
+    this.registerSubscription(
+      this.$programLabel
+        .pipe(
+          filter(isNotNilOrBlank),
+          distinctUntilChanged(),
+          switchMap(programLabel => this.programRefService.watchByLabel(programLabel)),
+          tap(program => this.$program.next(program))
+        )
+        .subscribe());
+
+    this.registerSubscription(
+      this.$program.pipe(
+          filter(() => this.ready && !this.loading)
+        )
+        .subscribe(program => this.setProgram(program)));
+
     this.registerSubscription(
       this.$onOverFeature
         .pipe(
@@ -155,9 +174,12 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
   protected async start() {
     if (!this.ready || this.loading) return; // skip
 
-    // Load map defaults, from program (center, zoom)
-    if (isNotNilOrBlank(this._program)) {
-      await this.loadDefaultsFromProgram({emitEvent: false});
+    // Applying program defaults (center, zoom)
+    const program = this.$program.getValue();
+    if (program) {
+      await this.setProgram(program, {
+        emitEvent: false // Refresh not need here, as not loading yet
+      });
     }
 
     await this.load();
@@ -290,11 +312,8 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
     };
   }
 
-  protected async loadDefaultsFromProgram(opts?: {emitEvent?: boolean; }) {
-    if (!this._program) return; // Skip
-
-    const program = await this.programService.loadByLabel(this._program);
-    if (!program) return; //  Program not found
+  protected async setProgram(program: Program, opts?: {emitEvent?: boolean; }) {
+    if (!program) return; // Skip
 
     // Map center
     const centerCoords = program.getPropertyAsNumbers(ProgramProperties.TRIP_MAP_CENTER);

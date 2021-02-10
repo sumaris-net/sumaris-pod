@@ -9,7 +9,7 @@ import {ReferentialFragments} from "./referential.fragments";
 import {VesselFilter} from "./vessel-service";
 import {SortDirection} from "@angular/material/sort";
 import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {environment} from "../../../environments/environment";
 
 export const RegistrationFragments = {
@@ -37,7 +37,7 @@ export const LoadRegistrationsQuery: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class VesselRegistrationService
-  extends BaseEntityService
+  extends BaseGraphqlService
   implements IEntitiesService<VesselRegistration, VesselFilter> {
 
   constructor(

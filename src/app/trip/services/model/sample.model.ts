@@ -21,6 +21,7 @@ export class Sample extends RootDataEntity<Sample>
   static TYPENAME = 'SampleVO';
 
   static fromObject(source: any, opts?: { withChildren?: boolean; }): Sample {
+    if (!source || source instanceof Sample) return source;
     const res = new Sample();
     res.fromObject(source, opts);
     return res;

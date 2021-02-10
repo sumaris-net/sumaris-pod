@@ -51,7 +51,7 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
         'registrationCode',
         'registrationLocation']
       ,
-      new EntitiesTableDataSource<VesselRegistration, VesselFilter>(VesselRegistration, vesselRegistrationService, environment, vesselRegistrationValidator, {
+      new EntitiesTableDataSource<VesselRegistration, VesselFilter>(VesselRegistration, vesselRegistrationService, vesselRegistrationValidator, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

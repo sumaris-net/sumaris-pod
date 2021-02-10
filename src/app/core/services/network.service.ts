@@ -20,7 +20,7 @@ import {OverlayEventDetail} from "@ionic/core";
 import {NodeInfo} from "./network.utils";
 import {HttpUtils} from "../../shared/http/http.utils";
 import {VersionUtils} from "../../shared/version/versions";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 export type ConnectionType = 'none' | 'wifi' | 'ethernet' | 'cell' | 'unknown' ;
 
@@ -124,7 +124,7 @@ export class NetworkService {
     private network: Network,
     private cache: CacheService,
     private http: HttpClient,
-    @Inject(EnvironmentService) protected environment,
+    @Inject(ENVIRONMENT) protected environment,
     @Optional() private translate: TranslateService,
     @Optional() private toastController: ToastController
   ) {

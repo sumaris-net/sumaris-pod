@@ -72,9 +72,16 @@ export const environment: Environment = Object.freeze({
     {
       host: 'adap.e-is.pro',
       port: 443
+    },
+    {
+      host: 'visi-common-docker1.ifremer.fr',
+      port: 8080
+    },
+    {
+      host: 'isi.ifremer.fr/imagine-server/',
+      port: 443
     }
   ],
-
   defaultAppName: 'SUMARiS',
   defaultAndroidInstallUrl: 'https://play.google.com/store/apps/details?id=net.sumaris.app',
 

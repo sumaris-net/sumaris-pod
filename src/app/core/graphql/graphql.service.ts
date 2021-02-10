@@ -41,7 +41,7 @@ import {IonicStorageWrapper, persistCache} from "apollo3-cache-persist";
 import {PersistentStorage} from "apollo3-cache-persist/lib/types";
 import {MutationBaseOptions} from "@apollo/client/core/watchQueryOptions";
 import {Cache} from "@apollo/client/cache/core/types/Cache";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 export interface WatchQueryOptions<V> {
   query: any;
@@ -106,7 +106,7 @@ export class GraphqlService {
     private httpLink: HttpLink,
     private network: NetworkService,
     private storage: Storage,
-    @Inject(EnvironmentService) protected environment,
+    @Inject(ENVIRONMENT) protected environment,
     @Optional() @Inject(APP_GRAPHQL_TYPE_POLICIES) private typePolicies: TypePolicies
   ) {
 

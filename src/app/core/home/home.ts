@@ -26,7 +26,7 @@ import {MenuItem, MenuItems} from "../menu/menu.component";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {fadeInAnimation, slideUpDownAnimation} from "../../shared/material/material.animations";
 import {isNotNil, isNotNilOrBlank} from "../../shared/functions";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 export function getRandomImage(files: String[]) {
   const imgIndex = Math.floor(Math.random() * files.length);
@@ -81,7 +81,7 @@ export class HomePage implements OnDestroy {
     private cd: ChangeDetectorRef,
     public network: NetworkService,
     public settings: LocalSettingsService,
-    @Inject(EnvironmentService) protected environment,
+    @Inject(ENVIRONMENT) protected environment,
     @Inject(APP_LOCALES) public locales: LocaleConfig[],
     @Optional() @Inject(APP_HOME_BUTTONS) public buttons: MenuItem[]
   ) {

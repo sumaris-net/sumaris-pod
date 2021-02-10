@@ -453,7 +453,11 @@ ion-list {
 // --------------------------------------------------
 // Material Table
 // --------------------------------------------------
-mat-table {
+.mat-table {
+
+  /*.mat-cell, .mat-header-cell, .mat-footer-cell {
+    padding: 0 10px;
+  }*/
 
   .mat-header-cell.disabled {
       color: var(--ion-color-medium, grey);
@@ -645,6 +649,12 @@ mat-table {
       padding-top: 0.4em;
     }
 
+    .mat-cell > .ion-text-nowrap {
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: pre;
+    }
   }
 
 
@@ -798,6 +808,7 @@ mat-tab-group.mat-tab-group-header-hidden .mat-tab-header {
 mat-tab-group.mat-tab-group-header-pagination-hidden .mat-tab-header-pagination {
   display: none !important;
 }
+
 mat-tab-group.mat-tab-disabled-hidden .mat-tab-disabled {
   display: none !important;
 }

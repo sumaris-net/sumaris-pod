@@ -87,6 +87,20 @@ type AggregationTypeVO {
   version: String
 }
 
+type AppliedPeriodVO {
+  acquisitionNumber: Int
+  appliedStrategyId: Int
+  endDate: Date
+  startDate: Date
+}
+
+type AppliedStrategyVO {
+  appliedPeriods: [AppliedPeriodVO]
+  id: Int
+  location: ReferentialVO
+  strategyId: Int
+}
+
 type AuthDataVO {
   challenge: String
   pubkey: String
@@ -672,16 +686,23 @@ type PmfmStrategyVO {
   acquisitionLevel: String
   acquisitionNumber: Int
   defaultValue: Float
+  fraction: ReferentialVO
+  fractionId: Int
   gearIds: [Int]
   gears: [String]
   id: Int
   isMandatory: Boolean
   label: String
+  matrix: ReferentialVO
+  matrixId: Int
   maxValue: Float
   maximumNumberDecimals: Int
+  method: ReferentialVO
   methodId: Int
   minValue: Float
   name: String
+  parameter: ReferentialVO
+  parameterId: Int
   "Get strategy pmfm"
   pmfm: PmfmVO
   pmfmId: Int
@@ -842,6 +863,10 @@ type Query {
   aggregationType(id: Int!): AggregationTypeVO
   "Get all available aggregation types"
   aggregationTypes(filter: AggregationTypeFilterVOInput): [AggregationTypeVO]
+  "Search in analytic references"
+  analyticReferences(filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ReferentialVO]
+  "Get analytic references count"
+  analyticReferencesCount(filter: ReferentialFilterVOInput): Long
   "Ask for a new auth challenge"
   authChallenge: AuthDataVO
   "Authenticate using a token"
@@ -926,6 +951,29 @@ type Query {
   strategiesCount(filter: StrategyFilterVOInput): Long
   "Get a strategy"
   strategy(id: Int!): StrategyVO
+  "Get next label for strategy"
+  strategyNextLabel(labelPrefix: String = "", nbDigit: Int = 0, programId: Int!): String
+  "Get already filled analytic references"
+  suggestedStrategyAnalyticReferences(programId: Int!): [String]
+  "Get already filled departments"
+  suggestedStrategyDepartments(programId: Int!): [Int]
+  "Get already filled locations"
+  suggestedStrategyLocations(locationClassification: LocationClassificationEnum, programId: Int!): [Int]
+  "Get already filled PMFM or one of parameter, matrix, fraction, method"
+  suggestedStrategyPmfms(field: String = "pmfm", programId: Int!, referenceTaxonId: Int): [Int]
+  "Get already filled values from entityName"
+  suggestedStrategyReferentials(
+    entityName: String,
+    "only for Location entities"
+    locationClassification: LocationClassificationEnum,
+    offset: Int = 0,
+    programId: Int!,
+    size: Int = 1000,
+    sortBy: String = "label",
+    sortDirection: String = "asc"
+  ): [ReferentialVO]
+  "Get already filled taxon names"
+  suggestedStrategyTaxonNames(programId: Int!): [Int]
   "Search in taxon names"
   taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonNameVO]
   "Get trash content"
@@ -1055,9 +1103,21 @@ type SoftwareVO {
   updateDate: Date
 }
 
+type StrategyDepartmentVO {
+  department: ReferentialVO
+  id: Int
+  location: ReferentialVO
+  privilege: ReferentialVO
+  strategyId: Int
+  updateDate: Date
+}
+
 type StrategyVO {
+  analyticReference: String
+  appliedStrategies: [AppliedStrategyVO]
   comments: String
   creationDate: Date
+  departments: [StrategyDepartmentVO]
   description: String
   gearIds: [Int]
   gears: [ReferentialVO]
@@ -1370,6 +1430,11 @@ enum LiveFormatEnum {
   SURVIVAL_TEST
 }
 
+enum LocationClassificationEnum {
+  LAND
+  SEA
+}
+
 enum SortDirection {
   ASC
   DESC
@@ -1453,6 +1518,20 @@ input AggregationTypeVOInput {
   version: String
 }
 
+input AppliedPeriodVOInput {
+  acquisitionNumber: Int
+  appliedStrategyId: Int
+  endDate: Date
+  startDate: Date
+}
+
+input AppliedStrategyVOInput {
+  appliedPeriods: [AppliedPeriodVOInput]
+  id: Int
+  location: ReferentialVOInput
+  strategyId: Int
+}
+
 input BatchVOInput {
   children: [BatchVOInput]
   comments: String
@@ -1505,6 +1584,8 @@ input DepartmentFilterVOInput {
   label: String
   levelId: Int
   levelIds: [Int]
+  levelLabel: String
+  levelLabels: [String]
   name: String
   searchAttribute: String
   searchJoin: String
@@ -1734,6 +1815,8 @@ input MetierFilterVOInput {
   label: String
   levelId: Int
   levelIds: [Int]
+  levelLabel: String
+  levelLabels: [String]
   name: String
   programLabel: String
   searchAttribute: String
@@ -1920,6 +2003,8 @@ input PersonFilterVOInput {
   lastName: String
   levelId: Int
   levelIds: [Int]
+  levelLabel: String
+  levelLabels: [String]
   name: String
   pubkey: String
   searchAttribute: String
@@ -1983,16 +2068,23 @@ input PmfmStrategyVOInput {
   acquisitionLevel: String
   acquisitionNumber: Int
   defaultValue: Float
+  fraction: ReferentialVOInput
+  fractionId: Int
   gearIds: [Int]
   gears: [String]
   id: Int
   isMandatory: Boolean
   label: String
+  matrix: ReferentialVOInput
+  matrixId: Int
   maxValue: Float
   maximumNumberDecimals: Int
+  method: ReferentialVOInput
   methodId: Int
   minValue: Float
   name: String
+  parameter: ReferentialVOInput
+  parameterId: Int
   pmfm: PmfmVOInput
   pmfmId: Int
   qualitativeValues: [ReferentialVOInput]
@@ -2077,6 +2169,8 @@ input ProgramFilterVOInput {
   label: String
   levelId: Int
   levelIds: [Int]
+  levelLabel: String
+  levelLabels: [String]
   name: String
   searchAttribute: String
   searchJoin: String
@@ -2137,6 +2231,8 @@ input ReferentialFilterVOInput {
   label: String
   levelId: Int
   levelIds: [Int]
+  levelLabel: String
+  levelLabels: [String]
   name: String
   searchAttribute: String
   searchJoin: String
@@ -2232,12 +2328,23 @@ input SoftwareVOInput {
   updateDate: Date
 }
 
+input StrategyDepartmentVOInput {
+  department: ReferentialVOInput
+  id: Int
+  location: ReferentialVOInput
+  privilege: ReferentialVOInput
+  strategyId: Int
+  updateDate: Date
+}
+
 input StrategyFilterVOInput {
   excludedIds: [Int]
   id: Int
   label: String
   levelId: Int
   levelIds: [Int]
+  levelLabel: String
+  levelLabels: [String]
   name: String
   programId: Int
   programIds: [Int]
@@ -2249,8 +2356,11 @@ input StrategyFilterVOInput {
 }
 
 input StrategyVOInput {
+  analyticReference: String
+  appliedStrategies: [AppliedStrategyVOInput]
   comments: String
   creationDate: Date
+  departments: [StrategyDepartmentVOInput]
   description: String
   gearIds: [Int]
   gears: [ReferentialVOInput]
@@ -2295,6 +2405,8 @@ input TaxonNameFilterVOInput {
   label: String
   levelId: Int
   levelIds: [Int]
+  levelLabel: String
+  levelLabels: [String]
   name: String
   referenceTaxonId: Int
   searchAttribute: String

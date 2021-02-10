@@ -19,7 +19,7 @@ import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {debounceTime} from "rxjs/operators";
 import {AppForm} from "../../form/form.class";
-import {EnvironmentService} from "../../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../../environments/environment.class";
 
 
 @Component({
@@ -55,7 +55,7 @@ export class AuthForm extends AppForm<AuthData> implements OnInit {
     private modalCtrl: ModalController,
     public network: NetworkService,
     private cd: ChangeDetectorRef,
-    @Inject(EnvironmentService) protected environment
+    @Inject(ENVIRONMENT) protected environment
   ) {
     super(dateAdapter,
       formBuilder.group({

@@ -6,7 +6,7 @@ import {LandingsTable} from "./landing/landings.table";
 import {LandingPage} from "./landing/landing.page";
 import {LandingForm} from "./landing/landing.form";
 import {SelectLandingsModal} from "./landing/select-landings.modal";
-import {AuctionControlPage} from "./auctioncontrol/auction-control.page";
+import {AuctionControlPage} from "./landing/auctioncontrol/auction-control.page";
 import {LandedTripPage} from "./landedtrip/landed-trip.page";
 import {OperationGroupTable} from "./operationgroup/operation-groups.table";
 import {ProductsTable} from "./product/products.table";
@@ -32,6 +32,7 @@ import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal
 import {DataModule} from "../data/data.module";
 import {TranslateModule} from "@ngx-translate/core";
 import {SamplesModal} from "./sample/samples.modal";
+import {SamplingLandingPage} from "./landing/sampling/sampling-landing.page";
 
 
 @NgModule({
@@ -48,6 +49,7 @@ import {SamplesModal} from "./sample/samples.modal";
     ObservedLocationsPage,
     LandingsTable,
     LandingPage,
+    SamplingLandingPage,
     LandingForm,
     SelectLandingsModal,
     AggregatedLandingsTable,
@@ -81,6 +83,7 @@ import {SamplesModal} from "./sample/samples.modal";
     LandingsTable,
     LandingForm,
     LandingPage,
+    SamplingLandingPage,
     SelectLandingsModal,
     AuctionControlPage
   ]

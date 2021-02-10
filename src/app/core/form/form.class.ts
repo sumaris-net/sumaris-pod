@@ -25,7 +25,6 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
   tabGroupAnimationDuration = '200ms';
 
   @Input() debug = false;
-
   @Input() tabindex: number;
 
   get value(): any {

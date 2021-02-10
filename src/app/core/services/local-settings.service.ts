@@ -20,7 +20,7 @@ import * as momentImported from "moment";
 import {Moment} from "moment";
 import {debounceTime, filter} from "rxjs/operators";
 import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
-import {EnvironmentService} from "../../../environments/environment.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 import {environment} from "../../../environments/environment";
 import {fromDateISOString} from "../../shared/dates";
 
@@ -101,7 +101,7 @@ export class LocalSettingsService {
     private translate: TranslateService,
     private platform: Platform,
     private storage: Storage,
-    @Inject(EnvironmentService) protected environment,
+    @Inject(ENVIRONMENT) protected environment,
     @Optional() @Inject(APP_LOCAL_SETTINGS) private readonly defaultSettings: LocalSettings,
     @Optional() @Inject(APP_LOCAL_SETTINGS_OPTIONS) defaultOptionsMap: FormFieldDefinitionMap
   ) {

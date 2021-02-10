@@ -8,33 +8,25 @@ import {
   LoadResult
 } from "../../shared/services/entity-service.class";
 import {AccountService} from "../../core/services/account.service";
-import {defer, Observable, ObservedValueOf} from "rxjs";
+import {Observable} from "rxjs";
 import * as momentImported from "moment";
-const moment = momentImported;
 import {Moment} from "moment";
 import {gql} from "@apollo/client/core";
-import {Fragments} from "./trip.queries";
+import {DataFragments, Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
 import {filter, map} from "rxjs/operators";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {AppFormUtils, FormErrors} from "../../core/form/form.utils";
 import {ObservedLocation} from "./model/observed-location.model";
-import {
-  Beans,
-  isEmptyArray,
-  isNil,
-  isNotEmptyArray,
-  isNotNil,
-  KeysEnum,
-} from "../../shared/functions";
+import {Beans, isEmptyArray, isNil, isNotEmptyArray, isNotNil, KeysEnum, toNumber} from "../../shared/functions";
 import {DataRootEntityUtils, SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {SortDirection} from "@angular/material/sort";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {NetworkService} from "../../core/services/network.service";
 import {IDataEntityQualityService} from "../../data/services/data-quality-service.class";
 import {Entity} from "../../core/services/model/entity.model";
-import {LandingFilter, LandingService} from "./landing.service";
+import {LandingFilter, LandingFragments, LandingService} from "./landing.service";
 import {IDataSynchroService, RootDataSynchroService} from "../../data/services/root-data-synchro-service.class";
 import {chainPromises} from "../../shared/observables";
 import {Landing} from "./model/landing.model";
@@ -42,6 +34,9 @@ import {ObservedLocationValidatorService} from "./validator/observed-location.va
 import {environment} from "../../../environments/environment";
 import {JobUtils} from "../../shared/services/job.utils";
 import {fromDateISOString, toDateISOString} from "../../shared/dates";
+import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
+
+const moment = momentImported;
 
 
 export class ObservedLocationFilter {
@@ -207,88 +202,119 @@ export const ObservedLocationFragments = {
       ...LightPersonFragment
     }
     measurementValues
+  }`
+};
+
+// Load query
+const ObservedLocationQueries = {
+  load: gql`query ObservedLocation($id: Int!) {
+    data: observedLocation(id: $id) {
+      ...ObservedLocationFragment
+    }
   }
+  ${ObservedLocationFragments.observedLocation}
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
+  ${Fragments.location}`,
+
+  loadAll: gql`query ObservedLocations($filter: ObservedLocationFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $trash: Boolean){
+    data: observedLocations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, trash: $trash){
+      ...LightObservedLocationFragment
+    }
+  }
+  ${ObservedLocationFragments.lightObservedLocation}`,
+
+  loadAllWithTotal: gql`query ObservedLocations($filter: ObservedLocationFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $trash: Boolean){
+    data: observedLocations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, trash: $trash){
+      ...LightObservedLocationFragment
+    }
+    total: observedLocationsCount(filter: $filter, trash: $trash)
+  }
+  ${ObservedLocationFragments.lightObservedLocation}`
+};
+
+const ObservedLocationMutations = {
+  save: gql`mutation SaveObservedLocation($data: ObservedLocationVOInput!, $options: ObservedLocationSaveOptionsInput!){
+    data: saveObservedLocation(observedLocation: $data, options: $options){
+      ...ObservedLocationFragment
+    }
+  }
+  ${ObservedLocationFragments.observedLocation}
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
+  ${Fragments.location}`,
+
+  saveWithLandings: gql`mutation SaveObservedLocationWithLandings($data: ObservedLocationVOInput!, $options: ObservedLocationSaveOptionsInput!){
+    data: saveObservedLocation(observedLocation: $data, options: $options){
+      ...ObservedLocationFragment
+      landings {
+        ...LandingFragment
+      }
+    }
+  }
+  ${ObservedLocationFragments.observedLocation}
+  ${LandingFragments.landing}
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${Fragments.location}
-  `
-};
+  ${VesselSnapshotFragments.vesselSnapshot}
+  ${DataFragments.sample}`,
 
-// Search query
-const LoadAllQuery: any = gql`
-  query ObservedLocations($filter: ObservedLocationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $trash: Boolean){
-    observedLocations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, trash: $trash){
-      ...LightObservedLocationFragment
-    }
-    observedLocationsCount(filter: $filter, trash: $trash)
-  }
-  ${ObservedLocationFragments.lightObservedLocation}
-`;
-// Load query
-const LoadQuery: any = gql`
-  query ObservedLocation($id: Int!) {
-    observedLocation(id: $id) {
-      ...ObservedLocationFragment
-    }
-  }
-  ${ObservedLocationFragments.observedLocation}
-`;
-// Save query
-const SaveQuery: any = gql`
-  mutation SaveObservedLocation($observedLocation: ObservedLocationVOInput!, $options: ObservedLocationSaveOptionsInput!){
-    saveObservedLocation(observedLocation: $observedLocation, options: $options){
-      ...ObservedLocationFragment
-    }
-  }
-  ${ObservedLocationFragments.observedLocation}
-`;
-
-const mutations = {
-  terminate: gql`
-    mutation TerminateObservedLocation($entity: ObservedLocationVOInput!){
-      entity: controlObservedLocation(observedLocation: $entity){
-        ...ObservedLocationFragment
-      }
-    }
-    ${ObservedLocationFragments.observedLocation}
-  `,
-    validate:  gql`mutation ValidateObservedLocation($entity: ObservedLocationVOInput!){
-    entity: validateObservedLocation(observedLocation: $entity){
-      ...ObservedLocationFragment
-    }
-  }
-  ${ObservedLocationFragments.observedLocation}
-`,
-  unvalidate: gql`mutation UnvalidateObservedLocation($entity: ObservedLocationVOInput!){
-    entity: unvalidateObservedLocation(observedLocation: $entity){
-      ...ObservedLocationFragment
-    }
-  }
-  ${ObservedLocationFragments.observedLocation}
-`,
-  qualify: gql`mutation QualifyObservedLocation($entity: ObservedLocationVOInput!){
-  entity: qualifyObservedLocation(observedLocation: $entity){
-    ...ObservedLocationFragment
-  }
-}
-${ObservedLocationFragments.observedLocation}
-`
-};
-
-const DeleteByIdsMutation: any = gql`
-  mutation DeleteObservedLocations($ids:[Int]!){
+  delete: gql`mutation DeleteObservedLocations($ids:[Int]!){
     deleteObservedLocations(ids: $ids)
-  }
-`;
+  }`,
 
-const UpdateSubscription = gql`
+  terminate: gql`mutation TerminateObservedLocation($data: ObservedLocationVOInput!){
+    data: controlObservedLocation(observedLocation: $data){
+      ...ObservedLocationFragment
+    }
+  }
+  ${ObservedLocationFragments.observedLocation}
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
+  ${Fragments.location}`,
+
+    validate:  gql`mutation ValidateObservedLocation($data: ObservedLocationVOInput!){
+    data: validateObservedLocation(observedLocation: $data){
+      ...ObservedLocationFragment
+    }
+  }
+  ${ObservedLocationFragments.observedLocation}
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
+  ${Fragments.location}`,
+
+  unvalidate: gql`mutation UnvalidateObservedLocation($data: ObservedLocationVOInput!){
+    data: unvalidateObservedLocation(observedLocation: $data){
+      ...ObservedLocationFragment
+    }
+  }
+  ${ObservedLocationFragments.observedLocation}
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
+  ${Fragments.location}`,
+
+  qualify: gql`mutation QualifyObservedLocation($data: ObservedLocationVOInput!){
+    data: qualifyObservedLocation(observedLocation: $data){
+      ...ObservedLocationFragment
+    }
+  }
+  ${ObservedLocationFragments.observedLocation}
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
+  ${Fragments.location}`
+};
+
+
+const ObservedLocationSubscriptions = {
+  listenChanges: gql`
   subscription UpdateObservedLocation($id: Int!, $interval: Int){
     updateObservedLocation(id: $id, interval: $interval) {
       ...ObservedLocationFragment
     }
   }
-  ${ObservedLocationFragments.observedLocation}
-`;
+  ${ObservedLocationFragments.observedLocation}`
+};
 
 @Injectable({providedIn: "root"})
 export class ObservedLocationService
@@ -311,7 +337,13 @@ export class ObservedLocationService
     protected validatorService: ObservedLocationValidatorService,
     protected landingService: LandingService
   ) {
-    super(injector, mutations);
+    super(injector, ObservedLocation, {
+      queries: ObservedLocationQueries,
+      mutations: ObservedLocationMutations,
+      subscriptions: ObservedLocationSubscriptions,
+      filterFnFactory: ObservedLocationFilter.asPodObject,
+      filterAsObjectFn: ObservedLocationFilter.searchFilter
+    });
 
     // FOR DEV ONLY
     this._debug = !environment.production;
@@ -340,28 +372,27 @@ export class ObservedLocationService
     let now = Date.now();
     console.debug("[observed-location-service] Watching observed locations... using options:", variables);
 
-    return this.mutableWatchQuery<{ observedLocations: ObservedLocation[]; observedLocationsCount: number }>({
+    return this.mutableWatchQuery<{ data: ObservedLocation[]; total: number }>({
         queryName: 'LoadAll',
-        query: LoadAllQuery,
-        arrayFieldName: 'observedLocations',
-        totalFieldName: 'observedLocationsCount',
+        query: this.queries.loadAllWithTotal,
+        arrayFieldName: 'data',
+        totalFieldName: 'total',
         insertFilterFn: ObservedLocationFilter.searchFilter(dataFilter),
         variables: variables,
-        error: {code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ALL_ERROR"},
+        error: {code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "ERROR.LOAD_ERROR"},
         fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
       })
       .pipe(
         filter(() => !this.loading),
-        map(res => {
-          const data = (res && res.observedLocations || []).map(ObservedLocation.fromObject);
-          const total = res && isNotNil(res.observedLocationsCount) ? res.observedLocationsCount : undefined;
+        map(({data, total}) => {
+          const entities = (data || []).map(ObservedLocation.fromObject);
           if (now) {
-            console.debug(`[observed-location-service] Loaded {${data.length || 0}} observed locations in ${Date.now() - now}ms`, data);
+            console.debug(`[observed-location-service] Loaded {${entities.length || 0}} observed locations in ${Date.now() - now}ms`, entities);
             now = undefined;
           } else {
-            console.debug(`[observed-location-service] Refreshed {${data.length || 0}} observed locations`);
+            console.debug(`[observed-location-service] Refreshed {${entities.length || 0}} observed locations`);
           }
-          return {data, total};
+          return {data: entities, total};
         }));
   }
 
@@ -396,62 +427,60 @@ export class ObservedLocationService
     this.loading = true;
 
     try {
-      let json: any;
+      let data: any;
 
       // If local entity
       if (id < 0) {
-        json = await this.entities.load<ObservedLocation>(id, ObservedLocation.TYPENAME);
-        if (!json) throw {code: ErrorCodes.LOAD_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ERROR"};
+        data = await this.entities.load<ObservedLocation>(id, ObservedLocation.TYPENAME);
+        if (!data) throw {code: ErrorCodes.LOAD_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ERROR"};
 
         if (opts && opts.withLanding) {
-          json.landings = await this.entities.loadAll<Landing>('OperationVO', {
+          data.landings = await this.entities.loadAll<Landing>(Landing.TYPENAME, {
             filter: LandingFilter.searchFilter<Landing>({observedLocationId: id})
           });
         }
       }
 
       else {
-        const res = await this.graphql.query<{ observedLocation: ObservedLocation }>({
-          query: LoadQuery,
-          variables: {
-            id: id
-          },
+        const res = await this.graphql.query<{ data: ObservedLocation }>({
+          query: this.queries.load,
+          variables: { id },
           error: {code: ErrorCodes.LOAD_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ERROR"},
           fetchPolicy: opts && opts.fetchPolicy || undefined
         });
-        json = res && res.observedLocation;
+        data = res && res.data;
       }
-      const data: ObservedLocation = (!opts || opts.toEntity !== false) ? ObservedLocation.fromObject(json) : (json as ObservedLocation);
-      if (data && this._debug) console.debug(`[observed-location-service] Observed location #${id} loaded in ${Date.now() - now}ms`, data);
+      const entities = (!opts || opts.toEntity !== false)
+        ? ObservedLocation.fromObject(data)
+        : (data as ObservedLocation);
 
-      return data;
+      if (entities && this._debug) console.debug(`[observed-location-service] Observed location #${id} loaded in ${Date.now() - now}ms`, entities);
+
+      return entities;
     }
     finally {
       this.loading = false;
     }
   }
 
-  public listenChanges(id: number): Observable<ObservedLocation> {
+  public listenChanges(id: number, opts?: { interval?: number }): Observable<ObservedLocation> {
     if (!id && id !== 0) throw new Error("Missing argument 'id' ");
 
     if (this._debug) console.debug(`[observed-location-service] [WS] Listening changes for observedLocation {${id}}...`);
 
-    return this.graphql.subscribe<{ updateObservedLocation: ObservedLocation }, { id: number, interval: number }>({
-      query: UpdateSubscription,
-      variables: {
-        id: id,
-        interval: 10
-      },
+    return this.graphql.subscribe<{ data: ObservedLocation }, { id: number, interval: number }>({
+      query: this.subscriptions.listenChanges,
+      variables: { id, interval: toNumber(opts && opts.interval, 10) },
       error: {
         code: ErrorCodes.SUBSCRIBE_OBSERVED_LOCATION_ERROR,
-        message: 'OBSERVED_LOCATION.ERROR.SUBSCRIBE_ERROR'
+        message: 'ERROR.SUBSCRIBE_ERROR'
       }
     })
       .pipe(
-        map(res => {
-          const data = res && res.updateObservedLocation && ObservedLocation.fromObject(res.updateObservedLocation);
-          if (data && this._debug) console.debug(`[observed-location-service] Observed location {${id}} updated on server !`, data);
-          return data;
+        map(({data}) => {
+          const entity = data && ObservedLocation.fromObject(data);
+          if (entity && this._debug) console.debug(`[observed-location-service] Observed location {${id}} updated on server !`, entity);
+          return entity;
         })
       );
   }
@@ -498,19 +527,19 @@ export class ObservedLocationService
     if (this._debug) console.debug("[observed-location-service] Using minify object, to send:", json);
 
     const variables = {
-      observedLocation: json,
+      data: json,
       options: {
         withLanding: opts.withLanding
       }
     };
 
-    const mutation = (opts.withLanding) ? SaveQuery : SaveQuery;
-    await this.graphql.mutate<{ saveObservedLocation: ObservedLocation }>({
+    const mutation = opts.withLanding ? ObservedLocationMutations.saveWithLandings : this.mutations.save;
+    await this.graphql.mutate<{ data: ObservedLocation }>({
       mutation,
       variables,
       error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.SAVE_ERROR"},
       update: (proxy, {data}) => {
-        const savedEntity = data && data.saveObservedLocation;
+        const savedEntity = data && data.data;
         if (savedEntity !== entity) {
           if (this._debug) console.debug(`[observed-location-service] Observed location saved in ${Date.now() - now}ms`, entity);
           this.copyIdAndUpdateDate(savedEntity, entity);
@@ -519,7 +548,7 @@ export class ObservedLocationService
         // Add to cache
         if (isNew) {
           this.insertIntoMutableCachedQuery(proxy, {
-            query: LoadAllQuery,
+            queryName: 'LoadAll',
             data: savedEntity
           });
         }
@@ -602,14 +631,12 @@ export class ObservedLocationService
     if (this._debug) console.debug(`[observed-location-service] Deleting {${ids.join(',')}}`, ids);
 
     await this.graphql.mutate<any>({
-      mutation: DeleteByIdsMutation,
-      variables: {
-        ids: ids
-      },
+      mutation: this.mutations.deleteAll,
+      variables: { ids },
       update: (proxy) => {
         // Update the cache
         this.removeFromMutableCachedQueryByIds(proxy, {
-          query: LoadAllQuery,
+          queryName: 'LoadAll',
           ids
         });
 
@@ -673,7 +700,7 @@ export class ObservedLocationService
 
     const programLabel = entity.program && entity.program.label || null;
     if (!programLabel) throw new Error("Missing entity's program. Unable to control the entity");
-    const program = await this.programService.loadByLabel(programLabel);
+    const program = await this.programRefService.loadByLabel(programLabel);
 
     const form = this.validatorService.getFormGroup(entity, {
       program,
@@ -758,14 +785,14 @@ export class ObservedLocationService
 
   /**
    * List of importation jobs.
-   * @param jobOpts
    * @protected
+   * @param opts
    */
   protected getImportJobs(opts: {maxProgression: undefined}): Observable<number>[] {
     return [
       ...super.getImportJobs(opts),
-      // Landing predoc
-      JobUtils.defer((p,o) => this.landingService.executeImport(p, o), opts)
+      // Landing historical data
+      JobUtils.defer((p, o) => this.landingService.executeImport(p, o), opts)
     ];
   }
 }

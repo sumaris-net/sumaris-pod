@@ -6,7 +6,9 @@ import {FetchResult} from "@apollo/client/link/core";
 import {EntityUtils} from "./model/entity.model";
 import {ApolloCache} from "@apollo/client/core";
 import {Environment} from "../../../environments/environment.class";
-import {changeCaseToUnderscore, isNotEmptyArray} from "../../shared/functions";
+import {changeCaseToUnderscore, isNotEmptyArray, toBoolean} from "../../shared/functions";
+import {environment} from "../../../environments/environment";
+import {Directive, Optional} from "@angular/core";
 
 const sha256 =  require('hash.js/lib/hash/sha/256');
 
@@ -46,7 +48,12 @@ export interface MutableWatchQueryInfo<D, T = any, V = EmptyObject> {
   counter: number;
 }
 
-export abstract class BaseEntityService<T = any, F = any> {
+export class BaseGraphqlServiceOptions {
+  production?: boolean;
+}
+
+@Directive()
+export abstract class BaseGraphqlService<T = any, F = any> {
 
   protected _debug: boolean;
   protected _debugPrefix: string;
@@ -60,11 +67,11 @@ export abstract class BaseEntityService<T = any, F = any> {
 
   protected constructor(
     protected graphql: GraphqlService,
-    protected environment: Environment
+    @Optional() options?: BaseGraphqlServiceOptions
   ) {
 
     // for DEV only
-    this._debug = !environment.production;
+    this._debug = toBoolean(!options.production, !environment.production);
     this._debugPrefix = this._debug && `[${changeCaseToUnderscore(this.constructor.name).replace(/_/g, '-' )}]`;
   }
 
@@ -122,7 +129,7 @@ export abstract class BaseEntityService<T = any, F = any> {
           if (isNotEmptyArray(data)) {
             if (this._debug) console.debug(`[base-data-service] Inserting data into watching query: `, query.id);
             this.graphql.addManyToQueryCache(cache, {
-              query: opts.query,
+              query: query.query,
               variables: query.variables,
               arrayFieldName: query.arrayFieldName as string,
               sortFn: query.sortFn,
@@ -134,7 +141,7 @@ export abstract class BaseEntityService<T = any, F = any> {
         else if (!query.insertFilterFn || query.insertFilterFn(opts.data)) {
           if (this._debug) console.debug(`[base-data-service] Inserting data into watching query: `, query.id);
           this.graphql.insertIntoQueryCache(cache, {
-            query: opts.query,
+            query: query.query,
             variables: query.variables,
             arrayFieldName: query.arrayFieldName as string,
             sortFn: query.sortFn,

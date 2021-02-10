@@ -30,7 +30,7 @@ export class SamplesModal implements OnInit {
 
   @Input() acquisitionLevel: AcquisitionLevelType;
 
-  @Input() program: string;
+  @Input() programLabel: string;
 
   @Input() canEdit: boolean;
 
@@ -117,7 +117,7 @@ export class SamplesModal implements OnInit {
   }
 
   async ready(): Promise<void>{
-    await this.table.onReady();
+    await this.table.ready();
   }
 
   async close(event?: UIEvent) {

@@ -3,17 +3,15 @@ import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {Measurement} from "../model/measurement.model";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {ProgramService} from "../../../referential/services/program.service";
 
 @Injectable({providedIn: 'root'})
 export class ExpenseValidatorService extends MeasurementsValidatorService {
 
   constructor(
     formBuilder: FormBuilder,
-    settings: LocalSettingsService,
-    programService: ProgramService
+    settings: LocalSettingsService
   ) {
-    super(formBuilder, settings, programService);
+    super(formBuilder, settings);
   }
 
   getFormGroupConfig(data: Measurement[], opts?: MeasurementsValidatorOptions): { [p: string]: any } {

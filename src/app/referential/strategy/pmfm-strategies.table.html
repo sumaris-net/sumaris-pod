@@ -1,17 +1,17 @@
-<mat-toolbar>
+<mat-toolbar *ngIf="showToolbar">
 
   <button mat-icon-button
           *ngIf="canEdit && !selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()"
           hidden-xs hidden-sm hidden-mobile>
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="canEdit && selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
+  <button mat-icon-button color="light" *ngIf="canEdit && selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
           (click)="deleteSelection($event)">
     <mat-icon>delete</mat-icon>
   </button>
 
   <!-- refresh (debug only) -->
-  <button mat-icon-button small color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
           (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
@@ -40,6 +40,7 @@
 
 
 <mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
+           [class.no-header-row]="!showHeaderRow"
            matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
@@ -62,24 +63,7 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.id }}</mat-cell>
   </ng-container>
 
-  <!-- Acquisition level
-  <ng-container matColumnDef="acquisitionLevel">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>PROGRAM.STRATEGY.PMFM_STRATEGY.ACQUISITION_LEVEL</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-
-      <mat-autocomplete-field floatLabel="never" class="min-width-large"
-                              [formControl]="row.validator.controls.acquisitionLevel"
-                              [placeholder]="'PROGRAM.STRATEGY.PMFM_STRATEGY.ACQUISITION_LEVEL'|translate"
-                              [required]="true"
-                              [config]="autocompleteFields.acquisitionLevel"
-                              [readonly]="!row.editing">
-      </mat-autocomplete-field>
-    </mat-cell>
-  </ng-container> -->
-
-  <!-- Fields -->
+  <!-- Fields-->
   <ng-container *ngFor="let definition of fieldDefinitions" [matColumnDef]="definition.key">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label>{{definition.label | translate}}</ion-label>
@@ -105,9 +89,6 @@
                         [pmfm]="pmfm"
                         [compact]="true">
         </app-pmfm-field>
-        <ng-template #pmfmReadonly>
-          <ion-text [innerHTML]="row.currentData.defaultValue | pmfmValueToString: {pmfm: row.currentData.pmfm}"></ion-text>
-        </ng-template>
       </ng-container>
     </mat-cell>
   </ng-container>
@@ -115,33 +96,64 @@
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
+    <mat-header-cell  [hidden]="!inlineEdition"
+                      *matHeaderCellDef >
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
+    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition && showHeaderRow">
 
-      <!-- undo or delete  -->
-      <button mat-icon-button color="light" *ngIf="row.validator.invalid"
-              [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-              (click)="cancelOrDelete($event, row)">
-        <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
-        <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
-      </button>
-      <!-- validate -->
-      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
-              [title]="'COMMON.BTN_VALIDATE'|translate"
-              (click)="confirmEditCreate($event, row)">
-        <mat-icon>check</mat-icon>
-      </button>
-      <!-- add -->
-      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1"
-              [title]="'COMMON.BTN_ADD'|translate"
-              (click)="confirmAndAddRow($event, row)">
-        <mat-icon>add</mat-icon>
-      </button>
+      <ng-container *ngIf="showHeaderRow; else noHeaderRowActions">
+        <!-- undo or delete  -->
+        <button mat-icon-button color="light" *ngIf="row.validator.invalid"
+                [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+                (click)="cancelOrDelete($event, row)">
+          <mat-icon *ngIf="row.id !== -1 && (row.validator.invalid)">undo</mat-icon>
+          <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
+        </button>
+
+        <!-- validate -->
+        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
+                [title]="'COMMON.BTN_VALIDATE'|translate"
+                (click)="confirmEditCreate($event, row)">
+          <mat-icon>check</mat-icon>
+        </button>
+        <!-- add -->
+        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1"
+                [title]="'COMMON.BTN_ADD'|translate"
+                (click)="!showHeaderRow ? addRow() : confirmAndAddRow($event, row)">
+          <mat-icon>add</mat-icon>
+        </button>
+      </ng-container>
+      <ng-template #noHeaderRowActions>
+
+        <!-- validate -->
+        <button mat-icon-button color="light" *ngIf="row.validator.valid"
+                [title]="'COMMON.BTN_VALIDATE'|translate"
+                (click)="confirmEditCreate($event, row)">
+          <mat-icon>check</mat-icon>
+        </button>
+
+        <!-- add -->
+        <button mat-icon-button color="light" [hidden]="!canEdit" *ngIf="!row.editing || row.validator.valid"
+                [title]="'COMMON.BTN_ADD'|translate"
+                (click)="addRow()">
+          <mat-icon>add</mat-icon>
+        </button>
+
+        <!-- delete -->
+        <button mat-icon-button color="light" [hidden]="!canDelete"
+                [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+                (click)="deleteRow($event, row)">
+          <mat-icon>close</mat-icon>
+        </button>
+
+      </ng-template>
+
     </mat-cell>
   </ng-container>
 
-  <mat-header-row *matHeaderRowDef="displayedColumns; sticky: sticky"></mat-header-row>
+  <ng-container *ngIf="showHeaderRow">
+    <mat-header-row *matHeaderRowDef="displayedColumns; sticky: sticky"></mat-header-row>
+  </ng-container>
   <mat-row *matRowDef="let row; columns: displayedColumns;"
            [class.mat-row-error]="row.validator.invalid"
            [class.mat-row-dirty]="row.validator.dirty"

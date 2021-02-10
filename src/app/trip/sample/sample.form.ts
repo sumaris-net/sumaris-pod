@@ -1,10 +1,9 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {IReferentialRef} from "../../core/services/model/referential.model";
 import {UsageMode} from "../../core/services/model/settings.model";
@@ -17,6 +16,9 @@ import {Sample} from "../services/model/sample.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {AppFormUtils} from "../../core/form/form.utils";
 import {environment} from "../../../environments/environment";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
+
+const SAMPLE_FORM_DEFAULT_I18N_PREFIX = "TRIP.SAMPLE.TABLE.";
 
 @Component({
   selector: 'app-sample-form',
@@ -29,6 +31,7 @@ export class SampleForm extends MeasurementValuesForm<Sample>
 
   focusFieldName: string;
 
+  @Input() i18nPrefix = SAMPLE_FORM_DEFAULT_I18N_PREFIX;
   @Input() mobile: boolean;
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
@@ -50,14 +53,14 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected platform: PlatformService,
     protected cd: ChangeDetectorRef,
     protected validatorService: SampleValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected settings: LocalSettingsService,
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
+    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
       validatorService.getFormGroup()
     );
     this.mobile = platform.mobile;
@@ -94,9 +97,9 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   /* -- protected methods -- */
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
-    return this.programService.suggestTaxonGroups(value,
+    return this.programRefService.suggestTaxonGroups(value,
       {
-        program: this.program,
+        program: this.programLabel,
         searchAttribute: options && options.searchAttribute
       });
   }
@@ -107,9 +110,9 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     // IF taxonGroup column exists: taxon group must be filled first
     if (this.showTaxonGroup && isNilOrBlank(value) && isNil(parent)) return [];
 
-    return this.programService.suggestTaxonNames(value,
+    return this.programRefService.suggestTaxonNames(value,
       {
-        program: this.program,
+        program: this.programLabel,
         searchAttribute: options && options.searchAttribute,
         taxonGroupId: taxonGroup && taxonGroup.id || undefined
       });

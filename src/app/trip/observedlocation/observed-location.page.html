@@ -50,10 +50,10 @@
                  dynamicHeight>
 
     <!-- TAB: general -->
-    <mat-tab label="{{'OBSERVED_LOCATION.TAB_GENERAL'|translate}}">
+    <mat-tab label="{{'OBSERVED_LOCATION.EDIT.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
-        <ion-label translate>OBSERVED_LOCATION.TAB_GENERAL</ion-label>
+        <ion-label translate>OBSERVED_LOCATION.EDIT.TAB_GENERAL</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="error || (submitted && observedLocationForm.invalid)"></ion-icon>
       </ng-template>
 
@@ -69,7 +69,7 @@
 
             <!-- observed location -->
             <form-observed-location #observedLocationForm
-                                    [program]="programSubject|async"
+                                    [programLabel]="$programLabel|async"
                                     [showError]="false"
                                     [showEndDateTime]="false"
                                     [debug]="debug"
@@ -89,12 +89,13 @@
     </mat-tab>
 
     <!-- TAB: Landings -->
-    <mat-tab label="{{'OBSERVED_LOCATION.TAB_VESSELS'|translate}}" [disabled]="!showLandingTab">
+    <mat-tab label="{{i18nPrefix + 'TAB_LANDINGS'|translate}}" [disabled]="!showLandingTab">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="boat"></ion-icon>
         </mat-icon>
-        <ion-label translate>OBSERVED_LOCATION.TAB_VESSELS</ion-label>
+        <ion-label *ngIf="$ready|async; else skeletonText100">{{i18nPrefix + 'TAB_LANDINGS'|translate}}</ion-label>
+
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="landingsTable?.invalid"></ion-icon>
       </ng-template>
 
@@ -109,7 +110,7 @@
         <app-landings-table #landingsTable
                             [debug]="debug"
                             acquisitionLevel="LANDING"
-                            [program]="programSubject|async"
+                            [programLabel]="$programLabel|async"
                             [showObserversColumn]="false"
                             [showDateTimeColumn]="false"
                             (onOpenRow)="onOpenLanding($event)"
@@ -162,3 +163,7 @@
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
+
+<ng-template #skeletonText100>
+  &nbsp;<ion-skeleton-text style="min-width: 100px"></ion-skeleton-text>
+</ng-template>

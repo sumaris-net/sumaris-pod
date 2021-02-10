@@ -13,17 +13,18 @@ import {PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
 import {SortDirection} from "@angular/material/sort";
 import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
 import {isNil, isNotNil} from "../../shared/functions";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 @Directive()
 export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     implements IEntitiesService<T, F> {
 
-  private _program: string;
+  private _programLabel: string;
   private _acquisitionLevel: string;
   private _onRefreshPmfms = new EventEmitter<any>();
   private _delegate: IEntitiesService<T, F>;
 
-  protected programService: ProgramService;
+  protected programRefService: ProgramRefService;
 
   loadingPmfms = false;
   $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
@@ -31,15 +32,15 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
   debug = false;
 
   @Input()
-  set program(value: string) {
-    if (this._program !== value && isNotNil(value)) {
-      this._program = value;
+  set programLabel(value: string) {
+    if (this._programLabel !== value && isNotNil(value)) {
+      this._programLabel = value;
       if (!this.loadingPmfms) this._onRefreshPmfms.emit('set program');
     }
   }
 
-  get program(): string {
-    return this._program;
+  get programLabel(): string {
+    return this._programLabel;
   }
 
   @Input()
@@ -76,7 +77,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     }) {
 
     this._delegate = delegate;
-    this.programService = injector.get(ProgramService);
+    this.programRefService = injector.get(ProgramRefService);
 
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
@@ -165,19 +166,19 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
   /* -- protected methods -- */
 
   protected async refreshPmfms(): Promise<PmfmStrategy[]> {
-    if (isNil(this._program) || isNil(this._acquisitionLevel)) return undefined;
+    if (isNil(this._programLabel) || isNil(this._acquisitionLevel)) return undefined;
 
     this.loadingPmfms = true;
 
     // Load pmfms
-    let pmfms = (await this.programService.loadProgramPmfms(
-      this._program,
+    let pmfms = (await this.programRefService.loadProgramPmfms(
+      this._programLabel,
       {
         acquisitionLevel: this._acquisitionLevel
       })) || [];
 
     if (!pmfms.length && this.debug) {
-      console.debug(`[meas-service] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
+      console.debug(`[meas-service] No pmfm found (program=${this.programLabel}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
     }
 
     pmfms = await this.setPmfms(pmfms);

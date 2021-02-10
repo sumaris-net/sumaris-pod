@@ -12,6 +12,7 @@ import {PmfmIds} from "../../../referential/services/model/model.enum";
 import {isEmptyArray, isNotNil, toNumber} from "../../../shared/functions";
 import {EntityUtils} from "../../../core/services/model/entity.model";
 import {EntitiesStorage} from "../../../core/services/storage/entities-storage.service";
+import {ProgramRefService} from "../../../referential/services/program-ref.service";
 
 function getSortingMeasValues(opts?: {
   weight?: number;
@@ -118,8 +119,8 @@ const TREE_EXAMPLES: {[key: string]: any} = {
 export class BatchTreeTestPage implements OnInit {
 
 
-  programSubject = new BehaviorSubject<string>(undefined);
-  gearIdSubject = new BehaviorSubject<number>(undefined);
+  $programLabel = new BehaviorSubject<string>(undefined);
+  $gearId = new BehaviorSubject<number>(undefined);
   form: FormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
 
@@ -133,7 +134,7 @@ export class BatchTreeTestPage implements OnInit {
   constructor(
     formBuilder: FormBuilder,
     protected referentialRefService: ReferentialRefService,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     private entities: EntitiesStorage
   ) {
 
@@ -159,23 +160,23 @@ export class BatchTreeTestPage implements OnInit {
       .subscribe(p => {
         const label = p && p.label;
         if (label) {
-          this.programSubject.next(label);
+          this.$programLabel.next(label);
         }
       });
 
     // Gears (from program)
     this.autocomplete.add('gear', {
-      items: this.programSubject.pipe(
+      items: this.$programLabel.pipe(
         mergeMap((programLabel) => {
           if (!programLabel) return Promise.resolve([]);
-          return this.programService.loadGears(programLabel);
+          return this.programRefService.loadGears(programLabel);
         })
       ),
       attributes: ['label', 'name']
     });
     this.form.get('gear').valueChanges
       //.pipe(debounceTime(450))
-      .subscribe(g => this.gearIdSubject.next(toNumber(g && g.id, null)));
+      .subscribe(g => this.$gearId.next(toNumber(g && g.id, null)));
 
 
     // Input example

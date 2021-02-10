@@ -63,3 +63,16 @@ export class ArrayFirstPipe implements PipeTransform {
     return val && val.length > 0 ? val[0] : undefined;
   }
 }
+
+@Pipe({
+  name: 'arrayPluck'
+})
+@Injectable({providedIn: 'root'})
+export class ArrayPluckPipe implements PipeTransform {
+
+  transform<T>(val: T[], opts: { property: string; omitNil?: boolean }): any[] {
+    return (opts.omitNil !== true) ?
+      (val || []).map(value => value && value[opts.property]) :
+      (val || []).map(value => value && value[opts.property]).filter(isNotNil);
+  }
+}

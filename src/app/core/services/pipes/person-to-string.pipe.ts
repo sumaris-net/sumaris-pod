@@ -8,7 +8,7 @@ import {Person, personsToString, personToString} from "../model/person.model";
 export class PersonToStringPipe implements PipeTransform {
 
 
-  transform(value: Person | (Person[]) ): string {
+  transform(value: Person | Person[] ): string {
     if (value instanceof Array) return personsToString(value);
     return personToString(value);
   }

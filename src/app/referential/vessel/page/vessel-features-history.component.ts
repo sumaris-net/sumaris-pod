@@ -54,7 +54,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
         'grossTonnageGt',
         'basePortLocation',
         'comments'],
-      new EntitiesTableDataSource<VesselFeatures, VesselFilter>(VesselFeatures, vesselFeaturesService, environment, vesselFeaturesValidator, {
+      new EntitiesTableDataSource<VesselFeatures, VesselFilter>(VesselFeatures, vesselFeaturesService, vesselFeaturesValidator, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
@@ -71,6 +71,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
 
+    this.debug = !environment.production;
   }
 
   ngOnInit() {

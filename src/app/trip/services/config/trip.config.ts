@@ -1,7 +1,10 @@
-import {FormFieldDefinition, FormFieldDefinitionMap} from "../../../shared/form/field.model";
+import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {EntitiesStorageTypePolicies} from "../../../core/services/storage/entities-storage.service";
 import {EntityStoreTypePolicy} from "../../../core/services/storage/entity-store.class";
 import {Operation, Trip} from "../model/trip.model";
+import {TypePolicies} from "@apollo/client/core";
+import {ObservedLocation} from "../model/observed-location.model";
+import {Landing} from "../model/landing.model";
 
 /**
  * Name of the features (e.g. to be used by settings)
@@ -18,6 +21,12 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
     label: 'TRIP.OPTIONS.ENABLE',
     type: 'boolean'
   },
+  OBSERVED_LOCATION_NEW_NAME: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.new.name',
+    label: 'OBSERVED_LOCATION.OPTIONS.NEW_NAME',
+    type: 'string',
+    defaultValue: 'OBSERVED_LOCATION.NEW.TITLE'
+  },
   OBSERVED_LOCATION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.enable',
     label: 'OBSERVED_LOCATION.OPTIONS.ENABLE',
@@ -26,7 +35,14 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
   OBSERVED_LOCATION_NAME: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.name',
     label: 'OBSERVED_LOCATION.OPTIONS.NAME',
-    type: 'string'
+    type: 'string',
+    defaultValue: 'MENU.OBSERVED_LOCATION'
+  },
+  ANALYTIC_REFERENCES_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.analyticReferences.enable',
+    label: 'OBSERVED_LOCATION.OPTIONS.ANALYTIC_REFERENCES_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
   }
 });
 
@@ -68,12 +84,14 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
 
   'LandingVO': <EntityStoreTypePolicy<Landing>>{
     mode: 'by-id',
+    skipNonLocalEntities: true,
+    lightFieldsExcludes: ["samples"]
+  },
+
+  'LandingHistoryVO': <EntityStoreTypePolicy<Landing>>{
+    mode: 'by-id',
     skipNonLocalEntities: false, // TODO BLA: vérifier que la prédoc hors ligne fonctionne
     lightFieldsExcludes: ["samples"]
   }
 };
-
-import {TypePolicies} from "@apollo/client/core";
-import {ObservedLocation} from "../model/observed-location.model";
-import {Landing} from "../model/landing.model";
 

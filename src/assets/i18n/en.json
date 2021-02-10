@@ -60,6 +60,8 @@
     "DATE_FILE_PATTERN": "YYYY-MM-DD",
     "DATE_SHORT_PATTERN": "DD/MM/YY",
     "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
+    "DATE_YEAR_PATTERN": "YYYY",
+    "DATE_YEAR_PLACEHOLDER": "yyyy",
     "DATE_PLACEHOLDER": "dd/mm/yyyy",
     "DATE_TIME_PLACEHOLDER": "dd/mm/yyyy hh:mm",
 
@@ -171,7 +173,15 @@
       "ENUMERATION": {
         "LOCATION_LEVEL_COUNTRY_ID": "Referential > Location level de lieu > Country",
         "LOCATION_LEVEL_PORT_ID": "Referential > Location level > Port",
-        "LOCATION_LEVEL_AUCTION_ID": "Referential > Location level > Sale auction"
+        "LOCATION_LEVEL_AUCTION_ID": "Referential > Location level > Sale auction",
+        "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Referential > Location level > CIEM/ICES Statistical Rectangle",
+        "LOCATION_LEVEL_ICES_DIVISION_ID": "Referential > Location level > CIEM/ICES Division",
+        "STRATEGY_PARAMETER_AGE_LABEL": "Strategy > Parameter > Age label",
+        "STRATEGY_PARAMETER_SEX_LABEL": "Strategy > Parameter > Sex label",
+        "STRATEGY_PARAMETER_WEIGHT_LABELS": "Strategy > Parameter > Weight labels",
+        "STRATEGY_PARAMETER_LENGTH_LABELS": "Strategy > Parameter > Length labels",
+        "STRATEGY_PARAMETER_MATURITY_LABELS": "Strategy > Parameter > Maturity labels"
+
       },
       "TESTING": "Developer mode ?",
       "ENTITY_TRASH": "Enable trash on pod?"
@@ -193,7 +203,8 @@
     "DATA_ENTRY_DIVIDER": "Data entry",
     "DATA_ACCESS_DIVIDER": "Data access",
     "OBSERVED_LOCATIONS": "Observations",
-    "AUCTION_CONTROL": "Auction control",
+    "AUCTION_CONTROL": "Auction controls",
+    "OCCASION": "Occasions",
     "ADMINISTRATION_DIVIDER": "Administration",
     "REFERENTIAL_DIVIDER": "Referential",
     "USERS": "Users",
@@ -322,6 +333,13 @@
         "ATTRIBUTES": {
           "EXTERIOR_MARKING_NAME": "Exterior marking - Name",
           "REGISTRATION_CODE_NAME": "Registration code - Name"
+        }
+      },
+      "PMFM_STRATEGY": {
+        "NAME": "Strategy > PMFM Parameter",
+        "ATTRIBUTES": {
+          "LONG_NAME": "PMFM Parameter (PMFM)",
+          "SHORT_NAME": "PMFM"
         }
       }
     },
@@ -653,6 +671,13 @@
         "COMMENTS": "Comments",
         "BTN_AUTO_FILL": "Automatically fill"
       }
+    },
+    "SAMPLE2": {
+      "TABLE": {
+        "SAMPLE_CODE": "Sample code",
+        "MORSE_CODE": "Morse code",
+        "COMMENT" : "Comment"
+      }
     }
   },
   "SALE": {
@@ -700,6 +725,7 @@
     "LOCATION_AND_DATE": "Location / Date:",
     "TAB_GENERAL": "Details",
     "TAB_VESSELS": "Observed vessels",
+    "TAB_LANDING": "Landing",
     "OBSERVER_PLACEHOLDER": "Observer #",
     "OBSERVERS": "Observers:",
     "NEW": {
@@ -716,7 +742,6 @@
       "TAB_NEW_VESSEL": "Create new vessel"
     },
     "TABLE": {
-      "TITLE": "Observations",
       "PROGRAM": "Program",
       "START_DATE_TIME": "Date/time",
       "QUALITY": "Status",
@@ -733,28 +758,27 @@
     "OPTIONS": {
       "ENABLE": "Observations > Enable ?",
       "NAME": "Observations > Title (menu)"
-    },
-    "ERROR": {
-      "LOAD_ERROR": "Error while loading the observation.",
-      "LOAD_ALL_ERROR": "Error while loading observations.",
-      "SAVE_ERROR": "Error while saving the observation.",
-      "SAVE_ALL_ERROR": "Error while saving observations.",
-      "SUBSCRIBE_ERROR": "Error while subscribe to observation changes"
     }
   },
   "LANDING": {
-    "TITLE_PREFIX": "<small>{{location}} - Landing {{date}}<br/></small>",
+    "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
     "TAB_GENERAL": "Details",
     "PROGRAM": "Program",
+    "SAMPLE_ROW_CODE": "Sample row code",
+    "SAMPLE_ROW_CODE_TITLE": "Sample row :",
+    "FISHING_AREA" :"Fishing area",
+    "TARGET_SPECIES" :"Target species",
+    "TARGET_SPECIES_TITLE" :"Species :",
     "VESSEL": "Vessel",
     "LANDING": "Landing:",
     "DATE_TIME": "Date/Time",
-    "LOCATION": "Landing site",
+    "LOCATION": "Sampling site /!\ TODO BLA Landing site",
     "OBSERVERS": "Observers:",
     "OBSERVER_PLACEHOLDER": "Observer #",
     "TAB_SAMPLES": "Samples",
     "NEW": {
-      "TITLE": "New landing"
+      "TITLE": "New landing",
+      "SAMPLE_TITLE": "New sample"
     },
     "EDIT": {
       "TITLE": "Landing {{vessel}}",
@@ -767,7 +791,11 @@
       "DATE_TIME": "Date/Time",
       "LOCATION": "Landing site",
       "OBSERVERS": "Observers",
-      "COMMENTS": "Comments"
+      "COMMENTS": "Comments",
+      "SAMPLING_PLAN_CODE": "Sampling plan",
+      "VESSEL_PORT_LOCATION": "Port",
+      "CREATION_DATE": "Creation date",
+      "RECORDER_PERSON" : "Recorder"
     },
     "SELECT_MODAL": {
       "TITLE": "Detail of observed vessels"
@@ -777,7 +805,9 @@
       "LOAD_ERROR": "Error while loading observed vessel.",
       "SAVE_ERROR": "Error while saving observed vessel",
       "SAVE_ALL_ERROR": "Error while saving observed vessels",
-      "SUBSCRIBE_ERROR": "Error while subscribe to observed vessel changes."
+      "SUBSCRIBE_ERROR": "Error while subscribe to observed vessel changes.",
+      "NO_STRATEGY_EFFORT_ERROR": "For this sample row and date, there is no effort on sample row (no value defined)",
+      "ZERO_STRATEGY_EFFORT_ERROR": "For this sample row and date, effort on sample row is 0"
     }
   },
   "AGGREGATED_LANDING": {
@@ -987,6 +1017,8 @@
       "TAB_GENERAL": "Details",
       "TAB_QUALITATIVE_VALUE": "Qualitative value",
       "TYPE": "Value type",
+      "CODE": "Parameter code",
+      "NAME": "Name",
       "NEW": {
         "TITLE": "New parameter"
       },
@@ -1025,6 +1057,18 @@
         "TITLE": "PMFM {{label}} - {{name}}"
       }
     },
+    "MATRIX": {
+      "NAME": "Matrix",
+      "DESCRIPTION": "description"
+    },
+    "FRACTION": {
+      "NAME": "Fraction",
+      "DESCRIPTION": "description"
+    },
+    "METHOD": {
+      "NAME": "Data collection method",
+      "DESCRIPTION": "description"
+    },
     "LIST": {
       "TITLE": "Referential",
       "FILTER": {
@@ -1050,7 +1094,7 @@
       "VESSEL_TYPE": "Vessel types",
       "PMFM": "Collected parameters",
       "MATRIX": "Matrices",
-      "FRACTION": "Fractions",
+      "FRACTION": "Fractions of the matrix",
       "QUALITATIVE_VALUE": "Qualitative values",
       "TAXON_GROUP_TYPE": "Species group types",
       "TAXON_GROUP": "Species group",
@@ -1126,6 +1170,12 @@
       "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
       "MEASUREMENTS_MOBILE_MAX_VISIBLE_BUTTONS": "Qualitative values > Max nb buttons  (mobile)"
+      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
+      "SIMPLE_STRATEGIES": "Simple strategies",
+      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Strategy > PMFM array > Column name",
+      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PMFM",
+      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Collected parameter (PMFM)",
+      "STRATEGY_SIMPLE_STRATEGIES_ENABLE": "Strategy : Simple strategies?"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Acquisition levels",
@@ -1133,31 +1183,81 @@
       "GEARS": "Gears",
       "TAXON_GROUPS": "Commercial species",
       "TAXON_NAMES": "Scientific species",
-      "BTN_APPLY_TO_SELECTED_PMFM": "Apply to selected PMFM",
-      "BTN_REMOVE_TO_SELECTED_PMFM": "Remove from selected PMFM",
+      "BTN_APPLY_TO_SELECTED_PMFM": "Apply to selected PMFMs",
+      "BTN_REMOVE_TO_SELECTED_PMFM": "Remove from selected PMFMs",
       "NEW": {
-        "TITLE": "Nouvelle stratégie"
+        "TITLE": "New strategy",
+        "SAMPLING_TITLE": "New Sample row"
+      },
+      "EDIT": {
+        "TITLE": "Strategy",
+        "SAMPLING_TITLE": "Sample row {{label}}"
       },
       "PMFM_STRATEGY": {
-        "ACQUISITION_LEVEL": "Niveau d'acquisition",
-        "RANK_ORDER": "Ordre",
-        "PMFM": "Paramètre collecté (PMFM)",
-        "IS_MANDATORY": "Oblig ?",
-        "ACQUISITION_NUMBER": "Nb acquis.",
+        "ACQUISITION_LEVEL": "Acquisition level",
+        "RANK_ORDER": "Order",
+        "PMFM": "Collected parameters (PMFM)",
+        "LONG_COLUMN_TITLE": "Collected parameter (PMFM)",
+        "SHORT_COLUMN_TITLE": "PSFM",
+        "PARAMETER": "Parameter",
+        "MATRIX": "Matrix",
+        "FRACTION": "Fraction",
+        "METHOD": "Method",
+        "UNIT": "Unit",
+        "IS_MANDATORY": "Required ?",
+        "ACQUISITION_NUMBER": "Acquisition nb.",
         "MIN_VALUE": "Min",
         "MAX_VALUE": "Max",
-        "DEFAULT_VALUE": "Valeur par défaut",
+        "DEFAULT_VALUE": "Default value",
         "TABLE": {
-          "TITLE": "Paramètres collectés"
+          "TITLE": "Collected parameters"
         }
       }
     },
     "ERROR": {
+      "LOAD_STRATEGY_LABEL_ERROR": "Error while loading stategy label",
+      "LOAD_STRATEGY_REFERENCES_ERROR": "Error while loading strategy analytic references",
       "LOAD_PROGRAM_ERROR": "Error while loading program",
       "LOAD_PROGRAMS_ERROR": "Error while loading programs",
       "SAVE_PROGRAM_ERROR": "Error while saving program",
-      "SAVE_PROGRAMS_ERROR": "Error while saving programs"
-    }
+      "SAVE_PROGRAMS_ERROR": "Error while saving programs",
+      "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
+      "PARAMETERS.WEIGHT_OR_SIZE": "Weight or size is mandatory",
+      "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}",
+      "LABEL.UNIQUE": "The code of the sampling plan line already exists",
+      "EFFORT.EXIST": "Sampling plan {{errorDetails}} used by observed locations"
+    },
+    "CREATE_SAMPLING_PLAN": "Creating a sampling plan line",
+    "APPLIED_STRATEGIES" :"Fishing area(s)",
+    "LABEL": "Sample row code",
+    "SAMPLE_ROW_TITLE": "Sample row code",
+    "ANALYTIC_REFERENCE": "EOTP",
+    "DEPARTMENTS": "Laboratory",
+    "LANDING_PORT": "Landing port",
+    "SEX": "Sexe",
+    "AGE": "Age",
+    "YEAR": "Year",
+    "WEIGHT": "Weights: ",
+    "SIZE": "Sizes: ",
+    "MATURITY": "Maturities: ",
+    "WEIGHT_TABLE": "Weights",
+    "SIZE_TABLE": "Sizes",
+    "MATURITY_TABLE": "Maturities",
+    "OTHER_TABLE": "Other",
+    "CALCIFIED_TYPE": "Types of calcified parts: " ,
+    "SIZE_INCREMENT": "Size increment",
+    "EFFORT": "Effort : ",
+    "QUARTER_1": "Quarter 1" ,
+    "QUARTER_2": "Quarter 2",
+    "QUARTER_3": "Quarter 3",
+    "QUARTER_4": "Quarter 4",
+    "COMMENT" :"Comment",
+    "PARAMETERS_TITLE": "Mesured parameters",
+    "QUARTER_1_TABLE": "Efforts T1" ,
+    "QUARTER_2_TABLE": "Efforts T2",
+    "QUARTER_3_TABLE": "Efforts T3",
+    "QUARTER_4_TABLE": "Efforts T4",
+    "ADD_LANDING": "Add landing"
   },
   "EXTRACTION": {
     "BTN_DOWNLOAD_FILE": "Download as CSV",
@@ -1482,7 +1582,10 @@
     "LOAD_TRASH_ENTITY_ERROR": "Error while loading the trash file",
     "DELETE_TRASH_ENTITY_ERROR": "Error while deleting the trash file",
     "ENTITY_STORAGE_MIGRATION_FAILED": "Failed to migrate the local database",
-    "STARTUP_FAILED": "Startup failed"
+    "STARTUP_FAILED": "Startup failed",
+    "LOAD_ERROR": "Error while loading",
+    "SAVE_ERROR": "Error while saving",
+    "SUBSCRIBE_ERROR": "Error while subscribe to changes"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

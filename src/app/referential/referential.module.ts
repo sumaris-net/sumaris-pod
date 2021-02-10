@@ -4,7 +4,7 @@ import {VesselForm} from "./vessel/form/form-vessel";
 import {VesselPage} from "./vessel/page/vessel.page";
 import {VesselsTable} from "./vessel/list/vessels.table";
 import {VesselModal} from "./vessel/modal/modal-vessel";
-import {ReferentialsPage} from './list/referentials';
+import {ReferentialsPage} from './list/referentials.page';
 
 import {ReferentialForm} from "./form/referential.form";
 import {ProgramPage} from "./program/program.page";
@@ -15,7 +15,6 @@ import {VesselRegistrationHistoryComponent} from "./vessel/page/vessel-registrat
 import {VesselsPage} from "./vessel/list/vessels.page";
 import {PmfmPage} from "./pmfm/pmfm.page";
 import {ParameterPage} from "./pmfm/parameter.page";
-import {ReferentialTable} from "./list/referential.table";
 import {PmfmStrategiesTable} from "./strategy/pmfm-strategies.table";
 import {SelectReferentialModal} from "./list/select-referential.modal";
 import {ReferentialRefTable} from "./list/referential-ref.table";
@@ -27,10 +26,19 @@ import {TranslateModule} from "@ngx-translate/core";
 import {IsComputedPmfmPipe, IsDatePmfmPipe, PmfmNamePipe, PmfmValueToStringPipe} from "./pipes/pmfms.pipe";
 import {StrategyPage} from "./strategy/strategy.page";
 
+import {TextMaskModule} from "angular2-text-mask";
+import {CommonModule} from "@angular/common";
+import {ProgramsPage} from "./program/programs.page";
+import {SamplingStrategyForm} from "./strategy/sampling/sampling-strategy.form";
+import {SamplingStrategyPage} from "./strategy/sampling/sampling-strategy.page";
+import {SamplingStrategiesTable} from "./strategy/sampling/sampling-strategies.table";
+import {SimpleReferentialTable} from "./list/referential-simple.table";
 
 @NgModule({
   imports: [
+    CommonModule,
     CoreModule,
+    TextMaskModule,
     TranslateModule.forChild()
   ],
   declarations: [
@@ -44,22 +52,26 @@ import {StrategyPage} from "./strategy/strategy.page";
     // Components
     ReferentialsPage,
     ReferentialForm,
+    SamplingStrategyForm,
     VesselsTable,
     VesselPage,
     VesselsPage,
     VesselForm,
     VesselModal,
+    ProgramsPage,
     ProgramPage,
+    SamplingStrategyPage,
     StrategyPage,
     StrategyForm,
     StrategiesTable,
+    SamplingStrategiesTable,
     PmfmStrategiesTable,
     SoftwarePage,
     VesselFeaturesHistoryComponent,
     VesselRegistrationHistoryComponent,
     ParameterPage,
     PmfmPage,
-    ReferentialTable,
+    SimpleReferentialTable,
     ReferentialRefTable,
     SelectReferentialModal,
     PmfmFormField,
@@ -78,14 +90,17 @@ import {StrategyPage} from "./strategy/strategy.page";
     // Components
     ReferentialsPage,
     ReferentialForm,
+    SamplingStrategyForm,
     VesselsTable,
     VesselPage,
     VesselForm,
-    ProgramPage,
+    SamplingStrategyPage,
     StrategyPage,
     StrategyForm,
     SoftwarePage,
     VesselsPage,
+    ProgramsPage,
+    ProgramPage,
     ParameterPage,
     PmfmPage,
     ReferentialRefTable,
