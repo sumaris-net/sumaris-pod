@@ -47,7 +47,7 @@ import {StatusIds} from "../../../core/services/model/model.enum";
 import {ProgramProperties} from "../../services/config/program.config";
 import {BehaviorSubject, merge} from "rxjs";
 import {SamplingStrategyService} from '../../services/sampling-strategy.service';
-import {PmfmService} from "../../services/pmfm.service";
+import {PmfmFilter, PmfmService} from "../../services/pmfm.service";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {MatAutocompleteField} from "../../../shared/material/autocomplete/material.autocomplete";
 import { ObjectMap } from 'src/app/shared/types';
@@ -777,6 +777,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         pmfm.strategyId = json.id;
         pmfm.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
         pmfm.pmfmId = toNumber(pmfm.pmfmId, toNumber((pmfm.pmfm && pmfm.pmfm.id) ? pmfm.pmfm.id : null, null));
+        pmfm.parameter = pmfm.parameter ? pmfm.parameter : undefined;
         pmfm.parameterId = toNumber(pmfm.parameterId, pmfm.parameter && pmfm.parameter.id);
         pmfm.matrixId = toNumber(pmfm.matrixId, pmfm.matrix && pmfm.matrix.id);
         pmfm.fractionId = toNumber(pmfm.fractionId, pmfm.fraction && pmfm.fraction.id);
@@ -788,7 +789,15 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         // Minify entity
         pmfm.pmfm = pmfm.pmfm && pmfm.pmfm.asObject ? pmfm.pmfm.asObject({minify: false}) : undefined;
 
-        delete pmfm.parameter; //  = pmfm.parameter && pmfm.parameter.asObject ? pmfm.parameter.asObject({minify: false}) : undefined;
+        //FIX TODO
+        if (pmfm.parameter) {
+          const parameter = new ReferentialRef();
+          parameter.id = pmfm.parameter.id;
+          parameter.entityName = pmfm.parameter.entityName;
+          parameter.label = pmfm.parameter.label;
+          parameter.name = pmfm.parameter.name;
+          pmfm.parameter = parameter;
+        }
 
         return pmfm;
       })
