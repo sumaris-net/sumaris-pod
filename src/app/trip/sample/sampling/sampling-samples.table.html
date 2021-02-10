@@ -139,8 +139,7 @@
                        class="mat-column-pmfm"
                        [class.even]="pmfm.rankOrder % 2 === 0"
                        [class.mat-cell-date-time]="pmfm.isDate">
-        <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: true}"
-                   (click)="openChangePmfmsModal($event)">
+        <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: true}">
         </ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row"

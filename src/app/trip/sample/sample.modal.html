@@ -5,31 +5,31 @@
                    [showSpinner]="loading"
                    [canValidate]="!enableBurstMode">
 
-<ion-buttons slot="end" >
+  <ion-buttons slot="end" >
 
-  <!-- Options menu -->
-  <button mat-icon-button *ngIf="!loading"
-          [title]="'COMMON.OPTIONS'|translate"
-          [matMenuTriggerFor]="optionsMenu">
-    <mat-icon>more_vert</mat-icon>
-  </button>
+    <!-- Options menu -->
+    <button mat-icon-button *ngIf="!loading"
+            [title]="'COMMON.OPTIONS'|translate"
+            [matMenuTriggerFor]="optionsMenu">
+      <mat-icon>more_vert</mat-icon>
+    </button>
 
-  <!-- Close  -->
-  <ion-button visible-xs visible-sm visible-mobile
-              *ngIf="!loading && enableBurstMode"
-              (click)="close($event)"
-              translate>COMMON.BTN_DONE</ion-button>
+    <!-- Close  -->
+    <ion-button visible-xs visible-sm visible-mobile
+                *ngIf="!loading && enableBurstMode"
+                (click)="close($event)"
+                translate>COMMON.BTN_DONE</ion-button>
 
-  <!-- Validate  -->
-  <ion-button visible-xs visible-sm visible-mobile
-              *ngIf="!loading && enableBurstMode"
-              (click)="onSubmit($event)"
-              [disabled]="!form.valid">
-    <ion-label translate>COMMON.BTN_NEXT</ion-label>
-    <ion-icon slot="end" name="arrow-forward"></ion-icon>
-  </ion-button>
+    <!-- Validate  -->
+    <ion-button visible-xs visible-sm visible-mobile
+                *ngIf="!loading && enableBurstMode"
+                (click)="onSubmit($event)"
+                [disabled]="!form.valid">
+      <ion-label translate>COMMON.BTN_NEXT</ion-label>
+      <ion-icon slot="end" name="arrow-forward"></ion-icon>
+    </ion-button>
 
-</ion-buttons>
+  </ion-buttons>
 </app-modal-toolbar>
 
 <!-- Options menu -->

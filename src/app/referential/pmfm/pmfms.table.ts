@@ -1,44 +1,30 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
+import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {PmfmFilter} from "../services/pmfm.service";
+import {DefaultStatusList} from "../../core/services/model/referential.model";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {DefaultStatusList} from "../../core/services/model/referential.model";
-import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
-import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {debounceTime, filter} from "rxjs/operators";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {environment} from "../../../environments/environment";
-import {Entity} from "../../core/services/model/entity.model";
-import {ReferentialFilter} from "../services/referential.service";
+import {Pmfm} from "../services/model/pmfm.model";
 
 
 @Component({
-  selector: 'app-referential-ref-table',
-  templateUrl: './referential-ref.table.html',
-  styleUrls: ['./referential-ref.table.scss'],
+  selector: 'app-pmfms-table',
+  templateUrl: './pmfms.table.html',
+  styleUrls: ['./pmfms.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilter> extends AppTable<T, F> {
-
+export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
   statusList = DefaultStatusList;
   statusById: any;
   filterForm: FormGroup;
 
   @Input() showToolbar = false;
-
   @Input() showFilter = true;
-
-  @Input() set entityName(entityName: string) {
-    this.setFilter({
-      ...this.filter,
-      entityName
-    });
-  }
-
-  get entityName(): string {
-    return this.filter.entityName;
-  }
 
   constructor(
     protected injector: Injector,
@@ -54,11 +40,12 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
       // columns
       RESERVED_START_COLUMNS
         .concat([
-          'label',
           'name',
-          'description',
-          'status',
-          'comments'])
+          'unit',
+          'matrix',
+          'fraction',
+          'method',
+          'status'])
         .concat(RESERVED_END_COLUMNS),
       null,
       null,
@@ -86,8 +73,8 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
         )
         // Applying the filter
         .subscribe((json) => this.setFilter({
-          ...this.filter, // Keep previous filter
-          ...json},
+            ...this.filter, // Keep previous filter
+            ...json},
           {emitEvent: this.mobile}))
     );
 
