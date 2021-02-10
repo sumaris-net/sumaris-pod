@@ -100,7 +100,7 @@ public class PmfmGraphQLService {
         return pmfmService.save(source);
     }
 
-    @GraphQLQuery(name = "parameter", description = "Get PMFM's paramater")
+    @GraphQLQuery(name = "parameter", description = "Get PMFM's parameter")
     public ParameterVO getPmfmParameter(@GraphQLContext PmfmVO pmfm) {
         if (pmfm.getParameterId() == null) return null;
         return getParameter(null, pmfm.getParameterId());
