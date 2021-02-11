@@ -139,11 +139,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.registerSubscription(
       merge(
         this.samplesTable.onConfirmEditCreateRow,
-        this.samplesTable.onCancelOrDeleteRow
+        this.samplesTable.onCancelOrDeleteRow,
+        this.samplesTable.onAfterDeletedRows
       )
         .pipe(debounceTime(500))
         .subscribe(() => {
-          this.landingForm.canEditStrategy = this.samplesTable.resultsLength === 0;
+          this.landingForm.canEditStrategy = this.samplesTable.visibleRowCount === 0;
         })
     );
   }
