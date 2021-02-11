@@ -187,7 +187,8 @@
         "STRATEGY_PARAMETER_MATURITY_LABELS": "Stratégie > Paramètre > Codes maturités"
       },
       "TESTING": "Mode développeur ?",
-      "ENTITY_TRASH": "Activer la corbeille du pod ?"
+      "ENTITY_TRASH": "Activer la corbeille du pod ?",
+      "ANALYTIC_REFERENCES_ENABLE": "Stratégie > Références analytiques : Activer ?"
     },
     "CACHE": {
       "NAME": "Nom",
