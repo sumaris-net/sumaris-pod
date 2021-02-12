@@ -183,7 +183,7 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
                 && (filter.getLevelId() == null || filter.getLevelId().equals(s.getLevelId()))
                 && (filter.getLevelIds() == null || Arrays.asList(filter.getLevelIds()).contains(s.getLevelId()))
                 && (filter.getStatusIds() == null || Arrays.asList(filter.getStatusIds()).contains(s.getStatusId()))
-                && (filter.getSearchText() == null || s.getLabel().toUpperCase().startsWith(filter.getSearchText().toUpperCase()) || s.getName().toUpperCase().contains(filter.getSearchText().toUpperCase()));
+                && (filter.getSearchText() == null || s.getLabel().toUpperCase().contains(filter.getSearchText().toUpperCase()) || s.getName().toUpperCase().contains(filter.getSearchText().toUpperCase()));
     }
 
 }
