@@ -157,6 +157,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   @Output() onAfterDeletedRows = new EventEmitter<TableElement<T>[]>();
 
+  @Output() onSort = new EventEmitter<any>();
+
   @Output()
   get dirty(): boolean {
     return this._dirty;
@@ -354,7 +356,6 @@ export abstract class AppTable<T extends Entity<T>, F = any>
                 return of(undefined);
               }
               if (this.debug) console.debug("[table] Calling dataSource.watchAll()...");
-              this.selection.clear();
               return this._dataSource.watchAll(
                 this.pageOffset,
                 this.pageSize,
@@ -438,7 +439,10 @@ export abstract class AppTable<T extends Entity<T>, F = any>
           }),
           filter(res => res === true)
         ) || EMPTY
-    ).subscribe(value => this.onRefresh.emit(value));
+    ).subscribe(value => {
+      this.onSort.emit();
+      this.onRefresh.emit(value);
+    });
 
     // If the user changes the sort order, reset back to the first page.
     if (this.sort && this.paginator) {
