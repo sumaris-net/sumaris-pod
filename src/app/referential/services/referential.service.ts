@@ -138,7 +138,6 @@ const CountQuery: any = gql`
   query ReferentialsCount($entityName: String, $filter: ReferentialFilterVOInput){
     total: referentialsCount(entityName: $entityName, filter: $filter)
   }
-  ${ReferentialFragments.fullReferential}
 `;
 const LoadReferentialTypes: any = gql`
   query ReferentialTypes{

@@ -37,7 +37,12 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     type: 'boolean',
     defaultValue: 'false'
   },
-
+  ANALYTIC_REFERENCES_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.analyticReferences.enable',
+    label: 'CONFIGURATION.OPTIONS.ANALYTIC_REFERENCES_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
+  },
   LOCATION_LEVEL_COUNTRY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.COUNTRY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_COUNTRY_ID',
