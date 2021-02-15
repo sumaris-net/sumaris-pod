@@ -4,7 +4,7 @@ import {BehaviorSubject, Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
+import {IReferentialRef, Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
 import {FilterFn, IEntitiesService, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
@@ -310,14 +310,13 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     };
   }
 
-  async suggest(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection): Promise<ReferentialRef[]> {
-    if (ReferentialUtils.isNotEmpty(value)) return [value];
+  async suggest(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection): Promise<LoadResult<ReferentialRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;
-    const res = await this.loadAll(0, !value ? 30 : 10, sortBy, sortDirection,
+    return this.loadAll(0, !value ? 30 : 10, sortBy, sortDirection,
       { ...filter, searchText: value},
-      { withTotal: false /* total not need */ }
+      { withTotal: true /* Used by autocomplete */ }
     );
-    return res.data;
   }
 
   async loadAllTaxonNames(offset: number,
