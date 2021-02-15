@@ -10,6 +10,7 @@ import {ReactiveFormsModule} from "@angular/forms";
 import {SwipeTestPage} from "../swipe/testing/swipe.test";
 import {TranslateModule} from "@ngx-translate/core";
 import {DateTimeTestPage} from "../datetime/testing/mat-date-time.test";
+import {ChipsTestPage} from "../chips/testing/chips.test";
 
 
 const routes: Routes = [
@@ -42,6 +43,11 @@ const routes: Routes = [
     path: 'swipe',
     pathMatch: 'full',
     component: SwipeTestPage
+  },
+  {
+    path: 'chips',
+    pathMatch: 'full',
+    component: ChipsTestPage
   }
 ];
 
@@ -60,7 +66,8 @@ const routes: Routes = [
     AutocompleteTestPage,
     LatLongTestPage,
     // NumpadTestPage,
-    SwipeTestPage
+    SwipeTestPage,
+    ChipsTestPage
   ],
   exports: [
     SharedMaterialModule,
@@ -70,7 +77,8 @@ const routes: Routes = [
     AutocompleteTestPage,
     LatLongTestPage,
     // NumpadTestPage,
-    SwipeTestPage
+    SwipeTestPage,
+    ChipsTestPage
   ]
 })
 export class MaterialTestingModule {
