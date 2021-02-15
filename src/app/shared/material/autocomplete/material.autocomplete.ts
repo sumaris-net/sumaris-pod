@@ -146,6 +146,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   filteredItems$: Observable<any[]>;
   onDropButtonClick = new EventEmitter<UIEvent>(true);
   searchable: boolean;
+  displayValue = '';
 
   get itemCount(): number {
     return this._itemCount;
@@ -206,6 +207,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @Input() i18nPrefix = 'REFERENTIAL.';
 
   @Input() noResultMessage = 'COMMON.NO_RESULT';
+
 
   @Input('class') classList: string;
 
@@ -385,6 +387,14 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
           this.formControl.valueChanges
             .pipe(
               startWith<any, any>(this.formControl.value),
+              // Compute display value
+              tap(value => {
+                const displayValue = isNotNil(value) ? this.displayWith(value) : '';
+                if (this.displayValue !== displayValue) {
+                  this.displayValue = displayValue;
+                  this.markForCheck();
+                }
+              }),
               filter(value => isNotNil(value)),
               //tap((value) => console.debug(this.logPrefix + " valueChanges:", value)),
               debounceTime(this.debounceTime)
@@ -415,11 +425,11 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
          filter(_ => this.searchable && this._implicitValue)
        )
        .subscribe( (_) => {
-          // When leave component without object, use implicit value if :
-          // - an explicit value
-          // - field is not empty (user fill something)
-          // - OR field empty but is required
-          const existingValue = this.formControl.value;
+         // When leave component without object, use implicit value if :
+         // - an explicit value
+         // - field is not empty (user fill something)
+         // - OR field empty but is required
+         const existingValue = this.formControl.value;
          if ((this.required && isNilOrBlank(existingValue)) || (isNotNilOrBlank(existingValue) && typeof existingValue !== "object")) {
            this.writeValue(this._implicitValue);
            this.formControl.markAsPending({emitEvent: false, onlySelf: true});
@@ -427,7 +437,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
          }
          this._implicitValue = null; // reset the implicit value
          this.checkIfTouched();
-        }));
+       }));
   }
 
   ngOnDestroy(): void {
