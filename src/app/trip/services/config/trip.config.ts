@@ -37,12 +37,6 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
     label: 'OBSERVED_LOCATION.OPTIONS.NAME',
     type: 'string',
     defaultValue: 'MENU.OBSERVED_LOCATION'
-  },
-  ANALYTIC_REFERENCES_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.analyticReferences.enable',
-    label: 'OBSERVED_LOCATION.OPTIONS.ANALYTIC_REFERENCES_ENABLE',
-    type: 'boolean',
-    defaultValue: 'false'
   }
 });
 

@@ -254,6 +254,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: "false",
     type: 'boolean'
   },
+  LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.vesselBasePortLocation.enable',
+    label: "PROGRAM.OPTIONS.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
   LANDING_LOCATION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.location.enable',
     label: "PROGRAM.OPTIONS.LANDING_LOCATION_ENABLE",

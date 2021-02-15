@@ -174,7 +174,8 @@
         "STRATEGY_PARAMETER_MATURITY_LABELS": "Strategy > Parameter > Maturity labels"
       },
       "TESTING": "Developer mode ?",
-      "ENTITY_TRASH": "Enable trash on pod?"
+      "ENTITY_TRASH": "Enable trash on pod?",
+      "ANALYTIC_REFERENCES_ENABLE": "Strategy > Analytic references: Enable?"
     },
     "CACHE": {
       "NAME": "Name",

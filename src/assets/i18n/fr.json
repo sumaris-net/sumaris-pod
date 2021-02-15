@@ -187,7 +187,8 @@
         "STRATEGY_PARAMETER_MATURITY_LABELS": "Stratégie > Paramètre > Codes maturités"
       },
       "TESTING": "Mode développeur ?",
-      "ENTITY_TRASH": "Activer la corbeille du pod ?"
+      "ENTITY_TRASH": "Activer la corbeille du pod ?",
+      "ANALYTIC_REFERENCES_ENABLE": "Stratégie > Références analytiques : Activer ?"
     },
     "CACHE": {
       "NAME": "Nom",
@@ -1226,6 +1227,7 @@
       "LANDING_EDITOR_SAMPLING": "Echantillonnage biologique",
       "LANDING_CREATION_DATE_ENABLE": "Observation sur site > Débarquements : Date de création ?",
       "LANDING_RECORDER_PERSON_ENABLE": "Observation sur site > Débarquements : Saisisseur ?",
+      "LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE": "Observation sur site > Débarquements : port d'attache ?",
       "LANDING_STRATEGY_ENABLE": "Observation sur site > Débarquement : Stratégie ?",
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Observateurs ?",
