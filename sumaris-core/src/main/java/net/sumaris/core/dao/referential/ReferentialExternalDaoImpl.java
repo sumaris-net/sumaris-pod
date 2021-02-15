@@ -178,12 +178,12 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
         filter.setSearchText(StringUtils.trimToNull(filter.getSearchText()));
 
         return s -> (filter.getId() == null || filter.getId().equals(s.getId()))
-                && (filter.getLabel() == null || filter.getLabel().equals(s.getLabel()))
-                && (filter.getName() == null || filter.getName().equals(s.getName()))
+                && (filter.getLabel() == null || filter.getLabel().equalsIgnoreCase(s.getLabel()))
+                && (filter.getName() == null || filter.getName().equalsIgnoreCase(s.getName()))
                 && (filter.getLevelId() == null || filter.getLevelId().equals(s.getLevelId()))
                 && (filter.getLevelIds() == null || Arrays.asList(filter.getLevelIds()).contains(s.getLevelId()))
                 && (filter.getStatusIds() == null || Arrays.asList(filter.getStatusIds()).contains(s.getStatusId()))
-                && (filter.getSearchText() == null || s.getLabel().startsWith(filter.getSearchText()) || s.getName().contains(filter.getSearchText()));
+                && (filter.getSearchText() == null || s.getLabel().toUpperCase().contains(filter.getSearchText().toUpperCase()) || s.getName().toUpperCase().contains(filter.getSearchText().toUpperCase()));
     }
 
 }

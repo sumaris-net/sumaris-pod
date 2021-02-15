@@ -98,13 +98,13 @@ public class StrategyRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PROGRAM_BY_ID)
+    @Cacheable(cacheNames = CacheNames.STRATEGY_BY_ID)
     public Optional<StrategyVO> findById(int id) {
         return super.findById(id);
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PROGRAM_BY_LABEL)
+    @Cacheable(cacheNames = CacheNames.STRATEGY_BY_LABEL)
     public Optional<StrategyVO> findByLabel(String label) {
         return super.findByLabel(label);
     }
