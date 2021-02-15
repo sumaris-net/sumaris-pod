@@ -34,6 +34,7 @@ import {NumberFormatPipe} from "./pipes/number-format.pipe";
 import {MarkdownModule} from "ngx-markdown";
 import {AppHelpModal} from "./help/help.modal";
 import {Environment, ENVIRONMENT} from "../../environments/environment.class";
+import {SharedCommentModule} from "./comment/comment.module";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -56,7 +57,8 @@ export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
     SharedMaterialModule,
     SharedDirectivesModule,
     SharedPipesModule,
-    SharedHotkeysModule
+    SharedHotkeysModule,
+    SharedCommentModule
   ],
   declarations: [
     ToolbarComponent,
@@ -81,6 +83,7 @@ export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
     SharedDirectivesModule,
     SharedPipesModule,
     SharedHotkeysModule,
+    SharedCommentModule,
 
     // Components
     ToolbarComponent,
