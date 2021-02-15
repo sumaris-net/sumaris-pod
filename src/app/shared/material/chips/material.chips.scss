@@ -1,0 +1,20 @@
+:host {
+  position: relative;
+
+  &.ion-text-wrap {
+    ion-label {
+      white-space: normal !important;
+    }
+  }
+}
+
+button[hidden] {
+  display: none;
+}
+
+// This try to copy style as .mat-select-arrow
+mat-icon.select-arrow {
+  color: rgba(0,0,0,0.47);
+  font-size: 150%;
+}
+
