@@ -37,6 +37,7 @@ import {SharedMatNumpadModule} from "./numpad/numpad.module";
 import {SharedMatSwipeModule} from "./swipe/swipe.module";
 import {MatDividerModule} from "@angular/material/divider";
 import {MatTooltipModule} from "@angular/material/tooltip";
+import {MaterialChipsModule} from "./chips/chips.module";
 
 const modules: Array<Type<any> | any[]> = [
   // Angular material components
@@ -78,7 +79,8 @@ const modules: Array<Type<any> | any[]> = [
   SharedMatDurationModule,
   SharedMatBooleanModule,
   SharedMatNumpadModule,
-  SharedMatSwipeModule
+  SharedMatSwipeModule,
+  MaterialChipsModule
 ];
 
 @NgModule({

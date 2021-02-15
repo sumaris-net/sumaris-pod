@@ -1,0 +1,115 @@
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Chips field test page</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+
+    <ion-grid>
+
+      <ion-row>
+
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-text color="primary">
+                  Suggest() function
+                </ion-text>
+              </ion-card-title>
+              <ion-card-subtitle>
+                <ion-text color="medium">
+                  <pre><small>suggestFn: (searchText, filter) =&gt; any[]</small></pre>
+                </ion-text>
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-chips-field formControlName="entity"
+                                      [config]="autocompleteFields.get('entity-suggestFn')"
+                                      [logPrefix]="'[mat-chips-empty] '"
+                                      [compareWith]="compareWithFn"
+              ></mat-chips-field>
+              {{stringify(form.controls.entity.value)}}
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Suggest() function with initial value
+                </ion-label>
+              </ion-card-title>
+              <ion-card-subtitle>
+                <ion-text color="medium">
+                  <pre><small>suggestFn: (searchText, filter) =&gt; any[]</small></pre>
+                </ion-text>
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-chips-field formControlName="entityInitial"
+                                      [config]="autocompleteFields.get('entity-suggestFn')"
+                                      [compareWith]="compareWithFn"
+                                      [logPrefix]="'[mat-chips-initialized] '"
+              ></mat-chips-field>
+              {{stringify(form.controls.entityInitial.value)}}
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Disabled control
+                </ion-label>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-chips-field formControlName="disableEntity"
+                                      [config]="autocompleteFields.get('entity-suggestFn')"
+                                      [compareWith]="compareWithFn"
+                                      [logPrefix]="'[mat-chips-disabled] '"
+              ></mat-chips-field>
+              {{stringify(form.controls.disableEntity.value)}}
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Readonly control
+                </ion-label>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-chips-field formControlName="entity"
+                                      [config]="autocompleteFields.get('entity-suggestFn')"
+                                      [compareWith]="compareWithFn"
+                                      [logPrefix]="'[mat-chips-readonly] '"
+                                      [readonly]="true"
+              ></mat-chips-field>
+              {{stringify(form.controls.entity.value)}}
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+  </form>
+
+</ion-content>
