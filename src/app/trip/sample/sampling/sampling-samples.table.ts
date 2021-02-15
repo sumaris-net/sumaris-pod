@@ -13,6 +13,9 @@ import {SamplesTable, SamplesTableOptions} from "../samples.table";
 import {PmfmFilter, PmfmService} from "../../../referential/services/pmfm.service";
 import {ProgramRefService} from "../../../referential/services/program-ref.service";
 import {SelectPmfmModal} from "../../../referential/pmfm/select-pmfm.modal";
+import {ReferentialRef} from "../../../core/services/model/referential.model";
+import {Sample} from "../../services/model/sample.model";
+import {TaxonUtils} from "../../../referential/services/model/taxon.model";
 
 export interface SampleFilter {
   operationId?: number;
@@ -55,6 +58,8 @@ export class SamplingSamplesTable extends SamplesTable {
     return this._$pmfmGroups.getValue();
   }
 
+  @Input() defaultLocation: ReferentialRef;
+
   constructor(
     protected injector: Injector,
     protected programRefService: ProgramRefService,
@@ -69,6 +74,19 @@ export class SamplingSamplesTable extends SamplesTable {
         mapPmfms: pmfms => this.mapPmfms(pmfms)
       }
     );
+  }
+
+  protected async onNewEntity(data: Sample): Promise<void> {
+    await super.onNewEntity(data);
+
+    const groupAge = this.$pmfmGroupColumns.getValue().find(c => c.label === 'AGE');
+    const rubinCode = TaxonUtils.rubinCode(this.defaultTaxonName.name);
+
+    // Generate label if age in pmfm strategies and rubinCode computable (locationCodeDDMMYYrubinCodeXXXX)
+    if (groupAge && rubinCode && isNotNil(this.defaultLocation) && isNotNil(this.defaultSampleDate) && isNotNil(this.defaultTaxonName)) {
+      data.label = `${this.defaultLocation.label}${this.defaultSampleDate.format("DDMMYY")}${rubinCode}${data.rankOrder.toString().padStart(4, "0")}`;
+      console.debug("[sample-table] Generated label: ", data.label);
+    }
   }
 
   /**
