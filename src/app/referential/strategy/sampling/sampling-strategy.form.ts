@@ -685,6 +685,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     json.analyticReference = (typeof json.analyticReference === 'object') ? json.analyticReference.label : json.analyticReference;
 
     // get taxonName and
+    json.taxonNames = (this.form.controls.taxonNames.value || []);
     (json.taxonNames || []).forEach(taxonNameStrategy => {
       delete taxonNameStrategy.strategyId; // Not need when saved
       taxonNameStrategy.priorityLevel = taxonNameStrategy.priorityLevel || 1;
@@ -699,7 +700,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     json.departments.map(department => department.privilege = observerPrivilege);
 
     // Compute year
-    const year = isNotNil(json.year) ? moment(json.year).year() : moment().year();
+    const year = isNotNil(this.form.controls.year.value) ? moment(this.form.controls.year.value).year() : moment().year();
 
     // Fishing Area + Efforts --------------------------------------------------------------------------------------------
 
