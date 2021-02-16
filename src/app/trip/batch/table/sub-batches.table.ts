@@ -42,6 +42,7 @@ import {PmfmValidators} from "../../../referential/services/validator/pmfm.valid
 import {AppFormUtils} from "../../../core/form/form.utils";
 import {EntityUtils} from "../../../core/services/model/entity.model";
 import {environment} from "../../../../environments/environment";
+import {LoadResult} from "../../../shared/services/entity-service.class";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -219,13 +220,13 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
     // Parent combo
     this.registerAutocompleteField('parentGroup', {
-      suggestFn: (value: any, options?: any) => this.suggestParent(value),
+      suggestFn: (value: any, options?: any) => this.suggestParent(value, options),
       showAllOnFocus: true
     });
     this.updateParentAutocomplete();
 
     this.registerAutocompleteField('taxonName', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value),
+      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
       showAllOnFocus: true
     });
 
@@ -483,7 +484,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     }
   }
 
-  protected async suggestParent(value: any): Promise<any[]> {
+  protected async suggestParent(value: any, options?: any): Promise<any[]> {
     if (EntityUtils.isNotEmpty(value, 'label')) {
       return [value];
     }
@@ -500,9 +501,9 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     );
   }
 
-  protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
+  protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     const parent = this.editedRow && this.editedRow.validator.get('parentGroup').value;
-    if (isNilOrBlank(value) && isNil(parent)) return [];
+    if (isNilOrBlank(value) && isNil(parent)) return {data: []};
     return this.programRefService.suggestTaxonNames(value,
       {
         program: this.programLabel,

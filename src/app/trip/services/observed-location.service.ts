@@ -35,6 +35,7 @@ import {environment} from "../../../environments/environment";
 import {JobUtils} from "../../shared/services/job.utils";
 import {fromDateISOString, toDateISOString} from "../../shared/dates";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
+import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 const moment = momentImported;
 
@@ -142,6 +143,16 @@ export interface ObservedLocationLoadOptions extends EntityServiceLoadOptions {
   withLanding?: boolean;
   toEntity?: boolean;
 }
+
+export class ObservedLocationOfflineFilter  {
+  programLabel?: string;
+  startDate?: Date | Moment;
+  endDate?: Date | Moment;
+  locationId?: number;
+  periodDuration?: number;
+  periodDurationUnit?: DurationConstructor;
+}
+
 
 export const ObservedLocationFragments = {
   lightObservedLocation: gql`fragment LightObservedLocationFragment on ObservedLocationVO {
@@ -788,10 +799,13 @@ export class ObservedLocationService
    * @protected
    * @param opts
    */
-  protected getImportJobs(opts: {maxProgression: undefined}): Observable<number>[] {
+  protected getImportJobs(opts: {
+    maxProgression: undefined;
+    filter?: ObservedLocationOfflineFilter
+  }): Observable<number>[] {
     return [
       ...super.getImportJobs(opts),
-      // Landing historical data
+      // Landing (historical data)
       JobUtils.defer((p, o) => this.landingService.executeImport(p, o), opts)
     ];
   }

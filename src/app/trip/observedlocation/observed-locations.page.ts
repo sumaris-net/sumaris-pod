@@ -8,7 +8,7 @@ import {FormBuilder} from "@angular/forms";
 import {personToString} from "../../core/services/model/person.model";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {debounceTime, filter, tap} from "rxjs/operators";
-import {ObservedLocationFilter, ObservedLocationService} from "../services/observed-location.service";
+import {ObservedLocationFilter, ObservedLocationOfflineFilter, ObservedLocationService} from "../services/observed-location.service";
 import {ObservedLocationValidatorService} from "../services/validator/observed-location.validator";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -20,10 +20,12 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {AppRootTable} from "../../data/table/root-table.class";
 import {OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS} from "../services/config/trip.config";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {isNil, isNotNilOrBlank} from "../../shared/functions";
+import {isNil} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
 import {ConfigService} from "../../core/services/config.service";
 import {BehaviorSubject} from "rxjs";
+import {ObservedLocationOfflineModal} from "./offline/observed-location-offline.modal";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -57,6 +59,7 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
     protected dataService: ObservedLocationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
+    protected programRefService: ProgramRefService,
     protected formBuilder: FormBuilder,
     protected configService: ConfigService,
     protected cd: ChangeDetectorRef
@@ -204,6 +207,49 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
     // On dismiss
     const res = await modal.onDidDismiss();
     if (!res) return; // CANCELLED*/
+  }
+
+
+  async prepareOfflineMode(event?: UIEvent, opts?: {
+    toggleToOfflineMode?: boolean;
+    showToast?: boolean;
+    filter?: any;
+  }): Promise<undefined | boolean> {
+    if (this.importing) return; // Skip
+
+    let filter;
+    if (event) {
+      const feature = this.settings.getOfflineFeature(this.dataService.featureName);
+      const value = <ObservedLocationOfflineFilter>{
+        ...this.filter,
+        ...(feature && feature.filter)
+      };
+      const modal = await this.modalCtrl.create({
+        component: ObservedLocationOfflineModal,
+        componentProps: {
+          value
+        }, keyboardClose: true
+      });
+
+      // Open the modal
+      modal.present();
+
+      // Wait until closed
+      const res = await modal.onDidDismiss();
+      if (!res || !res.data) return; // User cancelled
+
+      filter = res && res.data;
+
+      // DEBUG
+      console.debug('[observed-location-table] Will prepare offline mode, using filter:', filter);
+    }
+
+    const success = await super.prepareOfflineMode(event, {
+      ...opts,
+      filter
+    });
+
+    return success;
   }
 
   /* -- protected methods -- */

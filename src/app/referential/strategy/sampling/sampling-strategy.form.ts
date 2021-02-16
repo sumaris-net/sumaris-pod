@@ -51,6 +51,7 @@ import {firstNotNilPromise} from "../../../shared/observables";
 import {MatAutocompleteField} from "../../../shared/material/autocomplete/material.autocomplete";
 import { ObjectMap } from 'src/app/shared/types';
 import { SamplingStrategy } from '../../services/model/sampling-strategy.model';
+import {LoadResult} from "../../../shared/services/entity-service.class";
 
 const moment = momentImported;
 
@@ -166,7 +167,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.form.get('age').disable();
       this.form.get('sex').disable();
     }
-  };
+  }
 
   ngOnInit() {
     super.ngOnInit();
@@ -241,7 +242,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
           const pmfmGroups = await firstNotNilPromise(this._$pmfmGroups);
           length += this.getPmfmsByType(pmfms, pmfmGroups.WEIGHT, ParameterLabelGroups.WEIGHT).length;
           length += this.getPmfmsByType(pmfms, pmfmGroups.LENGTH, ParameterLabelGroups.LENGTH).length;
-          if (sex) length += this.getPmfmsByType(pmfms, pmfmGroups.MATURITY, ParameterLabelGroups.MATURITY).length
+          if (sex) length += this.getPmfmsByType(pmfms, pmfmGroups.MATURITY, ParameterLabelGroups.MATURITY).length;
         }
 
         if (length < minLength) {
@@ -249,7 +250,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         }
         SharedValidators.clearError(control, 'minLength');
       }
-    ])
+    ]);
 
     // register year field changes
     this.registerSubscription(
@@ -476,7 +477,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param value
    * @param filter - filters to apply
    */
-  protected async suggestLocations(value: string, filter: any): Promise<IReferentialRef[]> {
+  protected async suggestLocations(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
     if (this.autocompleteFilters.location) {
       return suggestFromArray(this.locationItems.getValue(), value, filter);
     } else {
@@ -492,7 +493,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param value
    * @param filter - filters to apply
    */
-  protected async suggestAnalyticReferences(value: string, filter: any): Promise<IReferentialRef[]> {
+  protected async suggestAnalyticReferences(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
     if (this.autocompleteFilters.analyticReference) {
       return suggestFromArray(this.analyticsReferenceItems.getValue(), value, filter);
     } else {
@@ -534,7 +535,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     }
   }
 
-  protected async suggestTaxonName(value: string, filter: any): Promise<TaxonNameRef[]> {
+  protected async suggestTaxonName(value: string, filter: any): Promise<LoadResult<TaxonNameRef>> {
     if (this.autocompleteFilters.taxonName) {
       return suggestFromArray(this.taxonNameItems.getValue(), value, filter);
     } else {
@@ -583,7 +584,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     // format periods for applied conrol period in view and init default period by quarter if no set
     // let quarter = 1;
-    const formattedAppliedPeriods = []
+    const formattedAppliedPeriods = [];
     for (let quarter = 1; quarter <= 10; quarter = quarter+3) {
       formattedAppliedPeriods.push(
         appliedPeriods.find(period => (period.startDate.month() + 1) === quarter) || {

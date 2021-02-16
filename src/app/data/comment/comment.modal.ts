@@ -2,8 +2,8 @@ import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from "@an
 import {ModalController, PopoverController} from "@ionic/angular";
 import {Observable, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
-import {AppFormUtils} from "sumaris-lib";
-import {CommentForm} from "@app/shared/comment/comment.form";
+import {CommentForm} from "./comment.form";
+import {AppFormUtils} from "../../core/form/form.utils";
 
 @Component({
   selector: 'app-comment-modal',
@@ -17,7 +17,7 @@ export class CommentModal implements OnInit, OnDestroy {
   @ViewChild('commentForm', {static: true}) commentForm: CommentForm;
 
   @Input() comment: string;
-  @Input() title$: Observable<string>;
+  @Input() title: string;
   @Input() editing: boolean;
 
   get disabled() {

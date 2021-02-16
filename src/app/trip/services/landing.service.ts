@@ -809,6 +809,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter, 
   async executeImport(progression: BehaviorSubject<number>,
                 opts?: {
                   maxProgression?: number;
+                  filter?: LandingFilter;
                 }) {
     const now = this._debug && Date.now();
     const maxProgression = opts && opts.maxProgression || 100;

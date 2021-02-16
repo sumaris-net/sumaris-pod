@@ -34,7 +34,6 @@ import {NumberFormatPipe} from "./pipes/number-format.pipe";
 import {MarkdownModule} from "ngx-markdown";
 import {AppHelpModal} from "./help/help.modal";
 import {Environment, ENVIRONMENT} from "../../environments/environment.class";
-import {SharedCommentModule} from "./comment/comment.module";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -57,8 +56,7 @@ export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
     SharedMaterialModule,
     SharedDirectivesModule,
     SharedPipesModule,
-    SharedHotkeysModule,
-    SharedCommentModule
+    SharedHotkeysModule
   ],
   declarations: [
     ToolbarComponent,
@@ -83,7 +81,6 @@ export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
     SharedDirectivesModule,
     SharedPipesModule,
     SharedHotkeysModule,
-    SharedCommentModule,
 
     // Components
     ToolbarComponent,
@@ -132,11 +129,11 @@ export class SharedModule {
         // FIXME: try to force a custom overlay for autocomplete, because of there is a bug when using inside an ionic modal
         //{ provide: Overlay, useClass: Overlay},
         { provide: MAT_AUTOCOMPLETE_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
-        { provide: MAT_SELECT_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
         { provide: MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, useValue: {
             autoActiveFirstOption: true
           }
-        }
+        },
+        { provide: MAT_SELECT_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] }
       ]
     };
   }

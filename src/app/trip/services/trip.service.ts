@@ -483,7 +483,7 @@ export class TripService
         filterFnFactory: TripFilter.searchFilter
       });
 
-    this.featureName = TRIP_FEATURE_NAME;
+    this._featureName = TRIP_FEATURE_NAME;
 
     // Register user event actions
     userEventService.registerAction({

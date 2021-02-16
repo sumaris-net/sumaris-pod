@@ -24,6 +24,7 @@ import {filterNotNil} from "../../shared/observables";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {environment} from "../../../environments/environment";
 import {SamplesModal} from "../sample/samples.modal";
+import {LoadResult} from "../../shared/services/entity-service.class";
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -128,7 +129,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
   /* -- protected methods -- */
 
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     return this.programRefService.suggestTaxonGroups(value,
       {
         program: this.programLabel,

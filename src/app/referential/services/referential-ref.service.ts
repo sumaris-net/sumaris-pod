@@ -4,7 +4,7 @@ import {BehaviorSubject, Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {IReferentialRef, Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
+import {Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
 import {FilterFn, IEntitiesService, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
@@ -310,6 +310,19 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     };
   }
 
+  async loadById(id: number,
+                 entityName: string,
+                 opts?: {
+                   [key: string]: any;
+                   fetchPolicy?: FetchPolicy;
+                   debug?: boolean;
+                   toEntity?: boolean;
+                 }): Promise<ReferentialRef> {
+    const res = await this.loadAll(0, 1, null, null, {id, entityName}, opts);
+    if (!res || isEmptyArray(res.data)) return undefined;
+    return res.data[0];
+  }
+
   async suggest(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection): Promise<LoadResult<ReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;
@@ -329,7 +342,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                             fetchPolicy?: FetchPolicy;
                             debug?: boolean;
                             toEntity?: boolean;
-                          }): Promise<TaxonNameRef[]> {
+                          }): Promise<LoadResult<TaxonNameRef>> {
 
     if (!filter) {
       console.error("[referential-ref-service] Missing filter");
@@ -379,7 +392,10 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       (res && res.data || []).map(TaxonNameRef.fromObject) :
       (res && res.data || []) as TaxonNameRef[];
     if (debug) console.debug(`[referential-ref-service] TaxonName items loaded in ${Date.now() - now}ms`, entities);
-    return entities;
+    return {
+      data: entities,
+      total: res.total || entities.length
+    };
   }
 
   async suggestTaxonNames(value: any, options: {
@@ -387,8 +403,8 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     levelIds?: number[];
     searchAttribute?: string;
     taxonGroupId?: number;
-  }): Promise<TaxonNameRef[]> {
-    if (ReferentialUtils.isNotEmpty(value)) return [value];
+  }): Promise<LoadResult<TaxonNameRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;
     return await this.loadAllTaxonNames(0, !value ? 30 : 10, undefined, undefined,
       {
@@ -544,8 +560,6 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                 fetchPolicy: 'network-only',
                 debug: false,
                 toEntity: false
-              }).then(data => {
-                return {data};
               }),
             progression,
             {maxProgression, logPrefix}

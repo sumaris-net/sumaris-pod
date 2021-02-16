@@ -1,3 +1,4 @@
+import {LoadResult} from "./services/entity-service.class";
 
 export function isNil<T>(obj: T | null | undefined): boolean {
   return obj === undefined || obj === null;
@@ -104,20 +105,24 @@ export function changeCaseToUnderscore(value: string): string {
 export function suggestFromArray<T = any>(items: T[], value: any, options?: {
   searchAttribute?: string
   searchAttributes?: string[]
-}): T[] {
-  if (isNotNil(value) && typeof value === "object") return [value];
+}): LoadResult<T> {
+  if (isNotNil(value) && typeof value === "object") return {data: [value]};
   value = (typeof value === "string" && value !== '*') && value.toUpperCase() || undefined;
-  if (isNilOrBlank(value)) return items;
+  if (isNilOrBlank(value)) return {data: items};
   const keys = options && (options.searchAttribute && [options.searchAttribute] || options.searchAttributes) || ['label'];
 
   // If wildcard, search using regexp
   if ((value as string).indexOf('*') !== -1) {
     value = (value as string).replace('*', '.*');
-    return items.filter(v => keys.findIndex(key => matchUpperCase(getPropertyByPathAsString(v, key), value)) !== -1);
+    return {
+      data: items.filter(v => keys.findIndex(key => matchUpperCase(getPropertyByPathAsString(v, key), value)) !== -1)
+    };
   }
 
   // If wildcard, search using startsWith
-  return (items || []).filter(v => keys.findIndex(key => startsWithUpperCase(getPropertyByPathAsString(v, key), value)) !== -1);
+  return {
+    data: (items || []).filter(v => keys.findIndex(key => startsWithUpperCase(getPropertyByPathAsString(v, key), value)) !== -1)
+  };
 }
 
 export function suggestFromStringArray(values: string[], value: any, options?: {

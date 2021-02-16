@@ -1,5 +1,5 @@
 import {EventEmitter, Inject, Injectable, InjectionToken, Optional} from "@angular/core";
-import {HistoryPageReference, LocalSettings, UsageMode} from "./model/settings.model";
+import {HistoryPageReference, LocalSettings, OfflineFeature, UsageMode} from "./model/settings.model";
 import {Peer} from "./model/peer.model";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
@@ -267,18 +267,28 @@ export class LocalSettingsService {
     this.persistLocally();
   }
 
-  registerOfflineFeature(featureName: string) {
+  saveOfflineFeature(featureName: string, config?: any) {
     this.data = this.data || this.defaultSettings;
     this.data.offlineFeatures = this.data.offlineFeatures || [];
 
-    const featurePrefix = featureName.toLowerCase() + '#';
-    const featureAndLastSyncDate = featurePrefix + moment().toISOString();
-    const existingIndex = this.data.offlineFeatures.findIndex(f => f.toLowerCase().startsWith(featurePrefix));
+    featureName = featureName.toLowerCase();
+
+    const feature = {
+      name: featureName,
+      lastSyncDate: moment().toISOString(),
+      config
+    };
+
+    const featurePrefix = featureName + '#';
+    const existingIndex = this.data.offlineFeatures.findIndex(f => {
+      if (typeof f === 'string') return f.toLowerCase().startsWith(featurePrefix);
+      if (typeof f === 'object' && f.name) return f.name === featureName;
+    });
     if (existingIndex !== -1) {
-      this.data.offlineFeatures[existingIndex] = featureAndLastSyncDate;
+      this.data.offlineFeatures[existingIndex] = feature;
     }
     else {
-      this.data.offlineFeatures.push(featureAndLastSyncDate);
+      this.data.offlineFeatures.push(feature);
     }
 
     // Update local settings
@@ -295,23 +305,33 @@ export class LocalSettingsService {
   }
 
   hasOfflineFeature(featureName?: string): boolean {
-    if (!this.data || !this.data.offlineFeatures) return false;
-
-    if (!featureName) return isNotEmptyArray(this.data.offlineFeatures);
-
-    const featurePrefix = featureName.toLowerCase() + '#';
-    const existingIndex = this.data.offlineFeatures.findIndex(f => f.toLowerCase().startsWith(featurePrefix));
-    return existingIndex !== -1;
+    return isNotNil(this.getOfflineFeature(featureName));
   }
 
   getOfflineFeatureLastSyncDate(featureName: string): Moment {
+    const feature = this.getOfflineFeature(featureName);
+    return feature && fromDateISOString(feature.lastSyncDate);
+  }
+
+  getOfflineFeature(featureName: string): OfflineFeature {
     if (!this.data || !this.data.offlineFeatures || isEmptyArray(this.data.offlineFeatures))
       return undefined;
     if (!featureName) throw Error("Missing 'featureName' argument");
 
-    const featurePrefix = featureName.toLowerCase() + '#';
-    const featureAndSyncDate = this.data.offlineFeatures.find(f => f.toLowerCase().startsWith(featurePrefix));
-    return featureAndSyncDate && fromDateISOString(featureAndSyncDate.substring(featurePrefix.length));
+    featureName = featureName.toLowerCase();
+    const featurePrefix = featureName + '#';
+    const feature = this.data.offlineFeatures.find(f => {
+      if (typeof f === 'string') return f.toLowerCase().startsWith(featurePrefix);
+      if (typeof f === 'object' && f.name) return f.name === featureName;
+    });
+    if (!feature) return; // Not found
+    if (typeof feature === 'string') {
+      return {
+        name: featureName,
+        lastSyncDate: feature.substring(featurePrefix.length)
+      };
+    }
+    return feature;
   }
 
   getFieldDisplayAttributes(fieldName: string, defaultAttributes?: string[]): string[] {

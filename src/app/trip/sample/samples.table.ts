@@ -29,6 +29,7 @@ import {IReferentialRef, ReferentialRef} from "../../core/services/model/referen
 import {environment} from "../../../environments/environment";
 import {AppFormUtils} from "../../core/form/form.utils";
 import {filter, map, tap} from "rxjs/operators";
+import {LoadResult} from "../../shared/services/entity-service.class";
 
 const moment = momentImported;
 
@@ -173,7 +174,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   /* -- protected methods -- */
 
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     //if (isNilOrBlank(value)) return [];
     return this.programRefService.suggestTaxonGroups(value,
       {
@@ -182,11 +183,11 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       });
   }
 
-  protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
+  protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     const taxonGroup = this.editedRow && this.editedRow.validator.get('taxonGroup').value;
 
     // IF taxonGroup column exists: taxon group must be filled first
-    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return [];
+    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return {data: []};
 
     return this.programRefService.suggestTaxonNames(value,
       {

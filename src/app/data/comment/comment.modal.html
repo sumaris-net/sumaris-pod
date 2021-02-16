@@ -1,7 +1,7 @@
 <app-modal-toolbar modalName="CommentModal"
                    visible-mobile visible-sm visible-xs
-                   [title]="title$|async"
-                   [color]="'secondary'"
+                   color="secondary"
+                   [title]="title|translate"
                    [showSpinner]="loading"
                    [canValidate]="!loading && valid"
                    (cancel)="cancel()"

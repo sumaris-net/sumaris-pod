@@ -2,7 +2,7 @@ import {AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, Va
 import * as momentImported from "moment";
 const moment = momentImported;
 import {DATE_ISO_PATTERN, PUBKEY_REGEXP} from "../constants";
-import {isEmptyArray, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotNilOrNaN} from "../functions";
+import {isEmptyArray, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotNilOrNaN, toBoolean} from "../functions";
 import {Moment} from "moment";
 import {fromDateISOString} from "../dates";
 
@@ -236,6 +236,22 @@ export class SharedFormGroupValidators {
       const anotherControl = (anotherFieldToCheck instanceof AbstractControl) ? anotherFieldToCheck : group.get(anotherFieldToCheck);
       if (!anotherControl) throw new Error('Unable to find field to check!');
       if (isNilOrBlank(control.value) && isNotNilOrBlank(anotherControl.value)) {
+        const error = {required: true};
+        control.setErrors(error);
+        control.markAsTouched({onlySelf: true});
+        return error;
+      }
+      SharedValidators.clearError(control, 'required');
+      return null;
+    };
+  }
+
+  static requiredIfTrue(fieldName: string, anotherFieldToCheck: string | AbstractControl): ValidatorFn {
+    return (group: FormGroup): ValidationErrors | null => {
+      const control = group.get(fieldName);
+      const anotherControl = (anotherFieldToCheck instanceof AbstractControl) ? anotherFieldToCheck : group.get(anotherFieldToCheck);
+      if (!anotherControl) throw new Error('Unable to find field to check!');
+      if (isNilOrBlank(control.value) && toBoolean(anotherControl.value, false)) {
         const error = {required: true};
         control.setErrors(error);
         control.markAsTouched({onlySelf: true});

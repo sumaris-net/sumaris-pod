@@ -424,7 +424,7 @@
       "QUALITY": "État",
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaires",
-      "NO_LOCAL_RESULT": "Aucun résultat (parmi les marées non synchronisées)",
+      "NO_LOCAL_RESULT": "Aucun résultat (parmi les marées <b>non synchronisées</b>)",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
         "START_DATE": "Début de période",
@@ -777,12 +777,19 @@
       "LOCATION": "Criée",
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaires",
+      "NO_LOCAL_RESULT": "Aucun résultat (parmi les données <b>non synchronisées</b>)",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
         "LOCATION": "Criée",
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période"
       }
+    },
+    "OFFLINE_MODAL": {
+      "TITLE": "Configuration du mode hors-ligne",
+      "HISTORICAL_DATA_DIVIDER": "Historique de données",
+      "ENABLE_HISTORICAL_DATA": "Importer l'historique de données ?",
+      "DURATION_PLACEHOLDER": "Période à importer"
     },
     "OPTIONS": {
       "ENABLE": "Observations > Activer ?",

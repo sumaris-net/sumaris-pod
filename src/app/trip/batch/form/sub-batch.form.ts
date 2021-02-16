@@ -47,6 +47,7 @@ import {TranslateService} from "@ngx-translate/core";
 import {FloatLabelType} from "@angular/material/form-field";
 import {AppFormUtils} from "../../../core/form/form.utils";
 import {ProgramRefService} from "../../../referential/services/program-ref.service";
+import {LoadResult} from "../../../shared/services/entity-service.class";
 
 
 @Component({
@@ -119,11 +120,11 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     if (value && !this.loadingPmfms) {
       this.setPmfms(this.$pmfms);
     }
-  };
+  }
 
   get qvPmfm(): PmfmStrategy {
     return this._qvPmfm;
-  };
+  }
 
   @Input() set availableParents(parents: BatchGroup[]) {
     if (this._availableParents === parents) return; // skip
@@ -263,7 +264,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
               mergeMap((_) => this.suggestTaxonNames())
             )
             // Update taxon names
-            .subscribe(taxonNames => this.$taxonNames.next(taxonNames));
+            .subscribe(({data}) => this.$taxonNames.next(data));
 
           // Update taxonName when need
           let lastTaxonName: TaxonNameRef;
@@ -320,13 +321,13 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
               distinctUntilChanged(Batch.equals),
               mergeMap(() => this.suggestTaxonNames())
             )
-            .subscribe((taxonNames) => {
+            .subscribe(({data}) => {
               // Update taxon names
-              this.$taxonNames.next(taxonNames);
+              this.$taxonNames.next(data);
 
               // Is only one value
-              if (taxonNames.length === 1) {
-                const defaultTaxonName = taxonNames[0];
+              if (data.length === 1) {
+                const defaultTaxonName = data[0];
                 // Set the field
                 taxonNameControl.patchValue(defaultTaxonName, {emitEVent: false});
                 // Remember for next form reset
@@ -537,11 +538,10 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     );
   }
 
-  protected suggestTaxonNames(value?: any, options?: any): Promise<TaxonNameRef[]> {
+  protected async suggestTaxonNames(value?: any, options?: any): Promise<LoadResult<TaxonNameRef>> {
     const parentGroup = this.parentGroup;
-    if (isNil(parentGroup)) return Promise.resolve([]);
-    //if (this.debug)
-      console.debug(`[sub-batch-form] Searching taxon name {${value || '*'}}...`);
+    if (isNil(parentGroup)) return {data: []};
+    if (this.debug) console.debug(`[sub-batch-form] Searching taxon name {${value || '*'}}...`);
     return this.programRefService.suggestTaxonNames(value,
       {
         program: this.programLabel,

@@ -250,13 +250,12 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     };
   }
 
-  async suggestAnalyticReferences(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection): Promise<ReferentialRef[]> {
-    if (ReferentialUtils.isNotEmpty(value)) return [value];
+  async suggestAnalyticReferences(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection): Promise<LoadResult<ReferentialRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;
-    const {data} = await this.loadAllAnalyticReferences(0, !value ? 30 : 10, sortBy, sortDirection,
+    return this.loadAllAnalyticReferences(0, !value ? 30 : 10, sortBy, sortDirection,
       { ...filter, searchText: value}
     );
-    return data;
   }
 
   canUserWrite(data?: Strategy): boolean {

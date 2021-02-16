@@ -6,7 +6,7 @@ import {BehaviorSubject, Observable, Subscription} from "rxjs";
 import {Landing} from "../../services/model/landing.model";
 import {AuctionControlValidators} from "../../services/validator/auction-control.validators";
 import {ModalController} from "@ionic/angular";
-import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
+import {EntityServiceLoadOptions, LoadResult} from "../../../shared/services/entity-service.class";
 import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../../core/services/model/settings.model";
 import {ObservedLocation} from "../../services/model/observed-location.model";
@@ -280,7 +280,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     await modal.onDidDismiss();
   }
 
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     let levelId = this.$taxonGroupTypeId.getValue();
     if (isNil(levelId)) {
       console.debug('Waiting program taxon group type ids...');

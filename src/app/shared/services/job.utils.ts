@@ -4,8 +4,8 @@ import {LoadResult, LoadResultByPageFn} from "./entity-service.class";
 
 export type CallableWithProgressionFn<O extends CallableWithProgressionOptions> = (progression: BehaviorSubject<number>, opts?: O) => Promise<void>;
 export interface CallableWithProgressionOptions {
-  [key: string]: any;
   maxProgression?: number;
+  [key: string]: any;
 }
 
 export class JobUtils {

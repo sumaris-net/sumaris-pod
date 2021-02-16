@@ -5,7 +5,7 @@ import {filter, map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {IEntitiesService, IEntityService} from "../../shared/services/entity-service.class";
+import {IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
 import {TaxonGroupRef, TaxonGroupTypeIds, TaxonNameRef} from "./model/taxon.model";
 import {
   firstArrayValue,
@@ -150,7 +150,7 @@ export class ProgramRefService
   /**
    * Watch program by label
    * @param label
-   * @param toEntity
+   * @param opts
    */
   watchByLabel(label: string, opts?: {
     toEntity?: boolean;
@@ -415,7 +415,7 @@ export class ProgramRefService
   /**
    * Suggest program taxon groups
    */
-  async suggestTaxonGroups(value: any, filter?: Partial<ReferentialRefFilter & { program: string; }>): Promise<IReferentialRef[]> {
+  async suggestTaxonGroups(value: any, filter?: Partial<ReferentialRefFilter & { program: string; }>): Promise<LoadResult<IReferentialRef>> {
     // Search on program's taxon groups
     if (filter && isNotNil(filter.program)) {
       const programItems = await this.loadTaxonGroups(filter.program);
@@ -427,7 +427,7 @@ export class ProgramRefService
     }
 
     // If nothing found in program, or species defined
-    return await this.referentialRefService.suggest(value, {
+    return this.referentialRefService.suggest(value, {
       ...filter,
       entityName: 'TaxonGroup',
       levelId: TaxonGroupTypeIds.FAO
@@ -443,7 +443,7 @@ export class ProgramRefService
     levelIds?: number[]
     searchAttribute?: string;
     taxonGroupId?: number;
-  }): Promise<TaxonNameRef[]> {
+  }): Promise<LoadResult<TaxonNameRef>> {
 
     // Search on taxon group's taxon'
     if (isNotNil(options.program) && isNotNil(options.taxonGroupId)) {
@@ -454,7 +454,7 @@ export class ProgramRefService
       if (isNotEmptyArray(values)) {
 
         // All values
-        if (isNilOrBlank(options.searchAttribute)) return values;
+        if (isNilOrBlank(options.searchAttribute)) return {data: values};
 
         // Text search
         return suggestFromArray<TaxonNameRef>(values, value, {
@@ -472,11 +472,11 @@ export class ProgramRefService
     });
 
     // If there result, use it
-    if (res && res.length) return res;
+    if (res && isNotEmptyArray(res.data) || res.total > 0) return res;
 
     // Then, retry in all taxon (without taxon groups - Is the link taxon<->taxonGroup missing ?)
     if (isNotNil(options.taxonGroupId)) {
-      return await this.referentialRefService.suggestTaxonNames(value, {
+      return this.referentialRefService.suggestTaxonNames(value, {
         levelId: options.levelId,
         levelIds: options.levelIds,
         searchAttribute: options.searchAttribute
@@ -484,7 +484,7 @@ export class ProgramRefService
     }
 
     // Nothing found
-    return [];
+    return {data: []};
   }
 
   async loadTaxonNamesByTaxonGroupIdMap(program: string): Promise<{ [key: number]: TaxonNameRef[] } | undefined> {

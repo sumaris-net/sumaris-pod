@@ -389,7 +389,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
               startWith<any, any>(this.formControl.value),
               // Compute display value
               tap(value => {
-                const displayValue = isNotNil(value) ? this.displayWith(value) : '';
+                const displayValue = this.displayWith(value) || '';
                 if (this.displayValue !== displayValue) {
                   this.displayValue = displayValue;
                   this.markForCheck();

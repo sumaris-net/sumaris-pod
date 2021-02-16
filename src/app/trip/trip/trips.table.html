@@ -416,8 +416,9 @@
   </mat-table>
 
   <ion-item *ngIf="!(loadingSubject| async) && !resultsLength">
-    <ion-text color="danger" class="text-italic">
-      {{ (hasOfflineMode && synchronizationStatus !== 'SYNC' ? 'TRIP.TABLE.NO_LOCAL_RESULT' : 'COMMON.NO_RESULT') | translate }}
+    <ion-text color="danger"
+              class="text-italic"
+              [innerHTML]="(hasOfflineMode && synchronizationStatus !== 'SYNC' ? 'TRIP.TABLE.NO_LOCAL_RESULT' : 'COMMON.NO_RESULT') | translate">
     </ion-text>
   </ion-item>
 
