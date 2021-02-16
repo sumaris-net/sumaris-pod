@@ -145,4 +145,6 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
 
     List<String> getEmailsByProfiles(List<Integer> userProfileIds, List<Integer> statusIds);
 
+    void clearCache();
+
 }

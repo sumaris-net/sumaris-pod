@@ -320,10 +320,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                         .findFirst();
                 if (entity.isPresent()) {
                     successCounter.incrementAndGet();
-                    if (debug) log.debug(String.format("Updating %s with %s", enumValue, entity));
+                    if (debug) log.debug(String.format("Updating %s with %s", enumValue, entity.get()));
 
                     // Update the enum
-                    Beans.copyProperties(entity, enumValue);
+                    Beans.copyProperties(entity.get(), enumValue);
                 }
                 else {
                     errorCounter.incrementAndGet();

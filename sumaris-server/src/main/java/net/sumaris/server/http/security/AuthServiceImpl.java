@@ -24,7 +24,6 @@ package net.sumaris.server.http.security;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.PersonRepository;
-import net.sumaris.core.dao.administration.user.PersonSpecifications;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
@@ -49,9 +48,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.io.Serializable;
 import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -242,7 +239,7 @@ public class AuthServiceImpl implements AuthService {
         List<Integer> profileIds = accountService.getProfileIdsByPubkey(pubkey);
 
         return new ArrayList<>(authoritiesMapper.getGrantedAuthorities(profileIds.stream()
-            .map(id -> UserProfileEnum.getLabelById(id).orElse(null))
+            .map(id -> UserProfileEnum.getById(id).map(Enum::toString).orElse(null))
             .filter(Objects::nonNull)
             .collect(Collectors.toSet())));
 
