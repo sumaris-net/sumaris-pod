@@ -26,6 +26,7 @@ import {ReferentialRefService} from "../../../referential/services/referential-r
 import {BatchModal} from "../modal/batch.modal";
 import {IReferentialRef, ReferentialRef, referentialToString} from "../../../core/services/model/referential.model";
 import {environment} from "../../../../environments/environment";
+import {LoadResult} from "../../../shared/services/entity-service.class";
 
 export interface BatchFilter {
   operationId?: number;
@@ -239,7 +240,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
   /* -- protected methods -- */
 
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     //if (isNilOrBlank(value)) return [];
     return this.programRefService.suggestTaxonGroups(value,
       {
@@ -248,11 +249,11 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
       });
   }
 
-  protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
+  protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     const taxonGroup = this.editedRow && this.editedRow.validator.get('taxonGroup').value;
 
     // IF taxonGroup column exists: taxon group must be filled first
-    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return [];
+    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return {data: []};
 
     return this.programRefService.suggestTaxonNames(value,
       {
