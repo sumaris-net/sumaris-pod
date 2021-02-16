@@ -348,9 +348,9 @@ public class AccountServiceImpl implements AccountService {
     public List<Integer> getProfileIdsByPubkey(String pubkey) {
         PersonVO person = personService.getByPubkey(pubkey);
         return Beans.getStream(person.getProfiles())
-                    .map(UserProfileEnum::valueOf)
-                    .map(UserProfileEnum::getId)
-                    .collect(Collectors.toList());
+                .map(UserProfileEnum::byLabel)
+                .map(UserProfileEnum::getId)
+                .collect(Collectors.toList());
     }
 
     @Override

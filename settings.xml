@@ -146,6 +146,11 @@ under the License.
             <username>${env.GITLAB_REPO_USER}</username>
             <password>${env.GITLAB_REPO_PASS}</password>
         </server>
+        <server>
+            <id>nexus-ifremer</id>
+            <username>nexus-ci</username>
+            <password>w2bH2NjgFmQnzVk3</password>
+        </server>
     </servers>
 
     <!-- mirrors

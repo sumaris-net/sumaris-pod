@@ -329,6 +329,27 @@
           <useDefaultDelimiters>false</useDefaultDelimiters>
         </configuration>
       </plugin>
+
+      <plugin>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>deploy-nexus-snapshot</id>
+            <goals>
+              <goal>deploy-file</goal>
+            </goals>
+            <configuration>
+              <file>${project.build.directory}/${project.artifactId}-${project.version}.${project.packaging}</file>
+              <groupId>fr.ifremer.sumaris</groupId>
+              <artifactId>${project.artifactId}</artifactId>
+              <version>${project.version}</version>
+              <url>https://nexus-test.ifremer.fr/repository/hosted-maven-private-snapshot/</url>
+              <packaging>${project.packaging}</packaging>
+              <repositoryId>nexus-ifremer</repositoryId>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -345,8 +366,53 @@
 
       <properties>
         <jdbc.url>jdbc:hsqldb:hsql://localhost/sumaris</jdbc.url>
+        <jdbc.password></jdbc.password>
+        <jdbc.username>sa</jdbc.username>
+        <jdbc.driver>org.hsqldb.jdbc.JDBCDriver</jdbc.driver>
+        <jdbc.schema>PUBLIC</jdbc.schema>
+        <jdbc.platform>hsqldb</jdbc.platform>
+        <hibernate.dialect>org.hibernate.dialect.HSQLDialect</hibernate.dialect>
       </properties>
+    </profile>
 
+    <profile>
+      <id>oracle</id>
+      <activation>
+        <property>
+          <name>env</name>
+          <value>oracle</value>
+        </property>
+      </activation>
+
+      <properties>
+        <jdbc.url>jdbc:oracle:thin:@HARMONIE_TEST</jdbc.url>
+        <jdbc.username>SIH2_SUMARIS_MAP</jdbc.username>
+        <jdbc.password>SIH2_SUMARIS_MAP</jdbc.password>
+        <jdbc.schema>SIH2_SUMARIS_MAP</jdbc.schema>
+        <jdbc.driver>oracle.jdbc.OracleDriver</jdbc.driver>
+        <jdbc.platform>oracle</jdbc.platform>
+        <hibernate.dialect>org.hibernate.spatial.dialect.oracle.OracleSpatial10gDialect</hibernate.dialect>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>oracle-test</id>
+      <activation>
+        <property>
+          <name>env</name>
+          <value>oracle</value>
+        </property>
+      </activation>
+
+      <properties>
+        <jdbc.url>jdbc:oracle:thin:@HARMONIE_TEST</jdbc.url>
+        <jdbc.username>SIH2_ADAGIO_DBA_SUMARIS_MAP</jdbc.username>
+        <jdbc.password>SIH2_ADAGIO_DBA_SUMARIS_MAP</jdbc.password>
+        <jdbc.schema>SIH2_ADAGIO_DBA_SUMARIS_MAP</jdbc.schema>
+        <jdbc.driver>oracle.jdbc.OracleDriver</jdbc.driver>
+        <jdbc.platform>oracle</jdbc.platform>
+        <hibernate.dialect>org.hibernate.spatial.dialect.oracle.OracleSpatial10gDialect</hibernate.dialect>
+      </properties>
     </profile>
 
     <profile>
