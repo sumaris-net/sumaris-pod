@@ -168,6 +168,13 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
   }
 
 
+  async save(event?: Event, options?: any): Promise<boolean> {
+    // Check access concurence
+    this.form.get('label').updateValueAndValidity();
+    return super.save(event, options);
+  }
+
+
   /**
    * Fill default PmfmStrategy (e.g. the PMFM to store the strategy's label)
    * @param data
