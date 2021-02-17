@@ -46,7 +46,7 @@ declare interface GroupColumnDefinition {
 export class SamplingSamplesTable extends SamplesTable {
 
   protected referentialRefService: ReferentialRefService;
-  protected _$pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
+  public _$pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
 
   $pmfmGroupColumns = new BehaviorSubject<GroupColumnDefinition[]>([]);
 
