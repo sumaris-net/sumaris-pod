@@ -508,7 +508,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param value
    * @param filter - filters to apply
    */
-  protected async suggestAgeFractions(value: string, filter: any): Promise<IReferentialRef[]> {
+  protected async suggestAgeFractions(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
     if (this.autocompleteFilters.fraction) {
       return suggestFromArray(this.fractionItems.getValue(), value, filter);
     } else {
@@ -524,7 +524,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param value
    * @param filter - filters to apply
    */
-  protected async suggestDepartments(value: string, filter: any): Promise<IReferentialRef[]> {
+  protected async suggestDepartments(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
     if (this.autocompleteFilters.department) {
       return suggestFromArray(this.departmentItems.getValue(), value, filter);
     } else {

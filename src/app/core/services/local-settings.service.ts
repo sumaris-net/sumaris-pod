@@ -305,7 +305,8 @@ export class LocalSettingsService {
   }
 
   hasOfflineFeature(featureName?: string): boolean {
-    return isNotNil(this.getOfflineFeature(featureName));
+    if (featureName) return isNotNil(this.getOfflineFeature(featureName));
+    return this.data && isNotEmptyArray(this.data.offlineFeatures);
   }
 
   getOfflineFeatureLastSyncDate(featureName: string): Moment {

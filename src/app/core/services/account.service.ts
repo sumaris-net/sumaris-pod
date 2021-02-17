@@ -309,42 +309,40 @@ export class AccountService extends BaseGraphqlService {
     return !!(this.data.pubkey && this.data.keypair && this.data.keypair.secretKey);
   }
 
-  hasMinProfile(label: string): boolean {
+  hasMinProfile(userProfile: UserProfileLabel): boolean {
     // should be login, and status ENABLE or TEMPORARY
     if (!this.data.account || !this.data.account.pubkey ||
-      (this.data.account.statusId != StatusIds.ENABLE && this.data.account.statusId != StatusIds.TEMPORARY)) {
+      (this.data.account.statusId !== StatusIds.ENABLE && this.data.account.statusId !== StatusIds.TEMPORARY)) {
       return false;
     }
-    const userProfile = Object.keys(UserProfileLabels).find(key => key === label) as UserProfileLabel;
     return PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, userProfile);
   }
 
-  hasExactProfile(label: UserProfileLabel): boolean {
+  hasExactProfile(userProfile: UserProfileLabel): boolean {
     // should be login, and status ENABLE or TEMPORARY
     if (!this.data.account || !this.data.account.pubkey ||
-      (this.data.account.statusId != StatusIds.ENABLE && this.data.account.statusId != StatusIds.TEMPORARY))
+      (this.data.account.statusId !== StatusIds.ENABLE && this.data.account.statusId !== StatusIds.TEMPORARY))
       return false;
-    const enumValue = UserProfileLabels[label];
-    return !!this.data.account.profiles.find(profile => profile === enumValue);
+    const label = UserProfileLabels[userProfile];
+    return !!this.data.account.profiles.find(profile => profile === label);
   }
 
-  hasProfileAndIsEnable(label: string): boolean {
+  hasProfileAndIsEnable(userProfile: UserProfileLabel): boolean {
     // should be login, and status ENABLE
-    if (!this.data.account || !this.data.account.pubkey || this.data.account.statusId != StatusIds.ENABLE) return false;
-    const userProfile = Object.keys(UserProfileLabels).find(key => UserProfileLabels[key] == label) as UserProfileLabel;
+    if (!this.data.account || !this.data.account.pubkey || this.data.account.statusId !== StatusIds.ENABLE) return false;
     return PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, userProfile);
   }
 
   isAdmin(): boolean {
-    return this.hasProfileAndIsEnable(UserProfileLabels.ADMIN);
+    return this.hasProfileAndIsEnable('ADMIN');
   }
 
   isSupervisor(): boolean {
-    return this.hasProfileAndIsEnable(UserProfileLabels.SUPERVISOR);
+    return this.hasProfileAndIsEnable('SUPERVISOR');
   }
 
   isUser(): boolean {
-    return this.hasProfileAndIsEnable(UserProfileLabels.USER);
+    return this.hasProfileAndIsEnable('USER');
   }
 
   /**

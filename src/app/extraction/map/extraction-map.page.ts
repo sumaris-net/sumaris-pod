@@ -40,6 +40,7 @@ import {AggregationService, AggregationTypeFilter} from "../services/aggregation
 import {UnitLabel, UnitLabelPatterns} from "../../referential/services/model/model.enum";
 import {fadeInAnimation, fadeInOutAnimation} from "../../shared/material/material.animations";
 import {AppFormUtils} from "../../core/form/form.utils";
+import {StatusIds} from "../../core/services/model/model.enum";
 
 declare interface LegendOptions {
   min: number;
@@ -297,7 +298,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
 
     // If supervisor, allow to see all aggregations types
     this.typesFilter = {
-      statusIds: this.accountService.hasMinProfile("SUPERVISOR") ? [0, 1, 2] : [1],
+      statusIds: this.accountService.hasMinProfile('SUPERVISOR') ? [StatusIds.DISABLE, StatusIds.ENABLE, StatusIds.TEMPORARY] : [StatusIds.ENABLE],
       isSpatial: true
     };
 
@@ -987,7 +988,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
     }
     // If supervisor, allow to see all aggregations types
     const filter: AggregationTypeFilter = {
-      statusIds: this.accountService.hasMinProfile("SUPERVISOR") ? [0, 1, 2] : [1],
+      statusIds: this.accountService.hasMinProfile('SUPERVISOR')
+        ? [StatusIds.DISABLE, StatusIds.ENABLE, StatusIds.TEMPORARY]
+        : [StatusIds.ENABLE],
       isSpatial: true
     };
     const modal = await this.modalCtrl.create({

@@ -7,12 +7,14 @@ import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 export type UserProfileLabel = 'ADMIN' | 'USER' | 'SUPERVISOR' | 'GUEST';
 
-export const UserProfileLabels: {[key: string]: UserProfileLabel} = {
+// Enumeration for User profile.
+// /!\ WARN: Field order is used to known profile hierarchy
+export const UserProfileLabels = {
   ADMIN: 'ADMIN',
   SUPERVISOR: 'SUPERVISOR',
   USER: 'USER',
   GUEST: 'GUEST'
-}
+};
 
 export class Person<T extends Person<any> = Person<any>> extends Entity<T, ReferentialAsObjectOptions> {
 
@@ -33,8 +35,8 @@ export class Person<T extends Person<any> = Person<any>> extends Entity<T, Refer
   creationDate: Date | Moment;
   statusId: number;
   department: Department;
-  profiles: UserProfileLabel[];
-  mainProfile: UserProfileLabel;
+  profiles: string[];
+  mainProfile: string;
 
   constructor() {
     super();
@@ -61,7 +63,7 @@ export class Person<T extends Person<any> = Person<any>> extends Entity<T, Refer
     target.department = this.department && this.department.asObject(opts) || undefined;
     target.profiles = this.profiles && this.profiles.slice(0) || [];
     // Set profile list from the main profile
-    target.profiles = this.mainProfile && [this.mainProfile] || target.profiles || ['GUEST'];
+    target.profiles = this.mainProfile && [this.mainProfile] || target.profiles || [UserProfileLabels.GUEST];
     target.creationDate = toDateISOString(this.creationDate);
 
     if (!opts || opts.minify !== true) target.mainProfile = getMainProfile(target.profiles);
@@ -87,9 +89,6 @@ export class Person<T extends Person<any> = Person<any>> extends Entity<T, Refer
   }
 }
 
-// TODO : confirm that this variable is now useless before delete
-// export const PRIORITIZED_USER_PROFILES: UserProfileLabel[] = ['ADMIN', 'SUPERVISOR', 'USER', 'GUEST'];
-
 export class PersonUtils {
   static getMainProfile = getMainProfile;
   static getMainProfileIndex = getMainProfileIndex;
@@ -98,13 +97,14 @@ export class PersonUtils {
   static personsToString = personsToString;
 }
 
-export function getMainProfile(profiles?: string[]): UserProfileLabel {
-  return profiles && profiles.length && Object.values(UserProfileLabels).find(pp => profiles.indexOf(pp) > -1) || 'GUEST';
+export function getMainProfile(profiles?: string[]): string {
+  if (!profiles && !profiles.length) return UserProfileLabels.GUEST;
+  return Object.values(UserProfileLabels).find(label => profiles.includes(label)) || UserProfileLabels.GUEST;
 }
 
 export function getMainProfileIndex(profiles?: string[]): number {
-  if (!profiles && !profiles.length) return Object.values(UserProfileLabels).length - 1; // return last profile
-  const index = Object.values(UserProfileLabels).findIndex(pp => profiles.indexOf(pp) > -1);
+  if (!profiles && !profiles.length) return Object.values(UserProfileLabels).length - 1; // return last (lower) profile
+  const index = Object.values(UserProfileLabels).findIndex(label => profiles.includes(label));
   return (index !== -1) ? index : (Object.values(UserProfileLabels).length - 1);
 }
 

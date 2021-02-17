@@ -9,7 +9,7 @@ import {EntityUtils} from "../../core/services/model/entity.model";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {Beans, isNil, isNotEmptyArray, KeysEnum} from "../../shared/functions";
-import {Person} from "../../core/services/model/person.model";
+import {Person, UserProfileLabels} from "../../core/services/model/person.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {SortDirection} from "@angular/material/sort";
@@ -343,7 +343,7 @@ export class PersonService extends BaseGraphqlService<Person, PersonFilter>
     const maxProgression = opts && opts.maxProgression || 100;
     const filter = {
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      userProfiles: ['SUPERVISOR', 'USER', 'GUEST']
+      userProfiles: [UserProfileLabels.SUPERVISOR, UserProfileLabels.USER, UserProfileLabels.GUEST]
     };
 
     console.info("[person-service] Importing persons...");

@@ -201,7 +201,8 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
               map(value => suggestFromArray(this._sortedQualitativeValues, value, {
                 searchAttributes: this.searchAttributes
               })),
-              tap(res => this.updateImplicitValue(res))
+              map(res => res && res.data),
+              tap(items => this.updateImplicitValue(items))
             )
         );
       }

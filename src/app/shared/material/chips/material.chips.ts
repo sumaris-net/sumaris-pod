@@ -27,6 +27,9 @@ import {firstNotNilPromise} from "../../observables";
 })
 export class MatChipsField implements InputElement, ControlValueAccessor, OnInit, OnDestroy {
 
+  private _onChangeCallback = (_: any) => {};
+  private _onTouchedCallback = () => {};
+
   @Input() compareWith: (o1: any, o2: any) => boolean;
   @Input() logPrefix = '[mat-chips] ';
   @Input() formControl: FormControl;
@@ -176,12 +179,12 @@ export class MatChipsField implements InputElement, ControlValueAccessor, OnInit
       const suggestFromArrayFn: SuggestFn<any, any> = async (value, filter) => {
         if (this.debug) console.debug(this.logPrefix + ' Calling suggestFromArray with value=', value);
 
-        const res = await suggestFromArray(this.$inputItems.getValue(), value, {
+        const {data, total} = await suggestFromArray(this.$inputItems.getValue(), value, {
           searchAttributes: this.displayAttributes,
           ...filter
         });
-        this._itemCount = res && res.length || 0;
-        return res;
+        this._itemCount = toNumber(total, data && data.length || 0) ;
+        return {data, total};
       };
       // Wait (once) that items are loaded, then call suggest from array fn
       this.suggestFn = async (value, filter) => {
@@ -252,48 +255,9 @@ export class MatChipsField implements InputElement, ControlValueAccessor, OnInit
     this.filteredItems$ = updateFilteredItemsEvents$
       .pipe(
         distinctUntilChanged(),
-        tap(value => {
-          if (this.debug) console.debug(this.logPrefix + ' Received update event: ', value);
-        }),
-        switchMap(async (value) => {
-          // const res = await this.suggestFn(value, this.filter);
-          const res = await this.suggest(value, this.filter);
-          if (this.debug) console.debug(this.logPrefix + ' Filtered items by suggestFn:', value, res);
-          this._itemCount = res && res.length || 0;
-          return res;
-        }),
+        //tap(value => this.debug && console.debug(this.logPrefix + " Received update event: ", value)),
+        switchMap( (value) => this.suggest(value, this.filter))
       );
-
-  }
-
-  async suggest(value: any, filter: any): Promise<any[]> {
-    // Call suggestion function
-    const res = await this.suggestFn(value, filter);
-    let data: any[];
-
-    // DEBUG
-    // console.debug(this.logPrefix + " Filtered items by suggestFn:", value, res);
-    if (!res) {
-      this._itemCount = 0;
-      data = [];
-    }
-    else if (Array.isArray(res)) {
-      data = res as any[];
-      this._itemCount = data.length || 0;
-    }
-    else {
-      const resWithTotal = res as LoadResult<any>;
-      data = resWithTotal.data;
-      this._itemCount = resWithTotal && toNumber(resWithTotal.total, data?.length) || 0;
-    }
-
-    // Filter out existing items
-    const filteredData = (data || []).slice().filter(item1 => this.value.findIndex(item2 => this.compareWith(item1, item2)) === -1);
-
-    // Update items count
-    this._itemCount = this._itemCount - ((data?.length || 0) - (filteredData?.length || 0));
-
-    return data;
   }
 
   ngOnDestroy(): void {
@@ -390,13 +354,38 @@ export class MatChipsField implements InputElement, ControlValueAccessor, OnInit
     event.stopPropagation();
   }
 
-  /* -- protected method -- */
+  /* -- private method -- */
 
-  private _onChangeCallback = (_: any) => {
-  };
+  private async suggest(value: any, filter: any): Promise<any[]> {
+    // Call suggestion function
+    let res = await this.suggestFn(value, filter);
 
-  private _onTouchedCallback = () => {
-  };
+    // DEBUG
+    // console.debug(this.logPrefix + " Filtered items by suggestFn:", value, res);
+    if (!res) {
+      this._itemCount = 0;
+      res = [];
+    }
+    else if (Array.isArray(res)) {
+      res = res as any[];
+      this._itemCount = res.length || 0;
+    }
+    else {
+      const {data, total} = res as LoadResult<any>;
+      res = data;
+      this._itemCount = toNumber(total, data && data.length || 0) ;
+    }
+
+    // Filter out existing items
+    const filteredData = (res || []).slice().filter(item1 => this.value.findIndex(item2 => this.compareWith(item1, item2)) === -1);
+
+    // Update items count
+    this._itemCount = this._itemCount - ((res?.length || 0) - (filteredData?.length || 0));
+
+    if (this.debug) console.debug(this.logPrefix + ' Filtered items by suggestFn:', value, res);
+
+    return res as any[];
+  }
 
   private markForCheck() {
     this.cd.markForCheck();
