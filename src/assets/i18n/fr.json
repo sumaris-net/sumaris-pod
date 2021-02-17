@@ -702,6 +702,9 @@
           "OTHER": "Autre"
         }
       },
+      "ERROR" : {
+        "PARAMETERS.WEIGHT_OR_SIZE": "Le poids ou la taille est obligatoire"
+      },
       "SETTINGS": {
         "BURST_MODE_ENABLE": "Echantillon: activer le mode rafale ?"
       }
