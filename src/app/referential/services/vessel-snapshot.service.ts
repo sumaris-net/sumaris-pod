@@ -74,6 +74,7 @@ const LoadQuery: any = gql`
     }
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${ReferentialFragments.referential}
   ${ReferentialFragments.location}
 `;
 

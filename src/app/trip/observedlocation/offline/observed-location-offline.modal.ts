@@ -1,4 +1,4 @@
-import {Component, Input} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input} from "@angular/core";
 import {ModalController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
 import {FormBuilder, Validators} from "@angular/forms";
@@ -23,7 +23,8 @@ const moment = momentImported;
   styleUrls: [
     './observed-location-offline.modal.scss'
   ],
-  templateUrl: './observed-location-offline.modal.html'
+  templateUrl: './observed-location-offline.modal.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflineFilter> {
 
@@ -61,7 +62,8 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     protected platform: PlatformService,
     protected programRefService: ProgramRefService,
     protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService
+    protected settings: LocalSettingsService,
+    protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter,
       formBuilder.group({
@@ -208,4 +210,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     return this.viewCtrl.dismiss(this.getValue(), 'OK');
   }
 
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 }

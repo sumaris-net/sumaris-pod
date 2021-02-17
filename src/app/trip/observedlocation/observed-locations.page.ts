@@ -26,6 +26,7 @@ import {ConfigService} from "../../core/services/config.service";
 import {BehaviorSubject} from "rxjs";
 import {ObservedLocationOfflineModal} from "./offline/observed-location-offline.modal";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {OfflineFeature} from "../../core/services/model/settings.model";
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -209,7 +210,6 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
     if (!res) return; // CANCELLED*/
   }
 
-
   async prepareOfflineMode(event?: UIEvent, opts?: {
     toggleToOfflineMode?: boolean;
     showToast?: boolean;
@@ -217,12 +217,13 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
   }): Promise<undefined | boolean> {
     if (this.importing) return; // Skip
 
-    let filter;
     if (event) {
-      const feature = this.settings.getOfflineFeature(this.dataService.featureName);
+      const feature = this.settings.getOfflineFeature(this.dataService.featureName) || {
+        name: this.dataService.featureName
+      };
       const value = <ObservedLocationOfflineFilter>{
         ...this.filter,
-        ...(feature && feature.filter)
+        ...feature.filter
       };
       const modal = await this.modalCtrl.create({
         component: ObservedLocationOfflineModal,
@@ -238,18 +239,15 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
       const res = await modal.onDidDismiss();
       if (!res || !res.data) return; // User cancelled
 
-      filter = res && res.data;
+      // Update feature filter, and save it into settings
+      feature.filter = res && res.data;
+      this.settings.saveOfflineFeature(feature);
 
       // DEBUG
       console.debug('[observed-location-table] Will prepare offline mode, using filter:', filter);
     }
 
-    const success = await super.prepareOfflineMode(event, {
-      ...opts,
-      filter
-    });
-
-    return success;
+    return super.prepareOfflineMode(event, opts);
   }
 
   /* -- protected methods -- */

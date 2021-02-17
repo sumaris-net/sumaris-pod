@@ -29,7 +29,6 @@ export interface IDataSynchroService<T extends RootDataEntity<T>, O = EntityServ
 
   executeImport(opts?: {
     maxProgression?: number;
-    [key: string]: any;
   }): Observable<number>;
 
   synchronizeById(id: number): Promise<T>;
@@ -94,12 +93,11 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
 
   executeImport(opts?: {
     maxProgression?: number;
-    filter?: any;
   }): Observable<number>{
     if (this.$importationProgress) return this.$importationProgress; // Skip to may call
 
     const totalProgression = opts && opts.maxProgression || 100;
-    const jobOpts = { ...opts, maxProgression: undefined};
+    const jobOpts = { maxProgression: undefined};
     const jobDefers: Observable<number>[] = [
       // Clear caches
       defer(() => timer()
@@ -149,7 +147,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
           tap(() => {
             this.$importationProgress = null;
             console.info(`[root-data-service] Importation finished in ${Date.now() - now}ms`);
-            this.settings.saveOfflineFeature(this.featureName);
+            this.settings.markOfflineFeatureAsSync(this.featureName);
           })
         ))
 
@@ -241,7 +239,6 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
    */
   protected getImportJobs(opts: {
     maxProgression: undefined;
-    [key: string]: any;
   }): Observable<number>[] {
     return JobUtils.defers([
       (p, o) => this.referentialRefService.executeImport(p, o),

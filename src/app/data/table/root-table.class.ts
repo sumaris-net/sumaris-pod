@@ -157,7 +157,6 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
   async prepareOfflineMode(event?: UIEvent, opts?: {
     toggleToOfflineMode?: boolean; // Switch to offline mode ?
     showToast?: boolean; // Display success toast ?
-    filter?: any;
   }): Promise<undefined | boolean> {
     if (this.importing) return; // skip
 
@@ -177,7 +176,7 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
 
       await new Promise((resolve, reject) => {
         // Run the import
-        this.dataService.executeImport({maxProgression: 100, ...opts})
+        this.dataService.executeImport({maxProgression: 100})
           .pipe(
             filter(value => value > 0),
             map((progress) => {

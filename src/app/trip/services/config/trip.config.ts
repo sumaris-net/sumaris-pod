@@ -88,10 +88,9 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
     lightFieldsExcludes: ["samples"]
   },
 
+  // Fake entity, use to store historical data
   'LandingHistoryVO': <EntityStoreTypePolicy<Landing>>{
-    mode: 'by-id',
-    skipNonLocalEntities: false, // TODO BLA: vérifier que la prédoc hors ligne fonctionne
-    lightFieldsExcludes: ["samples"]
+    skipNonLocalEntities: false // Keep remote entities
   }
 };
 

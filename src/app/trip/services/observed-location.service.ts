@@ -36,6 +36,7 @@ import {JobUtils} from "../../shared/services/job.utils";
 import {fromDateISOString, toDateISOString} from "../../shared/dates";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
+import {OBSERVED_LOCATION_FEATURE_NAME} from "./config/trip.config";
 
 const moment = momentImported;
 
@@ -355,6 +356,8 @@ export class ObservedLocationService
       filterFnFactory: ObservedLocationFilter.asPodObject,
       filterAsObjectFn: ObservedLocationFilter.searchFilter
     });
+
+    this._featureName = OBSERVED_LOCATION_FEATURE_NAME;
 
     // FOR DEV ONLY
     this._debug = !environment.production;
@@ -801,12 +804,29 @@ export class ObservedLocationService
    */
   protected getImportJobs(opts: {
     maxProgression: undefined;
-    filter?: ObservedLocationOfflineFilter
   }): Observable<number>[] {
-    return [
-      ...super.getImportJobs(opts),
-      // Landing (historical data)
-      JobUtils.defer((p, o) => this.landingService.executeImport(p, o), opts)
-    ];
+
+    const feature = this.settings.getOfflineFeature(this.featureName);
+    if (feature && feature.filter) {
+      const landingFilter = {
+        ...feature.filter,
+        // Remove unused attribute
+        periodDuration: undefined,
+        periodDurationUnit: undefined
+      };
+      return [
+        ...super.getImportJobs(opts),
+        // Landing (historical data)
+        JobUtils.defer((p, o) => this.landingService.executeImport(p, {
+          ...o,
+          filter: landingFilter
+        }), opts)
+      ];
+    }
+    else {
+      return super.getImportJobs(opts);
+    }
+
+
   }
 }

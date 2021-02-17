@@ -196,6 +196,7 @@ export const LandingFragments = {
     rankOrder
     observedLocationId
     tripId
+    rankOrderOnVessel
     vesselSnapshot {
       ...LightVesselSnapshotFragment
     }
@@ -234,10 +235,10 @@ export const LandingFragments = {
     comments
     observedLocationId
     tripId
+    rankOrderOnVessel
     vesselSnapshot {
       ...VesselSnapshotFragment
     }
-    rankOrderOnVessel
     recorderDepartment {
       ...LightDepartmentFragment
     }
@@ -259,19 +260,6 @@ const LandingQueries = {
     data: landing(id: $id){
       ...LandingFragment
     }
-  }
-  ${LandingFragments.landing}
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
-  ${VesselSnapshotFragments.vesselSnapshot}
-  ${DataFragments.sample}`,
-
-  loadFullAllWithTotal: gql`query Landings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    data: landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...LandingFragment
-    }
-    total: landingsCount(filter: $filter)
   }
   ${LandingFragments.landing}
   ${Fragments.location}
@@ -341,9 +329,6 @@ const LandingSubscriptions: BaseEntityGraphqlSubscriptions = {
   ${DataFragments.sample}`
 };
 
-export interface LandingGraphqlQueries extends BaseEntityGraphqlQueries {
-  loadFullAllWithTotal: any;
-}
 
 const sortByDateFn = (n1: Landing, n2: Landing) => {
   return n1.dateTime.isSame(n2.dateTime)
@@ -352,7 +337,7 @@ const sortByDateFn = (n1: Landing, n2: Landing) => {
 };
 
 @Injectable({providedIn: 'root'})
-export class LandingService extends BaseRootDataService<Landing, LandingFilter, LandingGraphqlQueries>
+export class LandingService extends BaseRootDataService<Landing, LandingFilter>
   implements
     IEntitiesService<Landing, LandingFilter, LandingServiceWatchOptions>,
     IEntityService<Landing> {
@@ -809,24 +794,21 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter, 
   async executeImport(progression: BehaviorSubject<number>,
                 opts?: {
                   maxProgression?: number;
-                  filter?: LandingFilter;
+                  filter?: LandingFilter
                 }) {
     const now = this._debug && Date.now();
     const maxProgression = opts && opts.maxProgression || 100;
-    const startDate = moment().startOf('day').add(-15, 'day');
-
-    if (this._debug) console.debug(`[landing-service] Importing Landing historical data, from ${startDate.toLocaleString()}...`);
-
-    // Read programs, to kwown time limit to import
-    //this.programRef
 
     const filter: LandingFilter = {
-      startDate
+      startDate: moment().startOf('day').add(-15, 'day'),
+      ...opts?.filter
     };
+
+    if (this._debug) console.debug('[landing-service] Importing Landing historical data', filter);
 
     const {data} = await JobUtils.fetchAllPages<any>((offset, size) =>
         this.loadAll(offset, size, 'id', null, filter, {
-          fetchPolicy: "network-only",
+          fetchPolicy: "no-cache", // Skip cache
           fullLoad: false,
           toEntity: false
         }),
@@ -837,19 +819,11 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter, 
         logPrefix: '[landing-service]'
       });
 
-
-    // Change entityName, to avoid error when using this data
-    (data || []).forEach(source => {
-      source.entityName = 'LandingHistoryVO';
-      delete source.samples;
-    });
-
     if (this._debug) console.debug(`[landing-service] Importing Landing historical data [OK] in ${Date.now() - now}ms`, data);
 
     // Save locally
-    await this.entities.saveAll(data, {
+    await this.entities.saveAll(data || [], {
       entityName: 'LandingHistoryVO',
-      emitEvent: false,
       reset: true
     });
 

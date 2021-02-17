@@ -267,52 +267,6 @@ export class LocalSettingsService {
     this.persistLocally();
   }
 
-  saveOfflineFeature(featureName: string, config?: any) {
-    this.data = this.data || this.defaultSettings;
-    this.data.offlineFeatures = this.data.offlineFeatures || [];
-
-    featureName = featureName.toLowerCase();
-
-    const feature = {
-      name: featureName,
-      lastSyncDate: moment().toISOString(),
-      config
-    };
-
-    const featurePrefix = featureName + '#';
-    const existingIndex = this.data.offlineFeatures.findIndex(f => {
-      if (typeof f === 'string') return f.toLowerCase().startsWith(featurePrefix);
-      if (typeof f === 'object' && f.name) return f.name === featureName;
-    });
-    if (existingIndex !== -1) {
-      this.data.offlineFeatures[existingIndex] = feature;
-    }
-    else {
-      this.data.offlineFeatures.push(feature);
-    }
-
-    // Update local settings
-    this.persistLocally();
-  }
-
-  removeOfflineFeatures() {
-    if (this.data && this.data.offlineFeatures) {
-      this.data.offlineFeatures = [];
-
-      // Update local settings
-      this.persistLocally();
-    }
-  }
-
-  hasOfflineFeature(featureName?: string): boolean {
-    if (featureName) return isNotNil(this.getOfflineFeature(featureName));
-    return this.data && isNotEmptyArray(this.data.offlineFeatures);
-  }
-
-  getOfflineFeatureLastSyncDate(featureName: string): Moment {
-    const feature = this.getOfflineFeature(featureName);
-    return feature && fromDateISOString(feature.lastSyncDate);
-  }
 
   getOfflineFeature(featureName: string): OfflineFeature {
     if (!this.data || !this.data.offlineFeatures || isEmptyArray(this.data.offlineFeatures))
@@ -333,6 +287,63 @@ export class LocalSettingsService {
       };
     }
     return feature;
+  }
+
+  getOfflineFeatureLastSyncDate(featureName: string): Moment {
+    const feature = this.getOfflineFeature(featureName);
+    return feature && fromDateISOString(feature.lastSyncDate);
+  }
+
+  hasOfflineFeature(featureName?: string): boolean {
+    if (featureName) return isNotNil(this.getOfflineFeature(featureName));
+    return this.data && isNotEmptyArray(this.data.offlineFeatures);
+  }
+
+  saveOfflineFeature(feature: OfflineFeature) {
+    this.data = this.data || this.defaultSettings;
+    this.data.offlineFeatures = this.data.offlineFeatures || [];
+
+    feature.name = feature.name.toLowerCase();
+
+    const featurePrefix = feature.name + '#';
+    const existingIndex = this.data.offlineFeatures.findIndex(f => {
+      if (typeof f === 'string') return f.toLowerCase().startsWith(featurePrefix);
+      if (typeof f === 'object' && f.name) return f.name === feature.name;
+    });
+    if (existingIndex !== -1) {
+      this.data.offlineFeatures[existingIndex] = feature;
+    }
+    else {
+      this.data.offlineFeatures.push(feature);
+    }
+
+    // Update local settings
+    this.persistLocally();
+  }
+
+  markOfflineFeatureAsSync(featureName: string) {
+    let feature = this.getOfflineFeature(featureName);
+
+    if (!feature) {
+      feature = <OfflineFeature>{
+        name: featureName.toLowerCase(),
+        lastSyncDate: moment().toISOString()
+      };
+    }
+    else {
+      feature.lastSyncDate = moment().toISOString();
+    }
+
+    this.saveOfflineFeature(feature);
+  }
+
+  removeOfflineFeatures() {
+    if (this.data && this.data.offlineFeatures) {
+      this.data.offlineFeatures = [];
+
+      // Update local settings
+      this.persistLocally();
+    }
   }
 
   getFieldDisplayAttributes(fieldName: string, defaultAttributes?: string[]): string[] {
