@@ -286,7 +286,7 @@ const ObservedLocationMutations = {
   ${Fragments.lightPerson}
   ${Fragments.location}`,
 
-    validate:  gql`mutation ValidateObservedLocation($data: ObservedLocationVOInput!){
+  validate:  gql`mutation ValidateObservedLocation($data: ObservedLocationVOInput!){
     data: validateObservedLocation(observedLocation: $data){
       ...ObservedLocationFragment
     }
@@ -319,8 +319,7 @@ const ObservedLocationMutations = {
 
 
 const ObservedLocationSubscriptions = {
-  listenChanges: gql`
-  subscription UpdateObservedLocation($id: Int!, $interval: Int){
+  listenChanges: gql`subscription UpdateObservedLocation($id: Int!, $interval: Int){
     updateObservedLocation(id: $id, interval: $interval) {
       ...ObservedLocationFragment
     }
