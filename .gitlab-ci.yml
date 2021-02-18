@@ -31,7 +31,7 @@ schedule-build:
         - sih_public_runner
     script:
         - echo "Test dev build in progress"
-        - mvn -s ./settings.xml clean install -DskipTests --offline
+        - mvn -s ./settings.xml clean install -DskipTests
     environment:
         name: test
 
@@ -43,7 +43,7 @@ build_oracle:
         PROFIL: "oracle"
     script:
         - echo "Test oracle build  in progress"
-        - mvn -q -s ./settings.xml clean install -DskipTests -P $PROFIL --offline
+        - mvn -q -s ./settings.xml clean install -DskipTests -P $PROFIL
         - mvn -q -s ./settings.xml -pl sumaris-server deploy:deploy-file@deploy-nexus-snapshot -P $PROFIL
     environment:
         name: test
@@ -64,7 +64,7 @@ build_oracle_common:
         PROFIL: "oracle-test"
     script:
         - echo "Test oracle build  in progress"
-        - mvn -q -s ./settings.xml clean install -DskipTests -P $PROFIL --offline
+        - mvn -q -s ./settings.xml clean install -DskipTests -P $PROFIL
         - mvn -q -s ./settings.xml -pl sumaris-server deploy:deploy-file@deploy-nexus-snapshot -P $PROFIL
     environment:
         name: test
