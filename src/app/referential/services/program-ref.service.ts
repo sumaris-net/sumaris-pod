@@ -159,7 +159,7 @@ export class ProgramRefService
     fetchPolicy?: WatchQueryFetchPolicy;
   }): Observable<Program> {
 
-    console.debug(`[program-ref-service] Loading Program refs...`);
+    console.debug(`[program-ref-service] Loading Program {${label}} reference...`);
 
     let now;
     const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
@@ -175,7 +175,7 @@ export class ProgramRefService
 
         const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
         if (offline) {
-          res = this.entities.watchAll<Program>('ProgramVO', {
+          res = this.entities.watchAll<Program>(Program.TYPENAME, {
             offset: 0, size: 1,
             filter: (p) => p.label ===  label
           });

@@ -73,19 +73,13 @@
     <ion-label translate>COMMON.BTN_SHOW_TRASH_DOTS</ion-label>
   </button> -->
 
-  <!-- Force offline (DEV ONLY)
+  <!-- Force offline (DEV ONLY)  -->
   <button mat-menu-item *ngIf="debug && !offline"
           (click)="toggleOfflineMode($event)">
     <mat-icon>signal_wifi_off</mat-icon>
     <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
-  </button> -->
+  </button>
 
-  <!-- Add local trip
-  <button mat-menu-item *ngIf="debug && !offline"
-          (click)="importFromFile()">
-    <mat-icon>insert_drive_file</mat-icon>
-    <ion-label>Import file...</ion-label>
-  </button> -->
 </mat-menu>
 
 <ion-content class="ion-no-padding">
