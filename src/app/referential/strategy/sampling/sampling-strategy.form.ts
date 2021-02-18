@@ -26,7 +26,7 @@ import {
   AcquisitionLevelCodes,
   LocationLevelIds,
   ParameterLabelGroups, PmfmIds,
-  ProgramPrivilegeIds
+  ProgramPrivilegeIds, TaxonomicLevelIds
 } from '../../services/model/model.enum';
 import {AppForm} from "../../../core/form/form.class";
 import {AppFormUtils, FormArrayHelper} from "../../../core/form/form.utils";
@@ -283,7 +283,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value, filter) => this.suggestTaxonName(value, {
-        
+        ...filter,
+        statusIds: [StatusIds.ENABLE],
+        levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
       }),
       attributes: ['name'],
       columnNames: ['REFERENTIAL.NAME'],
