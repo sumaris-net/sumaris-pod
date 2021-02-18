@@ -408,7 +408,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   protected async computeTitle(data: ObservedLocation): Promise<string> {
 
-    await this.ready();
+    //await this.ready();
+    await firstNotNilPromise(this.$ready);
 
     // new data
     if (this.isNewData) {
