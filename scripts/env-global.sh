@@ -14,7 +14,7 @@ fi;
 
 echo "Preparing project environment.."
 NODE_VERSION=12
-NODE_OPTIONS=--max-old-space-size=4096 # Avoid Javascript memory heap space
+#NODE_OPTIONS=--max-old-space-size=4096 # Avoid Javascript memory heap space
 
 #ANDROID_NDK_VERSION=r19c
 ANDROID_SDK_VERSION=r29.0.2
@@ -28,7 +28,6 @@ ANDROID_OUTPUT_APK_RELEASE=${ANDROID_OUTPUT_APK}/release
 ANDROID_OUTPUT_APK_PREFIX=app
 
 PROJECT_NAME=sumaris-app
-
 
 
 # /!\ WARN can be define in your <project>/.local/env.sh file
@@ -63,21 +62,21 @@ if [[ "_" == "_${JAVA_HOME}" ]]; then
   fi
   JAVA_MAJOR_VERSION=`echo ${JAVA_VERSION} | awk '{split($0, array, ".")} END{print array[1]}'`
   JAVA_MINOR_VERSION=`echo ${JAVA_VERSION} | awk '{split($0, array, ".")} END{print array[2]}'`
-  if [[ ${JAVA_MAJOR_VERSION} -ne 1 ]] || [[ ${JAVA_MINOR_VERSION} -ne 8 ]]; then
-    echo "Require a Java JRE in version 1.8, but found ${JAVA_VERSION}. You can override your default JAVA_HOME in '.local/env.sh'."
+  if [[ ${JAVA_MAJOR_VERSION} -ne 11 ]] || [[ ${JAVA_MINOR_VERSION} -ne 0 ]]; then
+    echo "Require a Java JRE in version 11.0, but found ${JAVA_VERSION}. You can override your default JAVA_HOME in '.local/env.sh'."
     exit 1
   fi
 fi
 
 # Check Android SDK root path
-#if [[ "_" == "_${ANDROID_SDK_ROOT}" || ! -d "${ANDROID_SDK_ROOT}" ]]; then
-#  if [[ -d "${ANDROID_ALTERNATIVE_SDK_ROOT}" ]]; then
-#    export ANDROID_SDK_ROOT="${ANDROID_ALTERNATIVE_SDK_ROOT}"
-#  else
-#    echo "Please set env variable ANDROID_SDK_ROOT to an existing directory"
-#    exit 1
-#  fi
-#fi
+if [[ "_" == "_${ANDROID_SDK_ROOT}" || ! -d "${ANDROID_SDK_ROOT}" ]]; then
+  if [[ -d "${ANDROID_ALTERNATIVE_SDK_ROOT}" ]]; then
+    export ANDROID_SDK_ROOT="${ANDROID_ALTERNATIVE_SDK_ROOT}"
+  else
+    echo "Please set env variable ANDROID_SDK_ROOT to an existing directory"
+    exit 1
+  fi
+fi
 
 # Add Java, Android SDK tools to path
 PATH=${ANDROID_SDK_TOOLS_ROOT}/bin:${GRADLE_HOME}/bin:${JAVA_HOME}/bin$:$PATH

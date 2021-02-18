@@ -18,9 +18,9 @@ if [[ ! -d "${ANDROID_SDK_TOOLS_ROOT}/tools/bin" ]]; then
   ANDROID_SDK_CLI_TOOL_FILE="commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip"
   test -e "${ANDROID_SDK_CLI_TOOL_FILE}" || wget -kL https://dl.google.com/android/repository/${ANDROID_SDK_CLI_TOOL_FILE}
   # Get parent folder
-  test -e "${ANDROID_SDK_TOOLS_ROOT}" || mkdir -p "${ANDROID_SDK_TOOLS_ROOT}"
-  test -e "${ANDROID_SDK_TOOLS_ROOT}" && unzip -qq ${ANDROID_SDK_CLI_TOOL_FILE} -d "${ANDROID_SDK_TOOLS_ROOT}"
-  test -e "${ANDROID_SDK_TOOLS_ROOT}" && rm "${ANDROID_SDK_CLI_TOOL_FILE}"
+  test -e "${ANDROID_SDK_TOOLS_ROOT}" || sudo mkdir -p "${ANDROID_SDK_TOOLS_ROOT}"
+  test -e "${ANDROID_SDK_TOOLS_ROOT}" && sudo unzip -qq ${ANDROID_SDK_CLI_TOOL_FILE} -d "${ANDROID_SDK_TOOLS_ROOT}"
+  test -e "${ANDROID_SDK_TOOLS_ROOT}" && sudo rm "${ANDROID_SDK_CLI_TOOL_FILE}"
 fi
 
 if [[ ! -d "${ANDROID_SDK_TOOLS_ROOT}/tools/bin" ]]; then

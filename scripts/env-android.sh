@@ -48,7 +48,8 @@ if [[ "_" == "_$(which gradle)" || ! -d "${GRADLE_HOME}" ]]; then
   [[ $? -ne 0 ]] && exit 1
   test -e "${GRADLE_HOME}" || mv "${GRADLE_PARENT}/gradle-${GRADLE_VERSION}" "${GRADLE_HOME}"
   [[ $? -ne 0 ]] && exit 1
-  test -e "${GRADLE_PARENT}/gradle-${GRADLE_VERSION}" || rm "${GRADLE_PARENT}/gradle-${GRADLE_VERSION}"
+  test -e "${GRADLE_PARENT}/gradle-${GRADLE_VERSION}" && rm "${GRADLE_PARENT}/gradle-${GRADLE_VERSION}"
+  test -e "gradle-${GRADLE_VERSION}-all.zip" && rm "gradle-${GRADLE_VERSION}-all.zip"
 fi
 
 
