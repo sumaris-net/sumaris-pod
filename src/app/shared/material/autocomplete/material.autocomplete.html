@@ -27,7 +27,7 @@
                       (focus)="filterMatSelectFocusEvent($event)"
                       (blur)="filterMatSelectBlurEvent($event)"
                       [compareWith]="compareWith">
-            <mat-select-trigger>{{ displayValue }}</mat-select-trigger>
+            <mat-select-trigger>{{ displayWith(value) }}</mat-select-trigger>
 
             <ng-container *ngIf="(matSelectItems$ | async) as items">
               <!-- header -->

@@ -169,6 +169,19 @@
     <ng-content select="[matSuffix]"></ng-content>
   </mat-autocomplete-field>
 
+  <!-- multi auto-complete -->
+  <mat-chips-field *ngSwitchCase="'entities'"
+                    [class]="classList"
+                    [placeholder]="placeholder"
+                    [floatLabel]="floatLabel"
+                    [formControl]="formControl"
+                    [config]="definition.autocomplete"
+                    [required]="required"
+                    [displayWith]="getDisplayValueFn(definition)">
+    <ng-content select="[matPrefix]"></ng-content>
+    <ng-content select="[matSuffix]"></ng-content>
+  </mat-chips-field>
+
   <!-- other -->
   <div *ngSwitchDefault>
     <mat-error *ngIf="type">Unknown type {{type}} for option {{definition.key}}. Please report this error.</mat-error>

@@ -108,7 +108,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
     this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
-    this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
+    this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
     this.aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
     this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
     this.addLandingUsingHistoryModal = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY);
@@ -321,7 +321,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
 
     const startDate = this.data.startDateTime.clone().add(-15, "days");
-    const endDate = this.data.startDateTime;
+    const endDate = this.data.startDateTime.clone();
     const programLabel = (this.aggregatedLandingsTable && this.aggregatedLandingsTable.program) || this.data.program.label;
     const excludeVesselIds = (toBoolean(excludeExistingVessels, false) && this.aggregatedLandingsTable
       && await this.aggregatedLandingsTable.vesselIdsAlreadyPresent()) || [];
@@ -332,7 +332,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       endDate,
       locationId: ReferentialUtils.isNotEmpty(this.data.location) ? this.data.location.id : undefined,
       groupByVessel: (this.landingsTable && this.landingsTable.isTripDetailEditor) || (isNotNil(this.aggregatedLandingsTable)),
-      excludeVesselIds
+      excludeVesselIds,
+      synchronizationStatus: 'SYNC' // only remote entities. This is required to read 'Remote#LandingVO' local storage
     };
 
     const modal = await this.modalCtrl.create({

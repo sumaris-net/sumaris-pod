@@ -87,6 +87,15 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   }
 
   @Input()
+  set showBasePortLocationColumn(value: boolean) {
+    this.setShowColumn('vesselBasePortLocation', value);
+  }
+
+  get showBasePortLocationColumn(): boolean {
+    return this.getShowColumn('vesselBasePortLocation');
+  }
+
+  @Input()
   set showObserversColumn(value: boolean) {
     this.setShowColumn('observers', value);
   }
@@ -164,11 +173,9 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
       });
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = 'LANDING.TABLE.';
-    this.autoLoad = false; // waiting parent to be loaded
+    this.autoLoad = false; // waiting parent to be loaded, or the call of onRefresh.next()
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
-    // TODO  ::: USE NAVIGATOR (check service)
-    this.defaultPageSize = 200; // normal high value
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.saveBeforeDelete = true;

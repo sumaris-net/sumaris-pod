@@ -46,7 +46,7 @@ export enum AnimationState {
 })
 export class ProgramPage extends AppEntityEditor<Program, ProgramService> implements OnInit {
 
-  propertyDefinitions = Object.getOwnPropertyNames(ProgramProperties).map(name => ProgramProperties[name]);
+  propertyDefinitions: FormFieldDefinition[];
   fieldDefinitions: FormFieldDefinitionMap = {};
   form: FormGroup;
   i18nFieldPrefix = 'PROGRAM.';
@@ -86,6 +86,14 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.defaultBackHref = "/referential/list?entity=Program";
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
+
+    this.propertyDefinitions = Object.values(ProgramProperties).map(def => {
+      if (def.type === 'entity') {
+        def = Object.assign({}, def); // Copy
+        def.autocomplete.suggestFn = (value, filter) => this.referentialRefService.suggest(value, filter);
+      }
+      return def;
+    });
 
     this.debug = !environment.production;
   }

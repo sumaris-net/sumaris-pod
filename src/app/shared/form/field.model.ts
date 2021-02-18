@@ -7,7 +7,7 @@ export declare type DisplayFn = (obj: any) => string;
 
 export declare type CompareWithFn = (o1: any, o2: any) => boolean;
 
-export declare type FormFieldType = 'integer' | 'double' | 'boolean' | 'string' | 'enum' | 'color' | 'peer' | 'entity';
+export declare type FormFieldType = 'integer' | 'double' | 'boolean' | 'string' | 'enum' | 'color' | 'peer' | 'entity' | 'entities';
 
 export declare interface FormFieldDefinition<T = any> {
   key: string;

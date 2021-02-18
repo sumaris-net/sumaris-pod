@@ -164,7 +164,9 @@
       "cordova-plugin-ionic-keyboard": {},
       "cordova-plugin-decimal-keyboard": {},
       "cordova-plugin-advanced-http": {},
-      "cordova-plugin-geolocation": {},
+      "cordova-plugin-geolocation": {
+        "GPS_REQUIRED": "true"
+      },
       "cordova-plugin-camera": {
         "ANDROID_SUPPORT_V4_VERSION": "27.+"
       },

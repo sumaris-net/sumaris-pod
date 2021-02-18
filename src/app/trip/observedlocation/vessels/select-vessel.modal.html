@@ -19,10 +19,12 @@
       </ng-template>
 
       <app-landings-table #landingsTable
-                          [showObserversColumn]="false"
                           [showDateTimeColumn]="true"
                           [showVesselTypeColumn]="showVesselTypeColumn"
                           [showIdColumn]="false"
+                          [showLocationColumn]="false"
+                          [showCreationDateColumn]="false"
+                          [showObserversColumn]="false"
                           [canEdit]="false"
                           [canDelete]="false"
                           (onOpenRow)="selectRow($event)"

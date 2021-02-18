@@ -24,6 +24,7 @@ import {Vessel} from "../../../referential/services/model/vessel.model";
 import {Subscription} from "rxjs";
 import {CORE_CONFIG_OPTIONS} from "../../../core/services/config/core.config";
 import {ConfigService} from "../../../core/services/config.service";
+import {MatTabGroup} from "@angular/material/tabs";
 
 @Component({
   selector: 'app-select-vessel-modal',
@@ -38,6 +39,7 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(LandingsTable, { static: true }) landingsTable: LandingsTable;
   @ViewChild(VesselsTable, { static: true }) vesselsTable: VesselsTable;
   @ViewChild(VesselForm, { static: false }) vesselForm: VesselForm;
+  @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
 
   @Input() landingFilter: LandingFilter = {};
   @Input() vesselFilter: VesselFilter = {};
@@ -103,6 +105,8 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
     // Load landings
     setTimeout(() => {
       this.landingsTable.onRefresh.next("modal");
+      this.selectedTabIndex = 0;
+      this.tabGroup.realignInkBar();
       this.markForCheck();
     }, 200);
   }

@@ -161,7 +161,7 @@ export const ProgramProperties = Object.freeze({
     defaultValue: "false",
     type: 'boolean'
   },
-  OBSERVED_LOCATION_LOCATION_LEVEL_ID: <FormFieldDefinition>{
+  OBSERVED_LOCATION_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.location.level.ids',
     label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_LOCATION_LEVEL_IDS",
     type: 'string',
@@ -281,9 +281,9 @@ export const ProgramProperties = Object.freeze({
 
   /* -- Landed trip options -- */
 
-  LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID: <FormFieldDefinition>{
-    key: 'sumaris.landedTrip.fishingArea.locationLevel.id',
-    label: 'PROGRAM.OPTIONS.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID',
+  LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.landedTrip.fishingArea.locationLevel.ids',
+    label: 'PROGRAM.OPTIONS.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS',
     type: 'entity',
     autocomplete: {
       filter: {

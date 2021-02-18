@@ -38,7 +38,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     { value: 3,  unit: 'month' },
     { value: 6,  unit: 'month' }
   ];
-  periodDurationLabels: { key: string; label: string; value: Moment; }[];
+  periodDurationLabels: { key: string; label: string; startDate: Moment; }[];
 
   @Input() title = 'OBSERVED_LOCATION.OFFLINE_MODAL.TITLE';
 
@@ -73,18 +73,18 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
         periodDuration: ['15day', Validators.required],
       }),
       settings);
-    this._enable = true; // Enable by default
+    this._enable = false; // Disable by default
     this.mobile = platform.mobile;
 
     // Prepare start date items
     const datePattern = translate.instant('COMMON.DATE_PATTERN');
     this.periodDurationLabels = this.periodDurations.map(v => {
       const date = moment().utc(false)
-        .add(-1 * v.value, v.unit);
+        .add(-1 * v.value, v.unit); // Substract the period, from now
       return {
         key: `${v.value} ${v.unit}`,
         label: `${date.fromNow(true/*no suffix*/)} (${date.format(datePattern)})`,
-        value: date.startOf('day')
+        startDate: date.startOf('day') // Reset time
       };
     });
   }
@@ -115,7 +115,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     const subControls = [
       this.form.get('program'),
       this.form.get('location'),
-      this.form.get('startDate')
+      this.form.get('periodDuration')
     ];
     this.form.get('enableHistory').valueChanges.subscribe(enable => {
       if (enable) {
@@ -158,6 +158,8 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     }
 
     this.form.patchValue(json);
+
+    this.enable();
   }
 
   getValue(): ObservedLocationOfflineFilter {
@@ -176,8 +178,8 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
 
     // Set start date
     if (json.enableHistory && json.periodDuration) {
-      const startDateItem = this.periodDurationLabels.find(item => item.key === json.periodDuration);
-      value.startDate = startDateItem && startDateItem.value;
+      const periodDuration = this.periodDurationLabels.find(item => item.key === json.periodDuration);
+      value.startDate = periodDuration && periodDuration.startDate;
 
       // Keep value of periodDuration (to be able to save it in local settings)
       const parts = json.periodDuration.split(' ');
@@ -186,8 +188,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     }
 
     // DEBUG
-    console.debug("[observed-location-offline] Modal result value:", value);
-
+    //console.debug("[observed-location-offline] Modal result value:", value);
 
     return value;
   }

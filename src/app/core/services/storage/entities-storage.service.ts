@@ -21,6 +21,7 @@ export const APP_LOCAL_STORAGE_TYPE_POLICIES = new InjectionToken<EntitiesStorag
 export class EntitiesStorage {
 
   public static TRASH_PREFIX = "Trash#";
+  public static REMOTE_PREFIX = "Remote#";
 
   private readonly _debug: boolean;
   private readonly _typePolicies: EntitiesStorageTypePolicies;
@@ -177,7 +178,7 @@ export class EntitiesStorage {
     reset?: boolean;
     emitEvent?: boolean;
   }): Promise<T[]> {
-    if (isEmptyArray(entities)) return entities; // skip
+    if (isEmptyArray(entities) && (!opts || opts.reset !== true)) return entities; // Skip (nothing to save)
 
     await this.ready();
 

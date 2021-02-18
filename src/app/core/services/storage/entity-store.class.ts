@@ -187,13 +187,13 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
   }
 
   saveAll(entities: T[], opts?: { emitEvent?: boolean; reset?: boolean; }): T[] {
-    if (isEmptyArray(entities)) return entities; // Nothing to save
+    if (isEmptyArray(entities) && (!opts || opts.reset !== true)) return entities; // Skip (Nothing to save)
 
     let result: T[];
 
     console.info(`[entity-storage] Saving ${entities.length} ${this.name}(s)`);
 
-    // First save
+    // First save, or reset using given entities
     if (isEmptyArray(this._cache) || (opts && opts.reset)) {
       this.setEntities(entities, {emitEvent: false});
     }

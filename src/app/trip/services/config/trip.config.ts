@@ -89,7 +89,7 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
   },
 
   // Fake entity, use to store historical data
-  'LandingHistoryVO': <EntityStoreTypePolicy<Landing>>{
+  'Remote#LandingVO': <EntityStoreTypePolicy<Landing>>{
     skipNonLocalEntities: false // Keep remote entities
   }
 };

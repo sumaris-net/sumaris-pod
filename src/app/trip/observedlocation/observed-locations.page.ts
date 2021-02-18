@@ -244,7 +244,7 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
       this.settings.saveOfflineFeature(feature);
 
       // DEBUG
-      console.debug('[observed-location-table] Will prepare offline mode, using filter:', filter);
+      console.debug('[observed-location-table] Will prepare offline mode, using filter:', feature.filter);
     }
 
     return super.prepareOfflineMode(event, opts);

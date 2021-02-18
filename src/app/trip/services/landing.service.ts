@@ -680,23 +680,27 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
                   dataFilter?: LandingFilter,
                   opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
 
-    if (!dataFilter || isNil(dataFilter.observedLocationId)) {
-      console.warn("[landing-service] Trying to load landing without 'filter.observedLocationId'. Skipping.");
+    if (!LandingFilter.isEmpty(dataFilter)) {
+      console.warn("[landing-service] Trying to watch landings without 'filter': skipping.");
       return EMPTY;
     }
-    if (dataFilter.observedLocationId >= 0) throw new Error("Invalid 'filter.observedLocationId': must be a local ID (id<0)!");
+    if (isNotNil(dataFilter.observedLocationId) && dataFilter.observedLocationId >= 0) throw new Error("Invalid 'filter.observedLocationId': must be a local ID (id<0)!");
 
     const variables = {
       offset: offset || 0,
-      size: size >= 0 ? size : 1000,
+      size: size || 20,
       sortBy: (sortBy !== 'id' && sortBy) || 'dateTime',
       sortDirection: sortDirection || 'asc',
       trash: opts && opts.trash || false,
       filter: LandingFilter.searchFilter<Landing>(dataFilter)
     };
 
-    if (this._debug) console.debug("[landing-service] Loading landing locally... using options:", variables);
-    return this.entities.watchAll<Landing>(Landing.TYPENAME, variables, {fullLoad: opts && opts.fullLoad})
+    const entityName = (!dataFilter.synchronizationStatus || dataFilter.synchronizationStatus !== 'SYNC')
+      ? Landing.TYPENAME // Local entities
+      : EntitiesStorage.REMOTE_PREFIX + Landing.TYPENAME; // Remote entities
+
+    if (this._debug) console.debug(`[landing-service] Loading ${entityName} locally... using options:`, variables);
+    return this.entities.watchAll<Landing>(entityName, variables, {fullLoad: opts && opts.fullLoad})
       .pipe(map(res => {
         const data = (res && res.data || []).map(source => Landing.fromObject(source));
         const total = res && res.total || data.length;
@@ -823,7 +827,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     // Save locally
     await this.entities.saveAll(data || [], {
-      entityName: 'LandingHistoryVO',
+      entityName: EntitiesStorage.REMOTE_PREFIX + Landing.TYPENAME,
       reset: true
     });
 

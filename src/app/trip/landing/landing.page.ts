@@ -290,7 +290,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
 
     // Customize the UI, using program options
-    this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
+    this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
     this.landingForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
     this.landingForm.requiredStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
     this.landingForm.showStrategy = this.landingForm.requiredStrategy;
