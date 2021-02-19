@@ -33,6 +33,7 @@ import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
+import net.sumaris.core.exception.NotUniqueException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.administration.user.Department;
@@ -262,6 +263,20 @@ public class StrategyRepositoryImpl
         result = String.valueOf(Integer.parseInt(result) + 1);
         result = prefix.concat(StringUtils.leftPad(result, nbDigit, '0'));
         return result;
+    }
+
+    @Override
+    protected void onBeforeSaveEntity(StrategyVO vo, Strategy entity, boolean isNew) {
+        super.onBeforeSaveEntity(vo, entity, isNew);
+
+        // Verify label is unique by program
+        long count = this.findAll(StrategyFilterVO.builder().programId(vo.getProgramId()).label(vo.getLabel()).build())
+                .stream()
+                .filter(s -> isNew || s.getId() != vo.getId())
+                .count();
+        if (count > 0) {
+            throw new NotUniqueException(String.format("Strategy label '%s' already exists", vo.getLabel()));
+        }
     }
 
     @Override

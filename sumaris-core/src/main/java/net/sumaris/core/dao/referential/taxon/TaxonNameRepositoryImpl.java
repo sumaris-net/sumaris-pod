@@ -132,6 +132,10 @@ public class TaxonNameRepositoryImpl
 
         TypedQuery<TaxonName> query = getQuery(toSpecification(filter), pageable);
 
+        if (pageable.isPaged()) {
+            query.setFirstResult((int)pageable.getOffset()).setMaxResults(pageable.getPageSize());
+        }
+
         return query.getResultStream()
             .map(this::toVO)
             .collect(Collectors.toList());
