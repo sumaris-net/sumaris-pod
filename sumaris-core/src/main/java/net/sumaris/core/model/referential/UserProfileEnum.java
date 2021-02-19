@@ -43,7 +43,7 @@ public enum UserProfileEnum {
     }
 
     public static UserProfileEnum valueOfLabel(String label) {
-        return getByLabel(label).orElseThrow(() -> new IllegalArgumentException("Unkown user profile label: " + label));
+        return getByLabel(label).orElseThrow(() -> new IllegalArgumentException("Unknown user profile label: " + label));
     }
 
     public static Optional<UserProfileEnum> getById(int id) {
