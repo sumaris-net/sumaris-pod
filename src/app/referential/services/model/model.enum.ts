@@ -64,6 +64,8 @@ export const PmfmIds = {
   /* PARAMBIO pmfms */
   MORSE_CODE: 358,
   STRATEGY_LABEL: 359,
+  AGE: 350,
+  SEX: 80,
 
   /* OBSDEB pmfms */
   PACKAGING: 177,

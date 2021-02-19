@@ -1,7 +1,7 @@
 import {TypePolicies} from "@apollo/client/core";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../../shared/form/field.model";
 import {changeCaseToUnderscore} from "../../../shared/functions";
-import {LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds} from "../model/model.enum";
+import {LocationLevelIds, ParameterLabelGroups, PmfmIds, TaxonomicLevelIds} from "../model/model.enum";
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'MetierVO': {
@@ -153,6 +153,30 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
       }
     },
     defaultValue: TaxonomicLevelIds.SUBSPECIES
+  },
+  PMFM_AGE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.pmfm.AGE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AGE_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [0, 1]
+      }
+    },
+    defaultValue: PmfmIds.AGE
+  },
+  PMFM_SEX_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.pmfm.SEX.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SEX_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [0, 1]
+      }
+    },
+    defaultValue: PmfmIds.SEX
   },
   STRATEGY_PARAMETER_AGE_LABEL: <FormFieldDefinition>{
     key: 'sumaris.enumeration.parameter.age.label',

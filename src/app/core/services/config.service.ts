@@ -12,7 +12,7 @@ import {NetworkService} from "./network.service";
 import {PlatformService} from "./platform.service";
 import {CORE_CONFIG_OPTIONS} from "./config/core.config";
 import {SoftwareService} from "../../referential/services/software.service";
-import {LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds} from "../../referential/services/model/model.enum";
+import {LocationLevelIds, ParameterLabelGroups, PmfmIds, TaxonomicLevelIds} from "../../referential/services/model/model.enum";
 import {ToastController} from "@ionic/angular";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {TranslateService} from "@ngx-translate/core";
@@ -527,6 +527,10 @@ export class ConfigService extends SoftwareService<Configuration> {
     ParameterLabelGroups.WEIGHT = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_WEIGHT_LABELS);
     ParameterLabelGroups.LENGTH = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_LENGTH_LABELS);
     ParameterLabelGroups.MATURITY = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_MATURITY_LABELS);
+
+    // PMFM
+    PmfmIds.AGE = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_AGE_ID);
+    PmfmIds.SEX = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SEX_ID);
 
     // Taxon group
     // TODO: add all enumerations

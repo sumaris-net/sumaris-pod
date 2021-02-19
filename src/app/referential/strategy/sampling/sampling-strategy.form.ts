@@ -737,24 +737,18 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     ];
 
     if (sex) {
-      // Add sex pmfm
-      const pmfmStrategySex = <PmfmStrategy>{
-        pmfm: firstArrayValue(await this.getPmfmsByParameterLabels(ParameterLabelGroups.SEX))
-      };
+      const pmfmStrategySex = <PmfmStrategy>{ pmfmId: PmfmIds.SEX };
       pmfmStrategies.push(pmfmStrategySex);
 
-      await this.maturityPmfmStrategiesTable.save();
-
       // Add maturity pmfms
+      await this.maturityPmfmStrategiesTable.save();
       pmfmStrategies = pmfmStrategies.concat(
         ...this.maturityPmfmStrategiesTable.value
       );
     }
 
     if (age) {
-      const pmfmStrategyAge = <PmfmStrategy>{
-        pmfm: firstArrayValue(await this.getPmfmsByParameterLabels(ParameterLabelGroups.AGE))
-      };
+      const pmfmStrategyAge = <PmfmStrategy>{ pmfmId: PmfmIds.AGE };
       pmfmStrategies.push(pmfmStrategyAge);
 
       // Pièces calcifiées
