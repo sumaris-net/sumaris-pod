@@ -22,6 +22,7 @@ import {mergeMap} from "rxjs/internal/operators";
 import {DateUtils} from "../../shared/dates";
 import {SamplingStrategy, StrategyEffort} from "./model/sampling-strategy.model";
 import {BaseReferentialService} from "./base-referential-service.class";
+import {Moment} from "moment";
 
 const SamplingStrategyQueries = {
   loadAll: gql`query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -154,6 +155,26 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
   }): Promise<boolean> {
     await this.fillEfforts([samplingStrategy], opts);
     return samplingStrategy.hasRealizedEffort;
+  }
+
+  async getEffortFromStrategyLabel(samplingStrategyLabel: string, date: Moment): Promise<number> {
+    let result = null;
+    const strategies = await this.loadAll(0, 20, 'label', 'desc', {
+      label: samplingStrategyLabel
+    });
+    if (strategies && strategies.data && strategies.total == 1)
+    {
+      const effortByQuarters = strategies.data[0].effortByQuarter;
+      if (effortByQuarters) {
+        const effortByQuarter = effortByQuarters[date.quarter()];
+        // We check if returned effort correspond to strategy date
+        if (effortByQuarter && effortByQuarter.startDate.year() == date.year())
+        {
+          result = effortByQuarter.expectedEffort;
+        }
+      }
+    }
+    return result;
   }
 
   async fillEntities(res: LoadResult<SamplingStrategy>, opts?: {
