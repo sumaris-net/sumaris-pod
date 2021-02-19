@@ -10,9 +10,6 @@ export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'PmfmVO': {
     keyFields: ['entityName', 'id']
   },
-  'PmfmStrategyVO': {
-    keyFields: ['id', 'pmfmId']
-  },
   'TaxonGroupVO': {
     keyFields: ['entityName', 'id']
   },
