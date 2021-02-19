@@ -23,6 +23,7 @@ package net.sumaris.core.service.administration;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfile;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.AbstractServiceTest;
@@ -75,7 +76,7 @@ public class PersonServiceTest extends AbstractServiceTest{
 
         // Find by status (inactive person)
         filter = new PersonFilterVO();
-        filter.setStatusIds(new Integer[]{config.getStatusIdTemporary(), config.getStatusIdValid()});
+        filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()});
         assertFindResult(filter, 5);
 
         // Find by email
@@ -118,7 +119,7 @@ public class PersonServiceTest extends AbstractServiceTest{
         vo.setFirstName("first name");
         vo.setLastName("last name");
         vo.setEmail("test@sumaris.net");
-        vo.setStatusId(config.getStatusIdValid());
+        vo.setStatusId(StatusEnum.ENABLE.getId());
 
         DepartmentVO department = new DepartmentVO();
         department.setId(fixtures.getDepartmentId(0));
@@ -145,7 +146,7 @@ public class PersonServiceTest extends AbstractServiceTest{
         vo.setFirstName("first name with profiles");
         vo.setLastName("last name");
         vo.setEmail("test2@sumaris.net");
-        vo.setStatusId(config.getStatusIdValid());
+        vo.setStatusId(StatusEnum.ENABLE.getId());
 
         DepartmentVO department = new DepartmentVO();
         department.setId(fixtures.getDepartmentId(0));

@@ -24,16 +24,15 @@ package net.sumaris.core.vo.data;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithObserversEntity;
 import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.MetierVO;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.Date;
 import java.util.List;
@@ -94,15 +93,13 @@ public class TripVO implements IRootDataVO<Integer>,
     private Map<Integer, String> measurementValues; // vessel_use_measurement
 
     // Parent
-    private Integer landingId;
+    @ToString.Exclude
     private LandingVO landing;
+    private Integer landingId;
 
     private Integer observedLocationId;
+    @ToString.Exclude
     private ObservedLocationVO observedLocation;
-
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
-    }
 
     @Override
     public Date getVesselDateTime() {

@@ -27,6 +27,7 @@ package net.sumaris.core.config;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
@@ -36,8 +37,6 @@ import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ArgumentsParserException;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 
@@ -55,9 +54,8 @@ import static org.nuiton.i18n.I18n.t;
  *
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
+@Slf4j
 public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
-    /** Logger. */
-    private static final Logger log = LoggerFactory.getLogger(SumarisConfiguration.class);
 
     private static final String DEFAULT_SHARED_CONFIG_FILE = "sumaris-core-shared.config";
 
@@ -621,42 +619,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      */
     public boolean useHibernateSqlComment() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.HIBERNATE_USE_SQL_COMMENT.getKey());
-    }
-
-    /**
-     * <p>getStatusIdTemporary.</p>
-     *
-     * @return a {@link int} object.
-     */
-    public int getStatusIdTemporary() {
-        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.STATUS_ID_TEMPORARY.getKey());
-    }
-
-    /**
-     * <p>getStatusIdValid.</p>
-     *
-     * @return a {@link int}.
-     */
-    public int getStatusIdValid() {
-        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.STATUS_ID_ENABLE.getKey());
-    }
-
-    /**
-     * <p>getUnitIdNone.</p>
-     *
-     * @return a {@link int}.
-     */
-    public int getUnitIdNone() {
-        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.UNIT_ID_NONE.getKey());
-    }
-
-    /**
-     * <p>getMatrixIdIndividual.</p>
-     *
-     * @return a {@link int}.
-     */
-    public int getMatrixIdIndividual() {
-        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.MATRIX_ID_INDIVIDUAL.getKey());
     }
 
     /**

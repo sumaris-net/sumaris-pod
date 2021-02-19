@@ -26,6 +26,7 @@ package net.sumaris.core.dao.technical;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
@@ -84,6 +85,7 @@ import static org.nuiton.i18n.I18n.t;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  * @since 3.5
  */
+@Slf4j
 public class Daos {
 
 
@@ -100,11 +102,6 @@ public class Daos {
      * Constant <code>DB_DIRECTORY="db"</code>
      */
     public static final String DB_DIRECTORY = "db";
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(Daos.class);
 
     private static final boolean debug = log.isDebugEnabled();
 

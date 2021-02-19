@@ -22,6 +22,7 @@ package net.sumaris.core.dao.data.landing;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.Landing;
@@ -34,8 +35,6 @@ import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -45,12 +44,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class LandingRepositoryImpl
     extends RootDataRepositoryImpl<Landing, LandingVO, LandingFilterVO, DataFetchOptions>
     implements LandingSpecifications {
-
-    private static final Logger log =
-        LoggerFactory.getLogger(LandingRepositoryImpl.class);
 
     private final LocationRepository locationRepository;
 

@@ -23,9 +23,9 @@ package net.sumaris.core.model.referential.taxon;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
-import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
 import net.sumaris.core.model.referential.Status;
@@ -42,6 +42,7 @@ import java.util.List;
  * On garde l'historique du passage en taxon valide, puis du passage en synonyme (date de fin référent).
  */
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "taxon_name")
@@ -58,6 +59,7 @@ public class TaxonName implements IItemReferentialEntity,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_NAME_SEQ")
     @SequenceGenerator(name = "TAXON_NAME_SEQ", sequenceName="TAXON_NAME_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -108,6 +110,7 @@ public class TaxonName implements IItemReferentialEntity,
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ReferenceTaxon.class)
     @JoinColumn(name = "reference_taxon_fk", nullable = false)
+    @ToString.Include
     private ReferenceTaxon referenceTaxon;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonomicLevel.class)
@@ -124,7 +127,4 @@ public class TaxonName implements IItemReferentialEntity,
     @JoinColumn(name = "parent_taxon_name_fk")
     private TaxonName parent;
 
-    public String toString() {
-        return String.format("TaxonName{id=%s,referenceTaxonId=%s}", id, referenceTaxon != null ? referenceTaxon.getId() : "null");
-    }
 }

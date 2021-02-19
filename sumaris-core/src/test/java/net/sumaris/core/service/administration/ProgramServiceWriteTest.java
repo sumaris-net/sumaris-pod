@@ -23,6 +23,7 @@ package net.sumaris.core.service.administration;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
@@ -145,7 +146,7 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
         ProgramVO program = new ProgramVO();
         program.setLabel("PROG-TEST");
         program.setName("label test");
-        program.setStatusId(config.getStatusIdTemporary());
+        program.setStatusId(StatusEnum.TEMPORARY.getId());
         ReferentialVO gearClassification = new ReferentialVO();
         gearClassification.setId(1);
         program.setGearClassification(gearClassification);

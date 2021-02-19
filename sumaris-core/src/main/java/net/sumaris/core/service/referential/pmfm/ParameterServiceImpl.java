@@ -23,17 +23,15 @@
 package net.sumaris.core.service.referential.pmfm;
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.pmfm.ParameterRepository;
 import net.sumaris.core.vo.referential.ParameterVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service("parameterService")
+@Slf4j
 public class ParameterServiceImpl implements ParameterService {
-
-	private static final Logger log = LoggerFactory.getLogger(ParameterServiceImpl.class);
 
 	@Autowired
 	protected ParameterRepository parameterRepository;

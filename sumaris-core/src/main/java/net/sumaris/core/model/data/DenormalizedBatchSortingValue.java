@@ -29,6 +29,7 @@ package net.sumaris.core.model.data;
 
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.pmfm.Parameter;
@@ -77,6 +78,7 @@ public class DenormalizedBatchSortingValue implements IEntity<Integer>
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "batch_fk", nullable = false)
+    @ToString.Exclude
     private DenormalizedBatch batch;
 
     @ManyToOne(fetch = FetchType.LAZY)

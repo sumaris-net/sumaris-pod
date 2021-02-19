@@ -33,8 +33,6 @@ import net.sumaris.core.util.Geometries;
 import org.apache.commons.lang3.StringUtils;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
@@ -52,10 +50,6 @@ import java.util.stream.Collectors;
  * @author Benoit Lavenier (benoit.lavenier@e-is.pro)
  */
 public class Locations {
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(Locations.class);
 
     /**
      * <p>Constructor for LocationUtils.</p>

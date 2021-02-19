@@ -23,14 +23,12 @@ package net.sumaris.core.model.referential;
  */
 
 import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
-import net.sumaris.core.model.referential.location.LocationLevelEnum;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Optional;
 
 @EntityEnum(entity = UserProfile.class, joinAttributes = UserProfile.Fields.LABEL)
-public enum UserProfileEnum implements Serializable {
+public enum UserProfileEnum {
 
     ADMIN(1, "ADMIN"),
     USER(2, "USER"),
@@ -44,18 +42,18 @@ public enum UserProfileEnum implements Serializable {
                 .orElseThrow(() -> new IllegalArgumentException("Unknown UserProfileEnum: " + id));
     }
 
-    public static UserProfileEnum byLabel(final String label) {
-        return Arrays.stream(values())
-                .filter(enumValue -> label.equals(enumValue.label))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown UserProfileEnum: " + label));
+    public static UserProfileEnum valueOfLabel(String label) {
+        return getByLabel(label).orElseThrow(() -> new IllegalArgumentException("Unknown user profile label: " + label));
     }
 
-
-    public static Optional<String> getLabelById(int id) {
-        Optional<UserProfileEnum> enumValue = Arrays.stream(values()).filter(userProfileEnum -> userProfileEnum.id == id).findFirst();
-        return enumValue.map(Enum::toString);
+    public static Optional<UserProfileEnum> getById(int id) {
+        return Arrays.stream(values()).filter(userProfileEnum -> userProfileEnum.id == id).findFirst();
     }
+
+    public static Optional<UserProfileEnum> getByLabel(String label) {
+        return Arrays.stream(values()).filter(userProfileEnum -> label.equals(userProfileEnum.label)).findFirst();
+    }
+
 
     public int id;
     public String label;

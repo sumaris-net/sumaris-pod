@@ -25,6 +25,7 @@ package net.sumaris.rdf.service.store;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -55,8 +56,6 @@ import org.apache.jena.system.Txn;
 import org.apache.jena.tdb2.TDB2Factory;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDF;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -83,9 +82,8 @@ import java.util.stream.Stream;
 
 @Component("rdfDatasetService")
 @ConditionalOnBean({RdfConfiguration.class})
+@Slf4j
 public class RdfDatasetServiceImpl implements RdfDatasetService {
-
-    private static final Logger log = LoggerFactory.getLogger(RdfDatasetServiceImpl.class);
 
     @Resource
     private RdfSchemaService schemaService;

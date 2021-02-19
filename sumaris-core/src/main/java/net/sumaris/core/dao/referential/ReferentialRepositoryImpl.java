@@ -22,6 +22,7 @@ package net.sumaris.core.dao.referential;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -34,8 +35,6 @@ import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -53,11 +52,10 @@ import java.util.stream.Collectors;
  * @author peck7 on 03/04/2020.
  */
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+@Slf4j
 public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V extends IReferentialVO, F extends IReferentialFilter, O extends IFetchOptions>
     extends SumarisJpaRepositoryImpl<E, Integer, V>
     implements ReferentialRepository<E, V, F, O>, ReferentialSpecifications<E> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ReferentialRepositoryImpl.class);
 
     public ReferentialRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
         super(domainClass, voClass, entityManager);
@@ -174,7 +172,7 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
             return Optional.empty();
         } else {
             if (result.size() > 1) {
-                LOG.warn(String.format("%s entity with label '%s' -> more than 1 occurrence (%s found). Returning the first one",
+                log.warn(String.format("%s entity with label '%s' -> more than 1 occurrence (%s found). Returning the first one",
                     getDomainClass().getSimpleName(), label, result.size()));
             }
             return Optional.of(result.get(0)).map(e -> toVO(e, fetchOptions));

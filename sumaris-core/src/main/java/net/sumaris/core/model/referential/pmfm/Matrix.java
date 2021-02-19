@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.pmfm;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -37,6 +38,7 @@ import java.util.Date;
  * Le support ne correspond pas au support réellement analysé. En effet, il peut s'agir d'une analyse sur une fraction du support (par exemple, pour le poisson, l'otolite,… ou pour un engin, le bras).
  */
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "matrix")
@@ -46,6 +48,7 @@ public class Matrix implements IItemReferentialEntity {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "MATRIX_SEQ")
     @SequenceGenerator(name = "MATRIX_SEQ", sequenceName="MATRIX_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -61,6 +64,7 @@ public class Matrix implements IItemReferentialEntity {
     private Date updateDate;
 
     @Column(nullable = false, length = LENGTH_LABEL)
+    @ToString.Include
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

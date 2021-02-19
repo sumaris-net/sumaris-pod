@@ -55,10 +55,6 @@ import java.util.List;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class AbstractServiceTest {
 
-    /** Logger. */
-    private static final Logger log =
-            LoggerFactory.getLogger(AbstractServiceTest.class);
-
     @Autowired
     protected SumarisConfiguration config;
 

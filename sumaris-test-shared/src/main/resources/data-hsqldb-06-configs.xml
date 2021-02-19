@@ -74,7 +74,6 @@
     <SOFTWARE_PROPERTY ID="78" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="79" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.vessel.status.default" NAME="2"/>
     <SOFTWARE_PROPERTY ID="80" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.android.install.url" NAME="./download/android/sumaris-app-latest.apk"/>
-    <SOFTWARE_PROPERTY ID="81" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.enumeration.QualitativeValue.SORTING_BULK.id" NAME="390"/> <!-- VRAC -->
     <SOFTWARE_PROPERTY ID="82" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="83" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="84" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>

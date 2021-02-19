@@ -25,6 +25,7 @@ package net.sumaris.server.http.ontology;
  */
 
 import com.google.common.base.Joiner;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.BadUpdateDateException;
 import net.sumaris.core.exception.DataLockedException;
 import net.sumaris.core.exception.DenyDeletionException;
@@ -33,8 +34,6 @@ import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.exception.ErrorHelper;
 import net.sumaris.server.exception.InvalidEmailConfirmationException;
 import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -47,10 +46,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import java.util.List;
 
 @ControllerAdvice
+@Slf4j
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
-
-    /* Logger */
-    private static final Logger log = LoggerFactory.getLogger(RestResponseEntityExceptionHandler.class);
 
     public RestResponseEntityExceptionHandler() {
         super();

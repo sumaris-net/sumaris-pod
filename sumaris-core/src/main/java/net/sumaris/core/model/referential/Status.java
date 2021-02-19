@@ -23,12 +23,14 @@ package net.sumaris.core.model.referential;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "status")
@@ -38,9 +40,11 @@ public class Status implements IReferentialEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "STATUS_SEQ")
     @SequenceGenerator(name = "STATUS_SEQ", sequenceName="STATUS_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @Column(nullable = false)
+    @ToString.Include
     private String label;
 
     @Column(nullable = false)

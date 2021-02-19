@@ -23,14 +23,13 @@ package net.sumaris.core.extraction.dao.trip.cost;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.specification.data.trip.CostSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
@@ -39,11 +38,10 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("extractionCostTripDao")
 @Lazy
+@Slf4j
 public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
         extends ExtractionRdbTripDaoImpl<C, F>
         implements ExtractionCostTripDao<C, F>, CostSpecification {
-
-    private static final Logger log = LoggerFactory.getLogger(ExtractionCostTripDaoImpl.class);
 
     private static final String XML_QUERY_COST_PATH = "cost/v%s/%s";
 

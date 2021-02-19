@@ -60,7 +60,7 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
         Collection<Integer> userProfileIds;
         if (ArrayUtils.isNotEmpty(filter.getUserProfiles())) {
             userProfileIds = Arrays.stream(filter.getUserProfiles())
-                .map(UserProfileEnum::byLabel)
+                .map(UserProfileEnum::valueOfLabel)
                 .map(profile -> profile.id)
                 .collect(Collectors.toList());
         }
@@ -144,5 +144,7 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
     long countByFilter(PersonFilterVO filter);
 
     List<String> getEmailsByProfiles(List<Integer> userProfileIds, List<Integer> statusIds);
+
+    void clearCache();
 
 }

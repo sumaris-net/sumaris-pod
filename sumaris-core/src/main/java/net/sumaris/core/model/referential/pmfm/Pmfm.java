@@ -24,6 +24,7 @@ package net.sumaris.core.model.referential.pmfm;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
@@ -36,6 +37,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "pmfm",
@@ -49,6 +51,7 @@ public class Pmfm implements IItemReferentialEntity, IReferentialWithStatusEntit
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_SEQ")
     @SequenceGenerator(name = "PMFM_SEQ", sequenceName="PMFM_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -64,6 +67,7 @@ public class Pmfm implements IItemReferentialEntity, IReferentialWithStatusEntit
     private Date updateDate;
 
     @Column(length = IItemReferentialEntity.LENGTH_LABEL, unique = true)
+    @ToString.Include
     private String label;
 
     @Formula("(select p.name from parameter p where p.id = parameter_fk)")
@@ -127,10 +131,6 @@ public class Pmfm implements IItemReferentialEntity, IReferentialWithStatusEntit
             inverseJoinColumns = {
                     @JoinColumn(name = "qualitative_value_fk", nullable = false, updatable = false) })
     private Set<QualitativeValue> qualitativeValues = Sets.newHashSet();
-
-    public String toString() {
-        return new StringBuilder().append("id=").append(getId()).toString();
-    }
 
     public boolean equals(Object other) {
         if (this == other) return true;

@@ -23,23 +23,18 @@
 package net.sumaris.rdf.config;
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.rdf.util.RdfFormat;
 import org.nuiton.config.ApplicationConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.util.Optional;
 
+@Slf4j
 public class RdfConfiguration  {
-    /**
-     * Logger.
-     */
-    protected static final Logger log =
-            LoggerFactory.getLogger(RdfConfiguration.class);
 
     private static RdfConfiguration INSTANCE;
 

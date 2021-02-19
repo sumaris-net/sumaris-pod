@@ -24,6 +24,7 @@ package net.sumaris.core.model.data;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
@@ -137,9 +138,11 @@ public class Landing implements IRootDataEntity<Integer>,
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ObservedLocation.class)
     @JoinColumn(name = "observed_location_fk")
+    @ToString.Exclude
     private ObservedLocation observedLocation;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Trip.class)
     @JoinColumn(name = "trip_fk")
+    @ToString.Exclude
     private Trip trip;
 }

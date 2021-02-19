@@ -24,6 +24,7 @@ package net.sumaris.core.service.referential;
 
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -35,8 +36,6 @@ import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Service;
@@ -47,9 +46,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service("referentialService")
+@Slf4j
 public class ReferentialServiceImpl implements ReferentialService {
-
-	private static final Logger log = LoggerFactory.getLogger(ReferentialServiceImpl.class);
 
 	@Autowired
 	protected ReferentialDao referentialDao;

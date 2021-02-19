@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -93,5 +94,6 @@ public class VesselPhysicalMeasurement implements IMeasurementEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = VesselFeatures.class)
     @JoinColumn(name = "vessel_features_fk")
+    @ToString.Exclude
     private VesselFeatures vesselFeatures;
 }

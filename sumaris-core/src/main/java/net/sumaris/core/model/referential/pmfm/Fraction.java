@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.pmfm;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -43,6 +44,7 @@ import java.util.Date;
  * Etant une liste de référence, une procédure stricte pour la création de nouvelles fractions analysées pourra être mise en place.
  */
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "fraction")
@@ -51,6 +53,7 @@ public class Fraction implements IItemReferentialEntity {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "FRACTION_SEQ")
     @SequenceGenerator(name = "FRACTION_SEQ", sequenceName="FRACTION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -66,6 +69,7 @@ public class Fraction implements IItemReferentialEntity {
     private Date updateDate;
 
     @Column(nullable = false, length = LENGTH_LABEL)
+    @ToString.Include
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

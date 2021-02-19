@@ -22,8 +22,8 @@ package net.sumaris.server.http.security;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.PersonRepository;
-import net.sumaris.core.dao.administration.user.PersonSpecifications;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
@@ -37,8 +37,6 @@ import net.sumaris.server.util.security.AuthDataVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -50,21 +48,14 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.io.Serializable;
 import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("authService")
+@Slf4j
 public class AuthServiceImpl implements AuthService {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log =
-        LoggerFactory.getLogger(AuthServiceImpl.class);
 
     private final ValidationExpiredCache challenges;
     private final ValidationExpiredCacheMap<AuthUser> checkedTokens;
@@ -248,7 +239,7 @@ public class AuthServiceImpl implements AuthService {
         List<Integer> profileIds = accountService.getProfileIdsByPubkey(pubkey);
 
         return new ArrayList<>(authoritiesMapper.getGrantedAuthorities(profileIds.stream()
-            .map(id -> UserProfileEnum.getLabelById(id).orElse(null))
+            .map(id -> UserProfileEnum.getById(id).map(Enum::toString).orElse(null))
             .filter(Objects::nonNull)
             .collect(Collectors.toSet())));
 

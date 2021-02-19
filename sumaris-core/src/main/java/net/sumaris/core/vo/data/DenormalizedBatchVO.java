@@ -24,29 +24,23 @@ package net.sumaris.core.vo.data;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
-import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.model.referential.pmfm.Method;
-import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.model.data.DenormalizedBatchSortingValue;
+import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
-import org.hibernate.annotations.Cascade;
 
-import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @EqualsAndHashCode
 public class DenormalizedBatchVO implements IValueObject<Integer>,
@@ -54,10 +48,12 @@ public class DenormalizedBatchVO implements IValueObject<Integer>,
         ITreeNodeEntityBean<Integer, DenormalizedBatchVO> {
 
     @EqualsAndHashCode.Exclude
+    @ToString.Include
     private Integer id;
     @EqualsAndHashCode.Exclude
     private Date updateDate;
 
+    @ToString.Include
     private String label;
     private Integer rankOrder;
     private Short flatRankOrder;
@@ -106,10 +102,4 @@ public class DenormalizedBatchVO implements IValueObject<Integer>,
 
     private List<DenormalizedBatchSortingValue> sortingValues = new ArrayList<>();
 
-    public String toString() {
-        return new StringBuilder().append("DenormalizedBatchVO(")
-                .append("id=").append(id)
-                .append(",label=").append(label)
-                .append(")").toString();
-    }
 }

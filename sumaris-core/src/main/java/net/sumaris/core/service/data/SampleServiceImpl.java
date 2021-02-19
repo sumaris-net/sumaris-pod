@@ -24,20 +24,19 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.config.SumarisConfiguration;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.sample.SampleRepository;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.SampleMeasurement;
+import net.sumaris.core.model.referential.pmfm.MatrixEnum;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.SampleFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,12 +45,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service("sampleService")
+@Slf4j
 public class SampleServiceImpl implements SampleService {
-
-	private static final Logger log = LoggerFactory.getLogger(SampleServiceImpl.class);
-
-	@Autowired
-	protected SumarisConfiguration config;
 
 	@Autowired
 	protected SampleRepository sampleRepository;
@@ -197,7 +192,7 @@ public class SampleServiceImpl implements SampleService {
 		// Fill matrix
 		if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
 			ReferentialVO matrix = new ReferentialVO();
-			matrix.setId(config.getMatrixIdIndividual());
+			matrix.setId(MatrixEnum.INDIVIDUAL.getId());
 			sample.setMatrix(matrix);
 		}
 

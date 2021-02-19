@@ -23,6 +23,7 @@
 package net.sumaris.rdf.service.data.remote;
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
@@ -50,8 +51,6 @@ import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
@@ -66,9 +65,8 @@ import java.util.function.Function;
 
 @Service("rdfIndividualRemoteService")
 @ConditionalOnBean({RdfConfiguration.class})
+@Slf4j
 public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteService {
-
-    public static Logger log = LoggerFactory.getLogger(RdfIndividualRemoteServiceImpl.class);
 
     protected Owl2Bean owlConverter;
     protected List tl = new ArrayList();

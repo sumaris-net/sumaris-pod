@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -134,10 +135,12 @@ public class Sample implements IRootDataEntity<Integer>,
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = Fields.PARENT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @ToString.Exclude
     private List<Sample> children = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_sample_fk")
+    @ToString.Exclude
     private Sample parent;
 
 
@@ -151,14 +154,17 @@ public class Sample implements IRootDataEntity<Integer>,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "operation_fk")
+    @ToString.Exclude
     private Operation operation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "batch_fk")
+    @ToString.Exclude
     private Batch batch;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "landing_fk")
+    @ToString.Exclude
     private Landing landing;
 
     public String toString() {

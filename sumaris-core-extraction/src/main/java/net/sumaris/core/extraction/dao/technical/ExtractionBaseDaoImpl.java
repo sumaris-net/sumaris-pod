@@ -25,6 +25,7 @@ package net.sumaris.core.extraction.dao.technical;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.DatabaseType;
@@ -40,8 +41,6 @@ import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.dialect.Dialect;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -56,9 +55,8 @@ import java.util.stream.Stream;
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
+@Slf4j
 public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
-
-    private static final Logger log = LoggerFactory.getLogger(ExtractionBaseDaoImpl.class);
 
     protected static final String XML_QUERY_PATH = "xmlQuery";
     protected static final String XSL_ORACLE_FILENAME = "xmlQuery/queryOracle.xsl";

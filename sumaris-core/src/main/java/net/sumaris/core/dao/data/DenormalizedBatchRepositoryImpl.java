@@ -25,6 +25,7 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
@@ -46,8 +47,6 @@ import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableShort;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
@@ -62,12 +61,10 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 09/06/2020.
  */
+@Slf4j
 public class DenormalizedBatchRepositoryImpl
     extends SumarisJpaRepositoryImpl<DenormalizedBatch, Integer, DenormalizedBatchVO>
     implements DenormalizedBatchRepositoryExtend<DenormalizedBatchVO> {
-
-    private static final Logger log =
-        LoggerFactory.getLogger(DenormalizedBatchRepositoryImpl.class);
 
     private final SumarisConfiguration config;
     private final PmfmRepository pmfmRepository;

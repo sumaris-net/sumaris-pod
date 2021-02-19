@@ -24,14 +24,12 @@ package net.sumaris.core.action;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.nuiton.version.Version;
 
 import java.io.File;
@@ -40,9 +38,8 @@ import java.io.File;
  * <p>DatabaseChangeLogAction class.</p>
  *
  */
+@Slf4j
 public class DatabaseGenerateChangeLogAction {
-    /* Logger */
-    private static final Logger log = LoggerFactory.getLogger(DatabaseCreateSchemaAction.class);
 
     /**
      * <p>run.</p>

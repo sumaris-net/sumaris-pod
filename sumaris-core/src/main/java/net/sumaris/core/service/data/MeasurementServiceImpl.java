@@ -23,11 +23,10 @@ package net.sumaris.core.service.data;
  */
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.QuantificationMeasurementVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,9 +34,8 @@ import java.util.List;
 import java.util.Map;
 
 @Service("measurementService")
+@Slf4j
 public class MeasurementServiceImpl implements MeasurementService {
-
-	private static final Logger log = LoggerFactory.getLogger(MeasurementServiceImpl.class);
 
 	@Autowired
 	protected MeasurementDao measurementDao;

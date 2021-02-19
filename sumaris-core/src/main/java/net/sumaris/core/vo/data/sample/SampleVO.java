@@ -24,6 +24,7 @@ package net.sumaris.core.vo.data.sample;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -41,10 +42,13 @@ import java.util.List;
 import java.util.Map;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @EqualsAndHashCode
 public class SampleVO implements IRootDataVO<Integer> {
+
     @EqualsAndHashCode.Exclude
+    @ToString.Include
     private Integer id;
     private String comments;
     private Date creationDate;
@@ -60,6 +64,7 @@ public class SampleVO implements IRootDataVO<Integer> {
 
     private ProgramVO program;
 
+    @ToString.Include
     private String label;
     private Date sampleDate;
     private Integer rankOrder;
@@ -95,10 +100,4 @@ public class SampleVO implements IRootDataVO<Integer> {
     private Map<Integer, String> measurementValues; // = sample_measurement  (from a map)
     private List<MeasurementVO> measurements; // = sample_measurement (from a list)
 
-    public String toString() {
-        return new StringBuilder().append("SampleVO(")
-                .append("id=").append(id)
-                .append(",label=").append(label)
-                .append(")").toString();
-    }
 }

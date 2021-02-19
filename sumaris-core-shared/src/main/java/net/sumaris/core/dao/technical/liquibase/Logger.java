@@ -24,15 +24,13 @@ package net.sumaris.core.dao.technical.liquibase;
 
 import liquibase.logging.LogType;
 import liquibase.logging.core.AbstractLogger;
-
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Liquibase finds this class by itself by doing a custom component scan (sl4fj wasn't generic enough).
  */
+@Slf4j(topic = "liquibase")
 public class Logger extends AbstractLogger {
-
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger("liquibase");
 
     @Override
     public void severe(LogType logType, String message) {

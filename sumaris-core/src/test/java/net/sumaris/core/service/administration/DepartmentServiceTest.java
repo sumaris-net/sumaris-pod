@@ -23,6 +23,7 @@ package net.sumaris.core.service.administration;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
@@ -71,7 +72,7 @@ public class DepartmentServiceTest extends AbstractServiceTest {
         vo.setLabel("dep label");
         vo.setName("dep name");
         vo.setSiteUrl("http://www.sumaris.net");
-        vo.setStatusId(config.getStatusIdValid());
+        vo.setStatusId(StatusEnum.ENABLE.getId());
         service.save(vo);
 
         // find

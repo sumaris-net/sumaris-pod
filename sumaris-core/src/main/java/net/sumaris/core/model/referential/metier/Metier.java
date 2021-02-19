@@ -23,24 +23,22 @@ package net.sumaris.core.model.referential.metier;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 /**
  *  Métier, qui peut etre un métier de peche ou non.
  *
  */
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 public class Metier implements IItemReferentialEntity {
@@ -48,6 +46,7 @@ public class Metier implements IItemReferentialEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "METIER_SEQ")
     @SequenceGenerator(name = "METIER_SEQ", sequenceName="METIER_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -63,6 +62,7 @@ public class Metier implements IItemReferentialEntity {
     private Date updateDate;
 
     @Column(nullable = false, length = LENGTH_LABEL)
+    @ToString.Include
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

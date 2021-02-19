@@ -29,6 +29,7 @@ import com.google.common.collect.Lists;
 import it.ozimov.springboot.mail.model.Email;
 import it.ozimov.springboot.mail.model.defaultimpl.DefaultEmail;
 import it.ozimov.springboot.mail.service.EmailService;
+import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.administration.user.UserSettingsRepository;
@@ -56,8 +57,6 @@ import net.sumaris.server.exception.InvalidEmailConfirmationException;
 import net.sumaris.server.service.crypto.ServerCryptoService;
 import org.apache.commons.collections.CollectionUtils;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -77,11 +76,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service("accountService")
+@Slf4j
 public class AccountServiceImpl implements AccountService {
-
-
-    /* Logger */
-    private static final Logger log = LoggerFactory.getLogger(AccountServiceImpl.class);
 
     @Autowired
     private PersonService personService;
@@ -210,11 +206,11 @@ public class AccountServiceImpl implements AccountService {
         // Skip mail confirmation
         if (this.mailFromAddress == null) {
             log.debug(I18n.t("sumaris.server.account.register.mail.skip"));
-            account.setStatusId(config.getStatusIdValid());
+            account.setStatusId(StatusEnum.ENABLE.getId());
         }
         else {
             // Mark account as temporary
-            account.setStatusId(config.getStatusIdTemporary());
+            account.setStatusId(StatusEnum.TEMPORARY.getId());
         }
 
         // Set default profile
@@ -290,11 +286,11 @@ public class AccountServiceImpl implements AccountService {
         // Check the matched account status
         if (valid) {
             account = matches.get(0);
-            valid = account.getStatusId() == config.getStatusIdTemporary();
+            valid = account.getStatusId() == StatusEnum.TEMPORARY.getId();
 
             if (valid) {
                 // Mark account status as valid
-                account.setStatusId(config.getStatusIdValid());
+                account.setStatusId(StatusEnum.ENABLE.getId());
 
                 // Save account
                 personService.save(account);
@@ -329,7 +325,7 @@ public class AccountServiceImpl implements AccountService {
         // Check the matched account status
         if (valid) {
             account = matches.get(0);
-            valid = account.getStatusId() == config.getStatusIdTemporary();
+            valid = account.getStatusId() == StatusEnum.TEMPORARY.getId();
 
             if (valid) {
                 // Sent the confirmation email
@@ -348,9 +344,9 @@ public class AccountServiceImpl implements AccountService {
     public List<Integer> getProfileIdsByPubkey(String pubkey) {
         PersonVO person = personService.getByPubkey(pubkey);
         return Beans.getStream(person.getProfiles())
-                .map(UserProfileEnum::byLabel)
-                .map(UserProfileEnum::getId)
-                .collect(Collectors.toList());
+                    .map(UserProfileEnum::valueOfLabel)
+                    .map(UserProfileEnum::getId)
+                    .collect(Collectors.toList());
     }
 
     @Override

@@ -23,6 +23,7 @@ package net.sumaris.core.model.technical.configuration;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -31,6 +32,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "software_property")
@@ -39,12 +41,15 @@ public class SoftwareProperty implements IItemReferentialEntity  {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SOFTWARE_PROPERTY_SEQ")
     @SequenceGenerator(name = "SOFTWARE_PROPERTY_SEQ", sequenceName="SOFTWARE_PROPERTY_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @Column(nullable = false, length = 255)
+    @ToString.Include
     private String label;
 
     @Column(nullable = false, length = 2000) // Increase, need to large URL in images
+    @ToString.Include
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -63,11 +68,4 @@ public class SoftwareProperty implements IItemReferentialEntity  {
     @JoinColumn(name = "software_fk", nullable = false)
     private Software software;
 
-    @Override
-    public String toString() {
-        return "SoftwareProperty{" +
-                "id=" + id +
-                ", label='" + label + "'" +
-                "}";
-    }
 }

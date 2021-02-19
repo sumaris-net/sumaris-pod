@@ -24,17 +24,15 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.ImageAttachmentRepository;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service("imageAttachmentService")
+@Slf4j
 public class ImageAttachmentServiceImpl implements ImageAttachmentService {
-
-	private static final Logger log = LoggerFactory.getLogger(ImageAttachmentServiceImpl.class);
 
 	@Autowired
 	protected ImageAttachmentRepository imageAttachmentRepository;

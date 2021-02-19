@@ -23,6 +23,7 @@ package net.sumaris.core.dao.data.fishingArea;
  */
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
@@ -35,8 +36,6 @@ import net.sumaris.core.model.referential.NearbySpecificArea;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.data.FishingAreaVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Sort;
@@ -52,12 +51,10 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 09/06/2020.
  */
+@Slf4j
 public class FishingAreaRepositoryImpl
     extends SumarisJpaRepositoryImpl<FishingArea, Integer, FishingAreaVO>
     implements FishingAreaSpecifications {
-
-    private static final Logger log =
-        LoggerFactory.getLogger(FishingAreaRepositoryImpl.class);
 
     private final LocationRepository locationRepository;
     private final ReferentialDao referentialDao;

@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -48,6 +49,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Repository("softwareDao")
+@Slf4j
 public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
 
     @Autowired
@@ -215,7 +217,7 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
                 )
                 .forEach(prop -> {
                     if (properties.containsKey(prop.getLabel())) {
-                        logger.warn(String.format("Duplicate software property with label {%s}. Overriding existing value with {%s}", prop.getLabel(), prop.getName()));
+                        log.warn(String.format("Duplicate software property with label {%s}. Overriding existing value with {%s}", prop.getLabel(), prop.getName()));
                     }
                     properties.put(prop.getLabel(), prop.getName());
                 });

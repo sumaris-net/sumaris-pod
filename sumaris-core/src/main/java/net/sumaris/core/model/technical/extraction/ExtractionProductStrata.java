@@ -24,6 +24,7 @@ package net.sumaris.core.model.technical.extraction;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -69,11 +70,13 @@ public class ExtractionProductStrata implements IItemReferentialEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "extraction_product_fk", nullable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private ExtractionProduct product;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "extraction_table_fk")
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private ExtractionProductTable table;
 
     @ManyToOne(fetch = FetchType.LAZY)

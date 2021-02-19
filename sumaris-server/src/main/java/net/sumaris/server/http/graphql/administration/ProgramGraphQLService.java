@@ -24,6 +24,7 @@ package net.sumaris.server.http.graphql.administration;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
+import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -55,8 +56,6 @@ import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -68,9 +67,8 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@Slf4j
 public class ProgramGraphQLService {
-
-    private static final Logger log = LoggerFactory.getLogger(ProgramGraphQLService.class);
 
     @Autowired
     private ProgramService programService;

@@ -28,8 +28,9 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import lombok.NonNull;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.data.landing.LandingRepository;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
+import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -52,8 +53,6 @@ import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -63,9 +62,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service("tripService")
+@Slf4j
 public class TripServiceImpl implements TripService {
-
-    private static final Logger log = LoggerFactory.getLogger(TripServiceImpl.class);
 
     @Autowired
     private SumarisConfiguration configuration;
@@ -278,15 +276,11 @@ public class TripServiceImpl implements TripService {
         if (CollectionUtils.isNotEmpty(source.getSales())) {
             List<SaleVO> sales = Beans.getList(source.getSales());
             sales.forEach(sale -> fillDefaultProperties(result, sale));
-            // fill sale products but only if there is only one sale
-            if (sales.size() == 1)
-                fillSaleProducts(result, sales.get(0));
             sales = saleService.saveAllByTripId(result.getId(), sales);
             result.setSales(sales);
         } else if (source.getSale() != null) {
             SaleVO sale = source.getSale();
             fillDefaultProperties(result, sale);
-            fillSaleProducts(result, sale);
             List<SaleVO> sales = saleService.saveAllByTripId(result.getId(), ImmutableList.of(sale));
             result.setSale(sales.get(0));
         } else {
@@ -617,20 +611,4 @@ public class TripServiceImpl implements TripService {
         measurement.setEntityName(VesselUseMeasurement.class.getSimpleName());
     }
 
-    protected void fillSaleProducts(TripVO parent, SaleVO sale) {
-
-        // Fill sale products list with parent trip products, from operation group's product and packets
-        if (CollectionUtils.isNotEmpty(parent.getOperationGroups())) {
-            List<ProductVO> saleProducts = new ArrayList<>();
-            parent.getOperationGroups().forEach(operationGroup -> {
-                operationGroup.getProducts().forEach(product -> saleProducts.addAll(product.getSaleProducts()));
-                operationGroup.getPackets().forEach(packet -> saleProducts.addAll(
-                    // Applying packet id to product.batchId
-                    packet.getSaleProducts().stream().peek(saleProduct -> saleProduct.setBatchId(packet.getId())).collect(Collectors.toList())
-                ));
-            });
-            sale.setProducts(saleProducts);
-        }
-
-    }
 }

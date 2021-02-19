@@ -27,6 +27,7 @@ import graphql.schema.GraphQLSchema;
 import io.leangen.graphql.GraphQLSchemaGenerator;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
 import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFactory;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.server.graphql.AggregationGraphQLService;
 import net.sumaris.server.graphql.ExtractionGraphQLService;
@@ -41,8 +42,6 @@ import net.sumaris.server.http.graphql.social.SocialGraphQLService;
 import net.sumaris.server.http.graphql.technical.ConfigurationGraphQLService;
 import net.sumaris.server.http.graphql.technical.DefaultTypeTransformer;
 import net.sumaris.server.http.graphql.technical.TrashGraphQLService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -56,9 +55,8 @@ import java.io.Serializable;
 
 @Configuration
 @EnableWebSocket
+@Slf4j
 public class GraphQLConfiguration implements WebSocketConfigurer {
-
-    private static final Logger log = LoggerFactory.getLogger(GraphQLConfiguration.class);
 
     @Autowired
     private AdministrationGraphQLService administrationService;

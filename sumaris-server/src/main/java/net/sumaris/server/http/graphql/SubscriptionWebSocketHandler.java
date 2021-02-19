@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableMap;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import lombok.extern.slf4j.Slf4j;
 import graphql.execution.SubscriptionExecutionStrategy;
 import graphql.schema.GraphQLSchema;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -41,8 +42,6 @@ import org.nuiton.i18n.I18n;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -61,9 +60,8 @@ import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
+@Slf4j
 public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
-
-    private static final Logger log = LoggerFactory.getLogger(SubscriptionWebSocketHandler.class);
 
     private final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
 

@@ -25,7 +25,7 @@ package net.sumaris.core.action;
  */
 
 
-import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import org.apache.commons.io.FileUtils;
@@ -35,7 +35,6 @@ import org.nuiton.config.ApplicationConfigHelper;
 import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ConfigActionDef;
 import org.nuiton.i18n.I18n;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,9 +43,8 @@ import java.util.Set;
 /**
  * <p>ActionUtils class.</p>
  */
+@Slf4j
 public class ActionUtils {
-    /* Logger */
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(ActionUtils.class);
 
     /**
      * <p>Constructor for ActionUtils.</p>

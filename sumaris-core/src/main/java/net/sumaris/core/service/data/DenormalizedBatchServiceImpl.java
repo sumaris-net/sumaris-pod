@@ -24,9 +24,11 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.DenormalizedBatchRepository;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.DenormalizedBatchVO;
+import net.sumaris.core.vo.data.MeasurementVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +37,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service("denormalizedBatchService")
+@Slf4j
 public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
-
-	private static final Logger log = LoggerFactory.getLogger(DenormalizedBatchServiceImpl.class);
 
 	@Autowired
 	protected DenormalizedBatchRepository denormalizedBatchRepository;

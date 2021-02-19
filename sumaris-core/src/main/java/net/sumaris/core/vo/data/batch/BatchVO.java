@@ -24,6 +24,7 @@ package net.sumaris.core.vo.data.batch;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @EqualsAndHashCode
 public class BatchVO implements IDataVO<Integer>,
@@ -45,6 +47,7 @@ public class BatchVO implements IDataVO<Integer>,
         ITreeNodeEntityBean<Integer, BatchVO> {
 
     @EqualsAndHashCode.Exclude
+    @ToString.Include
     private Integer id;
     @EqualsAndHashCode.Exclude
     private Date updateDate;
@@ -62,6 +65,7 @@ public class BatchVO implements IDataVO<Integer>,
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
 
+    @ToString.Include
     private String label;
     private Integer rankOrder;
     private Boolean exhaustiveInventory;
@@ -93,10 +97,4 @@ public class BatchVO implements IDataVO<Integer>,
     private List<MeasurementVO> sortingMeasurements; // = sorting_measurement_b (from a list)
     private List<QuantificationMeasurementVO> quantificationMeasurements; // = quantification_measurement_b (from a list)
 
-    public String toString() {
-        return new StringBuilder().append("BatchVO(")
-                .append("id=").append(id)
-                .append(",label=").append(label)
-                .append(")").toString();
-    }
 }

@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
 import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.service.referential.ReferentialService;
@@ -123,7 +124,7 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
         StrategyVO strategy = new StrategyVO();
         strategy.setLabel("STRAT-TEST");
         strategy.setName("label test");
-        strategy.setStatusId(config.getStatusIdTemporary());
+        strategy.setStatusId(StatusEnum.TEMPORARY.getId());
         strategy.setProgramId(40);
 
         service.save(strategy);

@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
@@ -60,6 +61,7 @@ public class VesselRegistrationPeriod implements IWithVesselEntity<Integer, Vess
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vessel_fk", nullable = false)
+    @ToString.Exclude
     private Vessel vessel;
 
     @ManyToOne(fetch = FetchType.LAZY)

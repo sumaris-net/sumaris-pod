@@ -23,6 +23,7 @@
 package net.sumaris.core.service.referential.pmfm;
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.pmfm.ParameterRepository;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -35,8 +36,6 @@ import net.sumaris.core.vo.referential.ParameterValueType;
 import net.sumaris.core.vo.referential.PmfmVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,9 +43,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Service("pmfmService")
+@Slf4j
 public class PmfmServiceImpl implements PmfmService {
-
-    private static final Logger log = LoggerFactory.getLogger(PmfmServiceImpl.class);
 
     @Autowired
     protected PmfmRepository pmfmRepository;

@@ -844,6 +844,15 @@ public class DataGraphQLService {
                 .build());
     }
 
+    @GraphQLQuery(name = "samples", description = "Get operation group's samples")
+    public List<SampleVO> getSamplesByOperationGroup(@GraphQLContext OperationGroupVO operationGroup) {
+        // Avoid a reloading (e.g. when saving)
+        if (CollectionUtils.isNotEmpty(operationGroup.getSamples())) {
+            return operationGroup.getSamples();
+        }
+
+        return sampleService.getAllByOperationId(operationGroup.getId());
+    }
 
     @GraphQLQuery(name = "samples", description = "Get landing's samples")
     public List<SampleVO> getSamplesByLanding(@GraphQLContext LandingVO landing) {

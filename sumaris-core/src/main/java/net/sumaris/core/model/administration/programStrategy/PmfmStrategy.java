@@ -24,6 +24,7 @@ package net.sumaris.core.model.administration.programStrategy;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
@@ -37,6 +38,7 @@ import javax.persistence.*;
 import java.util.Set;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "pmfm_strategy")
@@ -45,6 +47,7 @@ public class PmfmStrategy implements IEntity<Integer> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_STRATEGY_SEQ")
     @SequenceGenerator(name = "PMFM_STRATEGY_SEQ", sequenceName="PMFM_STRATEGY_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @Column(name = "acquisition_number", nullable = false)
@@ -63,7 +66,8 @@ public class PmfmStrategy implements IEntity<Integer> {
     private Double defaultValue;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pmfm_fk")
+    @JoinColumn(name = "pmfm_fk", nullable=false)
+    @ToString.Include
     private Pmfm pmfm;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -87,10 +91,12 @@ public class PmfmStrategy implements IEntity<Integer> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "strategy_fk", nullable = false)
+    @ToString.Include
     private Strategy strategy;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "acquisition_level_fk", nullable = false)
+    @ToString.Include
     private AcquisitionLevel acquisitionLevel;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
@@ -114,9 +120,4 @@ public class PmfmStrategy implements IEntity<Integer> {
                     @JoinColumn(name = "reference_taxon_fk", nullable = false, updatable = false) })
     private Set<ReferenceTaxon> referenceTaxons = Sets.newHashSet();
 
-    public String toString() {
-        return String.format("PmfmStrategy{id=%s, strategy=%s}",
-                id,
-                strategy);
-    }
 }

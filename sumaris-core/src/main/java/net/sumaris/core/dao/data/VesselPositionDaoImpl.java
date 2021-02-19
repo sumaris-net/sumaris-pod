@@ -23,6 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -36,8 +37,6 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.VesselPositionVO;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -51,11 +50,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("vesselPositionDao")
+@Slf4j
 public class VesselPositionDaoImpl extends HibernateDaoSupport implements VesselPositionDao {
-
-    /** Logger. */
-    private static final Logger log =
-            LoggerFactory.getLogger(VesselPositionDaoImpl.class);
 
     @Autowired
     private ReferentialDao referentialDao;

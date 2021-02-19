@@ -24,6 +24,8 @@ package net.sumaris.core.dao.administration.programStrategy;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
@@ -47,8 +49,6 @@ import net.sumaris.core.vo.filter.StrategyRelatedFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -57,7 +57,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
@@ -67,19 +66,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Repository("pmfmStrategyRepository")
+@Slf4j
 public class PmfmStrategyRepositoryImpl
     extends SumarisJpaRepositoryImpl<PmfmStrategy, Integer, PmfmStrategyVO>
         implements PmfmStrategyRepository {
 
-    /**
-     * Logger.
-     */
-    private static final Logger log =
-        LoggerFactory.getLogger(PmfmStrategyRepositoryImpl.class);
-
-
-    private Map<String, Integer> acquisitionLevelIdByLabel = Maps.newConcurrentMap();
+    private final Map<String, Integer> acquisitionLevelIdByLabel = Maps.newConcurrentMap();
 
     @Autowired
     private ReferentialDao referentialDao;

@@ -28,6 +28,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.cache.ExtractionCacheNames;
@@ -53,8 +54,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -74,9 +73,8 @@ import java.util.stream.Collectors;
  * @author peck7 on 17/12/2018.
  */
 @Service("aggregationService")
+@Slf4j
 public class AggregationServiceImpl implements AggregationService {
-
-    private static final Logger log = LoggerFactory.getLogger(AggregationServiceImpl.class);
 
     @Autowired
     private ExtractionService extractionService;

@@ -25,6 +25,7 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
 import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
@@ -40,8 +41,6 @@ import net.sumaris.core.vo.data.batch.BatchFilterVO;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.QuantificationMeasurementVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -52,9 +51,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service("batchService")
+@Slf4j
 public class BatchServiceImpl implements BatchService {
-
-	private static final Logger log = LoggerFactory.getLogger(BatchServiceImpl.class);
 
 	@Autowired
 	protected BatchRepository batchRepository;

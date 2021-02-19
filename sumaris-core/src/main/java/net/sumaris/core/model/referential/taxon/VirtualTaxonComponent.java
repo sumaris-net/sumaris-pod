@@ -47,9 +47,4 @@ public class VirtualTaxonComponent implements Serializable  {
     @JoinColumn(name = "reference_taxon_fk", nullable = false)
     private ReferenceTaxon referenceTaxon;
 
-    public String toString() {
-        return String.format("VirtualTaxonComponent{taxonNameId=%s,referenceTaxonId=%s}",
-                taxonName != null ? taxonName.getId() : "null",
-                referenceTaxon != null ? referenceTaxon.getId() : "null");
-    }
 }
