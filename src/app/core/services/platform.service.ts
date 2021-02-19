@@ -155,7 +155,7 @@ export class PlatformService {
     return timer(period, period)
       .pipe(
         // For DEBUG :
-        tap(() => this._debug && console.debug("Waiting platform ready...")),
+        //tap(() => this._debug && console.debug("Waiting platform ready...")),
         filter(() => this._started),
         first()
       ).toPromise();

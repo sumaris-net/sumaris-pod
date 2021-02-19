@@ -104,6 +104,8 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
   name: string;
   completeName: string;
   unitLabel: string;
+  isInherited: boolean;
+
   type: string | PmfmType;
   minValue: number;
   maxValue: number;
@@ -172,6 +174,7 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
     this.name = source.name || (source.pmfm && source.pmfm.name);
     this.unitLabel = source.unitLabel || (source.pmfm && source.pmfm.unit && source.pmfm.unit.label);
     this.completeName = source.completeName;
+    this.isInherited = source.isInherited;
     this.type = source.type || source.pmfm && source.pmfm.type;
     this.minValue = source.minValue;
     this.maxValue = source.maxValue;

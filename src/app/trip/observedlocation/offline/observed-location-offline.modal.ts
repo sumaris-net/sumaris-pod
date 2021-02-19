@@ -13,7 +13,7 @@ import {PlatformService} from "../../../core/services/platform.service";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {ObservedLocationOfflineFilter} from "../../services/observed-location.service";
 import {LocationLevelIds} from "../../../referential/services/model/model.enum";
-import {ProgramRefService} from "../../../referential/services/program-ref.service";
+import {ProgramRefQueries, ProgramRefService} from "../../../referential/services/program-ref.service";
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 const moment = momentImported;
@@ -52,6 +52,13 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
 
   get valid(): boolean {
     return this.form.valid;
+  }
+
+  markAsLoaded() {
+    if (this.loading) {
+      this.loading = false;
+      this.markForCheck();
+    }
   }
 
   constructor(
@@ -144,7 +151,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     };
     // Program
     if (value.programLabel) {
-      json.program = await this.programRefService.loadByLabel(value.programLabel);
+      json.program = await this.programRefService.loadByLabel(value.programLabel, {query: ProgramRefQueries.loadLight});
     }
 
     // Location
@@ -160,6 +167,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     this.form.patchValue(json);
 
     this.enable();
+    this.markAsLoaded();
   }
 
   getValue(): ObservedLocationOfflineFilter {

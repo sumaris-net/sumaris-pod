@@ -42,7 +42,7 @@ export class ProgramFilter extends ReferentialFilter {
 
 }
 
-const ProgramRefQueries = {
+export const ProgramRefQueries = {
   // Load by id, with only properties
   loadLight: gql`query ProgramRef($id: Int, $label: String){
         data: program(id: $id, label: $label){
@@ -51,10 +51,13 @@ const ProgramRefQueries = {
     }
     ${ProgramFragments.lightProgram}
   `,
-  // Load by id
+  // Load by id or label, with strategies
   load: gql`query ProgramRef($id: Int, $label: String){
         data: program(id: $id, label: $label){
           ...ProgramRefFragment
+          strategies {
+            ...StrategyRefFragment
+          }
         }
     }
     ${ProgramFragments.programRef}
@@ -72,13 +75,7 @@ const ProgramRefQueries = {
       ...ProgramRefFragment
     }
   }
-  ${ProgramFragments.programRef}
-  ${StrategyFragments.strategyRef}
-  ${StrategyFragments.pmfmStrategyRef}
-  ${StrategyFragments.taxonGroupStrategy}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.referential}
-  ${ReferentialFragments.taxonName}`,
+  ${ProgramFragments.programRef}`,
 
   // Load all query (with total)
   loadAllWithTotal: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -87,13 +84,7 @@ const ProgramRefQueries = {
     }
     total: programsCount(filter: $filter)
   }
-  ${ProgramFragments.programRef}
-  ${StrategyFragments.strategyRef}
-  ${StrategyFragments.pmfmStrategyRef}
-  ${StrategyFragments.taxonGroupStrategy}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.referential}
-  ${ReferentialFragments.taxonName}`
+  ${ProgramFragments.programRef}`
 };
 
 const ProgramRefCacheKeys = {
@@ -163,7 +154,7 @@ export class ProgramRefService
 
     let now;
     const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
-    return this.cache.loadFromObservable(cacheKey,
+    return this.cache.loadFromObservable(cacheKey + Date.now()/*TODO BLA disable cache*/,
       defer(() => {
 
         // Prepare debug stuff
@@ -219,35 +210,42 @@ export class ProgramRefService
     fetchPolicy?: FetchPolicy;
   }): Promise<Program> {
 
-    const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
+    const defer = async () => {
 
-    const { data } = await this.cache.getOrSetItem<{ data: any }>(cacheKey,
-      async () => {
-
-        // If offline mode
-        const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
-        if (offline) {
-          const res = await this.entities.loadAll<Program>('ProgramVO', {
-            offset: 0, size: 1,
-            filter: (p) => p.label ===  label
-          });
-          return { data: firstArrayValue(res && res.data) };
-        }
-
-        if (this._debug) console.debug(`[program-ref-service] Loading program {${label}}...`);
-
-        const query = opts && opts.query || this.queries.load;
-        return this.graphql.query<{ data: any }>({
-          query,
-          variables: { label },
-          error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
+      // If offline mode
+      const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+      if (offline) {
+        const res = await this.entities.loadAll<Program>(Program.TYPENAME, {
+          offset: 0, size: 1,
+          filter: (p) => p.label ===  label
         });
-      }, ProgramRefCacheKeys.CACHE_GROUP);
+        return { data: firstArrayValue(res && res.data) };
+      }
+
+      if (this._debug) console.debug(`[program-ref-service] Loading program {${label}}...`);
+
+      const query = opts && opts.query || this.queries.load;
+      return this.graphql.query<{ data: any }>({
+        query,
+        variables: { label },
+        error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
+      });
+    };
+
+    const useCache = (!opts || (!opts.query && opts.fetchPolicy !== 'network-only'));
+    let res;
+    if (useCache) {
+      const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
+      res = await this.cache.getOrSetItem<{ data: any }>(cacheKey, defer, ProgramRefCacheKeys.CACHE_GROUP);
+    }
+    else {
+      res = await defer();
+    }
 
     // Convert to entity (if need)
     const entity = (!opts || opts.toEntity !== false)
-      ? data && Program.fromObject(data)
-      : data as Program;
+      ? res && Program.fromObject(res.data)
+      : res && res.data as Program;
 
     if (this._debug) console.debug(`[program-ref-service] Program loaded {${label}}`, entity);
     return entity;
@@ -512,6 +510,7 @@ export class ProgramRefService
 
     const maxProgression = opts && opts.maxProgression || 100;
 
+    const now = this._debug && Date.now();
     console.info("[program-ref-service] Importing programs...");
 
     try {
@@ -541,7 +540,7 @@ export class ProgramRefService
 
       // Step 1. load all programs
       const importedProgramLabels = [];
-      const res = await JobUtils.fetchAllPages<any>((offset, size) =>
+      const {data} = await JobUtils.fetchAllPages<any>((offset, size) =>
           this.loadAll(offset, size, 'id', 'asc', loadFilter, {
             debug: false,
             withTotal: true,
@@ -560,7 +559,13 @@ export class ProgramRefService
       );
 
       // Step 2. Saving locally
-      await this.entities.saveAll(res.data, {entityName: 'ProgramVO', reset: true});
+      await this.entities.saveAll(data || [], {
+        entityName: Program.TYPENAME,
+        reset: true
+      });
+
+      if (this._debug) console.debug(`[landing-service] Importing programs [OK] in ${Date.now() - now}ms`, data);
+
     }
     catch (err) {
       console.error("[program-ref-service] Error during programs importation", err);

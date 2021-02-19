@@ -25,9 +25,9 @@ export const ProgramFragments = {
       statusId
       properties
       taxonGroupTypeId
-      strategies {
-        ...StrategyRefFragment
-      }
+      gearClassificationId
+      locationClassificationIds
+      locationIds
     }`,
   program: gql`
     fragment ProgramFragment on ProgramVO {

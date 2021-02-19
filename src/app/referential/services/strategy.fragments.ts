@@ -78,6 +78,7 @@ export const StrategyFragments = {
       isMandatory
       acquisitionNumber
       defaultValue
+      isInherited
       pmfm {
         ...PmfmFragment
       }
@@ -154,6 +155,7 @@ export const StrategyFragments = {
     fragment PmfmStrategyRefFragment on PmfmStrategyVO {
       id
       pmfmId
+      isInherited
       parameterId
       matrixId
       fractionId

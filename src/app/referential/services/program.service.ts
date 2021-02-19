@@ -188,7 +188,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     // Offline mode
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
-      res = await this.entities.loadAll('ProgramVO',
+      res = await this.entities.loadAll(Program.TYPENAME,
         {
           ...variables,
           filter: ProgramFilter.searchFilter(dataFilter)

@@ -808,7 +808,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       ...opts?.filter
     };
 
-    if (this._debug) console.debug('[landing-service] Importing Landing historical data', filter);
+    console.info('[landing-service] Importing remote landings...', filter);
 
     const {data} = await JobUtils.fetchAllPages<any>((offset, size) =>
         this.loadAll(offset, size, 'id', null, filter, {
@@ -823,13 +823,14 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         logPrefix: '[landing-service]'
       });
 
-    if (this._debug) console.debug(`[landing-service] Importing Landing historical data [OK] in ${Date.now() - now}ms`, data);
 
     // Save locally
     await this.entities.saveAll(data || [], {
       entityName: EntitiesStorage.REMOTE_PREFIX + Landing.TYPENAME,
       reset: true
     });
+
+    if (this._debug) console.debug(`[landing-service] Importing remote landings [OK] in ${Date.now() - now}ms`, data);
 
   }
 

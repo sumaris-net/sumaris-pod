@@ -34,6 +34,7 @@ export class ObservedLocationValidatorService
     // Add measurement form
     if (opts.withMeasurements) {
       const measForm = form.get('measurementValues') as FormGroup;
+      // TODO: find strategy from date and location
       (opts.program && opts.program.strategies[0] && opts.program.strategies[0].pmfmStrategies || [])
         .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.OBSERVED_LOCATION)
         .forEach(p => {
