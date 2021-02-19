@@ -272,7 +272,7 @@ const ObservedLocationMutations = {
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}`,
 
-  delete: gql`mutation DeleteObservedLocations($ids:[Int]!){
+  deleteAll: gql`mutation DeleteObservedLocations($ids:[Int]!){
     deleteObservedLocations(ids: $ids)
   }`,
 
@@ -614,11 +614,6 @@ export class ObservedLocationService
     }
 
     return entity;
-  }
-
-  async delete(data: ObservedLocation): Promise<any> {
-    if (!data) return; // skip
-    await this.deleteAll([data]);
   }
 
   /**

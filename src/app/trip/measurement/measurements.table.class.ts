@@ -38,6 +38,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   private _autoLoadAfterPmfm = true;
 
   protected _acquisitionLevel: AcquisitionLevelType;
+  protected _strategyLabel: string;
 
   protected measurementsDataService: MeasurementsDataService<T, F>;
   protected measurementsValidatorService: MeasurementsValidatorService;
@@ -79,6 +80,18 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   get acquisitionLevel(): AcquisitionLevelType {
     return this._acquisitionLevel;
+  }
+
+  @Input()
+  set strategyLabel(value: string) {
+    this._strategyLabel = value;
+    if (this.measurementsDataService) {
+      this.measurementsDataService.strategyLabel = value;
+    }
+  }
+
+  get strategyLabel(): string {
+    return this.strategyLabel;
   }
 
   @Input()
@@ -149,10 +162,12 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.setLoading(false, {emitEvent: false});
 
     this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService, {
-      mapPmfms: options.mapPmfms || undefined
+      mapPmfms: options.mapPmfms || undefined,
+      desactivateRefreshPmfms: options.desactivateRefreshPmfms || undefined
     });
     this.measurementsDataService.programLabel = this._programLabel;
     this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
+    this.measurementsDataService.strategyLabel = this._strategyLabel;
 
     const encapsulatedValidator = this.validatorService ? this : null;
     this.setDatasource(new EntitiesTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, {
@@ -192,6 +207,10 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     // Make sure to copy acquisition level to the data service
     if (this._acquisitionLevel && !this.measurementsDataService.acquisitionLevel) {
       this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
+    }
+    // Make sure to copy strategyLabel to the data service
+    if (this._strategyLabel && !this.measurementsDataService.strategyLabel) {
+      this.measurementsDataService.strategyLabel = this._strategyLabel;
     }
   }
 

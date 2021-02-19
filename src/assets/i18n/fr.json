@@ -176,6 +176,12 @@
         "LOCATION_LEVEL_AUCTION_ID": "Référentiel > Niveau de lieu > Criée",
         "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Référentiel > Niveau de lieu > Rectangle statistique CIEM/ICES",
         "LOCATION_LEVEL_ICES_DIVISION_ID": "Référentiel > Niveau de lieu > Division CIEM/ICES",
+        "TAXONOMIC_LEVEL_FAMILY_ID": "Référentiel > Niveau taxinomique > Famille",
+        "TAXONOMIC_LEVEL_GENUS_ID": "Référentiel > Niveau taxinomique > Genre",
+        "TAXONOMIC_LEVEL_SPECIES_ID": "Référentiel > Niveau taxinomique > Espèce",
+        "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Référentiel > Niveau taxinomique > Sous espèce",
+        "PMFM_AGE_ID": "Référentiel > PSFM > Âge",
+        "PMFM_SEX_ID": "Référentiel > PSFM > Sexe",
         "STRATEGY_PARAMETER_AGE_LABEL": "Stratégie > Paramètre > Code âge",
         "STRATEGY_PARAMETER_SEX_LABEL": "Stratégie > Paramètre > Code sexe",
         "STRATEGY_PARAMETER_WEIGHT_LABELS": "Stratégie > Paramètre > Codes poids",
@@ -183,7 +189,8 @@
         "STRATEGY_PARAMETER_MATURITY_LABELS": "Stratégie > Paramètre > Codes maturités"
       },
       "TESTING": "Mode développeur ?",
-      "ENTITY_TRASH": "Activer la corbeille du pod ?"
+      "ENTITY_TRASH": "Activer la corbeille du pod ?",
+      "ANALYTIC_REFERENCES_ENABLE": "Stratégie > Références analytiques : Activer ?"
     },
     "CACHE": {
       "NAME": "Nom",
@@ -696,6 +703,9 @@
           "AGE": "Age",
           "OTHER": "Autre"
         }
+      },
+      "ERROR" : {
+        "PARAMETERS.WEIGHT_OR_SIZE": "Le poids ou la taille est obligatoire"
       },
       "SETTINGS": {
         "BURST_MODE_ENABLE": "Echantillon: activer le mode rafale ?"
@@ -1233,6 +1243,7 @@
       "LANDING_EDITOR_SAMPLING": "Echantillonnage biologique",
       "LANDING_CREATION_DATE_ENABLE": "Observation sur site > Débarquements : Date de création ?",
       "LANDING_RECORDER_PERSON_ENABLE": "Observation sur site > Débarquements : Saisisseur ?",
+      "LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE": "Observation sur site > Débarquements : port d'attache ?",
       "LANDING_STRATEGY_ENABLE": "Observation sur site > Débarquement : Stratégie ?",
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Observateurs ?",
@@ -1397,8 +1408,10 @@
         "PARAMETERS.WEIGHT_OR_SIZE": "Le poids ou la taille est obligatoire",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
         "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà",
+        "LABEL.ZERO": "L'incrément minimal est 0001",
         "STRATEGY_HAS_REALIZED_EFFORT": "La ligne de plan {{label}} est liée à une ou plusieurs observations individuelles",
-        "STRATEGIES_HAS_REALIZED_EFFORT": "Les lignes de plan {{label}} sont liées à une ou plusieurs observations individuelles"
+        "STRATEGIES_HAS_REALIZED_EFFORT": "Les lignes de plan {{label}} sont liées à une ou plusieurs observations individuelles",
+        "PMFM.PMFM_OR_PARAMETER": "Veuillez sélectionner un paramètre à mesurer ou un paramètre"
       }
     },
     "ERROR": {

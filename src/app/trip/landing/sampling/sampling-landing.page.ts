@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
 import {FormGroup} from "@angular/forms";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {ParameterLabelGroups} from "../../../referential/services/model/model.enum";
+import {ParameterLabelGroups, PmfmIds} from "../../../referential/services/model/model.enum";
 import {PmfmService} from "../../../referential/services/pmfm.service";
 import {ObjectMap} from "../../../shared/types";
 import {BiologicalSamplingValidators} from "../../services/validator/biological-sampling.validators";
@@ -11,6 +11,9 @@ import {Landing} from "../../services/model/landing.model";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {HistoryPageReference} from "../../../core/services/model/settings.model";
 import {fadeInOutAnimation} from "../../../shared/material/material.animations";
+import {filter, tap, throttleTime} from "rxjs/operators";
+import {isNotNil} from "../../../shared/functions";
+import {SamplingSamplesTable} from "../../sample/sampling/sampling-samples.table";
 
 
 @Component({
@@ -39,6 +42,16 @@ export class SamplingLandingPage extends LandingPage {
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
+    // Use landing location as default location for samples
+    this.registerSubscription(
+      this.landingForm.form.get('location').valueChanges
+        .pipe(
+          throttleTime(200),
+          filter(isNotNil),
+          tap(location => (this.samplesTable as SamplingSamplesTable).defaultLocation = location)
+        )
+        .subscribe());
+
     // Load Pmfm IDS, group by parameter labels
     this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups)
       .then(pmfmGroups => this.$pmfmGroups.next(pmfmGroups));
@@ -60,14 +73,7 @@ export class SamplingLandingPage extends LandingPage {
   protected async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
 
-    // find all pmfms from samples
-    // TODO : force PMFM from data
-    /*this.samplesTable.dataPmfms = (data.samples || []).reduce((res, sample) => {
-      const pmfmIds = Object.keys(sample.measurementValues || {});
-      const newPmfmIds = pmfmIds.filter(pmfmId => !res.includes(pmfmId));
-      return res.concat(...newPmfmIds);
-    }, []);*/
-
+    this.samplesTable.strategyLabel = data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()];
     await super.setValue(data);
   }
 

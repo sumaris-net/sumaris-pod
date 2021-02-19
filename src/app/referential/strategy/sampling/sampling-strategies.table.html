@@ -79,7 +79,7 @@
 
   <!-- Departments column -->
   <ng-container matColumnDef="recorderDepartments">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef>
       <span>{{i18nColumnPrefix + 'RECORDER_DEPARTMENTS'|translate}}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
@@ -92,7 +92,7 @@
 
   <!-- Applied strategies (location) column -->
   <ng-container matColumnDef="locations">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef>
       <span>{{i18nColumnPrefix + 'LOCATIONS'|translate}}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
@@ -104,7 +104,7 @@
 
    <!-- Taxon names column -->
    <ng-container matColumnDef="taxonNames">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef>
       <span>{{i18nColumnPrefix + 'TAXON_NAMES'|translate}}</span>
     </mat-header-cell>
      <mat-cell *matCellDef="let row">
@@ -127,7 +127,7 @@
 
   <!-- Parameters column -->
   <ng-container matColumnDef="parameters">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef>
       <span>{{i18nColumnPrefix + 'PARAMETERS'|translate}}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">

@@ -425,12 +425,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
    */
   reloadItems(value?: any) {
     // Force a refresh
-    if (value) {
-      this._$reload.next(value || '*');
-    }
-    else {
-      this._$reload.next(this.formControl.value);
-    }
+    this._$reload.next(value || '*');
   }
 
   writeValue(value: any): void {

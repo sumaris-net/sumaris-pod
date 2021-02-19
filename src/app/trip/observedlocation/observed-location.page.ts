@@ -120,6 +120,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.landingsTable.showObserversColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
       this.landingsTable.showCreationDateColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE);
       this.landingsTable.showRecorderPersonColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
+      this.landingsTable.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
       this.landingsTable.showLocationColumn =  program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
       this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
 
@@ -408,7 +409,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   protected async computeTitle(data: ObservedLocation): Promise<string> {
 
-    await this.ready();
+    //await this.ready();
+    await firstNotNilPromise(this.$ready);
 
     // new data
     if (this.isNewData) {

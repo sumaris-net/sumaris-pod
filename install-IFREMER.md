@@ -47,7 +47,7 @@ Puis la lancer :
 ### Lancer le Pod
 - (copier lib/libsodium.dll dans target/classes)
 - `cd sumaris-server`
-- `mvn spring-boot:run` **(ne pas oublier de lancer la base!)**
+- `mvn spring-boot:run -Dspring-boot.run.fork=false` **(ne pas oublier de lancer la base!)**
 
 ### Lancer le pod sur la BDD oracle
  - faire un checkout de la branche **feature-oracle-adagio**

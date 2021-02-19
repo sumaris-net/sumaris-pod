@@ -212,3 +212,21 @@ export class Metier extends Referential<Metier> {
     }
   }
 }
+
+export class TaxonUtils {
+
+  static rubinCode(taxonName: string) {
+    let rubinCode = undefined;
+    const genusWord = /^[a-zA-Z]{4,}$/;
+    const speciesWord = /^[a-zA-Z]{3,}$/;
+
+    // Rubin code for "Leucoraja circularis": LEUC CIR
+    let str = taxonName.split(" ");
+    if (str.length == 2 && str[0].match(genusWord) && str[1].match(speciesWord)) {
+      rubinCode = str[0].slice(0, 4).toUpperCase() + str[1].slice(0, 3).toUpperCase();
+    }
+
+    return rubinCode
+  }
+
+}

@@ -1,7 +1,7 @@
 import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
 import {Pmfm, PMFM_NAME_REGEXP, PmfmType} from "./pmfm.model";
 import {ReferentialRef} from "../../../core/services/model/referential.model";
-import {toNumber} from "../../../shared/functions";
+import {isNotNil, toNumber} from "../../../shared/functions";
 import {PmfmValue, PmfmValueUtils} from "./pmfm-value.model";
 import {MethodIds} from "./model.enum";
 import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
@@ -145,6 +145,9 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
 
     target.pmfmId = toNumber(this.pmfmId, this.pmfm && this.pmfm.id);
+
+    // Compute complete name before deleting pmfm
+    target.completeName = isNotNil(target.completeName) ? target.completeName : getPmfmName(target.pmfm, {withUnit: true, withDetails: true});
     delete target.pmfm;
 
     // Serialize default value
@@ -166,9 +169,8 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
     this.pmfmId = toNumber(source.pmfmId, source.pmfm && source.pmfm.id);
     this.parameter = source.parameter;
     this.parameterId =  toNumber(source.parameterId, source.parameter && source.parameter.id);
-    this.parameter = source.parameter;
     this.matrixId = source.matrixId;
-    this.fractionId = source.fractionId;
+    this.fractionId = toNumber(source.fractionId, source.fraction && source.fraction.id);
     this.methodId = source.methodId;
     this.label = source.label;
     this.name = source.name || (source.pmfm && source.pmfm.name);

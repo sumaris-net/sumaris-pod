@@ -21,6 +21,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
 
   private _programLabel: string;
   private _acquisitionLevel: string;
+  private _strategyLabel: string;
   private _onRefreshPmfms = new EventEmitter<any>();
   private _delegate: IEntitiesService<T, F>;
 
@@ -56,6 +57,18 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
   }
 
   @Input()
+  set strategyLabel(value: string) {
+    if (this._strategyLabel !== value && isNotNil(value)) {
+      this._strategyLabel = value;
+      if (!this.loadingPmfms) this._onRefreshPmfms.emit();
+    }
+  }
+
+  get strategyLabel(): string {
+    return this._strategyLabel;
+  }
+
+  @Input()
   set pmfms(pmfms: Observable<PmfmStrategy[]> | PmfmStrategy[]) {
     this.setPmfms(pmfms);
   }
@@ -74,6 +87,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     delegate?: IEntitiesService<T, F>,
     protected options?: {
       mapPmfms: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
+      desactivateRefreshPmfms?: boolean;
     }) {
 
     this._delegate = delegate;
@@ -82,7 +96,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
 
-    this._onRefreshPmfms.subscribe(() => this.refreshPmfms());
+    if (!options || !options.desactivateRefreshPmfms) {this._onRefreshPmfms.subscribe(() => this.refreshPmfms())};
   }
 
   close() {
@@ -172,10 +186,13 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
 
     // Load pmfms
     let pmfms = (await this.programRefService.loadProgramPmfms(
-      this._programLabel,
+      this._programLabel, this._strategyLabel ?
       {
-        acquisitionLevel: this._acquisitionLevel
-      })) || [];
+        acquisitionLevel: this._acquisitionLevel,
+        strategyLabel: this._strategyLabel,
+      } : {
+          acquisitionLevel: this._acquisitionLevel,
+        })) || [];
 
     if (!pmfms.length && this.debug) {
       console.debug(`[meas-service] No pmfm found (program=${this.programLabel}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);

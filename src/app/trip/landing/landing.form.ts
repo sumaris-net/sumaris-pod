@@ -7,7 +7,7 @@ import {LandingValidatorService} from "../services/validator/landing.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {FormArray, FormBuilder, FormControl, Validators} from "@angular/forms";
+import {FormArray, FormBuilder, FormControl, ValidationErrors, Validators} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
 import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {Person, personToString, UserProfileLabels} from "../../core/services/model/person.model";
@@ -24,6 +24,8 @@ import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model
 import {SharedValidators} from "../../shared/validator/validators";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {SamplingStrategyService} from "../../referential/services/sampling-strategy.service";
+import {TranslateService} from "@ngx-translate/core";
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -95,6 +97,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected personService: PersonService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected settings: LocalSettingsService,
+    protected samplingStrategyService: SamplingStrategyService,
+    protected translate: TranslateService,
     protected modalCtrl: ModalController,
     protected cd: ChangeDetectorRef
   ) {
@@ -110,8 +114,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
 
-    // Add a strategy field (not in validator)
-    this.strategyControl = formBuilder.control(null, [Validators.required]);
   }
 
   ngOnInit() {
@@ -201,6 +203,18 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
           if (measControl && measControl.value !== strategyLabel) {
             measControl.setValue(strategyLabel);
+          }
+
+          // Add validator errors on expected effort for this sampleRow (issue #175)
+          const getExpectedEffort = await this.samplingStrategyService.getEffortFromStrategyLabel(strategyLabel, this.data.dateTime);
+          if (!getExpectedEffort) {
+            this.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
+          } else if (getExpectedEffort == 0) {
+            // TODO must be a warning, not error
+            this.strategyControl.setErrors(<ValidationErrors>{zeroEffort: true});
+          } else {
+            SharedValidators.clearError(this.strategyControl, 'noEffort');
+            SharedValidators.clearError(this.strategyControl, 'zeroEffort');
           }
         }));
   }

@@ -22,6 +22,7 @@ import {mergeMap} from "rxjs/internal/operators";
 import {DateUtils} from "../../shared/dates";
 import {SamplingStrategy, StrategyEffort} from "./model/sampling-strategy.model";
 import {BaseReferentialService} from "./base-referential-service.class";
+import {Moment} from "moment";
 
 const SamplingStrategyQueries = {
   loadAll: gql`query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -149,13 +150,35 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
       }));
   }
 
-  async hasEffort(samplingStrategy: SamplingStrategy): Promise<boolean> {
-    await this.fillEfforts([samplingStrategy]);
+  async hasEffort(samplingStrategy: SamplingStrategy, opts?: {
+    fetchPolicy?: FetchPolicy;
+  }): Promise<boolean> {
+    await this.fillEfforts([samplingStrategy], opts);
     return samplingStrategy.hasRealizedEffort;
   }
 
+  async getEffortFromStrategyLabel(samplingStrategyLabel: string, date: Moment): Promise<number> {
+    let result = null;
+    const strategies = await this.loadAll(0, 20, 'label', 'desc', {
+      label: samplingStrategyLabel
+    });
+    if (strategies && strategies.data && strategies.total == 1)
+    {
+      const effortByQuarters = strategies.data[0].effortByQuarter;
+      if (effortByQuarters) {
+        const effortByQuarter = effortByQuarters[date.quarter()];
+        // We check if returned effort correspond to strategy date
+        if (effortByQuarter && effortByQuarter.startDate.year() == date.year())
+        {
+          result = effortByQuarter.expectedEffort;
+        }
+      }
+    }
+    return result;
+  }
+
   async fillEntities(res: LoadResult<SamplingStrategy>, opts?: {
-    withEffort?: boolean; withParameterGroups?: boolean;
+    fetchPolicy?: FetchPolicy; withEffort?: boolean; withParameterGroups?: boolean;
   }): Promise<LoadResult<SamplingStrategy>> {
     if (!res) return res;
 
@@ -166,7 +189,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     }
     // Fill strategy efforts
     if (!opts || opts.withEffort !== false) {
-      jobs.push(this.fillEfforts(res.data)
+      jobs.push(this.fillEfforts(res.data, opts)
         .catch(err => {
           console.error("Error while computing effort: " + err && err.message || err, err);
           res.errors = (res.errors || []).concat(err);
@@ -186,7 +209,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
    */
   protected async fillParameterGroups(entities: SamplingStrategy[]): Promise<void> {
 
-    const parameterListKeys = Object.keys(ParameterLabelGroups); // AGE, SEX, MATURITY, etc
+    const parameterListKeys = Object.keys(ParameterLabelGroups).filter(p => p !== 'ANALYTIC_REFERENCE'); // AGE, SEX, MATURITY, etc
     const pmfmIdsMap = await this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups);
 
     entities.forEach(s => {
@@ -197,7 +220,9 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     });
   }
 
-  protected async fillEfforts(entities: SamplingStrategy[]): Promise<void> {
+  protected async fillEfforts(entities: SamplingStrategy[], opts?: {
+    fetchPolicy?: FetchPolicy;
+  }): Promise<void> {
     if (isEmptyArray(entities)) return; // Skip is empty
 
     console.debug(`[denormalized-strategy-service] Loading effort of ${entities.length} strategies...`);
@@ -214,7 +239,8 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
         columnName: "strategy_id",
         operator: "IN",
         values: entities.map(s => s.id.toString())
-      }
+      },
+      fetchPolicy: opts && opts.fetchPolicy || 'network-only'
     });
 
     // Add effort to entities

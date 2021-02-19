@@ -706,7 +706,7 @@ export abstract class AppEntityEditor<
     }
   }
 
-  private async updateRoute(data: T, queryParams: any): Promise<boolean> {
+  protected async updateRoute(data: T, queryParams: any): Promise<boolean> {
     const path = this.computePageUrl(isNotNil(data.id) ? data.id : 'new');
     const commands: any[] = (path && typeof path === 'string') ? path.split('/') : path as any[];
     if (isNotEmptyArray(commands)) {

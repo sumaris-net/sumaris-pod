@@ -157,6 +157,15 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     return this.getShowColumn('recorderPerson');
   }
 
+  @Input()
+  set showVesselBasePortLocationColumn(value: boolean) {
+    this.setShowColumn('vesselBasePortLocation', value);
+  }
+
+  get showVesselBasePortLocationColumn(): boolean {
+    return this.getShowColumn('vesselBasePortLocation');
+  }
+
   constructor(
     injector: Injector
   ) {

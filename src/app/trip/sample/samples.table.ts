@@ -75,6 +75,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   @Input() modalOptions: Partial<ISampleModalOptions>;
 
+
   @Input()
   set value(data: Sample[]) {
     this.memoryDataService.value = data;
@@ -119,6 +120,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         suppressErrors: environment.production,
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS,
+        desactivateRefreshPmfms: true,
         ...options
       }
     );
