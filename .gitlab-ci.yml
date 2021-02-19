@@ -12,8 +12,7 @@ build-dev:
     extends: .build
     only:
         - develop
-        - develop-ifremer
-        - feature-oracle-adagio
+        - feature/imagine
     except:
         - schedules
 
@@ -49,8 +48,7 @@ build_val:
             - sumaris-server/target/*.war
     only:
         - develop
-        - develop-ifremer
-        - feature-oracle-adagio
+        - feature/imagine
     when: manual
 
 sonarqube:
@@ -74,7 +72,7 @@ sonarqube:
         -Dsonar.java.libraries=.
     only:
         - develop
-        - develop-ifremer
+        - feature/imagine
     when: manual
  
 
@@ -96,7 +94,7 @@ pages:
             - public
     only:
         - develop
-        - develop-ifremer
+        - feature/imagine
     when: manual
    
 
@@ -121,7 +119,7 @@ package:
             dotenv: variables.env
     only:
         - develop
-        - develop-ifremer
+        - feature/imagine
     allow_failure: false
     when: manual
 
@@ -142,7 +140,7 @@ release:
         ref: "$CI_COMMIT_SHA"
     only:
         - develop
-        - develop-ifremer
+        - feature/imagine
     when: manual
 
 deploy:
@@ -154,5 +152,5 @@ deploy:
         - mvn -s ./settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$TAG -Dfile=web-services/target/ROOT.war -DrepositoryId=gitlab-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven
     only:
         - develop
-        - develop-ifremer
+        - feature/imagine
     when: manual
