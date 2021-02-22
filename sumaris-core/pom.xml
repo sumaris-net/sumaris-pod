@@ -129,10 +129,10 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
-<!--    <dependency>-->
-<!--      <groupId>org.springframework.boot</groupId>-->
-<!--      <artifactId>spring-boot-autoconfigure</artifactId>-->
-<!--    </dependency>-->
+    <!--    <dependency>-->
+    <!--      <groupId>org.springframework.boot</groupId>-->
+    <!--      <artifactId>spring-boot-autoconfigure</artifactId>-->
+    <!--    </dependency>-->
 
     <!-- Unit test -->
     <dependency>
@@ -281,7 +281,7 @@
         </executions>
       </plugin>
 
-     <plugin>
+      <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
@@ -362,8 +362,7 @@
         <jdbc.password />
         <jdbc.driver>org.hsqldb.jdbcDriver</jdbc.driver>
         <jdbc.schema>PUBLIC</jdbc.schema>
-        <jdbc.platform>hsqldb</jdbc.platform>
-        <hibernate.dialect>org.hibernate.dialect.HSQLDialect</hibernate.dialect>
+        <hibernate.dialect>net.sumaris.core.dao.technical.hibernate.spatial.HSQLSpatialDialect</hibernate.dialect>
         <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
       </properties>
 
@@ -415,41 +414,11 @@
       </activation>
 
       <properties>
-        <jdbc.url>jdbc:oracle:thin:@HARMONIE_TEST</jdbc.url>
+        <jdbc.url>jdbc:oracle:thin:@192.168.0.6:1521:ORCL</jdbc.url>
         <jdbc.driver.jar>${settings.localRepository}/com/oracle/ojdbc8/${ojdbc8.version}/ojdbc8-${ojdbc8.version}.jar</jdbc.driver.jar>
-        <jdbc.username>SIH2_SUMARIS_MAP</jdbc.username>
-        <jdbc.password>SIH2_SUMARIS_MAP</jdbc.password>
-        <jdbc.schema>SIH2_SUMARIS_MAP</jdbc.schema>
-        <jdbc.platform>oracle</jdbc.platform>
-        <jdbc.driver>oracle.jdbc.driver.OracleDriver</jdbc.driver>
-        <hibernate.dialect>org.hibernate.spatial.dialect.oracle.OracleSpatial10gDialect</hibernate.dialect>
-        <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
-      </properties>
-
-      <dependencies>
-        <dependency>
-          <groupId>com.oracle</groupId>
-          <artifactId>ojdbc8</artifactId>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <profile>
-      <id>oracle-test</id>
-      <activation>
-        <property>
-          <name>env</name>
-          <value>oracle</value>
-        </property>
-      </activation>
-
-      <properties>
-        <jdbc.url>jdbc:oracle:thin:@HARMONIE_TEST</jdbc.url>
-        <jdbc.driver.jar>${settings.localRepository}/com/oracle/ojdbc8/${ojdbc8.version}/ojdbc8-${ojdbc8.version}.jar</jdbc.driver.jar>
-        <jdbc.username>SIH2_ADAGIO_DBA_SUMARIS_MAP</jdbc.username>
-        <jdbc.password>SIH2_ADAGIO_DBA_SUMARIS_MAP</jdbc.password>
-        <jdbc.schema>SIH2_ADAGIO_DBA_SUMARIS_MAP</jdbc.schema>
-        <jdbc.platform>oracle</jdbc.platform>
+        <jdbc.username>SUMARIS_TU</jdbc.username>
+        <jdbc.password>SUMARIS_TU</jdbc.password>
+        <jdbc.schema>SUMARIS_TU</jdbc.schema>
         <jdbc.driver>oracle.jdbc.driver.OracleDriver</jdbc.driver>
         <hibernate.dialect>org.hibernate.spatial.dialect.oracle.OracleSpatial10gDialect</hibernate.dialect>
         <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
@@ -547,11 +516,11 @@
                 <artifactId>hibernate-core</artifactId>
                 <version>${hibernate.version}</version>
               </dependency>
-<!--              <dependency>-->
-<!--                <groupId>org.hibernate</groupId>-->
-<!--                <artifactId>hibernate-entitymanager</artifactId>-->
-<!--                <version>${hibernate.version}</version>-->
-<!--              </dependency>-->
+              <!--              <dependency>-->
+              <!--                <groupId>org.hibernate</groupId>-->
+              <!--                <artifactId>hibernate-entitymanager</artifactId>-->
+              <!--                <version>${hibernate.version}</version>-->
+              <!--              </dependency>-->
               <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-spatial</artifactId>
@@ -612,7 +581,7 @@
                       <classpath refid="maven.plugin.classpath" />
                     </taskdef>
 
-<!--                    <ant antfile="${project.basedir}/src/main/ant/hibernate.xml" target="hbm2doc" inheritRefs="true" />-->
+                    <!--                    <ant antfile="${project.basedir}/src/main/ant/hibernate.xml" target="hbm2doc" inheritRefs="true" />-->
 
                     <!-- workaround (when no jdbc schema defined)-->
                     <replaceregexp match="hibernate.default_schema&quot;&gt;[^&lt;]*&lt;" replace="hibernate.default_schema&quot;&gt;${jdbc.reporting.schema}&lt;" flags="g" byline="false">
