@@ -1187,7 +1187,8 @@
         "LABEL.UNIQUE": "The code of the sampling plan line already exists",
         "LABEL.ZERO": "The minimum increment is 0001",
         "EFFORT.EXIST": "Sampling plan {{errorDetails}} used by observed locations",
-        "PMFM.PMFM_OR_PARAMETER": "Veuillez sélectionner un paramètre à mesurer ou un paramètre"
+        "PMFM.PMFM_OR_PARAMETER": "Please select a PSFM or Parameter",
+        "EFFORT.REALIZED_EFFORT": "The number of efforts must be greater than or equal to 1 for quarters with individual measures"
       },
       "CREATE_SAMPLING_PLAN": "Creating a sampling plan line",
       "APPLIED_STRATEGIES" : "Fishing area(s)",

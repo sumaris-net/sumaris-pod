@@ -139,6 +139,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   _$pmfmGroups: BehaviorSubject<ObjectMap<number[]>> = new BehaviorSubject(null);
 
+
+  samplingStrategy: SamplingStrategy;
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected validatorService: StrategyValidatorService,
@@ -206,6 +209,24 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
           }
         }
         return <ValidationErrors>{ minLength: {minLength} };
+      },
+      async (control) => {
+        const appliedPeriods = control.value;
+        let RealizedEffortWithSamples = false;
+        if (!isEmptyArray(appliedPeriods)) {
+          let i = 1;
+          appliedPeriods.forEach(period => {
+            if (this.samplingStrategy && this.samplingStrategy.effortByQuarter[i] && this.samplingStrategy.effortByQuarter[i].hasRealizedEffort && period.acquisitionNumber < 1) {
+              RealizedEffortWithSamples = true;
+            }
+            i++;
+          });
+        }
+        if (RealizedEffortWithSamples) {
+          return <ValidationErrors>{ RealizedEffortWithSamples: true };
+        }
+        SharedValidators.clearError(control, 'RealizedEffortWithSamples');
+        return null;
       }
     ]);
 
@@ -558,12 +579,17 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     console.debug("[sampling-strategy-form] Setting Strategy value", data);
     if (!data) return;
 
-    const samplingStrategy = new SamplingStrategy();
-    samplingStrategy.fromObject(data);
-    this.samplingStrategyService.hasEffort(samplingStrategy).then((hasEffort) => {
-      this.hasEffort = hasEffort;
+    this.samplingStrategy = new SamplingStrategy();
+    this.samplingStrategy.fromObject(data);
+    this.samplingStrategyService.fillEfforts([this.samplingStrategy]).then((test) => {
+      this.hasEffort = this.samplingStrategy.hasRealizedEffort;
       this.enable();
-    });
+    })
+
+    // this.samplingStrategyService.hasEffort(samplingStrategy).then((hasEffort) => {
+    //   this.hasEffort = hasEffort;
+    //   this.enable();
+    // });
 
 
     // Make sure to have (at least) one department

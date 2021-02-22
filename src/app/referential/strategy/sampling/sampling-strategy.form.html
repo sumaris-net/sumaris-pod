@@ -196,6 +196,9 @@
         <mat-error *ngIf="form.touched && form.get('appliedPeriods').hasError('minLength')">
           {{'PROGRAM.STRATEGY.ERROR.EFFORT.MIN_LENGTH' | translate: form.get('appliedPeriods').errors.minLength }}
         </mat-error>
+        <mat-error *ngIf="form.touched && form.get('appliedPeriods').hasError('RealizedEffortWithSamples')">
+          {{'PROGRAM.STRATEGY.ERROR.EFFORT.REALIZED_EFFORT' | translate }}
+        </mat-error>
       </ion-col>
     </ion-row>
     <ion-row>

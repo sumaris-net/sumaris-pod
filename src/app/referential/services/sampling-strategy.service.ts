@@ -220,7 +220,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     });
   }
 
-  protected async fillEfforts(entities: SamplingStrategy[], opts?: {
+  async fillEfforts(entities: SamplingStrategy[], opts?: {
     fetchPolicy?: FetchPolicy;
   }): Promise<void> {
     if (isEmptyArray(entities)) return; // Skip is empty
