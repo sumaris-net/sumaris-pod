@@ -209,12 +209,18 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           const getExpectedEffort = await this.samplingStrategyService.getEffortFromStrategyLabel(strategyLabel, this.data.dateTime);
           if (!getExpectedEffort) {
             this.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
+            this.strategyControl.markAsDirty();
+            await this.refreshPmfms();
           } else if (getExpectedEffort == 0) {
             // TODO must be a warning, not error
             this.strategyControl.setErrors(<ValidationErrors>{zeroEffort: true});
+            this.strategyControl.markAsDirty();
+            await this.refreshPmfms();
           } else {
             SharedValidators.clearError(this.strategyControl, 'noEffort');
             SharedValidators.clearError(this.strategyControl, 'zeroEffort');
+            this.strategyControl.markAsDirty();
+            await this.refreshPmfms();
           }
         }));
   }

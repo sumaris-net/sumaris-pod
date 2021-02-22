@@ -30,21 +30,21 @@
         <ion-label class="ion-float-end hidden-xs hidden-sm">{{i18nPrefix + 'STRATEGY'|translate}}</ion-label>
       </ion-col>
       <ion-col>
+        <mat-error *ngIf="strategyControl.hasError('required')">
+          {{'ERROR.FIELD_REQUIRED' | translate}}
+        </mat-error>
+        <mat-error *ngIf="strategyControl.hasError('noEffort')">
+          {{'LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR' | translate}} avec controle
+        </mat-error>
+        <mat-error *ngIf="strategyControl.hasError('zeroEffort')">
+          {{'LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR' | translate}}
+        </mat-error>
         <mat-autocomplete-field
           [formControl]="strategyControl"
           [placeholder]="i18nPrefix + 'STRATEGY_PLACEHOLDER'|translate"
           [config]="autocompleteFields.strategy"
           [readonly]="!canEditStrategy"
           [required]="true">
-          <mat-error *ngIf="strategyControl.hasError('required')" translate>
-            ERROR.FIELD_REQUIRED
-          </mat-error>
-          <mat-error *ngIf="strategyControl.hasError('noEffort')" translate>
-            LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR
-          </mat-error>
-          <mat-error *ngIf="strategyControl.hasError('zeroEffort')" translate>
-            LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR
-          </mat-error>
         </mat-autocomplete-field>
       </ion-col>
     </ion-row>
