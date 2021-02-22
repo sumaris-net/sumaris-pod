@@ -998,6 +998,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return res.data;
   }
 
+  markAsDirty() {
+    this.form.markAsDirty()
+  }
+
 
 
   /**

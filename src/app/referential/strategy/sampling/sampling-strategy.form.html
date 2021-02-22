@@ -181,6 +181,7 @@
       <ion-col size="12" size-md="3" size-lg="2">
         <mat-date-short-field [placeholder]="i18nFieldPrefix + 'YEAR_PLACEHOLDER'|translate"
                               formControlName="year"
+                              (click)="markAsDirty()"
                               [required]="true" >
         </mat-date-short-field>
       </ion-col>
