@@ -684,7 +684,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     json.name = json.label || json.name;
     json.label = json.label || json.name;
     json.description = json.label || json.description;
-    json.analyticReference = (typeof json.analyticReference === 'object') ? json.analyticReference.label : json.analyticReference;
+    json.analyticReference = (typeof this.form.controls.analyticReference.value === 'object') ? this.form.controls.analyticReference.value.label : this.form.controls.analyticReference.value;
 
     // get taxonName and
     json.taxonNames = (this.form.controls.taxonNames.value || []);
