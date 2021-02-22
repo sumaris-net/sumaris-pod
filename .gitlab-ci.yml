@@ -13,6 +13,7 @@ build-dev:
     only:
         - develop
         - feature/imagine
+        - feature-oracle-adagio
     except:
         - schedules
 
@@ -34,6 +35,22 @@ schedule-build:
     environment:
         name: test
 
+deploy_project_registry:
+    stage: deploy
+    tags:
+        - sih_public_runner
+    before_script:
+        - SNAPSHOT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
+    script:
+        - echo "Deploy Snapshot in progress"
+        - echo $SNAPSHOT_VERSION
+        - mvn -s ./settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$SNAPSHOT_VERSION -Dfile=web-services/target/ROOT.war -DrepositoryId=gitlab-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
+    only:
+        - develop
+        - feature/imagine
+        - feature-oracle-adagio
+    when: manual
+
 build_oracle:
     stage: build
     tags:
@@ -53,26 +70,6 @@ build_oracle:
         - develop
         - develop-ifremer
         - feature-oracle-adagio
-    when: manual
-
-build_oracle_common:
-    stage: build
-    tags:
-        - sih_public_runner
-    variables:
-        PROFIL: "oracle-test"
-    script:
-        - echo "Test oracle build  in progress"
-        - mvn -q -s ./settings.xml clean install -DskipTests -P $PROFIL
-        - mvn -q -s ./settings.xml -pl sumaris-server deploy:deploy-file@deploy-nexus-snapshot -P $PROFIL
-    environment:
-        name: test
-    artifacts:
-        paths:
-            - sumaris-server/target/*.war
-    only:
-        - develop
-        - feature/imagine
     when: manual
 
 sonarqube:

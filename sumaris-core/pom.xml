@@ -129,10 +129,10 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
-    <!--    <dependency>-->
-    <!--      <groupId>org.springframework.boot</groupId>-->
-    <!--      <artifactId>spring-boot-autoconfigure</artifactId>-->
-    <!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.springframework.boot</groupId>-->
+<!--      <artifactId>spring-boot-autoconfigure</artifactId>-->
+<!--    </dependency>-->
 
     <!-- Unit test -->
     <dependency>
@@ -516,11 +516,11 @@
                 <artifactId>hibernate-core</artifactId>
                 <version>${hibernate.version}</version>
               </dependency>
-              <!--              <dependency>-->
-              <!--                <groupId>org.hibernate</groupId>-->
-              <!--                <artifactId>hibernate-entitymanager</artifactId>-->
-              <!--                <version>${hibernate.version}</version>-->
-              <!--              </dependency>-->
+<!--              <dependency>-->
+<!--                <groupId>org.hibernate</groupId>-->
+<!--                <artifactId>hibernate-entitymanager</artifactId>-->
+<!--                <version>${hibernate.version}</version>-->
+<!--              </dependency>-->
               <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-spatial</artifactId>
@@ -581,7 +581,7 @@
                       <classpath refid="maven.plugin.classpath" />
                     </taskdef>
 
-                    <!--                    <ant antfile="${project.basedir}/src/main/ant/hibernate.xml" target="hbm2doc" inheritRefs="true" />-->
+<!--                    <ant antfile="${project.basedir}/src/main/ant/hibernate.xml" target="hbm2doc" inheritRefs="true" />-->
 
                     <!-- workaround (when no jdbc schema defined)-->
                     <replaceregexp match="hibernate.default_schema&quot;&gt;[^&lt;]*&lt;" replace="hibernate.default_schema&quot;&gt;${jdbc.reporting.schema}&lt;" flags="g" byline="false">
