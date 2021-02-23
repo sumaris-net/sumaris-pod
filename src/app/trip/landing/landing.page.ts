@@ -363,6 +363,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     const pmfmsFromSamplesWithoutFractions = (pmfmsFromStrategyAndSamples || []).filter(pmfmStrategy => (isNil(pmfmStrategy.fractionId) && isNil(pmfmStrategy.fraction))) || [];
 
     this.samplesTable.pmfms = pmfmsFromSamplesWithoutFractions;
+    this.samplesTable.strategyLabel = strategy.label;
   }
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {

@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, Component, Injector, Input} from "@angular/core";
+import {ChangeDetectionStrategy, Component, EventEmitter, Injector, Input} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {SampleValidatorService} from "../../services/validator/sample.validator";
-import {isEmptyArray, isNotEmptyArray, isNotNil} from "../../../shared/functions";
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from "../../../shared/functions";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {environment} from "../../../../environments/environment";
@@ -16,6 +16,13 @@ import {SelectPmfmModal} from "../../../referential/pmfm/select-pmfm.modal";
 import {ReferentialRef} from "../../../core/services/model/referential.model";
 import {Sample} from "../../services/model/sample.model";
 import {TaxonUtils} from "../../../referential/services/model/taxon.model";
+import {ValidationErrors} from "@angular/forms";
+import {SharedValidators} from "../../../shared/validator/validators";
+import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {SamplingStrategyService} from "../../../referential/services/sampling-strategy.service";
+import moment from "moment";
+import {debounceTime, map} from "rxjs/operators";
+import {PmfmIds} from "../../../referential/services/model/model.enum";
 
 export interface SampleFilter {
   operationId?: number;
@@ -50,6 +57,10 @@ export class SamplingSamplesTable extends SamplesTable {
 
   $pmfmGroupColumns = new BehaviorSubject<GroupColumnDefinition[]>([]);
 
+
+  private _onRefreshExpectedEffort = new EventEmitter<any>();
+  private expectedEffortDefinedAndPositive: Boolean;
+
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     this._$pmfmGroups.next(value);
   }
@@ -63,7 +74,8 @@ export class SamplingSamplesTable extends SamplesTable {
   constructor(
     protected injector: Injector,
     protected programRefService: ProgramRefService,
-    protected pmfmService: PmfmService
+    protected pmfmService: PmfmService,
+    protected samplingStrategyService: SamplingStrategyService
   ) {
     super(injector,
       <SamplesTableOptions>{
@@ -74,7 +86,10 @@ export class SamplingSamplesTable extends SamplesTable {
         mapPmfms: pmfms => this.mapPmfms(pmfms)
       }
     );
+
+    this._onRefreshExpectedEffort.subscribe(() => this.refreshExpectedEffort(this._strategyLabel, this.defaultSampleDate));
   }
+
 
   protected async onNewEntity(data: Sample): Promise<void> {
     await super.onNewEntity(data);
@@ -86,6 +101,18 @@ export class SamplingSamplesTable extends SamplesTable {
     if (groupAge && rubinCode && isNotNil(this.defaultLocation) && isNotNil(this.defaultSampleDate) && isNotNil(this.defaultTaxonName)) {
       data.label = `${this.defaultLocation.label}${this.defaultSampleDate.format("DDMMYY")}${rubinCode}${data.rankOrder.toString().padStart(4, "0")}`;
       console.debug("[sample-table] Generated label: ", data.label);
+    }
+  }
+
+
+  @Input()
+  set strategyLabel(value: string) {
+    if (this._strategyLabel !== value && isNotNil(value)) {
+      this._strategyLabel = value;
+      if (this.measurementsDataService) {
+        this.measurementsDataService.strategyLabel = value;
+      }
+      this._onRefreshExpectedEffort.emit();
     }
   }
 
@@ -127,6 +154,17 @@ export class SamplingSamplesTable extends SamplesTable {
     if (!pmfmIds) return; // USer cancelled
     await this.addPmfmColumns(pmfmIds);
 
+  }
+
+
+  addRow(event?: any): boolean {
+    // IMAGINE-230 Strategy must have defined and positive expected effort to add samples.
+    if (!this.expectedEffortDefinedAndPositive)
+    {
+      // Warning message already displayed in strategy label field. We only disable button
+      return false;
+    }
+    return super.addRow(event);
   }
 
 
@@ -238,4 +276,16 @@ export class SamplingSamplesTable extends SamplesTable {
       ...pmfms
     ];
   }
+
+  protected async refreshExpectedEffort(strategyLabel: string, sampleDate): Promise<Boolean> {
+    // IMAGINE-230 Strategy must have defined and positive expected effort to add samples.
+    this.expectedEffortDefinedAndPositive = false;
+    if (!isNil(strategyLabel)) {
+      const getExpectedEffort = await this.samplingStrategyService.getEffortFromStrategyLabel(strategyLabel, sampleDate);
+      this.expectedEffortDefinedAndPositive = getExpectedEffort && getExpectedEffort > 0;
+    }
+    return this.expectedEffortDefinedAndPositive;
+  }
+
+
 }
