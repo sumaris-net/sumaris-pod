@@ -47,7 +47,7 @@ deploy_project_registry:
     script:
         - echo "Deploy Snapshot in progress"
         - echo $SNAPSHOT_VERSION
-        - curl -u "gitlab+deploy-token-62:54gJ-pk4XDxmjoxBdirx" --upload-file ./sumaris-server/target/sumaris-server-$SNAPSHOT_VERSION.war "https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven/fr/ifremer/imagine-pod/$SNAPSHOT_VERSION/imagine-pod-$SNAPSHOT_VERSION.war"
+        - curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ./sumaris-server/target/sumaris-server-$SNAPSHOT_VERSION.war "https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven/fr/ifremer/imagine-pod/$SNAPSHOT_VERSION/imagine-pod-$SNAPSHOT_VERSION.war"
     only:
         - develop
         - feature/imagine
