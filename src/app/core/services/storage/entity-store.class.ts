@@ -519,7 +519,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     data = data.filter(isNotNil);
 
     if (!variables) {
-      // Return all (but copy and filter array)
+      // Return all (but array has been filtered, and copied)
       return {data, total: data.length};
     }
 
@@ -557,6 +557,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
 
     // Apply a limit
     else if (variables.size > 0){
+      console.log('TODO BLA: Applying a limit: ' + variables.size);
       data = data.slice(0, variables.size);
     }
     // No limit:

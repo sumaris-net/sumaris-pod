@@ -1,12 +1,5 @@
 import {Injectable, Injector} from "@angular/core";
-import {
-  EntitiesServiceWatchOptions,
-  EntityServiceLoadOptions,
-  FilterFn,
-  IEntitiesService,
-  IEntityService,
-  LoadResult
-} from "../../shared/services/entity-service.class";
+import {EntitiesServiceWatchOptions, EntityServiceLoadOptions, FilterFn, IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
 import {AccountService} from "../../core/services/account.service";
 import {Observable} from "rxjs";
 import * as momentImported from "moment";
@@ -35,8 +28,8 @@ import {environment} from "../../../environments/environment";
 import {JobUtils} from "../../shared/services/job.utils";
 import {fromDateISOString, toDateISOString} from "../../shared/dates";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
-import DurationConstructor = moment.unitOfTime.DurationConstructor;
 import {OBSERVED_LOCATION_FEATURE_NAME} from "./config/trip.config";
+import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 const moment = momentImported;
 

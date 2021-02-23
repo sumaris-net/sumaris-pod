@@ -2,7 +2,7 @@ import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 
-import {FetchPolicy, MutationUpdaterFn, StoreObject, WatchQueryFetchPolicy} from "@apollo/client/core";
+import {FetchPolicy, MutationUpdaterFn, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {SortDirection} from "@angular/material/sort";
 
 import {ReferentialFilter} from "./referential.service";
@@ -15,9 +15,6 @@ import {Entity, EntityAsObjectOptions, EntityUtils} from "../../core/services/mo
 import {chainPromises} from "../../shared/observables";
 import {isEmptyArray, isNil, isNotNil} from "../../shared/functions";
 import {Directive} from "@angular/core";
-import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
-import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
-import {Person} from "../../core/services/model/person.model";
 
 
 export interface BaseEntityGraphqlQueries {
@@ -465,7 +462,7 @@ export abstract class BaseEntityService<T extends Entity<any>,
     // Can be override by subclasses
   }
 
-  protected asObject(entity: T, opts?: EntityAsObjectOptions): StoreObject {
+  protected asObject(entity: T, opts?: EntityAsObjectOptions): any {
     // Can be override by subclasses
     return entity.asObject(opts);
   }

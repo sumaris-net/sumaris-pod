@@ -56,9 +56,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   observedLocationNewName = '';
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
-
   @ViewChild('landingsTable') landingsTable: LandingsTable;
-
   @ViewChild('aggregatedLandingsTable') aggregatedLandingsTable: AggregatedLandingsTable;
 
   get landingEditor(): LandingEditor {

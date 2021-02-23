@@ -59,8 +59,12 @@
   <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
-           matSortDisableClear [trackBy]="trackByFn">
+<mat-table [dataSource]="dataSource"
+           matSort
+           matSortDisableClear
+           [matSortActive]="defaultSortBy"
+           [matSortDirection]="defaultSortDirection"
+           [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
     <mat-header-cell *matHeaderCellDef
@@ -167,7 +171,7 @@
   </ng-container>
 
   <!-- Pmfm columns -->
-  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
+  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.id.toString()">
     <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
       <ion-label [innerHTML]="pmfm | pmfmName:{html: true}"></ion-label>
     </mat-header-cell>
@@ -177,7 +181,7 @@
       <app-pmfm-field
         [readonly]="!row.editing"
         [pmfm]="pmfm"
-        [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId.toString()]"
+        [formControl]="row.validator.controls.measurementValues.controls[pmfm.id.toString()]"
         floatLabel="never">
       </app-pmfm-field>
     </mat-cell>

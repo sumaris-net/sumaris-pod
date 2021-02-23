@@ -229,7 +229,7 @@ export abstract class BaseRootDataService<T extends RootDataEntity<T>,
 
   /* -- protected methods -- */
 
-  protected asObject(entity: T, opts?: DataEntityAsObjectOptions): StoreObject {
+  protected asObject(entity: T, opts?: DataEntityAsObjectOptions): any {
     opts = { ...MINIFY_OPTIONS, ...opts };
     const copy = entity.asObject(opts);
 

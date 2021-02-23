@@ -1,11 +1,5 @@
 import {Moment} from "moment";
-import {
-  isEmptyArray,
-  isNil,
-  isNilOrBlank,
-  isNotNil,
-  joinPropertiesPath,
-} from "../../../shared/functions";
+import {isEmptyArray, isNil, isNilOrBlank, isNotNil, joinPropertiesPath,} from "../../../shared/functions";
 import {FilterFn} from "../../../shared/services/entity-service.class";
 import {ObjectMap, ObjectMapEntry, PropertiesArray, PropertiesMap} from "../../../shared/types";
 import {StoreObject} from "@apollo/client/core";
@@ -71,6 +65,8 @@ export abstract class Entity<T extends IEntity<any, O, ID>, O extends EntityAsOb
   equals(other: T): boolean {
     return other && this.id === other.id;
   }
+
+
 
 }
 

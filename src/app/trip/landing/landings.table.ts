@@ -191,6 +191,8 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
+    this.defaultSortBy = 'id';
+    this.defaultSortDirection = 'asc';
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;

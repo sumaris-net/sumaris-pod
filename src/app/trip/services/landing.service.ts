@@ -233,6 +233,7 @@ export const LandingFragments = {
     validationDate
     qualificationDate
     comments
+    rankOrder
     observedLocationId
     tripId
     rankOrderOnVessel
@@ -701,18 +702,20 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     if (this._debug) console.debug(`[landing-service] Loading ${entityName} locally... using options:`, variables);
     return this.entities.watchAll<Landing>(entityName, variables, {fullLoad: opts && opts.fullLoad})
-      .pipe(map(res => {
-        const data = (res && res.data || []).map(source => Landing.fromObject(source));
-        const total = res && res.total || data.length;
+      .pipe(map(({data, total}) => {
+        const entities = (!opts || opts.toEntity !== false)
+          ? (data || []).map(Landing.fromObject)
+          : (data || []) as Landing[];
+        total = total || entities.length;
 
-        // Compute rankOrder and re-sort (if enable AND all data fetched)
-        if (offset === 0 && size === -1 && (!opts || opts.computeRankOrder !== false)) {
-          this.computeRankOrderAndSort(data, offset, total, sortBy, sortDirection, dataFilter);
+        // Compute rankOrder, by tripId or observedLocationId
+        if (!opts || opts.computeRankOrder !== false) {
+          this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter);
         }
 
         return {
-          data,
-          total: data.length
+          data: entities,
+          total
         };
       }));
   }
