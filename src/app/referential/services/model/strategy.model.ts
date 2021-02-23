@@ -9,7 +9,7 @@ import {Entity} from "../../../core/services/model/entity.model";
 import {Moment} from "moment";
 import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
 import {TaxonGroupRef, TaxonNameRef} from "./taxon.model";
-import {PmfmStrategy} from "./pmfm-strategy.model";
+import {DenormalizedPmfmStrategy, PmfmStrategy} from "./pmfm-strategy.model";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 
@@ -27,7 +27,8 @@ export class Strategy<T extends Strategy<any> = Strategy<any>> extends Referenti
   analyticReference: string;
   creationDate: Moment;
   appliedStrategies: AppliedStrategy[];
-  pmfmStrategies: PmfmStrategy[];
+  pmfms: PmfmStrategy[];
+  denormalizedPmfms: DenormalizedPmfmStrategy[];
   departments: StrategyDepartment[];
 
   gears: any[];
@@ -46,7 +47,6 @@ export class Strategy<T extends Strategy<any> = Strategy<any>> extends Referenti
     this.label = data && data.label;
     this.name = data && data.name;
     this.appliedStrategies = [];
-    this.pmfmStrategies = [];
     this.departments = [];
     this.gears = [];
     this.taxonGroups = [];
@@ -64,7 +64,8 @@ export class Strategy<T extends Strategy<any> = Strategy<any>> extends Referenti
     target.programId = this.programId;
     target.creationDate = toDateISOString(this.creationDate);
     target.appliedStrategies = this.appliedStrategies && this.appliedStrategies.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    target.pmfmStrategies = this.pmfmStrategies && this.pmfmStrategies.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    target.pmfms = this.pmfms && this.pmfms.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    target.denormalizedPmfms = this.denormalizedPmfms && this.denormalizedPmfms.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.departments = this.departments && this.departments.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.gears = this.gears && this.gears.map(s => s.asObject(opts));
     target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
@@ -77,7 +78,8 @@ export class Strategy<T extends Strategy<any> = Strategy<any>> extends Referenti
     this.analyticReference = source.analyticReference;
     this.programId = source.programId;
     this.appliedStrategies = source.appliedStrategies && source.appliedStrategies.map(AppliedStrategy.fromObject) || [];
-    this.pmfmStrategies = source.pmfmStrategies && source.pmfmStrategies.map(PmfmStrategy.fromObject) || [];
+    this.pmfms = source.pmfms && source.pmfms.map(PmfmStrategy.fromObject) || [];
+    this.denormalizedPmfms = source.denormalizedPmfms && source.denormalizedPmfms.map(DenormalizedPmfmStrategy.fromObject) || [];
     this.departments = source.departments && source.departments.map(StrategyDepartment.fromObject) || [];
     this.gears = source.gears && source.gears.map(ReferentialRef.fromObject) || [];
     // Taxon groups, sorted by priority level
@@ -119,7 +121,6 @@ export class StrategyDepartment extends Entity<StrategyDepartment> {
 
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target: any = super.asObject(opts);
-    if (!opts || opts.keepTypename !== true) delete target.__typename;
     target.location = this.location && this.location.asObject(opts) || undefined;
     target.privilege = this.privilege && this.privilege.asObject(opts);
     target.department = this.department && this.department.asObject(opts);
@@ -164,7 +165,6 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
 
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target: any = super.asObject(opts);
-    if (!opts || opts.keepTypename !== true) delete target.__typename;
     target.location = this.location && this.location.asObject(opts);
     target.appliedPeriods = this.appliedPeriods && this.appliedPeriods.map(p => p.asObject(opts)) || undefined;
     return target;
@@ -177,10 +177,21 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
     this.appliedPeriods = source.appliedPeriods && source.appliedPeriods.map(AppliedPeriod.fromObject) || [];
   }
 
+  equals(other: AppliedStrategy) {
+    return super.equals(other)
+      // Same strategyId and location
+      || (this.strategyId === other.strategyId
+      && ((!this.location && !other.location) || (this.location && other.location && this.location.id === other.location.id))
+    );
+  }
+
 }
 
 export class AppliedPeriod {
 
+  static TYPENAME = 'AppliedPeriodVO';
+
+  __typename: string;
   appliedStrategyId: number;
   startDate: Moment;
   endDate: Moment;
@@ -191,6 +202,10 @@ export class AppliedPeriod {
     const res = new AppliedPeriod();
     res.fromObject(source);
     return res;
+  }
+
+  constructor() {
+    this.__typename = AppliedPeriod.TYPENAME;
   }
 
   asObject(opts?: ReferentialAsObjectOptions): any {
@@ -206,6 +221,12 @@ export class AppliedPeriod {
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
     this.acquisitionNumber = source.acquisitionNumber;
+  }
+
+  clone(): AppliedPeriod {
+    const target = new AppliedPeriod();
+    target.fromObject(this.asObject());
+    return target;
   }
 }
 

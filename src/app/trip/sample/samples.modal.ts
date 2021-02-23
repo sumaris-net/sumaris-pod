@@ -5,15 +5,13 @@ import {ModalController} from "@ionic/angular";
 import {BehaviorSubject, Observable} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {AcquisitionLevelCodes, AcquisitionLevelType} from "../../referential/services/model/model.enum";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {isNotNilOrBlank, toBoolean} from "../../shared/functions";
+import {toBoolean} from "../../shared/functions";
 import {PlatformService} from "../../core/services/platform.service";
-import {SampleForm} from "./sample.form";
 import {Sample} from "../services/model/sample.model";
 import {SamplesTable} from "./samples.table";
-import {TaxonGroupRef} from "../../referential/services/model/taxon.model";
 import {Moment} from "moment";
 import {ReferentialRef} from "../../core/services/model/referential.model";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 @Component({
   selector: 'app-samples-modal',
@@ -71,7 +69,7 @@ export class SamplesModal implements OnInit {
     return this.table.valid;
   }
 
-  get $pmfms(): Observable<PmfmStrategy[]> {
+  get $pmfms(): Observable<IPmfm[]> {
     return this.table.$pmfms;
   }
 
@@ -120,7 +118,7 @@ export class SamplesModal implements OnInit {
     await this.table.ready();
   }
 
-  async close(event?: UIEvent) {
+  async onSubmit(event?: UIEvent) {
     if (this.loading) return; // avoid many call
 
     if (this.invalid) {

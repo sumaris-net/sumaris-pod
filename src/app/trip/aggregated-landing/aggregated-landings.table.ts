@@ -1,13 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {AlertController, ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
@@ -28,7 +19,7 @@ import {Moment} from "moment";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {TableElement} from "@e-is/ngx-material-table";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {AggregatedLandingModal} from "./aggregated-landing.modal";
@@ -63,7 +54,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   private _nbDays: number;
   private _startDate: Moment;
   $dates = new BehaviorSubject<Moment[]>(undefined);
-  $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  $pmfms = new BehaviorSubject<DenormalizedPmfmStrategy[]>(undefined);
 
   set nbDays(value: number) {
     if (value && value !== this._nbDays) {

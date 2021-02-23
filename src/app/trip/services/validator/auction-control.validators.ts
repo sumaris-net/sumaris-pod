@@ -4,12 +4,12 @@ import {debounceTime, filter, map, startWith, tap} from "rxjs/operators";
 import {PmfmIds} from "../../../referential/services/model/model.enum";
 import {AppFormUtils} from "../../../core/form/form.utils";
 import {isNotNilOrBlank} from "../../../shared/functions";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {SharedValidators} from "../../../shared/validator/validators";
+import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 export class AuctionControlValidators {
 
-  static addSampleValidators(form: FormGroup, pmfms: PmfmStrategy[],
+  static addSampleValidators(form: FormGroup, pmfms: IPmfm[],
                              opts?: { markForCheck: () => void }): Subscription {
     if (!form) {
       console.warn("Argument 'form' required");
@@ -23,7 +23,7 @@ export class AuctionControlValidators {
     AppFormUtils.disableControls(form,
       pmfms
       .filter(p => p.isComputed)
-      .map(p => 'measurementValues.' + p.pmfmId), {onlySelf: true, emitEvent: false});
+      .map(p => `measurementValues.${p.id}`), {onlySelf: true, emitEvent: false});
 
     const $errors = new Subject<ValidationErrors | null>();
     form.setAsyncValidators((control) => $errors);
@@ -58,10 +58,12 @@ export class AuctionControlValidators {
 
   /**
    * Validate and compute
-   * @param control
+   * @param form
+   * @param pmfms
+   * @param opts
    */
   static computeAndValidate(form: FormGroup,
-                            pmfms: PmfmStrategy[],
+                            pmfms: IPmfm[],
                             opts?: {
     emitEvent?: boolean;
     onlySelf?: boolean;
@@ -73,7 +75,7 @@ export class AuctionControlValidators {
 
     // Read pmfms
     const weightPmfm = pmfms.find(p => p.label.endsWith('_WEIGHT') || p.label === 'SAMPLE_INDIV_COUNT');
-    const indivCountPmfm = pmfms.find(p => p.pmfmId === PmfmIds.SAMPLE_INDIV_COUNT);
+    const indivCountPmfm = pmfms.find(p => p.id === PmfmIds.SAMPLE_INDIV_COUNT);
 
     // Get controls
     const outOfSizeWeightControl = form.get('measurementValues.' + PmfmIds.OUT_OF_SIZE_WEIGHT);
@@ -83,8 +85,8 @@ export class AuctionControlValidators {
     const dirtyCountControl = form.get('measurementValues.' + PmfmIds.DIRTY_INDIV_COUNT);
 
     // Get PMFM values
-    const weight = weightPmfm ? +form.get('measurementValues.' + weightPmfm.pmfmId).value : undefined;
-    const indivCount = indivCountPmfm ? +form.get('measurementValues.' + indivCountPmfm.pmfmId).value : undefined;
+    const weight = weightPmfm ? +form.get('measurementValues.' + weightPmfm.id).value : undefined;
+    const indivCount = indivCountPmfm ? +form.get('measurementValues.' + indivCountPmfm.id).value : undefined;
     const outOfSizeWeight = outOfSizeWeightControl ? +outOfSizeWeightControl.value : undefined;
     const outOfSizeCount = outOfSizeCountControl ? +outOfSizeCountControl.value : undefined;
 

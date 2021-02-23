@@ -28,7 +28,7 @@ import {debounceTime, filter, first} from "rxjs/operators";
 import {Sale} from "../services/model/sale.model";
 import {ExpenseForm} from "../expense/expense.form";
 import {FishingAreaForm} from "../fishing-area/fishing-area.form";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {Landing} from "../services/model/landing.model";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
@@ -37,7 +37,6 @@ import {EntityServiceLoadOptions} from "../../shared/services/entity-service.cla
 import {Program} from "../../referential/services/model/program.model";
 import {environment} from "../../../environments/environment";
 import {Sample} from "../services/model/sample.model";
-import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 
 const moment = momentImported;
 
@@ -69,7 +68,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   operationGroupAttributes = ['metier.label', 'metier.name'];
 
-  productSalePmfms: PmfmStrategy[];
+  productSalePmfms: DenormalizedPmfmStrategy[];
 
   @ViewChild('tripForm', {static: true}) tripForm: TripForm;
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
@@ -361,7 +360,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       const products = operationGroup.products || [];
       if (isNotEmptyArray(operationGroup.samples)) {
         products.forEach(product => {
-          product.samples = operationGroup.samples.filter(sample => ProductUtils.isSampleOfProduct(product, sample))
+          product.samples = operationGroup.samples.filter(sample => ProductUtils.isSampleOfProduct(product, sample));
         });
       }
       // collect all operation group's products (with related samples)
@@ -462,8 +461,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     const enabled = super.enable(opts);
 
     // Leave program & vessel controls disabled
-    this.form.controls['program'].disable(opts);
-    this.form.controls['vesselSnapshot'].disable(opts);
+    this.form.get('program').disable(opts);
+    this.form.get('vesselSnapshot').disable(opts);
 
     return enabled;
   }
@@ -571,10 +570,10 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
           packet.saleProducts.forEach(saleProduct => {
             // Affect batchId (= packet.id)
             saleProduct.batchId = packet.id;
-          })
+          });
           saleProducts.push(...packet.saleProducts);
         }
-      })
+      });
       json.sale.products = saleProducts;
     }
 

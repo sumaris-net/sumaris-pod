@@ -11,7 +11,6 @@ import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/re
 import {HistoryPageReference} from "../../../core/services/model/settings.model";
 import {ObservedLocation} from "../../services/model/observed-location.model";
 import {FormBuilder, FormControl, FormGroup} from "@angular/forms";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {TaxonGroupLabels, TaxonGroupRef} from "../../../referential/services/model/taxon.model";
 import {filterNotNil, firstNotNilPromise} from "../../../shared/observables";
 import {isNil, isNotEmptyArray, isNotNil, toNumber} from "../../../shared/functions";
@@ -19,6 +18,7 @@ import {AppHelpModal} from "../../../shared/help/help.modal";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {Program} from "../../../referential/services/model/program.model";
 import {fadeInOutAnimation} from "../../../shared/material/material.animations";
+import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 @Component({
   selector: 'app-auction-control',
@@ -34,8 +34,8 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   showOtherTaxonGroup = false;
   controlledSpeciesPmfmId: number;
 
-  $pmfms: Observable<PmfmStrategy[]>;
-  $taxonGroupPmfm = new BehaviorSubject<PmfmStrategy>(null);
+  $pmfms: Observable<IPmfm[]>;
+  $taxonGroupPmfm = new BehaviorSubject<IPmfm>(null);
   $taxonGroups = new BehaviorSubject<TaxonGroupRef[]>(null);
   selectedTaxonGroup$: Observable<TaxonGroupRef>;
   showSamplesTable = false;
@@ -95,10 +95,10 @@ export class AuctionControlPage extends LandingPage implements OnInit {
           mergeMap(() => filterNotNil(this.landingForm.$pmfms)),
           map(pmfms => pmfms.map(pmfm => {
             // Controlled species PMFM
-            if (pmfm.pmfmId === PmfmIds.CONTROLLED_SPECIES || pmfm.label === 'TAXON_GROUP') {
+            if (pmfm.id === PmfmIds.CONTROLLED_SPECIES || pmfm.label === 'TAXON_GROUP') {
               console.debug(`[control] Replacing pmfm ${pmfm.label} qualitative values`);
 
-              this.controlledSpeciesPmfmId = pmfm.pmfmId;
+              this.controlledSpeciesPmfmId = pmfm.id;
 
               const taxonGroups = this.$taxonGroups.getValue();
               if (isNotEmptyArray(taxonGroups) && isNotEmptyArray(pmfm.qualitativeValues)) {
@@ -137,7 +137,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     // Get the taxon group control control
     this.selectedTaxonGroup$ = this.$taxonGroupPmfm
       .pipe(
-        map(pmfm => pmfm && this.form.get( `measurementValues.${pmfm.pmfmId}`)),
+        map(pmfm => pmfm && this.form.get( `measurementValues.${pmfm.id}`)),
         filter(isNotNil),
         switchMap(control => control.valueChanges
           .pipe(
@@ -356,7 +356,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     return `${parentUrl}/control/${id}`;
   }
 
-  protected computeSampleRowValidator(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {
+  protected computeSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
     return AuctionControlValidators.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
   }
 

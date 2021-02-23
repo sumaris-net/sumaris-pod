@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
 import {FormGroup} from "@angular/forms";
 import {BehaviorSubject, Subscription} from "rxjs";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ParameterLabelGroups, PmfmIds} from "../../../referential/services/model/model.enum";
 import {PmfmService} from "../../../referential/services/pmfm.service";
 import {ObjectMap} from "../../../shared/types";
@@ -89,7 +89,7 @@ export class SamplingLandingPage extends LandingPage {
     return `${parentUrl}/sampling/${id}`;
   }
 
-  protected computeSampleRowValidator(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {
+  protected computeSampleRowValidator(form: FormGroup, pmfms: DenormalizedPmfmStrategy[]): Subscription {
     console.debug('[sampling-landing-page] Adding row validator');
     return BiologicalSamplingValidators.addSampleValidators(form, pmfms, this.$pmfmGroups.getValue() || {}, {
       markForCheck: () => this.markForCheck()

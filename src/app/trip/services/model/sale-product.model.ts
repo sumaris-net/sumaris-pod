@@ -1,4 +1,4 @@
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {MeasurementValuesUtils} from "./measurement.model";
 import {isNil, isNotEmptyArray, isNotNil, isNotNilOrNaN, round} from "../../../shared/functions";
 import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
@@ -76,7 +76,7 @@ export class SaleProductUtils {
     );
   }
 
-  static isSaleOfProduct(product: Product, saleProduct: Product, pmfms: PmfmStrategy[]): boolean {
+  static isSaleOfProduct(product: Product, saleProduct: Product, pmfms: DenormalizedPmfmStrategy[]): boolean {
     return product && saleProduct
       && product.taxonGroup && saleProduct.taxonGroup && product.taxonGroup.equals(saleProduct.taxonGroup)
       && product.measurementValues && saleProduct.measurementValues
@@ -90,7 +90,7 @@ export class SaleProductUtils {
       && packet.id === saleProduct.batchId;
   }
 
-  static productToSaleProduct(product: Product, pmfms: PmfmStrategy[]): SaleProduct {
+  static productToSaleProduct(product: Product, pmfms: DenormalizedPmfmStrategy[]): SaleProduct {
     const target = SaleProduct.fromObject(product);
 
     // parse measurements to sale properties
@@ -117,7 +117,7 @@ export class SaleProductUtils {
     return target;
   }
 
-  static productsToAggregatedSaleProduct(products: Product[], pmfms: PmfmStrategy[]): SaleProduct[] {
+  static productsToAggregatedSaleProduct(products: Product[], pmfms: DenormalizedPmfmStrategy[]): SaleProduct[] {
     const target: SaleProduct[] = [];
 
     (products || []).forEach(product => {
@@ -170,7 +170,7 @@ export class SaleProductUtils {
   }
 
 
-  static saleProductToProduct(product: Product, saleProduct: SaleProduct, pmfms: PmfmStrategy[], options?: { keepId?: boolean }): Product {
+  static saleProductToProduct(product: Product, saleProduct: SaleProduct, pmfms: DenormalizedPmfmStrategy[], options?: { keepId?: boolean }): Product {
     // merge product with sale product to initialize target product
     const target = {...product, ...saleProduct};
     delete target.saleProducts;
@@ -198,7 +198,7 @@ export class SaleProductUtils {
     return Product.fromObject(target);
   }
 
-  static aggregatedSaleProductsToProducts(packet: Packet, saleProducts: SaleProduct[], pmfms: PmfmStrategy[]): Product[] {
+  static aggregatedSaleProductsToProducts(packet: Packet, saleProducts: SaleProduct[], pmfms: DenormalizedPmfmStrategy[]): Product[] {
     const target: Product[] = [];
 
     (saleProducts || []).forEach(saleProduct => {
@@ -251,7 +251,7 @@ export class SaleProductUtils {
     return target;
   }
 
-  static updateSaleProducts(product: Product, pmfms: PmfmStrategy[]): Product[] {
+  static updateSaleProducts(product: Product, pmfms: DenormalizedPmfmStrategy[]): Product[] {
 
     // convert to SaleProduct
     const saleProducts = isNotEmptyArray(product.saleProducts) ? product.saleProducts.map(p => SaleProductUtils.productToSaleProduct(p, pmfms)) : [];
@@ -275,7 +275,7 @@ export class SaleProductUtils {
 
   }
 
-  static updateAggregatedSaleProducts(packet: Packet, pmfms: PmfmStrategy[]): Product[] {
+  static updateAggregatedSaleProducts(packet: Packet, pmfms: DenormalizedPmfmStrategy[]): Product[] {
 
     // convert to SaleProduct
     const saleProducts = isNotEmptyArray(packet.saleProducts) ? SaleProductUtils.productsToAggregatedSaleProduct(packet.saleProducts, pmfms) : [];

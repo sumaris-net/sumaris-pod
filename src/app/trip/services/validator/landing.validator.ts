@@ -39,10 +39,10 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
     // Add measurement form
     if (opts && opts.withMeasurements) {
       const measForm = form.get('measurementValues') as FormGroup;
-      const pmfmStrategies = (opts.strategy && opts.strategy.pmfmStrategies)
-        || (opts.program && opts.program.strategies[0] && opts.program.strategies[0].pmfmStrategies)
+      const pmfms = (opts.strategy && opts.strategy.denormalizedPmfms)
+        || (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms)
         || [];
-      pmfmStrategies
+      pmfms
         .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.LANDING)
         .forEach(p => {
           const key = p.pmfmId.toString();

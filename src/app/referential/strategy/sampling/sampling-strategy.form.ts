@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {FormArray, FormBuilder, FormControl, ValidationErrors, ValidatorFn} from "@angular/forms";
+import {FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
 import {DateAdapter} from "@angular/material/core";
 import * as momentImported from "moment";
 import {Moment} from 'moment';
@@ -31,7 +31,7 @@ import {
 import {AppForm} from "../../../core/form/form.class";
 import {AppFormUtils, FormArrayHelper} from "../../../core/form/form.utils";
 import {EntityUtils} from "../../../core/services/model/entity.model";
-import {PmfmUtils} from "../../services/model/pmfm.model";
+import {Pmfm, PmfmUtils} from "../../services/model/pmfm.model";
 import {
   firstArrayValue,
   isEmptyArray,
@@ -85,6 +85,17 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     fraction: false
   };
 
+  readonly pmfmFilters = {
+    weight: <PmfmFilter>{
+      levelLabels: ParameterLabelGroups.WEIGHT
+    },
+    length: <PmfmFilter>{
+      levelLabels: ParameterLabelGroups.LENGTH
+    },
+    maturity: <PmfmFilter>{
+      levelLabels: ParameterLabelGroups.MATURITY
+    }
+  };
 
   get value(): any {
     throw new Error("Not implemented! Please use getValue() instead, that is an async function");
@@ -108,6 +119,15 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return this.form.controls.appliedStrategies as FormArray;
   }
 
+  get appliedStrategyForm(): FormGroup {
+    return this.appliedStrategiesHelper && this.appliedStrategiesHelper.at(0) as FormGroup;
+  }
+
+  get appliedPeriodsForm(): FormArray {
+    const appliedStrategyForm = this.appliedStrategyForm;
+    return appliedStrategyForm && appliedStrategyForm.controls.appliedPeriods as FormArray;
+  }
+
   get departmentsFormArray(): FormArray {
     return this.form.controls.departments as FormArray;
   }
@@ -116,16 +136,13 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return this.form.controls.taxonNames as FormArray;
   }
 
-  get appliedPeriodsForm(): FormArray {
-    return this.form.controls.appliedPeriods as FormArray;
+
+  get pmfmsForm(): FormArray {
+    return this.form.controls.pmfms as FormArray;
   }
 
-  get pmfmStrategiesForm(): FormArray {
-    return this.form.controls.pmfmStrategies as FormArray;
-  }
-
-  get pmfmStrategiesFractionForm(): FormArray {
-    return this.form.controls.pmfmStrategiesFraction as FormArray;
+  get pmfmsFractionForm(): FormArray {
+    return this.form.controls.pmfmsFraction as FormArray;
   }
 
   @ViewChild('weightPmfmStrategiesTable', { static: true }) weightPmfmStrategiesTable: PmfmStrategiesTable;
@@ -153,6 +170,19 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   ) {
     super(dateAdapter, validatorService.getFormGroup(), settings);
     this.mobile = this.settings.mobile;
+
+    // Add missing control
+    this.form.addControl('year', new FormControl());
+    this.form.addControl('sex', new FormControl());
+    this.form.addControl('age', new FormControl());
+
+    // Init array helpers
+    this.initDepartmentsHelper();
+    this.initTaxonNameHelper();
+    this.initPmfmStrategiesHelper();
+    this.initAppliedStrategiesHelper();
+    this.initAppliedPeriodHelper();
+    this.initPmfmStrategiesFractionHelper();
   }
 
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
@@ -190,12 +220,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         .subscribe(() => this.initPmfmStrategies())
     );
 
-
-    this.form.addControl('year', new FormControl());
-    this.form.addControl('sex', new FormControl());
-    this.form.addControl('age', new FormControl());
-
-    this.form.get('appliedPeriods').setAsyncValidators([
+    this.appliedPeriodsForm.setAsyncValidators([
       async (control) => {
         const minLength = 1;
         const appliedPeriods = control.value;
@@ -210,7 +235,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }
     ]);
 
-    this.form.get('pmfmStrategies').setAsyncValidators([
+    this.form.get('pmfms').setAsyncValidators([
       //Check if WEIGHT or LENGTH
       async (control) => {
           const pmfms = control.value.flat();
@@ -232,7 +257,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       //Check number of selected pmfms
       async (control) => {
         const minLength = 2;
-        const pmfms = control.get('pmfmStrategies').value.flat();
+        const pmfms = control.get('pmfms').value.flat();
         const sex = control.get('sex').value;
         const age = control.get('age').value;
         let length = 0;
@@ -330,13 +355,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       mobile: this.settings.mobile
     });
 
-    // Init array helpers
-    this.initdepartmentHelper();
-    this.initTaxonNameHelper();
-    this.initPmfmStrategiesHelper();
-    this.initAppliedStrategiesHelper();
-    this.initAppliedPeriodHelper();
-    this.initPmfmStrategiesFractionHelper();
+
 
   }
 
@@ -399,7 +418,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     // Fractions
     const fractionIds: number[] = removeDuplicatesFromArray(data
-      .reduce((res, strategy) => res.concat(...strategy.pmfmStrategies), [])
+      .reduce((res, strategy) => res.concat(...strategy.pmfms), [])
       .reduce((res, pmfmStrategie) => res.concat(pmfmStrategie.fractionId), [])
     );
 
@@ -439,9 +458,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     await this.lengthPmfmStrategiesTable.save();
     await this.maturityPmfmStrategiesTable.save();
 
-    const weights = this.weightPmfmStrategiesTable.value.filter(p => p.pmfm || toNumber(p.parameterId, null));
-    const lengths = this.lengthPmfmStrategiesTable.value.filter(p => p.pmfm || toNumber(p.parameterId, null));
-    const maturities = this.maturityPmfmStrategiesTable.value.filter(p => p.pmfm || toNumber(p.parameterId, null));
+    const weights = this.weightPmfmStrategiesTable.value.filter(p => p.pmfm || p.parameter);
+    const lengths = this.lengthPmfmStrategiesTable.value.filter(p => p.pmfm || p.parameter);
+    const maturities = this.maturityPmfmStrategiesTable.value.filter(p => p.pmfm || p.parameter);
 
     // pmfms.push(this.sexAndAgeHelper.at(0).value);
     // pmfms.push(this.sexAndAgeHelper.at(1).value);
@@ -453,8 +472,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     if (lengths.length <= 0) { this.lengthPmfmStrategiesTable.value = [new PmfmStrategy()]; }
     if (maturities.length <= 0) { this.maturityPmfmStrategiesTable.value = [new PmfmStrategy()]; }
 
-    this.form.controls.pmfmStrategies.patchValue(pmfms);
-    this.pmfmStrategiesForm.markAsTouched();
+    this.form.controls.pmfms.patchValue(pmfms);
+    this.pmfmsForm.markAsTouched();
     this.markAsDirty();
   }
 
@@ -580,33 +599,26 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Resize pmfm strategy array
     this.taxonNamesHelper.resize(Math.max(1, data.taxonNames.length));
 
-    // Resize pmfm strategy array
-    // this.pmfmStrategiesHelper.resize(Math.max(1, data.pmfmStrategies.length));
-
     // Resize strategy department array
     this.appliedPeriodsHelper.resize(4);
 
     // APPLIED_PERIODS
     // get model appliedPeriods which are stored in first applied strategy
     const appliedPeriodControl = this.appliedPeriodsForm;
-    const appliedPeriods = (isNotEmptyArray(data.appliedStrategies) && data.appliedStrategies[0] && data.appliedStrategies[0].appliedPeriods) || [];
-    const appliedStrategyId = (isNotEmptyArray(data.appliedStrategies) && data.appliedStrategies[0] && data.appliedStrategies[0].strategyId) || undefined;
+    const firstAppliedStrategyWithPeriods = firstArrayValue((data.appliedStrategies || []).filter(as => isNotEmptyArray(as.appliedPeriods)));
+    const appliedPeriods = firstAppliedStrategyWithPeriods && firstAppliedStrategyWithPeriods.appliedPeriods;
 
-    const year = moment().year();
+    // Find year, from applied period, or use current
+    const year: number = appliedPeriods && firstArrayValue(appliedPeriods.map(ap => ap.startDate.year())) || moment().year();
 
-    // format periods for applied conrol period in view and init default period by quarter if no set
-    // let quarter = 1;
-    const formattedAppliedPeriods = [];
-    for (let quarter = 1; quarter <= 10; quarter = quarter+3) {
-      formattedAppliedPeriods.push(
-        appliedPeriods.find(period => (period.startDate.month() + 1) === quarter) || {
-          appliedStrategyId: appliedStrategyId,
-          startDate: moment(`${year}-${quarter}-01`).startOf('month'),
-          endDate: moment(`${year}-${quarter+2}-01`).endOf('month'),
-          acquisitionNumber: undefined
-        }
-      );
-    }
+    // format periods for applied period in view and init default period by quarter if no set
+    const formattedAppliedPeriods = [1, 4, 7, 10].map(startMonth => {
+      const appliedPeriod = appliedPeriods && appliedPeriods.find(period => period.startDate.month() === startMonth) || new AppliedPeriod();
+      const endMonth = startMonth + 2;
+      appliedPeriod.startDate = moment(`${year}-${startMonth.toString().padStart(2, '0')}-01`).startOf('month');
+      appliedPeriod.endDate = moment(`${year}-${endMonth.toString().padStart(2, '0')}-01`).endOf('month');
+      return appliedPeriod;
+    });
 
     // patch the control value
     appliedPeriodControl.patchValue(formattedAppliedPeriods);
@@ -614,115 +626,123 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     super.setValue(data, opts);
 
     // Get fisrt period
-    const period = appliedPeriods[0];
-    this.form.get('year').patchValue(period ? period.startDate : moment());
+    const firstAppliedPeriod = firstArrayValue(formattedAppliedPeriods);
+    this.form.get('year').patchValue(firstAppliedPeriod ? firstAppliedPeriod.startDate : moment());
 
     this.form.patchValue({
       analyticReference: { label: data.analyticReference }
     });
 
-    const pmfmStrategiesControl = this.pmfmStrategiesForm;
+    const pmfmsControl = this.pmfmsForm;
 
     // If new
     if (!data.id) {
-      // pmfmStrategies = [null, null];
+      // pmfms = [null, null];
       this.form.get('sex').patchValue(null);
       this.form.get('age').patchValue(null);
     } else {
-      this.form.get('age').patchValue((data.pmfmStrategies || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.AGE)) !== -1);
-      this.form.get('sex').patchValue((data.pmfmStrategies || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.SEX)) !== -1);
-      // pmfmStrategies = [hasSex, hasAge];
+      this.form.get('age').patchValue((data.pmfms || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.AGE)) !== -1);
+      this.form.get('sex').patchValue((data.pmfms || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.SEX)) !== -1);
+      // pmfms = [hasSex, hasAge];
     }
 
 
-    const pmfmStrategies = [];
+    const pmfms = [];
 
     firstNotNilPromise(this._$pmfmGroups).then((pmfmGroups) => {
 
       //WEIGHT
-      const weightPmfmStrategy = this.getPmfmsByType(data.pmfmStrategies, pmfmGroups.WEIGHT, ParameterLabelGroups.WEIGHT);
-      pmfmStrategies.push(weightPmfmStrategy.length > 0 ? weightPmfmStrategy : []);
+      const weightPmfmStrategy = this.getPmfmsByType(data.pmfms, pmfmGroups.WEIGHT, ParameterLabelGroups.WEIGHT);
+      pmfms.push(weightPmfmStrategy.length > 0 ? weightPmfmStrategy : []);
       this.weightPmfmStrategiesTable.value = weightPmfmStrategy.length > 0 ? weightPmfmStrategy : [new PmfmStrategy()];
 
       // LENGTH
-      const lengthPmfmStrategies = this.getPmfmsByType(data.pmfmStrategies, pmfmGroups.LENGTH, ParameterLabelGroups.LENGTH);
-      pmfmStrategies.push(lengthPmfmStrategies.length > 0 ? lengthPmfmStrategies : []);
+      const lengthPmfmStrategies = this.getPmfmsByType(data.pmfms, pmfmGroups.LENGTH, ParameterLabelGroups.LENGTH);
+      pmfms.push(lengthPmfmStrategies.length > 0 ? lengthPmfmStrategies : []);
       this.lengthPmfmStrategiesTable.value = lengthPmfmStrategies.length > 0 ? lengthPmfmStrategies : [new PmfmStrategy()];
 
       // MATURITY
-      const maturityPmfmStrategies = this.getPmfmsByType(data.pmfmStrategies, pmfmGroups.MATURITY, ParameterLabelGroups.MATURITY);
-      pmfmStrategies.push(maturityPmfmStrategies.length > 0 ? maturityPmfmStrategies : []);
+      const maturityPmfmStrategies = this.getPmfmsByType(data.pmfms, pmfmGroups.MATURITY, ParameterLabelGroups.MATURITY);
+      pmfms.push(maturityPmfmStrategies.length > 0 ? maturityPmfmStrategies : []);
       this.maturityPmfmStrategiesTable.value = maturityPmfmStrategies.length > 0 ? maturityPmfmStrategies : [new PmfmStrategy()];
 
-      pmfmStrategiesControl.patchValue(pmfmStrategies);
+      pmfmsControl.patchValue(pmfms);
     });
 
 
-    this.referentialRefService.loadAll(0, 0, null, null,
+    this.referentialRefService.loadAll(0, 1000, null, null,
       {
         entityName: 'Fraction'
       },
       { withTotal: false /* total not need */ }
     ).then(res => {
-      const calcifiedTypeControl = this.pmfmStrategiesFractionForm;
-      const PmfmStrategiesFraction = (data.pmfmStrategies || []).filter(p => p.fractionId && !p.pmfm);
-      const fractions = PmfmStrategiesFraction.map(cal => {
+      const calcifiedTypeControl = this.pmfmsFractionForm;
+      const pmfmStrategiesWithFraction = (data.pmfms || []).filter(p => p.fraction && !p.pmfm);
+      const fractions = pmfmStrategiesWithFraction.map(cal => {
         return {
-          id: cal.fractionId,
-          name: res.data.find(fraction => fraction.id === cal.fractionId).name,
+          id: cal.fraction.id,
+          name: res.data.find(fraction => fraction.id === cal.fraction.id).name,
         };
       });
       calcifiedTypeControl.clear();
-      this.calcifiedFractionsHelper.resize(Math.max(1, PmfmStrategiesFraction.length));
+      this.calcifiedFractionsHelper.resize(Math.max(1, pmfmStrategiesWithFraction.length));
       calcifiedTypeControl.patchValue(fractions);
     });
   }
 
 
-  async getValue(): Promise<any> {
+  async getValue(): Promise<Strategy> {
     const json = this.form.value;
+    const target = Strategy.fromObject(json);
 
-    json.name = json.label || json.name;
-    json.label = json.label || json.name;
-    json.description = json.label || json.description;
-    json.analyticReference = (typeof json.analyticReference === 'object') ? json.analyticReference.label : json.analyticReference;
+    target.name = target.label || target.name;
+    target.label = target.label || target.name;
+    target.description = target.label || target.description;
+    target.analyticReference = EntityUtils.isNotEmpty(target.analyticReference, 'label')
+      ? target.analyticReference['label']
+      : target.analyticReference;
 
     // get taxonName and
-    json.taxonNames = (this.form.controls.taxonNames.value || []);
-    (json.taxonNames || []).forEach(taxonNameStrategy => {
+    target.taxonNames = (this.form.controls.taxonNames.value || []).map(TaxonNameStrategy.fromObject);
+    target.taxonNames.forEach(taxonNameStrategy => {
       delete taxonNameStrategy.strategyId; // Not need when saved
       taxonNameStrategy.priorityLevel = taxonNameStrategy.priorityLevel || 1;
-      taxonNameStrategy.taxonName = {
+      taxonNameStrategy.taxonName = TaxonNameRef.fromObject({
         ...taxonNameStrategy.taxonName,
         taxonGroupIds: undefined
-      } as TaxonNameRef;
+      });
     });
 
     // Apply observer privilege to departments
-    const observerPrivilege = {id: ProgramPrivilegeIds.OBSERVER};
-    json.departments.map(department => department.privilege = observerPrivilege);
+    const observerPrivilege = ReferentialRef.fromObject({id: ProgramPrivilegeIds.OBSERVER, entityName: 'ProgramPrivilege'});
+    target.departments = (target.departments || []).map(StrategyDepartment.fromObject);
+    target.departments.forEach(department => {
+      department.privilege = observerPrivilege;
+    });
 
     // Compute year
     const year = isNotNil(this.form.controls.year.value) ? moment(this.form.controls.year.value).year() : moment().year();
 
     // Fishing Area + Efforts --------------------------------------------------------------------------------------------
 
-    const appliedStrategy: any = firstArrayValue(json.appliedStrategies);
+    const firstAppliedStrategy: AppliedStrategy = firstArrayValue(target.appliedStrategies);
+    const appliedPeriods = (firstAppliedStrategy && firstAppliedStrategy.appliedPeriods || [])
+      .filter(period => isNotNil(period.acquisitionNumber));
+    appliedPeriods.forEach(ap => {
+      // Set year (a quarter should be already set)
+      ap.startDate.set('year', year);
+      ap.endDate.set('year', year);
+    });
 
-    // append efforts (trick is that efforts are added to the first appliedStrategy of the array)
-    if (appliedStrategy) {
-      appliedStrategy.appliedPeriods = (json.appliedPeriods || [])
-        .filter(period => isNotNil(period.acquisitionNumber))
-        .map(p => {
-          p.startDate.set('year', year);
-          p.endDate.set('year', year);
-          return p;
-        });
-    }
-    if (appliedStrategy) {
-      json.appliedStrategies[0] = appliedStrategy;
-    }
-    // json.appliedStrategies = appliedStrategy ? [appliedStrategy] : [];
+    // Copy applied period to each applied strategies
+    (target.appliedStrategies || []).forEach((appliedStrategy, index) => {
+      if (index === 0) {
+        appliedStrategy.appliedPeriods = appliedPeriods;
+      }
+      else {
+        delete appliedStrategy.appliedPeriods;
+      }
+    });
 
     // PMFM + Fractions -------------------------------------------------------------------------------------------------
     const sex = this.form.get('sex').value;
@@ -737,9 +757,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       ...this.lengthPmfmStrategiesTable.value
     ];
 
+    // Add SEX Pmfm
     if (sex) {
-      const pmfmStrategySex = <PmfmStrategy>{ pmfmId: PmfmIds.SEX };
-      pmfmStrategies.push(pmfmStrategySex);
+      pmfmStrategies.push(PmfmStrategy.fromObject({ pmfm: {id: PmfmIds.SEX }}));
 
       // Add maturity pmfms
       await this.maturityPmfmStrategiesTable.save();
@@ -748,61 +768,41 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       );
     }
 
+    // Add AGE Pmfm
     if (age) {
-      const pmfmStrategyAge = <PmfmStrategy>{ pmfmId: PmfmIds.AGE };
-      pmfmStrategies.push(pmfmStrategyAge);
+      pmfmStrategies.push(PmfmStrategy.fromObject({ pmfm: {id: PmfmIds.AGE }}));
 
       // Pièces calcifiées
-      (json.pmfmStrategiesFraction || []).filter(isNotNil)
-        .forEach(fraction => {
-          const pmfmStrategiesFraction = <PmfmStrategy>{
-            fraction
-          };
-          pmfmStrategies.push(pmfmStrategiesFraction);
-        });
+      (json.pmfmsFraction || [])
+        .map(fraction => PmfmStrategy.fromObject({ fraction }))
+        .filter(isNotNil)
+        .forEach(pmfmStrategies.push);
     }
 
-    // Add analytic reference pmfm strategy
-    const pmfmStrategyAnalyticReference = <PmfmStrategy>{
-      pmfmId: PmfmIds.MORSE_CODE
-    };
-    pmfmStrategies.push(pmfmStrategyAnalyticReference);
+    // Add analytic reference Pmfm
+    pmfmStrategies.push(PmfmStrategy.fromObject({pmfm: {id: PmfmIds.MORSE_CODE}}));
 
+    // Fill PmfmStrategy defaults
     let rankOrder = 1;
-    json.pmfmStrategies = pmfmStrategies
-      .map(pmfm => {
-        // Set defaults attributes
-        pmfm.strategyId = json.id;
-        pmfm.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
-        pmfm.pmfmId = toNumber(pmfm.pmfmId, toNumber((pmfm.pmfm && pmfm.pmfm.id) ? pmfm.pmfm.id : null, null));
-        pmfm.parameter = pmfm.parameter ? pmfm.parameter : undefined;
-        pmfm.parameterId = toNumber(pmfm.parameterId, pmfm.parameter && pmfm.parameter.id);
-        pmfm.matrixId = toNumber(pmfm.matrixId, pmfm.matrix && pmfm.matrix.id);
-        pmfm.fractionId = toNumber(pmfm.fractionId, pmfm.fraction && pmfm.fraction.id);
-        pmfm.methodId = toNumber(pmfm.methodId, pmfm.method && pmfm.method.id);
-        pmfm.acquisitionNumber = 1;
-        pmfm.isMandatory = false;
-        pmfm.rankOrder = rankOrder++;
-
-        // Minify entity
-        pmfm.pmfm = pmfm.pmfm && pmfm.pmfm.asObject ? pmfm.pmfm.asObject({minify: false}) : undefined;
-
-        //FIX TODO
-        if (pmfm.parameter) {
-          const parameter = new ReferentialRef();
-          parameter.id = pmfm.parameter.id;
-          parameter.entityName = pmfm.parameter.entityName;
-          parameter.label = pmfm.parameter.label;
-          parameter.name = pmfm.parameter.name;
-          pmfm.parameter = parameter;
-        }
-
-        return pmfm;
+    target.pmfms = pmfmStrategies
+      .map(pmfmStrategy => {
+        pmfmStrategy.strategyId = target.id;
+        pmfmStrategy.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
+        pmfmStrategy.acquisitionNumber = 1;
+        pmfmStrategy.isMandatory = false;
+        pmfmStrategy.rankOrder = rankOrder++;
+        pmfmStrategy.pmfm = pmfmStrategy.pmfm && Pmfm.fromObject(pmfmStrategy.pmfm) || undefined;
+        pmfmStrategy.parameter = pmfmStrategy.parameter && ReferentialRef.fromObject(pmfmStrategy.parameter) || undefined;
+        pmfmStrategy.matrix = pmfmStrategy.matrix && ReferentialRef.fromObject(pmfmStrategy.matrix) || undefined;
+        pmfmStrategy.fraction = pmfmStrategy.fraction && ReferentialRef.fromObject(pmfmStrategy.fraction) || undefined;
+        pmfmStrategy.method = pmfmStrategy.method && ReferentialRef.fromObject(pmfmStrategy.method) || undefined;
+        return pmfmStrategy;
       })
       // Remove if empty
-      .filter(p => isNotNil(p.pmfmId) || isNotNil(p.parameterId) || isNotNil(p.matrixId) || isNotNil(p.fractionId) || isNotNil(p.methodId));
+      .filter(p => isNotNil(p.pmfm) || isNotNil(p.parameter) || isNotNil(p.matrix) || isNotNil(p.fraction) || isNotNil(p.method));
 
-    return json;
+
+    return target;
   }
 
   protected async onDateChange(date?: Moment) {
@@ -852,11 +852,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     }
   }
 
-  // pmfmStrategies Helper -----------------------------------------------------------------------------------------------
+  // pmfms Helper -----------------------------------------------------------------------------------------------
   protected initPmfmStrategiesHelper() {
     // appliedStrategies => appliedStrategies.location ?
     this.sexAndAgeHelper = new FormArrayHelper<PmfmStrategy>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'pmfmStrategies'),
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'pmfms'),
       (pmfmStrategy) => this.formBuilder.control(pmfmStrategy || null),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
@@ -898,9 +898,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   // appliedStrategies Helper -----------------------------------------------------------------------------------------------
   protected initAppliedPeriodHelper() {
+    // Use the first applied strategy form group (created just before)
+    const appliedStrategyForm = this.appliedStrategiesHelper.at(0) as FormGroup;
+
     // appliedStrategiesHelper formControl can't have common validator since quarters efforts are optional
     this.appliedPeriodsHelper = new FormArrayHelper<AppliedPeriod>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'appliedPeriods'),
+      FormArrayHelper.getOrCreateArray(this.formBuilder, appliedStrategyForm, 'appliedPeriods'),
       (appliedPeriod) => this.validatorService.getAppliedPeriodsControl(appliedPeriod),
       (p1, p2) => EntityUtils.equals(p1, p2, 'startDate'),
       value => isNil(value),
@@ -918,7 +921,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   // Laboratory Helper -----------------------------------------------------------------------------------------------
-  protected initdepartmentHelper() {
+  protected initDepartmentsHelper() {
     this.departmentsHelper = new FormArrayHelper<StrategyDepartment>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'departments'),
       (department) => this.validatorService.getStrategyDepartmentsControl(department),
@@ -941,8 +944,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   // PmfmStrategiesFractionHelper - Pièces calcifiées ------------------------------------------------------------------------------------------
   protected initPmfmStrategiesFractionHelper() {
     this.calcifiedFractionsHelper = new FormArrayHelper<PmfmStrategy>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'pmfmStrategiesFraction'),
-      (pmfmStrategiesFraction) => this.formBuilder.control(pmfmStrategiesFraction || null, [SharedValidators.entity]),
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'pmfmsFraction'),
+      (pmfmsFraction) => this.formBuilder.control(pmfmsFraction || null, [SharedValidators.entity]),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
@@ -1003,13 +1006,13 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   /**
    * get pmfm by type
-   * @param pmfmStrategies
+   * @param pmfms
    * @param pmfmGroups
    * @param type
    * @protected
    */
-  protected getPmfmsByType(pmfmStrategies: PmfmStrategy[], pmfmGroups: number[], type: any) {
-    return (pmfmStrategies || []).filter(p => {
+  protected getPmfmsByType(pmfms: PmfmStrategy[], pmfmGroups: number[], type: any) {
+    return (pmfms || []).filter(p => {
       if (p) {
         const pmfmId = toNumber(p.pmfmId, p.pmfm && p.pmfm.id);
         const hasParameterId = p.parameter && p.parameter.label && type.includes(p.parameter.label);

@@ -1,20 +1,17 @@
 import {Moment} from "moment";
 import {ReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {
-  isNil, isNilOrBlank,
-  isNotNil,
-  isNotNilOrNaN,
-  joinPropertiesPath,
-} from "../../../shared/functions";
-import {Pmfm} from "./pmfm.model";
-import {PmfmStrategy} from "./pmfm-strategy.model";
+import {isNil, isNilOrBlank, isNotNil, isNotNilOrNaN, joinPropertiesPath} from "../../../shared/functions";
+import {IPmfm, Pmfm} from "./pmfm.model";
+import {DenormalizedPmfmStrategy} from "./pmfm-strategy.model";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 export declare type PmfmValue = number | string | boolean | Moment | ReferentialRef<any>;
+export declare type PmfmDefinition = DenormalizedPmfmStrategy | Pmfm;
+
 
 export abstract class PmfmValueUtils {
 
-  static toModelValue(value: PmfmValue | any, pmfm: PmfmStrategy | Pmfm): string {
+  static toModelValue(value: PmfmValue | any, pmfm: IPmfm): string {
     if (isNil(value) || !pmfm) return undefined;
     switch (pmfm.type) {
       case "qualitative_value":
@@ -33,7 +30,7 @@ export abstract class PmfmValueUtils {
     }
   }
 
-  static fromModelValue(value: any, pmfm: PmfmStrategy | Pmfm): PmfmValue {
+  static fromModelValue(value: any, pmfm: IPmfm): PmfmValue {
     if (!pmfm) return value;
     // If empty, apply the pmfm default value
     if (isNil(value) && isNotNil(pmfm.defaultValue)) value = pmfm.defaultValue;
@@ -60,7 +57,7 @@ export abstract class PmfmValueUtils {
     }
   }
 
-  static valueToString(value: any, opts: { pmfm: PmfmStrategy | Pmfm, propertyNames?: string[]; html?: boolean; } ): string | undefined {
+  static valueToString(value: any, opts: { pmfm: IPmfm, propertyNames?: string[]; html?: boolean; } ): string | undefined {
     if (isNil(value) || !opts || !opts.pmfm) return null;
     switch (opts.pmfm.type) {
       case "qualitative_value":

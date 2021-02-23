@@ -183,8 +183,8 @@
 
   <!-- other -->
   <div *ngSwitchDefault>
-    <mat-error *ngIf="type">Unknown type {{type}} for PMFM {{pmfm?.pmfmId}}. Please report this error.</mat-error>
-    <mat-error *ngIf="!type">Error on field for PMFM {{pmfm?.pmfmId}}. Please report this error.</mat-error>
+    <mat-error *ngIf="type">Unknown type {{type}} for PMFM {{pmfm?.id}}. Please report this error.</mat-error>
+    <mat-error *ngIf="!type">Error on field for PMFM {{pmfm?.id}}. Please report this error.</mat-error>
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>

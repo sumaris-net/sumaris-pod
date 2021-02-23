@@ -341,13 +341,6 @@
           "EXTERIOR_MARKING_NAME": "Marquage extérieur - Nom",
           "REGISTRATION_CODE_NAME": "Code d'immatriculation - Nom"
         }
-      },
-      "PMFM_STRATEGY": {
-        "NAME": "Stratégie > Paramètre PSFM",
-        "ATTRIBUTES": {
-          "LONG_COLUMN_TITLE": "Paramètre collecté (PMFM)",
-          "SHORT_COLUMN_TITLE": "PSFM"
-        }
       }
     },
     "ERROR": {
@@ -1253,9 +1246,6 @@
       "PROGRAM_STRATEGY_EDITOR" : "Stratégie > éditeur",
       "PROGRAM_STRATEGY_EDITOR_LEGACY": "Par défaut",
       "PROGRAM_STRATEGY_EDITOR_SAMPLING": "Paramètres biologiques",
-      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Stratégie > Tableau PSFM > Nom de colonne",
-      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PSFM",
-      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Paramètre collecté (PMFM)",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
       "VESSEL_TYPE_ENABLE": "Navires > Activer le type de navire ?"
     },
@@ -1380,9 +1370,7 @@
       "PMFM_STRATEGY": {
         "ACQUISITION_LEVEL": "Niveau d'acquisition",
         "RANK_ORDER": "Ordre",
-        "PMFM": "Paramètre collecté (PMFM)",
-        "LONG_COLUMN_TITLE": "Paramètre collecté (PMFM)",
-        "SHORT_COLUMN_TITLE": "PSFM",
+        "PMFM": "PSFM",
         "PARAMETER": "Paramètre",
         "PARAMETER_ID": "Paramètre",
         "MATRIX": "Support",

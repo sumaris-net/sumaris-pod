@@ -104,7 +104,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
   @ViewChild('gearList', { static: true }) gearListForm: AppListForm;
   @ViewChild('taxonGroupList', { static: true }) taxonGroupListForm: AppListForm;
   @ViewChild('taxonNameList', { static: true }) taxonNameListForm: AppListForm;
-  @ViewChild('pmfmStrategiesTable', { static: true }) pmfmStrategiesTable: PmfmStrategiesTable;
+  @ViewChild('pmfmsTable', { static: true }) pmfmsTable: PmfmStrategiesTable;
 
   get form(): FormGroup {
     return this.referentialForm.form;
@@ -152,7 +152,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
         .pipe(
           debounceTime(450)
         )
-        .subscribe(filter => this.pmfmStrategiesTable.setFilter(filter))
+        .subscribe(filter => this.pmfmsTable.setFilter(filter))
     );
 
     // Load acquisition levels
@@ -163,7 +163,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
 
     // Listen when Pmfm selection is empty
     this.registerSubscription(
-      this.pmfmStrategiesTable.selectionChanges
+      this.pmfmsTable.selectionChanges
         .subscribe(rows => this.$isPmfmStrategyEmpty.next(isEmptyArray(rows)))
       );
 
@@ -179,7 +179,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
   protected registerForms() {
     this.addChildForms([
       this.referentialForm,
-      this.pmfmStrategiesTable,
+      this.pmfmsTable,
       this.acquisitionLevelList,
       this.locationListForm,
       this.gearListForm,
@@ -351,7 +351,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
 
 
     const allAcquisitionLevels = this.$allAcquisitionLevels.getValue();
-    const collectedAcquisitionLevels = (data.pmfmStrategies || []).reduce((res, item) => {
+    const collectedAcquisitionLevels = (data.pmfms || []).reduce((res, item) => {
       if (typeof item.acquisitionLevel === "string" && res[item.acquisitionLevel] === undefined) {
         res[item.acquisitionLevel] = allAcquisitionLevels.find(al => al.label === item.acquisitionLevel) || null;
       }
@@ -359,7 +359,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
     }, <{[key: string]: ReferentialRef|null}>{});
     this.acquisitionLevelList.value = Object.values(collectedAcquisitionLevels).filter(isNotNil) as ReferentialRef[];
 
-    this.pmfmStrategiesTable.value = data.pmfmStrategies || [];
+    this.pmfmsTable.value = data.pmfms || [];
 
 
   }
@@ -379,11 +379,11 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
     json.taxonGroups = this.taxonGroupListForm.value;
     json.taxonNames = this.taxonNameListForm.value;
 
-    if (this.pmfmStrategiesTable.dirty) {
-      const saved = await this.pmfmStrategiesTable.save();
-      if (!saved) throw Error('Failed to save pmfmStrategiesTable');
+    if (this.pmfmsTable.dirty) {
+      const saved = await this.pmfmsTable.save();
+      if (!saved) throw Error('Failed to save pmfmsTable');
     }
-    json.pmfmStrategies = this.pmfmStrategiesTable.value;
+    json.pmfms = this.pmfmsTable.value;
 
     return json;
   }
@@ -423,7 +423,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
   protected addToSelectedPmfmRows(event: Event, arrayName: string, value: any) {
     if (event) event.preventDefault(); // Cancel toggle event, in <list-form> component
 
-    (this.pmfmStrategiesTable.selection.selected || [])
+    (this.pmfmsTable.selection.selected || [])
       .forEach(row => {
         const control = row.validator.get(arrayName);
         if (!control) throw new Error('Control not found in row validator: ' + arrayName);
@@ -436,7 +436,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
         }
       });
 
-    this.pmfmStrategiesTable.markAsDirty();
+    this.pmfmsTable.markAsDirty();
   }
 
   protected removeFromSelectedPmfmRows(event: Event,
@@ -444,7 +444,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
                                           value: any) {
     if (event) event.preventDefault(); // Cancel toggle event, in <list-form> component
 
-    (this.pmfmStrategiesTable.selection.selected || [])
+    (this.pmfmsTable.selection.selected || [])
       .forEach(row => {
         const control = row.validator.get(arrayName);
         if (!control) throw new Error('Control not found in row validator: ' + arrayName);
@@ -458,7 +458,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
         }
       });
 
-    this.pmfmStrategiesTable.markAsDirty();
+    this.pmfmsTable.markAsDirty();
   }
 
   taxonGroupStrategyToString(data: TaxonGroupStrategy): string {

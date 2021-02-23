@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {FetchPolicy, gql} from "@apollo/client/core";
+import {FetchPolicy, gql, StoreObject} from "@apollo/client/core";
 import {ReferentialFragments} from "./referential.fragments";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {CacheService} from "ionic-cache";
@@ -15,14 +15,15 @@ import {
   BaseEntityGraphqlSubscriptions
 } from "./base-entity-service.class";
 import {PlatformService} from "../../core/services/platform.service";
-import {EntityUtils} from "../../core/services/model/entity.model";
+import {EntityAsObjectOptions, EntityUtils} from "../../core/services/model/entity.model";
 import {SortDirection} from "@angular/material/sort";
 import {ReferentialRefFilter} from "./referential-ref.service";
-import {Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
+import {MINIFY_OPTIONS, NOT_MINIFY_OPTIONS, Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {StrategyFragments} from "./strategy.fragments";
 import {isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
 import {LoadResult} from "../../shared/services/entity-service.class";
 import {BaseReferentialService} from "./base-referential-service.class";
+import {Pmfm} from "./model/pmfm.model";
 
 
 export class StrategyFilter extends ReferentialFilter {
@@ -44,7 +45,7 @@ const LoadAllAnalyticReferencesQuery: any = gql`
   ${ReferentialFragments.referential}
 `;
 
-const StrategyQueries: BaseEntityGraphqlQueries & { count: any; loadAllRef: any; } = {
+const StrategyQueries: BaseEntityGraphqlQueries & { count: any; } = {
   load: gql`query Strategy($id: Int!) {
     data: strategy(id: $id) {
       ...StrategyFragment
@@ -65,66 +66,40 @@ const StrategyQueries: BaseEntityGraphqlQueries & { count: any; loadAllRef: any;
 
   loadAll: gql`query Strategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...StrategyFragment
+      ...LightStrategyFragment
     }
   }
-  ${StrategyFragments.strategy}
+  ${StrategyFragments.lightStrategy}
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.pmfmStrategy}
+  ${StrategyFragments.lightPmfmStrategy}
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.pmfm}
-  ${ReferentialFragments.parameter}
-  ${ReferentialFragments.fullReferential}
+  ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.taxonName}`,
 
   loadAllWithTotal: gql`query StrategiesWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...StrategyFragment
+      ...LightStrategyFragment
     }
     total: strategiesCount(filter: $filter)
   }
-  ${StrategyFragments.strategy}
+  ${StrategyFragments.lightStrategy}
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.pmfmStrategy}
+  ${StrategyFragments.lightPmfmStrategy}
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.pmfm}
-  ${ReferentialFragments.parameter}
-  ${ReferentialFragments.fullReferential}
+  ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.taxonName}`,
 
   count: gql`query StrategyCount($filter: StrategyFilterVOInput!) {
       total: strategiesCount(filter: $filter)
-    }`,
-
-  loadAllRef: gql`query StrategiesRef($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
-      data: strategies(filter: $filter) {
-        ...StrategyRefFragment
-        appliedStrategies {
-          ...AppliedStrategyFragment
-        }
-        departments {
-          ...StrategyDepartmentFragment
-        }
-      }
-    }
-    ${StrategyFragments.strategyRef}
-    ${StrategyFragments.appliedStrategy}
-    ${StrategyFragments.appliedPeriod}
-    ${StrategyFragments.strategyDepartment}
-    ${StrategyFragments.strategyRef}
-    ${StrategyFragments.pmfmStrategyRef}
-    ${StrategyFragments.taxonGroupStrategy}
-    ${StrategyFragments.taxonNameStrategy}
-    ${ReferentialFragments.referential}
-    ${ReferentialFragments.taxonName}`
+    }`
 };
 
 const StrategyMutations: BaseEntityGraphqlMutations = {
@@ -268,28 +243,48 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     return this.accountService.isSupervisor();
   }
 
+  protected asObject(entity: Strategy, opts?: EntityAsObjectOptions): StoreObject {
+    const target: any = super.asObject(entity, opts);
+
+    (target.pmfms || []).forEach(pmfmStrategy => {
+      pmfmStrategy.pmfmId = toNumber(pmfmStrategy.pmfm && pmfmStrategy.pmfm.id, pmfmStrategy.pmfmId);
+      delete pmfmStrategy.pmfm;
+    });
+
+    return target;
+  }
+
   copyIdAndUpdateDate(source: Strategy, target: Strategy) {
 
     EntityUtils.copyIdAndUpdateDate(source, target);
 
-    // Update strategies
-
     // Make sure tp copy programId (need by equals)
     target.programId = source.programId;
 
-    const savedStrategy = source;
-    EntityUtils.copyIdAndUpdateDate(savedStrategy, target);
-
-    // Update pmfm strategy (id)
-    if (savedStrategy.pmfmStrategies && savedStrategy.pmfmStrategies.length > 0) {
-
-      target.pmfmStrategies.forEach(targetPmfmStrategy => {
-
+    // Applied strategies
+    if (source.appliedStrategies && source.appliedStrategies.length > 0) {
+      target.appliedStrategies.forEach(targetAppliedStrategy => {
         // Make sure to copy strategyId (need by equals)
-        targetPmfmStrategy.strategyId = savedStrategy.id;
+        targetAppliedStrategy.strategyId = source.id;
 
-        const savedPmfmStrategy = target.pmfmStrategies.find(srcPmfmStrategy => targetPmfmStrategy.equals(srcPmfmStrategy));
-        targetPmfmStrategy.id = savedPmfmStrategy.id;
+        // Copy id and update date
+        const savedAppliedStrategy = (source.appliedStrategies || []).find(as => targetAppliedStrategy.equals(as));
+        EntityUtils.copyIdAndUpdateDate(savedAppliedStrategy, targetAppliedStrategy);
+      });
+    }
+
+    // Pmfm strategies
+    if (source.pmfms && source.pmfms.length > 0) {
+      target.pmfms.forEach(targetPmfmStrategy => {
+        // Make sure to copy strategyId (need by equals)
+        targetPmfmStrategy.strategyId = source.id;
+
+        // Copy id and update date
+        const savedPmfmStrategy = source.pmfms.find(srcPmfmStrategy => targetPmfmStrategy.equals(srcPmfmStrategy));
+        EntityUtils.copyIdAndUpdateDate(savedPmfmStrategy, targetPmfmStrategy);
+
+        // Copy pmfm
+        targetPmfmStrategy.pmfm = savedPmfmStrategy && savedPmfmStrategy.pmfm && Pmfm.fromObject(savedPmfmStrategy.pmfm) || targetPmfmStrategy.pmfm;
       });
     }
   }

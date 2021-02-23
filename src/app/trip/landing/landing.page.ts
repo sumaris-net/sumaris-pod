@@ -1,14 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  Injector,
-  OnInit,
-  Optional,
-  QueryList,
-  ViewChild,
-  ViewChildren
-} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, Optional, QueryList, ViewChild, ViewChildren} from '@angular/core';
 
 import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
 import {LandingForm} from "./landing.form";
@@ -33,17 +23,15 @@ import {AppEditorOptions} from "../../core/form/editor.class";
 import {Program} from "../../referential/services/model/program.model";
 import {fromDateISOString} from "../../shared/dates";
 import {environment} from "../../../environments/environment";
-import {
-  STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX,
-  StrategySummaryCardComponent
-} from "../../data/strategy/strategy-summary-card.component";
+import {STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent} from "../../data/strategy/strategy-summary-card.component";
 import {merge, Subscription} from "rxjs";
 import {Strategy} from "../../referential/services/model/strategy.model";
 import {firstNotNilPromise} from "../../shared/observables";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import * as momentImported from "moment";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {PmfmService} from "../../referential/services/pmfm.service";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 const moment = momentImported;
 
@@ -344,7 +332,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.samplesTable.showTaxonGroupColumn = false;
 
     // We use pmfms from strategy and from sampling data. Some pmfms are only stored in data.
-    const newPmfms = (strategy.pmfmStrategies || []).filter(p => p.acquisitionLevel === this.samplesTable.acquisitionLevel);
+    const newPmfms: IPmfm[] = (strategy.denormalizedPmfms || []).filter(p => p.acquisitionLevel === this.samplesTable.acquisitionLevel);
 
     // pmfms from sampling data
     const dataPmfms = (this.data.samples || []).reduce((res, sample) => {
@@ -352,15 +340,17 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       const newPmfmIds = pmfmIds.filter(pmfmId => !res.includes(pmfmId));
       return res.concat(...newPmfmIds);
     }, []);
-    const pmfmsFromSamples = (await Promise.all(dataPmfms.map(pmfmId => this.pmfmService.load(pmfmId))))
-      .map(PmfmStrategy.fromPmfm);
+    const pmfmsFromSamples = (await Promise.all(dataPmfms.map(id => this.pmfmService.load(id))));
 
     let pmfmsFromStrategyAndSamples = newPmfms;
     pmfmsFromSamples.forEach(pmfmFromSamples => {
-      if (!pmfmsFromStrategyAndSamples.find(pmfmIter => pmfmIter.pmfmId == pmfmFromSamples.pmfmId)) {pmfmsFromStrategyAndSamples = pmfmsFromStrategyAndSamples.concat(pmfmFromSamples)};
+      if (!pmfmsFromStrategyAndSamples.find(pmfmIter => pmfmIter.id === pmfmFromSamples.id)) {
+        pmfmsFromStrategyAndSamples = pmfmsFromStrategyAndSamples.concat(pmfmFromSamples);
+      }
     });
     // Hide fractions pmfms
-    const pmfmsFromSamplesWithoutFractions = (pmfmsFromStrategyAndSamples || []).filter(pmfmStrategy => (isNil(pmfmStrategy.fractionId) && isNil(pmfmStrategy.fraction))) || [];
+    // TODO BLA: Attention: ceci n'est pas applicable sur un Pmfm ou un DenormalizedPmfmStrategy
+    const pmfmsFromSamplesWithoutFractions = (pmfmsFromStrategyAndSamples || []).filter(pmfmStrategy => isNil(pmfmStrategy.fractionId));
 
     this.samplesTable.pmfms = pmfmsFromSamplesWithoutFractions;
   }
@@ -468,7 +458,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     }
   }
 
-  protected computeSampleRowValidator(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {
+  protected computeSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
     console.warn('[landing-page] No row validator override');
     // Can be override by subclasses (e.g auction control, biological sampling samples table)
     return null;

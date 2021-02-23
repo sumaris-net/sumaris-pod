@@ -47,7 +47,7 @@
                                          [pmfm]="pmfm"
                                          [hidden]="pmfm.hidden"
                                          [style]="'button'"
-                                         [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
+                                         [formControl]="form.get('measurementValues.'+ pmfm.id)"
                                          [compact]="compact"
                                          [tabindex]="tabindex+2 + i*2">
           </app-pmfm-qv-field>
@@ -55,12 +55,11 @@
 
         <!-- NOT qualitative value -->
         <ng-template #otherField>
-          <app-pmfm-field #matInput
-                                      [pmfm]="pmfm"
-                                      [hidden]="pmfm.hidden"
-                                      [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
-                                      [compact]="compact"
-                                      [tabindex]="tabindex+2 + i*2">
+          <app-pmfm-field #matInput [pmfm]="pmfm"
+                                    [hidden]="pmfm.hidden"
+                                    [formControl]="form.get('measurementValues.'+ pmfm.id)"
+                                    [compact]="compact"
+                                    [tabindex]="tabindex+2 + i*2">
           </app-pmfm-field>
         </ng-template>
 

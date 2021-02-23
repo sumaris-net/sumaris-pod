@@ -9,91 +9,78 @@ import {isNotNil} from "../../../shared/functions";
 @Injectable({providedIn: 'root'})
 export class PmfmStrategyValidatorService implements ValidatorService {
 
-  private _isSimpleStrategy: boolean;
-  public get isSimpleStrategy(): boolean {
-    return this._isSimpleStrategy;
-  }
-  public set isSimpleStrategy(value: boolean) {
-    this._isSimpleStrategy = value;
+  private _withDetails = true;
+
+  public get withDetails(): boolean {
+    return this._withDetails;
   }
 
-
-
+  public set withDetails(value: boolean) {
+    this._withDetails = value;
+  }
 
   constructor(
     protected formBuilder: FormBuilder
   ) {
-    this._isSimpleStrategy = false;
+    this._withDetails = true;
   }
 
   getRowValidator(): FormGroup {
     return this.getFormGroup();
   }
 
-  //getFormGroup(data?: PmfmStrategy): FormGroup {
-  //  return this.formBuilder.group(this.getFormGroupConfig(data));
-  //}
-
-  getFormGroup(data?: PmfmStrategy): FormGroup {
+  getFormGroup(data?: PmfmStrategy, opts?: {
+    withDetails?: boolean;
+  }): FormGroup {
+    opts = {
+      withDetails: this._withDetails,
+      ...opts
+    };
     return this.formBuilder.group(
-      this.getFormGroupConfig(data),
-      this.getFormGroupOptions(data)
+      this.getFormGroupConfig(data, opts),
+      this.getFormGroupOptions(data, opts)
     );
   }
 
-  getFormGroupConfig(data?: PmfmStrategy): {[key: string]: any} {
-    const controlsConfig: {[key: string]: any} = {
-      id: [data && data.id || null]
+  getFormGroupConfig(data?: PmfmStrategy, opts?: {
+    withDetails?: boolean;
+  }): {[key: string]: any} {
+    const config: {[key: string]: any} = {
+      id: [data && data.id || null],
+      pmfm: [data && data.pmfm || null, SharedValidators.entity],
+      parameter: [data && data.parameter || null, SharedValidators.entity],
+      matrix: [data && data.matrix || null, SharedValidators.entity],
+      fraction: [data && data.fraction || null, SharedValidators.entity],
+      method: [data && data.method || null, SharedValidators.entity]
     };
-    if (this.isSimpleStrategy) {
-      // FIXME CLT  check validators
-      controlsConfig.pmfm = [data && data.pmfm || null, SharedValidators.entity];
-      controlsConfig.parameter = [data && data.pmfm.parameter || null];
-      controlsConfig.matrix = [data && data.pmfm.matrix || null];
-      controlsConfig.fraction = [data && data.pmfm.fraction || null];
-      controlsConfig.method = [data && data.pmfm.method || null];
-      
-      // controlsConfig.pmfm = [data && data.pmfm || null, SharedValidators.entity];
-      controlsConfig.parameter = [data && data.parameter || null];
-      controlsConfig.matrixId = [data && data.matrixId || null];
-      controlsConfig.fractionId = [data && data.fractionId || null];
-      controlsConfig.methodId = [data && data.methodId || null];
-    }
-    if (!this.isSimpleStrategy) {
-      controlsConfig.acquisitionLevel = [data && data.acquisitionLevel || null, Validators.required];
-      controlsConfig.rankOrder = [data && data.rankOrder || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])];
-      controlsConfig.pmfm = [data && data.pmfm || null, Validators.compose([Validators.required, SharedValidators.entity])];
-      controlsConfig.parameterId = [data && data.parameterId || null, SharedValidators.integer];
-      controlsConfig.matrixId = [data && data.matrixId || null, SharedValidators.integer];
-      controlsConfig.fractionId = [data && data.fractionId || null, SharedValidators.integer];
-      controlsConfig.methodId = [data && data.methodId || null, SharedValidators.integer];
-      controlsConfig.isMandatory = [data && data.isMandatory || false, Validators.required];
-      controlsConfig.acquisitionNumber = [data && data.acquisitionNumber || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])];
-      controlsConfig.minValue = [data && data.minValue || null, SharedValidators.double()];
-      controlsConfig.maxValue = [data && data.maxValue || null, SharedValidators.double()];
-      controlsConfig.defaultValue = [isNotNil(data && data.defaultValue) ? data.defaultValue : null];
-      controlsConfig.gearIds = [data && data.gearIds || null];
-      controlsConfig.taxonGroupIds = [data && data.taxonGroupIds || null];
-      controlsConfig.referenceTaxonIds = [data && data.referenceTaxonIds || null];
+    if (opts.withDetails) {
+      config.acquisitionLevel = [data && data.acquisitionLevel || null, Validators.required];
+      config.rankOrder = [data && data.rankOrder || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])];
+      config.isMandatory = [data && data.isMandatory || false, Validators.required];
+      config.acquisitionNumber = [data && data.acquisitionNumber || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])];
+      config.minValue = [data && data.minValue || null, SharedValidators.double()];
+      config.maxValue = [data && data.maxValue || null, SharedValidators.double()];
+      config.defaultValue = [isNotNil(data && data.defaultValue) ? data.defaultValue : null];
+      config.gearIds = [data && data.gearIds || null];
+      config.taxonGroupIds = [data && data.taxonGroupIds || null];
+      config.referenceTaxonIds = [data && data.referenceTaxonIds || null];
     }
 
-
-    return controlsConfig;
+    return config;
   }
 
-  getFormGroupOptions(data?: PmfmStrategy, opts?: any): AbstractControlOptions | any {
-    if (this.isSimpleStrategy) {
+  getFormGroupOptions(data?: PmfmStrategy, opts?: {
+    withDetails?: boolean;
+  }): AbstractControlOptions | any {
       return {
-        validator: (fg: FormGroup) => {
-          const pmfm = fg.get('pmfm').value;
-          const parameter = fg.get('parameter').value;
+        validator: (form: FormGroup) => {
+          const pmfm = form.get('pmfm').value;
+          const parameter = form.get('parameter').value;
           if ((pmfm && !parameter) || (!pmfm && parameter) || (!pmfm && !parameter)) {
             return null;
           }
           return {pmfmOrParameterId: true};
         }
       };
-    }
-    return {};
   }
 }

@@ -52,8 +52,6 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   i18nFieldPrefix = 'PROGRAM.';
   strategyEditor: StrategyEditor = 'legacy';
 
-  onRefreshListener: Subscription; // TODO BLA: à supprimer ?
-
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
   @ViewChild('locationClassificationList', { static: true }) locationClassificationList: AppListForm;

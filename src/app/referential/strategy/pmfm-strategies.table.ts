@@ -18,8 +18,8 @@ import {
 } from "../../shared/functions";
 import {BehaviorSubject, Observable, of} from "rxjs";
 import {firstFalsePromise} from "../../shared/observables";
-import {PmfmService} from "../services/pmfm.service";
-import {Pmfm} from "../services/model/pmfm.model";
+import {PmfmFilter, PmfmService} from "../services/pmfm.service";
+import {IPmfm, Pmfm, PMFM_NAME_REGEXP} from "../services/model/pmfm.model";
 import {
   IReferentialRef,
   Referential,
@@ -28,9 +28,14 @@ import {
 } from "../../core/services/model/referential.model";
 import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasource.class";
 import {debounceTime, filter, map, startWith, switchMap} from "rxjs/operators";
-import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy, getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
 import {ParameterLabelGroups} from "../services/model/model.enum";
+import {options} from "ionicons/icons";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {LoadResult} from "../../shared/services/entity-service.class";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {tar} from "@ionic/cli/lib/utils/archive";
 
 export class PmfmStrategyFilter {
 
@@ -102,26 +107,23 @@ export const PmfmStrategyFilterKeys: KeysEnum<PmfmStrategyFilter> = {
 export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStrategyFilter> implements OnInit {
 
 
-  $selectedPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   $acquisitionLevels = new BehaviorSubject<IReferentialRef[]>(undefined);
-  $pmfms = new BehaviorSubject<Pmfm[]>(undefined);
-  $gears = new BehaviorSubject<IReferentialRef[]>(undefined);
   $loadingReferential = new BehaviorSubject<boolean>(true);
-  $qualitativeValues = new BehaviorSubject<IReferentialRef[]>(undefined);
 
   fieldDefinitionsMap: FormFieldDefinitionMap = {};
   fieldDefinitions: FormFieldDefinition[] = [];
 
   @Input() showToolbar = true;
   @Input() showHeaderRow = true;
-  @Input() canDisplaySimpleStrategyValidators = true;
-  @Input() pmfmFilterApplied = 'all';
+  @Input() withDetails = true;
+  @Input() pmfmFilter: PmfmFilter;
+  @Input() showPmfmLabel = true;
   @Input() allowNoRow = false;
   @Input() canEdit = false;
   @Input() canDelete = false;
   @Input() sticky = false;
-  @Input()
-  set showDetailsColumns(value: boolean) {
+
+  @Input() set showDetailsColumns(value: boolean) {
     // Set details columns visibility
     this.setShowColumn('acquisitionLevel', value);
     this.setShowColumn('rankOrder', value);
@@ -237,12 +239,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   ngOnInit() {
     super.ngOnInit();
-
-    // Pmfms can be loaded only when we are aware of specific used strategy (in order to be aware of optional pmfmFilterApplied set in ngOnInit)
-    // TODO BLA: à replacer par une suggestFn !! avec un filter
-    this.loadPmfms();
-
-    this.validatorService.isSimpleStrategy = !this.showHeaderRow;
+    this.validatorService.withDetails = this.withDetails;
 
     // Acquisition level
     this.registerFormField('acquisitionLevel', {
@@ -265,24 +262,17 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     });
 
     // Pmfm
-    // INFO CLT Manage column header according to displayed strategy and application parameter.
-    // Default pmfm column name according to displayed strategy when parameter isn't set in application settings.
-    const defaultPmfmColumnName: string = this.canDisplaySimpleStrategyValidators ? 'SHORT_COLUMN_TITLE' : 'LONG_COLUMN_TITLE';
-    const pmfmStrategyParameterColumnNameFormat = this.settings.getFieldDisplayAttributes('pmfmStrategyParameterColumnName', [defaultPmfmColumnName]);
-    let basePmfmAttributes = this.settings.getFieldDisplayAttributes('pmfm', ['label', 'name']);
-    if (pmfmStrategyParameterColumnNameFormat.includes('SHORT_COLUMN_TITLE')) {
-      basePmfmAttributes = ['name'];
-    }
+    const basePmfmAttributes = (!this.showPmfmLabel ? ['name'] : this.settings.getFieldDisplayAttributes('pmfm', ['label', 'name']));
     const pmfmAttributes = basePmfmAttributes
       .map(attr => attr === 'name' ? 'parameter.name' : attr)
       .concat(['unit.label', 'matrix.name', 'fraction.name', 'method.name']);
     const pmfmColumnNames = basePmfmAttributes.map(attr => 'REFERENTIAL.' + attr.toUpperCase())
       .concat(['REFERENTIAL.PMFM.UNIT', 'REFERENTIAL.PMFM.MATRIX', 'REFERENTIAL.PMFM.FRACTION', 'REFERENTIAL.PMFM.METHOD']);
-    this.registerFormFieldWithSettingsFieldName('pmfm', {
+    this.registerFormField('pmfm', {
       type: 'entity',
       required: false,
       autocomplete: this.registerAutocompleteField('pmfm', {
-        items: this.$pmfms,
+        suggestFn: (value, opts) => this.suggestPmfms(value, opts),
         attributes: pmfmAttributes,
         columnSizes: pmfmAttributes.map(attr => {
           switch (attr) {
@@ -298,11 +288,11 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           }
         }),
         columnNames: pmfmColumnNames,
-        displayWith: (pmfm) => getPmfmName(pmfm, {withUnit: true, withDetails: !this.showHeaderRow}),
+        displayWith: (pmfm) => this.displayPmfm(pmfm, {withUnit: true, withDetails: true}),
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-full-size'
       })
-    }, pmfmStrategyParameterColumnNameFormat[0]);
+    }, );
 
 
     // PMFM.PARAMETER
@@ -311,15 +301,23 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       type: 'entity',
       required: false,
       autocomplete: this.registerAutocompleteField('parameter', {
-        items: this.$pmfms
-        .pipe(
-          filter(isNotNil),
-          map((pmfms: Pmfm[]) => {
-            return removeDuplicatesFromArray(pmfms.map(p => p.parameter), 'label');
-          })
-        ),
+        suggestFn: async (value, opts) => {
+          if (this.pmfmFilter) {
+            const {data} = await this.pmfmService.suggest(value, {
+              ...opts,
+              ...this.pmfmFilter
+            });
+            return removeDuplicatesFromArray(data.map(p => p.parameter), 'label');
+          }
+          else {
+            return await this.referentialRefService.suggest(value, {
+              ...opts,
+              entityName: 'Parameter',
+              statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+            });
+          }
+        },
         attributes: pmfmParameterAttributes,
-        // displayWith: (obj) => this.displayParameter(obj),
         columnSizes: [4, 8],
         columnNames: ['REFERENTIAL.PARAMETER.CODE', 'REFERENTIAL.PARAMETER.NAME'],
         showAllOnFocus: false,
@@ -394,25 +392,14 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     const acquisitionLevels = this.$acquisitionLevels.getValue();
 
-    // TODO BLA A remplacer par une suggestFn !!
-    await this.loadPmfms();
-
-    const pmfms = this.$pmfms.getValue();
-    //const gears = this.$gears.getValue();
     return data.map(source => {
       const target: any = source instanceof PmfmStrategy ? source.asObject() : source;
       target.acquisitionLevel = acquisitionLevels.find(i => i.label === target.acquisitionLevel);
 
-
-      // TODO BLA: ne devrait pas etre utile si la grappe GrahQL contient pmfm
-      const pmfm = pmfms.find(i => i.id === target.pmfmId);
-      target.pmfm = pmfm;
-      delete target.pmfmId;
-
       if (isNotNil(target.defaultValue)) {
         console.debug("[pmfm-strategy-table] TODO check default value is valid: ", target.defaultValue);
       }
-      target.defaultValue = PmfmValueUtils.fromModelValue(target.defaultValue, pmfm);
+      target.defaultValue = target.pmfm && PmfmValueUtils.fromModelValue(target.defaultValue, target.pmfm);
 
       return target;
     });
@@ -472,21 +459,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       .reduce((res, data) => Math.max(res, data.rankOrder || 0), 0);
   }
 
-  protected registerFormFieldWithSettingsFieldName(fieldName: string, def: Partial<FormFieldDefinition>, fieldTitle: string, intoMap?: boolean) {
-    const definition = <FormFieldDefinition>{
-      key: fieldName,
-      label: this.i18nColumnPrefix + fieldTitle,
-      ...def
-    };
-    if (intoMap === true) {
-      this.fieldDefinitionsMap[fieldName] = definition;
-    }
-    else {
-      this.fieldDefinitions.push(definition);
-    }
-  }
-
-
   protected registerFormField(fieldName: string, def: Partial<FormFieldDefinition>, intoMap?: boolean) {
     const definition = <FormFieldDefinition>{
       key: fieldName,
@@ -517,9 +489,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     try {
       await Promise.all([
-        this.loadAcquisitionLevels(),
-        // Pmfms can be loaded only when we are aware of specific used strategy (in order to be aware of optional pmfmFilterApplied set in ngOnInit)
-        //this.loadPmfms(),
+        this.loadAcquisitionLevels()
       ]);
 
       console.debug("[pmfm-strategy-table] Loaded referential items");
@@ -539,77 +509,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.$acquisitionLevels.next(res && res.data || undefined);
   }
 
-  protected async loadPmfms() {
-      if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'weight')
-      {
-        // We add a filter on pmfm with parameter in ('WEIGHT')
-        const res = await this.pmfmService.loadAll(0, 1000, null, null, {
-          entityName: 'Pmfm',
-          levelLabels: ParameterLabelGroups.WEIGHT
-          // searchJoin: "Parameter" is implied in pod filter
-        },
-          {
-            withTotal: false,
-            withDetails: true
-          });
-          this.$pmfms.next(res && res.data || []);
-      }
-      else if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'size')
-      {
-        // We add a filter on pmfm with parameter in specific size list
-        const res = await this.pmfmService.loadAll(0, 1000, null, null, {
-          entityName: 'Pmfm',
-          levelLabels: ParameterLabelGroups.LENGTH
-          // searchJoin: "Parameter" is implied in pod filter
-        },
-          {
-            withTotal: false,
-            withDetails: true
-          });
-          this.$pmfms.next(res && res.data || []);
-      }
-      else if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'maturity')
-      {
-        // We add a filter on pmfm with parameter in specific maturity list
-        const res = await this.pmfmService.loadAll(0, 1000, null, null, {
-          entityName: 'Pmfm',
-          levelLabels: ParameterLabelGroups.MATURITY
-          // searchJoin: "Parameter" is implied in pod filter
-        },
-          {
-            withTotal: false,
-            withDetails: true
-          });
-          this.$pmfms.next(res && res.data || []);
-      }
-      else {
-        const res = await this.pmfmService.loadAll(0, 1000, null, null, null,
-        {
-          withTotal: false,
-          withDetails: true
-        });
-        this.$pmfms.next(res && res.data || []);
-      }
-
-
-  }
-
-  protected startEditingRow() {
-    console.debug("TODO start edit");
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
-  displayParameter(obj: number|Referential) {
-    const parameterId = (obj instanceof Referential) ? obj.id : obj as number;
-    const pmfm = (this.$pmfms.getValue() || []).find(pmfm => pmfm.parameter?.id === parameterId);
-    return pmfm && pmfm.parameter && pmfm.parameter.name || '';
-  }
-
   async deleteRow(event: UIEvent, row: TableElement<PmfmStrategy>) {
-    let deleteCount: number;
     if (row.editing) {
       this.cancelOrDelete(event, row);
     }
@@ -621,4 +521,56 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     }
 
   }
+
+  /* -- protected functions -- */
+
+  protected suggestPmfms(value: any, opts?: any): Promise<LoadResult<Pmfm>> {
+    return this.pmfmService.suggest(value, {
+      ...opts,
+      /*searchJoin: !this.showPmfmLabel ? 'parameter' : undefined,
+      searchAttribute: !this.showPmfmLabel ? 'name' : undefined,
+      ...this.pmfmFilter*/
+    });
+  }
+
+  /**
+   * Compute a PMFM.NAME, with the last part of the name
+   * @param pmfm
+   * @param opts
+   */
+  protected displayPmfm(pmfm: Pmfm, opts?: {
+    withUnit?: boolean;
+    html?: boolean;
+    withDetails?: boolean;
+  }): string {
+
+    if (!pmfm) return undefined;
+
+    let name = pmfm.parameter && pmfm.parameter.name;
+    if (opts && opts.withDetails) {
+      name = [
+        name,
+        pmfm.matrix && pmfm.matrix.name,
+        pmfm.fraction && pmfm.fraction.name,
+        pmfm.method && pmfm.method.name
+      ].filter(isNotNil).join(' - ');
+    }
+
+    // Append unit
+    const unitLabel = (pmfm.type === 'integer' || pmfm.type === 'double') && pmfm.unit && pmfm.unit.label;
+    if ((!opts || opts.withUnit !== false) && unitLabel) {
+      if (opts && opts.html) {
+        name += `<small><br/>(${unitLabel})</small>`;
+      }
+      else {
+        name += ` (${unitLabel})`;
+      }
+    }
+    return name;
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
 }

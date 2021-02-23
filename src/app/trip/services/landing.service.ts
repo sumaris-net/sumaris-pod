@@ -680,7 +680,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
                   dataFilter?: LandingFilter,
                   opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
 
-    if (!LandingFilter.isEmpty(dataFilter)) {
+    if (LandingFilter.isEmpty(dataFilter)) {
       console.warn("[landing-service] Trying to watch landings without 'filter': skipping.");
       return EMPTY;
     }

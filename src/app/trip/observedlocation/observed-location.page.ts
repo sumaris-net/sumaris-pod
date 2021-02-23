@@ -444,8 +444,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     return json;
   }
 
-
-  // TODO BLA: manage langinTable2
   protected getFirstInvalidTabIndex(): number {
     return this.observedLocationForm.invalid ? 0
       : ((this.landingsTable && this.landingsTable.invalid) || (this.aggregatedLandingsTable && this.aggregatedLandingsTable.invalid) ? 1

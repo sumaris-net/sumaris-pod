@@ -1,27 +1,8 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Inject,
-  InjectionToken,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import {isObservable, Observable, Subscription} from 'rxjs';
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {FormGroup, Validators} from "@angular/forms";
-import {
-  isEmptyArray,
-  isNil,
-  isNilOrBlank,
-  isNotEmptyArray,
-  isNotNil,
-  startsWithUpperCase,
-  toBoolean
-} from "../../../shared/functions";
+import {isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, startsWithUpperCase, toBoolean} from "../../../shared/functions";
 import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
 import {UsageMode} from "../../../core/services/model/settings.model";
 import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
@@ -33,7 +14,7 @@ import {MeasurementValuesUtils} from "../../services/model/measurement.model";
 import {SubBatchModal} from "../modal/sub-batch.modal";
 import {selectInputContent} from "../../../shared/inputs";
 import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../../referential/services/model/model.enum";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {SortDirection} from "@angular/material/sort";
 import {SubBatch, SubBatchUtils} from "../../services/model/subbatch.model";
@@ -43,6 +24,7 @@ import {AppFormUtils} from "../../../core/form/form.utils";
 import {EntityUtils} from "../../../core/services/model/entity.model";
 import {environment} from "../../../../environments/environment";
 import {LoadResult} from "../../../shared/services/entity-service.class";
+import {IPmfm, PmfmUtils} from "../../../referential/services/model/pmfm.model";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -83,7 +65,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   implements OnInit, OnDestroy {
 
 
-  private _qvPmfm: PmfmStrategy;
+  private _qvPmfm: IPmfm;
   private _parentSubscription: Subscription;
   private _availableParents: BatchGroup[] = [];
   protected _availableSortedParents: BatchGroup[] = [];
@@ -92,7 +74,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
 
-  @Input() displayParentPmfm: PmfmStrategy;
+  @Input() displayParentPmfm: IPmfm;
 
   @Input() showForm = false;
 
@@ -100,7 +82,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
   @Input() usageMode: UsageMode;
 
-  @Input() set qvPmfm(value: PmfmStrategy) {
+  @Input() set qvPmfm(value: IPmfm) {
     this._qvPmfm = value;
     // If already loaded, re apply pmfms, to be able to execute mapPmfms
     if (value) {
@@ -108,7 +90,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     }
   }
 
-  get qvPmfm(): PmfmStrategy {
+  get qvPmfm(): IPmfm {
     return this._qvPmfm;
   }
 
@@ -269,8 +251,8 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
           const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
 
           pmfms.forEach(pmfm => {
-            const enable = isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(parenTaxonGroupId);
-            const control = controls[pmfm.pmfmId];
+            const enable = !(pmfm instanceof DenormalizedPmfmStrategy) || isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(parenTaxonGroupId);
+            const control = controls[pmfm.id];
 
             // Update control state
             if (control) {
@@ -342,7 +324,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     }
   }
 
-  async setValueFromParent(parents: BatchGroup[], groupQvPmfm?: PmfmStrategy) {
+  async setValueFromParent(parents: BatchGroup[], groupQvPmfm?: IPmfm) {
 
     this.qvPmfm = groupQvPmfm;
     const subBatches = SubBatchUtils.fromBatchGroups(parents, {groupQvPmfm});
@@ -442,7 +424,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
       // Copy QV PMFM value, if any
       if (this.qvPmfm && this.form.freezeQvPmfm) {
-        newBatch.measurementValues[this.qvPmfm.pmfmId] = previousBatch.measurementValues[this.qvPmfm.pmfmId];
+        newBatch.measurementValues[this.qvPmfm.id] = previousBatch.measurementValues[this.qvPmfm.id];
       }
 
       // Copy taxon name (if freezed)
@@ -512,11 +494,11 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       });
   }
 
-  protected mapPmfms(pmfms: PmfmStrategy[]) {
+  protected mapPmfms(pmfms: IPmfm[]) {
 
     if (this._qvPmfm) {
       // Make sure QV Pmfm is required (need to link with parent batch)
-      const index = pmfms.findIndex(pmfm => pmfm.pmfmId === this._qvPmfm.pmfmId);
+      const index = pmfms.findIndex(pmfm => pmfm.id === this._qvPmfm.id);
       if (index !== -1) {
         // Replace original pmfm by a clone, with hidden=true
         const qvPmfm = this._qvPmfm.clone();
@@ -528,14 +510,14 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     }
 
     // Exclude weight Pmfm
-    pmfms = pmfms.filter(ps => !ps.isWeight);
+    pmfms = pmfms.filter(p => !PmfmUtils.isWeight(p));
 
     // Filter on parents taxon groups
     const parentTaxonGroupIds = (this._availableParents || []).map(parent => parent.taxonGroup && parent.taxonGroup.id)
       .filter(isNotNil);
     if (isNotEmptyArray(parentTaxonGroupIds)) {
       pmfms = pmfms.map(pmfm => {
-        if (isNotEmptyArray(pmfm.taxonGroupIds) && pmfm.taxonGroupIds.findIndex(id => parentTaxonGroupIds.includes(id)) === -1) {
+        if (pmfm instanceof DenormalizedPmfmStrategy && isNotEmptyArray(pmfm.taxonGroupIds) && pmfm.taxonGroupIds.findIndex(id => parentTaxonGroupIds.includes(id)) === -1) {
           pmfm = pmfm.clone(); // Keep original
           pmfm.hidden = true;
           pmfm.required = false;
@@ -653,7 +635,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
     // Sort parents by Tag-ID, or rankOrder
     if (this.displayParentPmfm) {
-      this._availableSortedParents = EntityUtils.sort(parents.slice(), 'measurementValues.' + this.displayParentPmfm.pmfmId.toString());
+      this._availableSortedParents = EntityUtils.sort(parents.slice(), 'measurementValues.' + this.displayParentPmfm.id.toString());
     } else {
       this._availableSortedParents = EntityUtils.sort(parents.slice(), 'rankOrder');
     }
@@ -699,7 +681,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   protected getI18nColumnName(columnName: string): string {
 
     // Replace parent by TAG_ID pmfms
-    columnName = columnName && columnName === 'parent' && this.displayParentPmfm ? this.displayParentPmfm.pmfmId.toString() : columnName;
+    columnName = columnName && columnName === 'parent' && this.displayParentPmfm ? this.displayParentPmfm.id.toString() : columnName;
 
     return super.getI18nColumnName(columnName);
   }

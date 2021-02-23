@@ -2,13 +2,12 @@ import {ChangeDetectionStrategy, Component, Injector, Input} from "@angular/core
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {SampleValidatorService} from "../../services/validator/sample.validator";
 import {isEmptyArray, isNotEmptyArray, isNotNil} from "../../../shared/functions";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {environment} from "../../../../environments/environment";
 import {BehaviorSubject} from "rxjs";
 import {ObjectMap} from "../../../shared/types";
 import {firstNotNilPromise} from "../../../shared/observables";
-import {SelectReferentialModal} from "../../../referential/list/select-referential.modal";
 import {SamplesTable, SamplesTableOptions} from "../samples.table";
 import {PmfmFilter, PmfmService} from "../../../referential/services/pmfm.service";
 import {ProgramRefService} from "../../../referential/services/program-ref.service";
@@ -16,6 +15,7 @@ import {SelectPmfmModal} from "../../../referential/pmfm/select-pmfm.modal";
 import {ReferentialRef} from "../../../core/services/model/referential.model";
 import {Sample} from "../../services/model/sample.model";
 import {TaxonUtils} from "../../../referential/services/model/taxon.model";
+import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 export interface SampleFilter {
   operationId?: number;
@@ -103,7 +103,7 @@ export class SamplingSamplesTable extends SamplesTable {
    * @param event
    */
   async openChangePmfmsModal(event?: UIEvent) {
-    const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.pmfmId).filter(isNotNil);
+    const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.id).filter(isNotNil);
 
     const pmfmIds = await this.openSelectPmfmsModal(event, {
       excludedIds: existingPmfmIds
@@ -117,7 +117,7 @@ export class SamplingSamplesTable extends SamplesTable {
 
 
   async openAddPmfmsModal(event?: UIEvent) {
-    const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.pmfmId).filter(isNotNil);
+    const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.id).filter(isNotNil);
 
     const pmfmIds = await this.openSelectPmfmsModal(event, {
       excludedIds: existingPmfmIds
@@ -136,7 +136,7 @@ export class SamplingSamplesTable extends SamplesTable {
    * Force to wait PMFM map to be loaded
    * @param pmfms
    */
-  protected async mapPmfms(pmfms: PmfmStrategy[]): Promise<PmfmStrategy[]> {
+  protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
     if (isEmptyArray(pmfms)) return pmfms;
 
     // Wait until map is loaded
@@ -147,17 +147,17 @@ export class SamplingSamplesTable extends SamplesTable {
 
     // Create pmfms group
     const orderedPmfmIds: number[] = [];
-    const orderedPmfms: PmfmStrategy[] = [];
+    const orderedPmfms: IPmfm[] = [];
     let groupIndex = 0;
     const pmfmGroupColumns: GroupColumnDefinition[] = SAMPLE_PARAMETER_GROUPS.reduce((pmfmGroups, group) => {
-      let groupPmfms: PmfmStrategy[];
+      let groupPmfms: IPmfm[];
       if (group === 'OTHER') {
-        groupPmfms = pmfms.filter(p => !groupedPmfmIds.includes(p.pmfmId));
+        groupPmfms = pmfms.filter(p => !groupedPmfmIds.includes(p.id));
       }
       else {
         const groupPmfmIds = groupedPmfmIdsMap[group];
         if (isNotEmptyArray(groupPmfmIds)) {
-          groupPmfms = pmfms.filter(p => groupPmfmIds.includes(p.pmfmId));
+          groupPmfms = pmfms.filter(p => groupPmfmIds.includes(p.id));
         }
       }
 
@@ -172,7 +172,9 @@ export class SamplingSamplesTable extends SamplesTable {
         pmfm = pmfm.clone(); // Clone, to leave original PMFM unchanged
 
         // Use rankOrder as a group index (will be used in template, to computed column class)
-        pmfm.rankOrder = groupIndex;
+        if (pmfm instanceof DenormalizedPmfmStrategy) {
+          pmfm.rankOrder = groupIndex;
+        }
 
         // Add pmfm into the final list of ordered pmfms
         orderedPmfms.push(pmfm);
@@ -183,10 +185,10 @@ export class SamplingSamplesTable extends SamplesTable {
 
       return pmfmGroups.concat(
         ...groupPmfms.reduce((res, pmfm, index) => {
-          if (orderedPmfmIds.includes(pmfm.pmfmId)) return res; // Skip if already proceed
-          orderedPmfmIds.push(pmfm.pmfmId);
+          if (orderedPmfmIds.includes(pmfm.id)) return res; // Skip if already proceed
+          orderedPmfmIds.push(pmfm.id);
           return res.concat(<GroupColumnDefinition>{
-            key: pmfm.pmfmId.toString(),
+            key: pmfm.id.toString(),
             label: group,
             name: this.i18nColumnPrefix + group,
             cssClass,
@@ -230,8 +232,8 @@ export class SamplingSamplesTable extends SamplesTable {
   protected async addPmfmColumns(pmfmIds: number[]) {
     if (isEmptyArray(pmfmIds)) return; // Skip if empty
 
-    const pmfms = (await Promise.all(pmfmIds.map(pmfmId => this.pmfmService.load(pmfmId))))
-      .map(PmfmStrategy.fromPmfm);
+    // Load each pmfms, by id
+    const pmfms = (await Promise.all(pmfmIds.map(id => this.pmfmService.load(id))));
 
     this.pmfms = [
       ...this.$pmfms.getValue(),

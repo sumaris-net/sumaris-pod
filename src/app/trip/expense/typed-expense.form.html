@@ -6,7 +6,7 @@
       <ion-col size="12" size-md="2" size-lg="3"
                *ngIf="$typePmfm | async; let typePmfm">
         <app-pmfm-qv-field [pmfm]="typePmfm"
-                                       [formControlName]="typePmfm.pmfmId.toString()"
+                                       [formControlName]="typePmfm.id.toString()"
                                        [hidden]="typePmfm.hidden"
                                        [style]="mobile? 'button' : 'autocomplete'"
                                        [compact]="compact"
@@ -33,7 +33,7 @@
       </ion-col>
       <ion-col>
         <app-pmfm-field [pmfm]="totalPmfm"
-                        [formControlName]="totalPmfm.pmfmId.toString()"
+                        [formControlName]="totalPmfm.id.toString()"
                         [hidden]="totalPmfm.hidden"
                         [compact]="compact"
                         [tabindex]="tabindex+2">

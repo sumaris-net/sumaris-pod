@@ -115,7 +115,7 @@
       </ion-grid>
     </mat-tab>
 
-    <!-- TAB: operations -->
+    <!-- TAB: operations (effort) -->
     <mat-tab label="{{'TRIP.TAB_OPERATION_GROUPS'|translate}}" [disabled]="!showOperationGroupTab">
       <ng-template mat-tab-label>
         <mat-icon>
@@ -123,7 +123,7 @@
         </mat-icon>
         <ion-label translate>TRIP.TAB_OPERATION_GROUPS</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger"
-                  *ngIf="operationGroupTable.invalid && operationGroupTable.dirty"></ion-icon>
+                  *ngIf="submitted && operationGroupTable.invalid"></ion-icon>
       </ng-template>
 
       <app-operation-group-table #operationGroupTable
@@ -141,7 +141,7 @@
         <ion-icon slot="start" name="scan"></ion-icon>
         <ion-label translate>TRIP.TAB_CATCHES</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger"
-                  *ngIf="(productsTable.invalid && productsTable.dirty) || (packetsTable.invalid && packetsTable.dirty)"></ion-icon>
+                  *ngIf="submitted && (productsTable.invalid || packetsTable.invalid)"></ion-icon>
       </ng-template>
 
       <form class="form-container" [formGroup]="catchFilterForm">
@@ -171,7 +171,7 @@
           <ng-template mat-tab-label>
             <ion-label translate>TRIP.LANDED_CATCH.TAB_PRODUCT</ion-label>
             <ion-icon slot="end" name="alert-circle" color="danger"
-                      *ngIf="(productsTable.invalid && productsTable.dirty) "></ion-icon>
+                      *ngIf="submitted && productsTable.invalid"></ion-icon>
           </ng-template>
 
           <app-products-table #productsTable
@@ -189,7 +189,7 @@
           <ng-template mat-tab-label>
             <ion-label translate>TRIP.LANDED_CATCH.TAB_BATCH</ion-label>
             <ion-icon slot="end" name="alert-circle" color="danger"
-                      *ngIf="(packetsTable.invalid && packetsTable.dirty) "></ion-icon>
+                      *ngIf="submitted && packetsTable.invalid"></ion-icon>
           </ng-template>
 
           <app-packets-table #packetsTable
@@ -210,7 +210,7 @@
       <ng-template mat-tab-label>
         <ion-icon slot="start" name="card"></ion-icon>
         <ion-label translate>TRIP.TAB_EXPENSES</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="expenseForm.invalid && expenseForm.dirty"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && expenseForm.invalid"></ion-icon>
       </ng-template>
 
       <app-expense-form #expenseForm
@@ -220,7 +220,7 @@
                         [forceOptional]="usageMode|isOnField"
                         [showError]="true"
                         [debug]="debug"
-                        (onTabChange)="onSubTabChange($event)">
+                        (selectedTabChange)="onSubTabChange($event)">
       </app-expense-form>
 
     </mat-tab>

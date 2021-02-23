@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql} from "@apollo/client/core";
-import {ReferentialFragments} from "../services/referential.fragments";
+import {ReferentialFragments} from "./referential.fragments";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {CacheService} from "ionic-cache";
 import {AccountService} from "../../core/services/account.service";
@@ -8,16 +8,16 @@ import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {SortDirection} from "@angular/material/sort";
-import {StrategyFragments} from "../services/strategy.fragments";
+import {StrategyFragments} from "./strategy.fragments";
 import {LoadResult} from "../../shared/services/entity-service.class";
-import {StrategyFilter, StrategyService} from "../services/strategy.service";
+import {StrategyFilter, StrategyService} from "./strategy.service";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {isEmptyArray, isNotNil} from "../../shared/functions";
-import {ParameterLabelGroups} from "../services/model/model.enum";
+import {ParameterLabelGroups} from "./model/model.enum";
 import {ConfigService} from "../../core/services/config.service";
-import {PmfmService} from "../services/pmfm.service";
-import {ReferentialRefService} from "../services/referential-ref.service";
+import {PmfmService} from "./pmfm.service";
+import {ReferentialRefService} from "./referential-ref.service";
 import {mergeMap} from "rxjs/internal/operators";
 import {DateUtils} from "../../shared/dates";
 import {SamplingStrategy, StrategyEffort} from "./model/sampling-strategy.model";
@@ -27,33 +27,35 @@ import {Moment} from "moment";
 const SamplingStrategyQueries = {
   loadAll: gql`query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...SamplingStrategyFragment
+      ...SamplingStrategyRefFragment
     }
     total: strategiesCount(filter: $filter)
   }
-  ${StrategyFragments.samplingStrategy}
+  ${StrategyFragments.samplingStrategyRef}
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.pmfmStrategyRef}
+  ${StrategyFragments.lightPmfmStrategy}
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
+  ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.taxonName}`,
 
   loadAllWithTotal: gql`query DenormalizedStrategiesWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...SamplingStrategyFragment
+      ...SamplingStrategyRefFragment
     }
     total: strategiesCount(filter: $filter)
   }
-  ${StrategyFragments.samplingStrategy}
+  ${StrategyFragments.samplingStrategyRef}
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.pmfmStrategyRef}
+  ${StrategyFragments.lightPmfmStrategy}
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
+  ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.taxonName}
   `,
@@ -75,13 +77,6 @@ const SamplingStrategyQueries = {
       }
     )
   }`
-};
-
-// TODO BLA: use cache to get strategy ?
-const DenormalizedStrategyCacheKeys = {
-  CACHE_GROUP: 'denormalizedStrategy',
-
-  PMFM_IDS_BY_PARAMETER_GROUP: 'pmfmByGroups'
 };
 
 @Injectable({providedIn: 'root'})
@@ -157,19 +152,17 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     return samplingStrategy.hasRealizedEffort;
   }
 
-  async getEffortFromStrategyLabel(samplingStrategyLabel: string, date: Moment): Promise<number> {
+  async getEffortFromStrategyLabel(strategyLabel: string, date: Moment): Promise<number> {
     let result = null;
     const strategies = await this.loadAll(0, 20, 'label', 'desc', {
-      label: samplingStrategyLabel
+      label: strategyLabel
     });
-    if (strategies && strategies.data && strategies.total == 1)
-    {
+    if (strategies && strategies.data && strategies.total === 1) {
       const effortByQuarters = strategies.data[0].effortByQuarter;
       if (effortByQuarters) {
         const effortByQuarter = effortByQuarters[date.quarter()];
         // We check if returned effort correspond to strategy date
-        if (effortByQuarter && effortByQuarter.startDate.year() == date.year())
-        {
+        if (effortByQuarter && effortByQuarter.startDate.year() === date.year()) {
           result = effortByQuarter.expectedEffort;
         }
       }
@@ -213,9 +206,9 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     const pmfmIdsMap = await this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups);
 
     entities.forEach(s => {
-      const pmfmStrategies = s.pmfmStrategies;
-      s.parameterGroups = (pmfmStrategies && parameterListKeys || []).reduce((res, key) => {
-        return pmfmStrategies.findIndex(p => pmfmIdsMap[key].includes(p.pmfmId)) !== -1 ? res.concat(key) : res;
+      const pmfms = s.pmfms;
+      s.parameterGroups = (pmfms && parameterListKeys || []).reduce((res, key) => {
+        return pmfms.findIndex(p => pmfmIdsMap[key].includes(p.pmfmId)) !== -1 ? res.concat(key) : res;
       }, []);
     });
   }

@@ -1,14 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Inject,
-  InjectionToken,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {isNil, isNilOrBlank, isNotNil} from "../../../shared/functions";
 import {AppMeasurementsTable} from "../../measurement/measurements.table.class";
@@ -20,8 +10,8 @@ import {Batch} from "../../services/model/batch.model";
 import {Operation} from "../../services/model/trip.model";
 import {Landing} from "../../services/model/landing.model";
 import {AcquisitionLevelCodes, PmfmLabelPatterns} from "../../../referential/services/model/model.enum";
-import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
-import {getPmfmName, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {IPmfm, PmfmUtils} from "../../../referential/services/model/pmfm.model";
+import {DenormalizedPmfmStrategy, getPmfmName} from "../../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {BatchModal} from "../modal/batch.modal";
 import {IReferentialRef, ReferentialRef, referentialToString} from "../../../core/services/model/referential.model";
@@ -61,13 +51,13 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
   extends AppMeasurementsTable<T, F>
   implements OnInit, OnDestroy {
 
-  protected _initialPmfms: PmfmStrategy[];
+  protected _initialPmfms: IPmfm[];
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
 
-  qvPmfm: PmfmStrategy;
-  defaultWeightPmfm: PmfmStrategy;
-  weightPmfmsByMethod: { [key: string]: PmfmStrategy };
+  qvPmfm: IPmfm;
+  defaultWeightPmfm: IPmfm;
+  weightPmfmsByMethod: { [key: string]: IPmfm };
 
   @Input()
   set value(data: T[]) {
@@ -271,7 +261,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
    * Allow to remove/Add some pmfms. Can be oerrive by subclasses
    * @param pmfms
    */
-  protected mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
+  protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
     if (!pmfms || !pmfms.length) return pmfms; // Skip (no pmfms)
 
     this._initialPmfms = pmfms; // Copy original pmfms list
@@ -292,7 +282,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     this.qvPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms);
 
     // Remove weight pmfms
-    return pmfms.filter(p => !p.isWeight);
+    return pmfms.filter(p => !PmfmUtils.isWeight(p));
   }
 
   protected async onNewEntity(data: T): Promise<void> {

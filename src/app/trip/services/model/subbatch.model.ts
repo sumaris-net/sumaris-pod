@@ -1,8 +1,9 @@
 import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from "./batch.model";
 import {BatchGroup} from "./batch-group.model";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRef} from "../../../core/services/model/referential.model";
+import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 export class SubBatch extends Batch<SubBatch> {
 
@@ -54,7 +55,7 @@ export class SubBatchUtils {
   static fromBatchGroups(
     groups: BatchGroup[],
     opts?: {
-      groupQvPmfm?: PmfmStrategy
+      groupQvPmfm?: IPmfm
     }
   ): SubBatch[] {
     opts = opts || {};
@@ -75,7 +76,7 @@ export class SubBatchUtils {
               const target = SubBatch.fromBatch(child, group);
               // Copy QV value
               target.measurementValues = { ...target.measurementValues };
-              target.measurementValues[opts.groupQvPmfm.pmfmId] = qvBatch.measurementValues[opts.groupQvPmfm.pmfmId];
+              target.measurementValues[opts.groupQvPmfm.id] = qvBatch.measurementValues[opts.groupQvPmfm.id];
 
               return target;
             }));
@@ -105,7 +106,7 @@ export class SubBatchUtils {
    * @param opts
    */
   static linkSubBatchesToParent(batchGroups: BatchGroup[], subBatches: SubBatch[], opts?: {
-    qvPmfm?: PmfmStrategy;
+    qvPmfm?: IPmfm;
   }) {
     opts = opts || {};
 
@@ -128,7 +129,7 @@ export class SubBatchUtils {
     }
 
     else {
-      const qvPmfmId = opts.qvPmfm.pmfmId;
+      const qvPmfmId = opts.qvPmfm.id;
       (batchGroups || []).forEach(batchGroup => {
         // Get group's sub batches
         const groupSubBatches = (subBatches || []).filter(sb => sb.parentGroup && Batch.equals(batchGroup, sb.parentGroup));
@@ -139,6 +140,7 @@ export class SubBatchUtils {
           const children = groupSubBatches.filter(sb => {
             let qvValue = sb.measurementValues[qvPmfmId];
             if (qvValue instanceof ReferentialRef) qvValue = qvValue.id;
+            // WARN: use '==' and NOT '===', because measurementValues can use string, for values
             return qvValue == parent.measurementValues[qvPmfmId];
           });
 

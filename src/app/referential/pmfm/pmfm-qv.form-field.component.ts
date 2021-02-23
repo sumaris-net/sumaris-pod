@@ -5,13 +5,16 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  forwardRef, Inject,
+  forwardRef,
+  Inject,
   Input,
   OnDestroy,
   OnInit,
   Optional,
-  Output, QueryList,
-  ViewChild, ViewChildren
+  Output,
+  QueryList,
+  ViewChild,
+  ViewChildren
 } from '@angular/core';
 import {merge, Observable, of} from 'rxjs';
 import {filter, map, takeUntil, tap} from 'rxjs/operators';
@@ -22,21 +25,13 @@ import {FloatLabelType} from "@angular/material/form-field";
 
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
-import {
-  isEmptyArray,
-  isNotEmptyArray,
-  isNotNil,
-  sort,
-  suggestFromArray,
-  toBoolean,
-  toNumber
-} from "../../shared/functions";
+import {isEmptyArray, isNotEmptyArray, isNotNil, sort, suggestFromArray, toBoolean, toNumber} from "../../shared/functions";
 import {focusInput, InputElement} from "../../shared/inputs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {PmfmIds} from "../services/model/model.enum";
-import {Pmfm} from "../services/model/pmfm.model";
-import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {IPmfm, Pmfm} from "../services/model/pmfm.model";
+import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {IonButton} from "@ionic/angular";
 import {DOCUMENT} from "@angular/common";
 import {AppFormUtils} from "../../core/form/form.utils";
@@ -78,7 +73,7 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
   @Input()
   displayWith: (obj: ReferentialRef | any) => string;
 
-  @Input() pmfm: PmfmStrategy|Pmfm;
+  @Input() pmfm: IPmfm;
 
   @Input() formControl: FormControl;
 
@@ -160,12 +155,8 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
           console.warn(`Pmfm {id: ${this.pmfm.id}, label: '${this.pmfm.label}'} has no qualitative values, neither the parent PmfmStrategy!`, this.pmfm);
         }
       }
-      else {
-        console.warn(`PmfmStrategy {id: ${this.pmfm.id}} has no qualitative values!`, this.pmfm);
-      }
-
     }
-    this.required = toBoolean(this.required, (this.pmfm instanceof PmfmStrategy && this.pmfm.isMandatory));
+    this.required = toBoolean(this.required, this.pmfm.required || false);
 
     this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
 
@@ -179,7 +170,7 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
       sort(this._qualitativeValues, this.sortAttribute) :
       this._qualitativeValues;
 
-    this.placeholder = this.placeholder || this.pmfm.name || this.computePlaceholder(this.pmfm, this._sortedQualitativeValues);
+    this.placeholder = this.placeholder || getPmfmName(this.pmfm, {withUnit: !this.compact});
     this.displayWith = this.displayWith || ((obj) => referentialToString(obj, displayAttributes));
     this.clearable = this.compact ? false : this.clearable;
 
@@ -273,11 +264,6 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
 
   setDisabledState(isDisabled: boolean): void {
 
-  }
-
-  computePlaceholder(pmfm: PmfmStrategy|Pmfm, sortedQualitativeValues: ReferentialRef[]): string {
-    if (!sortedQualitativeValues || !sortedQualitativeValues.length) return pmfm && pmfm.name;
-    return sortedQualitativeValues.reduce((res, qv) => (res + "/" + (qv.label || qv.name)), "").substr(1);
   }
 
   _onBlur(event: FocusEvent) {

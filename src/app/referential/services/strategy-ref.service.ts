@@ -11,7 +11,6 @@ import {ReferentialFilter} from "./referential.service";
 import {Strategy} from "./model/strategy.model";
 import {BaseEntityGraphqlQueries} from "./base-entity-service.class";
 import {PlatformService} from "../../core/services/platform.service";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {StrategyFragments} from "./strategy.fragments";
 import {firstArrayValue, isNotNil, toNumber} from "../../shared/functions";
 import {defer, Observable} from "rxjs";
@@ -41,7 +40,7 @@ const StrategyRefQueries: BaseEntityGraphqlQueries = {
   ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.strategyRef}
-  ${StrategyFragments.pmfmStrategyRef}
+  ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
@@ -63,7 +62,7 @@ const StrategyRefQueries: BaseEntityGraphqlQueries = {
   ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.strategyRef}
-  ${StrategyFragments.pmfmStrategyRef}
+  ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
@@ -86,7 +85,7 @@ const StrategyRefQueries: BaseEntityGraphqlQueries = {
   ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.strategyRef}
-  ${StrategyFragments.pmfmStrategyRef}
+  ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}

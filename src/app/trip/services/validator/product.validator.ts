@@ -46,7 +46,7 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
 
     // Add measurement form
     // if (opts.withMeasurements) {
-    //   const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].pmfmStrategies || [])
+    //   const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].pmfms || [])
     //     .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.OPERATION);
     //   form.addControl('measurements', this.measurementsValidatorService.getFormGroup(data && data.measurements, {
     //     isOnFieldMode: opts.isOnFieldMode,

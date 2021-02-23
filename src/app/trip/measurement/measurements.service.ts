@@ -1,21 +1,17 @@
 import {BehaviorSubject, isObservable, Observable} from "rxjs";
 import {filter, first, map, switchMap} from "rxjs/operators";
-import {
-  IEntityWithMeasurement,
-  MeasurementValuesUtils
-} from "../services/model/measurement.model";
+import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {EntityUtils} from "../../core/services/model/entity.model";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {Directive, EventEmitter, Injector, Input, OnDestroy} from "@angular/core";
-import {ProgramService} from "../../referential/services/program.service";
+import {Directive, EventEmitter, Injector, Input} from "@angular/core";
 import {firstNotNilPromise} from "../../shared/observables";
-import {PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
+import {IPmfm, PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
 import {SortDirection} from "@angular/material/sort";
 import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
 import {isNil, isNotNil} from "../../shared/functions";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     implements IEntitiesService<T, F> {
 
@@ -28,7 +24,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
   protected programRefService: ProgramRefService;
 
   loadingPmfms = false;
-  $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
   hasRankOrder = false;
   debug = false;
 
@@ -69,7 +65,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
   }
 
   @Input()
-  set pmfms(pmfms: Observable<PmfmStrategy[]> | PmfmStrategy[]) {
+  set pmfms(pmfms: Observable<IPmfm[]> | IPmfm[]) {
     this.setPmfms(pmfms);
   }
 
@@ -86,7 +82,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     protected dataType: new() => T,
     delegate?: IEntitiesService<T, F>,
     protected options?: {
-      mapPmfms: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
+      mapPmfms: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
       desactivateRefreshPmfms?: boolean;
     }) {
 
@@ -96,7 +92,9 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
 
-    if (!options || !options.desactivateRefreshPmfms) {this._onRefreshPmfms.subscribe(() => this.refreshPmfms())};
+    if (!options || !options.desactivateRefreshPmfms) {
+      this._onRefreshPmfms.subscribe(() => this.refreshPmfms());
+    }
   }
 
   close() {
@@ -121,9 +119,9 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
           let cleanSortBy = sortBy;
 
           // Do not apply sortBy to delegated service, when sort on a pmfm
-          let sortPmfm: PmfmStrategy;
+          let sortPmfm: IPmfm;
           if (cleanSortBy && PMFM_ID_REGEXP.test(cleanSortBy)) {
-            sortPmfm = pmfms.find(pmfm => pmfm.pmfmId === parseInt(sortBy));
+            sortPmfm = pmfms.find(pmfm => pmfm.id === parseInt(sortBy));
             // A pmfm was found, do not apply the sort here
             if (sortPmfm) cleanSortBy = undefined;
           }
@@ -179,23 +177,22 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
 
   /* -- protected methods -- */
 
-  protected async refreshPmfms(): Promise<PmfmStrategy[]> {
+  protected async refreshPmfms(): Promise<IPmfm[]> {
     if (isNil(this._programLabel) || isNil(this._acquisitionLevel)) return undefined;
 
     this.loadingPmfms = true;
 
     // Load pmfms
-    let pmfms = (await this.programRefService.loadProgramPmfms(
-      this._programLabel, this._strategyLabel ?
-      {
+    let pmfms: IPmfm[] = (await this.programRefService.loadProgramPmfms(this._programLabel, {
         acquisitionLevel: this._acquisitionLevel,
-        strategyLabel: this._strategyLabel,
-      } : {
-          acquisitionLevel: this._acquisitionLevel,
-        })) || [];
+        strategyLabel: this._strategyLabel || undefined,
+      })) || [];
 
     if (!pmfms.length && this.debug) {
       console.debug(`[meas-service] No pmfm found (program=${this.programLabel}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
+    }
+    else {
+      console.debug(`[meas-service] TODO BLA pmfm found (program=${this.programLabel}, acquisitionLevel=${this._acquisitionLevel}): `, pmfms);
     }
 
     pmfms = await this.setPmfms(pmfms);
@@ -203,11 +200,11 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     return pmfms;
   }
 
-  protected async setPmfms(pmfms: PmfmStrategy[] | Observable<PmfmStrategy[]>): Promise<PmfmStrategy[]> {
+  protected async setPmfms(pmfms: IPmfm[] | Observable<IPmfm[]>): Promise<IPmfm[]> {
     if (!pmfms) return undefined; // skip
 
     // Wait loaded
-    if (isObservable<PmfmStrategy[]>(pmfms)) {
+    if (isObservable<IPmfm[]>(pmfms)) {
       if (this.debug) console.debug("[meas-service] setPmfms(): waiting pmfms observable to emit...");
       pmfms = await firstNotNilPromise(pmfms);
     }

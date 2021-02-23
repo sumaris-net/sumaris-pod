@@ -1,14 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  Input,
-  OnDestroy,
-  OnInit,
-  QueryList,
-  ViewChildren
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, QueryList, ViewChildren} from "@angular/core";
 import {Batch} from "../../services/model/batch.model";
 import {MeasurementValuesForm} from "../../measurement/measurement-values.form.class";
 import {DateAdapter} from "@angular/material/core";
@@ -22,18 +12,9 @@ import {ReferentialUtils} from "../../../core/services/model/referential.model";
 import {UsageMode} from "../../../core/services/model/settings.model";
 import {debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
 import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../../referential/services/model/model.enum";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {BehaviorSubject, combineLatest} from "rxjs";
-import {
-  getPropertyByPath,
-  isEmptyArray,
-  isNil,
-  isNilOrBlank,
-  isNotNil,
-  isNotNilOrBlank,
-  startsWithUpperCase,
-  toBoolean
-} from "../../../shared/functions";
+import {getPropertyByPath, isEmptyArray, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, startsWithUpperCase, toBoolean} from "../../../shared/functions";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {MeasurementValuesUtils} from "../../services/model/measurement.model";
 import {PlatformService} from "../../../core/services/platform.service";
@@ -48,6 +29,7 @@ import {FloatLabelType} from "@angular/material/form-field";
 import {AppFormUtils} from "../../../core/form/form.utils";
 import {ProgramRefService} from "../../../referential/services/program-ref.service";
 import {LoadResult} from "../../../shared/services/entity-service.class";
+import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 
 @Component({
@@ -58,7 +40,7 @@ import {LoadResult} from "../../../shared/services/entity-service.class";
 export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   implements OnInit, OnDestroy {
 
-  protected _qvPmfm: PmfmStrategy;
+  protected _qvPmfm: DenormalizedPmfmStrategy;
   protected _availableParents: BatchGroup[] = [];
   protected _parentAttributes: string[];
   protected _showTaxonName: boolean;
@@ -114,7 +96,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
   @Input() isNew: boolean;
 
-  @Input() set qvPmfm(value: PmfmStrategy) {
+  @Input() set qvPmfm(value: DenormalizedPmfmStrategy) {
     this._qvPmfm = value;
     // If already loaded, re apply pmfms, to be able to execute mapPmfms
     if (value && !this.loadingPmfms) {
@@ -122,7 +104,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     }
   }
 
-  get qvPmfm(): PmfmStrategy {
+  get qvPmfm(): DenormalizedPmfmStrategy {
     return this._qvPmfm;
   }
 
@@ -157,7 +139,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   @Input() set freezeQvPmfm(value: boolean) {
     this.freezeQvPmfmControl.setValue(value);
     if (!value) {
-      this.form.get('measurements.' + this.qvPmfm.pmfmId).reset(null);
+      this.form.get('measurements.' + this.qvPmfm.id).reset(null);
     }
   }
 
@@ -550,24 +532,27 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
       });
   }
 
-  protected mapPmfms(pmfms: PmfmStrategy[]) {
+  protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
 
     if (this._qvPmfm) {
-      // Remove QV pmfms
-      const index = pmfms.findIndex(pmfm => pmfm.pmfmId === this._qvPmfm.pmfmId);
+      // Hide the QV pmfm
+      const index = pmfms.findIndex(pmfm => pmfm.id === this._qvPmfm.id);
       if (index !== -1) {
         const qvPmfm = this._qvPmfm.clone();
         qvPmfm.hidden = true;
         qvPmfm.required = true;
         pmfms[index] = qvPmfm;
       }
+      else {
+        console.warn('Cannot found the QVPmfm with ID=' + this._qvPmfm.id);
+      }
     }
 
     // If there is a parent: filter on parent's taxon group
     const parentTaxonGroupId = this.parentGroup && this.parentGroup.taxonGroup && this.parentGroup.taxonGroup.id;
     if (isNotNil(parentTaxonGroupId)) {
-      pmfms = pmfms
-        .filter(pmfm => isEmptyArray(pmfm.taxonGroupIds)
+      pmfms = pmfms.filter(pmfm => !(pmfm instanceof DenormalizedPmfmStrategy)
+          || isEmptyArray(pmfm.taxonGroupIds)
           || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
     }
 
@@ -577,10 +562,12 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   protected onUpdateControls(form: FormGroup) {
     if (this._qvPmfm) {
       const measFormGroup = form.get('measurementValues') as FormGroup;
-      const qvControl = measFormGroup.get(this._qvPmfm.pmfmId.toString());
+      const qvControl = measFormGroup.get(this._qvPmfm.id.toString());
 
       // Make sure QV is required
-      qvControl.setValidators(Validators.required);
+      if (qvControl) {
+        qvControl.setValidators(Validators.required);
+      }
     }
   }
 

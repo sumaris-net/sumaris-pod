@@ -13,9 +13,9 @@ import {VesselActivityValidatorService} from "../services/validator/vessel-activ
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {METIER_DEFAULT_FILTER, MetierFilter} from "../../referential/services/metier.service";
 import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 @Component({
   selector: 'app-vessel-activity-form',
@@ -119,7 +119,7 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
     this.metiersHelper.removeAt(index);
   }
 
-  protected mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
+  protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
     return pmfms.filter(p => p.required);
   }
 }

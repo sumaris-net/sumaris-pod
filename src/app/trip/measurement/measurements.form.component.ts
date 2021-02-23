@@ -1,31 +1,19 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output
-} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {FloatLabelType} from "@angular/material/form-field";
 import {BehaviorSubject} from 'rxjs';
 import {filter, throttleTime} from "rxjs/operators";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {FormBuilder} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
 import {isNil, isNotNil, sleep} from '../../shared/functions';
-import {
-  Measurement,
-  MeasurementType,
-  MeasurementUtils,
-  MeasurementValuesUtils
-} from "../services/model/measurement.model";
+import {Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AppForm} from "../../core/form/form.class";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 @Component({
   selector: 'app-form-measurements',
@@ -48,7 +36,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   applyingValue = false;
   keepRankOrder = false;
 
-  $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
 
   @Input() showError = false;
 
@@ -218,7 +206,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     if (this.loading) return this.data; // Avoid to return not loading data
 
     // Find dirty pmfms, to avoid full update
-    const dirtyPmfms = (this.$pmfms.getValue() || []).filter(pmfm => this.form.controls[pmfm.pmfmId].dirty);
+    const dirtyPmfms = (this.$pmfms.getValue() || []).filter(pmfm => this.form.controls[pmfm.id].dirty);
     if (dirtyPmfms.length) {
 
       // Update measurements value
@@ -283,12 +271,12 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   }
 
-  protected setPmfms(pmfms: PmfmStrategy[]) {
+  protected setPmfms(pmfms: IPmfm[]) {
     this.loadingPmfms = false;
     this.$pmfms.next(pmfms);
   }
 
-  protected async updateControls(event?: string, pmfms?: PmfmStrategy[]) {
+  protected async updateControls(event?: string, pmfms?: IPmfm[]) {
     //if (isNil(this.data)) return; // not ready
     pmfms = pmfms || this.$pmfms.getValue();
 

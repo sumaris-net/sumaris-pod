@@ -1,8 +1,8 @@
 import {Injectable, Pipe, PipeTransform} from '@angular/core';
 import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
-import {MethodIds, PmfmIds} from "../services/model/model.enum";
+import {MethodIds} from "../services/model/model.enum";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
-import {Pmfm} from "../services/model/pmfm.model";
+import {IPmfm} from "../services/model/pmfm.model";
 import {isNil} from "../../shared/functions";
 
 @Pipe({
@@ -11,7 +11,7 @@ import {isNil} from "../../shared/functions";
 @Injectable({providedIn: 'root'})
 export class PmfmNamePipe implements PipeTransform {
 
-    transform(val: PmfmStrategy, opts?: {
+    transform(val: IPmfm, opts?: {
       withUnit?: boolean;
       html?: boolean;
       withDetails?: boolean ;
@@ -26,7 +26,7 @@ export class PmfmNamePipe implements PipeTransform {
 @Injectable({providedIn: 'root'})
 export class PmfmValueToStringPipe implements PipeTransform {
 
-  transform(val: PmfmStrategy, opts: { pmfm: PmfmStrategy | Pmfm; propertyNames?: string[]; html?: boolean; }): any {
+  transform(val: PmfmStrategy, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; }): any {
     return PmfmValueUtils.valueToString(val, opts);
   }
 }
@@ -37,7 +37,7 @@ export class PmfmValueToStringPipe implements PipeTransform {
 @Injectable({providedIn: 'root'})
 export class IsDatePmfmPipe implements PipeTransform {
 
-  transform(pmfm: PmfmStrategy): any {
+  transform(pmfm: IPmfm): any {
     return pmfm && pmfm.type === 'date';
   }
 }
@@ -48,8 +48,10 @@ export class IsDatePmfmPipe implements PipeTransform {
 @Injectable({providedIn: 'root'})
 export class IsComputedPmfmPipe implements PipeTransform {
 
-  transform(pmfm: PmfmStrategy): any {
-    if (isNil(pmfm && pmfm.methodId))console.log('TODO cannot check if computed - no method :', pmfm.name);
+  transform(pmfm: IPmfm): any {
+    // DEBUG
+    //if (isNil(pmfm && pmfm.methodId)) console.warn('TODO cannot check if computed - no method :', pmfm.name);
+
     return pmfm.type && (pmfm.methodId === MethodIds.CALCULATED);
   }
 }

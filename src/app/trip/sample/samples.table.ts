@@ -1,14 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnInit,
-  Optional,
-  Output
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {SampleValidatorService} from "../services/validator/sample.validator";
 import {isEmptyArray, isNil, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
@@ -21,7 +11,7 @@ import {ISampleModalOptions, SampleModal} from "./sample.modal";
 import {FormGroup} from "@angular/forms";
 import {TaxonGroupRef, TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Sample} from "../services/model/sample.model";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PlatformService} from "../../core/services/platform.service";
@@ -30,6 +20,7 @@ import {environment} from "../../../environments/environment";
 import {AppFormUtils} from "../../core/form/form.utils";
 import {filter, map, tap} from "rxjs/operators";
 import {LoadResult} from "../../shared/services/entity-service.class";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 const moment = momentImported;
 
@@ -103,7 +94,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     return this.getShowColumn('taxonName');
   }
 
-  @Output() onPrepareRowForm = new EventEmitter<{form: FormGroup, pmfms: PmfmStrategy[]}>();
+  @Output() onPrepareRowForm = new EventEmitter<{form: FormGroup, pmfms: IPmfm[]}>();
 
   constructor(
     injector: Injector,
@@ -276,7 +267,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       component: SampleModal,
       componentProps: <ISampleModalOptions>{
         program: undefined, // Prefer to pass PMFMs directly, to avoid a reloading
-        pmfms: this.$pmfms,
+        pmfms: this.$pmfms.asObservable(),
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         value: sample,
@@ -327,14 +318,22 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   filterColumnsByTaxonGroup(taxonGroup: TaxonGroupRef) {
     const toggleLoading = !this.loading;
     if (toggleLoading) this.markAsLoading();
-    const taxonGroupId = toNumber(taxonGroup && taxonGroup.id, null);
-    (this.$pmfms.getValue() || []).forEach(pmfm => {
-      const show = isNil(taxonGroupId) || isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(taxonGroupId);
-      this.setShowColumn(pmfm.pmfmId.toString(), show);
-    });
 
-    this.updateColumns();
-    if (toggleLoading) this.markAsLoaded();
+    try {
+      const taxonGroupId = toNumber(taxonGroup && taxonGroup.id, null);
+      (this.$pmfms.getValue() || []).forEach(pmfm => {
+
+        const show = isNil(taxonGroupId)
+          || !(pmfm instanceof DenormalizedPmfmStrategy)
+          || (isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(taxonGroupId));
+        this.setShowColumn(pmfm.id.toString(), show);
+      });
+
+      this.updateColumns();
+    }
+    finally {
+      if (toggleLoading) this.markAsLoaded();
+    }
   }
 
   /* -- protected methods -- */

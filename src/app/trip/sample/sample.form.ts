@@ -13,7 +13,7 @@ import {isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
 import {PlatformService} from "../../core/services/platform.service";
 import {SampleValidatorService} from "../services/validator/sample.validator";
 import {Sample} from "../services/model/sample.model";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {AppFormUtils} from "../../core/form/form.utils";
 import {environment} from "../../../environments/environment";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
@@ -44,7 +44,7 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   @Input() showError = true;
   @Input() maxVisibleButtons: number;
 
-  @Input() mapPmfmFn: (pmfms: PmfmStrategy[]) => PmfmStrategy[];
+  @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[];
 
   get measurementValues(): FormGroup {
     return this.form.controls.measurementValues as FormGroup;

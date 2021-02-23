@@ -15,7 +15,7 @@
         </ion-col>
         <ion-col>
           <app-pmfm-field [pmfm]="estimatedTotalPmfm"
-                          [formControlName]="estimatedTotalPmfm.pmfmId.toString()"
+                          [formControlName]="estimatedTotalPmfm.id.toString()"
                           [hidden]="estimatedTotalPmfm.hidden"
                           [compact]="compact"
                           [tabindex]="tabindex+2">
@@ -38,7 +38,7 @@
   </div>
 
   <mat-tab-group #tabGroup
-                 [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange.emit($event)"
+                 [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="selectedTabChange.emit($event)"
                  [animationDuration]="tabGroupAnimationDuration"
                  dynamicHeight>
 
@@ -53,7 +53,7 @@
               <app-pmfm-qv-field  *ngIf="$fuelTypePmfm | async; let fuelTypePmfm"
                                   [pmfm]="fuelTypePmfm"
                                  [style]="mobile? 'button' : 'autocomplete'"
-                                 [formControlName]="fuelTypePmfm.pmfmId.toString()"
+                                 [formControlName]="fuelTypePmfm.id.toString()"
                                  [compact]="false"
                                  [tabindex]="tabindex+2">
               </app-pmfm-qv-field>
@@ -63,7 +63,7 @@
                 <!-- qualitative value (force 'button' style, on mobile)-->
                 <app-pmfm-qv-field *ngIf="pmfm.isQualitative; else otherField"
                                    [pmfm]="pmfm"
-                                   [formControlName]="pmfm.pmfmId.toString()"
+                                   [formControlName]="pmfm.id.toString()"
                                    [hidden]="pmfm.hidden"
                                    [style]="mobile? 'button' : 'autocomplete'"
                                    [compact]="compact"
@@ -72,10 +72,10 @@
                 <!-- NOT qualitative value -->
                 <ng-template #otherField>
                   <app-pmfm-field [pmfm]="pmfm"
-                                              [formControlName]="pmfm.pmfmId.toString()"
+                                              [formControlName]="pmfm.id.toString()"
                                               [hidden]="pmfm.hidden"
                                               [compact]="compact"
-                                              [class.computed]="fuelTuple[pmfm.pmfmId.toString()] && fuelTuple[pmfm.pmfmId.toString()].computed"
+                                              [class.computed]="fuelTuple[pmfm.id.toString()] && fuelTuple[pmfm.id.toString()].computed"
                                               [tabindex]="tabindex+2 + i*2">
                   </app-pmfm-field>
                 </ng-template>
@@ -92,7 +92,7 @@
               <!-- qualitative value (force 'button' style, on mobile)-->
               <ng-container *ngIf="pmfm.isQualitative; else otherField">
                 <app-pmfm-qv-field [pmfm]="pmfm"
-                                               [formControlName]="pmfm.pmfmId.toString()"
+                                               [formControlName]="pmfm.id.toString()"
                                                [hidden]="pmfm.hidden"
                                                [style]="mobile? 'button' : 'autocomplete'"
                                                [compact]="compact"
@@ -102,10 +102,10 @@
               <!-- NOT qualitative value -->
               <ng-template #otherField>
                 <app-pmfm-field [pmfm]="pmfm"
-                                            [formControlName]="pmfm.pmfmId.toString()"
+                                            [formControlName]="pmfm.id.toString()"
                                             [hidden]="pmfm.hidden"
                                             [compact]="compact"
-                                            [class.computed]="engineOilTuple[pmfm.pmfmId.toString()] && engineOilTuple[pmfm.pmfmId.toString()].computed"
+                                            [class.computed]="engineOilTuple[pmfm.id.toString()] && engineOilTuple[pmfm.id.toString()].computed"
                                             [tabindex]="tabindex+2 + i*2">
                 </app-pmfm-field>
               </ng-template>
@@ -121,7 +121,7 @@
               <!-- qualitative value (force 'button' style, on mobile)-->
               <app-pmfm-qv-field *ngIf="pmfm.isQualitative; else otherField"
                                  [pmfm]="pmfm"
-                                 [formControlName]="pmfm.pmfmId.toString()"
+                                 [formControlName]="pmfm.id.toString()"
                                  [hidden]="pmfm.hidden"
                                  [style]="mobile? 'button' : 'autocomplete'"
                                  [compact]="compact"
@@ -130,10 +130,10 @@
               <!-- NOT qualitative value -->
               <ng-template #otherField>
                 <app-pmfm-field [pmfm]="pmfm"
-                                            [formControlName]="pmfm.pmfmId.toString()"
+                                            [formControlName]="pmfm.id.toString()"
                                             [hidden]="pmfm.hidden"
                                             [compact]="compact"
-                                            [class.computed]="hydraulicOilTuple[pmfm.pmfmId.toString()] && hydraulicOilTuple[pmfm.pmfmId.toString()].computed"
+                                            [class.computed]="hydraulicOilTuple[pmfm.id.toString()] && hydraulicOilTuple[pmfm.id.toString()].computed"
                                             [tabindex]="tabindex+2 + i*2">
                 </app-pmfm-field>
               </ng-template>
@@ -212,7 +212,7 @@
                   <!-- qualitative value (force 'button' style, on mobile)-->
                   <ng-container *ngIf="pmfm.isQualitative; else otherField">
                     <app-pmfm-qv-field [pmfm]="pmfm"
-                                                   [formControlName]="pmfm.pmfmId.toString()"
+                                                   [formControlName]="pmfm.id.toString()"
                                                    [hidden]="pmfm.hidden"
                                                    [style]="mobile? 'button' : 'autocomplete'"
                                                    [compact]="compact"
@@ -222,7 +222,7 @@
                   <!-- NOT qualitative value -->
                   <ng-template #otherField>
                     <app-pmfm-field [pmfm]="pmfm"
-                                                [formControlName]="pmfm.pmfmId.toString()"
+                                                [formControlName]="pmfm.id.toString()"
                                                 [hidden]="pmfm.hidden"
                                                 [compact]="compact"
                                                 [tabindex]="tabindex+2 + i*2">

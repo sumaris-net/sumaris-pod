@@ -19,7 +19,7 @@ export function isNotEmptyArray<T>(obj: T[] | null | undefined): boolean {
   return obj !== undefined && obj !== null && obj.length > 0;
 }
 export function firstArrayValue<T>(obj: T[] | null | undefined): T | undefined {
-  return isNotEmptyArray(obj) && obj[0];
+  return isNotEmptyArray(obj) ? obj[0] : undefined;
 }
 export function isEmptyArray<T>(obj: T[] | null | undefined): boolean {
   return obj === undefined || obj === null || !obj.length;

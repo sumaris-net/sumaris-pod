@@ -243,6 +243,7 @@ export class PmfmService extends BaseGraphqlService implements IEntityService<Pm
    * @param sortBy
    * @param sortDirection
    * @param filter
+   * @param opts
    */
   async loadAll(offset: number,
                 size: number,
@@ -267,7 +268,7 @@ export class PmfmService extends BaseGraphqlService implements IEntityService<Pm
     };
     const debug = this._debug && (opts.debug !== false);
     const now = debug && Date.now();
-    if (debug) console.debug("[pmfm-service] Loading pmfms... using options:", variables);
+    if (debug) console.debug("[pmfm-service] Loading pmfms... using variables:", variables);
 
     const query = opts.query ? opts.query : (
       opts.withDetails ? LoadAllWithDetailsQuery : (
@@ -301,43 +302,47 @@ export class PmfmService extends BaseGraphqlService implements IEntityService<Pm
     throw new Error("Not implemented yet");
   }
 
-  async suggest(value: any, filter?: PmfmFilter): Promise<Pmfm[]> {
-    if (ReferentialUtils.isNotEmpty(value)) return [value];
+  async suggest(value: any, filter?: PmfmFilter): Promise<LoadResult<Pmfm>> {
+    if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;
-    const res = await this.loadAll(0, !value ? 30 : 10, null, null,
-      { ...filter, searchText: value},
-      { withTotal: false /* total not need */ }
+    return this.loadAll(0, !value ? 30 : 10, filter && filter.searchAttribute || null, null,
+      { ...filter, searchText: value}
     );
-    return res.data;
   }
 
   /**
    * Get referential references, group by level labels
-   * @param data
+   * @param parameterLabelsMap
+   * @param opts
    */
-  async loadIdsGroupByParameterLabels(parameterLabelsMap: ObjectMap<string[]>): Promise<ObjectMap<number[]>> {
+  async loadIdsGroupByParameterLabels(parameterLabelsMap: ObjectMap<string[]>,
+                                      opts?: {
+                                        cache?: boolean;
+                                      }): Promise<ObjectMap<number[]>> {
 
-    const cacheKey = [
-      PmfmCacheKeys.PMFM_IDS_BY_PARAMETER_LABEL,
-      this.cryptoService.sha256(JSON.stringify(parameterLabelsMap)).substring(0, 8) // Create a unique hash, from args
-    ].join('|');
+    if (!opts || opts.cache !== false) {
+      const cacheKey = [
+        PmfmCacheKeys.PMFM_IDS_BY_PARAMETER_LABEL,
+        this.cryptoService.sha256(JSON.stringify(parameterLabelsMap)).substring(0, 8) // Create a unique hash, from args
+      ].join('|');
+      return this.cache.getOrSetItem<ObjectMap<number[]>>(cacheKey,
+        () => this.loadIdsGroupByParameterLabels(parameterLabelsMap, {cache: false}),
+        PmfmCacheKeys.CACHE_GROUP);
+    }
 
-    return this.cache.getOrSetItem<ObjectMap<number[]>>(cacheKey,
-      async () => {
-      // Load pmfms grouped by parameter labels
-      const map = await this.referentialRefService.loadAllGroupByLevels({
-          entityName: 'Pmfm',
-          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        },
-        { levelLabels: parameterLabelsMap },
-        { toEntity: false, debug: this._debug });
+    // Load pmfms grouped by parameter labels
+    const map = await this.referentialRefService.loadAllGroupByLevels({
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
+      { levelLabels: parameterLabelsMap },
+      { toEntity: false, debug: this._debug });
 
-      // Keep only id
-      return Object.keys(map).reduce((res, key) => {
-        res[key] = map[key].map(e => e.id);
-        return res;
-      }, {});
-    }, PmfmCacheKeys.CACHE_GROUP);
+    // Keep only id
+    return Object.keys(map).reduce((res, key) => {
+      res[key] = map[key].map(e => e.id);
+      return res;
+    }, {});
   }
 
   /* -- protected methods -- */

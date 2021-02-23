@@ -20,12 +20,13 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
 import {FormArrayHelper} from "../../core/form/form.utils";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {SharedValidators} from "../../shared/validator/validators";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {SamplingStrategyService} from "../../referential/services/sampling-strategy.service";
 import {TranslateService} from "@ngx-translate/core";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -206,10 +207,10 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           }
 
           // Add validator errors on expected effort for this sampleRow (issue #175)
-          const getExpectedEffort = await this.samplingStrategyService.getEffortFromStrategyLabel(strategyLabel, this.data.dateTime);
-          if (!getExpectedEffort) {
+          const expectedEffort = await this.samplingStrategyService.getEffortFromStrategyLabel(strategyLabel, this.data.dateTime);
+          if (!expectedEffort) {
             this.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
-          } else if (getExpectedEffort == 0) {
+          } else if (expectedEffort === 0) {
             // TODO must be a warning, not error
             this.strategyControl.setErrors(<ValidationErrors>{zeroEffort: true});
           } else {
@@ -343,28 +344,27 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   /**
    * Make sure a pmfmStrategy exists to store the Strategy.label
    */
-  protected async mapPmfms(pmfms: PmfmStrategy[]): Promise<PmfmStrategy[]> {
+  protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
 
     if (this.debug) console.debug(`${this.logPrefix} calling mapPmfms()`);
 
     if (this.showStrategy) {
       // Create the missing Pmfm, to hold strategy (if need)
-      const existingIndex = (pmfms || []).findIndex(pmfm => pmfm.pmfmId === PmfmIds.STRATEGY_LABEL);
-      let strategyPmfm: PmfmStrategy;
+      const existingIndex = (pmfms || []).findIndex(pmfm => pmfm.id === PmfmIds.STRATEGY_LABEL);
+      let strategyPmfm: IPmfm;
       if (existingIndex !== -1) {
         // Remove existing, then copy it (to leave original unchanged)
         strategyPmfm = pmfms.splice(existingIndex, 1)[0].clone();
       }
       else {
-        strategyPmfm = PmfmStrategy.fromObject({
-          id: -1, // Fake id (should never be used)
-          pmfmId: PmfmIds.STRATEGY_LABEL,
+        strategyPmfm = DenormalizedPmfmStrategy.fromObject({
+          id: PmfmIds.STRATEGY_LABEL,
           type: 'string'
         });
       }
 
       strategyPmfm.hidden = true; // Do not display it in measurement
-      strategyPmfm.isMandatory = false; // Nopt need to be required, because of strategyControl validator
+      strategyPmfm.required = false; // Not need to be required, because of strategyControl validator
 
       // Prepend to list
       pmfms = [strategyPmfm, ...pmfms];

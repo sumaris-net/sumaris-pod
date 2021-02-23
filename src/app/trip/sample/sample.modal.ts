@@ -5,8 +5,8 @@ import {AlertController, IonContent, ModalController} from "@ionic/angular";
 import {BehaviorSubject, Observable} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {isNil, isNotEmptyArray, isNotNilOrBlank, toBoolean} from "../../shared/functions";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {isNil, isNotEmptyArray, toBoolean} from "../../shared/functions";
 import {PlatformService} from "../../core/services/platform.service";
 import {SampleForm} from "./sample.form";
 import {Sample} from "../services/model/sample.model";
@@ -18,6 +18,7 @@ import {debounceTime} from "rxjs/operators";
 import {AppFormUtils} from "../../core/form/form.utils";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {referentialToString} from "../../core/services/model/referential.model";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
   // UI Fields show/hide
@@ -51,8 +52,8 @@ export class SampleModal implements OnInit, ISampleModalOptions {
   @Input() i18nPrefix: string;
   @Input() acquisitionLevel: string;
   @Input() program: string;
-  @Input() pmfms: Observable<PmfmStrategy[]> | PmfmStrategy[]; // Avoid to load PMFM from program
-  @Input() mapPmfmFn: (pmfms: PmfmStrategy[]) => PmfmStrategy[]; // If PMFM are load from program: allow to override the list
+  @Input() pmfms: Observable<DenormalizedPmfmStrategy[]> | DenormalizedPmfmStrategy[]; // Avoid to load PMFM from program
+  @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[]; // If PMFM are load from program: allow to override the list
 
   @Input() disabled: boolean;
   @Input() isNew: boolean;
@@ -92,7 +93,7 @@ export class SampleModal implements OnInit, ISampleModalOptions {
     return this.form.valid;
   }
 
-  get $pmfms(): Observable<PmfmStrategy[]> {
+  get $pmfms(): Observable<IPmfm[]> {
     return this.form.$pmfms;
   }
 

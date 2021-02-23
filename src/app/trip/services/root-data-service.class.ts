@@ -20,6 +20,7 @@ import {
   BaseEntityServiceOptions
 } from "../../referential/services/base-entity-service.class";
 import {PlatformService} from "../../core/services/platform.service";
+import {StoreObject} from "@apollo/client/core";
 
 
 export interface BaseRootEntityGraphqlMutations extends BaseEntityGraphqlMutations {
@@ -228,9 +229,9 @@ export abstract class BaseRootDataService<T extends RootDataEntity<T>,
 
   /* -- protected methods -- */
 
-  protected asObject(entity: T, opts?: DataEntityAsObjectOptions): any {
+  protected asObject(entity: T, opts?: DataEntityAsObjectOptions): StoreObject {
     opts = { ...MINIFY_OPTIONS, ...opts };
-    const copy: any = entity.asObject(opts);
+    const copy = entity.asObject(opts);
 
     if (opts && opts.minify) {
 

@@ -25,7 +25,7 @@ import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/serv
 import {StatusIds} from "../../core/services/model/model.enum";
 import {Program} from "./model/program.model";
 
-import {PmfmStrategy} from "./model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy, PmfmStrategy} from "./model/pmfm-strategy.model";
 import {IWithProgramEntity} from "../../data/services/model/model.utils";
 import {ReferentialFilter} from "./referential.service";
 import {StrategyFragments} from "./strategy.fragments";
@@ -62,7 +62,7 @@ export const ProgramRefQueries = {
     }
     ${ProgramFragments.programRef}
     ${StrategyFragments.strategyRef}
-    ${StrategyFragments.pmfmStrategyRef}
+    ${StrategyFragments.denormalizedPmfmStrategy}
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
     ${ReferentialFragments.referential}
@@ -84,7 +84,25 @@ export const ProgramRefQueries = {
     }
     total: programsCount(filter: $filter)
   }
-  ${ProgramFragments.programRef}`
+  ${ProgramFragments.programRef}`,
+
+  // Load all query (with total, and strategies)
+  loadAllWithTotalAndStrategy: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...ProgramRefFragment
+      strategies {
+        ...StrategyRefFragment
+      }
+    }
+    total: programsCount(filter: $filter)
+  }
+  ${ProgramFragments.programRef}
+  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.denormalizedPmfmStrategy}
+  ${StrategyFragments.taxonGroupStrategy}
+  ${StrategyFragments.taxonNameStrategy}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.taxonName}`
 };
 
 const ProgramRefCacheKeys = {
@@ -147,54 +165,59 @@ export class ProgramRefService
     toEntity?: boolean;
     debug?: boolean;
     query?: any;
+    cache?: boolean;
     fetchPolicy?: WatchQueryFetchPolicy;
   }): Observable<Program> {
 
-    console.debug(`[program-ref-service] Loading Program {${label}} reference...`);
-
-    let now;
-    const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
-    return this.cache.loadFromObservable(cacheKey + Date.now()/*TODO BLA disable cache*/,
-      defer(() => {
-
-        // Prepare debug stuff
-        const debug = this._debug && (!opts || opts !== false);
-        now = debug && Date.now();
-        if (now) console.debug(`[program-ref-service] Loading program {${label}}...`);
-
-        let res: Observable<{ data: any }>;
-
-        const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
-        if (offline) {
-          res = this.entities.watchAll<Program>(Program.TYPENAME, {
-            offset: 0, size: 1,
-            filter: (p) => p.label ===  label
-          });
-        }
-        else {
-          res = this.watchAll(0, 1, null, null, { label }, {
-            withTotal: false,
-            toEntity: false,
-            fetchPolicy: opts && opts.fetchPolicy || undefined
-          });
-        }
-        return res.pipe(
-            map(res => res && firstArrayValue(res.data)),
-            filter(isNotNil)
-          );
-      }),
-      ProgramRefCacheKeys.CACHE_GROUP
-    )
+    // Use cache (enable by default, if no custom query)
+    /*if (!opts || (opts.cache !== false && !opts.query)) {
+      const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
+      return this.cache.loadFromObservable(cacheKey,
+        defer(() => this.watchByLabel(label, {...opts, cache: false, toEntity: false})),
+        ProgramRefCacheKeys.CACHE_GROUP
+      )
       .pipe(
-        map(data => {
-          const entity = (!opts || opts.toEntity !== false) ? Program.fromObject(data) : data;
-          if (now) {
-            console.debug(`[program-ref-service] Loading program {${label}} [OK] in ${Date.now() - now}ms`);
-            now = undefined;
-          }
-          return entity;
-        })
+        map(data => (!opts || opts.toEntity !== false) ? Program.fromObject(data) : data)
       );
+    }*/
+
+    // Debug
+    const debug = this._debug && (!opts || opts.debug !== false);
+    let now = debug && Date.now();
+    if (debug) console.debug(`[program-ref-service] Watching program {${label}}...`);
+
+    let res: Observable<any>;
+
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    if (offline) {
+      res = this.entities.watchAll<any>(Program.TYPENAME, {
+        offset: 0, size: 1,
+        filter: (p) => p.label === label
+      }).pipe(
+        map(res => firstArrayValue(res && res.data))
+      );
+    }
+    else {
+      const query = opts && opts.query || this.queries.load;
+      res = this.graphql.watchQuery<{data: any}>({
+        query,
+        variables: { label },
+        fetchPolicy: opts && (opts.fetchPolicy as FetchPolicy) || 'no-cache',
+        error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"}
+      }).pipe(map(res => res && res.data));
+    }
+
+    return res.pipe(
+      //filter(isNotNil),
+      map(data => {
+        const entity = (!opts || opts.toEntity !== false) ? Program.fromObject(data) : data;
+        if (now) {
+          console.debug(`[program-ref-service] Watching program {${label}} [OK] in ${Date.now() - now}ms`);
+          now = undefined;
+        }
+        return entity;
+      })
+    );
   }
 
   async existsByLabel(label: string): Promise<Boolean> {
@@ -207,45 +230,44 @@ export class ProgramRefService
   async loadByLabel(label: string, opts?: {
     toEntity?: boolean;
     query?: any;
+    cache?: boolean;
     fetchPolicy?: FetchPolicy;
   }): Promise<Program> {
 
-    const defer = async () => {
+    // Use cache (enable by default, if no custom query)
+    /*if (!opts || (opts.cache !== false && !opts.query)) {
+      const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
+      return this.cache.getOrSetItem<Program>(cacheKey,
+        () => this.loadByLabel(label, {...opts, cache: false, toEntity: false}),
+        ProgramRefCacheKeys.CACHE_GROUP)
+        .then(data => (!opts || opts.toEntity !== false) ? Program.fromObject(data) : data);
+    }*/
 
-      // If offline mode
-      const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
-      if (offline) {
-        const res = await this.entities.loadAll<Program>(Program.TYPENAME, {
-          offset: 0, size: 1,
-          filter: (p) => p.label ===  label
-        });
-        return { data: firstArrayValue(res && res.data) };
-      }
+    let data: any;
+    if (this._debug) console.debug(`[program-ref-service] Loading program {${label}}...`);
 
-      if (this._debug) console.debug(`[program-ref-service] Loading program {${label}}...`);
-
+    // If offline mode
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    if (offline) {
+      data = await this.entities.loadAll<Program>(Program.TYPENAME, {
+        offset: 0, size: 1,
+        filter: (p) => p.label ===  label
+      }).then(res => firstArrayValue(res && res.data));
+    }
+    else {
       const query = opts && opts.query || this.queries.load;
-      return this.graphql.query<{ data: any }>({
+      const res = await this.graphql.query<{ data: any }>({
         query,
         variables: { label },
         error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
       });
-    };
-
-    const useCache = (!opts || (!opts.query && opts.fetchPolicy !== 'network-only'));
-    let res;
-    if (useCache) {
-      const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
-      res = await this.cache.getOrSetItem<{ data: any }>(cacheKey, defer, ProgramRefCacheKeys.CACHE_GROUP);
-    }
-    else {
-      res = await defer();
+      data = res && res.data;
     }
 
     // Convert to entity (if need)
     const entity = (!opts || opts.toEntity !== false)
-      ? res && Program.fromObject(res.data)
-      : res && res.data as Program;
+      ? Program.fromObject(data)
+      : data as Program;
 
     if (this._debug) console.debug(`[program-ref-service] Program loaded {${label}}`, entity);
     return entity;
@@ -255,55 +277,67 @@ export class ProgramRefService
    * Watch program pmfms
    */
   watchProgramPmfms(programLabel: string, opts: {
+    cache?: boolean;
     acquisitionLevel: string;
     strategyLabel?: string;
     gearId?: number;
     taxonGroupId?: number;
     referenceTaxonId?: number;
-  }, debug?: boolean): Observable<PmfmStrategy[]> {
+    toEntity?: boolean;
+  }, debug?: boolean): Observable<DenormalizedPmfmStrategy[]> {
 
-    const cacheKey = [ProgramRefCacheKeys.PMFMS, programLabel, JSON.stringify(opts)].join('|');
+    // Use cache (enable by default)
+    /*if (!opts || opts.cache !== false) {
+      const cacheKey = [ProgramRefCacheKeys.PMFMS, programLabel, JSON.stringify(opts)].join('|');
+      return this.cache.loadFromObservable(cacheKey,
+        defer(() => this.watchProgramPmfms(programLabel, {...opts, cache: false, toEntity: false})),
+        ProgramRefCacheKeys.CACHE_GROUP)
+        .pipe(
+          map(res => (!opts || opts.toEntity !== false)
+            ? res && res.map(PmfmStrategy.fromObject)
+            : res as PmfmStrategy[]
+          )
+        );
+    }*/
 
-    return this.cache.loadFromObservable(cacheKey,
-      this.watchByLabel(programLabel, {toEntity: false, debug: false}) // Watch the program
-          .pipe(
-            map(program => {
-              // Find strategy
-              const strategy = (program && program.strategies || []).find(s => !opts || !opts.strategyLabel || s.label === opts.strategyLabel);
+    return this.watchByLabel(programLabel, {toEntity: false, debug: false}) // Watch the program
+      .pipe(
+        map(program => {
+          // Find strategy
+          const strategy = (program && program.strategies || []).find(s => !opts || !opts.strategyLabel || s.label === opts.strategyLabel);
 
-              const pmfmIds = []; // used to avoid duplicated pmfms
-              const res = (strategy && strategy.pmfmStrategies || [])
-                // Filter on acquisition level and gear
-                .filter(p =>
-                  pmfmIds.indexOf(p.pmfmId) === -1
-                  && (
-                    !opts || (
-                      (!opts.acquisitionLevel || p.acquisitionLevel === opts.acquisitionLevel)
-                      // Filter on gear (if PMFM has gears = compatible with all gears)
-                      && (!opts.gearId || !p.gearIds || !p.gearIds.length || p.gearIds.findIndex(id => id === opts.gearId) !== -1)
-                      // Filter on taxon group
-                      && (!opts.taxonGroupId || !p.taxonGroupIds || !p.taxonGroupIds.length || p.taxonGroupIds.findIndex(g => g === opts.taxonGroupId) !== -1)
-                      // Filter on reference taxon
-                      && (!opts.referenceTaxonId || !p.referenceTaxonIds || !p.referenceTaxonIds.length || p.referenceTaxonIds.findIndex(g => g === opts.referenceTaxonId) !== -1)
-                      // Add to list of IDs
-                      && pmfmIds.push(p.pmfmId)
-                    )
-                  ))
+          const pmfmIds = []; // used to avoid duplicated pmfms
+          const res = (strategy && strategy.denormalizedPmfms || [])
+            // Filter on acquisition level and gear
+            .filter(p =>
+              pmfmIds.indexOf(p.id) === -1
+              && (
+                !opts || (
+                  (!opts.acquisitionLevel || p.acquisitionLevel === opts.acquisitionLevel)
+                  // Filter on gear (if PMFM has gears = compatible with all gears)
+                  && (!opts.gearId || !p.gearIds || !p.gearIds.length || p.gearIds.findIndex(id => id === opts.gearId) !== -1)
+                  // Filter on taxon group
+                  && (!opts.taxonGroupId || !p.taxonGroupIds || !p.taxonGroupIds.length || p.taxonGroupIds.findIndex(g => g === opts.taxonGroupId) !== -1)
+                  // Filter on reference taxon
+                  && (!opts.referenceTaxonId || !p.referenceTaxonIds || !p.referenceTaxonIds.length || p.referenceTaxonIds.findIndex(g => g === opts.referenceTaxonId) !== -1)
+                  // Add to list of IDs
+                  && pmfmIds.push(p.id)
+                )
+              ))
 
-                // Sort on rank order
-                .sort((p1, p2) => p1.rankOrder - p2.rankOrder);
+            // Sort on rank order
+            .sort((p1, p2) => p1.rankOrder - p2.rankOrder);
 
-              if (debug) console.debug(`[program-ref-service] PMFM for ${opts.acquisitionLevel} (filtered):`, res);
+          if (debug) console.debug(`[program-ref-service] PMFM for ${opts.acquisitionLevel} (filtered):`, res);
 
-              // TODO: translate name/label using translate service ?
-              return res;
-            }
-          )),
-      ProgramRefCacheKeys.CACHE_GROUP
-    )
-    .pipe(
-      map(res => res && res.map(PmfmStrategy.fromObject)),
-      filter(isNotNil)
+          // TODO: translate name/label using translate service ?
+
+          return (!opts || opts.toEntity !== false)
+            ? res && res.map(DenormalizedPmfmStrategy.fromObject)
+            : res as DenormalizedPmfmStrategy[];
+        }
+      ),
+      filter(isNotNil) // TODO
     );
   }
 
@@ -316,7 +350,7 @@ export class ProgramRefService
     gearId?: number;
     taxonGroupId?: number;
     referenceTaxonId?: number;
-  }, debug?: boolean): Promise<PmfmStrategy[]> {
+  }, debug?: boolean): Promise<DenormalizedPmfmStrategy[]> {
 
     return firstNotNilPromise(
       this.watchProgramPmfms(programLabel, options, debug)
@@ -370,7 +404,7 @@ export class ProgramRefService
             // Find strategy
             const strategy = (program && program.strategies || []).find(s => !opts || !opts.strategyLabel || s.label === opts.strategyLabel);
 
-            const res = (strategy && strategy.taxonGroups || [])
+            const res = (strategy && strategy.taxonGroups && strategy.taxonGroups.slice() || [])
 
               // Sort taxonGroupStrategies, on priorityLevel
                .sort(propertiesPathComparator(
@@ -379,7 +413,7 @@ export class ProgramRefService
                  [1, 'ZZZ', 'ZZZ'])
                )
               .map(v => v.taxonGroup);
-            if (this._debug) console.debug(`[program-ref-service] Found ${res.length} taxon groups on program {${program}}`);
+            if (this._debug) console.debug(`[program-ref-service] Found ${res.length} taxon groups on program {${programLabel}}`);
             return res;
           })
         ),
@@ -528,7 +562,7 @@ export class ProgramRefService
         if (acquisitionLevels && acquisitionLevels.length === 1) {
           loadFilter = {
             ...loadFilter,
-            searchJoin: "strategies/pmfmStrategies/acquisitionLevel",
+            searchJoin: "strategies/pmfms/acquisitionLevel",
             searchAttribute: "label",
             searchText: acquisitionLevels[0]
           };
@@ -543,7 +577,7 @@ export class ProgramRefService
       const {data} = await JobUtils.fetchAllPages<any>((offset, size) =>
           this.loadAll(offset, size, 'id', 'asc', loadFilter, {
             debug: false,
-            withTotal: true,
+            query: ProgramRefQueries.loadAllWithTotalAndStrategy,
             fetchPolicy: "network-only",
             toEntity: false
           }),

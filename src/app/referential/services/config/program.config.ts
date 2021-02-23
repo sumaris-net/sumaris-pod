@@ -336,24 +336,6 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'legacy'
   },
 
-  // PROGRAM STRATEGY EDITOR column name
-  PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME: <FormFieldDefinition>{
-    key: 'sumaris.program.strategy.editor.pmfm.table.column.name',
-    label: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME',
-    type: 'enum',
-    values: [
-      {
-        key: 'shortName',
-        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME'
-      },
-      {
-        key: 'longName',
-        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME'
-      }
-    ],
-    defaultValue: 'longName'
-  },
-
   /* -- QUalitative value options -- */
 
   MEASUREMENTS_MAX_VISIBLE_BUTTONS: <FormFieldDefinition>{

@@ -83,21 +83,23 @@
 
   </ng-container>
 
-  <!-- rankOrder Column = weight -->
+  <!-- Total weight -->
   <ng-container matColumnDef="weight">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label translate>TRIP.BATCH.TABLE.TOTAL_WEIGHT</ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ measurementValueToString(row.currentData.measurementValues[defaultWeightPmfm.pmfmId], defaultWeightPmfm) }}</mat-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text [innerHTML]="row.currentData.measurementValues[defaultWeightPmfm.id] | pmfmValueToString: {pmfm: defaultWeightPmfm, html: true}"></ion-text>
+    </mat-cell>
   </ng-container>
 
   <!-- Pmfm columns -->
-  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
+  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.id.toString()">
     <mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm | isDatePmfm">
       <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm | isDatePmfm">
-      <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.pmfmId] | pmfmValueToString: {pmfm: pmfm, html: true}"></ion-text>
+      <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValueToString: {pmfm: pmfm, html: true}"></ion-text>
     </mat-cell>
   </ng-container>
 
@@ -108,7 +110,7 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
       <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['comments']"
+        <input matInput [formControl]="row.validator.controls.comments"
                [placeholder]="'REFERENTIAL.COMMENTS'|translate"
                [readonly]="!row.editing">
       </mat-form-field>

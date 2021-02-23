@@ -28,11 +28,9 @@ export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'TaxonNameStrategyVO': {
     keyFields: ['__typename', 'strategyId', 'taxonName', ['entityName', 'id']]
   },
-  'PmfmStrategyVO': {
-    merge: (existing, incoming, options) => {
-      console.log('TODO: merging PmfmStrategyVO', existing, incoming);
-    }
-  }
+  'DenormalizedPmfmStrategyVO': {
+    keyFields: ['__typename', 'strategyId', 'acquisitionLevel', 'id']
+  },
 };
 
 export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {

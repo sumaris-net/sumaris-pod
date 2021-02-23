@@ -35,7 +35,7 @@ export class ObservedLocationValidatorService
     if (opts.withMeasurements) {
       const measForm = form.get('measurementValues') as FormGroup;
       // TODO: find strategy from date and location
-      (opts.program && opts.program.strategies[0] && opts.program.strategies[0].pmfmStrategies || [])
+      (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms || [])
         .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.OBSERVED_LOCATION)
         .forEach(p => {
           const key = p.pmfmId.toString();

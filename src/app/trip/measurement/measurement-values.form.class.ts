@@ -3,7 +3,7 @@ import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {FloatLabelType} from "@angular/material/form-field";
 import {BehaviorSubject, isObservable, Observable} from 'rxjs';
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
 import {filter, throttleTime} from "rxjs/operators";
@@ -13,9 +13,10 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AppForm} from "../../core/form/form.class";
 import {isEmptyArray, isNil, isNotNil} from "../../shared/functions";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
-  mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
+  mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
   onUpdateControls?: (formGroup: FormGroup) => void | Promise<void>;
 }
 
@@ -38,7 +39,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   applyingValue = false;
   $programLabel = new BehaviorSubject<string>(undefined);
   $strategyLabel = new BehaviorSubject<string>(undefined);
-  $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
 
 
   @Input() compact = false;
@@ -101,7 +102,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     return this.getValue();
   }
 
-  @Input() set pmfms(pmfms: Observable<PmfmStrategy[]> | PmfmStrategy[]) {
+  @Input() set pmfms(pmfms: Observable<DenormalizedPmfmStrategy[]> | DenormalizedPmfmStrategy[]) {
     this.loading = true;
     this.setPmfms(pmfms);
   }
@@ -289,7 +290,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     const measurementValuesForm = this.measurementValuesForm;
     if (measurementValuesForm) {
       // Find dirty pmfms, to avoid full update
-      const dirtyPmfms = (this.$pmfms.getValue() || []).filter(pmfm => measurementValuesForm.controls[pmfm.pmfmId].dirty);
+      const dirtyPmfms = (this.$pmfms.getValue() || []).filter(pmfm => measurementValuesForm.controls[pmfm.id].dirty);
       if (dirtyPmfms.length) {
         json.measurementValues = Object.assign({}, this.data.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(measurementValuesForm.value, dirtyPmfms));
       }
@@ -361,7 +362,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
-  protected async updateControls(event?: string, pmfms?: PmfmStrategy[]) {
+  protected async updateControls(event?: string, pmfms?: IPmfm[]) {
     //if (isNil(this.data)) return; // not ready
     pmfms = pmfms || this.$pmfms.getValue();
     const form = this.form;
@@ -442,7 +443,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     return true;
   }
 
-  async setPmfms(value: PmfmStrategy[] | Observable<PmfmStrategy[]>): Promise<PmfmStrategy[]> {
+  async setPmfms(value: IPmfm[] | Observable<IPmfm[]>): Promise<IPmfm[]> {
     // If no pmfms
     if (!value) {
       // If need, reset pmfms
@@ -455,8 +456,8 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
 
     // Wait loaded, if observable
-    let pmfms: PmfmStrategy[];
-    if (isObservable<PmfmStrategy[]>(value)) {
+    let pmfms: IPmfm[];
+    if (isObservable<IPmfm[]>(value)) {
       if (this.debug) console.debug(`${this.logPrefix} setPmfms(): waiting pmfms observable to emit...`);
       pmfms = await firstNotNilPromise(value);
     }

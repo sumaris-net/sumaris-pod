@@ -2,7 +2,7 @@ import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 
-import {FetchPolicy, MutationUpdaterFn, WatchQueryFetchPolicy} from "@apollo/client/core";
+import {FetchPolicy, MutationUpdaterFn, StoreObject, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {SortDirection} from "@angular/material/sort";
 
 import {ReferentialFilter} from "./referential.service";
@@ -11,10 +11,13 @@ import {EntityServiceLoadOptions, IEntitiesService, LoadResult} from "../../shar
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {environment} from "../../../environments/environment";
-import {Entity, EntityUtils} from "../../core/services/model/entity.model";
+import {Entity, EntityAsObjectOptions, EntityUtils} from "../../core/services/model/entity.model";
 import {chainPromises} from "../../shared/observables";
 import {isEmptyArray, isNil, isNotNil} from "../../shared/functions";
 import {Directive} from "@angular/core";
+import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
+import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
+import {Person} from "../../core/services/model/person.model";
 
 
 export interface BaseEntityGraphqlQueries {
@@ -246,11 +249,10 @@ export abstract class BaseEntityService<T extends Entity<any>,
   async saveAll(entities: T[], options?: any): Promise<T[]> {
     if (!this.mutations.saveAll) throw Error('Not implemented');
 
-    if (!entities) return entities;
-    // Nothing to save: skip
-    if (!entities.length) return;
+    if (isEmptyArray(entities)) return entities; // Nothing to save: skip
 
-    const json = entities.map(t => t.asObject());
+    const json = entities.map(entity => this.asObject(entity));
+
     const now = Date.now();
     if (this._debug) console.debug(`[base-entity-service] Saving all ${this._entityName}...`, json);
 
@@ -295,7 +297,8 @@ export abstract class BaseEntityService<T extends Entity<any>,
     this.fillDefaultProperties(entity);
 
     // Transform into json
-    const json = entity.asObject();
+    const json = this.asObject(entity);
+
     const isNew = isNil(json.id);
 
     const now = Date.now();
@@ -448,6 +451,7 @@ export abstract class BaseEntityService<T extends Entity<any>,
     EntityUtils.copyIdAndUpdateDate(source, target);
   }
 
+
   fromObject(source: any): T {
     if (!source) return source;
     const target = new this.dataType();
@@ -461,6 +465,10 @@ export abstract class BaseEntityService<T extends Entity<any>,
     // Can be override by subclasses
   }
 
+  protected asObject(entity: T, opts?: EntityAsObjectOptions): StoreObject {
+    // Can be override by subclasses
+    return entity.asObject(opts);
+  }
 
   /**
    * Workaround to enable delete() and deleteAll() even when some mutation are missing
