@@ -150,6 +150,16 @@ under the License.
             </configuration>
         </server>
         <server>
+            <id>user-maven</id>
+            <username>lb06435-rw-access-token</username>
+            <password>VNRi3ak5NvYz73MLxo6f</password>
+        </server>
+        <server>
+            <id>project-maven</id>
+            <username>sumaris-pod-rw-access-token</username>
+            <password>3zpQ5eKo1qR9FPqPbay4</password>
+        </server>
+        <server>
             <id>gitlab.ifremer.fr</id>
             <username>${env.GITLAB_REPO_USER}</username>
             <password>${env.GITLAB_REPO_PASS}</password>

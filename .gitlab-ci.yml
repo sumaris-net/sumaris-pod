@@ -34,6 +34,9 @@ schedule-build:
         - mvn -s ./settings.xml clean install -DskipTests
     environment:
         name: test
+    artifacts:
+        paths:
+            - sumaris-server/target/*.war
 
 deploy_project_registry:
     stage: deploy
