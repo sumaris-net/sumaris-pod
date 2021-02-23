@@ -31,7 +31,7 @@ schedule-build:
         - sih_public_runner
     script:
         - echo "Test dev build in progress"
-        - mvn -s ./settings.xml clean install -DskipTests
+        - mvn -s ./ci_settings.xml clean install -DskipTests
     environment:
         name: test
     artifacts:
@@ -113,8 +113,8 @@ package:
     script:
         - echo "Release in progress"
         - mvn release:clean -Dslf4jJclScope=provided
-        - mvn -s ./settings.xml release:prepare --batch-mode -Dtag=imagine-pod-$RELEASE_VERSION -DreleaseVersion=$RELEASE_VERSION -DdevelopmentVersion=$NEW_DEV_VERSION -DscmCommentPrefix="[ci skip] to "
-        - mvn -s ./settings.xml release:perform -Dslf4jJclScope=provided -X -DscmCommentPrefix="[ci skip] to "
+        - mvn -s ./ci_settings.xml release:prepare --batch-mode -Dtag=imagine-pod-$RELEASE_VERSION -DreleaseVersion=$RELEASE_VERSION -DdevelopmentVersion=$NEW_DEV_VERSION -DscmCommentPrefix="[ci skip] to "
+        - mvn -s ./ci_settings.xml release:perform -Dslf4jJclScope=provided -X -DscmCommentPrefix="[ci skip] to "
     artifacts:
         paths:
             - web-services/target/*.war
@@ -152,7 +152,7 @@ deploy:
         - sih_public_runner
     script:
         - echo "Deploy in progress"
-        - mvn -s ./settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$TAG -Dfile=web-services/target/ROOT.war -DrepositoryId=internal-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven
+        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$TAG -Dfile=web-services/target/ROOT.war -DrepositoryId=internal-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven
     only:
         - develop
         - feature/imagine
