@@ -102,6 +102,12 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Referent
   ngOnInit() {
     super.ngOnInit();
 
+
+    // Remove error after changed selection
+    this.selection.changed.subscribe(() => {
+      this.error = null;
+    });
+
     this.registerAutocompleteField('department', {
       service: this.referentialRefService,
       filter: <ReferentialFilter>{
