@@ -229,41 +229,6 @@ under the License.
         </profile>
         -->
 
-        <!--
-         | Here is another profile, activated by the system property 'target-env' with a value of 'dev',
-         | which provides a specific path to the Tomcat instance. To use this, your plugin configuration
-         | might hypothetically look like:
-         |
-         | ...
-         | <plugin>
-         |   <groupId>org.myco.myplugins</groupId>
-         |   <artifactId>myplugin</artifactId>
-         |
-         |   <configuration>
-         |     <tomcatLocation>${tomcatPath}</tomcatLocation>
-         |   </configuration>
-         | </plugin>
-         | ...
-         |
-         | NOTE: If you just wanted to inject this configuration whenever someone set 'target-env' to
-         |       anything, you could just leave off the <value/> inside the activation-property.
-         |
-        <profile>
-          <id>env-dev</id>
-
-          <activation>
-            <property>
-              <name>target-env</name>
-              <value>dev</value>
-            </property>
-          </activation>
-
-          <properties>
-            <tomcatPath>/path/to/tomcat/instance</tomcatPath>
-          </properties>
-        </profile>
-        -->
-
         <profile>
             <id>gitlab-profile</id>
             <repositories>
