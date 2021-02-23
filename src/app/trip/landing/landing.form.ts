@@ -200,7 +200,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           await this.ready();
 
           // Add validator errors on expected effort for this sampleRow (issue #175)
-          // FIXME CLT date must be set with SAMPLE.SAMPLE_DATE when IMAGINE-276 is done
           const getExpectedEffort = await this.samplingStrategyService.getEffortFromStrategyLabel(this.strategyLabel, this.data.dateTime);
           if (!getExpectedEffort) {
             this.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
