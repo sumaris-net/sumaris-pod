@@ -199,28 +199,23 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
           await this.ready();
 
+          // Add validator errors on expected effort for this sampleRow (issue #175)
+          // FIXME CLT date must be set with SAMPLE.SAMPLE_DATE when IMAGINE-276 is done
+          const getExpectedEffort = await this.samplingStrategyService.getEffortFromStrategyLabel(this.strategyLabel, this.data.dateTime);
+          if (!getExpectedEffort) {
+            this.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
+          } else if (getExpectedEffort == 0) {
+            // TODO must be a warning, not error
+            this.strategyControl.setErrors(<ValidationErrors>{zeroEffort: true});
+          } else {
+            SharedValidators.clearError(this.strategyControl, 'noEffort');
+            SharedValidators.clearError(this.strategyControl, 'zeroEffort');
+          }
+
           // Propagate to measurement values
           const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
           if (measControl && measControl.value !== strategyLabel) {
             measControl.setValue(strategyLabel);
-          }
-
-          // Add validator errors on expected effort for this sampleRow (issue #175)
-          const getExpectedEffort = await this.samplingStrategyService.getEffortFromStrategyLabel(strategyLabel, this.data.dateTime);
-          if (!getExpectedEffort) {
-            this.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
-            this.strategyControl.markAsDirty();
-            await this.refreshPmfms();
-          } else if (getExpectedEffort == 0) {
-            // TODO must be a warning, not error
-            this.strategyControl.setErrors(<ValidationErrors>{zeroEffort: true});
-            this.strategyControl.markAsDirty();
-            await this.refreshPmfms();
-          } else {
-            SharedValidators.clearError(this.strategyControl, 'noEffort');
-            SharedValidators.clearError(this.strategyControl, 'zeroEffort');
-            this.strategyControl.markAsDirty();
-            await this.refreshPmfms();
           }
         }));
   }
@@ -377,5 +372,12 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
 
     return pmfms;
+  }
+  get invalid(): boolean {
+    if (this.strategyControl.hasError('required') || this.strategyControl.hasError('noEffort'))
+    {
+      return true;
+    }
+    return super.invalid;
   }
 }
