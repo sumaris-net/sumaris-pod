@@ -14,6 +14,8 @@ import {fadeInOutAnimation} from "../../../shared/material/material.animations";
 import {filter, tap, throttleTime} from "rxjs/operators";
 import {isNotNil} from "../../../shared/functions";
 import {SamplingSamplesTable} from "../../sample/sampling/sampling-samples.table";
+import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
+import {ObservedLocation} from "../../services/model/observed-location.model";
 
 
 @Component({
@@ -69,6 +71,14 @@ export class SamplingLandingPage extends LandingPage {
   }
 
   /* -- protected functions -- */
+
+  protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
+    await super.onNewEntity(data, options);
+    // By default, set location to parent location
+    if (this.parent && this.parent instanceof ObservedLocation) {
+      this.landingForm.form.get('location').patchValue(data.location);
+    }
+  }
 
   protected async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
