@@ -99,7 +99,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
 
     // If need full entities, but use light entities in the entities array
     if (this._mapToLightEntity && (opts && opts.fullLoad === true)) {
-      console.warn("[entity-store] WARN: Watching full entities, splited by id in entity store. This can be long! Please make sure you need full entities here.")
+      console.warn("[entity-store] WARN: Watching full entities, splited by id in entity store. This can be long! Please make sure you need full entities here.");
       return this._onChange
         .pipe(
           // Apply filter on cache
@@ -511,7 +511,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
                           sortDirection?: string;
                           filter?: (T) => boolean;
                         }): LoadResult<T> {
-    if (!data || !data.length) {
+    if (isEmptyArray(data)) {
       return {data: [], total: 0};
     }
 
@@ -554,10 +554,14 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
           data.slice(variables.offset);
       }
     }
+
+    // Apply a limit
     else if (variables.size > 0){
-      data = data.slice(0, variables.size - 1);
-    } else if (variables.size < 0){
-      // Force to keep all data
+      data = data.slice(0, variables.size);
+    }
+    // No limit:
+    else if (variables.size === -1){
+      // Keep all data
     }
 
     return {data, total};
