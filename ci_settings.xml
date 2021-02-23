@@ -123,21 +123,8 @@ under the License.
         </server>
         -->
 
-        <!--
         <server>
-         <id>gitlab-maven</id>
-         <configuration>
-           <httpHeaders>
-             <property>
-               <name>gitlab+deploy-token-34</name>
-               <value>qmqyr4oesz6hHiGYuEFX</value>
-             </property>
-           </httpHeaders>
-         </configuration>
-       </server>
-     -->
-        <server>
-            <id>gitlab-maven</id>
+            <id>internal-maven</id>
             <username>${env.MAVEN_REPO_USER}</username>
             <password>${env.MAVEN_REPO_PASS}</password>
         </server>
@@ -147,14 +134,20 @@ under the License.
             <password>54gJ-pk4XDxmjoxBdirx</password>
         </server>
         <server>
+            <id>job-maven</id>
+            <configuration>
+                <httpHeaders>
+                    <property>
+                        <name>Job-Token</name>
+                        <value>${env.CI_JOB_TOKEN}</value>
+                    </property>
+                </httpHeaders>
+            </configuration>
+        </server>
+        <server>
             <id>gitlab.ifremer.fr</id>
             <username>${env.GITLAB_REPO_USER}</username>
             <password>${env.GITLAB_REPO_PASS}</password>
-        </server>
-        <server>
-            <id>nexus-ifremer</id>
-            <username>nexus-ci</username>
-            <password>w2bH2NjgFmQnzVk3</password>
         </server>
     </servers>
 
@@ -275,12 +268,17 @@ under the License.
             <id>gitlab-profile</id>
             <repositories>
                 <repository>
-                    <id>gitlab-maven</id>
+                    <id>project-maven</id>
                     <url>https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven</url>
                 </repository>
             </repositories>
+            <properties>
+                <release.server>internal-maven</release.server>
+                <release.repository>https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven</release.repository>
+                <snapshot.server>job-maven</snapshot.server>
+                <snapshot.repository>https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven</snapshot.repository>
+            </properties>
         </profile>
-
     </profiles>
 
     <!-- activeProfiles
