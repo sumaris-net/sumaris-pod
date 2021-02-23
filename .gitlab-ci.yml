@@ -44,7 +44,7 @@ deploy_project_registry:
     script:
         - echo "Deploy Snapshot in progress"
         - echo $SNAPSHOT_VERSION
-        - mvn -s ./settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$SNAPSHOT_VERSION -Dfile=web-services/target/ROOT.war -DrepositoryId=gitlab-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
+        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$SNAPSHOT_VERSION -Dfile=sumaris-server/target/sumaris-server-$SNAPSHOT_VERSION.war -DrepositoryId=gitlab-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
     only:
         - develop
         - feature/imagine
