@@ -334,26 +334,6 @@
         </configuration>
       </plugin>
 
-      <plugin>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>deploy-nexus-snapshot</id>
-            <goals>
-              <goal>deploy-file</goal>
-            </goals>
-            <configuration>
-              <file>${project.build.directory}/${project.artifactId}-${project.version}.${project.packaging}</file>
-              <groupId>fr.ifremer.sumaris</groupId>
-              <artifactId>${project.artifactId}</artifactId>
-              <version>${project.version}</version>
-              <url>https://nexus-test.ifremer.fr/repository/hosted-maven-private-snapshot/</url>
-              <packaging>${project.packaging}</packaging>
-              <repositoryId>nexus-ifremer</repositoryId>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 
