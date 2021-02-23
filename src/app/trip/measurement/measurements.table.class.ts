@@ -91,7 +91,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   }
 
   get strategyLabel(): string {
-    return this.strategyLabel;
+    return this._strategyLabel;
   }
 
   @Input()
