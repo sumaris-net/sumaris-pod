@@ -271,7 +271,15 @@ under the License.
         </profile>
         -->
 
-
+        <profile>
+            <id>gitlab-profile</id>
+            <repositories>
+                <repository>
+                    <id>gitlab-maven</id>
+                    <url>https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven</url>
+                </repository>
+            </repositories>
+        </profile>
 
     </profiles>
 
@@ -286,4 +294,9 @@ under the License.
       <activeProfiles>
       <activeProfile>staging</activeProfile>
     </activeProfiles>-->
+
+    <activeProfiles>
+        <activeProfile>gitlab-profile</activeProfile>
+    </activeProfiles>
+
 </settings>
