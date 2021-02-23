@@ -238,7 +238,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
         filterSheetName: "ST",
         columnName: "strategy_id",
         operator: "IN",
-        values: entities.map(s => s.id.toString())
+        values: entities.filter(s => s.id).map(s => s.id.toString())
       },
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'
     });
