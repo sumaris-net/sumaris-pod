@@ -213,7 +213,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     });
   }
 
-  protected async fillEfforts(entities: SamplingStrategy[], opts?: {
+  async fillEfforts(entities: SamplingStrategy[], opts?: {
     fetchPolicy?: FetchPolicy;
   }): Promise<void> {
     if (isEmptyArray(entities)) return; // Skip is empty
@@ -231,7 +231,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
         filterSheetName: "ST",
         columnName: "strategy_id",
         operator: "IN",
-        values: entities.map(s => s.id.toString())
+        values: entities.filter(s => s.id).map(s => s.id.toString())
       },
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'
     });

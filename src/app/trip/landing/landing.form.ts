@@ -201,14 +201,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
           await this.ready();
 
-          // Propagate to measurement values
-          const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
-          if (measControl && measControl.value !== strategyLabel) {
-            measControl.setValue(strategyLabel);
-          }
-
           // Add validator errors on expected effort for this sampleRow (issue #175)
-          const expectedEffort = await this.samplingStrategyService.getEffortFromStrategyLabel(strategyLabel, this.data.dateTime);
+          const expectedEffort = await this.samplingStrategyService.getEffortFromStrategyLabel(this.strategyLabel, this.data.dateTime);
           if (!expectedEffort) {
             this.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
           } else if (expectedEffort === 0) {
@@ -217,6 +211,12 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           } else {
             SharedValidators.clearError(this.strategyControl, 'noEffort');
             SharedValidators.clearError(this.strategyControl, 'zeroEffort');
+          }
+
+          // Propagate to measurement values
+          const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
+          if (measControl && measControl.value !== strategyLabel) {
+            measControl.setValue(strategyLabel);
           }
         }));
   }
@@ -372,5 +372,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
 
     return pmfms;
+  }
+
+  get invalid(): boolean {
+    return super.invalid
+      // Check strategy
+      || (this.showStrategy && (this.strategyControl.invalid
+
+      // TODO BLA: ne sert à rien, car strategyControl.invalid devrait suffir
+      || (this.strategyControl.hasError('required') || this.strategyControl.hasError('noEffort'))));
   }
 }

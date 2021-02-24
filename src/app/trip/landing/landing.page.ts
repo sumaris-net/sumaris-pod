@@ -141,6 +141,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.addChildForms([this.landingForm, this.samplesTable]);
   }
 
+  async reload(): Promise<void> {
+    this.loading = true;
+    const route = this.route.snapshot;
+    await this.load(this.data && this.data.id, route.params);
+  }
+
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
 
     if (this.isOnFieldMode) {
@@ -353,6 +359,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     const pmfmsFromSamplesWithoutFractions = (pmfmsFromStrategyAndSamples || []).filter(pmfmStrategy => isNil(pmfmStrategy.fractionId));
 
     this.samplesTable.pmfms = pmfmsFromSamplesWithoutFractions;
+    this.samplesTable.strategyLabel = strategy.label;
   }
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {

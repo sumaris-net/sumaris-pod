@@ -1395,11 +1395,12 @@
         "PARAMETERS.MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}",
         "PARAMETERS.WEIGHT_OR_SIZE": "Le poids ou la taille est obligatoire",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
+        "EFFORT.REALIZED_EFFORT": "Le nombre d'efforts doit être supérieur ou égal à 1 pour les trimestres ayant des mesures individuelles",
         "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà",
         "LABEL.ZERO": "L'incrément minimal est 0001",
         "STRATEGY_HAS_REALIZED_EFFORT": "La ligne de plan {{label}} est liée à une ou plusieurs observations individuelles",
         "STRATEGIES_HAS_REALIZED_EFFORT": "Les lignes de plan {{label}} sont liées à une ou plusieurs observations individuelles",
-        "PMFM.PMFM_OR_PARAMETER": "Veuillez sélectionner un paramètre à mesurer ou un paramètre"
+        "PMFM.PMFM_OR_PARAMETER": "Veuillez sélectionner un PSFM ou un paramètre"
       }
     },
     "ERROR": {

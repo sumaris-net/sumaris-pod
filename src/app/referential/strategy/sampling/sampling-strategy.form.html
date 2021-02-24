@@ -179,8 +179,10 @@
         <ion-label>&nbsp;</ion-label>
       </ion-col>
       <ion-col size="12" size-md="3" size-lg="2">
+        <!-- TODO BLA question: pourquoi un markAsDirty() sur une click -->
         <mat-date-short-field [placeholder]="i18nFieldPrefix + 'YEAR_PLACEHOLDER'|translate"
                               formControlName="year"
+                              (click)="markAsDirty()"
                               [required]="true" >
         </mat-date-short-field>
       </ion-col>
@@ -207,11 +209,14 @@
                    (click)="selectInputContent($event)">
           </mat-form-field>
         </ion-col>
-        <ion-col *ngIf="form.touched && appliedPeriodsForm.hasError('minLength')"
+        <ion-col *ngIf="form.touched && appliedPeriodsForm.invalid"
                  size="12" size-md="10" offset-md="2" size-lg="9" offset-lg="3"
                  style="margin-top: -20px;">
-          <mat-error>
+          <mat-error *ngIf="appliedPeriodsForm.hasError('minLength')">
             <small>{{'PROGRAM.STRATEGY.ERROR.EFFORT.MIN_LENGTH' | translate: appliedPeriodsForm.errors.minLength }}</small>
+          </mat-error>
+          <mat-error *ngIf="appliedPeriodsForm.hasError('RealizedEffortWithSamples')">
+            <small>{{'PROGRAM.STRATEGY.ERROR.EFFORT.REALIZED_EFFORT' | translate }}</small>
           </mat-error>
         </ion-col>
       </ion-row>
