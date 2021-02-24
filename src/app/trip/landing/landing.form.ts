@@ -211,6 +211,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
             SharedValidators.clearError(this.strategyControl, 'zeroEffort');
           }
 
+          this.form.markAsDirty();
+
           // Propagate to measurement values
           const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
           if (measControl && measControl.value !== strategyLabel) {
