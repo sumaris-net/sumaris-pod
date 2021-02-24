@@ -47,10 +47,10 @@ export function trimEmptyToNull<T>(str: string | null | undefined): string | nul
   const value = str && str.trim() || undefined;
   return value && value.length && value || null;
 }
-export function toBoolean(obj: boolean | null | undefined | string, defaultValue: boolean): boolean {
+export function toBoolean(obj: boolean | null | undefined | string, defaultValue?: boolean): boolean {
   return (obj !== undefined && obj !== null) ? (obj !== "false" ? !!obj : false) : defaultValue;
 }
-export function toNumber(obj: number | null | undefined, defaultValue: number): number {
+export function toNumber(obj: number | null | undefined, defaultValue?: number): number {
   return (obj !== undefined && obj !== null) ? +obj : defaultValue;
 }
 export function toFloat(obj: string | null | undefined, defaultValue?: number): number | null {

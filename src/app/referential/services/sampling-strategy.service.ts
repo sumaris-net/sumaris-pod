@@ -13,7 +13,7 @@ import {LoadResult} from "../../shared/services/entity-service.class";
 import {StrategyFilter, StrategyService} from "./strategy.service";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {isEmptyArray, isNotNil} from "../../shared/functions";
+import {firstArrayValue, isEmptyArray, isNotNil} from "../../shared/functions";
 import {ParameterLabelGroups} from "./model/model.enum";
 import {ConfigService} from "../../core/services/config.service";
 import {PmfmService} from "./pmfm.service";
@@ -152,22 +152,27 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     return samplingStrategy.hasRealizedEffort;
   }
 
-  async getEffortFromStrategyLabel(strategyLabel: string, date: Moment): Promise<number> {
-    let result = null;
-    const strategies = await this.loadAll(0, 20, 'label', 'desc', {
-      label: strategyLabel
+  async loadStrategyEffortByDate(programLabel: string, strategyLabel: string, date: Moment): Promise<StrategyEffort> {
+    if (!programLabel || !strategyLabel || !date) throw new Error('Missing a required argument');
+
+    const {data} = await this.loadAll(0, 1, 'label', 'asc', {
+      label: strategyLabel,
+      levelLabel: programLabel
+    }, {
+      withEffort: true,
+      withTotal: false,
+      withParameterGroups: false,
+      fetchPolicy: "cache-first"
     });
-    if (strategies && strategies.data && strategies.total === 1) {
-      const effortByQuarters = strategies.data[0].effortByQuarter;
-      if (effortByQuarters) {
-        const effortByQuarter = effortByQuarters[date.quarter()];
-        // We check if returned effort correspond to strategy date
-        if (effortByQuarter && effortByQuarter.startDate.year() === date.year()) {
-          result = effortByQuarter.expectedEffort;
-        }
+    const strategy = firstArrayValue(data);
+    if (strategy && strategy.effortByQuarter) {
+      const effortByQuarter = strategy.effortByQuarter[date.quarter()];
+      // Check same year
+      if (effortByQuarter && effortByQuarter.startDate.year() === date.year()) {
+        return effortByQuarter;
       }
     }
-    return result;
+    return undefined; // No effort at this date
   }
 
   async fillEntities(res: LoadResult<SamplingStrategy>, opts?: {

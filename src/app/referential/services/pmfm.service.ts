@@ -29,11 +29,21 @@ import {CryptoService} from "../../core/services/crypto.service";
 
 const LoadAllQuery: any = gql`
   query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
-    pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+    data: pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightPmfmFragment
     }
   }
   ${ReferentialFragments.lightPmfm}
+`
+
+const LoadAllWithPartsQuery: any = gql`
+  query PmfmsWithParts($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+    data: pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...PmfmRefWithPartsFragment
+    }
+  }
+  ${ReferentialFragments.pmfmRefWithParts}
+  ${ReferentialFragments.referential}
 `;
 const LoadAllWithDetailsQuery: any = gql`
   query PmfmsWithDetails($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -125,14 +135,14 @@ export class PmfmService extends BaseGraphqlService implements IEntityService<Pm
 
     if (this._debug) console.debug(`[pmfm-service] Loading pmfm {${id}}...`);
 
-    const res = await this.graphql.query<{ pmfm: any }>({
+    const {data} = await this.graphql.query<{ data: any }>({
       query: LoadQuery,
       variables: {
-        id: id
+        id
       },
       error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"}
     });
-    const entity = res && res.pmfm && Pmfm.fromObject(res.pmfm);
+    const entity = data && Pmfm.fromObject(data);
 
     if (this._debug) console.debug(`[pmfm-service] Pmfm {${id}} loaded`, entity);
 
@@ -306,7 +316,10 @@ export class PmfmService extends BaseGraphqlService implements IEntityService<Pm
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;
     return this.loadAll(0, !value ? 30 : 10, filter && filter.searchAttribute || null, null,
-      { ...filter, searchText: value}
+      { ...filter, searchText: value},
+      {
+        query: LoadAllWithPartsQuery
+      }
     );
   }
 

@@ -51,7 +51,7 @@ import {PmfmFilter, PmfmService} from "../../services/pmfm.service";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {MatAutocompleteField} from "../../../shared/material/autocomplete/material.autocomplete";
 import { ObjectMap } from 'src/app/shared/types';
-import { SamplingStrategy } from '../../services/model/sampling-strategy.model';
+import {SamplingStrategy, StrategyEffort} from '../../services/model/sampling-strategy.model';
 import {LoadResult} from "../../../shared/services/entity-service.class";
 
 const moment = momentImported;
@@ -64,9 +64,12 @@ const moment = momentImported;
 })
 export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
+  private _$pmfmGroups: BehaviorSubject<ObjectMap<number[]>> = new BehaviorSubject(null);
+
   mobile: boolean;
   $program = new BehaviorSubject<Program>(null);
   labelMask: (string | RegExp)[];
+  data: SamplingStrategy;
 
   hasEffort = false;
 
@@ -155,11 +158,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   fractionItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
   taxonNameItems: BehaviorSubject<TaxonNameRef[]> = new BehaviorSubject(null);
 
-  _$pmfmGroups: BehaviorSubject<ObjectMap<number[]>> = new BehaviorSubject(null);
-
-
-  samplingStrategy: SamplingStrategy;
-
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected validatorService: StrategyValidatorService,
@@ -236,22 +234,20 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         }
         return <ValidationErrors>{ minLength: {minLength} };
       },
+      // Check quarter acquisitionNumber is not
       async (control) => {
-        const appliedPeriods = control.value;
-        let RealizedEffortWithSamples = false;
-        if (!isEmptyArray(appliedPeriods)) {
-          let i = 1;
-          appliedPeriods.forEach(period => {
-            if (this.samplingStrategy && this.samplingStrategy.effortByQuarter[i] && this.samplingStrategy.effortByQuarter[i].hasRealizedEffort && period.acquisitionNumber < 1) {
-              RealizedEffortWithSamples = true;
-            }
-            i++;
-          });
+        const appliedPeriods = (control.value as any[]);
+        const invalidQuarters = (appliedPeriods || [])
+          .map(AppliedPeriod.fromObject)
+          .filter(period => {
+            const quarter = period.startDate.quarter();
+            const quarterEffort: StrategyEffort = this.data && this.data.effortByQuarter && this.data.effortByQuarter[quarter];
+            return quarterEffort && quarterEffort.hasRealizedEffort && (isNil(period.acquisitionNumber) || period.acquisitionNumber < 0);
+          }).map(period => period.startDate.quarter());
+        if (isNotEmptyArray(invalidQuarters)) {
+          return <ValidationErrors>{ hasRealizedEffort: {quarters: invalidQuarters} };
         }
-        if (RealizedEffortWithSamples) {
-          return <ValidationErrors>{ RealizedEffortWithSamples: true };
-        }
-        SharedValidators.clearError(control, 'RealizedEffortWithSamples');
+        SharedValidators.clearError(control, 'hasRealizedEffort');
         return null;
       }
     ]);
@@ -358,7 +354,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       mobile: this.settings.mobile
     });
 
-    // eotp combo -------------------------------------------------------------------
+    // Analytic reference autocomplete
     this.registerAutocompleteField('analyticReference', {
       suggestFn: (value, filter) => this.suggestAnalyticReferences(value, {
         ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
@@ -367,6 +363,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       mobile: this.settings.mobile
     });
 
+    // Fraction autocomplete
     this.registerAutocompleteField('fraction', {
       suggestFn: (value, filter) => this.suggestAgeFractions(value, {
         ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
@@ -375,8 +372,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       columnNames: ['REFERENTIAL.NAME'],
       mobile: this.settings.mobile
     });
-
-
 
   }
 
@@ -599,10 +594,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     console.debug("[sampling-strategy-form] Setting Strategy value", data);
     if (!data) return;
 
-    this.samplingStrategy = new SamplingStrategy();
-    this.samplingStrategy.fromObject(data);
-    this.samplingStrategyService.fillEfforts([this.samplingStrategy]).then((test) => {
-      this.hasEffort = this.samplingStrategy.hasRealizedEffort;
+    this.data = new SamplingStrategy();
+    this.data.fromObject(data);
+
+    // Fill efforts (need by validator)
+    this.samplingStrategyService.fillEfforts([this.data]).then((test) => {
+      this.hasEffort = this.data.hasRealizedEffort;
       this.enable();
     });
 
@@ -611,7 +608,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Resize strategy department array
     this.departmentsHelper.resize(Math.max(1, data.departments.length));
 
-    data.appliedStrategies = data.appliedStrategies && data.appliedStrategies.length ? data.appliedStrategies : [null];
+    data.appliedStrategies = isNotEmptyArray(data.appliedStrategies) ? data.appliedStrategies : [new AppliedStrategy()];
     // Resize strategy department array
     this.appliedStrategiesHelper.resize(Math.max(1, data.appliedStrategies.length));
 
@@ -619,41 +616,43 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Resize pmfm strategy array
     this.taxonNamesHelper.resize(Math.max(1, data.taxonNames.length));
 
-    // Resize strategy department array
-    this.appliedPeriodsHelper.resize(4);
 
     // APPLIED_PERIODS
     // get model appliedPeriods which are stored in first applied strategy
-    const appliedPeriodControl = this.appliedPeriodsForm;
-    const firstAppliedStrategyWithPeriods = firstArrayValue((data.appliedStrategies || []).filter(as => isNotEmptyArray(as.appliedPeriods)));
-    const appliedPeriods = firstAppliedStrategyWithPeriods && firstAppliedStrategyWithPeriods.appliedPeriods;
+    const appliedStrategyWithPeriods = firstArrayValue((data.appliedStrategies || []).filter(as => as && isNotEmptyArray(as.appliedPeriods)))
+      || firstArrayValue(data.appliedStrategies || []);
+    const appliedPeriods = appliedStrategyWithPeriods.appliedPeriods || [];
 
     // Find year, from applied period, or use current
-    const year: number = appliedPeriods && firstArrayValue(appliedPeriods.map(ap => ap.startDate.year())) || moment().year();
+    const year: number = firstArrayValue(appliedPeriods.map(ap => ap.startDate.year())) || moment().year();
 
     // format periods for applied period in view and init default period by quarter if no set
-    const formattedAppliedPeriods = [1, 4, 7, 10].map(startMonth => {
-      const appliedPeriod = appliedPeriods && appliedPeriods.find(period => period.startDate.month() === startMonth) || new AppliedPeriod();
-      const endMonth = startMonth + 2;
-      appliedPeriod.startDate = moment(`${year}-${startMonth.toString().padStart(2, '0')}-01`).startOf('month');
-      appliedPeriod.endDate = moment(`${year}-${endMonth.toString().padStart(2, '0')}-01`).endOf('month');
+    appliedStrategyWithPeriods.appliedPeriods = [1, 2, 3, 4].map(quarter => {
+      const startMonth = (quarter - 1) * 3 + 1;
+      const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`).utc();
+      const endDate = startDate.clone().add(2, 'month').endOf('month');
+      // Find the existing entity, or create a new one
+      const appliedPeriod = appliedPeriods && appliedPeriods.find(period => period.startDate.month() === startDate.month())
+        || AppliedPeriod.fromObject({ acquisitionNumber: undefined });
+      appliedPeriod.startDate = startDate;
+      appliedPeriod.endDate = endDate;
+
       return appliedPeriod;
     });
 
-    // patch the control value
-    appliedPeriodControl.patchValue(formattedAppliedPeriods);
+    // Resize applied periods array
+    this.appliedPeriodsHelper.resize(4);
 
     super.setValue(data, opts);
 
     // Get fisrt period
-    const firstAppliedPeriod = firstArrayValue(formattedAppliedPeriods);
-    this.form.get('year').patchValue(firstAppliedPeriod ? firstAppliedPeriod.startDate : moment());
+    const firstAppliedPeriod = firstArrayValue(appliedStrategyWithPeriods.appliedPeriods);
 
     this.form.patchValue({
+      year: firstAppliedPeriod ? firstAppliedPeriod.startDate : moment(),
       analyticReference: { label: data.analyticReference }
     });
 
-    const pmfmsControl = this.pmfmsForm;
 
     // If new
     if (!data.id) {
@@ -667,9 +666,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     }
 
 
-    const pmfms = [];
-
     firstNotNilPromise(this._$pmfmGroups).then((pmfmGroups) => {
+      const pmfms = [];
 
       //WEIGHT
       const weightPmfmStrategy = this.getPmfmsByType(data.pmfms, pmfmGroups.WEIGHT, ParameterLabelGroups.WEIGHT);
@@ -686,9 +684,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       pmfms.push(maturityPmfmStrategies.length > 0 ? maturityPmfmStrategies : []);
       this.maturityPmfmStrategiesTable.value = maturityPmfmStrategies.length > 0 ? maturityPmfmStrategies : [new PmfmStrategy()];
 
-      pmfmsControl.patchValue(pmfms);
+      this.pmfmsForm.patchValue(pmfms);
     });
-
 
     this.referentialRefService.loadAll(0, 1000, null, null,
       {
@@ -745,24 +742,24 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     // Fishing Area + Efforts --------------------------------------------------------------------------------------------
 
-    const firstAppliedStrategy: AppliedStrategy = firstArrayValue(target.appliedStrategies);
-    const appliedPeriods = (firstAppliedStrategy && firstAppliedStrategy.appliedPeriods || [])
-      .filter(period => isNotNil(period.acquisitionNumber));
-    appliedPeriods.forEach(ap => {
-      // Set year (a quarter should be already set)
-      ap.startDate.set('year', year);
-      ap.endDate.set('year', year);
-    });
+    const appliedStrategyWithPeriods = firstArrayValue((target.appliedStrategies || []).filter(as => isNotEmptyArray(as.appliedPeriods)));
+    if (appliedStrategyWithPeriods) {
+      appliedStrategyWithPeriods.appliedPeriods = (appliedStrategyWithPeriods && appliedStrategyWithPeriods.appliedPeriods || [])
+        // Exclude period without acquisition number
+        .filter(period => isNotNil(period.acquisitionNumber))
+        .map(ap => {
+          // Set year (a quarter should be already set)
+          ap.startDate.set('year', year);
+          ap.endDate.set('year', year);
+          ap.appliedStrategyId = appliedStrategyWithPeriods.id;
+          return ap;
+        });
 
-    // Copy applied period to each applied strategies
-    (target.appliedStrategies || []).forEach((appliedStrategy, index) => {
-      if (index === 0) {
-        appliedStrategy.appliedPeriods = appliedPeriods;
-      }
-      else {
-        delete appliedStrategy.appliedPeriods;
-      }
-    });
+      // Clean periods, on each other applied strategies
+      (target.appliedStrategies || [])
+        .filter(as => as !== appliedStrategyWithPeriods)
+        .forEach(appliedStrategy => appliedStrategy.appliedPeriods = []);
+    }
 
     // PMFM + Fractions -------------------------------------------------------------------------------------------------
     const sex = this.form.get('sex').value;
@@ -772,14 +769,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     await this.weightPmfmStrategiesTable.save();
     await this.lengthPmfmStrategiesTable.save();
 
-    let pmfmStrategies = [
+    let pmfmStrategies: any[] = [
       ...this.weightPmfmStrategiesTable.value,
       ...this.lengthPmfmStrategiesTable.value
     ];
 
     // Add SEX Pmfm
     if (sex) {
-      pmfmStrategies.push(PmfmStrategy.fromObject({ pmfm: {id: PmfmIds.SEX }}));
+      pmfmStrategies.push(<PmfmStrategy>{ pmfm: {id: PmfmIds.SEX }});
 
       // Add maturity pmfms
       await this.maturityPmfmStrategiesTable.save();
@@ -790,32 +787,28 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     // Add AGE Pmfm
     if (age) {
-      pmfmStrategies.push(PmfmStrategy.fromObject({ pmfm: {id: PmfmIds.AGE }}));
+      pmfmStrategies.push(<PmfmStrategy>{ pmfm: {id: PmfmIds.AGE }});
 
       // Pièces calcifiées
       (json.pmfmsFraction || [])
-        .map(fraction => PmfmStrategy.fromObject({ fraction }))
+        .map(fraction => <PmfmStrategy>{ fraction })
         .filter(isNotNil)
-        .forEach(pmfmStrategies.push);
+        .forEach(pmfm => pmfmStrategies.push(pmfm));
     }
 
     // Add analytic reference Pmfm
-    pmfmStrategies.push(PmfmStrategy.fromObject({pmfm: {id: PmfmIds.MORSE_CODE}}));
+    pmfmStrategies.push(<PmfmStrategy>{pmfm: {id: PmfmIds.MORSE_CODE}});
 
     // Fill PmfmStrategy defaults
     let rankOrder = 1;
     target.pmfms = pmfmStrategies
+      .map(PmfmStrategy.fromObject)
       .map(pmfmStrategy => {
-        pmfmStrategy.strategyId = target.id;
+        pmfmStrategy.strategyId = pmfmStrategy.id;
         pmfmStrategy.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
         pmfmStrategy.acquisitionNumber = 1;
         pmfmStrategy.isMandatory = false;
         pmfmStrategy.rankOrder = rankOrder++;
-        pmfmStrategy.pmfm = pmfmStrategy.pmfm && Pmfm.fromObject(pmfmStrategy.pmfm) || undefined;
-        pmfmStrategy.parameter = pmfmStrategy.parameter && ReferentialRef.fromObject(pmfmStrategy.parameter) || undefined;
-        pmfmStrategy.matrix = pmfmStrategy.matrix && ReferentialRef.fromObject(pmfmStrategy.matrix) || undefined;
-        pmfmStrategy.fraction = pmfmStrategy.fraction && ReferentialRef.fromObject(pmfmStrategy.fraction) || undefined;
-        pmfmStrategy.method = pmfmStrategy.method && ReferentialRef.fromObject(pmfmStrategy.method) || undefined;
         return pmfmStrategy;
       })
       // Remove if empty

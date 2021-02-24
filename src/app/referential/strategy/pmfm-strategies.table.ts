@@ -7,35 +7,19 @@ import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {
-  Beans,
-  changeCaseToUnderscore,
-  isEmptyArray,
-  isNotEmptyArray,
-  isNotNil,
-  KeysEnum,
-  removeDuplicatesFromArray
-} from "../../shared/functions";
+import {Beans, changeCaseToUnderscore, isEmptyArray, isNotEmptyArray, isNotNil, KeysEnum, removeDuplicatesFromArray} from "../../shared/functions";
 import {BehaviorSubject, Observable, of} from "rxjs";
 import {firstFalsePromise} from "../../shared/observables";
 import {PmfmFilter, PmfmService} from "../services/pmfm.service";
-import {IPmfm, Pmfm, PMFM_NAME_REGEXP} from "../services/model/pmfm.model";
-import {
-  IReferentialRef,
-  Referential,
-  ReferentialRef,
-  ReferentialUtils
-} from "../../core/services/model/referential.model";
+import {Pmfm} from "../services/model/pmfm.model";
+import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasource.class";
-import {debounceTime, filter, map, startWith, switchMap} from "rxjs/operators";
-import {DenormalizedPmfmStrategy, getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {debounceTime, map, startWith, switchMap} from "rxjs/operators";
+import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
-import {ParameterLabelGroups} from "../services/model/model.enum";
-import {options} from "ionicons/icons";
-import {EntityUtils} from "../../core/services/model/entity.model";
 import {LoadResult} from "../../shared/services/entity-service.class";
 import {StatusIds} from "../../core/services/model/model.enum";
-import {tar} from "@ionic/cli/lib/utils/archive";
+import {Parameter} from "../services/model/parameter.model";
 
 export class PmfmStrategyFilter {
 
@@ -301,22 +285,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       type: 'entity',
       required: false,
       autocomplete: this.registerAutocompleteField('parameter', {
-        suggestFn: async (value, opts) => {
-          if (this.pmfmFilter) {
-            const {data} = await this.pmfmService.suggest(value, {
-              ...opts,
-              ...this.pmfmFilter
-            });
-            return removeDuplicatesFromArray(data.map(p => p.parameter), 'label');
-          }
-          else {
-            return await this.referentialRefService.suggest(value, {
-              ...opts,
-              entityName: 'Parameter',
-              statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-            });
-          }
-        },
+        suggestFn: (value, opts) => this.suggestParameters(value, opts),
         attributes: pmfmParameterAttributes,
         columnSizes: [4, 8],
         columnNames: ['REFERENTIAL.PARAMETER.CODE', 'REFERENTIAL.PARAMETER.NAME'],
@@ -524,13 +493,31 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   /* -- protected functions -- */
 
-  protected suggestPmfms(value: any, opts?: any): Promise<LoadResult<Pmfm>> {
-    return this.pmfmService.suggest(value, {
-      ...opts,
-      /*searchJoin: !this.showPmfmLabel ? 'parameter' : undefined,
+  protected async suggestPmfms(value: any, opts?: any): Promise<LoadResult<Pmfm>> {
+    const res = await this.pmfmService.suggest(value, {
+      searchJoin: 'parameter',
       searchAttribute: !this.showPmfmLabel ? 'name' : undefined,
-      ...this.pmfmFilter*/
+      ...this.pmfmFilter
     });
+    return res;
+  }
+
+  protected async suggestParameters(value: any, opts?: any): Promise<IReferentialRef[] | LoadResult<IReferentialRef>> {
+    if (this.pmfmFilter) {
+      const {data} = await this.pmfmService.suggest(value, {
+        searchJoin: 'parameter',
+        ...this.pmfmFilter
+      });
+      const pmfmParameters = data.map(p => p.parameter).filter(isNotNil);
+      return removeDuplicatesFromArray(pmfmParameters, 'label');
+    }
+    else {
+      return await this.referentialRefService.suggest(value, {
+        ...opts,
+        entityName: 'Parameter',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      });
+    }
   }
 
   /**

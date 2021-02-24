@@ -179,7 +179,7 @@
         <ion-label>&nbsp;</ion-label>
       </ion-col>
       <ion-col size="12" size-md="3" size-lg="2">
-        <!-- TODO BLA question: pourquoi un markAsDirty() sur une click -->
+        <!-- TODO BLA question: pourquoi un markAsDirty() sur un click -->
         <mat-date-short-field [placeholder]="i18nFieldPrefix + 'YEAR_PLACEHOLDER'|translate"
                               formControlName="year"
                               (click)="markAsDirty()"
@@ -190,7 +190,7 @@
 
     <!-- Effort / quarters -->
     <ng-container  *ngIf="appliedPeriodsForm; let appliedPeriodsForm">
-      <ion-row *ngIf="appliedPeriodsForm; let appliedPeriodsForm">
+      <ion-row>
         <ion-col size="12" size-md="2" size-lg="3">
           <ion-label class="ion-float-end">{{i18nFieldPrefix + 'EFFORT'|translate}}</ion-label>
         </ion-col>
@@ -198,16 +198,21 @@
         <ion-col size="3" size-md="2"
                  *ngFor="let appliedPeriodForm of appliedPeriodsForm.controls; index as i; first as first"
                  [class.ion-padding-start]="!first">
-          <mat-form-field [formGroup]="appliedPeriodsHelper.at(i)">
-            <input matInput
-                   formControlName="acquisitionNumber"
-                   [placeholder]="(i18nFieldPrefix + 'QUARTER_PLACEHOLDER' |translate) + (i+1) "
-                   type="number"
-                   step="1"
-                   min="0"
-                   autocomplete="off"
-                   (click)="selectInputContent($event)">
-          </mat-form-field>
+          <form [formGroup]="appliedPeriodForm">
+            <!-- DEBUG AppliedPeriod.startDate
+              <mat-date-field formControlName="startDate"></mat-date-field>
+            -->
+            <mat-form-field >
+              <input matInput
+                     formControlName="acquisitionNumber"
+                     [placeholder]="(i18nFieldPrefix + 'QUARTER_PLACEHOLDER' |translate) + (i+1) "
+                     type="number"
+                     step="1"
+                     min="0"
+                     autocomplete="off"
+                     (click)="selectInputContent($event)">
+            </mat-form-field>
+          </form>
         </ion-col>
         <ion-col *ngIf="form.touched && appliedPeriodsForm.invalid"
                  size="12" size-md="10" offset-md="2" size-lg="9" offset-lg="3"
@@ -215,8 +220,8 @@
           <mat-error *ngIf="appliedPeriodsForm.hasError('minLength')">
             <small>{{'PROGRAM.STRATEGY.ERROR.EFFORT.MIN_LENGTH' | translate: appliedPeriodsForm.errors.minLength }}</small>
           </mat-error>
-          <mat-error *ngIf="appliedPeriodsForm.hasError('RealizedEffortWithSamples')">
-            <small>{{'PROGRAM.STRATEGY.ERROR.EFFORT.REALIZED_EFFORT' | translate }}</small>
+          <mat-error *ngIf="appliedPeriodsForm.hasError('hasRealizedEffort')">
+            <small>{{'PROGRAM.STRATEGY.ERROR.EFFORT.REALIZED_EFFORT' | translate: appliedPeriodsForm.errors.hasRealizedEffort }}</small>
           </mat-error>
         </ion-col>
       </ion-row>

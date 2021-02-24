@@ -65,6 +65,7 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
 
   getAppliedStrategiesControl(data?: AppliedStrategy): FormGroup {
     return this.formBuilder.group({
+      id: [toNumber(data && data.id, null)],
       strategyId: [toNumber(data && data.strategyId, null)],
       location: [data && data.location, Validators.compose([Validators.required, SharedValidators.entity])],
       appliedPeriods: this.getAppliedPeriodsFormArray(data)

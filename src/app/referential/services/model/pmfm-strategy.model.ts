@@ -109,6 +109,9 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
     target.pmfmId = toNumber(this.pmfmId, this.pmfm && this.pmfm.id);
     target.pmfm = this.pmfm && this.pmfm.asObject({...NOT_MINIFY_OPTIONS, ...options});
     target.parameter = this.parameter && this.parameter.asObject({...NOT_MINIFY_OPTIONS, ...options});
+    target.matrix = this.matrix && this.matrix.asObject({...NOT_MINIFY_OPTIONS, ...options});
+    target.fraction = this.fraction && this.fraction.asObject({...NOT_MINIFY_OPTIONS, ...options});
+    target.method = this.method && this.method.asObject({...NOT_MINIFY_OPTIONS, ...options});
 
     // Serialize default value
     // only if NOT an alphanumerical value (DB column is a double) or a computed PMFM
@@ -128,6 +131,10 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
     this.pmfm = source.pmfm && Pmfm.fromObject(source.pmfm);
     this.pmfmId = toNumber(source.pmfmId, source.pmfm && source.pmfm.id);
     this.parameter = source.parameter && ReferentialRef.fromObject(source.parameter);
+    this.matrix = source.matrix && ReferentialRef.fromObject(source.matrix);
+    this.fraction = source.fraction && ReferentialRef.fromObject(source.fraction);
+    this.method = source.method && ReferentialRef.fromObject(source.method);
+
     this.minValue = source.minValue;
     this.maxValue = source.maxValue;
     this.defaultValue = source.defaultValue;

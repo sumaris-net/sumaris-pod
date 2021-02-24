@@ -26,6 +26,7 @@ import {
 import {ProgramRefService} from "./program-ref.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {BaseReferentialService} from "./base-referential-service.class";
+import {StrategyRefService} from "./strategy-ref.service";
 
 
 export class ProgramFilter extends ReferentialFilter {
@@ -86,6 +87,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     protected referentialService: ReferentialService,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
+    protected strategyRefService: StrategyRefService,
     protected cache: CacheService,
     protected entities: EntitiesStorage
   ) {
@@ -238,7 +240,11 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
   }
 
   async clearCache() {
-    await this.programRefService.clearCache();
+    // Make sure to clean all strategy references (.e.g Pmfm cache, etc)
+    await Promise.all([
+      this.programRefService.clearCache(),
+      this.strategyRefService.clearCache()
+    ]);
 
     // TODO BLA: clean referential-ref queries cache ?
   }

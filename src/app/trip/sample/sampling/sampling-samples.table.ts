@@ -17,6 +17,7 @@ import {Sample} from "../../services/model/sample.model";
 import {TaxonUtils} from "../../../referential/services/model/taxon.model";
 import {SamplingStrategyService} from "../../../referential/services/sampling-strategy.service";
 import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {Moment} from "moment";
 
 export interface SampleFilter {
   operationId?: number;
@@ -46,14 +47,10 @@ declare interface GroupColumnDefinition {
 })
 export class SamplingSamplesTable extends SamplesTable {
 
-  protected referentialRefService: ReferentialRefService;
+  private $strategyLabel = new BehaviorSubject<string>(undefined);
 
   $pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
   $pmfmGroupColumns = new BehaviorSubject<GroupColumnDefinition[]>([]);
-
-
-  private _onRefreshExpectedEffort = new EventEmitter<any>();
-  private expectedEffortDefinedAndPositive: Boolean;
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     this.$pmfmGroups.next(value);
@@ -68,11 +65,8 @@ export class SamplingSamplesTable extends SamplesTable {
   @Input()
   set strategyLabel(value: string) {
     if (this._strategyLabel !== value && isNotNil(value)) {
-      this._strategyLabel = value;
-      if (this.measurementsDataService) {
-        this.measurementsDataService.strategyLabel = value;
-      }
-      this._onRefreshExpectedEffort.emit();
+      super.strategyLabel = value;
+      this.$strategyLabel.next(value);
     }
   }
 
@@ -93,7 +87,7 @@ export class SamplingSamplesTable extends SamplesTable {
       }
     );
 
-    this._onRefreshExpectedEffort.subscribe(() => this.refreshExpectedEffort(this._strategyLabel, this.defaultSampleDate));
+    this.$strategyLabel.subscribe((strategyLabel) => this.onStrategyChanged(strategyLabel));
   }
 
   protected async onNewEntity(data: Sample): Promise<void> {
@@ -148,17 +142,6 @@ export class SamplingSamplesTable extends SamplesTable {
     await this.addPmfmColumns(pmfmIds);
 
   }
-
-
-  addRow(event?: any): boolean {
-    // IMAGINE-230 Strategy must have defined and positive expected effort to add samples.
-    if (!this.expectedEffortDefinedAndPositive) {
-      // Warning message already displayed in strategy label field. We only disable button
-      return false;
-    }
-    return super.addRow(event);
-  }
-
 
   /* -- protected methods -- */
 
@@ -271,15 +254,23 @@ export class SamplingSamplesTable extends SamplesTable {
     ];
   }
 
-  protected async refreshExpectedEffort(strategyLabel: string, sampleDate): Promise<Boolean> {
-    // IMAGINE-230 Strategy must have defined and positive expected effort to add samples.
-    this.expectedEffortDefinedAndPositive = false;
-    if (!isNil(strategyLabel)) {
-      const expectedEffort = await this.samplingStrategyService.getEffortFromStrategyLabel(strategyLabel, sampleDate);
-      this.expectedEffortDefinedAndPositive = isNotNil(expectedEffort) && expectedEffort > 0;
+  protected async onStrategyChanged(strategyLabel: string) {
+    // IMAGINE-230 Strategy must have defined and positive expected effort to add samples
+    if (isNil(this.programLabel) || isNil(strategyLabel) || isNil(this.defaultSampleDate)) {
+      this.disable();
+      return;
     }
-    return this.expectedEffortDefinedAndPositive;
-  }
 
+    const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(this.programLabel,
+      strategyLabel,
+      this.defaultSampleDate);
+    const enable = strategyEffort && isNotNil(strategyEffort.expectedEffort);
+    if (enable) {
+      this.enable();
+    }
+    else {
+      this.disable();
+    }
+  }
 
 }

@@ -24,6 +24,8 @@ import {isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
 import {LoadResult} from "../../shared/services/entity-service.class";
 import {BaseReferentialService} from "./base-referential-service.class";
 import {Pmfm} from "./model/pmfm.model";
+import {ProgramRefService} from "./program-ref.service";
+import {StrategyRefService} from "./strategy-ref.service";
 
 
 export class StrategyFilter extends ReferentialFilter {
@@ -144,7 +146,9 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     protected network: NetworkService,
     protected accountService: AccountService,
     protected cache: CacheService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    protected programRefService: ProgramRefService,
+    protected strategyRefService: StrategyRefService
   ) {
     super(graphql, platform, Strategy,
       {
@@ -243,17 +247,6 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     return this.accountService.isSupervisor();
   }
 
-  protected asObject(entity: Strategy, opts?: EntityAsObjectOptions): StoreObject {
-    const target: any = super.asObject(entity, opts);
-
-    (target.pmfms || []).forEach(pmfmStrategy => {
-      pmfmStrategy.pmfmId = toNumber(pmfmStrategy.pmfm && pmfmStrategy.pmfm.id, pmfmStrategy.pmfmId);
-      delete pmfmStrategy.pmfm;
-    });
-
-    return target;
-  }
-
   copyIdAndUpdateDate(source: Strategy, target: Strategy) {
 
     EntityUtils.copyIdAndUpdateDate(source, target);
@@ -289,4 +282,33 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     }
   }
 
+  async save(entity: Strategy, options?: any): Promise<Strategy> {
+
+
+    await this.clearCache();
+
+    return super.save(entity, options);
+  }
+
+  /* -- protected functions -- */
+
+  protected asObject(entity: Strategy, opts?: EntityAsObjectOptions): StoreObject {
+    const target: any = super.asObject(entity, opts);
+
+    (target.pmfms || []).forEach(pmfmStrategy => {
+      pmfmStrategy.pmfmId = toNumber(pmfmStrategy.pmfm && pmfmStrategy.pmfm.id, pmfmStrategy.pmfmId);
+      delete pmfmStrategy.pmfm;
+    });
+
+    return target;
+  }
+
+  protected async clearCache() {
+
+    // Make sure to clean all strategy references (.e.g Pmfm cache, etc)
+    await Promise.all([
+      this.programRefService.clearCache(),
+      this.strategyRefService.clearCache()
+    ]);
+  }
 }

@@ -16,6 +16,7 @@ import {firstArrayValue, isNotNil, toNumber} from "../../shared/functions";
 import {defer, Observable} from "rxjs";
 import {filter, map} from "rxjs/operators";
 import {BaseReferentialService} from "./base-referential-service.class";
+import {firstNotNilPromise} from "../../shared/observables";
 
 
 export class StrategyFilter extends ReferentialFilter {
@@ -94,7 +95,7 @@ const StrategyRefQueries: BaseEntityGraphqlQueries = {
 };
 
 
-const StrategyCacheKeys = {
+const StrategyRefCacheKeys = {
   CACHE_GROUP: 'strategy',
 
   STRATEGY_BY_LABEL: 'strategyByLabel'
@@ -121,6 +122,70 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
   }
 
   /**
+   * Watch strategy by label
+   * @param label
+   * @param opts
+   */
+  watchByLabel(label: string, opts?: {
+    programId?: number;
+    toEntity?: boolean;
+    debug?: boolean;
+    query?: any;
+    cache?: boolean;
+  }): Observable<Strategy> {
+
+    if (!opts || opts.cache !== false) {
+      const cacheKey = [StrategyRefCacheKeys.STRATEGY_BY_LABEL, label, opts && opts.programId].join('|');
+      return this.cache.loadFromObservable(cacheKey,
+        defer(() => this.watchByLabel(label, {...opts, toEntity: false, cache: false})),
+        StrategyRefCacheKeys.CACHE_GROUP)
+        .pipe(
+          map(data => (!opts || opts.toEntity !== false) ? Strategy.fromObject(data) : data)
+        );
+    }
+
+    let now;
+    const debug = this._debug && (!opts || opts !== false);
+    now = debug && Date.now();
+    if (now) console.debug(`[strategy-ref-service] Watching strategy {${label}}...`);
+    let res: Observable<any>;
+
+    if (this.network.offline) {
+      res = this.entities.watchAll<Strategy>(Strategy.TYPENAME, {
+        offset: 0,
+        size: 1,
+        filter: (p) => p.label ===  label && (!opts.programId || p.programId === opts.programId)
+      })
+        .pipe(
+          map(res => firstArrayValue(res && res.data))
+        );
+    }
+    else {
+      const query = opts && opts.query || this.queries.load;
+      res = this.graphql.watchQuery<{ data: any }>({
+        query,
+        variables: {
+          label,
+          levelId: toNumber(opts && opts.programId, undefined)
+        },
+        error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "ERROR.LOAD_ERROR"}
+      }).pipe(map(res => res && res.data));
+    }
+
+    return res.pipe(
+      filter(isNotNil),
+      map(data => {
+        const entity = (!opts || opts.toEntity !== false) ? Strategy.fromObject(data) : data;
+        if (now) {
+          console.debug(`[strategy-service] Watching strategy {${label}} [OK] in ${Date.now() - now}ms`);
+          now = undefined;
+        }
+        return entity;
+      })
+    );
+  }
+
+  /**
    *
    * @param label
    * @param opts
@@ -130,72 +195,11 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
     fetchPolicy?: FetchPolicy;
     toEntity?: boolean;
   }): Promise<Strategy> {
-    console.debug(`[strategy-ref-service] Loading strategy {${label}}...`);
-
-    const res = await this.loadAll(0, 1, null, null, {
-      label,
-      levelId: toNumber(opts && opts.programId, undefined)
-    }, opts);
-
-    const entity = res && firstArrayValue(res.data);
-
-    console.debug(`[strategy-ref-service] Loading strategy {${label}} [OK]`, entity);
-    return entity;
+    return firstNotNilPromise(this.watchByLabel(label, opts));
   }
 
-  /**
-   * Watch strategy by label
-   * @param label
-   * @param opts
-   */
-  watchByLabel(label: string, opts?: {
-    toEntity?: boolean;
-    debug?: boolean;
-    query?: any;
-  }): Observable<Strategy> {
-
-    let now;
-    const cacheKey = [StrategyCacheKeys.STRATEGY_BY_LABEL, label].join('|');
-    return this.cache.loadFromObservable(cacheKey,
-      defer(() => {
-        const debug = this._debug && (!opts || opts !== false);
-        now = debug && Date.now();
-        if (now) console.debug(`[strategy-ref-service] Loading strategy {${label}}...`);
-        let res: Observable<{ data: any }>;
-
-        if (this.network.offline) {
-          res = this.entities.watchAll<Strategy>(Strategy.TYPENAME, {
-            filter: (p) => p.label ===  label
-          })
-            .pipe(
-              map(res => {
-                const uniqueValue = res && res.data && res.data.length && res.data[0] || undefined;
-                return {data: uniqueValue};
-              })
-            );
-        }
-        else {
-          const query = opts && opts.query || this.queries.load;
-          res = this.graphql.watchQuery<{ data: any }>({
-            query,
-            variables: { label },
-            error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "ERROR.LOAD_ERROR"}
-          });
-        }
-        return res.pipe(filter(isNotNil));
-      }),
-      StrategyCacheKeys.CACHE_GROUP
-    )
-      .pipe(
-        map(({data}) => {
-          const entity = (!opts || opts.toEntity !== false) ? Strategy.fromObject(data) : data;
-          if (now) {
-            console.debug(`[strategy-service] Loading strategy {${label}} [OK] in ${Date.now() - now}ms`);
-            now = undefined;
-          }
-          return entity;
-        })
-      );
+  async clearCache() {
+    console.info("[strategy-ref-service] Clearing strategy cache...");
+    await this.cache.clearGroup(StrategyRefCacheKeys.CACHE_GROUP);
   }
-
 }

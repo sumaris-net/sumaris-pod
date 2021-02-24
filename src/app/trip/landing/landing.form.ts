@@ -202,12 +202,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           await this.ready();
 
           // Add validator errors on expected effort for this sampleRow (issue #175)
-          const expectedEffort = await this.samplingStrategyService.getEffortFromStrategyLabel(this.strategyLabel, this.data.dateTime);
-          if (!expectedEffort) {
+          const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(this.programLabel, this.strategyLabel, this.data.dateTime);
+          if (!strategyEffort) {
             this.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
-          } else if (expectedEffort === 0) {
+            SharedValidators.clearError(this.strategyControl, 'zeroEffort');
+          } else if (strategyEffort.expectedEffort === 0) {
             // TODO must be a warning, not error
             this.strategyControl.setErrors(<ValidationErrors>{zeroEffort: true});
+            SharedValidators.clearError(this.strategyControl, 'noEffort');
           } else {
             SharedValidators.clearError(this.strategyControl, 'noEffort');
             SharedValidators.clearError(this.strategyControl, 'zeroEffort');
