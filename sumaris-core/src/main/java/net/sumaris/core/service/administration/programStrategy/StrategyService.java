@@ -67,13 +67,16 @@ public interface StrategyService {
 	List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> findPmfmStrategiesByProgram(int programId, StrategyFetchOptions fetchOptions);
+	List<PmfmStrategyVO> findPmfmsByProgram(int programId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> findPmfmStrategiesByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions);
+	List<PmfmStrategyVO> findPmfmsByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategyId, StrategyFetchOptions fetchOptions);
+	List<PmfmStrategyVO> findPmfmsByStrategy(int strategyId, StrategyFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	List<DenormalizedPmfmStrategyVO> findDenormalizedPmfmsByStrategy(int strategyId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<ReferentialVO> getGears(int strategyId);

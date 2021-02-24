@@ -28,6 +28,7 @@ import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.PmfmStrategyRepository;
 import net.sumaris.core.dao.administration.programStrategy.StrategyRepository;
+import net.sumaris.core.dao.administration.programStrategy.denormalized.DenormalizedPmfmStrategyRepository;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
@@ -50,6 +51,10 @@ public class StrategyServiceImpl implements StrategyService {
 
 	@Autowired
 	private PmfmStrategyRepository pmfmStrategyRepository;
+
+
+	@Autowired
+	private DenormalizedPmfmStrategyRepository denormalizedPmfmStrategyRepository;
 
 	@Override
 	public StrategyVO get(int id) {
@@ -89,18 +94,18 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
-	public List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategyId, StrategyFetchOptions fetchOptions) {
+	public List<PmfmStrategyVO> findPmfmsByStrategy(int strategyId, StrategyFetchOptions fetchOptions) {
 		return pmfmStrategyRepository.findByStrategyId(strategyId, fetchOptions);
 	}
 
 	@Override
-	public List<PmfmStrategyVO> findPmfmStrategiesByProgram(int programId, StrategyFetchOptions fetchOptions) {
+	public List<PmfmStrategyVO> findPmfmsByProgram(int programId, StrategyFetchOptions fetchOptions) {
 
 		List<StrategyVO> vos = findByProgram(programId, fetchOptions);
 
 		Map<Integer, PmfmStrategyVO> pmfmStrategyByPmfmId = Maps.newHashMap();
 		Beans.getStream(vos)
-				.flatMap(strategy -> strategy.getPmfmStrategies().stream())
+				.flatMap(strategy -> strategy.getPmfms().stream())
 				// Sort by strategyId, acquisitionLevel and rankOrder
 				.sorted(Comparator.comparing(ps -> String.format("%s#%s#%s", ps.getStrategyId(), ps.getAcquisitionLevel(), ps.getRankOrder())))
 				// Put in the last (last found will override previous)
@@ -110,8 +115,13 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
-	public List<PmfmStrategyVO> findPmfmStrategiesByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions) {
+	public List<PmfmStrategyVO> findPmfmsByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions) {
 		return pmfmStrategyRepository.findByProgramAndAcquisitionLevel(programId, acquisitionLevelId, fetchOptions);
+	}
+
+	@Override
+	public List<DenormalizedPmfmStrategyVO> findDenormalizedPmfmsByStrategy(int strategyId, StrategyFetchOptions fetchOptions) {
+		return denormalizedPmfmStrategyRepository.findByStrategyId(strategyId, fetchOptions);
 	}
 
 	@Override
@@ -190,11 +200,11 @@ public class StrategyServiceImpl implements StrategyService {
 	protected void saveChildrenEntities(int strategyId, StrategyVO source) {
 		Preconditions.checkNotNull(source);
 
-		// Save taxon Group strategy
+		// Save taxon groups
 		List<TaxonGroupStrategyVO> savedTaxonGroupStrategies = strategyRepository.saveTaxonGroupStrategiesByStrategyId(strategyId, Beans.getList(source.getTaxonGroups()));
 		source.setTaxonGroups(savedTaxonGroupStrategies);
 
-		// Save reference Names strategy
+		// Save Taxon references
 		List<TaxonNameStrategyVO> savedReferenceTaxonStrategies = strategyRepository.saveReferenceTaxonStrategiesByStrategyId(strategyId, Beans.getList(source.getTaxonNames()));
 		source.setTaxonNames(savedReferenceTaxonStrategies);
 
@@ -202,13 +212,13 @@ public class StrategyServiceImpl implements StrategyService {
 		List<AppliedStrategyVO> savedAppliedStrategies = strategyRepository.saveAppliedStrategiesByStrategyId(strategyId, Beans.getList(source.getAppliedStrategies()));
 		source.setAppliedStrategies(savedAppliedStrategies);
 
-		// Save strategy departments
+		// Save departments
 		List<StrategyDepartmentVO> savedDepartments = strategyRepository.saveDepartmentsByStrategyId(strategyId, Beans.getList(source.getDepartments()));
 		source.setDepartments(savedDepartments);
 
-		// Save pmfm strategies
-		List<PmfmStrategyVO> savedPmfmStrategies = pmfmStrategyRepository.saveByStrategyId(strategyId, Beans.getList(source.getPmfmStrategies()));
-		source.setPmfmStrategies(savedPmfmStrategies);
+		// Save pmfms
+		List<PmfmStrategyVO> savedPmfmStrategies = pmfmStrategyRepository.saveByStrategyId(strategyId, Beans.getList(source.getPmfms()));
+		source.setPmfms(savedPmfmStrategies);
 
 		// Save program locations
 		strategyRepository.saveProgramLocationsByStrategyId(strategyId);

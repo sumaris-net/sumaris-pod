@@ -48,6 +48,7 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -409,7 +410,13 @@ public class SampleRepositoryImpl
 
         // Remove unused entities
         if (!sourcesIdsToProcess.isEmpty()) {
-            sourcesIdsToProcess.keySet().forEach(this::deleteById);
+            sourcesIdsToProcess.keySet().forEach(sampleId -> {
+                try {
+                    this.deleteById(sampleId);
+                } catch (EmptyResultDataAccessException e) {
+                    // Continue (can occur because of delete cascade
+                }
+            });
             dirty.set(true);
         }
 

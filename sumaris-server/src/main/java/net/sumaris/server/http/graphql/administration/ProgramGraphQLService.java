@@ -193,13 +193,23 @@ public class ProgramGraphQLService {
         return strategyService.findByProgram(program.getId(), getStrategyFetchOptions(fields));
     }
 
-    @GraphQLQuery(name = "pmfmStrategies", description = "Get strategy's pmfms")
-    public List<PmfmStrategyVO> getPmfmStrategiesByStrategy(@GraphQLContext StrategyVO strategy,
-                                                            @GraphQLEnvironment() Set<String> fields) {
-        if (strategy.getPmfmStrategies() != null) {
-            return strategy.getPmfmStrategies();
+    @GraphQLQuery(name = "pmfms", description = "Get strategy's pmfms")
+    public List<PmfmStrategyVO> getPmfmsByStrategy(@GraphQLContext StrategyVO strategy,
+                                                   @GraphQLEnvironment() Set<String> fields) {
+        if (strategy.getPmfms() != null) {
+            return strategy.getPmfms();
         }
-        return strategyService.findPmfmStrategiesByStrategy(strategy.getId(), getStrategyFetchOptions(fields));
+        return strategyService.findPmfmsByStrategy(strategy.getId(),
+                StrategyFetchOptions.builder().withPmfms(true).build());
+    }
+
+    @GraphQLQuery(name = "denormalizedPmfms", description = "Get strategy's denormalized pmfms")
+    public List<DenormalizedPmfmStrategyVO> getDenormalizedPmfmByStrategy(@GraphQLContext StrategyVO strategy,
+                                                                          @GraphQLEnvironment() Set<String> fields) {
+        if (strategy.getDenormalizedPmfms() != null) {
+            return strategy.getDenormalizedPmfms();
+        }
+        return strategyService.findDenormalizedPmfmsByStrategy(strategy.getId(), getPmfmStrategyFetchOptions(fields));
     }
 
     @GraphQLQuery(name = "pmfm", description = "Get strategy pmfm")
@@ -329,16 +339,37 @@ public class ProgramGraphQLService {
 
     protected StrategyFetchOptions getStrategyFetchOptions(Set<String> fields) {
         return StrategyFetchOptions.builder()
-                // Test each fields that are computed by inheritance
-                .withPmfmStrategyInheritance(
-                    fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.LABEL)) ||
-                    fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.TYPE)) ||
-                    fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.UNIT_LABEL)) ||
-                    fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.MAXIMUM_NUMBER_DECIMALS)) ||
-                    fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.SIGNIF_FIGURES_NUMBER))
+                // Test if should include Pmfms
+                .withPmfms(
+                        fields.contains(StringUtils.slashing(StrategyVO.Fields.PMFMS, PmfmStrategyVO.Fields.ID))
                 )
-                .withPmfmStrategyCompleteName(
-                        fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.COMPLETE_NAME))
+                // Test if should include DenormalizedPmfms
+                .withDenormalizedPmfms(
+                        fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.LABEL)) ||
+                                fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.TYPE)) ||
+                                fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.UNIT_LABEL)) ||
+                                fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.MAXIMUM_NUMBER_DECIMALS)) ||
+                                fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.SIGNIF_FIGURES_NUMBER))
+                )
+                // Test if should include pmfm's complete name
+                .withDenormalizedPmfmCompleteName(
+                        fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME))
+                )
+                .build();
+    }
+
+    protected StrategyFetchOptions getPmfmStrategyFetchOptions(Set<String> fields) {
+        return StrategyFetchOptions.builder()
+                // Test each fields that are computed by inheritance
+                .withDenormalizedPmfms(
+                    fields.contains(DenormalizedPmfmStrategyVO.Fields.LABEL) ||
+                    fields.contains(DenormalizedPmfmStrategyVO.Fields.TYPE) ||
+                    fields.contains(DenormalizedPmfmStrategyVO.Fields.UNIT_LABEL) ||
+                    fields.contains(DenormalizedPmfmStrategyVO.Fields.MAXIMUM_NUMBER_DECIMALS) ||
+                    fields.contains(DenormalizedPmfmStrategyVO.Fields.SIGNIF_FIGURES_NUMBER)
+                )
+                .withDenormalizedPmfmCompleteName(
+                        fields.contains(DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME)
                 )
                 .build();
     }
@@ -354,12 +385,11 @@ public class ProgramGraphQLService {
         // Admin can create a program
         if (authService.isAdmin()) return; // OK
 
-        PersonVO user = authService.getAuthenticatedUser().orElse(null);
+        PersonVO user = authService.getAuthenticatedUser().orElseThrow(() -> new AccessDeniedException("Forbidden"));
+
         boolean isManager = programService.hasUserPrivilege(programId, user.getId(), ProgramPrivilegeEnum.MANAGER)
                 || programService.hasDepartmentPrivilege(programId, user.getDepartment().getId(), ProgramPrivilegeEnum.MANAGER);
-        if (!isManager) {
-            throw new AccessDeniedException("Forbidden");
-        }
+        if (!isManager) throw new AccessDeniedException("Forbidden");
     }
 
     protected void checkCanEditStrategy(int programId, Integer strategyId) {
@@ -372,7 +402,7 @@ public class ProgramGraphQLService {
         // Admin can edit strategy
         if (authService.isAdmin()) return; // OK
 
-        PersonVO user = authService.getAuthenticatedUser().orElse(null);
+        PersonVO user = authService.getAuthenticatedUser().orElseThrow(() -> new AccessDeniedException("Forbidden"));
         boolean isManager =
                 // Program manager
                 programService.hasUserPrivilege(programId, user.getId(), ProgramPrivilegeEnum.MANAGER)

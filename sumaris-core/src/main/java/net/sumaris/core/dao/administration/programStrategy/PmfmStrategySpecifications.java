@@ -23,6 +23,7 @@ package net.sumaris.core.dao.administration.programStrategy;
  */
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -78,14 +79,5 @@ public interface PmfmStrategySpecifications {
         return specification;
     }
 
-    List<PmfmStrategyVO> findByStrategyId(int strategyId, StrategyFetchOptions fetchOptions);
-
-    List<PmfmStrategyVO> findByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions);
-
-    List<PmfmStrategyVO> saveByStrategyId(int strategyId, List<PmfmStrategyVO> sources);
-
-    PmfmStrategyVO toVO(PmfmStrategy source, StrategyFetchOptions fetchOptions);
-
-    PmfmStrategyVO toVO(PmfmStrategy source, Pmfm pmfm, StrategyFetchOptions fetchOptions);
 
 }

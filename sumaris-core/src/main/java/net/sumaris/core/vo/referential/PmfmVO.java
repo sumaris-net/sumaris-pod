@@ -34,6 +34,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class PmfmVO extends ReferentialVO {
 
+    private String completeName; // Computed field
     private String unitLabel;
     private String type;
 

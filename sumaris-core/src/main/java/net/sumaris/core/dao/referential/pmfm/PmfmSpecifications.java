@@ -34,6 +34,7 @@ import javax.persistence.criteria.ParameterExpression;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author peck7 on 19/08/2020.
@@ -96,6 +97,8 @@ public interface PmfmSpecifications {
     }
 
     List<Pmfm> findByPmfmParts(Integer parameterId, Integer matrixId, Integer fractionId, Integer methodId);
+
+    Stream<Pmfm> streamByPmfmParts(Integer parameterId, Integer matrixId, Integer fractionId, Integer methodId);
 
     boolean hasLabelPrefix(int pmfmId, String... labelPrefixes);
 

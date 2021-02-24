@@ -70,9 +70,6 @@ public class ReferentialGraphQLService {
     private MetierRepository metierRepository;
 
     @Autowired
-    private ReferentialDao referentialDao;
-
-    @Autowired
     private ChangesPublisherService changesPublisherService;
 
     /* -- Referential queries -- */

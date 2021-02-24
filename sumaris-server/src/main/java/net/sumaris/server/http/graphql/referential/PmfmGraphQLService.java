@@ -100,6 +100,12 @@ public class PmfmGraphQLService {
         return pmfmService.save(source);
     }
 
+    @GraphQLQuery(name = "completeName", description = "Get PMFM's complete name")
+    public String getPmfmCompleteName(@GraphQLContext PmfmVO pmfm) {
+        if (pmfm.getCompleteName() != null) return pmfm.getCompleteName();
+        return pmfmService.computeCompleteName(pmfm.getId());
+    }
+
     @GraphQLQuery(name = "parameter", description = "Get PMFM's parameter")
     public ParameterVO getPmfmParameter(@GraphQLContext PmfmVO pmfm) {
         if (pmfm.getParameterId() == null) return null;

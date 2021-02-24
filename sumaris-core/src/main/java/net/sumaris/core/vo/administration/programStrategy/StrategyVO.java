@@ -47,7 +47,9 @@ public class StrategyVO implements IReferentialVO {
     private Integer programId;
 
     private List<AppliedStrategyVO> appliedStrategies;
-    private List<PmfmStrategyVO> pmfmStrategies;
+
+    private List<PmfmStrategyVO> pmfms;
+    private List<DenormalizedPmfmStrategyVO> denormalizedPmfms;
 
     private List<StrategyDepartmentVO> departments;
 

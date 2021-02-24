@@ -122,7 +122,13 @@ public class CacheConfiguration {
 
     @Bean
     public EhCacheFactoryBean pmfmByStrategyIdCache() {
-        return Caches.createHeapCache(ehcache(), CacheNames.PMFM_BY_STRATEGY_ID, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 100);
+        return Caches.createHeapCache(ehcache(), CacheNames.PMFM_BY_STRATEGY_ID, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 500);
+    }
+
+
+    @Bean
+    public EhCacheFactoryBean denormalizedPmfmByStrategyIdCache() {
+        return Caches.createHeapCache(ehcache(), CacheNames.DENORMALIZED_PMFM_BY_STRATEGY_ID, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 500);
     }
 
     @Bean

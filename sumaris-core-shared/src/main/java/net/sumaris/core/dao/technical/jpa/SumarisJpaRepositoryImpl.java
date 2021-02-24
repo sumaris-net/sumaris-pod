@@ -46,6 +46,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
 import javax.sql.DataSource;
@@ -53,6 +54,7 @@ import java.io.Serializable;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -347,6 +349,14 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         C entity = this.entityManager.find(clazz, id); // Can be null
         if (entity == null) throw new DataNotFoundException(I18n.t("sumaris.persistence.error.entityNotFound", clazz.getSimpleName(), id));
         return entity;
+    }
+
+    protected Stream<E> streamAll(@Nullable Specification<E> spec, Sort sort) {
+        return this.getQuery(spec, sort).getResultStream();
+    }
+
+    protected Stream<E> streamAll(@Nullable Specification<E> spec) {
+        return this.getQuery(spec, Sort.unsorted()).getResultStream();
     }
 
     protected void lockForUpdate(IEntity<?> entity) {
