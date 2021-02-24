@@ -7,7 +7,7 @@ import {isNotNil} from "../functions";
 @Injectable({providedIn: 'root'})
 export class MapGetPipe implements PipeTransform {
 
-    transform(val: any, args: any): any {
+    transform(val: any, args: string | {key: string} ): any {
       if (!val) return null;
       const key = args && (typeof args === 'string' ? args : args.key);
       if (!key) return null;

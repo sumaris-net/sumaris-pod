@@ -488,7 +488,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     if (isNilOrBlank(value) && isNil(parent)) return {data: []};
     return this.programRefService.suggestTaxonNames(value,
       {
-        program: this.programLabel,
+        programLabel: this.programLabel,
         searchAttribute: options && options.searchAttribute,
         taxonGroupId: parent && parent.taxonGroup && parent.taxonGroup.id || undefined
       });

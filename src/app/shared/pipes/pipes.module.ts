@@ -11,7 +11,7 @@ import {HighlightPipe} from "./highlight.pipe";
 import {FileSizePipe} from "./file-size.pipe";
 import {DurationPipe} from "./duration.pipe";
 import {EvenPipe, MathAbsPipe, OddPipe} from "./math.pipes";
-import {ArrayFirstPipe, ArrayLengthPipe, ArrayPluckPipe, EmptyArrayPipe, NotEmptyArrayPipe} from "./arrays.pipe";
+import {ArrayFirstPipe, ArrayIncludesPipe, ArrayLengthPipe, ArrayPluckPipe, EmptyArrayPipe, NotEmptyArrayPipe} from "./arrays.pipe";
 import {MapGetPipe, MapKeysPipe} from "./maps.pipe";
 import {IsNilOrBlankPipe, IsNotNilOrBlankPipe} from "./string.pipes";
 
@@ -41,6 +41,7 @@ import {IsNilOrBlankPipe, IsNotNilOrBlankPipe} from "./string.pipes";
     ArrayLengthPipe,
     ArrayFirstPipe,
     ArrayPluckPipe,
+    ArrayIncludesPipe,
     MapGetPipe,
     MapKeysPipe,
     IsNilOrBlankPipe,
@@ -68,7 +69,8 @@ import {IsNilOrBlankPipe, IsNotNilOrBlankPipe} from "./string.pipes";
     MapGetPipe,
     MapKeysPipe,
     IsNilOrBlankPipe,
-    IsNotNilOrBlankPipe
+    IsNotNilOrBlankPipe,
+    ArrayIncludesPipe
   ]
 })
 export class SharedPipesModule {

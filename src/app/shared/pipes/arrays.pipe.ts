@@ -76,3 +76,14 @@ export class ArrayPluckPipe implements PipeTransform {
       (val || []).map(value => value && value[opts.property]).filter(isNotNil);
   }
 }
+
+@Pipe({
+  name: 'arrayIncludes'
+})
+@Injectable({providedIn: 'root'})
+export class ArrayIncludesPipe implements PipeTransform {
+
+  transform(val: any[], args): any {
+    return val && val.includes(args);
+  }
+}

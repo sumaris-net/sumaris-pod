@@ -46,16 +46,16 @@ declare interface GroupColumnDefinition {
 export class SamplingSamplesTable extends SamplesTable {
 
   protected referentialRefService: ReferentialRefService;
-  public _$pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
 
+  $pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
   $pmfmGroupColumns = new BehaviorSubject<GroupColumnDefinition[]>([]);
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
-    this._$pmfmGroups.next(value);
+    this.$pmfmGroups.next(value);
   }
 
   get pmfmGroups(): ObjectMap<number[]> {
-    return this._$pmfmGroups.getValue();
+    return this.$pmfmGroups.getValue();
   }
 
   @Input() defaultLocation: ReferentialRef;
@@ -71,7 +71,8 @@ export class SamplingSamplesTable extends SamplesTable {
         suppressErrors: environment.production,
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS,
-        mapPmfms: pmfms => this.mapPmfms(pmfms)
+        mapPmfms: pmfms => this.mapPmfms(pmfms),
+        requiredStrategy: true
       }
     );
   }
@@ -140,7 +141,7 @@ export class SamplingSamplesTable extends SamplesTable {
     if (isEmptyArray(pmfms)) return pmfms;
 
     // Wait until map is loaded
-    const groupedPmfmIdsMap = await firstNotNilPromise(this._$pmfmGroups);
+    const groupedPmfmIdsMap = await firstNotNilPromise(this.$pmfmGroups);
 
     // Create a list of known pmfm ids
     const groupedPmfmIds = Object.values(groupedPmfmIdsMap).reduce((res, pmfmIds) => res.concat(...pmfmIds), []);

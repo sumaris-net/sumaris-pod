@@ -557,7 +557,6 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
 
     // Apply a limit
     else if (variables.size > 0){
-      console.log('TODO BLA: Applying a limit: ' + variables.size);
       data = data.slice(0, variables.size);
     }
     // No limit:

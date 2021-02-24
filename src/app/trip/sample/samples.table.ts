@@ -21,6 +21,7 @@ import {AppFormUtils} from "../../core/form/form.utils";
 import {filter, map, tap} from "rxjs/operators";
 import {LoadResult} from "../../shared/services/entity-service.class";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {filterNotNil} from "../../shared/observables";
 
 const moment = momentImported;
 
@@ -51,7 +52,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
-  protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
 
   @Input() useSticky = false;
 
@@ -63,9 +63,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   @Input() defaultSampleDate: Moment;
   @Input() defaultTaxonGroup: ReferentialRef;
   @Input() defaultTaxonName: ReferentialRef;
-
   @Input() modalOptions: Partial<ISampleModalOptions>;
-
 
   @Input()
   set value(data: Sample[]) {
@@ -94,6 +92,10 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     return this.getShowColumn('taxonName');
   }
 
+  get memoryDataService(): InMemoryEntitiesService<Sample, SampleFilter> {
+    return this.dataService as InMemoryEntitiesService<Sample, SampleFilter>;
+  }
+
   @Output() onPrepareRowForm = new EventEmitter<{form: FormGroup, pmfms: IPmfm[]}>();
 
   constructor(
@@ -111,13 +113,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         suppressErrors: environment.production,
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS,
-        desactivateRefreshPmfms: true,
+        requiredStrategy: false,
+        debug: !environment.production,
         ...options
       }
     );
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
-    this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
     this.inlineEdition = !this.mobile;
     this.defaultSortBy = 'rankOrder';
@@ -140,6 +142,21 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
           tap(event => this.onPrepareRowForm.emit(event))
         )
         .subscribe());
+  }
+
+  ngOnInit() {
+    // DEBUG
+    console.debug("[samples-table] ngOnInit()", this);
+
+    super.ngOnInit();
+
+    // DEBUG
+    this.registerSubscription(
+      filterNotNil(this.$pmfms)
+        .subscribe(pmfms => {
+          // DEBUG
+          console.debug("[samples-table] Received PMFMs to applied: ", pmfms);
+        }));
   }
 
   ngAfterViewInit() {
@@ -184,7 +201,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     return this.programRefService.suggestTaxonNames(value,
       {
-        program: this.programLabel,
+        programLabel: this.programLabel,
         searchAttribute: options && options.searchAttribute,
         taxonGroupId: taxonGroup && taxonGroup.id || undefined
       });

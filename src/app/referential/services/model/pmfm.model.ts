@@ -33,6 +33,7 @@ export interface IPmfm<T extends Entity<T> = Entity<any>> extends IEntity<IPmfm<
   required?: boolean;
   isComputed: boolean;
   hidden?: boolean;
+  rankOrder?: number;
 }
 
 export class Pmfm extends Referential<Pmfm> implements IPmfm<Pmfm> {

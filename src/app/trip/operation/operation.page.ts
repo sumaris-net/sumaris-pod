@@ -708,7 +708,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
       // Retrieve QV from the program pmfm (because measurement's QV has only the 'id' attribute)
       const tripPmfms = await this.programRefService.loadProgramPmfms(this.$programLabel.getValue(), {acquisitionLevel: AcquisitionLevelCodes.TRIP});
-      const pmfm = (tripPmfms || []).find(pmfm => pmfm.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
+      const pmfm = (tripPmfms || []).find(pmfm => pmfm.id === PmfmIds.SELF_SAMPLING_PROGRAM);
       const qualitativeValue = (pmfm && pmfm.qualitativeValues || []).find(qv => qv.id === qvMeasurement.qualitativeValue.id);
 
       // Transform QV.label has a list of TaxonGroup.label

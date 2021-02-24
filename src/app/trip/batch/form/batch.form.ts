@@ -397,14 +397,14 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     // If taxonGroup exists: taxon group must be filled first
     if (this.showTaxonGroup && ReferentialUtils.isEmpty(opts && opts.taxonGroup)) {
       this.taxonNameFilter = {
-        program: 'NONE' /*fake program, will cause empty array*/
+        programLabel: 'NONE' /*fake program, will cause empty array*/
       };
     }
     else {
       this.taxonNameFilter = {
-          program: this.programLabel,
-          taxonGroupId: opts && opts.taxonGroup && opts.taxonGroup.id
-        };
+        programLabel: this.programLabel,
+        taxonGroupId: opts && opts.taxonGroup && opts.taxonGroup.id
+      };
     }
     this.markForCheck();
   }

@@ -162,17 +162,19 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       this.selectedTaxonGroup$
       .pipe(
         filter(isNotNil),
-        mergeMap(taxonGroup => this.programRefService.loadProgramPmfms(this.$programLabel.getValue(), {
+        mergeMap(taxonGroup => this.programRefService.watchProgramPmfms(this.$programLabel.getValue(), {
           acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
           taxonGroupId: toNumber(taxonGroup && taxonGroup.id, undefined)
         })),
         tap(async (pmfms) => {
-          console.debug('[control] Applying taxon group PMFMs:', pmfms);
+          // Save existing samples
           if (this.samplesTable.dirty) {
             await this.samplesTable.save();
           }
-          this.samplesTable.pmfms = pmfms;
 
+          // Applying new PMFMs
+          console.debug('[control] Applying taxon group PMFMs:', pmfms);
+          this.samplesTable.pmfms = pmfms;
         })
       ).subscribe());
 

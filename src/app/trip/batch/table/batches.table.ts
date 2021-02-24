@@ -247,7 +247,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
     return this.programRefService.suggestTaxonNames(value,
       {
-        program: this.programLabel,
+        programLabel: this.programLabel,
         searchAttribute: options && options.searchAttribute,
         taxonGroupId: taxonGroup && taxonGroup.id || undefined
       });

@@ -195,13 +195,15 @@ export class ProgramRefService
       res = this.graphql.watchQuery<{data: any}>({
         query,
         variables: { label },
+        // Important: do NOT using cache here, as default (= 'no-cache')
+        // because cache is manage by Ionic cache (easier to clean)
         fetchPolicy: opts && (opts.fetchPolicy as FetchPolicy) || 'no-cache',
         error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"}
       }).pipe(map(res => res && res.data));
     }
 
     return res.pipe(
-      //filter(isNotNil),
+      filter(isNotNil),
       map(data => {
         const entity = (!opts || opts.toEntity !== false) ? Program.fromObject(data) : data;
         if (now) {
@@ -281,7 +283,7 @@ export class ProgramRefService
 
     // Use cache (enable by default)
     if (!opts || opts.cache !== false) {
-      const cacheKey = [ProgramRefCacheKeys.PMFMS, programLabel, JSON.stringify(opts)].join('|');
+      const cacheKey = [ProgramRefCacheKeys.PMFMS, programLabel, JSON.stringify({...opts, cache: undefined, toEntity: undefined})].join('|');
       return this.cache.loadFromObservable(cacheKey,
         defer(() => this.watchProgramPmfms(programLabel, {...opts, cache: false, toEntity: false})),
         ProgramRefCacheKeys.CACHE_GROUP)
@@ -299,7 +301,7 @@ export class ProgramRefService
           const strategy = (program && program.strategies || []).find(s => !opts || !opts.strategyLabel || s.label === opts.strategyLabel);
 
           const pmfmIds = []; // used to avoid duplicated pmfms
-          const res = (strategy && strategy.denormalizedPmfms || [])
+          const data = (strategy && strategy.denormalizedPmfms || [])
             // Filter on acquisition level and gear
             .filter(p =>
               pmfmIds.indexOf(p.id) === -1
@@ -320,16 +322,16 @@ export class ProgramRefService
             // Sort on rank order
             .sort((p1, p2) => p1.rankOrder - p2.rankOrder);
 
-          if (debug) console.debug(`[program-ref-service] PMFM for ${opts.acquisitionLevel} (filtered):`, res);
+          if (debug) console.debug(`[program-ref-service] PMFM for ${opts.acquisitionLevel} (filtered):`, data);
 
           // TODO: translate name/label using translate service ?
 
+          // Convert into entities
           return (!opts || opts.toEntity !== false)
-            ? res && res.map(DenormalizedPmfmStrategy.fromObject)
-            : res as DenormalizedPmfmStrategy[];
+            ? data.map(DenormalizedPmfmStrategy.fromObject)
+            : data as DenormalizedPmfmStrategy[];
         }
-      ),
-      filter(isNotNil) // TODO
+      )
     );
   }
 
@@ -343,10 +345,10 @@ export class ProgramRefService
     taxonGroupId?: number;
     referenceTaxonId?: number;
   }, debug?: boolean): Promise<DenormalizedPmfmStrategy[]> {
+    // DEBUG
+    if (options) console.debug(`[program-ref-service] Loading ${programLabel} PMFMs on ${options.acquisitionLevel}`);
 
-    return firstNotNilPromise(
-      this.watchProgramPmfms(programLabel, options, debug)
-    );
+    return firstNotNilPromise(this.watchProgramPmfms(programLabel, options, debug));
   }
 
   /**
@@ -360,7 +362,7 @@ export class ProgramRefService
 
     // Use cache (enable by default)
     if (!opts || opts.cache !== false) {
-      const cacheKey = [ProgramRefCacheKeys.GEARS, programLabel].join('|');
+      const cacheKey = [ProgramRefCacheKeys.GEARS, programLabel, JSON.stringify({...opts, cache: undefined, toEntity: undefined})].join('|');
       return this.cache.loadFromObservable(cacheKey,
         defer(() => this.watchGears(programLabel, {...opts, cache: false, toEntity: false})),
         ProgramRefCacheKeys.CACHE_GROUP)
@@ -406,7 +408,7 @@ export class ProgramRefService
 
     // Use cache (enable by default)
     if (!opts || opts.cache !== false) {
-      const cacheKey = [ProgramRefCacheKeys.TAXON_GROUPS, programLabel].join('|');
+      const cacheKey = [ProgramRefCacheKeys.TAXON_GROUPS, programLabel, JSON.stringify({...opts, cache: undefined, toEntity: undefined})].join('|');
       return this.cache.loadFromObservable(cacheKey,
         defer(() => this.watchTaxonGroups(programLabel, {...opts, cache: false, toEntity: false})),
         ProgramRefCacheKeys.CACHE_GROUP)
@@ -448,15 +450,6 @@ export class ProgramRefService
    */
   async loadTaxonGroups(programLabel: string, opts?: { toEntity?: boolean; }): Promise<TaxonGroupRef[]> {
     return firstNotNilPromise(this.watchTaxonGroups(programLabel, opts));
-    /*const mapCacheKey = [ProgramRefCacheKeys.TAXON_GROUP_ENTITIES, programLabel].join('|');
-    const res = await this.cache.getOrSetItem(mapCacheKey,
-      () => this.watchTaxonGroups(programLabel, {toEntity: true}).toPromise(),
-      ProgramRefCacheKeys.CACHE_GROUP);
-
-    // Convert to entity, after cache (convert by default)
-    return (!opts || opts.toEntity !== false)
-      ? res.map(TaxonGroupRef.fromObject)
-      : res as TaxonGroupRef[];*/
   }
 
   /**
@@ -484,8 +477,8 @@ export class ProgramRefService
   /**
    * Load program taxon groups
    */
-  async suggestTaxonNames(value: any, options: {
-    program?: string;
+  async suggestTaxonNames(value: any, opts: {
+    programLabel?: string;
     levelId?: number;
     levelIds?: number[]
     searchAttribute?: string;
@@ -493,40 +486,40 @@ export class ProgramRefService
   }): Promise<LoadResult<TaxonNameRef>> {
 
     // Search on taxon group's taxon'
-    if (isNotNil(options.program) && isNotNil(options.taxonGroupId)) {
+    if (isNotNil(opts.programLabel) && isNotNil(opts.taxonGroupId)) {
 
       // Get map from program
-      const taxonNamesByTaxonGroupId = await this.loadTaxonNamesByTaxonGroupIdMap(options.program);
-      const values = taxonNamesByTaxonGroupId[options.taxonGroupId];
+      const taxonNamesByTaxonGroupId = await this.loadTaxonNamesByTaxonGroupIdMap(opts.programLabel);
+      const values = taxonNamesByTaxonGroupId[opts.taxonGroupId];
       if (isNotEmptyArray(values)) {
 
         // All values
-        if (isNilOrBlank(options.searchAttribute)) return {data: values};
+        if (isNilOrBlank(opts.searchAttribute)) return {data: values};
 
         // Text search
         return suggestFromArray<TaxonNameRef>(values, value, {
-          searchAttribute: options.searchAttribute
+          searchAttribute: opts.searchAttribute
         });
       }
     }
 
     // If nothing found in program: search on taxonGroup
     const res = await this.referentialRefService.suggestTaxonNames(value, {
-      levelId: options.levelId,
-      levelIds: options.levelIds,
-      taxonGroupId: options.taxonGroupId,
-      searchAttribute: options.searchAttribute
+      levelId: opts.levelId,
+      levelIds: opts.levelIds,
+      taxonGroupId: opts.taxonGroupId,
+      searchAttribute: opts.searchAttribute
     });
 
     // If there result, use it
     if (res && isNotEmptyArray(res.data) || res.total > 0) return res;
 
     // Then, retry in all taxon (without taxon groups - Is the link taxon<->taxonGroup missing ?)
-    if (isNotNil(options.taxonGroupId)) {
+    if (isNotNil(opts.taxonGroupId)) {
       return this.referentialRefService.suggestTaxonNames(value, {
-        levelId: options.levelId,
-        levelIds: options.levelIds,
-        searchAttribute: options.searchAttribute
+        levelId: opts.levelId,
+        levelIds: opts.levelIds,
+        searchAttribute: opts.searchAttribute
       });
     }
 
@@ -534,20 +527,26 @@ export class ProgramRefService
     return {data: []};
   }
 
-  async loadTaxonNamesByTaxonGroupIdMap(program: string): Promise<{ [key: number]: TaxonNameRef[] } | undefined> {
-    const mapCacheKey = [ProgramRefCacheKeys.TAXON_NAME_BY_GROUP, program].join('|');
+  async loadTaxonNamesByTaxonGroupIdMap(programLabel: string, opts?: {
+    cache?: boolean;
+    toEntity?: boolean;
+  }): Promise<{[key: number]: TaxonNameRef[]}> {
 
-    return await this.cache.getOrSetItem(mapCacheKey,
-      async (): Promise<{ [key: number]: TaxonNameRef[] }> => {
-      const taxonGroups = await this.loadTaxonGroups(program);
-      return (taxonGroups || []).reduce((res, taxonGroup) => {
-        if (isNotEmptyArray(taxonGroup.taxonNames)) {
-          res[taxonGroup.id] = taxonGroup.taxonNames;
-          //empty = false;
-        }
-        return res;
-      }, {});
-    }, ProgramRefCacheKeys.CACHE_GROUP);
+    if (!opts || opts.cache !== false) {
+      const mapCacheKey = [ProgramRefCacheKeys.TAXON_NAME_BY_GROUP, programLabel].join('|');
+      return this.cache.getOrSetItem(mapCacheKey,
+        () => this.loadTaxonNamesByTaxonGroupIdMap(programLabel, {...opts, cache: false, toEntity: false}),
+        ProgramRefCacheKeys.CACHE_GROUP);
+    }
+
+    const taxonGroups = await this.loadTaxonGroups(programLabel, opts);
+    return (taxonGroups || []).reduce((res, taxonGroup) => {
+      if (isNotEmptyArray(taxonGroup.taxonNames)) {
+        res[taxonGroup.id] = taxonGroup.taxonNames;
+        //empty = false;
+      }
+      return res;
+    }, {});
   }
 
   async executeImport(progression: BehaviorSubject<number>,

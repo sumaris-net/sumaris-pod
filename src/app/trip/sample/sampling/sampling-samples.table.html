@@ -147,11 +147,16 @@
                 [class.mat-cell-date-time]="pmfm|isDatePmfm"
                 [class.mat-cell-computed]="pmfm|isComputedPmfm"
                 [class.even]="pmfm.rankOrder % 2 === 0">
-        <mat-error *ngIf="(this._$pmfmGroups.getValue() && (this._$pmfmGroups.getValue()['WEIGHT'].includes(pmfm.id) || this._$pmfmGroups.getValue()['LENGTH'].includes(pmfm.id))) && row.validator.hasError('missingWeightOrSize')">{{'TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_SIZE' | translate}}</mat-error>
         <app-pmfm-field
           [readonly]="!row.editing"
           [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.id]"
-          [compact]="false" floatLabel="never"></app-pmfm-field>
+          [compact]="false" floatLabel="never">
+
+        </app-pmfm-field>
+        <mat-error *ngIf="(($pmfmGroups | async | mapGet : 'WEIGHT' | arrayIncludes: pmfm.id) || ($pmfmGroups | async | mapGet : 'LENGTH' | arrayIncludes: pmfm.id)) && row.validator.hasError('missingWeightOrSize')"
+          class="mat-cell-error" translate>
+          TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_LENGTH
+        </mat-error>
       </mat-cell>
     </ng-container>
   </ng-container>

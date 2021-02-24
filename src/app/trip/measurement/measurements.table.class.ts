@@ -27,6 +27,7 @@ export class AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> ex
   reservedStartColumns?: string[];
   reservedEndColumns?: string[];
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
+  requiredStrategy?: boolean;
 }
 
 @Directive()
@@ -51,7 +52,16 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   measurementValuesFormGroupConfig: { [key: string]: any };
   readonly hasRankOrder: boolean;
 
-  @Input() requiredStrategy = false;
+  set requiredStrategy(value: boolean) {
+    this.options.requiredStrategy = value;
+    if (this.measurementsDataService) {
+      this.measurementsDataService.requiredStrategy = value;
+    }
+  }
+
+  get requiredStrategy(): boolean {
+    return this.options.requiredStrategy;
+  }
 
   /**
    * Allow to override the rankOrder. See physical-gear, on ADAP program
@@ -149,6 +159,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.options = {
       prependNewElements: false,
       suppressErrors: true,
+      requiredStrategy: false,
       debug: false,
       ...options
     };
@@ -163,7 +174,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
     this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService, {
       mapPmfms: options.mapPmfms || undefined,
-      desactivateRefreshPmfms: options.desactivateRefreshPmfms || undefined
+      requiredStrategy: this.options.requiredStrategy,
+      debug: options.debug || false
     });
     this.measurementsDataService.programLabel = this._programLabel;
     this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
@@ -190,6 +202,9 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.registerSubscription(
       filterNotNil(this.$pmfms)
         .subscribe(pmfms => {
+          // DEBUG
+          console.debug("[measurement-table] Received PMFMs to applied: ", pmfms);
+
           this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(null, {pmfms});
 
           // Update the settings id, as program could have changed

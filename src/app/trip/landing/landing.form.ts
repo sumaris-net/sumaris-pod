@@ -143,7 +143,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         levelLabel: this.$programLabel.getValue() // is empty, will be set in setProgram()
       },
       attributes: ['label'],
-      columnSizes: [12]
+      columnSizes: [12],
+      showAllOnFocus: false
     });
 
     // Combo: vessels

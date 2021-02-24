@@ -113,7 +113,7 @@ export class SampleForm extends MeasurementValuesForm<Sample>
 
     return this.programRefService.suggestTaxonNames(value,
       {
-        program: this.programLabel,
+        programLabel: this.programLabel,
         searchAttribute: options && options.searchAttribute,
         taxonGroupId: taxonGroup && taxonGroup.id || undefined
       });
