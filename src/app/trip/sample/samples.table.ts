@@ -68,7 +68,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   @Input() showDateTimeColumn = true;
   @Input() showFabButton = false;
 
-  @Input() defaultSampleDate: Moment;
+  @Input() _defaultSampleDate: Moment;
   @Input() defaultTaxonGroup: ReferentialRef;
   @Input() defaultTaxonName: ReferentialRef;
 
@@ -100,6 +100,17 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   get showTaxonNameColumn(): boolean {
     return this.getShowColumn('taxonName');
+  }
+
+  @Input()
+  set defaultSampleDate(value: Moment) {
+    if (this._defaultSampleDate !== value && isNotNil(value)) {
+      this._defaultSampleDate = value;
+    }
+  }
+
+  get defaultSampleDate(): Moment {
+    return this._defaultSampleDate;
   }
 
   @Output() onPrepareRowForm = new EventEmitter<{form: FormGroup, pmfms: PmfmStrategy[]}>();
@@ -209,8 +220,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     }
 
     // Default date
-    if (isNotNil(this.defaultSampleDate)) {
-      data.sampleDate = this.defaultSampleDate;
+    if (isNotNil(this._defaultSampleDate)) {
+      data.sampleDate = this._defaultSampleDate;
     } else if (this.settings.isOnFieldMode(this.usageMode)) {
       data.sampleDate = moment();
     }

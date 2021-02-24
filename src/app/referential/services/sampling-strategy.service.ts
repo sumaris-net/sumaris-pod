@@ -165,7 +165,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     if (strategies && strategies.data && strategies.total == 1)
     {
       const effortByQuarters = strategies.data[0].effortByQuarter;
-      if (effortByQuarters) {
+      if (effortByQuarters && date) {
         const effortByQuarter = effortByQuarters[date.quarter()];
         // We check if returned effort correspond to strategy date
         if (effortByQuarter && effortByQuarter.startDate.year() == date.year())

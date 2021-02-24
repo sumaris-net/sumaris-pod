@@ -20,7 +20,7 @@ import {ValidationErrors} from "@angular/forms";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {SamplingStrategyService} from "../../../referential/services/sampling-strategy.service";
-import moment from "moment";
+import moment, {Moment} from "moment";
 import {debounceTime, map} from "rxjs/operators";
 import {PmfmIds} from "../../../referential/services/model/model.enum";
 
@@ -87,7 +87,7 @@ export class SamplingSamplesTable extends SamplesTable {
       }
     );
 
-    this._onRefreshExpectedEffort.subscribe(() => this.refreshExpectedEffort(this._strategyLabel, this.defaultSampleDate));
+    this._onRefreshExpectedEffort.subscribe(() => this.refreshExpectedEffort(this._strategyLabel, this._defaultSampleDate));
   }
 
 
@@ -112,6 +112,14 @@ export class SamplingSamplesTable extends SamplesTable {
       if (this.measurementsDataService) {
         this.measurementsDataService.strategyLabel = value;
       }
+      this._onRefreshExpectedEffort.emit();
+    }
+  }
+
+  @Input()
+  set defaultSampleDate(value: Moment) {
+    if (this._defaultSampleDate !== value && isNotNil(value)) {
+      this._defaultSampleDate = value;
       this._onRefreshExpectedEffort.emit();
     }
   }
