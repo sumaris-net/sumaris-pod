@@ -23,12 +23,10 @@ package net.sumaris.core.dao.referential;
  */
 
 import com.google.common.base.Preconditions;
-import jdk.internal.org.objectweb.asm.tree.InnerClassNode;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.util.StringUtils;
@@ -40,9 +38,10 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Predicate;
-import java.beans.FeatureDescriptor;
-import java.beans.PropertyDescriptor;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 public interface ReferentialSpecifications<E extends IReferentialWithStatusEntity> {
 
