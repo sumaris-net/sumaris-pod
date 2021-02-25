@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Output} from '@angular/core';
 import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {debounceTime, map, tap} from 'rxjs/operators';
@@ -27,6 +27,7 @@ import {ProgramRefService} from "../../referential/services/program-ref.service"
 import {SamplingStrategyService} from "../../referential/services/sampling-strategy.service";
 import {TranslateService} from "@ngx-translate/core";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {Observable} from "rxjs";
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -42,8 +43,30 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
   mobile: boolean;
-
   strategyControl: FormControl;
+
+  get empty(): any {
+    const value = this.value;
+    return ReferentialUtils.isEmpty(value.location)
+      && (!value.dateTime)
+      && (!value.comments || !value.comments.length);
+  }
+
+  get valid(): boolean {
+    return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty));
+  }
+
+  get value(): any {
+    return this.getValue();
+  }
+
+  set value(value: any) {
+    this.safeSetValue(value);
+  }
+
+  get observersForm(): FormArray {
+    return this.form.controls.observers as FormArray;
+  }
 
   @Input() i18nPrefix = LANDING_DEFAULT_I18N_PREFIX;
   @Input() canEditStrategy = true;
@@ -73,21 +96,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return this._showObservers;
   }
 
-  get empty(): any {
-    const value = this.value;
-    return ReferentialUtils.isEmpty(value.location)
-      && (!value.dateTime)
-      && (!value.comments || !value.comments.length);
-  }
-
-  get valid(): any {
-    return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty));
-  }
-
-  get observersForm(): FormArray {
-    return this.form.controls.observers as FormArray;
-  }
-
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
@@ -107,7 +115,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       mapPmfms: pmfms => this.mapPmfms(pmfms)
     });
     // Add a strategy field (not in validator)
-    this.strategyControl = formBuilder.control(null, [Validators.required, SharedValidators.entity]);
+    this.strategyControl = formBuilder.control(null, Validators.required);
 
     this._enable = false;
     this.mobile = this.settings.mobile;
@@ -199,22 +207,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         .subscribe( async (strategyLabel) => {
           this.strategyLabel = strategyLabel;
 
-          await this.ready();
-
-          // Add validator errors on expected effort for this sampleRow (issue #175)
-          const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(this.programLabel, this.strategyLabel, this.data.dateTime);
-          if (!strategyEffort) {
-            this.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
-            SharedValidators.clearError(this.strategyControl, 'zeroEffort');
-          } else if (strategyEffort.expectedEffort === 0) {
-            // TODO must be a warning, not error
-            this.strategyControl.setErrors(<ValidationErrors>{zeroEffort: true});
-            SharedValidators.clearError(this.strategyControl, 'noEffort');
-          } else {
-            SharedValidators.clearError(this.strategyControl, 'noEffort');
-            SharedValidators.clearError(this.strategyControl, 'zeroEffort');
-          }
-
           // Propagate to measurement values
           const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
           if (measControl && measControl.value !== strategyLabel) {
@@ -264,7 +256,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
 
     // DEBUG
-    //console.debug('[landing-form] DEV Get getValue() result:', data);
+    console.debug('[landing-form] DEV Get getValue() result:', data);
 
     return data;
   }

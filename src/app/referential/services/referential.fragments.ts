@@ -163,31 +163,6 @@ export const ReferentialFragments = {
     }
     __typename
   }`,
-  pmfmRefWithParts: gql`fragment PmfmRefWithPartsFragment on PmfmVO {
-    id
-    label
-    entityName
-    parameter {
-      id
-      label
-      name
-      entityName
-      __typename
-    }
-    matrix {
-      ...ReferentialFragment
-    }
-    fraction {
-      ...ReferentialFragment
-    }
-    method {
-      ...ReferentialFragment
-    }
-    unit {
-      ...ReferentialFragment
-    }
-    __typename
-  }`,
   parameter: gql`fragment ParameterFragment on ParameterVO {
     id
     label

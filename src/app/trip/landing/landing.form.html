@@ -30,18 +30,6 @@
         <ion-label class="ion-float-end hidden-xs hidden-sm">{{i18nPrefix + 'STRATEGY'|translate}}</ion-label>
       </ion-col>
       <ion-col>
-        <ion-icon *ngIf="strategyControl.hasError('required')" color="danger" slot="start" name="alert-circle"></ion-icon>
-        <mat-error *ngIf="strategyControl.hasError('required')">
-          {{'ERROR.FIELD_REQUIRED' | translate}}
-        </mat-error>
-        <ion-icon *ngIf="strategyControl.hasError('noEffort')" color="danger" slot="start" name="alert-circle"></ion-icon>
-        <mat-error *ngIf="strategyControl.hasError('noEffort')">
-          {{'LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR' | translate}}
-        </mat-error>
-        <ion-icon *ngIf="strategyControl.hasError('zeroEffort')" color="danger" slot="start" name="alert-circle"></ion-icon>
-        <mat-error *ngIf="strategyControl.hasError('zeroEffort')">
-          {{'LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR' | translate}}
-        </mat-error>
         <mat-autocomplete-field
           [formControl]="strategyControl"
           [placeholder]="i18nPrefix + 'STRATEGY_PLACEHOLDER'|translate"
@@ -49,6 +37,14 @@
           [readonly]="!canEditStrategy"
           [required]="true">
         </mat-autocomplete-field>
+      </ion-col>
+    </ion-row>
+    <ion-row *ngIf="strategyControl.touched">
+      <ion-col size="12" size-md="10" offset-md="2" size-lg="9" offset-lg="3"
+               class="mat-form-field-errors">
+        <ng-content select="[afterStrategy]"></ng-content>
+        <!--<mat-error *ngIf="strategyControl.hasError('noEffort')" translate>LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR</mat-error>
+        <mat-error *ngIf="strategyControl.hasError('zeroEffort')" translate>LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR</mat-error>-->
       </ion-col>
     </ion-row>
 
@@ -151,7 +147,7 @@
       </ion-col>
     </ion-row>
 
-    <ng-content></ng-content>
+    <ng-content select="[beforeComment]"></ng-content>
 
     <!-- Comments -->
     <ion-row *ngIf="showComment">

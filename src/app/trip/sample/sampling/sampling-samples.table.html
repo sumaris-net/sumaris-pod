@@ -187,6 +187,7 @@
       <!-- Add pmfm button -->
       <button mat-icon-button
               hidden-xs hidden-sm hidden-mobile
+              [disabled]="disabled"
               [title]="'COMMON.BTN_ADD'|translate"
               (click)="openAddPmfmsModal($event)">
         <mat-icon>add</mat-icon>

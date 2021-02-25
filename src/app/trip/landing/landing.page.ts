@@ -32,6 +32,7 @@ import * as momentImported from "moment";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {PmfmService} from "../../referential/services/pmfm.service";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {PmfmIds} from "../../referential/services/model/model.enum";
 
 const moment = momentImported;
 
@@ -338,27 +339,26 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.samplesTable.showTaxonGroupColumn = false;
 
     // We use pmfms from strategy and from sampling data. Some pmfms are only stored in data.
-    const newPmfms: IPmfm[] = (strategy.denormalizedPmfms || []).filter(p => p.acquisitionLevel === this.samplesTable.acquisitionLevel);
+    const strategyPmfms: IPmfm[] = (strategy.denormalizedPmfms || []).filter(p => p.acquisitionLevel === this.samplesTable.acquisitionLevel);
+    const strategyPmfmIds = strategyPmfms.map(pmfm => pmfm.id);
 
-    // pmfms from sampling data
-    const dataPmfms = (this.data.samples || []).reduce((res, sample) => {
-      const pmfmIds = Object.keys(sample.measurementValues || {});
-      const newPmfmIds = pmfmIds.filter(pmfmId => !res.includes(pmfmId));
-      return res.concat(...newPmfmIds);
+    // Retrieve additional pmfms, from samples
+    const additionalPmfmIds = (this.data.samples || []).reduce((res, sample) => {
+      const pmfmIds = Object.keys(sample.measurementValues || {}).map(id => +id);
+      const newPmfmIds = pmfmIds.filter(id => !res.includes(id) && !strategyPmfmIds.includes(id));
+      return newPmfmIds.length ? res.concat(...newPmfmIds) : res;
     }, []);
-    const pmfmsFromSamples = (await Promise.all(dataPmfms.map(id => this.pmfmService.load(id))));
 
-    let pmfmsFromStrategyAndSamples = newPmfms;
-    pmfmsFromSamples.forEach(pmfmFromSamples => {
-      if (!pmfmsFromStrategyAndSamples.find(pmfmIter => pmfmIter.id === pmfmFromSamples.id)) {
-        pmfmsFromStrategyAndSamples = pmfmsFromStrategyAndSamples.concat(pmfmFromSamples);
-      }
-    });
+    const allPmfms = [
+      ...strategyPmfms,
+      ...(await Promise.all(additionalPmfmIds.map(id => this.pmfmService.load(id))))
+    ];
+
     // Hide fractions pmfms
     // TODO BLA: Attention: ceci n'est pas applicable sur un Pmfm ou un DenormalizedPmfmStrategy
-    const pmfmsFromSamplesWithoutFractions = (pmfmsFromStrategyAndSamples || []).filter(pmfmStrategy => isNil(pmfmStrategy.fractionId));
+    //const pmfmsFromSamplesWithoutFractions = (pmfmsFromStrategyAndSamples || []).filter(pmfmStrategy => isNil(pmfmStrategy.fractionId));
 
-    this.samplesTable.pmfms = pmfmsFromSamplesWithoutFractions;
+    this.samplesTable.pmfms = allPmfms;
     this.samplesTable.strategyLabel = strategy.label;
   }
 
@@ -390,7 +390,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
 
-    this.landingForm.canEditStrategy = isEmptyArray(data.samples);
+    const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL];
+    if (strategyLabel) {
+      this.landingForm.$strategyLabel.next(strategyLabel);
+    }
+
+    this.landingForm.canEditStrategy = isNil(strategyLabel) || isEmptyArray(data.samples);
     this.landingForm.value = data;
 
     // Set samples to table
@@ -453,6 +458,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     return data;
   }
+
 
   protected refreshTabLayout() {
     // Inject content of tabs, into the first tab

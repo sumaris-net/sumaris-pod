@@ -163,7 +163,7 @@ export class VesselSnapshotService
     res.data = (!opts || opts.toEntity !== false) ?
       (res && res.data || []).map(VesselSnapshot.fromObject) :
       (res && res.data || []) as VesselSnapshot[];
-    if (debug) console.debug(`[referential-ref-service] Vessels loaded (from offline storage) in ${Date.now() - now}ms`);
+    if (debug) console.debug(`[vessel-snapshot-service] Vessels loaded in ${Date.now() - now}ms`);
     return res;
   }
 

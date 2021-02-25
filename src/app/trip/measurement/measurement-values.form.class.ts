@@ -42,14 +42,19 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
 
 
+  get forceOptional(): boolean {
+    return this._forceOptional;
+  }
+
+  get measurementValuesForm(): FormGroup {
+    // TODO: use this._measurementValuesForm instead
+    return this.form.controls.measurementValues as FormGroup; // this._measurementValuesForm || (this.form.controls.measurementValues as FormGroup);
+  }
+
   @Input() compact = false;
-
   @Input() floatLabel: FloatLabelType = "auto";
-
   @Input() requiredStrategy = false;
   @Input() requiredGear = false;
-
-  @Output() valueChanges = new EventEmitter<any>();
 
   @Input()
   set programLabel(value: string) {
@@ -60,13 +65,13 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     return this.$programLabel.getValue();
   }
 
-  get strategyLabel(): string {
-    return this.$strategyLabel.getValue();
-  }
-
   @Input()
   set strategyLabel(value: string) {
     this.setStrategyLabel(value);
+  }
+
+  get strategyLabel(): string {
+    return this.$strategyLabel.getValue();
   }
 
   @Input()
@@ -115,13 +120,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
-  get forceOptional(): boolean {
-    return this._forceOptional;
-  }
-
-  get measurementValuesForm(): FormGroup {
-    // TODO: use this._measurementValuesForm instead
-    return this.form.controls.measurementValues as FormGroup; // this._measurementValuesForm || (this.form.controls.measurementValues as FormGroup);
+  @Output() valueChanges = new EventEmitter<any>();
+  @Output() get strategyLabelChanges(): Observable<string> {
+    return this.$strategyLabel.asObservable();
   }
 
   protected constructor(protected dateAdapter: DateAdapter<Moment>,
@@ -292,11 +293,16 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       // Find dirty pmfms, to avoid full update
       const dirtyPmfms = (this.$pmfms.getValue() || []).filter(pmfm => measurementValuesForm.controls[pmfm.id].dirty);
       if (dirtyPmfms.length) {
-        json.measurementValues = Object.assign({}, this.data.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(measurementValuesForm.value, dirtyPmfms));
+        json.measurementValues = Object.assign({}, this.data && this.data.measurementValues || {}, MeasurementValuesUtils.normalizeValuesToModel(measurementValuesForm.value, dirtyPmfms));
       }
     }
 
-    this.data.fromObject(json);
+    if (this.data && this.data.fromObject) {
+      this.data.fromObject(json);
+    }
+    else {
+      this.data = json;
+    }
 
     return this.data;
   }

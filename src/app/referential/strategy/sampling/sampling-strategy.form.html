@@ -214,14 +214,14 @@
             </mat-form-field>
           </form>
         </ion-col>
-        <ion-col *ngIf="form.touched && appliedPeriodsForm.invalid"
+        <ion-col *ngIf="appliedPeriodsForm.touched && appliedPeriodsForm.invalid"
                  size="12" size-md="10" offset-md="2" size-lg="9" offset-lg="3"
-                 style="margin-top: -20px;">
+                 class="mat-form-field-errors">
           <mat-error *ngIf="appliedPeriodsForm.hasError('minLength')">
-            <small>{{'PROGRAM.STRATEGY.ERROR.EFFORT.MIN_LENGTH' | translate: appliedPeriodsForm.errors.minLength }}</small>
+            {{'PROGRAM.STRATEGY.ERROR.EFFORT.MIN_LENGTH' | translate: appliedPeriodsForm.errors.minLength }}
           </mat-error>
           <mat-error *ngIf="appliedPeriodsForm.hasError('hasRealizedEffort')">
-            <small>{{'PROGRAM.STRATEGY.ERROR.EFFORT.REALIZED_EFFORT' | translate: appliedPeriodsForm.errors.hasRealizedEffort }}</small>
+            {{'PROGRAM.STRATEGY.ERROR.EFFORT.REALIZED_EFFORT' | translate: appliedPeriodsForm.errors.hasRealizedEffort }}
           </mat-error>
         </ion-col>
       </ion-row>

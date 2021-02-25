@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
-import {FormGroup} from "@angular/forms";
+import {AbstractControl, FormGroup, ValidationErrors} from "@angular/forms";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ParameterLabelGroups, PmfmIds} from "../../../referential/services/model/model.enum";
@@ -16,6 +16,9 @@ import {isNotNil} from "../../../shared/functions";
 import {SamplingSamplesTable} from "../../sample/sampling/sampling-samples.table";
 import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
 import {ObservedLocation} from "../../services/model/observed-location.model";
+import {SharedValidators} from "../../../shared/validator/validators";
+import {SamplingStrategyService} from "../../../referential/services/sampling-strategy.service";
+import {Strategy} from "../../../referential/services/model/strategy.model";
 
 
 @Component({
@@ -30,15 +33,20 @@ export class SamplingLandingPage extends LandingPage {
 
   $pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
   showSamplesTable = false;
+  zeroEffortWarning = false;
+  noEffortError = false;
 
   constructor(
-    injector: Injector
+    injector: Injector,
+    protected samplingStrategyService: SamplingStrategyService,
   ) {
     super(injector, {
       pathIdAttribute: 'samplingId',
       autoOpenNextTab: false
     });
     this.pmfmService = injector.get(PmfmService);
+
+    this.$strategy.subscribe(strategy => this.checkStrategyEffort(strategy));
   }
 
   ngAfterViewInit() {
@@ -59,15 +67,41 @@ export class SamplingLandingPage extends LandingPage {
       .then(pmfmGroups => this.$pmfmGroups.next(pmfmGroups));
   }
 
-  markAsLoaded(opts?: { emitEvent?: boolean }) {
-    super.markAsLoaded(opts);
+  protected async checkStrategyEffort(strategy: Strategy): Promise<void> {
 
-    // When data loaded, wait table is ready before show it
-    Promise.all([
-      firstNotNilPromise(this.$strategy),
-      this.samplesTable.ready()
-    ])
-      .then(() => this.showSamplesTable = true);
+    const [program] = await Promise.all([
+      firstNotNilPromise(this.$program),
+      this.landingForm.ready()
+    ]);
+
+    // Add validator errors on expected effort for this sampleRow (issue #175)
+    const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, this.data.dateTime);
+
+    // DEBUG
+    console.debug("[sampling-landing-page] Strategy effort loaded: ", strategyEffort);
+
+    // No effort defined
+    if (!strategyEffort) {
+      this.noEffortError = true;
+      this.zeroEffortWarning = false;
+      this.landingForm.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
+    }
+    // Effort is set, but = 0
+    else if (strategyEffort.expectedEffort === 0) {
+      this.zeroEffortWarning = true;
+      this.noEffortError = false;
+      SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
+    }
+    // And positive effort has been defined: OK
+    else {
+      this.zeroEffortWarning = false;
+      this.noEffortError = false;
+      SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
+    }
+
+    await this.samplesTable.ready();
+    this.showSamplesTable = true;
+    this.markForCheck();
   }
 
   /* -- protected functions -- */
@@ -83,7 +117,10 @@ export class SamplingLandingPage extends LandingPage {
   protected async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
 
-    this.samplesTable.strategyLabel = data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()];
+    const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()]
+    if (strategyLabel) {
+      this.samplesTable.strategyLabel = strategyLabel;
+    }
     await super.setValue(data);
   }
 

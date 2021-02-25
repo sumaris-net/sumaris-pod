@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {FetchPolicy, gql} from "@apollo/client/core";
+import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {ReferentialFragments} from "./referential.fragments";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {CacheService} from "ionic-cache";
@@ -130,8 +130,8 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
     programId?: number;
     toEntity?: boolean;
     debug?: boolean;
-    query?: any;
     cache?: boolean;
+    fetchPolicy?: WatchQueryFetchPolicy;
   }): Observable<Strategy> {
 
     if (!opts || opts.cache !== false) {
@@ -161,15 +161,20 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
         );
     }
     else {
-      const query = opts && opts.query || this.queries.load;
-      res = this.graphql.watchQuery<{ data: any }>({
-        query,
+      res = this.graphql.watchQuery<{data: any[]}>({
+        query: this.queries.loadAll,
         variables: {
-          label,
-          levelId: toNumber(opts && opts.programId, undefined)
+          offset: 0, size: 1,
+          filter: {
+            label,
+            levelId: toNumber(opts && opts.programId, undefined)
+          }
         },
+        // Important: do NOT using cache here, as default (= 'no-cache')
+        // because cache is manage by Ionic cache (easier to clean)
+        fetchPolicy: opts && opts.fetchPolicy || 'no-cache',
         error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "ERROR.LOAD_ERROR"}
-      }).pipe(map(res => res && res.data));
+      }).pipe(map(res => firstArrayValue(res && res.data)));
     }
 
     return res.pipe(

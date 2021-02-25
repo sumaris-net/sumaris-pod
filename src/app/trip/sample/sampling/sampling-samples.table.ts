@@ -87,7 +87,6 @@ export class SamplingSamplesTable extends SamplesTable {
       }
     );
 
-    this.$strategyLabel.subscribe((strategyLabel) => this.onStrategyChanged(strategyLabel));
   }
 
   protected async onNewEntity(data: Sample): Promise<void> {
@@ -126,7 +125,6 @@ export class SamplingSamplesTable extends SamplesTable {
     });
     if (!pmfmIds) return; // USer cancelled
 
-    console.debug('TODO changes to pmfm: ', pmfmIds);
   }
 
 
@@ -252,25 +250,6 @@ export class SamplingSamplesTable extends SamplesTable {
       ...this.$pmfms.getValue(),
       ...pmfms
     ];
-  }
-
-  protected async onStrategyChanged(strategyLabel: string) {
-    // IMAGINE-230 Strategy must have defined and positive expected effort to add samples
-    if (isNil(this.programLabel) || isNil(strategyLabel) || isNil(this.defaultSampleDate)) {
-      this.disable();
-      return;
-    }
-
-    const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(this.programLabel,
-      strategyLabel,
-      this.defaultSampleDate);
-    const enable = strategyEffort && isNotNil(strategyEffort.expectedEffort);
-    if (enable) {
-      this.enable();
-    }
-    else {
-      this.disable();
-    }
   }
 
 }

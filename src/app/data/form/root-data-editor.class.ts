@@ -1,27 +1,15 @@
 import {Directive, Injector, OnInit} from '@angular/core';
 
 import {BehaviorSubject, merge} from 'rxjs';
-import {
-  changeCaseToUnderscore,
-  isNil,
-  isNilOrBlank,
-  isNotEmptyArray,
-  isNotNil,
-  isNotNilOrBlank
-} from '../../shared/functions';
+import {changeCaseToUnderscore, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank} from '../../shared/functions';
 import {distinctUntilChanged, filter, switchMap, tap} from "rxjs/operators";
 import {Program} from "../../referential/services/model/program.model";
-import {ProgramService} from "../../referential/services/program.service";
 import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
 import {AppEditorOptions, AppEntityEditor} from "../../core/form/editor.class";
 import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {RootDataEntity} from "../services/model/root-data-entity.model";
-import {
-  MatAutocompleteConfigHolder,
-  MatAutocompleteFieldAddOptions,
-  MatAutocompleteFieldConfig
-} from "../../shared/material/autocomplete/material.autocomplete";
+import {MatAutocompleteConfigHolder, MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "../../shared/material/autocomplete/material.autocomplete";
 import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
 import {Strategy} from "../../referential/services/model/strategy.model";
 import {StrategyRefService} from "../../referential/services/strategy-ref.service";
@@ -115,7 +103,7 @@ export abstract class AppRootDataEditor<
         this.$program.pipe(tap(program => this.setProgram(program))),
         this.$strategy.pipe(tap(strategy => this.setStrategy(strategy)))
       ).subscribe()
-    )
+    );
 
     // Watch strategy
     this.registerSubscription(
