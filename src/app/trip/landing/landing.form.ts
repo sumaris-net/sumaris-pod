@@ -53,7 +53,36 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   }
 
   get valid(): boolean {
-    return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty));
+    return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty))
+      && (!this.showStrategy || this.strategyControl.valid);
+  }
+
+  get invalid(): boolean {
+    return super.invalid
+      // Check strategy
+      || (this.showStrategy && this.strategyControl.invalid);
+  }
+
+  get pending(): boolean {
+    return super.pending
+      // Check strategy
+      || (this.showStrategy && this.strategyControl.pending);
+  }
+
+  get dirty(): boolean {
+    return super.dirty
+      // Check strategy
+      || (this.showStrategy && this.strategyControl.dirty);
+  }
+
+  markAsUntouched(opts?: { onlySelf?: boolean }) {
+    super.markAsUntouched(opts);
+    this.strategyControl.markAsUntouched(opts);
+  }
+
+  markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAsTouched(opts);
+    this.strategyControl.markAsTouched(opts);
   }
 
   get value(): any {
@@ -145,10 +174,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     // Combo: strategy
     this.registerAutocompleteField('strategy', {
-      service: this.referentialRefService,
-      filter: {
-        entityName: 'Strategy',
-        levelLabel: this.$programLabel.getValue() // is empty, will be set in setProgram()
+      suggestFn: (value, filter) => {
+        // Force to show all
+        value = typeof value === 'object' ? '*' : value;
+        return this.referentialRefService.suggest(value, {
+          entityName: 'Strategy',
+          searchAttribute: 'label',
+          levelLabel: this.$programLabel.getValue() // if empty, will be set in setProgram()
+        });
       },
       attributes: ['label'],
       columnSizes: [12],
@@ -368,12 +401,5 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return pmfms;
   }
 
-  get invalid(): boolean {
-    return super.invalid
-      // Check strategy
-      || (this.showStrategy && (this.strategyControl.invalid
 
-      // TODO BLA: ne sert à rien, car strategyControl.invalid devrait suffir
-      || (this.strategyControl.hasError('required') || this.strategyControl.hasError('noEffort'))));
-  }
 }

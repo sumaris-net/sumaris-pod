@@ -46,11 +46,14 @@ export class SamplingLandingPage extends LandingPage {
     });
     this.pmfmService = injector.get(PmfmService);
 
-    this.$strategy.subscribe(strategy => this.checkStrategyEffort(strategy));
+
   }
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
+
+    // Check strategy effort
+    this.$strategy.subscribe(strategy => this.checkStrategyEffort(strategy));
 
     // Use landing location as default location for samples
     this.registerSubscription(

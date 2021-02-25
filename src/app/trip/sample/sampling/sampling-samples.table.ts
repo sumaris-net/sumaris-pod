@@ -15,7 +15,6 @@ import {ReferentialRef} from "../../../core/services/model/referential.model";
 import {Sample} from "../../services/model/sample.model";
 import {TaxonUtils} from "../../../referential/services/model/taxon.model";
 import {SamplingStrategyService} from "../../../referential/services/sampling-strategy.service";
-import {Moment} from "moment";
 import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 export interface SampleFilter {
@@ -85,8 +84,6 @@ export class SamplingSamplesTable extends SamplesTable {
         requiredStrategy: true
       }
     );
-
-    this._onRefreshExpectedEffort.subscribe(() => this.refreshExpectedEffort(this._strategyLabel, this._defaultSampleDate));
   }
 
   protected async onNewEntity(data: Sample): Promise<void> {
@@ -99,14 +96,6 @@ export class SamplingSamplesTable extends SamplesTable {
     if (groupAge && rubinCode && isNotNil(this.defaultLocation) && isNotNil(this.defaultSampleDate) && isNotNil(this.defaultTaxonName)) {
       data.label = `${this.defaultLocation.label}${this.defaultSampleDate.format("DDMMYY")}${rubinCode}${data.rankOrder.toString().padStart(4, "0")}`;
       console.debug("[sample-table] Generated label: ", data.label);
-    }
-  }
-
-  @Input()
-  set defaultSampleDate(value: Moment) {
-    if (this._defaultSampleDate !== value && isNotNil(value)) {
-      this._defaultSampleDate = value;
-      this._onRefreshExpectedEffort.emit();
     }
   }
 
