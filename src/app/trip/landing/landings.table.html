@@ -169,7 +169,9 @@
   <!-- Pmfm columns -->
   <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
     <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
-      <ion-label [innerHTML]="pmfm | pmfmName:{html: true}"></ion-label>
+      <!-- Display override message from i18n when defined, pmfm label otherwise -->
+      <ion-label *ngIf="((i18nColumnPrefix + pmfm.label) | translate) == (i18nColumnPrefix + pmfm.label)" [innerHTML]="pmfm | pmfmName:{html: true}"></ion-label>
+      <ion-label *ngIf="((i18nColumnPrefix + pmfm.label) | translate) != (i18nColumnPrefix + pmfm.label)" translate>{{i18nColumnPrefix + pmfm.label}}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row"
               [class.mat-cell-date-time]="pmfm|isDatePmfm"
