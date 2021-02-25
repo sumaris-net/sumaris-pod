@@ -88,7 +88,7 @@ public class Strategy implements IItemReferentialEntity {
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = PmfmStrategy.class, mappedBy = PmfmStrategy.Fields.STRATEGY)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<PmfmStrategy> pmfmStrategies = new ArrayList<>();
+    private List<PmfmStrategy> pmfms = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = StrategyDepartment.class, mappedBy = StrategyDepartment.Fields.STRATEGY)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
@@ -109,9 +109,9 @@ public class Strategy implements IItemReferentialEntity {
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<TaxonGroupStrategy> taxonGroups = new ArrayList<>();
 
-    public void addPmfmStrategy(PmfmStrategy pmfmStrategy, boolean setReverse) {
+    public void addPmfm(PmfmStrategy pmfmStrategy, boolean setReverse) {
         if (pmfmStrategy != null) {
-            getPmfmStrategies().add(pmfmStrategy);
+            getPmfms().add(pmfmStrategy);
             if (setReverse) {
                 pmfmStrategy.setStrategy(this);
             }

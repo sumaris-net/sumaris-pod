@@ -25,7 +25,6 @@ package net.sumaris.core.dao.administration.programStrategy;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
@@ -45,7 +44,6 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.filter.StrategyRelatedFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -56,7 +54,6 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
@@ -94,7 +91,7 @@ public class PmfmStrategyRepositoryImpl
     public List<PmfmStrategyVO> findByStrategyId(int strategyId, StrategyFetchOptions fetchOptions) {
 
         return findAll(
-            toSpecification(StrategyRelatedFilterVO.builder().strategyId(strategyId).build(), fetchOptions),
+                BindableSpecification.where(hasStrategyId(strategyId)),
             Sort.by(PmfmStrategy.Fields.RANK_ORDER)
         )
             .stream()
@@ -117,12 +114,6 @@ public class PmfmStrategyRepositoryImpl
 
     }
 
-    protected Specification<PmfmStrategy> toSpecification(StrategyRelatedFilterVO filter, StrategyFetchOptions fetchOptions) {
-        return BindableSpecification.where(hasProgramId(filter.getProgramId()))
-            .and(hasStrategyId(filter.getStrategyId()))
-            .and(hasAcquisitionLevelId(filter.getAcquisitionLevelId()));
-    }
-
     @Override
     public PmfmStrategyVO toVO(PmfmStrategy source) {
         return toVO(source, StrategyFetchOptions.DEFAULT);
@@ -139,82 +130,28 @@ public class PmfmStrategyRepositoryImpl
 
         PmfmStrategyVO target = new PmfmStrategyVO();
 
-        // Copy properties, from Pmfm first (if inherit enable), then from source
-        if (fetchOptions.isWithPmfmStrategyInheritance() && pmfm != null) {
-            Beans.copyProperties(pmfm, target);
-        }
         Beans.copyProperties(source, target);
 
         // Strategy Id
         target.setStrategyId(source.getStrategy().getId());
 
-        // Set some attributes from Pmfm (apply inheritance)
+        // Pmfm
         if (pmfm != null) {
             target.setPmfmId(pmfm.getId());
-
-            // Apply default values from Pmfm
-            if (target.getMinValue() == null) {
-                target.setMinValue(pmfm.getMinValue());
-            }
-            if (target.getMaxValue() == null) {
-                target.setMaxValue(pmfm.getMaxValue());
-            }
-            if (target.getDefaultValue() == null) {
-                target.setDefaultValue(pmfm.getDefaultValue());
-            }
-
-            // Parameter name
-            Parameter parameter = pmfm.getParameter();
-            target.setName(parameter.getName());
-
-            // Complete name
-            if (fetchOptions.isWithPmfmStrategyCompleteName()) {
-                String completeName = pmfmRepository.computeCompleteName(pmfm.getId());
-                target.setCompleteName(completeName);
-            }
-
-            // Value Type
-            PmfmValueType type = PmfmValueType.fromPmfm(pmfm);
-            target.setType(type.name().toLowerCase());
-
-            // Unit symbol
-            if (pmfm.getUnit() != null && pmfm.getUnit().getId() != UnitEnum.NONE.getId()) {
-                target.setUnitLabel(pmfm.getUnit().getLabel());
-            }
-
-            // Qualitative values (from Pmfm if any, or from Parameter)
-            if (type == PmfmValueType.QUALITATIVE_VALUE) {
-                Collection<QualitativeValue> qualitativeValues = CollectionUtils.isNotEmpty(pmfm.getQualitativeValues()) ?
-                        pmfm.getQualitativeValues() : parameter.getQualitativeValues();
-                if (CollectionUtils.isNotEmpty(qualitativeValues)) {
-                    target.setQualitativeValues(qualitativeValues
-                            .stream()
-                            .map(referentialDao::toVO)
-                            .collect(Collectors.toList()));
-                }
-                else {
-                    log.warn("Missing qualitative values, in PMFM #{}", pmfm.getId());
-                }
-            }
-
         }
 
         // Parameter, Matrix, Fraction, Method Ids
         if (source.getParameter() != null) {
             target.setParameterId(source.getParameter().getId());
-            target.setParameter(referentialDao.toVO(source.getParameter()));
         }
         if (source.getMatrix() != null) {
             target.setMatrixId(source.getMatrix().getId());
-            target.setMatrix(referentialDao.toVO(source.getMatrix()));
         }
         if (source.getFraction() != null) {
             target.setFractionId(source.getFraction().getId());
-            target.setFraction(referentialDao.toVO(source.getFraction()));
         }
         if (source.getMethod() != null) {
             target.setMethodId(source.getMethod().getId());
-            target.setMethod(referentialDao.toVO(source.getMethod()));
         }
 
         // Acquisition Level
@@ -250,7 +187,8 @@ public class PmfmStrategyRepositoryImpl
     @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID, allEntries = true) // FIXME fix error 'null' when using key='#strategyId'
+            @CacheEvict(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID, allEntries = true), // FIXME fix error 'null' when using key='#strategyId'
+            @CacheEvict(cacheNames = CacheNames.DENORMALIZED_PMFM_BY_STRATEGY_ID, allEntries = true) // FIXME fix error 'null' when using key='#strategyId'
         }
     )
     public List<PmfmStrategyVO> saveByStrategyId(int strategyId, @Nonnull List<PmfmStrategyVO> sources) {
@@ -262,7 +200,7 @@ public class PmfmStrategyRepositoryImpl
         sources.forEach(source -> source.setStrategyId(strategyId));
 
         // Load existing entities
-        Map<Integer, PmfmStrategy> existingEntities = Beans.splitById(parent.getPmfmStrategies());
+        Map<Integer, PmfmStrategy> existingEntities = Beans.splitById(parent.getPmfms());
 
         sources.forEach(source -> {
             save(source);
@@ -272,7 +210,7 @@ public class PmfmStrategyRepositoryImpl
         // Delete remaining
         existingEntities.values().forEach(ps -> {
             this.delete(ps);
-            parent.getPmfmStrategies().remove(ps);
+            parent.getPmfms().remove(ps);
         });
 
         return sources.isEmpty() ? null : sources;

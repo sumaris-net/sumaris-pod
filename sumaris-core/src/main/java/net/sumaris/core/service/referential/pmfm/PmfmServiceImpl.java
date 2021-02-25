@@ -119,6 +119,11 @@ public class PmfmServiceImpl implements PmfmService {
     }
 
     @Override
+    public String computeCompleteName(int pmfmId) {
+        return pmfmRepository.computeCompleteName(pmfmId);
+    }
+
+    @Override
     public boolean isGearPhysicalPmfm(int pmfmId) {
         return pmfmRepository.hasLabelPrefix(pmfmId, "GEAR_PHYSICAL");
     }

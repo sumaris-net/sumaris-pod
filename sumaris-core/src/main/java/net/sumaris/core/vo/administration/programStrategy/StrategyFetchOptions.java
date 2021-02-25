@@ -38,15 +38,20 @@ public class StrategyFetchOptions implements IFetchOptions {
     }
 
     /**
-     * Will copy property from Pmfms into the PmfmStrategyVO.
-     * If only Parameter, Method, Matrix, Fraction exists on PmfmStrategy, will denormalized into a list of all compatible Pmfms
+     * Compute PmfmStrategy (normalized entities)
      */
     @Builder.Default
-    private boolean withPmfmStrategyInheritance = false;
+    private boolean withPmfms = false;
+
+    /**
+     * Compute the denormalized PMFM, from PmfmStrategy
+     */
+    @Builder.Default
+    private boolean withDenormalizedPmfms = false;
 
     /**
      * Compute the PSFM strategy full name (with parameter, matrix, fraction and method names)
      */
     @Builder.Default
-    private boolean withPmfmStrategyCompleteName = false;
+    private boolean withDenormalizedPmfmCompleteName = false;
 }

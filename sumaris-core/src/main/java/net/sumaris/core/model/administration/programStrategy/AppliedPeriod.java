@@ -23,6 +23,7 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 
 import javax.persistence.*;
@@ -50,5 +51,4 @@ public class AppliedPeriod implements Serializable {
     private Date endDate;
 
     private Integer acquisitionNumber;
-
 }

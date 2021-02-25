@@ -47,6 +47,7 @@ public interface CacheNames {
     String PMFM_HAS_SUFFIX = "net.sumaris.core.dao.referential.pmfmHasSuffix";
     String PMFM_HAS_MATRIX = "net.sumaris.core.dao.referential.pmfmHasMatrix";
     String PMFM_BY_STRATEGY_ID = "net.sumaris.core.dao.administration.programStrategy.pmfmByStrategyIdCache";
+    String DENORMALIZED_PMFM_BY_STRATEGY_ID = "net.sumaris.core.dao.administration.programStrategy.denormalized.pmfmByStrategyIdCache";
 
     String TAXON_NAME_BY_TAXON_REFERENCE_ID = "net.sumaris.core.dao.referential.taxonNameByReferenceId";
     String TAXON_NAMES_BY_TAXON_GROUP_ID = "net.sumaris.core.dao.referential.taxonNamesByTaxonGroupId";

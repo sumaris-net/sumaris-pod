@@ -79,9 +79,9 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
     }
 
     @Test
-    public void findPmfmStrategiesByStrategy() {
+    public void findPmfmsByStrategy() {
 
-        List<PmfmStrategyVO> pmfmStrategies = service.findPmfmStrategiesByStrategy(1, StrategyFetchOptions.builder().build());
+        List<PmfmStrategyVO> pmfmStrategies = service.findPmfmsByStrategy(1, StrategyFetchOptions.builder().build());
         Assert.assertNotNull(pmfmStrategies);
         Assert.assertEquals(80, pmfmStrategies.size());
         PmfmStrategyVO pmfmStrategy = pmfmStrategies.get(0);
@@ -90,6 +90,22 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
         Assert.assertNull(pmfmStrategy.getPmfm());
 
     }
+
+    @Test
+    public void findDenormalizedPmfmsByStrategy() {
+
+        List<DenormalizedPmfmStrategyVO> pmfms = service.findDenormalizedPmfmsByStrategy(1, StrategyFetchOptions.builder().build());
+        Assert.assertNotNull(pmfms);
+        Assert.assertEquals(80, pmfms.size());
+        DenormalizedPmfmStrategyVO denormalizedPmfm = pmfms.get(0);
+        Assert.assertNotNull(denormalizedPmfm);
+        Assert.assertNotNull(denormalizedPmfm.getId());
+        Assert.assertNotNull(denormalizedPmfm.getUnitLabel());
+        Assert.assertNotNull(denormalizedPmfm.getUnitLabel());
+        Assert.assertNotNull(denormalizedPmfm.getCompleteName());
+
+    }
+
 
     @Test
     public void getStrategyDepartments() {
@@ -106,7 +122,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
     @Test
     public void findPmfmStrategiesByProgramAndAcquisitionLevel() {
 
-        List<PmfmStrategyVO> pmfmStrategies = service.findPmfmStrategiesByProgramAndAcquisitionLevel(fixtures.getDefaultProgram().getId(), 2, StrategyFetchOptions.builder().build());
+        List<PmfmStrategyVO> pmfmStrategies = service.findPmfmsByProgramAndAcquisitionLevel(fixtures.getDefaultProgram().getId(), 2, StrategyFetchOptions.builder().build());
         Assert.assertNotNull(pmfmStrategies);
         Assert.assertEquals(24, pmfmStrategies.size());
 

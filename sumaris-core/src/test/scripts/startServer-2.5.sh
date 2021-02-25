@@ -7,7 +7,7 @@ export CLASSPATH="${M2_REPO}/org/hsqldb/hsqldb/${HSQLDB_VERSION}/hsqldb-${HSQLDB
 export DB_NAME="sumaris"
 export TEST_DB="../../../target/db"
 export DB_DIRECTORY="../../../target/db-server"
-export JAVA_OPTS="-server -Xmx2g -Duser.timezone=Europe/Paris"
+export JAVA_OPTS="-server -Xmx2g -Duser.timezone=UTC"
 
 ARG=$1
 

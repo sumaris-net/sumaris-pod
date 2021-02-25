@@ -142,9 +142,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                     .map(programService::getByLabel)
                     .map(ProgramVO::getId)
                     .forEach(programId -> {
-                        Collection<PmfmStrategyVO> pmfms = strategyService.findPmfmStrategiesByProgram(
+                        Collection<PmfmStrategyVO> pmfms = strategyService.findPmfmsByProgram(
                             programId,
-                            StrategyFetchOptions.builder().withPmfmStrategyInheritance(true).build()
+                            StrategyFetchOptions.builder().withDenormalizedPmfms(true).build()
                         );
                         pmfmStrategiesByProgramId.putAll(programId, pmfms);
                     });

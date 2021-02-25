@@ -23,6 +23,7 @@ package net.sumaris.core.dao.referential;
  */
 
 import com.google.common.base.Preconditions;
+import jdk.internal.org.objectweb.asm.tree.InnerClassNode;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -50,9 +51,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     String STATUS_SET_PARAMETER = "statusSet";
     String LABEL_PARAMETER = "label";
     String LEVEL_PARAMETER = "level";
-    String LEVEL_SET_PARAMETER = "levelSet";
     String LEVEL_LABEL_PARAMETER = "levelLabel";
-    String LEVEL_LABEL_SET_PARAMETER = "levelLabelSet";
     String SEARCH_TEXT_PARAMETER = "searchText";
     String EXCLUDED_IDS_PARAMETER = "excludedIds";
 
@@ -178,9 +177,9 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
 
             // Get the class join, using properties
             String[] joinProperties = joinProperty.split("[./]");
-            Join<Object, Object> join = root.join(joinProperties[0]);
+            Join<Object, Object> join = root.join(joinProperties[0], JoinType.INNER);
             for(int i = 1; i < joinProperties.length; i++) {
-                join = join.join(joinProperties[i]);
+                join = join.join(joinProperties[i], JoinType.INNER);
             }
 
             if (StringUtils.isNotBlank(searchAttribute)) {

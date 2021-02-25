@@ -96,7 +96,7 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
         // Modify strategies
         //strategies = program.getStrategies();
         List<StrategyVO> strategies = strategyService.findByProgram(program.getId(),
-                StrategyFetchOptions.builder().withPmfmStrategyInheritance(true).build());
+                StrategyFetchOptions.builder().withPmfms(true).build());
         List<AppliedStrategyVO> appliedStrategies = Lists.newArrayList();
         List<AppliedPeriodVO> appliedPeriods = Lists.newArrayList();
         Assert.assertNotNull(strategies);
@@ -136,7 +136,7 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
 
         //strategies = program.getStrategies();
         List<StrategyVO> actualStrategies = strategyService.findByProgram(actualProgram.getId(),
-                StrategyFetchOptions.builder().withPmfmStrategyInheritance(true).build());
+                StrategyFetchOptions.builder().withPmfms(true).build());
         Assert.assertEquals(strategies, actualStrategies);
     }
 

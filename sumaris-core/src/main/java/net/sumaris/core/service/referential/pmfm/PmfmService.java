@@ -64,6 +64,9 @@ public interface PmfmService {
     @Transactional(readOnly = true)
     boolean isGearPmfm(int pmfmId);
 
+    @Transactional(readOnly = true)
+    String computeCompleteName(int pmfmId);
+
     /**
      * @deprecated Find a better way (not using LABEL prefix)
      */

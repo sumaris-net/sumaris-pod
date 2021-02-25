@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.administration.programStrategy;
+package net.sumaris.core.dao.administration.programStrategy.denormalized;
 
 /*-
  * #%L
@@ -22,25 +22,23 @@ package net.sumaris.core.dao.administration.programStrategy;
  * #L%
  */
 
+import net.sumaris.core.dao.administration.programStrategy.PmfmStrategySpecifications;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 
 import java.util.List;
 
-public interface PmfmStrategyRepository
-    extends SumarisJpaRepository<PmfmStrategy, Integer, PmfmStrategyVO>,
-    PmfmStrategySpecifications {
+public interface DenormalizedPmfmStrategyRepository
+    extends SumarisJpaRepository<PmfmStrategy, Integer, DenormalizedPmfmStrategyVO>,
+        PmfmStrategySpecifications {
 
-    List<PmfmStrategyVO> findByStrategyId(int strategyId, StrategyFetchOptions fetchOptions);
+    List<DenormalizedPmfmStrategyVO> findByStrategyId(int strategyId, StrategyFetchOptions fetchOptions);
 
-    List<PmfmStrategyVO> findByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions);
+    DenormalizedPmfmStrategyVO toVO(PmfmStrategy source, StrategyFetchOptions fetchOptions);
 
-    List<PmfmStrategyVO> saveByStrategyId(int strategyId, List<PmfmStrategyVO> sources);
-
-    PmfmStrategyVO toVO(PmfmStrategy source, StrategyFetchOptions fetchOptions);
-
-    PmfmStrategyVO toVO(PmfmStrategy source, Pmfm pmfm, StrategyFetchOptions fetchOptions);
+    DenormalizedPmfmStrategyVO toVO(PmfmStrategy source, Pmfm pmfm, StrategyFetchOptions fetchOptions);
 }

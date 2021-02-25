@@ -34,9 +34,9 @@ import java.util.List;
 
 @Data
 @FieldNameConstants
-public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
+public class DenormalizedPmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
 
-    private Integer id;
+    private Integer id; // = the PMFM id
 
     private String acquisitionLevel;
     private Integer rankOrder;
@@ -54,19 +54,26 @@ public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IVa
     private List<Integer> taxonGroupIds;
     private List<Integer> referenceTaxonIds;
 
-    // Link to PMFM, Parameter, Matrix, Fraction, Method
-    private Integer pmfmId;
-    private PmfmVO pmfm;
-    private Integer parameterId;
-    private ReferentialVO parameter;
-    private Integer matrixId;
-    private ReferentialVO matrix;
-    private Integer fractionId;
-    private ReferentialVO fraction;
-    private Integer methodId;
-    private ReferentialVO method;
 
     // Link to parent
     private Integer strategyId;
+
+    // Link to other PMFM entities
+    private Integer parameterId;
+    private Integer matrixId;
+    private Integer fractionId;
+    private Integer methodId;
+
+    // **** Copy from PMFM or parameter
+    private String unitLabel;
+    private String type;
+    private String label;
+    private String name;
+    private String completeName; // Full name, with parameter, matrix, fraction and method name
+    private Integer maximumNumberDecimals;
+    private Integer signifFiguresNumber;
+    // ****
+
+    private List<ReferentialVO> qualitativeValues;
 }
 

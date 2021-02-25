@@ -49,6 +49,7 @@ import org.springframework.data.jpa.domain.Specification;
 import javax.persistence.EntityManager;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author peck7 on 19/08/2020.
@@ -99,6 +100,15 @@ public class PmfmRepositoryImpl
         Preconditions.checkArgument(parameterId != null || matrixId != null
                 || fractionId != null || methodId != null, "At least on argument (parameterId, matrixId, fractionId, methodId) must be not null");
         return findAll(hasPmfmPart(parameterId, matrixId, fractionId, methodId)
+                // ONlY enabled PMFM
+                .and(inStatusIds(StatusEnum.ENABLE)));
+    }
+
+    @Override
+    public Stream<Pmfm> streamByPmfmParts(Integer parameterId, Integer matrixId, Integer fractionId, Integer methodId) {
+        Preconditions.checkArgument(parameterId != null || matrixId != null
+                || fractionId != null || methodId != null, "At least on argument (parameterId, matrixId, fractionId, methodId) must be not null");
+        return streamAll(hasPmfmPart(parameterId, matrixId, fractionId, methodId)
                 // ONlY enabled PMFM
                 .and(inStatusIds(StatusEnum.ENABLE)));
     }
@@ -224,9 +234,7 @@ public class PmfmRepositoryImpl
     @Override
     protected Specification<Pmfm> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
 
-        return super.toSpecification(filter, fetchOptions)
-                .and(inLevelIds(Pmfm.class, filter.getLevelIds()))
-                .and(inLevelLabels(Pmfm.class, filter.getLevelLabels()));
+        return super.toSpecification(filter, fetchOptions);
     }
 
     @Override

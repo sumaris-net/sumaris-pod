@@ -66,8 +66,8 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
         Assert.assertEquals(30, strategy.getId().intValue());
         Assert.assertNotNull(strategy.getTaxonNames());
         Assert.assertEquals(1, strategy.getTaxonNames().size());
-        Assert.assertNotNull(strategy.getPmfmStrategies());
-        Assert.assertEquals(10, strategy.getPmfmStrategies().size());
+        Assert.assertNotNull(strategy.getPmfms());
+        Assert.assertEquals(10, strategy.getPmfms().size());
         Assert.assertNotNull(strategy.getAppliedStrategies());
         Assert.assertEquals(3, strategy.getAppliedStrategies().size());
         Assert.assertNotNull(strategy.getDepartments());
