@@ -106,7 +106,11 @@
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
+    <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}
+      <mat-icon color="warn"
+                *ngIf="row.validator.hasError('missingWeightOrSize')"
+                [title]="'TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_SIZE'|translate">error</mat-icon>
+    </mat-cell>
   </ng-container>
 
   <!-- Label column -->

@@ -1,9 +1,8 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, Injector, Input} from "@angular/core";
+import {ChangeDetectionStrategy, Component, Injector, Input} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {SampleValidatorService} from "../../services/validator/sample.validator";
-import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from "../../../shared/functions";
+import {isEmptyArray, isNotEmptyArray, isNotNil} from "../../../shared/functions";
 import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {environment} from "../../../../environments/environment";
 import {BehaviorSubject} from "rxjs";
 import {ObjectMap} from "../../../shared/types";
@@ -16,8 +15,8 @@ import {ReferentialRef} from "../../../core/services/model/referential.model";
 import {Sample} from "../../services/model/sample.model";
 import {TaxonUtils} from "../../../referential/services/model/taxon.model";
 import {SamplingStrategyService} from "../../../referential/services/sampling-strategy.service";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
 import {Moment} from "moment";
+import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 export interface SampleFilter {
   operationId?: number;
@@ -87,6 +86,7 @@ export class SamplingSamplesTable extends SamplesTable {
       }
     );
 
+    this._onRefreshExpectedEffort.subscribe(() => this.refreshExpectedEffort(this._strategyLabel, this._defaultSampleDate));
   }
 
   protected async onNewEntity(data: Sample): Promise<void> {
@@ -99,6 +99,14 @@ export class SamplingSamplesTable extends SamplesTable {
     if (groupAge && rubinCode && isNotNil(this.defaultLocation) && isNotNil(this.defaultSampleDate) && isNotNil(this.defaultTaxonName)) {
       data.label = `${this.defaultLocation.label}${this.defaultSampleDate.format("DDMMYY")}${rubinCode}${data.rankOrder.toString().padStart(4, "0")}`;
       console.debug("[sample-table] Generated label: ", data.label);
+    }
+  }
+
+  @Input()
+  set defaultSampleDate(value: Moment) {
+    if (this._defaultSampleDate !== value && isNotNil(value)) {
+      this._defaultSampleDate = value;
+      this._onRefreshExpectedEffort.emit();
     }
   }
 

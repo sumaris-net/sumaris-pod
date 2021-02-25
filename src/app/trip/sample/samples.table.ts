@@ -52,15 +52,17 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
+  protected _defaultSampleDate: Moment;
+
+  get memoryDataService(): InMemoryEntitiesService<Sample, SampleFilter> {
+    return this.dataService as InMemoryEntitiesService<Sample, SampleFilter>;
+  }
 
   @Input() useSticky = false;
-
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
   @Input() showDateTimeColumn = true;
   @Input() showFabButton = false;
-
-  @Input() defaultSampleDate: Moment;
   @Input() defaultTaxonGroup: ReferentialRef;
   @Input() defaultTaxonName: ReferentialRef;
   @Input() modalOptions: Partial<ISampleModalOptions>;
@@ -92,8 +94,15 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     return this.getShowColumn('taxonName');
   }
 
-  get memoryDataService(): InMemoryEntitiesService<Sample, SampleFilter> {
-    return this.dataService as InMemoryEntitiesService<Sample, SampleFilter>;
+  @Input()
+  set defaultSampleDate(value: Moment) {
+    if (this._defaultSampleDate !== value && isNotNil(value)) {
+      this._defaultSampleDate = value;
+    }
+  }
+
+  get defaultSampleDate(): Moment {
+    return this._defaultSampleDate;
   }
 
   @Output() onPrepareRowForm = new EventEmitter<{form: FormGroup, pmfms: IPmfm[]}>();
@@ -218,8 +227,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     }
 
     // Default date
-    if (isNotNil(this.defaultSampleDate)) {
-      data.sampleDate = this.defaultSampleDate;
+    if (isNotNil(this._defaultSampleDate)) {
+      data.sampleDate = this._defaultSampleDate;
     } else if (this.settings.isOnFieldMode(this.usageMode)) {
       data.sampleDate = moment();
     }
