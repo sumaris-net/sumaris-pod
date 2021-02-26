@@ -154,13 +154,7 @@
         <app-pmfm-field
           [readonly]="!row.editing"
           [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.id]"
-          [compact]="false" floatLabel="never">
-
-        </app-pmfm-field>
-        <mat-error *ngIf="(($pmfmGroups | async | mapGet : 'WEIGHT' | arrayIncludes: pmfm.id) || ($pmfmGroups | async | mapGet : 'LENGTH' | arrayIncludes: pmfm.id)) && row.validator.hasError('missingWeightOrSize')"
-          class="mat-cell-error" translate>
-          TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_LENGTH
-        </mat-error>
+          [compact]="false" floatLabel="never"></app-pmfm-field>
       </mat-cell>
     </ng-container>
   </ng-container>
