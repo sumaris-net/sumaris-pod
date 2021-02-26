@@ -167,6 +167,8 @@
         "TAXONOMIC_LEVEL_GENUS_ID": "Referential > Taxonomic level > Genus",
         "TAXONOMIC_LEVEL_SPECIES_ID": "Referential > Taxonomic level > Species",
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Referential > Taxonomic level > Subspecies",
+        "PMFM_MORSE_CODE_ID": "Référentiel > PSFM > Morse code",
+        "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Strategy label",
         "PMFM_AGE_ID": "Referential > PMFM > Age",
         "PMFM_SEX_ID": "Referential > PMFM > Sex",
         "STRATEGY_PARAMETER_AGE_LABEL": "Strategy > Parameter > Age label",
