@@ -143,8 +143,7 @@
                        class="mat-column-pmfm"
                        [class.even]="pmfm.rankOrder % 2 === 0"
                        [class.mat-cell-date-time]="pmfm.isDate">
-        <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: true}">
-        </ion-label>
+        <ion-label>{{pmfm | pmfmNameTranslateOrDefault: {html: true, withDetails: true} |async}}</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row"
                 class="mat-column-pmfm"
