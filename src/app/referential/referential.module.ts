@@ -23,7 +23,7 @@ import {PmfmQvFormField} from "./pmfm/pmfm-qv.form-field.component";
 import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
 import {ReferentialToStringPipe} from "./services/pipes/referential-to-string.pipe";
 import {TranslateModule} from "@ngx-translate/core";
-import {IsComputedPmfmPipe, IsDatePmfmPipe, PmfmNamePipe, PmfmValueToStringPipe} from "./pipes/pmfms.pipe";
+import {IsComputedPmfmPipe, IsDatePmfmPipe, PmfmNamePipe, PmfmNameTranslateOrDefaultPipe, PmfmValueToStringPipe} from "./pipes/pmfms.pipe";
 import {StrategyPage} from "./strategy/strategy.page";
 
 import {TextMaskModule} from "angular2-text-mask";
@@ -47,6 +47,7 @@ import {SelectPmfmModal} from "./pmfm/select-pmfm.modal";
     // Pipes
     ReferentialToStringPipe,
     PmfmNamePipe,
+    PmfmNameTranslateOrDefaultPipe,
     PmfmValueToStringPipe,
     IsDatePmfmPipe,
     IsComputedPmfmPipe,
@@ -87,6 +88,7 @@ import {SelectPmfmModal} from "./pmfm/select-pmfm.modal";
     // Pipes
     ReferentialToStringPipe,
     PmfmNamePipe,
+    PmfmNameTranslateOrDefaultPipe,
     PmfmValueToStringPipe,
     IsDatePmfmPipe,
     IsComputedPmfmPipe,

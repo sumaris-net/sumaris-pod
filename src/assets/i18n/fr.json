@@ -1105,6 +1105,8 @@
       "UNIT": "Unité",
       "BTN_ADD_PARAMETER": "Créer un nouveau paramètre",
       "BTN_OPEN_PARAMETER": "Ouvrir le paramètre",
+      "STRATEGY_LABEL" : "Ligne de plan",
+      "MORSE_CODE" : "Code Morse",
       "NEW": {
         "TITLE": "Nouveau PSFM"
       },

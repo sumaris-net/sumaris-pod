@@ -1027,6 +1027,8 @@
       "UNIT": "Unit",
       "BTN_ADD_PARAMETER": "Create a new parameter",
       "BTN_OPEN_PARAMETER": "Open the parameter",
+      "STRATEGY_LABEL" : "Strategy label",
+      "MORSE_CODE" : "Morse code",
       "NEW": {
         "TITLE": "New PMFM"
       },
