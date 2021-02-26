@@ -23,8 +23,12 @@ package net.sumaris.core.service.administration.programStrategy;
  */
 
 
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -39,16 +43,40 @@ import java.util.List;
 public interface StrategyService {
 
 	@Transactional(readOnly = true)
+	//TODO BLA: à supprimer (fetch nullable)
+	StrategyVO get(int id);
+
+	@Transactional(readOnly = true)
+	StrategyVO get(int id, StrategyFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	//TODO BLA: à supprimer (fetch nullable)
+	StrategyVO getByLabel(String label);
+
+	@Transactional(readOnly = true)
+	StrategyVO getByLabel(String label, StrategyFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	//TODO BLA: à supprimer
+	List<StrategyVO> getAll();
+
+	@Transactional(readOnly = true)
+	List<StrategyVO> findByFilter(StrategyFilterVO filter, Pageable pageable, StrategyFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
 	List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> findPmfmStrategiesByProgram(int programId, StrategyFetchOptions fetchOptions);
+	List<PmfmStrategyVO> findPmfmsByProgram(int programId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> findPmfmStrategiesByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions);
+	List<PmfmStrategyVO> findPmfmsByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategy, StrategyFetchOptions fetchOptions);
+	List<PmfmStrategyVO> findPmfmsByStrategy(int strategyId, StrategyFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	List<DenormalizedPmfmStrategyVO> findDenormalizedPmfmsByStrategy(int strategyId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<ReferentialVO> getGears(int strategyId);
@@ -59,8 +87,23 @@ public interface StrategyService {
 	@Transactional(readOnly = true)
 	List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId);
 
+	@Transactional(readOnly = true)
+	List<AppliedStrategyVO> getAppliedStrategies(int strategyId);
+
+	@Transactional(readOnly = true)
+	List<StrategyDepartmentVO> getStrategyDepartments(int strategyId);
+
+	@Transactional(readOnly = true)
+	String computeNextLabelByProgramId(int programId, String labelPrefix, int nbDigit);
+
 	StrategyVO save(StrategyVO source);
 
 	List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);
+
+	void delete(int id);
+
+	boolean hasUserPrivilege(int strategyId, int personId, ProgramPrivilegeEnum privilege);
+
+	boolean hasDepartmentPrivilege(int strategyId, int departmentId, ProgramPrivilegeEnum privilege);
 
 }

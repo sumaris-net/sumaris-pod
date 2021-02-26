@@ -23,6 +23,7 @@ package net.sumaris.core.model.file;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.administration.user.Department;
@@ -37,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "file")
@@ -45,9 +47,11 @@ public class File implements Serializable, IUpdateDateEntityBean<Integer, Date> 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_SEQ")
     @SequenceGenerator(name = "FILE_SEQ", sequenceName="FILE_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @Column(nullable = false)
+    @ToString.Include
     private String name;
 
     @Column(nullable = false, name = "content_type")

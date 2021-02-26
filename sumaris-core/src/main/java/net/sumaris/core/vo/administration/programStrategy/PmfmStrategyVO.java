@@ -54,21 +54,19 @@ public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IVa
     private List<Integer> taxonGroupIds;
     private List<Integer> referenceTaxonIds;
 
+    // Link to PMFM, Parameter, Matrix, Fraction, Method
     private Integer pmfmId;
     private PmfmVO pmfm;
+    private Integer parameterId;
+    private ReferentialVO parameter;
+    private Integer matrixId;
+    private ReferentialVO matrix;
+    private Integer fractionId;
+    private ReferentialVO fraction;
+    private Integer methodId;
+    private ReferentialVO method;
 
     // Link to parent
     private Integer strategyId;
-
-    // **** Copy from PMFM or parameter
-    private String unitLabel;
-    private String type;
-    private String label;
-    private String name;
-    private Integer methodId;
-    private Integer maximumNumberDecimals;
-    private Integer signifFiguresNumber;
-    // ****
-
-    List<ReferentialVO> qualitativeValues;
 }
+

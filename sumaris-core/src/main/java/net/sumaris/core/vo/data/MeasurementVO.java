@@ -32,8 +32,6 @@ import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.Date;
 
@@ -64,9 +62,5 @@ public class MeasurementVO implements IUpdateDateEntityBean<Integer, Date>,
     private PersonVO recorderPerson;
 
     private String entityName;
-
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
-    }
 
 }

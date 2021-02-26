@@ -21,11 +21,10 @@
  */
 package net.sumaris.rdf.cache;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sf.ehcache.CacheManager;
 import net.sumaris.core.dao.cache.CacheConfiguration;
 import net.sumaris.core.dao.technical.ehcache.Caches;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.ehcache.EhCacheFactoryBean;
@@ -34,12 +33,8 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnBean({CacheConfiguration.class})
+@Slf4j
 public class RdfCacheConfiguration {
-    /**
-     * Logger.
-     */
-    protected static final Logger log =
-            LoggerFactory.getLogger(RdfCacheConfiguration.class);
 
     protected CacheManager cacheManager;
 

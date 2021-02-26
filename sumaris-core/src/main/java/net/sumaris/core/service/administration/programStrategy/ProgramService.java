@@ -24,6 +24,8 @@ package net.sumaris.core.service.administration.programStrategy;
 
 
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
+import net.sumaris.core.vo.administration.programStrategy.ProgramSaveOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +53,11 @@ public interface ProgramService {
 	@Transactional(readOnly = true)
 	List<ProgramVO> findByFilter(ProgramFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
-	ProgramVO save(ProgramVO program);
+	ProgramVO save(ProgramVO program, ProgramSaveOptions options);
 
 	void delete(int id);
+
+	boolean hasUserPrivilege(int programId, int personId, ProgramPrivilegeEnum privilege);
+
+	boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege);
 }

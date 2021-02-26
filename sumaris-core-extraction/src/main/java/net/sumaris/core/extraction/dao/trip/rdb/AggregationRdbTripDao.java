@@ -25,6 +25,7 @@ package net.sumaris.core.extraction.dao.trip.rdb;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
+import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 
 import java.util.Map;
@@ -43,7 +44,6 @@ public interface AggregationRdbTripDao<C extends AggregationRdbTripContextVO,
 
     MinMaxVO getAggMinMaxByTech(String tableName, F filter, S strata);
 
-    <R extends C> void clean(R context);
+    void clean(C context);
 
-    <R extends C> void dropHiddenColumns(R context);
 }

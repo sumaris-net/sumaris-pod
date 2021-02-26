@@ -22,6 +22,7 @@
 
 package net.sumaris.rdf.model.adapter.schema;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -29,8 +30,6 @@ import net.sumaris.rdf.config.RdfConfiguration;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -41,10 +40,8 @@ import org.springframework.stereotype.Component;
         prefix = "rdf.equivalences",
         name = {"foaf.enabled"},
         matchIfMissing = true)
+@Slf4j
 public class FoafSchemaEquivalences extends AbstractSchemaVisitor {
-
-    private static final Logger log = LoggerFactory.getLogger(FoafSchemaEquivalences.class);
-
 
     @Override
     public void visitModel(Model model, String ns, String schemaUri) {

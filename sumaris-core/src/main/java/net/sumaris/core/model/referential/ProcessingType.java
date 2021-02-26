@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 
 import javax.persistence.*;
@@ -37,6 +38,7 @@ import java.util.Date;
  * - etc.
  */
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "processing_type")
@@ -45,6 +47,7 @@ public class ProcessingType implements IItemReferentialEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROCESSING_TYPE_SEQ")
     @SequenceGenerator(name = "PROCESSING_TYPE_SEQ", sequenceName="PROCESSING_TYPE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -60,6 +63,7 @@ public class ProcessingType implements IItemReferentialEntity {
     private Date updateDate;
 
     @Column(nullable = false, length = LENGTH_LABEL)
+    @ToString.Include
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

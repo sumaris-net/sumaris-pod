@@ -23,9 +23,9 @@ package net.sumaris.core.extraction.dao.trip.cost;
  */
 
 import net.sumaris.core.extraction.dao.trip.AggregationTripDao;
-import net.sumaris.core.extraction.vo.AggregationStrataVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.AggregationTripContextVO;
+import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 
 /**

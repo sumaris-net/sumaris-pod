@@ -22,15 +22,19 @@ package net.sumaris.core.dao.referential.pmfm;
  * #L%
  */
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
+import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
@@ -40,10 +44,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author peck7 on 19/08/2020.
@@ -63,6 +69,48 @@ public class PmfmRepositoryImpl
     @Cacheable(cacheNames = CacheNames.PMFM_BY_ID, key = "#id", unless = "#result == null")
     public PmfmVO get(int id) {
         return super.get(id);
+    }
+
+    @Override
+    @Cacheable(cacheNames = CacheNames.PMFM_COMPLETE_NAME_BY_ID, key = "#id", unless = "#result == null")
+    public String computeCompleteName(int id) {
+        Pmfm pmfm = getOne(id);
+        String parameterName = pmfm.getParameter().getName();
+        if (pmfm.getUnit() != null && pmfm.getUnit().getId() != UnitEnum.NONE.getId()) {
+            parameterName += String.format(" (%s)", pmfm.getUnit().getLabel());
+        }
+
+        String fractionName = pmfm.getFraction() != null &&
+            (pmfm.getFraction().getId() != FractionEnum.UNKNOWN.getId() || pmfm.getFraction().getId() != FractionEnum.ALL.getId()) /* Skip All and unknown fraction */
+                ? pmfm.getFraction().getName()
+                : null;
+        String methodName = pmfm.getMethod() != null && pmfm.getMethod().getId() != MethodEnum.UNKNOWN.getId() /* Skip unknown method */ ?
+                pmfm.getMethod().getName() : null;
+
+        return Joiner.on(" - ").skipNulls().join(new String[]{
+                parameterName,
+                pmfm.getMatrix() != null ? pmfm.getMatrix().getName() : null,
+                fractionName,
+                methodName
+        });
+    }
+
+    @Override
+    public List<Pmfm> findByPmfmParts(Integer parameterId, Integer matrixId, Integer fractionId, Integer methodId) {
+        Preconditions.checkArgument(parameterId != null || matrixId != null
+                || fractionId != null || methodId != null, "At least on argument (parameterId, matrixId, fractionId, methodId) must be not null");
+        return findAll(hasPmfmPart(parameterId, matrixId, fractionId, methodId)
+                // ONlY enabled PMFM
+                .and(inStatusIds(StatusEnum.ENABLE)));
+    }
+
+    @Override
+    public Stream<Pmfm> streamByPmfmParts(Integer parameterId, Integer matrixId, Integer fractionId, Integer methodId) {
+        Preconditions.checkArgument(parameterId != null || matrixId != null
+                || fractionId != null || methodId != null, "At least on argument (parameterId, matrixId, fractionId, methodId) must be not null");
+        return streamAll(hasPmfmPart(parameterId, matrixId, fractionId, methodId)
+                // ONlY enabled PMFM
+                .and(inStatusIds(StatusEnum.ENABLE)));
     }
 
     @Override
@@ -137,10 +185,11 @@ public class PmfmRepositoryImpl
     @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
-            @CacheEvict(cacheNames = CacheNames.PMFM_HAS_PREFIX, allEntries = true),
-            @CacheEvict(cacheNames = CacheNames.PMFM_HAS_SUFFIX, allEntries = true),
-            @CacheEvict(cacheNames = CacheNames.PMFM_HAS_MATRIX, allEntries = true)
+                @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
+                @CacheEvict(cacheNames = CacheNames.PMFM_COMPLETE_NAME_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
+                @CacheEvict(cacheNames = CacheNames.PMFM_HAS_PREFIX, allEntries = true),
+                @CacheEvict(cacheNames = CacheNames.PMFM_HAS_SUFFIX, allEntries = true),
+                @CacheEvict(cacheNames = CacheNames.PMFM_HAS_MATRIX, allEntries = true)
         }
     )
     public PmfmVO save(PmfmVO vo) {
@@ -180,6 +229,12 @@ public class PmfmRepositoryImpl
         }
 
         target.setQualitativeValues(entities);
+    }
+
+    @Override
+    protected Specification<Pmfm> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
+
+        return super.toSpecification(filter, fetchOptions);
     }
 
     @Override

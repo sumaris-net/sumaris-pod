@@ -23,13 +23,25 @@ package net.sumaris.core.service.administration;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.service.administration.programStrategy.StrategyService;
+import net.sumaris.core.service.referential.ReferentialService;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.junit.*;
+import org.assertj.core.util.Lists;
+import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ProgramServiceWriteTest extends AbstractServiceTest{
@@ -40,6 +52,11 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
     @Autowired
     private ProgramService service;
 
+    @Autowired
+    private StrategyService strategyService;
+
+    @Autowired
+    private ReferentialService referentialService;
 
     @Test
     public void saveExisting() {
@@ -56,7 +73,7 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
         // Add a property
         program.getProperties().put("PROPERTY_TEST", "PROPERTY_VALUE");
 
-        service.save(program);
+        service.save(program, null);
 
         // reload by id
         program = service.get(11);
@@ -70,9 +87,57 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
     }
 
     @Test
-    @Ignore("TODO: save/update program with strategies and pmfm strategies")
     public void saveWithStrategies() {
-        // TODO
+        ProgramVO program = service.getByLabel("PARAM-BIO");
+        Assert.assertNotNull(program);
+        Assert.assertNotNull(program.getId());
+        Assert.assertEquals(40, program.getId().intValue());
+
+        // Modify strategies
+        //strategies = program.getStrategies();
+        List<StrategyVO> strategies = strategyService.findByProgram(program.getId(),
+                StrategyFetchOptions.builder().withPmfms(true).build());
+        List<AppliedStrategyVO> appliedStrategies = Lists.newArrayList();
+        List<AppliedPeriodVO> appliedPeriods = Lists.newArrayList();
+        Assert.assertNotNull(strategies);
+        Assert.assertTrue(strategies.size() > 0);
+        for (StrategyVO strategy : strategies) {
+            if (strategy.getId() == 30) {
+                appliedStrategies = strategy.getAppliedStrategies();
+                Assert.assertNotNull(appliedStrategies);
+                Assert.assertTrue(appliedStrategies.size() > 0);
+                strategy.setAnalyticReference("Reference changed");
+            }
+        }
+        for (AppliedStrategyVO appliedStrategy : appliedStrategies) {
+            if (appliedStrategy.getId() == 10) {
+                appliedPeriods = appliedStrategy.getAppliedPeriods();
+                Assert.assertNotNull(appliedPeriods);
+                Assert.assertEquals(3, appliedPeriods.size());
+
+                LocationVO location = new LocationVO();
+                Beans.copyProperties(referentialService.get(Location.class, 23), location);
+                appliedStrategy.setLocation(location);
+            }
+        }
+        for (AppliedPeriodVO appliedPeriod : appliedPeriods) {
+            Assert.assertNotNull(appliedPeriod.getStartDate());
+            Assert.assertNotNull(appliedPeriod.getEndDate());
+            appliedPeriod.setAcquisitionNumber(1);
+        }
+        program.setStrategies(strategies);
+
+        service.save(program, null);
+
+        // reload by id
+        ProgramVO actualProgram = service.get(40);
+        Assert.assertNotNull(actualProgram);
+        Assert.assertNotNull(actualProgram.getId());
+
+        //strategies = program.getStrategies();
+        List<StrategyVO> actualStrategies = strategyService.findByProgram(actualProgram.getId(),
+                StrategyFetchOptions.builder().withPmfms(true).build());
+        Assert.assertEquals(strategies, actualStrategies);
     }
 
     @Test
@@ -81,7 +146,7 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
         ProgramVO program = new ProgramVO();
         program.setLabel("PROG-TEST");
         program.setName("label test");
-        program.setStatusId(config.getStatusIdTemporary());
+        program.setStatusId(StatusEnum.TEMPORARY.getId());
         ReferentialVO gearClassification = new ReferentialVO();
         gearClassification.setId(1);
         program.setGearClassification(gearClassification);
@@ -89,7 +154,7 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
         taxonGroupType.setId(2);
         program.setTaxonGroupType(taxonGroupType);
 
-        service.save(program);
+        service.save(program, null);
     }
 
     @Test

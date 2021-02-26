@@ -1,10 +1,10 @@
-package net.sumaris.core.extraction.vo;
+package net.sumaris.core.model.administration.programStrategy;
 
 /*-
  * #%L
- * SUMARiS:: Core Extraction
+ * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 - 2019 SUMARiS Consortium
+ * Copyright (C) 2018 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,20 +22,26 @@ package net.sumaris.core.extraction.vo;
  * #L%
  */
 
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductStrataVO;
+import net.sumaris.core.model.referential.location.Location;
 
-/**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
- */
+import javax.persistence.*;
+import java.io.Serializable;
+
 @Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @FieldNameConstants
-@EqualsAndHashCode(callSuper = true)
-public class AggregationStrataVO extends ExtractionProductStrataVO {
+@Entity
+@Table(name = "program2location")
+public class Program2Location implements Serializable {
 
+    @Id
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class, cascade = CascadeType.DETACH)
+    @JoinColumn(name = "program_fk", nullable = false)
+    private Program program;
+
+    @Id
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Location.class, cascade = CascadeType.DETACH)
+    @JoinColumn(name = "location_fk", nullable = false)
+    private Location location;
 }

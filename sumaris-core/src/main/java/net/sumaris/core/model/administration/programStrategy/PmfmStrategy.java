@@ -24,11 +24,13 @@ package net.sumaris.core.model.administration.programStrategy;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.model.referential.pmfm.*;
+import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
@@ -36,6 +38,7 @@ import javax.persistence.*;
 import java.util.Set;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "pmfm_strategy")
@@ -44,6 +47,7 @@ public class PmfmStrategy implements IEntity<Integer> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_STRATEGY_SEQ")
     @SequenceGenerator(name = "PMFM_STRATEGY_SEQ", sequenceName="PMFM_STRATEGY_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @Column(name = "acquisition_number", nullable = false)
@@ -62,18 +66,37 @@ public class PmfmStrategy implements IEntity<Integer> {
     private Double defaultValue;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pmfm_fk", nullable = false)
+    @JoinColumn(name = "pmfm_fk", nullable=false)
+    @ToString.Include
     private Pmfm pmfm;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parameter_fk")
+    private Parameter parameter;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "matrix_fk")
+    private Matrix matrix;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fraction_fk")
+    private Fraction fraction;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "method_fk")
+    private Method method;
 
     @Column(name = "rank_order", nullable = false)
     private Integer rankOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "strategy_fk", nullable = false)
+    @ToString.Include
     private Strategy strategy;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "acquisition_level_fk", nullable = false)
+    @ToString.Include
     private AcquisitionLevel acquisitionLevel;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
@@ -96,4 +119,5 @@ public class PmfmStrategy implements IEntity<Integer> {
             inverseJoinColumns = {
                     @JoinColumn(name = "reference_taxon_fk", nullable = false, updatable = false) })
     private Set<ReferenceTaxon> referenceTaxons = Sets.newHashSet();
+
 }

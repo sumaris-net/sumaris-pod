@@ -23,9 +23,9 @@ package net.sumaris.core.model.social;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.ISignedEntityBean;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.data.IDataEntity;
 
 import javax.persistence.*;
@@ -33,6 +33,7 @@ import java.util.Date;
 
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "user_event")
@@ -53,12 +54,14 @@ public class UserEvent implements ISignedEntityBean<Integer, Date> {
     private Date updateDate;
 
     @Column(name = "issuer", nullable = false, length = CRYPTO_PUBKEY_LENGTH)
+    @ToString.Include
     private String issuer;
 
     @Column(name = "recipient", nullable = false, length = CRYPTO_PUBKEY_LENGTH)
     private String recipient;
 
     @Column(name = "event_type", nullable = false, length = 30)
+    @ToString.Include(rank = 1)
     private String eventType;
 
     @Lob
@@ -66,6 +69,7 @@ public class UserEvent implements ISignedEntityBean<Integer, Date> {
     private String content;
 
     @Column(name = "hash", length = CRYPTO_HASH_LENGTH)
+    @ToString.Include
     private String hash;
 
     @Column(name = "signature", length = CRYPTO_SIGNATURE_LENGTH)
@@ -74,11 +78,4 @@ public class UserEvent implements ISignedEntityBean<Integer, Date> {
     @Column(name = "read_signature", length = CRYPTO_SIGNATURE_LENGTH)
     private String readSignature;
 
-    public String toString() {
-        return new StringBuilder().append(super.toString())
-                .append(",eventType=").append(this.eventType)
-                .append(",issuer=").append(this.issuer)
-                .append(",hash=").append(this.hash)
-                .toString();
-    }
 }

@@ -35,6 +35,10 @@ import lombok.experimental.FieldNameConstants;
 @AllArgsConstructor
 public class ReferentialFilterVO implements IReferentialFilter {
 
+    public static ReferentialFilterVO nullToEmpty(ReferentialFilterVO filter) {
+        return filter == null ? new ReferentialFilterVO() : filter;
+    }
+
     private Integer id;
     private String label;
     private String name;
@@ -43,9 +47,13 @@ public class ReferentialFilterVO implements IReferentialFilter {
 
     private Integer levelId;
     private Integer[] levelIds;
+    private String levelLabel;
+    private String[] levelLabels;
 
     private String searchJoin;
     private String searchText;
     private String searchAttribute;
+
+    private Integer[] excludedIds;
 
 }

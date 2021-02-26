@@ -23,6 +23,7 @@
 package net.sumaris.server;
 
 import it.ozimov.springboot.mail.configuration.EnableEmailTools;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.ServiceLocator;
@@ -32,8 +33,6 @@ import net.sumaris.server.config.SumarisServerConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -91,12 +90,9 @@ import java.io.IOException;
 @EnableCaching
 @EnableJms
 @EnableAsync
+@Slf4j
 public class Application extends SpringBootServletInitializer {
-    /**
-     * Logger.
-     */
-    protected static final Logger log =
-            LoggerFactory.getLogger(Application.class);
+
     public static final String CONFIG_FILE_NAME = "application.properties";
     private static final String CONFIG_FILE_ENV_PROPERTY = "spring.config.location";
     private static final String CONFIG_FILE_JNDI_NAME = "java:comp/env/" + CONFIG_FILE_NAME;
@@ -176,7 +172,7 @@ public class Application extends SpringBootServletInitializer {
                 // Enable Global CORS support for the application
                 //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
                 registry.addMapping("/**")
-                        .allowedOrigins("*")
+                        .allowedOrigins("*") // TODO Spring update will need to change this to  allowedOriginPatterns("*")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
                         .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
                         .allowCredentials(true);

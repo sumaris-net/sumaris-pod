@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.StatusRepository;
 import net.sumaris.core.dao.referential.ValidityStatusRepository;
@@ -41,8 +42,6 @@ import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.StringUtils;
 import org.locationtech.jts.geom.Geometry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -53,9 +52,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service("locationService")
+@Slf4j
 public class LocationServiceImpl implements LocationService{
-
-    private static final Logger log = LoggerFactory.getLogger(LocationServiceImpl.class);
 
     @Autowired
     protected LocationRepository locationRepository;

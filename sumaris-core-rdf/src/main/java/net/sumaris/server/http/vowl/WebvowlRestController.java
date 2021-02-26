@@ -23,6 +23,7 @@
 package net.sumaris.server.http.vowl;
 
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
@@ -34,8 +35,6 @@ import net.sumaris.rdf.util.RdfFormat;
 import net.sumaris.rdf.util.RdfMediaType;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jena.rdf.model.Model;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,6 +54,7 @@ import java.util.Optional;
 
 @RestController
 @ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
+@Slf4j
 public class WebvowlRestController {
 
     public static final String BASE_PATH = "/webvowl";
@@ -62,9 +62,6 @@ public class WebvowlRestController {
     public static final String CONVERT_PATH = BASE_PATH + "/convert";
     public static final String LOADING_STATUS_PATH = BASE_PATH + "/loadingStatus";
     public static final String CONVERSION_DONE_PATH = BASE_PATH + "/conversionDone";
-
-
-    private static final Logger log = LoggerFactory.getLogger(WebvowlRestController.class);
 
     @Resource
     private RdfModelService modelService;

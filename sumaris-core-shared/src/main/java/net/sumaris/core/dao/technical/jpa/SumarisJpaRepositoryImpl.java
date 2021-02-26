@@ -24,6 +24,7 @@ package net.sumaris.core.dao.technical.jpa;
 
 import com.google.common.base.Preconditions;
 import com.querydsl.jpa.impl.JPAQuery;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -39,14 +40,13 @@ import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
 import javax.sql.DataSource;
@@ -54,16 +54,16 @@ import java.io.Serializable;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @NoRepositoryBean
+@Slf4j
 public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends Serializable, V extends IValueObject<ID>>
     extends SimpleJpaRepository<E, ID>
     implements SumarisJpaRepository<E, ID, V> {
-
-    private static final Logger log = LoggerFactory.getLogger(SumarisJpaRepositoryImpl.class);
 
     private boolean debugEntityLoad = false;
     private boolean checkUpdateDate = true;
@@ -349,6 +349,14 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         C entity = this.entityManager.find(clazz, id); // Can be null
         if (entity == null) throw new DataNotFoundException(I18n.t("sumaris.persistence.error.entityNotFound", clazz.getSimpleName(), id));
         return entity;
+    }
+
+    protected Stream<E> streamAll(@Nullable Specification<E> spec, Sort sort) {
+        return this.getQuery(spec, sort).getResultStream();
+    }
+
+    protected Stream<E> streamAll(@Nullable Specification<E> spec) {
+        return this.getQuery(spec, Sort.unsorted()).getResultStream();
     }
 
     protected void lockForUpdate(IEntity<?> entity) {

@@ -78,6 +78,7 @@ import org.junit.runners.Suite;
     PmfmServiceWriteTest.class,
     ReferentialServiceReadTest.class,
     ReferentialServiceWriteTest.class,
+    ReferentialExternalServiceReadTest.class,
     TaxonGroupServiceWriteTest.class,
     // Service: administration
     DepartmentServiceTest.class,
@@ -85,6 +86,7 @@ import org.junit.runners.Suite;
     ProgramServiceReadTest.class,
     ProgramServiceWriteTest.class,
     StrategyServiceReadTest.class,
+    StrategyServiceWriteTest.class,
     // Service: data
     ObservedLocationServiceReadTest.class,
     ObservedLocationServiceWriteTest.class,

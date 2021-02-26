@@ -113,7 +113,7 @@ public class ExtractionProductRepositoryImpl
         // Stratum
         if (fetchOptions == null || fetchOptions.isWithStratum()) {
             if (CollectionUtils.isNotEmpty(source.getStratum())) {
-                List<ExtractionProductStrataVO> stratum = source.getStratum().stream()
+                List<AggregationStrataVO> stratum = source.getStratum().stream()
                     .map(this::toProductStrataVO)
                     .collect(Collectors.toList());
                 target.setStratum(stratum);
@@ -155,8 +155,8 @@ public class ExtractionProductRepositoryImpl
         return target;
     }
 
-    protected ExtractionProductStrataVO toProductStrataVO(ExtractionProductStrata source) {
-        ExtractionProductStrataVO target = new ExtractionProductStrataVO();
+    protected AggregationStrataVO toProductStrataVO(ExtractionProductStrata source) {
+        AggregationStrataVO target = new AggregationStrataVO();
         Beans.copyProperties(source, target);
 
         // parent
@@ -437,7 +437,7 @@ public class ExtractionProductRepositoryImpl
     }
 
     private void saveProductStratum(ExtractionProductVO vo, ExtractionProduct entity) {
-        List<ExtractionProductStrataVO> sources = vo.getStratum();
+        List<AggregationStrataVO> sources = vo.getStratum();
         Date updateDate = entity.getUpdateDate();
 
         final EntityManager em = getEntityManager();

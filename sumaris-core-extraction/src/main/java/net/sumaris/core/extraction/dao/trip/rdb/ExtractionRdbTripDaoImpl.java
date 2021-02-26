@@ -23,19 +23,15 @@ package net.sumaris.core.extraction.dao.trip.rdb;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
-import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
-import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
-import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
-import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
-import net.sumaris.core.extraction.format.specification.RdbSpecification;
+import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionPmfmInfoVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
@@ -54,8 +50,6 @@ import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
@@ -76,11 +70,10 @@ import static org.nuiton.i18n.I18n.t;
  */
 @Repository("extractionRdbTripDao")
 @Lazy
+@Slf4j
 public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
         extends ExtractionBaseDaoImpl
         implements ExtractionRdbTripDao<C, F> {
-
-    private static final Logger log = LoggerFactory.getLogger(ExtractionRdbTripDaoImpl.class);
 
     private static final String TR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RdbSpecification.TR_SHEET_NAME + "_%s";
     private static final String HH_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RdbSpecification.HH_SHEET_NAME + "_%s";
@@ -100,12 +93,6 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     @Autowired
     protected ResourceLoader resourceLoader;
 
-    @Autowired
-    protected SumarisDatabaseMetadata databaseMetadata;
-
-    @Autowired
-    protected ExtractionTableDao extractionTableDao;
-
     @Override
     public <R extends C> R execute(F filter) {
         ExtractionTripFilterVO tripFilter = toTripFilterVO(filter);
@@ -116,6 +103,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         context.setFilter(filter);
         context.setId(System.currentTimeMillis());
         context.setFormat(LiveFormatEnum.RDB);
+        context.setTableNamePrefix(TABLE_NAME_PREFIX);
 
         if (log.isInfoEnabled()) {
             StringBuilder filterInfo = new StringBuilder();
@@ -154,9 +142,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                     .map(programService::getByLabel)
                     .map(ProgramVO::getId)
                     .forEach(programId -> {
-                        Collection<PmfmStrategyVO> pmfms = strategyService.findPmfmStrategiesByProgram(
+                        Collection<PmfmStrategyVO> pmfms = strategyService.findPmfmsByProgram(
                             programId,
-                            StrategyFetchOptions.builder().withPmfmStrategyInheritance(true).build()
+                            StrategyFetchOptions.builder().withDenormalizedPmfms(true).build()
                         );
                         pmfmStrategiesByProgramId.putAll(programId, pmfms);
                     });
@@ -191,26 +179,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
     @Override
     public void clean(C context) {
-        Set<String> tableNames = ImmutableSet.<String>builder()
-                .addAll(context.getTableNames())
-                .addAll(context.getRawTableNames())
-                .build();
-
-        if (CollectionUtils.isEmpty(tableNames)) return;
-
-        tableNames.stream()
-            // Keep only tables with EXT_ prefix
-            .filter(tableName -> tableName != null && tableName.startsWith(TABLE_NAME_PREFIX))
-            .forEach(tableName -> {
-                try {
-                    extractionTableDao.dropTable(tableName);
-                    databaseMetadata.clearCache(tableName);
-                }
-                catch (SumarisTechnicalException e) {
-                    log.error(e.getMessage());
-                    // Continue
-                }
-            });
+        super.clean(context);
     }
 
     /* -- protected methods -- */
@@ -578,19 +547,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         }
     }
 
-    protected int cleanRow(String tableName, ExtractionFilterVO filter, String sheetName) {
-        Preconditions.checkNotNull(tableName);
-        if (filter == null) return 0;
 
-        SumarisTableMetadata table = databaseMetadata.getTable(tableName.toLowerCase());
-        Preconditions.checkNotNull(table);
-
-        String whereClauseContent = SumarisTableMetadatas.getSqlWhereClauseContent(table, filter, sheetName, table.getAlias());
-        if (StringUtils.isBlank(whereClauseContent)) return 0;
-
-        String deleteQuery = table.getDeleteQuery(String.format("NOT(%s)", whereClauseContent));
-        return queryUpdate(deleteQuery);
-    }
 
 
 }

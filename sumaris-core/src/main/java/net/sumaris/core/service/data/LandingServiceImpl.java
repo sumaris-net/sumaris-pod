@@ -24,7 +24,7 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import net.sumaris.core.config.SumarisConfiguration;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
@@ -36,6 +36,7 @@ import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.util.StringUtils;
@@ -44,8 +45,6 @@ import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -56,12 +55,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service("landingService")
+@Slf4j
 public class LandingServiceImpl implements LandingService {
-
-    private static final Logger log = LoggerFactory.getLogger(LandingServiceImpl.class);
-
-    @Autowired
-    protected SumarisConfiguration config;
 
     @Autowired
     protected LandingRepository landingRepository;
@@ -314,7 +309,7 @@ public class LandingServiceImpl implements LandingService {
         // Fill matrix
         if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
             ReferentialVO matrix = new ReferentialVO();
-            matrix.setId(config.getMatrixIdIndividual());
+            matrix.setId(MatrixEnum.INDIVIDUAL.getId());
             sample.setMatrix(matrix);
         }
 

@@ -40,6 +40,8 @@ public class ProgramFilterVO implements IReferentialFilter {
 
     private Integer levelId;
     private Integer[] levelIds;
+    private String levelLabel;
+    private String[] levelLabels;
 
     private String searchJoin;
     private String searchText;
@@ -47,4 +49,5 @@ public class ProgramFilterVO implements IReferentialFilter {
 
     private String withProperty;
 
+    private Integer[] excludedIds;
 }

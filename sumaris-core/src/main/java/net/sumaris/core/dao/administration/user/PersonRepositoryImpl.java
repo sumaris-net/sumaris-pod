@@ -23,13 +23,11 @@ package net.sumaris.core.dao.administration.user;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.cache.CacheNames;
-import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
-import net.sumaris.core.dao.technical.SoftwareDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
@@ -42,18 +40,15 @@ import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfile;
+import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.technical.SoftwareVO;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -68,37 +63,21 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
  * @author peck7 on 20/08/2020.
  */
+@Slf4j
 public class PersonRepositoryImpl
     extends SumarisJpaRepositoryImpl<Person, Integer, PersonVO>
     implements PersonSpecifications {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log =
-        LoggerFactory.getLogger(PersonRepositoryImpl.class);
 
     @Autowired
     protected DepartmentRepository departmentRepository;
 
     @Autowired
-    private ReferentialDao referentialDao;
-
-    @Autowired
-    private SoftwareDao softwareDao;
-
-    @Autowired
     private ApplicationEventPublisher publisher;
-
-    Map<String, String> userProfileEnumNameByLabel = new HashMap<>();
-    Map<String, String> userProfileLabelByEnumName = new HashMap<>();
 
     protected PersonRepositoryImpl(EntityManager entityManager) {
         super(Person.class, PersonVO.class, entityManager);
@@ -106,7 +85,17 @@ public class PersonRepositoryImpl
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
-        initUserProfileConversionMaps(event.getConfiguration());
+        // Force clear cache, because UserProfileEnum can have changed, to VO profiles can changed also
+        clearCache();
+    }
+
+    @Override
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.PERSON_BY_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.PERSON_BY_PUBKEY, allEntries = true)
+    })
+    public void clearCache() {
+        log.debug("Cleaning Person's cache...");
     }
 
     @Override
@@ -179,6 +168,7 @@ public class PersonRepositoryImpl
                     Person.Fields.LAST_NAME
                 },
                 Daos.getEscapedSearchText(filter.getSearchText(), true)))
+            .and(excludedIds(filter.getExcludedIds()))
             ;
     }
 
@@ -203,7 +193,7 @@ public class PersonRepositoryImpl
         // Profiles (keep only label)
         if (CollectionUtils.isNotEmpty(source.getUserProfiles())) {
             List<String> profiles = source.getUserProfiles().stream()
-                .map(profile -> userProfileEnumNameByLabel.getOrDefault(profile.getLabel(), profile.getLabel()))
+                .map(UserProfile::getLabel)
                 .collect(Collectors.toList());
             target.setProfiles(profiles);
         }
@@ -236,7 +226,7 @@ public class PersonRepositoryImpl
         if (isNew) {
             // Set default status to Temporary
             if (vo.getStatusId() == null) {
-                vo.setStatusId(getConfig().getStatusIdTemporary());
+                vo.setStatusId(StatusEnum.TEMPORARY.getId());
             }
         }
         // If update
@@ -312,18 +302,10 @@ public class PersonRepositoryImpl
                 target.getUserProfiles().clear();
                 for (String profile : source.getProfiles()) {
                     if (StringUtils.isNotBlank(profile)) {
-                        // translate the user profile label
-                        String translatedLabel = userProfileLabelByEnumName.getOrDefault(profile, profile);
-                        if (StringUtils.isNotBlank(translatedLabel)) {
-                            Optional<ReferentialVO> userProfileVO = referentialDao.findByUniqueLabel(UserProfile.class.getSimpleName(), translatedLabel);
-                            if (userProfileVO.isPresent()) {
-                                UserProfile up = load(
-                                    UserProfile.class,
-                                    userProfileVO.get().getId()
-                                );
-                                target.getUserProfiles().add(up);
-                            }
-                        }
+                        UserProfileEnum.getByLabel(profile).ifPresent(userProfileEnum -> {
+                            UserProfile up = load(UserProfile.class, userProfileEnum.getId());
+                            target.getUserProfiles().add(up);
+                        });
                     }
                 }
             }
@@ -345,32 +327,5 @@ public class PersonRepositoryImpl
         publisher.publishEvent(new EntityDeleteEvent(id, Person.class.getSimpleName(), null));
     }
 
-    /**
-     * Create maps to convert UserProfileEnum.label into UserProfile.label
-     * map from software properties 'sumaris.userProfile.<ENUM>.label' (<ENUM> is one of the UserProfileEnum name)
-     */
-    private void initUserProfileConversionMaps(SumarisConfiguration configuration) {
-        Map<String, String> userProfileEnumNameByLabel = new HashMap<>();
-        Map<String, String> userProfileLabelByEnumName = new HashMap<>();
-
-        Pattern userProfilePropertyPattern = Pattern.compile("sumaris.userProfile.(\\w+).label");
-
-        SoftwareVO software = this.softwareDao.findByLabel(configuration.getAppName()).orElse(null);
-        if (software != null && MapUtils.isNotEmpty(software.getProperties())) {
-
-            // Check if there is overrided user profile labels
-            software.getProperties().forEach((key, value) -> {
-                Matcher matcher = userProfilePropertyPattern.matcher(key);
-                if (StringUtils.isNotBlank(value) && matcher.find()) {
-                    String enumName = matcher.group(1);
-                    userProfileEnumNameByLabel.put(value, enumName);
-                    userProfileLabelByEnumName.put(enumName, value);
-                }
-            });
-        }
-
-        this.userProfileEnumNameByLabel = userProfileEnumNameByLabel;
-        this.userProfileLabelByEnumName = userProfileLabelByEnumName;
-    }
 
 }

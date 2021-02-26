@@ -24,22 +24,23 @@ package net.sumaris.core.service.administration.programStrategy;
 
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
+import net.sumaris.core.vo.administration.programStrategy.ProgramSaveOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
+import net.sumaris.core.vo.data.TripSaveOptions;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service("programService")
+@Slf4j
 public class ProgramServiceImpl implements ProgramService {
-
-	private static final Logger log = LoggerFactory.getLogger(ProgramServiceImpl.class);
 
 	@Autowired
 	protected ProgramRepository programRepository;
@@ -70,12 +71,14 @@ public class ProgramServiceImpl implements ProgramService {
 	}
 
 	@Override
-	public ProgramVO save(ProgramVO source) {
+	public ProgramVO save(ProgramVO source, ProgramSaveOptions options) {
 		Preconditions.checkNotNull(source);
+		options = ProgramSaveOptions.defaultIfEmpty(options);
+
 		ProgramVO result = programRepository.save(source);
 
 		// Save strategies
-		if (source.getStrategies() != null) {
+		if (options.getWithStrategies()) {
 			List<StrategyVO> savedStrategies = strategyService.saveByProgramId(result.getId(), source.getStrategies());
 			result.setStrategies(savedStrategies);
 		}
@@ -86,6 +89,16 @@ public class ProgramServiceImpl implements ProgramService {
 	@Override
 	public void delete(int id) {
 		programRepository.deleteById(id);
+	}
+
+	@Override
+	public boolean hasUserPrivilege(int programId, int personId, ProgramPrivilegeEnum privilege) {
+		return programRepository.hasUserPrivilege(programId, personId, privilege);
+	}
+
+	@Override
+	public boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege) {
+		return programRepository.hasDepartmentPrivilege(programId, departmentId, privilege);
 	}
 }
 

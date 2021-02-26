@@ -28,6 +28,7 @@
 package net.sumaris.core.model.data;
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -155,14 +156,17 @@ public class DenormalizedBatch  implements IEntity<Integer> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_batch_fk")
+    @ToString.Exclude
     private DenormalizedBatch parent;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "operation_fk")
+    @ToString.Exclude
     private Operation operation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sale_fk")
+    @ToString.Exclude
     private Sale sale;
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = DenormalizedBatchSortingValue.class, mappedBy = DenormalizedBatchSortingValue.Fields.BATCH)

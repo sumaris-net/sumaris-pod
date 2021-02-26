@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.7.0</version>
+    <version>1.7.1</version>
   </parent>
 
   <artifactId>sumaris-core-shared</artifactId>
@@ -280,6 +280,9 @@
         </executions>
       </plugin>
 
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+      </plugin>
 
     </plugins>
   </build>

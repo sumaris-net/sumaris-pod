@@ -47,14 +47,25 @@ public class PmfmServiceReadTest extends AbstractServiceTest {
     private PmfmService service;
 
     @Test
-    public void find() {
+    public void findByFilter() {
 
         // unique label
         assertFindResult(ReferentialFilterVO.builder().label("CONVEYOR_BELT").build(), 1);
-        // search label
+        // searchText
         assertFindResult(ReferentialFilterVO.builder().searchText("CONVEYOR_BELT").build(), 1);
         assertFindResult(ReferentialFilterVO.builder().searchText("NB").build(), 4);
 
+        // levelLabels
+        assertFindResult(ReferentialFilterVO.builder()
+                .levelLabels(new String[]{"WEIGHT"})
+                .build(), 6);
+
+        // levelLabels + searchText
+        assertFindResult(ReferentialFilterVO.builder()
+                .levelLabels(new String[]{"WEIGHT"})
+                .searchText("wei")
+                .searchJoin("parameter")
+                .build(), 6);
     }
 
     private void assertFindResult(ReferentialFilterVO filter, int expectedSize) {

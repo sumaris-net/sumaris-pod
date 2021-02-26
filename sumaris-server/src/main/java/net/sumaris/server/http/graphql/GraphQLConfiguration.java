@@ -23,27 +23,25 @@ package net.sumaris.server.http.graphql;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import io.leangen.graphql.GraphQLSchemaGenerator;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
 import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFactory;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.server.graphql.AggregationGraphQLService;
+import net.sumaris.server.graphql.ExtractionGraphQLService;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
 import net.sumaris.server.http.graphql.administration.ProgramGraphQLService;
 import net.sumaris.server.http.graphql.data.DataGraphQLService;
-import net.sumaris.server.graphql.AggregationGraphQLService;
-import net.sumaris.server.graphql.ExtractionGraphQLService;
-import net.sumaris.server.http.graphql.data.DataQualityGraphQLService;
 import net.sumaris.server.http.graphql.referential.PmfmGraphQLService;
+import net.sumaris.server.http.graphql.referential.ReferentialExternalGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialGraphQLService;
 import net.sumaris.server.http.graphql.security.AuthGraphQLService;
-import net.sumaris.server.http.graphql.technical.ConfigurationGraphQLService;
 import net.sumaris.server.http.graphql.social.SocialGraphQLService;
+import net.sumaris.server.http.graphql.technical.ConfigurationGraphQLService;
 import net.sumaris.server.http.graphql.technical.DefaultTypeTransformer;
 import net.sumaris.server.http.graphql.technical.TrashGraphQLService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,9 +55,8 @@ import java.io.Serializable;
 
 @Configuration
 @EnableWebSocket
+@Slf4j
 public class GraphQLConfiguration implements WebSocketConfigurer {
-
-    private static final Logger log = LoggerFactory.getLogger(GraphQLConfiguration.class);
 
     @Autowired
     private AdministrationGraphQLService administrationService;
@@ -79,14 +76,14 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     @Autowired
     private DataGraphQLService dataService;
 
-    //@Autowired
-    //private DataQualityGraphQLService dataQualityService;
-
     @Autowired
     private ReferentialGraphQLService referentialService;
 
     @Autowired
     private PmfmGraphQLService pmfmService;
+
+    @Autowired
+    private ReferentialExternalGraphQLService referentialExternalService;
 
     @Autowired(required = false)
     private ExtractionGraphQLService extractionGraphQLService;
@@ -118,11 +115,10 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
                 .withOperationsFromSingleton(programService, ProgramGraphQLService.class)
                 .withOperationsFromSingleton(referentialService, ReferentialGraphQLService.class)
                 .withOperationsFromSingleton(pmfmService, PmfmGraphQLService.class)
+                .withOperationsFromSingleton(referentialExternalService, ReferentialExternalGraphQLService.class)
 
                 // Data
                 .withOperationsFromSingleton(dataService, DataGraphQLService.class)
-
-                //.withOperationsFromSingleton(dataQualityService, DataQualityGraphQLService.class)
 
                 // Social
                 .withOperationsFromSingleton(socialService, SocialGraphQLService.class)
@@ -142,12 +138,6 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
         return generator.generate();
     }
 
-    @Bean
-    public GraphQL graphQL() {
-        return GraphQL.newGraphQL(graphQLSchema()).build();
-    }
-
-
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
 
@@ -155,7 +145,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
         webSocketHandlerRegistry
                 .addHandler(webSocketHandler(), GraphQLPaths.BASE_PATH)
-                .setAllowedOrigins("*")
+                .setAllowedOrigins("*") // TODO Spring update will need to change this to allowedOriginPatterns()
                 .withSockJS();
     }
 

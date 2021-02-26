@@ -28,6 +28,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.cache.ExtractionCacheNames;
@@ -36,29 +37,25 @@ import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.cost.AggregationCostDao;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.AggregationSurvivalTestDao;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.util.ExtractionFormats;
-import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
-import net.sumaris.core.extraction.format.LiveFormatEnum;
+import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationContext;
@@ -76,9 +73,8 @@ import java.util.stream.Collectors;
  * @author peck7 on 17/12/2018.
  */
 @Service("aggregationService")
+@Slf4j
 public class AggregationServiceImpl implements AggregationService {
-
-    private static final Logger log = LoggerFactory.getLogger(AggregationServiceImpl.class);
 
     @Autowired
     private ExtractionService extractionService;
@@ -600,7 +596,7 @@ public class AggregationServiceImpl implements AggregationService {
 
         // Find the strata to apply, by sheetName
         if (sheetName != null && source.getStratum() != null) {
-            ExtractionProductStrataVO productStrata = source.getStratum().stream()
+            AggregationStrataVO productStrata = source.getStratum().stream()
                     .filter(s -> sheetName.equals(s.getSheetName()))
                     .findFirst().orElse(null);
             if (productStrata != null) {

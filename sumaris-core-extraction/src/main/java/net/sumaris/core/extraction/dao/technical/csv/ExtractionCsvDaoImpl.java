@@ -24,11 +24,10 @@ package net.sumaris.core.extraction.dao.technical.csv;
 
 import au.com.bytecode.opencsv.CSVWriter;
 import au.com.bytecode.opencsv.ResultSetHelperService;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import org.apache.commons.lang3.ArrayUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -50,17 +49,11 @@ import java.util.*;
  */
 @Repository("extractionCsvDao")
 @Lazy
+@Slf4j
 public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements ExtractionCsvDao {
-
-    private static final Logger log = LoggerFactory.getLogger(ExtractionCsvDaoImpl.class);
 
     @Autowired
     private DataSource dataSource;
-
-    @Autowired
-    public ExtractionCsvDaoImpl() {
-        super();
-    }
 
     @Override
     public void dumpQueryToCSV(File file, String query,

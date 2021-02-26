@@ -24,6 +24,7 @@ package net.sumaris.core.model.technical.extraction;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.IDataEntity;
@@ -64,6 +65,7 @@ public class ExtractionProductColumn implements IEntity<Integer> {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "extraction_product_table_fk", nullable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private ExtractionProductTable table;
 
     @OneToMany(fetch = FetchType.EAGER, targetEntity = ExtractionProductValue.class, mappedBy = ExtractionProductValue.Fields.COLUMN)

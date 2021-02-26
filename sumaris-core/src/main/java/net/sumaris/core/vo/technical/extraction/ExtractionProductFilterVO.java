@@ -44,6 +44,8 @@ public class ExtractionProductFilterVO implements IReferentialFilter {
 
     private Integer levelId;
     private Integer[] levelIds;
+    private String levelLabel;
+    private String[] levelLabels;
 
     private String searchJoin;
     private String searchText;
@@ -52,4 +54,5 @@ public class ExtractionProductFilterVO implements IReferentialFilter {
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;
 
+    private Integer[] excludedIds;
 }

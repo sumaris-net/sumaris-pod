@@ -26,6 +26,7 @@ package net.sumaris.core.dao.technical.hibernate;
 
 
 import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -38,8 +39,6 @@ import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -65,13 +64,8 @@ import java.util.Set;
  * <p>HibernateDaoSupport class.</p>
  *
  */
+@Slf4j
 public abstract class HibernateDaoSupport {
-
-    /**
-     * Logger.
-     */
-    protected static final Logger logger =
-        LoggerFactory.getLogger(HibernateDaoSupport.class);
 
     private boolean debugEntityLoad;
 

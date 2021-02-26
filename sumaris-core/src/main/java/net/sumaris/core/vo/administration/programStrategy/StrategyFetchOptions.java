@@ -22,9 +22,7 @@ package net.sumaris.core.vo.administration.programStrategy;
  * #L%
  */
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
 @Data
@@ -32,7 +30,28 @@ import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 @EqualsAndHashCode
 public class StrategyFetchOptions implements IFetchOptions {
 
-    @Builder.Default
-    private boolean withPmfmStrategyInheritance = false;
+    public static StrategyFetchOptions DEFAULT = StrategyFetchOptions.builder().build();
 
+    public static StrategyFetchOptions nullToDefault(StrategyFetchOptions options) {
+        if (options != null) return options;
+        return DEFAULT;
+    }
+
+    /**
+     * Compute PmfmStrategy (normalized entities)
+     */
+    @Builder.Default
+    private boolean withPmfms = false;
+
+    /**
+     * Compute the denormalized PMFM, from PmfmStrategy
+     */
+    @Builder.Default
+    private boolean withDenormalizedPmfms = false;
+
+    /**
+     * Compute the PSFM strategy full name (with parameter, matrix, fraction and method names)
+     */
+    @Builder.Default
+    private boolean withDenormalizedPmfmCompleteName = false;
 }

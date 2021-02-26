@@ -40,7 +40,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductStrataVO;
+import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import net.sumaris.server.config.ExtractionWebAutoConfiguration;
@@ -49,7 +49,6 @@ import net.sumaris.server.geojson.ExtractionGeoJsonConverter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -151,7 +150,7 @@ public class AggregationGraphQLService {
 
             // Get a strata, to use by default
             final String sheetName = strata != null ? strata.getSheetName() : (filter != null ? filter.getSheetName() : null);
-            ExtractionProductStrataVO defaultStrata = type.getStratum().stream()
+            AggregationStrataVO defaultStrata = type.getStratum().stream()
                             .filter(s -> sheetName == null || sheetName.equalsIgnoreCase(s.getSheetName()))
                             .findFirst()
                     .orElseThrow(() -> new SumarisTechnicalException(String.format("Unknown sheetName '%s' in type '%s'", sheetName, type.getLabel())));
@@ -250,7 +249,7 @@ public class AggregationGraphQLService {
                 // Stratum
                 .withStratum(
                         fields.contains(StringUtils.slashing(AggregationTypeVO.Fields.STRATUM, IEntity.Fields.ID))
-                        || fields.contains(StringUtils.slashing(AggregationTypeVO.Fields.STRATUM, ExtractionProductStrataVO.Fields.SPATIAL_COLUMN_NAME))
+                        || fields.contains(StringUtils.slashing(AggregationTypeVO.Fields.STRATUM, AggregationStrataVO.Fields.SPATIAL_COLUMN_NAME))
                 )
 
                 .build();

@@ -24,6 +24,7 @@ package net.sumaris.rdf.util;
 
 import de.uni_stuttgart.vis.vowl.owl2vowl.Owl2Vowl;
 import graphql.Assert;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.DatabaseResource;
@@ -35,16 +36,13 @@ import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 //@Ignore
 // FIXME BLA failed
+@Slf4j
 public class ModelUtilsTest extends AbstractTest {
-
-    private static final Logger log = LoggerFactory.getLogger(ModelUtilsTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();

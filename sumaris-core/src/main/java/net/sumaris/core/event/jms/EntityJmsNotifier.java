@@ -23,13 +23,13 @@
 package net.sumaris.core.event.jms;
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.event.entity.IEntityEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -37,10 +37,12 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.PostConstruct;
+import javax.jms.JMSContext;
 
 @Component
+@Slf4j
+@ConditionalOnClass({JMSContext.class, JmsTemplate.class})
 public class EntityJmsNotifier {
-    private static final Logger log = LoggerFactory.getLogger(EntityJmsNotifier.class);
 
     // WARN: @ConditionOnBean over this class is not working well, that why we use required=false
     @Autowired(required = false)

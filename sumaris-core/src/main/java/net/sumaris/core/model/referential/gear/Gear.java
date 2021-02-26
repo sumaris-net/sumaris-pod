@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.gear;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -34,6 +35,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "gear")
@@ -43,6 +45,7 @@ public class Gear implements IItemReferentialEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEAR_SEQ")
     @SequenceGenerator(name = "GEAR_SEQ", sequenceName="GEAR_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -58,6 +61,7 @@ public class Gear implements IItemReferentialEntity {
     private Date updateDate;
 
     @Column(nullable = false, length = LENGTH_LABEL)
+    @ToString.Include
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)
@@ -103,11 +107,5 @@ public class Gear implements IItemReferentialEntity {
     @ManyToMany(fetch = FetchType.LAZY, targetEntity = Strategy.class, mappedBy = Strategy.Fields.GEARS)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private List<Strategy> strategies;
-//
-//    public String toString() {
-//        return new StringBuilder().append(super.toString())
-//                .append(",id=").append(this.id)
-//                .append(",label=").append(this.label)
-//                .toString();
-//    }
+
 }

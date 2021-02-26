@@ -24,16 +24,15 @@ package net.sumaris.core.dao.administration.programStrategy;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.programStrategy.ProgramProperty;
-import net.sumaris.core.model.administration.programStrategy.Strategy;
-import net.sumaris.core.model.administration.programStrategy.TaxonGroupStrategy;
+import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
@@ -50,8 +49,6 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -67,19 +64,19 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 24/08/2020.
  */
+@Slf4j
 public class ProgramRepositoryImpl
     extends ReferentialRepositoryImpl<Program, ProgramVO, ProgramFilterVO, ProgramFetchOptions>
     implements ProgramSpecifications {
-
-    private static final Logger log =
-        LoggerFactory.getLogger(ReferentialRepositoryImpl.class);
-
 
     @Autowired
     private ReferentialDao referentialDao;
 
     @Autowired
     private TaxonGroupRepository taxonGroupRepository;
+
+    @Autowired
+    private StrategyRepository strategyRepository;
 
     public ProgramRepositoryImpl(EntityManager entityManager) {
         super(Program.class, ProgramVO.class, entityManager);
@@ -134,6 +131,11 @@ public class ProgramRepositoryImpl
             target.setProperties(properties);
         }
 
+        // Location classifications (only IDs)
+        if (copyIfNull || source.getLocationClassifications() != null) {
+            target.setLocationClassificationIds(Beans.collectIds(source.getLocationClassifications()));
+        }
+
         // Other attributes
         target.setGearClassificationId(source.getGearClassification() != null ? source.getGearClassification().getId() : null);
         target.setTaxonGroupTypeId(source.getTaxonGroupType() != null ? source.getTaxonGroupType().getId() : null);
@@ -153,6 +155,14 @@ public class ProgramRepositoryImpl
             target.setLocations(
                 Beans.getStream(source.getLocations())
                     .map(referentialDao::toVO)
+                    .collect(Collectors.toList()));
+        }
+
+        // strategies
+        if (fetchOptions != null && fetchOptions.isWithStrategies()) {
+            target.setStrategies(
+                Beans.getStream(source.getStrategies())
+                    .map(strategyRepository::toVO)
                     .collect(Collectors.toList()));
         }
     }
@@ -176,7 +186,7 @@ public class ProgramRepositoryImpl
 
         if (vo.getId() == null && vo.getStatusId() == null)
             // Set default status to Temporary
-            vo.setStatusId(getConfig().getStatusIdTemporary());
+            vo.setStatusId(StatusEnum.TEMPORARY.getId());
 
         return super.save(vo);
     }
@@ -258,9 +268,12 @@ public class ProgramRepositoryImpl
             }
         }
         else {
-            Map<String, ProgramProperty> existingProperties = Beans.splitByProperty(
+            // WARN: database can stored many values for the same keys.
+            // Only the first existing instance will be reused. Duplicate properties will be removed
+            ListMultimap<String, ProgramProperty> existingPropertiesMap = Beans.splitByNotUniqueProperty(
                 Beans.getList(parent.getProperties()),
                 ProgramProperty.Fields.LABEL);
+            List<ProgramProperty> existingValues = Beans.getList(existingPropertiesMap.values());
             final Status enableStatus = em.getReference(Status.class, StatusEnum.ENABLE.getId());
             if (parent.getProperties() == null) {
                 parent.setProperties(Lists.newArrayList());
@@ -268,36 +281,36 @@ public class ProgramRepositoryImpl
             final List<ProgramProperty> targetProperties = parent.getProperties();
 
             // Transform each entry into ProgramProperty
-            source.entrySet().stream()
-                .filter(e -> Objects.nonNull(e.getKey())
-                    && Objects.nonNull(e.getValue())
-                )
-                .map(e -> {
-                    ProgramProperty prop = existingProperties.remove(e.getKey());
-                    boolean isNew = (prop == null);
-                    if (isNew) {
-                        prop = new ProgramProperty();
-                        prop.setLabel(e.getKey());
-                        prop.setProgram(parent);
-                        prop.setCreationDate(updateDate);
-                    }
-                    prop.setName(e.getValue());
-                    prop.setStatus(enableStatus);
-                    prop.setUpdateDate(updateDate);
-                    if (isNew) {
-                        em.persist(prop);
-                    }
-                    else {
-                        em.merge(prop);
-                    }
-                    return prop;
-                })
-                .forEach(targetProperties::add);
+            source.keySet().stream()
+                    .map(key -> {
+                        ProgramProperty prop = existingPropertiesMap.containsKey(key) ? existingPropertiesMap.get(key).get(0) : null;
+                        boolean isNew = (prop == null);
+                        if (isNew) {
+                            prop = new ProgramProperty();
+                            prop.setLabel(key);
+                            prop.setProgram(parent);
+                            prop.setCreationDate(updateDate);
+                        }
+                        else {
+                            existingValues.remove(prop);
+                        }
+                        prop.setName(source.get(key));
+                        prop.setStatus(enableStatus);
+                        prop.setUpdateDate(updateDate);
+                        if (isNew) {
+                            em.persist(prop);
+                        }
+                        else {
+                            em.merge(prop);
+                        }
+                        return prop;
+                    })
+                    .forEach(targetProperties::add);
 
             // Remove old properties
-            if (MapUtils.isNotEmpty(existingProperties)) {
-                parent.getProperties().removeAll(existingProperties.values());
-                existingProperties.values().forEach(em::remove);
+            if (CollectionUtils.isNotEmpty(existingValues)) {
+                parent.getProperties().removeAll(existingValues);
+                existingValues.forEach(em::remove);
             }
 
         }
@@ -374,5 +387,23 @@ public class ProgramRepositoryImpl
             .getResultStream()
             .map(referentialDao::toVO)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean hasUserPrivilege(int id, int personId, ProgramPrivilegeEnum privilege) {
+        return getEntityManager().createNamedQuery("ProgramPerson.count", Long.class)
+                .setParameter("programId", id)
+                .setParameter("personId", personId)
+                .setParameter("privilegeId", privilege.getId())
+                .getSingleResult() > 0;
+    }
+
+    @Override
+    public boolean hasDepartmentPrivilege(int id, int departmentId, ProgramPrivilegeEnum privilege) {
+        return getEntityManager().createNamedQuery("ProgramDepartment.count", Long.class)
+                .setParameter("programId", id)
+                .setParameter("departmentId", departmentId)
+                .setParameter("privilegeId", privilege.getId())
+                .getSingleResult() > 0;
     }
 }

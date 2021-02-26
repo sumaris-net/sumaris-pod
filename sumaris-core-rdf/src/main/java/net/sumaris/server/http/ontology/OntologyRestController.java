@@ -23,6 +23,7 @@
 package net.sumaris.server.http.ontology;
 
 import com.google.common.base.Splitter;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
@@ -38,8 +39,6 @@ import net.sumaris.rdf.util.RdfFormat;
 import net.sumaris.rdf.util.RdfMediaType;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jena.rdf.model.Model;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -60,6 +59,7 @@ import java.util.Objects;
 
 @RestController
 @ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
+@Slf4j
 public class OntologyRestController {
 
     protected static final String EXTENSION_PATH_PARAM = ".{extension:[a-z0-9-_]+}";
@@ -80,8 +80,6 @@ public class OntologyRestController {
 
 
     public static final String CONVERT_PATH = ONTOLOGY_PATH + "/convert";
-
-    private static final Logger log = LoggerFactory.getLogger(OntologyRestController.class);
 
     @Resource
     private RdfModelService  modelService;

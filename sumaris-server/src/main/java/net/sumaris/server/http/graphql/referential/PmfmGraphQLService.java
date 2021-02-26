@@ -72,11 +72,11 @@ public class PmfmGraphQLService {
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
     ) {
 
-        return pmfmService.findByFilter(filter != null ? filter : new ReferentialFilterVO(),
-                offset == null ? 0 : offset,
-                size == null ? 1000 : size,
-                sort == null ? ReferentialVO.Fields.LABEL : sort,
-                direction == null ? SortDirection.ASC : SortDirection.valueOf(direction.toUpperCase()));
+        List<PmfmVO> res = pmfmService.findByFilter(
+                ReferentialFilterVO.nullToEmpty(filter),
+                offset, size, sort, SortDirection.fromString(direction, SortDirection.ASC));
+
+        return res;
     }
 
     @GraphQLQuery(name = "pmfm", description = "Get a PMFM")
@@ -99,7 +99,13 @@ public class PmfmGraphQLService {
         return pmfmService.save(source);
     }
 
-    @GraphQLQuery(name = "parameter", description = "Get PMFM's paramater")
+    @GraphQLQuery(name = "completeName", description = "Get PMFM's complete name")
+    public String getPmfmCompleteName(@GraphQLContext PmfmVO pmfm) {
+        if (pmfm.getCompleteName() != null) return pmfm.getCompleteName();
+        return pmfmService.computeCompleteName(pmfm.getId());
+    }
+
+    @GraphQLQuery(name = "parameter", description = "Get PMFM's parameter")
     public ParameterVO getPmfmParameter(@GraphQLContext PmfmVO pmfm) {
         if (pmfm.getParameterId() == null) return null;
         return getParameter(null, pmfm.getParameterId());

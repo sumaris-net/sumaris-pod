@@ -20,12 +20,25 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.format.specification;
+package net.sumaris.core.extraction.specification.data.trip;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface CostSpecification extends RdbSpecification {
-    String FORMAT = "COST";
-    String VERSION_1_4 = "1.4";
+public interface Free2Specification  {
+    String FORMAT = "FREE2";
+    String VERSION_1_9 = "1.9";
+
+    String TRIP_SHEET_NAME = "MAREE";
+    String STATION_SHEET_NAME = "OPERATION_PECHE";
+    String GEAR_SHEET_NAME = "ENGINS";
+    String STRATEGY_SHEET_NAME = "STRATEGIE";
+    String DETAIL_SHEET_NAME = "DETAIL";
+    String SPECIES_LIST_SHEET_NAME = "CAPTURES";
+    String SPECIES_LENGTH_SHEET_NAME = "MESURES";
+
+    String[] SHEET_NAMES = {TRIP_SHEET_NAME, STATION_SHEET_NAME, GEAR_SHEET_NAME,
+            STRATEGY_SHEET_NAME, DETAIL_SHEET_NAME,
+            SPECIES_LIST_SHEET_NAME, SPECIES_LENGTH_SHEET_NAME};
+
 }

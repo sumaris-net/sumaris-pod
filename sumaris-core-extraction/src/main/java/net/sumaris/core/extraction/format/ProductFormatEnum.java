@@ -25,10 +25,10 @@ package net.sumaris.core.extraction.format;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.format.specification.AggCostSpecification;
-import net.sumaris.core.extraction.format.specification.AggRdbSpecification;
-import net.sumaris.core.extraction.format.specification.AggSurvivalTestSpecification;
-import net.sumaris.core.extraction.format.specification.RdbSpecification;
+import net.sumaris.core.extraction.specification.data.trip.AggCostSpecification;
+import net.sumaris.core.extraction.specification.data.trip.AggRdbSpecification;
+import net.sumaris.core.extraction.specification.data.trip.AggSurvivalTestSpecification;
+import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 

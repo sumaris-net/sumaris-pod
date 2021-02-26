@@ -7,12 +7,14 @@ PROJECT_DIR="../../.."
 cd "${PROJECT_DIR}"
 PROJECT_DIR=`pwd`
 LOG_PREFIX="--------------"
+#MVN_INSTALL_OPTS="-DskipTests --quiet --offline"
+MVN_INSTALL_OPTS="-DskipTests --quiet --offline"
 
 # ------------------------------------
 echo "${LOG_PREFIX} Installing [core-shared] and [test-shared]... ${LOG_PREFIX}"
 # ------------------------------------
 cd "${PROJECT_DIR}/.."
-mvn install -DskipTests -pl sumaris-core-shared,sumaris-test-shared  --quiet
+mvn install -pl sumaris-core-shared,sumaris-test-shared $MVN_INSTALL_OPTS
 if [[ $? -ne 0 ]]; then
     exit
 fi
@@ -23,7 +25,7 @@ echo "${LOG_PREFIX} Generating new test DB... (log at: ${PROJECT_DIR}/target/bui
 cd "${PROJECT_DIR}"
 PROJECT_DIR=`pwd`
 rm -rf target/db
-mvn -Prun,hsqldb -DskipTests --quiet
+mvn -Prun,hsqldb $MVN_INSTALL_OPTS
 #mvn -Prun,hsqldb -DskipTests --quiet | grep -P "(WARN|ERROR|FAILURE)"
 if [[ $? -ne 0 ]]; then
     exit

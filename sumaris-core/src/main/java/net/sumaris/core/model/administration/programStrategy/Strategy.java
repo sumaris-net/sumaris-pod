@@ -24,6 +24,7 @@ package net.sumaris.core.model.administration.programStrategy;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "strategy")
@@ -45,6 +47,7 @@ public class Strategy implements IItemReferentialEntity {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "STRATEGY_SEQ")
     @SequenceGenerator(name = "STRATEGY_SEQ", sequenceName="STRATEGY_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -60,9 +63,11 @@ public class Strategy implements IItemReferentialEntity {
     private Date updateDate;
 
     @Column(nullable = false, length = 50)
+    @ToString.Include
     private String label;
 
     @Column(nullable = false, length = 100)
+    @ToString.Include
     private String name;
 
     private String description;
@@ -70,13 +75,24 @@ public class Strategy implements IItemReferentialEntity {
     @Column(length = 2000)
     private String comments;
 
+    private String analyticReference;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "program_fk", nullable = false)
+    @ToString.Include
     private Program program;
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = AppliedStrategy.class, mappedBy = AppliedStrategy.Fields.STRATEGY)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<AppliedStrategy> appliedStrategies = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = PmfmStrategy.class, mappedBy = PmfmStrategy.Fields.STRATEGY)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<PmfmStrategy> pmfmStrategies = new ArrayList<>();
+    private List<PmfmStrategy> pmfms = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = StrategyDepartment.class, mappedBy = StrategyDepartment.Fields.STRATEGY)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<StrategyDepartment> departments = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "strategy2gear", joinColumns = {
@@ -93,23 +109,13 @@ public class Strategy implements IItemReferentialEntity {
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<TaxonGroupStrategy> taxonGroups = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = AppliedStrategy.class, mappedBy = AppliedStrategy.Fields.STRATEGY)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<AppliedStrategy> appliedStrategies = new ArrayList<>();
-
-    public void addPmfmStrategy(PmfmStrategy pmfmStrategy, boolean setReverse) {
+    public void addPmfm(PmfmStrategy pmfmStrategy, boolean setReverse) {
         if (pmfmStrategy != null) {
-            getPmfmStrategies().add(pmfmStrategy);
+            getPmfms().add(pmfmStrategy);
             if (setReverse) {
                 pmfmStrategy.setStrategy(this);
             }
         }
     }
 
-    public String toString() {
-        return String.format("Strategy{id=%s, label=%s, programId=%s}",
-                id,
-                label,
-                program.getId());
-    }
 }

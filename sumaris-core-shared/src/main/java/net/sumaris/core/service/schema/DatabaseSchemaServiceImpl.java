@@ -25,6 +25,7 @@ package net.sumaris.core.service.schema;
  */
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
@@ -34,8 +35,6 @@ import net.sumaris.core.exception.DatabaseSchemaUpdateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.VersionNotFoundException;
 import org.nuiton.version.Version;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -54,11 +53,8 @@ import java.util.Optional;
  * @author Lionel Touseau <lionel.touseau@e-is.pro>
  */
 @Service("databaseSchemaService")
+@Slf4j
 public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
-
-    /** Logger. */
-    private static final Logger log =
-            LoggerFactory.getLogger(DatabaseSchemaServiceImpl.class);
 
     private boolean isApplicationReady;
 

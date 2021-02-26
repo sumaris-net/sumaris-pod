@@ -27,8 +27,6 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -45,10 +43,6 @@ public class AggregatedLandingVO implements IValueObject<Integer>,
 
     public AggregatedLandingVO() {
         vesselActivities = new ArrayList<>();
-    }
-
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
     }
 
     @Override

@@ -23,6 +23,7 @@ package net.sumaris.core.dao.data.product;
  */
 
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.DataDaos;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
@@ -48,8 +49,6 @@ import net.sumaris.core.vo.filter.ProductFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -61,11 +60,10 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 30/03/2020.
  */
+@Slf4j
 public class ProductRepositoryImpl
     extends DataRepositoryImpl<Product, ProductVO, ProductFilterVO, DataFetchOptions>
     implements ProductSpecifications {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ProductRepositoryImpl.class);
 
     private final ReferentialDao referentialDao;
     private final PersonRepository personRepository;
@@ -394,7 +392,7 @@ public class ProductRepositoryImpl
                         quantificationMeasurements.putIfAbsent(pmfmId, value);
                     } else {
                         if (sortingMeasurements.containsKey(pmfmId)) {
-                            LOG.warn(String.format("Duplicate measurement width {pmfmId: %s} on product {id: %s}", pmfmId, product.getId()));
+                            log.warn(String.format("Duplicate measurement width {pmfmId: %s} on product {id: %s}", pmfmId, product.getId()));
                         } else {
                             sortingMeasurements.putIfAbsent(pmfmId, value);
                         }

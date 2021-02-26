@@ -24,14 +24,13 @@ package net.sumaris.server.config;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.version.VersionBuilder;
 import org.nuiton.version.Version;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.TimeZone;
@@ -40,10 +39,8 @@ import java.util.TimeZone;
  * <p>SumarisServerConfiguration class.</p>
  *
  */
+@Slf4j
 public class SumarisServerConfiguration extends SumarisConfiguration {
-
-    /* Logger */
-    private static final Logger log = LoggerFactory.getLogger(SumarisServerConfiguration.class);
 
     private static SumarisServerConfiguration instance;
 
@@ -228,7 +225,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     /**
      * <p>find the ActiveMQ broker URL.</p>
      *
-     * @return a {@link Integer}
+     * @return a {@link String}
      */
     public String getActiveMQBrokerURL() {
         return applicationConfig.getOption(SumarisServerConfigurationOption.ACTIVEMQ_BROKER_URL.getKey());
@@ -237,7 +234,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     /**
      * <p>find the ActiveMQ broker username (or null if no auth).</p>
      *
-     * @return a {@link Integer}
+     * @return a {@link String}
      */
     public String getActiveMQBrokerUserName() {
         return applicationConfig.getOption(SumarisServerConfigurationOption.ACTIVEMQ_BROKER_USERNAME.getKey());

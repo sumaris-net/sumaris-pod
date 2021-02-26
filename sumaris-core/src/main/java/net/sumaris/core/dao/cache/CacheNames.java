@@ -35,16 +35,25 @@ public interface CacheNames {
     String PROGRAM_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programByIdCache";
     String PROGRAM_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabelCache";
 
+    String STRATEGY_BY_ID = "net.sumaris.core.dao.administration.programStrategy.strategyByIdCache";
+    String STRATEGY_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.strategyByLabelCache";
+    String STRATEGIES_BY_ID = "net.sumaris.core.dao.administration.programStrategy.strategiesByIdCache";
+    String STRATEGIES_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.strategiesByLabelCache";
     String STRATEGIES_BY_PROGRAM_ID = "net.sumaris.core.dao.administration.programStrategy.strategiesByProgramId";
+
     String PMFM_BY_ID = "net.sumaris.core.dao.referential.pmfmByIdCache";
+    String PMFM_COMPLETE_NAME_BY_ID = "net.sumaris.core.dao.referential.pmfmCompleteNameByIdCache";
     String PMFM_HAS_PREFIX = "net.sumaris.core.dao.referential.pmfmHasPrefix";
     String PMFM_HAS_SUFFIX = "net.sumaris.core.dao.referential.pmfmHasSuffix";
     String PMFM_HAS_MATRIX = "net.sumaris.core.dao.referential.pmfmHasMatrix";
     String PMFM_BY_STRATEGY_ID = "net.sumaris.core.dao.administration.programStrategy.pmfmByStrategyIdCache";
+    String DENORMALIZED_PMFM_BY_STRATEGY_ID = "net.sumaris.core.dao.administration.programStrategy.denormalized.pmfmByStrategyIdCache";
 
     String TAXON_NAME_BY_TAXON_REFERENCE_ID = "net.sumaris.core.dao.referential.taxonNameByReferenceId";
     String TAXON_NAMES_BY_TAXON_GROUP_ID = "net.sumaris.core.dao.referential.taxonNamesByTaxonGroupId";
     String REFERENCE_TAXON_ID_BY_TAXON_NAME_ID = "net.sumaris.core.dao.referential.referenceTaxonIdByTaxonNameId";
+
+    String ANALYTIC_REFERENCES_BY_FILTER = "net.sumaris.core.dao.referential.analyticReferenceByFilterCache";
 
     String PRODUCT_BY_LABEL = "net.sumaris.core.dao.technical.product.productByLabelCache";
     String PRODUCTS = "net.sumaris.core.dao.technical.product.productsCache";

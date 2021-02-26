@@ -24,10 +24,23 @@ package net.sumaris.core.dao.administration.programStrategy;
 
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
+
+import java.util.List;
 
 public interface PmfmStrategyRepository
     extends SumarisJpaRepository<PmfmStrategy, Integer, PmfmStrategyVO>,
     PmfmStrategySpecifications {
 
+    List<PmfmStrategyVO> findByStrategyId(int strategyId, StrategyFetchOptions fetchOptions);
+
+    List<PmfmStrategyVO> findByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions);
+
+    List<PmfmStrategyVO> saveByStrategyId(int strategyId, List<PmfmStrategyVO> sources);
+
+    PmfmStrategyVO toVO(PmfmStrategy source, StrategyFetchOptions fetchOptions);
+
+    PmfmStrategyVO toVO(PmfmStrategy source, Pmfm pmfm, StrategyFetchOptions fetchOptions);
 }

@@ -24,6 +24,7 @@ package net.sumaris.rdf.loader;
 
 
 import com.google.common.base.Charsets;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -33,20 +34,19 @@ import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.ResourceUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.stream.Stream;
 
+@Slf4j
 public abstract class AbstractNamedRdfLoader implements INamedRdfLoader, ResourceLoaderAware {
-
-    private static final Logger log = LoggerFactory.getLogger(AbstractNamedRdfLoader.class);
 
     private ResourceLoader resourceLoader;
 

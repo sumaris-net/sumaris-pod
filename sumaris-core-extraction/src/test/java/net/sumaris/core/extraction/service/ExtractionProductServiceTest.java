@@ -26,7 +26,7 @@ import net.sumaris.core.extraction.DatabaseResource;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
-import net.sumaris.core.extraction.format.specification.RdbSpecification;
+import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.extraction.util.ExtractionProducts;

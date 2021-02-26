@@ -35,5 +35,4 @@ public interface StrategyRepository
     extends ReferentialRepository<Strategy, StrategyVO, StrategyFilterVO, StrategyFetchOptions>,
     StrategySpecifications {
 
-
 }

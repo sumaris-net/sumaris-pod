@@ -29,6 +29,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
@@ -42,8 +43,9 @@ import org.junit.Assume;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.nuiton.i18n.I18n;
+import org.nuiton.i18n.init.DefaultI18nInitializer;
+import org.nuiton.i18n.init.UserI18nInitializer;
 
 import java.io.*;
 import java.sql.Connection;
@@ -58,14 +60,11 @@ import java.util.Set;
  * @author blavenie <benoit.lavenier@e-is.pro>
  * @since 3.3.3
  */
+@Slf4j
 public abstract class DatabaseResource implements TestRule {
-
-    /** Logger. */
-    protected static final Logger log = LoggerFactory.getLogger(DatabaseResource.class);
 
     /** Constant <code>HSQLDB_DATASOURCE_TYPE="hsqldb"</code> */
     public static final String HSQLDB_DATASOURCE_TYPE = "hsqldb";
-
     /** Constant <code>HSQLDB_SRC_DATABASE_DIRECTORY= ie : "../sumaris-core/src/test/db"</code> */
     public static final String HSQLDB_SRC_DATABASE_DIRECTORY_PATTERN = "../%s/target/db";
     public static final String HSQLDB_SRC_DATABASE_NAME = "sumaris";

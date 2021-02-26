@@ -23,36 +23,40 @@
 package net.sumaris.core.service.referential.pmfm;
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.pmfm.ParameterRepository;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.vo.filter.IReferentialFilter;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ParameterVO;
 import net.sumaris.core.vo.referential.ParameterValueType;
 import net.sumaris.core.vo.referential.PmfmVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service("pmfmService")
+@Slf4j
 public class PmfmServiceImpl implements PmfmService {
-
-    private static final Logger log = LoggerFactory.getLogger(PmfmServiceImpl.class);
 
     @Autowired
     protected PmfmRepository pmfmRepository;
 
     @Autowired
     protected ParameterRepository parameterRepository;
+
+    @Override
+    public Page<PmfmVO> findByFilter(IReferentialFilter filter, Pageable pageable) {
+        return pmfmRepository.findAll(filter, pageable);
+    }
 
     @Override
     public List<PmfmVO> findByFilter(IReferentialFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
@@ -118,6 +122,11 @@ public class PmfmServiceImpl implements PmfmService {
     public boolean isGearPmfm(int pmfmId) {
         return pmfmRepository.hasLabelPrefix(pmfmId, "GEAR") // Required by SFA historical data
             || pmfmRepository.hasMatrixId(pmfmId, MatrixEnum.GEAR.getId()); // Required by Ifremer historical data
+    }
+
+    @Override
+    public String computeCompleteName(int pmfmId) {
+        return pmfmRepository.computeCompleteName(pmfmId);
     }
 
     @Override

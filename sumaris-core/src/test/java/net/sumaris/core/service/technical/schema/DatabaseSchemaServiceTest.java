@@ -22,6 +22,7 @@ package net.sumaris.core.service.technical.schema;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
@@ -30,18 +31,13 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.nuiton.version.Version;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.IOException;
 
+@Slf4j
 public class DatabaseSchemaServiceTest extends AbstractServiceTest {
-
-    /** Logger. */
-    private static final Logger log =
-            LoggerFactory.getLogger(DatabaseSchemaServiceTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

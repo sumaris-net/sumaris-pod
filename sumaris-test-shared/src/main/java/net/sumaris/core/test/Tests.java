@@ -25,12 +25,11 @@ package net.sumaris.core.test;
  */
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.service.ServiceLocator;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assume;
 import org.junit.Ignore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -43,6 +42,7 @@ import java.io.File;
  * @since 3.3.1
  */
 @Ignore
+@Slf4j
 public final class Tests {
 
 	/**
@@ -50,9 +50,6 @@ public final class Tests {
 	 */
 	protected Tests() {
 	}
-
-	/** Logger. */
-	private static final Logger log = LoggerFactory.getLogger(Tests.class);
 
 	/**
 	 * <p>checkDbExists.</p>

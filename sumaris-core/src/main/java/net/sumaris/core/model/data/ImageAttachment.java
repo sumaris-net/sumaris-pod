@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -30,9 +31,9 @@ import net.sumaris.core.model.referential.QualityFlag;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.Objects;
 
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name="image_attachment")
@@ -43,6 +44,7 @@ public class ImageAttachment implements IDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "IMAGE_ATTACHMENT_SEQ")
     @SequenceGenerator(name = "IMAGE_ATTACHMENT_SEQ", sequenceName="IMAGE_ATTACHMENT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)
@@ -96,18 +98,4 @@ public class ImageAttachment implements IDataEntity<Integer>,
     @Column(length=20971520)
     private String content;
 
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if ( !(other instanceof ImageAttachment) ) return false;
-
-        final ImageAttachment bean = (ImageAttachment) other;
-
-        if ( !Objects.equals(bean.getId(), getId() ) ) return false;
-
-        return true;
-    }
 }

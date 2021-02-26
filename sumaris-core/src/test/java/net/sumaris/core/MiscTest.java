@@ -39,15 +39,15 @@ public class MiscTest {
     public void testMapByRegEx() {
 
         Map<String, String> source = ImmutableMap.<String, String>builder()
-                .put("sumaris.userProfile.ADMIN.label", "ALLEGRO_ADMINISTRATEUR")
-                .put("sumaris.userProfile.USER.label", "ALLEGRO_UTILISATEUR")
-                .put("sumaris.userProfile.SUPERVISOR.label", "ALLEGRO_SUPER_UTILISATEUR")
-                .put("sumaris.userProfile.GUEST.label", "SIH_AUTRE")
+                .put("sumaris.enumeration.UserProfile.ADMIN.label", "ALLEGRO_ADMINISTRATEUR")
+                .put("sumaris.enumeration.UserProfile.USER.label", "ALLEGRO_UTILISATEUR")
+                .put("sumaris.enumeration.UserProfile.SUPERVISOR.label", "ALLEGRO_SUPER_UTILISATEUR")
+                .put("sumaris.enumeration.UserProfile.GUEST.label", "SIH_AUTRE")
                 .build();
 
         Map<String, String> target = new HashMap<>();
 
-        Pattern pattern = Pattern.compile("sumaris.userProfile.(\\w+).label");
+        Pattern pattern = Pattern.compile("sumaris.enumeration.UserProfile.(\\w+).label");
         source.forEach((key, value) -> {
             Matcher matcher = pattern.matcher(key);
             if (matcher.find())

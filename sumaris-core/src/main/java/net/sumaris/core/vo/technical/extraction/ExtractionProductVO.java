@@ -22,7 +22,6 @@ package net.sumaris.core.vo.technical.extraction;
  * #L%
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
@@ -70,7 +69,7 @@ public class ExtractionProductVO implements IReferentialVO, IExtractionFormat,
     private Integer parentId;
 
     private List<ExtractionTableVO> tables;
-    private List<ExtractionProductStrataVO> stratum;
+    private List<AggregationStrataVO> stratum;
 
     public List<String> getTableNames() {
         if (tables == null) return null;

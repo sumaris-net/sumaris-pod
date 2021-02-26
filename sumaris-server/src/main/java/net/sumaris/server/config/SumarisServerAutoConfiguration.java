@@ -24,12 +24,10 @@ package net.sumaris.server.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.sumaris.core.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -42,22 +40,17 @@ import org.springframework.jms.support.converter.MessageType;
 import javax.jms.ConnectionFactory;
 
 @Configuration
+@Slf4j
 public class SumarisServerAutoConfiguration {
-    /**
-     * Logger.
-     */
-    protected static final Logger log =
-            LoggerFactory.getLogger(SumarisServerAutoConfiguration.class);
 
     @Bean
     public JmsListenerContainerFactory<?> jmsListenerContainerFactory(
             ConnectionFactory connectionFactory,
-            DefaultJmsListenerContainerFactoryConfigurer configurer,
             TaskExecutor taskExecutor) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setTaskExecutor(taskExecutor);
         factory.setErrorHandler(t -> log.error("An error has occurred in the JMS transaction: " + t.getMessage(), t));
-        configurer.configure(factory, connectionFactory);
+        factory.setConnectionFactory(connectionFactory);
         return factory;
     }
 
@@ -74,8 +67,7 @@ public class SumarisServerAutoConfiguration {
     @Bean
     @ConditionalOnProperty(
             prefix = "spring.activemq",
-            name = {"broker-url"},
-            matchIfMissing = false
+            name = {"broker-url"}
     )
     @ConditionalOnClass(name = "org.apache.activemq.store.kahadb.KahaDBPersistenceAdapter")
     public ConnectionFactory connectionFactory(SumarisServerConfiguration config) {
@@ -85,14 +77,12 @@ public class SumarisServerAutoConfiguration {
 
         // Use username/pwd constructor
         if (StringUtils.isNotBlank(userName)) {
-            log.info(String.format("Starting JMS broker... {type: 'ActiveMQ', url: '%s', userName: '%s', password: '******'}...", config.getActiveMQBrokerURL(), userName));
+            log.info(String.format("Starting JMS broker... {type: 'ActiveMQ', url: '%s', userName: '%s', password: '******'}...", url, userName));
             return new ActiveMQConnectionFactory(userName, password, url);
         }
 
         // Use URL only constructor
-        else {
-            log.info(String.format("Starting JMS broker... {type: 'ActiveMQ', url: '%s'}...", config.getActiveMQBrokerURL()));
-            return new ActiveMQConnectionFactory(url);
-        }
+        log.info(String.format("Starting JMS broker... {type: 'ActiveMQ', url: '%s'}...", url));
+        return new ActiveMQConnectionFactory(url);
     }
 }

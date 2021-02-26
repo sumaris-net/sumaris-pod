@@ -53,6 +53,14 @@ public interface IReferentialFilter extends Serializable {
 
     void setLevelIds(Integer[] levelIds);
 
+    String getLevelLabel();
+
+    void setLevelLabel(String LevelLabel);
+
+    String[] getLevelLabels();
+
+    void setLevelLabels(String[] LevelLabels);
+
     String getSearchJoin();
 
     void setSearchJoin(String searchJoin);
@@ -64,4 +72,9 @@ public interface IReferentialFilter extends Serializable {
     String getSearchAttribute();
 
     void setSearchAttribute(String searchAttribute);
+
+
+    Integer[] getExcludedIds();
+
+    void setExcludedIds(Integer[] excludedIds);
 }

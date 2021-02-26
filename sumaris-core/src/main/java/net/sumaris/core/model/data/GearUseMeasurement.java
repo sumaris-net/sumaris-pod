@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
@@ -94,6 +95,7 @@ public class GearUseMeasurement implements IMeasurementEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Operation.class)
     @JoinColumn(name = "operation_fk", nullable = false)
+    @ToString.Exclude
     private Operation operation;
 
 

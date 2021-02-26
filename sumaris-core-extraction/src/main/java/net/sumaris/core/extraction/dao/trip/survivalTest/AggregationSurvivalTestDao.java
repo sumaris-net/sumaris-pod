@@ -23,11 +23,9 @@ package net.sumaris.core.extraction.dao.trip.survivalTest;
  */
 
 import net.sumaris.core.extraction.dao.trip.AggregationTripDao;
-import net.sumaris.core.extraction.dao.trip.ExtractionTripDao;
-import net.sumaris.core.extraction.vo.AggregationStrataVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.AggregationTripContextVO;
-import net.sumaris.core.extraction.vo.trip.survivalTest.ExtractionSurvivalTestContextVO;
+import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 
 /**

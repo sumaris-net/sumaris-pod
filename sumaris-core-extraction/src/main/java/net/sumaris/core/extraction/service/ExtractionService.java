@@ -23,9 +23,7 @@ package net.sumaris.core.extraction.service;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.event.entity.EntityDeleteEvent;
-import net.sumaris.core.event.entity.EntityInsertEvent;
-import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.extraction.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.*;
@@ -36,8 +34,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -83,12 +79,14 @@ public interface ExtractionService {
 
     File executeAndDumpTrips(LiveFormatEnum format, ExtractionTripFilterVO filter);
 
+    File executeAndDumpStrategies(LiveFormatEnum format, ExtractionStrategyFilterVO filter);
+
     File dumpTablesToFile(ExtractionContextVO context, @Nullable ExtractionFilterVO filter);
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
     void clean(ExtractionContextVO context);
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
     @Async
     CompletableFuture<Boolean> asyncClean(ExtractionContextVO context);
 

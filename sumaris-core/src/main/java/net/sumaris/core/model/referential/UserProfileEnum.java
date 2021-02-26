@@ -42,11 +42,18 @@ public enum UserProfileEnum {
                 .orElseThrow(() -> new IllegalArgumentException("Unknown UserProfileEnum: " + id));
     }
 
-
-    public static Optional<String> getLabelById(int id) {
-        Optional<UserProfileEnum> enumValue = Arrays.stream(values()).filter(userProfileEnum -> userProfileEnum.id == id).findFirst();
-        return enumValue.map(Enum::toString);
+    public static UserProfileEnum valueOfLabel(String label) {
+        return getByLabel(label).orElseThrow(() -> new IllegalArgumentException("Unknown user profile label: " + label));
     }
+
+    public static Optional<UserProfileEnum> getById(int id) {
+        return Arrays.stream(values()).filter(userProfileEnum -> userProfileEnum.id == id).findFirst();
+    }
+
+    public static Optional<UserProfileEnum> getByLabel(String label) {
+        return Arrays.stream(values()).filter(userProfileEnum -> label.equals(userProfileEnum.label)).findFirst();
+    }
+
 
     public int id;
     public String label;

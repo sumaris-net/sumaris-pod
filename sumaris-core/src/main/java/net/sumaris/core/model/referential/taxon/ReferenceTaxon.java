@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.taxon;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.administration.programStrategy.ReferenceTaxonStrategy;
@@ -39,6 +40,7 @@ import java.util.List;
  *
  */
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "reference_taxon")
@@ -47,6 +49,7 @@ public class ReferenceTaxon implements IUpdateDateEntityBean<Integer, Date> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "REFERENCE_TAXON_SEQ")
     @SequenceGenerator(name = "REFERENCE_TAXON_SEQ", sequenceName="REFERENCE_TAXON_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @Column(name = "update_date")
@@ -66,8 +69,4 @@ public class ReferenceTaxon implements IUpdateDateEntityBean<Integer, Date> {
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private List<TaxonGroup2TaxonHierarchy> parentTaxonGroups;
 
-
-    public String toString() {
-        return String.format("ReferenceTaxon{id=%s}", id);
-    }
 }

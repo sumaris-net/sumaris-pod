@@ -27,6 +27,7 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLEnvironment;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
@@ -35,8 +36,6 @@ import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.technical.TrashService;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -48,9 +47,8 @@ import java.util.Set;
 
 @Service
 @Transactional
+@Slf4j
 public class TrashGraphQLService {
-
-    private static final Log log = LogFactory.getLog(TrashGraphQLService.class);
 
     @Autowired
     private TrashService service;
@@ -64,7 +62,7 @@ public class TrashGraphQLService {
         @GraphQLArgument(name = "sortBy", defaultValue = IUpdateDateEntityBean.Fields.UPDATE_DATE) String sort,
         @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction
         ) {
-        Pageable pageable = Pageables.create(offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        Pageable pageable = Pageables.create(offset, size, sort, direction != null ? SortDirection.fromString(direction) : null);
 
         Page<String> page = service.findAll(entityName, pageable, String.class);
         return page.hasContent() ? page.getContent() : ImmutableList.of();

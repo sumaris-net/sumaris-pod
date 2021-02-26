@@ -27,6 +27,7 @@ import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -36,7 +37,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**

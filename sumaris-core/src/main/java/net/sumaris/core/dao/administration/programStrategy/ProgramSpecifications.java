@@ -24,6 +24,7 @@ package net.sumaris.core.dao.administration.programStrategy;
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramProperty;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -59,5 +60,9 @@ public interface ProgramSpecifications {
     List<TaxonGroupVO> getTaxonGroups(int programId);
 
     List<ReferentialVO> getGears(int programId);
+
+    boolean hasUserPrivilege(int programId, int personId, ProgramPrivilegeEnum privilege);
+
+    boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege);
 
 }

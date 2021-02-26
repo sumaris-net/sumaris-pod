@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.pmfm;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -31,6 +32,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name="qualitative_value")
@@ -39,6 +41,7 @@ public class QualitativeValue implements IItemReferentialEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "QUALITATIVE_VALUE_SEQ")
     @SequenceGenerator(name = "QUALITATIVE_VALUE_SEQ", sequenceName="QUALITATIVE_VALUE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -54,6 +57,7 @@ public class QualitativeValue implements IItemReferentialEntity {
     private Date updateDate;
 
     @Column(nullable = false, length = LENGTH_LABEL)
+    @ToString.Include
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)
@@ -66,11 +70,7 @@ public class QualitativeValue implements IItemReferentialEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Parameter.class)
     @JoinColumn(name = "parameter_fk")
+    @ToString.Include
     private Parameter parameter;
 
-    public String toString() {
-        return String.format("QualitativeValue{id=%s, parameter{label=%s}}",
-                id,
-                parameter != null ? parameter.getLabel() : null);
-    }
 }

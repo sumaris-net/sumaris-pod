@@ -23,13 +23,14 @@
 package net.sumaris.core.extraction.dao.trip.free2;
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
-import net.sumaris.core.extraction.format.specification.Free2Specification;
+import net.sumaris.core.extraction.specification.data.trip.Free2Specification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.free2.ExtractionFree2ContextVO;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -38,8 +39,6 @@ import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ResourceLoader;
@@ -50,11 +49,10 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("extractionFree2TripDao")
 @Lazy
+@Slf4j
 public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F extends ExtractionFilterVO>
         extends ExtractionRdbTripDaoImpl<C, F>
         implements ExtractionFree2TripDao<C, F>, Free2Specification {
-
-    private static final Logger log = LoggerFactory.getLogger(ExtractionFree2TripDaoImpl.class);
 
     private static final String XML_QUERY_FREE_PATH = "free2/v%s/%s";
 

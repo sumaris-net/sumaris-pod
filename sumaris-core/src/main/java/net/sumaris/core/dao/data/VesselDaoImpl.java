@@ -32,12 +32,12 @@ import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.VesselType;
 import net.sumaris.core.model.referential.location.Location;
@@ -52,8 +52,6 @@ import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Repository;
@@ -69,11 +67,6 @@ import java.util.stream.Collectors;
 
 @Repository("vesselDao")
 public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(VesselDaoImpl.class);
 
     @Autowired
     private LocationRepository locationRepository;

@@ -25,6 +25,7 @@ package net.sumaris.rdf.action;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.action.ActionUtils;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.rdf.config.RdfConfiguration;
@@ -33,8 +34,6 @@ import net.sumaris.rdf.util.RdfFormat;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.system.Txn;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -47,13 +46,8 @@ import java.io.OutputStream;
  * </p>
  * 
  */
+@Slf4j
 public class RdfDatasetAction {
-
-	/**
-	 * Logger.
-	 */
-	protected static final Logger log =
-			LoggerFactory.getLogger(RdfDatasetAction.class);
 
 	public static final String LOAD_ALIAS = "--load";
 	public static final String DUMP_ALIAS = "--dump";

@@ -1,8 +1,10 @@
-/*
+package net.sumaris.core.dao.referential;
+
+/*-
  * #%L
- * SUMARiS
+ * SUMARiS:: Core
  * %%
- * Copyright (C) 2019 SUMARiS Consortium
+ * Copyright (C) 2018 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -20,9 +22,17 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.format.specification;
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
-public interface AggSpecification {
+import java.util.List;
 
-    String FORMAT_PREFIX = "AGG_";
+public interface ReferentialExternalDao {
+
+    List<ReferentialVO> findAnalyticReferencesByFilter(ReferentialFilterVO filter,
+                                     int offset,
+                                     int size,
+                                     String sortAttribute,
+                                     SortDirection sortDirection);
 }

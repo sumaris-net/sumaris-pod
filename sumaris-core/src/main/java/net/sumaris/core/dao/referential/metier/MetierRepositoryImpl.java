@@ -23,6 +23,7 @@ package net.sumaris.core.dao.referential.metier;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
@@ -40,8 +41,6 @@ import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -52,11 +51,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class MetierRepositoryImpl
     extends ReferentialRepositoryImpl<Metier, MetierVO, IReferentialFilter, ReferentialFetchOptions>
     implements MetierSpecifications {
-
-    private static final Logger log = LoggerFactory.getLogger(MetierRepositoryImpl.class);
 
     @Autowired
     private ReferentialDao referentialDao;
@@ -139,7 +137,7 @@ public class MetierRepositoryImpl
     @Override
     protected Specification<Metier> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-                .and(inLevelIds(Metier.Fields.GEAR, filter))
+                .and(inLevelIds(Metier.class, filter.getLevelIds()))
                 .and(alreadyPracticedMetier(filter));
     }
 

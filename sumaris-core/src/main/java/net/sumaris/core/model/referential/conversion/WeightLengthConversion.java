@@ -23,6 +23,7 @@
 package net.sumaris.core.model.referential.conversion;
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
@@ -33,7 +34,6 @@ import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.pmfm.Unit;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -54,6 +54,7 @@ import java.util.Date;
  * </p>
  */
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "weight_length_conversion")
@@ -63,6 +64,7 @@ public class WeightLengthConversion implements IReferentialWithStatusEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WEIGHT_LENGTH_CONVERSION_SEQ")
     @SequenceGenerator(name = "WEIGHT_LENGTH_CONVERSION_SEQ", sequenceName="WEIGHT_LENGTH_CONVERSION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -78,18 +80,23 @@ public class WeightLengthConversion implements IReferentialWithStatusEntity {
     private Date updateDate;
 
     @Column(name = "conversion_coefficient_a", nullable = false)
+    @ToString.Include
     private Double conversionCoefficientA;
 
     @Column(name = "conversion_coefficient_b", nullable = false)
+    @ToString.Include
     private Double conversionCoefficientB;
 
     @Column(name = "start_month", nullable = false)
+    @ToString.Include
     private Integer startMonth;
 
     @Column(name = "end_month", nullable = false)
+    @ToString.Include
     private Integer endMonth;
 
     @Column(name = "year")
+    @ToString.Include
     private Integer year;
 
     private String description;
@@ -103,39 +110,27 @@ public class WeightLengthConversion implements IReferentialWithStatusEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sex_qualitative_value_fk")
+    @ToString.Include
     private QualitativeValue sex;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "length_parameter_fk", nullable = false)
+    @ToString.Include
     private Parameter lengthParameter;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "length_unit_fk", nullable = false)
+    @ToString.Include
     private Unit lengthUnit;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reference_taxon_fk", nullable = false)
+    @ToString.Include
     private ReferenceTaxon referenceTaxon;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_fk", nullable = false)
+    @ToString.Include
     private Location location;
 
-
-    public String toString() {
-        return new StringBuilder().append(super.toString())
-                .append(",id=").append(this.id)
-                .append(",referenceTaxon=").append(this.referenceTaxon.getId())
-                .append(",conversionCoefficientA=").append(this.conversionCoefficientA)
-                .append(",conversionCoefficientB=").append(this.conversionCoefficientB)
-                .append(",sex=").append(this.sex != null ? this.sex.getLabel() : null)
-                .append(",lengthParameter=").append(this.lengthParameter.getLabel())
-                .append(",lengthUnit=").append(this.lengthUnit.getLabel())
-                .append(",startMonth=").append(this.startMonth)
-                .append(",endMonth=").append(this.endMonth)
-                .append(",endMonth=").append(this.endMonth)
-                .append(",year=").append(this.year)
-                .append(",location=").append(this.location.getLabel())
-                .toString();
-    }
 }

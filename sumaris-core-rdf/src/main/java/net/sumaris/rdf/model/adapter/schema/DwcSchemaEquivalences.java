@@ -22,13 +22,12 @@
 
 package net.sumaris.rdf.model.adapter.schema;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.rdf.config.RdfConfiguration;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -40,10 +39,8 @@ import org.tdwg.rs.DWC;
         prefix = "rdf.equivalences",
         name = {"dwc.enabled"},
         matchIfMissing = true)
+@Slf4j
 public class DwcSchemaEquivalences extends AbstractSchemaVisitor {
-
-    private static final Logger log = LoggerFactory.getLogger(DwcSchemaEquivalences.class);
-
 
     @Override
     public void visitModel(Model model, String ns, String schemaUri) {

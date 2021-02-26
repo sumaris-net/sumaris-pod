@@ -30,6 +30,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import liquibase.exception.LiquibaseException;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.technical.Daos;
@@ -60,8 +61,6 @@ import org.nuiton.i18n.I18n;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
 import org.reflections.Reflections;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
@@ -87,13 +86,10 @@ import java.util.function.Predicate;
  */
 @Repository("databaseSchemaDao")
 @Lazy
+@Slf4j
 public class DatabaseSchemaDaoImpl
         extends HibernateDaoSupport
         implements DatabaseSchemaDao {
-
-    /** Logger. */
-    private static final Logger log =
-            LoggerFactory.getLogger(DatabaseSchemaDaoImpl.class);
 
     @Autowired
     private Liquibase liquibase;

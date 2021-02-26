@@ -31,7 +31,6 @@ import graphql.GraphQLError;
 import graphql.GraphQLException;
 import graphql.execution.AbortExecutionException;
 import graphql.execution.ExecutionPath;
-
 import graphql.kickstart.execution.error.GenericGraphQLError;
 import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -43,7 +42,6 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -129,7 +127,7 @@ public class GraphQLHelper {
             GraphQLError result = tryCreateGraphQLError(baseException);
             if (result != null) return result;
 
-            return new ExceptionWhileDataFetching(ExecutionPath.fromList(exError.getPath()),
+            return new ExceptionWhileDataFetching(ExecutionPath.fromList(exError.getPath()), // TODO migrate to ResultPath (in graphql-java 16)
                     new GraphQLException(baseException.getMessage()),
                     exError.getLocations().get(0));
         }

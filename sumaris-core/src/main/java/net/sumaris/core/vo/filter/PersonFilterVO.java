@@ -42,6 +42,8 @@ public class PersonFilterVO implements IReferentialFilter {
 
     private Integer levelId;
     private Integer[] levelIds;
+    private String levelLabel;
+    private String[] levelLabels;
 
     private String searchJoin;
     private String searchText;
@@ -55,6 +57,8 @@ public class PersonFilterVO implements IReferentialFilter {
     private String pubkey;
     private String firstName;
     private String lastName;
+
+    private Integer[] excludedIds;
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

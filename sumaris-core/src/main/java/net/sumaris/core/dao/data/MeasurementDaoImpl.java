@@ -27,17 +27,16 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.administration.programStrategy.ProgramProperty;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.data.Batch;
-import net.sumaris.core.model.data.BatchQuantificationMeasurement;
-import net.sumaris.core.model.data.BatchSortingMeasurement;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
@@ -53,19 +52,18 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.mutable.MutableShort;
-import org.apache.lucene.analysis.util.CharArrayMap;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
-import javax.persistence.FetchType;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Root;
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -76,11 +74,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("measurementDao")
+@Slf4j
 public class MeasurementDaoImpl extends HibernateDaoSupport implements MeasurementDao {
-
-    /** Logger. */
-    private static final Logger log =
-            LoggerFactory.getLogger(MeasurementDaoImpl.class);
 
     static {
         I18n.n("sumaris.persistence.table.vesselUseMeasurement");
@@ -748,17 +743,16 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
         // Remember existing measurements, to be able to remove unused measurements
         // note: Need Beans.getList() to avoid NullPointerException if target=null
-        final Map<Integer, T> sourceToRemove = Beans.splitByProperty(Beans.getList(target),
+        final ListMultimap<Integer, T> existingSources = Beans.splitByNotUniqueProperty(Beans.getList(target),
             StringUtils.doting(IMeasurementEntity.Fields.PMFM, IMeasurementEntity.Fields.ID));
-
+        List<T> sourcesToRemove = Beans.getList(existingSources.values());
         short rankOrder = 1;
-        for (Map.Entry<Integer, String> source: sources.entrySet()) {
-            Integer pmfmId = source.getKey();
-            String value = source.getValue();
+        for (Integer pmfmId: sources.keySet()) {
+            String value = sources.get(pmfmId);
 
             if (StringUtils.isNotBlank(value)) {
                 // Get existing meas and remove it from list to remove
-                IMeasurementEntity entity = sourceToRemove.remove(pmfmId);
+                IMeasurementEntity entity = existingSources.containsKey(pmfmId) ? existingSources.get(pmfmId).get(0) : null;
 
                 // Exists ?
                 boolean isNew = (entity == null);
@@ -768,6 +762,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                     } catch (IllegalAccessException | InstantiationException e) {
                         throw new SumarisTechnicalException(e);
                     }
+                }
+                else {
+                    sourcesToRemove.remove(entity);
                 }
 
                 // Make sure to set pmfm
@@ -809,8 +806,8 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         }
 
         // Remove unused measurements
-        if (MapUtils.isNotEmpty(sourceToRemove)) {
-            sourceToRemove.values().stream()
+        if (CollectionUtils.isNotEmpty(sourcesToRemove)) {
+            sourcesToRemove.stream()
                 // if the measurement is part of the sources
                 .filter(entity -> sources.containsKey(entity.getPmfm().getId()))
                 .forEach(entity -> getEntityManager().remove(entity));
@@ -892,7 +889,8 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 .filter(m -> m.getPmfm() != null && m.getPmfm().getId() != null)
                 .collect(Collectors.<T, Integer, String>toMap(
                         m -> m.getPmfm().getId(),
-                        this::entityToValueAsStringOrNull
+                        this::entityToValueAsStringOrNull,
+                        (s1, s2) -> s1
                 ));
     }
 

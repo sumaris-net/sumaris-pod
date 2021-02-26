@@ -20,13 +20,9 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.format.specification;
+package net.sumaris.core.extraction.specification.data.trip;
 
-/**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
- */
-public interface Free1Specification extends RdbSpecification {
-    String FORMAT = "FREE";
-    String VERSION_1 = "1";
-    String[] SHEET_NAMES = {RdbSpecification.TR_SHEET_NAME, RdbSpecification.HH_SHEET_NAME, RdbSpecification.SL_SHEET_NAME, RdbSpecification.HL_SHEET_NAME};
+public interface AggSpecification {
+
+    String FORMAT_PREFIX = "AGG_";
 }

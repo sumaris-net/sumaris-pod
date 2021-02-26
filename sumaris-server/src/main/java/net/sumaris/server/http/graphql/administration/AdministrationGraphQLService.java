@@ -24,6 +24,7 @@ package net.sumaris.server.http.graphql.administration;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Person;
@@ -45,8 +46,6 @@ import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.parameters.P;
@@ -58,9 +57,8 @@ import java.util.Set;
 
 @Service
 @Transactional
+@Slf4j
 public class AdministrationGraphQLService {
-
-    private static final Logger log = LoggerFactory.getLogger(AdministrationGraphQLService.class);
 
     private String personAvatarUrl;
     private String departmentLogoUrl;
@@ -100,7 +98,7 @@ public class AdministrationGraphQLService {
                                               @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                               @GraphQLEnvironment() Set<String> fields
     ) {
-        List<PersonVO> result = personService.findByFilter(filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        List<PersonVO> result = personService.findByFilter(filter, offset, size, sort, SortDirection.fromString(direction));
 
         // Fill avatar Url
         if (fields.contains(PersonVO.Fields.AVATAR)) {
@@ -181,7 +179,7 @@ public class AdministrationGraphQLService {
                                               @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
                                               @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                               @GraphQLEnvironment() Set<String> fields) {
-        List<DepartmentVO> result = departmentService.findByFilter(filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        List<DepartmentVO> result = departmentService.findByFilter(filter, offset, size, sort, SortDirection.fromString(direction));
 
         // Fill logo Url (if need)
         if (fields.contains(DepartmentVO.Fields.LOGO)) {

@@ -40,25 +40,20 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 import liquibase.resource.FileSystemResourceAccessor;
 import liquibase.resource.ResourceAccessor;
 import liquibase.structure.core.DatabaseObjectFactory;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.hibernate.HibernateConnectionProvider;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.exception.VersionNotFoundException;
-import net.sumaris.shared.exception.ErrorCodes;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.cfg.Environment;
 import org.nuiton.i18n.I18n;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ResourceLoaderAware;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -81,11 +76,8 @@ import java.util.regex.Pattern;
  * <p>Liquibase class.</p>
  */
 @Component
+@Slf4j
 public class Liquibase implements BeanNameAware, ResourceLoaderAware {
-
-    /** Logger. */
-    private static final org.slf4j.Logger log =
-            LoggerFactory.getLogger(Liquibase.class);
 
     /** Constant <code>CHANGE_LOG_SNAPSHOT_SUFFIX="-SNAPSHOT.xml"</code> */
     private final static String CHANGE_LOG_SNAPSHOT_SUFFIX = "-SNAPSHOT.xml";

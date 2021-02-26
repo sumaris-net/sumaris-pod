@@ -22,10 +22,9 @@ package net.sumaris.core.dao.cache;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sf.ehcache.CacheManager;
 import net.sumaris.core.dao.technical.ehcache.Caches;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -37,14 +36,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
+
 @Configuration
 @ConditionalOnClass({org.springframework.cache.CacheManager.class, net.sf.ehcache.Cache.class})
+@Slf4j
 public class CacheConfiguration {
-    /**
-     * Logger.
-     */
-    protected static final Logger log =
-            LoggerFactory.getLogger(CacheConfiguration.class);
 
     @Autowired(required = false)
     protected CacheManager cacheManager;
@@ -115,8 +111,24 @@ public class CacheConfiguration {
     }
 
     @Bean
+    public EhCacheFactoryBean strategiesByIdCache() {
+        return Caches.createHeapCache(ehcache(), CacheNames.STRATEGIES_BY_ID, 100, CacheDurations.DEFAULT, 100);
+    }
+
+    @Bean
+    public EhCacheFactoryBean strategiesByLabelCache() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.STRATEGIES_BY_LABEL, 100);
+    }
+
+    @Bean
     public EhCacheFactoryBean pmfmByStrategyIdCache() {
-        return Caches.createHeapCache(ehcache(), CacheNames.PMFM_BY_STRATEGY_ID, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 100);
+        return Caches.createHeapCache(ehcache(), CacheNames.PMFM_BY_STRATEGY_ID, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 500);
+    }
+
+
+    @Bean
+    public EhCacheFactoryBean denormalizedPmfmByStrategyIdCache() {
+        return Caches.createHeapCache(ehcache(), CacheNames.DENORMALIZED_PMFM_BY_STRATEGY_ID, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 500);
     }
 
     @Bean
@@ -132,6 +144,11 @@ public class CacheConfiguration {
     @Bean
     public EhCacheFactoryBean pmfmByIdCache() {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.PMFM_BY_ID, 600);
+    }
+
+    @Bean
+    public EhCacheFactoryBean pmfmCompleteNameByIdCache() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.PMFM_COMPLETE_NAME_BY_ID, 600);
     }
 
     @Bean
@@ -172,6 +189,11 @@ public class CacheConfiguration {
     @Bean
     public EhCacheFactoryBean locationLevelByLabel() {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.LOCATION_LEVEL_BY_LABEL, 600);
+    }
+
+    @Bean
+    public EhCacheFactoryBean analyticReferenceByLabelCache() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.ANALYTIC_REFERENCES_BY_FILTER, 100);
     }
 
     @Bean

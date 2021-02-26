@@ -22,20 +22,19 @@ package net.sumaris.server.http.graphql.security;
  * #L%
  */
 
-import io.leangen.graphql.annotations.*;
+import io.leangen.graphql.annotations.GraphQLArgument;
+import io.leangen.graphql.annotations.GraphQLQuery;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.util.security.AuthDataVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
+@Slf4j
 public class AuthGraphQLService {
-
-    private static final Logger log = LoggerFactory.getLogger(AuthGraphQLService.class);
 
     @Autowired
     private AuthService authService;

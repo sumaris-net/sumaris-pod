@@ -28,9 +28,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.core.extraction.vo.AggregationContextVO;
-import net.sumaris.core.extraction.vo.AggregationStrataVO;
 import net.sumaris.core.extraction.vo.ExtractionPmfmInfoVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;

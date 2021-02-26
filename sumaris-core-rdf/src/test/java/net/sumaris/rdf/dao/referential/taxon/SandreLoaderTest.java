@@ -22,6 +22,7 @@
 
 package net.sumaris.rdf.dao.referential.taxon;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.util.Files;
 import net.sumaris.rdf.AbstractTest;
@@ -35,16 +36,13 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 
+@Slf4j
 public class SandreLoaderTest extends AbstractTest {
-
-    private static final Logger log = LoggerFactory.getLogger(SandreLoaderTest.class);
 
     @Resource(name = "sandreTaxonLoader")
     protected INamedRdfLoader loader;

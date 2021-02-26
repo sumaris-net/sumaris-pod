@@ -25,18 +25,20 @@ package net.sumaris.core.dao.technical.schema;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import org.hibernate.boot.model.relational.QualifiedTableName;
-import org.hibernate.mapping.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.hibernate.mapping.Column;
+import org.hibernate.mapping.ForeignKey;
+import org.hibernate.mapping.PersistentClass;
+import org.hibernate.mapping.Table;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.*;
 
 /**
  * Overrides of the {@link SumarisTableMetadata} with some improvements:
@@ -49,10 +51,8 @@ import java.util.*;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  * @since 1.0
  */
+@Slf4j
 public class SumarisHibernateTableMetadata extends SumarisTableMetadata {
-
-	private static final Logger log =
-			LoggerFactory.getLogger(SumarisHibernateTableMetadata.class);
 
 	protected final Table delegate;
 

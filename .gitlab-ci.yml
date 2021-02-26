@@ -1,0 +1,156 @@
+image: jlrigau/maven-git
+
+stages:
+    - build
+    - test
+    - docs
+    - prepare
+    - release
+    - deploy
+
+build-dev:
+    extends: .build
+    only:
+        - develop
+        - feature/imagine
+    except:
+        - schedules
+
+schedule-build:
+    extends: .build
+    artifacts:
+        paths:
+            - sumaris-server/target/*.war
+    only:
+        - schedules
+
+.build:
+    stage: build
+    tags: 
+        - sih_public_runner
+    script:
+        - echo "Test dev build in progress"
+        - mvn -s ./settings.xml clean install -DskipTests -P oracle
+    environment:
+        name: test
+
+build_val:
+    stage: build
+    tags:
+        - sih_public_runner
+    script:
+        - echo "Test oracle build  in progress"
+        - mvn -s ./settings.xml clean install -DskipTests -Dspring.liquibase.enabled=false -Dsumaris.name=SUMARiS -Dsumaris.persistence.sequence.increment=1 -Dlogging.level.org.hibernate.SQL=debug 
+    environment:
+        name: test
+    artifacts:
+        paths:
+            - sumaris-server/target/*.war
+    only:
+        - develop
+        - feature/imagine
+    when: manual
+
+sonarqube:
+    stage: test
+    tags: 
+        - sih_public_runner
+    variables:
+      SONAR_TOKEN: "e6f816eee72d3d5c03319ec74b468157b9164d12"
+      SONAR_HOST_URL: "http://visi-common-sonar:9000"
+    image: 
+      name: sonarsource/sonar-scanner-cli:latest
+      entrypoint: [""]
+    script:
+      - echo "Sonarqube analysis in progress"
+      - sonar-scanner
+        -Dsonar.projectKey=imagine-pod
+        -Dsonar.host.url=$SONAR_HOST_URL 
+        -Dsonar.login=$SONAR_TOKEN
+        -Dsonar.sourceEncoding=UTF-8
+        -Dsonar.java.binaries=.
+        -Dsonar.java.libraries=.
+    only:
+        - develop
+        - feature/imagine
+    when: manual
+ 
+
+pages:
+    stage: docs
+    tags:
+        - sih_public_runner
+    image: python:3.7-alpine
+    before_script:
+        - apk --update --upgrade add gcc musl-dev jpeg-dev zlib-dev libffi-dev cairo-dev pango-dev gdk-pixbuf-dev
+        - pip install --upgrade pip
+        - pip install --upgrade mkdocs
+        - pip install --upgrade mkdocs-pdf-export-plugin==0.5.5
+    script:
+        - mkdocs -v build
+        - mv site public
+    artifacts:
+        paths:
+            - public
+    only:
+        - develop
+        - feature/imagine
+    when: manual
+   
+
+package:
+    stage: prepare
+    tags: 
+        - sih_public_runner
+    before_script:
+        - git checkout -B "$CI_BUILD_REF_NAME"
+        - git config --global user.email "lbruvryl@ifremer.fr"
+        - git config --global user.name "Leo BRUVRY-LAGADEC"
+        - echo "TAG=$RELEASE_VERSION" >> variables.env
+    script:
+        - echo "Release in progress"
+        - mvn release:clean -Dslf4jJclScope=provided
+        - mvn -s ./settings.xml release:prepare --batch-mode -Dtag=imagine-pod-$RELEASE_VERSION -DreleaseVersion=$RELEASE_VERSION -DdevelopmentVersion=$NEW_DEV_VERSION -DscmCommentPrefix="[ci skip] to "
+        - mvn -s ./settings.xml release:perform -Dslf4jJclScope=provided -X -DscmCommentPrefix="[ci skip] to "
+    artifacts:
+        paths:
+            - web-services/target/*.war
+        reports:
+            dotenv: variables.env
+    only:
+        - develop
+        - feature/imagine
+    allow_failure: false
+    when: manual
+
+release:
+    stage: release
+    tags: 
+        - sih_public_runner
+    image: registry.gitlab.com/gitlab-org/release-cli:latest
+    needs:
+        - job: package
+          artifacts: true
+    script:
+        - echo "running release for imagine-pod-$TAG"
+    release:
+        name: "Release imagine-pod-$TAG"
+        description: "Created using the release-cli $EXTRA_DESCRIPTION"
+        tag_name: "imagine-pod-$TAG"
+        ref: "$CI_COMMIT_SHA"
+    only:
+        - develop
+        - feature/imagine
+    when: manual
+
+deploy:
+    stage: deploy
+    tags: 
+        - sih_public_runner
+    script:
+        - echo "Deploy in progress"
+        - mvn -s ./settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$TAG -Dfile=web-services/target/ROOT.war -DrepositoryId=gitlab-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven
+    only:
+        - develop
+        - feature/imagine
+    when: manual

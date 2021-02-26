@@ -24,25 +24,23 @@ package net.sumaris.core.service;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+
+import java.io.Closeable;
+
 /*import org.springframework.beans.factory.access.BeanFactoryLocator;
 import org.springframework.beans.factory.access.BeanFactoryReference;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 import org.springframework.context.support.AbstractApplicationContext;*/
 
-import java.io.Closeable;
-
 /**
  * Locates and provides all available application services.
  */
+@Slf4j
 public class ServiceLocator implements Closeable {
-
-    /* Logger */
-    private static final Logger log = LoggerFactory.getLogger(ServiceLocator.class);
 
     /**
      * The core instance of this ServiceLocator.

@@ -24,8 +24,10 @@ package net.sumaris.core.dao.technical;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -33,6 +35,7 @@ import net.sumaris.core.model.technical.configuration.Software;
 import net.sumaris.core.model.technical.configuration.SoftwareProperty;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.technical.SoftwareVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -46,6 +49,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Repository("softwareDao")
+@Slf4j
 public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
 
     @Autowired
@@ -147,9 +151,12 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
             }
         }
         else {
-            Map<String, SoftwareProperty> existingProperties = Beans.splitByProperty(
+            // WARN: database can stored many values for the same keys.
+            // Only the first existing instance will be reused. Duplicate properties will be removed
+            ListMultimap<String, SoftwareProperty> existingPropertiesMap = Beans.splitByNotUniqueProperty(
                     Beans.getList(parent.getProperties()),
                     SoftwareProperty.Fields.LABEL);
+            List<SoftwareProperty> existingValues = Beans.getList(existingPropertiesMap.values());
             final Status enableStatus = em.getReference(Status.class, StatusEnum.ENABLE.getId());
             if (parent.getProperties() == null) {
                 parent.setProperties(Lists.newArrayList());
@@ -157,20 +164,20 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
             final List<SoftwareProperty> targetProperties = parent.getProperties();
 
             // Transform each entry into SoftwareProperty
-            source.entrySet().stream()
-                    .filter(e -> Objects.nonNull(e.getKey())
-                            && Objects.nonNull(e.getValue())
-                    )
-                    .map(e -> {
-                        SoftwareProperty prop = existingProperties.remove(e.getKey());
+            source.keySet().stream()
+                    .map(key -> {
+                        SoftwareProperty prop = existingPropertiesMap.containsKey(key) ? existingPropertiesMap.get(key).get(0) : null;
                         boolean isNew = (prop == null);
                         if (isNew) {
                             prop = new SoftwareProperty();
-                            prop.setLabel(e.getKey());
+                            prop.setLabel(key);
                             prop.setSoftware(parent);
                             prop.setCreationDate(updateDate);
                         }
-                        prop.setName(e.getValue());
+                        else {
+                            existingValues.remove(prop);
+                        }
+                        prop.setName(source.get(key));
                         prop.setStatus(enableStatus);
                         prop.setUpdateDate(updateDate);
                         if (isNew) {
@@ -184,11 +191,10 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
                     .forEach(targetProperties::add);
 
             // Remove old properties
-            if (MapUtils.isNotEmpty(existingProperties)) {
-                parent.getProperties().removeAll(existingProperties.values());
-                existingProperties.values().forEach(em::remove);
+            if (CollectionUtils.isNotEmpty(existingValues)) {
+                parent.getProperties().removeAll(existingValues);
+                existingValues.forEach(em::remove);
             }
-
         }
     }
 
@@ -211,7 +217,7 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
                 )
                 .forEach(prop -> {
                     if (properties.containsKey(prop.getLabel())) {
-                        logger.warn(String.format("Duplicate software property with label {%s}. Overriding existing value with {%s}", prop.getLabel(), prop.getName()));
+                        log.warn(String.format("Duplicate software property with label {%s}. Overriding existing value with {%s}", prop.getLabel(), prop.getName()));
                     }
                     properties.put(prop.getLabel(), prop.getName());
                 });

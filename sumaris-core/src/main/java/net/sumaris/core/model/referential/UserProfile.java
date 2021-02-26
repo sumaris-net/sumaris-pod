@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Person;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -34,6 +35,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "user_profile")
@@ -42,6 +44,7 @@ public class UserProfile implements IItemReferentialEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "USER_PROFILE_SEQ")
     @SequenceGenerator(name = "USER_PROFILE_SEQ", sequenceName="USER_PROFILE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -57,6 +60,7 @@ public class UserProfile implements IItemReferentialEntity {
     private Date updateDate;
 
     @Column(nullable = false, length = 50)
+    @ToString.Include
     private String label;
 
     @Column(nullable = false, length = 100)
