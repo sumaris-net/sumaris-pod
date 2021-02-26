@@ -75,7 +75,7 @@
       <mat-cell *matCellDef="let row" class="mat-cell-clickable" (click)="clickCell($event, row, date)">
         <div *ngFor="let activity of getActivities(row, date)">
           <div *ngFor="let pmfm of $pmfms | async">
-            {{activity.measurementValues[pmfm.id] | pmfmValueToString: {pmfm: pmfm} }}
+            {{activity.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm} }}
           </div>
           <div *ngFor="let metier of activity.metiers; last as last">
             <span>{{metier | referentialToString: ['label'] }}</span><span *ngIf="!last">,</span>

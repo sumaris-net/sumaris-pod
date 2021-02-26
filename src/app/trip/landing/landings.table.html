@@ -143,7 +143,7 @@
   <!-- Observers -->
   <ng-container matColumnDef="observers">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>LANDING.TABLE.OBSERVERS</ion-label>
+      <ion-label>{{'LANDING.TABLE.OBSERVERS' | translateContext: i18nColumnSuffix }}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ personsToString(row.currentData?.observers) }}</ion-text>
@@ -173,7 +173,7 @@
   <!-- Pmfm columns -->
   <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.id.toString()">
     <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
-      <ion-label>{{pmfm | pmfmNameTranslateOrDefault: {html: true} |async}}</ion-label>
+      <ion-label>{{pmfm | pmfmName: {html: true, i18nPrefix: i18nColumnPrefix, i18nContext: i18nColumnSuffix} }}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row"
               [class.mat-cell-date-time]="pmfm|isDatePmfm"

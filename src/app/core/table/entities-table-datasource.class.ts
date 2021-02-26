@@ -9,7 +9,7 @@ import {SortDirection} from "@angular/material/sort";
 import {CollectionViewer} from "@angular/cdk/collections";
 import {firstNotNilPromise} from "../../shared/observables";
 import {isNotEmptyArray, isNotNil, toBoolean} from "../../shared/functions";
-import {Environment} from "../../../environments/environment.class";
+import {TableDataSourceOptions} from "@e-is/ngx-material-table/src/app/ngx-material-table/table-data-source";
 
 
 export declare interface AppTableDataServiceOptions<O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> extends EntitiesServiceWatchOptions {
@@ -17,9 +17,10 @@ export declare interface AppTableDataServiceOptions<O extends EntitiesServiceWat
   readOnly?: boolean;
   [key: string]: any;
 }
-export class AppTableDataSourceOptions<T extends Entity<T>, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> {
-  prependNewElements: boolean;
-  suppressErrors: boolean;
+export class AppTableDataSourceOptions<T extends Entity<T>, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> implements TableDataSourceOptions {
+  prependNewElements?: boolean;
+  suppressErrors?: boolean;
+  keepOriginalDataAfterConfirm?: boolean;
   onRowCreated?: (row: TableElement<T>) => Promise<void> | void;
   dataServiceOptions?: AppTableDataServiceOptions<O>;
   debug?: boolean;
@@ -33,26 +34,27 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
     extends TableDataSource<T>
     implements OnDestroy {
 
+  private readonly _options: AppTableDataSourceOptions<T, O>;
+  private _loaded = false;
+
   protected readonly _debug: boolean;
-  protected _config: AppTableDataSourceOptions<T, O>;
   protected _creating = false;
   protected _saving = false;
   protected _useValidator = false;
   protected _stopWatchAll$ = new Subject();
-  private _loaded = false;
 
   $busy = new BehaviorSubject(false);
 
   get serviceOptions(): AppTableDataServiceOptions<O> {
-    return this._config.dataServiceOptions;
+    return this._options.dataServiceOptions;
   }
 
   set serviceOptions(value: AppTableDataServiceOptions<O>)  {
-    this._config.dataServiceOptions = value;
+    this._options.dataServiceOptions = value;
   }
 
   get options(): AppTableDataSourceOptions<T, O> {
-    return this._config;
+    return this._options;
   }
 
   get loaded(): boolean {
@@ -72,7 +74,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
               validatorService?: ValidatorService,
               config?: AppTableDataSourceOptions<T, O>) {
     super([], dataType, validatorService, config);
-    this._config = {
+    this._options = {
       dataServiceOptions: {},
       debug: !config.suppressErrors,
       ...config
@@ -80,7 +82,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
     this._useValidator = isNotNil(validatorService);
 
     // For DEV ONLY
-    this._debug = this._config.debug === true;
+    this._debug = this._options.debug === true;
   }
 
   ngOnDestroy() {
@@ -310,8 +312,8 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
     super.createNew();
     const row = this.getRow(-1);
 
-    if (row && this._config && this._config.onRowCreated) {
-      const res = this._config.onRowCreated(row);
+    if (row && this._options && this._options.onRowCreated) {
+      const res = this._options.onRowCreated(row);
       // If async function, wait the end before ending
       if (res instanceof Promise) {
         try {

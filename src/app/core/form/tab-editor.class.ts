@@ -13,7 +13,7 @@ import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
 import {ToolbarComponent} from "../../shared/toolbar/toolbar";
 import {isNotNil, toNumber} from "../../shared/functions";
 
-export class AppTabFormOptions {
+export class AppTabEditorOptions {
 
   /**
    * Number of tab. 1 by default
@@ -52,6 +52,10 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
   error: string;
   loading = true;
   queryParams: Params;
+  i18nContext: {
+    prefix: string;
+    suffix: string;
+  };
 
   @Input() queryTabIndexParamName: string;
 
@@ -109,7 +113,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
     protected router: Router,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
-    @Optional() options?: AppTabFormOptions
+    @Optional() options?: AppTabEditorOptions
   ) {
     options = {
       tabCount: 1,

@@ -109,6 +109,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   // Table options
   @Input() i18nColumnPrefix = 'COMMON.';
+  @Input() i18nColumnSuffix: string;
   @Input() autoLoad = true;
   @Input() readOnly: boolean;
   @Input() inlineEdition: boolean;

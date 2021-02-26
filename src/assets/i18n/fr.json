@@ -846,9 +846,9 @@
       "STRATEGY": "Stratégie",
       "CREATION_DATE": "Date de création",
       "RECORDER_PERSON" : "Saisisseur",
-      "STRATEGY_LABEL" : "Ligne de plan",
       "SAMPLING": {
-        "STRATEGY": "Ligne de plan"
+        "STRATEGY_LABEL": "Ligne de plan",
+        "MORSE_CODE" : "Code Morse"
       }
     },
     "SELECT_MODAL": {
@@ -1105,8 +1105,6 @@
       "UNIT": "Unité",
       "BTN_ADD_PARAMETER": "Créer un nouveau paramètre",
       "BTN_OPEN_PARAMETER": "Ouvrir le paramètre",
-      "STRATEGY_LABEL" : "Ligne de plan",
-      "MORSE_CODE" : "Code Morse",
       "NEW": {
         "TITLE": "Nouveau PSFM"
       },
@@ -1398,7 +1396,7 @@
         "LOAD_STRATEGY_LABEL_ERROR": "Erreur lors de chargement du label de la stratégie",
         "LOAD_STRATEGY_REFERENCES_ERROR": "Erreur lors de chargement des références analytiques pour la stratégie",
         "PARAMETERS.MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}",
-        "PARAMETERS.WEIGHT_OR_SIZE": "Le poids ou la taille est obligatoire",
+        "PARAMETERS.WEIGHT_OR_LENGTH": "Le poids ou la taille est obligatoire",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
         "EFFORT.REALIZED_EFFORT": "Effort obligatoire pour les trimestres ayant des mesures individuelles : {{quarters}}",
         "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà",

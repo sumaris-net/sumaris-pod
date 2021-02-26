@@ -106,10 +106,11 @@
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}
+    <mat-cell *matCellDef="let row">
+      {{ row.currentData?.rankOrder }}
       <mat-icon color="warn"
                 *ngIf="row.validator.hasError('missingWeightOrSize')"
-                [title]="'TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_SIZE'|translate">error</mat-icon>
+                [title]="'TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_LENGTH'|translate">error</mat-icon>
     </mat-cell>
   </ng-container>
 
@@ -143,7 +144,7 @@
                        class="mat-column-pmfm"
                        [class.even]="pmfm.rankOrder % 2 === 0"
                        [class.mat-cell-date-time]="pmfm.isDate">
-        <ion-label>{{pmfm | pmfmNameTranslateOrDefault: {html: true, withDetails: true} |async}}</ion-label>
+        <ion-label>{{pmfm | pmfmName: {html: true, withDetails: true, i18nPrefix: i18nColumnPrefix, i18nContext: i18nColumnSuffix} }}</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row"
                 class="mat-column-pmfm"
@@ -279,7 +280,7 @@
                 [class.mat-cell-date-time]="pmfm|isDatePmfm"
                 [class.mat-cell-computed]="pmfm|isComputedPmfm"
                 [class.even]="pmfm.rankOrder % 2 === 0">
-        <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValueToString: {pmfm: pmfm, html: true}"></ion-text>
+        <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, html: true}"></ion-text>
       </mat-cell>
     </ng-container>
 

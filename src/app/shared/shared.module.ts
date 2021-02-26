@@ -34,6 +34,7 @@ import {NumberFormatPipe} from "./pipes/number-format.pipe";
 import {MarkdownModule} from "ngx-markdown";
 import {AppHelpModal} from "./help/help.modal";
 import {Environment, ENVIRONMENT} from "../../environments/environment.class";
+import {TranslateContextService} from "./services/translate-context.service";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -104,6 +105,7 @@ export class SharedModule {
         ProgressBarService,
         AudioProvider,
         FileService,
+        TranslateContextService,
 
         // Export Pipes as providers
         DateFormatPipe,

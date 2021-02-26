@@ -14,8 +14,7 @@ import {EvenPipe, MathAbsPipe, OddPipe} from "./math.pipes";
 import {ArrayFirstPipe, ArrayIncludesPipe, ArrayLengthPipe, ArrayPluckPipe, EmptyArrayPipe, NotEmptyArrayPipe} from "./arrays.pipe";
 import {MapGetPipe, MapKeysPipe} from "./maps.pipe";
 import {IsNilOrBlankPipe, IsNotNilOrBlankPipe} from "./string.pipes";
-import {TranslateOrDefaultPipe} from "./translateOrDefault.pipe";
-
+import {TranslateContextPipe} from "./translate-context.pipe";
 
 @NgModule({
   imports: [
@@ -47,7 +46,7 @@ import {TranslateOrDefaultPipe} from "./translateOrDefault.pipe";
     MapKeysPipe,
     IsNilOrBlankPipe,
     IsNotNilOrBlankPipe,
-    TranslateOrDefaultPipe
+    TranslateContextPipe
   ],
   exports: [
     DateFormatPipe,
@@ -73,7 +72,7 @@ import {TranslateOrDefaultPipe} from "./translateOrDefault.pipe";
     IsNilOrBlankPipe,
     IsNotNilOrBlankPipe,
     ArrayIncludesPipe,
-    TranslateOrDefaultPipe
+    TranslateContextPipe
   ]
 })
 export class SharedPipesModule {
