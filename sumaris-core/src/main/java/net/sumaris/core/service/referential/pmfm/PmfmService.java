@@ -24,9 +24,9 @@ package net.sumaris.core.service.referential.pmfm;
 
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.filter.IReferentialFilter;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -34,6 +34,9 @@ import java.util.Optional;
 
 @Transactional
 public interface PmfmService {
+
+    @Transactional(readOnly = true)
+    Page<PmfmVO> findByFilter(IReferentialFilter filter, Pageable pageable);
 
     @Transactional(readOnly = true)
     List<PmfmVO> findByFilter(IReferentialFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
