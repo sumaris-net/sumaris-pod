@@ -841,6 +841,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       // Update the label, if year change
       if (year && oldYear && year !== oldYear) {
         labelControl.setValue(computedLabel);
+        this.markAsDirty();
       } else {
         labelControl.setValue(label);
       }
