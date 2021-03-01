@@ -20,7 +20,7 @@ echo "Preparing Android environment:"
 echo "        Root: ${PROJECT_DIR}"
 echo "      NodeJS: version ${NODE_VERSION} with options: ${NODE_OPTIONS}"
 echo " Android SDK: ${ANDROID_SDK_ROOT} with CLI: ${ANDROID_SDK_CLI_ROOT}"
-echo "      Gradle: ${GRADLE_HOME}"
+echo "      Gradle: ${GRADLE_HOME} with options: ${GRADLE_OPTS}"
 echo "        Java: ${JAVA_HOME}"
 
 # Make sure javac exists

@@ -1016,10 +1016,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   markAsDirty() {
-    this.form.markAsDirty()
+    this.form.markAsDirty();
   }
-
-
 
   /**
    * get pmfm by type

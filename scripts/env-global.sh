@@ -14,7 +14,7 @@ fi;
 
 echo "Preparing project environment.."
 NODE_VERSION=12
-#NODE_OPTIONS=--max-old-space-size=4096 # Avoid Javascript memory heap space
+NODE_OPTIONS=--max-old-space-size=4096 # Avoid Javascript memory heap space
 
 ANDROID_NDK_VERSION=21.0.6113669 # Should be compatible with 'cordova-sqlite-storage' plugin
 ANDROID_SDK_VERSION=29.0.3
@@ -36,6 +36,7 @@ PROJECT_NAME=sumaris-app
 GRADLE_VERSION=6.5.1
 GRADLE_HOME=${HOME}/.gradle/${GRADLE_VERSION}
 CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-all.zip
+GRADLE_OPTS=-Dorg.gradle.jvmargs=-Xmx512m
 
 # Override with a local file, if any
 if [[ -f "${PROJECT_DIR}/.local/env.sh" ]]; then
@@ -116,6 +117,8 @@ export PATH \
   JAVA_HOME \
   NVM_DIR \
   NODE_OPTIONS \
+  GRADLE_HOME \
+  GRADLE_OPTS \
   ANDROID_SDK_ROOT \
   ANDROID_SDK_CLI_ROOT \
   CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL
