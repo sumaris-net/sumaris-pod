@@ -16,12 +16,12 @@ echo "Preparing project environment.."
 NODE_VERSION=12
 #NODE_OPTIONS=--max-old-space-size=4096 # Avoid Javascript memory heap space
 
-#ANDROID_NDK_VERSION=r19c
-ANDROID_SDK_VERSION=r29.0.2
-ANDROID_SDK_TOOLS_VERSION=6609375
-ANDROID_SDK_ROOT=/usr/lib/android-sdk
-ANDROID_ALTERNATIVE_SDK_ROOT="${HOME}/Android/Sdk"
-ANDROID_SDK_TOOLS_ROOT=${ANDROID_SDK_ROOT}/cli
+ANDROID_NDK_VERSION=21.0.6113669 # Should be compatible with 'cordova-sqlite-storage' plugin
+ANDROID_SDK_VERSION=29.0.3
+ANDROID_SDK_CLI_VERSION=6858069
+ANDROID_SDK_ROOT="${HOME}/Android/Sdk"
+ANDROID_ALTERNATIVE_SDK_ROOT=/usr/lib/android-sdk
+ANDROID_SDK_CLI_ROOT=${ANDROID_SDK_ROOT}/cli
 ANDROID_OUTPUT_APK=${PROJECT_DIR}/platforms/android/app/build/outputs/apk
 ANDROID_OUTPUT_APK_DEBUG=${ANDROID_OUTPUT_APK}/debug
 ANDROID_OUTPUT_APK_RELEASE=${ANDROID_OUTPUT_APK}/release
@@ -33,7 +33,7 @@ PROJECT_NAME=sumaris-app
 # /!\ WARN can be define in your <project>/.local/env.sh file
 #JAVA_HOME=
 
-GRADLE_VERSION=6.1.1
+GRADLE_VERSION=6.5.1
 GRADLE_HOME=${HOME}/.gradle/${GRADLE_VERSION}
 CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-all.zip
 
@@ -79,7 +79,7 @@ if [[ "_" == "_${ANDROID_SDK_ROOT}" || ! -d "${ANDROID_SDK_ROOT}" ]]; then
 fi
 
 # Add Java, Android SDK tools to path
-PATH=${ANDROID_SDK_TOOLS_ROOT}/bin:${GRADLE_HOME}/bin:${JAVA_HOME}/bin$:$PATH
+PATH=${ANDROID_SDK_CLI_ROOT}/bin:${GRADLE_HOME}/bin:${JAVA_HOME}/bin$:$PATH
 
 
 # Node JS (using nvm - Node Version Manager)
@@ -117,7 +117,7 @@ export PATH \
   NVM_DIR \
   NODE_OPTIONS \
   ANDROID_SDK_ROOT \
-  ANDROID_SDK_TOOLS_ROOT \
+  ANDROID_SDK_CLI_ROOT \
   CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL
 
 # Install global dependencies
@@ -137,3 +137,4 @@ if [[ ! -d "${PROJECT_DIR}/node_modules" ]]; then
     cd ${PROJECT_DIR}
     npm install
 fi
+

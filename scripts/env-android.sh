@@ -19,7 +19,7 @@ fi
 echo "Preparing Android environment:"
 echo "        Root: ${PROJECT_DIR}"
 echo "      NodeJS: version ${NODE_VERSION} with options: ${NODE_OPTIONS}"
-echo " Android SDK: ${ANDROID_SDK_ROOT} with SDK tools: ${ANDROID_SDK_TOOLS_ROOT}"
+echo " Android SDK: ${ANDROID_SDK_ROOT} with CLI: ${ANDROID_SDK_CLI_ROOT}"
 echo "      Gradle: ${GRADLE_HOME}"
 echo "        Java: ${JAVA_HOME}"
 
@@ -31,7 +31,7 @@ if [[ "_" == "_${JAVAC_PATH}" ]]; then
 fi
 
 # Prepare Android SDK tools
-if [[ ! -d "${ANDROID_SDK_TOOLS_ROOT}" ]]; then
+if [[ ! -d "${ANDROID_SDK_CLI_ROOT}" ]]; then
   cd "${PROJECT_DIR}/scripts"
   ./install-android-sdk-tools.sh
   [[ $? -ne 0 ]] && exit 1
