@@ -77,31 +77,32 @@ export class SamplingLandingPage extends LandingPage {
       this.landingForm.ready()
     ]);
 
-    // Add validator errors on expected effort for this sampleRow (issue #175)
-    const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, this.data.dateTime);
+      if (strategy &&  strategy.label) {
+        // Add validator errors on expected effort for this sampleRow (issue #175)
+        const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, this.data.dateTime);
 
-    // DEBUG
-    console.debug("[sampling-landing-page] Strategy effort loaded: ", strategyEffort);
+        // DEBUG
+        console.debug("[sampling-landing-page] Strategy effort loaded: ", strategyEffort);
 
-    // No effort defined
-    if (!strategyEffort) {
-      this.noEffortError = true;
-      this.zeroEffortWarning = false;
-      this.landingForm.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
-    }
-    // Effort is set, but = 0
-    else if (strategyEffort.expectedEffort === 0) {
-      this.zeroEffortWarning = true;
-      this.noEffortError = false;
-      SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
-    }
-    // And positive effort has been defined: OK
-    else {
-      this.zeroEffortWarning = false;
-      this.noEffortError = false;
-      SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
-    }
-
+        // No effort defined
+        if (!strategyEffort) {
+          this.noEffortError = true;
+          this.zeroEffortWarning = false;
+          this.landingForm.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
+        }
+        // Effort is set, but = 0
+        else if (strategyEffort.expectedEffort === 0) {
+          this.zeroEffortWarning = true;
+          this.noEffortError = false;
+          SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
+        }
+        // And positive effort has been defined: OK
+        else {
+          this.zeroEffortWarning = false;
+          this.noEffortError = false;
+          SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
+        }
+      }
     await this.samplesTable.ready();
     this.showSamplesTable = true;
     this.markForCheck();
