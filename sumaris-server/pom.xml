@@ -116,11 +116,6 @@
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-kahadb-store</artifactId>
     </dependency>
-    <dependency>
-      <groupId>javax.jms</groupId>
-      <artifactId>javax.jms-api</artifactId>
-      <scope>runtime</scope>
-    </dependency>
 
     <!-- Actuator
     <dependency>
