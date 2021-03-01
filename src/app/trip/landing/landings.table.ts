@@ -33,6 +33,8 @@ import {isNotNil} from "../../shared/functions";
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
+const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
+
 @Component({
   selector: 'app-landings-table',
   templateUrl: 'landings.table.html',
@@ -181,7 +183,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
         mapPmfms: (pmfms) => pmfms.filter(p => p.required)
       });
     this.cd = injector.get(ChangeDetectorRef);
-    this.i18nColumnPrefix = 'LANDING.TABLE.';
+    this.i18nColumnPrefix = LANDING_TABLE_DEFAULT_I18N_PREFIX;
     this.autoLoad = false; // waiting parent to be loaded, or the call of onRefresh.next()
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;

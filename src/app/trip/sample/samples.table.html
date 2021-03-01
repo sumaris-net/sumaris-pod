@@ -281,7 +281,7 @@
       <mat-cell *matCellDef="let row"
                 [class.mat-cell-date-time]="pmfm|isDatePmfm"
                 [class.mat-cell-computed]="pmfm|isComputedPmfm">
-        <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValueToString: {pmfm: pmfm, html: true}"></ion-text>
+        <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, html: true}"></ion-text>
       </mat-cell>
     </ng-container>
 

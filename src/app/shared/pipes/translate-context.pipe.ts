@@ -9,23 +9,20 @@ import {ModalController} from "@ionic/angular";
 import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Subject} from "rxjs";
+import {TranslateContextService} from "../services/translate-context.service";
 
 @Pipe({
-    name: 'translateOrDefault'
+    name: 'translateContext'
 })
 @Injectable({providedIn: 'root'})
-export class TranslateOrDefaultPipe implements PipeTransform {
+export class TranslateContextPipe implements PipeTransform {
 
   constructor(
-    protected injector: Injector,
-    protected translate: TranslateService,
-    protected cd: ChangeDetectorRef
+    protected translateContext: TranslateContextService
   ) {
-
   }
 
-  async transform(columnName: string, defaultVal: string):  Promise<string> {
-    const translatedColumnName = await this.translate.get(columnName).toPromise();
-    return (translatedColumnName == columnName) ? defaultVal : translatedColumnName;
+  transform(key: string, context?: string): string {
+    return this.translateContext.instant(key, context);
   }
 }

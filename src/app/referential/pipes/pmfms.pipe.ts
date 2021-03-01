@@ -3,8 +3,9 @@ import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {MethodIds} from "../services/model/model.enum";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
 import {IPmfm} from "../services/model/pmfm.model";
-import {isNil} from "../../shared/functions";
+import {isNil, isNilOrBlank, isNotNilOrBlank} from "../../shared/functions";
 import {TranslateService} from "@ngx-translate/core";
+import {TranslateContextService} from "../../shared/services/translate-context.service";
 
 @Pipe({
     name: 'pmfmName'
@@ -12,48 +13,48 @@ import {TranslateService} from "@ngx-translate/core";
 @Injectable({providedIn: 'root'})
 export class PmfmNamePipe implements PipeTransform {
 
-    transform(val: IPmfm, opts?: {
-      withUnit?: boolean;
-      html?: boolean;
-      withDetails?: boolean ;
-    }): string {
-      return getPmfmName(val, opts);
-    }
-}
-
-@Pipe({
-  name: 'pmfmNameTranslateOrDefault'
-})
-@Injectable({providedIn: 'root'})
-export class PmfmNameTranslateOrDefaultPipe implements PipeTransform {
-
-  i18nPmfmPrefix = 'REFERENTIAL.PMFM.';
-
   constructor(
-    protected injector: Injector,
     protected translate: TranslateService,
-    protected cd: ChangeDetectorRef
+    protected translateContext: TranslateContextService
   ) {
 
   }
 
-  async transform(val: IPmfm, opts?: {
+  transform(pmfm: IPmfm, opts?: {
     withUnit?: boolean;
     html?: boolean;
-    withDetails?: boolean ;
-  }):  Promise<string> {
-    const translatedColumnName = await this.translate.get(this.i18nPmfmPrefix + val.label).toPromise();
-    return (translatedColumnName == this.i18nPmfmPrefix + val.label) ? getPmfmName(val, opts) : translatedColumnName;
+    withDetails?: boolean;
+    i18nPrefix?: string;
+    i18nContext?: string;
+  }): string {
+    // Try to resolve PMFM using prefix + label
+    if (opts && isNotNilOrBlank(opts.i18nPrefix)) {
+      const i18nKey = opts.i18nPrefix + pmfm.label;
+
+      // I18n translation WITH context, if any
+      if (opts && opts.i18nContext) {
+        const contextualKey = this.translateContext.contextualKey(i18nKey, opts.i18nContext);
+        const contextualTranslation = this.translate.instant(contextualKey);
+        if (contextualTranslation !== contextualKey) return contextualTranslation;
+      }
+
+      // I18n translation without context
+      const translation = this.translate.instant(i18nKey);
+      if (translation !== i18nKey) return translation;
+    }
+
+    // Default name, computed from the PMFM object
+    return getPmfmName(pmfm, opts);
   }
 }
 
 @Pipe({
-  name: 'pmfmValueToString'
+  name: 'pmfmValue'
 })
 @Injectable({providedIn: 'root'})
-export class PmfmValueToStringPipe implements PipeTransform {
+export class PmfmValuePipe implements PipeTransform {
 
-  transform(val: PmfmStrategy, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; }): any {
+  transform(val: any, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; }): any {
     return PmfmValueUtils.valueToString(val, opts);
   }
 }

@@ -89,7 +89,7 @@
       <ion-label translate>TRIP.BATCH.TABLE.TOTAL_WEIGHT</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text [innerHTML]="row.currentData.measurementValues[defaultWeightPmfm.id] | pmfmValueToString: {pmfm: defaultWeightPmfm, html: true}"></ion-text>
+      <ion-text [innerHTML]="row.currentData.measurementValues[defaultWeightPmfm.id] | pmfmValue: {pmfm: defaultWeightPmfm, html: true}"></ion-text>
     </mat-cell>
   </ng-container>
 
@@ -99,7 +99,7 @@
       <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm | isDatePmfm">
-      <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValueToString: {pmfm: pmfm, html: true}"></ion-text>
+      <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, html: true}"></ion-text>
     </mat-cell>
   </ng-container>
 

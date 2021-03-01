@@ -296,20 +296,24 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.landingForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
     this.landingForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
 
-    this.samplesTable.modalOptions = {
-      ...this.samplesTable.modalOptions,
-      maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
-    };
-
     // Compute i18n prefix
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = (i18nSuffix && i18nSuffix !== 'legacy') ? i18nSuffix : '';
     this.i18nPrefix = LANDING_DEFAULT_I18N_PREFIX + i18nSuffix;
     this.landingForm.i18nPrefix = this.i18nPrefix;
+
+    if (this.samplesTable) {
+      this.samplesTable.modalOptions = {
+        ...this.samplesTable.modalOptions,
+        maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
+      };
+      this.samplesTable.i18nColumnPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX + i18nSuffix;
+      this.samplesTable.programLabel = program.label;
+    }
+
     if (this.strategyCard) {
       this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
     }
-    this.samplesTable.i18nColumnPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX + i18nSuffix;
 
     // Applying the "one tab" mode
     const oneTabMode = !this.mobile && program.getPropertyAsBoolean(ProgramProperties.LANDING_ONE_TAB_ENABLE);
@@ -317,9 +321,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.oneTabMode = oneTabMode;
       this.refreshTabLayout();
     }
-
-    // Propagate program to children components
-    this.samplesTable.programLabel = program.label;
 
   }
 

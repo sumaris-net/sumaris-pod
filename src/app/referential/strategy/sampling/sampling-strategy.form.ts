@@ -650,7 +650,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     this.form.patchValue({
       year: firstAppliedPeriod ? firstAppliedPeriod.startDate : moment(),
-      analyticReference: { label: data.analyticReference }
+      analyticReference: data.analyticReference && { label: data.analyticReference } || null
     });
 
 

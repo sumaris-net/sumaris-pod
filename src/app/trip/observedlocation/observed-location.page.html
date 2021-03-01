@@ -89,12 +89,12 @@
     </mat-tab>
 
     <!-- TAB: Landings -->
-    <mat-tab label="{{i18nPrefix + 'TAB_LANDINGS'|translate}}" [disabled]="!showLandingTab">
+    <mat-tab label="{{'OBSERVED_LOCATION.EDIT.TAB_LANDINGS'|translateContext: i18nContext.suffix }}" [disabled]="!showLandingTab">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="boat"></ion-icon>
         </mat-icon>
-        <ion-label *ngIf="$ready|async; else skeletonText100">{{i18nPrefix + 'TAB_LANDINGS'|translate}}</ion-label>
+        <ion-label *ngIf="$ready|async; else skeletonText100">{{'OBSERVED_LOCATION.EDIT.TAB_LANDINGS'|translateContext: i18nContext.suffix }}</ion-label>
 
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="landingsTable?.invalid"></ion-icon>
       </ng-template>

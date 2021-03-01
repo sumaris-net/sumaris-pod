@@ -109,7 +109,7 @@
               <ion-label [innerHTML]="qvPmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
             </mat-header-cell>
             <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="qvPmfm|isDatePmfm">
-              <ion-text>{{row.currentData.measurementValues[qvPmfm.id] | pmfmValueToString: {pmfm: qvPmfm} }}</ion-text>
+              <ion-text>{{row.currentData.measurementValues[qvPmfm.id] | pmfmValue: {pmfm: qvPmfm} }}</ion-text>
             </mat-cell>
           </ng-container>
 
@@ -131,7 +131,7 @@
               </mat-header-cell>
               <mat-cell *matCellDef="let row" class="mat-column-pmfm"
                         [class.mat-cell-date-time]="pmfm|isDatePmfm">
-                <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValueToString: { pmfm: pmfm }"></ion-text>
+                <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm }"></ion-text>
               </mat-cell>
             </ng-container>
           </ng-container>

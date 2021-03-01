@@ -76,7 +76,7 @@
       <ion-label [innerHTML]="pmfm|pmfmName: {withUnit: true, html: true}"></ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm|isDatePmfm">
-      <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValueToString: {pmfm: pmfm, html: true}"></ion-text>
+      <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, html: true}"></ion-text>
     </mat-cell>
   </ng-container>
 
