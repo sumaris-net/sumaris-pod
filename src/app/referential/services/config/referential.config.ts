@@ -164,7 +164,7 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
         statusIds: [0, 1]
       }
     },
-    defaultValue: PmfmIds.AGE
+    defaultValue: PmfmIds.MORSE_CODE
   },
   PMFM_STRATEGY_LABEL_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.pmfm.STRATEGY_LABEL.id',
@@ -176,7 +176,7 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
         statusIds: [0, 1]
       }
     },
-    defaultValue: PmfmIds.AGE
+    defaultValue: PmfmIds.STRATEGY_LABEL
   },
   PMFM_AGE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.pmfm.AGE.id',
