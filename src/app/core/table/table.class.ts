@@ -29,7 +29,7 @@ import {SelectionModel} from "@angular/cdk/collections";
 import {Entity} from "../services/model/entity.model";
 import {AlertController, ModalController, Platform, ToastController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
-import {TableSelectColumnsComponent} from './table-select-columns.component';
+import {ColumnItem, TableSelectColumnsComponent} from './table-select-columns.component';
 import {Location} from '@angular/common';
 import {ErrorCodes} from "../services/errors";
 import {AppFormUtils, IAppForm} from "../form/form.utils";
@@ -51,6 +51,7 @@ export const SETTINGS_SORTED_COLUMN = "sortedColumn";
 export const DEFAULT_PAGE_SIZE = 20;
 export const RESERVED_START_COLUMNS = ['select', 'id'];
 export const RESERVED_END_COLUMNS = ['actions'];
+export const DEFAULT_REQUIRED_COLUMNS = ['id'];
 
 export class CellValueChangeListener {
   eventEmitter: EventEmitter<any>;
@@ -802,7 +803,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     if (!data) return; // CANCELLED
 
     // Apply columns
-    const userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
+    const userColumns = columns && columns.filter(c => c.canHide === false || c.visible).map(c => c.name) || [];
     this.displayedColumns = RESERVED_START_COLUMNS.concat(userColumns).concat(RESERVED_END_COLUMNS);
     this.markForCheck();
 
@@ -868,7 +869,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     });
   }
 
-  protected getCurrentColumns(): { visible: boolean; name: string; label: string }[] {
+  protected getCurrentColumns(): ColumnItem[] {
     const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
     const hiddenColumns = this.columns.slice(fixedColumns.length)
       .filter(name => this.displayedColumns.indexOf(name) === -1);
@@ -880,9 +881,15 @@ export abstract class AppTable<T extends Entity<T>, F = any>
         return {
           name,
           label: this.getI18nColumnName(name),
-          visible: this.displayedColumns.indexOf(name) !== -1
+          visible: this.displayedColumns.indexOf(name) !== -1,
+          canHide: this.getRequiredColumns().indexOf(name) === -1
         };
       });
+  }
+
+  // can be overridden to add more required columns
+  protected getRequiredColumns() {
+    return DEFAULT_REQUIRED_COLUMNS;
   }
 
   protected getUserColumns(): string[] {

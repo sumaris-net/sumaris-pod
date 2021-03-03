@@ -16,6 +16,7 @@
       "ngx-material-timepicker": "ngx-material-timepicker",
       "ngx-color-picker": "ngx-color-picker",
       "ngx-quicklink": "ngx-quicklink",
+      "ngx-markdown": "ngx-markdown",
       "@e-is/ngx-material-table": "e-is.ngx-material-table",
       "@ionic/angular": "ionic.angular",
       "@ionic/storage": "ionic.storage",
