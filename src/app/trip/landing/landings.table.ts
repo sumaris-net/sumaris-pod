@@ -33,6 +33,8 @@ import {isNotNil} from "../../shared/functions";
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
+const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
+
 @Component({
   selector: 'app-landings-table',
   templateUrl: 'landings.table.html',
@@ -84,6 +86,15 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   get isTripDetailEditor(): boolean {
     return this._detailEditor === 'trip';
+  }
+
+  @Input()
+  set showBasePortLocationColumn(value: boolean) {
+    this.setShowColumn('vesselBasePortLocation', value);
+  }
+
+  get showBasePortLocationColumn(): boolean {
+    return this.getShowColumn('vesselBasePortLocation');
   }
 
   @Input()
@@ -148,6 +159,15 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     return this.getShowColumn('recorderPerson');
   }
 
+  @Input()
+  set showVesselBasePortLocationColumn(value: boolean) {
+    this.setShowColumn('vesselBasePortLocation', value);
+  }
+
+  get showVesselBasePortLocationColumn(): boolean {
+    return this.getShowColumn('vesselBasePortLocation');
+  }
+
   constructor(
     injector: Injector
   ) {
@@ -163,18 +183,18 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
         mapPmfms: (pmfms) => pmfms.filter(p => p.required)
       });
     this.cd = injector.get(ChangeDetectorRef);
-    this.i18nColumnPrefix = 'LANDING.TABLE.';
-    this.autoLoad = false; // waiting parent to be loaded
+    this.i18nColumnPrefix = LANDING_TABLE_DEFAULT_I18N_PREFIX;
+    this.autoLoad = false; // waiting parent to be loaded, or the call of onRefresh.next()
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
-    // TODO  ::: USE NAVIGATOR (check service)
-    this.defaultPageSize = 200; // normal high value
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.saveBeforeDelete = true;
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
+    this.defaultSortBy = 'id';
+    this.defaultSortDirection = 'asc';
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;

@@ -4,11 +4,15 @@ import {EntityQualityFormComponent} from "./quality/entity-quality-form.componen
 import {CoreModule} from "../core/core.module";
 import {QualityFlagToColorPipe} from "./services/pipes/quality-flag-to-color.pipe";
 import {StrategySummaryCardComponent} from "./strategy/strategy-summary-card.component";
+import {DataCommentModule} from "./comment/comment.module";
 
 @NgModule({
   imports: [
     CoreModule,
-    ReferentialModule
+    ReferentialModule,
+
+    // Sub modules
+    DataCommentModule
   ],
   declarations: [
     // Pipes
@@ -17,8 +21,11 @@ import {StrategySummaryCardComponent} from "./strategy/strategy-summary-card.com
     // Components
     EntityQualityFormComponent,
     StrategySummaryCardComponent
+
   ],
   exports: [
+    // Sub modules
+    DataCommentModule,
 
     // Pipes
     QualityFlagToColorPipe,

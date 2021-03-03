@@ -394,7 +394,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   /* -- protected methods -- */
 
-  async getSubBatches(opts?: {saveIfDirty?: boolean}): Promise<SubBatch[]> {
+  async getSubBatches(opts?: { saveIfDirty?: boolean; }): Promise<SubBatch[]> {
     if (!this.showBatchTables) return undefined;
     if (this.subBatchesTable) {
       // Save table first (if need)

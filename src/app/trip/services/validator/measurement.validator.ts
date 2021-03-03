@@ -1,18 +1,16 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {AbstractControl, AbstractControlOptions, FormBuilder, FormGroup, ValidatorFn} from "@angular/forms";
+import {AbstractControl, AbstractControlOptions, FormBuilder, FormGroup} from "@angular/forms";
 
 import {toBoolean} from '../../../shared/functions';
-import {ProgramService} from "../../../referential/services/program.service";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {Measurement, MeasurementUtils, MeasurementValuesUtils} from "../model/measurement.model";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
-import {ProgramRefService} from "../../../referential/services/program-ref.service";
+import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 export interface MeasurementsValidatorOptions {
   isOnFieldMode?: boolean;
-  pmfms?: PmfmStrategy[];
+  pmfms?: IPmfm[];
   protectedAttributes?: string[];
   forceOptional?: boolean;
 }
@@ -53,10 +51,10 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
     return opts.pmfms.reduce((res, pmfm) => {
       const validator = PmfmValidators.create(pmfm, null, opts);
       if (validator) {
-        res[pmfm.pmfmId] = [measurementValues ? measurementValues[pmfm.pmfmId] : null, validator];
+        res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null, validator];
       }
       else {
-        res[pmfm.pmfmId] = [measurementValues ? measurementValues[pmfm.pmfmId] : null];
+        res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null];
       }
       return res;
     }, {});
@@ -75,7 +73,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       controlNamesToRemove.push(controlName);
     }
     opts.pmfms.forEach(pmfm => {
-      const controlName = pmfm.pmfmId.toString();
+      const controlName = pmfm.id.toString();
       let formControl: AbstractControl = form.get(controlName);
       // If new pmfm: add as control
       if (!formControl) {

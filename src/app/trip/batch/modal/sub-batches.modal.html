@@ -104,12 +104,12 @@
           </ng-container>
 
           <!-- QV Pmfm columns -->
-          <ng-container *ngIf="qvPmfm" [matColumnDef]="qvPmfm.pmfmId.toString()">
+          <ng-container *ngIf="qvPmfm" [matColumnDef]="qvPmfm.id.toString()">
             <mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="qvPmfm|isDatePmfm">
               <ion-label [innerHTML]="qvPmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
             </mat-header-cell>
             <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="qvPmfm|isDatePmfm">
-              <ion-text>{{row.currentData.measurementValues[qvPmfm.pmfmId] | pmfmValueToString: {pmfm: qvPmfm} }}</ion-text>
+              <ion-text>{{row.currentData.measurementValues[qvPmfm.id] | pmfmValue: {pmfm: qvPmfm} }}</ion-text>
             </mat-cell>
           </ng-container>
 
@@ -125,13 +125,13 @@
 
           <!-- Pmfms columns -->
           <ng-container *ngFor="let pmfm of $pmfms | async">
-            <ng-container *ngIf="pmfm.pmfmId !== qvPmfm.pmfmId" [matColumnDef]="pmfm.pmfmId.toString()">
+            <ng-container *ngIf="pmfm.id !== qvPmfm.id" [matColumnDef]="pmfm.id.toString()">
               <mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="pmfm|isDatePmfm" >
                 <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
               </mat-header-cell>
               <mat-cell *matCellDef="let row" class="mat-column-pmfm"
                         [class.mat-cell-date-time]="pmfm|isDatePmfm">
-                <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.pmfmId] | pmfmValueToString: { pmfm: pmfm }"></ion-text>
+                <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm }"></ion-text>
               </mat-cell>
             </ng-container>
           </ng-container>

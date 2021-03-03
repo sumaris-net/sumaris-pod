@@ -12,7 +12,7 @@ import {PmfmService} from "../../services/pmfm.service";
 import {StrategyService} from "../../services/strategy.service";
 import {SamplingStrategyForm} from "./sampling-strategy.form";
 import {AppEntityEditor} from "../../../core/form/editor.class";
-import {isNil, isNotNil, toNumber} from "../../../shared/functions";
+import {isNil, isNotEmptyArray, isNotNil, toNumber} from "../../../shared/functions";
 import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
 import {firstNotNilPromise} from "../../../shared/observables";
 import {BehaviorSubject} from "rxjs";
@@ -103,8 +103,6 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
       this.$program.next(program);
     }
 
-    // Fill default PmfmStrategy (if need)
-    this.fillPmfmStrategyDefaults(data);
   }
 
   protected registerForms() {
@@ -157,38 +155,55 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
     this.strategyForm.setValue(data);
   }
 
-  protected async getJsonValueToSave(): Promise<Strategy> {
+  protected async getValue(): Promise<Strategy> {
 
-    const json = await this.strategyForm.getValue();
+    const value: Strategy = await this.strategyForm.getValue();
 
     // Add default PmfmStrategy
-    this.fillPmfmStrategyDefaults(json);
+    this.fillPmfmStrategyDefaults(value);
 
-    return json;
+    return value;
+  }
+
+
+  async save(event?: Event, options?: any): Promise<boolean> {
+    // Check access concurence
+    this.form.get('label').updateValueAndValidity();
+    return super.save(event, options);
   }
 
 
   /**
    * Fill default PmfmStrategy (e.g. the PMFM to store the strategy's label)
-   * @param data
+   * @param target
    */
-  fillPmfmStrategyDefaults(data: Strategy) {
-    data.pmfmStrategies = data.pmfmStrategies || [];
+  fillPmfmStrategyDefaults(target: Strategy) {
+    target.pmfms = target.pmfms || [];
 
-    // Find existing strategy label pmfm and create if not exists
-    let pmfmStrategyLabel: PmfmStrategy = data.pmfmStrategies.find(pmfm =>
-      toNumber(pmfm.pmfmId, pmfm.pmfm && pmfm.pmfm.id) === PmfmIds.STRATEGY_LABEL);
+    let pmfmStrategyLabelExists = false;
+    target.pmfms.forEach(pmfmStrategy => {
+      // Keep only pmfmId
+      pmfmStrategy.pmfmId = toNumber(pmfmStrategy.pmfm && pmfmStrategy.pmfm.id, pmfmStrategy.pmfmId);
+      delete pmfmStrategy.pmfm;
 
-    if (!pmfmStrategyLabel) {
+      // Find existing strategy label pmfm
+      pmfmStrategyLabelExists = pmfmStrategyLabelExists || (pmfmStrategy.pmfmId === PmfmIds.STRATEGY_LABEL);
+    });
+
+    // Add a Pmfm for the strategy label, if missing
+    if (!pmfmStrategyLabelExists) {
       console.debug(`[simple-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.STRATEGY_LABEL}} to hold the strategy label, on ${AcquisitionLevelCodes.LANDING}`);
-      pmfmStrategyLabel = <PmfmStrategy>{};
-      pmfmStrategyLabel.pmfmId = PmfmIds.STRATEGY_LABEL;
-      pmfmStrategyLabel.acquisitionLevel = AcquisitionLevelCodes.LANDING;
-      pmfmStrategyLabel.isMandatory = true;
-      pmfmStrategyLabel.acquisitionNumber = 1;
-      pmfmStrategyLabel.rankOrder = 1; // Should be the only one PmfmStrategy on Landing
-      data.pmfmStrategies.push(pmfmStrategyLabel);
+      target.pmfms.push(PmfmStrategy.fromObject({
+        pmfm: {id: PmfmIds.STRATEGY_LABEL},
+        acquisitionLevel: AcquisitionLevelCodes.LANDING,
+        isMandatory: true,
+        acquisitionNumber : 1,
+        rankOrder: 1 // Should be the only one PmfmStrategy on Landing
+      }));
     }
+
+    // Remove unused attributes
+    delete target.denormalizedPmfms;
   }
 
 
@@ -199,6 +214,24 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
       title: `${this.data.label} - ${this.data.name}`,
       subtitle: 'REFERENTIAL.ENTITY.PROGRAM'
     };
+  }
+
+  protected async updateRoute(data: Strategy, queryParams: any): Promise<boolean> {
+    const path = this.computePageUrl(isNotNil(data.id) ? data.id : 'new');
+    const commands: any[] = (path && typeof path === 'string') ? path.split('/') : path as any[];
+    if (isNotEmptyArray(commands)) {
+      commands.pop();
+      // commands.push('strategy');
+      // commands.push('sampling');
+      // commands.push(data.id);
+      return await this.router.navigate(commands, {
+        replaceUrl: true,
+        queryParams: this.queryParams
+      });
+    }
+    else {
+      console.warn('Skip page route update. Invalid page path: ', path);
+    }
   }
 }
 

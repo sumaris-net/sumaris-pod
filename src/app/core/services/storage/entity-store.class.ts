@@ -99,7 +99,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
 
     // If need full entities, but use light entities in the entities array
     if (this._mapToLightEntity && (opts && opts.fullLoad === true)) {
-      console.warn("[entity-store] WARN: Watching full entities, splited by id in entity store. This can be long! Please make sure you need full entities here.")
+      console.warn("[entity-store] WARN: Watching full entities, splited by id in entity store. This can be long! Please make sure you need full entities here.");
       return this._onChange
         .pipe(
           // Apply filter on cache
@@ -187,13 +187,13 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
   }
 
   saveAll(entities: T[], opts?: { emitEvent?: boolean; reset?: boolean; }): T[] {
-    if (isEmptyArray(entities)) return entities; // Nothing to save
+    if (isEmptyArray(entities) && (!opts || opts.reset !== true)) return entities; // Skip (Nothing to save)
 
     let result: T[];
 
     console.info(`[entity-storage] Saving ${entities.length} ${this.name}(s)`);
 
-    // First save
+    // First save, or reset using given entities
     if (isEmptyArray(this._cache) || (opts && opts.reset)) {
       this.setEntities(entities, {emitEvent: false});
     }
@@ -511,7 +511,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
                           sortDirection?: string;
                           filter?: (T) => boolean;
                         }): LoadResult<T> {
-    if (!data || !data.length) {
+    if (isEmptyArray(data)) {
       return {data: [], total: 0};
     }
 
@@ -519,7 +519,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     data = data.filter(isNotNil);
 
     if (!variables) {
-      // Return all (but copy and filter array)
+      // Return all (but array has been filtered, and copied)
       return {data, total: data.length};
     }
 
@@ -554,10 +554,14 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
           data.slice(variables.offset);
       }
     }
+
+    // Apply a limit
     else if (variables.size > 0){
-      data = data.slice(0, variables.size - 1);
-    } else if (variables.size < 0){
-      // Force to keep all data
+      data = data.slice(0, variables.size);
+    }
+    // No limit:
+    else if (variables.size === -1){
+      // Keep all data
     }
 
     return {data, total};

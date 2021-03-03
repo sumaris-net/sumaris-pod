@@ -1,5 +1,5 @@
 import {FormGroup} from "@angular/forms";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {Subscription} from "rxjs";
 import {isNotNil} from "../../../shared/functions";
 import {ObjectMap} from "../../../shared/types";
@@ -7,7 +7,7 @@ import {ObjectMap} from "../../../shared/types";
 export class BiologicalSamplingValidators {
 
 
-  static addSampleValidators(form: FormGroup, pmfms: PmfmStrategy[],
+  static addSampleValidators(form: FormGroup, pmfms: DenormalizedPmfmStrategy[],
                              pmfmGroups: ObjectMap<number[]>,
                              opts?: { markForCheck: () => void }): Subscription {
     if (!form) {

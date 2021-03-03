@@ -12,6 +12,7 @@ import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {isNil, isNotEmptyArray, isNotNilOrNaN, round} from "../../shared/functions";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {PlatformService} from "../../core/services/platform.service";
+import {LoadResult} from "../../shared/services/entity-service.class";
 
 
 @Component({
@@ -93,7 +94,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
 
   }
 
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     return this.programRefService.suggestTaxonGroups(value,
       {
         program: this.program,

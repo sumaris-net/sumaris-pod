@@ -1,7 +1,7 @@
 import {Strategy} from "./strategy.model";
 import {Moment} from "moment";
 import {fromDateISOString} from "../../../shared/dates";
-import {isNil} from "../../../shared/functions";
+import {isNil, toNumber} from "../../../shared/functions";
 
 export class SamplingStrategy extends Strategy<SamplingStrategy> {
 
@@ -73,8 +73,8 @@ export class StrategyEffort {
     this.strategyLabel = source.strategy || source.strategyLabel;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
-    this.expectedEffort = source.expectedEffort;
-    this.realizedEffort = source.realizedEffort;
+    this.expectedEffort = toNumber(source.expectedEffort);
+    this.realizedEffort = toNumber(source.realizedEffort);
 
     // Compute quarter (if possible = is same between start/end date)
     const startQuarter = this.startDate && this.startDate.quarter();

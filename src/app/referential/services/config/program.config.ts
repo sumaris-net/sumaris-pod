@@ -161,7 +161,7 @@ export const ProgramProperties = Object.freeze({
     defaultValue: "false",
     type: 'boolean'
   },
-  OBSERVED_LOCATION_LOCATION_LEVEL_ID: <FormFieldDefinition>{
+  OBSERVED_LOCATION_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.location.level.ids',
     label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_LOCATION_LEVEL_IDS",
     type: 'string',
@@ -254,6 +254,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: "false",
     type: 'boolean'
   },
+  LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.vesselBasePortLocation.enable',
+    label: "PROGRAM.OPTIONS.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
   LANDING_LOCATION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.location.enable',
     label: "PROGRAM.OPTIONS.LANDING_LOCATION_ENABLE",
@@ -281,9 +287,9 @@ export const ProgramProperties = Object.freeze({
 
   /* -- Landed trip options -- */
 
-  LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID: <FormFieldDefinition>{
-    key: 'sumaris.landedTrip.fishingArea.locationLevel.id',
-    label: 'PROGRAM.OPTIONS.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID',
+  LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.landedTrip.fishingArea.locationLevel.ids',
+    label: 'PROGRAM.OPTIONS.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS',
     type: 'entity',
     autocomplete: {
       filter: {
@@ -328,24 +334,6 @@ export const ProgramProperties = Object.freeze({
       }
     ],
     defaultValue: 'legacy'
-  },
-
-  // PROGRAM STRATEGY EDITOR column name
-  PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME: <FormFieldDefinition>{
-    key: 'sumaris.program.strategy.editor.pmfm.table.column.name',
-    label: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME',
-    type: 'enum',
-    values: [
-      {
-        key: 'shortName',
-        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME'
-      },
-      {
-        key: 'longName',
-        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME'
-      }
-    ],
-    defaultValue: 'longName'
   },
 
   /* -- QUalitative value options -- */

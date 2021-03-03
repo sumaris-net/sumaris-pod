@@ -1,14 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  Injector,
-  OnInit,
-  Optional,
-  QueryList,
-  ViewChild,
-  ViewChildren
-} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, Optional, QueryList, ViewChild, ViewChildren} from '@angular/core';
 
 import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
 import {LandingForm} from "./landing.form";
@@ -33,16 +23,16 @@ import {AppEditorOptions} from "../../core/form/editor.class";
 import {Program} from "../../referential/services/model/program.model";
 import {fromDateISOString} from "../../shared/dates";
 import {environment} from "../../../environments/environment";
-import {
-  STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX,
-  StrategySummaryCardComponent
-} from "../../data/strategy/strategy-summary-card.component";
+import {STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent} from "../../data/strategy/strategy-summary-card.component";
 import {merge, Subscription} from "rxjs";
 import {Strategy} from "../../referential/services/model/strategy.model";
 import {firstNotNilPromise} from "../../shared/observables";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import * as momentImported from "moment";
 import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {PmfmService} from "../../referential/services/pmfm.service";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {PmfmIds} from "../../referential/services/model/model.enum";
 
 const moment = momentImported;
 
@@ -70,6 +60,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected parent: Trip | ObservedLocation;
   protected observedLocationService: ObservedLocationService;
   protected tripService: TripService;
+  protected pmfmService: PmfmService;
   protected referentialRefService: ReferentialRefService;
   protected vesselService: VesselSnapshotService;
   protected platform: PlatformService;
@@ -137,17 +128,24 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.registerSubscription(
       merge(
         this.samplesTable.onConfirmEditCreateRow,
-        this.samplesTable.onCancelOrDeleteRow
+        this.samplesTable.onCancelOrDeleteRow,
+        this.samplesTable.onAfterDeletedRows
       )
         .pipe(debounceTime(500))
         .subscribe(() => {
-          this.landingForm.canEditStrategy = this.samplesTable.resultsLength === 0;
+          this.landingForm.canEditStrategy = this.samplesTable.visibleRowCount === 0;
         })
     );
   }
 
   protected registerForms() {
     this.addChildForms([this.landingForm, this.samplesTable]);
+  }
+
+  async reload(): Promise<void> {
+    this.loading = true;
+    const route = this.route.snapshot;
+    await this.load(this.data && this.data.id, route.params);
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
@@ -290,7 +288,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
 
     // Customize the UI, using program options
-    this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_ID);
+    this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
     this.landingForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
     this.landingForm.requiredStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
     this.landingForm.showStrategy = this.landingForm.requiredStrategy;
@@ -298,20 +296,24 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.landingForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
     this.landingForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
 
-    this.samplesTable.modalOptions = {
-      ...this.samplesTable.modalOptions,
-      maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
-    };
-
     // Compute i18n prefix
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = (i18nSuffix && i18nSuffix !== 'legacy') ? i18nSuffix : '';
     this.i18nPrefix = LANDING_DEFAULT_I18N_PREFIX + i18nSuffix;
     this.landingForm.i18nPrefix = this.i18nPrefix;
+
+    if (this.samplesTable) {
+      this.samplesTable.modalOptions = {
+        ...this.samplesTable.modalOptions,
+        maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
+      };
+      this.samplesTable.i18nColumnPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX + i18nSuffix;
+      this.samplesTable.programLabel = program.label;
+    }
+
     if (this.strategyCard) {
       this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
     }
-    this.samplesTable.i18nColumnPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX + i18nSuffix;
 
     // Applying the "one tab" mode
     const oneTabMode = !this.mobile && program.getPropertyAsBoolean(ProgramProperties.LANDING_ONE_TAB_ENABLE);
@@ -319,9 +321,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.oneTabMode = oneTabMode;
       this.refreshTabLayout();
     }
-
-    // Propagate program to children components
-    this.samplesTable.programLabel = program.label;
 
   }
 
@@ -340,8 +339,28 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
     this.samplesTable.showTaxonGroupColumn = false;
 
-    // TODO BLA : give default
-    this.samplesTable.pmfms = (strategy.pmfmStrategies || []).filter(p => p.acquisitionLevel === this.samplesTable.acquisitionLevel);
+    // We use pmfms from strategy and from sampling data. Some pmfms are only stored in data.
+    const strategyPmfms: IPmfm[] = (strategy.denormalizedPmfms || []).filter(p => p.acquisitionLevel === this.samplesTable.acquisitionLevel);
+    const strategyPmfmIds = strategyPmfms.map(pmfm => pmfm.id);
+
+    // Retrieve additional pmfms, from samples
+    const additionalPmfmIds = (this.data.samples || []).reduce((res, sample) => {
+      const pmfmIds = Object.keys(sample.measurementValues || {}).map(id => +id);
+      const newPmfmIds = pmfmIds.filter(id => !res.includes(id) && !strategyPmfmIds.includes(id));
+      return newPmfmIds.length ? res.concat(...newPmfmIds) : res;
+    }, []);
+
+    const allPmfms = [
+      ...strategyPmfms,
+      ...(await Promise.all(additionalPmfmIds.map(id => this.pmfmService.load(id))))
+    ];
+
+    // Hide fractions pmfms
+    // TODO BLA: Attention: ceci n'est pas applicable sur un Pmfm ou un DenormalizedPmfmStrategy
+    //const pmfmsFromSamplesWithoutFractions = (pmfmsFromStrategyAndSamples || []).filter(pmfmStrategy => isNil(pmfmStrategy.fractionId));
+
+    this.samplesTable.pmfms = allPmfms;
+    this.samplesTable.strategyLabel = strategy.label;
   }
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {
@@ -372,7 +391,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
 
-    this.landingForm.canEditStrategy = isEmptyArray(data.samples);
+    const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL];
+    if (strategyLabel) {
+      this.landingForm.$strategyLabel.next(strategyLabel);
+    }
+
+    this.landingForm.canEditStrategy = isNil(strategyLabel) || isEmptyArray(data.samples);
     this.landingForm.value = data;
 
     // Set samples to table
@@ -436,6 +460,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     return data;
   }
 
+
   protected refreshTabLayout() {
     // Inject content of tabs, into the first tab
     const injectionPoint = this.oneTabMode && this.firstTabInjection && this.firstTabInjection.nativeElement;
@@ -447,7 +472,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     }
   }
 
-  protected computeSampleRowValidator(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {
+  protected computeSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
     console.warn('[landing-page] No row validator override');
     // Can be override by subclasses (e.g auction control, biological sampling samples table)
     return null;

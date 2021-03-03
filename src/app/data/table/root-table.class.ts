@@ -157,7 +157,7 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
   async prepareOfflineMode(event?: UIEvent, opts?: {
     toggleToOfflineMode?: boolean; // Switch to offline mode ?
     showToast?: boolean; // Display success toast ?
-  }) {
+  }): Promise<undefined | boolean> {
     if (this.importing) return; // skip
 
     // If offline, warn user and ask to reconnect
@@ -165,7 +165,7 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
       return this.network.showOfflineToast({
         // Allow to retry to connect
         showRetryButton: true,
-        onRetrySuccess: () => this.prepareOfflineMode()
+        onRetrySuccess: () => this.prepareOfflineMode(null, opts)
       });
     }
 
@@ -209,9 +209,12 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
 
       // Hide the warning message
       this.showUpdateOfflineFeature = false;
+      return success;
     }
     catch (err) {
+      success = false;
       this.error = err && err.message || err;
+      return success;
     }
     finally {
       this.hasOfflineMode = this.hasOfflineMode || success;

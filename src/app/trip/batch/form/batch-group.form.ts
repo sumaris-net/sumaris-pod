@@ -15,8 +15,8 @@ import {firstNotNilPromise} from "../../../shared/observables";
 import {BatchGroup} from "../../services/model/batch-group.model";
 import {MeasurementsValidatorService} from "../../services/validator/measurement.validator";
 import {ReferentialUtils} from "../../../core/services/model/referential.model";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
+import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {IPmfm, PmfmUtils} from "../../../referential/services/model/pmfm.model";
 import {AppFormUtils} from "../../../core/form/form.utils";
 import {InputElement} from "../../../shared/inputs";
 import {isNotNil} from "../../../shared/functions";
@@ -32,10 +32,10 @@ import {ProgramRefService} from "../../../referential/services/program-ref.servi
 })
 export class BatchGroupForm extends BatchForm<BatchGroup> {
 
-  $childrenPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  $childrenPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   hasIndividualMeasureControl: AbstractControl;
 
-  @Input() qvPmfm: PmfmStrategy;
+  @Input() qvPmfm: IPmfm;
 
   @Input() taxonGroupsNoWeight: string[];
 
@@ -200,12 +200,12 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       data.children = this.qvPmfm.qualitativeValues.map((qv, index) => {
 
         // Find existing child, or create a new one
-        const child = (data.children || []).find(c => +(c.measurementValues[this.qvPmfm.pmfmId]) == qv.id)
+        const child = (data.children || []).find(c => +(c.measurementValues[this.qvPmfm.id]) == qv.id)
           || new Batch();
 
         // Make sure label and rankOrder are correct
         child.label = `${data.label}.${qv.label}`;
-        child.measurementValues[this.qvPmfm.pmfmId] = qv;
+        child.measurementValues[this.qvPmfm.id] = qv;
         child.rankOrder = index + 1;
 
         // Check there is a sampling batch
@@ -267,7 +267,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       });
   }
 
-  protected mapPmfms(pmfms: PmfmStrategy[]) {
+  protected mapPmfms(pmfms: IPmfm[]) {
     this.qvPmfm = this.qvPmfm || PmfmUtils.getFirstQualitativePmfm(pmfms);
     if (this.qvPmfm) {
 
@@ -276,10 +276,10 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
       // Hide for children form, and change it as required
       this.qvPmfm.hidden = true;
-      this.qvPmfm.isMandatory = true;
+      this.qvPmfm.required = true;
 
       // Replace in the list
-      this.$childrenPmfms.next(pmfms.map(p => p.pmfmId === this.qvPmfm.pmfmId ? this.qvPmfm : p));
+      this.$childrenPmfms.next(pmfms.map(p => p.id === this.qvPmfm.id ? this.qvPmfm : p));
 
       // Do not display PMFM in the root batch
       pmfms = [];
@@ -324,7 +324,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
         child.rankOrder = index + 1;
         child.label = `${data.label}.${qv.label}`;
         child.measurementValues = child.measurementValues || {};
-        child.measurementValues[this.qvPmfm.pmfmId.toString()] = '' + qv.id;
+        child.measurementValues[this.qvPmfm.id.toString()] = '' + qv.id;
 
         // Special case: when sampling on individual count only (e.g. RJB - Pocheteau)
         const sampleBatch = BatchUtils.getSamplingChild(child);

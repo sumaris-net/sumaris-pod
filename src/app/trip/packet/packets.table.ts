@@ -9,7 +9,7 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from "@angular/common";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {BehaviorSubject} from "rxjs";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {PacketModal} from "./packet.modal";
 import {PacketSaleModal} from "../sale/packet-sale.modal";
 import {isNil, isNotEmptyArray} from "../../shared/functions";
@@ -69,7 +69,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     return this._dirty || this.memoryDataService.dirty;
   }
 
-  private packetSalePmfms: PmfmStrategy[];
+  private packetSalePmfms: DenormalizedPmfmStrategy[];
 
   constructor(
     protected injector: Injector,

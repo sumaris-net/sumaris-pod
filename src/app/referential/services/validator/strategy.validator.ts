@@ -33,9 +33,8 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
       gears: this.getGearsFormArray(data),
       taxonGroups: this.getTaxonGroupStrategyFormArray(data),
       taxonNames: this.getTaxonNameStrategyFormArray(data),
-      pmfmStrategies: this.getPmfmStrategiesFormArray(data),
+      pmfms: this.getPmfmStrategiesFormArray(data),
       appliedStrategies: this.getAppliedStrategiesFormArray(data),
-      appliedPeriods: this.getAppliedPeriodsFormArray(data && data.appliedStrategies[0]),
       departments: this.getStrategyDepartmentsFormArray(data),
 
       programId: [toNumber(data && data.programId, null)],
@@ -54,7 +53,7 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
 
   getPmfmStrategiesFormArray(data?: Strategy) {
     return this.formBuilder.array(
-      (data && data.pmfmStrategies || []).map(ps => this.pmfmStrategyValidatorService.getFormGroup(ps))
+      (data && data.pmfms || []).map(ps => this.pmfmStrategyValidatorService.getFormGroup(ps))
     );
   }
 
@@ -66,6 +65,7 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
 
   getAppliedStrategiesControl(data?: AppliedStrategy): FormGroup {
     return this.formBuilder.group({
+      id: [toNumber(data && data.id, null)],
       strategyId: [toNumber(data && data.strategyId, null)],
       location: [data && data.location, Validators.compose([Validators.required, SharedValidators.entity])],
       appliedPeriods: this.getAppliedPeriodsFormArray(data)

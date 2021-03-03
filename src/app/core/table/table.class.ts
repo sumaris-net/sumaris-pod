@@ -110,6 +110,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   // Table options
   @Input() i18nColumnPrefix = 'COMMON.';
+  @Input() i18nColumnSuffix: string;
   @Input() autoLoad = true;
   @Input() readOnly: boolean;
   @Input() inlineEdition: boolean;
@@ -145,17 +146,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   @Output() onOpenRow = new EventEmitter<{ id?: number; row: TableElement<T> }>();
-
   @Output() onNewRow = new EventEmitter<any>();
-
   @Output() onStartEditingRow = new EventEmitter<TableElement<T>>();
-
   @Output() onConfirmEditCreateRow = new EventEmitter<TableElement<T>>();
-
   @Output() onCancelOrDeleteRow = new EventEmitter<TableElement<T>>();
-
   @Output() onBeforeDeleteRows = createPromiseEventEmitter<boolean, {rows: TableElement<T>[]}>();
-
   @Output() onAfterDeletedRows = new EventEmitter<TableElement<T>[]>();
 
   @Output() onSort = new EventEmitter<any>();

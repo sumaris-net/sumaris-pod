@@ -14,7 +14,7 @@ cd ${PROJECT_DIR}
 
 # Run the build
 echo "Running cordova build..."
-ionic cordova build android --prod --release --warning-mode=none --color
+ionic cordova build android --warning-mode=none --color --prod --release
 
 if [[ $? -ne 0 ]]; then
   echo "Something's wrong with your environment. Please check if you have permissions on ~/.android"
@@ -26,8 +26,8 @@ KEYSTORE_FILE=${PROJECT_DIR}/.local/android/Sumaris.keystore
 KEY_ALIAS=Sumaris
 KEY_PWD=
 APK_DIR=${PROJECT_DIR}/platforms/android/app/build/outputs/apk/release
-APK_UNSIGNED_FILE=${APK_DIR}/app-release.apk
-BUILD_TOOLS_DIR="${ANDROID_SDK_ROOT}/build-tools/28.*/"
+APK_UNSIGNED_FILE=${APK_DIR}/app-release-unsigned.apk
+BUILD_TOOLS_DIR="${ANDROID_SDK_ROOT}/build-tools/${ANDROID_SDK_VERSION}/"
 
 if [[ ! -f "${APK_UNSIGNED_FILE}" ]]; then
   echo "APK file not found at: ${APK_UNSIGNED_FILE}"

@@ -58,6 +58,8 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
   extends BaseRootDataService<T, F, Q, M, S>
   implements IDataSynchroService<T, O> {
 
+  protected _featureName: string;
+
   protected referentialRefService: ReferentialRefService;
   protected personService: PersonService;
   protected vesselSnapshotService: VesselSnapshotService;
@@ -68,7 +70,10 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
 
   protected $importationProgress: Observable<number>;
 
-  protected featureName: string;
+  get featureName(): string {
+    return this._featureName || DEFAULT_FEATURE_NAME;
+  }
+
 
   protected constructor (
     injector: Injector,
@@ -91,11 +96,8 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
   }): Observable<number>{
     if (this.$importationProgress) return this.$importationProgress; // Skip to may call
 
-    const maxProgression = opts && opts.maxProgression || 100;
-
-    const featuresName = this.featureName || DEFAULT_FEATURE_NAME;
-
-    const jobOpts = {maxProgression: undefined};
+    const totalProgression = opts && opts.maxProgression || 100;
+    const jobOpts = { maxProgression: undefined};
     const jobDefers: Observable<number>[] = [
       // Clear caches
       defer(() => timer()
@@ -105,7 +107,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
         )
       ),
 
-      // Import Jobs
+      // Execute import Jobs
       ...this.getImportJobs(jobOpts),
 
       // Save data to local storage, then set progression to the max
@@ -116,10 +118,10 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
         ))
     ];
     const jobCount = jobDefers.length;
-    jobOpts.maxProgression = Math.trunc(maxProgression / jobCount);
+    jobOpts.maxProgression = Math.trunc(totalProgression / jobCount);
 
     const now = Date.now();
-    console.info(`[synchro-service] Starting ${featuresName} importation (${jobDefers.length} jobs)...`);
+    console.info(`[root-data-service] Starting ${this.featureName} importation (${jobDefers.length} jobs)...`);
 
     // Execute all jobs, one by one
     let jobIndex = 0;
@@ -131,7 +133,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
             map(jobProgression => {
               jobIndex = index;
               if (this._debug && jobProgression > jobOpts.maxProgression) {
-                console.warn(`[synchro-service] WARN job #${jobIndex} return a jobProgression > maxProgression (${jobProgression} > ${jobOpts.maxProgression})!`);
+                console.warn(`[root-data-service] WARN job #${jobIndex} return a jobProgression > maxProgression (${jobProgression} > ${jobOpts.maxProgression})!`);
               }
               // Compute total progression
               return index * jobOpts.maxProgression + Math.min(jobProgression || 0, jobOpts.maxProgression);
@@ -140,24 +142,24 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
       }),
 
       // Finish (force to reach max value)
-      of(maxProgression)
+      of(totalProgression)
         .pipe(
           tap(() => {
             this.$importationProgress = null;
-            console.info(`[synchro-service] Importation finished in ${Date.now() - now}ms`);
-            this.settings.registerOfflineFeature(featuresName);
+            console.info(`[root-data-service] Importation finished in ${Date.now() - now}ms`);
+            this.settings.markOfflineFeatureAsSync(this.featureName);
           })
         ))
 
       .pipe(
         catchError((err) => {
           this.$importationProgress = null;
-          console.error(`[synchro-service] Error during importation (job #${jobIndex + 1}): ${err && err.message || err}`, err);
+          console.error(`[root-data-service] Error during importation (job #${jobIndex + 1}): ${err && err.message || err}`, err);
           throw err;
         }),
         // Compute total progression (= job offset + job progression)
         // (and make ti always <= maxProgression)
-        map((progression) =>  Math.min(progression, maxProgression))
+        map((progression) =>  Math.min(progression, totalProgression))
       );
 
     return this.$importationProgress;
@@ -176,7 +178,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
    * Can be override by subclasses (e.g. to check in the entities storage)
    */
   async hasOfflineData(): Promise<boolean> {
-    const featuresName = this.featureName || DEFAULT_FEATURE_NAME;
+    const featuresName = this._featureName || DEFAULT_FEATURE_NAME;
     return this.settings.hasOfflineFeature(featuresName);
   }
 
@@ -204,7 +206,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
       entity.synchronizationStatus = 'READY_TO_SYNC';
 
       const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
-      if (this._debug) console.debug(`[trip-service] Terminate {${entity.id}} locally...`, json);
+      if (this._debug) console.debug(`[root-data-service] Terminate {${entity.id}} locally...`, json);
 
       // Save response locally
       await this.entities.save(json);
@@ -235,7 +237,9 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
    * @param opts
    * @protected
    */
-  protected getImportJobs(opts: {maxProgression: undefined}): Observable<number>[] {
+  protected getImportJobs(opts: {
+    maxProgression: undefined;
+  }): Observable<number>[] {
     return JobUtils.defers([
       (p, o) => this.referentialRefService.executeImport(p, o),
       (p, o) => this.personService.executeImport(p, o),

@@ -33,6 +33,7 @@ import {DataModule} from "../data/data.module";
 import {TranslateModule} from "@ngx-translate/core";
 import {SamplesModal} from "./sample/samples.modal";
 import {SamplingLandingPage} from "./landing/sampling/sampling-landing.page";
+import {ObservedLocationOfflineModal} from "./observedlocation/offline/observed-location-offline.modal";
 
 
 @NgModule({
@@ -47,6 +48,7 @@ import {SamplingLandingPage} from "./landing/sampling/sampling-landing.page";
     ObservedLocationForm,
     ObservedLocationPage,
     ObservedLocationsPage,
+    ObservedLocationOfflineModal,
     LandingsTable,
     LandingPage,
     SamplingLandingPage,
@@ -80,6 +82,7 @@ import {SamplingLandingPage} from "./landing/sampling/sampling-landing.page";
     TripModule,
 
     // Components
+    ObservedLocationOfflineModal,
     LandingsTable,
     LandingForm,
     LandingPage,

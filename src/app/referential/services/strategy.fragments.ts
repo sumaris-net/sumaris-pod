@@ -1,6 +1,37 @@
 import {gql} from "@apollo/client/core";
 
 export const StrategyFragments = {
+  lightStrategy: gql`fragment LightStrategyFragment on StrategyVO {
+    id
+    label
+    name
+    description
+    comments
+    analyticReference
+    updateDate
+    creationDate
+    statusId
+    programId
+    gears {
+      ...ReferentialFragment
+    }
+    taxonGroups {
+      ...TaxonGroupStrategyFragment
+    }
+    taxonNames {
+      ...TaxonNameStrategyFragment
+    }
+    appliedStrategies {
+      ...AppliedStrategyFragment
+    }
+    pmfms {
+      ...LightPmfmStrategyFragment
+    }
+    departments {
+      ...StrategyDepartmentFragment
+    }
+  }`,
+
   strategy: gql`fragment StrategyFragment on StrategyVO {
     id
     label
@@ -24,7 +55,7 @@ export const StrategyFragments = {
     appliedStrategies {
       ...AppliedStrategyFragment
     }
-    pmfmStrategies {
+    pmfms {
       ...PmfmStrategyFragment
     }
     departments {
@@ -32,8 +63,7 @@ export const StrategyFragments = {
     }
   }
   `,
-  appliedStrategy: gql`
-    fragment AppliedStrategyFragment on AppliedStrategyVO {
+  appliedStrategy: gql`fragment AppliedStrategyFragment on AppliedStrategyVO {
       id
       strategyId
       location {
@@ -45,8 +75,7 @@ export const StrategyFragments = {
       __typename
     }
   `,
-  appliedPeriod: gql`
-    fragment AppliedPeriodFragment on AppliedPeriodVO {
+  appliedPeriod: gql`fragment AppliedPeriodFragment on AppliedPeriodVO {
       appliedStrategyId
       startDate
       endDate
@@ -54,8 +83,7 @@ export const StrategyFragments = {
       __typename
     }
   `,
-  strategyDepartment: gql`
-    fragment StrategyDepartmentFragment on StrategyDepartmentVO {
+  strategyDepartment: gql`fragment StrategyDepartmentFragment on StrategyDepartmentVO {
       id
       strategyId
       location {
@@ -70,16 +98,17 @@ export const StrategyFragments = {
       __typename
     }
   `,
-  pmfmStrategy: gql`
-    fragment PmfmStrategyFragment on PmfmStrategyVO {
+  lightPmfmStrategy: gql`fragment LightPmfmStrategyFragment on PmfmStrategyVO {
       id
       acquisitionLevel
       rankOrder
-      isMandatory
       acquisitionNumber
+      isMandatory
+      minValue
+      maxValue
       defaultValue
       pmfm {
-        ...PmfmFragment
+        ...LightPmfmFragment
       }
       parameter {
         ...ReferentialFragment
@@ -99,8 +128,37 @@ export const StrategyFragments = {
       strategyId
       __typename
     }`,
-  taxonGroupStrategy: gql`
-    fragment TaxonGroupStrategyFragment on TaxonGroupStrategyVO {
+  pmfmStrategy: gql`fragment PmfmStrategyFragment on PmfmStrategyVO {
+    id
+    acquisitionLevel
+    rankOrder
+    acquisitionNumber
+    isMandatory
+    minValue
+    maxValue
+    defaultValue
+    pmfm {
+      ...PmfmFragment
+    }
+    parameter {
+      ...ReferentialFragment
+    }
+    matrix {
+      ...ReferentialFragment
+    }
+    fraction {
+      ...ReferentialFragment
+    }
+    method {
+      ...ReferentialFragment
+    }
+    gearIds
+    taxonGroupIds
+    referenceTaxonIds
+    strategyId
+    __typename
+  }`,
+  taxonGroupStrategy: gql`fragment TaxonGroupStrategyFragment on TaxonGroupStrategyVO {
       strategyId
       priorityLevel
       taxonGroup {
@@ -115,8 +173,7 @@ export const StrategyFragments = {
       __typename
     }
   `,
-  taxonNameStrategy: gql`
-    fragment TaxonNameStrategyFragment on TaxonNameStrategyVO {
+  taxonNameStrategy: gql`fragment TaxonNameStrategyFragment on TaxonNameStrategyVO {
       strategyId
       priorityLevel
       taxonName {
@@ -125,8 +182,7 @@ export const StrategyFragments = {
       __typename
     }
   `,
-  strategyRef: gql`
-    fragment StrategyRefFragment on StrategyVO {
+  strategyRef: gql`fragment StrategyRefFragment on StrategyVO {
       id
       label
       name
@@ -145,46 +201,47 @@ export const StrategyFragments = {
       taxonNames {
         ...TaxonNameStrategyFragment
       }
-      pmfmStrategies {
-        ...PmfmStrategyRefFragment
+      denormalizedPmfms {
+        ...DenormalizedPmfmStrategyFragment
       }
     }
   `,
-  pmfmStrategyRef: gql`
-    fragment PmfmStrategyRefFragment on PmfmStrategyVO {
+  denormalizedPmfmStrategy: gql`fragment DenormalizedPmfmStrategyFragment on DenormalizedPmfmStrategyVO {
+    id
+    label
+    name
+    completeName
+    unitLabel
+    type
+    minValue
+    maxValue
+    maximumNumberDecimals
+    signifFiguresNumber
+    defaultValue
+    acquisitionNumber
+    isMandatory
+    rankOrder
+    acquisitionLevel
+    parameterId
+    matrixId
+    fractionId
+    methodId
+    strategyId
+    gearIds
+    taxonGroupIds
+    referenceTaxonIds
+    qualitativeValues {
       id
-      pmfmId
-      parameterId
-      matrixId
-      fractionId
-      methodId
       label
       name
-      completeName
-      unitLabel
-      type
-      minValue
-      maxValue
-      maximumNumberDecimals
-      defaultValue
-      acquisitionNumber
-      isMandatory
-      rankOrder
-      acquisitionLevel
-      gearIds
-      taxonGroupIds
-      referenceTaxonIds
-      qualitativeValues {
-        id
-        label
-        name
-        statusId
-        entityName
-        __typename
-      }
+      statusId
+      entityName
       __typename
-    }`,
-  samplingStrategy: gql`fragment SamplingStrategyFragment on StrategyVO {
+    }
+    __typename
+  }`,
+
+  samplingStrategyRef: gql`fragment SamplingStrategyRefFragment on StrategyVO {
     id
     label
     name
@@ -210,8 +267,8 @@ export const StrategyFragments = {
     departments {
       ...StrategyDepartmentFragment
     }
-    pmfmStrategies {
-      ...PmfmStrategyRefFragment
+    pmfms {
+      ...LightPmfmStrategyFragment
     }
   }`
 };

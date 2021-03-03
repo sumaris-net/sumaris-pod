@@ -11,7 +11,9 @@
     <ng-container *ngSwitchCase="'autocomplete'">
       <mat-form-field [floatLabel]="floatLabel">
 
-        <input matInput #matInput type="text" [placeholder]="pmfm.name" [formControl]="formControl"
+        <input matInput #matInput type="text"
+               [formControl]="formControl"
+               [placeholder]="placeholder"
                [matAutocomplete]="autoCombo"
                (click)="selectInputContent($event) && onShowDropdown.emit($event)"
                (focus)="onShowDropdown.next($event)"
@@ -65,7 +67,7 @@
     <mat-form-field *ngSwitchCase="'select'" [floatLabel]="floatLabel">
 
       <mat-select #matInput [required]="required"
-                  [placeholder]="pmfm.name"
+                  [placeholder]="placeholder"
                   [formControl]="formControl"
                   (blur)="_onBlur($event)"
                   [tabindex]="_tabindex"

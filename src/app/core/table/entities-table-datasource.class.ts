@@ -9,7 +9,7 @@ import {SortDirection} from "@angular/material/sort";
 import {CollectionViewer} from "@angular/cdk/collections";
 import {firstNotNilPromise} from "../../shared/observables";
 import {isNotEmptyArray, isNotNil, toBoolean} from "../../shared/functions";
-import {Environment} from "../../../environments/environment.class";
+import {TableDataSourceOptions} from "@e-is/ngx-material-table/src/app/ngx-material-table/table-data-source";
 
 
 export declare interface AppTableDataServiceOptions<O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> extends EntitiesServiceWatchOptions {
@@ -17,9 +17,10 @@ export declare interface AppTableDataServiceOptions<O extends EntitiesServiceWat
   readOnly?: boolean;
   [key: string]: any;
 }
-export class AppTableDataSourceOptions<T extends Entity<T>, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> {
-  prependNewElements: boolean;
-  suppressErrors: boolean;
+export class AppTableDataSourceOptions<T extends Entity<T>, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> implements TableDataSourceOptions {
+  prependNewElements?: boolean;
+  suppressErrors?: boolean;
+  keepOriginalDataAfterConfirm?: boolean;
   onRowCreated?: (row: TableElement<T>) => Promise<void> | void;
   dataServiceOptions?: AppTableDataServiceOptions<O>;
   debug?: boolean;
@@ -33,13 +34,14 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
     extends TableDataSource<T>
     implements OnDestroy {
 
+  private readonly _options: AppTableDataSourceOptions<T, O>;
+  private _loaded = false;
+
   protected readonly _debug: boolean;
-  protected _options: AppTableDataSourceOptions<T, O>;
   protected _creating = false;
   protected _saving = false;
   protected _useValidator = false;
   protected _stopWatchAll$ = new Subject();
-  private _loaded = false;
 
   $busy = new BehaviorSubject(false);
 

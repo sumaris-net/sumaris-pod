@@ -1,13 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Inject,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {ProductValidatorService} from "../services/validator/product.validator";
@@ -21,9 +12,11 @@ import {ProductSaleModal} from "../sale/product-sale.modal";
 import {isNotEmptyArray} from "../../shared/functions";
 import {SaleProductUtils} from "../services/model/sale-product.model";
 import {filterNotNil} from "../../shared/observables";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {environment} from "../../../environments/environment";
 import {SamplesModal} from "../sample/samples.modal";
+import {LoadResult} from "../../shared/services/entity-service.class";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -66,7 +59,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     return this._dirty || this.memoryDataService.dirty;
   }
 
-  private productSalePmfms: PmfmStrategy[];
+  private productSalePmfms: DenormalizedPmfmStrategy[];
 
   constructor(
     injector: Injector,
@@ -128,7 +121,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
   /* -- protected methods -- */
 
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     return this.programRefService.suggestTaxonGroups(value,
       {
         program: this.programLabel,
@@ -140,7 +133,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     this.cd.markForCheck();
   }
 
-  private mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
+  private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
 
     if (this.platform.is('mobile')) {
       // hide pmfms on mobile

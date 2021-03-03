@@ -4,6 +4,7 @@ import {BehaviorSubject} from "rxjs";
 import {SharedValidators} from "../../../validator/validators";
 import {MatAutocompleteConfigHolder} from "../../autocomplete/material.autocomplete";
 import {isNotNil, suggestFromArray} from "../../../functions";
+import {LoadResult} from "../../../services/entity-service.class";
 
 export class Entity {
   id: number;
@@ -97,7 +98,7 @@ export class ChipsTestPage implements OnInit {
     return [item && item.label || undefined, item && item.name || undefined].filter(isNotNil).join(' - ');
   }
 
-  async suggest(value: any, filter?: any): Promise<any[]> {
+  async suggest(value: any, filter?: any): Promise<LoadResult<Entity>> {
     return suggestFromArray(this._items, value, {
       ...filter,
       searchAttributes: ['label', 'name']

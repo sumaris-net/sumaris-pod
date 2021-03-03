@@ -13,6 +13,7 @@ import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
 import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
 import {isNil, isNotEmptyArray, isNotNil} from "../../../shared/functions";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 
 export class Sample extends RootDataEntity<Sample>
@@ -166,14 +167,14 @@ export class Sample extends RootDataEntity<Sample>
 export class SampleUtils {
 
   static parentToString(parent: Sample, opts?: {
-    pmfm?: PmfmStrategy,
+    pmfm?: IPmfm,
     taxonGroupAttributes: string[];
     taxonNameAttributes: string[];
   }) {
     if (!parent) return null;
     opts = opts || {taxonGroupAttributes: ['label', 'name'], taxonNameAttributes: ['label', 'name']};
-    if (opts.pmfm && parent.measurementValues && isNotNil(parent.measurementValues[opts.pmfm.pmfmId])) {
-      return parent.measurementValues[opts.pmfm.pmfmId];
+    if (opts.pmfm && parent.measurementValues && isNotNil(parent.measurementValues[opts.pmfm.id])) {
+      return parent.measurementValues[opts.pmfm.id];
     }
 
     const hasTaxonGroup = ReferentialUtils.isNotEmpty(parent.taxonGroup) ;

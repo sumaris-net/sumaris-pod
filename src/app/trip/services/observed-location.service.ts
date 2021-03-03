@@ -1,12 +1,5 @@
 import {Injectable, Injector} from "@angular/core";
-import {
-  EntitiesServiceWatchOptions,
-  EntityServiceLoadOptions,
-  FilterFn,
-  IEntitiesService,
-  IEntityService,
-  LoadResult
-} from "../../shared/services/entity-service.class";
+import {EntitiesServiceWatchOptions, EntityServiceLoadOptions, FilterFn, IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
 import {AccountService} from "../../core/services/account.service";
 import {Observable} from "rxjs";
 import * as momentImported from "moment";
@@ -35,6 +28,8 @@ import {environment} from "../../../environments/environment";
 import {JobUtils} from "../../shared/services/job.utils";
 import {fromDateISOString, toDateISOString} from "../../shared/dates";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
+import {OBSERVED_LOCATION_FEATURE_NAME} from "./config/trip.config";
+import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 const moment = momentImported;
 
@@ -142,6 +137,16 @@ export interface ObservedLocationLoadOptions extends EntityServiceLoadOptions {
   withLanding?: boolean;
   toEntity?: boolean;
 }
+
+export class ObservedLocationOfflineFilter  {
+  programLabel?: string;
+  startDate?: Date | Moment;
+  endDate?: Date | Moment;
+  locationId?: number;
+  periodDuration?: number;
+  periodDurationUnit?: DurationConstructor;
+}
+
 
 export const ObservedLocationFragments = {
   lightObservedLocation: gql`fragment LightObservedLocationFragment on ObservedLocationVO {
@@ -260,7 +265,7 @@ const ObservedLocationMutations = {
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}`,
 
-  delete: gql`mutation DeleteObservedLocations($ids:[Int]!){
+  deleteAll: gql`mutation DeleteObservedLocations($ids:[Int]!){
     deleteObservedLocations(ids: $ids)
   }`,
 
@@ -274,7 +279,7 @@ const ObservedLocationMutations = {
   ${Fragments.lightPerson}
   ${Fragments.location}`,
 
-    validate:  gql`mutation ValidateObservedLocation($data: ObservedLocationVOInput!){
+  validate:  gql`mutation ValidateObservedLocation($data: ObservedLocationVOInput!){
     data: validateObservedLocation(observedLocation: $data){
       ...ObservedLocationFragment
     }
@@ -307,8 +312,7 @@ const ObservedLocationMutations = {
 
 
 const ObservedLocationSubscriptions = {
-  listenChanges: gql`
-  subscription UpdateObservedLocation($id: Int!, $interval: Int){
+  listenChanges: gql`subscription UpdateObservedLocation($id: Int!, $interval: Int){
     updateObservedLocation(id: $id, interval: $interval) {
       ...ObservedLocationFragment
     }
@@ -344,6 +348,8 @@ export class ObservedLocationService
       filterFnFactory: ObservedLocationFilter.asPodObject,
       filterAsObjectFn: ObservedLocationFilter.searchFilter
     });
+
+    this._featureName = OBSERVED_LOCATION_FEATURE_NAME;
 
     // FOR DEV ONLY
     this._debug = !environment.production;
@@ -603,11 +609,6 @@ export class ObservedLocationService
     return entity;
   }
 
-  async delete(data: ObservedLocation): Promise<any> {
-    if (!data) return; // skip
-    await this.deleteAll([data]);
-  }
-
   /**
    * Delete many observations
    * @param entities
@@ -788,11 +789,31 @@ export class ObservedLocationService
    * @protected
    * @param opts
    */
-  protected getImportJobs(opts: {maxProgression: undefined}): Observable<number>[] {
-    return [
-      ...super.getImportJobs(opts),
-      // Landing historical data
-      JobUtils.defer((p, o) => this.landingService.executeImport(p, o), opts)
-    ];
+  protected getImportJobs(opts: {
+    maxProgression: undefined;
+  }): Observable<number>[] {
+
+    const feature = this.settings.getOfflineFeature(this.featureName);
+    if (feature && feature.filter) {
+      const landingFilter = {
+        ...feature.filter,
+        // Remove unused attribute
+        periodDuration: undefined,
+        periodDurationUnit: undefined
+      };
+      return [
+        ...super.getImportJobs(opts),
+        // Landing (historical data)
+        JobUtils.defer((p, o) => this.landingService.executeImport(p, {
+          ...o,
+          filter: landingFilter
+        }), opts)
+      ];
+    }
+    else {
+      return super.getImportJobs(opts);
+    }
+
+
   }
 }

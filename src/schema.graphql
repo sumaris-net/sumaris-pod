@@ -156,6 +156,35 @@ type ConfigurationVO {
   updateDate: Date
 }
 
+type DenormalizedPmfmStrategyVO {
+  acquisitionLevel: String
+  acquisitionNumber: Int
+  completeName: String
+  defaultValue: Float
+  fractionId: Int
+  gearIds: [Int]
+  gears: [String]
+  id: Int
+  isMandatory: Boolean
+  label: String
+  matrixId: Int
+  maxValue: Float
+  maximumNumberDecimals: Int
+  methodId: Int
+  minValue: Float
+  name: String
+  parameterId: Int
+  qualitativeValues: [ReferentialVO]
+  rankOrder: Int
+  referenceTaxonIds: [Int]
+  signifFiguresNumber: Int
+  strategyId: Int
+  taxonGroupIds: [Int]
+  type: String
+  unitLabel: String
+  updateDate: Date
+}
+
 type DepartmentVO {
   creationDate: Date
   hasLogo: Boolean
@@ -686,34 +715,31 @@ type PmfmStrategyVO {
   acquisitionLevel: String
   acquisitionNumber: Int
   defaultValue: Float
+  "Get strategy fraction"
   fraction: ReferentialVO
   fractionId: Int
   gearIds: [Int]
   gears: [String]
   id: Int
   isMandatory: Boolean
-  label: String
+  "Get strategy matrix"
   matrix: ReferentialVO
   matrixId: Int
   maxValue: Float
-  maximumNumberDecimals: Int
+  "Get strategy method"
   method: ReferentialVO
   methodId: Int
   minValue: Float
-  name: String
+  "Get strategy parameter"
   parameter: ReferentialVO
   parameterId: Int
   "Get strategy pmfm"
   pmfm: PmfmVO
   pmfmId: Int
-  qualitativeValues: [ReferentialVO]
   rankOrder: Int
   referenceTaxonIds: [Int]
-  signifFiguresNumber: Int
   strategyId: Int
   taxonGroupIds: [Int]
-  type: String
-  unitLabel: String
   updateDate: Date
 }
 
@@ -743,7 +769,7 @@ type PmfmVO {
   methodId: Int
   minValue: Float
   name: String
-  "Get PMFM's paramater"
+  "Get PMFM's parameter"
   parameter: ParameterVO
   parameterId: Int
   qualitativeValues: [ReferentialVO]
@@ -881,6 +907,8 @@ type Query {
   department(id: Int!): DepartmentVO
   "Search in departments"
   departments(filter: DepartmentFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [DepartmentVO]
+  "Preview some extraction"
+  extraction(filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", type: ExtractionTypeVOInput): [Map_String_StringScalar]
   "Execute extraction to a file"
   extractionFile(filter: ExtractionFilterVOInput, type: ExtractionTypeVOInput): String
   "Preview some extraction rows"
@@ -953,27 +981,6 @@ type Query {
   strategy(id: Int!): StrategyVO
   "Get next label for strategy"
   strategyNextLabel(labelPrefix: String = "", nbDigit: Int = 0, programId: Int!): String
-  "Get already filled analytic references"
-  suggestedStrategyAnalyticReferences(programId: Int!): [String]
-  "Get already filled departments"
-  suggestedStrategyDepartments(programId: Int!): [Int]
-  "Get already filled locations"
-  suggestedStrategyLocations(locationClassification: LocationClassificationEnum, programId: Int!): [Int]
-  "Get already filled PMFM or one of parameter, matrix, fraction, method"
-  suggestedStrategyPmfms(field: String = "pmfm", programId: Int!, referenceTaxonId: Int): [Int]
-  "Get already filled values from entityName"
-  suggestedStrategyReferentials(
-    entityName: String,
-    "only for Location entities"
-    locationClassification: LocationClassificationEnum,
-    offset: Int = 0,
-    programId: Int!,
-    size: Int = 1000,
-    sortBy: String = "label",
-    sortDirection: String = "asc"
-  ): [ReferentialVO]
-  "Get already filled taxon names"
-  suggestedStrategyTaxonNames(programId: Int!): [Int]
   "Search in taxon names"
   taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonNameVO]
   "Get trash content"
@@ -1117,6 +1124,7 @@ type StrategyVO {
   appliedStrategies: [AppliedStrategyVO]
   comments: String
   creationDate: Date
+  denormalizedPmfms: [DenormalizedPmfmStrategyVO]
   departments: [StrategyDepartmentVO]
   description: String
   gearIds: [Int]
@@ -1124,8 +1132,7 @@ type StrategyVO {
   id: Int
   label: String
   name: String
-  "Get strategy's pmfms"
-  pmfmStrategies: [PmfmStrategyVO]
+  pmfms: [PmfmStrategyVO]
   programId: Int
   statusId: Int
   taxonGroupIds: [Int]
@@ -1427,12 +1434,8 @@ enum LiveFormatEnum {
   FREE1
   FREE2
   RDB
+  STRAT
   SURVIVAL_TEST
-}
-
-enum LocationClassificationEnum {
-  LAND
-  SEA
 }
 
 enum SortDirection {
@@ -1575,6 +1578,35 @@ input ConfigurationVOInput {
   properties: Map_String_StringScalar
   smallLogo: String
   statusId: Int
+  updateDate: Date
+}
+
+input DenormalizedPmfmStrategyVOInput {
+  acquisitionLevel: String
+  acquisitionNumber: Int
+  completeName: String
+  defaultValue: Float
+  fractionId: Int
+  gearIds: [Int]
+  gears: [String]
+  id: Int
+  isMandatory: Boolean
+  label: String
+  matrixId: Int
+  maxValue: Float
+  maximumNumberDecimals: Int
+  methodId: Int
+  minValue: Float
+  name: String
+  parameterId: Int
+  qualitativeValues: [ReferentialVOInput]
+  rankOrder: Int
+  referenceTaxonIds: [Int]
+  signifFiguresNumber: Int
+  strategyId: Int
+  taxonGroupIds: [Int]
+  type: String
+  unitLabel: String
   updateDate: Date
 }
 
@@ -2074,27 +2106,20 @@ input PmfmStrategyVOInput {
   gears: [String]
   id: Int
   isMandatory: Boolean
-  label: String
   matrix: ReferentialVOInput
   matrixId: Int
   maxValue: Float
-  maximumNumberDecimals: Int
   method: ReferentialVOInput
   methodId: Int
   minValue: Float
-  name: String
   parameter: ReferentialVOInput
   parameterId: Int
   pmfm: PmfmVOInput
   pmfmId: Int
-  qualitativeValues: [ReferentialVOInput]
   rankOrder: Int
   referenceTaxonIds: [Int]
-  signifFiguresNumber: Int
   strategyId: Int
   taxonGroupIds: [Int]
-  type: String
-  unitLabel: String
   updateDate: Date
 }
 
@@ -2360,6 +2385,7 @@ input StrategyVOInput {
   appliedStrategies: [AppliedStrategyVOInput]
   comments: String
   creationDate: Date
+  denormalizedPmfms: [DenormalizedPmfmStrategyVOInput]
   departments: [StrategyDepartmentVOInput]
   description: String
   gearIds: [Int]
@@ -2367,7 +2393,7 @@ input StrategyVOInput {
   id: Int
   label: String
   name: String
-  pmfmStrategies: [PmfmStrategyVOInput]
+  pmfms: [PmfmStrategyVOInput]
   programId: Int
   statusId: Int
   taxonGroupIds: [Int]

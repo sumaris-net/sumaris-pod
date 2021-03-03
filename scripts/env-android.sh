@@ -19,8 +19,8 @@ fi
 echo "Preparing Android environment:"
 echo "        Root: ${PROJECT_DIR}"
 echo "      NodeJS: version ${NODE_VERSION} with options: ${NODE_OPTIONS}"
-echo " Android SDK: ${ANDROID_SDK_ROOT} with SDK tools: ${ANDROID_SDK_TOOLS_ROOT}"
-echo "      Gradle: ${GRADLE_HOME}"
+echo " Android SDK: ${ANDROID_SDK_ROOT} with CLI: ${ANDROID_SDK_CLI_ROOT}"
+echo "      Gradle: ${GRADLE_HOME} with options: ${GRADLE_OPTS}"
 echo "        Java: ${JAVA_HOME}"
 
 # Make sure javac exists
@@ -31,7 +31,7 @@ if [[ "_" == "_${JAVAC_PATH}" ]]; then
 fi
 
 # Prepare Android SDK tools
-if [[ ! -d "${ANDROID_SDK_TOOLS_ROOT}" ]]; then
+if [[ ! -d "${ANDROID_SDK_CLI_ROOT}" ]]; then
   cd "${PROJECT_DIR}/scripts"
   ./install-android-sdk-tools.sh
   [[ $? -ne 0 ]] && exit 1
@@ -48,7 +48,8 @@ if [[ "_" == "_$(which gradle)" || ! -d "${GRADLE_HOME}" ]]; then
   [[ $? -ne 0 ]] && exit 1
   test -e "${GRADLE_HOME}" || mv "${GRADLE_PARENT}/gradle-${GRADLE_VERSION}" "${GRADLE_HOME}"
   [[ $? -ne 0 ]] && exit 1
-  test -e "${GRADLE_PARENT}/gradle-${GRADLE_VERSION}" || rm "${GRADLE_PARENT}/gradle-${GRADLE_VERSION}"
+  test -e "${GRADLE_PARENT}/gradle-${GRADLE_VERSION}" && rm "${GRADLE_PARENT}/gradle-${GRADLE_VERSION}"
+  test -e "gradle-${GRADLE_VERSION}-all.zip" && rm "gradle-${GRADLE_VERSION}-all.zip"
 fi
 
 

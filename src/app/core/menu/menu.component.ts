@@ -67,7 +67,7 @@ export class MenuItems {
     }
 
     else if (item.exactProfile) {
-      const hasExactProfile =  accountService.isLogin() && accountService.hasExactProfile(item.exactProfile);
+      const hasExactProfile =  accountService.hasExactProfile(item.exactProfile);
       if (!hasExactProfile) {
         if (opts.debug) console.debug(`${opts && opts.logPrefix || '[menu]'} Hide item '${item.title}': need exact profile '${item.exactProfile}' to access path '${item.path}'`);
         return false;

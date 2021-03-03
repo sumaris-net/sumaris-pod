@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Output} from '@angular/core';
 import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {debounceTime, map, tap} from 'rxjs/operators';
@@ -7,7 +7,7 @@ import {LandingValidatorService} from "../services/validator/landing.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {FormArray, FormBuilder, FormControl, Validators} from "@angular/forms";
+import {FormArray, FormBuilder, FormControl, ValidationErrors, Validators} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
 import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {Person, personToString, UserProfileLabels} from "../../core/services/model/person.model";
@@ -20,10 +20,14 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
 import {FormArrayHelper} from "../../core/form/form.utils";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {SharedValidators} from "../../shared/validator/validators";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {SamplingStrategyService} from "../../referential/services/sampling-strategy.service";
+import {TranslateService} from "@ngx-translate/core";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {Observable} from "rxjs";
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -39,8 +43,59 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
   mobile: boolean;
-
   strategyControl: FormControl;
+
+  get empty(): any {
+    const value = this.value;
+    return ReferentialUtils.isEmpty(value.location)
+      && (!value.dateTime)
+      && (!value.comments || !value.comments.length);
+  }
+
+  get valid(): boolean {
+    return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty))
+      && (!this.showStrategy || this.strategyControl.valid);
+  }
+
+  get invalid(): boolean {
+    return super.invalid
+      // Check strategy
+      || (this.showStrategy && this.strategyControl.invalid);
+  }
+
+  get pending(): boolean {
+    return super.pending
+      // Check strategy
+      || (this.showStrategy && this.strategyControl.pending);
+  }
+
+  get dirty(): boolean {
+    return super.dirty
+      // Check strategy
+      || (this.showStrategy && this.strategyControl.dirty);
+  }
+
+  markAsUntouched(opts?: { onlySelf?: boolean }) {
+    super.markAsUntouched(opts);
+    this.strategyControl.markAsUntouched(opts);
+  }
+
+  markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAsTouched(opts);
+    this.strategyControl.markAsTouched(opts);
+  }
+
+  get value(): any {
+    return this.getValue();
+  }
+
+  set value(value: any) {
+    this.safeSetValue(value);
+  }
+
+  get observersForm(): FormArray {
+    return this.form.controls.observers as FormArray;
+  }
 
   @Input() i18nPrefix = LANDING_DEFAULT_I18N_PREFIX;
   @Input() canEditStrategy = true;
@@ -70,21 +125,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return this._showObservers;
   }
 
-  get empty(): any {
-    const value = this.value;
-    return ReferentialUtils.isEmpty(value.location)
-      && (!value.dateTime)
-      && (!value.comments || !value.comments.length);
-  }
-
-  get valid(): any {
-    return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty));
-  }
-
-  get observersForm(): FormArray {
-    return this.form.controls.observers as FormArray;
-  }
-
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
@@ -95,6 +135,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected personService: PersonService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected settings: LocalSettingsService,
+    protected samplingStrategyService: SamplingStrategyService,
+    protected translate: TranslateService,
     protected modalCtrl: ModalController,
     protected cd: ChangeDetectorRef
   ) {
@@ -102,7 +144,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       mapPmfms: pmfms => this.mapPmfms(pmfms)
     });
     // Add a strategy field (not in validator)
-    this.strategyControl = formBuilder.control(null, [Validators.required, SharedValidators.entity]);
+    this.strategyControl = formBuilder.control(null, Validators.required);
 
     this._enable = false;
     this.mobile = this.settings.mobile;
@@ -110,8 +152,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
 
-    // Add a strategy field (not in validator)
-    this.strategyControl = formBuilder.control(null, [Validators.required]);
   }
 
   ngOnInit() {
@@ -134,13 +174,18 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     // Combo: strategy
     this.registerAutocompleteField('strategy', {
-      service: this.referentialRefService,
-      filter: {
-        entityName: 'Strategy',
-        levelLabel: this.$programLabel.getValue() // is empty, will be set in setProgram()
+      suggestFn: (value, filter) => {
+        // Force to show all
+        value = typeof value === 'object' ? '*' : value;
+        return this.referentialRefService.suggest(value, {
+          entityName: 'Strategy',
+          searchAttribute: 'label',
+          levelLabel: this.$programLabel.getValue() // if empty, will be set in setProgram()
+        });
       },
       attributes: ['label'],
-      columnSizes: [12]
+      columnSizes: [12],
+      showAllOnFocus: false
     });
 
     // Combo: vessels
@@ -195,8 +240,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         .subscribe( async (strategyLabel) => {
           this.strategyLabel = strategyLabel;
 
-          await this.ready();
-
           // Propagate to measurement values
           const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
           if (measControl && measControl.value !== strategyLabel) {
@@ -246,7 +289,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
 
     // DEBUG
-    //console.debug('[landing-form] DEV Get getValue() result:', data);
+    console.debug('[landing-form] DEV Get getValue() result:', data);
 
     return data;
   }
@@ -329,28 +372,27 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   /**
    * Make sure a pmfmStrategy exists to store the Strategy.label
    */
-  protected async mapPmfms(pmfms: PmfmStrategy[]): Promise<PmfmStrategy[]> {
+  protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
 
     if (this.debug) console.debug(`${this.logPrefix} calling mapPmfms()`);
 
     if (this.showStrategy) {
       // Create the missing Pmfm, to hold strategy (if need)
-      const existingIndex = (pmfms || []).findIndex(pmfm => pmfm.pmfmId === PmfmIds.STRATEGY_LABEL);
-      let strategyPmfm: PmfmStrategy;
+      const existingIndex = (pmfms || []).findIndex(pmfm => pmfm.id === PmfmIds.STRATEGY_LABEL);
+      let strategyPmfm: IPmfm;
       if (existingIndex !== -1) {
         // Remove existing, then copy it (to leave original unchanged)
         strategyPmfm = pmfms.splice(existingIndex, 1)[0].clone();
       }
       else {
-        strategyPmfm = PmfmStrategy.fromObject({
-          id: -1, // Fake id (should never be used)
-          pmfmId: PmfmIds.STRATEGY_LABEL,
+        strategyPmfm = DenormalizedPmfmStrategy.fromObject({
+          id: PmfmIds.STRATEGY_LABEL,
           type: 'string'
         });
       }
 
       strategyPmfm.hidden = true; // Do not display it in measurement
-      strategyPmfm.isMandatory = false; // Nopt need to be required, because of strategyControl validator
+      strategyPmfm.required = false; // Not need to be required, because of strategyControl validator
 
       // Prepend to list
       pmfms = [strategyPmfm, ...pmfms];
@@ -358,4 +400,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     return pmfms;
   }
+
+
 }

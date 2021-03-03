@@ -126,15 +126,12 @@
               <ion-row class="ion-no-padding" >
                 <!-- pmfms -->
                 <ng-container *ngFor="let pmfm of pmfms; index as i;">
-                  <ion-col *ngIf="pmfm.pmfmId === undefined">
-                    Invalid PMFM: no pmfmId (PmfmStrategy.id={{pmfm.id}} Pmfm: {{pmfm.pmfm?.id}})
-                  </ion-col>
-                  <ion-col size="12" size-md="6" *ngIf="pmfm.pmfmId">
-                    <app-pmfm-field [formControlName]="pmfm.pmfmId.toString()"
+                  <ion-col size="12" size-md="6">
+                    <app-pmfm-field [formControlName]="pmfm.id.toString()"
                                     [pmfm]="pmfm">
                     </app-pmfm-field>
                   </ion-col>
-                  <ion-col *ngIf="pmfm.pmfmId && pmfm.pmfmId===controlledSpeciesPmfmId && showOtherTaxonGroup"
+                  <ion-col *ngIf="pmfm.id === controlledSpeciesPmfmId && showOtherTaxonGroup"
                            size="12" size-md="6">
 
                     <!-- Special case for controlled species: add a combo, for 'MZZ' species -->

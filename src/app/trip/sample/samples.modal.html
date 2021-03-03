@@ -1,30 +1,13 @@
-<ion-header>
-  <ion-toolbar color="secondary">
-    <ion-buttons slot="start">
-      <ion-button (click)="cancel()"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
-      </ion-button>
-    </ion-buttons>
+<app-modal-toolbar color="secondary"
+                   (cancel)="cancel()"
+                   [title]="$title | async"
+                   [showSpinner]="loading"
+                   [canValidate]="!loading"
+                   (validate)="onSubmit($event)">
 
-    <ion-title>
-      {{$title | async}}
-    </ion-title>
+</app-modal-toolbar>
 
-    <ion-buttons slot="end" >
-      <ion-spinner *ngIf="loading"></ion-spinner>
-
-      <ion-button *ngIf="!loading" (click)="close($event)"
-                  [disabled]="invalid"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
-
-<ion-content class="ion-padding">
+<ion-content>
 
 <!--                     [class.cdk-visually-hidden]="!samplesTable.defaultTaxonGroup"-->
 <!--                     [defaultSampleDate]="data?.dateTime"-->
@@ -68,14 +51,12 @@
 
         <ion-button [fill]="invalid ? 'clear' : 'solid'"
                     [disabled]="loading || invalid"
-                    (keyup.enter)="close($event)"
-                    (click)="close($event)" color="tertiary">
+                    (keyup.enter)="onSubmit($event)"
+                    (click)="onSubmit($event)" color="tertiary">
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
           <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>
-
-
   </ion-toolbar>
 </ion-footer>

@@ -19,7 +19,7 @@ import {filter} from "rxjs/operators";
 import {Entity} from "../services/model/entity.model";
 import {HistoryPageReference, UsageMode} from "../services/model/settings.model";
 import {FormGroup} from "@angular/forms";
-import {AppTabEditor, AppTabFormOptions} from "./tab-editor.class";
+import {AppTabEditor, AppTabEditorOptions} from "./tab-editor.class";
 import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
 import {ErrorCodes, ServerErrorCodes} from "../services/errors";
@@ -29,7 +29,7 @@ import {isNil, isNilOrBlank, isNotNil, toBoolean} from "../../shared/functions";
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
 import {ENVIRONMENT} from "../../../environments/environment.class";
 
-export class AppEditorOptions extends AppTabFormOptions {
+export class AppEditorOptions extends AppTabEditorOptions {
   autoLoad?: boolean;
   autoLoadDelay?: number;
   pathIdAttribute?: string;
@@ -45,6 +45,7 @@ export class AppEditorOptions extends AppTabFormOptions {
    */
   autoOpenNextTab?: boolean; // Default to true
 
+  i18nPrefix?: string;
 }
 
 // @dynamic
@@ -131,6 +132,7 @@ export abstract class AppEntityEditor<
       autoLoad: true,
       autoLoadDelay: 0,
       autoUpdateRoute: true,
+      i18nPrefix: '',
 
       // Following options are override inside ngOnInit()
       // autoOpenNextTab: ...,
@@ -149,6 +151,10 @@ export abstract class AppEntityEditor<
     this._autoLoadDelay = options.autoLoadDelay;
     this._autoUpdateRoute = options.autoUpdateRoute;
     this._autoOpenNextTab = options.autoOpenNextTab;
+    this.i18nContext = {
+      prefix: options.i18nPrefix,
+      suffix: ''
+    };
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -706,7 +712,7 @@ export abstract class AppEntityEditor<
     }
   }
 
-  private async updateRoute(data: T, queryParams: any): Promise<boolean> {
+  protected async updateRoute(data: T, queryParams: any): Promise<boolean> {
     const path = this.computePageUrl(isNotNil(data.id) ? data.id : 'new');
     const commands: any[] = (path && typeof path === 'string') ? path.split('/') : path as any[];
     if (isNotEmptyArray(commands)) {

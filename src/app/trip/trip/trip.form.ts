@@ -5,7 +5,7 @@ import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {LocationLevelIds,} from "../../referential/services/model/model.enum";
 
-import {Person, personToString, UserProfileLabel} from "../../core/services/model/person.model";
+import {Person, personToString, UserProfileLabels} from "../../core/services/model/person.model";
 import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -172,12 +172,11 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     });
 
     // Combo: observers
-    const profileLabels: UserProfileLabel[] = ['SUPERVISOR', 'USER', 'GUEST'];
     this.registerAutocompleteField('person', {
       service: this.personService,
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: profileLabels
+        userProfiles: [UserProfileLabels.SUPERVISOR, UserProfileLabels.USER, UserProfileLabels.GUEST]
       },
       attributes: ['lastName', 'firstName', 'department.name'],
       displayWith: personToString

@@ -1,23 +1,11 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  EventEmitter,
-  forwardRef,
-  Input,
-  OnInit,
-  Optional,
-  Output,
-  ViewChild
-} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnInit, Optional, Output, ViewChild} from '@angular/core';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {FloatLabelType} from "@angular/material/form-field";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {isNil, toBoolean} from "../../shared/functions";
 import {filterNumberInput, focusInput, InputElement, setTabIndex} from "../../shared/inputs";
 import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
-import {PmfmUtils} from "../services/model/pmfm.model";
+import {IPmfm, PmfmUtils} from "../services/model/pmfm.model";
 import {PmfmValidators} from "../services/validator/pmfm.validators";
 import {PmfmLabelPatterns, UnitLabel, UnitLabelPatterns} from "../services/model/model.enum";
 import {AppFormUtils} from "../../core/form/form.utils";
@@ -46,7 +34,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   type: string;
   numberInputStep: string;
 
-  @Input() pmfm: PmfmStrategy;
+  @Input() pmfm: IPmfm;
 
   @Input() required: boolean;
 
@@ -189,7 +177,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
 
   /* -- protected method -- */
 
-  protected computeNumberInputStep(pmfm: PmfmStrategy): string {
+  protected computeNumberInputStep(pmfm: IPmfm): string {
 
     if (pmfm.maximumNumberDecimals > 0) {
       let step = "0.";

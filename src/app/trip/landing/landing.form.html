@@ -35,17 +35,16 @@
           [placeholder]="i18nPrefix + 'STRATEGY_PLACEHOLDER'|translate"
           [config]="autocompleteFields.strategy"
           [readonly]="!canEditStrategy"
-          [required]="true">
-          <mat-error *ngIf="strategyControl.hasError('required')" translate>
-            ERROR.FIELD_REQUIRED
-          </mat-error>
-          <mat-error *ngIf="strategyControl.hasError('noEffort')" translate>
-            LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR
-          </mat-error>
-          <mat-error *ngIf="strategyControl.hasError('zeroEffort')" translate>
-            LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR
-          </mat-error>
+          required>
         </mat-autocomplete-field>
+      </ion-col>
+    </ion-row>
+    <ion-row *ngIf="strategyControl.touched">
+      <ion-col size="12" size-md="10" offset-md="2" size-lg="9" offset-lg="3"
+               class="mat-form-field-errors">
+        <ng-content select="[afterStrategy]"></ng-content>
+        <!--<mat-error *ngIf="strategyControl.hasError('noEffort')" translate>LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR</mat-error>
+        <mat-error *ngIf="strategyControl.hasError('zeroEffort')" translate>LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR</mat-error>-->
       </ion-col>
     </ion-row>
 
@@ -139,7 +138,7 @@
           <app-pmfm-field *ngFor="let pmfm of pmfms; index as i;"
                           [pmfm]="pmfm"
                           [hidden]="pmfm.hidden"
-                          [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
+                          [formControl]="form.get('measurementValues.'+ pmfm.id)"
                           [compact]="compact"
                           [tabindex]="50 + i*2"
                           [floatLabel]="floatLabel">
@@ -148,7 +147,7 @@
       </ion-col>
     </ion-row>
 
-    <ng-content></ng-content>
+    <ng-content select="[beforeComment]"></ng-content>
 
     <!-- Comments -->
     <ion-row *ngIf="showComment">

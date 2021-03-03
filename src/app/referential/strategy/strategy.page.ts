@@ -10,12 +10,11 @@ import {StrategyForm} from "./strategy.form";
 import {HistoryPageReference} from "../../core/services/model/history.model";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {StrategyService} from "../services/strategy.service";
-import {ProgramService} from "../services/program.service";
 import {BehaviorSubject} from "rxjs";
 import {Program} from "../services/model/program.model";
 import {ReferentialForm} from "../form/referential.form";
 import {firstNotNilPromise} from "../../shared/observables";
-import {debounceTime, filter} from "rxjs/operators";
+import {debounceTime, filter, tap} from "rxjs/operators";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {AppEntityEditor} from "../../core/form/editor.class";
 import {isNil, isNotNil} from "../../shared/functions";
@@ -85,7 +84,12 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
 
     this.registerSubscription(
       this.referentialForm.form.valueChanges
-        .pipe(debounceTime(100), filter(() => this.referentialForm.valid))
+        .pipe(
+          debounceTime(100),
+          filter(() => this.referentialForm.valid),
+          // DEBUG
+          tap(value => console.debug('[strategy-page] referentialForm value changes:', value))
+        )
         .subscribe(value => this.strategyForm.form.patchValue({...value, entityName: undefined})));
   }
 

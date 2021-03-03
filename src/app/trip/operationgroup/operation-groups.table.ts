@@ -1,13 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Inject,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {Platform} from "@ionic/angular";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {OperationFilter} from "../services/operation.service";
@@ -18,9 +9,10 @@ import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {MetierService} from "../../referential/services/metier.service";
 import {OperationGroup, PhysicalGear} from "../services/model/trip.model";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
 import {environment} from "../../../environments/environment";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier', 'physicalGear', 'targetSpecies'];
 export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -118,7 +110,7 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     this.cd.markForCheck();
   }
 
-  private mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
+  private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
 
     if (this.platform.is('mobile')) {
       // hide pmfms on mobile

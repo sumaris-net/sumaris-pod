@@ -14,8 +14,9 @@ import {isObservable, Observable, of, Subject} from "rxjs";
 import {createAnimation} from "@ionic/core";
 import {SubBatch} from "../../services/model/subbatch.model";
 import {BatchGroup} from "../../services/model/batch-group.model";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {AppFormUtils} from "../../../core/form/form.utils";
+import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
@@ -177,15 +178,16 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return super.doSubmitForm();
   }
 
-  protected mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
+  protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
     pmfms = super.mapPmfms(pmfms);
 
     const parentTaxonGroupId = this.parentGroup && this.parentGroup.taxonGroup && this.parentGroup.taxonGroup.id;
     if (isNil(parentTaxonGroupId)) return pmfms;
 
     // Filter using parent's taxon group
-    return pmfms.filter(pmfm => isEmptyArray(pmfm.taxonGroupIds) ||
-      pmfm.taxonGroupIds.includes(parentTaxonGroupId));
+    return pmfms.filter(pmfm => !(pmfm instanceof DenormalizedPmfmStrategy)
+      || isEmptyArray(pmfm.taxonGroupIds)
+      || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
   }
 
   async cancel(event?: UIEvent) {

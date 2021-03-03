@@ -19,7 +19,7 @@ import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/fu
 import {firstNotNil, firstNotNilPromise} from "../../shared/observables";
 import {Operation, Trip} from "../services/model/trip.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
-import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
 import {EntityUtils, IEntity} from "../../core/services/model/entity.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {BatchTreeComponent} from "../batch/batch-tree.component";
@@ -62,6 +62,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   mobile: boolean;
   tempSubBatches: Batch[];
+  sampleAcquisitionLevel: AcquisitionLevelType = AcquisitionLevelCodes.SURVIVAL_TEST;
 
   @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
@@ -707,7 +708,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
       // Retrieve QV from the program pmfm (because measurement's QV has only the 'id' attribute)
       const tripPmfms = await this.programRefService.loadProgramPmfms(this.$programLabel.getValue(), {acquisitionLevel: AcquisitionLevelCodes.TRIP});
-      const pmfm = (tripPmfms || []).find(pmfm => pmfm.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
+      const pmfm = (tripPmfms || []).find(pmfm => pmfm.id === PmfmIds.SELF_SAMPLING_PROGRAM);
       const qualitativeValue = (pmfm && pmfm.qualitativeValues || []).find(qv => qv.id === qvMeasurement.qualitativeValue.id);
 
       // Transform QV.label has a list of TaxonGroup.label

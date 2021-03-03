@@ -1,21 +1,17 @@
 import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {FormGroup} from "@angular/forms";
-import {
-  arraySize,
-  isEmptyArray,
-  isNil, isNotNil,
-  notNilOrDefault,
-} from "../../../shared/functions";
+import {arraySize, isEmptyArray, isNil, isNotNil, notNilOrDefault} from "../../../shared/functions";
 import * as momentImported from "moment";
-const moment = momentImported;
 import {isMoment} from "moment";
 import {IEntity} from "../../../core/services/model/entity.model";
-import {Pmfm} from "../../../referential/services/model/pmfm.model";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {IPmfm, Pmfm} from "../../../referential/services/model/pmfm.model";
+import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {PmfmValue, PmfmValueUtils} from "../../../referential/services/model/pmfm-value.model";
 import {AppFormUtils} from "../../../core/form/form.utils";
 import {ReferentialRef} from "../../../core/services/model/referential.model";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+
+const moment = momentImported;
 
 
 export declare interface MeasurementModelValues {
@@ -111,12 +107,12 @@ export class Measurement extends DataEntity<Measurement> {
 
 export class MeasurementUtils {
 
-  static initAllMeasurements(source: Measurement[], pmfms: PmfmStrategy[], entityName: MeasurementType, keepRankOrder: boolean): Measurement[] {
+  static initAllMeasurements(source: Measurement[], pmfms: IPmfm[], entityName: MeasurementType, keepRankOrder: boolean): Measurement[] {
     // Work on a copy, to be able to reduce the array
     let rankOrder = 1;
     return (pmfms || []).map(pmfm => {
-      const measurement = (source || []).find(m => m.pmfmId === pmfm.pmfmId) || new Measurement();
-      measurement.pmfmId = pmfm.pmfmId; // apply the pmfm (need for new object)
+      const measurement = (source || []).find(m => m.pmfmId === pmfm.id) || new Measurement();
+      measurement.pmfmId = pmfm.id; // apply the pmfm (need for new object)
       measurement.rankOrder = keepRankOrder ? measurement.rankOrder : rankOrder++;
 
       // Need by GraphQL cache
@@ -126,7 +122,7 @@ export class MeasurementUtils {
     });
   }
 
-  static getMeasurementEntityValue(source: Measurement, pmfm: PmfmStrategy): any {
+  static getMeasurementEntityValue(source: Measurement, pmfm: IPmfm): any {
     switch (pmfm.type) {
       case "qualitative_value":
         if (source.qualitativeValue && source.qualitativeValue.id) {
@@ -148,7 +144,7 @@ export class MeasurementUtils {
   }
 
 
-  static setMeasurementValue(value: any, target: Measurement, pmfm: PmfmStrategy) {
+  static setMeasurementValue(value: any, target: Measurement, pmfm: IPmfm) {
     value = (value === null || value === undefined) ? undefined : value;
     switch (pmfm.type) {
       case "qualitative_value":
@@ -172,7 +168,7 @@ export class MeasurementUtils {
     }
   }
 
-  static toModelValue(value: any, pmfm: PmfmStrategy|Pmfm): string {
+  static toModelValue(value: any, pmfm: DenormalizedPmfmStrategy|Pmfm): string {
     return PmfmValueUtils.toModelValue(value, pmfm);
   }
 
@@ -208,10 +204,10 @@ export class MeasurementUtils {
   }
 
   // Update measurements from source values map
-  static setValuesByFormValues(target: Measurement[], source: MeasurementFormValues, pmfms: PmfmStrategy[]) {
+  static setValuesByFormValues(target: Measurement[], source: MeasurementFormValues, pmfms: IPmfm[]) {
     (target || []).forEach(m => {
-      const pmfm = pmfms && pmfms.find(p => p.pmfmId === m.pmfmId);
-      if (pmfm) MeasurementUtils.setMeasurementValue(source[pmfm.pmfmId], m, pmfm);
+      const pmfm = pmfms && pmfms.find(p => p.id === m.pmfmId);
+      if (pmfm) MeasurementUtils.setMeasurementValue(source[pmfm.id], m, pmfm);
     });
   }
 
@@ -220,8 +216,8 @@ export class MeasurementUtils {
     return MeasurementValuesUtils.equals(MeasurementUtils.toMeasurementValues(array1), MeasurementUtils.toMeasurementValues(array2));
   }
 
-  static filter(measurements: Measurement[], pmfms: PmfmStrategy[]): Measurement[] {
-    const pmfmIds = (pmfms || []).map(pmfm => pmfm.pmfmId);
+  static filter(measurements: Measurement[], pmfms: IPmfm[]): Measurement[] {
+    const pmfmIds = (pmfms || []).map(pmfm => pmfm.id);
     return (measurements || []).filter(measurement => pmfmIds.includes(measurement.pmfmId));
   }
 }
@@ -240,30 +236,30 @@ export class MeasurementValuesUtils {
 
   static equalsPmfms(m1: { [pmfmId: number]: any },
                      m2: { [pmfmId: number]: any },
-                     pmfms: PmfmStrategy[]): boolean {
+                     pmfms: IPmfm[]): boolean {
     return (isNil(m1) && isNil(m2))
-      || !pmfms.find(pmfm => !MeasurementValuesUtils.valueEquals(m1[pmfm.pmfmId], m2[pmfm.pmfmId]));
+      || !pmfms.find(pmfm => !MeasurementValuesUtils.valueEquals(m1[pmfm.id], m2[pmfm.id]));
   }
 
-  static valueToString(value: any, opts: {pmfm: Pmfm|PmfmStrategy; propertyNames?: string[]; htmls?: boolean; }): string | undefined {
+  static valueToString(value: any, opts: {pmfm: IPmfm; propertyNames?: string[]; htmls?: boolean; }): string | undefined {
     return PmfmValueUtils.valueToString(value, opts);
   }
 
-  static normalizeValueToModel(value: PmfmValue, pmfm: PmfmStrategy): string {
+  static normalizeValueToModel(value: PmfmValue, pmfm: IPmfm): string {
     return PmfmValueUtils.toModelValue(value, pmfm);
   }
 
-  static normalizeValuesToModel(source: MeasurementFormValues, pmfms: PmfmStrategy[], opts?: {
+  static normalizeValuesToModel(source: MeasurementFormValues, pmfms: IPmfm[], opts?: {
     keepSourceObject?: boolean
   }): MeasurementModelValues {
     const target: MeasurementModelValues = opts && opts.keepSourceObject ? source as MeasurementModelValues : {};
-    (pmfms||[]).forEach(pmfm => {
-      target[pmfm.pmfmId] = MeasurementValuesUtils.normalizeValueToModel(source[pmfm.pmfmId], pmfm);
+    (pmfms || []).forEach(pmfm => {
+      target[pmfm.id] = MeasurementValuesUtils.normalizeValueToModel(source[pmfm.id], pmfm);
     });
     return target;
   }
 
-  static normalizeValueToForm(value: any, pmfm: PmfmStrategy): MeasurementFormValue {
+  static normalizeValueToForm(value: any, pmfm: IPmfm): MeasurementFormValue {
     return PmfmValueUtils.fromModelValue(value, pmfm);
   }
 
@@ -275,7 +271,7 @@ export class MeasurementValuesUtils {
    *  - keepSourceObject: keep existing map (useful to keep extra pmfms)
    *  - onlyExistingPmfms: Will not init all pmfms, but only those that exists in the source map
    */
-  static normalizeValuesToForm(source: MeasurementModelValues|MeasurementFormValues, pmfms: PmfmStrategy[], opts?: {
+  static normalizeValuesToForm(source: MeasurementModelValues|MeasurementFormValues, pmfms: IPmfm[], opts?: {
     keepSourceObject?: boolean;
     onlyExistingPmfms?: boolean; // default to false
   }): MeasurementFormValues {
@@ -284,7 +280,7 @@ export class MeasurementValuesUtils {
     // Normalize only given pmfms (reduce the pmfms list)
     if (opts && opts.onlyExistingPmfms) {
       pmfms = Object.getOwnPropertyNames(source).reduce((res, pmfmId) => {
-        const pmfm = pmfms && pmfms.find(p => p.pmfmId === +pmfmId);
+        const pmfm = pmfms && pmfms.find(p => p.id === +pmfmId);
         return pmfm && res.concat(pmfm) || res;
       }, []);
     }
@@ -296,18 +292,18 @@ export class MeasurementValuesUtils {
 
     // Normalize all pmfms from the list
     (pmfms || []).forEach(pmfm => {
-      if (isNil(pmfm.pmfmId)) {
-        console.warn('Invalid pmfmStrategy instance: missing required pmfmId. Please make sure to load PmfmStrategy with inheritance', pmfm);
+      if (isNil(pmfm.id)) {
+        console.warn('Invalid pmfm instance: missing required id. Please make sure to load DenormalizedPmfmStrategy or Pmfm', pmfm);
         return;
       }
-      const pmfmId = pmfm.pmfmId.toString();
+      const pmfmId = pmfm.id.toString();
       target[pmfmId] = PmfmValueUtils.fromModelValue(source[pmfmId], pmfm);
     });
     return target;
   }
 
   static normalizeEntityToForm(data: IEntityWithMeasurement<any>,
-                               pmfms: PmfmStrategy[],
+                               pmfms: IPmfm[],
                                form?: FormGroup,
                                opts?: {
                                  keepOtherExistingPmfms?: boolean;
@@ -365,27 +361,27 @@ export class MeasurementValuesUtils {
       }, {}) || undefined;
   }
 
-  static getValue(measurements: MeasurementFormValues, pmfmStrategies: PmfmStrategy[], pmfmId: number, remove?: boolean): MeasurementFormValue {
-    if (!measurements || !pmfmStrategies || !pmfmId)
+  static getValue(measurements: MeasurementFormValues, pmfms: IPmfm[], pmfmId: number, remove?: boolean): MeasurementFormValue {
+    if (!measurements || !pmfms || !pmfmId)
       return undefined;
 
-    const pmfmStrategy = pmfmStrategies.find(p => p.pmfmId === pmfmId);
-    if (pmfmStrategy && measurements[pmfmStrategy.pmfmId]) {
-      const value = MeasurementValuesUtils.normalizeValueToForm(measurements[pmfmStrategy.pmfmId], pmfmStrategy);
+    const pmfm = pmfms.find(p => p.id === +pmfmId);
+    if (pmfm && measurements[pmfm.id]) {
+      const value = MeasurementValuesUtils.normalizeValueToForm(measurements[pmfm.id], pmfm);
       if (!!remove)
-        delete measurements[pmfmStrategy.pmfmId];
+        delete measurements[pmfm.id];
       return value;
     }
     return undefined;
   }
 
-  static setValue(measurements: MeasurementFormValues, pmfmStrategies: PmfmStrategy[], pmfmId: number, value: MeasurementFormValue) {
-    if (!measurements || !pmfmStrategies || !pmfmId)
+  static setValue(measurements: MeasurementFormValues, pmfms: IPmfm[], pmfmId: number, value: MeasurementFormValue) {
+    if (!measurements || !pmfms || !pmfmId)
       return undefined;
 
-    const pmfmStrategy = pmfmStrategies.find(p => p.pmfmId === pmfmId);
-    if (pmfmStrategy) {
-      measurements[pmfmStrategy.pmfmId] = MeasurementValuesUtils.normalizeValueToForm(value, pmfmStrategy);
+    const pmfm = pmfms.find(p => p.id === +pmfmId);
+    if (pmfm) {
+      measurements[pmfm.id] = MeasurementValuesUtils.normalizeValueToForm(value, pmfm);
     }
     return undefined;
   }

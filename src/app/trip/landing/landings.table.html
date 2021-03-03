@@ -59,8 +59,12 @@
   <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
-           matSortDisableClear [trackBy]="trackByFn">
+<mat-table [dataSource]="dataSource"
+           matSort
+           matSortDisableClear
+           [matSortActive]="defaultSortBy"
+           [matSortDirection]="defaultSortDirection"
+           [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
     <mat-header-cell *matHeaderCellDef
@@ -139,7 +143,7 @@
   <!-- Observers -->
   <ng-container matColumnDef="observers">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>LANDING.TABLE.OBSERVERS</ion-label>
+      <ion-label>{{'LANDING.TABLE.OBSERVERS' | translateContext: i18nColumnSuffix }}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ personsToString(row.currentData?.observers) }}</ion-text>
@@ -167,9 +171,9 @@
   </ng-container>
 
   <!-- Pmfm columns -->
-  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
-    <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
-      <ion-label [innerHTML]="pmfm | pmfmName:{html: true}"></ion-label>
+  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.id.toString()">
+    <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
+      <ion-label>{{pmfm | pmfmName: {html: true, i18nPrefix: i18nColumnPrefix, i18nContext: i18nColumnSuffix} }}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row"
               [class.mat-cell-date-time]="pmfm|isDatePmfm"
@@ -177,7 +181,7 @@
       <app-pmfm-field
         [readonly]="!row.editing"
         [pmfm]="pmfm"
-        [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId.toString()]"
+        [formControl]="row.validator.controls.measurementValues.controls[pmfm.id.toString()]"
         floatLabel="never">
       </app-pmfm-field>
     </mat-cell>

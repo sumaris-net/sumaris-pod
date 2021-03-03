@@ -39,7 +39,7 @@
                      [pmfm]="qvPmfm"
                      [style]="mobile? 'button' : 'autocomplete'"
                      [floatLabel]="floatLabel"
-                     [formControl]="measurementValuesForm.controls[qvPmfm.pmfmId.toString()]"
+                     [formControl]="measurementValuesForm.controls[qvPmfm.id.toString()]"
                      [compact]="compact"
                      [tabindex]="tabindex+1"
                      (keydown.tab)="focusNextInput($event)"
@@ -153,7 +153,7 @@
                              [style]="'button'"
                              [floatLabel]="floatLabel"
                              [sortAttribute]="['name']"
-                             [formControlName]="pmfm.pmfmId.toString()"
+                             [formControlName]="pmfm.id.toString()"
                              [compact]="compact"
                              [tabindex]="tabindex + 20 + i*2"
                              (keyup.enter)="focusNextInputOrSubmit($event, last)">
@@ -167,7 +167,7 @@
                              [style]="'button'"
                              [floatLabel]="floatLabel"
                              [placeholder]="pmfm|pmfmName"
-                             [formControlName]="pmfm.pmfmId.toString()"
+                             [formControlName]="pmfm.id.toString()"
                              [compact]="compact"
                              [tabindex]="tabindex + 20 + i*2"
                              (keyup.enter)="focusNextInputOrSubmit($event, last)">
@@ -184,7 +184,7 @@
                         [pmfm]="pmfm"
                         [floatLabel]="floatLabel"
                         [hidden]="pmfm.hidden"
-                        [formControlName]="pmfm.pmfmId.toString()"
+                        [formControlName]="pmfm.id.toString()"
                         [compact]="mobile"
                         (keyup.enter)="focusNextInputOrSubmit($event, last)"
                         [tabindex]="tabindex + 20 + i*2">

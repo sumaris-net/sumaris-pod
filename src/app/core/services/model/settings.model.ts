@@ -13,6 +13,12 @@ export declare interface LocaleConfig extends Property {
 
 export const APP_LOCALES = new InjectionToken<LocaleConfig[]>('locales');
 
+export declare interface OfflineFeature {
+  name: string;
+  lastSyncDate?: string;
+  filter?: any;
+}
+
 export declare interface LocalSettings {
   pages?: any;
   peerUrl?: string;
@@ -24,7 +30,7 @@ export declare interface LocalSettings {
   touchUi?: boolean;
   properties?: PropertiesMap;
   pageHistory?: HistoryPageReference[];
-  offlineFeatures?: string[];
+  offlineFeatures?: (string | OfflineFeature)[];
   pageHistoryMaxSize: number;
 }
 

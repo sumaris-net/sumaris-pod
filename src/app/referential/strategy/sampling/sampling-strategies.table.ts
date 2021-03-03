@@ -102,6 +102,12 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Referent
   ngOnInit() {
     super.ngOnInit();
 
+
+    // Remove error after changed selection
+    this.selection.changed.subscribe(() => {
+      this.error = null;
+    });
+
     this.registerAutocompleteField('department', {
       service: this.referentialRefService,
       filter: <ReferentialFilter>{
@@ -178,6 +184,11 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Referent
 
     // delete if strategy has not effort
     await super.deleteSelection(event);
+
+    //TODO FIX : After delete first time, _dirty = false; Cannot delete second times cause try to save
+    super.markAsPristine();
+    //
+
     this.error = null;
   }
 

@@ -146,24 +146,35 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   filteredItems$: Observable<any[]>;
   onDropButtonClick = new EventEmitter<UIEvent>(true);
   searchable: boolean;
+  displayValue = '';
 
   get itemCount(): number {
     return this._itemCount;
   }
 
   @Input() compareWith: (o1: any, o2: any) => boolean;
-
   @Input() logPrefix = "[mat-autocomplete] ";
-
   @Input() formControl: FormControl;
-
   @Input() formControlName: string = null;
-
   @Input() floatLabel: FloatLabelType;
-
   @Input() placeholder: string;
-
   @Input() suggestFn: SuggestFn<any, any>;
+  @Input() required = false;
+  @Input() mobile: boolean;
+  @Input() readonly = false;
+  @Input() clearable = false;
+  @Input() debounceTime = 250;
+  @Input() displayWith: DisplayFn | null;
+  @Input() displayAttributes: string[];
+  @Input() displayColumnSizes: (number|'auto'|undefined)[];
+  @Input() displayColumnNames: string[];
+  @Input() showAllOnFocus: boolean;
+  @Input() showPanelOnFocus: boolean;
+  @Input() appAutofocus: boolean;
+  @Input() config: MatAutocompleteFieldConfig;
+  @Input() i18nPrefix = 'REFERENTIAL.';
+  @Input() noResultMessage = 'COMMON.NO_RESULT';
+  @Input('class') classList: string;
 
   @Input() set filter(value: any) {
     // DEBUG
@@ -176,38 +187,6 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   get filter(): any {
     return this._$filter.getValue();
   }
-
-  @Input() required = false;
-
-  @Input() mobile: boolean;
-
-  @Input() readonly = false;
-
-  @Input() clearable = false;
-
-  @Input() debounceTime = 250;
-
-  @Input() displayWith: DisplayFn | null;
-
-  @Input() displayAttributes: string[];
-
-  @Input() displayColumnSizes: (number|'auto'|undefined)[];
-
-  @Input() displayColumnNames: string[];
-
-  @Input() showAllOnFocus: boolean;
-
-  @Input() showPanelOnFocus: boolean;
-
-  @Input() appAutofocus: boolean;
-
-  @Input() config: MatAutocompleteFieldConfig;
-
-  @Input() i18nPrefix = 'REFERENTIAL.';
-
-  @Input() noResultMessage = 'COMMON.NO_RESULT';
-
-  @Input('class') classList: string;
 
   @Input() set tabindex(value: number) {
     this._tabindex = value;
@@ -244,13 +223,10 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   }
 
   @Output('click') onClick = new EventEmitter<MouseEvent>();
-
   @Output('blur') onBlur = new EventEmitter<FocusEvent>();
-
   @Output('focus') onFocus = new EventEmitter<FocusEvent>();
 
   @ViewChild('matSelect') matSelect: ElementRef;
-
   @ViewChild('matInputText') matInputText: ElementRef;
 
   get value(): any {
@@ -317,12 +293,12 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         // DEBUG
         //console.debug(this.logPrefix + " Calling suggestFromArray with value=", value);
 
-        const res  = await suggestFromArray(this.$inputItems.getValue(), value, {
+        const {data, total}  = await suggestFromArray(this.$inputItems.getValue(), value, {
           searchAttributes: this.displayAttributes,
           ...filter
         });
-        this._itemCount = res && res.length || 0;
-        return res;
+        this._itemCount = toNumber(total, data && data.length || 0) ;
+        return {data, total};
       };
       // Wait (once) that items are loaded, then call suggest from array fn
       this.suggestFn = async (value, filter) => {
@@ -346,7 +322,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
           startWith<any, any>(this._$filter.getValue()),
           debounceTime(250),
           takeWhile((_) => !this.searchable), // Close subscription, when enabling search (no more mat-select)
-          switchMap((filter) => this.fetchItems('*', filter) )
+          switchMap((filter) => this.suggest('*', filter) )
         )
         .subscribe(items => this.$inputItems.next(items))
       );
@@ -385,6 +361,14 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
           this.formControl.valueChanges
             .pipe(
               startWith<any, any>(this.formControl.value),
+              // Compute display value
+              tap(value => {
+                const displayValue = this.displayWith(value) || '';
+                if (this.displayValue !== displayValue) {
+                  this.displayValue = displayValue;
+                  this.markForCheck();
+                }
+              }),
               filter(value => isNotNil(value)),
               //tap((value) => console.debug(this.logPrefix + " valueChanges:", value)),
               debounceTime(this.debounceTime)
@@ -402,7 +386,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     this.filteredItems$ = updateFilteredItemsEvents$
       .pipe(
         //tap(value => console.debug(this.logPrefix + " Received update event: ", value)),
-        switchMap((value) => this.fetchItems(value, this.filter)),
+        switchMap((value) => this.suggest(value, this.filter)),
         // Store implicit value (will use it onBlur if not other value selected)
         tap(res => this.updateImplicitValue(res)),
     );
@@ -415,11 +399,11 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
          filter(_ => this.searchable && this._implicitValue)
        )
        .subscribe( (_) => {
-          // When leave component without object, use implicit value if :
-          // - an explicit value
-          // - field is not empty (user fill something)
-          // - OR field empty but is required
-          const existingValue = this.formControl.value;
+         // When leave component without object, use implicit value if :
+         // - an explicit value
+         // - field is not empty (user fill something)
+         // - OR field empty but is required
+         const existingValue = this.formControl.value;
          if ((this.required && isNilOrBlank(existingValue)) || (isNotNilOrBlank(existingValue) && typeof existingValue !== "object")) {
            this.writeValue(this._implicitValue);
            this.formControl.markAsPending({emitEvent: false, onlySelf: true});
@@ -427,7 +411,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
          }
          this._implicitValue = null; // reset the implicit value
          this.checkIfTouched();
-        }));
+       }));
   }
 
   ngOnDestroy(): void {
@@ -441,32 +425,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
    */
   reloadItems(value?: any) {
     // Force a refresh
-    if (value) {
-      this._$reload.next(value || '*');
-    }
-    else {
-      this._$reload.next(this.formControl.value);
-    }
-  }
-
-  protected async fetchItems(value: any, filter?: any): Promise<any[]> {
-    // Call suggestion function
-    let res = await this.suggestFn(value, filter);
-
-    // DEBUG
-    // console.debug(this.logPrefix + " Filtered items by suggestFn:", value, res);
-    if (!res) {
-      this._itemCount = 0;
-    }
-    else if (Array.isArray(res)) {
-      this._itemCount = (res as any[]).length || 0;
-    }
-    else {
-      const resWithTotal = res as LoadResult<any>;
-      res = resWithTotal.data;
-      this._itemCount = resWithTotal && toNumber(resWithTotal.total, res && res.length) || 0;
-    }
-    return res as any[];
+    this._$reload.next(value || '*');
   }
 
   writeValue(value: any): void {
@@ -569,7 +528,27 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     event.stopPropagation();
   }
 
-  /* -- protected method -- */
+  /* -- private method -- */
+
+  private async suggest(value: any, filter?: any): Promise<any[]> {
+    // Call suggestion function
+    let res = await this.suggestFn(value, filter);
+
+    // DEBUG
+    // console.debug(this.logPrefix + " Filtered items by suggestFn:", value, res);
+    if (!res) {
+      this._itemCount = 0;
+    }
+    else if (Array.isArray(res)) {
+      this._itemCount = (res as any[]).length || 0;
+    }
+    else {
+      const {data, total} = res as LoadResult<any>;
+      res = data;
+      this._itemCount = toNumber(total, data && data.length || 0) ;
+    }
+    return res as any[];
+  }
 
   private updateImplicitValue(res: any[]) {
     if (this.searchable) {

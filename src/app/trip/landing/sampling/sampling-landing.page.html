@@ -67,6 +67,7 @@
         <ion-label color="danger" class="error" [innerHTML]="(landingForm.error||error) | translate"></ion-label>
       </ion-item>
 
+
       <ion-grid class="ion-no-padding">
         <ion-row class="ion-no-padding">
           <ion-col class="ion-padding">
@@ -82,6 +83,14 @@
                               [showStrategy]="true"
                               (onSubmit)="save($event)"
                               [debug]="debug">
+
+              <!-- zero effort (warning) -->
+              <mat-hint  afterStrategy *ngIf="landingForm.strategyControl.valid && zeroEffortWarning">
+                <ion-icon color="tertiary" name="warning"></ion-icon>&nbsp;
+                <ion-text color="tertiary" translate>LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR</ion-text>
+              </mat-hint>
+              <!-- no effort (error) -->
+              <mat-error afterStrategy *ngIf="noEffortError" translate>LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR</mat-error>
             </app-landing-form>
           </ion-col>
 
@@ -94,6 +103,7 @@
                   <app-strategy-summary-card #strategyCard
                                              [editor]="this"
                                              [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate">
+
                   </app-strategy-summary-card>
                 </ion-col>
 
@@ -133,9 +143,11 @@
 
         <app-sampling-samples-table #samplesTable
                                     [class.cdk-visually-hidden]="!showSamplesTable"
+                                    [disabled]="noEffortError"
                                     [showLabelColumn]="true"
                                     [showDateTimeColumn]="false"
                                     [defaultSampleDate]="data?.dateTime"
+                                    [defaultLocation]="data?.location"
                                     [pmfmGroups]="$pmfmGroups|async"
                                     [usageMode]="usageMode"
                                     [useSticky]="true"

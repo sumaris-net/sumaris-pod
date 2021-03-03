@@ -7,7 +7,7 @@ import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {Person, personToString} from "../../core/services/model/person.model";
+import {Person, personToString, UserProfileLabels} from "../../core/services/model/person.model";
 import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {isNil, isNotNil, toBoolean} from "../../shared/functions";
@@ -157,7 +157,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
       // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: ['SUPERVISOR', 'USER']
+        userProfiles: [UserProfileLabels.SUPERVISOR, UserProfileLabels.USER]
       },
       attributes: ['lastName', 'firstName', 'department.name'],
       displayWith: personToString

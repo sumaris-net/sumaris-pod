@@ -1,14 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  Input,
-  OnDestroy,
-  OnInit,
-  QueryList,
-  ViewChildren
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, QueryList, ViewChildren} from "@angular/core";
 import {Batch} from "../../services/model/batch.model";
 import {MeasurementValuesForm} from "../../measurement/measurement-values.form.class";
 import {DateAdapter} from "@angular/material/core";
@@ -22,18 +12,9 @@ import {ReferentialUtils} from "../../../core/services/model/referential.model";
 import {UsageMode} from "../../../core/services/model/settings.model";
 import {debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
 import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../../referential/services/model/model.enum";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {BehaviorSubject, combineLatest} from "rxjs";
-import {
-  getPropertyByPath,
-  isEmptyArray,
-  isNil,
-  isNilOrBlank,
-  isNotNil,
-  isNotNilOrBlank,
-  startsWithUpperCase,
-  toBoolean
-} from "../../../shared/functions";
+import {getPropertyByPath, isEmptyArray, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, startsWithUpperCase, toBoolean} from "../../../shared/functions";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {MeasurementValuesUtils} from "../../services/model/measurement.model";
 import {PlatformService} from "../../../core/services/platform.service";
@@ -47,6 +28,8 @@ import {TranslateService} from "@ngx-translate/core";
 import {FloatLabelType} from "@angular/material/form-field";
 import {AppFormUtils} from "../../../core/form/form.utils";
 import {ProgramRefService} from "../../../referential/services/program-ref.service";
+import {LoadResult} from "../../../shared/services/entity-service.class";
+import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 
 @Component({
@@ -57,7 +40,7 @@ import {ProgramRefService} from "../../../referential/services/program-ref.servi
 export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   implements OnInit, OnDestroy {
 
-  protected _qvPmfm: PmfmStrategy;
+  protected _qvPmfm: DenormalizedPmfmStrategy;
   protected _availableParents: BatchGroup[] = [];
   protected _parentAttributes: string[];
   protected _showTaxonName: boolean;
@@ -113,17 +96,17 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
   @Input() isNew: boolean;
 
-  @Input() set qvPmfm(value: PmfmStrategy) {
+  @Input() set qvPmfm(value: DenormalizedPmfmStrategy) {
     this._qvPmfm = value;
     // If already loaded, re apply pmfms, to be able to execute mapPmfms
     if (value && !this.loadingPmfms) {
       this.setPmfms(this.$pmfms);
     }
-  };
+  }
 
-  get qvPmfm(): PmfmStrategy {
+  get qvPmfm(): DenormalizedPmfmStrategy {
     return this._qvPmfm;
-  };
+  }
 
   @Input() set availableParents(parents: BatchGroup[]) {
     if (this._availableParents === parents) return; // skip
@@ -156,7 +139,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   @Input() set freezeQvPmfm(value: boolean) {
     this.freezeQvPmfmControl.setValue(value);
     if (!value) {
-      this.form.get('measurements.' + this.qvPmfm.pmfmId).reset(null);
+      this.form.get('measurements.' + this.qvPmfm.id).reset(null);
     }
   }
 
@@ -263,7 +246,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
               mergeMap((_) => this.suggestTaxonNames())
             )
             // Update taxon names
-            .subscribe(taxonNames => this.$taxonNames.next(taxonNames));
+            .subscribe(({data}) => this.$taxonNames.next(data));
 
           // Update taxonName when need
           let lastTaxonName: TaxonNameRef;
@@ -320,13 +303,13 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
               distinctUntilChanged(Batch.equals),
               mergeMap(() => this.suggestTaxonNames())
             )
-            .subscribe((taxonNames) => {
+            .subscribe(({data}) => {
               // Update taxon names
-              this.$taxonNames.next(taxonNames);
+              this.$taxonNames.next(data);
 
               // Is only one value
-              if (taxonNames.length === 1) {
-                const defaultTaxonName = taxonNames[0];
+              if (data.length === 1) {
+                const defaultTaxonName = data[0];
                 // Set the field
                 taxonNameControl.patchValue(defaultTaxonName, {emitEVent: false});
                 // Remember for next form reset
@@ -537,37 +520,39 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     );
   }
 
-  protected suggestTaxonNames(value?: any, options?: any): Promise<TaxonNameRef[]> {
+  protected async suggestTaxonNames(value?: any, options?: any): Promise<LoadResult<TaxonNameRef>> {
     const parentGroup = this.parentGroup;
-    if (isNil(parentGroup)) return Promise.resolve([]);
-    //if (this.debug)
-      console.debug(`[sub-batch-form] Searching taxon name {${value || '*'}}...`);
+    if (isNil(parentGroup)) return {data: []};
+    if (this.debug) console.debug(`[sub-batch-form] Searching taxon name {${value || '*'}}...`);
     return this.programRefService.suggestTaxonNames(value,
       {
-        program: this.programLabel,
+        programLabel: this.programLabel,
         searchAttribute: options && options.searchAttribute,
         taxonGroupId: parentGroup && parentGroup.taxonGroup && parentGroup.taxonGroup.id || undefined
       });
   }
 
-  protected mapPmfms(pmfms: PmfmStrategy[]) {
+  protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
 
     if (this._qvPmfm) {
-      // Remove QV pmfms
-      const index = pmfms.findIndex(pmfm => pmfm.pmfmId === this._qvPmfm.pmfmId);
+      // Hide the QV pmfm
+      const index = pmfms.findIndex(pmfm => pmfm.id === this._qvPmfm.id);
       if (index !== -1) {
         const qvPmfm = this._qvPmfm.clone();
         qvPmfm.hidden = true;
         qvPmfm.required = true;
         pmfms[index] = qvPmfm;
       }
+      else {
+        console.warn('Cannot found the QVPmfm with ID=' + this._qvPmfm.id);
+      }
     }
 
     // If there is a parent: filter on parent's taxon group
     const parentTaxonGroupId = this.parentGroup && this.parentGroup.taxonGroup && this.parentGroup.taxonGroup.id;
     if (isNotNil(parentTaxonGroupId)) {
-      pmfms = pmfms
-        .filter(pmfm => isEmptyArray(pmfm.taxonGroupIds)
+      pmfms = pmfms.filter(pmfm => !(pmfm instanceof DenormalizedPmfmStrategy)
+          || isEmptyArray(pmfm.taxonGroupIds)
           || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
     }
 
@@ -577,10 +562,12 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   protected onUpdateControls(form: FormGroup) {
     if (this._qvPmfm) {
       const measFormGroup = form.get('measurementValues') as FormGroup;
-      const qvControl = measFormGroup.get(this._qvPmfm.pmfmId.toString());
+      const qvControl = measFormGroup.get(this._qvPmfm.id.toString());
 
       // Make sure QV is required
-      qvControl.setValidators(Validators.required);
+      if (qvControl) {
+        qvControl.setValidators(Validators.required);
+      }
     }
   }
 
