@@ -241,6 +241,10 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           this.strategyLabel = strategyLabel;
 
           // Propagate to measurement values
+
+          // Wait while pmfms are loading
+          // Wait form controls ready, if need
+          if (!this._ready) await this.ready();
           const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
           if (measControl && measControl.value !== strategyLabel) {
             measControl.setValue(strategyLabel);
