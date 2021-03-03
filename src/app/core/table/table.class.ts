@@ -56,6 +56,7 @@ export class CellValueChangeListener {
   eventEmitter: EventEmitter<any>;
   subscription: Subscription;
   formPath?: string;
+  emitInitialValue?: boolean;
 }
 
 
@@ -598,6 +599,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
 
     // Check confirmation
+    // FIXME: the confirmation is call confirmBeforeDelete but triggered on row.id !== -1
+    // TODO: should add a confirmBeforeCancel option with a promise event emitter onBeforeCancelRows as well as canCancelRows method
     if (!confirm && row.id !== -1 && (this.confirmBeforeDelete || this.onBeforeDeleteRows.observers.length > 0)) {
       event.stopPropagation();
       this.canDeleteRows([row])
@@ -609,10 +612,10 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       return;
     }
 
-    this.onCancelOrDeleteRow.next(row);
     event.stopPropagation();
 
     this._dataSource.cancelOrDelete(row);
+    this.onCancelOrDeleteRow.next(row);
 
     // If delete (if new row): update counter
     if (row.id === -1) {
@@ -787,23 +790,6 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return this.onEditRow(event, row);
   }
 
-  getCurrentColumns(): { visible: boolean; name: string; label: string }[] {
-    const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
-    const hiddenColumns = this.columns.slice(fixedColumns.length)
-      .filter(name => this.displayedColumns.indexOf(name) === -1);
-    return this.displayedColumns.slice(fixedColumns.length)
-      .concat(hiddenColumns)
-      .filter(name => name !== "actions")
-      .filter(name => !this.excludesColumns.includes(name))
-      .map(name => {
-        return {
-          name,
-          label: this.getI18nColumnName(name),
-          visible: this.displayedColumns.indexOf(name) !== -1
-        };
-      });
-  }
-
   async openSelectColumnsModal(event?: UIEvent): Promise<any> {
 
     const columns = this.getCurrentColumns();
@@ -817,8 +803,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     await modal.present();
 
     // On dismiss
-    const res = await modal.onDidDismiss();
-    if (!res) return; // CANCELLED
+    const {data} = await modal.onDidDismiss();
+    if (!data) return; // CANCELLED
 
     // Apply columns
     const userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
@@ -885,6 +871,23 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return await this.router.navigate(['new'], {
       relativeTo: this.route
     });
+  }
+
+  protected getCurrentColumns(): { visible: boolean; name: string; label: string }[] {
+    const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
+    const hiddenColumns = this.columns.slice(fixedColumns.length)
+      .filter(name => this.displayedColumns.indexOf(name) === -1);
+    return this.displayedColumns.slice(fixedColumns.length)
+      .concat(hiddenColumns)
+      .filter(name => name !== "actions")
+      .filter(name => !this.excludesColumns.includes(name))
+      .map(name => {
+        return {
+          name,
+          label: this.getI18nColumnName(name),
+          visible: this.displayedColumns.indexOf(name) !== -1
+        };
+      });
   }
 
   protected getUserColumns(): string[] {
@@ -972,13 +975,14 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return this.editedRow;
   }
 
-  protected registerCellValueChanges(name: string, formPath?: string): Observable<any> {
+  protected registerCellValueChanges(name: string, formPath?: string, emitInitialValue?: boolean): Observable<any> {
     formPath = formPath || name;
     if (this.debug) console.debug(`[table] New listener {${name}} for value changes on path ${formPath}`);
     this._cellValueChangesDefs[name] = this._cellValueChangesDefs[name] || {
       eventEmitter: new EventEmitter<any>(),
       subscription: null,
-      formPath: formPath
+      formPath: formPath,
+      emitInitialValue
     };
 
     // Start the listener, when editing starts
@@ -1008,12 +1012,18 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       console.warn(`[table] Could not listen cell changes: no validator or invalid form path {${def.formPath}}`);
     } else {
       def.subscription = control.valueChanges
+        .pipe(
+          // don't emit if control is disabled
+          filter(() => control.enabled)
+        )
         .subscribe((value) => {
           def.eventEmitter.emit(value);
         });
 
       // Emit the actual value
-      def.eventEmitter.emit(control.value);
+      if (def.emitInitialValue !== false) {
+        def.eventEmitter.emit(control.value);
+      }
     }
   }
 

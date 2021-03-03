@@ -50,7 +50,7 @@
       "@apollo/client/utilities": "apollo.client.utilities"
     }
   },
-  "whitelistedNonPeerDependencies": [
+  "allowedNonPeerDependencies": [
     "."
   ],
   "assets": [

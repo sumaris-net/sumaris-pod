@@ -62,7 +62,7 @@ import {
 import {FormFieldDefinitionMap} from "./shared/form/field.model";
 import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
 import {TranslateHttpLoader} from "@ngx-translate/http-loader";
-import {DATE_ISO_PATTERN} from "./shared/dates";
+import {DATE_ISO_PATTERN} from "./shared/constants";
 
 
 @NgModule({
