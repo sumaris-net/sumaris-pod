@@ -640,7 +640,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     appliedStrategyWithPeriods.appliedPeriods = [1, 2, 3, 4].map(quarter => {
       const startMonth = (quarter - 1) * 3 + 1;
       const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`).utc();
-      const endDate = startDate.clone().add(2, 'month').endOf('month');
+      const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
       // Find the existing entity, or create a new one
       const appliedPeriod = appliedPeriods && appliedPeriods.find(period => period.startDate.month() === startDate.month())
         || AppliedPeriod.fromObject({ acquisitionNumber: undefined });
