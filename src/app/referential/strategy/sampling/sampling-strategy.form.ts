@@ -435,7 +435,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Fractions
     const fractionIds: number[] = removeDuplicatesFromArray(data
       .reduce((res, strategy) => res.concat(...strategy.pmfms), [])
-      .reduce((res, pmfmStrategie) => res.concat(pmfmStrategie.fractionId), [])
+      .reduce((res, pmfmStrategie) => res.concat(pmfmStrategie.fraction && pmfmStrategie.fraction.id), [])
     );
 
     const fractions = (
