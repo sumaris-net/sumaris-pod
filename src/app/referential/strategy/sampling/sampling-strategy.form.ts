@@ -465,6 +465,16 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     }
   }
 
+
+  async getAnalyticReferenceName(analyticReference): Promise<string> {
+    try {
+      return await this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label: analyticReference  })
+      .then(res => firstArrayValue(res.data).name )
+    } catch (err) {
+      console.debug('Error on load AnalyticReference');
+    }
+  }
+
   async initPmfmStrategies() {
     const pmfms = [];
 
@@ -648,10 +658,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Get fisrt period
     const firstAppliedPeriod = firstArrayValue(appliedStrategyWithPeriods.appliedPeriods);
 
-    this.form.patchValue({
-      year: firstAppliedPeriod ? firstAppliedPeriod.startDate : moment(),
-      analyticReference: data.analyticReference && { label: data.analyticReference } || null
-    });
+
+    this.getAnalyticReferenceName(data.analyticReference).then(name => {
+      this.form.patchValue({
+        year: firstAppliedPeriod ? firstAppliedPeriod.startDate : moment(),
+        analyticReference: data.analyticReference && { label: data.analyticReference, name } || null
+      });
+    })
+
 
 
     // If new
