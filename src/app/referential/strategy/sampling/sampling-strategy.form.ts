@@ -674,8 +674,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.form.get('sex').patchValue(null);
       this.form.get('age').patchValue(null);
     } else {
-      this.form.get('age').patchValue((data.pmfms || []).findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.AGE) !== -1);
-      this.form.get('sex').patchValue((data.pmfms || []).findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.SEX) !== -1);
+      this.form.get('age').patchValue((data.pmfms || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.AGE)) !== -1);
+      this.form.get('sex').patchValue((data.pmfms || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.SEX)) !== -1);
       // pmfms = [hasSex, hasAge];
     }
 
