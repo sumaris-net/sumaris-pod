@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.7.1-SNAPSHOT</version>
+  <version>1.7.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -410,6 +410,11 @@
         <groupId>org.apache.activemq</groupId>
         <artifactId>activemq-kahadb-store</artifactId>
         <version>${activemq.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.jms</groupId>
+        <artifactId>javax.jms-api</artifactId>
+        <version>2.0.1</version>
       </dependency>
       <dependency>
         <groupId>io.reactivex.rxjava2</groupId>
@@ -1201,8 +1206,13 @@
                     <classpath refid="maven.plugin.classpath" />
                   </taskdef>
                   <!-- LP 21/10/2020 Needed if project is built on Windows, will not cause non modified file as modified in Git  -->
-                  <echo level="info">Fix line endings on resources files (*.properties)</echo>
-                  <fixcrlf srcdir="${project.basedir}/src/main/resources/i18n" includes="*.properties" eol="lf"/>
+                  <if>
+                    <available file="${project.basedir}/src/main/resources/i18n" type="dir"/>
+                    <then>
+                      <echo level="info">Fix line endings on resources files (*.properties)</echo>
+                      <fixcrlf srcdir="${project.basedir}/src/main/resources/i18n" includes="*.properties" eol="lf"/>
+                    </then>
+                  </if>
                 </target>
               </configuration>
             </execution>

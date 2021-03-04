@@ -72,12 +72,11 @@ public class PmfmGraphQLService {
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
     ) {
 
-        return pmfmService.findByFilter(
+        List<PmfmVO> res = pmfmService.findByFilter(
                 ReferentialFilterVO.nullToEmpty(filter),
-                offset == null ? 0 : offset,
-                size == null ? 1000 : size,
-                sort == null ? ReferentialVO.Fields.LABEL : sort,
-                SortDirection.fromString(direction, SortDirection.ASC));
+                offset, size, sort, SortDirection.fromString(direction, SortDirection.ASC));
+
+        return res;
     }
 
     @GraphQLQuery(name = "pmfm", description = "Get a PMFM")
