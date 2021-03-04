@@ -435,7 +435,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Fractions
     const fractionIds: number[] = removeDuplicatesFromArray(data
       .reduce((res, strategy) => res.concat(...strategy.pmfms), [])
-      .reduce((res, pmfmStrategie) => res.concat(pmfmStrategie.fractionId), [])
+      .reduce((res, pmfmStrategie) => res.concat(pmfmStrategie.fraction && pmfmStrategie.fraction.id), [])
     );
 
     const fractions = (
@@ -460,6 +460,16 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         ))
         .filter(isNotNil);
       this.analyticsReferenceItems.next(analyticReferences);
+    } catch (err) {
+      console.debug('Error on load AnalyticReference');
+    }
+  }
+
+
+  async getAnalyticReferenceName(analyticReference): Promise<string> {
+    try {
+      return await this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label: analyticReference  })
+      .then(res => firstArrayValue(res.data).name )
     } catch (err) {
       console.debug('Error on load AnalyticReference');
     }
@@ -648,10 +658,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Get fisrt period
     const firstAppliedPeriod = firstArrayValue(appliedStrategyWithPeriods.appliedPeriods);
 
-    this.form.patchValue({
-      year: firstAppliedPeriod ? firstAppliedPeriod.startDate : moment(),
-      analyticReference: data.analyticReference && { label: data.analyticReference } || null
-    });
+
+    this.getAnalyticReferenceName(data.analyticReference).then(name => {
+      this.form.patchValue({
+        year: firstAppliedPeriod ? firstAppliedPeriod.startDate : moment(),
+        analyticReference: data.analyticReference && { label: data.analyticReference, name } || null
+      });
+    })
+
 
 
     // If new
@@ -660,8 +674,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.form.get('sex').patchValue(null);
       this.form.get('age').patchValue(null);
     } else {
-      this.form.get('age').patchValue((data.pmfms || []).findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.AGE) !== -1);
-      this.form.get('sex').patchValue((data.pmfms || []).findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.SEX) !== -1);
+      this.form.get('age').patchValue((data.pmfms || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.AGE)) !== -1);
+      this.form.get('sex').patchValue((data.pmfms || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.SEX)) !== -1);
       // pmfms = [hasSex, hasAge];
     }
 
