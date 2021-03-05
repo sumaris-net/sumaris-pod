@@ -829,12 +829,15 @@ public class StrategyRepositoryImpl
 
         // Applied inheritance:
         return source.getPmfms().stream()
+                // FIXME #301 Get only pmfms with pmfmStrategy.pmfm not null (CB)
+                .filter(pmfmStrategy -> pmfmStrategy.getPmfm() != null)
+                .map(pmfmStrategy -> denormalizedPmfmStrategyRepository.toVO(pmfmStrategy, pmfmStrategy.getPmfm(), fetchOptions))
                 // Get all corresponding pmfms
-                .flatMap(pmfmStrategy -> streamPmfmsByPmfmStrategy(pmfmStrategy, false /* continue if invalid PmfmStrategy (but will log) */ )
-                        .distinct()
-                        // Convert to one or more PmfmStrategy
-                        .map(pmfm -> denormalizedPmfmStrategyRepository.toVO(pmfmStrategy, pmfm, fetchOptions))
-                )
+                //.flatMap(pmfmStrategy -> streamPmfmsByPmfmStrategy(pmfmStrategy, false /* continue if invalid PmfmStrategy (but will log) */ )
+                //        .distinct()
+                //        // Convert to one or more PmfmStrategy
+                //        .map(pmfm -> denormalizedPmfmStrategyRepository.toVO(pmfmStrategy, pmfm, fetchOptions))
+                //)
                 .filter(Objects::nonNull)
                 // Sort by acquisitionLevel and rankOrder
                 .sorted(Comparator.comparing(ps -> String.format("%s#%s", ps.getAcquisitionLevel(), ps.getRankOrder())))
