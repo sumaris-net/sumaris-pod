@@ -14,7 +14,7 @@ stages:
         - sih_public_runner
     script:
         - echo "Test dev build in progress"
-        - mvn -s ./ci_settings.xml clean install -DskipTests
+        - mvn -s ./ci_settings.xml -q clean install -DskipTests
     environment:
         name: test
 
