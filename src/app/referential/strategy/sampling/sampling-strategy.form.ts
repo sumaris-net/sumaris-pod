@@ -685,9 +685,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.form.get('sex').patchValue(null);
       this.form.get('age').patchValue(null);
     } else {
-      this.form.get('age').patchValue((data.pmfms || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.AGE)) !== -1);
-      this.form.get('sex').patchValue((data.pmfms || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.SEX)) !== -1);
       // pmfms = [hasSex, hasAge];
+      this.form.get('age').patchValue((data.pmfms || []).findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.AGE) !== -1);
+      this.form.get('sex').patchValue((data.pmfms || []).findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.SEX) !== -1);
     }
 
 
@@ -740,13 +740,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     target.name = target.label || target.name;
     target.label = target.label || target.name;
     target.description = target.label || target.description;
-    target.analyticReference = target.analyticReference && EntityUtils.isNotEmpty(target.analyticReference, 'label') ? 
-    target.analyticReference['label'] : 
+    target.analyticReference = target.analyticReference && EntityUtils.isNotEmpty(target.analyticReference, 'label') ?
+    target.analyticReference['label'] :
     EntityUtils.isNotEmpty(this.form.get('analyticReference').value, 'label') ?
     this.form.get('analyticReference').value.label :
     this.form.get('analyticReference').value;
 
-    
     // get taxonName and
     target.taxonNames = (this.form.controls.taxonNames.value || []).map(TaxonNameStrategy.fromObject);
     target.taxonNames.forEach(taxonNameStrategy => {
