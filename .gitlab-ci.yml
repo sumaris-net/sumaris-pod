@@ -8,7 +8,17 @@ stages:
     - release
     - deploy
 
-build-dev:
+.build:
+    stage: build
+    tags:
+        - sih_public_runner
+    script:
+        - echo "Test dev build in progress"
+        - mvn -s ./ci_settings.xml -q clean install -DskipTests
+    environment:
+        name: test
+
+build_auto:
     extends: .build
     only:
         - develop
@@ -16,65 +26,50 @@ build-dev:
     except:
         - schedules
 
-schedule-build:
+schedule_build:
     extends: .build
-    artifacts:
-        paths:
-            - sumaris-server/target/*.war
     only:
         - schedules
 
-.build:
-    stage: build
-    tags: 
-        - sih_public_runner
-    script:
-        - echo "Test dev build in progress"
-        - mvn -s ./settings.xml clean install -DskipTests -P oracle
-    environment:
-        name: test
-
-build_val:
-    stage: build
-    tags:
-        - sih_public_runner
-    script:
-        - echo "Test oracle build  in progress"
-        - mvn -s ./settings.xml clean install -DskipTests -Dspring.liquibase.enabled=false -Dsumaris.name=SUMARiS -Dsumaris.persistence.sequence.increment=1 -Dlogging.level.org.hibernate.SQL=debug 
-    environment:
-        name: test
-    artifacts:
-        paths:
-            - sumaris-server/target/*.war
+build_registry:
+    extends: .build
+    after_script:
+        - echo "Deploy Snapshot in progress"
+        - SNAPSHOT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
+        - echo $SNAPSHOT_VERSION
+        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$SNAPSHOT_VERSION -Dfile=sumaris-server/target/sumaris-server-$SNAPSHOT_VERSION.war -DrepositoryId=job-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
     only:
         - develop
         - feature/imagine
+    artifacts:
+        paths:
+            - sumaris-server/target/*.war
     when: manual
 
 sonarqube:
     stage: test
-    tags: 
+    tags:
         - sih_public_runner
     variables:
-      SONAR_TOKEN: "e6f816eee72d3d5c03319ec74b468157b9164d12"
-      SONAR_HOST_URL: "http://visi-common-sonar:9000"
-    image: 
-      name: sonarsource/sonar-scanner-cli:latest
-      entrypoint: [""]
+        SONAR_TOKEN: "e6f816eee72d3d5c03319ec74b468157b9164d12"
+        SONAR_HOST_URL: "http://visi-common-sonar:9000"
+    image:
+        name: sonarsource/sonar-scanner-cli:latest
+        entrypoint: [""]
     script:
-      - echo "Sonarqube analysis in progress"
-      - sonar-scanner
-        -Dsonar.projectKey=imagine-pod
-        -Dsonar.host.url=$SONAR_HOST_URL 
-        -Dsonar.login=$SONAR_TOKEN
-        -Dsonar.sourceEncoding=UTF-8
-        -Dsonar.java.binaries=.
-        -Dsonar.java.libraries=.
+        - echo "Sonarqube analysis in progress"
+        - sonar-scanner
+            -Dsonar.projectKey=imagine-pod
+            -Dsonar.host.url=$SONAR_HOST_URL
+            -Dsonar.login=$SONAR_TOKEN
+            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.java.binaries=.
+            -Dsonar.java.libraries=.
     only:
         - develop
         - feature/imagine
     when: manual
- 
+
 
 pages:
     stage: docs
@@ -96,11 +91,11 @@ pages:
         - develop
         - feature/imagine
     when: manual
-   
+
 
 package:
     stage: prepare
-    tags: 
+    tags:
         - sih_public_runner
     before_script:
         - git checkout -B "$CI_BUILD_REF_NAME"
@@ -110,8 +105,8 @@ package:
     script:
         - echo "Release in progress"
         - mvn release:clean -Dslf4jJclScope=provided
-        - mvn -s ./settings.xml release:prepare --batch-mode -Dtag=imagine-pod-$RELEASE_VERSION -DreleaseVersion=$RELEASE_VERSION -DdevelopmentVersion=$NEW_DEV_VERSION -DscmCommentPrefix="[ci skip] to "
-        - mvn -s ./settings.xml release:perform -Dslf4jJclScope=provided -X -DscmCommentPrefix="[ci skip] to "
+        - mvn -s ./ci_settings.xml release:prepare --batch-mode -Dtag=imagine-pod-$RELEASE_VERSION -DreleaseVersion=$RELEASE_VERSION -DdevelopmentVersion=$NEW_DEV_VERSION -DscmCommentPrefix="[ci skip] to "
+        - mvn -s ./ci_settings.xml release:perform -Dslf4jJclScope=provided -X -DscmCommentPrefix="[ci skip] to "
     artifacts:
         paths:
             - web-services/target/*.war
@@ -125,7 +120,7 @@ package:
 
 release:
     stage: release
-    tags: 
+    tags:
         - sih_public_runner
     image: registry.gitlab.com/gitlab-org/release-cli:latest
     needs:
@@ -145,11 +140,11 @@ release:
 
 deploy:
     stage: deploy
-    tags: 
+    tags:
         - sih_public_runner
     script:
         - echo "Deploy in progress"
-        - mvn -s ./settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$TAG -Dfile=web-services/target/ROOT.war -DrepositoryId=gitlab-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven
+        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$TAG -Dfile=web-services/target/ROOT.war -DrepositoryId=internal-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven
     only:
         - develop
         - feature/imagine
