@@ -23,7 +23,6 @@ build_auto:
     only:
         - develop
         - feature/imagine
-        - feature-oracle-adagio
     except:
         - schedules
 
@@ -42,7 +41,6 @@ build_registry:
     only:
         - develop
         - feature/imagine
-        - feature-oracle-adagio
     artifacts:
         paths:
             - sumaris-server/target/*.war
