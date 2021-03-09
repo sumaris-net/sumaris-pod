@@ -123,23 +123,26 @@ under the License.
         </server>
         -->
 
-        <!--
         <server>
-         <id>gitlab-maven</id>
-         <configuration>
-           <httpHeaders>
-             <property>
-               <name>gitlab+deploy-token-34</name>
-               <value>qmqyr4oesz6hHiGYuEFX</value>
-             </property>
-           </httpHeaders>
-         </configuration>
-       </server>
-     -->
-        <server>
-            <id>gitlab-maven</id>
+            <id>internal-maven</id>
             <username>${env.MAVEN_REPO_USER}</username>
             <password>${env.MAVEN_REPO_PASS}</password>
+        </server>
+        <server>
+            <id>project-maven</id>
+            <username>gitlab+deploy-token-62</username>
+            <password>54gJ-pk4XDxmjoxBdirx</password>
+        </server>
+        <server>
+            <id>job-maven</id>
+            <configuration>
+                <httpHeaders>
+                    <property>
+                        <name>Job-Token</name>
+                        <value>${env.CI_JOB_TOKEN}</value>
+                    </property>
+                </httpHeaders>
+            </configuration>
         </server>
         <server>
             <id>gitlab.ifremer.fr</id>
@@ -226,43 +229,21 @@ under the License.
         </profile>
         -->
 
-        <!--
-         | Here is another profile, activated by the system property 'target-env' with a value of 'dev',
-         | which provides a specific path to the Tomcat instance. To use this, your plugin configuration
-         | might hypothetically look like:
-         |
-         | ...
-         | <plugin>
-         |   <groupId>org.myco.myplugins</groupId>
-         |   <artifactId>myplugin</artifactId>
-         |
-         |   <configuration>
-         |     <tomcatLocation>${tomcatPath}</tomcatLocation>
-         |   </configuration>
-         | </plugin>
-         | ...
-         |
-         | NOTE: If you just wanted to inject this configuration whenever someone set 'target-env' to
-         |       anything, you could just leave off the <value/> inside the activation-property.
-         |
         <profile>
-          <id>env-dev</id>
-
-          <activation>
-            <property>
-              <name>target-env</name>
-              <value>dev</value>
-            </property>
-          </activation>
-
-          <properties>
-            <tomcatPath>/path/to/tomcat/instance</tomcatPath>
-          </properties>
+            <id>gitlab-profile</id>
+            <repositories>
+                <repository>
+                    <id>project-maven</id>
+                    <url>https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven</url>
+                </repository>
+            </repositories>
+            <properties>
+                <release.server>internal-maven</release.server>
+                <release.repository>https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven</release.repository>
+                <snapshot.server>job-maven</snapshot.server>
+                <snapshot.repository>https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven</snapshot.repository>
+            </properties>
         </profile>
-        -->
-
-
-
     </profiles>
 
     <!-- activeProfiles
@@ -276,4 +257,9 @@ under the License.
       <activeProfiles>
       <activeProfile>staging</activeProfile>
     </activeProfiles>-->
+
+    <activeProfiles>
+        <activeProfile>gitlab-profile</activeProfile>
+    </activeProfiles>
+
 </settings>
