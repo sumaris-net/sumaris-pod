@@ -50,9 +50,9 @@ Puis la lancer :
 - `mvn spring-boot:run -Dspring-boot.run.fork=false -Duser.timezone=UTC -Dsumaris.name=IMAGINE` **(ne pas oublier de lancer la base!)**
 
 ### Lancer le pod sur la BDD oracle
- - faire un checkout de la branche **feature-oracle-adagio**
- - exécuter la commande `mvn install -Poracle -DskipTests`
- - exécuter la commande `mvn spring-boot:run -Poracle -Dspring.liquibase.enabled=false -Doracle.net.tns_admin=\\brest\tnsnames -Dsumaris.name=IMAGiNE -Dsumaris.persistence.sequence.increment=1 -Dlogging.level.graphql=debug -Dlogging.level.org.hibernate.SQL=debug -Dsumaris.enumeration.UserProfile.ADMIN.label=ALLEGRO_ADMINISTRATEUR -Dsumaris.enumeration.UserProfile.USER.label=ALLEGRO_UTILISATEUR -Dsumaris.enumeration.UserProfile.SUPERVISOR.label=ALLEGRO_SUPER_UTILISATEUR`
+ - faire un checkout de la branche **develop-imagine**
+ - récupérer localement le fichier de propriété oracle souhaité depuis le projet [isi-sih-sumaris](https://gitlab.ifremer.fr/dev_ops/shared_docker_image_factory/isi-sih-sumaris) (liste des fichiers de propeties dans le répertoire `sumaris-server`).
+ - exécuter la commande `spring-boot:run -Dspring-boot.run.fork=false -Doracle.net.tns_admin=\\brest\tnsnames -Dspring.config.location=path-to-file\application-recette.properties`
 
 Le serveur est accessible sur <http://localhost:8080>
 
