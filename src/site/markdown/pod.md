@@ -72,7 +72,12 @@ DB_PORT=9000
 
 ### Oracle
 
-`TODO: write this part`
+Download locally oracle propeties file from [isi-sih-sumaris](https://gitlab.ifremer.fr/dev_ops/shared_docker_image_factory/isi-sih-sumaris) project (you can find properties files under `sumaris-server` directory).
+
+Run next command with the right path to oracle tns_name and propertie files :
+```bash
+spring-boot:run -Dspring-boot.run.fork=false -Doracle.net.tns_admin=\\brest\tnsnames -Dspring.config.location=path-to-file\application-oracle.properties
+```
 
 ### PostgreSQL
 
