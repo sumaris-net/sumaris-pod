@@ -452,6 +452,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected async getValue(): Promise<Landing> {
     const data = await super.getValue();
 
+    data.measurementValues = this.form.controls.measurementValues && this.form.controls.measurementValues.value;
+
     // Save samples table
     if (this.samplesTable.dirty) {
       await this.samplesTable.save();
