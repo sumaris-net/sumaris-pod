@@ -50,6 +50,8 @@ export * from './src/app/shared/types';
 export * from './src/app/shared/dates';
 export * from './src/app/shared/functions';
 export * from './src/app/shared/observables';
+export * from './src/app/shared/events';
+export * from './src/app/shared/alerts';
 export * from './src/app/shared/hotkeys/shared-hotkeys.module';
 export * from './src/app/shared/hotkeys/hotkeys.service';
 export * from './src/app/shared/hotkeys/dialog/hotkeys-dialog.component';
