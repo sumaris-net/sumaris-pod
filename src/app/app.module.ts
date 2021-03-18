@@ -22,7 +22,7 @@ import {AudioManagement} from "@ionic-native/audio-management/ngx";
 import {APP_LOCAL_SETTINGS, APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/local-settings.service";
 import {APP_LOCALES, LocalSettings} from "./core/services/model/settings.model";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
-import {APP_CONFIG_OPTIONS, ConfigService} from "./core/services/config.service";
+import {APP_CONFIG_OPTIONS} from "./core/services/config.service";
 import {
   TRIP_CONFIG_OPTIONS,
   TRIP_GRAPHQL_TYPE_POLICIES,
@@ -62,13 +62,12 @@ import {
 import {FormFieldDefinitionMap} from "./shared/form/field.model";
 import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
 import {DATE_ISO_PATTERN} from "./shared/dates";
-import {Environment} from "src/environments/environment.class";
-import {Observable} from "rxjs";
+import {EnvironmentService} from "./core/services/environment.service";
 
 
-export function initAppEnvironment(configService: ConfigService) {
-  return (): Observable<Environment> => {
-    return configService.loadEnvironment();
+export function initAppEnvironment(configService: EnvironmentService) {
+  return (): Promise<void> => {
+    return configService.load();
   }
 }
 
@@ -284,11 +283,14 @@ export function initAppEnvironment(configService: ConfigService) {
     { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
         ...TRIP_TESTING_PAGES
     ]},
+
+    // Load external configuration at initialization
+    EnvironmentService,
     {
       provide: APP_INITIALIZER,
       useFactory: initAppEnvironment,
       multi: true,
-      deps: [ConfigService],
+      deps: [EnvironmentService],
     },
   ],
   bootstrap: [AppComponent],

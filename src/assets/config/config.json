@@ -1,0 +1,23 @@
+{
+  "baseUrl": "/",
+  "defaultLocale": "fr",
+  "defaultPeer" : {
+    "host": "isi.ifremer.fr/imagine-server/",
+    "port": 443
+  },
+  "defaultPeers": [
+    {
+      "host": "localhost",
+      "port": 8080
+    },
+    {
+      "host": "visi-common-docker1.ifremer.fr",
+      "port": 8080
+    },
+    {
+      "host": "isi.ifremer.fr/imagine-server/",
+      "port": 443
+    }
+  ],
+  "defaultAppName": "IMAGiNE"
+}
