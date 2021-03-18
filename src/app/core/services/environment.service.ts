@@ -31,7 +31,7 @@ export class EnvironmentService {
       .get<Environment>(`${this.configUrl}`)
       .pipe(shareReplay(1))
       .subscribe((environment) => {
-        // this.data = environment;
+        // overwite data with externals
         this.data = {...this.data, ...environment}
         if (this._debug) console.debug("[environment-service] External environment configuration loaded");
         resolve();
