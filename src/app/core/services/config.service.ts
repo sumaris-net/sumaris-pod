@@ -16,11 +16,12 @@ import {LocationLevelIds, ParameterLabelGroups, PmfmIds, TaxonomicLevelIds} from
 import {ToastController} from "@ionic/angular";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {TranslateService} from "@ngx-translate/core";
-import {filter} from "rxjs/operators";
+import {filter, shareReplay} from "rxjs/operators";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {ENVIRONMENT} from "../../../environments/environment.class";
+import {Environment, ENVIRONMENT} from "../../../environments/environment.class";
 import {UserProfileLabels} from "./model/person.model";
 import {REFERENTIAL_CONFIG_OPTIONS} from "../../referential/services/config/referential.config";
+import { HttpClient } from "@angular/common/http";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -110,6 +111,9 @@ export class ConfigService extends SoftwareService<Configuration> {
 
   private $data = new BehaviorSubject<Configuration>(null);
 
+  private $envData = new Observable<Environment>(null);
+  private readonly configUrl = 'www/assets/config/config.json';
+
   get started(): boolean {
     return this._started;
   }
@@ -131,6 +135,7 @@ export class ConfigService extends SoftwareService<Configuration> {
     protected file: FileService,
     protected toastController: ToastController,
     protected translate: TranslateService,
+    private http: HttpClient,
     @Inject(ENVIRONMENT) protected environment,
     @Optional() @Inject(APP_CONFIG_OPTIONS) defaultOptionsMap: FormFieldDefinitionMap
   ) {
@@ -219,6 +224,15 @@ export class ConfigService extends SoftwareService<Configuration> {
         label
       },
       ...opts});
+  }
+
+  loadEnvironment(): Observable<Environment> {
+    if (!this.$envData) {
+      this.$envData = this.http
+        .get<Environment>(`${this.configUrl}`)
+        .pipe(shareReplay(1));
+    }
+    return this.$envData;
   }
 
   async existsByLabel(label: string): Promise<boolean> {

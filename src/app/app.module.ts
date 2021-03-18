@@ -2,7 +2,7 @@ import "./vendor";
 
 import {APP_BASE_HREF} from "@angular/common";
 import {BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule} from "@angular/platform-browser";
-import {CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext} from "@angular/core";
+import {APP_INITIALIZER, CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext} from "@angular/core";
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
 import {MomentDateAdapter} from '@angular/material-moment-adapter';
 import {SplashScreen} from '@ionic-native/splash-screen/ngx';
@@ -22,7 +22,7 @@ import {AudioManagement} from "@ionic-native/audio-management/ngx";
 import {APP_LOCAL_SETTINGS, APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/local-settings.service";
 import {APP_LOCALES, LocalSettings} from "./core/services/model/settings.model";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
-import {APP_CONFIG_OPTIONS} from "./core/services/config.service";
+import {APP_CONFIG_OPTIONS, ConfigService} from "./core/services/config.service";
 import {
   TRIP_CONFIG_OPTIONS,
   TRIP_GRAPHQL_TYPE_POLICIES,
@@ -61,9 +61,16 @@ import {
 } from "./referential/services/config/referential.config";
 import {FormFieldDefinitionMap} from "./shared/form/field.model";
 import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
-import {TranslateHttpLoader} from "@ngx-translate/http-loader";
 import {DATE_ISO_PATTERN} from "./shared/dates";
+import {Environment} from "src/environments/environment.class";
+import {Observable} from "rxjs";
 
+
+export function initAppEnvironment(configService: ConfigService) {
+  return (): Observable<Environment> => {
+    return configService.loadEnvironment();
+  }
+}
 
 @NgModule({
   declarations: [
@@ -277,6 +284,12 @@ import {DATE_ISO_PATTERN} from "./shared/dates";
     { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
         ...TRIP_TESTING_PAGES
     ]},
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initAppEnvironment,
+      multi: true,
+      deps: [ConfigService],
+    },
   ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
