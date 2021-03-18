@@ -21,7 +21,7 @@ export class EnvironmentService {
   constructor(
     private http: HttpClient,
   ) {
-    this._debug = !environment.production;
+    this._debug = !this.data.production;
     if (this._debug) console.debug("[environment-service] Creating service");
   }
 
@@ -30,12 +30,18 @@ export class EnvironmentService {
       this.http
       .get<Environment>(`${this.configUrl}`)
       .pipe(shareReplay(1))
-      .subscribe((environment) => {
-        // overwite data with externals
-        this.data = {...this.data, ...environment}
-        if (this._debug) console.debug("[environment-service] External environment configuration loaded");
-        resolve();
-      });
+      .subscribe(
+        (environment) => {
+          // overwite data with externals
+          this.data = {...this.data, ...environment}
+          if (this._debug) console.debug("[environment-service] External environment file loaded");
+          resolve();
+        },
+        (error) => {
+          if (this._debug) console.debug("[environment-service] External environment file loading failed : ", error.message);
+          resolve();
+        }
+      );
     });
   }
 }
