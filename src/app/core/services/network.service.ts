@@ -21,6 +21,7 @@ import {NodeInfo} from "./network.utils";
 import {HttpUtils} from "../../shared/http/http.utils";
 import {VersionUtils} from "../../shared/version/versions";
 import {ENVIRONMENT} from "../../../environments/environment.class";
+import {EnvironmentService} from "./environment.service";
 
 export type ConnectionType = 'none' | 'wifi' | 'ethernet' | 'cell' | 'unknown' ;
 
@@ -124,6 +125,7 @@ export class NetworkService {
     private network: Network,
     private cache: CacheService,
     private http: HttpClient,
+    private environmentService: EnvironmentService,
     @Inject(ENVIRONMENT) protected environment,
     @Optional() private translate: TranslateService,
     @Optional() private toastController: ToastController
@@ -395,8 +397,8 @@ export class NetworkService {
     }
 
     // Else, use default peer in env, if exists
-    if (this.environment.defaultPeer) {
-      return Peer.fromObject(this.environment.defaultPeer);
+    if (this.environmentService.environment.defaultPeer) {
+      return Peer.fromObject(this.environmentService.environment.defaultPeer);
     }
 
     // Else, if App is hosted, try the web site as a peer
@@ -689,8 +691,8 @@ export class NetworkService {
   /**
    * Get default peers, from environment
    */
-  protected async getDefaultPeers(): Promise<Peer[]> {
-    const peers = (this.environment.defaultPeers || []).map(Peer.fromObject);
+   protected async getDefaultPeers(): Promise<Peer[]> {
+    const peers = (this.environmentService.environment.defaultPeers || []).map(Peer.fromObject);
     return Promise.resolve(peers);
   }
 

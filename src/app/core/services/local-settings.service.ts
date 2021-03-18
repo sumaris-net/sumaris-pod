@@ -23,6 +23,7 @@ import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
 import {ENVIRONMENT} from "../../../environments/environment.class";
 import {environment} from "../../../environments/environment";
 import {fromDateISOString} from "../../shared/dates";
+import {EnvironmentService} from "./environment.service";
 
 const moment = momentImported;
 
@@ -101,6 +102,7 @@ export class LocalSettingsService {
     private translate: TranslateService,
     private platform: Platform,
     private storage: Storage,
+    private environmentService: EnvironmentService,
     @Inject(ENVIRONMENT) protected environment,
     @Optional() @Inject(APP_LOCAL_SETTINGS) private readonly defaultSettings: LocalSettings,
     @Optional() @Inject(APP_LOCAL_SETTINGS_OPTIONS) defaultOptionsMap: FormFieldDefinitionMap
@@ -487,7 +489,7 @@ export class LocalSettingsService {
     this.data.usageMode = undefined;
     this.data.pageHistory = [];
 
-    const defaultPeer = this.environment.defaultPeer && Peer.fromObject(this.environment.defaultPeer);
+    const defaultPeer = this.environmentService.environment.defaultPeer && Peer.fromObject(this.environmentService.environment.defaultPeer);
     this.data.peerUrl = defaultPeer && defaultPeer.url || undefined;
 
     if (this._started) this.onChange.next(this.data);
