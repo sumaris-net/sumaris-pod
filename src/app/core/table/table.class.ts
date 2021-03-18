@@ -71,6 +71,8 @@ export interface IModalDetailOptions<T = any> {
   onDelete: (event: UIEvent, data: T) => Promise<boolean>;
 }
 
+export type SaveActionType = 'delete' | 'sort' | 'filter';
+
 // @dynamic
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -152,6 +154,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   @Output() onConfirmEditCreateRow = new EventEmitter<TableElement<T>>();
   @Output() onCancelOrDeleteRow = new EventEmitter<TableElement<T>>();
   @Output() onBeforeDeleteRows = createPromiseEventEmitter<boolean, {rows: TableElement<T>[]}>();
+  @Output() onBeforeSave = createPromiseEventEmitter<{confirmed: boolean; save: boolean}, {action: SaveActionType, valid: boolean}>();
   @Output() onAfterDeletedRows = new EventEmitter<TableElement<T>[]>();
 
   @Output() onSort = new EventEmitter<any>();
@@ -406,14 +409,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       // Listen sort events
       this.sort && this.sort.sortChange
         .pipe(
-          mergeMap(async () => {
-            if (this._dirty && this.saveBeforeSort) {
-              const saved = await this.save();
-              this.markAsDirty(); // restore dirty flag
-              return saved;
-            }
-            return true;
-          }),
+          mergeMap(async () => this.saveBeforeAction('sort')),
           filter(res => res === true),
           // Save sort in settings
           tap(() => {
@@ -426,14 +422,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       // Listen paginator events
       this.paginator && this.paginator.page
         .pipe(
-          mergeMap(async () => {
-            if (this._dirty && this.saveBeforeSort) {
-              const saved = await this.save();
-              this.markAsDirty(); // restore dirty flag
-              return saved;
-            }
-            return true;
-          }),
+          mergeMap(async () => this.saveBeforeAction('sort')),
           filter(res => res === true)
         ) || EMPTY
     ).subscribe(value => {
@@ -482,12 +471,13 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       if (this.dirty) {
 
         // Save
-        this.save().then(() => {
-          // Then apply filter
-          this.applyFilter(filter, opts);
-          // Restore dirty state
-          this.markAsDirty();
-        });
+        this.saveBeforeAction('filter').then(saved => {
+          // Apply filter only if user didn't cancel the save or the save is ok
+          if (saved) {
+            this.applyFilter(filter, opts);
+          }
+        })
+
       } else {
         // apply filter on non dirty table
         this.applyFilter(filter, opts);
@@ -502,7 +492,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   /* -- internal method -- */
 
-  private applyFilter(filter: F, opts: { emitEvent: boolean; }) {
+  protected applyFilter(filter: F, opts: { emitEvent: boolean; }) {
     if (this.debug) console.debug('[table] Applying filter', filter);
     this._filter = filter;
     if (opts.emitEvent) {
@@ -640,7 +630,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return true;
   }
 
-  async save(): Promise<boolean> {
+  async save(saveAction?: SaveActionType): Promise<boolean> {
+    if (this.debug && saveAction) {
+      console.debug(`[table] Save called by ${saveAction} event`);
+    }
+
     if (this.readOnly) {
       throw {code: ErrorCodes.TABLE_READ_ONLY, message: 'ERROR.TABLE_READ_ONLY'};
     }
@@ -700,11 +694,10 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     if (!canDelete) return 0; // Cannot delete
 
     // If data need to be saved first: do it
-    if (this._dirty && this.saveBeforeDelete) {
-      if (this.debug) console.debug("[table] Saving (before deletion)...");
-      const saved = await this.save();
-      this.markAsDirty();
-      if (!saved) return; // Stop if cannot save
+    const saved = await this.saveBeforeAction('delete');
+    if (!saved) {
+      // Stop if save cancelled or save failed
+      return;
     }
 
     if (this.debug) console.debug("[table] Delete selection...");
@@ -734,6 +727,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
+  // todo: rename to editRow
   onEditRow(event: MouseEvent|undefined, row: TableElement<T>): boolean {
     if (!this._enabled) return false;
     if (this.editedRow === row) return true; // Already the edited row
@@ -840,6 +834,62 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       return this.askDeleteConfirmation();
     }
     return true;
+  }
+
+  protected async saveBeforeAction(action: SaveActionType): Promise<boolean> {
+
+    if (!this._dirty) {
+      // Continue without save
+      return true;
+    }
+
+    let save: boolean;
+    switch (action) {
+      case "delete":
+        save = this.saveBeforeDelete;
+        break;
+      case "filter":
+        save = this.saveBeforeFilter;
+        break;
+      case "sort":
+        save = this.saveBeforeSort;
+        break;
+      default:
+        save = true;
+    }
+
+    // Default behavior
+    let confirmed = true;
+
+    if (save) {
+      if (this.onBeforeSave.observers.length > 0) {
+        // Ask confirmation
+        try {
+          const res = await emitPromiseEvent(this.onBeforeSave, 'beforeSave', {
+            detail: {action: action, valid: this.valid}
+          });
+          confirmed = res.confirmed;
+          save = res.save;
+        }
+        catch (err) {
+          if (err === 'CANCELLED') return false; // User cancel
+          console.error("Error while checking if can delete rows", err);
+          throw err;
+        }
+
+      }
+    }
+
+    if (confirmed) {
+      if (save) {
+        // User confirmed save
+        const saved = await this.save(action);
+        this.markAsDirty(); // Restore dirty flag
+        return saved;
+      }
+      return true; // No save but continue action
+    }
+    return false; // User cancel the action
   }
 
   protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {
