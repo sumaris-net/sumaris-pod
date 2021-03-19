@@ -110,7 +110,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
     // TODO: for DEV only ---
     //this.debug = !environment.production;
-
   }
 
   async ngOnInit() {

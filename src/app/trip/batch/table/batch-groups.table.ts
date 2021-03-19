@@ -691,7 +691,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       component: SubBatchesModal,
       backdropDismiss: false,
       componentProps: {
-        program: this.programLabel,
+        programLabel: this.programLabel,
         acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
         usageMode: this.usageMode,
         showParentGroup,
