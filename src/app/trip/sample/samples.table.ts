@@ -281,7 +281,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     const modal = await this.modalCtrl.create({
       component: SampleModal,
       componentProps: <ISampleModalOptions>{
-        program: undefined, // Prefer to pass PMFMs directly, to avoid a reloading
+        programLabel: undefined, // Prefer to pass PMFMs directly, to avoid a reloading
         pmfms: this.$pmfms.asObservable(),
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
