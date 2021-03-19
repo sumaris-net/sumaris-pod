@@ -85,14 +85,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.strategyControl.markAsTouched(opts);
   }
 
-  get value(): any {
-    return this.getValue();
-  }
-
-  set value(value: any) {
-    this.safeSetValue(value);
-  }
-
   get observersForm(): FormArray {
     return this.form.controls.observers as FormArray;
   }
@@ -263,11 +255,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       this.observersHelper.resize(Math.max(1, data.observers.length));
     } else {
       this.observersHelper.removeAllEmpty();
-    }
-
-    // Propagate the program
-    if (data.program && data.program.label) {
-      this.programLabel = data.program.label;
     }
 
     // Propagate the strategy

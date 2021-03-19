@@ -8,16 +8,17 @@ import {MeasurementValuesForm} from "../measurement/measurement-values.form.clas
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {Person, personToString, UserProfileLabels} from "../../core/services/model/person.model";
-import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {ObservedLocation} from "../services/model/observed-location.model";
-import {AcquisitionLevelCodes, LocationLevelIds} from "../../referential/services/model/model.enum";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from "../../referential/services/model/model.enum";
+import {ReferentialRefFilter, ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {fromDateISOString} from "../../shared/dates";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {Landing} from "../services/model/landing.model";
 
 @Component({
   selector: 'form-observed-location',
@@ -122,23 +123,27 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     console.debug("[observed-location-form] Location level ids:", this.locationLevelIds);
 
     // Combo: programs
+    const programAttributes = this.settings.getFieldDisplayAttributes('program');
     this.registerAutocompleteField('program', {
       service: this.referentialRefService,
-      filter: {
+      attributes: programAttributes,
+      // Increase default column size, for 'label'
+      columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
+      filter: <ReferentialRefFilter>{
         entityName: 'Program'
-      }
+      },
+      mobile: this.mobile
     });
 
+    // Propagate program
     // Propagate program
     this.registerSubscription(
       this.form.get('program').valueChanges
         .pipe(
           debounceTime(250),
-          filter(ReferentialUtils.isNotEmpty),
-          pluck('label'),
-          distinctUntilChanged()
+          map(value => (value && typeof value === 'string') ? value : (value && value.label || undefined))
         )
-        .subscribe(programLabel => this.programLabel = programLabel as string));
+        .subscribe(programLabel => this.programLabel = programLabel));
 
     // Combo location
     this.registerAutocompleteField('location', {
@@ -150,7 +155,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     });
 
     // Combo: observers
-    this.registerAutocompleteField('observer', {
+    this.registerAutocompleteField('person', {
       // Important, to get the current (focused) control value, in suggestObservers() function (otherwise it will received '*').
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.suggestObservers(value, filter),
@@ -178,41 +183,30 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     );
   }
 
-  setValue(value: ObservedLocation) {
-    if (!value) return;
+  async setValue(data: ObservedLocation, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }) {
+    if (!data) return;
 
     // Make sure to have (at least) one observer
-    value.observers = value.observers && value.observers.length ? value.observers : [null];
+    data.observers = data.observers && data.observers.length ? data.observers : [null];
 
     // Resize observers array
     if (this._showObservers) {
-      this.observersHelper.resize(Math.max(1, value.observers.length));
-    }
-    else {
+      this.observersHelper.resize(Math.max(1, data.observers.length));
+    } else {
       this.observersHelper.removeAllEmpty();
     }
 
     // Force to show end date
-    if (!this.showEndDateTime && isNotNil(value.endDateTime) && isNotNil(value.startDateTime)) {
-      const diffInSeconds = fromDateISOString(value.endDateTime)
-        .diff(fromDateISOString(value.startDateTime), 'second');
+    if (!this.showEndDateTime && isNotNil(data.endDateTime) && isNotNil(data.startDateTime)) {
+      const diffInSeconds = fromDateISOString(data.endDateTime)
+        .diff(fromDateISOString(data.startDateTime), 'second');
       if (diffInSeconds !== 0) {
         this.showEndDateTime = true;
         this.markForCheck();
       }
     }
 
-    // Propagate the program
-    if (value.program && value.program.label) {
-      this.programLabel = value.program.label;
-    }
-    // New data: copy the program into json value
-    else if (isNil(value.id)){
-      value.program = this.form.get('program').value;
-    }
-
-    // Send value for form
-    super.setValue(value);
+    await super.setValue(data, opts);
   }
 
   addObserver() {

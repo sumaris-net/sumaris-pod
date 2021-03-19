@@ -181,11 +181,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   protected async onEntityLoaded(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
-    // Move to second tab
-    if (!this.isNewData && !this.isOnFieldMode) {
-      this.selectedTabIndex = 1;
-      this.tabGroup.realignInkBar();
-    }
+
+    const programLabel = data.program && data.program.label;
+    this.$programLabel.next(programLabel);
   }
 
   updateViewState(data: ObservedLocation, opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
@@ -198,6 +196,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   updateTabsState(data: ObservedLocation) {
     // Enable landings tab
     this.showLandingTab = this.showLandingTab || (isNotNil(data.id) || this.isOnFieldMode);
+
+    // Move to second tab
+    if (!this.isNewData && !this.isOnFieldMode) {
+      this.selectedTabIndex = 1;
+      this.tabGroup.realignInkBar();
+    }
   }
 
   protected async setValue(data: ObservedLocation) {
