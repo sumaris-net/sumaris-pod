@@ -852,9 +852,9 @@ export class ObservedLocationService
     try {
       let res: LoadResult<Landing>;
       let offset = 0;
-      const size = 10;
+      const size = 10; // Use paging, to avoid loading ALL landings once
       do {
-        res = await this.landingService.loadAllByObservedLocation({observedLocationId: entity.id}, {fullLoad: true});
+        res = await this.landingService.loadAll(offset, size, null, null, {observedLocationId: entity.id}, {fullLoad: true});
 
         const updatedLandings = (res.data || []).map(l => {
           if (!l.dateTime || !l.dateTime.isSame(entity.startDateTime)) {
