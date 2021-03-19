@@ -85,14 +85,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.strategyControl.markAsTouched(opts);
   }
 
-  get value(): any {
-    return this.getValue();
-  }
-
-  set value(value: any) {
-    this.safeSetValue(value);
-  }
-
   get observersForm(): FormArray {
     return this.form.controls.observers as FormArray;
   }
@@ -241,6 +233,10 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           this.strategyLabel = strategyLabel;
 
           // Propagate to measurement values
+
+          // Wait while pmfms are loading
+          // Wait form controls ready, if need
+          if (!this._ready) await this.ready();
           const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
           if (measControl && measControl.value !== strategyLabel) {
             measControl.setValue(strategyLabel);
@@ -261,14 +257,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       this.observersHelper.removeAllEmpty();
     }
 
-    // Propagate the program
-    if (data.program && data.program.label) {
-      this.programLabel = data.program.label;
-    }
-
     // Propagate the strategy
     const strategyLabel = Object.entries(data.measurementValues || {})
-      .filter(([pmfmId, _]) => +pmfmId === PmfmIds.STRATEGY_LABEL)
+      .filter(([pmfmId, _]) => +pmfmId == PmfmIds.STRATEGY_LABEL)
       .map(([_, value]) => value)
       .find(isNotNil) as string;
     this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
@@ -393,6 +384,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
       strategyPmfm.hidden = true; // Do not display it in measurement
       strategyPmfm.required = false; // Not need to be required, because of strategyControl validator
+
+
 
       // Prepend to list
       pmfms = [strategyPmfm, ...pmfms];

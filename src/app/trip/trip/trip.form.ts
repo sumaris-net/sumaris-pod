@@ -173,7 +173,10 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
     // Combo: observers
     this.registerAutocompleteField('person', {
-      service: this.personService,
+      // Important, to get the current (focused) control value, in suggestObservers() function (otherwise it will received '*').
+      showAllOnFocus: false,
+      suggestFn: (value, filter) => this.suggestObservers(value, filter),
+      // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
         userProfiles: [UserProfileLabels.SUPERVISOR, UserProfileLabels.USER, UserProfileLabels.GUEST]
@@ -227,7 +230,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Resize observers array
     if (this._showObservers) {
       this.observersHelper.resize(Math.max(1, value.observers.length));
-    } else {
+    }
+    else {
       this.observersHelper.removeAllEmpty();
     }
 
@@ -368,6 +372,22 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       this.metierFilter = metierFilter;
       this.markForCheck();
     }
+  }
+
+  protected suggestObservers(value: any, filter?: any): Promise<any[]> {
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+    const newValue = currentControlValue ? '*' : value;
+
+    // Excluded existing observers, BUT keep the current control value
+    const excludedIds = (this.observersForm.value || [])
+      .filter(ReferentialUtils.isNotEmpty)
+      .filter(person => !currentControlValue || currentControlValue !== person)
+      .map(person => parseInt(person.id));
+
+    return this.personService.suggest(newValue, {
+      ...filter,
+      excludedIds
+    });
   }
 
   protected markForCheck() {

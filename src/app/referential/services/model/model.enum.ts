@@ -114,7 +114,6 @@ export const ParameterLabelGroups: ObjectMap<string[]> = {
   AGE: ['AGE']
 };
 
-
 export const PmfmLabelPatterns = {
   BATCH_WEIGHT: /^BATCH_(.+)_WEIGHT$/,
   LATITUDE: /^latitude$/i,
@@ -124,12 +123,6 @@ export const PmfmLabelPatterns = {
 export const UnitLabelPatterns = {
   DECIMAL_HOURS: /^(h[. ]+dec[.]?|hours)$/,
   DATE_TIME: /^Date[ &]+Time$/
-};
-
-export const ParameterLabel = {
-  WEIGHT: 'WEIGHT',
-  SEX: 'SEX',
-  AGE: 'AGE'
 };
 
 // TODO Should be override by config properties

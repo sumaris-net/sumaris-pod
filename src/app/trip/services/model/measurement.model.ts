@@ -8,7 +8,7 @@ import {IPmfm, Pmfm} from "../../../referential/services/model/pmfm.model";
 import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {PmfmValue, PmfmValueUtils} from "../../../referential/services/model/pmfm-value.model";
 import {AppFormUtils} from "../../../core/form/form.utils";
-import {ReferentialRef} from "../../../core/services/model/referential.model";
+import {IReferentialRef, ReferentialRef} from "../../../core/services/model/referential.model";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 const moment = momentImported;
@@ -21,13 +21,14 @@ export declare interface MeasurementModelValues {
 export declare type MeasurementFormValue = PmfmValue;
 
 export declare interface MeasurementFormValues {
-  [pmfmId: string]: PmfmValue;
+  [id: string]: PmfmValue;
 }
 
 export declare interface IEntityWithMeasurement<T extends IEntity<T>> extends IEntity<T> {
   measurementValues: MeasurementModelValues | MeasurementFormValues;
   rankOrder?: number;
   comments?: string;
+  program?: ReferentialRef;
 }
 
 export declare interface IMeasurementValue {

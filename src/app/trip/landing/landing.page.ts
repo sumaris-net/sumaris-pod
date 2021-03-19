@@ -359,8 +359,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     // TODO BLA: Attention: ceci n'est pas applicable sur un Pmfm ou un DenormalizedPmfmStrategy
     //const pmfmsFromSamplesWithoutFractions = (pmfmsFromStrategyAndSamples || []).filter(pmfmStrategy => isNil(pmfmStrategy.fractionId));
 
-    this.samplesTable.pmfms = allPmfms;
     this.samplesTable.strategyLabel = strategy.label;
+
+    // IMAGINE-308 [Obs. Individuelle] Consulter les observations individuelles - Consulter un échantillonnage avec mesures individuelles / Keep additional pmfms and not only pmfms from  watchProgramPmfms
+    if (!this.samplesTable.ready) await this.samplesTable.ready();
+    this.samplesTable.pmfms = allPmfms;
+
   }
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {
@@ -447,6 +451,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   protected async getValue(): Promise<Landing> {
     const data = await super.getValue();
+
+    // Workaround, because sometime measurementValues is empty (see issue IMAGINE-273)
+    data.measurementValues = this.form.controls.measurementValues && this.form.controls.measurementValues.value;
 
     // Save samples table
     if (this.samplesTable.dirty) {

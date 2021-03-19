@@ -216,6 +216,7 @@ export class Metier extends Referential<Metier> {
 export class TaxonUtils {
 
   static rubinCode(taxonName: string) {
+    if (isNil(taxonName)) return undefined;
     let rubinCode = undefined;
     const genusWord = /^[a-zA-Z]{4,}$/;
     const speciesWord = /^[a-zA-Z]{3,}$/;

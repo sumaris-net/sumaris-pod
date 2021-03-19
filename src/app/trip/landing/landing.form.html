@@ -85,8 +85,8 @@
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
-      <ion-col size="12" size-sm="" *ngIf="showDateTime">
-        <mat-date-time-field [placeholder]="i18nPrefix + 'DATE_TIME'|translate"
+      <ion-col size="12" size-sm="" offset-lg="3" *ngIf="showDateTime">
+        <mat-date-time-field [placeholder]="i18nPrefix + 'DATE'|translate"
                              formControlName="dateTime"
                              [required]="true">
           <mat-icon *ngIf="!showLocation && !mobile" matPrefix>event</mat-icon>
