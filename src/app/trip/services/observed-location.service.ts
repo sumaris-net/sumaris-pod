@@ -840,7 +840,7 @@ export class ObservedLocationService
   }
 
   protected async updateChildrenDate(entity: ObservedLocation) {
-    if (!entity || !entity.program || !entity.program.label) return; // Skip
+    if (!entity || !entity.program || !entity.program.label || !entity.startDateTime) return; // Skip
 
     const program = await this.programRefService.loadByLabel(entity.program.label);
     const landingHasDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
