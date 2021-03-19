@@ -438,7 +438,7 @@
         "RECORDER_PERSON": "Saisisseur"
       },
       "SYNCHRONIZATION_STATUS": {
-        "DIRTY_HELP": "Marées hors-lgne",
+        "DIRTY_HELP": "Marées hors-ligne",
         "READY_TO_SYNC_HELP": "Marées en attente d'envoi",
         "SYNC_HELP": "Marées synchronisées"
       }
@@ -788,6 +788,11 @@
         "LOCATION": "Criée",
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période"
+      },
+      "SYNCHRONIZATION_STATUS": {
+        "DIRTY_HELP": "Observations hors-ligne",
+        "READY_TO_SYNC_HELP": "Observations en attente d'envoi",
+        "SYNC_HELP": "Observations synchronisées"
       }
     },
     "OFFLINE_MODAL": {

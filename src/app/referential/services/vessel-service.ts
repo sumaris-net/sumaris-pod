@@ -161,7 +161,7 @@ const LoadQuery: any = gql`
 `;
 
 const SaveVessels: any = gql`
-    mutation SaveVessels($vessels:[VesselVOInput]){
+    mutation SaveVessels($vessels:[VesselVOInput]!){
         saveVessels(vessels: $vessels){
             ...VesselFragment
         }
@@ -176,7 +176,7 @@ const SaveVessels: any = gql`
 `;
 
 const DeleteVessels: any = gql`
-    mutation deleteVessels($ids:[Int]){
+    mutation deleteVessels($ids:[Int]!){
         deleteVessels(ids: $ids)
     }
 `;
