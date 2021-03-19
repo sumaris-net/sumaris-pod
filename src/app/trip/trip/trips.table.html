@@ -313,10 +313,10 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <ng-container *ngIf="row.currentData.id >= 0; else synchronizationStatus">
-          <ion-icon color="secondary" name="pencil" *ngIf="!row.currentData.controlDate" slot="icon-only" [title]="'QUALITY.MODIFIED'|translate"></ion-icon>
-          <ion-icon color="tertiary" name="checkmark" *ngIf="row.currentData.controlDate && !row.currentData.validationDate" slot="icon-only" [title]="'QUALITY.CONTROLLED'|translate"></ion-icon>
-          <ion-icon color="tertiary" name="checkmark-circle" *ngIf="row.currentData.validationDate && !row.currentData.qualificationDate" slot="icon-only" [title]="'QUALITY.VALIDATED'|translate"></ion-icon>
-          <ion-icon [color]="qualityFlagToColor(row.currentData.qualityFlagId)" name="flag" *ngIf="row.currentData.validationDate && row.currentData.qualificationDate" slot="icon-only" [title]="'QUALITY.QUALIFIED'|translate"></ion-icon>
+          <ion-icon color="secondary" name="pencil" *ngIf="!row.currentData.controlDate" slot="icon-only" [matTooltip]="'QUALITY.MODIFIED'|translate"></ion-icon>
+          <ion-icon color="tertiary" name="checkmark" *ngIf="row.currentData.controlDate && !row.currentData.validationDate" slot="icon-only" [matTooltip]="'QUALITY.CONTROLLED'|translate"></ion-icon>
+          <ion-icon color="tertiary" name="checkmark-circle" *ngIf="row.currentData.validationDate && !row.currentData.qualificationDate" slot="icon-only" [matTooltip]="'QUALITY.VALIDATED'|translate"></ion-icon>
+          <ion-icon [color]="qualityFlagToColor(row.currentData.qualityFlagId)" name="flag" *ngIf="row.currentData.validationDate && row.currentData.qualificationDate" slot="icon-only" [matTooltip]="'QUALITY.QUALIFIED'|translate"></ion-icon>
         </ng-container>
         <ng-template #synchronizationStatus >
           <ng-container [ngSwitch]="row.currentData.synchronizationStatus">

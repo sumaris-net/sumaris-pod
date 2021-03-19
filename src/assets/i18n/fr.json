@@ -790,9 +790,9 @@
         "END_DATE": "Fin de période"
       },
       "SYNCHRONIZATION_STATUS": {
-        "DIRTY_HELP": "Observations hors-ligne",
-        "READY_TO_SYNC_HELP": "Observations en attente d'envoi",
-        "SYNC_HELP": "Observations synchronisées"
+        "DIRTY_HELP": "Données hors-ligne",
+        "READY_TO_SYNC_HELP": "Données en attente d'envoi",
+        "SYNC_HELP": "Données synchronisées"
       }
     },
     "OFFLINE_MODAL": {
