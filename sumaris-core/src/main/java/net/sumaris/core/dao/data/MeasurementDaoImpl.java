@@ -807,10 +807,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
         // Remove unused measurements
         if (CollectionUtils.isNotEmpty(sourcesToRemove)) {
-            sourcesToRemove.stream()
-                // if the measurement is part of the sources
-                .filter(entity -> sources.containsKey(entity.getPmfm().getId()))
-                .forEach(entity -> getEntityManager().remove(entity));
+            sourcesToRemove.forEach(entity -> getEntityManager().remove(entity));
         }
 
         return sources;
