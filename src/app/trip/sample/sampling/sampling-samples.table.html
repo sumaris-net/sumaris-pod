@@ -143,8 +143,8 @@
                        mat-sort-header
                        class="mat-column-pmfm"
                        [class.even]="pmfm.rankOrder % 2 === 0"
-                       [class.mat-cell-date-time]="pmfm.isDate">
-        <ion-label>{{pmfm | pmfmName: {html: true, withDetails: true, i18nPrefix: i18nColumnPrefix, i18nContext: i18nColumnSuffix} }}</ion-label>
+                       [class.mat-cell-date-time]="pmfm|isDatePmfm">
+        <ion-label [innerHTML]="pmfm | pmfmName: {html: true, withDetails: true, i18nPrefix: i18nColumnPrefix, i18nContext: i18nColumnSuffix}"></ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row"
                 class="mat-column-pmfm"
