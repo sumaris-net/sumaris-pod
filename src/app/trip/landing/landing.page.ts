@@ -452,7 +452,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected async getValue(): Promise<Landing> {
     const data = await super.getValue();
 
-    // FIXME BLA: pourquoi faire cela ? Voir si measurementValues est enable
+    // Workaround, because sometime measurementValues is empty (see issue IMAGINE-273)
     data.measurementValues = this.form.controls.measurementValues && this.form.controls.measurementValues.value;
 
     // Save samples table

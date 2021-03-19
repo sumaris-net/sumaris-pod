@@ -800,6 +800,9 @@
       "ENABLE": "Observations > Activer ?",
       "NAME": "Observations > Titre (menu, etc.)",
       "NEW_NAME": "Observations > Titre (nouvelle observation)"
+    },
+    "ERROR": {
+      "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles."
     }
   },
   "LANDING": {
@@ -819,7 +822,7 @@
       "STRATEGY_SUMMARY_TITLE": "Stratégie appliquée",
       "VESSEL": "Navire",
       "LANDING": "Débarquement :",
-      "DATE_TIME": "Date/Heure",
+      "DATE": "Date de débarquement",
       "LOCATION": "Lieu de débarquement",
       "OBSERVERS": "Observateurs :",
       "OBSERVER_PLACEHOLDER": "Observateur #",
@@ -831,6 +834,7 @@
         "STRATEGY_PLACEHOLDER": "Code ligne de plan",
         "STRATEGY_SUMMARY_TITLE": "Plan d'échantillonnage",
         "LANDING": "Débarquement :",
+        "DATE": "Date de débarquement",
         "TAB_SAMPLES": "Mesures individuelles",
         "LOCATION": "Port de débarquement"
       }
