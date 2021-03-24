@@ -357,9 +357,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       // Load additional pmfms, from ids
       const additionalPmfms = await Promise.all(additionalPmfmIds.map(id => this.pmfmService.load(id)));
 
-      // Make sure pmfms have been loaded once, before override. Elsewhere, only the strategy's PMFM will be applied
+      // IMPORTANT: Make sure pmfms have been loaded once, BEFORE override.
+      // (Elsewhere, the strategy's PMFM will be applied after the override, and additional PMFM will be lost)
       await this.samplesTable.ready();
 
+      // Applying additional PMFMs
       this.samplesTable.pmfms = [
         ...strategyPmfms,
         ...additionalPmfms
