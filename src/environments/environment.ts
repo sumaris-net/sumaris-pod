@@ -9,7 +9,7 @@ const pkg = require('../../package.json');
 export const environment: Environment = Object.freeze({
   name: (pkg.name as string),
   version: (pkg.version as string),
-  production: false,
+  production: true,
   baseUrl: "/",
   defaultLocale: "fr",
   defaultLatLongFormat: "DDMM",

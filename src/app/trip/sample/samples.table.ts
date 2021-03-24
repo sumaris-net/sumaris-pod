@@ -47,8 +47,7 @@ export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
-  implements OnInit {
+export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
