@@ -333,6 +333,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     if (this.strategyCard) {
       this.strategyCard.value = strategy;
     }
+    this.samplesTable.strategyLabel = strategy.label;
 
     // Set table defaults
     const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
@@ -343,27 +344,27 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     const strategyPmfms: IPmfm[] = (strategy.denormalizedPmfms || []).filter(p => p.acquisitionLevel === this.samplesTable.acquisitionLevel);
     const strategyPmfmIds = strategyPmfms.map(pmfm => pmfm.id);
 
-    // Retrieve additional pmfms, from samples
+    // Retrieve additional pmfms, from data (= PMFMs NOT in the strategy)
     const additionalPmfmIds = (this.data.samples || []).reduce((res, sample) => {
       const pmfmIds = Object.keys(sample.measurementValues || {}).map(id => +id);
       const newPmfmIds = pmfmIds.filter(id => !res.includes(id) && !strategyPmfmIds.includes(id));
       return newPmfmIds.length ? res.concat(...newPmfmIds) : res;
     }, []);
 
-    const allPmfms = [
-      ...strategyPmfms,
-      ...(await Promise.all(additionalPmfmIds.map(id => this.pmfmService.load(id))))
-    ];
+    // Override samples table pmfm, if need
+    if (isNotEmptyArray(additionalPmfmIds)) {
 
-    // Hide fractions pmfms
-    // TODO BLA: Attention: ceci n'est pas applicable sur un Pmfm ou un DenormalizedPmfmStrategy
-    //const pmfmsFromSamplesWithoutFractions = (pmfmsFromStrategyAndSamples || []).filter(pmfmStrategy => isNil(pmfmStrategy.fractionId));
+      // Load additional pmfms, from ids
+      const additionalPmfms = await Promise.all(additionalPmfmIds.map(id => this.pmfmService.load(id)));
 
-    this.samplesTable.strategyLabel = strategy.label;
+      // Make sure pmfms have been loaded once, before override. Elsewhere, only the strategy's PMFM will be applied
+      await this.samplesTable.ready();
 
-    // IMAGINE-308 [Obs. Individuelle] Consulter les observations individuelles - Consulter un échantillonnage avec mesures individuelles / Keep additional pmfms and not only pmfms from  watchProgramPmfms
-    if (!this.samplesTable.ready) await this.samplesTable.ready();
-    this.samplesTable.pmfms = allPmfms;
+      this.samplesTable.pmfms = [
+        ...strategyPmfms,
+        ...additionalPmfms
+      ];
+    }
 
   }
 

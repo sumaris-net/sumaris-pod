@@ -142,21 +142,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         .subscribe());
   }
 
-  ngOnInit() {
-    // DEBUG
-    console.debug("[samples-table] ngOnInit()", this);
-
-    super.ngOnInit();
-
-    // DEBUG
-    this.registerSubscription(
-      filterNotNil(this.$pmfms)
-        .subscribe(pmfms => {
-          // DEBUG
-          console.debug("[samples-table] Received PMFMs to applied: ", pmfms);
-        }));
-  }
-
   ngAfterViewInit() {
     super.ngAfterViewInit();
 

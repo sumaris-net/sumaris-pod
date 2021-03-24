@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
-import {AbstractControl, FormGroup, ValidationErrors} from "@angular/forms";
+import {FormGroup, ValidationErrors} from "@angular/forms";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ParameterLabelGroups, PmfmIds} from "../../../referential/services/model/model.enum";
