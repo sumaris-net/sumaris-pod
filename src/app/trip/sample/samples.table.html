@@ -280,7 +280,9 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row"
                 [class.mat-cell-date-time]="pmfm|isDatePmfm"
-                [class.mat-cell-computed]="pmfm|isComputedPmfm">
+                [class.mat-cell-computed]="pmfm|isComputedPmfm"
+                >
+        <!-- TODO BLA: manage color [style.mat-cell-danger]="pmfm.id === "-->
         <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, html: true}"></ion-text>
       </mat-cell>
     </ng-container>

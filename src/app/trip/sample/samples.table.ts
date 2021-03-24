@@ -378,7 +378,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   selectInputContent = AppFormUtils.selectInputContent;
 
-  public markForCheck() {
+  markForCheck() {
     this.cd.markForCheck();
   }
 }
