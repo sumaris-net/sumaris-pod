@@ -18,7 +18,7 @@ export class SelectLandingsModal implements OnInit {
 
   @Input() filter: LandingFilter = {};
   @Input() acquisitionLevel: AcquisitionLevelType;
-  @Input() program: string;
+  @Input() programLabel: string;
 
   get loadingSubject(): Observable<boolean> {
     return this.table.loadingSubject;
@@ -35,7 +35,7 @@ export class SelectLandingsModal implements OnInit {
 
   ngOnInit() {
     this.table.filter = this.filter;
-    this.table.programLabel = this.program;
+    this.table.programLabel = this.programLabel;
     this.table.acquisitionLevel = this.acquisitionLevel;
     setTimeout(() => {
       this.table.onRefresh.next("modal");

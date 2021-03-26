@@ -17,7 +17,7 @@ import {AppFormUtils} from "../../../core/form/form.utils";
   templateUrl: 'sub-batch.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SubBatchModal implements OnInit{
+export class SubBatchModal implements OnInit {
 
   debug = false;
   loading = false;
@@ -26,7 +26,7 @@ export class SubBatchModal implements OnInit{
   $title = new BehaviorSubject<string>(undefined);
 
   @Input() acquisitionLevel: string;
-  @Input() program: string;
+  @Input() programLabel: string;
   @Input() canEdit: boolean;
   @Input() disabled: boolean;
   @Input() isNew: boolean;

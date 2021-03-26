@@ -7,7 +7,7 @@ import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 export interface IDataEntityModalOptions<T extends Entity<T>> extends IModalDetailOptions<T> {
   // Program (or PMFMs, to avoid loading PMFMs by program)
-  program: string;
+  programLabel: string;
   acquisitionLevel: string;
   pmfms: Observable<IPmfm[]> | IPmfm[];
 

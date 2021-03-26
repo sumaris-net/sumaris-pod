@@ -51,7 +51,7 @@ export class SampleModal implements OnInit, ISampleModalOptions {
 
   @Input() i18nPrefix: string;
   @Input() acquisitionLevel: string;
-  @Input() program: string;
+  @Input() programLabel: string;
   @Input() pmfms: Observable<DenormalizedPmfmStrategy[]> | DenormalizedPmfmStrategy[]; // Avoid to load PMFM from program
   @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[]; // If PMFM are load from program: allow to override the list
 
