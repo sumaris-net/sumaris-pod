@@ -1,13 +1,13 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {BehaviorSubject, defer, Observable} from "rxjs";
-import {filter, map} from "rxjs/operators";
+import {BehaviorSubject, defer, merge, Observable, PartialObserver, Subject, Subscription} from "rxjs";
+import {debounceTime, filter, finalize, map, takeUntil, tap} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
 import {TaxonGroupRef, TaxonGroupTypeIds, TaxonNameRef} from "./model/taxon.model";
-import {firstArrayValue, isNilOrBlank, isNotEmptyArray, isNotNil, propertiesPathComparator, suggestFromArray} from "../../shared/functions";
+import {firstArrayValue, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, propertiesPathComparator, suggestFromArray} from "../../shared/functions";
 import {CacheService} from "ionic-cache";
 import {ReferentialRefFilter, ReferentialRefService} from "./referential-ref.service";
 import {firstNotNilPromise} from "../../shared/observables";
@@ -29,6 +29,7 @@ import {PlatformService} from "../../core/services/platform.service";
 import {ConfigService} from "../../core/services/config.service";
 import {PmfmService} from "./pmfm.service";
 import {BaseReferentialService} from "./base-referential-service.class";
+import {BaseEntityGraphqlSubscriptions} from "./base-entity-service.class";
 
 
 export class ProgramFilter extends ReferentialFilter {
@@ -42,8 +43,8 @@ export const ProgramRefQueries = {
           ...LightProgramFragment
         }
     }
-    ${ProgramFragments.lightProgram}
-  `,
+    ${ProgramFragments.lightProgram}`,
+
   // Load by id or label, with strategies
   load: gql`query ProgramRef($id: Int, $label: String){
         data: program(id: $id, label: $label){
@@ -59,8 +60,7 @@ export const ProgramRefQueries = {
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
     ${ReferentialFragments.referential}
-    ${ReferentialFragments.taxonName}
-  `,
+    ${ReferentialFragments.taxonName}`,
 
   // Load all query
   loadAll: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -98,9 +98,19 @@ export const ProgramRefQueries = {
   ${ReferentialFragments.taxonName}`
 };
 
+const ProgramRefSubscriptions: BaseEntityGraphqlSubscriptions = {
+  listenChanges: gql`subscription UpdateProgram($id: Int, $label: String, $interval: Int){
+    data: updateProgram(id: $id, label: $label, interval: $interval) {
+      ...LightProgramFragment
+    }
+  }
+  ${ProgramFragments.lightProgram}`
+};
+
 const ProgramRefCacheKeys = {
   CACHE_GROUP: 'program',
 
+  PROGRAM_BY_ID: 'programById',
   PROGRAM_BY_LABEL: 'programByLabel',
   PMFMS: 'programPmfms',
   GEARS: 'programGears',
@@ -116,6 +126,13 @@ export class ProgramRefService
   implements IEntitiesService<Program, ProgramFilter>,
     IEntityService<Program> {
 
+
+  private _subscriptionCache: {[key: string]: {
+      counter: number;
+      subject: Subject<Program>;
+      subscription: Subscription;
+    }} = {};
+
   constructor(
     graphql: GraphqlService,
     platform: PlatformService,
@@ -130,6 +147,7 @@ export class ProgramRefService
     super(graphql, platform, Program,
       {
         queries: ProgramRefQueries,
+        subscriptions: ProgramRefSubscriptions,
         filterAsObjectFn: ProgramFilter.asPodObject,
         filterFnFactory: ProgramFilter.searchFilter,
       });
@@ -166,12 +184,11 @@ export class ProgramRefService
     if (!opts || (opts.cache !== false && !opts.query)) {
       const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
       return this.cache.loadFromObservable(cacheKey,
-        defer(() => this.watchByLabel(label, {...opts, cache: false, toEntity: false})),
-        ProgramRefCacheKeys.CACHE_GROUP
-      )
-      .pipe(
-        map(data => (!opts || opts.toEntity !== false) ? Program.fromObject(data) : data)
-      );
+          defer(() => this.watchByLabel(label, {...opts, cache: false, toEntity: false})),
+          ProgramRefCacheKeys.CACHE_GROUP
+        ).pipe(
+          map(data => (!opts || opts.toEntity !== false) ? Program.fromObject(data) : data)
+        );
     }
 
     // Debug
@@ -612,13 +629,82 @@ export class ProgramRefService
         reset: true
       });
 
-      if (this._debug) console.debug(`[landing-service] Importing programs [OK] in ${Date.now() - now}ms`, data);
+      if (this._debug) console.debug(`[program-ref-service] Importing programs [OK] in ${Date.now() - now}ms`, data);
 
     }
     catch (err) {
       console.error("[program-ref-service] Error during programs importation", err);
       throw err;
     }
+  }
+
+  listenChanges(id: number, opts?: { interval?: number }): Observable<Program> {
+
+    const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_ID, id].join('|');
+    let cache = this._subscriptionCache[cacheKey];
+    if (!cache) {
+      cache = {
+        counter: 0,
+        subject: new Subject<Program>(),
+        subscription: undefined
+      };
+      this._subscriptionCache[cacheKey] = cache;
+    }
+
+    cache.counter++;
+    cache.subscription = cache.subscription || super.listenChanges(id, opts)
+      .pipe(
+        // DEBUG
+        //tap(program => console.debug('[program-ref-service] Received program changes')),
+        tap(program => cache.subject.next(program))
+      ).subscribe();
+
+    return cache.subject
+      .pipe(
+        finalize(() => {
+          cache.counter--;
+          if (cache.counter === 0) {
+            // DEBUG
+            //console.debug('[program-ref-service] Closing program changes listener'));
+            cache.subscription.unsubscribe();
+            cache.subscription = null;
+          }
+        })
+      );
+  }
+
+  listenChangesByLabel(label: string, opts?: {
+    interval?: number;
+    toEntity?: false;
+  }): Observable<Program> {
+    if (isNil(label)) throw Error("Missing argument 'label' ");
+    if (!this.subscriptions.listenChanges) throw Error("Not implemented!");
+
+    const variables = {
+      label,
+      interval: opts && opts.interval || 10 // seconds
+    };
+    if (this._debug) console.debug(`[base-entity-service] [WS] Listening for changes on Program {${label}}...`);
+
+    return this.graphql.subscribe<{data: any}>({
+      query: this.subscriptions.listenChanges,
+      variables,
+      error: {
+        code: ErrorCodes.SUBSCRIBE_REFERENTIAL_ERROR,
+        message: 'REFERENTIAL.ERROR.SUBSCRIBE_REFERENTIAL_ERROR'
+      }
+    })
+      .pipe(
+        map(({data}) => {
+          const entity = (!opts || opts.toEntity !== false) ? data && this.fromObject(data) : data;
+          if (entity && this._debug) console.debug(`[base-entity-service] [WS] Received changes on Program {${label}}`, entity);
+
+          // TODO: when missing = deleted ?
+          if (!entity) console.warn(`[base-entity-service] [WS] Received deletion on Program {${label}} - TODO check implementation`);
+
+          return entity;
+        })
+      );
   }
 
   async clearCache() {

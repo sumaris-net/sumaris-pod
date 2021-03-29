@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, Optional, QueryList, ViewChild, ViewChildren} from '@angular/core';
 
-import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
+import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from '../../shared/functions';
 import {LandingForm} from "./landing.form";
 import {SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable} from "../sample/samples.table";
 import {UsageMode} from "../../core/services/model/settings.model";
@@ -33,6 +33,7 @@ import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {PmfmService} from "../../referential/services/pmfm.service";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
 import {PmfmIds} from "../../referential/services/model/model.enum";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
 const moment = momentImported;
 
@@ -67,6 +68,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   private _rowValidatorSubscription: Subscription;
 
   mobile: boolean;
+  showEntityMetadata = false;
   showQualityForm = false;
   i18nPrefix = LANDING_DEFAULT_I18N_PREFIX;
   oneTabMode = false;
@@ -132,9 +134,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         this.samplesTable.onAfterDeletedRows
       )
         .pipe(debounceTime(500))
-        .subscribe(() => {
-          this.landingForm.canEditStrategy = this.samplesTable.visibleRowCount === 0;
-        })
+        .subscribe(() => this.landingForm.canEditStrategy = this.samplesTable.empty)
     );
   }
 
@@ -202,8 +202,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Landing as root
     else {
-      this.showQualityForm = true;
+      // Specific conf
     }
+
+    this.showEntityMetadata = false;
+    this.showQualityForm = false;
 
   }
 
@@ -233,10 +236,14 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
         this.defaultBackHref = `/trips/${this.parent.id}?tab=2`;
       }
+
+      this.showEntityMetadata = EntityUtils.isRemote(data);
+      this.showQualityForm = false;
     }
     // Landing as root
     else {
-      this.showQualityForm = true;
+      this.showEntityMetadata = EntityUtils.isRemote(data);
+      this.showQualityForm = this.showEntityMetadata;
     }
   }
 
@@ -283,9 +290,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   protected async setProgram(program: Program) {
     await super.setProgram(program);
-
     if (!program) return; // Skip
-    if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
 
     // Customize the UI, using program options
     this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
@@ -322,6 +327,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.refreshTabLayout();
     }
 
+    // Listen program's strategies change (will reload strategy if need)
+    this.startListenProgramRemoteChanges(program);
+    this.startListenStrategyRemoteChanges(program);
   }
 
   protected async setStrategy(strategy: Strategy) {
@@ -457,6 +465,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Workaround, because sometime measurementValues is empty (see issue IMAGINE-273)
     data.measurementValues = this.form.controls.measurementValues && this.form.controls.measurementValues.value;
+    if (isNotNilOrBlank(this.$strategyLabel.getValue())) {
+      data.measurementValues[PmfmIds.STRATEGY_LABEL] = this.$strategyLabel.getValue();
+    }
 
     // Save samples table
     if (this.samplesTable.dirty) {

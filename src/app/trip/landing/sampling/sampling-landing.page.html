@@ -108,7 +108,7 @@
                 </ion-col>
 
                 <!-- data quality -->
-                <ion-col class="ion-no-padding">
+                <ion-col class="ion-no-padding" *ngIf="showEntityMetadata">
                   <app-entity-metadata [value]="data">
                     <app-entity-quality-form [editor]="this" *ngIf="showQualityForm">
                     </app-entity-quality-form>

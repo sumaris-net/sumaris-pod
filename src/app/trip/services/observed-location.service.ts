@@ -31,6 +31,7 @@ import {VesselSnapshotFragments} from "../../referential/services/vessel-snapsho
 import {OBSERVED_LOCATION_FEATURE_NAME} from "./config/trip.config";
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 import {ProgramProperties} from "../../referential/services/config/program.config";
+import {EntitySaveOptions} from "../../referential/services/base-entity-service.class";
 
 const moment = momentImported;
 
@@ -129,7 +130,7 @@ export const ObservedLocationFilterKeys: KeysEnum<ObservedLocationFilter> = {
 };
 
 
-export interface ObservedLocationSaveOptions {
+export interface ObservedLocationSaveOptions extends EntitySaveOptions {
   withLanding?: boolean;
   enableOptimisticResponse?: boolean; // True by default
 }
@@ -147,7 +148,6 @@ export class ObservedLocationOfflineFilter  {
   periodDuration?: number;
   periodDurationUnit?: DurationConstructor;
 }
-
 
 export const ObservedLocationFragments = {
   lightObservedLocation: gql`fragment LightObservedLocationFragment on ObservedLocationVO {
