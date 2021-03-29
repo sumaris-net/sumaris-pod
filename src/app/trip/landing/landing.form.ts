@@ -40,6 +40,8 @@ export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 export class LandingForm extends MeasurementValuesForm<Landing> implements OnInit {
 
   private _showObservers: boolean;
+  private _canEditStrategy: boolean;
+
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
   mobile: boolean;
@@ -90,9 +92,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   }
 
   @Input() i18nPrefix = LANDING_DEFAULT_I18N_PREFIX;
-  @Input() canEditStrategy = true;
   @Input() required = true;
-
   @Input() showProgram = true;
   @Input() showVessel = true;
   @Input() showDateTime = true;
@@ -104,6 +104,22 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() showStrategy = false;
   @Input() locationLevelIds: number[];
   @Input() allowAddNewVessel: boolean;
+
+  @Input() set canEditStrategy(value: boolean) {
+    if (this._canEditStrategy !== value) {
+      this._canEditStrategy = value;
+      if (this._canEditStrategy && this.strategyControl.disabled) {
+        this.strategyControl.enable();
+      }
+      else if (!this._canEditStrategy && this.strategyControl.enabled) {
+        this.strategyControl.disable();
+      }
+    }
+  }
+
+  get canEditStrategy(): boolean {
+    return this._canEditStrategy;
+  }
 
   @Input() set showObservers(value: boolean) {
     if (this._showObservers !== value) {
@@ -173,7 +189,10 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           entityName: 'Strategy',
           searchAttribute: 'label',
           levelLabel: this.$programLabel.getValue() // if empty, will be set in setProgram()
-        });
+        }, 'label', 'asc',
+          {
+            fetchPolicy: 'network-only' // Force network - fix IMAGINE 302
+          });
       },
       attributes: ['label'],
       columnSizes: [12],

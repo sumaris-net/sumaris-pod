@@ -12,9 +12,9 @@ import {Strategy} from "./model/strategy.model";
 import {BaseEntityGraphqlQueries} from "./base-entity-service.class";
 import {PlatformService} from "../../core/services/platform.service";
 import {StrategyFragments} from "./strategy.fragments";
-import {firstArrayValue, isNotNil, toNumber} from "../../shared/functions";
-import {defer, Observable} from "rxjs";
-import {filter, map} from "rxjs/operators";
+import {firstArrayValue, isNil, isNotEmptyArray, isNotNil, toNumber} from "../../shared/functions";
+import {defer, Observable, Subject, Subscription} from "rxjs";
+import {filter, finalize, map, tap} from "rxjs/operators";
 import {BaseReferentialService} from "./base-referential-service.class";
 import {firstNotNilPromise} from "../../shared/observables";
 
@@ -67,8 +67,8 @@ const StrategyRefQueries: BaseEntityGraphqlQueries = {
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.taxonName}
-  `,
+  ${ReferentialFragments.taxonName}`,
+
   loadAllWithTotal: gql`query StrategyRefWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...StrategyRefFragment
@@ -90,15 +90,38 @@ const StrategyRefQueries: BaseEntityGraphqlQueries = {
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.taxonName}
-  `
+  ${ReferentialFragments.taxonName}`
 };
 
+const StrategySubscriptions = {
+  listenChangesByProgram: gql`subscription UpdateProgramStrategies($programId: Int!, $interval: Int){
+    data: updateProgramStrategies(programId: $programId, interval: $interval) {
+      ...StrategyRefFragment
+      appliedStrategies {
+        ...AppliedStrategyFragment
+      }
+      departments {
+        ...StrategyDepartmentFragment
+      }
+    }
+  }
+  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
+  ${StrategyFragments.strategyDepartment}
+  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.denormalizedPmfmStrategy}
+  ${StrategyFragments.taxonGroupStrategy}
+  ${StrategyFragments.taxonNameStrategy}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.taxonName}`
+};
 
 const StrategyRefCacheKeys = {
   CACHE_GROUP: 'strategy',
 
-  STRATEGY_BY_LABEL: 'strategyByLabel'
+  STRATEGY_BY_LABEL: 'strategyByLabel',
+  STRATEGIES_BY_PROGRAM_ID: 'strategiesByProgramId'
 };
 
 
@@ -206,5 +229,68 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
   async clearCache() {
     console.info("[strategy-ref-service] Clearing strategy cache...");
     await this.cache.clearGroup(StrategyRefCacheKeys.CACHE_GROUP);
+  }
+
+  private _subscriptionCache: {[key: string]: {
+      counter: number;
+      subject: Subject<Strategy[]>;
+      subscription: Subscription;
+    }} = {};
+
+  listenChangesByProgram(programId: number, opts?: {
+    interval?: number
+  }): Observable<Strategy[]> {
+    if (isNil(programId)) throw Error("Missing argument 'programId' ");
+
+    const cacheKey = [StrategyRefCacheKeys.STRATEGIES_BY_PROGRAM_ID, programId].join('|');
+    let cache = this._subscriptionCache[cacheKey];
+    if (!cache) {
+      cache = {
+        counter: 0,
+        subject: new Subject<Strategy[]>(),
+        subscription: undefined
+      };
+      this._subscriptionCache[cacheKey] = cache;
+    }
+
+    cache.counter++;
+
+    const variables = {
+      programId,
+      interval: opts && opts.interval || 10 // seconds
+    };
+    if (this._debug) console.debug(`[strategy-ref-service] [WS] Listening for changes on strategies, from program {${programId}}...`);
+
+    cache.subscription = cache.subscription || this.graphql.subscribe<{data: any}>({
+      query: StrategySubscriptions.listenChangesByProgram,
+      variables,
+      error: {
+        code: ErrorCodes.SUBSCRIBE_REFERENTIAL_ERROR,
+        message: 'REFERENTIAL.ERROR.SUBSCRIBE_REFERENTIAL_ERROR'
+      }
+    })
+      .pipe(
+        map(({data}) => {
+          const entities = (data || []).map(s => this.fromObject(s));
+          if (isNotEmptyArray(entities) && this._debug) console.debug(`[strategy-ref-service] [WS] Received changes on strategies, from program {${programId}}`, entities);
+          return entities;
+        }),
+        // DEBUG
+        //tap(program => console.debug('[program-ref-service] Received program changes')),
+        tap(program => cache.subject.next(program))
+      ).subscribe();
+
+    return cache.subject
+      .pipe(
+        finalize(() => {
+          cache.counter--;
+          if (cache.counter === 0) {
+            // DEBUG
+            //console.debug('[program-ref-service] Closing program changes listener'));
+            cache.subscription.unsubscribe();
+            cache.subscription = null;
+          }
+        })
+      );
   }
 }

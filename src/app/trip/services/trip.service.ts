@@ -57,6 +57,7 @@ import {environment} from "../../../environments/environment";
 import {fromDateISOString, toDateISOString} from 'src/app/shared/dates';
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {Sample} from "./model/sample.model";
+import {EntitySaveOptions} from "../../referential/services/base-entity-service.class";
 
 const moment = momentImported;
 
@@ -334,7 +335,7 @@ export interface TripLoadOptions extends EntityServiceLoadOptions {
   toEntity?: boolean;
 }
 
-export interface TripSaveOptions {
+export interface TripSaveOptions extends EntitySaveOptions {
   withLanding?: boolean;
   withOperation?: boolean;
   withOperationGroup?: boolean;

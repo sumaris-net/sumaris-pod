@@ -34,7 +34,7 @@ import {environment} from "../../../environments/environment";
 export class AggregatedLandingFormOption {
   dates: Observable<Moment[]> | Moment[];
   initialDate: Moment | undefined;
-  program: string;
+  programLabel: string;
   acquisitionLevel: string;
 }
 
@@ -100,7 +100,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
   $loadingControls = new BehaviorSubject<boolean>(false);
   controlsLoaded = false;
   onRefresh = new EventEmitter<any>();
-  program: string;
+  programLabel: string;
   acquisitionLevel: string;
   dates: Observable<Moment[]> | Moment[];
 
@@ -131,7 +131,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     }
 
     this.dates = this._options && this._options.dates;
-    this.program = this._options && this._options.program;
+    this.programLabel = this._options && this._options.programLabel;
     this.acquisitionLevel = this._options && this._options.acquisitionLevel;
 
     const form = this.formBuilder.group({

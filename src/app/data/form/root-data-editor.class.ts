@@ -1,8 +1,8 @@
 import {Directive, Injector, OnInit} from '@angular/core';
 
-import {BehaviorSubject, merge} from 'rxjs';
+import {BehaviorSubject, merge, Subject, Subscription} from 'rxjs';
 import {changeCaseToUnderscore, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank} from '../../shared/functions';
-import {distinctUntilChanged, filter, switchMap, tap} from "rxjs/operators";
+import {distinctUntilChanged, filter, map, switchMap, tap} from "rxjs/operators";
 import {Program} from "../../referential/services/model/program.model";
 import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
 import {AppEditorOptions, AppEntityEditor} from "../../core/form/editor.class";
@@ -15,6 +15,7 @@ import {Strategy} from "../../referential/services/model/strategy.model";
 import {StrategyRefService} from "../../referential/services/strategy-ref.service";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {mergeMap} from "rxjs/internal/operators";
+import {Moment} from "moment";
 
 
 @Directive()
@@ -26,9 +27,15 @@ export abstract class AppRootDataEditor<
   extends AppEntityEditor<T, S>
   implements OnInit {
 
+  private _$reloadProgram = new Subject();
+  private _$reloadStrategy = new Subject();
+
   protected programRefService: ProgramRefService;
   protected strategyRefService: StrategyRefService;
   protected autocompleteHelper: MatAutocompleteConfigHolder;
+
+  protected remoteProgramSubscription: Subscription;
+  protected remoteStrategySubscription: Subscription;
 
   autocompleteFields: { [key: string]: MatAutocompleteFieldConfig };
 
@@ -36,6 +43,7 @@ export abstract class AppRootDataEditor<
   $program = new BehaviorSubject<Program>(undefined);
   $strategyLabel = new BehaviorSubject<string>(undefined);
   $strategy = new BehaviorSubject<Strategy>(undefined);
+
 
   set program(value: Program) {
     if (isNotNil(value) && this.$program.getValue() !== value) {
@@ -84,19 +92,56 @@ export abstract class AppRootDataEditor<
   ngOnInit() {
     super.ngOnInit();
 
-
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.$programLabel
-        .pipe(
-          filter(isNotNilOrBlank),
-          distinctUntilChanged(),
-          // DEBUG --
-          //tap(programLabel => console.debug('DEV - Getting programLabel=' + programLabel)),
-          switchMap(programLabel => this.programRefService.watchByLabel(programLabel, {debug: this.debug})),
-          tap(program => this.$program.next(program))
-        )
-        .subscribe());
+      merge(
+        this.$programLabel
+          .pipe(
+            filter(isNotNilOrBlank),
+            distinctUntilChanged()
+          ),
+        // Allow to force reload (e.g. when program remotely changes - see startListenProgramRemoteChanges() )
+        this._$reloadProgram
+          .pipe(
+            map(() => this.$programLabel.getValue()),
+            filter(isNotNilOrBlank)
+          )
+      )
+      .pipe(
+        // DEBUG --
+        //tap(programLabel => console.debug('DEV - Getting programLabel=' + programLabel)),
+        switchMap(programLabel => this.programRefService.watchByLabel(programLabel, {debug: this.debug})),
+        tap(program => this.$program.next(program))
+      )
+      .subscribe());
+
+    // Watch strategy
+    this.registerSubscription(
+      merge(
+        this.$strategyLabel
+          .pipe(
+            distinctUntilChanged()
+          ),
+        // Allow to force reload (e.g. when program remotely changes - see startListenProgramRemoteChanges() )
+        this._$reloadStrategy
+          .pipe(
+            map(() => this.$strategyLabel.getValue())
+          )
+      )
+      .pipe(
+        // DEBUG
+        //tap(strategyLabel => console.debug("[root-data-editor] Received strategy label: ", strategyLabel)),
+        mergeMap( async (strategyLabel) => isNilOrBlank(strategyLabel)
+          ? undefined // Allow to have empty strategy (e.g. when user reset the strategy field)
+          : this.strategyRefService.loadByLabel(strategyLabel)
+        ),
+        // DEBUG
+        //tap(strategy => console.debug("[root-data-editor] Received strategy: ", strategy)),
+
+        filter(strategy => strategy !== this.$strategy.getValue()),
+        tap(strategy => this.$strategy.next(strategy))
+      )
+      .subscribe());
 
     this.registerSubscription(
       merge(
@@ -104,24 +149,17 @@ export abstract class AppRootDataEditor<
         this.$strategy.pipe(tap(strategy => this.setStrategy(strategy)))
       ).subscribe()
     );
+  }
 
-    // Watch strategy
-    this.registerSubscription(
-      this.$strategyLabel
-        .pipe(
-          distinctUntilChanged(),
-          // DEBUG
-          tap(strategyLabel => console.debug("[root-data-editor] Received strategy label: ", strategyLabel)),
-          mergeMap( async (strategyLabel) => isNilOrBlank(strategyLabel)
-            ? undefined // Allow to have empty strategy (e.g. when user reset the strategy field)
-            : this.strategyRefService.loadByLabel(strategyLabel)
-          ),
-          // DEBUG
-          tap(strategy => console.debug("[root-data-editor] Received strategy: ", strategy)),
-          filter(strategy => strategy !== this.$strategy.getValue()),
-          tap(strategy => this.$strategy.next(strategy))
-        )
-        .subscribe());
+  ngOnDestroy() {
+    super.ngOnDestroy();
+
+    this.$programLabel.unsubscribe();
+    this.$strategyLabel.unsubscribe();
+    this.$program.unsubscribe();
+    this.$strategy.unsubscribe();
+
+    this._$reloadProgram.unsubscribe();
   }
 
   async load(id?: number, options?: EntityServiceLoadOptions) {
@@ -146,8 +184,12 @@ export abstract class AppRootDataEditor<
     this.markForCheck();
   }
 
-  protected async setProgram(value: Program) {
+  protected async setProgram(program: Program) {
     // Can be override by subclasses
+    if (!program) return; // SKip
+
+    if (this.debug) console.debug(`[root-data-editor] Program ${program.label} loaded, with properties: `, program.properties);
+
   }
 
   protected async setStrategy(value: Strategy) {
@@ -205,6 +247,81 @@ export abstract class AppRootDataEditor<
             this.$programLabel.next(program.label);
           }
         }));
+  }
+
+  protected startListenProgramRemoteChanges(program: Program) {
+    if (!program || isNil(program.id)) return; // Skip
+
+    // Remove previous listener (e.g. on a previous program id)
+    if (this.remoteProgramSubscription) {
+      this.remoteProgramSubscription.unsubscribe();
+    }
+
+    this.remoteProgramSubscription = this.programRefService.listenChanges(program.id)
+      .pipe(
+        filter(isNotNil),
+        mergeMap(async (data) => {
+          if (data.updateDate && (data.updateDate as Moment).isAfter(program.updateDate)) {
+            if (this.debug) console.debug(`[root-data-editor] Program changes detected on server, at {${data.updateDate}}: clearing program cache...`);
+            // Reload program & strategies
+            await this.reloadProgram();
+          }
+        })
+      )
+      .subscribe()
+      // DEBUG
+      //.add(() =>  console.debug(`[root-data-editor] [WS] Stop listening to program changes on server.`))
+    ;
+
+    this.registerSubscription(this.remoteProgramSubscription);
+  }
+
+  protected startListenStrategyRemoteChanges(program: Program) {
+    if (!program || isNil(program.id)) return; // Skip
+
+    // Remove previous listener (e.g. on a previous program id)
+    if (this.remoteStrategySubscription) {
+      this.remoteStrategySubscription.unsubscribe();
+    }
+
+    this.remoteStrategySubscription = this.strategyRefService.listenChangesByProgram(program.id)
+        .pipe(
+          filter(isNotNil),
+          // Reload strategies
+          mergeMap((_) => this.reloadStrategy())
+        )
+        .subscribe()
+    // DEBUG
+    //.add(() =>  console.debug(`[root-data-editor] [WS] Stop listening to program changes on server.`))
+    ;
+
+    this.registerSubscription(this.remoteStrategySubscription);
+  }
+
+  /**
+   * Force to reload the program
+   * @protected
+   */
+  protected async reloadProgram() {
+    if (this.debug) console.debug(`[root-data-editor] Force program reload...`);
+
+    // Cache clear
+    await this.programRefService.clearCache();
+
+    this._$reloadProgram.next();
+  }
+
+  /**
+   * Force to reload the strategy
+   * @protected
+   */
+  protected async reloadStrategy() {
+    if (this.debug) console.debug(`[root-data-editor] Force strategy reload...`);
+
+    // Cache clear
+    await this.strategyRefService.clearCache();
+
+    this._$reloadStrategy.next();
   }
 
   /**

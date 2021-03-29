@@ -44,7 +44,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   @Input() acquisitionLevel: string;
 
-  @Input() program: string;
+  @Input() programLabel: string;
 
   @Input() disabled: boolean;
 

@@ -245,8 +245,6 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
       this.programRefService.clearCache(),
       this.strategyRefService.clearCache()
     ]);
-
-    // TODO BLA: clean referential-ref queries cache ?
   }
 
   async deleteAll(entities: Program[], options?: any): Promise<any> {

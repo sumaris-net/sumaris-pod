@@ -46,7 +46,7 @@ import {Person} from "../../core/services/model/person.model";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {
   BaseEntityGraphqlMutations, BaseEntityGraphqlQueries,
-  BaseEntityGraphqlSubscriptions
+  BaseEntityGraphqlSubscriptions, EntitySaveOptions
 } from "../../referential/services/base-entity-service.class";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
 
@@ -160,7 +160,7 @@ export class LandingFilter {
   }
 }
 
-export declare interface LandingSaveOptions {
+export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
   tripId?: number;
 

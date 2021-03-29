@@ -744,7 +744,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       component: BatchGroupModal,
       backdropDismiss: false,
       componentProps: {
-        program: this.programLabel,
+        programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         value: batch,

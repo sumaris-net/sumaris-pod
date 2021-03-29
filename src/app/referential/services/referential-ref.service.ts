@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {FetchPolicy, gql} from "@apollo/client/core";
+import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {BehaviorSubject, Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
@@ -323,12 +323,15 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     return res.data[0];
   }
 
-  async suggest(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection): Promise<LoadResult<ReferentialRef>> {
+  async suggest(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection,
+                opts?: {
+                  fetchPolicy?: FetchPolicy;
+                }): Promise<LoadResult<ReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;
     return this.loadAll(0, !value ? 30 : 10, sortBy, sortDirection,
       { ...filter, searchText: value},
-      { withTotal: true /* Used by autocomplete */ }
+      { withTotal: true /* Used by autocomplete */ , ...opts }
     );
   }
 

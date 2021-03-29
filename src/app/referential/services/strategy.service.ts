@@ -9,16 +9,12 @@ import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ReferentialFilter} from "./referential.service";
 import {Strategy} from "./model/strategy.model";
-import {
-  BaseEntityGraphqlMutations,
-  BaseEntityGraphqlQueries,
-  BaseEntityGraphqlSubscriptions
-} from "./base-entity-service.class";
+import {BaseEntityGraphqlMutations, BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions} from "./base-entity-service.class";
 import {PlatformService} from "../../core/services/platform.service";
 import {EntityAsObjectOptions, EntityUtils} from "../../core/services/model/entity.model";
 import {SortDirection} from "@angular/material/sort";
-import {ReferentialRefFilter} from "./referential-ref.service";
-import {MINIFY_OPTIONS, NOT_MINIFY_OPTIONS, Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRefFilter, ReferentialRefService} from "./referential-ref.service";
+import {Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {StrategyFragments} from "./strategy.fragments";
 import {isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
 import {LoadResult} from "../../shared/services/entity-service.class";
@@ -148,7 +144,8 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     protected cache: CacheService,
     protected entities: EntitiesStorage,
     protected programRefService: ProgramRefService,
-    protected strategyRefService: StrategyRefService
+    protected strategyRefService: StrategyRefService,
+    protected referentialRefService: ReferentialRefService
   ) {
     super(graphql, platform, Strategy,
       {
@@ -283,11 +280,14 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
   }
 
   async save(entity: Strategy, options?: any): Promise<Strategy> {
+   await this.clearCache();
 
-
-    await this.clearCache();
-
-    return super.save(entity, options);
+    return super.save(entity, {
+      ...options,
+      refetchQueries: this._mutableWatchQueries
+        .filter(query => query.query === this.queries.loadAllWithTotal || query.query === this.queries.loadAllWithTotal),
+      awaitRefetchQueries: true
+    });
   }
 
   /* -- protected functions -- */

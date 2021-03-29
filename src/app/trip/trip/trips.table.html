@@ -252,9 +252,9 @@
 
     <mat-action-row>
       <!-- Counter  -->
-      <ion-label [hidden]="(loadingSubject|async) || filterForm.dirty" [color]="resultsLength === 0 && 'danger'"
+      <ion-label [hidden]="(loadingSubject|async) || filterForm.dirty" [color]="totalRowCount === 0 && 'danger'"
                  class="ion-padding">
-        {{ (resultsLength ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (resultsLength |
+        {{ (totalRowCount ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (totalRowCount |
               numberFormat)} }}
       </ion-label>
 
@@ -415,17 +415,17 @@
     </mat-row>
   </mat-table>
 
-  <ion-item *ngIf="!(loadingSubject| async) && !resultsLength">
+  <ion-item *ngIf="!(loadingSubject| async) && !totalRowCount">
     <ion-text color="danger"
               class="text-italic"
               [innerHTML]="(hasOfflineMode && synchronizationStatus !== 'SYNC' ? 'TRIP.TABLE.NO_LOCAL_RESULT' : 'COMMON.NO_RESULT') | translate">
     </ion-text>
   </ion-item>
 
-  <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="!resultsLength">
+  <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="!totalRowCount">
     <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>
     <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="resultsLength" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
+      <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
       </mat-paginator>
     </ion-col>
   </ion-row>
