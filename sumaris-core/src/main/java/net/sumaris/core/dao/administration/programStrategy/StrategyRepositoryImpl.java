@@ -33,6 +33,7 @@ import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.exception.NotUniqueException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.*;
@@ -270,6 +271,15 @@ public class StrategyRepositoryImpl
         result = String.valueOf(Integer.parseInt(result) + 1);
         result = prefix.concat(StringUtils.leftPad(result, nbDigit, '0'));
         return result;
+    }
+
+    @Override
+    public List<StrategyVO> findNewerByProgramId(final int programId, final Date updateDate, final StrategyFetchOptions fetchOptions) {
+        return findAll(
+                BindableSpecification.where(hasProgramIds(programId))
+                    .and(newerThan(updateDate))).stream()
+                .map(entity -> toVO(entity, fetchOptions))
+                .collect(Collectors.toList());
     }
 
     @Override

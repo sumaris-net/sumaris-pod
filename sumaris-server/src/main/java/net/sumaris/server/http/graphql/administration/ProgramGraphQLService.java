@@ -56,6 +56,8 @@ import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
+import net.sumaris.server.service.technical.ChangesPublisherService;
+import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -87,6 +89,9 @@ public class ProgramGraphQLService {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private ChangesPublisherService changesPublisherService;
 
     @Autowired
     public ProgramGraphQLService() {
@@ -286,6 +291,50 @@ public class ProgramGraphQLService {
         return strategyService.computeNextLabelByProgramId(programId,
                 labelPrefix == null ? "" : labelPrefix,
                 nbDigit == null ? 0 : nbDigit);
+    }
+
+    @GraphQLSubscription(name = "updateProgram", description = "Subscribe to changes on a program")
+    @IsUser
+    public Publisher<ProgramVO> updateProgram(@GraphQLArgument(name = "id") final Integer id,
+                                              @GraphQLArgument(name = "label") final String label,
+                                              @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
+                                              @GraphQLEnvironment() Set<String> fields) {
+
+
+
+        // Watch by id
+        if (id != null) {
+            Preconditions.checkArgument(id >= 0, "Invalid 'id' argument");
+            return changesPublisherService.getPublisher(Program.class, ProgramVO.class, id, minIntervalInSecond, true);
+        }
+
+        // Watch by label
+        Preconditions.checkNotNull(label, "Invalid 'label' argument");
+        ProgramFetchOptions fetchOptions = getProgramFetchOptions(fields);
+        return changesPublisherService.getPublisher((lastUpdateDate) -> programService.findIfNewerByLabel(label, lastUpdateDate, fetchOptions).orElse(null), minIntervalInSecond, true);
+
+    }
+
+
+    @GraphQLSubscription(name = "updateProgramStrategies", description = "Subscribe to changes on program's strategies")
+    @IsUser
+    public Publisher<List<StrategyVO>> updateProgramStrategies(@GraphQLNonNull @GraphQLArgument(name = "programId") final int programId,
+                                                               @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
+                                                               @GraphQLEnvironment() Set<String> fields) {
+
+        StrategyFetchOptions fetchOptions = getStrategyFetchOptions(fields);
+
+        Preconditions.checkArgument(programId >= 0, "Invalid programId");
+
+        return changesPublisherService.getListPublisher((lastUpdateDate) -> {
+            if (lastUpdateDate == null) {
+                // Get all
+                return strategyService.findByProgram(programId, fetchOptions);
+            }
+
+            // Get newer strategies
+            return strategyService.findNewerByProgramId(programId, lastUpdateDate, fetchOptions);
+        }, minIntervalInSecond, false /*get only updates, not actual list*/);
     }
 
     /* -- Mutations -- */

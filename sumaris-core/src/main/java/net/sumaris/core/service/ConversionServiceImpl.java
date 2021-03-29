@@ -22,16 +22,19 @@ package net.sumaris.core.service;
  * #L%
  */
 
+import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.operation.OperationRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.data.ObservedLocationVO;
@@ -61,14 +64,25 @@ public class ConversionServiceImpl extends GenericConversionService {
     @Autowired
     private PersonRepository personRepository;
 
+    @Autowired
+    private ProgramRepository programRepository;
+
+    /**
+     * Add Entity->VO converters
+     */
     @PostConstruct
     private void initConverters() {
 
-        // Entity->VO converters
+        // Referential (@see ReferentialServiceImpl)
+
+        // Administration
+        addConverter(Person.class, PersonVO.class, personRepository::toVO);
+        addConverter(Program.class, ProgramVO.class, programRepository::toVO);
+
+        // Data
         addConverter(Trip.class, TripVO.class, tripRepository::toVO);
         addConverter(ObservedLocation.class, ObservedLocationVO.class, observedLocationRepository::toVO);
         addConverter(Operation.class, OperationVO.class, operationRepository::toVO);
         addConverter(Landing.class, LandingVO.class, landingRepository::toVO);
-        addConverter(Person.class, PersonVO.class, personRepository::toVO);
     }
 }

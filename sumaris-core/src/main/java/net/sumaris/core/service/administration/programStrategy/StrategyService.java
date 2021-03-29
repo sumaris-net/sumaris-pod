@@ -31,6 +31,7 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -105,5 +106,7 @@ public interface StrategyService {
 	boolean hasUserPrivilege(int strategyId, int personId, ProgramPrivilegeEnum privilege);
 
 	boolean hasDepartmentPrivilege(int strategyId, int departmentId, ProgramPrivilegeEnum privilege);
+
+	List<StrategyVO> findNewerByProgramId(final int programId, final Date updateDate, final StrategyFetchOptions fetchOptions);
 
 }

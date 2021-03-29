@@ -32,9 +32,11 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.Parameter;
 import javax.persistence.criteria.ParameterExpression;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -44,9 +46,13 @@ public interface StrategySpecifications {
 
     String PROGRAM_IDS_PARAM = "programIds";
     String HAS_PROGRAM_PARAM = "hasProgram";
+    String UPDATE_DATE_GREATER_THAN_PARAM = "updateDateGreaterThan";
 
     default Specification<Strategy> hasProgramIds(StrategyFilterVO filter) {
-        Integer[] programIds = filter.getProgramId() != null ? new Integer[]{filter.getProgramId()} : filter.getProgramIds();
+        return hasProgramIds(filter.getProgramId() != null ? new Integer[]{filter.getProgramId()} : filter.getProgramIds());
+    }
+
+    default Specification<Strategy> hasProgramIds(Integer... programIds) {
         BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Collection> programIdsParam = criteriaBuilder.parameter(Collection.class, PROGRAM_IDS_PARAM);
             ParameterExpression<Boolean> hasProgramParam = criteriaBuilder.parameter(Boolean.class, HAS_PROGRAM_PARAM);
@@ -57,6 +63,15 @@ public interface StrategySpecifications {
         });
         specification.addBind(HAS_PROGRAM_PARAM, !ArrayUtils.isEmpty(programIds));
         specification.addBind(PROGRAM_IDS_PARAM, ArrayUtils.isEmpty(programIds) ? null : Arrays.asList(programIds));
+        return specification;
+    }
+
+    default Specification<Strategy> newerThan(Date updateDate) {
+        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Date> updateDateParam = criteriaBuilder.parameter(Date.class, UPDATE_DATE_GREATER_THAN_PARAM);
+            return criteriaBuilder.greaterThan(root.get(Strategy.Fields.UPDATE_DATE), updateDateParam);
+        });
+        specification.addBind(UPDATE_DATE_GREATER_THAN_PARAM, updateDate);
         return specification;
     }
 
@@ -81,6 +96,8 @@ public interface StrategySpecifications {
     List<StrategyDepartmentVO> saveDepartmentsByStrategyId(int strategyId, List<StrategyDepartmentVO> sources);
 
     String computeNextLabelByProgramId(int programId, String labelPrefix, int nbDigit);
+
+    List<StrategyVO> findNewerByProgramId(final int programId, final Date updateDate, final StrategyFetchOptions fetchOptions);
 
     void saveProgramLocationsByStrategyId(int strategyId);
 

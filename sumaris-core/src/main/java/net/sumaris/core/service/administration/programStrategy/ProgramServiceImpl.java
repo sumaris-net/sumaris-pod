@@ -28,15 +28,17 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
+import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramSaveOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
-import net.sumaris.core.vo.data.TripSaveOptions;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service("programService")
 @Slf4j
@@ -71,6 +73,13 @@ public class ProgramServiceImpl implements ProgramService {
 	}
 
 	@Override
+	public Optional<ProgramVO> findIfNewerByLabel(String label, Date updateDate, ProgramFetchOptions fetchOptions) {
+		Preconditions.checkNotNull(label);
+		Preconditions.checkNotNull(updateDate);
+		return programRepository.findIfNewerByLabel(label, updateDate, fetchOptions);
+	}
+
+	@Override
 	public ProgramVO save(ProgramVO source, ProgramSaveOptions options) {
 		Preconditions.checkNotNull(source);
 		options = ProgramSaveOptions.defaultIfEmpty(options);
@@ -100,5 +109,6 @@ public class ProgramServiceImpl implements ProgramService {
 	public boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege) {
 		return programRepository.hasDepartmentPrivilege(programId, departmentId, privilege);
 	}
+
 }
 

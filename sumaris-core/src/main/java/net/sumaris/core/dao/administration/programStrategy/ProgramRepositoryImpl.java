@@ -32,6 +32,7 @@ import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -54,6 +55,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -81,6 +83,17 @@ public class ProgramRepositoryImpl
     public ProgramRepositoryImpl(EntityManager entityManager) {
         super(Program.class, ProgramVO.class, entityManager);
         setLockForUpdate(true);
+    }
+
+    @Override
+    public Optional<ProgramVO> findIfNewerByLabel(String label, Date updateDate, ProgramFetchOptions fetchOptions) {
+        Program source = getQuery(BindableSpecification.where(hasLabel(label))
+            .and(newerThan(updateDate)), Program.class, Sort.by(Program.Fields.ID))
+                .getSingleResult();
+        if (source == null) return Optional.empty();
+
+        ProgramVO target = toVO(source, fetchOptions);
+        return Optional.of(target);
     }
 
     @Override

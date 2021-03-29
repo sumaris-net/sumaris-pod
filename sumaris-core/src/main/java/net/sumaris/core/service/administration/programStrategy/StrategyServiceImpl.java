@@ -39,6 +39,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -122,6 +123,11 @@ public class StrategyServiceImpl implements StrategyService {
 	@Override
 	public List<DenormalizedPmfmStrategyVO> findDenormalizedPmfmsByStrategy(int strategyId, StrategyFetchOptions fetchOptions) {
 		return denormalizedPmfmStrategyRepository.findByStrategyId(strategyId, fetchOptions);
+	}
+
+	@Override
+	public List<StrategyVO> findNewerByProgramId(int programId, Date updateDate, StrategyFetchOptions fetchOptions) {
+		return strategyRepository.findNewerByProgramId(programId, updateDate, fetchOptions);
 	}
 
 	@Override
