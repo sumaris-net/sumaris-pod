@@ -25,15 +25,13 @@ export const RegistrationFragments = {
   }`,
 };
 
-export const LoadRegistrationsQuery: any = gql`
-    query VesselRegistrationHistory($vesselId: Int!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+export const LoadRegistrationsQuery: any = gql`query VesselRegistrationHistory($vesselId: Int!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
         vesselRegistrationHistory(vesselId: $vesselId, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
             ...RegistrationFragment
         }
     }
     ${RegistrationFragments.registration}
-    ${ReferentialFragments.location}
-`;
+    ${ReferentialFragments.location}`;
 
 @Injectable({providedIn: 'root'})
 export class VesselRegistrationService
