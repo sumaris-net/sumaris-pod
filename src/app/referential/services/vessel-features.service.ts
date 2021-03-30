@@ -39,17 +39,15 @@ export const VesselFeaturesFragments = {
     }`,
 };
 
-export const LoadFeaturesQuery: any = gql`
-    query VesselFeaturesHistory($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $vesselId: Int){
-        vesselFeaturesHistory(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, vesselId: $vesselId){
+export const LoadFeaturesQuery: any = gql`query VesselFeaturesHistory($vesselId: Int!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+        vesselFeaturesHistory(vesselId: $vesselId, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
             ...VesselFeaturesFragment
         }
     }
     ${VesselFeaturesFragments.vesselFeatures}
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
-    ${ReferentialFragments.lightPerson}
-`;
+    ${ReferentialFragments.lightPerson}`;
 
 @Injectable({providedIn: 'root'})
 export class VesselFeaturesService

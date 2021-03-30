@@ -23,38 +23,40 @@
         <ion-label translate>VESSEL.TAB_GENERAL</ion-label>
       </ng-template>
 
-      <ion-row class="ion-no-padding">
-        <ion-col class="ion-padding">
-          <form-vessel (onSubmit)="save($event)" #vesselForm>
-          </form-vessel>
-        </ion-col>
-        <ion-col size="12" size-sm="6" size-md="4" size-lg="4" size-xl="3" class="ion-no-padding">
-          <app-entity-metadata [value]="data">
-            <!-- Vessel actions -->
-            <mat-menu #selectTypeMenu="matMenu" xPosition="after">
-              <button mat-menu-item translate (click)="editFeatures()">VESSEL.ACTION.EDIT_FEATURES</button>
-              <button mat-menu-item translate (click)="newFeatures()">VESSEL.ACTION.NEW_FEATURES</button>
-              <button mat-menu-item translate (click)="editRegistration()">VESSEL.ACTION.EDIT_REGISTRATION</button>
-              <button mat-menu-item translate *ngIf="!!data?.registration" (click)="newRegistration()">VESSEL.ACTION.NEW_REGISTRATION</button>
-              <button mat-menu-item translate (click)="editStatus()">VESSEL.ACTION.EDIT_STATUS</button>
-            </mat-menu>
+      <ion-grid class="ion-no-padding">
+        <ion-row class="ion-no-padding">
+          <ion-col class="ion-padding">
+            <form-vessel (onSubmit)="save($event)" #vesselForm>
+            </form-vessel>
+          </ion-col>
+          <ion-col size="12" size-md="4" size-lg="4" size-xl="3" class="ion-no-padding">
+            <app-entity-metadata [value]="data">
+              <!-- Vessel actions -->
+              <mat-menu #selectTypeMenu="matMenu" xPosition="after">
+                <button mat-menu-item translate (click)="editFeatures()">VESSEL.ACTION.EDIT_FEATURES</button>
+                <button mat-menu-item translate (click)="newFeatures()">VESSEL.ACTION.NEW_FEATURES</button>
+                <button mat-menu-item translate (click)="editRegistration()">VESSEL.ACTION.EDIT_REGISTRATION</button>
+                <button mat-menu-item translate *ngIf="!!data?.registration" (click)="newRegistration()">VESSEL.ACTION.NEW_REGISTRATION</button>
+                <button mat-menu-item translate (click)="editStatus()">VESSEL.ACTION.EDIT_STATUS</button>
+              </mat-menu>
 
-            <ion-button color="tertiary" expand="block"
-                        [matMenuTriggerFor]="selectTypeMenu" [disabled]="!data || !canUserWrite(data)">
-              <ion-icon slot="start" name="create" class="ion-float-start"></ion-icon>&nbsp;
-              <ion-label translate>VESSEL.ACTION.EDIT</ion-label>
-              <mat-icon slot="end" class="ion-float-end">arrow_drop_down</mat-icon>
-            </ion-button>
+              <ion-button color="tertiary" expand="block"
+                          [matMenuTriggerFor]="selectTypeMenu" [disabled]="!data || !canUserWrite(data)">
+                <ion-icon slot="start" name="create" class="ion-float-start"></ion-icon>&nbsp;
+                <ion-label translate>VESSEL.ACTION.EDIT</ion-label>
+                <mat-icon slot="end" class="ion-float-end">arrow_drop_down</mat-icon>
+              </ion-button>
 
-            <ion-button *ngIf="editing"
-                        fill="clear" expand="block" color="dark"
-                        class="visible-mobile visible-xs visible-sm"
-                        (click)="cancel()">
-              <ion-label translate>COMMON.BTN_CANCEL</ion-label>
-            </ion-button>
-          </app-entity-metadata>
-        </ion-col>
-      </ion-row>
+              <ion-button *ngIf="editing"
+                          fill="clear" expand="block" color="dark"
+                          class="visible-mobile visible-xs visible-sm"
+                          (click)="cancel()">
+                <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+              </ion-button>
+            </app-entity-metadata>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     </mat-tab>
 
     <mat-tab label="{{'VESSEL.TAB_HISTORY'|translate}}">

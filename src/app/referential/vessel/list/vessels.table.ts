@@ -21,6 +21,7 @@ import {ReferentialRefService} from "../../services/referential-ref.service";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
 import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
 import {environment} from "../../../../environments/environment";
+import {PlatformService} from "../../../core/services/platform.service";
 
 @Component({
   selector: 'app-vessels-table',
@@ -67,7 +68,7 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
-    protected platform: Platform,
+    protected platform: PlatformService,
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
@@ -84,13 +85,19 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
         .concat([
           'status',
           'features.exteriorMarking',
-          'registration.registrationCode',
+          'registration.registrationCode'])
+        .concat(platform.mobile ? [] : [
           'features.startDate',
-          'features.endDate',
+          'features.endDate'
+        ])
+        .concat([
           'features.name',
           'vesselType',
-          'features.basePortLocation',
-          'comments'])
+          'features.basePortLocation'
+        ])
+        .concat(platform.mobile ? [] : [
+          'comments'
+        ])
         .concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource<Vessel, VesselFilter>(Vessel, vesselService, null, {
         prependNewElements: false,
@@ -117,6 +124,7 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
     this.statusList.forEach((status) => this.statusById[status.id] = status);
 
     this.debug = !environment.production;
+    this.settingsId = 'VesselTable';
   }
 
   ngOnInit() {

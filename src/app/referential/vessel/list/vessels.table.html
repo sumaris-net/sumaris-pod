@@ -42,8 +42,6 @@
   <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
 
     <ion-grid>
-
-
       <ion-row>
         <ion-col>
           <!-- search text -->
@@ -143,14 +141,13 @@
 
   <!-- Start date column -->
   <ng-container matColumnDef="features.startDate">
-    <mat-header-cell class="hidden-xs hidden-sm mat-cell-date-time" *matHeaderCellDef mat-sort-header>
+    <mat-header-cell class="mat-cell-date-time" *matHeaderCellDef mat-sort-header>
       <span translate>VESSEL.FEATURES.START_DATE</span>
     </mat-header-cell>
-    <mat-cell class="hidden-xs hidden-sm mat-cell-date-time" *matCellDef="let row">
+    <mat-cell class="mat-cell-date-time" *matCellDef="let row">
       <ion-text>{{ row.currentData?.features.startDate|dateFormat }}</ion-text>
     </mat-cell>
   </ng-container>
-
 
   <!-- Status column  -->
   <ng-container matColumnDef="status">
@@ -180,30 +177,30 @@
 
   <!-- Exterior marking column -->
   <ng-container matColumnDef="features.exteriorMarking">
-    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
       <span translate>VESSEL.FEATURES.EXTERIOR_MARKING</span>
     </mat-header-cell>
-    <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
+    <mat-cell *matCellDef="let row">
       <ion-text>{{row.currentData.features?.exteriorMarking}}</ion-text>
     </mat-cell>
   </ng-container>
 
   <!-- Registration Code column -->
   <ng-container matColumnDef="registration.registrationCode">
-    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
       <span translate>VESSEL.REGISTRATION.REGISTRATION_CODE</span>
     </mat-header-cell>
-    <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
+    <mat-cell *matCellDef="let row">
       <ion-text>{{row.currentData.registration?.registrationCode}}</ion-text>
     </mat-cell>
   </ng-container>
 
   <!-- Name column -->
   <ng-container matColumnDef="features.name">
-    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
       <span translate>VESSEL.FEATURES.NAME</span>
     </mat-header-cell>
-    <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
+    <mat-cell *matCellDef="let row">
       <ion-text>{{row.currentData.features?.name}}</ion-text>
     </mat-cell>
   </ng-container>
@@ -230,9 +227,9 @@
 
   <!-- Comments column -->
   <ng-container matColumnDef="comments">
-    <mat-header-cell *matHeaderCellDef>
+    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">
+    <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
       <mat-icon class="comment"
                 *ngIf="row.currentData.features?.comments"
                 [title]="row.currentData.features?.comments">chat_bubble</mat-icon>

@@ -779,13 +779,12 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   getCurrentColumns(): { visible: boolean; name: string; label: string }[] {
-    const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
-    const hiddenColumns = this.columns.slice(fixedColumns.length)
+    const hiddenColumns = this.columns.slice(RESERVED_START_COLUMNS.length)
       .filter(name => this.displayedColumns.indexOf(name) === -1);
-    return this.displayedColumns.slice(fixedColumns.length)
+    return this.displayedColumns
       .concat(hiddenColumns)
-      .filter(name => name !== "actions")
-      .filter(name => !this.excludesColumns.includes(name))
+      .filter(name => !RESERVED_START_COLUMNS.includes(name) && !RESERVED_END_COLUMNS.includes(name)
+        && !this.excludesColumns.includes(name))
       .map(name => {
         return {
           name,
@@ -797,22 +796,23 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   async openSelectColumnsModal(event?: UIEvent): Promise<any> {
 
+    // Copy current columns (deep copy)
     const columns = this.getCurrentColumns();
 
     const modal = await this.modalCtrl.create({
       component: TableSelectColumnsComponent,
-      componentProps: {columns: columns}
+      componentProps: {columns}
     });
 
     // Open the modal
     await modal.present();
 
     // On dismiss
-    const res = await modal.onDidDismiss();
-    if (!res) return; // CANCELLED
+    const {data} = await modal.onDidDismiss();
+    if (!data) return; // CANCELLED
 
     // Apply columns
-    const userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
+    const userColumns = (data || []).filter(c => c.visible).map(c => c.name) || [];
     this.displayedColumns = RESERVED_START_COLUMNS.concat(userColumns).concat(RESERVED_END_COLUMNS);
     this.markForCheck();
 
