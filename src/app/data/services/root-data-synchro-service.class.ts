@@ -21,6 +21,7 @@ import {
   BaseEntityGraphqlSubscriptions,
   BaseEntityServiceOptions
 } from "../../referential/services/base-entity-service.class";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
 
 export interface IDataSynchroService<T extends RootDataEntity<T>, O = EntityServiceLoadOptions> {
@@ -30,6 +31,10 @@ export interface IDataSynchroService<T extends RootDataEntity<T>, O = EntityServ
   executeImport(opts?: {
     maxProgression?: number;
   }): Observable<number>;
+
+  terminateById(id: number): Promise<T>;
+
+  terminate(entity: T): Promise<T>;
 
   synchronizeById(id: number): Promise<T>;
 
@@ -165,10 +170,40 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
     return this.$importationProgress;
   }
 
+
+  async terminateById(id: number): Promise<T> {
+    const entity = await this.load(id);
+
+    return this.terminate(entity);
+  }
+
+  async terminate(entity: T): Promise<T> {
+    // If local entity
+    if (EntityUtils.isLocal(entity)) {
+
+      // Make sure to fill id, with local ids
+      await this.fillOfflineDefaultProperties(entity);
+
+      // Update sync status
+      entity.synchronizationStatus = 'READY_TO_SYNC';
+
+      const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+      if (this._debug) console.debug(`[root-data-service] Terminate {${entity.id}} locally...`, json);
+
+      // Save entity locally
+      await this.entities.save(json);
+
+      return entity;
+    }
+
+    // Terminate a remote entity
+    return super.terminate(entity);
+  }
+
   async synchronizeById(id: number): Promise<T> {
     const entity = await this.load(id);
 
-    if (!entity || entity.id >= 0) return; // skip
+    if (!EntityUtils.isLocal(entity)) return; // skip if not a local entity
 
     return await this.synchronize(entity);
   }
@@ -194,28 +229,6 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
 
   abstract synchronize(data: T, opts?: any): Promise<T>;
 
-  async terminate(entity: T): Promise<T> {
-    // If local entity: save locally
-    const offline = entity && entity.id < 0;
-    if (offline) {
-
-      // Make sure to fill id, with local ids
-      await this.fillOfflineDefaultProperties(entity);
-
-      // Update sync status
-      entity.synchronizationStatus = 'READY_TO_SYNC';
-
-      const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
-      if (this._debug) console.debug(`[root-data-service] Terminate {${entity.id}} locally...`, json);
-
-      // Save response locally
-      await this.entities.save(json);
-
-      return entity;
-    }
-
-    return super.terminate(entity);
-  }
 
   /* -- protected methods -- */
 

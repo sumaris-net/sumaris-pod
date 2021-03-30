@@ -120,7 +120,7 @@
     <ng-template #hasSelection>
 
       <!-- synchronize -->
-      <ion-button *ngIf="hasReadyToSyncSelection()"
+      <ion-button *ngIf="hasReadyToSyncSelection"
                   expand="block"
                   [color]="offline ? 'danger100' : 'danger'"
                   (click)="synchronizeSelection()">

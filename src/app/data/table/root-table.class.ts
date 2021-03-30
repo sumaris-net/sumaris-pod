@@ -10,8 +10,8 @@ import {AccountService} from "../../core/services/account.service";
 import {ConnectionType, NetworkService} from "../../core/services/network.service";
 import {BehaviorSubject} from "rxjs";
 import {personsToString} from "../../core/services/model/person.model";
-import {chainPromises} from "../../shared/observables";
-import {isEmptyArray, isNotNil} from "../../shared/functions";
+import {chainPromises, firstFalsePromise, firstTruePromise} from "../../shared/observables";
+import {isEmptyArray, isNotNil, sleep} from "../../shared/functions";
 import {RootDataEntity, SynchronizationStatus} from "../services/model/root-data-entity.model";
 import {qualityFlagToColor} from "../services/model/model.utils";
 import {UserEventService} from "../../social/services/user-event.service";
@@ -21,6 +21,7 @@ import {referentialToString} from "../../core/services/model/referential.model";
 import {AppTable} from "../../core/table/table.class";
 import {toDateISOString} from "../../shared/dates";
 import * as momentImported from "moment";
+import {TableElement} from "@e-is/ngx-material-table";
 const moment = momentImported;
 
 export const AppRootTableSettingsEnum = {
@@ -246,16 +247,114 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
     await this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY);
   }
 
-  hasReadyToSyncSelection(): boolean {
-    if (!this._enabled) return false;
-    if (this.loading || this.selection.isEmpty()) return false;
-    return (this.selection.selected || [])
+  get hasReadyToSyncSelection(): boolean {
+    if (!this._enabled || this.loading || this.selection.isEmpty()) return false;
+    return this.selection.selected
       .findIndex(row => row.currentData.id < 0 && row.currentData.synchronizationStatus === 'READY_TO_SYNC') !== -1;
   }
 
-  async synchronizeSelection() {
-    if (!this._enabled) return;
-    if (this.loading || this.selection.isEmpty()) return;
+  get hasDirtySelection(): boolean {
+    if (!this._enabled || this.loading || this.selection.isEmpty()) return false;
+    return this.selection.selected
+      .findIndex(row => row.currentData.id < 0 && row.currentData.synchronizationStatus === 'DIRTY') !== -1;
+  }
+
+  async terminateAndSynchronizeSelection() {
+    try {
+      this.markAsLoading();
+      const rows = this.selection.selected.slice();
+
+      // Terminate
+      await this.terminateSelection({
+        showSuccessToast: false,
+        emitEvent: false,
+        rows
+      });
+
+      await this.synchronizeSelection( {
+        showSuccessToast: true, // display toast when succeed
+        emitEvent: false,
+        rows
+      });
+
+      // Clean selection
+      this.selection.clear();
+
+    } catch (err) {
+      console.error(err);
+    }
+    finally {
+      this.onRefresh.emit();
+    }
+  }
+
+  async terminateSelection(opts?: {
+    showSuccessToast?: boolean;
+    emitEvent?: boolean;
+    rows?: TableElement<T>[]
+  }) {
+    if (!this._enabled) return; // Skip
+
+    const rows = opts && opts.rows || (!this.loading && this.selection.selected.slice());
+    if (isEmptyArray(rows)) return; // Skip
+
+    if (this.offline) {
+      this.network.showOfflineToast({
+        showRetryButton: true,
+        onRetrySuccess: () => this.terminateSelection()
+      });
+      return;
+    }
+
+    if (this.debug) console.debug("[root-table] Starting to terminate data...");
+
+    const ids = rows
+      .filter(row => row.currentData.id < 0 && row.currentData.synchronizationStatus === 'DIRTY')
+      .map(row => row.currentData.id);
+
+    if (isEmptyArray(ids)) return; // Nothing to terminate
+
+    this.markAsLoading();
+    this.error = null;
+
+    try {
+      await chainPromises(ids.map(id => () => this.dataService.terminateById(id)));
+
+      // Success message
+      if (!opts || opts.showSuccessToast !== false) {
+        this.showToast({
+          message: 'INFO.SYNCHRONIZATION_SUCCEED'
+        });
+      }
+
+    } catch (error) {
+      this.userEventService.showToastErrorWithContext({
+        error,
+        context: () => chainPromises(ids.map(id => () => this.dataService.load(id, {withOperation: true, toEntity: false})))
+      });
+    }
+    finally {
+      if (!opts || opts.emitEvent !== false) {
+        // Reset selection
+        this.selection.clear();
+
+        // Refresh table
+        this.onRefresh.emit();
+      }
+    }
+  }
+
+
+  async synchronizeSelection(opts?: {
+    showSuccessToast?: boolean;
+    cleanPageHistory?: boolean;
+    emitEvent?: boolean;
+    rows?: TableElement<T>[]
+  }) {
+    if (!this._enabled) return; // Skip
+
+    const rows = opts && opts.rows || (!this.loading && this.selection.selected.slice());
+    if (isEmptyArray(rows)) return; // Skip
 
     if (this.offline) {
       this.network.showOfflineToast({
@@ -265,10 +364,9 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
       return;
     }
 
-    if (this.debug) console.debug("[trips] Starting synchronization...");
+    if (this.debug) console.debug("[root-table] Starting to synchronize data...");
 
-    const rowsToSync = this.selection.selected.slice();
-    const ids = rowsToSync
+    const ids = rows
       .filter(row => row.currentData.id < 0 && row.currentData.synchronizationStatus === 'READY_TO_SYNC')
       .map(row => row.currentData.id);
 
@@ -278,28 +376,40 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
     this.error = null;
 
     try {
-      await chainPromises(ids.map(tripId => () => this.dataService.synchronizeById(tripId)));
+      await chainPromises(ids.map(id => () => this.dataService.synchronizeById(id)));
       this.selection.clear();
 
       // Success message
-      this.showToast({
-        message: 'INFO.SYNCHRONIZATION_SUCCEED'
-      });
+      if (!opts || opts.showSuccessToast !== false) {
+        this.showToast({
+          message: 'INFO.SYNCHRONIZATION_SUCCEED'
+        });
+      }
 
       // Clean history
-      // FIXME: find a way o clean only synchronized data ?
-      this.settings.clearPageHistory();
+      if (!opts || opts.cleanPageHistory) {
+        // FIXME: find a way o clean only synchronized data ?
+        this.settings.clearPageHistory();
+      }
 
     } catch (error) {
       this.userEventService.showToastErrorWithContext({
         error,
-        context: () => chainPromises(ids.map(tripId => () => this.dataService.load(tripId, {withOperation: true, toEntity: false})))
+        context: () => chainPromises(ids.map(id => () => this.dataService.load(id, {withOperation: true, toEntity: false})))
       });
+      throw error;
     }
     finally {
-      this.onRefresh.emit();
+      if (!opts || opts.emitEvent !== false) {
+        // Clear selection
+        this.selection.clear();
+
+        // Refresh table
+        this.onRefresh.emit();
+      }
     }
   }
+
 
   referentialToString = referentialToString;
   personsToString = personsToString;
