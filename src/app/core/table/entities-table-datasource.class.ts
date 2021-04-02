@@ -205,8 +205,8 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
   }
 
   // Overwrite default signature
-  createNew(): void {
-    this.asyncCreateNew();
+  createNew(insertAt?: number): void {
+    this.asyncCreateNew(insertAt);
   }
 
   disconnect(collectionViewer?: CollectionViewer) {
@@ -313,10 +313,10 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
     return firstNotNilPromise(this.connect(null)) as Promise<TableElement<T>[]>;
   }
 
-  public async asyncCreateNew(): Promise<void> {
+  public async asyncCreateNew(insertAt?: number): Promise<void> {
     if (this._creating) return; // Avoid multiple call
     this._creating = true;
-    super.createNew();
+    super.createNew(insertAt);
     const row = this.getRow(-1);
 
     if (row && this._options && this._options.onRowCreated) {

@@ -40,7 +40,7 @@ import {PlatformService} from "../services/platform.service";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {Alerts} from "../../shared/alerts";
 import {createPromiseEventEmitter, emitPromiseEvent} from "../../shared/events";
-import {Environment, ENVIRONMENT} from "../../../environments/environment.class";
+import {Environment} from "../../../environments/environment.class";
 import {
   MatAutocompleteConfigHolder,
   MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig
@@ -544,7 +544,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
    * @param event
    * @param row
    */
-  confirmEditCreate(event?: any, row?: TableElement<T>): boolean {
+  confirmEditCreate(event?: Event, row?: TableElement<T>): boolean {
     row = row || this.editedRow;
     if (row && row.editing) {
       if (event) event.stopPropagation();
@@ -610,7 +610,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  addRow(event?: any): boolean {
+  addRow(event?: any, insertAt?: number): boolean {
     /*if (this.debug) */console.debug("[table] Asking for new row...");
     if (!this._enabled) return false;
 
@@ -626,14 +626,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
 
     // Add new row
-    this.addRowToTable();
+    this.addRowToTable(insertAt);
     return true;
   }
 
-  async save(saveAction?: SaveActionType): Promise<boolean> {
-    if (this.debug && saveAction) {
-      console.debug(`[table] Save called by ${saveAction} event`);
-    }
+  async save(): Promise<boolean> {
 
     if (this.readOnly) {
       throw {code: ErrorCodes.TABLE_READ_ONLY, message: 'ERROR.TABLE_READ_ONLY'};
@@ -780,6 +777,10 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return this.onEditRow(event, row);
   }
 
+  moveRow(id: number, direction: number) {
+    this.dataSource.move(id, direction);
+  }
+
   async openSelectColumnsModal(event?: UIEvent): Promise<any> {
 
     const columns = this.getCurrentColumns();
@@ -836,7 +837,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return true;
   }
 
-  protected async saveBeforeAction(action: SaveActionType): Promise<boolean> {
+  protected async saveBeforeAction(saveAction: SaveActionType): Promise<boolean> {
 
     if (!this._dirty) {
       // Continue without save
@@ -844,7 +845,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
 
     let save: boolean;
-    switch (action) {
+    switch (saveAction) {
       case "delete":
         save = this.saveBeforeDelete;
         break;
@@ -866,7 +867,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
         // Ask confirmation
         try {
           const res = await emitPromiseEvent(this.onBeforeSave, 'beforeSave', {
-            detail: {action: action, valid: this.valid}
+            detail: {action: saveAction, valid: this.valid}
           });
           confirmed = res.confirmed;
           save = res.save;
@@ -883,7 +884,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     if (confirmed) {
       if (save) {
         // User confirmed save
-        const saved = await this.save(action);
+        const saved = await this.save();
         this.markAsDirty(); // Restore dirty flag
         return saved;
       }
@@ -1014,9 +1015,9 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return id;
   }
 
-  protected async addRowToTable(): Promise<TableElement<T>> {
+  protected async addRowToTable(insertAt?: number): Promise<TableElement<T>> {
     this.focusFirstColumn = true;
-    await this._dataSource.asyncCreateNew();
+    await this._dataSource.asyncCreateNew(insertAt);
     this.editedRow = this._dataSource.getRow(-1);
     // Emit start editing event
     this.onStartEditingRow.emit(this.editedRow);

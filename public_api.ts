@@ -106,6 +106,7 @@ export * from './src/app/core/form/list.form';
 export * from './src/app/core/form/properties.form';
 export * from './src/app/core/form/tab-editor.class';
 export * from './src/app/core/table/table.class';
+export * from './src/app/core/table/table.utils';
 export * from './src/app/core/table/memory-table.class';
 export * from './src/app/core/table/entities-table-datasource.class';
 export * from './src/app/core/table/table-select-columns.component';
