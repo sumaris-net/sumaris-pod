@@ -132,13 +132,14 @@
 
   <!-- Pmfm columns -->
   <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.id.toString()">
-    <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
       <ion-label [innerHTML]="pmfm|pmfmName: {html: true}">
       </ion-label>
     </mat-header-cell>
 
-    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate"
-              [class.mat-cell-computed]="pmfm.isComputed">
+    <mat-cell *matCellDef="let row"
+              [class.mat-cell-date-time]="pmfm|isDatePmfm"
+              [class.mat-cell-computed]="pmfm|isComputedPmfm">
       <app-pmfm-field
         [readonly]="!row.editing"
         [formControl]="row.validator.controls.measurementValues.controls[pmfm.id]"

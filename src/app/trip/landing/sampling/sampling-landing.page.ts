@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
-import {AbstractControl, FormGroup, ValidationErrors} from "@angular/forms";
+import {FormGroup, ValidationErrors} from "@angular/forms";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ParameterLabelGroups, PmfmIds} from "../../../referential/services/model/model.enum";
@@ -70,6 +70,15 @@ export class SamplingLandingPage extends LandingPage {
       .then(pmfmGroups => this.$pmfmGroups.next(pmfmGroups));
   }
 
+  ngOnDestroy() {
+    super.ngOnDestroy();
+
+    this.$pmfmGroups.complete();
+  }
+
+  /* -- protected functions -- */
+
+
   protected async checkStrategyEffort(strategy: Strategy): Promise<void> {
 
     const [program] = await Promise.all([
@@ -77,37 +86,37 @@ export class SamplingLandingPage extends LandingPage {
       this.landingForm.ready()
     ]);
 
-    // Add validator errors on expected effort for this sampleRow (issue #175)
-    const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, this.data.dateTime);
+    if (strategy &&  strategy.label) {
+      // Add validator errors on expected effort for this sampleRow (issue #175)
+      const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, this.data.dateTime);
 
-    // DEBUG
-    console.debug("[sampling-landing-page] Strategy effort loaded: ", strategyEffort);
+      // DEBUG
+      console.debug("[sampling-landing-page] Strategy effort loaded: ", strategyEffort);
 
-    // No effort defined
-    if (!strategyEffort) {
-      this.noEffortError = true;
-      this.zeroEffortWarning = false;
-      this.landingForm.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
-    }
-    // Effort is set, but = 0
-    else if (strategyEffort.expectedEffort === 0) {
-      this.zeroEffortWarning = true;
-      this.noEffortError = false;
-      SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
-    }
-    // And positive effort has been defined: OK
-    else {
-      this.zeroEffortWarning = false;
-      this.noEffortError = false;
-      SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
+      // No effort defined
+      if (!strategyEffort) {
+        this.noEffortError = true;
+        this.zeroEffortWarning = false;
+        this.landingForm.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
+      }
+      // Effort is set, but = 0
+      else if (strategyEffort.expectedEffort === 0) {
+        this.zeroEffortWarning = true;
+        this.noEffortError = false;
+        SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
+      }
+      // And positive effort has been defined: OK
+      else {
+        this.zeroEffortWarning = false;
+        this.noEffortError = false;
+        SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
+      }
     }
 
     await this.samplesTable.ready();
     this.showSamplesTable = true;
     this.markForCheck();
   }
-
-  /* -- protected functions -- */
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onNewEntity(data, options);

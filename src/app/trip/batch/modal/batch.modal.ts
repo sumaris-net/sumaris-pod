@@ -26,7 +26,7 @@ export class BatchModal implements OnInit {
 
     @Input() acquisitionLevel: string;
 
-    @Input() program: string;
+    @Input() programLabel: string;
 
     @Input() canEdit: boolean;
 

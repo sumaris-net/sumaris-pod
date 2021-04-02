@@ -572,7 +572,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     const modal = await this.modalCtrl.create({
       component: SubBatchModal,
       componentProps: {
-        program: this.programLabel,
+        programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         availableParents: this.availableParents,
         value: batch,

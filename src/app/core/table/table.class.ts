@@ -99,7 +99,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   excludesColumns: string[] = [];
   displayedColumns: string[];
-  resultsLength: number;
+  totalRowCount: number;
   visibleRowCount: number;
   loadingSubject = new BehaviorSubject<boolean>(true);
   error: string;
@@ -145,7 +145,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   get empty(): boolean {
-    return this.loading || this.resultsLength === 0;
+    return this.loading || this.totalRowCount === 0;
   }
 
   @Output() onOpenRow = new EventEmitter<{ id?: number; row: TableElement<T> }>();
@@ -374,12 +374,12 @@ export abstract class AppTable<T extends Entity<T>, F = any>
           if (res && res.data) {
             this.isRateLimitReached = !this.paginator || (res.data.length < this.paginator.pageSize);
             this.visibleRowCount = res.data.length;
-            this.resultsLength = isNotNil(res.total) ? res.total : ((this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + this.visibleRowCount);
+            this.totalRowCount = isNotNil(res.total) ? res.total : ((this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + this.visibleRowCount);
             if (this.debug) console.debug(`[table] ${res.data.length} rows loaded`);
           } else {
             //if (this.debug) console.debug('[table] NO rows loaded');
             this.isRateLimitReached = true;
-            this.resultsLength = 0;
+            this.totalRowCount = 0;
             this.visibleRowCount = 0;
           }
           this.markAsUntouched();
@@ -605,7 +605,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
     // If delete (if new row): update counter
     if (row.id === -1) {
-      this.resultsLength--;
+      this.totalRowCount--;
       this.visibleRowCount--;
     }
   }
@@ -661,9 +661,9 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   /** Whether the number of selected elements matches the total number of rows. */
   isAllSelected() {
     // DEBUG
-    //console.debug('isAllSelected. lengths', this.selection.selected.length, this.resultsLength);
+    //console.debug('isAllSelected. lengths', this.selection.selected.length, this.totalRowCount);
 
-    return this.selection.selected.length === this.resultsLength ||
+    return this.selection.selected.length === this.totalRowCount ||
       this.selection.selected.length === this.visibleRowCount;
   }
 
@@ -710,7 +710,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       await this._dataSource.deleteAll(rowsToDelete);
 
       // Not need to update manually, because watchALl().subscribe() will update this count
-      //this.resultsLength -= deleteCount;
+      //this.totalRowCount -= deleteCount;
       //this.visibleRowCount -= deleteCount;
       this.selection.clear();
       this.editedRow = undefined;
@@ -1021,7 +1021,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.editedRow = this._dataSource.getRow(-1);
     // Emit start editing event
     this.onStartEditingRow.emit(this.editedRow);
-    this.resultsLength++;
+    this.totalRowCount++;
     this.visibleRowCount++;
     this.markAsDirty({emitEvent: false /*markForCheck() is called just after*/});
     this.markForCheck();

@@ -88,15 +88,7 @@ export class SamplingSamplesTable extends SamplesTable {
 
   protected async onNewEntity(data: Sample): Promise<void> {
     await super.onNewEntity(data);
-
-    const groupAge = this.$pmfmGroupColumns.getValue().find(c => c.label === 'AGE');
-    const rubinCode = TaxonUtils.rubinCode(this.defaultTaxonName.name);
-
-    // Generate label if age in pmfm strategies and rubinCode computable (locationCodeDDMMYYrubinCodeXXXX)
-    if (groupAge && rubinCode && isNotNil(this.defaultLocation) && isNotNil(this.defaultSampleDate) && isNotNil(this.defaultTaxonName)) {
-      data.label = `${this.defaultLocation.label}${this.defaultSampleDate.format("DDMMYY")}${rubinCode}${data.rankOrder.toString().padStart(4, "0")}`;
-      console.debug("[sample-table] Generated label: ", data.label);
-    }
+    this.computeSampleLabel(data);
   }
 
   /**
@@ -139,6 +131,21 @@ export class SamplingSamplesTable extends SamplesTable {
   }
 
   /* -- protected methods -- */
+
+  private computeSampleLabel(data: Sample) {
+
+    // Generate label if age in pmfm strategies and rubinCode computable (locationDDMMYYrubinXXXX)
+    const groupAge = this.$pmfmGroupColumns.getValue().find(c => c.label === 'AGE');
+    const locationPart = this.defaultLocation && this.defaultLocation.label;
+    const datePart = this.defaultSampleDate && this.defaultSampleDate.format("DDMMYY");
+    const rubinCodePart = this.defaultTaxonName && TaxonUtils.rubinCode(this.defaultTaxonName.name);
+    const rankPart = data.rankOrder && data.rankOrder.toString().padStart(4, "0");
+
+    if (groupAge && locationPart && datePart && rubinCodePart && rankPart) {
+      data.label = `${locationPart}${datePart}${rubinCodePart}${rankPart}`;
+      console.debug("[sample-table] Generated label: ", data.label);
+    }
+  }
 
   /**
    * Force to wait PMFM map to be loaded

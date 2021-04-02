@@ -102,9 +102,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   /* -- protected methods  -- */
 
   protected async setProgram(program: Program) {
+    await super.setProgram(program);
     if (!program) return; // Skip
 
-    if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
     this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
     this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
     this.aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
@@ -134,8 +134,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.aggregatedLandingsTable.program = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
     }
 
-
     this.$ready.next(true);
+
+    // Listen program change (will reload program if need)
+    this.startListenProgramRemoteChanges(program);
   }
 
 
@@ -181,11 +183,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   protected async onEntityLoaded(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
-    // Move to second tab
-    if (!this.isNewData && !this.isOnFieldMode) {
-      this.selectedTabIndex = 1;
-      this.tabGroup.realignInkBar();
-    }
+
+    const programLabel = data.program && data.program.label;
+    this.$programLabel.next(programLabel);
   }
 
   updateViewState(data: ObservedLocation, opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
@@ -198,6 +198,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   updateTabsState(data: ObservedLocation) {
     // Enable landings tab
     this.showLandingTab = this.showLandingTab || (isNotNil(data.id) || this.isOnFieldMode);
+
+    // Move to second tab
+    if (!this.isNewData && !this.isOnFieldMode) {
+      this.selectedTabIndex = 1;
+      this.tabGroup.realignInkBar();
+    }
   }
 
   protected async setValue(data: ObservedLocation) {

@@ -46,7 +46,7 @@ import {Person} from "../../core/services/model/person.model";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {
   BaseEntityGraphqlMutations, BaseEntityGraphqlQueries,
-  BaseEntityGraphqlSubscriptions
+  BaseEntityGraphqlSubscriptions, EntitySaveOptions
 } from "../../referential/services/base-entity-service.class";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
 
@@ -160,7 +160,7 @@ export class LandingFilter {
   }
 }
 
-export declare interface LandingSaveOptions {
+export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
   tripId?: number;
 
@@ -269,21 +269,33 @@ const LandingQueries = {
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}`,
 
-  loadAll: gql`query Landings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  loadAll: gql`query LightLandings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightLandingFragment
     }
   }
   ${LandingFragments.lightLanding}`,
 
-  loadAllWithTotal: gql`query LightLandings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  loadAllWithTotal: gql`query LightLandingsWithTotal($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightLandingFragment
     }
     total: landingsCount(filter: $filter)
   }
-  ${LandingFragments.lightLanding}
-`
+  ${LandingFragments.lightLanding}`,
+
+  loadAllFullWithTotal: gql`query Landings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...LandingFragment
+    }
+    total: landingsCount(filter: $filter)
+  }
+  ${LandingFragments.landing}
+  ${Fragments.location}
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
+  ${VesselSnapshotFragments.vesselSnapshot}
+  ${DataFragments.sample}`
 };
 
 const LandingMutations: BaseEntityGraphqlMutations = {
@@ -403,8 +415,10 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     let now = this._debug && Date.now();
     if (this._debug) console.debug("[landing-service] Watching landings... using variables:", variables);
 
+    const fullLoad = (opts && opts.fullLoad === true);
     const withTotal = (!opts || opts.withTotal !== false);
-    const query = withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
+    const query = fullLoad ? LandingQueries.loadAllFullWithTotal :
+      (withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll);
 
     return this.mutableWatchQuery<{ data: any[]; total: number; }>({
         queryName: 'LoadAll',

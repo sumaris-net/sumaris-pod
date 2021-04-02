@@ -30,6 +30,8 @@ import {fromDateISOString, toDateISOString} from "../../shared/dates";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {OBSERVED_LOCATION_FEATURE_NAME} from "./config/trip.config";
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
+import {ProgramProperties} from "../../referential/services/config/program.config";
+import {EntitySaveOptions} from "../../referential/services/base-entity-service.class";
 
 const moment = momentImported;
 
@@ -128,7 +130,7 @@ export const ObservedLocationFilterKeys: KeysEnum<ObservedLocationFilter> = {
 };
 
 
-export interface ObservedLocationSaveOptions {
+export interface ObservedLocationSaveOptions extends EntitySaveOptions {
   withLanding?: boolean;
   enableOptimisticResponse?: boolean; // True by default
 }
@@ -146,7 +148,6 @@ export class ObservedLocationOfflineFilter  {
   periodDuration?: number;
   periodDurationUnit?: DurationConstructor;
 }
-
 
 export const ObservedLocationFragments = {
   lightObservedLocation: gql`fragment LightObservedLocationFragment on ObservedLocationVO {
@@ -561,16 +562,22 @@ export class ObservedLocationService
       }
     });
 
+    // Update date of children entities, if need (see IMAGINE-276)
+    if (!isNew) {
+      await this.updateChildrenDate(entity);
+    }
 
     return entity;
   }
 
   async saveLocally(entity: ObservedLocation, opts?: ObservedLocationSaveOptions): Promise<ObservedLocation> {
-    if (entity.id >= 0) throw new Error('Must be a local entity');
+    if (isNotNil(entity.id) && entity.id >= 0) throw new Error('Must be a local entity');
     opts = {
       withLanding: false,
       ...opts
     };
+
+    const isNew = isNil(entity.id);
 
     this.fillDefaultProperties(entity);
 
@@ -593,17 +600,34 @@ export class ObservedLocationService
     // Save observed location locally
     await this.entities.save(jsonLocal, {entityName: ObservedLocation.TYPENAME});
 
+
     // Save landings
     if (opts.withLanding && isNotEmptyArray(landings)) {
 
-      // Link to physical gear id, using the rankOrder
-      landings.forEach(o => {
-        o.id = null; // Clean ID, to force new ids
-        o.observedLocationId = entity.id;
-        o.updateDate = undefined;
+      const program = await this.programRefService.loadByLabel(entity.program.label);
+      const landingHasDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
+
+      landings.forEach(l => {
+        l.id = null; // Clean ID, to force new ids
+        l.observedLocationId = entity.id; // Link to parent entity
+        l.updateDate = undefined;
+
+        // Copy date to landing and samples (IMAGINE-276)
+        if (!landingHasDateTime) {
+         l.dateTime = entity.startDateTime;
+          (l.samples || []).forEach(s => {
+            s.sampleDate = l.dateTime;
+          });
+        }
       });
 
+      // Save landings
       entity.landings = await this.landingService.saveAll(landings, {observedLocationId: entity.id});
+    }
+
+    // Update date of children entities, if need (see IMAGINE-276)
+    else if (!opts.withLanding && !isNew) {
+      await this.updateChildrenDate(entity);
     }
 
     return entity;
@@ -813,7 +837,53 @@ export class ObservedLocationService
     else {
       return super.getImportJobs(opts);
     }
-
-
   }
+
+  protected async updateChildrenDate(entity: ObservedLocation) {
+    if (!entity || !entity.program || !entity.program.label || !entity.startDateTime) return; // Skip
+
+    const program = await this.programRefService.loadByLabel(entity.program.label);
+    const landingHasDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
+    if (landingHasDateTime) return; // Not need to update children dates
+
+    const now = Date.now();
+    console.info("[observed-location-service] Applying date to children entities (Landing, Sample)...");
+
+    try {
+      let res: LoadResult<Landing>;
+      let offset = 0;
+      const size = 10; // Use paging, to avoid loading ALL landings once
+      do {
+        res = await this.landingService.loadAll(offset, size, null, null, {observedLocationId: entity.id}, {fullLoad: true});
+
+        const updatedLandings = (res.data || []).map(l => {
+          if (!l.dateTime || !l.dateTime.isSame(entity.startDateTime)) {
+            l.dateTime = entity.startDateTime;
+            (l.samples || []).forEach(sample => {
+              sample.sampleDate = l.dateTime;
+            });
+            return l;
+          }
+          return undefined;
+        }).filter(isNotNil);
+
+        // Save landings, if need
+        if (isNotEmptyArray(updatedLandings)) {
+          await this.landingService.saveAll(updatedLandings, {observedLocationId: entity.id, enableOptimisticResponse: false});
+        }
+
+        offset += size;
+      } while (offset < res.total);
+
+      console.info(`[observed-location-service] Applying date to children entities (Landing, Sample) [OK] in ${Date.now() - now}ms`);
+    }
+    catch (err) {
+      throw {
+        ...err,
+        code: ErrorCodes.UPDATE_OBSERVED_LOCATION_CHILDREN_DATE_ERROR,
+        message: "OBSERVED_LOCATION.ERROR.UPDATE_CHILDREN_DATE_ERROR"
+      };
+    }
+  }
+
 }

@@ -180,6 +180,12 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       MeasurementValuesUtils.normalizeEntityToForm(data, this.$pmfms.getValue(), this.form);
     }
 
+    // If a program has been filled, always keep it
+    const program = this.form.controls['program'] && this.form.controls['program'].value;
+    if (program) {
+      data.program = program;
+    }
+
     super.setValue(data, opts);
 
     // Restore form status
@@ -266,6 +272,12 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       console.warn("Trying to set undefined value to meas form. Skipping");
       return;
     }
+
+    // Propagate the program
+    if (data.program && data.program.label) {
+      this.programLabel = data.program.label;
+    }
+
     // Will avoid data to be set inside function updateControls()
     this.applyingValue = true;
 

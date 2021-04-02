@@ -13,8 +13,10 @@ import {PlatformService} from "../../core/services/platform.service";
 import {environment} from "../../../environments/environment";
 import {Entity, EntityAsObjectOptions, EntityUtils} from "../../core/services/model/entity.model";
 import {chainPromises} from "../../shared/observables";
-import {isEmptyArray, isNil, isNotNil} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {Directive} from "@angular/core";
+import {MutationBaseOptions, RefetchQueryDescription} from "@apollo/client/core/watchQueryOptions";
+import {FetchResult} from "@apollo/client/link/core";
 
 
 export interface BaseEntityGraphqlQueries {
@@ -44,6 +46,11 @@ export interface BaseEntityServiceOptions<
   filterAsObjectFn?: (filter: F) => any;
   equalsFn?: (e1: E, e2: E) => boolean;
   filterFnFactory?: (filter: F) => ((data: E) => boolean);
+}
+
+export interface EntitySaveOptions {
+  refetchQueries?: ((result: FetchResult<{data: any}>) => RefetchQueryDescription) | RefetchQueryDescription;
+  awaitRefetchQueries?: boolean;
 }
 
 
@@ -285,9 +292,9 @@ export abstract class BaseEntityService<T extends Entity<any>,
   /**
    * Save a referential entity
    * @param entity
-   * @param options
+   * @param opts
    */
-  async save(entity: T, options?: any): Promise<T> {
+  async save(entity: T, opts?: EntitySaveOptions): Promise<T> {
     if (!this.mutations.save) throw Error('Not implemented');
 
     // Fill default properties
@@ -302,6 +309,8 @@ export abstract class BaseEntityService<T extends Entity<any>,
     if (this._debug) console.debug(`[base-entity-service] Saving ${this._entityName}...`, json);
 
     await this.graphql.mutate< {data: any}>({
+      refetchQueries: opts && opts.refetchQueries,
+      awaitRefetchQueries: toBoolean(opts && opts.awaitRefetchQueries, false),
       mutation: this.mutations.save,
       variables: {
         data: json
@@ -324,7 +333,6 @@ export abstract class BaseEntityService<T extends Entity<any>,
           // TODO BLA: should also clean referential ref queries ?
           // How to clean
         }
-
       }
     });
 
@@ -409,19 +417,22 @@ export abstract class BaseEntityService<T extends Entity<any>,
   }
 
   listenChanges(id: number, opts?: {
-    interval?: number
+    query?: any;
+    variables?: any;
+    interval?: number;
+    toEntity?: boolean;
   }): Observable<T> {
     if (isNil(id)) throw Error("Missing argument 'id' ");
     if (!this.subscriptions.listenChanges) throw Error("Not implemented!");
 
-    const variables = {
+    const variables = opts && opts.variables || {
       id,
       interval: opts && opts.interval || 10 // seconds
     };
     if (this._debug) console.debug(`[base-entity-service] [WS] Listening for changes on ${this._entityName} {${id}}...`);
 
-    return this.graphql.subscribe<LoadResult<any>>({
-      query: this.subscriptions.listenChanges,
+    return this.graphql.subscribe<{data: any}>({
+      query: opts && opts.query || this.subscriptions.listenChanges,
       variables,
       error: {
         code: ErrorCodes.SUBSCRIBE_REFERENTIAL_ERROR,
@@ -430,7 +441,7 @@ export abstract class BaseEntityService<T extends Entity<any>,
     })
       .pipe(
         map(({data}) => {
-          const entity = data && this.fromObject(data);
+          const entity = (!opts || opts.toEntity !== false) ? data && this.fromObject(data) : data;
           if (entity && this._debug) console.debug(`[base-entity-service] [WS] Received changes on ${this._entityName} {${id}}`, entity);
 
           // TODO: when missing = deleted ?

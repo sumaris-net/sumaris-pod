@@ -196,7 +196,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     const modal = await this.modalCtrl.create({
       component: BatchModal,
       componentProps: {
-        program: this.programLabel,
+        programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         value: batch,

@@ -82,9 +82,9 @@
                               [debug]="debug">
             </app-landing-form>
           </ion-col>
-          <ion-col class="ion-no-padding" size="12" size-xl="3">
 
-            <!-- data quality -->
+          <!-- data quality -->
+          <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="showEntityMetadata">
             <app-entity-metadata [value]="data">
               <app-entity-quality-form [editor]="this" *ngIf="showQualityForm">
               </app-entity-quality-form>

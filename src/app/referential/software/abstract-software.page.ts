@@ -176,7 +176,7 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
         // Fetch entity, as a referential
         return this.referentialRefService.suggest(value, filter)
           .then(matches => {
-            data.properties[option.key] = (matches && matches[0] || {id: value,  label: '??'}) as any;
+            data.properties[option.key] = (matches && matches.data && matches.data[0] || {id: value,  label: '??'}) as any;
           })
           // Cannot ch: display an error
           .catch(err => {

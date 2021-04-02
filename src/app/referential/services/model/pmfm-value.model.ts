@@ -76,7 +76,7 @@ export abstract class PmfmValueUtils {
         return value || null;
       case "boolean":
         return (value === "true" || value === true || value === 1) ? '&#x2714;' /*checkmark*/ :
-          ((value === "false" || value === false || value === 0) ? '' : null); /*empty*/
+          ((value === "false" || value === false || value === 0) ? '&#x2718;' : null); /*empty*/
       default:
         throw new Error("Unknown pmfm's type: " + opts.pmfm.type);
     }

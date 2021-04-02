@@ -438,7 +438,7 @@
         "RECORDER_PERSON": "Saisisseur"
       },
       "SYNCHRONIZATION_STATUS": {
-        "DIRTY_HELP": "Marées hors-lgne",
+        "DIRTY_HELP": "Marées hors-ligne",
         "READY_TO_SYNC_HELP": "Marées en attente d'envoi",
         "SYNC_HELP": "Marées synchronisées"
       }
@@ -788,6 +788,11 @@
         "LOCATION": "Criée",
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période"
+      },
+      "SYNCHRONIZATION_STATUS": {
+        "DIRTY_HELP": "Données hors-ligne",
+        "READY_TO_SYNC_HELP": "Données en attente d'envoi",
+        "SYNC_HELP": "Données synchronisées"
       }
     },
     "OFFLINE_MODAL": {
@@ -800,6 +805,9 @@
       "ENABLE": "Observations > Activer ?",
       "NAME": "Observations > Titre (menu, etc.)",
       "NEW_NAME": "Observations > Titre (nouvelle observation)"
+    },
+    "ERROR": {
+      "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles."
     }
   },
   "LANDING": {
@@ -819,7 +827,7 @@
       "STRATEGY_SUMMARY_TITLE": "Stratégie appliquée",
       "VESSEL": "Navire",
       "LANDING": "Débarquement :",
-      "DATE_TIME": "Date/Heure",
+      "DATE": "Date de débarquement",
       "LOCATION": "Lieu de débarquement",
       "OBSERVERS": "Observateurs :",
       "OBSERVER_PLACEHOLDER": "Observateur #",
@@ -831,6 +839,7 @@
         "STRATEGY_PLACEHOLDER": "Code ligne de plan",
         "STRATEGY_SUMMARY_TITLE": "Plan d'échantillonnage",
         "LANDING": "Débarquement :",
+        "DATE": "Date de débarquement",
         "TAB_SAMPLES": "Mesures individuelles",
         "LOCATION": "Port de débarquement"
       }

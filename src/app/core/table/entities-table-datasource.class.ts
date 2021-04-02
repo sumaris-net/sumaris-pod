@@ -109,7 +109,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
         catchError(err => this.handleError(err, 'ERROR.LOAD_DATA_ERROR')),
         map((res: LoadResult<T>) => {
           if (this._saving) {
-            console.error(`[table-datasource] Service ${this.dataService.constructor.name} sent data, while will saving... should skip ?`);
+            console.info(`[table-datasource] Service ${this.dataService.constructor.name} sent data, but still saving: skip`);
           } else if (this._editingRowCount > 0) {
             if (this._debug) console.debug(`[table-datasource] Service ${this.dataService.constructor.name} sent data, while ${this._editingRowCount} rows still editing: skip`);
           } else {
@@ -183,10 +183,13 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
 
       const savedData = await this.dataService.saveAll(dataToSave, this.serviceOptions);
 
-      if (this._debug) console.debug('[table-datasource] Data saved. Updated data received by service:', savedData);
-      if (this._debug) console.debug('[table-datasource] Updating datasource...', data);
+      if (this._debug) {
+        console.debug('[table-datasource] Data saved. Updated data received by service:', savedData);
+        console.debug('[table-datasource] Updating datasource with data:', data);
+      }
       // LP 23/03/2021: update datasource is necessary but can be changed to a refetch() on QueryRef (must be created and registered in GraphqlService.watchQuery)
       this.updateDatasource(data, {emitEvent: false});
+
       return true;
     } catch (error) {
       if (this._debug) console.error('[table-datasource] Error while saving: ' + error && error.message || error);

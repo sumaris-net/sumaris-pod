@@ -29,6 +29,7 @@ import {EntitiesTableDataSource} from "../../core/table/entities-table-datasourc
 import {referentialToString} from "../../core/services/model/referential.model";
 import {environment} from "../../../environments/environment";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {AggregatedLandingFormOption} from "./aggregated-landing.form";
 
 const moment = momentImported;
 
@@ -270,10 +271,10 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
       component: AggregatedLandingModal,
       componentProps: {
         data: row.currentData.clone(),
-        options: {
+        options: <AggregatedLandingFormOption>{
           dates: this.$dates.getValue(),
           initialDate: date,
-          program: this._program,
+          programLabel: this._program,
           acquisitionLevel: this._acquisitionLevel
         }
       },

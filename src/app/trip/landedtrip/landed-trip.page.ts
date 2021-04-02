@@ -106,11 +106,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   ngOnInit() {
     super.ngOnInit();
 
-    // Watch program, to configure tables from program properties
-    this.registerSubscription(
-      this.$program.subscribe(program => this.setProgram(program))
-    );
-
     this.catchFilterForm = this.formBuilder.group({
       operationGroup: [null]
     });
