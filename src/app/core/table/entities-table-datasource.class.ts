@@ -111,7 +111,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
           if (this._saving) {
             console.info(`[table-datasource] Service ${this.dataService.constructor.name} sent data, but still saving: skip`);
           } else if (this._editingRowCount > 0) {
-            if (this._debug) console.debug(`[table-datasource] Service ${this.dataService.constructor.name} sent data, while ${this._editingRowCount} rows still editing: skip`);
+            console.warn(`[table-datasource] Service ${this.dataService.constructor.name} sent data, while ${this._editingRowCount} rows still editing: skip; Must check the save behavior on the implemented table !`);
           } else {
             this.$busy.next(false);
             if (this._debug) console.debug(`[table-datasource] Service ${this.dataService.constructor.name} sent new data: updating datasource...`, res);

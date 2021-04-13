@@ -975,7 +975,10 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     const fixedEndColumns = this.columns.filter(c => RESERVED_END_COLUMNS.includes(c));
 
     // Remove fixed columns from user columns
-    userColumns = userColumns.filter(c => (!fixedStartColumns.includes(c) && !fixedEndColumns.includes(c) && this.columns.includes(c)));
+    userColumns = userColumns.filter(c => !fixedStartColumns.includes(c) && !fixedEndColumns.includes(c) && this.columns.includes(c));
+
+    // Add required columns if missing
+    userColumns.push(...this.getRequiredColumns().filter(c => !fixedStartColumns.includes(c) && !fixedEndColumns.includes(c) && !userColumns.includes(c)));
 
     return fixedStartColumns
       .concat(userColumns)
