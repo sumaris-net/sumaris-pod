@@ -40,9 +40,14 @@ import org.springframework.stereotype.Repository;
 @Lazy
 public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
         extends ExtractionRdbTripDaoImpl<C, F>
-        implements ExtractionFree1TripDao<C, F>, Free1Specification {
+        implements Free1Specification {
 
     private static final String XML_QUERY_FREE_PATH = "free/v%s/%s";
+
+    @Override
+    public LiveFormatEnum getFormat() {
+        return LiveFormatEnum.FREE1;
+    }
 
     @Override
     public <R extends C> R execute(F filter) {

@@ -39,12 +39,16 @@ import java.util.Optional;
  */
 public enum LiveFormatEnum implements IExtractionFormat {
 
+    // Administration
+    STRAT (StratSpecification.FORMAT, StratSpecification.SHEET_NAMES, StratSpecification.VERSION_1_0),
+
+    // Trip
     RDB (RdbSpecification.FORMAT, RdbSpecification.SHEET_NAMES, RdbSpecification.VERSION_1_3),
     COST (CostSpecification.FORMAT, CostSpecification.SHEET_NAMES, CostSpecification.VERSION_1_4),
     FREE1 (Free1Specification.FORMAT, Free1Specification.SHEET_NAMES, Free1Specification.VERSION_1),
     FREE2 (Free2Specification.FORMAT, Free2Specification.SHEET_NAMES, Free2Specification.VERSION_1_9),
     SURVIVAL_TEST (SurvivalTestSpecification.FORMAT, SurvivalTestSpecification.SHEET_NAMES, SurvivalTestSpecification.VERSION_1_0),
-    STRAT (StratSpecification.FORMAT, StratSpecification.SHEET_NAMES, StratSpecification.VERSION_1_0)
+    PMFM_TRIP(PmfmTripSpecification.FORMAT, PmfmTripSpecification.SHEET_NAMES, PmfmTripSpecification.VERSION_1_0)
     ;
 
     private String label;

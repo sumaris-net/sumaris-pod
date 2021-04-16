@@ -27,6 +27,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.extraction.util.ExtractionFormats;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import org.apache.commons.collections4.CollectionUtils;
@@ -83,6 +84,10 @@ public class ExtractionContextVO implements IExtractionFormat {
         this.category = format.getCategory();
         this.label = format.getLabel();
         this.version = format.getVersion();
+    }
+
+    public IExtractionFormat getFormat() {
+        return ExtractionFormats.getFormatFromLabel(label, version);
     }
 
     /**

@@ -107,7 +107,7 @@ public class DataTestUtils {
             date.add(Calendar.MINUTE, 5);
             sample.setSampleDate(date.getTime());
             sample.setRankOrder(1);
-            sample.setLabel(AcquisitionLevelEnum.SURVIVAL_TEST.label + "#1");
+            sample.setLabel(AcquisitionLevelEnum.SURVIVAL_TEST.getLabel() + "#1");
             sample.setMatrix(createReferentialVO(fixtures.getMatrixIdForIndividual()));
             sample.setComments("A survival test sample #1");
             sample.setProgram(fixtures.getDefaultProgram());
@@ -128,7 +128,7 @@ public class DataTestUtils {
                 SampleVO childSample = new SampleVO();
                 childSample.setTaxonGroup(createReferentialVO(fixtures.getTaxonGroupFAOId(0)));
                 childSample.setRankOrder(1);
-                childSample.setLabel(AcquisitionLevelEnum.INDIVIDUAL_MONITORING.label + "#1");
+                childSample.setLabel(AcquisitionLevelEnum.INDIVIDUAL_MONITORING.getLabel() + "#1");
                 childSample.setMatrix(createReferentialVO(fixtures.getMatrixIdForIndividual()));
                 childSample.setComments("A individual monitoring test sample #1");
 

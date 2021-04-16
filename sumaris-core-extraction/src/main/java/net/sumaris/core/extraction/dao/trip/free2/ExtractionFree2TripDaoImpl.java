@@ -52,7 +52,7 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F extends ExtractionFilterVO>
         extends ExtractionRdbTripDaoImpl<C, F>
-        implements ExtractionFree2TripDao<C, F>, Free2Specification {
+        implements Free2Specification {
 
     private static final String XML_QUERY_FREE_PATH = "free2/v%s/%s";
 
@@ -70,6 +70,11 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
 
     @Autowired
     protected ExtractionTableDao extractionTableDao;
+
+    @Override
+    public LiveFormatEnum getFormat() {
+        return LiveFormatEnum.FREE2;
+    }
 
     @Override
     public <R extends C> R execute(F filter) {

@@ -181,7 +181,7 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
         return xmlQuery;
     }
 
-    protected <C extends ExtractionContextVO> void clean(@NonNull C context) {
+    protected void dropTables(@NonNull ExtractionContextVO context) {
         Preconditions.checkNotNull(context.getTableNamePrefix());
 
         Set<String> tableNames = ImmutableSet.<String>builder()

@@ -45,11 +45,8 @@ import java.util.stream.Collectors;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 public interface ExtractionStrategyDao<C extends ExtractionStrategyContextVO, F extends ExtractionFilterVO>
-        extends ExtractionDao {
+        extends ExtractionDao<C, F> {
 
-    <R extends C> R execute(F filter);
-
-    void clean(C context);
 
     default ExtractionStrategyFilterVO toStrategyFilterVO(ExtractionFilterVO source){
         ExtractionStrategyFilterVO target = new ExtractionStrategyFilterVO();

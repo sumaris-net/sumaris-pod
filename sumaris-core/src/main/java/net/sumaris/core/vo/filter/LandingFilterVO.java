@@ -22,12 +22,16 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.util.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -66,4 +70,5 @@ public class LandingFilterVO implements IRootDataFilter, IVesselFilter {
     // Parent
     private Integer observedLocationId;
     private Integer tripId;
+
 }

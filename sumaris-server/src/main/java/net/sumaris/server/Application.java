@@ -99,10 +99,7 @@ public class Application extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
         SumarisServerConfiguration.setArgs(ApplicationUtils.toApplicationConfigArgs(args));
-        ConfigurableApplicationContext appContext = SpringApplication.run(Application.class, args);
-
-        // Init service locator
-        ServiceLocator.init(appContext);
+        SpringApplication.run(Application.class, args);
     }
 
     @Bean

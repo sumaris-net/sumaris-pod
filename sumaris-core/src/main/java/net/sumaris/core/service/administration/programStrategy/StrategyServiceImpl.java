@@ -34,14 +34,12 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service("strategyService")
 @Slf4j
@@ -106,7 +104,9 @@ public class StrategyServiceImpl implements StrategyService {
 
 		Map<Integer, PmfmStrategyVO> pmfmStrategyByPmfmId = Maps.newHashMap();
 		Beans.getStream(vos)
-				.flatMap(strategy -> strategy.getPmfms().stream())
+				.map(StrategyVO::getPmfms)
+				.filter(CollectionUtils::isNotEmpty)
+				.flatMap(Collection::stream)
 				// Sort by strategyId, acquisitionLevel and rankOrder
 				.sorted(Comparator.comparing(ps -> String.format("%s#%s#%s", ps.getStrategyId(), ps.getAcquisitionLevel(), ps.getRankOrder())))
 				// Put in the last (last found will override previous)

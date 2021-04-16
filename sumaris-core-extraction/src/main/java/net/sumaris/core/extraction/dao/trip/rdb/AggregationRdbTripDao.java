@@ -23,6 +23,7 @@ package net.sumaris.core.extraction.dao.trip.rdb;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.extraction.dao.trip.AggregationTripDao;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
@@ -33,8 +34,11 @@ import java.util.Map;
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface AggregationRdbTripDao<C extends AggregationRdbTripContextVO,
-        F extends ExtractionFilterVO, S extends AggregationStrataVO> {
+public interface AggregationRdbTripDao<
+        C extends AggregationRdbTripContextVO,
+        F extends ExtractionFilterVO,
+        S extends AggregationStrataVO>
+        extends AggregationTripDao {
 
     <R extends C> R aggregate(ExtractionProductVO source, F filter, S strata);
 

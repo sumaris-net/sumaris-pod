@@ -45,7 +45,7 @@ import javax.persistence.PersistenceException;
 @Slf4j
 public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestContextVO, F extends ExtractionFilterVO>
         extends ExtractionRdbTripDaoImpl<C, F>
-        implements ExtractionSurvivalTestDao<C, F>, SurvivalTestSpecification {
+        implements SurvivalTestSpecification {
 
     private static final String XML_QUERY_ST_PATH = "survivalTest/v%s/%s";
 
@@ -53,6 +53,10 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
     private static final String ST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ST_SHEET_NAME + "_%s";
     private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RL_SHEET_NAME + "_%s";
 
+    @Override
+    public LiveFormatEnum getFormat() {
+        return LiveFormatEnum.SURVIVAL_TEST;
+    }
 
     @Override
     public <R extends C> R execute(F filter) {

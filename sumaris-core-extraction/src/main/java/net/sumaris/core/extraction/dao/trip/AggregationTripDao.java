@@ -22,13 +22,17 @@ package net.sumaris.core.extraction.dao.trip;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.dao.AggregationDao;
 import net.sumaris.core.extraction.dao.ExtractionDao;
+import net.sumaris.core.extraction.vo.AggregationResultVO;
+import net.sumaris.core.extraction.vo.AggregationTechResultVO;
+import net.sumaris.core.extraction.vo.MinMaxVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 public interface AggregationTripDao extends AggregationDao  {
-
 
 }

@@ -41,7 +41,7 @@ import javax.jms.ConnectionFactory;
 
 @Configuration
 @Slf4j
-public class SumarisServerAutoConfiguration {
+public class JmsConfiguration {
 
     @Bean
     public JmsListenerContainerFactory<?> jmsListenerContainerFactory(

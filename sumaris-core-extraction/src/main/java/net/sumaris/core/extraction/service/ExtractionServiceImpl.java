@@ -24,9 +24,10 @@ package net.sumaris.core.extraction.service;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -39,20 +40,17 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.dao.ExtractionDao;
 import net.sumaris.core.extraction.dao.administration.ExtractionStrategyDao;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.csv.ExtractionCsvDao;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
-import net.sumaris.core.extraction.dao.trip.cost.ExtractionCostTripDao;
-import net.sumaris.core.extraction.dao.trip.free.ExtractionFree1TripDao;
-import net.sumaris.core.extraction.dao.trip.free2.ExtractionFree2TripDao;
-import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
-import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestDao;
+import net.sumaris.core.extraction.dao.trip.ExtractionTripDao;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
-import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
 import net.sumaris.core.extraction.specification.administration.StratSpecification;
+import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
 import net.sumaris.core.extraction.util.ExtractionFormats;
 import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.extraction.vo.*;
@@ -79,7 +77,7 @@ import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.nuiton.i18n.I18n;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
@@ -89,6 +87,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.io.File;
@@ -113,19 +112,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     protected DataSource dataSource;
 
     @Resource(name = "extractionRdbTripDao")
-    protected ExtractionRdbTripDao extractionRdbTripDao;
-
-    @Autowired
-    protected ExtractionCostTripDao extractionCostTripDao;
-
-    @Autowired
-    protected ExtractionFree1TripDao extractionFreeV1TripDao;
-
-    @Autowired
-    protected ExtractionFree2TripDao extractionFree2TripDao;
-
-    @Autowired
-    protected ExtractionSurvivalTestDao extractionSurvivalTestDao;
+    protected ExtractionTripDao extractionRdbTripDao;
 
     @Autowired
     protected ExtractionStrategyDao extractionStrategyDao;
@@ -158,6 +145,29 @@ public class ExtractionServiceImpl implements ExtractionService {
     protected DatabaseSchemaDao databaseSchemaDao;
 
     private boolean includeProductTypes;
+
+    private Map<IExtractionFormat,
+                ExtractionDao<? extends ExtractionContextVO,
+                    ? extends ExtractionFilterVO>>
+            daosByFormat = Maps.newHashMap();
+
+
+    @PostConstruct
+    protected void loadExtractionDaos() {
+        // Register all extraction daos
+        applicationContext.getBeansOfType(ExtractionDao.class).values()
+                .forEach(dao -> {
+                    // Check if unique, by format
+                    if (daosByFormat.containsKey(dao.getFormat())) {
+                        throw new BeanInitializationException(
+                                String.format("Too many ExtractionDao for the same format %s: [%s, %s]",
+                                        daosByFormat.get(dao.getFormat()).getClass().getSimpleName(),
+                                        dao.getClass().getSimpleName()));
+                    }
+                    // Register the dao
+                    daosByFormat.put(dao.getFormat(), dao);
+                });
+    }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
@@ -589,32 +599,11 @@ public class ExtractionServiceImpl implements ExtractionService {
     protected ExtractionContextVO extractRawData(LiveFormatEnum format,
                                                  ExtractionFilterVO filter) {
 
-        ExtractionContextVO context;
-
-        switch (format) {
-            case RDB:
-                context = extractionRdbTripDao.execute(filter);
-                break;
-            case COST:
-                context = extractionCostTripDao.execute(filter);
-                break;
-            case FREE1:
-                context = extractionFreeV1TripDao.execute(filter);
-                break;
-            case FREE2:
-                context = extractionFree2TripDao.execute(filter);
-                break;
-            case SURVIVAL_TEST:
-                context = extractionSurvivalTestDao.execute(filter);
-                break;
-            case STRAT:
-                context = extractionStrategyDao.execute(filter);
-                break;
-            default:
-                throw new SumarisTechnicalException("Unknown extraction type: " + format);
+        ExtractionDao dao = daosByFormat.get(format);
+        if (dao == null) {
+            throw new SumarisTechnicalException("Unknown extraction format (no targeted dao): " + format);
         }
-
-        return context;
+        return dao.execute(filter);
     }
 
     protected void dumpTableToFile(String tableName, ExtractionFilterVO filter, File outputFile) throws IOException {
@@ -769,13 +758,11 @@ public class ExtractionServiceImpl implements ExtractionService {
         if (async && taskExecutor != null) {
             taskExecutor.execute(() -> getSelfBean().clean(context));
         }
-        else if (context instanceof ExtractionRdbTripContextVO) {
+        else  {
+            ExtractionDao dao = daosByFormat.get(context.getFormat());
+            Preconditions.checkNotNull(dao);
             log.info("Cleaning extraction #{}-{}", context.getLabel(), context.getId());
-            extractionRdbTripDao.clean((ExtractionRdbTripContextVO) context);
-        }
-        else if (context instanceof ExtractionStrategyContextVO) {
-            log.info("Cleaning extraction #{}-{}", context.getLabel(), context.getId());
-            extractionStrategyDao.clean((ExtractionStrategyContextVO) context);
+            dao.clean(context);
         }
     }
 

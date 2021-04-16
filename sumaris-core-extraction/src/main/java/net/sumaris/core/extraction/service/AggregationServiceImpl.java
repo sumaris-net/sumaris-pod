@@ -34,9 +34,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.cache.ExtractionCacheNames;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
-import net.sumaris.core.extraction.dao.trip.cost.AggregationCostDao;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
-import net.sumaris.core.extraction.dao.trip.survivalTest.AggregationSurvivalTestDao;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.util.ExtractionFormats;
@@ -85,11 +83,11 @@ public class AggregationServiceImpl implements AggregationService {
     @Resource(name = "aggregationRdbTripDao")
     private AggregationRdbTripDao aggregationRdbTripDao;
 
-    @Autowired
-    private AggregationSurvivalTestDao aggregationSurvivalTestDao;
+    @Resource(name = "aggregationSurvivalTestDao")
+    private AggregationRdbTripDao aggregationSurvivalTestDao;
 
-    @Autowired
-    private AggregationCostDao aggregationCostDao;
+    @Resource(name = "aggregationCostDao")
+    private AggregationRdbTripDao aggregationCostDao;
 
     @Autowired
     private ExtractionTableDao extractionTableDao;

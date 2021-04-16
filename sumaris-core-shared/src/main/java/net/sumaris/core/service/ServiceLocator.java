@@ -30,11 +30,6 @@ import org.springframework.context.ApplicationContext;
 
 import java.io.Closeable;
 
-/*import org.springframework.beans.factory.access.BeanFactoryLocator;
-import org.springframework.beans.factory.access.BeanFactoryReference;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
-import org.springframework.context.support.AbstractApplicationContext;*/
 
 /**
  * Locates and provides all available application services.

@@ -38,8 +38,6 @@ import java.nio.charset.Charset;
 @Slf4j
 public class ServerCryptoServiceImpl extends net.sumaris.core.service.crypto.CryptoServiceImpl implements ServerCryptoService {
 
-    private static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
-
     private final SumarisServerConfiguration config;
 
     private final CryptoService cryptoService;

@@ -36,9 +36,11 @@ public interface IExtractionFormat {
     }
 
     String getLabel();
-    String[] getSheetNames();
     String getVersion();
     ExtractionCategoryEnum getCategory();
+
+
+    String[] getSheetNames();
 
     default String getRawFormatLabel() {
         return getRawFormatLabel(getLabel());

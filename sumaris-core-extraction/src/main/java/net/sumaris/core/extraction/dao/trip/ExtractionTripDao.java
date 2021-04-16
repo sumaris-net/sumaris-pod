@@ -25,6 +25,7 @@ package net.sumaris.core.extraction.dao.trip;
 import com.google.common.collect.Lists;
 import net.sumaris.core.extraction.dao.ExtractionDao;
 import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
+import net.sumaris.core.extraction.vo.ExtractionContextVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterCriterionVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
@@ -40,8 +41,10 @@ import java.util.List;
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface ExtractionTripDao extends ExtractionDao {
-
+public interface ExtractionTripDao<
+        C extends ExtractionContextVO,
+        F extends ExtractionFilterVO>
+    extends ExtractionDao<C, F> {
 
     default ExtractionTripFilterVO toTripFilterVO(ExtractionFilterVO source){
         ExtractionTripFilterVO target = new ExtractionTripFilterVO();

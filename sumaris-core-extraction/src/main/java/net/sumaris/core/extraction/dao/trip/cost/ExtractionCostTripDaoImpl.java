@@ -41,9 +41,14 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
         extends ExtractionRdbTripDaoImpl<C, F>
-        implements ExtractionCostTripDao<C, F>, CostSpecification {
+        implements CostSpecification {
 
     private static final String XML_QUERY_COST_PATH = "cost/v%s/%s";
+
+    @Override
+    public LiveFormatEnum getFormat() {
+        return LiveFormatEnum.COST;
+    }
 
     @Override
     public <R extends C> R execute(F filter) {

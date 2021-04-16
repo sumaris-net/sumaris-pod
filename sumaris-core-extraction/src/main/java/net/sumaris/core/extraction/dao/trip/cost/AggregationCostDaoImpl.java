@@ -25,6 +25,7 @@ package net.sumaris.core.extraction.dao.trip.cost;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDaoImpl;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.specification.data.trip.AggCostSpecification;
 import net.sumaris.core.extraction.specification.data.trip.AggSurvivalTestSpecification;
@@ -45,11 +46,14 @@ import org.springframework.stereotype.Repository;
 @Lazy
 public class AggregationCostDaoImpl<C extends AggregationRdbTripContextVO, F extends ExtractionFilterVO, S extends AggregationStrataVO>
         extends AggregationRdbTripDaoImpl<C, F, S>
-        implements AggregationCostDao<C, F, S>,
-        AggSurvivalTestSpecification {
+        implements AggSurvivalTestSpecification {
 
     private static final Logger log = LoggerFactory.getLogger(AggregationCostDaoImpl.class);
 
+    @Override
+    public ProductFormatEnum getFormat() {
+        return ProductFormatEnum.AGG_COST;
+    }
 
     @Override
     public <R extends C> R aggregate(ExtractionProductVO source, F filter, S strata) {

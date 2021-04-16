@@ -50,12 +50,8 @@ public enum ProgramPrivilegeEnum implements Serializable {
 
 
     public static ProgramPrivilegeEnum valueOf(final int id) {
-        switch (id) {
-            case 1: return MANAGER;
-            case 2: return OBSERVER;
-            case 3: return VIEWER;
-            case 4: return VALIDATOR;
-            case 5: return QUALIFIER;
+        for (ProgramPrivilegeEnum v: values()) {
+            if (v.id == id) return v;
         }
         throw new IllegalArgumentException("Unknown ProgramPrivilegeEnum: " + id);
     }

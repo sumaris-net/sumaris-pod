@@ -22,6 +22,8 @@ package net.sumaris.core.extraction.dao;
  * #L%
  */
 
+import net.sumaris.core.extraction.format.ProductFormatEnum;
+
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
@@ -29,4 +31,5 @@ public interface AggregationDao {
 
     String TABLE_NAME_PREFIX = "AGG_";
 
+    ProductFormatEnum getFormat();
 }
