@@ -32,6 +32,8 @@ import {OBSERVED_LOCATION_FEATURE_NAME} from "./config/trip.config";
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {EntitySaveOptions} from "../../referential/services/base-entity-service.class";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {VESSEL_FEATURE_NAME} from "../../vessel/services/config/vessel.config";
 
 const moment = momentImported;
 
@@ -396,8 +398,6 @@ export class ObservedLocationService
           if (now) {
             console.debug(`[observed-location-service] Loaded {${entities.length || 0}} observed locations in ${Date.now() - now}ms`, entities);
             now = undefined;
-          } else {
-            console.debug(`[observed-location-service] Refreshed {${entities.length || 0}} observed locations`);
           }
           return {data: entities, total};
         }));
@@ -490,19 +490,6 @@ export class ObservedLocationService
           return entity;
         })
       );
-  }
-
-  /**
-   * Save many observed locations
-   * @param entities
-   * @param opts
-   */
-  async saveAll(entities: ObservedLocation[], opts?: ObservedLocationSaveOptions): Promise<ObservedLocation[]> {
-    if (isEmptyArray(entities)) return entities;
-
-    if (this._debug) console.debug(`[observed-location-service] Saving ${entities.length} observed locations...`);
-    const jobsFactories = (entities || []).map(entity => () => this.save(entity, {...opts}));
-    return chainPromises<ObservedLocation>(jobsFactories);
   }
 
   async save(entity: ObservedLocation, opts?: ObservedLocationSaveOptions): Promise<ObservedLocation> {
@@ -687,7 +674,7 @@ export class ObservedLocationService
     if (isEmptyArray(localEntities)) return; // Skip if empty
 
     const trash = !opts || opts !== false;
-    const trashUpdateDate = trash && moment();
+    const trashUpdateDate = trash && momentImported();
 
     if (this._debug) console.debug(`[observedLocation-service] Deleting locally... {trash: ${trash}`);
 
@@ -772,6 +759,12 @@ export class ObservedLocationService
       {fullLoad: true, rankOrderOnPeriod: false});
     entity.landings = res && res.data || [];
 
+    // Get temporary vessel (not saved)
+    const tempVessels = entity.landings.filter(landing => landing.vesselSnapshot && landing.vesselSnapshot.vesselStatusId === StatusIds.TEMPORARY);
+    if (isNotEmptyArray(tempVessels)) {
+      console.warn('TODO: saving local vessels: ', tempVessels);
+    }
+
     try {
 
       entity = await this.save(entity, opts);
@@ -837,6 +830,13 @@ export class ObservedLocationService
     else {
       return super.getImportJobs(opts);
     }
+  }
+
+  protected finishImport() {
+    super.finishImport();
+
+    // Add vessel offline feature
+    this.settings.markOfflineFeatureAsSync(VESSEL_FEATURE_NAME);
   }
 
   protected async updateChildrenDate(entity: ObservedLocation) {

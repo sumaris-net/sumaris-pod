@@ -1,4 +1,21 @@
 
+<!-- Tab nav - synchro status-->
+<nav mat-tab-nav-bar
+     *ngIf="hasOfflineMode && synchronizationStatus as syncStatus">
+  <a mat-tab-link
+     [active]="syncStatus==='DIRTY'"
+     (click)="setSynchronizationStatus('DIRTY')">
+    <mat-icon>cloud_off</mat-icon>&nbsp;
+    <mat-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</mat-label>
+  </a>
+  <a mat-tab-link [active]="syncStatus==='SYNC'"
+     [disabled]="offline"
+     (click)="setSynchronizationStatus('SYNC')">
+    <mat-icon>cloud_done</mat-icon>&nbsp;
+    <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
+  </a>
+</nav>
+
 <mat-toolbar>
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <button mat-icon-button
@@ -61,8 +78,9 @@
       <ion-row>
         <!-- date -->
         <ion-col>
-          <mat-date-field formControlName="date" [placeholder]="'VESSEL.LIST.FILTER.DATE'|translate"
-                               [clearable]="true">
+          <mat-date-field formControlName="date"
+                          [placeholder]="'VESSEL.LIST.FILTER.DATE'|translate"
+                          [clearable]="true">
             <ion-icon matPrefix name="calendar"></ion-icon>
           </mat-date-field>
         </ion-col>
@@ -70,13 +88,21 @@
         <!-- status -->
         <ion-col>
           <mat-form-field>
-            <mat-select formControlName="statusId" [placeholder]=" 'REFERENTIAL.STATUS'|translate" >
+            <mat-select formControlName="statusId"
+                        [placeholder]=" 'REFERENTIAL.STATUS'|translate" >
               <mat-option [value]="null"><i><span translate>COMMON.EMPTY_OPTION</span></i></mat-option>
               <mat-option *ngFor="let item of statusList" [value]="item.id">
                 <ion-icon [name]="item.icon"></ion-icon>
                 {{ item.label |translate }}
               </mat-option>
             </mat-select>
+
+            <button matSuffix mat-icon-button tabindex="-1"
+                    type="button"
+                    (click)="clearFilterStatus($event)"
+                    [hidden]="filterForm.controls.statusId.disabled || !filterForm.controls.statusId.value">
+              <mat-icon>close</mat-icon>
+            </button>
           </mat-form-field>
         </ion-col>
       </ion-row>
@@ -85,10 +111,11 @@
   </form>
 
   <mat-action-row>
-    <!-- Counter  -->
-    <ion-label [hidden]="(loadingSubject|async) || filterForm.dirty" [color]="totalRowCount === 0 && 'danger'"
+    <!-- Counter -->
+    <ion-label [hidden]="(loadingSubject|async) || filterForm.dirty"
+               [color]="empty ? 'danger' : 'primary'"
                class="ion-padding">
-      {{ (totalRowCount ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (totalRowCount | numberFormat)} }}
+      {{ (empty ? 'COMMON.NO_RESULT' : 'COMMON.RESULT_COUNT') | translate: {count: (totalRowCount | numberFormat)} }}
     </ion-label>
 
     <div class="toolbar-spacer"></div>
@@ -135,7 +162,7 @@
       <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
     </mat-header-cell>
     <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
-      {{ row.currentData.id }}
+      {{ row.currentData.id | mathAbs }}
     </mat-cell>
   </ng-container>
 

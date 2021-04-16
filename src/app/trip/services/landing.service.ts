@@ -19,7 +19,7 @@ import {
   isNotEmptyArray,
   isNotNil,
 } from "../../shared/functions";
-import {BaseRootDataService} from "./root-data-service.class";
+import {BaseRootDataService} from "../../data/services/root-data-service.class";
 import {Sample} from "./model/sample.model";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {
@@ -582,8 +582,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     // If parent is a local entity: force to save locally
     // If is a local entity: force a local save
-    const offline = (isNew ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0)
-      || entity.observedLocationId < 0;
+    const offline = entity.observedLocationId < 0 || DataRootEntityUtils.isLocal(entity);
     if (offline) {
       return await this.saveLocally(entity, opts);
     }
@@ -877,11 +876,11 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     // Make sure to fill id, with local ids
     await this.fillOfflineDefaultProperties(entity);
 
-    const jsonLocal = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
-    if (this._debug) console.debug('[landing-service] [offline] Saving landing locally...', jsonLocal);
+    const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+    if (this._debug) console.debug('[landing-service] [offline] Saving landing locally...', json);
 
     // Save response locally
-    await this.entities.save(jsonLocal);
+    await this.entities.save(json);
 
     return entity;
   }

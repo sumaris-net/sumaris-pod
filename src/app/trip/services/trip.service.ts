@@ -3,7 +3,6 @@ import {gql} from "@apollo/client/core";
 import {filter, map} from "rxjs/operators";
 import * as momentImported from "moment";
 import {Moment} from "moment";
-import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {DataFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from "./trip.queries";
 import {GraphqlService} from "../../core/graphql/graphql.service";
@@ -58,6 +57,8 @@ import {fromDateISOString, toDateISOString} from 'src/app/shared/dates';
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {Sample} from "./model/sample.model";
 import {EntitySaveOptions} from "../../referential/services/base-entity-service.class";
+import {ErrorCodes} from "../../data/services/errors";
+import {VESSEL_FEATURE_NAME} from "../../vessel/services/config/vessel.config";
 
 const moment = momentImported;
 
@@ -453,9 +454,6 @@ export class TripService
     IDataEntityQualityService<Trip>,
     IDataSynchroService<Trip, TripLoadOptions>{
 
-  protected $importationProgress: Observable<number>;
-  protected loading = false;
-
   constructor(
     injector: Injector,
     protected graphql: GraphqlService,
@@ -544,7 +542,7 @@ export class TripService
         totalFieldName: withTotal ? 'total' : undefined,
         insertFilterFn: TripFilter.searchFilter(dataFilter),
         variables,
-        error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" },
+        error: { code: ErrorCodes.LOAD_ENTITIES_ERROR, message: "ERROR.LOAD_ENTITIES_ERROR" },
         fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
       })
         .pipe(
@@ -607,7 +605,7 @@ export class TripService
       // If local entity
       if (id < 0) {
         data = await this.entities.load<Trip>(id, Trip.TYPENAME);
-        if (!data) throw {code: ErrorCodes.LOAD_TRIP_ERROR, message: "TRIP.ERROR.LOAD_TRIP_ERROR"};
+        if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"};
 
         if (opts && opts.withOperation) {
           data.operations = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
@@ -623,7 +621,7 @@ export class TripService
         const res = await this.graphql.query<{ data: Trip }>({
           query,
           variables: { id },
-          error: { code: ErrorCodes.LOAD_TRIP_ERROR, message: "TRIP.ERROR.LOAD_TRIP_ERROR" },
+          error: { code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR" },
           fetchPolicy: opts && opts.fetchPolicy || undefined
         });
         data = res && res.data;
@@ -660,8 +658,8 @@ export class TripService
       query: this.subscriptions.listenChanges,
       variables: { id, interval: toNumber(opts && opts.interval, 10) },
       error: {
-        code: ErrorCodes.SUBSCRIBE_TRIP_ERROR,
-        message: 'TRIP.ERROR.SUBSCRIBE_TRIP_ERROR'
+        code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
+        message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
       }
     })
       .pipe(
@@ -748,7 +746,7 @@ export class TripService
        mutation,
        variables,
        offlineResponse,
-       error: { code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" },
+       error: { code: ErrorCodes.SAVE_ENTITY_ERROR, message: "ERROR.SAVE_ENTITY_ERROR" },
        update: async (cache, {data}) => {
          const savedEntity = data && data.data;
 
@@ -880,13 +878,13 @@ export class TripService
 
       // Check return entity has a valid id
       if (isNil(entity.id) || entity.id < 0) {
-        throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR};
+        throw {code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR};
       }
     } catch (err) {
       throw {
         ...err,
-        code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR,
-        message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR",
+        code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR,
+        message: "ERROR.SYNCHRONIZE_ENTITY_ERROR",
         context: entity.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS)
       };
     }
@@ -1068,7 +1066,7 @@ export class TripService
 
   /**
    * Copy an entity (local or remote) to the local storage
-   * @param entities
+   * @param source
    */
   async copyLocally(source: Trip, opts?: TripServiceCopyOptions): Promise<Trip> {
     console.debug("[trip-service] Copy trip locally...", source);
@@ -1280,5 +1278,12 @@ export class TripService
 
   protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     return Toasts.show(this.toastController, this.translate, opts);
+  }
+
+  protected finishImport() {
+    super.finishImport();
+
+    // Add vessel offline feature
+    this.settings.markOfflineFeatureAsSync(VESSEL_FEATURE_NAME);
   }
 }

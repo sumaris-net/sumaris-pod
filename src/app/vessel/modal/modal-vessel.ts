@@ -1,25 +1,30 @@
 import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Vessel} from "../../services/model/vessel.model";
+import {Vessel} from "../services/model/vessel.model";
 import {ModalController} from "@ionic/angular";
 import {VesselForm} from '../form/form-vessel';
-import {VesselService} from '../../services/vessel-service';
-import {ConfigService} from "../../../core/services/config.service";
+import {VesselService} from '../services/vessel-service';
+import {ConfigService} from "../../core/services/config.service";
 import {Subscription} from "rxjs";
-import {CORE_CONFIG_OPTIONS} from "../../../core/services/config/core.config";
-import {AppFormUtils} from "../../../core/form/form.utils";
-import {isNotNil} from "../../../shared/functions";
+import {CORE_CONFIG_OPTIONS} from "../../core/services/config/core.config";
+import {AppFormUtils} from "../../core/form/form.utils";
+import {isNotNil} from "../../shared/functions";
 
+export interface VesselModalOptions {
+  defaultStatus?: number;
+  canEditStatus?: boolean;
+}
 
 @Component({
   selector: 'modal-vessel',
   templateUrl: './modal-vessel.html'
 })
-export class VesselModal implements OnInit, OnDestroy {
+export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
 
   loading = false;
   subscription = new Subscription();
 
   @Input() defaultStatus: number;
+  @Input() canEditStatus = true;
 
   get disabled() {
     return this.formVessel.disabled;

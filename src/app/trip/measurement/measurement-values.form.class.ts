@@ -11,7 +11,7 @@ import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AppForm} from "../../core/form/form.class";
-import {isEmptyArray, isNil, isNotNil} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
 
@@ -159,7 +159,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.registerSubscription(
       this.form.valueChanges
         .pipe(
-          filter(() => !this.loading && !this.loadingPmfms && this.valueChanges.observers.length > 0)
+          filter(() => !this.loading && !this.loadingPmfms && isNotEmptyArray(this.valueChanges.observers))
         )
         .subscribe((_) => this.valueChanges.emit(this.value))
     );

@@ -15,7 +15,7 @@ import {Entity, EntityAsObjectOptions, EntityUtils} from "../../core/services/mo
 import {chainPromises} from "../../shared/observables";
 import {isEmptyArray, isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {Directive} from "@angular/core";
-import {MutationBaseOptions, RefetchQueryDescription} from "@apollo/client/core/watchQueryOptions";
+import {RefetchQueryDescription} from "@apollo/client/core/watchQueryOptions";
 import {FetchResult} from "@apollo/client/link/core";
 
 
@@ -51,6 +51,7 @@ export interface BaseEntityServiceOptions<
 export interface EntitySaveOptions {
   refetchQueries?: ((result: FetchResult<{data: any}>) => RefetchQueryDescription) | RefetchQueryDescription;
   awaitRefetchQueries?: boolean;
+  update?: MutationUpdaterFn<{ data: any; }>;
 }
 
 
@@ -65,7 +66,8 @@ export abstract class BaseEntityService<T extends Entity<any>,
   extends BaseGraphqlService<T, F>
   implements IEntitiesService<T, F> {
 
-  private readonly _entityName: string;
+  protected readonly _entityName: string;
+  protected readonly _typename: string;
 
   protected readonly queries: Q;
   protected readonly mutations: Partial<M>;
@@ -95,8 +97,9 @@ export abstract class BaseEntityService<T extends Entity<any>,
       }
     });
 
-    this._entityName = (new dataType()).constructor.name;
-    this.createQueriesAndMutationsFallback();
+    const obj = new dataType();
+    this._entityName = obj.constructor.name;
+    this._typename = obj.__typename || (this._entityName + 'VO');
 
     // For DEV only
     this._debug = !environment.production;
@@ -131,8 +134,8 @@ export abstract class BaseEntityService<T extends Entity<any>,
   }): Promise<T> {
 
     if (this._debug) console.debug(`[base-entity-service] Loading ${this._entityName} {${id}}...`);
-
     const query = opts && opts.query || this.queries.load;
+
     const { data } = await this.graphql.query<{data: any}>({
       query,
       variables: {
@@ -194,10 +197,7 @@ export abstract class BaseEntityService<T extends Entity<any>,
             console.debug(`[base-entity-service] ${this._entityName} loaded in ${Date.now() - now}ms`, entities);
             now = null;
           }
-          return {
-            data: entities,
-            total
-          };
+          return {data: entities, total};
         })
       );
   }
@@ -250,12 +250,20 @@ export abstract class BaseEntityService<T extends Entity<any>,
   }
 
 
-  async saveAll(entities: T[], options?: any): Promise<T[]> {
-    if (!this.mutations.saveAll) throw Error('Not implemented');
-
+  async saveAll(entities: T[], opts?: EntitySaveOptions): Promise<T[]> {
     if (isEmptyArray(entities)) return entities; // Nothing to save: skip
 
-    const json = entities.map(entity => this.asObject(entity));
+    if (!this.mutations.saveAll) {
+      if (!this.mutations.save) throw new Error('Not implemented');
+      // Save one by one
+      return chainPromises((entities || [])
+        .map(entity => (() => this.save(entity, opts))));
+    }
+
+    const json = entities.map(entity => {
+      this.fillDefaultProperties(entity);
+      return this.asObject(entity);
+    });
 
     const now = Date.now();
     if (this._debug) console.debug(`[base-entity-service] Saving all ${this._entityName}...`, json);
@@ -281,6 +289,10 @@ export abstract class BaseEntityService<T extends Entity<any>,
           });
         }
 
+        if (opts && opts.update) {
+          opts.update(proxy, {data});
+        }
+
         if (this._debug) console.debug(`[base-entity-service] ${this._entityName} saved in ${Date.now() - now}ms`, entities);
 
       }
@@ -295,7 +307,11 @@ export abstract class BaseEntityService<T extends Entity<any>,
    * @param opts
    */
   async save(entity: T, opts?: EntitySaveOptions): Promise<T> {
-    if (!this.mutations.save) throw Error('Not implemented');
+    if (!this.mutations.save) {
+      if (!this.mutations.saveAll) throw new Error('Not implemented');
+      const data = await this.saveAll([entity], opts);
+      return data && data[0];
+    }
 
     // Fill default properties
     this.fillDefaultProperties(entity);
@@ -333,6 +349,10 @@ export abstract class BaseEntityService<T extends Entity<any>,
           // TODO BLA: should also clean referential ref queries ?
           // How to clean
         }
+
+        if (opts && opts.update) {
+          opts.update(proxy, {data});
+        }
       }
     });
 
@@ -342,10 +362,15 @@ export abstract class BaseEntityService<T extends Entity<any>,
   /**
    * Delete referential entities
    */
-  async deleteAll(entities: T[], options?: Partial<{
+  async deleteAll(entities: T[], opts?: Partial<{
     update: MutationUpdaterFn<any>;
   }> | any): Promise<any> {
-    if (!this.mutations.deleteAll) throw Error('Not implemented');
+    if (!this.mutations.deleteAll) {
+      if (!this.mutations.delete) throw new Error('Not implemented');
+      // Delete one by one
+      return chainPromises((entities || [])
+        .map(entity => (() => this.delete(entity, opts))));
+    }
 
     // Filter saved entities
     entities = entities && entities.filter(e => isNotNil(e.id));
@@ -360,18 +385,26 @@ export abstract class BaseEntityService<T extends Entity<any>,
     await this.graphql.mutate<any>({
       mutation: this.mutations.deleteAll,
       variables: {
-        ids: ids
+        ids
       },
       error: {code: ErrorCodes.DELETE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.DELETE_REFERENTIAL_ERROR"},
-      update: (proxy) => {
+      update: (proxy, res) => {
         // Remove from cache
-        this.removeFromMutableCachedQueryByIds(proxy, {
-          query: this.queries.loadAll,
-          ids
-        });
+        if (this.queries.loadAll) {
+          this.removeFromMutableCachedQueryByIds(proxy, {
+            query: this.queries.loadAll,
+            ids
+          });
+        }
+        if (this.queries.loadAllWithTotal) {
+          this.removeFromMutableCachedQueryByIds(proxy, {
+            query: this.queries.loadAllWithTotal,
+            ids
+          });
+        }
 
-        if (options && options.update) {
-          options.update(proxy);
+        if (opts && opts.update) {
+          opts.update(proxy, res);
         }
 
         if (this._debug) console.debug(`[base-entity-service] ${this._entityName} deleted in ${new Date().getTime() - now.getTime()}ms`);
@@ -382,10 +415,14 @@ export abstract class BaseEntityService<T extends Entity<any>,
   /**
    * Delete a referential entity
    */
-  async delete(entity: T, options?: Partial<{
+  async delete(entity: T, opts?: Partial<{
     update: MutationUpdaterFn<any>;
   }> | any): Promise<any> {
-    if (!this.mutations.delete) throw Error('Not implemented');
+    if (!this.mutations.delete) {
+      if (!this.mutations.deleteAll) throw new Error('Not implemented');
+      const data = await this.deleteAll([entity], opts);
+      return data && data[0];
+    }
 
     // Nothing to save: skip
     if (!entity || isNil(entity.id)) return;
@@ -400,15 +437,15 @@ export abstract class BaseEntityService<T extends Entity<any>,
         id: id
       },
       error: {code: ErrorCodes.DELETE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.DELETE_REFERENTIAL_ERROR"},
-      update: (proxy) => {
+      update: (proxy, res) => {
         // Remove from cache
         this.removeFromMutableCachedQueryByIds(proxy, {
           query: this.queries.loadAll,
           ids: [id]
         });
 
-        if (options && options.update) {
-          options.update(proxy);
+        if (opts && opts.update) {
+          opts.update(proxy, res);
         }
 
         if (this._debug) console.debug(`[base-entity-service] ${this._entityName} deleted in ${new Date().getTime() - now.getTime()}ms`);
@@ -478,35 +515,4 @@ export abstract class BaseEntityService<T extends Entity<any>,
     return entity.asObject(opts);
   }
 
-  /**
-   * Workaround to enable delete() and deleteAll() even when some mutation are missing
-   *
-   * @protected
-   */
-  protected createQueriesAndMutationsFallback() {
-    if (this.mutations) {
-      // save() and saveAll()
-      if (!this.mutations.save && this.mutations.saveAll) {
-        this.save = async (entity, opts) => {
-          const data = await this.saveAll([entity], opts);
-          return data && data[0];
-        };
-      }
-      else if (!this.mutations.deleteAll && this.mutations.delete) {
-        // Save one by one
-        this.saveAll = (entities, opts) => chainPromises((entities || [])
-          .map(entity => (() => this.save(entity, opts))));
-      }
-
-      // delete and deleteAll()
-      if (!this.mutations.delete && this.mutations.deleteAll) {
-        this.delete = (entity, opts) => this.deleteAll([entity], opts);
-      }
-      else if (!this.mutations.deleteAll && this.mutations.delete) {
-        // Delete one by one
-        this.deleteAll = (entities, opts) => chainPromises((entities || [])
-          .map(entity => (() => this.delete(entity, opts))));
-      }
-    }
-  }
 }

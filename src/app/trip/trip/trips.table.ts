@@ -29,7 +29,7 @@ import {environment} from "../../../environments/environment";
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
   FILTER_KEY: "filter",
-  FEATURE_NAME: TRIP_FEATURE_NAME
+  FEATURE_ID: TRIP_FEATURE_NAME
 };
 
 @Component({
@@ -104,7 +104,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     this.defaultSortDirection = 'desc';
 
     this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
-    this.featureId = TripsPageSettingsEnum.FEATURE_NAME;
+    this.featureId = TripsPageSettingsEnum.FEATURE_ID;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;

@@ -63,6 +63,7 @@ import {FormFieldDefinitionMap} from "./shared/form/field.model";
 import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
 import {TranslateHttpLoader} from "@ngx-translate/http-loader";
 import {DATE_ISO_PATTERN} from "./shared/dates";
+import {VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS} from "./vessel/services/config/vessel.config";
 
 
 @NgModule({
@@ -180,6 +181,7 @@ import {DATE_ISO_PATTERN} from "./shared/dates";
     { provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: <FormFieldDefinitionMap>{
         ...CORE_LOCAL_SETTINGS_OPTIONS,
         ...REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
+        ...VESSEL_LOCAL_SETTINGS_OPTIONS,
         ...TRIP_LOCAL_SETTINGS_OPTIONS
       }
     },
@@ -188,6 +190,7 @@ import {DATE_ISO_PATTERN} from "./shared/dates";
     { provide: APP_CONFIG_OPTIONS, useValue: <FormFieldDefinitionMap>{
       ...CORE_CONFIG_OPTIONS,
       ...REFERENTIAL_CONFIG_OPTIONS,
+      ...VESSEL_CONFIG_OPTIONS,
       ...EXTRACTION_CONFIG_OPTIONS,
       ...TRIP_CONFIG_OPTIONS
     }},
@@ -220,7 +223,7 @@ import {DATE_ISO_PATTERN} from "./shared/dates";
 
         // Referential
         {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
-        {title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', ifProperty: 'sumaris.referential.vessel.enable', profile: 'USER'},
+        {title: 'MENU.VESSELS', path: '/vessels', icon: 'boat', ifProperty: 'sumaris.referential.vessel.enable', profile: 'USER'},
         {title: 'MENU.PROGRAMS', path: '/referential/programs', icon: 'contract', profile: 'SUPERVISOR'},
         {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
         {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
@@ -263,6 +266,7 @@ import {DATE_ISO_PATTERN} from "./shared/dates";
     { provide: APP_GRAPHQL_TYPE_POLICIES, useValue: <TypePolicies>{
         ...REFERENTIAL_GRAPHQL_TYPE_POLICIES,
         ...DATA_GRAPHQL_TYPE_POLICIES,
+        ...VESSEL_GRAPHQL_TYPE_POLICIES,
         ...TRIP_GRAPHQL_TYPE_POLICIES,
         ...EXTRACTION_GRAPHQL_TYPE_POLICIES
       }

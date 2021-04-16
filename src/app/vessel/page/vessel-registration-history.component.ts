@@ -1,20 +1,20 @@
 import {ChangeDetectorRef, Component, Inject, Injector, OnInit} from '@angular/core';
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {VesselValidatorService} from "../../services/validator/vessel.validator";
-import {AppTable} from "../../../core/table/table.class";
+import {VesselValidatorService} from "../services/validator/vessel.validator";
+import {AppTable} from "../../core/table/table.class";
 
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {AccountService} from "../../../core/services/account.service";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {VesselFilter} from "../../services/vessel-service";
-import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
-import {VesselRegistrationService} from "../../services/vessel-registration.service";
-import {VesselRegistrationValidatorService} from "../../services/validator/vessel-registration.validator";
-import {VesselRegistration} from "../../services/model/vessel.model";
-import {referentialToString} from "../../../core/services/model/referential.model";
-import {environment} from "../../../../environments/environment";
+import {AccountService} from "../../core/services/account.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {VesselFilter} from "../services/vessel-service";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {VesselRegistrationService} from "../services/vessel-registration.service";
+import {VesselRegistrationValidatorService} from "../services/validator/vessel-registration.validator";
+import {VesselRegistration} from "../services/model/vessel.model";
+import {referentialToString} from "../../core/services/model/referential.model";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-vessel-registration-history-table',

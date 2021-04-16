@@ -34,6 +34,7 @@ import {TranslateModule} from "@ngx-translate/core";
 import {SamplesModal} from "./sample/samples.modal";
 import {SamplingLandingPage} from "./landing/sampling/sampling-landing.page";
 import {ObservedLocationOfflineModal} from "./observedlocation/offline/observed-location-offline.modal";
+import {VesselModule} from "../vessel/vessel.module";
 
 
 @NgModule({
@@ -42,6 +43,7 @@ import {ObservedLocationOfflineModal} from "./observedlocation/offline/observed-
     DataModule,
     TripModule,
     ReferentialModule,
+    VesselModule,
     TranslateModule.forChild()
   ],
   declarations: [

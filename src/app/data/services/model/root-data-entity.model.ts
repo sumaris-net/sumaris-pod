@@ -41,8 +41,6 @@ export abstract class RootDataEntity<T extends RootDataEntity<any>, O extends Da
     const target = super.asObject(options);
     target.creationDate = toDateISOString(this.creationDate);
     target.validationDate = toDateISOString(this.validationDate);
-    // TODO BLA: check is this is still need
-    // target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*always keep for table*/ } as ReferentialAsObjectOptions) || undefined;
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
     target.program = this.program && this.program.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*always keep for table*/ } as ReferentialAsObjectOptions) || undefined;
     if (options && options.minify) {

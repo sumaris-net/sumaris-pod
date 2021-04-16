@@ -1035,8 +1035,8 @@
       }
     },
     "ERROR": {
-      "LOAD_VESSEL_ERROR": "Erreur de chargement des navires.",
-      "SAVE_VESSEL_ERROR": "Erreur lors de la sauvegarde du navire.",
+      "LOAD_ERROR": "Erreur de chargement des navires.",
+      "SAVE_ERROR": "Erreur lors de la sauvegarde du navire.",
       "SAVE_VESSELS_ERROR": "Erreur lors de la sauvegarde des navires."
     }
   },
@@ -1748,6 +1748,12 @@
     "DELETE_TRASH_ENTITY_ERROR": "Erreur de suppression du fichier en corbeille",
     "ENTITY_STORAGE_MIGRATION_FAILED": "Echec de migration de la base de données locale",
     "STARTUP_FAILED": "Echec du lancement",
+    "LOAD_ENTITY_ERROR": "Erreur lors de chargement",
+    "LOAD_ENTITIES_ERROR": "Erreur lors de chargement de la liste",
+    "SAVE_ENTITY_ERROR": "Erreur lors de la sauvegarde",
+    "SAVE_ENTITIES_ERROR": "Erreur lors de la sauvegarde de la liste",
+    "SUBSCRIBE_ENTITY_ERROR": "Erreur lors de l'abonnement aux modifications distantes",
+    "CONTROL_ENTITY_ERROR": "Erreur lors du contrôle de la validité des données",
     "TERMINATE_ENTITY_ERROR": "Terminaision de la saisie impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "VALIDATE_ENTITY_ERROR": "Erreur lors de la validation",
     "UNVALIDATE_ENTITY_ERROR": "Erreur lors de la dévalidation",

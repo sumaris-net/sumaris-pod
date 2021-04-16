@@ -1,24 +1,23 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
-import {debounceTime, distinctUntilChanged, filter, map, pluck} from 'rxjs/operators';
+import {debounceTime, filter, map} from 'rxjs/operators';
 import {ObservedLocationValidatorService} from "../services/validator/observed-location.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {Person, personToString, UserProfileLabels} from "../../core/services/model/person.model";
-import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
+import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {ObservedLocation} from "../services/model/observed-location.model";
-import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from "../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes, LocationLevelIds} from "../../referential/services/model/model.enum";
 import {ReferentialRefFilter, ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {fromDateISOString} from "../../shared/dates";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {Landing} from "../services/model/landing.model";
 
 @Component({
   selector: 'form-observed-location',
@@ -135,16 +134,6 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
       mobile: this.mobile
     });
 
-    // Propagate program
-    // Propagate program
-    this.registerSubscription(
-      this.form.get('program').valueChanges
-        .pipe(
-          debounceTime(250),
-          map(value => (value && typeof value === 'string') ? value : (value && value.label || undefined))
-        )
-        .subscribe(programLabel => this.programLabel = programLabel));
-
     // Combo location
     this.registerAutocompleteField('location', {
       service: this.referentialRefService,
@@ -167,6 +156,15 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
       attributes: ['lastName', 'firstName', 'department.name'],
       displayWith: personToString
     });
+
+    // Propagate program
+    this.registerSubscription(
+      this.form.get('program').valueChanges
+        .pipe(
+          debounceTime(250),
+          map(value => (value && typeof value === 'string') ? value : (value && value.label || undefined))
+        )
+        .subscribe(programLabel => this.programLabel = programLabel));
 
     // Copy startDateTime to endDateTime, when endDate is hidden
     this.registerSubscription(

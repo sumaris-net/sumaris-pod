@@ -13,14 +13,14 @@ import {LandingFilter} from "../../services/landing.service";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
 import {ModalController} from "@ionic/angular";
 import {Landing} from "../../services/model/landing.model";
-import {VesselFilter, VesselService} from "../../../referential/services/vessel-service";
-import {VesselsTable} from "../../../referential/vessel/list/vessels.table";
+import {VesselFilter, VesselService} from "../../../vessel/services/vessel-service";
+import {VesselsTable} from "../../../vessel/list/vessels.table";
 import {AppTable} from "../../../core/table/table.class";
 import {isEmptyArray, isNotNil, toBoolean} from "../../../shared/functions";
 import {VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
-import {VesselForm} from "../../../referential/vessel/form/form-vessel";
+import {VesselForm} from "../../../vessel/form/form-vessel";
 import {AppFormUtils} from "../../../core/form/form.utils";
-import {Vessel} from "../../../referential/services/model/vessel.model";
+import {Vessel} from "../../../vessel/services/model/vessel.model";
 import {Subscription} from "rxjs";
 import {CORE_CONFIG_OPTIONS} from "../../../core/services/config/core.config";
 import {ConfigService} from "../../../core/services/config.service";
@@ -102,21 +102,22 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
     this.allowAddNewVessel = toBoolean(this.allowAddNewVessel, true);
     this.showVesselTypeColumn = toBoolean(this.showVesselTypeColumn, false);
 
-    // Load landings
     setTimeout(() => {
+      // Load landings
       this.landingsTable.onRefresh.next("modal");
       this.selectedTabIndex = 0;
       this.tabGroup.realignInkBar();
       this.markForCheck();
+
+      // Set vessel table filter
+      if (this.vesselsTable) {
+        this.vesselsTable.setFilter(this.vesselFilter);
+      }
     }, 200);
   }
 
   ngAfterViewInit() {
 
-    // Get default status by config
-    if (this.vesselsTable) {
-      this.vesselsTable.setFilter(this.vesselFilter);
-    }
     // Get default status by config
     if (this.allowAddNewVessel && this.vesselForm) {
       this.subscription.add(
@@ -205,8 +206,7 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
       this.vesselForm.disable();
 
       const savedData = await this.vesselService.save(data);
-      const result = VesselSnapshot.fromVessel(savedData);
-      return result;
+      return VesselSnapshot.fromVessel(savedData);
     }
     catch (err) {
       this.vesselForm.error = err && err.message || err;

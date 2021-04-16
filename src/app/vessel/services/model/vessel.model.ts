@@ -1,16 +1,15 @@
 import {Moment} from "moment";
 import {isNil, isNilOrBlank, isNotNil} from "../../../shared/functions";
-import {
-  NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions, ReferentialRef,
-  ReferentialUtils
-} from "../../../core/services/model/referential.model";
+import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
 import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity.model";
 import {Department} from "../../../core/services/model/department.model";
 import {Person} from "../../../core/services/model/person.model";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {RootDataEntity, SynchronizationStatus} from "../../../data/services/model/root-data-entity.model";
 
-export class Vessel extends Entity<Vessel> {
+export class Vessel extends RootDataEntity<Vessel> {
+
+  static TYPENAME = 'VesselVO';
 
   static fromObject(source: any): Vessel {
     if (!source || source instanceof Vessel) return source;
@@ -21,31 +20,28 @@ export class Vessel extends Entity<Vessel> {
 
   vesselType: ReferentialRef;
   statusId: number;
-  // TODO? program
   features: VesselFeatures;
   registration: VesselRegistration;
-  creationDate: Moment;
-  recorderDepartment: Department;
-  recorderPerson: Person;
 
   constructor() {
     super();
-    this.__typename = 'VesselVO';
+    this.__typename = Vessel.TYPENAME;
     this.vesselType = null;
     this.features = null;
     this.registration = null;
     this.recorderDepartment = null;
-    this.recorderPerson = null;
   }
 
   clone(): Vessel {
     const target = new Vessel();
     this.copy(target);
     target.vesselType = this.vesselType && this.vesselType.clone() || undefined;
+    target.program = this.program && this.program.clone() || undefined;
     target.features = this.features && this.features.clone() || undefined;
     target.registration = this.registration && this.registration.clone() || undefined;
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.clone() || undefined;
     target.recorderPerson = this.recorderPerson && this.recorderPerson.clone() || undefined;
+
     return target;
   }
 
@@ -54,28 +50,22 @@ export class Vessel extends Entity<Vessel> {
     return target;
   }
 
-  asObject(options?: ReferentialAsObjectOptions): any {
-    const target: any = super.asObject(options);
-
-    target.vesselType = this.vesselType && this.vesselType.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
-    target.features = this.features && !this.features.empty && this.features.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
-    target.registration = this.registration && !this.registration.empty && this.registration.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
-    target.creationDate = toDateISOString(this.creationDate);
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
-
-    return target;
-  }
-
   fromObject(source: any) {
     super.fromObject(source);
     this.statusId = source.statusId;
-    this.creationDate = fromDateISOString(source.creationDate);
     this.vesselType = source.vesselType && ReferentialRef.fromObject(source.vesselType);
     this.features = source.features && VesselFeatures.fromObject(source.features);
     this.registration = source.registration && VesselRegistration.fromObject(source.registration);
     this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
-    this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
+  }
+
+  asObject(options?: ReferentialAsObjectOptions): any {
+    const target: any = super.asObject(options);
+    target.vesselType = this.vesselType && this.vesselType.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.features = this.features && !this.features.empty && this.features.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.registration = this.registration && !this.registration.empty && this.registration.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
+    return target;
   }
 
   equals(other: Vessel): boolean {

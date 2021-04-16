@@ -32,7 +32,7 @@ import {OfflineFeature} from "../../core/services/model/settings.model";
 export const ObservedLocationsPageSettingsEnum = {
   PAGE_ID: "observedLocations",
   FILTER_KEY: "filter",
-  FEATURE_NAME: OBSERVED_LOCATION_FEATURE_NAME
+  FEATURE_ID: OBSERVED_LOCATION_FEATURE_NAME
 };
 
 @Component({
@@ -94,7 +94,7 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
       endDate: [null, SharedValidators.validDate],
       synchronizationStatus: [null],
       recorderDepartment: [null, SharedValidators.entity],
-      recorderPerson: [null, SharedValidators.entity]
+      recorderPerson: [null, SharedValidators.entity],
       // TODO: add observer filter ?
       //,'observer': [null]
     });
@@ -103,7 +103,7 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
     this.defaultSortDirection = 'desc';
 
     this.settingsId = ObservedLocationsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
-    this.featureId = ObservedLocationsPageSettingsEnum.FEATURE_NAME;
+    this.featureId = ObservedLocationsPageSettingsEnum.FEATURE_ID;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;

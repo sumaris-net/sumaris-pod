@@ -101,8 +101,8 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
     this.canEdit = this.isAdmin || this.accountService.isUser();
     this.canDelete = this.isAdmin;
 
-    if (!this.filterForm) throw new Error("Missing 'filterForm'");
-    if (!this.featureId) throw new Error("Missing 'featureId'");
+    if (!this.filterForm) throw new Error(`Missing 'filterForm' in ${this.constructor.name}`);
+    if (!this.featureId) throw new Error(`Missing 'featureId' in ${this.constructor.name}`);
 
     // Listen network
     this.offline = this.network.offline;

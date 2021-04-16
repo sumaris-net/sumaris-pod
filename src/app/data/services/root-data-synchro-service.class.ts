@@ -1,10 +1,9 @@
 import {concat, defer, Observable, of, timer} from "rxjs";
 import {catchError, map, switchMap, tap} from "rxjs/operators";
-import {RootDataEntity, SynchronizationStatusEnum} from "./model/root-data-entity.model";
+import {DataRootEntityUtils, RootDataEntity, SynchronizationStatusEnum} from "./model/root-data-entity.model";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {BaseRootDataService, BaseRootEntityGraphqlMutations} from "../../trip/services/root-data-service.class";
+import {BaseRootDataService, BaseRootEntityGraphqlMutations} from "./root-data-service.class";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {ProgramService} from "../../referential/services/program.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {PersonService} from "../../admin/services/person.service";
 import {Injector} from "@angular/core";
@@ -12,16 +11,18 @@ import {EntitiesStorage} from "../../core/services/storage/entities-storage.serv
 import {NetworkService} from "../../core/services/network.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Moment} from "moment";
-import {isNil} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "./model/data-entity.model";
 import {JobUtils} from "../../shared/services/job.utils";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {
-  BaseEntityGraphqlQueries,
-  BaseEntityGraphqlSubscriptions,
-  BaseEntityServiceOptions
-} from "../../referential/services/base-entity-service.class";
+import {BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions, BaseEntityServiceOptions} from "../../referential/services/base-entity-service.class";
 import {EntityUtils} from "../../core/services/model/entity.model";
+import {Vessel} from "../../vessel/services/model/vessel.model";
+import {ErrorCodes} from "./errors";
+import {FetchPolicy} from "@apollo/client/core";
+import {chainPromises} from "../../shared/observables";
+import {ObservedLocation} from "../../trip/services/model/observed-location.model";
+import * as momentImported from "moment";
 
 
 export interface IDataSynchroService<T extends RootDataEntity<T>, O = EntityServiceLoadOptions> {
@@ -74,11 +75,11 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
   protected settings: LocalSettingsService;
 
   protected $importationProgress: Observable<number>;
+  protected loading = false;
 
   get featureName(): string {
     return this._featureName || DEFAULT_FEATURE_NAME;
   }
-
 
   protected constructor (
     injector: Injector,
@@ -149,11 +150,9 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
       // Finish (force to reach max value)
       of(totalProgression)
         .pipe(
-          tap(() => {
-            this.$importationProgress = null;
-            console.info(`[root-data-service] Importation finished in ${Date.now() - now}ms`);
-            this.settings.markOfflineFeatureAsSync(this.featureName);
-          })
+          tap(() => this.$importationProgress = null),
+          tap(() => this.finishImport()),
+          tap(() => console.info(`[root-data-service] Importation finished in ${Date.now() - now}ms`))
         ))
 
       .pipe(
@@ -188,7 +187,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
       entity.synchronizationStatus = 'READY_TO_SYNC';
 
       const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
-      if (this._debug) console.debug(`[root-data-service] Terminate {${entity.id}} locally...`, json);
+      if (this._debug) console.debug(`${this._debugPrefix}Terminate {${entity.id}} locally...`, json);
 
       // Save entity locally
       await this.entities.save(json);
@@ -225,7 +224,61 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
     return this.referentialRefService.lastUpdateDate();
   }
 
-  abstract load(id: number, opts?: O): Promise<T>;
+  async load(id: number, opts?: O & {
+    fetchPolicy?: FetchPolicy;
+    toEntity?: boolean;
+  }): Promise<T> {
+    if (!this.queries.load) throw new Error('Not implemented');
+    if (isNil(id)) throw new Error("Missing argument 'id'");
+
+    const now = Date.now();
+    if (this._debug) console.debug(`${this._debugPrefix}Loading ${this._entityName} #${id}...`);
+    this.loading = true;
+
+    try {
+      let data: any;
+
+      // If local entity
+      if (id < 0) {
+        data = await this.entities.load<Vessel>(id, Vessel.TYPENAME);
+        if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"};
+      }
+
+      else {
+        const res = await this.graphql.query<{ data: any }>({
+          query: this.queries.load,
+          variables: { id },
+          error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"},
+          fetchPolicy: opts && opts.fetchPolicy || undefined
+        });
+        data = res && res.data;
+      }
+      const entity = (!opts || opts.toEntity !== false)
+        ? this.fromObject(data)
+        : (data as T);
+
+      if (entity && this._debug) console.debug(`${this._debugPrefix}${this._entityName} #${id} loaded in ${Date.now() - now}ms`, entity);
+
+      return entity;
+    }
+    finally {
+      this.loading = false;
+    }
+  }
+
+  async deleteAll(entities: T[], opts?: any): Promise<any> {
+    // Delete local entities
+    const localEntities = entities && entities.filter(DataRootEntityUtils.isLocal);
+    if (isNotEmptyArray(localEntities)) {
+      return this.deleteAllLocally(localEntities, opts);
+    }
+
+    const ids = entities && entities.map(t => t.id)
+      .filter(id => id >= 0);
+    if (isEmptyArray(ids)) return; // stop if empty
+
+    return super.deleteAll(entities, opts);
+  }
 
   abstract synchronize(data: T, opts?: any): Promise<T>;
 
@@ -259,5 +312,44 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
       (p, o) => this.vesselSnapshotService.executeImport(p, o),
       (p, o) => this.programRefService.executeImport(p, o)
     ], opts);
+  }
+
+  protected finishImport() {
+    this.settings.markOfflineFeatureAsSync(this.featureName);
+  }
+
+  /**
+   * Delete many local entities
+   * @param entities
+   * @param opts
+   */
+  protected async deleteAllLocally(entities: T[], opts?: { trash?: boolean; }): Promise<any> {
+
+    // Get local entity ids, then delete id
+    const localEntities = entities && entities
+      .filter(DataRootEntityUtils.isLocal);
+
+    if (isEmptyArray(localEntities)) return; // Skip if empty
+
+    const trash = !opts || opts.trash !== false;
+    const trashUpdateDate = trash && momentImported();
+
+    if (this._debug) console.debug(`${this._debugPrefix}Deleting ${this._entityName} locally... {trash: ${trash}`);
+
+    await chainPromises(localEntities.map(entity => async () => {
+
+      await this.entities.delete(entity, {entityName: this._typename});
+
+      if (trash) {
+        // Fill observedLocation's operation, before moving it to trash
+        entity.updateDate = trashUpdateDate;
+
+        const json = entity.asObject({...SAVE_LOCALLY_AS_OBJECT_OPTIONS, keepLocalId: false});
+
+        // Add to trash
+        await this.entities.saveToTrash(json, {entityName: ObservedLocation.TYPENAME});
+      }
+
+    }));
   }
 }
