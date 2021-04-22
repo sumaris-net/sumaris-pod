@@ -26,6 +26,7 @@ package net.sumaris.core.service.administration.programStrategy;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.data.domain.Pageable;
@@ -68,16 +69,10 @@ public interface StrategyService {
 	List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> findPmfmsByProgram(int programId, StrategyFetchOptions fetchOptions);
+	List<PmfmStrategyVO> findPmfmsByFilter(PmfmStrategyFilterVO filter, PmfmStrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> findPmfmsByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions);
-
-	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> findPmfmsByStrategy(int strategyId, StrategyFetchOptions fetchOptions);
-
-	@Transactional(readOnly = true)
-	List<DenormalizedPmfmStrategyVO> findDenormalizedPmfmsByStrategy(int strategyId, StrategyFetchOptions fetchOptions);
+	List<DenormalizedPmfmStrategyVO> findDenormalizedPmfmsByFilter(PmfmStrategyFilterVO filter, PmfmStrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<ReferentialVO> getGears(int strategyId);

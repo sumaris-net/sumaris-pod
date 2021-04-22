@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<query type="select">
+    <!-- double -->
+    <select alias="&amp;pmfmLabel%pmfmAlias%" group="double%pmfmAlias%" type="number">
+        (SELECT NUMERICAL_VALUE
+        FROM VESSEL_USE_MEASUREMENT VUM
+        WHERE VUM.TRIP_FK=O.ID and VUM.PMFM_FK=&amp;pmfmId%pmfmAlias%)
+    </select>
+
+    <!-- integer -->
+    <select alias="&amp;pmfmLabel%pmfmAlias%" group="integer%pmfmAlias%" type="number">
+        (SELECT
+            CAST(NUMERICAL_VALUE AS INT)
+        FROM VESSEL_USE_MEASUREMENT VUM
+        WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&amp;pmfmId%pmfmAlias%)
+    </select>
+
+    <!-- text -->
+    <select alias="&amp;pmfmLabel%pmfmAlias%" group="string%pmfmAlias%" type="text">(SELECT ALPHANUMERICAL_VALUE FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&amp;pmfmId%pmfmAlias%)</select>
+
+    <!-- qualitative value -->
+    <select alias="&amp;pmfmLabel%pmfmAlias%" group="qualitative_value%pmfmAlias%" type="text">
+     (SELECT QV.LABEL
+     FROM VESSEL_USE_MEASUREMENT VUM
+       INNER JOIN QUALITATIVE_VALUE QV on QV.ID = VUM.QUALITATIVE_VALUE_FK
+     WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&amp;pmfmId%pmfmAlias%)
+    </select>
+
+    <!-- boolean -->
+    <select alias="&amp;pmfmLabel%pmfmAlias%" group="boolean%pmfmAlias%" type="text">
+     (SELECT DECODE(VUM.NUMERICAL_VALUE, 1, 'Y', 0, 'N')
+     FROM VESSEL_USE_MEASUREMENT VUM
+     WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&amp;pmfmId%pmfmAlias%)
+    </select>
+
+    <!-- date -->
+    <select alias="&amp;pmfmLabel%pmfmAlias%" group="date%pmfmAlias%" type="text"><![CDATA[
+        (SELECT
+            TO_CHAR(TIMESTAMP(REPLACE(REPLACE(VUM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')), 'YYYY-DD-MM')
+        FROM VESSEL_USE_MEASUREMENT VUM
+        WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&amp;pmfmId%pmfmAlias%)
+    ]]>
+    </select>
+</query>

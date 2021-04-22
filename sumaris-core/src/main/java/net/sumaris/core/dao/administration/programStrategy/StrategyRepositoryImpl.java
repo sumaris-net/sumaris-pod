@@ -42,7 +42,6 @@ import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
@@ -54,7 +53,6 @@ import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -67,7 +65,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.*;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author peck7 on 24/08/2020.
@@ -149,8 +146,8 @@ public class StrategyRepositoryImpl
                 @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_ID, allEntries = true),
                 @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_LABEL, allEntries = true),
                 @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, allEntries = true),
-                @CacheEvict(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID, allEntries = true),
-                @CacheEvict(cacheNames = CacheNames.DENORMALIZED_PMFM_BY_STRATEGY_ID, allEntries = true)
+                @CacheEvict(cacheNames = CacheNames.PMFM_BY_FILTER, allEntries = true),
+                @CacheEvict(cacheNames = CacheNames.DENORMALIZED_PMFM_BY_FILTER, allEntries = true)
         },
         put = {
                 @CachePut(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, key="#programId"),
@@ -354,23 +351,26 @@ public class StrategyRepositoryImpl
     }
 
     @Override
-    @Caching(
-        evict = {
-            @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_ID, key = "#id", condition = "#id != null"),
-            @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_LABEL, allEntries = true),
-            @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, allEntries = true),
-            @CacheEvict(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID, key = "#id"),
-            @CacheEvict(cacheNames = CacheNames.DENORMALIZED_PMFM_BY_STRATEGY_ID, key = "#id")
-        }
-    )
-    public void deleteById(Integer id) {
-        super.deleteById(id);
+    protected Specification<Strategy> toSpecification(StrategyFilterVO filter, StrategyFetchOptions fetchOptions) {
+        Specification<Strategy> spec = super.toSpecification(filter, fetchOptions);
+        if (filter.getId() != null) return spec;
+        return spec
+            .and(hasProgramIds(filter))
+            .and(betweenDate(filter.getStartDate(), filter.getEndDate()));
     }
 
     @Override
-    protected Specification<Strategy> toSpecification(StrategyFilterVO filter, StrategyFetchOptions fetchOptions) {
-        return super.toSpecification(filter, fetchOptions)
-            .and(hasProgramIds(filter));
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_ID, key = "#id", condition = "#id != null"),
+                    @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_LABEL, allEntries = true),
+                    @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, allEntries = true),
+                    @CacheEvict(cacheNames = CacheNames.PMFM_BY_FILTER, allEntries = true),
+                    @CacheEvict(cacheNames = CacheNames.DENORMALIZED_PMFM_BY_FILTER, allEntries = true)
+            }
+    )
+    public void deleteById(Integer id) {
+        super.deleteById(id);
     }
 
     @Override
@@ -405,12 +405,12 @@ public class StrategyRepositoryImpl
 
         // Pmfm strategies
         if (finalFetchOptions.isWithPmfms()) {
-            target.setPmfms(getPmfms(source, finalFetchOptions));
+            target.setPmfms(getPmfms(source, finalFetchOptions.getPmfmsFetchOptions()));
         }
 
         // Pmfm strategies
         if (finalFetchOptions.isWithDenormalizedPmfms()) {
-            target.setDenormalizedPmfms(getDenormalizedPmfms(source, finalFetchOptions));
+            target.setDenormalizedPmfms(getDenormalizedPmfms(source, finalFetchOptions.getPmfmsFetchOptions()));
         }
     }
 
@@ -814,7 +814,7 @@ public class StrategyRepositoryImpl
                 .collect(Collectors.toList());
     }
 
-    protected List<PmfmStrategyVO> getPmfms(Strategy source, StrategyFetchOptions fetchOptions) {
+    protected List<PmfmStrategyVO> getPmfms(Strategy source, PmfmStrategyFetchOptions fetchOptions) {
         Preconditions.checkNotNull(fetchOptions);
         if (CollectionUtils.isEmpty(source.getPmfms())) return null;
 
@@ -833,7 +833,7 @@ public class StrategyRepositoryImpl
      * @param fetchOptions
      * @return
      */
-    protected List<DenormalizedPmfmStrategyVO> getDenormalizedPmfms(Strategy source, StrategyFetchOptions fetchOptions) {
+    protected List<DenormalizedPmfmStrategyVO> getDenormalizedPmfms(Strategy source, PmfmStrategyFetchOptions fetchOptions) {
         Preconditions.checkNotNull(fetchOptions);
         if (CollectionUtils.isEmpty(source.getPmfms())) return null;
 
@@ -842,35 +842,9 @@ public class StrategyRepositoryImpl
                 // FIXME #301 Get only pmfms with pmfmStrategy.pmfm not null (CB)
                 .filter(pmfmStrategy -> pmfmStrategy.getPmfm() != null)
                 .map(pmfmStrategy -> denormalizedPmfmStrategyRepository.toVO(pmfmStrategy, pmfmStrategy.getPmfm(), fetchOptions))
-                // Get all corresponding pmfms
-                //.flatMap(pmfmStrategy -> streamPmfmsByPmfmStrategy(pmfmStrategy, false /* continue if invalid PmfmStrategy (but will log) */ )
-                //        .distinct()
-                //        // Convert to one or more PmfmStrategy
-                //        .map(pmfm -> denormalizedPmfmStrategyRepository.toVO(pmfmStrategy, pmfm, fetchOptions))
-                //)
                 .filter(Objects::nonNull)
                 // Sort by acquisitionLevel and rankOrder
                 .sorted(Comparator.comparing(ps -> String.format("%s#%s", ps.getAcquisitionLevel(), ps.getRankOrder())))
                 .collect(Collectors.toList());
-    }
-
-    protected Stream<Pmfm> streamPmfmsByPmfmStrategy(PmfmStrategy pmfmStrategy, boolean failIfMissing) {
-        if (pmfmStrategy.getPmfm() != null) return Stream.of(pmfmStrategy.getPmfm());
-        Integer parameterId = pmfmStrategy.getParameter() != null ? pmfmStrategy.getParameter().getId() : null;
-        Integer matrixId = pmfmStrategy.getMatrix() != null ? pmfmStrategy.getMatrix().getId() : null;
-        Integer fractionId = pmfmStrategy.getFraction() != null ? pmfmStrategy.getFraction().getId() : null;
-        Integer methodId = pmfmStrategy.getMethod() != null ? pmfmStrategy.getMethod().getId() : null;
-        try {
-            return pmfmRepository.streamByPmfmParts(parameterId, matrixId, fractionId, methodId);
-        } catch (Exception e) {
-            String errorMessage = String.format("Unable to compute PMFMs corresponding to %s: %s", pmfmStrategy.toString(), e.getMessage());
-            if (failIfMissing) {
-                throw new SumarisTechnicalException(errorMessage, e);
-            }
-
-            // Log, and continue with an empty stream
-            log.error(errorMessage);
-            return Stream.empty();
-        }
     }
 }

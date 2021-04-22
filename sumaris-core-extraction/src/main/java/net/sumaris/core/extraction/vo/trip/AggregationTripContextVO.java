@@ -28,7 +28,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.core.extraction.vo.AggregationContextVO;
-import net.sumaris.core.extraction.vo.ExtractionPmfmInfoVO;
+import net.sumaris.core.extraction.vo.ExtractionPmfmColumnVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import org.apache.commons.lang3.StringUtils;
@@ -49,7 +49,7 @@ public abstract class AggregationTripContextVO extends AggregationContextVO {
 
     AggregationStrataVO strata;
 
-    List<ExtractionPmfmInfoVO> pmfmInfos;
+    List<ExtractionPmfmColumnVO> pmfmInfos;
 
     public List<String> getProgramLabels() {
         return tripFilter != null && StringUtils.isNotBlank(tripFilter.getProgramLabel()) ? ImmutableList.of(tripFilter.getProgramLabel()) : null;

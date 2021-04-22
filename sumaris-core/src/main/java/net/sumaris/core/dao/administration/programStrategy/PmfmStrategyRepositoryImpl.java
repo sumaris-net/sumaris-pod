@@ -27,8 +27,6 @@ import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
-import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -41,10 +39,11 @@ import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
+import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,11 +56,9 @@ import org.springframework.data.domain.Sort;
 
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 public class PmfmStrategyRepositoryImpl
@@ -74,9 +71,6 @@ public class PmfmStrategyRepositoryImpl
     private ReferentialDao referentialDao;
 
     @Autowired
-    private PmfmRepository pmfmRepository;
-
-    @Autowired
     PmfmStrategyRepositoryImpl(EntityManager entityManager) {
         super(PmfmStrategy.class, PmfmStrategyVO.class, entityManager);
     }
@@ -87,45 +81,28 @@ public class PmfmStrategyRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID)
-    public List<PmfmStrategyVO> findByStrategyId(int strategyId, StrategyFetchOptions fetchOptions) {
-
-        return findAll(
-                BindableSpecification.where(hasStrategyId(strategyId)),
-            Sort.by(PmfmStrategy.Fields.RANK_ORDER)
-        )
-            .stream()
-            .map(entity -> toVO(entity, fetchOptions))
-            .collect(Collectors.toList());
-
-    }
-
-    @Override
-    public List<PmfmStrategyVO> findByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions) {
-
-        return findAll(
-            hasProgramId(programId)
-                    .and(hasAcquisitionLevelId(acquisitionLevelId)),
-            Sort.by(PmfmStrategy.Fields.RANK_ORDER)
-        )
-            .stream()
-            .map(entity -> toVO(entity, fetchOptions))
-            .collect(Collectors.toList());
-
+    public List<PmfmStrategyVO> findByFilter(PmfmStrategyFilterVO filter, PmfmStrategyFetchOptions fetchOptions) {
+        return findAll(toSpecification(filter),
+                Sort.by(PmfmStrategy.Fields.STRATEGY, PmfmStrategy.Fields.ACQUISITION_LEVEL, PmfmStrategy.Fields.RANK_ORDER)
+            )
+                .stream()
+                .map(entity -> toVO(entity, fetchOptions))
+                //.sorted(Comparator.comparing(ps -> String.format("%s#%s#%s", ps.getStrategyId(), ps.getAcquisitionLevel(), ps.getRankOrder())))
+                .collect(Collectors.toList());
     }
 
     @Override
     public PmfmStrategyVO toVO(PmfmStrategy source) {
-        return toVO(source, StrategyFetchOptions.DEFAULT);
+        return toVO(source, PmfmStrategyFetchOptions.DEFAULT);
     }
 
     @Override
-    public PmfmStrategyVO toVO(PmfmStrategy source, StrategyFetchOptions fetchOptions) {
+    public PmfmStrategyVO toVO(PmfmStrategy source, PmfmStrategyFetchOptions fetchOptions) {
         return toVO(source, source.getPmfm(), fetchOptions);
     }
 
     @Override
-    public PmfmStrategyVO toVO(PmfmStrategy source, Pmfm pmfm, StrategyFetchOptions fetchOptions) {
+    public PmfmStrategyVO toVO(PmfmStrategy source, Pmfm pmfm, PmfmStrategyFetchOptions fetchOptions) {
         if (source == null) return null;
 
         PmfmStrategyVO target = new PmfmStrategyVO();
@@ -187,8 +164,8 @@ public class PmfmStrategyRepositoryImpl
     @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID, allEntries = true), // FIXME fix error 'null' when using key='#strategyId'
-            @CacheEvict(cacheNames = CacheNames.DENORMALIZED_PMFM_BY_STRATEGY_ID, allEntries = true) // FIXME fix error 'null' when using key='#strategyId'
+            @CacheEvict(cacheNames = CacheNames.PMFM_BY_FILTER, allEntries = true), // FIXME fix error 'null' when using key='#strategyId'
+            @CacheEvict(cacheNames = CacheNames.DENORMALIZED_PMFM_BY_FILTER, allEntries = true) // FIXME fix error 'null' when using key='#strategyId'
         }
     )
     public List<PmfmStrategyVO> saveByStrategyId(int strategyId, @Nonnull List<PmfmStrategyVO> sources) {

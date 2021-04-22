@@ -23,8 +23,11 @@ package net.sumaris.core.dao.administration.programStrategy;
  */
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
+import net.sumaris.core.model.administration.programStrategy.AppliedPeriod;
+import net.sumaris.core.model.administration.programStrategy.AppliedStrategy;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
+import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
@@ -33,6 +36,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.Parameter;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
 import java.util.Arrays;
 import java.util.Collection;
@@ -73,6 +78,33 @@ public interface StrategySpecifications {
         });
         specification.addBind(UPDATE_DATE_GREATER_THAN_PARAM, updateDate);
         return specification;
+    }
+
+    default Specification<Strategy> betweenDate(Date startDate, Date endDate) {
+        if (startDate == null && endDate == null) return null;
+        return (root, query, cb) -> {
+
+            Join<?,?> appliedPeriods = root.join(Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT)
+                    .join(AppliedStrategy.Fields.APPLIED_PERIODS, JoinType.LEFT);
+
+            // Start + end date
+            if (startDate != null && endDate != null) {
+                return cb.not(
+                    cb.or(
+                        cb.greaterThan(appliedPeriods.get(AppliedPeriod.Fields.START_DATE), endDate),
+                        cb.lessThan(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
+                    )
+                );
+            }
+            // Start date
+            else if (startDate != null) {
+                return cb.greaterThanOrEqualTo(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate);
+            }
+            // End date
+            else {
+                return cb.lessThanOrEqualTo(appliedPeriods.get(AppliedPeriod.Fields.START_DATE), endDate);
+            }
+        };
     }
 
     List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);

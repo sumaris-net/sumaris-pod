@@ -29,17 +29,18 @@ import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.specification.data.trip.PmfmTripSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
+import net.sumaris.core.extraction.vo.ExtractionPmfmColumnVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
-import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.referential.PmfmValueType;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
+import java.net.URL;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -53,9 +54,6 @@ import java.util.List;
 public class ExtractionPmfmTripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
         extends ExtractionRdbTripDaoImpl<C, F>
         implements PmfmTripSpecification {
-
-    @Autowired
-    protected StrategyService strategyService;
 
     private static final String XML_QUERY_PMFM_PATH = "pmfm/v%s/%s";
     private static final String XML_QUERY_PMFM_V1_0_PATH = String.format(XML_QUERY_PMFM_PATH,
@@ -82,14 +80,14 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
 
         XMLQuery xmlQuery = super.createTripQuery(context);
 
-        // Hide already pmfm columns
-        //xmlQuery.setGroup("xxx", false);
+        // Add PMFM from program, if on program has been set
         String programLabel = context.getTripFilter().getProgramLabel();
         if (StringUtils.isNotBlank(programLabel)) {
             injectPmfmColumns(context, xmlQuery,
                     Collections.singletonList(programLabel),
                     AcquisitionLevelEnum.TRIP,
-                    PmfmEnum.NB_OPERATION);
+                    // Excluded PMFM (already exists as RDB format columns)
+                    PmfmEnum.NB_OPERATION.getId());
         }
 
         return xmlQuery;
@@ -107,7 +105,12 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
         injectPmfmColumns(context, xmlQuery,
                 getTripProgramLabels(context),
                 AcquisitionLevelEnum.OPERATION,
-                PmfmEnum.NB_OPERATION);
+                // Excluded PMFM (already exists as RDB format columns)
+                PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
+                PmfmEnum.GEAR_DEPTH_M.getId(),
+                PmfmEnum.BOTTOM_DEPTH_M.getId(),
+                PmfmEnum.SELECTIVITY_DEVICE.getId(),
+                PmfmEnum.TRIP_PROGRESS.getId());
 
         return xmlQuery;
     }
@@ -132,7 +135,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
         Preconditions.checkNotNull(context.getVersion());
 
         switch (queryName) {
-            case "injectionPmfm":
+            case "injectionTripPmfm":
+            case "injectionOperationPmfm":
                 return String.format(XML_QUERY_PMFM_V1_0_PATH, queryName);
             default:
                 return super.getQueryFullName(context, queryName);
@@ -144,13 +148,52 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
                                      XMLQuery xmlQuery,
                                      List<String> programLabels,
                                      AcquisitionLevelEnum acquisitionLevel,
-                                     PmfmEnum... excludedPmfms
+                                     Integer... excludedPmfmIds
     ) {
-        fillPmfmInfos(context, programLabels, acquisitionLevel);
-        if (CollectionUtils.isEmpty(context.getPmfmInfos())) return;
+        // Load PMFM columns to inject
+        List<ExtractionPmfmColumnVO> pmfmColumns = loadPmfmColumns(context, programLabels, acquisitionLevel);
 
-        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionPmfm"));
-        //xmlQuery.bind();
+        if (CollectionUtils.isEmpty(pmfmColumns)) return; // Skip if empty
 
+        // Compute the injection query
+        URL injectionQuery = getInjectionQueryByAcquisitionLevel(context, acquisitionLevel);
+        if (injectionQuery == null) {
+            log.warn("No XML query found, for Pmfm injection on acquisition level: " + acquisitionLevel.name());
+            return;
+        }
+
+        List<Integer> excludedPmfmIdsList = Arrays.asList(excludedPmfmIds);
+        pmfmColumns.stream()
+                .filter(pmfm -> !excludedPmfmIdsList.contains(pmfm.getPmfmId()))
+                .forEach(pmfm -> injectPmfmColumn(context, xmlQuery, injectionQuery, pmfm));
+    }
+
+    protected URL getInjectionQueryByAcquisitionLevel(C context, AcquisitionLevelEnum acquisitionLevel) {
+        switch (acquisitionLevel) {
+            case TRIP:
+                return getXMLQueryURL(context, "injectionTripPmfm");
+
+            case OPERATION:
+                return getXMLQueryURL(context, "injectionOperationPmfm");
+
+            default:
+                return null;
+        }
+    }
+
+    protected void injectPmfmColumn(C context,
+                                    XMLQuery xmlQuery,
+                                    URL injectionPmfmQuery,
+                                    ExtractionPmfmColumnVO pmfm
+    ) {
+        xmlQuery.injectQuery(injectionPmfmQuery, "%pmfmAlias%", pmfm.getAlias());
+
+        xmlQuery.bind("pmfmId" + pmfm.getAlias(), String.valueOf(pmfm.getPmfmId()));
+        xmlQuery.bind("pmfmLabel" + pmfm.getAlias(), pmfm.getLabel());
+
+        // ForDisable groups of unused pmfm type
+        for (PmfmValueType enumType: PmfmValueType.values()) {
+            xmlQuery.setGroup(enumType.name().toLowerCase() + pmfm.getAlias(), enumType == pmfm.getType());
+        }
     }
 }

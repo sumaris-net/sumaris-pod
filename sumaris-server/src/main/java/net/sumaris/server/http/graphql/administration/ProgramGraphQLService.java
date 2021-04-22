@@ -46,6 +46,7 @@ import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
@@ -199,13 +200,13 @@ public class ProgramGraphQLService {
     }
 
     @GraphQLQuery(name = "pmfms", description = "Get strategy's pmfms")
-    public List<PmfmStrategyVO> getPmfmsByStrategy(@GraphQLContext StrategyVO strategy,
-                                                   @GraphQLEnvironment() Set<String> fields) {
+    public List<PmfmStrategyVO> getPmfmsByStrategy(@GraphQLContext StrategyVO strategy) {
         if (strategy.getPmfms() != null) {
             return strategy.getPmfms();
         }
-        return strategyService.findPmfmsByStrategy(strategy.getId(),
-                StrategyFetchOptions.builder().withPmfms(true).build());
+        return strategyService.findPmfmsByFilter(PmfmStrategyFilterVO.builder()
+                        .strategyId(strategy.getId()).build(),
+                PmfmStrategyFetchOptions.DEFAULT);
     }
 
     @GraphQLQuery(name = "denormalizedPmfms", description = "Get strategy's denormalized pmfms")
@@ -214,7 +215,11 @@ public class ProgramGraphQLService {
         if (strategy.getDenormalizedPmfms() != null) {
             return strategy.getDenormalizedPmfms();
         }
-        return strategyService.findDenormalizedPmfmsByStrategy(strategy.getId(), getPmfmStrategyFetchOptions(fields));
+        return strategyService.findDenormalizedPmfmsByFilter(PmfmStrategyFilterVO.builder().strategyId(strategy.getId()).build(),
+                PmfmStrategyFetchOptions.builder()
+                        .uniqueByPmfmId(true)
+                        .withCompleteName(fields.contains(DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME))
+                        .build());
     }
 
     @GraphQLQuery(name = "pmfm", description = "Get strategy pmfm")
@@ -400,29 +405,14 @@ public class ProgramGraphQLService {
                                 fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.MAXIMUM_NUMBER_DECIMALS)) ||
                                 fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.SIGNIF_FIGURES_NUMBER))
                 )
-                // Test if should include pmfm's complete name
-                .withDenormalizedPmfmCompleteName(
-                        fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME))
+                // Retrieve how to fetch Pmfms
+                .pmfmsFetchOptions(
+                        PmfmStrategyFetchOptions.builder()
+                                .withCompleteName(fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME)))
+                                .build()
                 )
                 .build();
     }
-
-    protected StrategyFetchOptions getPmfmStrategyFetchOptions(Set<String> fields) {
-        return StrategyFetchOptions.builder()
-                // Test each fields that are computed by inheritance
-                .withDenormalizedPmfms(
-                    fields.contains(DenormalizedPmfmStrategyVO.Fields.LABEL) ||
-                    fields.contains(DenormalizedPmfmStrategyVO.Fields.TYPE) ||
-                    fields.contains(DenormalizedPmfmStrategyVO.Fields.UNIT_LABEL) ||
-                    fields.contains(DenormalizedPmfmStrategyVO.Fields.MAXIMUM_NUMBER_DECIMALS) ||
-                    fields.contains(DenormalizedPmfmStrategyVO.Fields.SIGNIF_FIGURES_NUMBER)
-                )
-                .withDenormalizedPmfmCompleteName(
-                        fields.contains(DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME)
-                )
-                .build();
-    }
-
 
     protected void checkCanEditProgram(Integer programId) {
 

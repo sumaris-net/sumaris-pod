@@ -227,6 +227,18 @@ public class Beans {
     }
 
     /**
+     * <p>splitByProperty.</p>
+     *
+     * @param entities list of entities.
+     * @param <K> a K object.
+     * @param <V> a V object.
+     * @return a {@link Map} object.
+     */
+    public static <K extends Serializable, V extends IEntity<K>> List<K> collectIds(V... entities) {
+        return transformCollection(Arrays.asList(entities), IEntity::getId);
+    }
+
+    /**
      * <p>collectProperties.</p>
      *
      * @param collection a {@link Collection} object.
@@ -239,7 +251,21 @@ public class Beans {
         if (CollectionUtils.isEmpty(collection)) return new ArrayList<>();
         Preconditions.checkArgument(StringUtils.isNotBlank(propertyName));
         return collection.stream().map((Function<V, K>) v -> getProperty(v, propertyName)).collect(Collectors.toList());
+    }
 
+    /**
+     * <p>collectProperties.</p>
+     *
+     * @param collection a {@link Collection} object.
+     * @param propertyName a {@link String} object.
+     * @param <K> a K object.
+     * @param <V> a V object.
+     * @return a {@link List} object.
+     */
+    public static <K, V> Set<K> collectDistinctProperties(Collection<V> collection, String propertyName) {
+        if (CollectionUtils.isEmpty(collection)) return new HashSet<>();
+        Preconditions.checkArgument(StringUtils.isNotBlank(propertyName));
+        return collection.stream().map((Function<V, K>) v -> getProperty(v, propertyName)).collect(Collectors.toSet());
     }
 
     private static <K, V> Function<V, K> newPropertyFunction(final String propertyName) {

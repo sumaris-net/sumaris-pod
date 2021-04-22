@@ -28,6 +28,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 
+import java.util.Date;
+
 @Data
 @FieldNameConstants
 @Builder
@@ -58,6 +60,9 @@ public class StrategyFilterVO implements IReferentialFilter {
     // TODO BLA renommer en programLabel ?
     private String levelLabel;
     private String[] levelLabels;
+
+    private Date startDate;
+    private Date endDate;
 
     /* -- Synonym properties (need by IReferentialFilter) -- */
 

@@ -25,26 +25,23 @@ package net.sumaris.core.extraction.vo;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
+import net.sumaris.core.vo.referential.PmfmValueType;
 
 /**
  * @author peck7 on 18/12/2018.
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ExtractionPmfmInfoVO {
+public class ExtractionPmfmColumnVO {
 
     int pmfmId;
 
-    /**
-     * the table name owning the result and its extraction alias
-     */
-    String tableName;
+    //String name;
     String alias;
+    String label;
 
-    /**
-     * program, acquisition level and rank order from the strategy
-     */
-    int programId;
+    PmfmValueType type;
+
     String acquisitionLevel;
     int rankOrder;
 }

@@ -22,39 +22,29 @@ package net.sumaris.core.vo.administration.programStrategy;
  * #L%
  */
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode
-@ToString
-public class StrategyFetchOptions implements IFetchOptions {
+public class PmfmStrategyFetchOptions implements IFetchOptions {
 
-    public static StrategyFetchOptions DEFAULT = StrategyFetchOptions.builder().build();
+    public static PmfmStrategyFetchOptions DEFAULT = PmfmStrategyFetchOptions.builder().build();
 
-    public static StrategyFetchOptions nullToDefault(StrategyFetchOptions options) {
+    public static PmfmStrategyFetchOptions nullToDefault(PmfmStrategyFetchOptions options) {
         if (options != null) return options;
         return DEFAULT;
     }
 
     /**
-     * Compute PmfmStrategy (normalized entities)
+     * Compute the PSFM strategy full name (with parameter, matrix, fraction and method names)
      */
     @Builder.Default
-    private boolean withPmfms = false;
+    private boolean withCompleteName = false;
 
-    /**
-     * Compute the denormalized PMFM, from PmfmStrategy
-     */
     @Builder.Default
-    private boolean withDenormalizedPmfms = false;
-
-    /**
-     * Fetch strategy for PSFM strategy
-     */
-    @Builder.Default
-    private PmfmStrategyFetchOptions pmfmsFetchOptions = PmfmStrategyFetchOptions.DEFAULT;
+    private boolean uniqueByPmfmId = false;
 }

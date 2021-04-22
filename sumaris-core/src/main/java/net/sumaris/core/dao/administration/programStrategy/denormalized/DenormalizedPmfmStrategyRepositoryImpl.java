@@ -27,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
-import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.referential.gear.Gear;
@@ -37,7 +36,9 @@ import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
+import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,30 +68,29 @@ public class DenormalizedPmfmStrategyRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.DENORMALIZED_PMFM_BY_STRATEGY_ID)
-    public List<DenormalizedPmfmStrategyVO> findByStrategyId(int strategyId, StrategyFetchOptions fetchOptions) {
-
-        return findAll(BindableSpecification.where(hasStrategyId(strategyId)),
-            Sort.by(PmfmStrategy.Fields.RANK_ORDER)
+    @Cacheable(cacheNames = CacheNames.DENORMALIZED_PMFM_BY_FILTER)
+    public List<DenormalizedPmfmStrategyVO> findByFilter(PmfmStrategyFilterVO filter, PmfmStrategyFetchOptions fetchOptions) {
+        return findAll(toSpecification(filter),
+                Sort.by(PmfmStrategy.Fields.STRATEGY, PmfmStrategy.Fields.ACQUISITION_LEVEL, PmfmStrategy.Fields.RANK_ORDER)
         )
-            .stream()
-            .map(entity -> toVO(entity, fetchOptions))
-            .collect(Collectors.toList());
-
+                .stream()
+                .map(entity -> toVO(entity, fetchOptions))
+                //.sorted(Comparator.comparing(ps -> String.format("%s#%s#%s", ps.getStrategyId(), ps.getAcquisitionLevel(), ps.getRankOrder())))
+                .collect(Collectors.toList());
     }
 
     @Override
     public DenormalizedPmfmStrategyVO toVO(PmfmStrategy source) {
-        return toVO(source, StrategyFetchOptions.DEFAULT);
+        return toVO(source, PmfmStrategyFetchOptions.DEFAULT);
     }
 
     @Override
-    public DenormalizedPmfmStrategyVO toVO(PmfmStrategy source, StrategyFetchOptions fetchOptions) {
+    public DenormalizedPmfmStrategyVO toVO(PmfmStrategy source, PmfmStrategyFetchOptions fetchOptions) {
         return toVO(source, source.getPmfm(), fetchOptions);
     }
 
     @Override
-    public DenormalizedPmfmStrategyVO toVO(PmfmStrategy source, @NonNull Pmfm pmfm, StrategyFetchOptions fetchOptions) {
+    public DenormalizedPmfmStrategyVO toVO(PmfmStrategy source, @NonNull Pmfm pmfm, PmfmStrategyFetchOptions fetchOptions) {
         if (source == null) return null;
 
         DenormalizedPmfmStrategyVO target = new DenormalizedPmfmStrategyVO();
@@ -128,7 +128,7 @@ public class DenormalizedPmfmStrategyRepositoryImpl
         target.setName(parameter.getName());
 
         // Complete name
-        if (fetchOptions.isWithDenormalizedPmfmCompleteName()) {
+        if (fetchOptions.isWithCompleteName()) {
             String completeName = pmfmRepository.computeCompleteName(pmfm.getId());
             target.setCompleteName(completeName);
         }
