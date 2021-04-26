@@ -26,7 +26,7 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.model.TreeNodeEntities;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.data.batch.BatchVO;
-import net.sumaris.core.vo.data.DenormalizedBatchVO;
+import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -71,7 +71,7 @@ public class DenormalizedBatchServiceReadTest extends AbstractServiceTest{
         // Check species batches
         result.stream().filter(b -> b.getTaxonGroup() != null)
             .forEach(speciesBatch -> {
-                Assert.assertNotNull("Species batch must have indirect weight", speciesBatch.getIndirectContextWeight());
+                Assert.assertNotNull("Species batch must have indirect weight", speciesBatch.getIndirectWeight());
                 Assert.assertNotNull("Species batch must have indirect individual count", speciesBatch.getIndirectIndividualCount());
             });
     }

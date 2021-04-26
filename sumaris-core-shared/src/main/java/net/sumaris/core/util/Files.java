@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -424,8 +425,16 @@ public class Files {
 		org.apache.commons.io.FileUtils.copyFile(srcFile, dstFile);
 	}
 
+	public static void moveFile(File srcFile, File dstFile) throws IOException {
+		org.apache.commons.io.FileUtils.moveFile(srcFile, dstFile);
+	}
+
 	public static String getNameWithoutExtension(File srcFile) {
 		return com.google.common.io.Files.getNameWithoutExtension(srcFile.getName());
+	}
+
+	public static void forceMkdir(File directory) throws IOException {
+		FileUtils.forceMkdir(directory);
 	}
 
 	public static Optional<String> getExtension(File srcFile) {

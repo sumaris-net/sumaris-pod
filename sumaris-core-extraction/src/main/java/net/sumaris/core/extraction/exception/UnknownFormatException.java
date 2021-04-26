@@ -1,10 +1,8 @@
-package net.sumaris.core.service.technical;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,16 +20,24 @@ package net.sumaris.core.service.technical;
  * #L%
  */
 
-import net.sumaris.core.vo.technical.SoftwareVO;
-import org.springframework.transaction.annotation.Transactional;
+package net.sumaris.core.extraction.exception;
 
-@Transactional(readOnly = true)
-public interface ConfigurationService {
+import net.sumaris.core.exception.SumarisBusinessException;
+import net.sumaris.shared.exception.ErrorCodes;
 
-    SoftwareVO getCurrentSoftware();
+public class UnknownFormatException extends SumarisBusinessException {
 
-    boolean isReady();
+    public static final int ERROR_CODE = ErrorCodes.BAD_REQUEST;
 
+    public UnknownFormatException() {
+        super(ERROR_CODE, "Unknown format exception");
+    }
+
+    public UnknownFormatException(Throwable cause) {
+        super(ERROR_CODE, cause);
+    }
+
+    public UnknownFormatException(String message) {
+        super(ERROR_CODE, message);
+    }
 }
-
-

@@ -74,6 +74,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private final SumarisConfiguration configuration;
     private final String currentSoftwareLabel;
+    private boolean ready = false;
 
     @Autowired
     private EntityManager entityManager;
@@ -101,6 +102,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return softwareService.getByLabel(currentSoftwareLabel);
     }
 
+    @Override
+    public boolean isReady() {
+        return ready;
+    }
+
     /* -- event listeners -- */
 
     @Async
@@ -122,6 +128,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 publisher.publishEvent(new ConfigurationUpdatedEvent(configuration));
             }
 
+            // Mark as ready
+            ready = true;
         }
     }
 
@@ -134,6 +142,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     protected void onSoftwareChanged(AbstractEntityEvent event) {
         SoftwareVO software = (SoftwareVO)event.getData();
 
+        ready = false;
+
         // Test if same as the current software
         boolean isCurrent = (software != null && this.currentSoftwareLabel.equals(software.getLabel()));
         if (isCurrent) {
@@ -144,6 +154,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             // Publish update event
             publisher.publishEvent(new ConfigurationUpdatedEvent(configuration));
 
+            // Mark as ready
+            ready = true;
         }
     }
 

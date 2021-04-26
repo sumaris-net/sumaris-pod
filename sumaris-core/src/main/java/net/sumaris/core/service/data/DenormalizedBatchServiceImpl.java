@@ -25,12 +25,9 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.data.DenormalizedBatchRepository;
+import net.sumaris.core.dao.data.batch.DenormalizedBatchRepository;
 import net.sumaris.core.vo.data.batch.BatchVO;
-import net.sumaris.core.vo.data.DenormalizedBatchVO;
-import net.sumaris.core.vo.data.MeasurementVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -58,5 +55,4 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 	public List<DenormalizedBatchVO> saveAllBySaleId(int saleId, BatchVO catchBatch) {
 		return denormalizedBatchRepository.saveAllBySaleId(saleId, denormalize(catchBatch));
 	}
-
 }

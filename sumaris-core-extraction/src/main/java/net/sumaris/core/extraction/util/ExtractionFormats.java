@@ -131,6 +131,10 @@ public class ExtractionFormats  {
         return ProductFormatEnum.valueOf(format.getLabel(), format.getVersion());
     }
 
+    public static IExtractionFormat getFormatFromLabel(String label) {
+        return getFormatFromLabel(label, null);
+    }
+
     public static IExtractionFormat getFormatFromLabel(String label, String version) {
         Preconditions.checkNotNull(label);
         if (label.toUpperCase().startsWith(AggSpecification.FORMAT_PREFIX)) {
@@ -138,5 +142,4 @@ public class ExtractionFormats  {
         }
         return LiveFormatEnum.valueOf(label, version);
     }
-
 }

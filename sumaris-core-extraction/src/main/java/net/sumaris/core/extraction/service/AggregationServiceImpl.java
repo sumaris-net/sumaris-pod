@@ -37,6 +37,7 @@ import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
+import net.sumaris.core.extraction.specification.data.trip.AggSpecification;
 import net.sumaris.core.extraction.util.ExtractionFormats;
 import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.extraction.vo.*;
@@ -301,6 +302,46 @@ public class AggregationServiceImpl implements AggregationService {
     )
     public CompletableFuture<AggregationTypeVO> asyncSave(AggregationTypeVO type, @Nullable ExtractionFilterVO filter) {
         return CompletableFuture.completedFuture(save(type, filter));
+    }
+
+    @Override
+    public void refresh(int id) {
+
+        ExtractionProductVO target = productService.findById(id, ExtractionProductFetchOptions.FOR_UPDATE).orElse(null);
+        Collection<String> existingTablesToDrop = Lists.newArrayList(target.getTableNames());
+
+        // Read filter
+        ExtractionFilterVO filter = null;
+        if (StringUtils.isNotBlank(target.getFilter())) {
+            try {
+                filter = objectMapper.readValue(target.getFilter(), ExtractionFilterVO.class);
+            }
+            catch(Exception e) {
+                throw new SumarisTechnicalException("Unparseable filter string: " + e.getMessage(), e);
+            }
+        }
+
+        String rawFormat = target.getRawFormatLabel();
+        if (rawFormat.startsWith(AggSpecification.FORMAT_PREFIX)) {
+            rawFormat = rawFormat.substring(AggSpecification.FORMAT_PREFIX.length());
+        }
+
+        // Prepare a executable type (with label=format)
+        AggregationTypeVO executableType = new AggregationTypeVO();
+        executableType.setLabel(rawFormat);
+        executableType.setCategory(ExtractionCategoryEnum.LIVE);
+
+        // Execute the aggregation
+        AggregationContextVO context = execute(executableType, filter, null);
+
+        // Update product tables, using the aggregation result
+        toProductVO(context, target);
+
+        // Save the product
+        productService.save(target);
+
+        // Drop old tables
+        dropTables(existingTablesToDrop);
     }
 
     @Override

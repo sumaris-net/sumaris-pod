@@ -22,6 +22,12 @@ package net.sumaris.core.dao.technical.model;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.collect.Lists;
+import lombok.NonNull;
+import org.apache.commons.collections4.CollectionUtils;
+
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.List;
 
@@ -39,4 +45,25 @@ public interface ITreeNodeEntityBean<ID extends Serializable, E extends IEntity<
     List<E> getChildren();
 
     void setChildren(List<E> children);
+
+    @JsonIgnore
+    default boolean hasChildren() {
+        return CollectionUtils.isNotEmpty(getChildren());
+    }
+
+    @JsonIgnore
+    default boolean hasParent() {
+        return getParent() != null;
+    }
+
+    @JsonIgnore
+    default <T extends ITreeNodeEntityBean<ID, E>> void addChildren(@NonNull E child) {
+        if (child instanceof ITreeNodeEntityBean) ((ITreeNodeEntityBean<ID, E>) child).setParent((E) this);
+        if (this.getChildren() == null) {
+            setChildren(Lists.newArrayList((E) child));
+        }
+        else {
+            getChildren().add((E) child);
+        }
+    }
 }

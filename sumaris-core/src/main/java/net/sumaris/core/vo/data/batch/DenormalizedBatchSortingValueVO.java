@@ -20,12 +20,14 @@
  * #L%
  */
 
-package net.sumaris.core.vo.data;
+package net.sumaris.core.vo.data.batch;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 @Data
@@ -41,6 +43,7 @@ public class DenormalizedBatchSortingValueVO {
     private String alphanumericalValue;
 
     private Integer pmfmId;
+    private PmfmVO pmfm;
 
     private ReferentialVO qualitativeValue;
 

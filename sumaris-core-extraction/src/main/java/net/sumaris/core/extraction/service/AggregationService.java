@@ -105,6 +105,9 @@ public interface AggregationService {
                                        @Nullable SortDirection direction);
 
     @Transactional
+    void refresh(int id);
+
+    @Transactional
     AggregationTypeVO save(AggregationTypeVO type, @Nullable ExtractionFilterVO filter);
 
     @Async

@@ -20,20 +20,24 @@
  * #L%
  */
 
-package net.sumaris.core.dao.data;
+package net.sumaris.core.util;
 
-import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
-import net.sumaris.core.model.data.DenormalizedBatch;
-import net.sumaris.core.vo.data.DenormalizedBatchVO;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
-import java.util.Set;
+public class Numbers {
 
-public interface DenormalizedBatchRepository
-        extends SumarisJpaRepository<DenormalizedBatch, Integer, DenormalizedBatchVO>,
-        DenormalizedBatchRepositoryExtend {
+    protected Numbers() {
+        // Helper class
+    }
 
-    Set<Integer> getAllIdsByOperationId(int operationId);
-
-    Set<Integer> getAllIdsBySaleId(int operationId);
-
+    public static String format(Number value, int maximumFractionDigits) {
+        DecimalFormat formatter = new DecimalFormat();
+        formatter.setMaximumFractionDigits(maximumFractionDigits);
+        formatter.setDecimalSeparatorAlwaysShown(false);
+        formatter.setGroupingUsed(false);
+        formatter.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.FRANCE));
+        return formatter.format(value);
+    }
 }

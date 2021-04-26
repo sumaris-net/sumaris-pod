@@ -34,8 +34,8 @@ import java.util.stream.Stream;
 
 public class TreeNodeEntities {
 
-    public static <T extends ITreeNodeEntityBean<? extends Serializable, T>> List<T> treeAsList(T catchBatch) {
-        return streamAll(catchBatch).collect(Collectors.toList());
+    public static <T extends ITreeNodeEntityBean<? extends Serializable, T>> List<T> treeAsList(T rootNode) {
+        return streamAll(rootNode).collect(Collectors.toList());
     }
 
     public static <T extends ITreeNodeEntityBean<? extends Serializable, T>> Stream<T> streamAll(T rootNode) {

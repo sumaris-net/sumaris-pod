@@ -1,10 +1,10 @@
-package net.sumaris.core.vo.referential;
+package net.sumaris.core.model.referential.conversion;
 
 /*-
  * #%L
  * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2018 - 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,37 +22,14 @@ package net.sumaris.core.vo.referential;
  * #L%
  */
 
-import lombok.*;
+import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 
-import java.util.Date;
+import java.io.Serializable;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @FieldNameConstants
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class ReferentialVO implements IReferentialVO {
-    @EqualsAndHashCode.Include
-    private Integer id;
-    private String label;
-    private String name;
-    private String description;
-    private String comments;
-    private Date updateDate;
-    private Date creationDate;
-
-    private Integer statusId;
-    private Integer validityStatusId;
-
-    //@EqualsAndHashCode.Exclude
-    private Integer levelId;
-
-    private Integer rankOrder;
-
-    // Metadata
-    //@EqualsAndHashCode.Exclude
-    private String entityName;
+public class UnitConversionId implements Serializable {
+    private int fromUnit;
+    private int toUnit;
 }
-

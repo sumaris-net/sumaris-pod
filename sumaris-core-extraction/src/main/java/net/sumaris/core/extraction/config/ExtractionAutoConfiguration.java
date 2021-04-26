@@ -20,19 +20,25 @@
  * #L%
  */
 
-package net.sumaris.core.dao.data;
+package net.sumaris.core.extraction.config;
 
-import net.sumaris.core.vo.data.batch.BatchVO;
-import net.sumaris.core.vo.data.DenormalizedBatchVO;
+import net.sumaris.core.config.SumarisConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.Nonnull;
-import java.util.List;
+@Configuration
+@ConditionalOnProperty(
+    prefix = "sumaris.extraction",
+    name = {"enabled"},
+    matchIfMissing = true
+)
+public class ExtractionAutoConfiguration {
 
-public interface DenormalizedBatchRepositoryExtend<V extends DenormalizedBatchVO> {
-
-    List<V> saveAllByOperationId(int operationId, @Nonnull List<V> sources);
-
-    List<V> saveAllBySaleId(int saleId, @Nonnull List<V> sources);
-
-    List<V> denormalized(BatchVO catchBatch);
+    @Bean
+    public ExtractionConfiguration extractionConfiguration(SumarisConfiguration configuration) {
+        ExtractionConfiguration instance = new ExtractionConfiguration(configuration);
+        ExtractionConfiguration.setInstance(instance);
+        return instance;
+    }
 }

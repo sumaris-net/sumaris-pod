@@ -201,24 +201,23 @@ public class DataTestUtils {
         catchBatch.setLabel("CATCH_BATCH");
         catchBatch.setRankOrder(1);
         catchBatch.setComments("Catch batch on OPE #1");
-        catchBatch.setChildren(Lists.newArrayList());
         catchBatch.setExhaustiveInventory(Boolean.FALSE);
 
-        // Species batch #1
+        // Species batch #1 (NEP - Langoustine)
         {
             BatchVO speciesBatch = new BatchVO();
-            catchBatch.getChildren().add(speciesBatch);
+            catchBatch.addChildren(speciesBatch);
             speciesBatch.setLabel("SORTING_BATCH#1");
             speciesBatch.setRankOrder(1);
-            speciesBatch.setTaxonGroup(createReferentialVO(fixtures.getTaxonGroupFAOId(0)));
+            speciesBatch.setTaxonGroup(createReferentialVO(1131, "NEP"));
             speciesBatch.setChildren(Lists.newArrayList());
             speciesBatch.setExhaustiveInventory(Boolean.TRUE);
 
             // Landing (weight=100kg)
             {
                 BatchVO lanBatch = new BatchVO();
-                speciesBatch.getChildren().add(lanBatch);
-                lanBatch.setLabel("SORTING_BATCH#1.LAN");
+                speciesBatch.addChildren(lanBatch);
+                lanBatch.setLabel(speciesBatch.getLabel() + ".LAN");
                 lanBatch.setRankOrder(1);
                 lanBatch.setExhaustiveInventory(Boolean.TRUE);
                 lanBatch.setMeasurementValues(
@@ -226,26 +225,51 @@ public class DataTestUtils {
                                 .put(PmfmEnum.BATCH_MEASURED_WEIGHT.getId(), "100") // Total weight
                                 .put(PmfmEnum.DISCARD_OR_LANDING.getId(), String.valueOf(QualitativeValueEnum.LANDING.getId()))
                                 .build());
-                lanBatch.setChildren(Lists.newArrayList());
 
                 // Landing > Sampling batch (weight=50kg)
                 {
                     BatchVO samplingBatch = new BatchVO();
-                    lanBatch.getChildren().add(samplingBatch);
-                    samplingBatch.setLabel("SORTING_BATCH#1.LAN%");
+                    lanBatch.addChildren(samplingBatch);
+                    samplingBatch.setLabel(lanBatch.getLabel() + "%");
                     samplingBatch.setRankOrder(1);
                     samplingBatch.setMeasurementValues(
                             ImmutableMap.<Integer, String>builder()
                                     .put(PmfmEnum.BATCH_MEASURED_WEIGHT.getId(), "50") // Sample weight
                                     .build());
+
+                    // Landing > % > 7cm (1 indiv)
+                    {
+                        BatchVO lengthBatch = new BatchVO();
+                        samplingBatch.addChildren(lengthBatch);
+                        lengthBatch.setLabel("SORTING_BATCH_INDIVIDUAL#1");
+                        lengthBatch.setRankOrder(1);
+                        lengthBatch.setIndividualCount(1);
+                        lengthBatch.setMeasurementValues(
+                                ImmutableMap.<Integer, String>builder()
+                                        .put(PmfmEnum.LENGTH_CARAPACE_CM.getId(), "7") // Total length
+                                        .build());
+                    }
+
+                    // Landing > % > 8cm (1 indiv)
+                    {
+                        BatchVO lengthBatch = new BatchVO();
+                        samplingBatch.addChildren(lengthBatch);
+                        lengthBatch.setLabel("SORTING_BATCH_INDIVIDUAL#2");
+                        lengthBatch.setRankOrder(2);
+                        lengthBatch.setIndividualCount(1);
+                        lengthBatch.setMeasurementValues(
+                                ImmutableMap.<Integer, String>builder()
+                                        .put(PmfmEnum.LENGTH_CARAPACE_CM.getId(), "8") // Total length
+                                        .build());
+                    }
                 }
             }
 
             // Discard (weight=20kg)
             {
                 BatchVO disBatch = new BatchVO();
-                speciesBatch.getChildren().add(disBatch);
-                disBatch.setLabel("SORTING_BATCH#1.DIS");
+                speciesBatch.addChildren(disBatch);
+                disBatch.setLabel(speciesBatch.getLabel() + ".DIS");
                 disBatch.setRankOrder(2);
                 disBatch.setExhaustiveInventory(Boolean.TRUE);
                 disBatch.setMeasurementValues(
@@ -258,31 +282,43 @@ public class DataTestUtils {
                 // Discard > Sampling batch (ratio=50%)
                 {
                     BatchVO samplingBatch = new BatchVO();
-                    disBatch.getChildren().add(samplingBatch);
-                    samplingBatch.setLabel("SORTING_BATCH#1.DIS%");
+                    disBatch.addChildren(samplingBatch);
+                    samplingBatch.setLabel(disBatch.getLabel() + "%");
                     samplingBatch.setRankOrder(1);
                     samplingBatch.setSamplingRatio(0.5);
                     samplingBatch.setSamplingRatioText("50%");
+
+                    // Landing > % > 5cm (2 indiv)
+                    {
+                        BatchVO lengthBatch = new BatchVO();
+                        samplingBatch.addChildren(lengthBatch);
+                        lengthBatch.setLabel("SORTING_BATCH_INDIVIDUAL#3");
+                        lengthBatch.setRankOrder(1);
+                        lengthBatch.setIndividualCount(2);
+                        lengthBatch.setMeasurementValues(
+                                ImmutableMap.<Integer, String>builder()
+                                        .put(PmfmEnum.LENGTH_CARAPACE_CM.getId(), "5") // Total length
+                                        .build());
+                    }
                 }
             }
 
         }
 
-        // Species batch #2
+        // Species batch #2 (GAD - Eglefin)
         {
             BatchVO speciesBatch = new BatchVO();
-            catchBatch.getChildren().add(speciesBatch);
+            catchBatch.addChildren(speciesBatch);
             speciesBatch.setLabel("SORTING_BATCH#2");
             speciesBatch.setRankOrder(2);
-            speciesBatch.setTaxonGroup(createReferentialVO(fixtures.getTaxonGroupFAOId(1)));
-            speciesBatch.setChildren(Lists.newArrayList());
+            speciesBatch.setTaxonGroup(createReferentialVO(1152, "GAD"));
             speciesBatch.setExhaustiveInventory(Boolean.TRUE);
 
             // Landing
             {
                 BatchVO lanBatch = new BatchVO();
-                speciesBatch.getChildren().add(lanBatch);
-                lanBatch.setLabel("SORTING_BATCH#2.LAN");
+                speciesBatch.addChildren(lanBatch);
+                lanBatch.setLabel(speciesBatch.getLabel() + ".LAN");
                 lanBatch.setRankOrder(1);
                 lanBatch.setExhaustiveInventory(Boolean.TRUE);
                 // Measurements (as map)
@@ -296,8 +332,8 @@ public class DataTestUtils {
             // Discard
             {
                 BatchVO disBatch = new BatchVO();
-                speciesBatch.getChildren().add(disBatch);
-                disBatch.setLabel("SORTING_BATCH#2.DIS");
+                speciesBatch.addChildren(disBatch);
+                disBatch.setLabel(speciesBatch.getLabel() + ".DIS");
                 disBatch.setRankOrder(2);
                 disBatch.setExhaustiveInventory(Boolean.TRUE);
                 // Measurements (as map)
@@ -310,12 +346,79 @@ public class DataTestUtils {
             }
         }
 
+        // Species batch #3 (MNZ - Baudroie / Pour RTP)
+        {
+            BatchVO speciesBatch = new BatchVO();
+            catchBatch.addChildren(speciesBatch);
+            speciesBatch.setLabel("SORTING_BATCH#3");
+            speciesBatch.setRankOrder(3);
+            speciesBatch.setTaxonGroup(createReferentialVO(1132, "MNZ"));
+            speciesBatch.setExhaustiveInventory(Boolean.TRUE);
+
+            // Landing (10kg)
+            {
+                BatchVO lanBatch = new BatchVO();
+                speciesBatch.addChildren(lanBatch);
+                lanBatch.setLabel(speciesBatch.getLabel() + ".LAN");
+                lanBatch.setRankOrder(1);
+                lanBatch.setExhaustiveInventory(Boolean.TRUE);
+                // Measurements (as map)
+                lanBatch.setMeasurementValues(
+                        ImmutableMap.<Integer, String>builder()
+                                .put(PmfmEnum.BATCH_MEASURED_WEIGHT.getId(), "10") // Total weight
+                                .put(PmfmEnum.DISCARD_OR_LANDING.getId(), String.valueOf(QualitativeValueEnum.LANDING.getId()))
+                                .build());
+
+                // Discard > Sampling batch (ratio=50%)
+                {
+                    BatchVO samplingBatch = new BatchVO();
+                    lanBatch.addChildren(samplingBatch);
+                    samplingBatch.setLabel(lanBatch.getLabel() + "%");
+                    samplingBatch.setRankOrder(1);
+                    //samplingBatch.setSamplingRatio(0.5);
+                    //samplingBatch.setSamplingRatioText("50%");
+
+                    // Landing > % > 30cm (1 indiv)
+                    {
+                        BatchVO lengthBatch = new BatchVO();
+                        samplingBatch.addChildren(lengthBatch);
+                        lengthBatch.setLabel("SORTING_BATCH_INDIVIDUAL#4");
+                        lengthBatch.setRankOrder(1);
+                        lengthBatch.setIndividualCount(1);
+                        lengthBatch.setMeasurementValues(
+                                ImmutableMap.<Integer, String>builder()
+                                        .put(PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(), "0.681") // 780g
+                                        .put(PmfmEnum.LENGTH_TOTAL_CM.getId(), "30") // Total length
+                                        .build());
+                    }
+                    // Landing > % > 35cm (1 indiv)
+                    {
+                        BatchVO lengthBatch = new BatchVO();
+                        samplingBatch.addChildren(lengthBatch);
+                        lengthBatch.setLabel("SORTING_BATCH_INDIVIDUAL#5");
+                        lengthBatch.setRankOrder(2);
+                        lengthBatch.setIndividualCount(1);
+                        lengthBatch.setMeasurementValues(
+                                ImmutableMap.<Integer, String>builder()
+                                        .put(PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(), "0.780") // 780g
+                                        .put(PmfmEnum.LENGTH_TOTAL_CM.getId(), "35") // Total length
+                                        .build());
+                    }
+                }
+            }
+        }
+
         return catchBatch;
     }
 
     public static ReferentialVO createReferentialVO(int id) {
+        return createReferentialVO(id, "?");
+    }
+
+    public static ReferentialVO createReferentialVO(int id, String label) {
         ReferentialVO result = new ReferentialVO();
         result.setId(id);
+        result.setLabel(label);
         return result;
     }
 

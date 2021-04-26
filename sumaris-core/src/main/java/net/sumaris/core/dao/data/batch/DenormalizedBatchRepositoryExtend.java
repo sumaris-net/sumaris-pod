@@ -1,10 +1,8 @@
-package net.sumaris.core.service.technical;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,16 +20,19 @@ package net.sumaris.core.service.technical;
  * #L%
  */
 
-import net.sumaris.core.vo.technical.SoftwareVO;
-import org.springframework.transaction.annotation.Transactional;
+package net.sumaris.core.dao.data.batch;
 
-@Transactional(readOnly = true)
-public interface ConfigurationService {
+import net.sumaris.core.vo.data.batch.BatchVO;
+import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
 
-    SoftwareVO getCurrentSoftware();
+import javax.annotation.Nonnull;
+import java.util.List;
 
-    boolean isReady();
+public interface DenormalizedBatchRepositoryExtend<V extends DenormalizedBatchVO> {
 
+    List<V> saveAllByOperationId(int operationId, @Nonnull List<V> sources);
+
+    List<V> saveAllBySaleId(int saleId, @Nonnull List<V> sources);
+
+    List<V> denormalized(BatchVO catchBatch);
 }
-
-

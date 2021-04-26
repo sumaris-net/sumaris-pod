@@ -24,7 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import net.sumaris.core.vo.data.batch.BatchVO;
-import net.sumaris.core.vo.data.DenormalizedBatchVO;
+import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -41,4 +41,5 @@ public interface DenormalizedBatchService {
 	List<DenormalizedBatchVO> saveAllByOperationId(int operationId, BatchVO catchBatch);
 
 	List<DenormalizedBatchVO> saveAllBySaleId(int saleId, BatchVO catchBatch);
+
 }

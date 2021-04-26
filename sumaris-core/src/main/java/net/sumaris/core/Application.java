@@ -26,13 +26,10 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.service.ServiceLocator;
+import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.ApplicationUtils;
 import net.sumaris.core.util.I18nUtil;
 import net.sumaris.core.util.StringUtils;
-import org.apache.commons.io.FileUtils;
-import org.nuiton.i18n.I18n;
-import org.nuiton.i18n.init.DefaultI18nInitializer;
-import org.nuiton.i18n.init.UserI18nInitializer;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -121,14 +118,14 @@ public class Application {
 			ConfigurableApplicationContext appContext = SpringApplication.run(clazz, ARGS);
 			appContext.addApplicationListener(applicationEvent -> {
 				// Log when application closed
-				if (applicationEvent instanceof ContextClosedEvent) log.info("Application closed");
+				if (applicationEvent instanceof ContextClosedEvent) log.debug("Application closed");
 			});
 
 			// Init service locator
 			ServiceLocator.init(appContext);
 
 			// Execute all action
-			doAllAction(appContext);
+			doAllAction(appContext, true);
 		} catch (Exception e) {
 			log.error("Error while executing action", e);
 		}
@@ -180,32 +177,48 @@ public class Application {
 	}
 
 
-	protected static void doAllAction(ApplicationContext appContext) {
-		TaskExecutor taskExecutor = null;
-		try {
-			// Execute all action
-			taskExecutor = appContext.getBean(TaskExecutor.class);
-		} catch (NoSuchBeanDefinitionException e) {
-			taskExecutor = null;
-		}
-
-		// Execute all action
-		if (taskExecutor != null) {
-			taskExecutor.execute(() -> {
-				try {
-					SumarisConfiguration.getInstance().getApplicationConfig().doAllAction();
-				} catch(Exception e) {
-					log.error("Error while executing action", e);
-				}
-			});
-		}
-		else {
+	protected static void doAllAction(ApplicationContext appContext, boolean runInThread) {
+		if (runInThread) {
 			try {
-				SumarisConfiguration.getInstance().getApplicationConfig().doAllAction();
-			} catch (Exception e) {
-				log.error("Error while executing action", e);
+				// Execute in a thread
+				TaskExecutor taskExecutor = appContext.getBean(TaskExecutor.class);
+				taskExecutor.execute(() -> doAllAction(appContext, false));
+				return;
+			} catch (NoSuchBeanDefinitionException e) {
+				// continue
 			}
 		}
+
+		waitConfigurationReady(appContext);
+
+		try {
+			SumarisConfiguration.getInstance().getApplicationConfig().doAllAction();
+			System.exit(0);
+		} catch(Exception e) {
+			log.error("Error while executing action", e);
+			System.exit(1);
+		}
+	}
+
+	protected static void waitConfigurationReady(ApplicationContext appContext) {
+		try {
+			// Get the configuration service bean
+			ConfigurationService service = appContext.getBean(ConfigurationService.class);
+
+			// Make sure configuration has been loaded
+			while(!service.isReady()) {
+				try {
+					Thread.sleep(1000);
+				}
+				catch (InterruptedException e) {
+					// End
+				}
+			}
+		} catch (NoSuchBeanDefinitionException e) {
+			// continue
+		}
+
+
 	}
 
 }
