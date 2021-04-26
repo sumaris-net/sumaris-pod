@@ -198,7 +198,7 @@ export class AggregationService extends BaseGraphqlService {
       query: LoadTypesQuery,
       arrayFieldName: 'aggregationTypes',
       insertFilterFn: AggregationTypeFilter.searchFilter(dataFilter),
-      variables: variables,
+      variables,
       error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     })
