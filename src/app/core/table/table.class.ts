@@ -102,7 +102,16 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   totalRowCount: number;
   visibleRowCount: number;
   loadingSubject = new BehaviorSubject<boolean>(true);
-  error: string;
+  errorSubject = new BehaviorSubject<string>(undefined);
+
+  get error(): string {
+    return this.errorSubject.getValue();
+  }
+
+  set error(error) {
+    this.errorSubject.next(error);
+  }
+
   isRateLimitReached = false;
   selection = new SelectionModel<TableElement<T>>(true, []);
   editedRow: TableElement<T> = undefined;
