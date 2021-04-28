@@ -32,7 +32,8 @@
                  (keyup.arrowdown)="openDatePicker($event, datePicker)"
                  (keyup.escape)="preventEvent($event)"
                  [required]="required"
-                 [tabindex]="tabindex">
+                 [tabindex]="tabindex"
+                 [appAutofocus]="autofocus">
           <input matInput #matInput autocomplete="off" type="text"
                  *ngIf="mobile"
                  [formControl]="dateFormControl"

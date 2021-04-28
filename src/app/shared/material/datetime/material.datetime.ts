@@ -103,6 +103,8 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
+  @Input() autofocus = false;
+
   @Input() set tabindex(value: number) {
     if (this._tabindex !== value) {
       this._tabindex = value;

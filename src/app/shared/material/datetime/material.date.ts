@@ -92,6 +92,8 @@ export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputEl
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
+  @Input() autofocus = false;
+
   @Input() set tabindex(value: number) {
     if (this._tabindex !== value) {
       this._tabindex = value;
