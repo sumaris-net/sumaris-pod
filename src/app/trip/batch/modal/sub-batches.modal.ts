@@ -174,7 +174,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {
     this.scrollToTop();
 
-    return super.doSubmitForm();
+    return super.doSubmitForm(event, row);
   }
 
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
