@@ -13,7 +13,7 @@
 
         <input matInput #matInput type="text"
                [formControl]="formControl"
-               [placeholder]="pmfm.name"
+               [placeholder]="placeholder"
                [matAutocomplete]="autoCombo"
                (click)="selectInputContent($event) && onShowDropdown.emit($event)"
                (focus)="onShowDropdown.next($event)"
@@ -155,10 +155,4 @@
     </mat-form-field>
   </ng-container>
 
-  <!-- Suffix -->
-  <div class="cdk-visually-hidden">
-    <div #suffix>
-
-    </div>
-  </div>
 </ng-template>
