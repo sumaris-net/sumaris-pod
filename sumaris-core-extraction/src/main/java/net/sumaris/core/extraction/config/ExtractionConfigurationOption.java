@@ -24,15 +24,9 @@ package net.sumaris.core.extraction.config;
  * #L%
  */
 
-import net.sumaris.core.config.LaunchModeEnum;
-import net.sumaris.core.dao.technical.hibernate.spatial.HSQLSpatialDialect;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
+import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import org.nuiton.config.ConfigOptionDef;
-import org.nuiton.version.Version;
-
-import java.io.File;
-import java.net.URL;
-import java.util.Locale;
 
 import static org.nuiton.i18n.I18n.n;
 
@@ -64,7 +58,21 @@ public enum ExtractionConfigurationOption implements ConfigOptionDef {
             n("sumaris.config.option.extraction.cli.output.format.description"),
             LiveFormatEnum.RDB.getLabel(),
             String.class,
-            false)
+            false),
+
+    EXTRACTION_CLI_FREQUENCY(
+            "sumaris.extraction.cli.frequency",
+            n("sumaris.config.option.extraction.cli.frequency.description"),
+            ProcessingFrequencyEnum.DAILY.name(),
+            String.class,
+            false),
+
+    EXTRACTION_PRODUCT_ENABLE(
+            "sumaris.extraction.product.enable",
+            n("sumaris.config.option.extraction.product.enable.description"),
+            Boolean.FALSE.toString(),
+            Boolean.class,
+        false)
     ;
 
     /** Configuration key. */

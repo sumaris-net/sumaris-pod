@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.sumaris.core.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.ActiveMQPrefetchPolicy;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -72,17 +73,31 @@ public class JmsConfiguration {
     @ConditionalOnClass(name = "org.apache.activemq.store.kahadb.KahaDBPersistenceAdapter")
     public ConnectionFactory connectionFactory(SumarisServerConfiguration config) {
         String url = config.getActiveMQBrokerURL();
-        String userName = config.getActiveMQBrokerUserName();
-        String password = config.getActiveMQBrokerPassword();
+        int prefetchLimit = config.getActiveMQPrefetchLimit();
 
-        // Use username/pwd constructor
-        if (StringUtils.isNotBlank(userName)) {
-            log.info(String.format("Starting JMS broker... {type: 'ActiveMQ', url: '%s', userName: '%s', password: '******'}...", url, userName));
-            return new ActiveMQConnectionFactory(userName, password, url);
+        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(url);
+
+        // Configure prefetch policy
+        if (prefetchLimit > 0) {
+            ActiveMQPrefetchPolicy prefetchPolicy = new ActiveMQPrefetchPolicy();
+            prefetchPolicy.setQueuePrefetch(prefetchLimit);
+            prefetchPolicy.setMaximumPendingMessageLimit(prefetchLimit);
+            connectionFactory.setPrefetchPolicy(prefetchPolicy);
         }
 
-        // Use URL only constructor
-        log.info(String.format("Starting JMS broker... {type: 'ActiveMQ', url: '%s'}...", url));
-        return new ActiveMQConnectionFactory(url);
+        // Configure username/password
+        String userName = config.getActiveMQBrokerUserName();
+        String password = config.getActiveMQBrokerPassword();
+        if (StringUtils.isNotBlank(userName)) {
+            log.info(String.format("Starting JMS broker... {type: 'ActiveMQ', url: '%s', userName: '%s', password: '******'}...", url, userName));
+            connectionFactory.setUserName(userName);
+            connectionFactory.setPassword(password);
+        }
+        else {
+            log.info(String.format("Starting JMS broker... {type: 'ActiveMQ', url: '%s'}...", url));
+        }
+
+
+        return connectionFactory;
     }
 }

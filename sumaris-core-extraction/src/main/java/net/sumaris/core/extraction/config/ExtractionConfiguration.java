@@ -26,6 +26,8 @@ import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
+import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import org.nuiton.config.ApplicationConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -59,6 +61,31 @@ public class ExtractionConfiguration {
 
     public String getExtractionCliOutputFormat() {
         return getApplicationConfig().getOption(ExtractionConfigurationOption.EXTRACTION_CLI_OUTPUT_FORMAT.getKey());
+    }
+
+    public ProcessingFrequencyEnum getExtractionCliFrequency() {
+        String value = getApplicationConfig().getOption(ExtractionConfigurationOption.EXTRACTION_CLI_FREQUENCY.getKey());
+        try {
+            return ProcessingFrequencyEnum.valueOf(value);
+        }
+        catch (IllegalArgumentException e) {
+            throw new SumarisTechnicalException(String.format("Invalid frequency '%s'. Available values: %s",
+                value,
+                ProcessingFrequencyEnum.values()
+            ));
+        }
+    }
+
+    public boolean enableExtractionProduct() {
+        return getApplicationConfig().getOptionAsBoolean(ExtractionConfigurationOption.EXTRACTION_PRODUCT_ENABLE.getKey());
+    }
+
+    public boolean enableTechnicalTablesUpdate() {
+        return getApplicationConfig().getOptionAsBoolean(SumarisConfigurationOption.ENABLE_TECHNICAL_TABLES_UPDATE.getKey());
+    }
+
+    public File getTempDirectory() {
+        return getApplicationConfig().getOptionAsFile(SumarisConfigurationOption.TMP_DIRECTORY.getKey());
     }
 
     public ApplicationConfig getApplicationConfig() {

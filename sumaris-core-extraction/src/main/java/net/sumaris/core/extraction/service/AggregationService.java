@@ -57,12 +57,19 @@ public interface AggregationService {
     @Transactional(readOnly = true)
     AggregationTypeVO getTypeById(int id, ExtractionProductFetchOptions fetchOptions);
 
+    /**
+     * Refresh a product (execute the aggregation, using the filter stored in the product)
+     * @param productId
+     */
+    @Transactional
+    void updateProduct(int productId);
 
     /**
      * Do an aggregate
      *
      * @param type
      * @param filter
+     * @param strata
      */
     @Transactional
     AggregationContextVO execute(AggregationTypeVO type,
@@ -81,12 +88,14 @@ public interface AggregationService {
                                       @Nullable AggregationStrataVO strata,
                                       int offset, int size, String sort, SortDirection direction);
 
+    @Transactional(readOnly = true)
     AggregationTechResultVO getAggByTech(AggregationTypeVO format,
                                          ExtractionFilterVO filter,
                                          AggregationStrataVO strata,
                                          String sort,
                                          SortDirection direction);
 
+    @Transactional(readOnly = true)
     MinMaxVO getAggMinMaxByTech(AggregationTypeVO format,
                                 ExtractionFilterVO filter,
                                 AggregationStrataVO strata);
@@ -103,9 +112,6 @@ public interface AggregationService {
                                        int offset, int size,
                                        @Nullable String sort,
                                        @Nullable SortDirection direction);
-
-    @Transactional
-    void refresh(int id);
 
     @Transactional
     AggregationTypeVO save(AggregationTypeVO type, @Nullable ExtractionFilterVO filter);

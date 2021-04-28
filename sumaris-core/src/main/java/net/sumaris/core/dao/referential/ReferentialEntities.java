@@ -49,6 +49,7 @@ import net.sumaris.core.model.referential.transcribing.TranscribingItem;
 import net.sumaris.core.model.technical.configuration.Software;
 import net.sumaris.core.model.technical.extraction.ExtractionProduct;
 import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
+import net.sumaris.core.model.technical.history.ProcessingFrequency;
 import net.sumaris.core.model.technical.versionning.SystemVersion;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.BeanUtils;
@@ -98,75 +99,81 @@ public class ReferentialEntities {
         I18n.n("sumaris.persistence.table.systemVersion");
         I18n.n("sumaris.persistence.table.originItemType");
         I18n.n("sumaris.persistence.table.strategy");
+        I18n.n("sumaris.persistence.table.processingFrequency");
     }
 
     public static final List<Class<? extends IReferentialEntity>> REFERENTIAL_CLASSES = ImmutableList.of(
-                    Status.class,
-                    Department.class,
-                    Location.class,
-                    LocationLevel.class,
-                    LocationClassification.class,
-                    Gear.class,
-                    GearClassification.class,
-                    UserProfile.class,
-                    SaleType.class,
-                    VesselType.class,
-                    // Taxon group
-                    TaxonGroupType.class,
-                    TaxonGroup.class,
-                    // Taxon
-                    TaxonomicLevel.class,
-                    TaxonName.class,
-                    // Métier
-                    Metier.class,
-                    // Pmfm
-                    Parameter.class,
-                    Pmfm.class,
-                    Matrix.class,
-                    Fraction.class,
-                    Method.class,
-                    QualitativeValue.class,
-                    Unit.class,
-                    // Quality
-                    QualityFlag.class,
-                    // Program/strategy
-                    Program.class,
-                    Strategy.class,
-                    AcquisitionLevel.class,
-                    // Transcribing
-                    TranscribingItem.class,
-                    // Grouping
-                    GroupingClassification.class,
-                    GroupingLevel.class,
-                    Grouping.class,
-                    // Fishing Area
-                    DistanceToCoastGradient.class,
-                    DepthGradient.class,
-                    NearbySpecificArea.class,
-                    // Product
-                    ExtractionProduct.class,
-                    ExtractionProductTable.class,
-                    // Software
-                    Software.class,
-                    // Program
-                    ProgramPrivilege.class,
-                    // Technical
-                    SystemVersion.class,
-                    OriginItemType.class
-            );
+                Status.class,
+                Department.class,
+                Location.class,
+                LocationLevel.class,
+                LocationClassification.class,
+                Gear.class,
+                GearClassification.class,
+                UserProfile.class,
+                SaleType.class,
+                VesselType.class,
+                // Taxon group
+                TaxonGroupType.class,
+                TaxonGroup.class,
+                // Taxon
+                TaxonomicLevel.class,
+                TaxonName.class,
+                // Métier
+                Metier.class,
+                // Pmfm
+                Parameter.class,
+                Pmfm.class,
+                Matrix.class,
+                Fraction.class,
+                Method.class,
+                QualitativeValue.class,
+                Unit.class,
+                // Quality
+                QualityFlag.class,
+                // Program/strategy
+                Program.class,
+                Strategy.class,
+                AcquisitionLevel.class,
+                // Transcribing
+                TranscribingItem.class,
+                // Grouping
+                GroupingClassification.class,
+                GroupingLevel.class,
+                Grouping.class,
+                // Fishing Area
+                DistanceToCoastGradient.class,
+                DepthGradient.class,
+                NearbySpecificArea.class,
+                // Product
+                ExtractionProduct.class,
+                ExtractionProductTable.class,
+                // Software
+                Software.class,
+                // Program
+                ProgramPrivilege.class,
+                // Technical
+                SystemVersion.class,
+                OriginItemType.class,
+                ProcessingFrequency.class
+        );
 
     public static final Map<String, Class<? extends IReferentialEntity>> REFERENTIAL_CLASSES_BY_NAME = Maps.uniqueIndex(
             REFERENTIAL_CLASSES,
             Class::getSimpleName);
 
     public static final List<Class<? extends IReferentialEntity>> LAST_UPDATE_DATE_CLASSES_EXCLUDES = ImmutableList.of(
-            // Product
-            ExtractionProduct.class,
-            ExtractionProductTable.class,
-            // Software
-            Software.class,
-            // Technical
-            SystemVersion.class
+        // Grouping
+        GroupingClassification.class,
+        GroupingLevel.class,
+        Grouping.class,
+        // Product
+        ExtractionProduct.class,
+        ExtractionProductTable.class,
+        // Software
+        Software.class,
+        // Technical
+        SystemVersion.class
     );
 
 
@@ -199,6 +206,7 @@ public class ReferentialEntities {
         result.put(Metier.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Metier.class, Metier.Fields.GEAR));
         result.put(GroupingLevel.class.getSimpleName(), BeanUtils.getPropertyDescriptor(GroupingLevel.class, GroupingLevel.Fields.GROUPING_CLASSIFICATION));
         result.put(Grouping.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Grouping.class, Grouping.Fields.GROUPING_LEVEL));
+        result.put(ExtractionProduct.class.getSimpleName(), BeanUtils.getPropertyDescriptor(ExtractionProduct.class, ExtractionProduct.Fields.PROCESSING_FREQUENCY));
         result.put(ExtractionProductTable.class.getSimpleName(), BeanUtils.getPropertyDescriptor(ExtractionProductTable.class, ExtractionProductTable.Fields.PRODUCT));
         result.put(LocationLevel.class.getSimpleName(), BeanUtils.getPropertyDescriptor(LocationLevel.class, LocationLevel.Fields.LOCATION_CLASSIFICATION));
         result.put(Gear.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Gear.class, Gear.Fields.GEAR_CLASSIFICATION));

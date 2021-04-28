@@ -32,12 +32,11 @@ import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.util.Beans;
+import net.sumaris.core.model.technical.history.ProcessingFrequency;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.SortNatural;
 
 import javax.persistence.*;
-import java.sql.Clob;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -96,8 +95,12 @@ public class ExtractionProduct implements IItemReferentialEntity,
     @Lob
     private String filter;
 
-    @Column(name = "is_spatial")
+    @Column(name = "is_spatial", nullable = false)
     private Boolean isSpatial;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "processing_frequency_fk", nullable = false)
+    private ProcessingFrequency processingFrequency;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recorder_person_fk")

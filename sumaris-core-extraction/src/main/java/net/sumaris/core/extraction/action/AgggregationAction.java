@@ -31,25 +31,14 @@ import net.sumaris.core.extraction.exception.UnknownFormatException;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.service.AggregationService;
 import net.sumaris.core.extraction.service.ExtractionProductService;
-import net.sumaris.core.extraction.service.ExtractionService;
-import net.sumaris.core.extraction.util.ExtractionFormats;
 import net.sumaris.core.extraction.vo.AggregationTypeVO;
-import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.service.ServiceLocator;
-import net.sumaris.core.service.data.ProductService;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFilterVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import org.apache.commons.collections4.CollectionUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -90,43 +79,6 @@ public class AgggregationAction {
                 StringUtils.capitalize(type.getCategory().name().toLowerCase()),
                 type.getLabel());
         ActionUtils.logConnectionProperties();
-
-
     }
 
-    /**
-     * <p>refresh.</p>
-     */
-    public void refresh() {
-        ExtractionConfiguration config = ExtractionConfiguration.instance();
-        AggregationService aggregationService = ServiceLocator.instance().getService("aggregationService", AggregationService.class);
-        ExtractionProductService productService = ServiceLocator.instance().getService("extractionProductService", ExtractionProductService.class);
-
-        List<ExtractionProductVO> products = productService.findByFilter(ExtractionProductFilterVO.builder()
-                        .statusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()})
-                        .build(),
-                ExtractionProductFetchOptions.builder().build());
-
-        if (CollectionUtils.isEmpty(products)) {
-            log.info("No product found in database. Nothing to refresh");
-            return;
-        }
-
-        log.info("Refreshing aggregation products...");
-        ActionUtils.logConnectionProperties();
-
-        for (ExtractionProductVO product: products) {
-            log.info("Updating product {{}}...", product.getLabel());
-
-            aggregationService.refresh(product.getId());
-
-            try {
-                Thread.sleep(10000); // Waiting 10s, to avoid HSQLDB 'generale error'
-            }
-            catch (InterruptedException e) {
-                // Stop
-                return;
-            }
-        }
-    }
 }

@@ -804,11 +804,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOption(SumarisConfigurationOption.VESSEL_DEFAULT_PROGRAM_LABEL.getKey());
     }
 
-    public boolean enableExtractionProduct() {
-        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_EXTRACTION_PRODUCT.getKey());
-    }
-
-
     /* -- protected methods -- */
 
     /**

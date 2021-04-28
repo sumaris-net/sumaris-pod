@@ -168,16 +168,24 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             n("sumaris.config.option.spring.activemq.broker-url.description"),
             "vm://embedded?broker.persistent=true",
             String.class),
+
     ACTIVEMQ_BROKER_USERNAME(
             "spring.activemq.broker-username",
             n("sumaris.config.option.spring.activemq.broker-username.description"),
             "",
             String.class),
+
     ACTIVEMQ_BROKER_PASSWORD(
-            "spring.activemq.broker-password",
-            n("sumaris.config.option.spring.activemq.broker-username.description"),
-            "",
-            String.class),
+        "spring.activemq.broker-password",
+        n("sumaris.config.option.spring.activemq.broker-username.description"),
+        "",
+        String.class),
+
+    ACTIVEMQ_PREFETCH_LIMIT(
+        "spring.activemq.prefetch.limit",
+        n("sumaris.config.option.spring.activemq.prefetch.limit.description"),
+        "10",
+        Integer.class),
 
     SITE_FAVICON(
             "sumaris.favicon",
@@ -220,6 +228,20 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             "${server.url}/download/android/sumaris-app-latest.apk",
             String.class,
             false),
+
+    ENABLE_GRAVATAR(
+        "sumaris.gravatar.enable",
+        n("sumaris.config.option.gravatar.enable.description"),
+        "false",
+        Boolean.class,
+        false),
+
+    GRAVATAR_URL(
+        "sumaris.gravatar.url",
+        n("sumaris.config.option.gravatar.url.description"),
+        "https://www.gravatar.com/avatar/{md5}",
+        String.class,
+        false)
     ;
 
     /** Configuration key. */

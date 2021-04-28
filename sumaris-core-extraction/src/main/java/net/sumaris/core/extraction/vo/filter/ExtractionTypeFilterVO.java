@@ -33,6 +33,10 @@ import net.sumaris.core.vo.technical.extraction.ExtractionProductFilterVO;
 @EqualsAndHashCode(callSuper = true)
 public class ExtractionTypeFilterVO extends ExtractionProductFilterVO {
 
+    public static ExtractionTypeFilterVO nullToEmpty(ExtractionTypeFilterVO filter) {
+        return filter != null ? filter : new ExtractionTypeFilterVO();
+    }
+
     private String category;
 
     private Integer recorderPersonId;

@@ -44,6 +44,7 @@ import net.sumaris.core.service.schema.DatabaseSchemaService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.SoftwareVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.config.ApplicationConfigHelper;
@@ -62,6 +63,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -191,7 +193,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         // if new database or version > 0.9.5, then apply current software properties to config
         // else skip (because software tables not exists)
         Version minVersion = VersionBuilder.create("0.9.5").build();
-        if (newDatabase || minVersion.beforeOrequals(dbVersion)) {
+        if (newDatabase || dbVersion.after(minVersion)) {
             applySoftwareProperties(configuration.getApplicationConfig(), getCurrentSoftware());
         }
         else {
@@ -309,12 +311,23 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                     }
 
                     // Find entities that match the attribute
-                    List<? extends IEntity> matchEntities = entityManager.createQuery(String.format(queryPattern, joinAttribute), annotation.entity())
+                    List<? extends IEntity> matchEntities;
+                    try {
+                        matchEntities = entityManager.createQuery(String.format(queryPattern, joinAttribute), annotation.entity())
                             .setParameter(1, joinValue)
                             .getResultList();
+                    }
+                    catch (PersistenceException e) {
+                        if (log.isDebugEnabled()) {
+                            log.error("Unable to load entities for class {}: {}", entityClassName, e.getMessage(), e);
+                        }
+                        else {
+                            log.error("Unable to load entities for class {}: {}", entityClassName, e.getMessage());
+                        }
+                        return null;
+                    }
 
-                    int size = matchEntities.size();
-                    if (size == 1) {
+                    if (CollectionUtils.size(matchEntities) == 1) {
                         return matchEntities.get(0);
                     }
                     else {

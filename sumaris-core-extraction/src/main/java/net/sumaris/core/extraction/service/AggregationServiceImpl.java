@@ -46,6 +46,7 @@ import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
@@ -305,9 +306,9 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
-    public void refresh(int id) {
+    public void updateProduct(int productId) {
 
-        ExtractionProductVO target = productService.findById(id, ExtractionProductFetchOptions.FOR_UPDATE).orElse(null);
+        ExtractionProductVO target = productService.findById(productId, ExtractionProductFetchOptions.FOR_UPDATE).orElse(null);
         Collection<String> existingTablesToDrop = Lists.newArrayList(target.getTableNames());
 
         // Read filter
@@ -351,40 +352,46 @@ public class AggregationServiceImpl implements AggregationService {
                     @CacheEvict(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_FORMAT, allEntries = true)
             }
     )
-    public AggregationTypeVO save(AggregationTypeVO type, @Nullable ExtractionFilterVO filter) {
-        Preconditions.checkNotNull(type);
-        Preconditions.checkNotNull(type.getLabel());
-        Preconditions.checkNotNull(type.getName());
+    public AggregationTypeVO save(AggregationTypeVO source, @Nullable ExtractionFilterVO filter) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getLabel());
+        Preconditions.checkNotNull(source.getName());
         Collection<String> existingTablesToDrop = Lists.newArrayList();
 
         // Load the product
         ExtractionProductVO target = null;
-        if (type.getId() != null) {
-            target = productService.findById(type.getId(), ExtractionProductFetchOptions.FOR_UPDATE).orElse(null);
+        if (source.getId() != null) {
+            target = productService.findById(source.getId(), ExtractionProductFetchOptions.FOR_UPDATE).orElse(null);
         }
         boolean isNew = target == null;
         if (isNew) {
             target = new ExtractionProductVO();
-            target.setLabel(type.getLabel().toUpperCase());
+            target.setLabel(source.getLabel().toUpperCase());
 
             // Check label != format
-            Preconditions.checkArgument(!Objects.equals(type.getLabel(), type.getRawFormatLabel()), "Invalid label. Expected pattern: <type_name>-NNN");
+            Preconditions.checkArgument(!Objects.equals(source.getLabel(), source.getRawFormatLabel()), "Invalid label. Expected pattern: <type_name>-NNN");
         }
         else {
             // Check label was not changed
             String previousLabel = target.getLabel();
-            Preconditions.checkArgument(previousLabel.equalsIgnoreCase(type.getLabel()), "Cannot change a product label");
+            Preconditions.checkArgument(previousLabel.equalsIgnoreCase(source.getLabel()), "Cannot change a product label");
 
             filter = filter != null ? filter : readFilterString(target.getFilter());
 
         }
 
         // Check if need aggregate (ig new or if filter changed)
-        String filterAsString = writeFilterAsString(filter);
-        boolean aggregate = isNew || !Objects.equals(target.getFilter(), filterAsString);
+        ProcessingFrequencyEnum frequency = source.getProcessingFrequencyId() != null
+            ? ProcessingFrequencyEnum.valueOf(source.getProcessingFrequencyId())
+            : ProcessingFrequencyEnum.NEVER;
 
-        // Run the aggregation (if need) before saving
-        if (aggregate) {
+        String filterAsString = writeFilterAsString(filter);
+
+        boolean needExecution = (isNew || !Objects.equals(target.getFilter(), filterAsString))
+            && (frequency == ProcessingFrequencyEnum.MANUALLY);
+
+        // Execute the aggregation (if need) before saving
+        if (needExecution) {
 
             // Should clean existing table
             if (!isNew) {
@@ -393,8 +400,8 @@ public class AggregationServiceImpl implements AggregationService {
 
             // Prepare a executable type (with label=format)
             AggregationTypeVO executableType = new AggregationTypeVO();
-            executableType.setLabel(type.getRawFormatLabel());
-            executableType.setCategory(type.getCategory());
+            executableType.setLabel(source.getRawFormatLabel());
+            executableType.setCategory(source.getCategory());
 
             // Execute the aggregation
             AggregationContextVO context = execute(executableType, filter, null);
@@ -403,29 +410,30 @@ public class AggregationServiceImpl implements AggregationService {
             toProductVO(context, target);
 
             // Copy some properties from the given type
-            target.setName(type.getName());
-            target.setUpdateDate(type.getUpdateDate());
-            target.setDescription(type.getDescription());
-            target.setDocumentation(type.getDocumentation());
-            target.setStatusId(type.getStatusId());
-            target.setRecorderDepartment(type.getRecorderDepartment());
-            target.setRecorderPerson(type.getRecorderPerson());
+            target.setName(source.getName());
+            target.setUpdateDate(source.getUpdateDate());
+            target.setDescription(source.getDescription());
+            target.setDocumentation(source.getDocumentation());
+            target.setStatusId(source.getStatusId());
+            target.setRecorderDepartment(source.getRecorderDepartment());
+            target.setRecorderPerson(source.getRecorderPerson());
         }
 
         // Not need new aggregation: update entity before saving
         else {
-            Preconditions.checkArgument(StringUtils.equalsIgnoreCase(target.getLabel(), type.getLabel()), "Cannot update the label of an existing product");
-            target.setName(type.getName());
-            target.setUpdateDate(type.getUpdateDate());
-            target.setDescription(type.getDescription());
-            target.setDocumentation(type.getDocumentation());
-            target.setComments(type.getComments());
-            target.setStatusId(type.getStatusId());
-            target.setUpdateDate(type.getUpdateDate());
-            target.setIsSpatial(type.getIsSpatial());
+            Preconditions.checkArgument(StringUtils.equalsIgnoreCase(target.getLabel(), source.getLabel()), "Cannot update the label of an existing product");
+            target.setName(source.getName());
+            target.setUpdateDate(source.getUpdateDate());
+            target.setDescription(source.getDescription());
+            target.setDocumentation(source.getDocumentation());
+            target.setComments(source.getComments());
+            target.setStatusId(source.getStatusId());
+            target.setUpdateDate(source.getUpdateDate());
+            target.setIsSpatial(source.getIsSpatial());
         }
-        target.setStratum(type.getStratum());
+        target.setStratum(source.getStratum());
         target.setFilter(filterAsString);
+        target.setProcessingFrequencyId(frequency.getId());
 
         // Save the product
         target = productService.save(target);

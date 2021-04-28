@@ -50,5 +50,6 @@ public class AppliedPeriod implements Serializable {
     @Temporal(TemporalType.DATE)
     private Date endDate;
 
+    @Column(name = "acquisition_number")
     private Integer acquisitionNumber;
 }

@@ -38,10 +38,8 @@ import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.technical.ConfigurationVO;
 import net.sumaris.core.vo.technical.SoftwareVO;
-import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
-import net.sumaris.server.http.ontology.RestPaths;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.service.administration.ImageService;
 import org.apache.commons.collections4.MapUtils;
@@ -87,15 +85,8 @@ public class ConfigurationGraphQLService {
     @Autowired
     private CacheManager cacheManager;
 
-    private String imageUrl;
-
     @Autowired
-    public ConfigurationGraphQLService(SumarisServerConfiguration config) {
-        super();
-
-        // Prepare URL for String formatter
-        imageUrl = config.getServerUrl() + RestPaths.IMAGE_PATH;
-    }
+    private ImageService imageService;
 
     @GraphQLQuery(name = "configuration", description = "A software configuration")
     public ConfigurationVO getConfiguration(
@@ -190,7 +181,7 @@ public class ConfigurationGraphQLService {
         // Fill logo URL
         String logoUri = getProperty(result, SumarisServerConfigurationOption.SITE_LOGO_SMALL.getKey());
         if (StringUtils.isNotBlank(logoUri)) {
-            String logoUrl = getImageUrl(logoUri);
+            String logoUrl = imageService.getImageUrl(logoUri);
             result.getProperties().put(
                 SumarisServerConfigurationOption.SITE_LOGO_SMALL.getKey(),
                 logoUrl);
@@ -200,7 +191,7 @@ public class ConfigurationGraphQLService {
         // Fill large logo
         String logoLargeUri = getProperty(result, SumarisServerConfigurationOption.LOGO_LARGE.getKey());
         if (StringUtils.isNotBlank(logoLargeUri)) {
-            String logoLargeUrl = getImageUrl(logoLargeUri);
+            String logoLargeUrl = imageService.getImageUrl(logoLargeUri);
             result.getProperties().put(
                 SumarisServerConfigurationOption.LOGO_LARGE.getKey(),
                 logoLargeUrl);
@@ -210,7 +201,7 @@ public class ConfigurationGraphQLService {
         // Replace favicon ID by an URL
         String faviconUri = getProperty(result, SumarisServerConfigurationOption.SITE_FAVICON.getKey());
         if (StringUtils.isNotBlank(faviconUri)) {
-            String faviconUrl = getImageUrl(faviconUri);
+            String faviconUrl = imageService.getImageUrl(faviconUri);
             result.getProperties().put(SumarisServerConfigurationOption.SITE_FAVICON.getKey(), faviconUrl);
         }
 
@@ -267,8 +258,8 @@ public class ConfigurationGraphQLService {
                 }).filter(Objects::nonNull).collect(Collectors.toList());
 
             departments = Stream.concat(departments.stream(), deserializeDepartments.stream())
-                .map(administrationGraphQLService::fillLogo)
                 .collect(Collectors.toList());
+            departments.forEach(imageService::fillLogo);
             result.setPartners(departments);
         }
     }
@@ -279,21 +270,12 @@ public class ConfigurationGraphQLService {
         if (ArrayUtils.isNotEmpty(values)) {
 
             List<String> urls = Stream.of(values)
-                .map(this::getImageUrl)
+                .map(imageService::getImageUrl)
                 .collect(Collectors.toList());
             result.setBackgroundImages(urls);
         }
     }
 
-    protected String getImageUrl(String imageUri) {
-        if (StringUtils.isBlank(imageUri)) return null;
 
-        // Resolve URI like 'image:<ID>'
-        if (imageUri.startsWith(ImageService.URI_IMAGE_SUFFIX)) {
-            return imageUrl.replace("{id}", imageUri.substring(ImageService.URI_IMAGE_SUFFIX.length()));
-        }
-        // should be a URL, so return it
-        return imageUri;
-    }
 
 }

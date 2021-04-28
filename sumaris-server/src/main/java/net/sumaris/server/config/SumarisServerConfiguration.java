@@ -250,6 +250,16 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     /**
+     * <p>find the ActiveMQ broker username (or null if no auth).</p>
+     *
+     * @return a {@link Integer}
+     */
+    public int getActiveMQPrefetchLimit() {
+        return applicationConfig.getOptionAsInt(SumarisServerConfigurationOption.ACTIVEMQ_PREFETCH_LIMIT.getKey());
+    }
+
+
+    /**
      * <p>Is ActiveMQ enabled ?</p>
      *
      * @return a {@link Boolean}
@@ -276,6 +286,14 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
             return null;
         }
 
+    }
+
+    public boolean enableGravatarFallback() {
+        return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.ENABLE_GRAVATAR.getKey());
+    }
+
+    public String gravatarUrl() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.GRAVATAR_URL.getKey());
     }
 
     /* -- Internal methods -- */

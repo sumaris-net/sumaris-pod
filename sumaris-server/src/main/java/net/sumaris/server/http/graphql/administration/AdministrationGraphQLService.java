@@ -38,20 +38,20 @@ import net.sumaris.core.vo.filter.DepartmentFilterVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
-import net.sumaris.server.http.ontology.RestPaths;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsGuest;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.AccountService;
+import net.sumaris.server.service.administration.ImageService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.Set;
 
@@ -62,29 +62,26 @@ public class AdministrationGraphQLService {
 
     private String personAvatarUrl;
     private String departmentLogoUrl;
+    private String gravatarUrl;
 
-    private final static String GRAVATAR_URL = "https://www.gravatar.com/avatar/%s";
+    @Resource
+    private SumarisServerConfiguration config;
 
-    @Autowired
+    @Resource
     private PersonService personService;
 
-    @Autowired
+    @Resource
     private AccountService accountService;
 
-    @Autowired
+    @Resource
     private DepartmentService departmentService;
 
-    @Autowired
+    @Resource
     private ChangesPublisherService changesPublisherService;
 
-    @Autowired
-    public AdministrationGraphQLService(SumarisServerConfiguration config) {
-        super();
+    @Resource
+    private ImageService imageService;
 
-        // Prepare URL for String formatter
-        personAvatarUrl = config.getServerUrl() + RestPaths.PERSON_AVATAR_PATH;
-        departmentLogoUrl = config.getServerUrl() + RestPaths.DEPARTMENT_LOGO_PATH;
-    }
 
     /* -- Person / department -- */
 
@@ -102,7 +99,7 @@ public class AdministrationGraphQLService {
 
         // Fill avatar Url
         if (fields.contains(PersonVO.Fields.AVATAR)) {
-            result.forEach(this::fillAvatar);
+            result.forEach(imageService::fillAvatar);
         }
 
         return result;
@@ -167,7 +164,7 @@ public class AdministrationGraphQLService {
     public AccountVO loadAccount(@P("pubkey") @GraphQLArgument(name = "pubkey") String pubkey) {
 
         AccountVO result = accountService.getByPubkey(pubkey);
-        fillAvatar(result);
+        imageService.fillAvatar(result);
         return result;
     }
 
@@ -183,7 +180,7 @@ public class AdministrationGraphQLService {
 
         // Fill logo Url (if need)
         if (fields.contains(DepartmentVO.Fields.LOGO)) {
-            result.forEach(this::fillLogo);
+            result.forEach(imageService::fillLogo);
         }
 
         return result;
@@ -198,7 +195,7 @@ public class AdministrationGraphQLService {
 
         // Fill avatar Url
         if (result != null && fields.contains(DepartmentVO.Fields.LOGO)) {
-            this.fillLogo(result);
+            imageService.fillLogo(result);
         }
 
         return result;
@@ -257,27 +254,6 @@ public class AdministrationGraphQLService {
         return changesPublisherService.getPublisher(Person.class, AccountVO.class, person.getId(), minIntervalInSecond, true);
     }
 
-    public DepartmentVO fillLogo(DepartmentVO department) {
-        if (department != null && department.getHasLogo() != null && department.getHasLogo().booleanValue() && StringUtils.isBlank(department.getLogo()) && StringUtils.isNotBlank(department.getLabel())) {
-            department.setLogo(departmentLogoUrl.replace("{label}", department.getLabel()));
-        }
-        return department;
-    }
-
     /* -- Protected methods -- */
-
-
-
-    protected void fillAvatar(PersonVO person) {
-        if (person == null) return;
-        if (person.getHasAvatar() != null && person.getHasAvatar().booleanValue() && StringUtils.isNotBlank(person.getPubkey())) {
-            person.setAvatar(personAvatarUrl.replace("{pubkey}", person.getPubkey()));
-        }
-        // Use gravatar URL
-        else if (StringUtils.isNotBlank(person.getEmail())){
-            person.setAvatar(String.format(GRAVATAR_URL, MD5Util.md5Hex(person.getEmail())));
-        }
-    }
-
 
 }

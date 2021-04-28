@@ -68,8 +68,6 @@ public class SampleRepositoryImpl
     extends RootDataRepositoryImpl<Sample, SampleVO, SampleFilterVO, SampleFetchOptions>
     implements SampleSpecifications {
 
-    private static final boolean trace = log.isTraceEnabled();
-
     @Autowired
     private ReferentialDao referentialDao;
 
@@ -383,10 +381,9 @@ public class SampleRepositoryImpl
         final Set<Integer> sourcesIdsToSkip = Sets.newHashSet();
 
         // Save each samples
+        final boolean trace = log.isTraceEnabled();
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
-        // Count updates
-        final AtomicBoolean dirty = new AtomicBoolean();
-        sources.forEach(source -> {
+        long updatesCount = sources.stream().map(source -> {
             Sample target = null;
             if (source.getId() != null) {
                 target = sourcesIdsToProcess.remove(source.getId());
@@ -403,10 +400,14 @@ public class SampleRepositoryImpl
                 }
             }
             if (skip && trace) {
-                log.trace(String.format("Skip sample {id: %s, label: '%s'}", source.getId(), source.getLabel()));
+                log.trace("Skip sample {id: {}, label: '{}'}", source.getId(), source.getLabel());
             }
-            dirty.set(!skip);
-        });
+            return !skip;
+        })
+            // Count updates
+            .filter(Boolean::booleanValue).count();
+
+        boolean dirty = updatesCount > 0;
 
         // Remove unused entities
         if (!sourcesIdsToProcess.isEmpty()) {
@@ -417,7 +418,7 @@ public class SampleRepositoryImpl
                     // Continue (can occur because of delete cascade
                 }
             });
-            dirty.set(true);
+            dirty = true;
         }
 
         // Remove parent (use only parentId)
@@ -428,7 +429,7 @@ public class SampleRepositoryImpl
             }
         });
 
-        return dirty.get();
+        return dirty;
     }
 
     protected SampleVO optimizedSave(SampleVO source,
@@ -473,7 +474,7 @@ public class SampleRepositoryImpl
             // Add the new sample
             getEntityManager().persist(entity);
             source.setId(entity.getId());
-            if (trace) log.trace(String.format("Adding sample {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
+            if (log.isTraceEnabled()) log.trace(String.format("Adding sample {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
         } else {
 
             // Workaround, to be sure to have a creation_date
@@ -484,7 +485,7 @@ public class SampleRepositoryImpl
             }
 
             // Update existing sample
-            if (trace) log.trace(String.format("Updating sample {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
+            if (log.isTraceEnabled()) log.trace(String.format("Updating sample {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
             getEntityManager().merge(entity);
         }
 

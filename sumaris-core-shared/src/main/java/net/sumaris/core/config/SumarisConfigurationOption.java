@@ -480,31 +480,29 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "sumaris.persistence.technicalTables.update",
             n("sumaris.config.option.persistence.technicalTables.update.description"),
             Boolean.FALSE.toString(),
-            Boolean.class),
+            Boolean.class,
+        false),
 
     ENABLE_BATCH_HASH_OPTIMIZATION(
             "sumaris.persistence.batch.hashOptimization",
             n("sumaris.config.option.persistence.batch.hashOptimization.description"),
             Boolean.FALSE.toString(),
-            Boolean.class),
+            Boolean.class,
+        false),
 
     ENABLE_SAMPLE_HASH_OPTIMIZATION(
             "sumaris.persistence.sample.hashOptimization",
             n("sumaris.config.option.persistence.sample.hashOptimization.description"),
             Boolean.FALSE.toString(),
-            Boolean.class),
+            Boolean.class,
+        false),
 
     VESSEL_DEFAULT_PROGRAM_LABEL(
             "sumaris.persistence.vessel.defaultProgram.label",
             n("sumaris.config.option.persistence.vessel.defaultProgram.label.description"),
             "SIH",
-            Boolean.class),
-
-    ENABLE_EXTRACTION_PRODUCT(
-            "sumaris.extraction.product.enable",
-            n("sumaris.config.option.extraction.product.enable.description"),
-            Boolean.FALSE.toString(),
-            Boolean.class)
+            Boolean.class,
+            false)
     ;
 
     /** Configuration key. */

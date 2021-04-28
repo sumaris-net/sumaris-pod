@@ -38,4 +38,6 @@ public interface ImageService {
     void fillAvatar(PersonVO person);
 
     void fillLogo(DepartmentVO department);
+
+    String getImageUrl(String imageUri);
 }

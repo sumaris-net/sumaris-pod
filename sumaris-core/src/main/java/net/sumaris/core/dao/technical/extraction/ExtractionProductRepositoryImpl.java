@@ -32,6 +32,7 @@ import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.*;
+import net.sumaris.core.model.technical.history.ProcessingFrequency;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
@@ -90,6 +91,7 @@ public class ExtractionProductRepositoryImpl
 
     @Override
     protected void toVO(ExtractionProduct source, ExtractionProductVO target, ExtractionProductFetchOptions fetchOptions, boolean copyIfNull) {
+        // Status
         target.setStatusId(source.getStatus().getId());
 
         // Copy without/with documentation (can be very long)
@@ -98,6 +100,16 @@ public class ExtractionProductRepositoryImpl
         }
         else {
             Beans.copyProperties(source, target);
+        }
+
+        // Processing frequency
+        if (copyIfNull || source.getProcessingFrequency() != null) {
+            if (source.getProcessingFrequency() == null) {
+                target.setProcessingFrequencyId(null);
+            }
+            else {
+                target.setProcessingFrequencyId(source.getProcessingFrequency().getId());
+            }
         }
 
         // Tables
@@ -220,6 +232,16 @@ public class ExtractionProductRepositoryImpl
                 target.setParent(null);
             } else {
                 target.setParent(load(ExtractionProduct.class, source.getParentId()));
+            }
+        }
+
+        // Processing frequency
+        if (copyIfNull || source.getProcessingFrequencyId() != null) {
+            if (source.getProcessingFrequencyId() == null) {
+                target.setProcessingFrequency(null);
+            }
+            else {
+                target.setProcessingFrequency(load(ProcessingFrequency.class, source.getProcessingFrequencyId()));
             }
         }
 

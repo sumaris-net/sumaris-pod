@@ -40,6 +40,7 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.extraction.dao.ExtractionDao;
 import net.sumaris.core.extraction.dao.administration.ExtractionStrategyDao;
 import net.sumaris.core.extraction.dao.technical.Daos;
@@ -106,7 +107,7 @@ import java.util.stream.Collectors;
 public class ExtractionServiceImpl implements ExtractionService {
 
     @Autowired
-    protected SumarisConfiguration configuration;
+    protected ExtractionConfiguration configuration;
 
     @Autowired
     protected DataSource dataSource;
@@ -146,9 +147,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     private boolean includeProductTypes;
 
-    private Map<IExtractionFormat,
-                ExtractionDao<? extends ExtractionContextVO,
-                    ? extends ExtractionFilterVO>>
+    private Map<IExtractionFormat, ExtractionDao<? extends ExtractionContextVO, ? extends ExtractionFilterVO>>
             daosByFormat = Maps.newHashMap();
 
 
@@ -171,7 +170,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
-        includeProductTypes = configuration.enableExtractionProduct();
+         includeProductTypes = configuration.enableExtractionProduct();
         if (configuration.enableTechnicalTablesUpdate()) {
             initRectangleLocations();
         }
@@ -204,7 +203,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     @Override
     public List<ExtractionTypeVO> findByFilter(ExtractionTypeFilterVO filter) {
         ImmutableList.Builder<ExtractionTypeVO> builder = ImmutableList.builder();
-        filter = filter != null ? filter : new ExtractionTypeFilterVO();
+        filter = ExtractionTypeFilterVO.nullToEmpty(filter);
 
         // Exclude types with a DISABLE status, by default
         if (ArrayUtils.isEmpty(filter.getStatusIds())) {
@@ -689,7 +688,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     protected Map<String, String> getAliasByColumnMap(Set<String> tableNames) {
         return tableNames.stream()
             .collect(Collectors.toMap(
-                columnName -> columnName.toUpperCase(),
+                String::toUpperCase,
                 StringUtils::underscoreToChangeCase));
     }
 
@@ -761,7 +760,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         else  {
             ExtractionDao dao = daosByFormat.get(context.getFormat());
             Preconditions.checkNotNull(dao);
-            log.info("Cleaning extraction #{}-{}", context.getLabel(), context.getId());
+            log.info("Cleaning extraction #{}-{}", context.getRawFormatLabel(), context.getId());
             dao.clean(context);
         }
     }

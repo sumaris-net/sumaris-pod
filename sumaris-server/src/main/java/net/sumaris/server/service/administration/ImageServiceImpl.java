@@ -23,37 +23,51 @@ package net.sumaris.server.service.administration;
  */
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.service.data.ImageAttachmentService;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.http.ontology.RestPaths;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
 
 @Service("imageService")
 @Slf4j
 public class ImageServiceImpl implements ImageService {
 
-    private final static String GRAVATAR_URL = "https://www.gravatar.com/avatar/%s";
-
     private String personAvatarUrl;
     private String departmentLogoUrl;
+    private String gravatarUrl;
+    private String imageUrl;
+
+    @Resource
     private SumarisServerConfiguration config;
 
-    @Autowired
+    @Resource
     private ImageAttachmentService imageAttachmentService;
 
 
-    @Autowired
-    public ImageServiceImpl(SumarisServerConfiguration config) {
-        this.config = config;
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
 
         // Prepare URL for String formatter
         personAvatarUrl = config.getServerUrl() + RestPaths.PERSON_AVATAR_PATH;
         departmentLogoUrl = config.getServerUrl() + RestPaths.DEPARTMENT_LOGO_PATH;
+
+        // Get and check the gravatar URL
+        gravatarUrl = getAndCheckGravatarUrl(config);
+
+        // Prepare URL for String formatter
+        imageUrl = config.getServerUrl() + RestPaths.IMAGE_PATH;
     }
 
     @Override
@@ -62,20 +76,53 @@ public class ImageServiceImpl implements ImageService {
     }
 
     public void fillAvatar(PersonVO person) {
-        if (person == null) return;
+        if (person == null || personAvatarUrl == null) return;
         if (person.getHasAvatar() != null && person.getHasAvatar() && org.apache.commons.lang3.StringUtils.isNotBlank(person.getPubkey())) {
             person.setAvatar(personAvatarUrl.replace("{pubkey}", person.getPubkey()));
         }
         // Use gravatar URL
-        else if (org.apache.commons.lang3.StringUtils.isNotBlank(person.getEmail())){
-            person.setAvatar(String.format(GRAVATAR_URL, MD5Util.md5Hex(person.getEmail())));
+        else if (gravatarUrl != null && StringUtils.isNotBlank(person.getEmail())) {
+            person.setAvatar(gravatarUrl.replace("{md5}", MD5Util.md5Hex(person.getEmail())));
         }
     }
 
     public void fillLogo(DepartmentVO department) {
-        if (department == null) return;
-        if (department.getHasLogo() != null && department.getHasLogo() && org.apache.commons.lang3.StringUtils.isNotBlank(department.getLabel())) {
+        if (department == null || departmentLogoUrl == null) return;
+        if (department.getHasLogo() != null && department.getHasLogo() && StringUtils.isNotBlank(department.getLabel())) {
             department.setLogo(departmentLogoUrl.replace("{label}", department.getLabel()));
         }
+    }
+
+    @Override
+    public String getImageUrl(String imageUri) {
+        if (StringUtils.isBlank(imageUri)) return null;
+
+        // Resolve URI like 'image:<ID>'
+        if (imageUri.startsWith(ImageService.URI_IMAGE_SUFFIX)) {
+            return imageUrl.replace("{id}", imageUri.substring(ImageService.URI_IMAGE_SUFFIX.length()));
+        }
+        // should be a URL, so return it
+        return imageUri;
+    }
+
+    /* -- protected methods -- */
+
+    protected String getAndCheckGravatarUrl(SumarisServerConfiguration config) {
+        if (!config.enableGravatarFallback()) return null; // Skip if disable
+
+        String gravatarUrl = config.gravatarUrl();
+        if (StringUtils.isBlank(gravatarUrl)) {
+            log.error("Invalid option '{}': must be a valid URL, with the sequence '{md5}'. Skipping option", SumarisServerConfigurationOption.GRAVATAR_URL.getKey());
+            return null;
+        }
+
+        // Check 'md5' exists in the URL, to be able to replace by MD5(email)
+        if (!gravatarUrl.contains("{md5}")) {
+            log.error("Invalid option '{}': the sequence '{md5}' is missing. Skipping option", SumarisServerConfigurationOption.GRAVATAR_URL.getKey());
+            return null;
+        }
+
+        // OK
+        return gravatarUrl;
     }
 }

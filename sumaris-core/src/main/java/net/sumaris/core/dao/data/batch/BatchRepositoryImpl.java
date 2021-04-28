@@ -64,8 +64,6 @@ public class BatchRepositoryImpl
         extends DataRepositoryImpl<Batch, BatchVO, BatchFilterVO, BatchFetchOptions>
         implements BatchSpecifications {
 
-    private static final boolean trace = log.isTraceEnabled();
-
     private boolean enableSaveUsingHash;
 
     private final ReferentialDao referentialDao;
@@ -88,9 +86,8 @@ public class BatchRepositoryImpl
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
-        this.enableSaveUsingHash = getConfig().enableSampleHashOptimization();
+        this.enableSaveUsingHash = getConfig().enableBatchHashOptimization();
     }
-
 
     @Override
     public BatchVO getCatchBatchByOperationId(int operationId, BatchFetchOptions fetchOptions) {
@@ -172,7 +169,7 @@ public class BatchRepositoryImpl
             entityManager.clear();
         }
 
-        if (debugTime != 0L) log.debug(String.format("Saving operation {id:%s} batches [OK] in %s ms", operationId, System.currentTimeMillis() - debugTime));
+        if (debugTime != 0L) log.debug("Saving operation {id: {}} batches [OK] in {} ms", operationId, System.currentTimeMillis() - debugTime);
 
         return sources;
     }
@@ -241,8 +238,9 @@ public class BatchRepositoryImpl
         final Set<Integer> sourcesIdsToSkip = enableSaveUsingHash ? Sets.newHashSet() : null;
 
         // Save each batches
+        final boolean trace = log.isTraceEnabled();
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
-        boolean dirty = sources.stream().map(source -> {
+        long updatesCount = sources.stream().map(source -> {
 
             Batch target = null;
             if (source.getId() != null) {
@@ -281,13 +279,15 @@ public class BatchRepositoryImpl
                 }
             }
             if (skip && trace) {
-                log.trace(String.format("Skip batch {id: %s, label: '%s'}", source.getId(), source.getLabel()));
+                log.trace("Skip batch {id: {}, label: '{}'}", source.getId(), source.getLabel());
             }
             return !skip;
         })
             // Count updates
             .filter(Boolean::booleanValue)
-            .count() > 0;
+            .count();
+
+        boolean dirty = updatesCount > 0;
 
         // Remove not processed batches
         if (MapUtils.isNotEmpty(sourcesIdsToProcess)) {

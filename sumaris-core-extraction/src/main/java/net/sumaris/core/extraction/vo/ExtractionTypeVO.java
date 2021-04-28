@@ -54,10 +54,10 @@ public class ExtractionTypeVO implements IValueObject<Integer>,
     String version;
     String description;
     String comments;
-    String docUrl;
     String[] sheetNames;
     Integer statusId;
     Boolean isSpatial;
+    String docUrl;
 
     @JsonIgnore
     LiveFormatEnum liveFormat;
