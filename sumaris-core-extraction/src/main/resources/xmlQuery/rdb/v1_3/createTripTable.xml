@@ -45,7 +45,7 @@
         (SELECT COUNT(O.ID) FROM OPERATION O WHERE O.TRIP_FK=T.ID)
       )
     </select>
-    <select alias="DAYS_AT_SEA" type="number">(T.RETURN_DATE_TIME - T.DEPARTURE_DATE_TIME) DAY</select>
+    <select alias="DAYS_AT_SEA" type="number">CAST(((T.RETURN_DATE_TIME - T.DEPARTURE_DATE_TIME) DAY) AS INT)</select>
     <select alias="VESSEL_IDENTIFIER" type="number">T.VESSEL_FK</select> <!-- TODO à anonymiser (hash ?)-->
     <select alias="SAMPLING_COUNTRY" type="text">COALESCE(DL.LABEL, PL.LABEL)</select>
     <select alias="SAMPLING_METHOD" type="text">'Observer'</select><!-- TODO: ADAP - find it from a project's PMFM of type "Hidden" ? -->
