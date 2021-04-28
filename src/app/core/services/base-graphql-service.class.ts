@@ -5,7 +5,7 @@ import {Observable} from "rxjs";
 import {FetchResult} from "@apollo/client/link/core";
 import {EntityUtils} from "./model/entity.model";
 import {ApolloCache} from "@apollo/client/core";
-import {changeCaseToUnderscore, isNotEmptyArray, toBoolean} from "../../shared/functions";
+import {changeCaseToUnderscore, isEmptyArray, isNotEmptyArray, toBoolean} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
 import {Directive, Optional} from "@angular/core";
 import {QueryRef} from "apollo-angular";
@@ -49,6 +49,13 @@ export interface MutableWatchQueryDescription<D, T = any, V = EmptyObject> exten
   insertFilterFn?: (data: T) => boolean;
   sortFn?: (a: T, b: T) => number;
   counter: number;
+}
+
+export interface FindMutableWatchQueriesOptions {
+  query?: DocumentNode;
+  queries?: DocumentNode[];
+  queryName?: string;
+  queryNames?: string[];
 }
 
 export class BaseGraphqlServiceOptions {
@@ -118,9 +125,7 @@ export abstract class BaseGraphqlService<T = any, F = any> {
       });
     }
 
-    const result = this.graphql.queryRefValuesChanges(queryRef, opts);
-
-    return result;
+    return this.graphql.queryRefValuesChanges(queryRef, opts);
   }
 
   insertIntoMutableCachedQuery(cache: ApolloCache<any>, opts: {
@@ -161,9 +166,7 @@ export abstract class BaseGraphqlService<T = any, F = any> {
       });
   }
 
-  removeFromMutableCachedQueryByIds(cache: ApolloCache<any>, opts: {
-    query?: any;
-    queryName?: string;
+  removeFromMutableCachedQueryByIds(cache: ApolloCache<any>, opts: FindMutableWatchQueriesOptions & {
     ids: number|number[];
   }) {
     const queries = this.findMutableWatchQueries(opts);
@@ -190,17 +193,21 @@ export abstract class BaseGraphqlService<T = any, F = any> {
     });
   }
 
-  async refetchMutableQuery(opts: {query?: any; queryName?: string; variables?: any; }): Promise<void> {
-    const mutableQueries = this.findMutableWatchQueries(opts);
-    if (isEmptyArray(mutableQueries)) return
+  async refetchMutableQuery(opts: FindMutableWatchQueriesOptions & { variables?: any; }): Promise<void> {
+    // Retrieve queries to refetch
+    const queries = this.findMutableWatchQueries(opts);
+
+    // Skip if nothing to refetech
+    if (!queries.length) return;
+
     try {
-      await Promise.all(mutableQueries.map(mutableQuery => {
-        if (this._debug) console.debug(this._logPrefix + `Refetching mutable watch query {${mutableQuery.id}}`);
-        return mutableQuery.queryRef.refetch(opts.variables);
+      await Promise.all(queries.map(query => {
+        if (this._debug) console.debug(this._logPrefix + `Refetching mutable watch query {${query.id}}`);
+        return query.queryRef.refetch(opts.variables);
       }));
     }
     catch (err) {
-      console.error(this._logPrefix + "Error while refetching mutable watch query", err);
+      console.error(this._logPrefix + "Error while refetching mutable watch queries", err);
     }
   }
 
@@ -212,12 +219,7 @@ export abstract class BaseGraphqlService<T = any, F = any> {
     return [queryName, opts.arrayFieldName, variablesKey].join('|');
   }
 
-  protected findMutableWatchQueries(opts: {
-    query?: DocumentNode;
-    queries?: DocumentNode[];
-    queryName?: string;
-    queryNames?: string[];
-  }): MutableWatchQueryDescription<any>[] {
+  protected findMutableWatchQueries(opts: FindMutableWatchQueriesOptions): MutableWatchQueryDescription<any>[] {
     // Search by queryName
     if (opts.queryName) {
       return this._mutableWatchQueries.filter(q => q.id.startsWith(opts.queryName + '|'));
