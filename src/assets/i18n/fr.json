@@ -1411,9 +1411,8 @@
     }
   },
   "EXTRACTION": {
-    "BTN_DOWNLOAD_FILE": "Télécharger les données (CSV)",
-    "BTN_AGGREGATE": "Aggréger",
-    "BTN_AGGREGATE_HELP": "Permet de créer un produit aggrégé",
+    "BTN_DOWNLOAD_HELP": "Télécharger les données (CSV)",
+    "BTN_SAVE_HELP": "Permet de créer un produit",
     "SPATIAL_AGGREGATION": "Créer une aggrégation spatiale",
     "BTN_PUBLISH": "Rendre public",
     "BTN_UNPUBLISH": "Rendre privé",
@@ -1434,6 +1433,7 @@
         "MARKDOWN_HELP": "Saisir au format <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a>",
         "FORMAT_PLACEHOLDER": "Describe the output format...",
         "FORMAT_PREVIEW": "Prévisualisation",
+        "PROCESSING_FREQUENCY": "Fréquence de mise à jour",
         "STRATA": {
           "SHEET_NAME": "Onglet",
           "TIME_COLUMN": "Temps",
@@ -1450,6 +1450,13 @@
           "PUBLIC": "Visibilité: publique",
           "PRIVATE": "Visibilité: privé",
           "DISABLE": "Obsolète"
+        },
+        "PROCESSING_FREQUENCY_ENUM": {
+          "NEVER": "Jamais",
+          "MANUALLY": "Manuelle",
+          "DAILY": "Journalière",
+          "WEEKLY": "Hebdomadaire",
+          "MONTHLY": "Mensuelle"
         }
       }
     },
@@ -1473,10 +1480,11 @@
       }
     },
     "TABLE": {
-      "BTN_SELECT_TYPE": "Sources de données"
+      "BTN_SELECT_TYPE": "Sources<span class=\"hidden-xs hidden-sm\"> de données</span>"
     },
     "MAP": {
-      "BTN_SELECT_TYPE": "Liste des cartes",
+      "BTN_MAP_LIST": "Liste des cartes",
+      "BTN_MAPS": "Cartes",
       "BTN_SELECT_TYPE_HELP": "Affiche la liste des cartes disponibles",
       "BTN_SELECT_AGG": "Indicateur ?",
       "BTN_ADD_CHART": "Graphique...",

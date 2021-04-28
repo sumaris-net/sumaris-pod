@@ -1,24 +1,27 @@
 <app-toolbar color="primary">
 
-  <ion-title>
-    <span [innerHTML]="$title | async"></span>
+  <ion-title >
+    <span hidden-xs hidden-sm
+          [innerHTML]="$title | async"></span>
+  </ion-title>
+
+  <ion-buttons slot="end">
     <!-- Help button -->
     <button mat-icon-button
             *ngIf="type?.description"
+            class="hidden-xs hidden-sm"
             [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
             (click)="openHelpModal($event)">
       <mat-icon>help_outline</mat-icon>
     </button>
-  </ion-title>
-  <ion-buttons slot="end">
-
     <!-- select map modal -->
     <ion-button (click)="openSelectTypeModal($event)"
                 color="accent"
                 fill="solid"
                 [matTooltip]="'EXTRACTION.MAP.BTN_SELECT_TYPE_HELP'|translate">
-      <ion-icon slot="start" name="list"></ion-icon>
-      <ion-label translate>EXTRACTION.MAP.BTN_SELECT_TYPE</ion-label>
+      <ion-icon slot="start" name="list" ></ion-icon>
+      <ion-label class="hidden-xs hidden-sm" translate>EXTRACTION.MAP.BTN_MAP_LIST</ion-label>
+      <ion-label class="visible-xs visible-sm" translate>EXTRACTION.MAP.BTN_MAPS</ion-label>
       <mat-icon slot="end">arrow_drop_down</mat-icon>
     </ion-button>
 
@@ -30,6 +33,18 @@
   </ion-buttons>
 </app-toolbar>
 
+<ion-toolbar color="secondary" visible-xs visible-sm>
+  <ion-text>
+    <div [innerHTML]="$title | async" class="ion-padding-start"></div>
+  </ion-text>
+  <!-- Help button -->
+  <button mat-icon-button slot="end"
+          *ngIf="type?.description"
+          [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
+          (click)="openHelpModal($event)">
+    <mat-icon>help_outline</mat-icon>
+  </button>
+</ion-toolbar>
 
 <!-- options menu -->
 <mat-menu #optionMenu="matMenu">

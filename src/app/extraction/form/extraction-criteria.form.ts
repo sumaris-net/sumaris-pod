@@ -70,6 +70,17 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     return this._sheetName && (this.form.get(this._sheetName) as FormArray) || undefined;
   }
 
+  get criteriaCount(): number {
+    return Object.values(this.form.controls)
+      .map(sheetForm => (sheetForm as FormArray))
+      .map(sheetForm => sheetForm.controls
+        .map(criterionForm => (criterionForm as FormGroup).value)
+        .filter(criterion => criterion && isNotNilOrBlank(criterion.value))
+        .length
+      )
+      .reduce((count, length) => count + length, 0);
+  }
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected formBuilder: FormBuilder,
@@ -332,7 +343,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   }
 
   protected toFieldDefinition(column: ExtractionColumn): FormFieldDefinition {
-    if (column.type === 'string' && isNotEmptyArray(column.values)) {
+    if (isNotEmptyArray(column.values)) {
       return {
         key: column.columnName,
         label: column.name,
@@ -341,15 +352,20 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
           items: column.values,
           attributes: [undefined],
           columnNames: [column.name/*'EXTRACTION.FILTER.CRITERION_VALUE'*/],
-          displayWith: (value) => value
+          displayWith: (value) => '' + value
         }
       };
     }
     else {
+      let type = column.type as FormFieldType;
+      // Always use 'string' for number, to be able to set list
+      if (type === 'integer' || type === 'double') {
+        type = 'string';
+      }
       return  {
         key: column.columnName,
         label: column.name,
-        type: column.type as FormFieldType
+        type
       };
     }
   }

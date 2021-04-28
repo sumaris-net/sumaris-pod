@@ -49,6 +49,7 @@ import {
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const SETTINGS_SORTED_COLUMN = "sortedColumn";
 export const DEFAULT_PAGE_SIZE = 20;
+export const DEFAULT_PAGE_SIZE_OPTIONS = [20, 50, 100, 200, 500];
 export const RESERVED_START_COLUMNS = ['select', 'id'];
 export const RESERVED_END_COLUMNS = ['actions'];
 
@@ -122,7 +123,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   @Input() defaultSortBy: string;
   @Input() defaultSortDirection: SortDirection;
-  @Input() defaultPageSize = 20;
+  @Input() defaultPageSize = DEFAULT_PAGE_SIZE;
+  @Input() defaultPageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS;
 
   @Input() set dataSource(value: EntitiesTableDataSource<T, F>) {
     this.setDatasource(value);

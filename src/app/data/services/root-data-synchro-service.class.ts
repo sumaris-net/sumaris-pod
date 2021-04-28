@@ -187,7 +187,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
       entity.synchronizationStatus = 'READY_TO_SYNC';
 
       const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
-      if (this._debug) console.debug(`${this._debugPrefix}Terminate {${entity.id}} locally...`, json);
+      if (this._debug) console.debug(`${this._logPrefix}Terminate {${entity.id}} locally...`, json);
 
       // Save entity locally
       await this.entities.save(json);
@@ -232,7 +232,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
     const now = Date.now();
-    if (this._debug) console.debug(`${this._debugPrefix}Loading ${this._entityName} #${id}...`);
+    if (this._debug) console.debug(`${this._logPrefix}Loading ${this._entityName} #${id}...`);
     this.loading = true;
 
     try {
@@ -257,7 +257,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
         ? this.fromObject(data)
         : (data as T);
 
-      if (entity && this._debug) console.debug(`${this._debugPrefix}${this._entityName} #${id} loaded in ${Date.now() - now}ms`, entity);
+      if (entity && this._debug) console.debug(`${this._logPrefix}${this._entityName} #${id} loaded in ${Date.now() - now}ms`, entity);
 
       return entity;
     }
@@ -334,7 +334,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
     const trash = !opts || opts.trash !== false;
     const trashUpdateDate = trash && momentImported();
 
-    if (this._debug) console.debug(`${this._debugPrefix}Deleting ${this._entityName} locally... {trash: ${trash}`);
+    if (this._debug) console.debug(`${this._logPrefix}Deleting ${this._entityName} locally... {trash: ${trash}`);
 
     await chainPromises(localEntities.map(entity => async () => {
 

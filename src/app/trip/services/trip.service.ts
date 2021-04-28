@@ -401,7 +401,7 @@ const TripMutations = {
   ${TripFragments.landedTrip}`,
 
   // Delete
-  delete: gql`mutation DeleteTrips($ids:[Int]!){
+  deleteAll: gql`mutation DeleteTrips($ids:[Int]!){
     deleteTrips(ids: $ids)
   }`,
 
@@ -536,7 +536,7 @@ export class TripService
     const withTotal = (!opts || opts.withTotal !== false);
     const query = withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
     return this.mutableWatchQuery<{ data: Trip[]; total: number; }>({
-        queryName: 'LoadAll',
+        queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
         query,
         arrayFieldName: 'data',
         totalFieldName: withTotal ? 'total' : undefined,
@@ -746,6 +746,7 @@ export class TripService
        mutation,
        variables,
        offlineResponse,
+       refetchQueries: isNew && this.findMutableWatchQueries({queries: [TripQueries.loadAll, TripQueries.loadAllWithTotal]}),
        error: { code: ErrorCodes.SAVE_ENTITY_ERROR, message: "ERROR.SAVE_ENTITY_ERROR" },
        update: async (cache, {data}) => {
          const savedEntity = data && data.data;
@@ -782,13 +783,6 @@ export class TripService
 
            if (this._debug) console.debug(`[trip-service] Trip saved remotely in ${Date.now() - now}ms`, entity);
 
-           // Add to cache
-           if (isNew) {
-             this.insertIntoMutableCachedQuery(cache, {
-               queryName: 'LoadAll',
-               data: savedEntity
-             });
-           }
          }
 
        }

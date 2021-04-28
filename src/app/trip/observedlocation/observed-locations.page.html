@@ -390,7 +390,7 @@
   <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="!totalRowCount">
     <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>
     <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
+      <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
       </mat-paginator>
     </ion-col>
   </ion-row>

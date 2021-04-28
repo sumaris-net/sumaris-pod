@@ -10,7 +10,7 @@ import {
   ExtractionType
 } from "../services/model/extraction.model";
 import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
-import {DEFAULT_PAGE_SIZE, SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
+import {DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {filter, map} from "rxjs/operators";
@@ -43,6 +43,8 @@ export const DEFAULT_CRITERION_OPERATOR = '=';
 export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> implements OnInit {
 
   defaultPageSize = DEFAULT_PAGE_SIZE;
+  defaultPageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS;
+
   data: ExtractionResult;
   $title = new Subject<string>();
   sortedColumns: ExtractionColumn[];
@@ -55,6 +57,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   isAdmin = false;
 
   typesByCategory$: Observable<{key: string, value: ExtractionType[]}[]>;
+  criteriaCount$: Observable<number>;
 
   @ViewChild(MatTable, {static: true}) table: MatSort;
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
@@ -110,12 +113,17 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
         if (this.loading || isNil(this.type)) return; // avoid multiple load
 
         // Reset paginator if filter change
-        if (isNotNil(this.paginator) && this.paginator.pageIndex > 0 && this.dirty) {
+        if (this.paginator && this.paginator.pageIndex > 0 && this.dirty) {
           this.paginator.pageIndex = 0;
         }
 
         return this.loadGeoData();
       });
+
+    this.criteriaCount$ = this.criteriaForm.form.valueChanges
+      .pipe(
+        map(form => this.criteriaForm.criteriaCount)
+      );
   }
 
   async updateView(data: ExtractionResult) {
@@ -132,7 +140,10 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
     this.displayedColumns = this.sortedColumns
       .map(column => column.columnName)
-      .filter(columnName => columnName !== "id"); // Remove id
+      // Remove id
+      .filter(columnName => columnName !== "id")
+      // Add actions column
+      .concat(['actions']);
 
     this.$columns.next(data.columns); // WARN: must keep the original column order
 
@@ -188,8 +199,8 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   }
 
   resetPaginatorAndSort() {
-    this.sort.active = undefined;
-    this.paginator.pageIndex = 0;
+    if (this.sort) this.sort.active = undefined;
+    if (this.paginator) this.paginator.pageIndex = 0;
   }
 
   async openSelectColumnsModal(event: any): Promise<any> {
@@ -213,7 +224,9 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
         if (!res) return; // CANCELLED
 
         // Apply columns
-        this.displayedColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
+        this.displayedColumns = (columns && columns.filter(c => c.visible).map(c => c.name) || [])
+          // Add actions column
+          .concat(['actions']);
 
         // Update local settings
         return this.settings.savePageSetting(this.settingsId, this.displayedColumns, SETTINGS_DISPLAY_COLUMNS);
@@ -232,12 +245,17 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     });
     if (!hasChanged) return;
 
-    if (this.filterExpansionPanel && !this.filterExpansionPanel.expanded) {
+    const openExpansionPanel = this.filterExpansionPanel && !this.filterExpansionPanel.expanded;
+    if (openExpansionPanel) {
       this.filterExpansionPanel.open();
     }
 
     if (!event.ctrlKey) {
       this.onRefresh.emit();
+
+      if (openExpansionPanel) {
+        setTimeout(() => this.filterExpansionPanel.close(), 500);
+      }
     }
   }
 
@@ -272,7 +290,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       await sleep(1000);
 
       // Open the new aggregation (no wait)
-      await this.openAggregationTypeModal(savedAggType);
+      await this.openAggregationType(savedAggType);
 
       // Change current type
       await this.setType(savedAggType, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
@@ -341,30 +359,50 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
     if (event) {
       event.preventDefault();
+      event.stopPropagation();
     }
 
     return setTimeout(() => {
       // open the map
-      return this.router.navigate(['../map'],
+      return this.router.navigate(['extraction', 'map'],
         {
-          relativeTo: this.route,
-          queryParams: {...this.queryParams, ...this.getFilterAsQueryParams()}
+          queryParams: {
+            category: this.type.category,
+            label: this.type.label,
+            ...this.getFilterAsQueryParams()
+          }
         });
     }, 200); // Add a delay need by matTooltip to be hide
   }
 
-  async openAggregationTypeModal(type?: ExtractionType) {
+  openAggregationType(type?: ExtractionType, event?: UIEvent) {
     type = type || this.type;
+
+    if (event) {
+      // Need, to close mat tooltip
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
 
     if (!type) return; // skip if not a aggregation type
 
     console.debug(`[extraction-table] Opening aggregation type {${type.label}`);
 
-    // open the aggregation type
-    await this.router.navigateByUrl(`/extraction/aggregation/${type.id}`);
-
+    setTimeout(() => {
+      // open the aggregation type
+      this.router.navigateByUrl(`/extraction/aggregation/${type.id}`);
+    }, 100);
   }
 
+  applyFilterAndClosePanel(event?: UIEvent) {
+    this.onRefresh.emit(event);
+    this.filterExpansionPanel.close();
+  }
+
+  resetFilter(event?: UIEvent) {
+    this.criteriaForm.reset();
+    this.applyFilterAndClosePanel(event);
+  }
 
   /* -- protected method -- */
 

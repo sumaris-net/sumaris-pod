@@ -423,14 +423,18 @@
     </ion-text>
   </ion-item>
 
-  <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="!totalRowCount">
+  <!--<ion-row class="ion-no-padding" [class.cdk-visually-hidden]="!totalRowCount">
     <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>
     <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
-      </mat-paginator>
     </ion-col>
-  </ion-row>
+  </ion-row>-->
 </ion-content>
+
+<ion-footer>
+  <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons
+    class="mat-paginator-footer">
+  </mat-paginator>
+</ion-footer>
 
 <!-- Add button -->
 <ion-fab vertical="bottom" horizontal="end"

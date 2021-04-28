@@ -12,7 +12,7 @@ import {FileSizePipe} from "./file-size.pipe";
 import {DurationPipe} from "./duration.pipe";
 import {EvenPipe, MathAbsPipe, OddPipe} from "./math.pipes";
 import {ArrayFirstPipe, ArrayIncludesPipe, ArrayLengthPipe, ArrayPluckPipe, EmptyArrayPipe, NotEmptyArrayPipe} from "./arrays.pipe";
-import {MapGetPipe, MapKeysPipe} from "./maps.pipe";
+import {MapGetPipe, MapKeysPipe, MapValuesPipe} from "./maps.pipe";
 import {IsNilOrBlankPipe, IsNotNilOrBlankPipe} from "./string.pipes";
 import {TranslateContextPipe} from "./translate-context.pipe";
 
@@ -44,6 +44,7 @@ import {TranslateContextPipe} from "./translate-context.pipe";
     ArrayIncludesPipe,
     MapGetPipe,
     MapKeysPipe,
+    MapValuesPipe,
     IsNilOrBlankPipe,
     IsNotNilOrBlankPipe,
     TranslateContextPipe
@@ -69,6 +70,7 @@ import {TranslateContextPipe} from "./translate-context.pipe";
     ArrayPluckPipe,
     MapGetPipe,
     MapKeysPipe,
+    MapValuesPipe,
     IsNilOrBlankPipe,
     IsNotNilOrBlankPipe,
     ArrayIncludesPipe,

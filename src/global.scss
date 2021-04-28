@@ -394,6 +394,37 @@ mat-option:not(:last-child) {
 
 mat-expansion-panel {
 
+  &.filter-panel {
+    // specific
+    z-index: 999;
+    position: absolute;
+    //top: 60px; if filter button is not in app-toolbar
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--ion-color-secondary50);
+    color: var(--ion-color-secondary50-contrast);
+
+    margin-bottom: 5px;
+
+    .form-container {
+      mat-form-field {
+        width: 100%;
+
+        .datetime-md {
+          padding: 0 !important;
+        }
+      }
+    }
+
+    mat-action-row {
+      ion-label {
+        line-height: 36px;
+      }
+    }
+
+  }
+
   .mat-expansion-panel-header,
   mat-expansion-panel-header {
     padding: var(--expansion-panel-header-padding, var(--expansion-panel-padding));
@@ -751,8 +782,35 @@ ion-list {
   }
 }
 
+.table-container {
+  max-width: 100%;
+  max-height: 100%;
+  overflow-x: auto;
+}
 
+.mat-paginator-footer {
 
+  background-color: whitesmoke;
+
+  .mat-paginator-outer-container {
+    height: 34px;
+    overflow-y: hidden;
+    .mat-paginator-container {
+      height: 34px;
+      min-height: unset;
+      margin-top: 10px;
+
+      button {
+        height: 34px;
+        width: 34px;
+        line-height: 34px;
+      }
+    }
+  }
+
+}
+
+// ------------------------
 // Other material component
 
 .flex-spacer,
@@ -1032,6 +1090,14 @@ ion-button[expand="full"],
       right: 0;
     }
   }
+}
+
+// --------------------------------------------------
+// Icon multiple
+// --------------------------------------------------
+mat-icon.icon-secondary {
+  position: absolute;
+  left: 0;
 }
 
 // --------------------------------------------------

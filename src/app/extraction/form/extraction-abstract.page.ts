@@ -216,8 +216,13 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     });
   }
 
-  async downloadAsFile() {
+  async downloadAsFile(event?: UIEvent) {
     if (this.loading || isNil(this.type)) return;
+
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
 
     this.loading = true;
 
@@ -324,12 +329,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
   }
 
   getFilterAsQueryParams(): any {
-    const params: any = {
-      category: this.type && this.type.category,
-      label: this.type && this.type.label,
-      version: this.type && this.type.version
-    };
     const filter = this.getFilterValue();
+    const params = {sheet: undefined, q: undefined};
     if (filter.sheetName) {
       params.sheet = filter.sheetName;
     }

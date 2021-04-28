@@ -29,6 +29,7 @@ export class AggregationTypeValidatorService extends AppValidatorService<Aggrega
       documentation: [data && data.documentation || null, Validators.maxLength(10000)],
       statusId: [toNumber(data && data.statusId, null), Validators.required],
       isSpatial: [toBoolean(data && data.isSpatial, false)],
+      processingFrequencyId: [toNumber(data && data.processingFrequencyId, null), Validators.required],
       recorderDepartment: [data && data.recorderDepartment || null, SharedValidators.entity],
       recorderPerson: [data && data.recorderPerson || null, SharedValidators.entity],
       stratum: this.getStratumArray(data),

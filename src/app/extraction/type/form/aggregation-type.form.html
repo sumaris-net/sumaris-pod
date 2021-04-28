@@ -17,13 +17,27 @@
         <mat-form-field floatLabel="never">
           <input matInput hidden>
           <ion-label>&nbsp;</ion-label>
-
-          <!-- checkbox, when compact -->
           <mat-checkbox matPrefix
                         [formControl]="form.controls.isSpatial"
                         labelPosition="after">
             <ion-text translate>EXTRACTION.AGGREGATION.EDIT.IS_SPATIAL</ion-text>
           </mat-checkbox>
+        </mat-form-field>
+      </ion-col>
+
+      <ion-col>
+        <mat-form-field>
+          <mat-select [formControl]="form.controls.processingFrequencyId"
+                      [placeholder]="'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY'|translate" required>
+            <mat-select-trigger>
+              <span *ngIf="form.controls.statusId.value &gt;= 0">
+              {{ frequenciesById[form.controls.processingFrequencyId.value]?.label | translate}}</span>
+            </mat-select-trigger>
+            <mat-option *ngFor="let item of (frequenciesById | mapValues)" [value]="item.id">
+              {{ item.label |translate }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="form.controls.processingFrequencyId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>
@@ -33,12 +47,10 @@
     </ion-toolbar>
 
     <!-- stratum -->
-    <div *ngFor="let strataForm of strataForms; index as i; first as first; last as last; odd as odd">
-
-      <!-- strata form -->
-      <ion-row [formGroup]="strataForm"
-               class="strata-row"
-               [class.odd]="odd">
+    <ion-row *ngFor="let strataForm of strataForms; index as i; first as first; last as last; odd as odd"
+             class="strata-row"
+             [class.odd]="odd"
+             [formGroup]="strataForm">
 
         <!-- sheet name -->
         <ion-col size-md="2" size="4">
@@ -124,8 +136,7 @@
             <mat-icon>close</mat-icon>
           </button>
         </ion-col>
-      </ion-row>
-    </div>
+    </ion-row>
 
     <ion-row style="min-height: 36px;" class="ion-margin-top">
       <ion-col size="12">

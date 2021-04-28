@@ -39,6 +39,7 @@ export const AggregationFragments = {
     filter
     isSpatial
     statusId
+    processingFrequencyId
     stratum {
       id
       updateDate
