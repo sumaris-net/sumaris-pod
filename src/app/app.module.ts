@@ -64,6 +64,7 @@ import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
 import {TranslateHttpLoader} from "@ngx-translate/http-loader";
 import {DATE_ISO_PATTERN} from "./shared/dates";
 import {VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS} from "./vessel/services/config/vessel.config";
+import {JDENTICON_CONFIG} from "ngx-jdenticon";
 
 
 @NgModule({
@@ -281,6 +282,23 @@ import {VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTIN
     { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
         ...TRIP_TESTING_PAGES
     ]},
+
+    // Custom identicon style
+    // https://jdenticon.com/icon-designer.html?config=4451860010ff320028501e5a
+    {
+      provide: JDENTICON_CONFIG,
+      useValue: {
+        lightness: {
+          color: [0.26, 0.80],
+          grayscale: [0.30, 0.90],
+        },
+        saturation: {
+          color: 0.50,
+          grayscale: 0.46,
+        },
+        backColor: '#0000'
+      }
+    }
   ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

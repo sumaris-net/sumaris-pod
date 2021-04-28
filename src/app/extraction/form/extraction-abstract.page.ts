@@ -289,6 +289,12 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
   }
 
   async openHelpModal(event?: UIEvent) {
+    if (!this.type) return;
+
+    if (event) {
+      event.preventDefault();
+    }
+
     const modal = await this.modalCtrl.create({
       component: ExtractionHelpModal,
       componentProps: {

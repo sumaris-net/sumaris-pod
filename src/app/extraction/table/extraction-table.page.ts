@@ -2,13 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild
 import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
 import {arrayGroupBy, isNil, isNotNil, sleep} from '../../shared/functions';
 import {TableDataSource} from "@e-is/ngx-material-table";
-import {
-  ExtractionCategories,
-  ExtractionColumn,
-  ExtractionResult,
-  ExtractionRow,
-  ExtractionType
-} from "../services/model/extraction.model";
+import {ExtractionCategories, ExtractionColumn, ExtractionResult, ExtractionRow, ExtractionType} from "../services/model/extraction.model";
 import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
 import {DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
@@ -28,7 +22,6 @@ import {MatTable} from "@angular/material/table";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
 import {MatExpansionPanel} from "@angular/material/expansion";
-import {ExtractionHelpModal} from "../help/help.modal";
 import {AggregationType} from "../services/model/aggregation-type.model";
 import {AggregationService} from "../services/aggregation.service";
 

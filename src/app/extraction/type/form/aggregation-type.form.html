@@ -139,7 +139,7 @@
     </ion-row>
 
     <ion-row style="min-height: 36px;" class="ion-margin-top">
-      <ion-col size="12">
+      <ion-col size="{{showMarkdownPreview ? 6 : 12}}">
         <ion-label color="primary" translate>EXTRACTION.AGGREGATION.EDIT.FORMAT_DOTS</ion-label>
         <ion-text>&nbsp;(<small [innerHTML]="'EXTRACTION.AGGREGATION.EDIT.MARKDOWN_HELP'|translate"></small>)</ion-text>
         <!-- show preview button -->
@@ -147,6 +147,13 @@
                     size="small" class="ion-float-end" color="light"
                     (click)="toggleDocPreview()">
           <ion-label translate>EXTRACTION.AGGREGATION.EDIT.BTN_PREVIEW_DOC</ion-label>
+        </ion-button>
+      </ion-col>
+      <ion-col size="6" *ngIf="showMarkdownPreview" class="ion-padding-start">
+        <ion-label color="medium" translate>EXTRACTION.AGGREGATION.EDIT.FORMAT_PREVIEW_DOTS</ion-label>
+        <ion-button size="small" class="ion-float-end" color="light"
+                    (click)="toggleDocPreview()">
+          <ion-label class="ion-text-wrap" translate>COMMON.BTN_HIDE</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>
@@ -158,8 +165,8 @@
         <mat-form-field appearance="outline">
           <textarea matInput #format
                     matTextareaAutosize="true"
-                    matAutosizeMinRows="4"
-                    rows="10"
+                    matAutosizeMinRows="5"
+                    rows="20"
                     maxlength="10000"
                     [placeholder]="'EXTRACTION.AGGREGATION.EDIT.FORMAT_PLACEHOLDER'|translate"
                     formControlName="documentation">
@@ -170,26 +177,10 @@
       </ion-col>
 
       <!-- format preview -->
-      <ion-col size="6" *ngIf="showMarkdownPreview">
-        <ion-card style="min-height: 210px;">
-          <ion-card-header>
-            <ion-card-title>
-              <ion-text translate>EXTRACTION.AGGREGATION.EDIT.FORMAT_PREVIEW</ion-text>
-              <ion-button size="small"
-                          class="ion-float-end"
-                          color="medium"
-                          fill="outline"
-                          (click)="toggleDocPreview()">
-                <ion-label class="ion-text-wrap" translate>COMMON.BTN_HIDE</ion-label>
-              </ion-button>
-            </ion-card-title>
-
-          </ion-card-header>
-          <ion-card-content>
-            <markdown [data]="$markdownContent|async" emoji>
-            </markdown>
-          </ion-card-content>
-        </ion-card>
+      <ion-col *ngIf="showMarkdownPreview"
+               class="ion-col-documentation-preview ion-padding-start ion-no-padding-xs">
+        <markdown [data]="$markdownContent|async" emoji>
+        </markdown>
       </ion-col>
     </ion-row>
 

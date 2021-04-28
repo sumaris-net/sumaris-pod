@@ -228,7 +228,7 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
         suffixInjectionPoint.nativeElement.append(this.suffixDiv.nativeElement);
 
         // Show the suffix div
-        this.suffixDiv.nativeElement.classList.remove('cdk-visually-hidden');
+        //this.suffixDiv.nativeElement.classList.remove('cdk-visually-hidden');
       }
 
     }

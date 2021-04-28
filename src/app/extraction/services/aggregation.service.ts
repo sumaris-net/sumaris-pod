@@ -32,7 +32,7 @@ export const AggregationFragments = {
     version
     sheetNames
     description
-    documentation
+    docUrl
     creationDate
     updateDate
     comments
@@ -67,6 +67,7 @@ const LoadTypeQuery = gql`
   query AggregationType($id: Int!) {
     aggregationType(id: $id) {
       ...AggregationTypeFragment
+      documentation
     }
   }
   ${AggregationFragments.aggregationType}
@@ -130,6 +131,7 @@ const SaveAggregation: any = gql`
   mutation SaveAggregation($type: AggregationTypeVOInput, $filter: ExtractionFilterVOInput){
     saveAggregation(type: $type, filter: $filter){
       ...AggregationTypeFragment
+      documentation
     }
   }
   ${AggregationFragments.aggregationType}

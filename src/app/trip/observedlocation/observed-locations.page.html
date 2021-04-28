@@ -387,14 +387,15 @@
     </ion-text>
   </ion-item>
 
-  <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="!totalRowCount">
-    <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>
-    <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
-      </mat-paginator>
-    </ion-col>
-  </ion-row>
 </ion-content>
+
+<ion-footer>
+  <mat-paginator class="mat-paginator-footer"
+                 [length]="totalRowCount" [pageSize]="defaultPageSize"
+                 [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
+  </mat-paginator>
+</ion-footer>
+
 
 <!-- Add button -->
 <ion-fab vertical="bottom" horizontal="end"

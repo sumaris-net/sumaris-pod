@@ -1,14 +1,21 @@
 
-.mat-form-field.operator {
-  min-width: 40px;
-  max-width: 50px;
+mat-form-field.name {
+  width: calc(100% - 50px) !important;;
+}
+
+mat-form-field.operator {
+  width: 50px !important;;
   text-align: center;
 }
 
-
+mat-form-field.value,
+app-form-field.value {
+  width: calc(100% - 80px) !important;
+}
 .has-two-fields {
-  app-form-field {
-    width: 50%;
+  mat-form-field.value,
+  app-form-field.value {
+    width: calc(50% - 40px) !important;;
   }
 }
 

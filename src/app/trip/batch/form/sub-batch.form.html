@@ -38,6 +38,7 @@
                      *ngIf="!($loadingControls | async) && qvPmfm"
                      [pmfm]="qvPmfm"
                      [style]="mobile? 'button' : 'autocomplete'"
+                     [required]="true"
                      [floatLabel]="floatLabel"
                      [formControl]="measurementValuesForm.controls[qvPmfm.id.toString()]"
                      [compact]="compact"
@@ -45,7 +46,7 @@
                      (keydown.tab)="focusNextInput($event)"
                      (keydown.enter)="focusNextInput($event)">
     <!-- checkbox to freeze -->
-    <mat-checkbox  matSuffix
+    <mat-checkbox  matAfter
                    *ngIf="!mobile"
                    [formControl]="freezeQvPmfmControl"
                    [title]="'COMMON.BTN_FREEZE_VALUE_HELP'|translate"

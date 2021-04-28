@@ -4,7 +4,7 @@ import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../../services/validator/aggregation-type.validator";
 import {ReferentialForm} from "../../../referential/form/referential.form";
 import {BehaviorSubject} from "rxjs";
-import {arraySize, isNil} from "../../../shared/functions";
+import {arraySize, isNil, isNotNilOrBlank} from "../../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
@@ -57,9 +57,8 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
   stratumFormArray: FormArray;
   stratumHelper: FormArrayHelper<AggregationStrata>;
 
-  showMarkdownPreview = false;
+  showMarkdownPreview = true;
   $markdownContent = new BehaviorSubject<string>(undefined);
-
 
   @Input()
   showError = true;
@@ -209,8 +208,14 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
       this.stratumHelper.resize(0);
     }
 
+    // Show doc preview, if doc exists
+    this.showMarkdownPreview = this.showMarkdownPreview && isNotNilOrBlank(data.documentation);
+
     super.setValue(data, opts);
+
   }
+
+
 
   protected markForCheck() {
     this.cd.markForCheck();

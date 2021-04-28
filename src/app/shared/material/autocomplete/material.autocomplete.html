@@ -94,8 +94,7 @@
                               [displayWith]="displayWith"
                               [class]="classList"
                               [class.cdk-visually-hidden]="!searchable"
-                              [panelWidth]="panelWidth"
-            >
+                              [panelWidth]="panelWidth">
               <ng-container *ngIf="searchable && (filteredItems$ | async) as items">
                 <ion-row class="mat-autocomplete-header ion-no-padding">
                   <ion-col *ngFor="let attr of displayAttributes; index as i; last as isLast" [size]="displayColumnSizes[i]" >

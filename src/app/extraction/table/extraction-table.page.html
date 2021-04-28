@@ -1,7 +1,8 @@
 <app-toolbar color="primary">
 
-  <ion-title class="hidden-xs hidden-sm hidden-mobile"
-             [innerHTML]="$title | async">
+  <ion-title>
+    <span class="hidden-xs hidden-sm hidden-mobile"
+          [innerHTML]="$title | async"></span>
   </ion-title>
 
   <ion-buttons slot="end">
