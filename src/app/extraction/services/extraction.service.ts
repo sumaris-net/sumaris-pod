@@ -22,6 +22,7 @@ export const ExtractionFragments = {
     label
     name
     description
+    docUrl
     comments
     version
     sheetNames
