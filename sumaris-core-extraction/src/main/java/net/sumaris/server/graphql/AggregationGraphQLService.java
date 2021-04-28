@@ -240,6 +240,7 @@ public class AggregationGraphQLService {
 
     protected ExtractionProductFetchOptions getFetchOptions(Set<String> fields) {
         return ExtractionProductFetchOptions.builder()
+                .withDocumentation(fields.contains(AggregationTypeVO.Fields.DOCUMENTATION))
                 .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
                 .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
                 // Tables (=sheets)
