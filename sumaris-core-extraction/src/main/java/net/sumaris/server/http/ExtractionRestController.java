@@ -165,11 +165,11 @@ public class ExtractionRestController {
                                                      final HttpServletRequest request) {
         Preconditions.checkArgument(StringUtils.isNotBlank(category) && StringUtils.isNotBlank(label), "Invalid path. Expected: '/extraction/<lire|product>/<label>/doc'");
 
-        // GSet user locale
+        // Set user locale
         Locale locale = getLocale(request);
 
-        // Find output format
-        MediaType mediaType = getMediaType(request, userFormat, MediaType.TEXT_MARKDOWN);
+        // Find output format (default: HTML)
+        MediaType mediaType = getMediaType(request, userFormat, MediaType.TEXT_HTML);
 
         ExtractionTypeVO type = ExtractionTypeVO.builder()
                 .category(ExtractionCategoryEnum.valueOfIgnoreCase(category))

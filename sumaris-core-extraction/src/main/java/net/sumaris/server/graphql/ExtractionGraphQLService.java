@@ -175,11 +175,11 @@ public class ExtractionGraphQLService {
 
     @GraphQLQuery(name = "docUrl", description = "Get extraction documentation URL")
     public String getDocUrl(@GraphQLContext ExtractionTypeVO type) {
-        if (type.getDocUrl() == null) return type.getDocUrl();
+        if (type.getDocUrl() != null) return type.getDocUrl();
 
         if (documentationUrl != null && type.getCategory() != null && type.getLabel() != null) {
-            String docUrl = documentationUrl.replace("{category}", type.getCategory().name().toLowerCase())
-                .replace("{label[^}]*}", type.getLabel().toLowerCase());
+            String docUrl = documentationUrl.replaceFirst("\\{category[^\\}]*\\}", type.getCategory().name().toLowerCase())
+                .replaceFirst("\\{label[^\\}]*\\}", type.getLabel().toLowerCase());
             type.setDocUrl(docUrl);
             return docUrl;
         }
