@@ -22,6 +22,7 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -102,6 +103,7 @@ public class TripVO implements IRootDataVO<Integer>,
     private ObservedLocationVO observedLocation;
 
     @Override
+    @JsonIgnore
     public Date getVesselDateTime() {
         return departureDateTime;
     }

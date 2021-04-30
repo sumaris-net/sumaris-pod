@@ -25,6 +25,7 @@ package net.sumaris.server.http.graphql.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
+import io.leangen.graphql.execution.ResolutionEnvironment;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
@@ -33,6 +34,7 @@ import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -47,6 +49,7 @@ import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.http.graphql.GraphQLHelper;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
@@ -246,8 +249,9 @@ public class DataGraphQLService {
                                           @GraphQLArgument(name = "sortBy") String sort,
                                           @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction,
                                           @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
-                                          @GraphQLEnvironment() Set<String> fields
+                                          @GraphQLEnvironment() ResolutionEnvironment env
     ) {
+
 
         filter = fillTripFilterDefaults(filter);
         SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
@@ -268,6 +272,8 @@ public class DataGraphQLService {
 
         // Set default sort
         sort = sort != null ? sort : TripVO.Fields.DEPARTURE_DATE_TIME;
+
+        Set<String> fields = GraphQLHelper.fields(env);
 
         final List<TripVO> result = tripService.findByFilter(filter,
                 offset, size, sort, sortDirection,
@@ -299,11 +305,11 @@ public class DataGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public TripVO getTripById(@GraphQLNonNull @GraphQLArgument(name = "id") int id,
-                              @GraphQLEnvironment() Set<String> fields) {
+                              @GraphQLEnvironment ResolutionEnvironment env) {
         final TripVO result = tripService.get(id);
 
         // Add additional properties if needed
-        fillTripFields(result, fields);
+        fillTripFields(result, GraphQLHelper.fields(env));
 
         return result;
     }
@@ -314,7 +320,7 @@ public class DataGraphQLService {
                            @GraphQLArgument(name = "withOperation", defaultValue = "false") Boolean withOperation, // Deprecated
                            @GraphQLArgument(name = "saveOptions") TripSaveOptions saveOptions, // Deprecated
                            @GraphQLArgument(name = "options") TripSaveOptions options,
-                           @GraphQLEnvironment() Set<String> fields) {
+                           @GraphQLEnvironment ResolutionEnvironment env) {
 
         if (options == null) {
             // For compat prior to 1.7
@@ -334,7 +340,7 @@ public class DataGraphQLService {
         final TripVO result = tripService.save(trip, options);
 
         // Add additional properties if needed
-        fillTripFields(result, fields);
+        fillTripFields(result, GraphQLHelper.fields(env));
 
         return result;
     }
@@ -345,7 +351,7 @@ public class DataGraphQLService {
                                   @GraphQLArgument(name = "withOperation", defaultValue = "false") Boolean withOperation, // Deprecated
                                   @GraphQLArgument(name = "saveOptions") TripSaveOptions saveOptions, // Deprecated
                                   @GraphQLArgument(name = "options") TripSaveOptions options,
-                                  @GraphQLEnvironment() Set<String> fields) {
+                                  @GraphQLEnvironment ResolutionEnvironment env) {
 
         if (options == null) {
             // For compat prior to 1.7
@@ -365,7 +371,7 @@ public class DataGraphQLService {
         final List<TripVO> result = tripService.save(trips, options);
 
         // Add additional properties if needed
-        fillTrips(result, fields);
+        fillTrips(result, GraphQLHelper.fields(env));
 
         return result;
     }
@@ -393,44 +399,45 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "controlTrip", description = "Control a trip")
     @IsUser
-    public TripVO controlTrip(@GraphQLNonNull @GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment() Set<String> fields) {
+    public TripVO controlTrip(@GraphQLNonNull @GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment ResolutionEnvironment env) {
         final TripVO result = tripService.control(trip);
 
         // Add additional properties if needed
-        fillTripFields(result, fields);
+        fillTripFields(result, GraphQLHelper.fields(env));
 
         return result;
     }
 
     @GraphQLMutation(name = "validateTrip", description = "Validate a trip")
     @IsSupervisor
-    public TripVO validateTrip(@GraphQLNonNull @GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment() Set<String> fields) {
+    public TripVO validateTrip(@GraphQLNonNull @GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment ResolutionEnvironment env) {
         final TripVO result = tripService.validate(trip);
 
         // Add additional properties if needed
-        fillTripFields(result, fields);
+        fillTripFields(result, GraphQLHelper.fields(env));
 
         return result;
     }
 
     @GraphQLMutation(name = "unvalidateTrip", description = "Unvalidate a trip")
     @IsSupervisor
-    public TripVO unvalidateTrip(@GraphQLNonNull @GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment() Set<String> fields) {
+    public TripVO unvalidateTrip(@GraphQLNonNull @GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment ResolutionEnvironment env) {
         final TripVO result = tripService.unvalidate(trip);
 
         // Add additional properties if needed
-        fillTripFields(result, fields);
+        fillTripFields(result, GraphQLHelper.fields(env));
 
         return result;
     }
 
     @GraphQLMutation(name = "qualifyTrip", description = "Qualify a trip")
     @IsSupervisor
-    public TripVO qualifyTrip(@GraphQLNonNull @GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment() Set<String> fields) {
+    public TripVO qualifyTrip(@GraphQLNonNull @GraphQLArgument(name = "trip") TripVO trip,
+                              @GraphQLEnvironment ResolutionEnvironment env) {
         final TripVO result = tripService.qualify(trip);
 
         // Add additional properties if needed
-        fillTripFields(result, fields);
+        fillTripFields(result, GraphQLHelper.fields(env));
 
         return result;
     }
@@ -446,7 +453,7 @@ public class DataGraphQLService {
                                                   @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
                                                   @GraphQLArgument(name = "sortBy", defaultValue = PhysicalGearVO.Fields.RANK_ORDER) String sort,
                                                   @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                                  @GraphQLEnvironment() Set<String> fields) {
+                                                  @GraphQLEnvironment ResolutionEnvironment env) {
         Preconditions.checkNotNull(filter, "Missing filter");
         Preconditions.checkNotNull(filter.getVesselId(), "Missing filter.vesselId");
         Page page = Page.builder().offset(offset)
@@ -454,7 +461,7 @@ public class DataGraphQLService {
                 .sortBy(sort)
                 .sortDirection(SortDirection.fromString(direction))
                 .build();
-        return physicalGearService.findAll(filter, page, getFetchOptions(fields));
+        return physicalGearService.findAll(filter, page, getFetchOptions(GraphQLHelper.fields(env)));
     }
 
     @GraphQLQuery(name = "gears", description = "Get operation's gears")
@@ -502,7 +509,7 @@ public class DataGraphQLService {
                                                                   @GraphQLArgument(name = "sortBy", defaultValue = ObservedLocationVO.Fields.START_DATE_TIME) String sort,
                                                                   @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                                                   @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
-                                                                  @GraphQLEnvironment() Set<String> fields
+                                                                  @GraphQLEnvironment ResolutionEnvironment env
     ) {
         filter = fillObserveLocationFilterDefaults(filter);
         SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
@@ -521,6 +528,7 @@ public class DataGraphQLService {
                     ObservedLocationVO.class).getContent();
         }
 
+        Set<String> fields = GraphQLHelper.fields(env);
         final List<ObservedLocationVO> result = observedLocationService.findAll(
                 filter,
                 offset, size, sort,
@@ -556,11 +564,11 @@ public class DataGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public ObservedLocationVO getObservedLocationById(@GraphQLArgument(name = "id") int id,
-                                                      @GraphQLEnvironment() Set<String> fields) {
+                                                      @GraphQLEnvironment ResolutionEnvironment env) {
         final ObservedLocationVO result = observedLocationService.get(id);
 
         // Add additional properties if needed
-        fillObservedLocationFields(result, fields);
+        fillObservedLocationFields(result, GraphQLHelper.fields(env));
 
         return result;
     }
@@ -570,11 +578,11 @@ public class DataGraphQLService {
     public ObservedLocationVO saveObservedLocation(
             @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
             @GraphQLArgument(name = "options") ObservedLocationSaveOptions options,
-            @GraphQLEnvironment() Set<String> fields) {
+            @GraphQLEnvironment ResolutionEnvironment env) {
         final ObservedLocationVO result = observedLocationService.save(observedLocation, options);
 
         // Fill expected fields
-        fillObservedLocationFields(result, fields);
+        fillObservedLocationFields(result, GraphQLHelper.fields(env));
 
         return result;
     }
@@ -584,11 +592,11 @@ public class DataGraphQLService {
     public List<ObservedLocationVO> saveObservedLocations(
             @GraphQLArgument(name = "observedLocations") List<ObservedLocationVO> observedLocations,
             @GraphQLArgument(name = "options") ObservedLocationSaveOptions options,
-            @GraphQLEnvironment() Set<String> fields) {
+            @GraphQLEnvironment ResolutionEnvironment env) {
         final List<ObservedLocationVO> result = observedLocationService.save(observedLocations, options);
 
         // Fill expected fields
-        fillObservedLocationsFields(result, fields);
+        fillObservedLocationsFields(result, GraphQLHelper.fields(env));
 
         return result;
     }
@@ -616,44 +624,44 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "controlObservedLocation", description = "Control an observed location")
     @IsUser
-    public ObservedLocationVO controlObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment() Set<String> fields) {
+    public ObservedLocationVO controlObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment ResolutionEnvironment env) {
         final ObservedLocationVO result = observedLocationService.control(observedLocation);
 
         // Add additional properties if needed
-        fillObservedLocationFields(result, fields);
+        fillObservedLocationFields(result, GraphQLHelper.fields(env));
 
         return result;
     }
 
     @GraphQLMutation(name = "validateObservedLocation", description = "Validate an observed location")
     @IsSupervisor
-    public ObservedLocationVO validateObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment() Set<String> fields) {
+    public ObservedLocationVO validateObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment ResolutionEnvironment env) {
         final ObservedLocationVO result = observedLocationService.validate(observedLocation);
 
         // Add additional properties if needed
-        fillObservedLocationFields(result, fields);
+        fillObservedLocationFields(result, GraphQLHelper.fields(env));
 
         return result;
     }
 
     @GraphQLMutation(name = "unvalidateObservedLocation", description = "Unvalidate an observed location")
     @IsSupervisor
-    public ObservedLocationVO unvalidateObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment() Set<String> fields) {
+    public ObservedLocationVO unvalidateObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment ResolutionEnvironment env) {
         final ObservedLocationVO result = observedLocationService.unvalidate(observedLocation);
 
         // Add additional properties if needed
-        fillObservedLocationFields(result, fields);
+        fillObservedLocationFields(result, GraphQLHelper.fields(env));
 
         return result;
     }
 
     @GraphQLMutation(name = "qualifyObservedLocation", description = "Qualify an observed location")
     @IsSupervisor
-    public ObservedLocationVO qualifyObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment() Set<String> fields) {
+    public ObservedLocationVO qualifyObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment ResolutionEnvironment env) {
         final ObservedLocationVO result = observedLocationService.qualify(observedLocation);
 
         // Add additional properties if needed
-        fillObservedLocationFields(result, fields);
+        fillObservedLocationFields(result, GraphQLHelper.fields(env));
 
         return result;
     }
@@ -796,7 +804,6 @@ public class DataGraphQLService {
         return productService.getByLandingId(landing.getId());
     }
 
-
     /* -- Packets -- */
 
     @GraphQLQuery(name = "packets", description = "Get operation group's packets")
@@ -821,22 +828,17 @@ public class DataGraphQLService {
         return vesselPositionService.getAllByOperationId(operation.getId(), 0, 100, VesselPositionVO.Fields.DATE_TIME, SortDirection.ASC);
     }
 
-    /* -- Vessel features -- */
-
-    @GraphQLQuery(name = "vesselSnapshot", description = "Get trip vessel snapshot")
-    public VesselSnapshotVO getVesselFeaturesByTrip(@GraphQLContext TripVO trip) {
-        return vesselService.getSnapshotByIdAndDate(trip.getVesselSnapshot().getId(), trip.getDepartureDateTime());
-    }
-
     /* -- Sample -- */
 
     @GraphQLQuery(name = "samples", description = "Get operation's samples")
     public List<SampleVO> getSamplesByOperation(@GraphQLContext OperationVO operation,
-                                                @GraphQLEnvironment() Set<String> fields) {
+                                                @GraphQLEnvironment ResolutionEnvironment env) {
         // Avoid a reloading (e.g. when saving)
         if (CollectionUtils.isNotEmpty(operation.getSamples())) {
             return operation.getSamples();
         }
+
+        Set<String> fields = GraphQLHelper.fields(env);
 
         return sampleService.getAllByOperationId(operation.getId(), SampleFetchOptions.builder()
                 .withRecorderDepartment(fields.contains(StringUtils.slashing(SampleVO.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
@@ -868,11 +870,13 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "batches", description = "Get operation's batches")
     public List<BatchVO> getBatchesByOperation(@GraphQLContext OperationVO operation,
-                                               @GraphQLEnvironment() Set<String> fields) {
+                                               @GraphQLEnvironment ResolutionEnvironment env) {
         // Avoid a reloading (e.g. when saving): reuse existing VO
         if (operation.getBatches() != null) {
             return operation.getBatches();
         }
+
+        Set<String> fields = GraphQLHelper.fields(env);
 
         // Reload, if not exist in VO
         return batchService.getAllByOperationId(operation.getId(), BatchFetchOptions.builder()
@@ -892,16 +896,17 @@ public class DataGraphQLService {
                                         @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
                                         @GraphQLArgument(name = "sortBy", defaultValue = LandingVO.Fields.DATE_TIME) String sort,
                                         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                        @GraphQLEnvironment() Set<String> fields
+                                        @GraphQLEnvironment ResolutionEnvironment env
     ) {
-        Page page = Page.builder().offset(offset)
+        Set<String> fields = GraphQLHelper.fields(env);
+
+        final List<LandingVO> result = landingService.findAll(
+                filter,
+                Page.builder().offset(offset)
                 .size(size)
                 .sortBy(sort)
                 .sortDirection(SortDirection.fromString(direction))
-                .build();
-        final List<LandingVO> result = landingService.findAll(
-                filter,
-                page,
+                .build(),
                 getFetchOptions(fields));
 
         // Add additional properties if needed
@@ -921,11 +926,11 @@ public class DataGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public LandingVO getLanding(@GraphQLArgument(name = "id") int id,
-                                @GraphQLEnvironment() Set<String> fields) {
+                                @GraphQLEnvironment ResolutionEnvironment env) {
         final LandingVO result = landingService.get(id);
 
         // Add additional properties if needed
-        fillLandingFields(result, fields);
+        fillLandingFields(result, GraphQLHelper.fields(env));
 
         return result;
     }
@@ -933,11 +938,11 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "saveLanding", description = "Create or update an landing")
     @IsUser
     public LandingVO saveLanding(@GraphQLArgument(name = "landing") LandingVO landing,
-                                 @GraphQLEnvironment() Set<String> fields) {
+                                 @GraphQLEnvironment ResolutionEnvironment env) {
         final LandingVO result = landingService.save(landing);
 
         // Fill expected fields
-        fillLandingFields(result, fields);
+        fillLandingFields(result, GraphQLHelper.fields(env));
 
         return result;
     }
@@ -945,11 +950,11 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "saveLandings", description = "Create or update many landings")
     @IsUser
     public List<LandingVO> saveLandings(@GraphQLNonNull @GraphQLArgument(name = "landings") List<LandingVO> landings,
-                                        @GraphQLEnvironment() Set<String> fields) {
+                                        @GraphQLEnvironment ResolutionEnvironment env) {
         final List<LandingVO> result = landingService.save(landings);
 
         // Fill expected fields
-        fillLandingsFields(result, fields);
+        fillLandingsFields(result, GraphQLHelper.fields(env));
 
         return result;
     }
@@ -980,13 +985,10 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "aggregatedLandings", description = "Find aggregated landings by filter")
     public List<AggregatedLandingVO> findAggregatedLandings(
             @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
-            @GraphQLEnvironment() Set<String> fields
+            @GraphQLEnvironment ResolutionEnvironment env
     ) {
-
-        final List<AggregatedLandingVO> result = aggregatedLandingService.findAll(filter);
-
-        fillVesselSnapshot(result, fields);
-
+        List<AggregatedLandingVO> result = aggregatedLandingService.findAll(filter);
+        fillVesselSnapshot(result, GraphQLHelper.fields(env));
         return result;
     }
 
@@ -994,13 +996,14 @@ public class DataGraphQLService {
     public List<AggregatedLandingVO> saveAggregatedLandings(
             @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
             @GraphQLArgument(name = "aggregatedLandings") List<AggregatedLandingVO> aggregatedLandings,
-            @GraphQLEnvironment() Set<String> fields
+            @GraphQLEnvironment ResolutionEnvironment env
     ) {
-        final List<AggregatedLandingVO> result = aggregatedLandingService.saveAllByObservedLocationId(filter, aggregatedLandings);
+        List<AggregatedLandingVO> result = aggregatedLandingService.saveAllByObservedLocationId(filter, aggregatedLandings);
 
-        fillVesselSnapshot(result, fields);
+        fillVesselSnapshot(result, GraphQLHelper.fields(env));
 
         return result;
+
     }
 
     /* -- Measurements -- */
@@ -1328,13 +1331,21 @@ public class DataGraphQLService {
         return result;
     }
 
-    protected <T extends IWithVesselSnapshotEntity<?, VesselSnapshotVO>> void fillVesselSnapshot(T bean, Set<String> fields) {
+    protected <T extends IWithVesselSnapshotEntity<?, VesselSnapshotVO>> VesselSnapshotVO fillVesselSnapshot(T bean, Set<String> fields) {
         // Add vessel if need
+        VesselSnapshotVO result = bean.getVesselSnapshot();
+
+        // No ID: cannot fetch
+        if (result == null || result.getId() == null) return result;
+
+        // Already fetched
+        if (result.getName() != null) return result;
+
+        // Fetch (if need)
         if (hasVesselFeaturesField(fields)) {
-            if (bean.getVesselSnapshot() != null && bean.getVesselSnapshot().getId() != null) {
-                bean.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), bean.getVesselDateTime()));
-            }
+            return vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), Dates.resetTime(bean.getVesselDateTime()));
         }
+        return null;
     }
 
     protected <T extends IWithVesselSnapshotEntity<?, VesselSnapshotVO>> void fillVesselSnapshot(List<T> beans, Set<String> fields) {

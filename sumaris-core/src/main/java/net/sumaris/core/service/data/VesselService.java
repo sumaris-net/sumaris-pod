@@ -23,12 +23,15 @@ package net.sumaris.core.service.data;
  */
 
 
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.VesselRegistrationVO;
 import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
@@ -47,6 +50,7 @@ public interface VesselService {
 	List<VesselSnapshotVO> findSnapshotByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
 	@Transactional(readOnly = true)
+	@Cacheable(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE)
     VesselSnapshotVO getSnapshotByIdAndDate(int vesselId, Date date);
 
 	@Transactional(readOnly = true)
@@ -64,14 +68,19 @@ public interface VesselService {
 	@Transactional(readOnly = true)
 	List<VesselRegistrationVO> getRegistrationsByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
+	@CacheEvict(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE, allEntries = true)
 	VesselVO save(VesselVO source);
 
+	@CacheEvict(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE, allEntries = true)
 	VesselVO save(VesselVO source, boolean checkUpdateDate);
 
+	@CacheEvict(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE, allEntries = true)
 	List<VesselVO> save(List<VesselVO> sources);
 
+	@CacheEvict(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE, allEntries = true)
 	void delete(int id);
 
+	@CacheEvict(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE, allEntries = true)
 	void delete(List<Integer> ids);
 
 }

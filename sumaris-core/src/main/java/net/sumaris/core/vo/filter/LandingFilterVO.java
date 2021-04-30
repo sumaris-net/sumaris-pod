@@ -49,19 +49,15 @@ public class LandingFilterVO implements IRootDataFilter, IVesselFilter {
         return f != null ? f : new LandingFilterVO();
     }
 
-    private Date startDate;
-
-    private Date endDate;
-
     private String programLabel;
+    private Date startDate;
+    private Date endDate;
+    private Integer vesselId;
+    private Integer locationId;
+    private Integer[] locationIds;
 
     private Integer recorderDepartmentId;
-
     private Integer recorderPersonId;
-
-    private Integer vesselId;
-
-    private Integer locationId;
 
     private Boolean onlyLast;
 

@@ -97,6 +97,14 @@ public class Daos extends net.sumaris.core.dao.technical.Daos {
                 .collect(Collectors.joining(","));
     }
 
+    public static String getSqlInNumbers(Number... numbers) {
+        if (numbers == null) return "";
+        return Stream.of(numbers)
+            .filter(Objects::nonNull)
+            .map(String::valueOf)
+            .collect(Collectors.joining(","));
+    }
+
     public static String getSqlToDate(Date date) {
         if (date == null) return null;
         return String.format(SQL_TO_DATE,

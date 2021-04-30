@@ -69,6 +69,7 @@ public class LandingRepositoryImpl
             .and(hasTripId(filter.getTripId()))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationId(filter.getLocationId()))
+            .and(inLocationIds(filter.getLocationIds()))
             .and(hasVesselId(filter.getVesselId()))
             .and(hasExcludeVesselIds(filter.getExcludeVesselIds()));
     }

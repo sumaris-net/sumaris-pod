@@ -32,6 +32,8 @@ import graphql.GraphQLException;
 import graphql.execution.AbortExecutionException;
 import graphql.execution.ResultPath;
 import graphql.kickstart.execution.error.GenericGraphQLError;
+import graphql.schema.SelectedField;
+import io.leangen.graphql.execution.ResolutionEnvironment;
 import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.server.exception.ErrorCodes;
@@ -44,6 +46,8 @@ import org.springframework.security.access.AccessDeniedException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class GraphQLHelper {
 
@@ -51,6 +55,20 @@ public class GraphQLHelper {
         // helper class
     }
 
+    public static Set<String> fields(ResolutionEnvironment env) {
+        return env.dataFetchingEnvironment.getSelectionSet().getFields()
+            .stream()
+            .map(SelectedField::getQualifiedName)
+            .filter(qualifiedName -> !qualifiedName.endsWith("/__typename"))
+            .collect(Collectors.toSet());
+    }
+
+    public static Set<String> immediateFields(ResolutionEnvironment env) {
+        return env.dataFetchingEnvironment.getSelectionSet().getImmediateFields()
+            .stream().map(SelectedField::getQualifiedName)
+            .filter(qualifiedName -> !qualifiedName.endsWith("/__typename"))
+            .collect(Collectors.toSet());
+    }
 
     public static Map<String, Object> getVariables(Map<String, Object> request, ObjectMapper objectMapper) {
         Object variablesObj = request.get("variables");

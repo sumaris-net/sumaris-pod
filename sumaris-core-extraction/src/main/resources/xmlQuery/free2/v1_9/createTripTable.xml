@@ -20,20 +20,28 @@
     <select alias="PUISSANCE" type="number">VF.ADMINISTRATIVE_POWER</select>
     <select alias="DATE_DEBUT" type="date">TO_CHAR(T.DEPARTURE_DATE_TIME, 'DD-MM-YYYY HH24:MI:SS')</select>
     <select alias="DATE_FIN" type="date">TO_CHAR(T.RETURN_DATE_TIME, 'DD-MM-YYYY HH24:MI:SS')</select>
-    <select alias="PORT_DEBARQUEMENT" type="text">L.LABEL</select>
+    <select alias="PORT_DEBARQUEMENT" type="text">L.NAME</select>
     <select alias="DATE_VENTE" type="date">TO_CHAR(SALE.START_DATE_TIME, 'DD-MM-YYYY')</select>
 
-    <select alias="OBSERVATEUR1" type="text">(CASE WHEN (OBS1.ID IS NOT NULL) THEN
-      upper(OBS1.LAST_NAME) || ' ' || OBS1.FIRST_NAME
+    <select alias="OBSERVATEUR1" type="text">(CASE
+      WHEN (OBS1.ID IS NOT NULL) THEN upper(OBS1.LAST_NAME) || ' ' || OBS1.FIRST_NAME
+      ELSE null
       END)</select>
-    <select alias="OBSERVATEUR2" type="text">(CASE WHEN (OBS2.ID IS NOT NULL) THEN
-      upper(OBS2.LAST_NAME) || ' ' || OBS2.FIRST_NAME
+    <select alias="OBSERVATEUR2" type="text">(CASE
+        WHEN (OBS2.ID IS NOT NULL) THEN upper(OBS2.LAST_NAME) || ' ' || OBS2.FIRST_NAME
+        ELSE null
       END)</select>
 
     <select alias="SERVICE" type="text">COALESCE(OBS1_DEP.NAME, D.NAME)</select>
 
-    <select alias="VALID_PROGRAMME" type="text">(case when (T.QUALIFICATION_DATE is NOT NULL) then 'Données valides' end)</select>
-    <select alias="VALID_STE" type="text">(case when (T.VALIDATION_DATE is NOT NULL) then 'Données valides' else 'Non' end)</select>
+    <select alias="VALID_PROGRAMME" type="text">(CASE
+        WHEN (T.QUALIFICATION_DATE is NOT NULL) THEN 'Données valides'
+        ELSE null
+      END)</select>
+    <select alias="VALID_STE" type="text">CAST(CASE
+        WHEN (T.VALIDATION_DATE is NOT NULL) THEN 'Données valides'
+        ELSE 'Non'
+      END as VARCHAR(15))</select>
 
     <select alias="COMMENTAIRE" type="text">T.COMMENTS</select>
 
@@ -42,7 +50,7 @@
     (SELECT QV.LABEL FROM VESSEL_USE_MEASUREMENT VUM
       INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=VUM.QUALITATIVE_VALUE_FK
     WHERE
-      VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&contractCodePmfmId)]]></select>
+      VUM.TRIP_FK=T.ID and VUM.PMFM_FK IN (&contractCodePmfmIds))]]></select>
 
     <!-- TODO Ajouter cette colonne dans l'entité Trip -->
     <select alias="SAMPLING_STRATA" type="text">null</select>

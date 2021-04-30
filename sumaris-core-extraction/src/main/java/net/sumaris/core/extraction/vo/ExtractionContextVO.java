@@ -157,6 +157,10 @@ public class ExtractionContextVO implements IExtractionFormat {
         return tableNames.containsValue(sheetName);
     }
 
+    public boolean hasRawTable(String rawTableName) {
+        Preconditions.checkNotNull(rawTableName);
+        return rawTableNames.contains(rawTableName);
+    }
     /**
      * Return the hidden columns of the given table
      * @param tableName

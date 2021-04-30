@@ -23,6 +23,7 @@
 package net.sumaris.core.extraction.dao.trip.free;
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
@@ -86,9 +87,10 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionStationTable"));
 
         // Bind some PMFM ids
-        xmlQuery.bind("headlineCumulativeLengthPmfmId", String.valueOf(PmfmEnum.HEADLINE_CUMULATIVE_LENGTH.getId()));
-        xmlQuery.bind("beamCumulativeLengthPmfmId", String.valueOf(PmfmEnum.BEAM_CUMULATIVE_LENGTH.getId()));
-        xmlQuery.bind("netLengthPmfmId", String.valueOf(PmfmEnum.NET_LENGTH.getId()));
+        xmlQuery.bind("effortPmfmIds", Daos.getSqlInNumbers(
+            PmfmEnum.HEADLINE_CUMULATIVE_LENGTH.getId(),
+            PmfmEnum.BEAM_CUMULATIVE_LENGTH.getId(),
+            PmfmEnum.NET_LENGTH.getId()));
         // TODO: add SIH Ifremer missing parameters (see FREE1 format specification) ?
         //        TOTAL_LENGTH_HAULED Longueur levée,               = NET_LENGTH ?
         //        TOTAL_NB_HOOKS Nombre total d'hameçons,           missing in SUMARIS
