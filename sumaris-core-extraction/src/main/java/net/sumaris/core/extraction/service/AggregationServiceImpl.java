@@ -115,7 +115,7 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
-    @Cacheable(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID)
+    @Cacheable(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS)
     public AggregationTypeVO getTypeById(int id, ExtractionProductFetchOptions fetchOptions) {
         ExtractionProductVO source = productService.get(id, fetchOptions);
         return toAggregationType(source);
@@ -297,7 +297,7 @@ public class AggregationServiceImpl implements AggregationService {
     @Override
     @Caching(
             evict = {
-                    @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID, allEntries = true),
+                    @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true),
                     @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true)
             }
     )
@@ -348,7 +348,7 @@ public class AggregationServiceImpl implements AggregationService {
     @Override
     @Caching(
             evict = {
-                    @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID, allEntries = true),
+                    @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true),
                     @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true)
             }
     )
@@ -383,7 +383,7 @@ public class AggregationServiceImpl implements AggregationService {
         // Check if need aggregate (ig new or if filter changed)
         ProcessingFrequencyEnum frequency = source.getProcessingFrequencyId() != null
             ? ProcessingFrequencyEnum.valueOf(source.getProcessingFrequencyId())
-            : ProcessingFrequencyEnum.NEVER;
+            : ProcessingFrequencyEnum.MANUALLY;
 
         String filterAsString = writeFilterAsString(filter);
 
@@ -430,6 +430,13 @@ public class AggregationServiceImpl implements AggregationService {
             target.setStatusId(source.getStatusId());
             target.setUpdateDate(source.getUpdateDate());
             target.setIsSpatial(source.getIsSpatial());
+
+            if (target.getRecorderDepartment() == null) {
+                target.setRecorderDepartment(source.getRecorderDepartment());
+            }
+            if (target.getRecorderPerson() == null) {
+                target.setRecorderPerson(source.getRecorderPerson());
+            }
         }
         target.setStratum(source.getStratum());
         target.setFilter(filterAsString);

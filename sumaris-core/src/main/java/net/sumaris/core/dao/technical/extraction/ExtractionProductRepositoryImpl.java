@@ -206,7 +206,7 @@ public class ExtractionProductRepositoryImpl
     @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PRODUCT_BY_LABEL_AND_OPTIONS, key = "#vo.label", condition = "#vo.id != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PRODUCT_BY_LABEL_AND_OPTIONS, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PRODUCTS_BY_FILTER, allEntries = true),
         }
     )

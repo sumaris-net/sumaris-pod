@@ -39,7 +39,7 @@ import org.springframework.context.annotation.Configuration;
 public class ExtractionCacheConfiguration {
 
     public interface Names {
-        String AGGREGATION_TYPE_BY_ID = "net.sumaris.core.extraction.service.aggregationTypeById";
+        String AGGREGATION_TYPE_BY_ID_AND_OPTIONS = "net.sumaris.core.extraction.service.aggregationTypeById";
         String AGGREGATION_TYPE_BY_FORMAT = "net.sumaris.core.extraction.service.aggregationTypeByFormat";
     }
 
@@ -47,7 +47,7 @@ public class ExtractionCacheConfiguration {
     public JCacheManagerCustomizer extractionCacheCustomizer() {
         return cacheManager -> {
             log.info("Adding {Extraction} caches...");
-            Caches.createHeapCache(cacheManager, Names.AGGREGATION_TYPE_BY_ID, Integer.class, AggregationTypeVO.class, CacheDurations.DEFAULT, 100);
+            Caches.createHeapCache(cacheManager, Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, AggregationTypeVO.class, CacheDurations.DEFAULT, 100);
             Caches.createHeapCache(cacheManager, Names.AGGREGATION_TYPE_BY_FORMAT, String.class, AggregationTypeVO.class, CacheDurations.DEFAULT, 100);
         };
     }
