@@ -191,9 +191,11 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
         xmlQuery.bind("pmfmId" + pmfm.getAlias(), String.valueOf(pmfm.getPmfmId()));
         xmlQuery.bind("pmfmLabel" + pmfm.getAlias(), pmfm.getLabel());
 
-        // ForDisable groups of unused pmfm type
+        // Disable groups of unused pmfm type
         for (PmfmValueType enumType: PmfmValueType.values()) {
-            xmlQuery.setGroup(enumType.name().toLowerCase() + pmfm.getAlias(), enumType == pmfm.getType());
+            if (enumType != pmfm.getType()) {
+                xmlQuery.setGroup(enumType.name().toLowerCase() + pmfm.getAlias(), false);
+            }
         }
     }
 }

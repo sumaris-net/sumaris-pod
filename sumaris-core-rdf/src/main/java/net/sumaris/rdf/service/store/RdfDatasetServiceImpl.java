@@ -28,9 +28,9 @@ import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
-import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.crypto.CryptoService;
+import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.util.file.FileContentReplacer;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.config.RdfConfigurationOption;
@@ -392,7 +392,7 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
 
         try {
             if (!cacheFile.exists() && !tempFile.exists()) {
-                long now = System.currentTimeMillis();
+                long startTime = System.currentTimeMillis();
                 log.info("Downloading data from {{}}...", baseUri);
 
                 // Write each model received
@@ -401,7 +401,7 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
                     fos.flush();
                 }
 
-                log.info("Data from {{}} downloaded successfully, in {}ms", baseUri, System.currentTimeMillis() - now);
+                log.info("Data from {{}} downloaded successfully, in {}", baseUri, TimeUtils.printDurationFrom(startTime));
             }
             else {
                 log.debug("Data from {{}} already exists. Skip download", baseUri);
@@ -440,17 +440,17 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
     public void saveNamedModel(Dataset dataset, String name, Model model, boolean replaceIfExists) {
 
         try {
-            long now = System.currentTimeMillis();
+            long startTime = System.currentTimeMillis();
             log.info("Loading {{}} into RDF dataset...", name);
 
             try (RDFConnection conn = RDFConnectionFactory.connect(dataset)) {
                 Txn.executeWrite(conn, () -> {
                     if (dataset.containsNamedModel(name)) {
                         if (replaceIfExists) dataset.replaceNamedModel(name, model);
-                        log.info("Successfully update {{}} in dataset, in {}ms", name, System.currentTimeMillis() - now);
+                        log.info("Successfully update {{}} in dataset, in {}", name, TimeUtils.printDurationFrom(startTime));
                     } else {
                         dataset.addNamedModel(name, model);
-                        log.info("Successfully store {{}} in dataset, in {}ms", name, System.currentTimeMillis() - now);
+                        log.info("Successfully store {{}} in dataset, in {}", name, TimeUtils.printDurationFrom(startTime));
                     }
                 });
             }

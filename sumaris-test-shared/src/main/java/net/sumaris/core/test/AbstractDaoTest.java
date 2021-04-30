@@ -26,16 +26,14 @@ package net.sumaris.core.test;
 
 
 import lombok.extern.slf4j.Slf4j;
-import net.sf.ehcache.CacheManager;
 import net.sumaris.core.config.SumarisConfiguration;
-import org.hibernate.Session;
 import org.junit.After;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 
+import javax.cache.CacheManager;
 import javax.persistence.EntityManager;
 
 /**
@@ -92,7 +90,7 @@ public abstract class AbstractDaoTest {
 		}
 		// Clear all cache, if any
 		if (cacheManager != null) {
-			cacheManager.clearAll();
+			//cacheManager.clearAll();
 		}
 	}
 	

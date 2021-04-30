@@ -118,16 +118,24 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         if (this.dbVersion == null || !this.dbVersion.equals(event.getSchemaVersion())) {
             this.dbVersion = event.getSchemaVersion();
 
-            // Apply software config
-            applySoftwareConfig();
-
-            // Publish ready event
-            if (event instanceof SchemaReadyEvent) {
-                publisher.publishEvent(new ConfigurationReadyEvent(configuration));
+            if (!configuration.enableConfigurationDbPersistence()) {
+                if (event instanceof SchemaReadyEvent) {
+                    publisher.publishEvent(new ConfigurationReadyEvent(configuration));
+                }
             }
-            // Publish update event
+
             else {
-                publisher.publishEvent(new ConfigurationUpdatedEvent(configuration));
+                // Update the config, from the software properties
+                updateConfigFromSoftwareProperties();
+
+                // Publish ready event
+                if (event instanceof SchemaReadyEvent) {
+                    publisher.publishEvent(new ConfigurationReadyEvent(configuration));
+                }
+                // Publish update event
+                else {
+                    publisher.publishEvent(new ConfigurationUpdatedEvent(configuration));
+                }
             }
 
             // Mark as ready
@@ -142,16 +150,18 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             condition = "#event.entityName=='Software'")
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     protected void onSoftwareChanged(AbstractEntityEvent event) {
-        SoftwareVO software = (SoftwareVO)event.getData();
 
-        ready = false;
+        if (!configuration.enableConfigurationDbPersistence()) return; // Skip
 
-        // Test if same as the current software
-        boolean isCurrent = (software != null && this.currentSoftwareLabel.equals(software.getLabel()));
-        if (isCurrent) {
+        // Check if should be applied into configuration
+        SoftwareVO software = (SoftwareVO) event.getData();
+        boolean isCurrentSoftware = (software != null && this.currentSoftwareLabel.equals(software.getLabel()));
 
-            // Apply to config
-            applySoftwareConfig();
+        if (isCurrentSoftware) {
+            ready = false;
+
+            // Update the config, from the software properties
+            updateConfigFromSoftwareProperties();
 
             // Publish update event
             publisher.publishEvent(new ConfigurationUpdatedEvent(configuration));
@@ -180,7 +190,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     /* -- protected methods -- */
 
-    protected void applySoftwareConfig() {
+    protected void updateConfigFromSoftwareProperties() {
 
         boolean newDatabase = false;
 

@@ -31,6 +31,7 @@ import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.specification.administration.StratSpecification;
+import net.sumaris.core.extraction.vo.ExtractionFilterCriterionVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.administration.ExtractionStrategyContextVO;
 import net.sumaris.core.extraction.vo.administration.ExtractionStrategyFilterVO;

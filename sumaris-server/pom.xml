@@ -116,13 +116,6 @@
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-kahadb-store</artifactId>
     </dependency>
-
-    <!-- Actuator
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>-->
-
     <dependency>
       <groupId>io.reactivex.rxjava2</groupId>
       <artifactId>rxjava</artifactId>
@@ -315,11 +308,19 @@
         </configuration>
         <executions>
           <execution>
+            <id>generate-build-info</id>
+            <goals>
+              <goal>build-info</goal>
+            </goals>
+          </execution>
+
+          <execution>
             <id>package-executable-war</id>
             <goals>
               <goal>repackage</goal>
             </goals>
           </execution>
+
         </executions>
       </plugin>
 

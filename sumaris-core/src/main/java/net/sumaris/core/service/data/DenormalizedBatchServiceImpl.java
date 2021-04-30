@@ -24,8 +24,11 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.batch.DenormalizedBatchRepository;
+import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,19 +43,34 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 	@Autowired
 	protected DenormalizedBatchRepository denormalizedBatchRepository;
 
+	@Autowired
+	protected BatchRepository batchRepository;
+
 	@Override
-	public List<DenormalizedBatchVO> denormalize(BatchVO catchBatch) {
+	public List<DenormalizedBatchVO> denormalize(@NonNull BatchVO catchBatch) {
 		Preconditions.checkNotNull(catchBatch);
 		return denormalizedBatchRepository.denormalized(catchBatch);
 	}
 
 	@Override
-	public List<DenormalizedBatchVO> saveAllByOperationId(int operationId, BatchVO catchBatch) {
+	public List<DenormalizedBatchVO> denormalizeAndSaveByOperationId(int operationId) {
+		BatchVO catchBatch = batchRepository.getCatchBatchByOperationId(operationId, BatchFetchOptions.builder()
+			.withChildrenEntities(true)
+			.withMeasurementValues(true)
+			.withRecorderDepartment(false)
+			.build());
+		if (catchBatch == null) return null;
 		return denormalizedBatchRepository.saveAllByOperationId(operationId, denormalize(catchBatch));
 	}
 
 	@Override
-	public List<DenormalizedBatchVO> saveAllBySaleId(int saleId, BatchVO catchBatch) {
+	public List<DenormalizedBatchVO> denormalizeAndSaveBySaleId(int saleId) {
+		BatchVO catchBatch = batchRepository.getCatchBatchBySaleId(saleId, BatchFetchOptions.builder()
+			.withChildrenEntities(true)
+			.withMeasurementValues(true)
+			.withRecorderDepartment(false)
+			.build());
+		if (catchBatch == null) return null;
 		return denormalizedBatchRepository.saveAllBySaleId(saleId, denormalize(catchBatch));
 	}
 }

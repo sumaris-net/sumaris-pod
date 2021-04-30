@@ -28,7 +28,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.cache.CacheNames;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -47,7 +47,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Repository;
 
-import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -90,7 +89,7 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.ANALYTIC_REFERENCES_BY_FILTER)
+    @Cacheable(cacheNames = CacheConfiguration.Names.ANALYTIC_REFERENCES_BY_FILTER)
     public List<ReferentialVO> findAnalyticReferencesByFilter(ReferentialFilterVO filter,
                                             int offset,
                                             int size,

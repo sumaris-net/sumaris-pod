@@ -39,6 +39,7 @@ import org.springframework.beans.BeanUtils;
 
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Function;
@@ -287,6 +288,21 @@ public class Beans {
             return (V) PropertyUtils.getProperty(object, propertyName);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new SumarisTechnicalException( String.format("Could not find property %1s on object of type %2s", propertyName, object.getClass().getName()), e);
+        }
+    }
+
+    public static <K, V> V getPrivateProperty(K object, String propertyName) {
+        try {
+            return (V) PropertyUtils.getProperty(object, propertyName);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            try {
+                Field field = object.getClass().getDeclaredField(propertyName);
+                field.setAccessible(true);
+                return (V)field.get(object);
+            } catch (Exception other) {
+                throw new SumarisTechnicalException( String.format("Could not find property %1s on object of type %2s", propertyName, object.getClass().getName()), e);
+
+            }
         }
     }
 

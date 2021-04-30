@@ -28,11 +28,12 @@ import io.leangen.graphql.annotations.GraphQLEnvironment;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.ehcache.CacheException;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Ehcache;
+
+import javax.cache.Cache;
+import javax.cache.CacheManager;
+
+import net.sumaris.core.dao.technical.cache.Caches;
 import net.sumaris.core.service.administration.DepartmentService;
-import net.sumaris.core.service.technical.CacheStatistics;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -45,6 +46,7 @@ import net.sumaris.server.service.administration.ImageService;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.ehcache.core.spi.service.StatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,9 +80,6 @@ public class ConfigurationGraphQLService {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Autowired
-    private CacheStatistics cacheStatistics;
 
     @Autowired
     private CacheManager cacheManager;
@@ -135,7 +134,8 @@ public class ConfigurationGraphQLService {
     @GraphQLQuery(name = "cacheStatistics", description = "Get cache statistics")
     @IsAdmin
     public Map<String, Map<String, Long>> getCacheStats() {
-        return cacheStatistics.getCacheDetails();
+
+        return Caches.getStatistics(cacheManager);
     }
 
     @GraphQLQuery(name = "clearCache", description = "Clear a single cache or all caches")
@@ -146,15 +146,14 @@ public class ConfigurationGraphQLService {
         try {
             if (StringUtils.isBlank(name)) {
                 log.info("Clearing caches...");
-                cacheManager.clearAll();
+                Caches.clearAll(cacheManager);
 
             } else {
                 log.info(String.format("Clearing cache (%s)...", name));
-                Ehcache cache = cacheManager.getEhcache(name);
-                if (cache != null)
-                    cache.removeAll();
+                Cache cache = cacheManager.getCache(name);
+                if (cache != null) cache.removeAll();
             }
-        } catch (IllegalStateException | CacheException e) {
+        } catch (RuntimeException e) {
             log.error("Error while clearing caches", e);
             return false;
         }

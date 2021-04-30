@@ -53,10 +53,10 @@ public class DenormalizedBatchConfiguration {
         if (catchBatch == null) return; // Skip if not a catch batch
 
         if (catchBatch.getOperationId() != null) {
-            denormalizedBatchService.saveAllByOperationId(catchBatch.getOperationId(), catchBatch);
+            denormalizedBatchService.denormalizeAndSaveByOperationId(catchBatch.getOperationId());
         }
         else if (catchBatch.getSaleId() != null) {
-            denormalizedBatchService.saveAllBySaleId(catchBatch.getSaleId(), catchBatch);
+            denormalizedBatchService.denormalizeAndSaveBySaleId(catchBatch.getSaleId());
         }
         else {
             log.warn("Invalid catch batch update event: no parent found! Expected one of operation or sale.");

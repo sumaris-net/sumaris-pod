@@ -34,7 +34,8 @@ import java.util.List;
  * @author peck7 on 01/09/2020.
  */
 public interface OperationRepository
-    extends DataRepository<Operation, OperationVO, OperationFilterVO, DataFetchOptions>, OperationSpecifications {
+    extends DataRepository<Operation, OperationVO, OperationFilterVO, DataFetchOptions>,
+    OperationSpecifications {
 
     List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> operations);
 

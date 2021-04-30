@@ -35,6 +35,7 @@ import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.util.TimeUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,13 +66,12 @@ public class ExtractionAction {
         log.info("Starting {} extraction {{}}...",
                 StringUtils.capitalize(format.getCategory().name().toLowerCase()),
                 format.getLabel());
-        ActionUtils.logConnectionProperties();
 
         // Check output file
         File outputFile = ActionUtils.checkAndGetOutputFile(false, ExtractionAction.class);
 
         // Execute the extraction
-        long now = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         File tempFile;
         try {
             ExtractionTypeVO type = service.getByFormat(format);
@@ -88,15 +88,18 @@ public class ExtractionAction {
         // Move temp file to expected output file
         try {
             Files.moveFile(tempFile, outputFile);
-            log.info("{} extraction {{}} finished, in {}s - output file: {}",
-                    StringUtils.capitalize(format.getCategory().name().toLowerCase()),
-                    format.getLabel(),
-                    (System.currentTimeMillis() - now) / 1000,
-                    outputFile.getAbsolutePath());
+
         }
         catch (IOException e) {
             log.error("Error while creating output file: " + e.getMessage(), e);
             return;
         }
+
+        // Success log
+        log.info("{} extraction {{}} finished, in {} - output: {}",
+            StringUtils.capitalize(format.getCategory().name().toLowerCase()),
+            format.getLabel(),
+            TimeUtils.printDurationFrom(startTime),
+            outputFile.getAbsolutePath());
     }
 }

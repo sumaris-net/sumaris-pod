@@ -58,6 +58,21 @@ public interface BatchSpecifications extends DataSpecifications<Batch> {
         return specification;
     }
 
+    default Specification<Batch> hasSaleId(Integer saleId) {
+
+        if (saleId == null) return null;
+        BindableSpecification<Batch> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, BatchVO.Fields.SALE_ID);
+
+            // Sort by rank order
+            query.orderBy(criteriaBuilder.asc(root.get(Batch.Fields.RANK_ORDER)));
+
+            return criteriaBuilder.equal(root.get(Batch.Fields.SALE).get(IEntity.Fields.ID), param);
+        });
+        specification.addBind(BatchVO.Fields.SALE_ID, saleId);
+        return specification;
+    }
+
     default Specification<Batch> hasNoParent() {
         return BindableSpecification.where((root, query, criteriaBuilder) ->
             criteriaBuilder.isNull(root.get(Batch.Fields.PARENT))
@@ -76,8 +91,11 @@ public interface BatchSpecifications extends DataSpecifications<Batch> {
 
     BatchVO getCatchBatchByOperationId(int operationId, BatchFetchOptions fetchOptions);
 
+    BatchVO getCatchBatchBySaleId(int saleId, BatchFetchOptions fetchOptions);
 
     List<BatchVO> saveByOperationId(int operationId, List<BatchVO> sources);
+
+    List<BatchVO> saveBySaleId(int saleId, List<BatchVO> sources);
 
     List<BatchVO> toFlatList(BatchVO source);
 

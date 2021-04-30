@@ -46,13 +46,7 @@ import java.text.ParseException;
 
 @RestController
 @ConditionalOnBean({ExtractionWebAutoConfiguration.class})
-public class AggregationRestController {
-
-    protected static final String BASE_PATH = "/api/extraction/product";
-    protected static final String GEOJSON_LABEL_PATH = BASE_PATH + "/{label:[a-zA-Z0-9-_]+}";
-    protected static final String GEOJSON_LABEL_WITH_SPACE_PATH = GEOJSON_LABEL_PATH + "/{space}";
-
-    protected static final String GEOJSON_EXTENSION = ".geojson";
+public class AggregationRestController implements ExtractionRestPaths {
 
     @Autowired
     private AggregationService aggregationService;
@@ -97,8 +91,8 @@ public class AggregationRestController {
             throw new SumarisTechnicalException(ErrorCodes.BAD_REQUEST, "Invalid query: " + queryString);
         }
 
-        int offset = offsetParam != null ? offsetParam.intValue() : 0;
-        int size = sizeParam != null ? sizeParam.intValue() : 100;
+        int offset = offsetParam != null ? offsetParam : 0;
+        int size = sizeParam != null ? sizeParam : 100;
         // Limit to 1000 rows
         if (size > 1000) size = 1000;
 

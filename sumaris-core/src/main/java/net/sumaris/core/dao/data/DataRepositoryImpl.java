@@ -168,18 +168,18 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
 
     @Override
     public V get(Integer id) {
-        return toVO(this.getOne(id));
+        return toVO(this.getById(id));
     }
 
     @Override
     public V get(Integer id, O fetchOptions) {
-        return toVO(this.getOne(id), fetchOptions);
+        return toVO(this.getById(id), fetchOptions);
     }
 
     @Override
     public V control(V vo) {
         Preconditions.checkNotNull(vo);
-        E entity = getOne(vo.getId());
+        E entity = getById(vo.getId());
 
         // Check update date
         if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(vo, entity);
@@ -218,7 +218,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
     @Override
     public V qualify(V vo) {
         Preconditions.checkNotNull(vo);
-        E entity = getOne(vo.getId());
+        E entity = getById(vo.getId());
 
         // Check update date
         if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(vo, entity);

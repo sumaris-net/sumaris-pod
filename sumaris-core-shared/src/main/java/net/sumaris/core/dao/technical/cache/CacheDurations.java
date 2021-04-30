@@ -20,11 +20,18 @@
  * #L%
  */
 
-package net.sumaris.rdf.cache;
+package net.sumaris.core.dao.technical.cache;
 
-import net.sumaris.core.dao.cache.CacheNames;
+/**
+ * Cache duration, in seconds
+ */
+public interface CacheDurations {
 
-public interface RdfCacheNames extends CacheNames {
+    int DEFAULT = 1500; // 25 min;
 
-    String ONTOLOGY_BY_NAME = "net.sumaris.rdf.service.schema.ontologyByName";
+    int SHORT = 10 * 60; // 10 min
+    int MEDIUM = 60 * 60; // 1 h
+    int LONG = 12 * 60 * 60; // 12 h
+
+    int ETERNAL = 24 * 60 * 60; // 1 day
 }

@@ -36,10 +36,11 @@ import java.util.List;
 @Transactional
 public interface DenormalizedBatchService {
 
+	@Transactional(readOnly = true)
 	List<DenormalizedBatchVO> denormalize(BatchVO catchBatch);
 
-	List<DenormalizedBatchVO> saveAllByOperationId(int operationId, BatchVO catchBatch);
+	List<DenormalizedBatchVO> denormalizeAndSaveByOperationId(int operationId);
 
-	List<DenormalizedBatchVO> saveAllBySaleId(int saleId, BatchVO catchBatch);
+	List<DenormalizedBatchVO> denormalizeAndSaveBySaleId(int saleId);
 
 }

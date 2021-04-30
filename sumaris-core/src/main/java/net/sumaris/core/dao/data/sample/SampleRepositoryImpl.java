@@ -57,7 +57,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 /**
@@ -190,7 +189,7 @@ public class SampleRepositoryImpl
                 target.setParent(null);
             }
             else {
-                Sample parent = load(Sample.class, parentId);
+                Sample parent = getReference(Sample.class, parentId);
                 target.setParent(parent);
 
                 // Not need to update the children collection, because mapped by the 'parent' property
@@ -227,7 +226,7 @@ public class SampleRepositoryImpl
             if (opeId == null) {
                 target.setOperation(null);
             } else {
-                target.setOperation(load(Operation.class, opeId));
+                target.setOperation(getReference(Operation.class, opeId));
             }
         }
 
@@ -236,7 +235,7 @@ public class SampleRepositoryImpl
             if (landingId == null) {
                 target.setLanding(null);
             } else {
-                target.setLanding(load(Landing.class, landingId));
+                target.setLanding(getReference(Landing.class, landingId));
             }
         }
 
@@ -246,7 +245,7 @@ public class SampleRepositoryImpl
                 target.setMatrix(null);
             }
             else {
-                target.setMatrix(load(Matrix.class, source.getMatrix().getId()));
+                target.setMatrix(getReference(Matrix.class, source.getMatrix().getId()));
             }
         }
 
@@ -258,7 +257,7 @@ public class SampleRepositoryImpl
             else {
                 ReferentialVO unit = referentialDao.findByUniqueLabel(Unit.class.getSimpleName(), source.getSizeUnit())
                     .orElseThrow(() -> new SumarisTechnicalException(String.format("Invalid 'sample.sizeUnit': unit symbol '%s' not exists", source.getSizeUnit())));
-                target.setSizeUnit(load(Unit.class, unit.getId()));
+                target.setSizeUnit(getReference(Unit.class, unit.getId()));
             }
         }
 
@@ -268,7 +267,7 @@ public class SampleRepositoryImpl
                 target.setTaxonGroup(null);
             }
             else {
-                target.setTaxonGroup(load(TaxonGroup.class, source.getTaxonGroup().getId()));
+                target.setTaxonGroup(getReference(TaxonGroup.class, source.getTaxonGroup().getId()));
             }
         }
 
@@ -280,7 +279,7 @@ public class SampleRepositoryImpl
             else {
                 // Get the taxon name, then set reference taxon
                 Integer referenceTaxonId = taxonNameRepository.getReferenceTaxonIdById(source.getTaxonName().getId());
-                target.setReferenceTaxon(load(ReferenceTaxon.class, referenceTaxonId));
+                target.setReferenceTaxon(getReference(ReferenceTaxon.class, referenceTaxonId));
             }
         }
 
@@ -290,7 +289,7 @@ public class SampleRepositoryImpl
                 target.setBatch(null);
             }
             else {
-                target.setBatch(load(Batch.class, batchId));
+                target.setBatch(getReference(Batch.class, batchId));
             }
         }
 
@@ -322,7 +321,7 @@ public class SampleRepositoryImpl
         if (debugTime != 0L) log.debug(String.format("Saving operation {id:%s} samples... {hash_optimization:%s}", operationId, enableSaveUsingHash));
 
         // Load parent entity
-        Operation parent = getOne(Operation.class, operationId);
+        Operation parent = getById(Operation.class, operationId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getTrip().getProgram().getId());
 
@@ -351,7 +350,7 @@ public class SampleRepositoryImpl
         if (debugTime != 0L) log.debug(String.format("Saving landing {id:%s} samples... {hash_optimization:%s}", landingId, enableSaveUsingHash));
 
         // Load parent entity
-        Landing parent = getOne(Landing.class, landingId);
+        Landing parent = getById(Landing.class, landingId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getProgram().getId());
 

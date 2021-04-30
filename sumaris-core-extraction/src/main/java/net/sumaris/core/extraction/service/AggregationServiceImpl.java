@@ -31,7 +31,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.cache.ExtractionCacheNames;
+import net.sumaris.core.extraction.config.ExtractionCacheConfiguration;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
@@ -115,14 +115,14 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
-    @Cacheable(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_ID)
+    @Cacheable(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID)
     public AggregationTypeVO getTypeById(int id, ExtractionProductFetchOptions fetchOptions) {
         ExtractionProductVO source = productService.get(id, fetchOptions);
         return toAggregationType(source);
     }
 
     @Override
-    @Cacheable(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_FORMAT,
+    @Cacheable(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT,
             key = "#format.category + #format.label + #format.version",
             condition = " #format != null", unless = "#result == null")
     public AggregationTypeVO getTypeByFormat(IExtractionFormat format) {
@@ -297,8 +297,8 @@ public class AggregationServiceImpl implements AggregationService {
     @Override
     @Caching(
             evict = {
-                    @CacheEvict(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_ID, allEntries = true),
-                    @CacheEvict(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_FORMAT, allEntries = true)
+                    @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID, allEntries = true),
+                    @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true)
             }
     )
     public CompletableFuture<AggregationTypeVO> asyncSave(AggregationTypeVO type, @Nullable ExtractionFilterVO filter) {
@@ -348,8 +348,8 @@ public class AggregationServiceImpl implements AggregationService {
     @Override
     @Caching(
             evict = {
-                    @CacheEvict(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_ID, allEntries = true),
-                    @CacheEvict(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_FORMAT, allEntries = true)
+                    @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID, allEntries = true),
+                    @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true)
             }
     )
     public AggregationTypeVO save(AggregationTypeVO source, @Nullable ExtractionFilterVO filter) {

@@ -95,7 +95,7 @@ public class ImageServiceImpl implements ImageService {
 
     @Override
     public String getImageUrl(String imageUri) {
-        if (StringUtils.isBlank(imageUri)) return null;
+        if (StringUtils.isBlank(imageUri) || imageUrl == null) return null;
 
         // Resolve URI like 'image:<ID>'
         if (imageUri.startsWith(ImageService.URI_IMAGE_SUFFIX)) {

@@ -28,6 +28,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 
+import javax.annotation.Nullable;
 import java.util.Date;
 
 @Data
@@ -36,6 +37,10 @@ import java.util.Date;
 @NoArgsConstructor
 @FieldNameConstants
 public class TripFilterVO implements IRootDataFilter, IVesselFilter {
+
+    public static TripFilterVO nullToEmpty(@Nullable TripFilterVO filter) {
+        return filter == null ? TripFilterVO.builder().build() : filter;
+    }
 
     private Date startDate;
 

@@ -40,4 +40,12 @@ public class Numbers {
         formatter.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.FRANCE));
         return formatter.format(value);
     }
+
+    public static String format(Number value) {
+        DecimalFormat formatter = new DecimalFormat();
+        formatter.setDecimalSeparatorAlwaysShown(false);
+        formatter.setGroupingUsed(false);
+        formatter.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.FRANCE));
+        return formatter.format(value);
+    }
 }

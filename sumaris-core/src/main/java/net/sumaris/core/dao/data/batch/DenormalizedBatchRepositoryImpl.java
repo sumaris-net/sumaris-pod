@@ -41,6 +41,7 @@ import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Numbers;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.batch.*;
 import net.sumaris.core.vo.data.QuantificationMeasurementVO;
@@ -120,9 +121,9 @@ public class DenormalizedBatchRepositoryImpl
         // Quality flag
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
+                target.setQualityFlag(getReference(QualityFlag.class, config.getDefaultQualityFlagId()));
             } else {
-                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
+                target.setQualityFlag(getReference(QualityFlag.class, source.getQualityFlagId()));
             }
         }
 
@@ -133,7 +134,7 @@ public class DenormalizedBatchRepositoryImpl
             if (operationId == null) {
                 target.setOperation(null);
             } else {
-                target.setOperation(load(Operation.class, operationId));
+                target.setOperation(getReference(Operation.class, operationId));
             }
         }
 
@@ -144,7 +145,7 @@ public class DenormalizedBatchRepositoryImpl
             if (saleId == null) {
                 target.setSale(null);
             } else {
-                target.setSale(load(Sale.class, saleId));
+                target.setSale(getReference(Sale.class, saleId));
             }
         }
 
@@ -157,7 +158,7 @@ public class DenormalizedBatchRepositoryImpl
         sources.forEach(b -> b.setOperationId(operationId));
 
         // Get existing fishing areas
-        Set<Integer> existingIds = self.getAllIdsByOperationId(operationId);
+        Set<Integer> existingIds = self.getAllIdByOperationId(operationId);
 
         // Save
         sources.forEach(b -> {
@@ -178,7 +179,7 @@ public class DenormalizedBatchRepositoryImpl
         sources.forEach(b -> b.setSaleId(saleId));
 
         // Get existing fishing areas
-        Set<Integer> existingIds = self.getAllIdsBySaleId(saleId);
+        Set<Integer> existingIds = self.getAllIdBySaleId(saleId);
 
         // Save
         sources.forEach(b -> {
@@ -196,7 +197,7 @@ public class DenormalizedBatchRepositoryImpl
     public List<DenormalizedBatchVO> denormalized(BatchVO catchBatch) {
 
         boolean trace = log.isTraceEnabled();
-        long now = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         final MutableShort flatRankOrder = new MutableShort(0);
 
         List<DenormalizedBatchVO> result = TreeNodeEntities.<BatchVO, DenormalizedBatchVO>streamAllAndMap(catchBatch, (source, parent) -> {
@@ -208,6 +209,8 @@ public class DenormalizedBatchRepositoryImpl
             // Depth level
             if (parent == null) {
                 target.setTreeLevel((short)1); // First level
+                if (target.getIsLanding() == null) target.setIsLanding(false);
+                if (target.getIsDiscard() == null) target.setIsDiscard(false);
             }
             else {
                 target.setTreeLevel((short)(parent.getTreeLevel() + 1));
@@ -226,6 +229,13 @@ public class DenormalizedBatchRepositoryImpl
                 // Inherit location
                 if (parent.getLocationId() != null) {
                     target.setLocationId(parent.getLocationId());
+                }
+                // Inherit landing / discard
+                if (target.getIsLanding() == null) {
+                    target.setIsLanding(parent.getIsLanding());
+                }
+                if (target.getIsDiscard() == null) {
+                    target.setIsDiscard(parent.getIsDiscard());
                 }
 
                 // Inherit quality flag (keep the worst value)
@@ -249,13 +259,14 @@ public class DenormalizedBatchRepositoryImpl
                     target.addSortingValue(svTarget);
                 });
 
-
             }
 
          return target;
         })
+
         // Sort
         .sorted(Comparator.comparing(DenormalizedBatches::computeFlatOrder))
+
         .map(target -> {
             // Compute flat rank order
             flatRankOrder.increment();
@@ -268,17 +279,23 @@ public class DenormalizedBatchRepositoryImpl
         })
         .collect(Collectors.toList());
 
-        // Compute indirect values
-        computeIndirectValues(result);
+        if (CollectionUtils.size(result) == 1) {
+            DenormalizedBatchVO target = result.get(0);
+            target.setElevateWeight(target.getWeight());
+        }
+        else {
+            // Compute indirect values
+            computeIndirectValues(result);
 
-        // Elevate weight
-        computeElevatedValues(result);
+            // Elevate weight
+            computeElevatedValues(result);
+        }
 
         // Log
         if (trace) {
-            log.trace("Successfully denormalized batches (in {}ms):\n{}",
-                    System.currentTimeMillis() - now,
-                    DenormalizedBatches.dumpAsString(result, true, true));
+            log.trace("Successfully denormalized batches, in {}:\n{}",
+                TimeUtils.printDurationFrom(startTime),
+                DenormalizedBatches.dumpAsString(result, true, true));
         }
 
         return result;
@@ -364,7 +381,8 @@ public class DenormalizedBatchRepositoryImpl
         MutableInt changesCount = new MutableInt(0);
 
         log.debug("Computing elevated values...");
-        batches.stream().map(target -> (TempDenormalizedBatchVO)target)
+        batches.stream()
+            .map(target -> (TempDenormalizedBatchVO)target)
             .forEach(target -> {
                 boolean changed = false;
 
@@ -445,36 +463,35 @@ public class DenormalizedBatchRepositoryImpl
             Set<Integer> pmfmIds = source.getMeasurementValues().keySet();
 
             // Init rankOrder with a very high value, inherited values must be BEFORE current values
-            pmfmIds.stream()
-                    .forEach(pmfmId -> {
-                        String valStr = source.getMeasurementValues().get(pmfmId);
-                        if (StringUtils.isBlank(valStr)) return; // Skip
+            pmfmIds.forEach(pmfmId -> {
+                String valStr = source.getMeasurementValues().get(pmfmId);
+                if (StringUtils.isBlank(valStr)) return; // Skip
 
-                        // Weight
-                        if (this.isWeightPmfm(pmfmId)) {
-                            Double weight = Double.parseDouble(valStr);
-                            target.setWeight(weight);
-                            target.setWeightMethodId(getPmfmMethodId(pmfmId));
-                        }
+                // Weight
+                if (this.isWeightPmfm(pmfmId)) {
+                    Double weight = Double.parseDouble(valStr);
+                    target.setWeight(weight);
+                    target.setWeightMethodId(getPmfmMethodId(pmfmId));
+                }
 
-                        // landing / discard
-                        else {
-                            if (pmfmId == PmfmEnum.DISCARD_OR_LANDING.getId()) {
-                                Integer qvId = Integer.parseInt(valStr);
-                                target.setIsLanding(Objects.equals(qvId, QualitativeValueEnum.LANDING.getId()));
-                                target.setIsDiscard(Objects.equals(qvId, QualitativeValueEnum.DISCARD.getId()));
-                            }
+                // landing / discard
+                else {
+                    if (pmfmId == PmfmEnum.DISCARD_OR_LANDING.getId()) {
+                        Integer qvId = Integer.parseInt(valStr);
+                        target.setIsLanding(Objects.equals(qvId, QualitativeValueEnum.LANDING.getId()));
+                        target.setIsDiscard(Objects.equals(qvId, QualitativeValueEnum.DISCARD.getId()));
+                    }
 
-                            // Any other sorting value
-                            sortingValueRankOrder.increment();
-                            DenormalizedBatchSortingValueVO sv = toSortingValueVO(pmfmId, valStr, sortingValueRankOrder.intValue());
-                            if (sv == null) {
-                                throw new SumarisTechnicalException(String.format("Unable to convert sorting value, in batch {id: %s, label: '%s'}. Pmfm {id: %s}",
-                                        target.getId(), target.getLabel(), pmfmId));
-                            }
-                            target.addSortingValue(sv);
-                        }
-                    });
+                    // Any other sorting value
+                    sortingValueRankOrder.increment();
+                    DenormalizedBatchSortingValueVO sv = toSortingValueVO(pmfmId, valStr, sortingValueRankOrder.intValue());
+                    if (sv == null) {
+                        throw new SumarisTechnicalException(String.format("Unable to convert sorting value, in batch {id: %s, label: '%s'}. Pmfm {id: %s}",
+                                target.getId(), target.getLabel(), pmfmId));
+                    }
+                    target.addSortingValue(sv);
+                }
+            });
 
         }
         else {
@@ -930,9 +947,13 @@ public class DenormalizedBatchRepositoryImpl
 
         // Value
         if (source.getNumericalValue() != null) {
-            result.append(
-                    Numbers.format(source.getNumericalValue(), source.getPmfm().getMaximumNumberDecimals())
-            );
+            if (source.getPmfm().getMaximumNumberDecimals() != null) {
+                String value = Numbers.format(source.getNumericalValue(), source.getPmfm().getMaximumNumberDecimals());
+                result.append(value);
+            }
+            else {
+                result.append(Numbers.format(source.getNumericalValue()));
+            }
 
             // Unit label (=symbol)
             if (source.getUnit() != null && !Objects.equals(source.getUnit().getId(), UnitEnum.NONE.getId())) {

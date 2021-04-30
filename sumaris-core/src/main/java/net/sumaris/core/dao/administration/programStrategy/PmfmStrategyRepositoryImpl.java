@@ -25,7 +25,7 @@ package net.sumaris.core.dao.administration.programStrategy;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.cache.CacheNames;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.event.config.ConfigurationEvent;
@@ -41,7 +41,6 @@ import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -58,7 +57,6 @@ import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 public class PmfmStrategyRepositoryImpl
@@ -81,6 +79,7 @@ public class PmfmStrategyRepositoryImpl
     }
 
     @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.PMFM_STRATEGIES_BY_FILTER)
     public List<PmfmStrategyVO> findByFilter(PmfmStrategyFilterVO filter, PmfmStrategyFetchOptions fetchOptions) {
         return findAll(toSpecification(filter),
                 Sort.by(PmfmStrategy.Fields.STRATEGY, PmfmStrategy.Fields.ACQUISITION_LEVEL, PmfmStrategy.Fields.RANK_ORDER)
@@ -98,6 +97,7 @@ public class PmfmStrategyRepositoryImpl
 
     @Override
     public PmfmStrategyVO toVO(PmfmStrategy source, PmfmStrategyFetchOptions fetchOptions) {
+        if (source == null) return null;
         return toVO(source, source.getPmfm(), fetchOptions);
     }
 
@@ -164,14 +164,14 @@ public class PmfmStrategyRepositoryImpl
     @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheNames.PMFM_BY_FILTER, allEntries = true), // FIXME fix error 'null' when using key='#strategyId'
-            @CacheEvict(cacheNames = CacheNames.DENORMALIZED_PMFM_BY_FILTER, allEntries = true) // FIXME fix error 'null' when using key='#strategyId'
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_STRATEGIES_BY_FILTER, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.DENORMALIZED_PMFM_BY_FILTER, allEntries = true)
         }
     )
     public List<PmfmStrategyVO> saveByStrategyId(int strategyId, @Nonnull List<PmfmStrategyVO> sources) {
         Preconditions.checkNotNull(sources);
 
-        Strategy parent = getOne(Strategy.class, strategyId);
+        Strategy parent = getById(Strategy.class, strategyId);
 
         // Fill strategy id
         sources.forEach(source -> source.setStrategyId(strategyId));
@@ -199,7 +199,7 @@ public class PmfmStrategyRepositoryImpl
 
         // Parent
         if (source.getStrategyId() != null) {
-            target.setStrategy(load(Strategy.class, source.getStrategyId()));
+            target.setStrategy(getReference(Strategy.class, source.getStrategyId()));
         }
 
         // Pmfm, Parameter, Matrix, Fraction, Method
@@ -224,7 +224,7 @@ public class PmfmStrategyRepositoryImpl
 
         if (copyIfNull || pmfmId != null) {
             if (pmfmId != null) {
-                target.setPmfm(load(Pmfm.class, pmfmId));
+                target.setPmfm(getReference(Pmfm.class, pmfmId));
             }
             else {
                 target.setPmfm(null);
@@ -232,7 +232,7 @@ public class PmfmStrategyRepositoryImpl
         }
         if (copyIfNull || parameterId != null) {
             if (parameterId != null) {
-                target.setParameter(load(Parameter.class, parameterId));
+                target.setParameter(getReference(Parameter.class, parameterId));
             }
             else {
                 target.setParameter(null);
@@ -240,7 +240,7 @@ public class PmfmStrategyRepositoryImpl
         }
         if (copyIfNull || matrixId != null) {
             if (matrixId != null) {
-                target.setMatrix(load(Matrix.class, matrixId));
+                target.setMatrix(getReference(Matrix.class, matrixId));
             }
             else {
                 target.setMatrix(null);
@@ -248,7 +248,7 @@ public class PmfmStrategyRepositoryImpl
         }
         if (copyIfNull || fractionId != null) {
             if (fractionId != null) {
-                target.setFraction(load(Fraction.class, fractionId));
+                target.setFraction(getReference(Fraction.class, fractionId));
             }
             else {
                 target.setFraction(null);
@@ -256,7 +256,7 @@ public class PmfmStrategyRepositoryImpl
         }
         if (copyIfNull || methodId != null) {
             if (methodId != null) {
-                target.setMethod(load(Method.class, methodId));
+                target.setMethod(getReference(Method.class, methodId));
             }
             else {
                 target.setMethod(null);
@@ -267,7 +267,7 @@ public class PmfmStrategyRepositoryImpl
         String acquisitionLevel = source.getAcquisitionLevel();
         if (copyIfNull || acquisitionLevel != null) {
             if (acquisitionLevel != null) {
-                target.setAcquisitionLevel(load(AcquisitionLevel.class, getAcquisitionLevelIdByLabel(acquisitionLevel)));
+                target.setAcquisitionLevel(getReference(AcquisitionLevel.class, getAcquisitionLevelIdByLabel(acquisitionLevel)));
             }
             else {
                 target.setAcquisitionLevel(null);

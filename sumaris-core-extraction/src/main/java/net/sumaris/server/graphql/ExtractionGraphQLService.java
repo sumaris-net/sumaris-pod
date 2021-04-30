@@ -40,6 +40,7 @@ import net.sumaris.core.vo.data.PhysicalGearVO;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.server.config.ExtractionWebAutoConfiguration;
 import net.sumaris.server.http.ExtractionRestController;
+import net.sumaris.server.http.ExtractionRestPaths;
 import net.sumaris.server.security.ExtractionSecurityService;
 import net.sumaris.server.security.IDownloadController;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +80,7 @@ public class ExtractionGraphQLService {
         String serverUrl = event.getConfiguration().getApplicationConfig().getOption("server.url");
 
         if (StringUtils.isNotBlank(serverUrl)) {
-            documentationUrl = serverUrl + ExtractionRestController.DOC_PATH;
+            documentationUrl = serverUrl + ExtractionRestPaths.DOC_PATH;
         }
         else {
             documentationUrl = null;

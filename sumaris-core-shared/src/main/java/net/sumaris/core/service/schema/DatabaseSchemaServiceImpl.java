@@ -36,7 +36,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.VersionNotFoundException;
 import org.nuiton.version.Version;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
@@ -89,7 +89,7 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
     }
 
     @EventListener
-    protected void onApplicationReady(ApplicationReadyEvent event) {
+    protected void onApplicationReady(ApplicationStartedEvent event) {
         this.isApplicationReady = true;
     }
 

@@ -208,7 +208,7 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
 
     protected <F extends ExtractionFilterVO> int cleanRow(String tableName, F filter, String sheetName) {
         Preconditions.checkNotNull(tableName);
-        if (filter == null) return 0;
+        if (filter == null || CollectionUtils.isEmpty(filter.getCriteria())) return 0;
 
         SumarisTableMetadata table = databaseMetadata.getTable(tableName.toLowerCase());
         Preconditions.checkNotNull(table);

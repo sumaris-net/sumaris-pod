@@ -141,10 +141,11 @@ public class DenormalizedBatches {
 
     protected static String getExhaustiveInventoryAsString(DenormalizedBatchVO source, boolean useUnicode) {
         if (source.getTaxonGroup() == null) return null;
+        boolean exhaustiveInventory = source.getExhaustiveInventory() != null ? source.getExhaustiveInventory() : false;
         if (useUnicode) {
-            return source.getExhaustiveInventory() ? "\u2611" : "\u2610";
+            return exhaustiveInventory ? "\u2611" : "\u2610";
         }
-        return source.getExhaustiveInventory() ? "[x]" : "[ ]";
+        return exhaustiveInventory ? "[x]" : "[ ]";
     }
 
     protected static String generateHierarchicalLabel(DenormalizedBatchVO source) {

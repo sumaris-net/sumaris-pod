@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.util.Files;
+import net.sumaris.core.util.TimeUtils;
 import net.sumaris.rdf.action.RdfDatasetAction;
 import net.sumaris.rdf.config.RdfConfigurationOption;
 import net.sumaris.rdf.service.store.RdfDatasetService;
@@ -98,7 +99,7 @@ public class InitTests extends net.sumaris.core.test.InitTests {
 
     protected void loadRdfDataset() {
 
-        Long now = System.currentTimeMillis();
+        Long startTime = System.currentTimeMillis();
         String jdbcUrl = config.getJdbcURL();
         boolean isFileDatabase = Daos.isFileDatabase(jdbcUrl);
         if (isFileDatabase) setDatabaseReadonly(false);
@@ -124,7 +125,7 @@ public class InitTests extends net.sumaris.core.test.InitTests {
                 .build().toArray(new String[0]);
         Application.run(args, getModuleName() + "-test.properties");
 
-        log.info(String.format("Test {TDB2} triple store has been loaded, in %sms", (System.currentTimeMillis() - now)));
+        log.info("Test {TDB2} triple store has been loaded, in {}", TimeUtils.printDurationFrom(startTime));
         if (isFileDatabase) {
             try {
                 Daos.shutdownDatabase(config.getConnectionProperties());

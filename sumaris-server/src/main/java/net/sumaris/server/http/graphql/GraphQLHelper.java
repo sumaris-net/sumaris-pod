@@ -30,7 +30,7 @@ import graphql.ExecutionResult;
 import graphql.GraphQLError;
 import graphql.GraphQLException;
 import graphql.execution.AbortExecutionException;
-import graphql.execution.ExecutionPath;
+import graphql.execution.ResultPath;
 import graphql.kickstart.execution.error.GenericGraphQLError;
 import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -127,7 +127,7 @@ public class GraphQLHelper {
             GraphQLError result = tryCreateGraphQLError(baseException);
             if (result != null) return result;
 
-            return new ExceptionWhileDataFetching(ExecutionPath.fromList(exError.getPath()), // TODO migrate to ResultPath (in graphql-java 16)
+            return new ExceptionWhileDataFetching(ResultPath.fromList(exError.getPath()), // TODO migrate to ResultPath (in graphql-java 16)
                     new GraphQLException(baseException.getMessage()),
                     exError.getLocations().get(0));
         }

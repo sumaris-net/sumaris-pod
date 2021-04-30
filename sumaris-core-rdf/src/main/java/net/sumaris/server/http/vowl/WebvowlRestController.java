@@ -33,10 +33,12 @@ import net.sumaris.rdf.service.RdfModelService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.rdf.util.RdfFormat;
 import net.sumaris.rdf.util.RdfMediaType;
+import net.sumaris.server.http.RestPaths;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -55,25 +57,27 @@ import java.util.Optional;
 @RestController
 @ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
 @Slf4j
-public class WebvowlRestController {
+public class WebvowlRestController implements RestPaths {
 
-    public static final String BASE_PATH = "/webvowl";
-    public static final String SERVER_TIMESTAMP_PATH = BASE_PATH +"/serverTimeStamp";
-    public static final String CONVERT_PATH = BASE_PATH + "/convert";
-    public static final String LOADING_STATUS_PATH = BASE_PATH + "/loadingStatus";
-    public static final String CONVERSION_DONE_PATH = BASE_PATH + "/conversionDone";
+    public static final String SERVER_TIMESTAMP_PATH = WEBVOWL_BASE_PATH +"/serverTimeStamp";
+    public static final String CONVERT_PATH = WEBVOWL_BASE_PATH + "/convert";
+    public static final String LOADING_STATUS_PATH = WEBVOWL_BASE_PATH + "/loadingStatus";
+    public static final String CONVERSION_DONE_PATH = WEBVOWL_BASE_PATH + "/conversionDone";
 
     @Resource
     private RdfModelService modelService;
 
     @PostConstruct
     public void start() {
-        log.info("Starting WebVOWL endpoint {{}}...", BASE_PATH);
+        log.info("Starting WebVOWL endpoint {{}}...", WEBVOWL_BASE_PATH);
     }
 
 
     protected Map<String, String> webvowlSessions = Maps.newConcurrentMap();
-    @GetMapping(value = SERVER_TIMESTAMP_PATH, produces = {"text/plain", "application/text"})
+    @GetMapping(value = SERVER_TIMESTAMP_PATH, produces = {
+        MediaType.TEXT_PLAIN_VALUE,
+        "application/text"
+    })
     @ResponseBody
     public String getServerTimestamp() {
         String sessionId = generateSessionId();
@@ -177,7 +181,8 @@ public class WebvowlRestController {
         }
     }
 
-    @GetMapping(value = LOADING_STATUS_PATH, produces = {"text/plain", "application/text"})
+    @GetMapping(value = LOADING_STATUS_PATH, produces = {
+        MediaType.TEXT_PLAIN_VALUE, "application/text"})
     public ResponseEntity<String> getLoadingStatus(@RequestParam(name = "sessionId", required = false) String sessionId) {
 
         if (StringUtils.isNotBlank(sessionId)) {

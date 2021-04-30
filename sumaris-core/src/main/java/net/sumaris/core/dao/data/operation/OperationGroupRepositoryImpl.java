@@ -38,7 +38,6 @@ import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.metier.Metier;
-import net.sumaris.core.service.data.PacketService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.DataFetchOptions;
@@ -188,7 +187,7 @@ public class OperationGroupRepositoryImpl
 
         // Trip
         Integer tripId = source.getTripId() != null ? source.getTripId() : (source.getTrip() != null ? source.getTrip().getId() : null);
-        Trip trip = getOne(Trip.class, tripId);
+        Trip trip = getById(Trip.class, tripId);
         target.setTrip(trip);
 
         // Recorder department (copy from parent if missing)
@@ -200,7 +199,7 @@ public class OperationGroupRepositoryImpl
                     target.setRecorderDepartment(null); // should not happened
                 }
             } else {
-                target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
+                target.setRecorderDepartment(getReference(Department.class, source.getRecorderDepartment().getId()));
             }
         }
 
@@ -209,7 +208,7 @@ public class OperationGroupRepositoryImpl
             if (source.getMetier() == null || source.getMetier().getId() == null) {
                 target.setMetier(null);
             } else {
-                target.setMetier(load(Metier.class, source.getMetier().getId()));
+                target.setMetier(getReference(Metier.class, source.getMetier().getId()));
             }
         }
 
@@ -221,7 +220,7 @@ public class OperationGroupRepositoryImpl
             if (physicalGearId == null) {
                 target.setPhysicalGear(null);
             } else {
-                target.setPhysicalGear(load(PhysicalGear.class, physicalGearId));
+                target.setPhysicalGear(getReference(PhysicalGear.class, physicalGearId));
             }
         }
 

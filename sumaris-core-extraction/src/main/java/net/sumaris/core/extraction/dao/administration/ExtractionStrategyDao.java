@@ -34,6 +34,7 @@ import net.sumaris.core.extraction.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.Arrays;
@@ -110,6 +111,12 @@ public interface ExtractionStrategyDao<C extends ExtractionStrategyContextVO, F 
                 }
             }
         });
+
+        // Clean criteria, to avoid reapply on cleanRow
+        if (CollectionUtils.size(source.getCriteria()) == 1 && CollectionUtils.isNotEmpty(target.getStrategyIds())) {
+            source.getCriteria().clear();
+        }
+
         return target;
     }
 

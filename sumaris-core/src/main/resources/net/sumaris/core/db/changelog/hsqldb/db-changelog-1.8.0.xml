@@ -27,6 +27,9 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.8.0.xml">
 
+  <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+  <property name="sqlCheck.not_empty.expectedResult" value="1"/>
+
   <!-- Add UNIT_CONVERSION table -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-1">
     <preConditions onFail="MARK_RAN">
@@ -99,7 +102,10 @@
 
   <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-6">
     <preConditions onFail="MARK_RAN">
-      <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PROCESSING_FREQUENCY</sqlCheck>
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PROCESSING_FREQUENCY</sqlCheck>
+      </and>
     </preConditions>
     <insert tableName="PROCESSING_FREQUENCY">
       <column name="ID" valueNumeric="0"/>
@@ -188,9 +194,16 @@
 
   <!-- Add missing columns LOCATION_ASSOCIATION.IS_MAIN_ASSOCIATION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-11">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="location_association" columnName="is_main_association"/></not>
+    </preConditions>
     <addColumn tableName="location_association">
       <column name="is_main_association" type="boolean"/>
     </addColumn>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-12" failOnError="false">
+    <dropNotNullConstraint tableName="denormalized_batch" columnName="weight_method_fk"/>
   </changeSet>
 
   <!-- update SYSTEM_VERSION -->

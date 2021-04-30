@@ -23,6 +23,7 @@
 package net.sumaris.server.config;
 
 import net.sumaris.server.http.ExtractionRestController;
+import net.sumaris.server.http.ExtractionRestPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -60,7 +61,7 @@ public class ExtractionWebAutoConfiguration {
             havingValue = "servlet",
             matchIfMissing = true
     )
-    public WebMvcConfigurer configureExtractionStatics() {
+    public WebMvcConfigurer configureExtractionWebMvc() {
         return new WebMvcConfigurer() {
             @Override
             public void addViewControllers(ViewControllerRegistry registry) {
@@ -80,8 +81,8 @@ public class ExtractionWebAutoConfiguration {
             public void addCorsMappings(CorsRegistry registry) {
                 // Enable Global CORS support for the application
                 //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
-                registry.addMapping("/**")
-                        .allowedOrigins("*") // TODO Spring update will need to change this to allowedOriginPattern()
+                registry.addMapping(ExtractionRestPaths.BASE_PATH + "/**")
+                        .allowedOriginPatterns("*")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
                         .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
                         .allowCredentials(true);

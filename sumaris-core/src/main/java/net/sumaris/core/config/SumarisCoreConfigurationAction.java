@@ -24,10 +24,11 @@ package net.sumaris.core.config;
  * #L%
  */
 
-import net.sumaris.core.action.DatabaseGenerateChangeLogAction;
 import net.sumaris.core.action.DatabaseCreateSchemaAction;
+import net.sumaris.core.action.DatabaseGenerateChangeLogAction;
 import net.sumaris.core.action.DatabaseUpdateSchemaAction;
 import net.sumaris.core.action.HelpAction;
+import net.sumaris.core.action.data.DenormalizeTripsAction;
 import org.nuiton.config.ConfigActionDef;
 
 /**
@@ -39,11 +40,18 @@ public enum SumarisCoreConfigurationAction implements ConfigActionDef {
 
     HELP(HelpAction.class.getName() + "#show", "Shows help", "-h", "--help"),
 
+    // Database
     DB_CREATE(DatabaseCreateSchemaAction.class.getName() + "#run", "Create new database", "--schema-create"),
 
     DB_UPDATE_SCHEMA(DatabaseUpdateSchemaAction.class.getName() + "#run", "Update an existing database", "--schema-update"),
 
-    DB_CHANGELOG(DatabaseGenerateChangeLogAction.class.getName() + "#run", "Update an existing database", "--schema-changelog");
+    DB_CHANGELOG(DatabaseGenerateChangeLogAction.class.getName() + "#run", "Update an existing database", "--schema-changelog"),
+
+    // Data
+    DENORMALIZE_TRIPS(DenormalizeTripsAction.class.getName() + "#run", "Execute the denormalize Job, on trips (operation, batch)", "--denormalize-trips"),
+    // TODO
+    //DENORMALIZE_SALES(DenormalizeSalesAction.class.getName() + "#run", "Execute the denormalize Job, on sales", "--denormalize-sales"),
+    ;
 
     public final String action;
     public final String description;

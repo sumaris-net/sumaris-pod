@@ -20,12 +20,13 @@
  * #L%
  */
 
-package net.sumaris.core.extraction.cache;
+package net.sumaris.server.http;
 
-import net.sumaris.core.dao.cache.CacheNames;
+public interface RestPaths {
+    String SPARQL_ENDPOINT = "/sparql";
 
-public interface ExtractionCacheNames extends CacheNames {
+    String ONTOLOGY_BASE_PATH = "/ontology";
 
-    String AGGREGATION_TYPE_BY_ID = "net.sumaris.core.extraction.service.aggregationTypeById";
-    String AGGREGATION_TYPE_BY_FORMAT = "net.sumaris.core.extraction.service.aggregationTypeByFormat";
+    String WEBVOWL_BASE_PATH = "/webvowl";
+
 }

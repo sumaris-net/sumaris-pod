@@ -110,7 +110,7 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
     }
 
     private void assertAllByTaxonGroupLabel(String taxonGroupLabel, int expectedSize) {
-        TaxonGroup tg = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId(taxonGroupLabel, TaxonGroupTypeEnum.FAO.getId());
+        TaxonGroup tg = taxonGroupRepository.getByLabelAndTaxonGroupTypeId(taxonGroupLabel, TaxonGroupTypeEnum.FAO.getId());
         Assume.assumeNotNull(tg);
         List<TaxonNameVO> taxonNames = taxonNameRepository.getAllByTaxonGroupId(tg.getId());
 

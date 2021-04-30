@@ -68,7 +68,6 @@ public class ProductAction {
 
         long now = System.currentTimeMillis();
         log.info("Updating products... {frequency: '{}'}", frequency);
-        ActionUtils.logConnectionProperties();
 
         // Get products to refresh
         List<ExtractionProductVO> products = productService.findByFilter(ExtractionProductFilterVO.builder()

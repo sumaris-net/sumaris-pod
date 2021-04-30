@@ -22,9 +22,10 @@ package net.sumaris.core.dao.administration.programStrategy.denormalized;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.cache.CacheNames;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
@@ -37,7 +38,6 @@ import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
-import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import org.apache.commons.collections4.CollectionUtils;
@@ -68,12 +68,13 @@ public class DenormalizedPmfmStrategyRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.DENORMALIZED_PMFM_BY_FILTER)
+    @Cacheable(cacheNames = CacheConfiguration.Names.DENORMALIZED_PMFM_BY_FILTER)
     public List<DenormalizedPmfmStrategyVO> findByFilter(PmfmStrategyFilterVO filter, PmfmStrategyFetchOptions fetchOptions) {
         return findAll(toSpecification(filter),
                 Sort.by(PmfmStrategy.Fields.STRATEGY, PmfmStrategy.Fields.ACQUISITION_LEVEL, PmfmStrategy.Fields.RANK_ORDER)
         )
                 .stream()
+                .filter(entity -> entity.getPmfm() != null)
                 .map(entity -> toVO(entity, fetchOptions))
                 //.sorted(Comparator.comparing(ps -> String.format("%s#%s#%s", ps.getStrategyId(), ps.getAcquisitionLevel(), ps.getRankOrder())))
                 .collect(Collectors.toList());
@@ -86,12 +87,14 @@ public class DenormalizedPmfmStrategyRepositoryImpl
 
     @Override
     public DenormalizedPmfmStrategyVO toVO(PmfmStrategy source, PmfmStrategyFetchOptions fetchOptions) {
+        if (source == null) return null;
         return toVO(source, source.getPmfm(), fetchOptions);
     }
 
     @Override
-    public DenormalizedPmfmStrategyVO toVO(PmfmStrategy source, @NonNull Pmfm pmfm, PmfmStrategyFetchOptions fetchOptions) {
+    public DenormalizedPmfmStrategyVO toVO(PmfmStrategy source, Pmfm pmfm, PmfmStrategyFetchOptions fetchOptions) {
         if (source == null) return null;
+        Preconditions.checkNotNull(pmfm);
 
         DenormalizedPmfmStrategyVO target = new DenormalizedPmfmStrategyVO();
 
@@ -145,12 +148,12 @@ public class DenormalizedPmfmStrategyRepositoryImpl
         // Qualitative values (from Pmfm if any, or from Parameter)
         if (type == PmfmValueType.QUALITATIVE_VALUE) {
             Collection<QualitativeValue> qualitativeValues = CollectionUtils.isNotEmpty(pmfm.getQualitativeValues()) ?
-                    pmfm.getQualitativeValues() : parameter.getQualitativeValues();
+                pmfm.getQualitativeValues() : parameter.getQualitativeValues();
             if (CollectionUtils.isNotEmpty(qualitativeValues)) {
                 target.setQualitativeValues(qualitativeValues
-                        .stream()
-                        .map(referentialDao::toVO)
-                        .collect(Collectors.toList()));
+                    .stream()
+                    .map(referentialDao::toVO)
+                    .collect(Collectors.toList()));
             }
             else {
                 log.warn("Missing qualitative values, in PMFM #{}", pmfm.getId());

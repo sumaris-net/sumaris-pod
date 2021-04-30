@@ -54,7 +54,7 @@ public class DenormalizedBatchServiceWriteTest extends AbstractServiceTest{
         BatchVO catchBatch = TreeNodeEntities.listAsTree(batches, BatchVO::getParentId);
         Assume.assumeNotNull(catchBatch);
 
-        List<DenormalizedBatchVO> result = service.saveAllByOperationId(operationId, catchBatch);
+        List<DenormalizedBatchVO> result = service.denormalizeAndSaveByOperationId(operationId);
         Assert.assertNotNull(result);
         Assert.assertEquals(batches.size(), result.size());
 

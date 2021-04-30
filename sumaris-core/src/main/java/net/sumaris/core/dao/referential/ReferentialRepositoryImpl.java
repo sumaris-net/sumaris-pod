@@ -130,12 +130,12 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
 
     @Override
     public V get(int id) {
-        return toVO(this.getOne(id));
+        return toVO(this.getById(id));
     }
 
     @Override
     public V get(int id, O fetchOptions) {
-        return toVO(this.getOne(id), fetchOptions);
+        return toVO(this.getById(id), fetchOptions);
     }
 
     @Override

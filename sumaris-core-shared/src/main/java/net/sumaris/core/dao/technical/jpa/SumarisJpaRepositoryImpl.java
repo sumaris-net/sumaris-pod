@@ -158,7 +158,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         Preconditions.checkNotNull(vo);
         E entity;
         if (vo.getId() != null) {
-            entity = getOne(vo.getId());
+            entity = getById(vo.getId());
         } else {
             entity = createEntity();
         }
@@ -240,7 +240,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         return (SessionFactoryImplementor) getSession().getSessionFactory();
     }
 
-    protected <C> C load(Class<C> clazz, Serializable id) {
+    protected <C> C getReference(Class<C> clazz, Serializable id) {
 
         if (debugEntityLoad) {
             C load = entityManager.find(clazz, id);
@@ -248,7 +248,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
                 throw new EntityNotFoundException("Unable to load entity " + clazz.getName() + " with identifier '" + id + "': not found in database.");
             }
         }
-        return entityManager.unwrap(Session.class).load(clazz, id);
+        return entityManager.getReference(clazz, id);
     }
 
     /**
@@ -331,8 +331,8 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      * @return a C object.
      */
     @SuppressWarnings("unchecked")
-    protected <C> C getOne(Class<? extends C> clazz, Serializable id, LockModeType lockModeType) throws DataNotFoundException  {
-        C entity = getOne(clazz, id);
+    protected <C> C getById(Class<? extends C> clazz, Serializable id, LockModeType lockModeType) throws DataNotFoundException  {
+        C entity = getById(clazz, id);
         entityManager.lock(entity, lockModeType);
         return entity;
     }
@@ -345,7 +345,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      * @param <C>   a C object.
      * @return a C object.
      */
-    protected <C> C getOne(Class<? extends C> clazz, Serializable id) throws DataNotFoundException {
+    protected <C> C getById(Class<? extends C> clazz, Serializable id) throws DataNotFoundException {
         C entity = this.entityManager.find(clazz, id); // Can be null
         if (entity == null) throw new DataNotFoundException(I18n.t("sumaris.persistence.error.entityNotFound", clazz.getSimpleName(), id));
         return entity;

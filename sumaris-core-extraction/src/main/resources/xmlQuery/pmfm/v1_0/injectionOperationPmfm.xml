@@ -21,7 +21,7 @@
 
     <!-- qualitative value -->
     <select alias="&amp;pmfmLabel%pmfmAlias%" group="qualitative_value%pmfmAlias%" type="text">
-     (SELECT QV.LABEL
+     (SELECT QV.LABEL || ' - ' || QV.NAME
      FROM VESSEL_USE_MEASUREMENT VUM
        INNER JOIN QUALITATIVE_VALUE QV on QV.ID = VUM.QUALITATIVE_VALUE_FK
      WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&amp;pmfmId%pmfmAlias%)

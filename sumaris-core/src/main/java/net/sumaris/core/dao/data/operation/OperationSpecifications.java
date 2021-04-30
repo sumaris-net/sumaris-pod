@@ -40,6 +40,7 @@ public interface OperationSpecifications
     String TRIP_ID_PARAM = "tripId";
 
     default Specification<Operation> hasTripId(Integer tripId) {
+        if (tripId == null) return null;
         BindableSpecification<Operation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, TRIP_ID_PARAM);
             return criteriaBuilder.or(

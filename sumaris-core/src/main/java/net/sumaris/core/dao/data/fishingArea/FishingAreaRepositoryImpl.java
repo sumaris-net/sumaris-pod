@@ -38,7 +38,6 @@ import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.data.FishingAreaVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nonnull;
@@ -105,7 +104,7 @@ public class FishingAreaRepositoryImpl
             if (source.getLocation() == null || source.getLocation().getId() == null) {
                 target.setLocation(null);
             } else {
-                target.setLocation(load(Location.class, source.getLocation().getId()));
+                target.setLocation(getReference(Location.class, source.getLocation().getId()));
             }
         }
 
@@ -113,7 +112,7 @@ public class FishingAreaRepositoryImpl
             if (source.getDistanceToCoastGradient() == null || source.getDistanceToCoastGradient().getId() == null) {
                 target.setDistanceToCoastGradient(null);
             } else {
-                target.setDistanceToCoastGradient(load(DistanceToCoastGradient.class, source.getDistanceToCoastGradient().getId()));
+                target.setDistanceToCoastGradient(getReference(DistanceToCoastGradient.class, source.getDistanceToCoastGradient().getId()));
             }
         }
 
@@ -121,7 +120,7 @@ public class FishingAreaRepositoryImpl
             if (source.getDepthGradient() == null || source.getDepthGradient().getId() == null) {
                 target.setDepthGradient(null);
             } else {
-                target.setDepthGradient(load(DepthGradient.class, source.getDepthGradient().getId()));
+                target.setDepthGradient(getReference(DepthGradient.class, source.getDepthGradient().getId()));
             }
         }
 
@@ -129,15 +128,15 @@ public class FishingAreaRepositoryImpl
             if (source.getNearbySpecificArea() == null || source.getNearbySpecificArea().getId() == null) {
                 target.setNearbySpecificArea(null);
             } else {
-                target.setNearbySpecificArea(load(NearbySpecificArea.class, source.getNearbySpecificArea().getId()));
+                target.setNearbySpecificArea(getReference(NearbySpecificArea.class, source.getNearbySpecificArea().getId()));
             }
         }
 
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
+                target.setQualityFlag(getReference(QualityFlag.class, config.getDefaultQualityFlagId()));
             } else {
-                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
+                target.setQualityFlag(getReference(QualityFlag.class, source.getQualityFlagId()));
             }
         }
 
@@ -148,7 +147,7 @@ public class FishingAreaRepositoryImpl
             if (operationId == null) {
                 target.setOperation(null);
             } else {
-                target.setOperation(load(Operation.class, operationId));
+                target.setOperation(getReference(Operation.class, operationId));
             }
         }
 

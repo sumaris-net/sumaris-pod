@@ -30,7 +30,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.rdf.cache.RdfCacheConfiguration;
+import net.sumaris.rdf.config.RdfCacheConfiguration;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.dao.EntitiesDao;
 import net.sumaris.rdf.model.IModelVisitor;

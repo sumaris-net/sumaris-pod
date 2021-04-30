@@ -78,7 +78,6 @@ public class AgggregationAction {
         log.info("Starting {} aggregation {{}}...",
                 StringUtils.capitalize(type.getCategory().name().toLowerCase()),
                 type.getLabel());
-        ActionUtils.logConnectionProperties();
     }
 
 }

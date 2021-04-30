@@ -25,7 +25,7 @@ package net.sumaris.core.dao.administration.user;
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
-import net.sumaris.core.dao.cache.CacheNames;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -91,21 +91,21 @@ public class PersonRepositoryImpl
 
     @Override
     @Caching(evict = {
-            @CacheEvict(cacheNames = CacheNames.PERSON_BY_ID, allEntries = true),
-            @CacheEvict(cacheNames = CacheNames.PERSON_BY_PUBKEY, allEntries = true)
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_PUBKEY, allEntries = true)
     })
     public void clearCache() {
         log.debug("Cleaning Person's cache...");
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PERSON_BY_ID, key = "#id", unless="#result==null")
+    @Cacheable(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, key = "#id", unless="#result==null")
     public Optional<PersonVO> findById(int id) {
         return super.findById(id).map(this::toVO);
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PERSON_BY_PUBKEY, key = "#pubkey", unless="#result==null")
+    @Cacheable(cacheNames = CacheConfiguration.Names.PERSON_BY_PUBKEY, key = "#pubkey", unless="#result==null")
     public Optional<PersonVO> findByPubkey(@NonNull String pubkey) {
         return findAll(hasPubkey(pubkey)).stream().findFirst().map(this::toVO);
     }
@@ -205,8 +205,8 @@ public class PersonRepositoryImpl
 
     @Override
     @Caching(put = {
-        @CachePut(cacheNames= CacheNames.PERSON_BY_ID, key="#vo.id", condition = "#vo != null && #vo.id != null"),
-        @CachePut(cacheNames= CacheNames.PERSON_BY_PUBKEY, key="#vo.pubkey", condition = "#vo != null && #vo.id != null && #vo.pubkey != null")
+        @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_ID, key="#vo.id", condition = "#vo != null && #vo.id != null"),
+        @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_PUBKEY, key="#vo.pubkey", condition = "#vo != null && #vo.id != null && #vo.pubkey != null")
     })
     public PersonVO save(PersonVO vo) {
         Preconditions.checkNotNull(vo);
@@ -281,7 +281,7 @@ public class PersonRepositoryImpl
             if (source.getDepartment() == null) {
                 target.setDepartment(null);
             } else {
-                target.setDepartment(load(Department.class, source.getDepartment().getId()));
+                target.setDepartment(getReference(Department.class, source.getDepartment().getId()));
             }
         }
 
@@ -290,7 +290,7 @@ public class PersonRepositoryImpl
             if (source.getStatusId() == null) {
                 target.setStatus(null);
             } else {
-                target.setStatus(load(Status.class, source.getStatusId()));
+                target.setStatus(getReference(Status.class, source.getStatusId()));
             }
         }
 
@@ -303,7 +303,7 @@ public class PersonRepositoryImpl
                 for (String profile : source.getProfiles()) {
                     if (StringUtils.isNotBlank(profile)) {
                         UserProfileEnum.getByLabel(profile).ifPresent(userProfileEnum -> {
-                            UserProfile up = load(UserProfile.class, userProfileEnum.getId());
+                            UserProfile up = getReference(UserProfile.class, userProfileEnum.getId());
                             target.getUserProfiles().add(up);
                         });
                     }
@@ -315,8 +315,8 @@ public class PersonRepositoryImpl
 
     @Override
     @Caching(evict = {
-        @CacheEvict(cacheNames = CacheNames.PERSON_BY_ID, key = "#id"),
-        @CacheEvict(cacheNames = CacheNames.PERSON_BY_PUBKEY, allEntries = true)
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, key = "#id"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_PUBKEY, allEntries = true)
     })
     public void deleteById(Integer id) {
         log.debug(String.format("Deleting person {id=%s}...", id));

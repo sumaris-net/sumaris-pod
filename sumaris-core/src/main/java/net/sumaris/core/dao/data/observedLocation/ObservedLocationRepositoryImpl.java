@@ -102,7 +102,7 @@ public class ObservedLocationRepositoryImpl
             if (source.getLocation() == null || source.getLocation().getId() == null) {
                 target.setLocation(null);
             } else {
-                target.setLocation(load(Location.class, source.getLocation().getId()));
+                target.setLocation(getReference(Location.class, source.getLocation().getId()));
             }
         }
     }

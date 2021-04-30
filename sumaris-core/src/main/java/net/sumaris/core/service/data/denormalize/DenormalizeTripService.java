@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.cache;
+package net.sumaris.core.service.data.denormalize;
 
 /*-
  * #%L
@@ -10,28 +10,39 @@ package net.sumaris.core.dao.cache;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
+
+import lombok.NonNull;
+import net.sumaris.core.model.IProgressionModel;
+import net.sumaris.core.vo.filter.TripFilterVO;
+import org.springframework.transaction.annotation.Transactional;
+
 /**
- * Cache duration, in seconds
+ * @author BLA
+ * 
+ *    Service in charge of trip data
+ * 
  */
-public interface CacheDurations {
+@Transactional
+public interface DenormalizeTripService {
 
-    int DEFAULT = 1500; // 25 min;
+	@Transactional(timeout = -1)
+	DenormalizeTripResultVO denormalizeByFilter(@NonNull TripFilterVO filter);
 
-    int SHORT = 10 * 60; // 10 min
-    int MEDIUM = 60 * 60; // 1 h
-    int LONG = 12 * 60 * 60; // 12 h
+	@Transactional(timeout = -1)
+	DenormalizeTripResultVO denormalizeByFilter(TripFilterVO filter, IProgressionModel progression);
 
-    int ETERNAL = 24 * 60 * 60; // 1 day
+	@Transactional(timeout = -1)
+	DenormalizeTripResultVO denormalizeById(int tripId);
 }

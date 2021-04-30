@@ -113,21 +113,21 @@
     <hibernate-search.version>5.11.8.Final</hibernate-search.version>
     <hibernate-spatial.version>5.4.27.Final</hibernate-spatial.version>
     <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
-    <spring.version>5.2.13.RELEASE</spring.version>
-    <spring-web.version>5.2.13.RELEASE</spring-web.version>
-    <spring-data.version>2.3.7.RELEASE</spring-data.version>
+    <spring.version>5.3.6</spring.version>
+    <spring-web.version>5.3.6</spring-web.version>
+    <spring-data.version>2.5.0</spring-data.version>
     <querydsl.version>4.2.2</querydsl.version>
     <aspectj.version>1.9.6</aspectj.version>
     <javassist.version>3.27.0-GA</javassist.version>
     <cglib.version>3.3.0</cglib.version>
-    <ehcache.version>2.10.6</ehcache.version>
+    <ehcache.version>3.8.1</ehcache.version>
     <ehcache-monitor.version>2.7.11</ehcache-monitor.version>
     <lombok.version>1.18.20</lombok.version>
     <xmlquery.version>1.2</xmlquery.version>
     <jdom2.version>2.0.6</jdom2.version>
     <jaxen.version>1.2.0</jaxen.version>
-    <spring-boot.version>2.3.9.RELEASE</spring-boot.version>
-    <spring-boot-plugin.version>2.3.9.RELEASE</spring-boot-plugin.version>
+    <spring-boot.version>2.4.5</spring-boot.version>
+    <spring-boot-plugin.version>2.4.5</spring-boot-plugin.version>
     <ozimov-email.version>0.6.3</ozimov-email.version>
     <reflections.version>0.9.12</reflections.version>
     <rxjava2.version>2.2.21</rxjava2.version>
@@ -138,10 +138,10 @@
     <!--<kalium.version>0.8.1-SNAPSHOT</kalium.version>-->
     <scrypt.version>1.4.0</scrypt.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
-    <graphql-java.version>13.0</graphql-java.version>
-    <graphql-java-tools.version>6.1.0</graphql-java-tools.version>
-    <graphql-java-servlet.version>9.2.0</graphql-java-servlet.version>
-    <spqr.version>0.10.1</spqr.version>
+    <graphql-java.version>16.2</graphql-java.version>
+    <graphql-java-tools.version>11.0.1</graphql-java-tools.version>
+    <graphql-java-servlet.version>11.1.0</graphql-java-servlet.version>
+    <spqr.version>0.11.2</spqr.version>
     <kotlin.version>1.3.70</kotlin.version>
 
     <!-- database version management -->
@@ -368,7 +368,7 @@
       </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-actuator</artifactId>
+        <artifactId>spring-boot-starter-cache</artifactId>
         <version>${spring-boot.version}</version>
       </dependency>
       <dependency>
@@ -618,22 +618,8 @@
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>
-        <artifactId>hibernate-ehcache</artifactId>
+        <artifactId>hibernate-jcache</artifactId>
         <version>${hibernate.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>net.sf.ehcache</groupId>
-            <artifactId>ehcache</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>net.sf.ehcache</groupId>
-            <artifactId>ehcache-core</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.jboss.logging</groupId>
-            <artifactId>jboss-logging-annotations</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>
@@ -675,10 +661,17 @@
         <artifactId>hibernate-envers</artifactId>
         <version>${hibernate.version}</version>
       </dependency>
+
+      <!-- EhCache -->
       <dependency>
-        <groupId>net.sf.ehcache</groupId>
+        <groupId>org.ehcache</groupId>
         <artifactId>ehcache</artifactId>
         <version>${ehcache.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.cache</groupId>
+        <artifactId>cache-api</artifactId>
+        <version>1.1.1</version>
       </dependency>
 
       <!-- XML Query -->

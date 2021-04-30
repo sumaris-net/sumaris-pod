@@ -24,6 +24,7 @@ package net.sumaris.core;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.action.ActionUtils;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.service.technical.ConfigurationService;
@@ -39,6 +40,7 @@ import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JndiConnectionFactoryAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -70,11 +72,6 @@ import javax.persistence.EntityManager;
 				"net.sumaris.core"
 		}
 )
-@EntityScan("net.sumaris.core.model")
-@EnableTransactionManagement
-@EnableJpaRepositories(basePackages = {
-		"net.sumaris.core.dao"
-})
 @EnableAsync
 @Component("core-application")
 @Slf4j
@@ -124,6 +121,9 @@ public class Application {
 			// Init service locator
 			ServiceLocator.init(appContext);
 
+			// Log connection info
+			ActionUtils.logConnectionProperties();
+
 			// Execute all action
 			doAllAction(appContext, true);
 		} catch (Exception e) {
@@ -157,13 +157,6 @@ public class Application {
 
 		return config;
 	}
-
-	@Bean
-	public JPAQueryFactory jpaQueryFactory(EntityManager em) {
-		return new JPAQueryFactory(em);
-	}
-
-
 
 	/**
 	 * <p>

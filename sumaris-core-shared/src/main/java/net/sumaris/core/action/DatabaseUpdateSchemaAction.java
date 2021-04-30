@@ -44,7 +44,6 @@ public class DatabaseUpdateSchemaAction {
 		DatabaseSchemaService service = ServiceLocator.instance().getDatabaseSchemaService();
 
 		log.info("Starting schema update...");
-		ActionUtils.logConnectionProperties();
 
 		// Check if database is well loaded
 		if (!service.isDbLoaded()) {

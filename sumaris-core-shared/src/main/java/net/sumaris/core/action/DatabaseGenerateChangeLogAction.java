@@ -49,7 +49,6 @@ public class DatabaseGenerateChangeLogAction {
         DatabaseSchemaService service = ServiceLocator.instance().getDatabaseSchemaService();
 
         log.info("Starting change log file generation...");
-        ActionUtils.logConnectionProperties();
 
         // Check if database is well loaded
         if (!service.isDbLoaded()) {

@@ -105,7 +105,7 @@ public class VesselPositionDaoImpl extends HibernateDaoSupport implements Vessel
     public List<VesselPositionVO> saveByOperationId(int operationId, List<VesselPositionVO> sources) {
 
         // Load parent entity
-        Operation parent = getOne(Operation.class, operationId);
+        Operation parent = getById(Operation.class, operationId);
 
         // Remember existing entities
         final Map<Integer, VesselPosition> sourcesToRemove = Beans.splitById(Beans.getList(parent.getPositions()));
@@ -216,7 +216,7 @@ public class VesselPositionDaoImpl extends HibernateDaoSupport implements Vessel
                 target.setOperation(null);
             }
             else {
-                target.setOperation(load(Operation.class, operationId));
+                target.setOperation(getReference(Operation.class, operationId));
             }
         }
 
@@ -226,17 +226,17 @@ public class VesselPositionDaoImpl extends HibernateDaoSupport implements Vessel
                 target.setRecorderDepartment(null);
             }
             else {
-                target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
+                target.setRecorderDepartment(getReference(Department.class, source.getRecorderDepartment().getId()));
             }
         }
 
         // Quality flag
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, getConfig().getDefaultQualityFlagId()));
+                target.setQualityFlag(getReference(QualityFlag.class, getConfig().getDefaultQualityFlagId()));
             }
             else {
-                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
+                target.setQualityFlag(getReference(QualityFlag.class, source.getQualityFlagId()));
             }
         }
 

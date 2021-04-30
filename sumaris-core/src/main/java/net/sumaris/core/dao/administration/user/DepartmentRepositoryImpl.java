@@ -23,7 +23,7 @@ package net.sumaris.core.dao.administration.user;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.cache.CacheNames;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -49,21 +49,21 @@ public class DepartmentRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#id", unless="#result==null")
+    @Cacheable(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_ID, key = "#id", unless="#result==null")
     public DepartmentVO get(int id) {
         return super.get(id);
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.DEPARTMENT_BY_LABEL, key = "#label", unless="#result==null")
+    @Cacheable(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_LABEL, key = "#label", unless="#result==null")
     public DepartmentVO getByLabel(String label) {
         return super.getByLabel(label);
     }
 
     @Override
     @Caching(evict = {
-        @CacheEvict(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#id"),
-        @CacheEvict(cacheNames = CacheNames.DEPARTMENT_BY_LABEL, allEntries = true)
+        @CacheEvict(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_ID, key = "#id"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_LABEL, allEntries = true)
     })
     public void deleteById(Integer id) {
         super.deleteById(id);
@@ -80,8 +80,8 @@ public class DepartmentRepositoryImpl
 
     @Override
     @Caching(put = {
-        @CachePut(cacheNames= CacheNames.DEPARTMENT_BY_ID, key="#vo.id", condition = "#vo != null && #vo.id != null"),
-        @CachePut(cacheNames= CacheNames.DEPARTMENT_BY_LABEL, key="#vo.label", condition = "#vo != null && #vo.id != null && #vo.label != null")
+        @CachePut(cacheNames= CacheConfiguration.Names.DEPARTMENT_BY_ID, key="#vo.id", condition = "#vo != null && #vo.id != null"),
+        @CachePut(cacheNames= CacheConfiguration.Names.DEPARTMENT_BY_LABEL, key="#vo.label", condition = "#vo != null && #vo.id != null && #vo.label != null")
     })
     public DepartmentVO save(DepartmentVO vo) {
         Preconditions.checkNotNull(vo);

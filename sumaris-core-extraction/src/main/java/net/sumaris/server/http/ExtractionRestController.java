@@ -75,24 +75,8 @@ import java.util.*;
 
 @RestController
 @ConditionalOnBean({ExtractionWebAutoConfiguration.class})
-public class ExtractionRestController {
+public class ExtractionRestController implements ExtractionRestPaths {
 
-    public static final String BASE_PATH = "/api/extraction";
-
-    // Get types paths
-    public static final String TYPES_PATH = BASE_PATH + "/types";
-
-    // Download file paths
-    public static final String DOWNLOAD_BASE_PATH = BASE_PATH + "/download";
-    public static final String DOWNLOAD_PATH = DOWNLOAD_BASE_PATH + "/{category}/{label:[a-zA-Z0-9-_]+}";
-    public static final String DOWNLOAD_WITH_VERSION_PATH = DOWNLOAD_PATH + "/{category}/{label:[a-zA-Z0-9-_]+}/{version}";
-
-    // Get documentation paths
-    public static final String DOC_BASE_PATH = BASE_PATH + "/doc";
-    public static final String DOC_PATH = DOC_BASE_PATH + "/{category}/{label:[a-zA-Z0-9-_]+}";
-    public static final String DOC_WITH_VERSION_PATH = DOC_PATH + "/{version}";
-
-    protected static final String EXTENSION_PATH_PARAM = ".{extension:[a-z0-9-_]+}";
     protected static final String HTML_PREVIEW_PATH = "classpath:static/doc/preview.html";
 
     protected static final Collection<MediaType> HTML_MEDIA_TYPES = ImmutableList.of(
@@ -119,7 +103,7 @@ public class ExtractionRestController {
 
     @PostConstruct
     public void init() {
-        log.info("Starting extraction endpoint {{}}...", BASE_PATH);
+        log.info("Starting extraction endpoint {{}}...", ExtractionRestPaths.BASE_PATH);
     }
 
     @GetMapping(

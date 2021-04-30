@@ -42,9 +42,16 @@ import net.sumaris.server.http.graphql.social.SocialGraphQLService;
 import net.sumaris.server.http.graphql.technical.ConfigurationGraphQLService;
 import net.sumaris.server.http.graphql.technical.DefaultTypeTransformer;
 import net.sumaris.server.http.graphql.technical.TrashGraphQLService;
+import net.sumaris.server.http.ontology.RestPaths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
@@ -98,6 +105,23 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     private ObjectMapper objectMapper;
 
     @Bean
+    public WebMvcConfigurer configureGraphQL() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                // Enable Global CORS support for the application
+                //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
+                registry.addMapping(GraphQLPaths.BASE_PATH)
+                    .allowedOriginPatterns("*")
+                    .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
+                    .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
+                    .allowCredentials(true);
+            }
+        };
+    }
+
+
+    @Bean
     public GraphQLSchema graphQLSchema() {
 
         log.info("Generating GraphQL schema (using SPQR)...");
@@ -145,7 +169,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
         webSocketHandlerRegistry
                 .addHandler(webSocketHandler(), GraphQLPaths.BASE_PATH)
-                .setAllowedOrigins("*") // TODO Spring update will need to change this to allowedOriginPatterns()
+                .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
 

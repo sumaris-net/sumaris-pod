@@ -84,13 +84,17 @@ public class DatabaseFixtures {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
 			case 0:
-				return 1;
+				return 1; // Trip with batches
 			case 1:
-				return 2;
+				return 2; // Trip with samples (survival test)
 
 			default:
 				return 1;
 		}
+	}
+
+	public Integer getTripIdWithBatches() {
+		return 1;
 	}
 
 	public Integer getOperationId(int index) {

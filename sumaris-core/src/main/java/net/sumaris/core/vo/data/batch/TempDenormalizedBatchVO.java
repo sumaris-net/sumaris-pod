@@ -48,13 +48,8 @@ public class TempDenormalizedBatchVO extends DenormalizedBatchVO {
 
     private Double elevateFactor;
 
-    private Double contextWeight;
-
-    private Double sumChildContextWeight;
-    private Double sumChildRoundWeight;
-    private Double sumChildRTPWeight;
-
-
+    //private Double contextWeight;
+    //private Double sumChildContextWeight;
     //private Double sumChildRoundWeight;
     //private Double sumChildRTPWeight;
 

@@ -28,7 +28,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.cache.CacheNames;
+import net.sumaris.core.config.CacheConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.boot.Metadata;
@@ -105,19 +105,19 @@ public class SumarisDatabaseMetadata {
 		//loadAllTables();
 	}
 
-	@Cacheable(cacheNames = CacheNames.TABLE_META_BY_NAME, key = "#name.toLowerCase()", unless = "#result == null")
+	@Cacheable(cacheNames = CacheConfiguration.Names.TABLE_META_BY_NAME, key = "#name.toLowerCase()", unless = "#result == null")
 	public SumarisHibernateTableMetadata getHibernateTable(String name) throws HibernateException {
 		return (SumarisHibernateTableMetadata) getTable(name);
 	}
 
-	@Cacheable(cacheNames = CacheNames.TABLE_META_BY_NAME, key = "#name.toLowerCase()", unless = "#result == null")
+	@Cacheable(cacheNames = CacheConfiguration.Names.TABLE_META_BY_NAME, key = "#name.toLowerCase()", unless = "#result == null")
 	public SumarisTableMetadata getTable(String name) throws HibernateException {
 		return getTable(name.toLowerCase(), defaultSchemaName, defaultCatalogName);
 	}
 
 
 	@Caching(evict = {
-			@CacheEvict(cacheNames = CacheNames.TABLE_META_BY_NAME, key = "#name.toLowerCase()")
+			@CacheEvict(cacheNames = CacheConfiguration.Names.TABLE_META_BY_NAME, key = "#name.toLowerCase()")
 	})
 	public void clearCache(String name) {
 	}

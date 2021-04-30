@@ -63,7 +63,7 @@ public class TaxonGroupRepositoryWriteTest extends AbstractDaoTest{
     @Test
     public void getAllDressingByTaxonGroupId() {
 
-        TaxonGroup taxonGroup = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("MNZ", TaxonGroupTypeEnum.FAO.getId());
+        TaxonGroup taxonGroup = taxonGroupRepository.getByLabelAndTaxonGroupTypeId("MNZ", TaxonGroupTypeEnum.FAO.getId());
         ReferentialVO countryLocation =  referentialDao.findByUniqueLabel(Location.class.getSimpleName(), "FRA").get();
 
         // MNZ - Baudroie
@@ -81,7 +81,7 @@ public class TaxonGroupRepositoryWriteTest extends AbstractDaoTest{
     @Test
     public void getAllPreservingByTaxonGroupId() {
 
-        TaxonGroup taxonGroup = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("MNZ", TaxonGroupTypeEnum.FAO.getId());
+        TaxonGroup taxonGroup = taxonGroupRepository.getByLabelAndTaxonGroupTypeId("MNZ", TaxonGroupTypeEnum.FAO.getId());
         ReferentialVO countryLocation =  referentialDao.findByUniqueLabel(Location.class.getSimpleName(), "FRA").get();
 
         // MNZ - Baudroie

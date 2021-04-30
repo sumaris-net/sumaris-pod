@@ -56,7 +56,7 @@ public interface TripService extends IRootDataQualityService<TripVO> {
 							  DataFetchOptions fieldOptions);
 
 	@Transactional(readOnly = true)
-	Long countByFilter(TripFilterVO filter);
+	long countByFilter(TripFilterVO filter);
 
 	@Transactional(readOnly = true)
 	TripVO get(int id);

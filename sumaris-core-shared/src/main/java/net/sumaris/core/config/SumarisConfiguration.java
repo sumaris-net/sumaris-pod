@@ -236,6 +236,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         } else if (log.isInfoEnabled()) {
             log.info("Using default timezone {{}} for database", System.getProperty("user.timezone"));
         }
+        // Set to system properties (need by JPA)
+        System.setProperty(SumarisConfigurationOption.DB_TIMEZONE.getKey(), dbTimeZone);
     }
 
 
@@ -326,6 +328,15 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      */
     public File getDataDirectory() {
         return applicationConfig.getOptionAsFile(SumarisConfigurationOption.DATA_DIRECTORY.getKey());
+    }
+
+    /**
+     * <p>getCacheDirectory.</p>
+     *
+     * @return a {@link File} object.
+     */
+    public File getCacheDirectory() {
+        return applicationConfig.getOptionAsFile(SumarisConfigurationOption.CACHE_DIRECTORY.getKey());
     }
 
     /**
@@ -690,6 +701,15 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      */
     public String getLiquibaseDiffTypes() {
         return applicationConfig.getOption(SumarisConfigurationOption.LIQUIBASE_DIFF_TYPES.getKey());
+    }
+
+
+    /**
+     * Should enable configuration load from DB ?
+     * @return
+     */
+    public boolean enableConfigurationDbPersistence() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_CONFIGURATION_DB_PERSISTENCE.getKey());
     }
 
     /**

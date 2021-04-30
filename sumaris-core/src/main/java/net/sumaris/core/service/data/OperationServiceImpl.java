@@ -30,6 +30,7 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.VesselPositionDao;
 import net.sumaris.core.dao.data.operation.OperationRepository;
+import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -94,11 +95,12 @@ public class OperationServiceImpl implements OperationService {
     }
 
     @Override
-    public List<OperationVO> findAllByTripId(int tripId, int offset, int size, String sortAttribute,
-                                             SortDirection sortDirection,
+    public List<OperationVO> findAllByTripId(int tripId,
+                                             int offset, int size, String sortAttribute, SortDirection sortDirection,
                                              @NonNull DataFetchOptions fetchOptions) {
-        return operationRepository.findAll(OperationFilterVO.builder().tripId(tripId).build(), offset, size,
-                sortAttribute, sortDirection, fetchOptions).getContent();
+        return operationRepository.findAllVO(operationRepository.hasTripId(tripId),
+            Pageables.create(offset, size, sortAttribute, sortDirection),
+            fetchOptions).getContent();
     }
 
     @Override
