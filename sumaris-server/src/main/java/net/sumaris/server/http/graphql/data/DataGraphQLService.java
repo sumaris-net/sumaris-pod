@@ -49,7 +49,7 @@ import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
-import net.sumaris.server.http.graphql.GraphQLHelper;
+import net.sumaris.server.http.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
@@ -273,7 +273,7 @@ public class DataGraphQLService {
         // Set default sort
         sort = sort != null ? sort : TripVO.Fields.DEPARTURE_DATE_TIME;
 
-        Set<String> fields = GraphQLHelper.fields(env);
+        Set<String> fields = GraphQLUtils.fields(env);
 
         final List<TripVO> result = tripService.findByFilter(filter,
                 offset, size, sort, sortDirection,
@@ -309,7 +309,7 @@ public class DataGraphQLService {
         final TripVO result = tripService.get(id);
 
         // Add additional properties if needed
-        fillTripFields(result, GraphQLHelper.fields(env));
+        fillTripFields(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -340,7 +340,7 @@ public class DataGraphQLService {
         final TripVO result = tripService.save(trip, options);
 
         // Add additional properties if needed
-        fillTripFields(result, GraphQLHelper.fields(env));
+        fillTripFields(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -371,7 +371,7 @@ public class DataGraphQLService {
         final List<TripVO> result = tripService.save(trips, options);
 
         // Add additional properties if needed
-        fillTrips(result, GraphQLHelper.fields(env));
+        fillTrips(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -403,7 +403,7 @@ public class DataGraphQLService {
         final TripVO result = tripService.control(trip);
 
         // Add additional properties if needed
-        fillTripFields(result, GraphQLHelper.fields(env));
+        fillTripFields(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -414,7 +414,7 @@ public class DataGraphQLService {
         final TripVO result = tripService.validate(trip);
 
         // Add additional properties if needed
-        fillTripFields(result, GraphQLHelper.fields(env));
+        fillTripFields(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -425,7 +425,7 @@ public class DataGraphQLService {
         final TripVO result = tripService.unvalidate(trip);
 
         // Add additional properties if needed
-        fillTripFields(result, GraphQLHelper.fields(env));
+        fillTripFields(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -437,7 +437,7 @@ public class DataGraphQLService {
         final TripVO result = tripService.qualify(trip);
 
         // Add additional properties if needed
-        fillTripFields(result, GraphQLHelper.fields(env));
+        fillTripFields(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -461,7 +461,7 @@ public class DataGraphQLService {
                 .sortBy(sort)
                 .sortDirection(SortDirection.fromString(direction))
                 .build();
-        return physicalGearService.findAll(filter, page, getFetchOptions(GraphQLHelper.fields(env)));
+        return physicalGearService.findAll(filter, page, getFetchOptions(GraphQLUtils.fields(env)));
     }
 
     @GraphQLQuery(name = "gears", description = "Get operation's gears")
@@ -528,7 +528,7 @@ public class DataGraphQLService {
                     ObservedLocationVO.class).getContent();
         }
 
-        Set<String> fields = GraphQLHelper.fields(env);
+        Set<String> fields = GraphQLUtils.fields(env);
         final List<ObservedLocationVO> result = observedLocationService.findAll(
                 filter,
                 offset, size, sort,
@@ -568,7 +568,7 @@ public class DataGraphQLService {
         final ObservedLocationVO result = observedLocationService.get(id);
 
         // Add additional properties if needed
-        fillObservedLocationFields(result, GraphQLHelper.fields(env));
+        fillObservedLocationFields(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -582,7 +582,7 @@ public class DataGraphQLService {
         final ObservedLocationVO result = observedLocationService.save(observedLocation, options);
 
         // Fill expected fields
-        fillObservedLocationFields(result, GraphQLHelper.fields(env));
+        fillObservedLocationFields(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -596,7 +596,7 @@ public class DataGraphQLService {
         final List<ObservedLocationVO> result = observedLocationService.save(observedLocations, options);
 
         // Fill expected fields
-        fillObservedLocationsFields(result, GraphQLHelper.fields(env));
+        fillObservedLocationsFields(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -628,7 +628,7 @@ public class DataGraphQLService {
         final ObservedLocationVO result = observedLocationService.control(observedLocation);
 
         // Add additional properties if needed
-        fillObservedLocationFields(result, GraphQLHelper.fields(env));
+        fillObservedLocationFields(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -639,7 +639,7 @@ public class DataGraphQLService {
         final ObservedLocationVO result = observedLocationService.validate(observedLocation);
 
         // Add additional properties if needed
-        fillObservedLocationFields(result, GraphQLHelper.fields(env));
+        fillObservedLocationFields(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -650,7 +650,7 @@ public class DataGraphQLService {
         final ObservedLocationVO result = observedLocationService.unvalidate(observedLocation);
 
         // Add additional properties if needed
-        fillObservedLocationFields(result, GraphQLHelper.fields(env));
+        fillObservedLocationFields(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -661,7 +661,7 @@ public class DataGraphQLService {
         final ObservedLocationVO result = observedLocationService.qualify(observedLocation);
 
         // Add additional properties if needed
-        fillObservedLocationFields(result, GraphQLHelper.fields(env));
+        fillObservedLocationFields(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -838,7 +838,7 @@ public class DataGraphQLService {
             return operation.getSamples();
         }
 
-        Set<String> fields = GraphQLHelper.fields(env);
+        Set<String> fields = GraphQLUtils.fields(env);
 
         return sampleService.getAllByOperationId(operation.getId(), SampleFetchOptions.builder()
                 .withRecorderDepartment(fields.contains(StringUtils.slashing(SampleVO.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
@@ -876,7 +876,7 @@ public class DataGraphQLService {
             return operation.getBatches();
         }
 
-        Set<String> fields = GraphQLHelper.fields(env);
+        Set<String> fields = GraphQLUtils.fields(env);
 
         // Reload, if not exist in VO
         return batchService.getAllByOperationId(operation.getId(), BatchFetchOptions.builder()
@@ -898,7 +898,7 @@ public class DataGraphQLService {
                                         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                         @GraphQLEnvironment ResolutionEnvironment env
     ) {
-        Set<String> fields = GraphQLHelper.fields(env);
+        Set<String> fields = GraphQLUtils.fields(env);
 
         final List<LandingVO> result = landingService.findAll(
                 filter,
@@ -930,7 +930,7 @@ public class DataGraphQLService {
         final LandingVO result = landingService.get(id);
 
         // Add additional properties if needed
-        fillLandingFields(result, GraphQLHelper.fields(env));
+        fillLandingFields(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -942,7 +942,7 @@ public class DataGraphQLService {
         final LandingVO result = landingService.save(landing);
 
         // Fill expected fields
-        fillLandingFields(result, GraphQLHelper.fields(env));
+        fillLandingFields(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -954,7 +954,7 @@ public class DataGraphQLService {
         final List<LandingVO> result = landingService.save(landings);
 
         // Fill expected fields
-        fillLandingsFields(result, GraphQLHelper.fields(env));
+        fillLandingsFields(result, GraphQLUtils.fields(env));
 
         return result;
     }
@@ -988,7 +988,7 @@ public class DataGraphQLService {
             @GraphQLEnvironment ResolutionEnvironment env
     ) {
         List<AggregatedLandingVO> result = aggregatedLandingService.findAll(filter);
-        fillVesselSnapshot(result, GraphQLHelper.fields(env));
+        fillVesselSnapshot(result, GraphQLUtils.fields(env));
         return result;
     }
 
@@ -1000,7 +1000,7 @@ public class DataGraphQLService {
     ) {
         List<AggregatedLandingVO> result = aggregatedLandingService.saveAllByObservedLocationId(filter, aggregatedLandings);
 
-        fillVesselSnapshot(result, GraphQLHelper.fields(env));
+        fillVesselSnapshot(result, GraphQLUtils.fields(env));
 
         return result;
 
