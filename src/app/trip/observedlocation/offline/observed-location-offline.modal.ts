@@ -15,6 +15,8 @@ import {ObservedLocationOfflineFilter} from "../../services/observed-location.se
 import {LocationLevelIds} from "../../../referential/services/model/model.enum";
 import {ProgramRefQueries, ProgramRefService} from "../../../referential/services/program-ref.service";
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
+import {referentialsToString, referentialToString} from "../../../core/services/model/referential.model";
+import {isNotEmptyArray} from "../../../shared/functions";
 
 const moment = momentImported;
 
@@ -76,7 +78,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
       formBuilder.group({
         program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
         enableHistory: [true, Validators.required],
-        location: [null, SharedValidators.entity],
+        location: [null, Validators.required],
         periodDuration: ['15day', Validators.required],
       }),
       settings);
@@ -109,11 +111,18 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     });
 
     // Location
+    const displayAttributes = this.settings.getFieldDisplayAttributes('location');
     this.registerAutocompleteField('location', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
         levelIds: [LocationLevelIds.AUCTION, LocationLevelIds.PORT]
+      },
+      displayWith: (arg) => {
+        if (arg instanceof Array) {
+          return referentialsToString(arg, displayAttributes);
+        }
+        return referentialToString(arg, displayAttributes);
       },
       mobile: this.mobile
     });
@@ -155,8 +164,9 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     }
 
     // Location
-    if (value.locationId) {
-      json.location = await this.referentialRefService.loadById(value.locationId, 'Location');
+    if (isNotEmptyArray(value.locationIds)) {
+      json.location = await Promise.all(value.locationIds
+        .map(id => this.referentialRefService.loadById(id, 'Location')));
     }
 
     // Duration period
@@ -182,7 +192,14 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     value.programLabel = json.program && json.program.label || json.program;
 
     // Location
-    value.locationId = json.location && json.location.id || json.location;
+    if (json.location) {
+      if (json.location instanceof Array) {
+        value.locationIds = json.location.map(entity => entity.id);
+      }
+      else {
+        value.locationIds = [json.location.id];
+      }
+    }
 
     // Set start date
     if (json.enableHistory && json.periodDuration) {

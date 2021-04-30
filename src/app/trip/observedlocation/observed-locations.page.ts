@@ -26,7 +26,8 @@ import {ConfigService} from "../../core/services/config.service";
 import {BehaviorSubject} from "rxjs";
 import {ObservedLocationOfflineModal} from "./offline/observed-location-offline.modal";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {OfflineFeature} from "../../core/services/model/settings.model";
+import {Trip} from "../services/model/trip.model";
+import {UsageMode} from "../../core/services/model/settings.model";
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -251,6 +252,7 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
   }
 
   /* -- protected methods -- */
+
 
   protected isFilterEmpty = ObservedLocationFilter.isEmpty;
 

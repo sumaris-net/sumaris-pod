@@ -153,6 +153,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @Input('class') classList: string;
   @Input() panelWidth: string;
   @Input() matAutocompletePosition: 'auto' | 'above' | 'below' = 'auto';
+  @Input() multiple = false;
 
   @Input() set filter(value: any) {
     // DEBUG
@@ -261,7 +262,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         (this.i18nPrefix + changeCaseToUnderscore(attr).toUpperCase());
     });
     this.mobile = toBoolean(this.mobile, false);
-    this.searchable = !this.mobile;
+    this.searchable = !this.mobile && !this.multiple;
     // Default comparator (only need when using mat-select)
     if (!this.searchable && !this.compareWith) this.compareWith = (o1: any, o2: any) => o1 && o2 && o1.id === o2.id;
     this.panelWidth = this.panelWidth || (this.classList

@@ -146,7 +146,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     if (this.isOnFieldMode) {
       data.startDateTime = moment();
 
-      console.debug("[trip] New entity: set default values...");
+      console.debug("[observed-location] New entity: set default values...");
 
       // Fil defaults, using filter applied on trips table
       const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);

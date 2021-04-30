@@ -258,8 +258,8 @@ export class VesselService
     super(injector, Vessel, {
       queries: VesselQueries,
       mutations: VesselMutations,
-      filterFnFactory: VesselFilter.asPodObject,
-      filterAsObjectFn: VesselFilter.searchFilter
+      filterAsObjectFn: VesselFilter.asPodObject,
+      filterFnFactory: VesselFilter.searchFilter
     });
     this._featureName = VESSEL_FEATURE_NAME;
   }
@@ -279,7 +279,7 @@ export class VesselService
            filter?: VesselFilter): Observable<LoadResult<Vessel>> {
 
     // Load offline
-    const offline = this.network.offline || filter && filter.synchronizationStatus !== 'SYNC';
+    const offline = this.network.offline || filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC';
     if (offline) {
       return this.watchAllLocally(offset, size, sortBy, sortDirection, filter);
     }

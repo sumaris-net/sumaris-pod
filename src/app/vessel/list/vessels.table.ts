@@ -173,7 +173,8 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
           tap(json => this.setFilter({
             date: json.date,
             searchText: json.searchText,
-            statusId: json.statusId
+            statusId: json.statusId,
+            synchronizationStatus: json.synchronizationStatus
           }, {emitEvent: this.mobile || isNil(this.filter)})),
 
           // Save filter in settings (after a debounce time)
@@ -181,14 +182,6 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
           tap(json => this.settings.savePageSetting(this.settingsId, json, 'filter'))
         )
         .subscribe());
-
-    this.registerSubscription(
-      this.onRefresh.subscribe(() => {
-        this.filterIsEmpty = VesselFilter.isEmpty(this.filter);
-        this.filterForm.markAsUntouched();
-        this.filterForm.markAsPristine();
-        this.markForCheck();
-      }));
 
     // Restore filter from settings, or load all vessels
     this.restoreFilterOrLoad();

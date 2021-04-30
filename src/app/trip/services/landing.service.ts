@@ -56,6 +56,7 @@ export class LandingFilter {
   programLabel?: string;
   vesselId?: number;
   locationId?: number;
+  locationIds?: number[];
   startDate?: Date | Moment;
   endDate?: Date | Moment;
   recorderDepartmentId?: number;
@@ -71,11 +72,13 @@ export class LandingFilter {
   static isEmpty(landingFilter: LandingFilter|any): boolean {
     return !landingFilter || (
       isNil(landingFilter.observedLocationId) && isNil(landingFilter.tripId)
-      && isNilOrBlank(landingFilter.programLabel) && isNilOrBlank(landingFilter.vesselId) && isNilOrBlank(landingFilter.locationId)
+      && isNilOrBlank(landingFilter.programLabel) && isNilOrBlank(landingFilter.vesselId)
+      && isNilOrBlank(landingFilter.locationId) && isEmptyArray(landingFilter.locationIds)
       && !landingFilter.startDate && !landingFilter.endDate
       && isNil(landingFilter.recorderDepartmentId)
       && isNil(landingFilter.recorderPersonId)
       && isEmptyArray(landingFilter.excludeVesselIds)
+
     );
   }
 
@@ -104,9 +107,12 @@ export class LandingFilter {
       filterFns.push((entity) => entity.vesselSnapshot && !f.excludeVesselIds.includes(entity.vesselSnapshot.id));
     }
 
-      // Location
+    // Location
     if (isNotNil(f.locationId)) {
       filterFns.push((entity) => entity.location && entity.location.id === f.locationId);
+    }
+    if (isNotEmptyArray(f.locationIds)) {
+      filterFns.push((entity) => entity.location && f.locationIds.includes(entity.location.id));
     }
 
     // Start/end period
@@ -198,7 +204,7 @@ export const LandingFragments = {
     tripId
     rankOrderOnVessel
     vesselSnapshot {
-      ...LightVesselSnapshotFragment
+      ...VesselSnapshotFragment
     }
     recorderDepartment {
       ...LightDepartmentFragment
@@ -214,7 +220,7 @@ export const LandingFragments = {
   ${Fragments.location}
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
-  ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${VesselSnapshotFragments.vesselSnapshot}
   ${ReferentialFragments.referential}
   `,
   landing: gql`fragment LandingFragment on LandingVO {
@@ -721,6 +727,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
           : (data || []) as Landing[];
         total = total || entities.length;
 
+
+
         // Compute rankOrder, by tripId or observedLocationId
         if (!opts || opts.computeRankOrder !== false) {
           this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter);
@@ -891,7 +899,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     if (opts.minify && !opts.keepEntityName && !opts.keepTypename) {
       // Clean vessel features object, before saving
-      copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
+      //copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
 
       // Comment because need to keep recorder person
       copy.recorderPerson = entity.recorderPerson && <Person>{

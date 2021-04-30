@@ -23,12 +23,7 @@ import {APP_LOCAL_SETTINGS, APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/lo
 import {APP_LOCALES, LocalSettings} from "./core/services/model/settings.model";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {APP_CONFIG_OPTIONS} from "./core/services/config.service";
-import {
-  TRIP_CONFIG_OPTIONS,
-  TRIP_GRAPHQL_TYPE_POLICIES,
-  TRIP_LOCAL_SETTINGS_OPTIONS,
-  TRIP_STORAGE_TYPE_POLICIES
-} from "./trip/services/config/trip.config";
+import {TRIP_CONFIG_OPTIONS, TRIP_GRAPHQL_TYPE_POLICIES, TRIP_LOCAL_SETTINGS_OPTIONS, TRIP_STORAGE_TYPE_POLICIES} from "./trip/services/config/trip.config";
 import {IonicStorageModule} from "@ionic/storage";
 import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
 import {APP_MENU_ITEMS} from "./core/menu/menu.component";
@@ -41,27 +36,16 @@ import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
 import {SharedModule} from "./shared/shared.module";
 import {HttpTranslateLoaderFactory} from "./shared/translate/http-translate-loader-factory";
 import {MarkdownModule, MarkedOptions} from "ngx-markdown";
-import {
-  APP_LOCAL_STORAGE_TYPE_POLICIES,
-  EntitiesStorageTypePolicies
-} from "./core/services/storage/entities-storage.service";
+import {APP_LOCAL_STORAGE_TYPE_POLICIES, EntitiesStorageTypePolicies} from "./core/services/storage/entities-storage.service";
 import {AppGestureConfig} from "./shared/gesture/gesture-config";
 import {TypePolicies} from "@apollo/client/core";
 import {APP_GRAPHQL_TYPE_POLICIES} from "./core/graphql/graphql.service";
 import {SocialModule} from "./social/social.module";
 import {TRIP_TESTING_PAGES} from "./trip/trip.testing.module";
-import {
-  EXTRACTION_CONFIG_OPTIONS,
-  EXTRACTION_GRAPHQL_TYPE_POLICIES
-} from "./extraction/services/config/extraction.config";
-import {
-  REFERENTIAL_CONFIG_OPTIONS,
-  REFERENTIAL_GRAPHQL_TYPE_POLICIES,
-  REFERENTIAL_LOCAL_SETTINGS_OPTIONS
-} from "./referential/services/config/referential.config";
+import {EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES} from "./extraction/services/config/extraction.config";
+import {REFERENTIAL_CONFIG_OPTIONS, REFERENTIAL_GRAPHQL_TYPE_POLICIES, REFERENTIAL_LOCAL_SETTINGS_OPTIONS} from "./referential/services/config/referential.config";
 import {FormFieldDefinitionMap} from "./shared/form/field.model";
 import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
-import {TranslateHttpLoader} from "@ngx-translate/http-loader";
 import {DATE_ISO_PATTERN} from "./shared/dates";
 import {VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS} from "./vessel/services/config/vessel.config";
 import {JDENTICON_CONFIG} from "ngx-jdenticon";
@@ -195,7 +179,6 @@ import {JDENTICON_CONFIG} from "ngx-jdenticon";
       ...EXTRACTION_CONFIG_OPTIONS,
       ...TRIP_CONFIG_OPTIONS
     }},
-
 
     // Menu items
     { provide: APP_MENU_ITEMS, useValue: [

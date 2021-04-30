@@ -28,7 +28,8 @@
                       [style.width]="panelWidth"
                       (focus)="filterMatSelectFocusEvent($event)"
                       (blur)="filterMatSelectBlurEvent($event)"
-                      [compareWith]="compareWith">
+                      [compareWith]="compareWith"
+                      [multiple]="multiple">
             <mat-select-trigger>{{ displayWith(value) }}</mat-select-trigger>
 
             <ng-container *ngIf="(matSelectItems$ | async) as items">
@@ -133,7 +134,7 @@
           <mat-icon class="large select-arrow">arrow_drop_down</mat-icon>
         </button>
         <button matSuffix type="button" mat-icon-button tabindex="-1"
-                *ngIf="enabled && mobile && !searchable"
+                *ngIf="enabled && mobile && !searchable && !multiple"
                 [title]="'COMMON.BTN_SEARCH'|translate"
                 (click)="toggleSearch($event)">
           <mat-icon>search</mat-icon>

@@ -146,9 +146,20 @@ export class ObservedLocationOfflineFilter  {
   programLabel?: string;
   startDate?: Date | Moment;
   endDate?: Date | Moment;
-  locationId?: number;
+  locationIds?: number[];
   periodDuration?: number;
   periodDurationUnit?: DurationConstructor;
+
+  public static asLandingFilter(f: ObservedLocationOfflineFilter): LandingFilter {
+    if (!f) return undefined;
+    const result = {
+      ...f,
+      // Remove unused attribute
+      periodDuration: undefined,
+      periodDurationUnit: undefined
+    };
+    return <LandingFilter>result;
+  }
 }
 
 export const ObservedLocationFragments = {
@@ -348,8 +359,8 @@ export class ObservedLocationService
       queries: ObservedLocationQueries,
       mutations: ObservedLocationMutations,
       subscriptions: ObservedLocationSubscriptions,
-      filterFnFactory: ObservedLocationFilter.asPodObject,
-      filterAsObjectFn: ObservedLocationFilter.searchFilter
+      filterAsObjectFn: ObservedLocationFilter.asPodObject,
+      filterFnFactory: ObservedLocationFilter.searchFilter
     });
 
     this._featureName = OBSERVED_LOCATION_FEATURE_NAME;
@@ -811,13 +822,8 @@ export class ObservedLocationService
   }): Observable<number>[] {
 
     const feature = this.settings.getOfflineFeature(this.featureName);
-    if (feature && feature.filter) {
-      const landingFilter = {
-        ...feature.filter,
-        // Remove unused attribute
-        periodDuration: undefined,
-        periodDurationUnit: undefined
-      };
+    const landingFilter = ObservedLocationOfflineFilter.asLandingFilter(feature && feature.filter);
+    if (landingFilter) {
       return [
         ...super.getImportJobs(opts),
         // Landing (historical data)
