@@ -1331,28 +1331,25 @@ public class DataGraphQLService {
         return result;
     }
 
-    protected <T extends IWithVesselSnapshotEntity<?, VesselSnapshotVO>> VesselSnapshotVO fillVesselSnapshot(T bean, Set<String> fields) {
+    protected <T extends IWithVesselSnapshotEntity<?, VesselSnapshotVO>> void fillVesselSnapshot(T bean, Set<String> fields) {
         // Add vessel if need
         VesselSnapshotVO result = bean.getVesselSnapshot();
 
         // No ID: cannot fetch
-        if (result == null || result.getId() == null) return result;
-
-        // Already fetched
-        if (result.getName() != null) return result;
+        if (result == null || result.getId() == null) return;
 
         // Fetch (if need)
-        if (hasVesselFeaturesField(fields)) {
-            return vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), Dates.resetTime(bean.getVesselDateTime()));
+        if (result.getName() == null && hasVesselFeaturesField(fields)) {
+            result = vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), Dates.resetTime(bean.getVesselDateTime()));
+            bean.setVesselSnapshot(result);
         }
-        return null;
     }
 
     protected <T extends IWithVesselSnapshotEntity<?, VesselSnapshotVO>> void fillVesselSnapshot(List<T> beans, Set<String> fields) {
         // Add vessel if need
         if (hasVesselFeaturesField(fields)) {
             beans.forEach(bean -> {
-                if (bean.getVesselSnapshot() != null && bean.getVesselSnapshot().getId() != null) {
+                if (bean.getVesselSnapshot() != null && bean.getVesselSnapshot().getId() != null && bean.getVesselSnapshot().getName() == null) {
                     bean.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), bean.getVesselDateTime()));
                 }
             });

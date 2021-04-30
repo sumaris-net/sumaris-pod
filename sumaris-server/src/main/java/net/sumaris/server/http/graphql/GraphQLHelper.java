@@ -38,6 +38,7 @@ import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.exception.ErrorHelper;
+import net.sumaris.server.http.GraphQLUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -49,25 +50,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class GraphQLHelper {
+public class GraphQLHelper extends GraphQLUtils {
 
     private GraphQLHelper() {
         // helper class
-    }
-
-    public static Set<String> fields(ResolutionEnvironment env) {
-        return env.dataFetchingEnvironment.getSelectionSet().getFields()
-            .stream()
-            .map(SelectedField::getQualifiedName)
-            .filter(qualifiedName -> !qualifiedName.endsWith("/__typename"))
-            .collect(Collectors.toSet());
-    }
-
-    public static Set<String> immediateFields(ResolutionEnvironment env) {
-        return env.dataFetchingEnvironment.getSelectionSet().getImmediateFields()
-            .stream().map(SelectedField::getQualifiedName)
-            .filter(qualifiedName -> !qualifiedName.endsWith("/__typename"))
-            .collect(Collectors.toSet());
     }
 
     public static Map<String, Object> getVariables(Map<String, Object> request, ObjectMapper objectMapper) {

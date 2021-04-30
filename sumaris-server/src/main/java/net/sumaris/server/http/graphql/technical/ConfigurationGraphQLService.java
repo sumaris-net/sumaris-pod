@@ -91,7 +91,7 @@ public class ConfigurationGraphQLService {
     public ConfigurationVO getConfiguration(
         @GraphQLArgument(name = "id") Integer id,
         @GraphQLArgument(name = "label") String label,
-        @GraphQLEnvironment() Set<String> fields
+        @GraphQLEnvironment Set<String> fields
     ) {
         SoftwareVO software = getSoftware(id, label);
         return toConfiguration(software, fields);
@@ -101,7 +101,7 @@ public class ConfigurationGraphQLService {
     @IsAdmin
     public ConfigurationVO saveConfiguration(
         @GraphQLArgument(name = "config") ConfigurationVO configuration,
-        @GraphQLEnvironment() Set<String> fields) {
+        @GraphQLEnvironment Set<String> fields) {
 
         SoftwareVO software = service.save(configuration);
 

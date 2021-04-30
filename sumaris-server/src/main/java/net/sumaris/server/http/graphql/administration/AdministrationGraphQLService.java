@@ -24,6 +24,7 @@ package net.sumaris.server.http.graphql.administration;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
+import io.leangen.graphql.execution.ResolutionEnvironment;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -93,7 +94,7 @@ public class AdministrationGraphQLService {
                                               @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
                                               @GraphQLArgument(name = "sortBy", defaultValue = PersonVO.Fields.PUBKEY) String sort,
                                               @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                              @GraphQLEnvironment() Set<String> fields
+                                              @GraphQLEnvironment Set<String> fields
     ) {
         List<PersonVO> result = personService.findByFilter(filter, offset, size, sort, SortDirection.fromString(direction));
 
@@ -175,7 +176,7 @@ public class AdministrationGraphQLService {
                                               @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
                                               @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
                                               @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                              @GraphQLEnvironment() Set<String> fields) {
+                                              @GraphQLEnvironment Set<String> fields) {
         List<DepartmentVO> result = departmentService.findByFilter(filter, offset, size, sort, SortDirection.fromString(direction));
 
         // Fill logo Url (if need)
@@ -189,7 +190,7 @@ public class AdministrationGraphQLService {
     @GraphQLQuery(name = "department", description = "Get a department")
     @Transactional(readOnly = true)
     public DepartmentVO getDepartmentById(@GraphQLArgument(name = "id") int id,
-                                         @GraphQLEnvironment() Set<String> fields
+                                         @GraphQLEnvironment Set<String> fields
     ) {
         DepartmentVO result = departmentService.get(id);
 

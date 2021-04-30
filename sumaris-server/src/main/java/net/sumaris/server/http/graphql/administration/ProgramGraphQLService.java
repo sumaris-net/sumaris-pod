@@ -24,6 +24,7 @@ package net.sumaris.server.http.graphql.administration;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
+import io.leangen.graphql.execution.ResolutionEnvironment;
 import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.Pageables;
@@ -53,6 +54,7 @@ import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.server.http.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsSupervisor;
@@ -138,9 +140,9 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "strategy", description = "Get a strategy")
     @Transactional(readOnly = true)
     public StrategyVO getStrategy(@GraphQLNonNull @GraphQLArgument(name = "id") @NonNull Integer id,
-                                  @GraphQLEnvironment() Set<String> fields) {
+                                  @GraphQLEnvironment ResolutionEnvironment env) {
 
-        return strategyService.get(id, getStrategyFetchOptions(fields));
+        return strategyService.get(id, getStrategyFetchOptions(GraphQLUtils.fields(env)));
     }
 
     @GraphQLQuery(name = "strategies", description = "Search in strategies")
@@ -151,11 +153,11 @@ public class ProgramGraphQLService {
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
             @GraphQLArgument(name = "sortBy", defaultValue = StrategyVO.Fields.LABEL) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-            @GraphQLEnvironment() Set<String> fields) {
+            @GraphQLEnvironment ResolutionEnvironment env) {
 
         return strategyService.findByFilter(filter,
                 Pageables.create(offset, size, sort, SortDirection.fromString(direction)),
-                getStrategyFetchOptions(fields));
+                getStrategyFetchOptions(GraphQLUtils.fields(env)));
     }
 
     @GraphQLQuery(name = "strategiesCount", description = "Get strategies count")
@@ -192,11 +194,11 @@ public class ProgramGraphQLService {
 
     @GraphQLQuery(name = "strategies", description = "Get program's strategies")
     public List<StrategyVO> getStrategiesByProgram(@GraphQLContext ProgramVO program,
-                                                   @GraphQLEnvironment() Set<String> fields) {
+                                                   @GraphQLEnvironment ResolutionEnvironment env) {
         if (program.getStrategies() != null) {
             return program.getStrategies();
         }
-        return strategyService.findByProgram(program.getId(), getStrategyFetchOptions(fields));
+        return strategyService.findByProgram(program.getId(), getStrategyFetchOptions(GraphQLUtils.fields(env)));
     }
 
     @GraphQLQuery(name = "pmfms", description = "Get strategy's pmfms")
@@ -211,10 +213,11 @@ public class ProgramGraphQLService {
 
     @GraphQLQuery(name = "denormalizedPmfms", description = "Get strategy's denormalized pmfms")
     public List<DenormalizedPmfmStrategyVO> getDenormalizedPmfmByStrategy(@GraphQLContext StrategyVO strategy,
-                                                                          @GraphQLEnvironment() Set<String> fields) {
+                                                                          @GraphQLEnvironment ResolutionEnvironment env) {
         if (strategy.getDenormalizedPmfms() != null) {
             return strategy.getDenormalizedPmfms();
         }
+        Set<String> fields = GraphQLUtils.fields(env);
         return strategyService.findDenormalizedPmfmsByFilter(PmfmStrategyFilterVO.builder().strategyId(strategy.getId()).build(),
                 PmfmStrategyFetchOptions.builder()
                         .uniqueByPmfmId(true)
@@ -303,7 +306,7 @@ public class ProgramGraphQLService {
     public Publisher<ProgramVO> updateProgram(@GraphQLArgument(name = "id") final Integer id,
                                               @GraphQLArgument(name = "label") final String label,
                                               @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
-                                              @GraphQLEnvironment() Set<String> fields) {
+                                              @GraphQLEnvironment ResolutionEnvironment env) {
 
 
 
@@ -315,7 +318,7 @@ public class ProgramGraphQLService {
 
         // Watch by label
         Preconditions.checkNotNull(label, "Invalid 'label' argument");
-        ProgramFetchOptions fetchOptions = getProgramFetchOptions(fields);
+        ProgramFetchOptions fetchOptions = getProgramFetchOptions(GraphQLUtils.fields(env));
         return changesPublisherService.getPublisher((lastUpdateDate) -> programService.findIfNewerByLabel(label, lastUpdateDate, fetchOptions).orElse(null), minIntervalInSecond, true);
 
     }
@@ -325,8 +328,9 @@ public class ProgramGraphQLService {
     @IsUser
     public Publisher<List<StrategyVO>> updateProgramStrategies(@GraphQLNonNull @GraphQLArgument(name = "programId") final int programId,
                                                                @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
-                                                               @GraphQLEnvironment() Set<String> fields) {
+                                                               @GraphQLEnvironment ResolutionEnvironment env) {
 
+        Set<String> fields = GraphQLUtils.fields(env);
         StrategyFetchOptions fetchOptions = getStrategyFetchOptions(fields);
 
         Preconditions.checkArgument(programId >= 0, "Invalid programId");
