@@ -77,7 +77,7 @@
           <ng-container *ngIf="searchable">
             <input matInput #matInputText type="text"
                    [matAutocomplete]="autoCombo"
-                   [matAutocompletePosition]="'above'"
+                   [matAutocompletePosition]="matAutocompletePosition"
                    [formControl]="formControl"
                    [placeholder]="placeholder"
                    [appAutofocus]="appAutofocus"

@@ -152,6 +152,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @Input() noResultMessage = 'COMMON.NO_RESULT';
   @Input('class') classList: string;
   @Input() panelWidth: string;
+  @Input() matAutocompletePosition: 'auto' | 'above' | 'below' = 'auto';
 
   @Input() set filter(value: any) {
     // DEBUG
