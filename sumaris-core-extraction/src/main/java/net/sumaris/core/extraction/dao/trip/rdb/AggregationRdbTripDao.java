@@ -24,12 +24,12 @@ package net.sumaris.core.extraction.dao.trip.rdb;
 
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.dao.trip.AggregationTripDao;
-import net.sumaris.core.extraction.vo.*;
+import net.sumaris.core.extraction.vo.AggregationResultVO;
+import net.sumaris.core.extraction.vo.AggregationTechResultVO;
+import net.sumaris.core.extraction.vo.ExtractionFilterVO;
+import net.sumaris.core.extraction.vo.MinMaxVO;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-
-import java.util.Map;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
@@ -38,16 +38,6 @@ public interface AggregationRdbTripDao<
         C extends AggregationRdbTripContextVO,
         F extends ExtractionFilterVO,
         S extends AggregationStrataVO>
-        extends AggregationTripDao {
-
-    <R extends C> R aggregate(ExtractionProductVO source, F filter, S strata);
-
-    AggregationResultVO getAggBySpace(String tableName, F filter, S strata, int offset, int size, String sortAttribute, SortDirection sortDirection);
-
-    AggregationTechResultVO getAggByTech(String tableName, F filter, S strata, String sortAttribute, SortDirection direction);
-
-    MinMaxVO getAggMinMaxByTech(String tableName, F filter, S strata);
-
-    void clean(C context);
+        extends AggregationTripDao<C, F, S> {
 
 }

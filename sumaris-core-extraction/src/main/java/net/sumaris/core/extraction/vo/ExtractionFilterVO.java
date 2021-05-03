@@ -39,6 +39,9 @@ import java.util.Set;
 @FieldNameConstants
 public class ExtractionFilterVO {
 
+    public static ExtractionFilterVO nullToEmpty(ExtractionFilterVO filter) {
+        return filter != null ? filter : new ExtractionFilterVO();
+    }
 
     private String operator;
 

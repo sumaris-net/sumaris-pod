@@ -27,12 +27,18 @@ import net.sumaris.core.extraction.dao.AggregationDao;
 import net.sumaris.core.extraction.dao.ExtractionDao;
 import net.sumaris.core.extraction.vo.AggregationResultVO;
 import net.sumaris.core.extraction.vo.AggregationTechResultVO;
+import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.MinMaxVO;
+import net.sumaris.core.extraction.vo.trip.AggregationTripContextVO;
+import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface AggregationTripDao extends AggregationDao  {
+public interface AggregationTripDao<
+    C extends AggregationTripContextVO,
+    F extends ExtractionFilterVO,
+    S extends AggregationStrataVO> extends AggregationDao<C, F, S>  {
 
 }

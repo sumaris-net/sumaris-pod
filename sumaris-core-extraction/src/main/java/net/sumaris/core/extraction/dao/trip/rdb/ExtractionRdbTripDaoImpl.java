@@ -163,7 +163,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             return context;
         }
         catch (PersistenceException e) {
-            // If error,clean created tables first, then rethrow the exception
+            // If error, clean created tables first, then rethrow the exception
             clean(context);
             throw e;
         }

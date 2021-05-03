@@ -22,13 +22,16 @@ package net.sumaris.core.extraction.dao.technical;
  * #L%
  */
 
-import com.google.common.base.Joiner;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.Dates;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Objects;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,10 +40,15 @@ import java.util.stream.Stream;
  *
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
+@Slf4j
 public class Daos extends net.sumaris.core.dao.technical.Daos {
 
 
     private final static String SQL_TO_DATE = "TO_DATE('%s', '%s')";
+
+    protected Daos() {
+        // Helper class
+    }
 
     /**
      * Concat single quoted strings with ',' character, without parenthesis
@@ -110,5 +118,21 @@ public class Daos extends net.sumaris.core.dao.technical.Daos {
         return String.format(SQL_TO_DATE,
                 Dates.formatDate(date, "yyyy-MM-dd HH:mm:ss"),
                 "YYYY-MM-DD HH24:MI:SS");
+    }
+
+
+    public static void commitIfHsqldb(DataSource dataSource) {
+        Connection conn = DataSourceUtils.getConnection(dataSource);
+        try {
+            if (net.sumaris.core.extraction.dao.technical.Daos.isHsqlDatabase(conn) && DataSourceUtils.isConnectionTransactional(conn, dataSource)) {
+                try {
+                    conn.commit();
+                } catch (SQLException e) {
+                    log.warn("Cannot execute intermediate commit: " + e.getMessage(), e);
+                }
+            }
+        } finally {
+            DataSourceUtils.releaseConnection(conn, dataSource);
+        }
     }
 }

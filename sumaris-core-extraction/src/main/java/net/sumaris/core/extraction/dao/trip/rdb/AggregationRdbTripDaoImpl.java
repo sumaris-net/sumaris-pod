@@ -259,12 +259,12 @@ public class AggregationRdbTripDaoImpl<
 
     /* -- protected methods -- */
 
-    protected <C extends AggregationRdbTripContextVO> C createNewContext() {
+    protected <R extends AggregationRdbTripContextVO> R createNewContext() {
         Class<? extends AggregationRdbTripContextVO> contextClass = getContextClass();
         Preconditions.checkNotNull(contextClass);
 
         try {
-            return (C) contextClass.newInstance();
+            return (R) contextClass.newInstance();
         } catch (Exception e) {
             throw new SumarisTechnicalException("Could not create an instance of context class " + contextClass.getName());
         }

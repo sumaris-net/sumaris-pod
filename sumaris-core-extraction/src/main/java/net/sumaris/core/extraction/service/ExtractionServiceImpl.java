@@ -28,7 +28,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
@@ -55,11 +54,9 @@ import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
 import net.sumaris.core.extraction.util.ExtractionFormats;
 import net.sumaris.core.extraction.util.ExtractionProducts;
 import net.sumaris.core.extraction.vo.*;
-import net.sumaris.core.extraction.vo.administration.ExtractionStrategyContextVO;
 import net.sumaris.core.extraction.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
-import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
@@ -83,7 +80,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
@@ -93,8 +89,6 @@ import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -152,19 +146,20 @@ public class ExtractionServiceImpl implements ExtractionService {
 
 
     @PostConstruct
-    protected void loadExtractionDaos() {
+    protected void registerDaos() {
         // Register all extraction daos
         applicationContext.getBeansOfType(ExtractionDao.class).values()
                 .forEach(dao -> {
+                    IExtractionFormat format = dao.getFormat();
                     // Check if unique, by format
-                    if (daosByFormat.containsKey(dao.getFormat())) {
+                    if (daosByFormat.containsKey(format)) {
                         throw new BeanInitializationException(
                                 String.format("Too many ExtractionDao for the same format %s: [%s, %s]",
                                         daosByFormat.get(dao.getFormat()).getClass().getSimpleName(),
                                         dao.getClass().getSimpleName()));
                     }
                     // Register the dao
-                    daosByFormat.put(dao.getFormat(), dao);
+                    daosByFormat.put(format, dao);
                 });
     }
 
@@ -232,7 +227,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         // Make sure type has category AND label filled
         type = getByFormat(type);
 
-        filter = filter != null ? filter : new ExtractionFilterVO();
+        filter = ExtractionFilterVO.nullToEmpty(filter);
 
         // Force preview
         filter.setPreview(true);
@@ -314,7 +309,7 @@ public class ExtractionServiceImpl implements ExtractionService {
                 return dumpProductToFile(product, filter);
             case LIVE:
                 LiveFormatEnum format = LiveFormatEnum.valueOf(type.getLabel().toUpperCase());
-                return extractRawDataAndDumpToFile(format, filter);
+                return extractLiveAndDump(format, filter);
             default:
                 throw new SumarisTechnicalException(String.format("Extraction of category %s not implemented yet !", type.getCategory()));
         }
@@ -337,7 +332,7 @@ public class ExtractionServiceImpl implements ExtractionService {
                 //    ExtractionProduct product = ExtractionProduct.valueOf(checkedType.getLabel().toUpperCase());
                 //    return extractProductToTables(product, filter);
             case LIVE:
-                return extractRawData(type.getLiveFormat(), filter);
+                return executeLiveDao(type.getLiveFormat(), filter);
             default:
                 throw new SumarisTechnicalException(String.format("Extraction of category %s not implemented yet !", type.getCategory()));
         }
@@ -347,14 +342,14 @@ public class ExtractionServiceImpl implements ExtractionService {
     public File executeAndDumpTrips(LiveFormatEnum format, ExtractionTripFilterVO tripFilter) {
         String tripSheetName = ArrayUtils.isNotEmpty(format.getSheetNames()) ? format.getSheetNames()[0] : RdbSpecification.TR_SHEET_NAME;
         ExtractionFilterVO filter = extractionRdbTripDao.toExtractionFilterVO(tripFilter, tripSheetName);
-        return extractRawDataAndDumpToFile(format, filter);
+        return extractLiveAndDump(format, filter);
     }
 
     @Override
     public File executeAndDumpStrategies(LiveFormatEnum format, ExtractionStrategyFilterVO strategyFilter) {
         String strategySheetName = ArrayUtils.isNotEmpty(format.getSheetNames()) ? format.getSheetNames()[0] : StratSpecification.ST_SHEET_NAME;
         ExtractionFilterVO filter = extractionStrategyDao.toExtractionFilterVO(strategyFilter, strategySheetName);
-        return extractRawDataAndDumpToFile(format, filter);
+        return extractLiveAndDump(format, filter);
     }
 
     @Override
@@ -420,7 +415,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         String dateStr = Dates.formatDate(new Date(context.getId()), "yyyy-MM-dd-HHmm");
         String basename = context.getLabel() + "-" + dateStr;
 
-        final ExtractionFilterVO tableFilter = filter != null ? filter : new ExtractionFilterVO();
+        final ExtractionFilterVO tableFilter = ExtractionFilterVO.nullToEmpty(filter);
         final Set<String> defaultExcludeColumns = SetUtils.emptyIfNull(tableFilter.getExcludeColumnNames());
         final boolean defaultEnableDistinct = filter != null && filter.isDistinct();
 
@@ -481,9 +476,6 @@ public class ExtractionServiceImpl implements ExtractionService {
             log.debug(String.format("Extraction file created at {%s}", outputFile.getPath()));
         }
 
-        // Remove created tables
-        clean(context, true);
-
         return outputFile;
     }
 
@@ -541,7 +533,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         // Execute extraction into temp tables
         ExtractionContextVO context;
         try {
-            context = extractRawData(type.getLiveFormat(), filter);
+            context = executeLiveDao(type.getLiveFormat(), filter);
         } catch (DataNotFoundException e) {
             return createEmptyResult();
         }
@@ -555,18 +547,23 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
     }
 
-    protected File extractRawDataAndDumpToFile(LiveFormatEnum format,
-                                               ExtractionFilterVO filter) {
+    protected File extractLiveAndDump(LiveFormatEnum format,
+                                      ExtractionFilterVO filter) {
         Preconditions.checkNotNull(format);
 
         // Execute live extraction to temp tables
-        ExtractionContextVO context = extractRawData(format, filter);
+        ExtractionContextVO context = executeLiveDao(format, filter);
+        Daos.commitIfHsqldb(dataSource);
 
-        commitIfHsqldb();
-        log.info(String.format("Dumping tables of extraction #%s to files...", context.getId()));
+        try {
+            log.info(String.format("Dumping tables of extraction #%s to files...", context.getId()));
 
-        // Dump tables
-        return dumpTablesToFile(context, null /*no filter, because already applied*/);
+            // Dump tables
+            return dumpTablesToFile(context, null /*no filter, because already applied*/);
+        }
+        finally {
+            clean(context, true);
+        }
     }
 
     protected ExtractionResultVO readProductRows(ExtractionProductVO product, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
@@ -595,14 +592,9 @@ public class ExtractionServiceImpl implements ExtractionService {
         return dumpTablesToFile(context, filter);
     }
 
-    protected ExtractionContextVO extractRawData(LiveFormatEnum format,
-                                                 ExtractionFilterVO filter) {
+    protected ExtractionContextVO executeLiveDao(LiveFormatEnum format, ExtractionFilterVO filter) {
 
-        ExtractionDao dao = daosByFormat.get(format);
-        if (dao == null) {
-            throw new SumarisTechnicalException("Unknown extraction format (no targeted dao): " + format);
-        }
-        return dao.execute(filter);
+        return getDao(format).execute(filter);
     }
 
     protected void dumpTableToFile(String tableName, ExtractionFilterVO filter, File outputFile) throws IOException {
@@ -737,31 +729,14 @@ public class ExtractionServiceImpl implements ExtractionService {
             .collect(Collectors.toList()));
     }
 
-    protected void commitIfHsqldb() {
-        Connection conn = DataSourceUtils.getConnection(dataSource);
-        try {
-            if (Daos.isHsqlDatabase(conn) && DataSourceUtils.isConnectionTransactional(conn, dataSource)) {
-                try {
-                    conn.commit();
-                } catch (SQLException e) {
-                    log.warn("Cannot execute intermediate commit: " + e.getMessage(), e);
-                }
-            }
-        } finally {
-            DataSourceUtils.releaseConnection(conn, dataSource);
-        }
-    }
-
     protected void clean(ExtractionContextVO context, boolean async) {
         if (context == null) return;
         if (async && taskExecutor != null) {
-            taskExecutor.execute(() -> getSelfBean().clean(context));
+            taskExecutor.execute(() -> self().clean(context));
         }
         else  {
-            ExtractionDao dao = daosByFormat.get(context.getFormat());
-            Preconditions.checkNotNull(dao);
             log.info("Cleaning extraction #{}-{}", context.getRawFormatLabel(), context.getId());
-            dao.clean(context);
+            getDao(context.getFormat()).clean(context);
         }
     }
 
@@ -769,7 +744,13 @@ public class ExtractionServiceImpl implements ExtractionService {
      * Get self bean, to be able to use new transaction
      * @return
      */
-    protected ExtractionService getSelfBean() {
+    protected ExtractionService self() {
         return applicationContext.getBean("extractionService", ExtractionService.class);
+    }
+
+    protected ExtractionDao getDao(IExtractionFormat format) {
+        ExtractionDao dao = daosByFormat.get(format);
+        if (dao == null) throw new SumarisTechnicalException("Unknown extraction format (no targeted dao): " + format);
+        return dao;
     }
 }

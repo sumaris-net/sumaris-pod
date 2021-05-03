@@ -23,11 +23,11 @@ package net.sumaris.core.extraction.service;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -72,9 +72,9 @@ public interface AggregationService {
      * @param strata
      */
     @Transactional
-    AggregationContextVO execute(AggregationTypeVO type,
-                                 @Nullable ExtractionFilterVO filter,
-                                 @Nullable AggregationStrataVO strata);
+    AggregationContextVO aggregate(AggregationTypeVO type,
+                                   @Nullable ExtractionFilterVO filter,
+                                   @Nullable AggregationStrataVO strata);
 
     @Transactional(readOnly = true)
     AggregationResultVO getAggBySpace(AggregationTypeVO type,
@@ -120,10 +120,10 @@ public interface AggregationService {
     @Transactional(timeout = -1, propagation = Propagation.REQUIRES_NEW)
     CompletableFuture<AggregationTypeVO> asyncSave(AggregationTypeVO type, @Nullable ExtractionFilterVO filter);
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
     void clean(AggregationContextVO context);
 
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
     @Async
     CompletableFuture<Boolean> asyncClean(AggregationContextVO context);
 }

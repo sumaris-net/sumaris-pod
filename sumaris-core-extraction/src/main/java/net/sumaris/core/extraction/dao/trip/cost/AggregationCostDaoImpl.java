@@ -23,6 +23,7 @@ package net.sumaris.core.extraction.dao.trip.cost;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDaoImpl;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
@@ -44,11 +45,13 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("aggregationCostDao")
 @Lazy
-public class AggregationCostDaoImpl<C extends AggregationRdbTripContextVO, F extends ExtractionFilterVO, S extends AggregationStrataVO>
-        extends AggregationRdbTripDaoImpl<C, F, S>
-        implements AggSurvivalTestSpecification {
-
-    private static final Logger log = LoggerFactory.getLogger(AggregationCostDaoImpl.class);
+@Slf4j
+public class AggregationCostDaoImpl<
+    C extends AggregationRdbTripContextVO,
+    F extends ExtractionFilterVO,
+    S extends AggregationStrataVO>
+    extends AggregationRdbTripDaoImpl<C, F, S>
+    implements AggSurvivalTestSpecification {
 
     @Override
     public ProductFormatEnum getFormat() {
