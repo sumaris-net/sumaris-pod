@@ -192,7 +192,7 @@
 
     <!-- apache maven plugins version -->
     <jarPluginVersion>3.1.2</jarPluginVersion>
-    <sitePluginVersion>3.8.2</sitePluginVersion>
+    <sitePluginVersion>3.9.1</sitePluginVersion>
     <changesPluginVersion>2.12.1</changesPluginVersion>
     <changelogPluginVersion>2.3</changelogPluginVersion>
     <projectInfoReportsPluginVersion>2.9</projectInfoReportsPluginVersion>
@@ -215,7 +215,7 @@
     <findbugsPluginVersion>3.0.5</findbugsPluginVersion>
 
     <!-- web site -->
-    <locales>en</locales>
+    <locales>en,fr</locales>
 
     <!-- I18n configuration -->
     <i18n.bundles>fr_FR,en_GB</i18n.bundles>
