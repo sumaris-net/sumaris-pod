@@ -21,24 +21,9 @@
   -->
 
 <query type="select">
-  <with alias="SELECTED_TRIPS">
-    <subquery>
-      <subselect alias="ID" type="number">ID</subselect>
 
-      <from alias="T">TRIP</from>
+  <from join="true">LEFT OUTER JOIN VESSEL_USE_MEASUREMENT VUM_CONTRACT ON VUM_CONTRACT.TRIP_FK = T.ID AND VUM_CONTRACT.PMFM_FK IN (&amp;contractCodePmfmIds)</from>
+  <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE QV_CONTRACT ON QV_CONTRACT.ID = VUM_CONTRACT.QUALITATIVE_VALUE_FK</from>
 
-      <where>EXISTS (
-        SELECT O.ID
-        FROM OPERATION O, BATCH B, TAXON_GROUP TG
-        WHERE
-          O.TRIP_FK = T.ID
-          AND O.ID = B.OPERATION_FK
-          AND TG.LABEL IN (&amp;taxonGroupLabels)
-          AND TG.ID=B.TAXON_GROUP_FK
-        )</where>
-    </subquery>
-  </with>
-
-  <from join="true">INNER JOIN SELECTED_TRIPS ST ON ST.ID = T.ID</from>
-
+  <where operator="AND" group="contractCodeFilter">QV_CONTRACT.LABEL like '&amp;contractCodeLike'</where>
 </query>

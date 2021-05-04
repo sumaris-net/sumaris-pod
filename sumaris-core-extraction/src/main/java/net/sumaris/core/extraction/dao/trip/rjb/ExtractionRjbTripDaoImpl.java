@@ -72,16 +72,13 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionTripTable"));
 
-/*        // Bind some referential ids
+        // Bind some referential ids
         xmlQuery.bind("contractCodePmfmIds", Daos.getSqlInNumbers(
             PmfmEnum.CONTRACT_CODE.getId(),
             PmfmEnum.SELF_SAMPLING_PROGRAM.getId()
         ));
         // Bind some referential ids
-        xmlQuery.bind("contractCode", "RJB"); // TODO externalize*/
-
-        // TODO externalize
-        xmlQuery.bind("taxonGroupLabels", Daos.getSqlInEscapedStrings("RJB_1", "RJB_2"));
+        xmlQuery.bind("contractCodeLike", "%RJB"); // TODO externalize
 
         return xmlQuery;
     }

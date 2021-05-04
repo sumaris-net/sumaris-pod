@@ -213,10 +213,10 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
         SumarisTableMetadata table = databaseMetadata.getTable(tableName.toLowerCase());
         Preconditions.checkNotNull(table);
 
-        String whereClauseContent = SumarisTableMetadatas.getSqlWhereClauseContent(table, filter, sheetName, table.getAlias());
+        String whereClauseContent = SumarisTableMetadatas.getInverseSqlWhereClauseContent(table, filter, sheetName, table.getAlias(), true);
         if (StringUtils.isBlank(whereClauseContent)) return 0;
 
-        String deleteQuery = table.getDeleteQuery(String.format("NOT(%s)", whereClauseContent));
+        String deleteQuery = table.getDeleteQuery(whereClauseContent);
         return queryUpdate(deleteQuery);
     }
 

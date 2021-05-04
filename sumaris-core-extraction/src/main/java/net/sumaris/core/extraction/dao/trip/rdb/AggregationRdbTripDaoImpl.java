@@ -26,8 +26,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
@@ -35,9 +35,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
-import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
-import net.sumaris.core.extraction.dao.trip.AggregationTripDao;
 import net.sumaris.core.extraction.dao.trip.ExtractionTripDao;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.specification.data.trip.AggRdbSpecification;
@@ -61,7 +59,10 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -824,20 +825,6 @@ public class AggregationRdbTripDaoImpl<
         } catch (IOException e) {
             throw new SumarisTechnicalException(e);
         }
-    }
-
-    protected int cleanRow(String tableName, ExtractionFilterVO filter, String sheetName) {
-        Preconditions.checkNotNull(tableName);
-        if (filter == null) return 0;
-
-        SumarisTableMetadata table = databaseMetadata.getTable(tableName);
-        Preconditions.checkNotNull(table);
-
-        String whereClauseContent = SumarisTableMetadatas.getSqlWhereClauseContent(table, filter, sheetName, table.getAlias(), true);
-        if (StringUtils.isBlank(whereClauseContent)) return 0;
-
-        String deleteQuery = table.getDeleteQuery(String.format("NOT(%s)", whereClauseContent));
-        return queryUpdate(deleteQuery);
     }
 
     protected Map<String, List<String>> analyzeRow(final String tableName, XMLQuery xmlQuery,

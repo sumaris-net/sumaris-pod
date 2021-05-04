@@ -376,6 +376,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         long count = countFrom(tableName);
 
+        // Clean row using generic filter
+        if (count > 0) {
+            cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
+        }
+
         // Add result table to context
         if (count > 0) {
             context.addTableName(tableName,
@@ -405,28 +410,28 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     }
 
     protected long createSpeciesLengthTable(C context) {
+        String tableName = context.getSpeciesLengthTableName();
 
         XMLQuery xmlQuery = createSpeciesLengthQuery(context);
-
-        // aggregate insertion
         execute(xmlQuery);
-        long count = countFrom(context.getSpeciesLengthTableName());
+
+        long count = countFrom(tableName);
 
         // Clean row using generic tripFilter
         if (count > 0) {
-            count -= cleanRow(context.getSpeciesLengthTableName(), context.getFilter(), context.getSpeciesLengthSheetName());
+            count -= cleanRow(tableName, context.getFilter(), context.getSpeciesLengthSheetName());
         }
 
         // Add result table to context
         if (count > 0) {
-            context.addTableName(context.getSpeciesLengthTableName(),
+            context.addTableName(tableName,
                     context.getSpeciesLengthSheetName(),
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
             log.debug(String.format("Species length table: %s rows inserted", count));
         }
         else {
-            context.addRawTableName(context.getSpeciesLengthTableName());
+            context.addRawTableName(tableName);
         }
         return count;
     }
