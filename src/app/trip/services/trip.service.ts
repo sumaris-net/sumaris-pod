@@ -524,8 +524,8 @@ export class TripService
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
-      sortBy: sortBy || 'departureDateTime',
-      sortDirection: sortDirection || 'asc',
+      sortBy: sortBy || (opts && opts.trash ? 'updateDate' : 'departureDateTime'),
+      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
       filter: TripFilter.asPodObject(dataFilter)
     };

@@ -709,8 +709,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     const variables = {
       offset: offset || 0,
       size: size || 20,
-      sortBy: (sortBy !== 'id' && sortBy) || 'dateTime',
-      sortDirection: sortDirection || 'asc',
+      sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'dateTime'),
+      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
       filter: LandingFilter.searchFilter<Landing>(dataFilter)
     };

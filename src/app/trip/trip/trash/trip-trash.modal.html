@@ -80,9 +80,10 @@
 
   <!-- table -->
   <mat-table [dataSource]="dataSource" matSort
-             matSortActive="updateDate"
+             [matSortActive]="defaultSortBy"
              [matSortDirection]="defaultSortDirection"
-             matSortDisableClear [trackBy]="trackByFn">
+             [trackBy]="trackByFn"
+             matSortDisableClear>
 
     <ng-container matColumnDef="select">
       <mat-header-cell *matHeaderCellDef >

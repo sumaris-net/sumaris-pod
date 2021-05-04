@@ -383,8 +383,8 @@ export class ObservedLocationService
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
-      sortBy: sortBy || 'startDateTime',
-      sortDirection: sortDirection || 'asc',
+      sortBy: sortBy || (opts && opts.trash ? 'updateDate' : 'startDateTime'),
+      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
       filter: ObservedLocationFilter.asPodObject(dataFilter)
     };
