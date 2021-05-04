@@ -69,7 +69,7 @@ public class Daos extends net.sumaris.core.dao.technical.Daos {
      * @param strings a {@link String[]} object.
      * @return concatenated strings
      */
-    public static String getSqlInEscapedStrings(String[] strings) {
+    public static String getSqlInEscapedStrings(String... strings) {
         if (strings == null) return "";
         return Stream.of(strings)
                 .filter(Objects::nonNull)

@@ -23,28 +23,40 @@
 package net.sumaris.server.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.sumaris.core.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.util.StringUtils;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.ActiveMQPrefetchPolicy;
+import org.apache.activemq.store.kahadb.KahaDBPersistenceAdapter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.config.JmsListenerContainerFactory;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
 
 import javax.jms.ConnectionFactory;
 
-@Configuration
-@EnableJms
+@Configuration(proxyBeanMethods = false)
 @Slf4j
+@EnableJms
 public class JmsConfiguration {
+
+    @Bean
+    @ConditionalOnMissingBean({JmsTemplate.class})
+    public JmsTemplate jmsTemplate(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
+        JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
+        jmsTemplate.setMessageConverter(messageConverter);
+        return jmsTemplate;
+    }
 
     @Bean
     public JmsListenerContainerFactory<?> jmsListenerContainerFactory(
@@ -72,7 +84,7 @@ public class JmsConfiguration {
             prefix = "spring.activemq",
             name = {"broker-url"}
     )
-    @ConditionalOnClass(name = "org.apache.activemq.store.kahadb.KahaDBPersistenceAdapter")
+    @ConditionalOnClass({KahaDBPersistenceAdapter.class})
     public ConnectionFactory connectionFactory(SumarisServerConfiguration config) {
         String url = config.getActiveMQBrokerURL();
         int prefetchLimit = config.getActiveMQPrefetchLimit();

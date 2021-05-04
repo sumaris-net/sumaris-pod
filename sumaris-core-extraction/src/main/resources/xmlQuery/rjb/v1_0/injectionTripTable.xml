@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<query type="select">
+  <with alias="SELECTED_TRIPS">
+    <subquery>
+      <subselect alias="ID" type="number">ID</subselect>
+
+      <from alias="T">TRIP</from>
+
+      <where>EXISTS (
+        SELECT O.ID
+        FROM OPERATION O, BATCH B, TAXON_GROUP TG
+        WHERE
+          O.TRIP_FK = T.ID
+          AND O.ID = B.OPERATION_FK
+          AND TG.LABEL IN (&amp;taxonGroupLabels)
+          AND TG.ID=B.TAXON_GROUP_FK
+        )</where>
+    </subquery>
+  </with>
+
+  <from join="true">INNER JOIN SELECTED_TRIPS ST ON ST.ID = T.ID</from>
+
+</query>

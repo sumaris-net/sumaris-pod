@@ -29,7 +29,9 @@ import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.event.entity.IEntityEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -37,12 +39,16 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.PostConstruct;
+import javax.jms.Destination;
 import javax.jms.JMSContext;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 
 @Component
 @Slf4j
 @ConditionalOnClass({JMSContext.class, JmsTemplate.class})
-public class EntityJmsNotifier {
+public class JmsEntityNotifier {
 
     // WARN: @ConditionOnBean over this class is not working well, that why we use required=false
     @Autowired(required = false)
@@ -51,7 +57,14 @@ public class EntityJmsNotifier {
     @PostConstruct
     protected void init() {
         if (jmsTemplate != null) {
-            log.info("Starting JMS notifier, for entity events...");
+            log.info("Starting JMS entity events producer... {destinationPattern: '({})<EntityName>'}", Arrays.stream(IEntityEvent.EntityEventOperation.values())
+                .map(Enum::name)
+                .map(String::toLowerCase)
+                .collect(Collectors.joining("|"))
+            );
+        }
+        else {
+            log.warn("Cannot start JMS entity events producer: missing a bean of class {}", JmsTemplate.class.getName());
         }
     }
 
@@ -70,8 +83,7 @@ public class EntityJmsNotifier {
         // Compute a destination name
         String destinationName = event.getJmsDestinationName();
 
-        if (log.isDebugEnabled()) log.debug(String.format("Sending JMS message... {destination: '%s', id: %s}",
-                destinationName, event.getId()));
+        log.debug("Sending JMS message... {destination: '{}', id: {}}", destinationName, event.getId());
 
         // Send data, or ID
         if (event.getData() != null) {

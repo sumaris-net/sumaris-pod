@@ -48,6 +48,7 @@ import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
@@ -117,7 +118,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         context.setFormat(LiveFormatEnum.RDB);
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
 
+        // Start log
+        Long startTime = null;
         if (log.isInfoEnabled()) {
+            startTime = System.currentTimeMillis();
             StringBuilder filterInfo = new StringBuilder();
             String filterStr = filter != null ? tripFilter.toString("\n - ") : null;
             if (StringUtils.isNotBlank(filterStr)) {
@@ -126,7 +130,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             else {
                 filterInfo.append("(without filter)");
             }
-            log.info(String.format("Starting extraction #%s-%s (raw data / trips)... %s", context.getLabel(), context.getId(), filterInfo.toString()));
+            log.info("Starting extraction {{}-{}} (raw data / trips)... {}", context.getLabel(), context.getId(), filterInfo.toString());
         }
 
         // Fill context table names
@@ -165,7 +169,15 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         catch (PersistenceException e) {
             // If error, clean created tables first, then rethrow the exception
             clean(context);
+
+            startTime = null; // Avoid log
+
             throw e;
+        }
+        finally {
+            if (startTime != null) {
+                log.info("Extraction {{}-{}} finished in {}", context.getLabel(), context.getId(), TimeUtils.printDurationFrom(startTime));
+            }
         }
     }
 

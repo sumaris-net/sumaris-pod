@@ -51,6 +51,7 @@
     <select alias="SAMPLING_METHOD" type="text">'Observer'</select><!-- TODO: ADAP - find it from a project's PMFM of type "Hidden" ? -->
 
     <from alias="T">TRIP</from>
+
     <from join="true">INNER JOIN PROGRAM P ON P.ID = T.PROGRAM_FK</from>
     <!-- trip return harbour -->
     <from join="true">INNER JOIN LOCATION L ON L.ID = T.RETURN_LOCATION_FK</from>

@@ -22,6 +22,7 @@
 
 package net.sumaris.server;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import it.ozimov.springboot.mail.configuration.EnableEmailTools;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
@@ -32,13 +33,19 @@ import net.sumaris.core.util.ApplicationUtils;
 import net.sumaris.core.util.I18nUtil;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.ontology.RestPaths;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.ActiveMQPrefetchPolicy;
+import org.apache.activemq.store.kahadb.KahaDBPersistenceAdapter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
+import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
 import org.springframework.boot.autoconfigure.jsonb.JsonbAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -51,6 +58,11 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpStatus;
 import org.springframework.jms.annotation.EnableJms;
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
+import org.springframework.jms.config.JmsListenerContainerFactory;
+import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
+import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.jms.support.converter.MessageType;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -59,6 +71,7 @@ import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import javax.jms.ConnectionFactory;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.io.File;
@@ -68,14 +81,12 @@ import java.io.IOException;
         scanBasePackages = {
                 "net.sumaris.core",
                 "net.sumaris.rdf",
-                // TODO: rename c-ore-extraction into extraction
-                //"net.sumaris.extraction",
                 "net.sumaris.server"
         },
         exclude = {
-                LiquibaseAutoConfiguration.class,
-                FreeMarkerAutoConfiguration.class,
-                JsonbAutoConfiguration.class
+            LiquibaseAutoConfiguration.class,
+            FreeMarkerAutoConfiguration.class,
+            JsonbAutoConfiguration.class
         }
 )
 @EntityScan(basePackages = {
@@ -89,6 +100,7 @@ import java.io.IOException;
 })
 @EnableEmailTools
 @EnableTransactionManagement
+@EnableJms
 @Slf4j
 public class Application extends SpringBootServletInitializer {
 
@@ -218,4 +230,5 @@ public class Application extends SpringBootServletInitializer {
     protected static String getI18nBundleName() {
         return "sumaris-server-i18n";
     }
+
 }

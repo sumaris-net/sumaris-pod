@@ -29,7 +29,6 @@ import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.model.ProgressionModel;
-import net.sumaris.core.service.data.BatchService;
 import net.sumaris.core.service.data.DenormalizedBatchService;
 import net.sumaris.core.service.data.OperationService;
 import net.sumaris.core.service.data.TripService;
@@ -37,8 +36,6 @@ import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.TripVO;
-import net.sumaris.core.vo.data.batch.BatchFetchOptions;
-import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -156,11 +153,10 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
                     .withMeasurementValues(false)
                     .build());
 
-            operations.stream()
-                .forEach(operation -> {
-                    List<DenormalizedBatchVO> denormalizedBatches = denormalizedBatchService.denormalizeAndSaveByOperationId(operation.getId());
-                    log.trace("Saving {} denormalized batches for operation {id: {}}", CollectionUtils.size(denormalizedBatches), operation.getId());
-                });
+            operations.forEach(operation -> {
+                List<DenormalizedBatchVO> denormalizedBatches = denormalizedBatchService.denormalizeAndSaveByOperationId(operation.getId());
+                log.trace("Saving {} denormalized batches for operation {id: {}}", CollectionUtils.size(denormalizedBatches), operation.getId());
+            });
 
             offset += pageSize;
             operationCount += operations.size();
