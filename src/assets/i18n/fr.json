@@ -1470,6 +1470,8 @@
       "CRITERION_END_VALUE": "Fin",
       "BTN_ADD_CRITERION": "Ajouter un critère de recherche",
       "BETWEEN": "entre",
+      "NULL": "vide",
+      "NOT_NULL": "non vide",
       "HELP": "Pour filtrer rapidement, cliquez dans la cellule. Maintenez la touche 'Ctrl' pour filtrer sur plusieurs valeurs.",
       "NO_FILTER_PARENTHESIS": "(non filtrés)",
       "WITH_FILTER_PARENTHESIS": "(filtrés)"
@@ -1603,16 +1605,16 @@
     },
     "LIVE": {
       "RDB": {
-        "TITLE": "Données brutes (RDB v1.3)"
+        "TITLE": "Marées brutes (RDB v{{version}})"
       },
       "COST": {
-        "TITLE": "Données brutes (COST v1.4)"
+        "TITLE": "Marées brutes (COST v{{version}})"
       },
-      "FREE1": {
-        "TITLE": "Données brutes (FREE v{{version}})"
+      "FREE": {
+        "TITLE": "Marées brutes (FREE v{{version}})"
       },
       "FREE2": {
-        "TITLE": "Données brutes (FREE2 v{{version}})",
+        "TITLE": "Marées brutes (FREE2 v{{version}})",
         "SHEET": {
           "MAREE": "Marées",
           "OPERATION_PECHE": "Opérations",
@@ -1624,7 +1626,13 @@
         }
       },
       "SURVIVAL_TEST": {
-        "TITLE": "Données brutes (SUMARiS v1.0)"
+        "TITLE": "Marées brutes (SUMARiS v{{version}})"
+      },
+      "RJB": {
+        "TITLE": "Marées Pocheteaux (RJB v{{version}})"
+      },
+      "PMFM_TRIP": {
+        "TITLE": "Marées brutes (dynamique)"
       },
       "STRAT": {
         "TITLE": "Stratégies de collecte",

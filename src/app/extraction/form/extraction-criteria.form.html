@@ -17,8 +17,9 @@
           </mat-form-field>
 
           <!-- operator -->
-          <mat-form-field class="operator" >
-            <mat-select formControlName="operator">
+          <mat-form-field class="operator">
+            <mat-select formControlName="operator"
+                        (selectionChange)="updateCriterionValueDefinition(i, $event.value, false)">
               <mat-option *ngFor="let operator of operators" [value]="operator.symbol">{{ (operator.name ||
                 operator.symbol) | translate }}
               </mat-option>
@@ -27,7 +28,8 @@
         </ion-col>
 
         <!-- value -->
-        <ion-col class="ion-no-padding" [class.has-two-fields]="criterionForm.controls.operator.value === 'BETWEEN'">
+        <ion-col class="ion-no-padding"
+                 [class.has-two-fields]="criterionForm.controls.operator.value === 'BETWEEN'">
           <ng-container *ngIf="getCriterionValueDefinition(i) | async as definition; else fakeDisabledField">
 
             <app-form-field class="value"

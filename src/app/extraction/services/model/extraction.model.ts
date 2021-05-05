@@ -4,6 +4,7 @@ import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity
 import {Department} from "../../../core/services/model/department.model";
 import {Person} from "../../../core/services/model/person.model";
 import {Moment} from "moment";
+import {isNotEmptyArray, isNotNilOrBlank} from "../../../shared/functions";
 
 export declare type ExtractionCategoryType = 'PRODUCT' | 'LIVE';
 export const ExtractionCategories = {
@@ -152,6 +153,8 @@ export declare class ExtractionFilter {
   sheetName?: string;
 }
 
+export declare type CriterionOperator = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'BETWEEN' | 'NULL' | 'NOT NULL';
+
 export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion> {
 
   static fromObject(source: any): ExtractionFilterCriterion {
@@ -160,8 +163,16 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
     return res;
   }
 
+  static isNotEmpty(criterion: ExtractionFilterCriterion): boolean {
+    return criterion && (
+      isNotNilOrBlank(criterion.value)
+      || isNotEmptyArray(criterion.values)
+      || criterion.operator === 'NULL'
+      || criterion.operator === 'NOT NULL');
+  }
+
   name?: string;
-  operator: string;
+  operator: CriterionOperator;
   value?: string;
   values?: string[];
   endValue?: string;

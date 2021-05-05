@@ -2,11 +2,11 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from '@ngx-translate/core';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean} from '../../shared/functions';
-import {ExtractionColumn, ExtractionFilterCriterion, ExtractionType} from "../services/model/extraction.model";
+import {isNil, isNotEmptyArray, isNotNil, toBoolean} from '../../shared/functions';
+import {CriterionOperator, ExtractionColumn, ExtractionFilterCriterion, ExtractionType} from "../services/model/extraction.model";
 import {ExtractionService} from "../services/extraction.service";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {debounceTime, distinctUntilChanged, filter, map} from "rxjs/operators";
+import {filter, map} from "rxjs/operators";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {ExtractionCriteriaValidatorService} from "../services/validator/extraction-criterion.validator";
@@ -29,14 +29,16 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   private _sheetName: string;
   private _type: E;
 
-  operators: { symbol: String; name?: String; }[] = [
+  operators: { symbol: CriterionOperator; name?: String; }[] = [
     {symbol: '='},
     {symbol: '!='},
     {symbol: '>'},
     {symbol: '>='},
     {symbol: '<'},
     {symbol: '<='},
-    {symbol: 'BETWEEN', name: "EXTRACTION.FILTER.BETWEEN"}
+    {symbol: 'BETWEEN', name: "EXTRACTION.FILTER.BETWEEN"},
+    {symbol: 'NULL', name: "EXTRACTION.FILTER.NULL"},
+    {symbol: 'NOT NULL', name: "EXTRACTION.FILTER.NOT_NULL"}
   ];
 
   $columns = new BehaviorSubject<ExtractionColumn[]>(undefined);
@@ -75,7 +77,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
       .map(sheetForm => (sheetForm as FormArray))
       .map(sheetForm => sheetForm.controls
         .map(criterionForm => (criterionForm as FormGroup).value)
-        .filter(criterion => criterion && isNotNilOrBlank(criterion.value))
+        .filter(ExtractionFilterCriterion.isNotEmpty)
         .length
       )
       .reduce((count, length) => count + length, 0);
@@ -194,22 +196,6 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     // Add a new criterion (formGroup + value)
     else {
       const criterionForm = this.validatorService.getCriterionFormGroup(criterion, this.sheetName);
-      const criterionValueControl = criterionForm.controls.value;
-      criterionForm.controls.name.valueChanges
-        .pipe(
-          debounceTime(250),
-          distinctUntilChanged()
-        )
-        .subscribe(value => {
-          // if (isNotNilOrBlank(value)) {
-          //   if (criterionValueControl.disabled) {
-          //     criterionValueControl.enable();
-          //   }
-          // }
-          // else if (criterionValueControl.enabled) {
-          //   criterionValueControl.disable();
-          // }
-        });
       arrayControl.push(criterionForm);
       hasChanged = true;
       index = arrayControl.length - 1;
@@ -236,7 +222,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     const sheetCriteriaForm = sheetName && (this.form.get(sheetName) as FormArray);
     return sheetCriteriaForm && sheetCriteriaForm.controls
       .map(c => c.value)
-      .findIndex(criterion => criterion && isNotNilOrBlank(criterion.value)) !== -1;
+      .findIndex(ExtractionFilterCriterion.isNotEmpty) !== -1;
   }
 
   removeFilterCriterion($event: MouseEvent, index: number) {
@@ -292,33 +278,6 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     }
   }
 
-  getI18nColumnName(columnName: string, self?: ExtractionCriteriaForm<any>): string {
-    self = self || this;
-    const type = self.type;
-    let key = `EXTRACTION.TABLE.${type.category.toUpperCase()}.${columnName.toUpperCase()}`;
-    let message = self.translate.instant(key);
-
-    // No I18n translation
-    if (message === key) {
-
-      // Try to get common translation
-      key = `EXTRACTION.COLUMNS.${columnName.toUpperCase()}`;
-      message = self.translate.instant(key);
-
-      // Or split column name
-      if (message === key) {
-        // Replace underscore with space
-        message = columnName.replace(/[_-]+/g, " ").toUpperCase();
-        if (message.length > 1) {
-          // First letter as upper case
-          message = message.substring(0, 1) + message.substring(1).toLowerCase();
-        }
-      }
-    }
-    return message;
-  }
-
-
   getCriterionValueDefinition(index: number): Observable<FormFieldDefinition> {
     return this.$columnValueDefinitionsByIndex[index] || this.updateCriterionValueDefinition(index);
   }
@@ -326,7 +285,9 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   updateCriterionValueDefinition(index: number, columnName?: string, resetValue?: boolean): Observable<FormFieldDefinition> {
     const criterionForm = this.sheetCriteriaForm.at(index) as FormGroup;
     columnName = columnName || (criterionForm && criterionForm.controls.name.value);
-    const definition = columnName && this.$columnValueDefinitions.getValue().find(d => d.key === columnName) || null;
+    const operator = criterionForm && criterionForm.controls.operator.value || '=';
+    const definition = (operator === 'NULL' || operator === 'NOT NULL') ? undefined
+      : columnName && this.$columnValueDefinitions.getValue().find(d => d.key === columnName) || null;
 
     // Reset the criterion value, is ask by caller
     if (resetValue) criterionForm.patchValue({value: null});
