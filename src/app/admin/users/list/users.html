@@ -120,7 +120,13 @@
     <ng-container matColumnDef="avatar">
       <mat-header-cell *matHeaderCellDef></mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <div class="avatar" [ngStyle]="{'background-image':'url('+row.currentData.avatar+')'}"></div>
+        <div class="avatar" *ngIf="row.currentData.avatar; else generateIcon"
+             [ngStyle]="{'background-image':'url('+row.currentData.avatar+')'}"></div>
+        <ng-template #generateIcon>
+          <div class="avatar">
+            <svg width="38" width="38" [data-jdenticon-value]="row.currentData.id"></svg>
+          </div>
+        </ng-template>
       </mat-cell>
     </ng-container>
 
@@ -286,7 +292,7 @@
   <ion-row class="ion-no-padding">
     <ion-col></ion-col>
     <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
+      <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
       </mat-paginator>
     </ion-col>
   </ion-row>

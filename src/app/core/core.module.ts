@@ -28,6 +28,7 @@ import {PersonToStringPipe} from "./services/pipes/person-to-string.pipe";
 import {AppInstallUpgradeCard} from "./install/install-upgrade-card.component";
 import {AccountToStringPipe, IsLoginAccountPipe} from "./services/pipes/account.pipes";
 import {DepartmentToStringPipe} from "./services/pipes/department-to-string.pipe";
+import {NgxJdenticonModule} from "ngx-jdenticon";
 
 @NgModule({
   imports: [
@@ -36,7 +37,8 @@ import {DepartmentToStringPipe} from "./services/pipes/department-to-string.pipe
     HttpClientModule,
     AppGraphQLModule,
     CacheModule,
-    IonicStorageModule
+    IonicStorageModule,
+    NgxJdenticonModule
   ],
 
   declarations: [

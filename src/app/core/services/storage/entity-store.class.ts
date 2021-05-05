@@ -79,7 +79,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
 
   async load(id: number, opts?: EntityStorageLoadOptions): Promise<T> {
     if (this._mapToLightEntity && (!opts || opts.fullLoad !== false)) {
-      return this.loadFullEntity(id, opts);
+      return await this.loadFullEntity(id, opts);
     }
     return this.loadCachedEntity(id, opts);
   }
@@ -445,11 +445,11 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
 
   /* -- protected methods -- */
 
-  private async loadCachedEntity(id: number, opts?: EntityStorageLoadOptions): Promise<T> {
+  private loadCachedEntity(id: number, opts?: EntityStorageLoadOptions): T {
     const status = this._statusById[+id];
     const index = status && status.index;
     if (isNil(index)) return undefined; // not exists
-    return this._cache[index];
+    return Object.freeze(this._cache[index]);
   }
 
   private async loadFullEntity(id: number, opts?: EntityStorageLoadOptions): Promise<T> {

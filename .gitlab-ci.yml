@@ -23,7 +23,7 @@ build_auto:
   extends: .build
   only:
     - develop
-    - develop-imagine
+    - feature/imagine
   except:
     - schedules
 
@@ -48,7 +48,7 @@ build_registry:
         - www/*.zip
     only:
         - develop
-        - develop-imagine
+        - feature/imagine
     when: manual
 
 pages:
@@ -69,7 +69,7 @@ pages:
             - public
     only:
         - develop
-        - develop-imagine
+        - feature/imagine
     when: manual
 
 package:
@@ -93,7 +93,7 @@ package:
             dotenv: variables.env
     only:
         - develop
-        - develop-imagine
+        - feature/imagine
     allow_failure: false
     when: manual
 
@@ -114,7 +114,7 @@ release:
         ref: "$CI_COMMIT_SHA"
     only:
         - develop
-        - develop-imagine
+        - feature/imagine
 deploy:
     stage: deploy
     tags:
@@ -124,5 +124,5 @@ deploy:
         - mvn -s ./settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=emso-charts -Dversion=$TAG -Dfile=web-services/target/ROOT.war -DrepositoryId=gitlab-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven
     only:
         - develop
-        - develop-imagine
+        - feature/imagine
     when: manual

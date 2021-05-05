@@ -1,14 +1,13 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {Observable} from "rxjs";
-import {VesselFeatures, VesselRegistration} from "./model/vessel.model";
+import {VesselFeatures} from "./model/vessel.model";
 import {map} from "rxjs/operators";
-import {ErrorCodes} from "./errors";
+import {ErrorCodes} from "../../referential/services/errors";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {ReferentialFragments} from "./referential.fragments";
+import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {VesselFilter} from "./vessel-service";
 import {SortDirection} from "@angular/material/sort";
-import {VesselFeaturesHistoryComponent} from "../vessel/page/vessel-features-history.component";
 import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
 import {environment} from "../../../environments/environment";
@@ -39,17 +38,15 @@ export const VesselFeaturesFragments = {
     }`,
 };
 
-export const LoadFeaturesQuery: any = gql`
-    query VesselFeaturesHistory($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $vesselId: Int){
-        vesselFeaturesHistory(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, vesselId: $vesselId){
+export const LoadFeaturesQuery: any = gql`query VesselFeaturesHistory($vesselId: Int!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+        vesselFeaturesHistory(vesselId: $vesselId, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
             ...VesselFeaturesFragment
         }
     }
     ${VesselFeaturesFragments.vesselFeatures}
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
-    ${ReferentialFragments.lightPerson}
-`;
+    ${ReferentialFragments.lightPerson}`;
 
 @Injectable({providedIn: 'root'})
 export class VesselFeaturesService

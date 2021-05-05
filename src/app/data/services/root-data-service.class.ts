@@ -1,26 +1,19 @@
-import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
+import {DataEntityAsObjectOptions} from "./model/data-entity.model";
 import {Directive, Injector} from "@angular/core";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {IDataEntityQualityService} from "../../data/services/data-quality-service.class";
+import {IDataEntityQualityService} from "./data-quality-service.class";
 import {FormErrors} from "../../core/form/form.utils";
-import {DataRootEntityUtils, RootDataEntity} from "../../data/services/model/root-data-entity.model";
+import {DataRootEntityUtils, RootDataEntity} from "./model/root-data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
-import {ErrorCodes} from "./trip.errors";
-import {IWithRecorderDepartmentEntity} from "../../data/services/model/model.utils";
+import {ErrorCodes} from "./errors";
+import {IWithRecorderDepartmentEntity} from "./model/model.utils";
 import {Department} from "../../core/services/model/department.model";
 import {isNil, isNotNil} from "../../shared/functions";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {Person} from "../../core/services/model/person.model";
-import {
-  BaseEntityGraphqlMutations,
-  BaseEntityGraphqlQueries,
-  BaseEntityGraphqlSubscriptions,
-  BaseEntityService,
-  BaseEntityServiceOptions
-} from "../../referential/services/base-entity-service.class";
+import {BaseEntityGraphqlMutations, BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions, BaseEntityService, BaseEntityServiceOptions} from "../../referential/services/base-entity-service.class";
 import {PlatformService} from "../../core/services/platform.service";
-import {StoreObject} from "@apollo/client/core";
 
 
 export interface BaseRootEntityGraphqlMutations extends BaseEntityGraphqlMutations {
@@ -83,7 +76,7 @@ export abstract class BaseRootDataService<T extends RootDataEntity<T>,
     const json = this.asObject(entity);
 
     const now = this._debug && Date.now();
-    if (this._debug) console.debug(this._debugPrefix + `Terminate entity {${entity.id}}...`, json);
+    if (this._debug) console.debug(this._logPrefix + `Terminate entity {${entity.id}}...`, json);
 
     await this.graphql.mutate<{ data: T }>({
       mutation: this.mutations.terminate,
@@ -93,7 +86,7 @@ export abstract class BaseRootDataService<T extends RootDataEntity<T>,
       error: { code: ErrorCodes.TERMINATE_ENTITY_ERROR, message: "ERROR.TERMINATE_ENTITY_ERROR" },
       update: (proxy, {data}) => {
         this.copyIdAndUpdateDate(data && data.data, entity);
-        if (this._debug) console.debug(this._debugPrefix + `Entity terminated in ${Date.now() - now}ms`, entity);
+        if (this._debug) console.debug(this._logPrefix + `Entity terminated in ${Date.now() - now}ms`, entity);
       }
     });
 
@@ -124,7 +117,7 @@ export abstract class BaseRootDataService<T extends RootDataEntity<T>,
     const json = this.asObject(entity);
 
     const now = Date.now();
-    if (this._debug) console.debug(this._debugPrefix + `Validate entity {${entity.id}}...`, json);
+    if (this._debug) console.debug(this._logPrefix + `Validate entity {${entity.id}}...`, json);
 
     await this.graphql.mutate<{ data: T }>({
       mutation: this.mutations.validate,
@@ -134,7 +127,7 @@ export abstract class BaseRootDataService<T extends RootDataEntity<T>,
       error: { code: ErrorCodes.VALIDATE_ENTITY_ERROR, message: "ERROR.VALIDATE_ENTITY_ERROR" },
       update: (cache, {data}) => {
         this.copyIdAndUpdateDate(data && data.data, entity);
-        if (this._debug) console.debug(this._debugPrefix + `Entity validated in ${Date.now() - now}ms`, entity);
+        if (this._debug) console.debug(this._logPrefix + `Entity validated in ${Date.now() - now}ms`, entity);
       }
     });
 
@@ -154,7 +147,7 @@ export abstract class BaseRootDataService<T extends RootDataEntity<T>,
     const json = this.asObject(entity);
 
     const now = Date.now();
-    if (this._debug) console.debug(this._debugPrefix + "Unvalidate entity...", json);
+    if (this._debug) console.debug(this._logPrefix + "Unvalidate entity...", json);
 
     await this.graphql.mutate<{ data: T }>({
       mutation: this.mutations.unvalidate,
@@ -173,7 +166,7 @@ export abstract class BaseRootDataService<T extends RootDataEntity<T>,
             this.copyIdAndUpdateDate(savedEntity, entity);
           }
 
-          if (this._debug) console.debug(this._debugPrefix + `Entity unvalidated in ${Date.now() - now}ms`, entity);
+          if (this._debug) console.debug(this._logPrefix + `Entity unvalidated in ${Date.now() - now}ms`, entity);
         }
       }
     });
@@ -197,7 +190,7 @@ export abstract class BaseRootDataService<T extends RootDataEntity<T>,
     json.qualityFlagId = qualityFlagId;
 
     const now = Date.now();
-    if (this._debug) console.debug(this._debugPrefix + "Qualifying entity...", json);
+    if (this._debug) console.debug(this._logPrefix + "Qualifying entity...", json);
 
     await this.graphql.mutate<{ data: T }>({
       mutation: this.mutations.qualify,
@@ -210,7 +203,7 @@ export abstract class BaseRootDataService<T extends RootDataEntity<T>,
         this.copyIdAndUpdateDate(savedEntity, entity);
         DataRootEntityUtils.copyQualificationDateAndFlag(savedEntity, entity);
 
-        if (this._debug) console.debug(this._debugPrefix + `Entity qualified in ${Date.now() - now}ms`, entity);
+        if (this._debug) console.debug(this._logPrefix + `Entity qualified in ${Date.now() - now}ms`, entity);
       }
     });
 

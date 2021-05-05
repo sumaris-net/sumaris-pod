@@ -1,5 +1,5 @@
 import {Observable, of, Subject, Subscription} from "rxjs";
-import {Apollo} from "apollo-angular";
+import {Apollo, QueryRef} from "apollo-angular";
 import {
   ApolloCache,
   ApolloClient,
@@ -218,6 +218,15 @@ export class GraphqlService {
     return res.data;
   }
 
+  watchQueryRef<T, V = EmptyObject>(opts: WatchQueryOptions<V>): QueryRef<T, V> {
+    return this.apollo.watchQuery<T, V>({
+      query: opts.query,
+      variables: opts.variables,
+      fetchPolicy: opts.fetchPolicy || (this._defaultFetchPolicy as FetchPolicy) || undefined,
+      notifyOnNetworkStatusChange: true
+    });
+  }
+
   watchQuery<T, V = EmptyObject>(opts: WatchQueryOptions<V>): Observable<T> {
     return this.apollo.watchQuery<T, V>({
       query: opts.query,
@@ -225,6 +234,20 @@ export class GraphqlService {
       fetchPolicy: opts.fetchPolicy || (this._defaultFetchPolicy as FetchPolicy) || undefined,
       notifyOnNetworkStatusChange: true
     })
+      .valueChanges
+      .pipe(
+        catchError(error => this.onApolloError<T>(error, opts.error)),
+        map(({data, errors}) => {
+          if (errors) {
+            throw errors[0];
+          }
+          return data;
+        })
+      );
+  }
+
+  queryRefValuesChanges<T, V = EmptyObject>(queryRef: QueryRef<T, V>, opts: WatchQueryOptions<V>): Observable<T> {
+    return queryRef
       .valueChanges
       .pipe(
         catchError(error => this.onApolloError<T>(error, opts.error)),

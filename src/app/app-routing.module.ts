@@ -48,6 +48,13 @@ const routes: Routes = [
     loadChildren: () => import('./referential/referential-routing.module').then(m => m.ReferentialRoutingModule)
   },
 
+  // Vessel
+  {
+    path: 'vessels',
+    canActivate: [AuthGuardService],
+    loadChildren: () => import('./vessel/vessel-routing.module').then(m => m.VesselRoutingModule)
+  },
+
   // Trips
   {
     path: 'trips',

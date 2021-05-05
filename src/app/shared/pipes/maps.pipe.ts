@@ -21,8 +21,20 @@ export class MapGetPipe implements PipeTransform {
 @Injectable({providedIn: 'root'})
 export class MapKeysPipe implements PipeTransform {
 
-  transform(map: any): any {
+  transform(map: any): any[] {
     if (!map) return null;
     return Object.keys(map);
+  }
+}
+
+@Pipe({
+  name: 'mapValues'
+})
+@Injectable({providedIn: 'root'})
+export class MapValuesPipe implements PipeTransform {
+
+  transform(map: any): any[] {
+    if (!map) return null;
+    return Object.values(map);
   }
 }

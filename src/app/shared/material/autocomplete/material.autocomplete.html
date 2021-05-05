@@ -24,9 +24,12 @@
                       [placeholder]="placeholder"
                       [formControl]="formControl"
                       [tabindex]="_tabindex"
+                      [panelClass]="classList"
+                      [style.width]="panelWidth"
                       (focus)="filterMatSelectFocusEvent($event)"
                       (blur)="filterMatSelectBlurEvent($event)"
-                      [compareWith]="compareWith">
+                      [compareWith]="compareWith"
+                      [multiple]="multiple">
             <mat-select-trigger>{{ displayWith(value) }}</mat-select-trigger>
 
             <ng-container *ngIf="(matSelectItems$ | async) as items">
@@ -75,6 +78,7 @@
           <ng-container *ngIf="searchable">
             <input matInput #matInputText type="text"
                    [matAutocomplete]="autoCombo"
+                   [matAutocompletePosition]="matAutocompletePosition"
                    [formControl]="formControl"
                    [placeholder]="placeholder"
                    [appAutofocus]="appAutofocus"
@@ -90,7 +94,8 @@
                               autoActiveFirstOption
                               [displayWith]="displayWith"
                               [class]="classList"
-                              [class.cdk-visually-hidden]="!searchable">
+                              [class.cdk-visually-hidden]="!searchable"
+                              [panelWidth]="panelWidth">
               <ng-container *ngIf="searchable && (filteredItems$ | async) as items">
                 <ion-row class="mat-autocomplete-header ion-no-padding">
                   <ion-col *ngFor="let attr of displayAttributes; index as i; last as isLast" [size]="displayColumnSizes[i]" >
@@ -129,7 +134,7 @@
           <mat-icon class="large select-arrow">arrow_drop_down</mat-icon>
         </button>
         <button matSuffix type="button" mat-icon-button tabindex="-1"
-                *ngIf="enabled && mobile && !searchable"
+                *ngIf="enabled && mobile && !searchable && !multiple"
                 [title]="'COMMON.BTN_SEARCH'|translate"
                 (click)="toggleSearch($event)">
           <mat-icon>search</mat-icon>

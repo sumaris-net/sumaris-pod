@@ -1,18 +1,16 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
-import {
-  ExtractionColumn
-} from "../../services/model/extraction.model";
+import {ExtractionColumn} from "../../services/model/extraction.model";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../../services/validator/aggregation-type.validator";
 import {ReferentialForm} from "../../../referential/form/referential.form";
 import {BehaviorSubject} from "rxjs";
-import {arraySize, isNil} from "../../../shared/functions";
+import {arraySize, isNil, isNotNilOrBlank} from "../../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {ExtractionService} from "../../services/extraction.service";
 import {debounceTime} from "rxjs/operators";
-import {AggregationStrata, AggregationType} from "../../services/model/aggregation-type.model";
+import {AggregationStrata, AggregationType, ProcessingFrequency, ProcessingFrequencyList} from "../../services/model/aggregation-type.model";
 import {ExtractionUtils} from "../../services/extraction.utils";
 import {AggregationService} from "../../services/aggregation.service";
 import {FormArrayHelper} from "../../../core/form/form.utils";
@@ -24,6 +22,11 @@ declare interface ColumnMap {
   [sheetName: string]: ExtractionColumn[];
 }
 
+const FrequenciesById: { [id: number]: ProcessingFrequency; } = ProcessingFrequencyList.reduce((res, frequency) => {
+  res[frequency.id] = frequency;
+  return res;
+}, {});
+
 @Component({
   selector: 'app-aggregation-type-form',
   styleUrls: ['./aggregation-type.form.scss'],
@@ -31,6 +34,9 @@ declare interface ColumnMap {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AggregationTypeForm extends AppForm<AggregationType> implements OnInit {
+
+
+  frequenciesById = FrequenciesById;
 
   $sheetNames = new BehaviorSubject<String[]>(undefined);
   $timeColumns = new BehaviorSubject<ColumnMap>(undefined);
@@ -51,7 +57,7 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
   stratumFormArray: FormArray;
   stratumHelper: FormArrayHelper<AggregationStrata>;
 
-  showMarkdownPreview = false;
+  showMarkdownPreview = true;
   $markdownContent = new BehaviorSubject<string>(undefined);
 
   @Input()
@@ -202,8 +208,14 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
       this.stratumHelper.resize(0);
     }
 
+    // Show doc preview, if doc exists
+    this.showMarkdownPreview = this.showMarkdownPreview && isNotNilOrBlank(data.documentation);
+
     super.setValue(data, opts);
+
   }
+
+
 
   protected markForCheck() {
     this.cd.markForCheck();

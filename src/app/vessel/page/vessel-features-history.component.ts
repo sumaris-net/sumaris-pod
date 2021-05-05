@@ -1,19 +1,19 @@
 import {ChangeDetectorRef, Component, Inject, Injector, OnInit} from '@angular/core';
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {VesselValidatorService} from "../../services/validator/vessel.validator";
-import {AppTable} from "../../../core/table/table.class";
-import {VesselFeatures} from "../../services/model/vessel.model";
+import {VesselValidatorService} from "../services/validator/vessel.validator";
+import {AppTable} from "../../core/table/table.class";
+import {VesselFeatures} from "../services/model/vessel.model";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {AccountService} from "../../../core/services/account.service";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {VesselFilter} from "../../services/vessel-service";
-import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
-import {VesselFeaturesService} from "../../services/vessel-features.service";
-import {VesselFeaturesValidatorService} from "../../services/validator/vessel-features.validator";
-import {referentialToString} from "../../../core/services/model/referential.model";
-import {environment} from "../../../../environments/environment";
+import {AccountService} from "../../core/services/account.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {VesselFilter} from "../services/vessel-service";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {VesselFeaturesService} from "../services/vessel-features.service";
+import {VesselFeaturesValidatorService} from "../services/validator/vessel-features.validator";
+import {referentialToString} from "../../core/services/model/referential.model";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-vessel-features-history-table',

@@ -42,6 +42,18 @@ export const CORE_CONFIG_OPTIONS = Object.freeze({
             }
         ]
     },
+    GRAVATAR_ENABLE: <FormFieldDefinition>{
+      key: 'sumaris.gravatar.enable',
+      label: 'CONFIGURATION.OPTIONS.ENABLE_GRAVATAR',
+      type: 'boolean',
+      defaultValue: false
+    },
+    GRAVATAR_URL: <FormFieldDefinition>{
+      key: 'sumaris.gravatar.url',
+      label: 'CONFIGURATION.OPTIONS.GRAVATAR_URL',
+      type: 'string',
+      defaultValue: 'https://www.gravatar.com/avatar/{md5}'
+    },
     DATA_NOT_SELF_ACCESS_ROLE: <FormFieldDefinition>{
         key: "sumaris.auth.notSelfDataAccess.role",
         label: "CONFIGURATION.OPTIONS.NOT_SELF_DATA_ACCESS_MIN_ROLE",

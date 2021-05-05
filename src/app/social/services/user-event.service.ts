@@ -131,7 +131,7 @@ export class UserEventService extends BaseGraphqlService<UserEvent>
     const withContent = options && options.withContent === true;
 
     return this.mutableWatchQuery<{userEvents: any; userEventCount: number}>({
-      queryName: 'LoadAll',
+      queryName: withContent ? 'LoadAllWithContent' : 'LoadAll',
       query: withContent ? LoadAllWithContentQuery : LoadAllQuery,
       variables: {
         page: {

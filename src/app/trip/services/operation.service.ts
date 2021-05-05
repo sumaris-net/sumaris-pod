@@ -288,8 +288,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const variables: QueryVariables<OperationFilter> = {
       offset: offset || 0,
       size: size >= 0 ? size : 1000,
-      sortBy: (sortBy !== 'id' && sortBy) || 'endDateTime',
-      sortDirection: sortDirection || 'asc',
+      sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
+      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
       filter: dataFilter
     };
@@ -589,8 +589,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const variables = {
       offset: offset || 0,
       size: size >= 0 ? size : 1000,
-      sortBy: (sortBy !== 'id' && sortBy) || 'endDateTime',
-      sortDirection: sortDirection || 'asc',
+      sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
+      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
       filter: OperationFilter.searchFilter<Operation>(dataFilter)
     };

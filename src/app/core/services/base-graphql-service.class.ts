@@ -5,10 +5,12 @@ import {Observable} from "rxjs";
 import {FetchResult} from "@apollo/client/link/core";
 import {EntityUtils} from "./model/entity.model";
 import {ApolloCache} from "@apollo/client/core";
-import {Environment} from "../../../environments/environment.class";
-import {changeCaseToUnderscore, isNotEmptyArray, toBoolean} from "../../shared/functions";
+import {changeCaseToUnderscore, isEmptyArray, isNotEmptyArray, toBoolean} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
 import {Directive, Optional} from "@angular/core";
+import {QueryRef} from "apollo-angular";
+import {PureQueryOptions} from "@apollo/client/core/types";
+import {DocumentNode} from "graphql";
 
 const sha256 =  require('hash.js/lib/hash/sha/256');
 
@@ -30,22 +32,30 @@ export interface MutateQueryWithCacheUpdateOptions<T = any, V = EmptyObject> ext
 }
 
 export interface MutableWatchQueryOptions<D, T = any, V = EmptyObject> extends WatchQueryOptions<V> {
-  queryName?: string;
+  queryName: string;
   arrayFieldName: keyof D;
   totalFieldName?: keyof D ;
   insertFilterFn?: (data: T) => boolean;
   sortFn?: (a: T, b: T) => number;
 }
 
-export interface MutableWatchQueryInfo<D, T = any, V = EmptyObject> {
+export interface MutableWatchQueryDescription<D, T = any, V = EmptyObject> extends PureQueryOptions {
   id?: string;
-  query: any;
+  query: DocumentNode;
+  queryRef: QueryRef<D, V>;
   variables: V;
   arrayFieldName: keyof D;
   totalFieldName?: keyof D;
   insertFilterFn?: (data: T) => boolean;
   sortFn?: (a: T, b: T) => number;
   counter: number;
+}
+
+export interface FindMutableWatchQueriesOptions {
+  query?: DocumentNode;
+  queries?: DocumentNode[];
+  queryName?: string;
+  queryNames?: string[];
 }
 
 export class BaseGraphqlServiceOptions {
@@ -56,8 +66,8 @@ export class BaseGraphqlServiceOptions {
 export abstract class BaseGraphqlService<T = any, F = any> {
 
   protected _debug: boolean;
-  protected _debugPrefix: string;
-  protected _mutableWatchQueries: MutableWatchQueryInfo<any>[] = [];
+  protected _logPrefix: string;
+  protected _mutableWatchQueries: MutableWatchQueryDescription<any>[] = [];
 
   // Max updated queries, for this entity.
   // - Can be override by subclasses (in constructor)
@@ -71,8 +81,8 @@ export abstract class BaseGraphqlService<T = any, F = any> {
   ) {
 
     // for DEV only
-    this._debug = toBoolean(!options.production, !environment.production);
-    this._debugPrefix = this._debug && `[${changeCaseToUnderscore(this.constructor.name).replace(/_/g, '-' )}]`;
+    this._debug = toBoolean(options && !options.production, !environment.production);
+    this._logPrefix = `[${changeCaseToUnderscore(this.constructor.name).replace(/_/g, '-' )}]`;
   }
 
   mutableWatchQuery<D, V = EmptyObject>(opts: MutableWatchQueryOptions<D, T, V>): Observable<D> {
@@ -80,37 +90,42 @@ export abstract class BaseGraphqlService<T = any, F = any> {
     if (!opts.arrayFieldName) {
       return this.graphql.watchQuery(opts);
     }
-    else {
-      // Create the query id
-      const queryId = this.computeMutableWatchQueryId(opts);
+    // Create the query id
+    const queryId = this.computeMutableWatchQueryId(opts);
+    const exactMatchQueries = this._mutableWatchQueries.filter(q => q.id === queryId);
 
-      const exactMatchQueries = opts.queryName ? this._mutableWatchQueries.filter(q => q.id === queryId) :
-        this._mutableWatchQueries.filter(q => q.query === opts.query);
-      let mutableQuery: MutableWatchQueryInfo<D, T, V>;
+    let mutableQuery: MutableWatchQueryDescription<D, T, V>;
+    let queryRef: QueryRef<D, V>;
 
-      if (exactMatchQueries.length === 1) {
-        mutableQuery = exactMatchQueries[0] as MutableWatchQueryInfo<D, T, V>;
-        mutableQuery.counter += 1;
-        if (this._debug) console.debug(this._debugPrefix + `Find same mutable watch query (same variables) {${queryId}}. Skip register`);
+    if (exactMatchQueries.length === 1) {
+      mutableQuery = exactMatchQueries[0] as MutableWatchQueryDescription<D, T, V>;
+      mutableQuery.counter += 1;
+      queryRef = mutableQuery.queryRef;
+      if (this._debug) console.debug(this._logPrefix + `Find same mutable watch query (same variables) {${queryId}}. Skip register`);
 
-        //if (mutableQuery.counter > 3) {
-        //  console.warn(this._debugPrefix + 'TODO: clean previous queries with name: ' + queryName);
-        //}
+      // Refetch if need
+      if (opts.fetchPolicy && (opts.fetchPolicy === 'network-only' || opts.fetchPolicy === 'no-cache' || opts.fetchPolicy === 'cache-and-network')) {
+        queryRef.refetch(mutableQuery.variables);
       }
-      else {
-        this.registerNewMutableWatchQuery({
-          id: queryId,
-          query: opts.query,
-          variables: opts.variables,
-          arrayFieldName: opts.arrayFieldName,
-          insertFilterFn: opts.insertFilterFn,
-          sortFn: opts.sortFn,
-          counter: 1
-        });
-      }
-
-      return this.graphql.watchQuery(opts);
+      //if (mutableQuery.counter > 3) {
+      //  console.warn(this._debugPrefix + 'TODO: clean previous queries with name: ' + queryName);
+      //}
     }
+    else {
+      queryRef = this.graphql.watchQueryRef<D, V>(opts);
+      this.registerNewMutableWatchQuery({
+        id: queryId,
+        query: opts.query,
+        queryRef: queryRef,
+        variables: opts.variables,
+        arrayFieldName: opts.arrayFieldName,
+        insertFilterFn: opts.insertFilterFn,
+        sortFn: opts.sortFn,
+        counter: 1
+      });
+    }
+
+    return this.graphql.queryRefValuesChanges(queryRef, opts);
   }
 
   insertIntoMutableCachedQuery(cache: ApolloCache<any>, opts: {
@@ -151,11 +166,9 @@ export abstract class BaseGraphqlService<T = any, F = any> {
       });
   }
 
-  removeFromMutableCachedQueryByIds(cache: ApolloCache<any>, opts: {
-    query?: any;
-    queryName?: string;
+  removeFromMutableCachedQueryByIds(cache: ApolloCache<any>, opts: FindMutableWatchQueriesOptions & {
     ids: number|number[];
-  }){
+  }) {
     const queries = this.findMutableWatchQueries(opts);
     if (!queries.length)  return;
 
@@ -180,6 +193,24 @@ export abstract class BaseGraphqlService<T = any, F = any> {
     });
   }
 
+  async refetchMutableQuery(opts: FindMutableWatchQueriesOptions & { variables?: any; }): Promise<void> {
+    // Retrieve queries to refetch
+    const queries = this.findMutableWatchQueries(opts);
+
+    // Skip if nothing to refetech
+    if (!queries.length) return;
+
+    try {
+      await Promise.all(queries.map(query => {
+        if (this._debug) console.debug(this._logPrefix + `Refetching mutable watch query {${query.id}}`);
+        return query.queryRef.refetch(opts.variables);
+      }));
+    }
+    catch (err) {
+      console.error(this._logPrefix + "Error while refetching mutable watch queries", err);
+    }
+  }
+
   /* -- protected methods -- */
 
   protected computeMutableWatchQueryId<D, T, V = EmptyObject>(opts: MutableWatchQueryOptions<D, T, V>) {
@@ -188,24 +219,39 @@ export abstract class BaseGraphqlService<T = any, F = any> {
     return [queryName, opts.arrayFieldName, variablesKey].join('|');
   }
 
-  protected findMutableWatchQueries(opts?: {query?: any; queryName?: string; }) {
-    if (!opts.query && !opts.queryName) throw Error("Missing one of 'query' or 'queryName' in the given options");
-    // Search by queryName (if any) or by query
-    return opts.queryName ?
-      this._mutableWatchQueries.filter(q => q.id.startsWith(opts.queryName + '|')) :
-      this._mutableWatchQueries.filter(q => q.query === opts.query);
+  protected findMutableWatchQueries(opts: FindMutableWatchQueriesOptions): MutableWatchQueryDescription<any>[] {
+    // Search by queryName
+    if (opts.queryName) {
+      return this._mutableWatchQueries.filter(q => q.id.startsWith(opts.queryName + '|'));
+    }
+    if (opts.queryNames) {
+      return opts.queryNames.reduce((res, queryName) => {
+        return res.concat(this._mutableWatchQueries.filter(q => q.id.startsWith(queryName + '|')));
+      }, []);
+    }
+
+    // Search by query
+    if (opts.query) {
+      return this._mutableWatchQueries.filter(q => q.query === opts.query);
+    }
+    if (opts.queries) {
+      return opts.queries.reduce((res, query) => {
+        return res.concat(this._mutableWatchQueries.filter(q => q.query === query));
+      }, []);
+    }
+    throw Error("Invalid options: only one property must be set");
   }
 
-  protected registerNewMutableWatchQuery(mutableQuery: MutableWatchQueryInfo<any>) {
+  protected registerNewMutableWatchQuery(mutableQuery: MutableWatchQueryDescription<any>) {
 
-    if (this._debug) console.debug(this._debugPrefix + `Register new mutable watch query {${mutableQuery.id}}`);
+    if (this._debug) console.debug(this._logPrefix + `Register new mutable watch query {${mutableQuery.id}}`);
 
     // If exceed the max size of mutable queries: remove some
     if (this._mutableWatchQueriesMaxCount > 0 && this._mutableWatchQueries.length >= this._mutableWatchQueriesMaxCount) {
       const removedWatchQueries = this._mutableWatchQueries.splice(0, 1 + this._mutableWatchQueries.length - this._mutableWatchQueriesMaxCount);
 
       // Warn, as it shouldn't be happen often, when max is correctly set
-      console.warn(`[base-data-service] Removing mutable watching queries (exceed max of ${this._mutableWatchQueriesMaxCount}): `,
+      console.warn(this._logPrefix + `Removing older mutable watching queries (stack exceed max of ${this._mutableWatchQueriesMaxCount}): `,
         removedWatchQueries.map(q => q.id));
     }
 
@@ -214,7 +260,6 @@ export abstract class BaseGraphqlService<T = any, F = any> {
       mutableQuery.sortFn = mutableQuery.variables && mutableQuery.variables.sortBy
       && EntityUtils.sortComparator(mutableQuery.variables.sortBy, mutableQuery.variables.sortDirection || 'asc');
     }
-
 
     // Add the new mutable query to array
     this._mutableWatchQueries.push(mutableQuery);

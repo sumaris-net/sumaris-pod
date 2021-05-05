@@ -3,36 +3,7 @@
              [hasValidate]="(loadingSubject|async) && dirty"
              [canGoBack]="false">
 
-  <ion-buttons slot="end" *ngIf="synchronizationStatus as syncStatus">
-
-    <!-- Synchronization status -->
-    <ion-button *ngIf="hasOfflineMode"
-                [color]="syncStatus==='SYNC' ? 'secondary' : 'accent'"
-                fill="solid"
-                [matMenuTriggerFor]="syncStatusMenu">
-      <ion-icon slot="start" *ngIf="syncStatus === 'SYNC'" name="cloud-done"></ion-icon>
-      <ion-icon slot="start" *ngIf="syncStatus === 'DIRTY'" name="cloud-offline"></ion-icon>
-      <ion-label>
-        {{ 'NETWORK.SYNCHRONIZATION_STATUS.' + syncStatus | translate}}</ion-label>
-      <mat-icon slot="end">arrow_drop_down</mat-icon>
-    </ion-button>
-  </ion-buttons>
 </app-toolbar>
-
-<!-- Synchronisation status menu -->
-<mat-menu #syncStatusMenu="matMenu"
-          xPosition="after"
-          class="ion-text-center">
-
-  <!-- item for each synchro status-->
-  <button mat-menu-item *ngFor="let status of synchronizationStatusList"
-          (click)="setSynchronizationStatus(status)">
-    <mat-icon>{{synchronizationStatus === status ? 'checkmark' : ''}}</mat-icon>
-    <ion-label class="ion-text-wrap"
-               [color]="status === 'SYNC' && offline && 'medium'">{{'OBSERVED_LOCATION.TABLE.SYNCHRONIZATION_STATUS.' + status + '_HELP' | translate }}
-    </ion-label>
-  </button>
-</mat-menu>
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
@@ -93,6 +64,23 @@
     (onUpdateOfflineModeClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})">
   </app-install-upgrade-card>
 
+  <!-- Tab nav - synchro status-->
+  <nav mat-tab-nav-bar
+       *ngIf="hasOfflineMode && synchronizationStatus as syncStatus">
+    <a mat-tab-link
+       [active]="syncStatus==='DIRTY'"
+       (click)="setSynchronizationStatus('DIRTY')">
+      <mat-icon>cloud_off</mat-icon>&nbsp;
+      <mat-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</mat-label>
+    </a>
+    <a mat-tab-link [active]="syncStatus==='SYNC'"
+       [disabled]="offline"
+       (click)="setSynchronizationStatus('SYNC')">
+      <mat-icon>cloud_done</mat-icon>&nbsp;
+      <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
+    </a>
+  </nav>
+
   <mat-toolbar>
 
     <ng-container *ngIf="!selection.hasValue(); else hasSelection">
@@ -118,14 +106,23 @@
     <!-- if row selection -->
     <ng-template #hasSelection>
 
-      <!-- synchronize -->
-      <ion-button *ngIf="hasReadyToSyncSelection()"
+      <!-- terminate and synchronize -->
+      <ion-button *ngIf="hasDirtySelection; else synchronizeButton"
                   expand="block"
                   [color]="offline ? 'danger100' : 'danger'"
-                  (click)="synchronizeSelection()">
-        <ion-icon slot="start" name="cloud-upload"></ion-icon>
-        <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
+                  (click)="terminateAndSynchronizeSelection()">
+        <ion-text translate>QUALITY.BTN_TERMINATE_AND_SYNCHRONIZE</ion-text>
       </ion-button>
+
+      <!-- synchronize -->
+      <ng-template #synchronizeButton>
+        <ion-button *ngIf="hasReadyToSyncSelection"
+                    expand="block"
+                    [color]="offline ? 'danger100' : 'danger'"
+                    (click)="synchronizeSelection()">
+          <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
+        </ion-button>
+      </ng-template>
 
       <!-- delete -->
       <button mat-icon-button class="hidden-xs hidden-sm"
@@ -240,7 +237,8 @@
 
     <mat-action-row>
       <!-- Counter  -->
-      <ion-label [hidden]="(loadingSubject|async) || filterForm.dirty" [color]="totalRowCount === 0 && 'danger'"
+      <ion-label [hidden]="(loadingSubject|async) || filterForm.dirty"
+                 [color]="empty && 'danger'"
                  class="ion-padding">
         {{ (totalRowCount ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (totalRowCount |
               numberFormat)} }}
@@ -265,6 +263,7 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
+
   <!-- table -->
   <mat-table [dataSource]="dataSource" matSort
              [matSortActive]="defaultSortBy"
@@ -272,13 +271,13 @@
              matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
-      <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
+      <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
         <mat-checkbox (change)="$event ? masterToggle() : null"
                       [checked]="selection.hasValue() && isAllSelected()"
                       [indeterminate]="selection.hasValue() && !isAllSelected()">
         </mat-checkbox>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
+      <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
         <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
         </mat-checkbox>
       </mat-cell>
@@ -286,10 +285,10 @@
 
     <!-- Id Column -->
     <ng-container matColumnDef="id">
-      <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
+      <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
         <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id | mathAbs }}</mat-cell>
+      <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id | mathAbs }}</mat-cell>
     </ng-container>
 
     <!-- Quality Column -->
@@ -304,7 +303,7 @@
           <ion-icon color="tertiary" name="checkmark-circle" *ngIf="row.currentData.validationDate && !row.currentData.qualificationDate" slot="icon-only" [matTooltip]="'QUALITY.VALIDATED'|translate"></ion-icon>
           <ion-icon [color]="qualityFlagToColor(row.currentData.qualityFlagId)" name="flag" *ngIf="row.currentData.validationDate && row.currentData.qualificationDate" slot="icon-only" [matTooltip]="'QUALITY.QUALIFIED'|translate"></ion-icon>
         </ng-container>
-        <ng-template #synchronizationStatus >
+        <ng-template #synchronizationStatus>
           <ng-container [ngSwitch]="row.currentData.synchronizationStatus">
             <ion-icon *ngSwitchCase="'DIRTY'" color="accent" name="pencil" slot="icon-only" [matTooltip]="'QUALITY.MODIFIED_OFFLINE'|translate"></ion-icon>
             <ion-icon *ngSwitchCase="'READY_TO_SYNC'" color="accent" name="time" slot="icon-only" [matTooltip]="'QUALITY.READY_TO_SYNC'|translate"></ion-icon>
@@ -388,14 +387,15 @@
     </ion-text>
   </ion-item>
 
-  <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="!totalRowCount">
-    <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>
-    <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
-      </mat-paginator>
-    </ion-col>
-  </ion-row>
 </ion-content>
+
+<ion-footer>
+  <mat-paginator class="mat-paginator-footer"
+                 [length]="totalRowCount" [pageSize]="defaultPageSize"
+                 [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
+  </mat-paginator>
+</ion-footer>
+
 
 <!-- Add button -->
 <ion-fab vertical="bottom" horizontal="end"

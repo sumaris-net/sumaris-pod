@@ -32,13 +32,14 @@ export const AggregationFragments = {
     version
     sheetNames
     description
-    documentation
+    docUrl
     creationDate
     updateDate
     comments
     filter
     isSpatial
     statusId
+    processingFrequencyId
     stratum {
       id
       updateDate
@@ -66,6 +67,7 @@ const LoadTypeQuery = gql`
   query AggregationType($id: Int!) {
     aggregationType(id: $id) {
       ...AggregationTypeFragment
+      documentation
     }
   }
   ${AggregationFragments.aggregationType}
@@ -129,6 +131,7 @@ const SaveAggregation: any = gql`
   mutation SaveAggregation($type: AggregationTypeVOInput, $filter: ExtractionFilterVOInput){
     saveAggregation(type: $type, filter: $filter){
       ...AggregationTypeFragment
+      documentation
     }
   }
   ${AggregationFragments.aggregationType}
@@ -198,7 +201,7 @@ export class AggregationService extends BaseGraphqlService {
       query: LoadTypesQuery,
       arrayFieldName: 'aggregationTypes',
       insertFilterFn: AggregationTypeFilter.searchFilter(dataFilter),
-      variables: variables,
+      variables,
       error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     })

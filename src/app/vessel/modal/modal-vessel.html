@@ -23,7 +23,10 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <form-vessel #formVessel (onSubmit)="onSave($event)" (onCancel)="cancel()">
+  <form-vessel #formVessel
+               [canEditStatus]="canEditStatus"
+               (onSubmit)="onSave($event)"
+               (onCancel)="cancel()">
   </form-vessel>
 </ion-content>
 

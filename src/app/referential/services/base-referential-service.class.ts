@@ -5,7 +5,7 @@ import {SortDirection} from "@angular/material/sort";
 
 import {ReferentialFilter} from "./referential.service";
 import {Referential, ReferentialUtils} from "../../core/services/model/referential.model";
-import {LoadResult} from "../../shared/services/entity-service.class";
+import {EntityServiceLoadOptions, LoadResult} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {isNotNil} from "../../shared/functions";
@@ -44,6 +44,16 @@ export abstract class BaseReferentialService<E extends Referential<any>, F exten
     return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
   }
 
+  async load(id: number, opts?: EntityServiceLoadOptions & { query?: any; toEntity?: boolean }): Promise<E> {
+    const query = opts && opts.query || this.queries.load;
+    if (!query) {
+      if (!this.queries.loadAll) throw new Error('Not implemented');
+      const data = await this.loadAll(0, 1, null, null, { id } as F, opts);
+      return data && data[0];
+    }
+    return super.load(id, opts);
+  }
+
   async suggest(value: any, filter?: F): Promise<LoadResult<E>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;
@@ -56,26 +66,6 @@ export abstract class BaseReferentialService<E extends Referential<any>, F exten
   }
 
   /* -- protected functions -- */
-
-  /**
-   * Workaround to implements CRUD functions using existing queries, when all queries are not been set
-   *
-   * @protected
-   */
-  protected createQueriesAndMutationsFallback() {
-
-    super.createQueriesAndMutationsFallback();
-
-    if (this.queries) {
-      // load()
-      if (!this.queries.load && this.queries.loadAll) {
-        this.load = async (id, opts) => {
-          const data = await this.loadAll(0, 1, null, null, { id: id } as F, opts);
-          return data && data[0];
-        };
-      }
-    }
-  }
 
   protected equals(e1: E, e2: E): boolean {
     return e1 && e2 && ((isNotNil(e1.id) && e1.id === e2.id) || (e1.label && e1.label === e2.label));

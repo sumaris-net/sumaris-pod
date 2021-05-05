@@ -1,26 +1,37 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {VesselValidatorService} from "../../services/validator/vessel.validator";
-import {VesselFilter, VesselService} from "../../services/vessel-service";
-import {VesselModal} from "../modal/modal-vessel";
-import {Vessel} from "../../services/model/vessel.model";
-import {DefaultStatusList, ReferentialRef, referentialToString} from "../../../core/services/model/referential.model";
-import {ModalController, Platform} from "@ionic/angular";
+import {VesselValidatorService} from "../services/validator/vessel.validator";
+import {VesselFilter, VesselService} from "../services/vessel-service";
+import {VesselModal, VesselModalOptions} from "../modal/modal-vessel";
+import {Vessel} from "../services/model/vessel.model";
+import {DefaultStatusList, ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
+import {ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
-import {AccountService} from "../../../core/services/account.service";
+import {AccountService} from "../../core/services/account.service";
 import {Location} from '@angular/common';
 import {Observable} from 'rxjs';
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {debounceTime, filter, tap} from "rxjs/operators";
-import {SharedValidators} from "../../../shared/validator/validators";
-import {isNil, isNotNil, toBoolean} from "../../../shared/functions";
-import {statusToColor} from "../../../data/services/model/model.utils";
-import {LocationLevelIds} from "../../services/model/model.enum";
-import {ReferentialRefService} from "../../services/referential-ref.service";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
-import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
-import {environment} from "../../../../environments/environment";
+import {SharedValidators} from "../../shared/validator/validators";
+import {isNil, isNotNil, toBoolean} from "../../shared/functions";
+import {statusToColor} from "../../data/services/model/model.utils";
+import {LocationLevelIds} from "../../referential/services/model/model.enum";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {environment} from "../../../environments/environment";
+import {PlatformService} from "../../core/services/platform.service";
+import {AppRootTable} from "../../data/table/root-table.class";
+import {VESSEL_FEATURE_NAME} from "../services/config/vessel.config";
+import {StatusIds} from "../../core/services/model/model.enum";
+
+
+export const VesselsTableSettingsEnum = {
+  TABLE_ID: "vessels",
+  FEATURE_ID: VESSEL_FEATURE_NAME
+};
+
 
 @Component({
   selector: 'app-vessels-table',
@@ -31,7 +42,7 @@ import {environment} from "../../../../environments/environment";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnInit {
+export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements OnInit {
 
   isAdmin: boolean;
   filterForm: FormGroup;
@@ -67,7 +78,7 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
-    protected platform: Platform,
+    protected platform: PlatformService,
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
@@ -84,14 +95,21 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
         .concat([
           'status',
           'features.exteriorMarking',
-          'registration.registrationCode',
+          'registration.registrationCode'])
+        .concat(platform.mobile ? [] : [
           'features.startDate',
-          'features.endDate',
+          'features.endDate'
+        ])
+        .concat([
           'features.name',
           'vesselType',
-          'features.basePortLocation',
-          'comments'])
+          'features.basePortLocation'
+        ])
+        .concat(platform.mobile ? [] : [
+          'comments'
+        ])
         .concat(RESERVED_END_COLUMNS),
+      vesselService,
       new EntitiesTableDataSource<Vessel, VesselFilter>(Vessel, vesselService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
@@ -104,9 +122,11 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
     );
     this.i18nColumnPrefix = 'VESSEL.';
     this.filterForm = formBuilder.group({
-      'date': [null, SharedValidators.validDate],
-      'searchText': [null],
-      'statusId': [null]
+      program: [null, SharedValidators.entity],
+      date: [null, SharedValidators.validDate],
+      searchText: [null],
+      statusId: [null],
+      synchronizationStatus: [null]
     });
     this.autoLoad = false;
     this.inlineEdition = false;
@@ -117,6 +137,8 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
     this.statusList.forEach((status) => this.statusById[status.id] = status);
 
     this.debug = !environment.production;
+    this.settingsId = VesselsTableSettingsEnum.TABLE_ID; // Fixed value, to be able to reuse it in vessel modal
+    this.featureId = VesselsTableSettingsEnum.FEATURE_ID;
   }
 
   ngOnInit() {
@@ -151,7 +173,8 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
           tap(json => this.setFilter({
             date: json.date,
             searchText: json.searchText,
-            statusId: json.statusId
+            statusId: json.statusId,
+            synchronizationStatus: json.synchronizationStatus
           }, {emitEvent: this.mobile || isNil(this.filter)})),
 
           // Save filter in settings (after a debounce time)
@@ -160,14 +183,6 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
         )
         .subscribe());
 
-    this.registerSubscription(
-      this.onRefresh.subscribe(() => {
-        this.filterIsEmpty = VesselFilter.isEmpty(this.filter);
-        this.filterForm.markAsUntouched();
-        this.filterForm.markAsPristine();
-        this.markForCheck();
-      }));
-
     // Restore filter from settings, or load all vessels
     this.restoreFilterOrLoad();
   }
@@ -175,7 +190,16 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
   async openNewRowDetail(): Promise<boolean> {
     if (this.loading) return Promise.resolve(false);
 
-    const modal = await this.modalCtrl.create({ component: VesselModal });
+    const defaultStatus = this.synchronizationStatus !== 'SYNC' ? StatusIds.TEMPORARY : undefined;
+    const modal = await this.modalCtrl.create({
+      component: VesselModal,
+      componentProps: <VesselModalOptions>{
+        defaultStatus,
+        canEditStatus: isNil(defaultStatus)
+      },
+      backdropDismiss: false,
+      cssClass: 'modal-large'
+    });
 
     await modal.present();
 
@@ -187,26 +211,21 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
     return true;
   }
 
+  clearFilterStatus(event: UIEvent) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.filterForm.patchValue({statusId: null});
+  }
+
   referentialToString = referentialToString;
   statusToColor = statusToColor;
 
   /* -- protected methods -- */
 
-  protected async restoreFilterOrLoad() {
-    console.debug("[vessels] Restoring filter from settings...");
-    const json = this.settings.getPageSettings(this.settingsId, 'filter');
-
-    // No default filter: load all vessels
-    if (isNil(json) || typeof json !== 'object') {
-      // To avoid a delay (caused by debounceTime in a previous pipe), to refresh content manually
-      this.onRefresh.emit();
-      // But set a empty filter, to avoid automatic apply of next filter changes (caused by condition '|| isNil()' in a previous pipe)
-      this.filterForm.patchValue({}, {emitEvent: false});
-    }
-    // Restore the filter (will apply it)
-    else {
-      this.filterForm.patchValue(json);
-    }
+  protected isFilterEmpty(filter: VesselFilter): boolean {
+    return VesselFilter.isEmpty(filter);
   }
 
   protected markForCheck() {

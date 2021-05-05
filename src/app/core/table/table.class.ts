@@ -49,6 +49,7 @@ import {
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const SETTINGS_SORTED_COLUMN = "sortedColumn";
 export const DEFAULT_PAGE_SIZE = 20;
+export const DEFAULT_PAGE_SIZE_OPTIONS = [20, 50, 100, 200, 500];
 export const RESERVED_START_COLUMNS = ['select', 'id'];
 export const RESERVED_END_COLUMNS = ['actions'];
 export const DEFAULT_REQUIRED_COLUMNS = ['id'];
@@ -135,7 +136,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   @Input() defaultSortBy: string;
   @Input() defaultSortDirection: SortDirection;
-  @Input() defaultPageSize = 20;
+  @Input() defaultPageSize = DEFAULT_PAGE_SIZE;
+  @Input() defaultPageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS;
 
   @Input() set dataSource(value: EntitiesTableDataSource<T, F>) {
     this.setDatasource(value);
@@ -640,7 +642,6 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   async save(): Promise<boolean> {
-
     if (this.readOnly) {
       throw {code: ErrorCodes.TABLE_READ_ONLY, message: 'ERROR.TABLE_READ_ONLY'};
     }
@@ -792,11 +793,12 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   async openSelectColumnsModal(event?: UIEvent): Promise<any> {
 
+    // Copy current columns (deep copy)
     const columns = this.getCurrentColumns();
 
     const modal = await this.modalCtrl.create({
       component: TableSelectColumnsComponent,
-      componentProps: {columns: columns}
+      componentProps: {columns}
     });
 
     // Open the modal
@@ -807,7 +809,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     if (!data) return; // CANCELLED
 
     // Apply columns
-    const userColumns = columns && columns.filter(c => c.canHide === false || c.visible).map(c => c.name) || [];
+    const userColumns = (data || []).filter(c => c.canHide === false || c.visible).map(c => c.name) || [];
     this.displayedColumns = RESERVED_START_COLUMNS.concat(userColumns).concat(RESERVED_END_COLUMNS);
     this.markForCheck();
 
@@ -929,6 +931,23 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     });
   }
 
+  /*
+  getCurrentColumns(): { visible: boolean; name: string; label: string }[] {
+    const hiddenColumns = this.columns.slice(RESERVED_START_COLUMNS.length)
+      .filter(name => this.displayedColumns.indexOf(name) === -1);
+    return this.displayedColumns
+      .concat(hiddenColumns)
+      .filter(name => !RESERVED_START_COLUMNS.includes(name) && !RESERVED_END_COLUMNS.includes(name)
+        && !this.excludesColumns.includes(name))
+      .map(name => {
+        return {
+          name,
+          label: this.getI18nColumnName(name),
+          visible: this.displayedColumns.indexOf(name) !== -1
+        };
+      });
+  }
+  */
   protected getCurrentColumns(): ColumnItem[] {
     const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
     const hiddenColumns = this.columns.slice(fixedColumns.length)

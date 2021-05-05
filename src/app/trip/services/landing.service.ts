@@ -19,7 +19,7 @@ import {
   isNotEmptyArray,
   isNotNil,
 } from "../../shared/functions";
-import {BaseRootDataService} from "./root-data-service.class";
+import {BaseRootDataService} from "../../data/services/root-data-service.class";
 import {Sample} from "./model/sample.model";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {
@@ -56,6 +56,7 @@ export class LandingFilter {
   programLabel?: string;
   vesselId?: number;
   locationId?: number;
+  locationIds?: number[];
   startDate?: Date | Moment;
   endDate?: Date | Moment;
   recorderDepartmentId?: number;
@@ -71,11 +72,13 @@ export class LandingFilter {
   static isEmpty(landingFilter: LandingFilter|any): boolean {
     return !landingFilter || (
       isNil(landingFilter.observedLocationId) && isNil(landingFilter.tripId)
-      && isNilOrBlank(landingFilter.programLabel) && isNilOrBlank(landingFilter.vesselId) && isNilOrBlank(landingFilter.locationId)
+      && isNilOrBlank(landingFilter.programLabel) && isNilOrBlank(landingFilter.vesselId)
+      && isNilOrBlank(landingFilter.locationId) && isEmptyArray(landingFilter.locationIds)
       && !landingFilter.startDate && !landingFilter.endDate
       && isNil(landingFilter.recorderDepartmentId)
       && isNil(landingFilter.recorderPersonId)
       && isEmptyArray(landingFilter.excludeVesselIds)
+
     );
   }
 
@@ -104,9 +107,12 @@ export class LandingFilter {
       filterFns.push((entity) => entity.vesselSnapshot && !f.excludeVesselIds.includes(entity.vesselSnapshot.id));
     }
 
-      // Location
+    // Location
     if (isNotNil(f.locationId)) {
       filterFns.push((entity) => entity.location && entity.location.id === f.locationId);
+    }
+    if (isNotEmptyArray(f.locationIds)) {
+      filterFns.push((entity) => entity.location && f.locationIds.includes(entity.location.id));
     }
 
     // Start/end period
@@ -198,7 +204,7 @@ export const LandingFragments = {
     tripId
     rankOrderOnVessel
     vesselSnapshot {
-      ...LightVesselSnapshotFragment
+      ...VesselSnapshotFragment
     }
     recorderDepartment {
       ...LightDepartmentFragment
@@ -214,7 +220,7 @@ export const LandingFragments = {
   ${Fragments.location}
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
-  ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${VesselSnapshotFragments.vesselSnapshot}
   ${ReferentialFragments.referential}
   `,
   landing: gql`fragment LandingFragment on LandingVO {
@@ -582,8 +588,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     // If parent is a local entity: force to save locally
     // If is a local entity: force a local save
-    const offline = (isNew ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0)
-      || entity.observedLocationId < 0;
+    const offline = entity.observedLocationId < 0 || DataRootEntityUtils.isLocal(entity);
     if (offline) {
       return await this.saveLocally(entity, opts);
     }
@@ -704,8 +709,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     const variables = {
       offset: offset || 0,
       size: size || 20,
-      sortBy: (sortBy !== 'id' && sortBy) || 'dateTime',
-      sortDirection: sortDirection || 'asc',
+      sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'dateTime'),
+      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
       filter: LandingFilter.searchFilter<Landing>(dataFilter)
     };
@@ -721,6 +726,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
           ? (data || []).map(Landing.fromObject)
           : (data || []) as Landing[];
         total = total || entities.length;
+
+
 
         // Compute rankOrder, by tripId or observedLocationId
         if (!opts || opts.computeRankOrder !== false) {
@@ -877,11 +884,11 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     // Make sure to fill id, with local ids
     await this.fillOfflineDefaultProperties(entity);
 
-    const jsonLocal = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
-    if (this._debug) console.debug('[landing-service] [offline] Saving landing locally...', jsonLocal);
+    const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+    if (this._debug) console.debug('[landing-service] [offline] Saving landing locally...', json);
 
     // Save response locally
-    await this.entities.save(jsonLocal);
+    await this.entities.save(json);
 
     return entity;
   }
@@ -892,7 +899,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     if (opts.minify && !opts.keepEntityName && !opts.keepTypename) {
       // Clean vessel features object, before saving
-      copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
+      //copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
 
       // Comment because need to keep recorder person
       copy.recorderPerson = entity.recorderPerson && <Person>{

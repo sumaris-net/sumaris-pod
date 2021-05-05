@@ -1,4 +1,4 @@
-import {Inject, Injectable} from "@angular/core";
+import {Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
@@ -22,6 +22,7 @@ export const ExtractionFragments = {
     label
     name
     description
+    docUrl
     comments
     version
     sheetNames
@@ -227,9 +228,9 @@ export class ExtractionService extends BaseGraphqlService {
     };
 
     target.criteria = (source.criteria || [])
-      .filter(criterion => isNotNil(criterion.name) && isNotNilOrBlank(criterion.value))
+      .filter(criterion => isNotNil(criterion.name))
       .map(criterion => {
-        const isMulti = (typeof criterion.value === 'string' && criterion.value.indexOf(',') !== -1);
+        const isMulti = typeof criterion.value === 'string' && criterion.value.indexOf(',') !== -1;
         switch (criterion.operator) {
           case '=':
             if (isMulti) {
@@ -264,15 +265,11 @@ export class ExtractionService extends BaseGraphqlService {
             break;
         }
 
-        return {
-          name: criterion.name,
-          operator: criterion.operator,
-          value: criterion.value,
-          values: criterion.values,
-          sheetName: criterion.sheetName
-        } as ExtractionFilterCriterion;
+        delete criterion.endValue;
+
+        return criterion as ExtractionFilterCriterion;
       })
-      .filter(criterion => isNotNil(criterion.value) || (criterion.values && criterion.values.length));
+      .filter(ExtractionFilterCriterion.isNotEmpty);
 
     return target;
   }

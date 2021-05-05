@@ -26,7 +26,7 @@ export class PersonValidatorService implements ValidatorService {
     // This is need to be able to store person that are not using SUMARiS tools (e.g. onboard observers)
     const formConfig = this.accountValidatorService.getFormGroupConfig(data && Account.fromObject(data.asObject()));
     formConfig.pubkey = [data && data.pubkey || null, SharedValidators.pubkey];
-    formConfig.avatar = [''];
+    formConfig.avatar = [data && data.avatar || null];
 
     return this.formBuilder.group(formConfig);
   }
