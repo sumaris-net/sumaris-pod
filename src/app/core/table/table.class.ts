@@ -931,31 +931,13 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     });
   }
 
-  /*
-  getCurrentColumns(): { visible: boolean; name: string; label: string }[] {
+  getCurrentColumns(): ColumnItem[] {
     const hiddenColumns = this.columns.slice(RESERVED_START_COLUMNS.length)
       .filter(name => this.displayedColumns.indexOf(name) === -1);
     return this.displayedColumns
       .concat(hiddenColumns)
       .filter(name => !RESERVED_START_COLUMNS.includes(name) && !RESERVED_END_COLUMNS.includes(name)
         && !this.excludesColumns.includes(name))
-      .map(name => {
-        return {
-          name,
-          label: this.getI18nColumnName(name),
-          visible: this.displayedColumns.indexOf(name) !== -1
-        };
-      });
-  }
-  */
-  protected getCurrentColumns(): ColumnItem[] {
-    const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
-    const hiddenColumns = this.columns.slice(fixedColumns.length)
-      .filter(name => this.displayedColumns.indexOf(name) === -1);
-    return this.displayedColumns.slice(fixedColumns.length)
-      .concat(hiddenColumns)
-      .filter(name => name !== "actions")
-      .filter(name => !this.excludesColumns.includes(name))
       .map(name => {
         return {
           name,
