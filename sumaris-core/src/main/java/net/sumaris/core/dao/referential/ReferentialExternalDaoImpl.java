@@ -22,13 +22,11 @@ package net.sumaris.core.dao.referential;
  * #L%
  */
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.CacheConfiguration;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -63,6 +61,9 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
 
     @Autowired
     private SumarisConfiguration config;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private boolean enableAnalyticReferences = false;
     private List<ReferentialVO> analyticReferences;
@@ -150,23 +151,21 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
         List<ReferentialVO> results = new ArrayList<>();
 
         try {
-            JsonElement json = new JsonParser().parse(content);
-            JsonArray sources = json.getAsJsonObject().get("d").getAsJsonObject().get("results").getAsJsonArray();
-            sources.forEach(s -> {
-                JsonObject source = s.getAsJsonObject();
+            JsonNode node = objectMapper.readTree(content);
+            node.get("d").get("results").forEach(source -> {
                 ReferentialVO target = new ReferentialVO();
-                target.setId(source.get("Code").getAsString().hashCode());
-                target.setLabel(source.get("Code").getAsString());
-                target.setName(source.get("Description").getAsString());
-                target.setLevelId(source.get("Niveau").getAsInt());
-                int statusId = "O".equals(source.get("Imputable").getAsString())
+                target.setId(source.get("Code").asText().hashCode());
+                target.setLabel(source.get("Code").asText());
+                target.setName(source.get("Description").asText());
+                target.setLevelId(source.get("Niveau").asInt());
+                int statusId = "O".equals(source.get("Imputable").asText())
                         ? StatusEnum.ENABLE.getId() : StatusEnum.DISABLE.getId();
                 target.setStatusId(statusId);
                 target.setEntityName("AnalyticReference");
                 results.add(target);
             });
         } catch (Exception e) {
-            throw new SumarisTechnicalException(String.format("Unable to parse analytic references"), e);
+            throw new SumarisTechnicalException("Unable to parse analytic references: " + e.getMessage(), e);
         }
 
         return results;
