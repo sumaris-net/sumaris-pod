@@ -42,6 +42,8 @@ import {PersistentStorage} from "apollo3-cache-persist/lib/types";
 import {MutationBaseOptions} from "@apollo/client/core/watchQueryOptions";
 import {Cache} from "@apollo/client/cache/core/types/Cache";
 import {ENVIRONMENT} from "../../../environments/environment.class";
+import {CryptoService} from "../services/crypto.service";
+import {ConnectionParamsOptions} from "subscriptions-transport-ws/dist/client";
 
 export interface WatchQueryOptions<V> {
   query: any;
@@ -81,7 +83,10 @@ export class GraphqlService {
 
   private httpParams: Options;
   private wsParams: WebSocketLink.Configuration;
-  private wsConnectionParams: { authToken?: string } = {};
+  private connectionParams: ConnectionParamsOptions & {
+    authToken?: string;
+    authBasic?: string;
+  } = {};
   private readonly _defaultFetchPolicy: WatchQueryFetchPolicy;
   private onNetworkError = new Subject();
 
@@ -106,6 +111,7 @@ export class GraphqlService {
     private httpLink: HttpLink,
     private network: NetworkService,
     private storage: Storage,
+    private cryptoService: CryptoService,
     @Inject(ENVIRONMENT) protected environment,
     @Optional() @Inject(APP_GRAPHQL_TYPE_POLICIES) private typePolicies: TypePolicies
   ) {
@@ -171,13 +177,25 @@ export class GraphqlService {
     return this._startPromise;
   }
 
-  setAuthToken(authToken: string) {
-    if (authToken) {
-      console.debug("[graphql] Apply authentication token to headers");
-      this.wsConnectionParams.authToken = authToken;
+  setAuthToken(token: string) {
+    if (token) {
+      console.debug("[graphql] Apply token authentication to headers");
+      this.connectionParams.authToken = token;
     } else {
-      console.debug("[graphql] Remove authentication token from headers");
-      delete this.wsConnectionParams.authToken;
+      console.debug("[graphql] Remove token authentication from headers");
+      delete this.connectionParams.authToken;
+      // Clear cache
+      this.clearCache();
+    }
+  }
+
+  setAuthBasic(basic: string) {
+    if (basic) {
+      console.debug("[graphql] Apply basic authentication to headers");
+      this.connectionParams.authBasic = basic;
+    } else {
+      console.debug("[graphql] Remove basic authentication from headers");
+      delete this.connectionParams.authBasic;
       // Clear cache
       this.clearCache();
     }
@@ -198,7 +216,7 @@ export class GraphqlService {
 
   async query<T, V = EmptyObject>(opts: {
     query: any,
-    variables: V,
+    variables?: V,
     error?: ServiceError,
     fetchPolicy?: FetchPolicy
   }): Promise<T> {
@@ -660,7 +678,7 @@ export class GraphqlService {
       options: {
         lazy: true,
         reconnect: true,
-        connectionParams: this.wsConnectionParams
+        connectionParams: this.connectionParams
       },
       webSocketImpl: AppWebSocket,
       uri: wsUri
@@ -680,11 +698,19 @@ export class GraphqlService {
       const retryLink = new RetryLink();
       const authLink = new ApolloLink((operation, forward) => {
 
+        const authorization = [];
+        if (this.connectionParams.authToken) {
+          authorization.push(`token ${this.connectionParams.authToken}`);
+        }
+        if (this.connectionParams.authBasic) {
+          authorization.push(`Basic ${this.connectionParams.authBasic}`);
+        }
         const headers = new HttpHeaders()
-          .append('Authorization', this.wsConnectionParams.authToken ? `token ${this.wsConnectionParams.authToken}` : '')
+          .append('Authorization', authorization);
           //.append('X-App-Name', environment.name)
           //.append('X-App-Version', environment.version)
         ;
+
 
         // Use the setContext method to set the HTTP headers.
         operation.setContext({

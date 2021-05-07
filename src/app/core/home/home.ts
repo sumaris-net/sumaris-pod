@@ -200,7 +200,7 @@ export class HomePage implements OnDestroy {
   }
 
   protected onConfigLoaded(config: Configuration) {
-    console.debug("[home] Configuration loaded:", config);
+    console.debug("[home] Applying configuration", config);
     this._config = config;
 
     this.appName = config.label || this.environment.defaultAppName || 'SUMARiS';

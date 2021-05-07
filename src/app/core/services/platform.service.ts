@@ -22,6 +22,8 @@ import {AccountService} from "./account.service";
 import {timer} from "rxjs";
 import {filter, first, tap} from "rxjs/operators";
 import {ENVIRONMENT} from "../../../environments/environment.class";
+import {ConfigService} from "./config.service";
+import {CORE_CONFIG_OPTIONS} from "./config/core.config";
 
 const moment = momentImported;
 
@@ -55,6 +57,7 @@ export class PlatformService {
     private settings: LocalSettingsService,
     private networkService: NetworkService,
     private accountService: AccountService,
+    private configService: ConfigService,
     private cache: CacheService,
     private storage: Storage,
     private audioProvider: AudioProvider,
@@ -128,6 +131,11 @@ export class PlatformService {
 
       // Update cache configuration when network changed
       this.networkService.onNetworkStatusChanges.subscribe((type) => this.configureCache(type !== 'none'));
+
+      // Update authentication type
+      this.configService.config.subscribe(config => {
+        this.accountService.tokenType = config.getProperty(CORE_CONFIG_OPTIONS.AUTH_TOKEN_TYPE);
+      });
 
       // Wait 1 more seconds, before hiding the splash screen
       setTimeout(() => {
@@ -233,6 +241,7 @@ export class PlatformService {
       }
     });
 
+    // Use account's locale, when account inheritance enabled in settings
     this.accountService.onLogin.subscribe(account => {
       if (this.settings.settings.accountInheritance) {
         const accountLocale = account.settings && account.settings.locale;
@@ -252,7 +261,6 @@ export class PlatformService {
     this.cache.setDefaultTTL(cacheTTL);
     this.cache.setOfflineInvalidate(false); // Do not invalidate cache when offline
   }
-
 
   protected async storageReady(): Promise<LocalForage> {
 

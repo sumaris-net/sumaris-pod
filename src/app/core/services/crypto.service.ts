@@ -132,4 +132,9 @@ export class CryptoService {
   sha512(message: string): string {
     return sha512().update(message).digest('hex');
   }
+
+  encodeBase64(message: string): string {
+    const m = nacl.util.decodeUTF8(message);
+    return nacl.util.encodeBase64(m);
+  }
 }
