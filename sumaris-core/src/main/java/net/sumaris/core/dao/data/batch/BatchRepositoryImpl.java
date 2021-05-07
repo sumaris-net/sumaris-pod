@@ -96,25 +96,24 @@ public class BatchRepositoryImpl
         if (fetchOptions.isWithChildrenEntities()) {
             // Return all batches as tree form
             return toTree(
-                    findAllVO(BindableSpecification
-                                    .where(hasOperationId(operationId))
-                                    .and(addJoinFetch(fetchOptions)),
+                    findAllVO(
+                        BindableSpecification.where(hasOperationId(operationId)),
                         BatchFetchOptions.builder()
                             .withMeasurementValues(fetchOptions.isWithMeasurementValues())
                             .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
-                            .withChildrenEntities(false)
+                            .withChildrenEntities(false) // Children not need (function toTree() will linked parent/children)
                             .build()
                     ));
         }
 
         // Return the root batch only
         try {
-            return findOne(BindableSpecification
-                    .where(hasNoParent())
+            return findOne(hasNoParent()
                     .and(hasOperationId(operationId))
-                    .and(addJoinFetch(fetchOptions)))
-                    .map(source -> toVO(source, fetchOptions))
-                    .orElse(null);
+                    .and(addJoinFetch(fetchOptions, false))
+                )
+                .map(source -> toVO(source, fetchOptions))
+                .orElse(null);
         } catch (NoResultException e){
             return null;
         }
@@ -125,25 +124,26 @@ public class BatchRepositoryImpl
         if (fetchOptions.isWithChildrenEntities()) {
             // Return all batches as tree form
             return toTree(
-                findAllVO(BindableSpecification
-                        .where(hasSaleId(saleId))
-                        .and(addJoinFetch(fetchOptions)),
+                findAllVO(
+                    BindableSpecification.where(hasSaleId(saleId)),
                     BatchFetchOptions.builder()
                         .withMeasurementValues(fetchOptions.isWithMeasurementValues())
                         .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
-                        .withChildrenEntities(false)
+                        .withChildrenEntities(false) // Children not need (function toTree() will linked parent/children)
                         .build()
                 ));
         }
 
         // Return the root batch only
         try {
-            return findOne(BindableSpecification
-                .where(hasNoParent())
-                .and(hasSaleId(saleId))
-                .and(addJoinFetch(fetchOptions)))
-                .map(source -> toVO(source, fetchOptions))
-                .orElse(null);
+            return findOne(
+                BindableSpecification
+                    .where(hasNoParent())
+                    .and(hasSaleId(saleId))
+                    .and(addJoinFetch(fetchOptions, false/*find one*/))
+            )
+            .map(source -> toVO(source, fetchOptions))
+            .orElse(null);
         } catch (NoResultException e){
             return null;
         }
@@ -278,7 +278,8 @@ public class BatchRepositoryImpl
         // default specification
         return super.toSpecification(filter, fetchOptions)
                 .and(hasOperationId(filter.getOperationId()))
-                .and(addJoinFetch(fetchOptions))
+                .and(hasSaleId(filter.getSaleId()))
+                .and(addJoinFetch(fetchOptions, true))
                 ;
     }
 

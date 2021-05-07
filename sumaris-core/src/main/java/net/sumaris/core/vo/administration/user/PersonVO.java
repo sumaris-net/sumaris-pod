@@ -46,6 +46,8 @@ public class PersonVO implements IUpdateDateEntityBean<Integer, Date>, IValueObj
     private String email;
 
     private String pubkey;
+    private String username;
+    private String usernameExtranet;
 
     private Integer statusId;
 

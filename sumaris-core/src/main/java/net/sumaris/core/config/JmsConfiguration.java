@@ -20,24 +20,25 @@
  * #L%
  */
 
-package net.sumaris.server.config;
+package net.sumaris.core.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.StringUtils;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.ActiveMQPrefetchPolicy;
-import org.apache.activemq.store.kahadb.KahaDBPersistenceAdapter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.apache.activemq.broker.BrokerService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.config.JmsListenerContainerFactory;
+import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -48,44 +49,56 @@ import javax.jms.ConnectionFactory;
 @Configuration(proxyBeanMethods = false)
 @Slf4j
 @EnableJms
+@ConditionalOnProperty(
+    name = "spring.jms.enabled",
+    havingValue = "true"
+)
 public class JmsConfiguration {
 
+    public static final String CONTAINER_FACTORY_NAME = "jmsListenerContainerFactory";
+
+    @Value("${spring.activemq.broker-url:vm://localhost}")
+    private String brokerUrl;
+
     @Bean
-    @ConditionalOnMissingBean({JmsTemplate.class})
-    public JmsTemplate jmsTemplate(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
-        JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
+    public JmsTemplate jmsTemplate(CachingConnectionFactory cachingConnectionFactory, MessageConverter messageConverter) {
+        JmsTemplate jmsTemplate = new JmsTemplate(cachingConnectionFactory);
         jmsTemplate.setMessageConverter(messageConverter);
         return jmsTemplate;
     }
 
     @Bean
     public JmsListenerContainerFactory<?> jmsListenerContainerFactory(
-            ConnectionFactory connectionFactory,
-            TaskExecutor taskExecutor) {
+        CachingConnectionFactory cachingConnectionFactory,
+        MessageConverter messageConverter,
+        TaskExecutor taskExecutor
+        ) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory(cachingConnectionFactory);
+        factory.setMessageConverter(messageConverter);
         factory.setTaskExecutor(taskExecutor);
         factory.setErrorHandler(t -> log.error("An error has occurred in the JMS transaction: " + t.getMessage(), t));
-        factory.setConnectionFactory(connectionFactory);
         return factory;
     }
 
     @Bean
-    public MessageConverter jacksonJmsMessageConverter(ObjectMapper objectMapper) {
+    public MessageConverter messageConverter(ObjectMapper jacksonObjectMapper) {
         // Serialize message content to json using TextMessage
         MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
-        converter.setObjectMapper(objectMapper);
+        converter.setObjectMapper(jacksonObjectMapper);
         converter.setTargetType(MessageType.TEXT);
         converter.setTypeIdPropertyName("_type");
+        converter.setEncodingPropertyName("_encoding");
         return converter;
     }
 
     @Bean
-    @ConditionalOnProperty(
-            prefix = "spring.activemq",
-            name = {"broker-url"}
-    )
-    @ConditionalOnClass({KahaDBPersistenceAdapter.class})
-    public ConnectionFactory connectionFactory(SumarisServerConfiguration config) {
+    public CachingConnectionFactory cachingConnectionFactory(ConnectionFactory connectionFactory) {
+        return new CachingConnectionFactory(connectionFactory);
+    }
+
+    @Bean
+    public ConnectionFactory connectionFactory(SumarisConfiguration config) {
         String url = config.getActiveMQBrokerURL();
         int prefetchLimit = config.getActiveMQPrefetchLimit();
 
@@ -111,7 +124,30 @@ public class JmsConfiguration {
             log.info(String.format("Starting JMS broker... {type: 'ActiveMQ', url: '%s'}...", url));
         }
 
+        connectionFactory.setTrustAllPackages(true);
 
         return connectionFactory;
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+        prefix = "spring.activemq.",
+        name = "broker-url",
+        havingValue = "vm://localhost",
+        matchIfMissing = true
+    )
+    public BrokerService brokerService() throws Exception {
+        final BrokerService broker = new BrokerService();
+        broker.addConnector("tcp://localhost:61616");
+        broker.addConnector("vm://localhost");
+        broker.setPersistent(true);
+        return broker;
+    }
+
+    @Bean
+    @Primary
+    @ConditionalOnMissingBean
+    ObjectMapper jacksonObjectMapper() {
+        return new ObjectMapper();
     }
 }

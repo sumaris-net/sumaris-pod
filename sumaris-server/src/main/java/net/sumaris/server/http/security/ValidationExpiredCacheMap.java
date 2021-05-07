@@ -26,6 +26,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.core.userdetails.UserCache;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.concurrent.TimeUnit;
 
@@ -34,13 +36,19 @@ import java.util.concurrent.TimeUnit;
  *
  * Created by lpecquot on 03/12/18.
  */
-public class ValidationExpiredCacheMap<T> {
+public class ValidationExpiredCacheMap<T extends UserDetails> implements UserCache {
+
+    public static final int MIN_LIFE_TIME_SECONDS = 60; // 1min at least
 
     private final Cache<String, T> cache;
 
+    public ValidationExpiredCacheMap() {
+        this(MIN_LIFE_TIME_SECONDS);
+    }
+
     public ValidationExpiredCacheMap(final int lifeTimeInSeconds) {
         this.cache = CacheBuilder.newBuilder()
-                .expireAfterWrite(Math.max(lifeTimeInSeconds, 60 /* min value */), TimeUnit.SECONDS)
+                .expireAfterWrite(Math.max(lifeTimeInSeconds, MIN_LIFE_TIME_SECONDS), TimeUnit.SECONDS)
                 .build();
     }
 
@@ -63,5 +71,20 @@ public class ValidationExpiredCacheMap<T> {
 
     public void clean() {
         this.cache.invalidateAll();
+    }
+
+    @Override
+    public UserDetails getUserFromCache(String username) {
+        return (UserDetails)cache.getIfPresent(username);
+    }
+
+    @Override
+    public void putUserInCache(UserDetails userDetails) {
+        cache.put(userDetails.getUsername(), (T)userDetails);
+    }
+
+    @Override
+    public void removeUserFromCache(String username) {
+        cache.invalidate(username);
     }
 }

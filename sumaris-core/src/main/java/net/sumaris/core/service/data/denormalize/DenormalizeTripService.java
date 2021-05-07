@@ -26,6 +26,7 @@ package net.sumaris.core.service.data.denormalize;
 import lombok.NonNull;
 import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -37,10 +38,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public interface DenormalizeTripService {
 
-	@Transactional(timeout = -1)
+	@Transactional(timeout = -1, propagation = Propagation.NOT_SUPPORTED)
 	DenormalizeTripResultVO denormalizeByFilter(@NonNull TripFilterVO filter);
 
-	@Transactional(timeout = -1)
+	@Transactional(timeout = -1, propagation = Propagation.NOT_SUPPORTED)
 	DenormalizeTripResultVO denormalizeByFilter(TripFilterVO filter, IProgressionModel progression);
 
 	@Transactional(timeout = -1)

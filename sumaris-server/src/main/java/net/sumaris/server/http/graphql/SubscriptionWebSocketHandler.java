@@ -33,8 +33,7 @@ import graphql.schema.GraphQLSchema;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.http.security.AuthService;
-import net.sumaris.server.http.security.AuthUser;
-import net.sumaris.server.util.security.AuthDataVO;
+import net.sumaris.server.util.security.AuthTokenVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +46,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -56,7 +56,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -131,20 +130,18 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
 
     protected void handleInitConnection(WebSocketSession session, Map<String, Object> request) {
         Map<String, Object> payload = (Map<String, Object>) request.get("payload");
-        String authToken = MapUtils.getString(payload, "authToken");
+        String token = MapUtils.getString(payload, "authToken");
 
         // Has token: try to authenticate
-        if (StringUtils.isNotBlank(authToken)) {
+        if (StringUtils.isNotBlank(token)) {
 
             // try to authenticate
             try {
-                Optional<AuthUser> authUser = authService.authenticate(authToken);
+                UserDetails authUser = authService.authenticateByToken(token);
                 // If success
-                if (authUser.isPresent()) {
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(authUser.get().getUsername(), authToken, authUser.get().getAuthorities());
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                    return; // OK
-                }
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(authUser.getUsername(), token, authUser.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                return; // OK
             }
             catch(AuthenticationException e) {
                 log.warn("Unable to authenticate websocket session, using token: " + e.getMessage());
@@ -153,15 +150,11 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
         }
 
         // Not auth: send a new challenge
-        try {
-            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(
-                    ImmutableMap.of(
-                            "type", "error",
-                            "payload", getUnauthorizedErrorWithChallenge()
-                    ))));
-        } catch (IOException e) {
-            throw new SumarisTechnicalException(e);
-        }
+        sendResponse(session,
+            ImmutableMap.of(
+                "type", "error",
+                "payload", getUnauthorizedErrorWithChallenge()
+            ));
     }
 
 
@@ -256,7 +249,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
     }
 
     protected Map<String, Object> getUnauthorizedErrorWithChallenge() {
-        AuthDataVO challenge = authService.createNewChallenge();
+        AuthTokenVO challenge = authService.createNewChallenge();
         return ImmutableMap.of("message", getUnauthorizedErrorString(),
                                "challenge", challenge);
     }

@@ -29,31 +29,27 @@ import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.cache.Cache;
-import javax.cache.CacheManager;
-
-import net.sumaris.core.dao.technical.cache.Caches;
 import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.technical.ConfigurationVO;
 import net.sumaris.core.vo.technical.SoftwareVO;
+import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
-import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
+import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
+import net.sumaris.server.http.security.AuthTokenTypeEnum;
 import net.sumaris.server.service.administration.ImageService;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.ehcache.core.spi.service.StatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -67,13 +63,13 @@ public class ConfigurationGraphQLService {
     public static final String JSON_START_SUFFIX = "{";
 
     @Autowired
-    private SoftwareService service;
+    private SumarisServerConfiguration configuration;
+
+    @Autowired
+    private SoftwareService softwareService;
 
     @Autowired
     private ConfigurationService configurationService;
-
-    @Autowired
-    private AdministrationGraphQLService administrationGraphQLService;
 
     @Autowired
     private DepartmentService departmentService;
@@ -82,83 +78,35 @@ public class ConfigurationGraphQLService {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private CacheManager cacheManager;
-
-    @Autowired
     private ImageService imageService;
 
-    @GraphQLQuery(name = "configuration", description = "A software configuration")
+    @Autowired
+    private AuthService authService;
+
+    @GraphQLQuery(name = "configuration", description = "Load pod configuration")
     public ConfigurationVO getConfiguration(
-        @GraphQLArgument(name = "id") Integer id,
-        @GraphQLArgument(name = "label") String label,
         @GraphQLEnvironment Set<String> fields
     ) {
-        SoftwareVO software = getSoftware(id, label);
-        return toConfiguration(software, fields);
+        SoftwareVO software = configurationService.getCurrentSoftware();
+
+        // Transform to configuration (fill images, etc.)
+        ConfigurationVO configuration = toConfiguration(software, fields);
+
+        if (authService.isAdmin()) return configuration;
+
+        // Sanitize, if not admin
+        return sanitizeConfiguration(configuration);
     }
 
-    @GraphQLMutation(name = "saveConfiguration", description = "Save a configuration")
+    @GraphQLMutation(name = "saveConfiguration", description = "Save pod configuration")
     @IsAdmin
     public ConfigurationVO saveConfiguration(
         @GraphQLArgument(name = "config") ConfigurationVO configuration,
         @GraphQLEnvironment Set<String> fields) {
 
-        SoftwareVO software = service.save(configuration);
-
-        // Applying default
+        SoftwareVO software = softwareService.save(configuration);
 
         return toConfiguration(software, fields);
-    }
-
-    @GraphQLQuery(name = "software", description = "A software config")
-    @IsAdmin
-    public SoftwareVO getSoftware(
-        @GraphQLArgument(name = "id") Integer id,
-        @GraphQLArgument(name = "label") String label
-    ) {
-        if (id != null) {
-            return service.get(id);
-        }
-        if (label == null) {
-            return configurationService.getCurrentSoftware();
-        }
-        return service.getByLabel(label);
-    }
-
-    @GraphQLMutation(name = "saveSoftware", description = "Save a software configuration")
-    @IsAdmin
-    public SoftwareVO saveSoftware(@GraphQLArgument(name = "software") SoftwareVO software) {
-        return service.save(software);
-    }
-
-    @GraphQLQuery(name = "cacheStatistics", description = "Get cache statistics")
-    @IsAdmin
-    public Map<String, Map<String, Long>> getCacheStats() {
-
-        return Caches.getStatistics(cacheManager);
-    }
-
-    @GraphQLQuery(name = "clearCache", description = "Clear a single cache or all caches")
-    @IsAdmin
-    public boolean clearCache(
-        @GraphQLArgument(name = "name") String name
-    ) {
-        try {
-            if (StringUtils.isBlank(name)) {
-                log.info("Clearing caches...");
-                Caches.clearAll(cacheManager);
-
-            } else {
-                log.info(String.format("Clearing cache (%s)...", name));
-                Cache cache = cacheManager.getCache(name);
-                if (cache != null) cache.removeAll();
-            }
-        } catch (RuntimeException e) {
-            log.error("Error while clearing caches", e);
-            return false;
-        }
-        log.info("Caches cleared.");
-        return true;
     }
 
     /* -- protected methods -- */
@@ -203,6 +151,11 @@ public class ConfigurationGraphQLService {
             String faviconUrl = imageService.getImageUrl(faviconUri);
             result.getProperties().put(SumarisServerConfigurationOption.SITE_FAVICON.getKey(), faviconUrl);
         }
+
+        // Add expected auth token
+        result.getProperties().put(
+            SumarisServerConfigurationOption.AUTH_TOKEN_TYPE.getKey(),
+            configuration.getAuthTokenType().getLabel());
 
         return result;
     }
@@ -275,6 +228,17 @@ public class ConfigurationGraphQLService {
         }
     }
 
+    /**
+     * Clean configuraiton properties for NON admin users
+     * @param configuration
+     * @return
+     */
+    protected ConfigurationVO sanitizeConfiguration(ConfigurationVO configuration) {
 
+        // Remove all transient keys
 
+        // TODO
+
+        return configuration;
+    }
 }

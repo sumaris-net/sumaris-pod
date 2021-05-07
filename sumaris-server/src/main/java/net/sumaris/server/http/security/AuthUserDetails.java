@@ -22,24 +22,23 @@ package net.sumaris.server.http.security;
  * #L%
  */
 
-import net.sumaris.server.util.security.AuthDataVO;
+import net.sumaris.server.util.security.AuthTokenVO;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Authenticated user class implementing {@link UserDetails} for Spring security context
  *
  * @author peck7 on 03/12/2018.
  */
-public class AuthUser implements UserDetails {
+public class AuthUserDetails implements UserDetails {
 
-    private final AuthDataVO authData;
-    private final List<? extends GrantedAuthority> authorities;
+    private final AuthTokenVO authData;
+    private final Collection<? extends GrantedAuthority> authorities;
 
-    AuthUser(AuthDataVO authData, List<? extends GrantedAuthority> authorities) {
+    public AuthUserDetails(AuthTokenVO authData, Collection<? extends GrantedAuthority> authorities) {
         this.authData = authData;
         this.authorities = authorities;
     }
@@ -56,7 +55,9 @@ public class AuthUser implements UserDetails {
 
     @Override
     public String getUsername() {
-        return authData != null ? authData.getPubkey() : null;
+        return authData != null
+            ? (authData.getUsername() != null ? authData.getUsername() : authData.getPubkey())
+            : null;
     }
 
     public String getPubkey() {

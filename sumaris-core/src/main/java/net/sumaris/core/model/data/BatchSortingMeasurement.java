@@ -96,7 +96,7 @@ public class BatchSortingMeasurement implements ISortedMeasurementEntity {
     @ToString.Include
     private Pmfm pmfm;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Batch.class)
     @JoinColumn(name = "batch_fk")
     @ToString.Include
     private Batch batch;

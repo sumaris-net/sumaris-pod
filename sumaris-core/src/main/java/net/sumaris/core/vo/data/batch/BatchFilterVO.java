@@ -40,6 +40,7 @@ public class BatchFilterVO implements IDataFilter {
     }
 
     private Integer operationId;
+    private Integer saleId;
     private Integer recorderDepartmentId;
 
 }

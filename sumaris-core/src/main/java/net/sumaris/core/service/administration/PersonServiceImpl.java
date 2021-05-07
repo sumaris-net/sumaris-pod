@@ -25,6 +25,7 @@ package net.sumaris.core.service.administration;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
@@ -74,20 +75,35 @@ public class PersonServiceImpl implements PersonService {
 	}
 
 	@Override
-	public PersonVO get(final int personId) {
+	public PersonVO getById(final int personId) {
 		// This find method was a find in PersonDaoImpl
 		return personRepository.findById(personId)
 				.orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.person.notFound")));
 	}
 
 	@Override
-	public PersonVO getByPubkey(final String pubkey) {
-		Preconditions.checkNotNull(pubkey);
+	public PersonVO getByPubkey(@NonNull String pubkey) {
 		return personRepository.findByPubkey(pubkey)
 				.orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.person.notFound")));
 	}
 
-    @Override
+	@Override
+	public Optional<PersonVO> findByPubkey(@NonNull String pubkey) {
+		return personRepository.findByPubkey(pubkey);
+	}
+
+	@Override
+	public PersonVO getByUsername(@NonNull String username) {
+		return personRepository.findByUsername(username)
+			.orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.person.notFound")));
+	}
+
+	@Override
+	public Optional<PersonVO> findByUsername(@NonNull String username) {
+		return personRepository.findByUsername(username);
+	}
+
+	@Override
     public boolean isExistsByEmailHash(final String hash) {
         Preconditions.checkArgument(StringUtils.isNotBlank(hash));
         return personRepository.existsByEmailMD5(hash);

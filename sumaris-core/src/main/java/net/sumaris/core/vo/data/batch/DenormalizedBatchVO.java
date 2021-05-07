@@ -34,8 +34,11 @@ import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.model.data.DenormalizedBatchSortingValue;
+import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Sale;
+import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.data.SaleVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -101,11 +104,11 @@ public class DenormalizedBatchVO
     private Integer parentId;
 
     @EqualsAndHashCode.Exclude
-    private Operation operation;
+    private OperationVO operation;
     private Integer operationId;
 
     @EqualsAndHashCode.Exclude
-    private Sale sale;
+    private SaleVO sale;
     private Integer saleId;
 
     private List<DenormalizedBatchSortingValueVO> sortingValues = Lists.newArrayList();

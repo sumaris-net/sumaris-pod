@@ -22,12 +22,15 @@ package net.sumaris.core.service;
  * #L%
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.operation.OperationRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.Landing;
@@ -41,13 +44,16 @@ import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.TripVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.io.Serializable;
 
 @Component("conversionService")
 public class ConversionServiceImpl extends GenericConversionService {
+
 
     @Autowired
     private TripRepository tripRepository;
@@ -81,8 +87,10 @@ public class ConversionServiceImpl extends GenericConversionService {
 
         // Data
         addConverter(Trip.class, TripVO.class, tripRepository::toVO);
+
         addConverter(ObservedLocation.class, ObservedLocationVO.class, observedLocationRepository::toVO);
         addConverter(Operation.class, OperationVO.class, operationRepository::toVO);
         addConverter(Landing.class, LandingVO.class, landingRepository::toVO);
     }
+
 }

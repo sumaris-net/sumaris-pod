@@ -23,6 +23,7 @@
 package net.sumaris.core.dao.data.batch;
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.pmfm.ParameterRepository;
@@ -66,7 +67,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DenormalizedBatchRepositoryImpl
     extends SumarisJpaRepositoryImpl<DenormalizedBatch, Integer, DenormalizedBatchVO>
-    implements DenormalizedBatchRepositoryExtend<DenormalizedBatchVO> {
+    implements DenormalizedBatchSpecifications<DenormalizedBatch, DenormalizedBatchVO> {
 
 
     private final SumarisConfiguration config;
@@ -98,8 +99,13 @@ public class DenormalizedBatchRepositoryImpl
         super.toVO(source, target, copyIfNull);
 
         Integer operationId = source.getOperation() != null ? source.getOperation().getId() : null;
-        if (copyIfNull || source.getOperation() != null) {
+        if (copyIfNull || operationId != null) {
             target.setOperationId(operationId);
+        }
+
+        Integer saleId = source.getSale() != null ? source.getSale().getId() : null;
+        if (copyIfNull || saleId != null) {
+            target.setSaleId(saleId);
         }
     }
 
@@ -109,14 +115,6 @@ public class DenormalizedBatchRepositoryImpl
         target.setId(source.getId());
 
         super.toEntity(source, target, copyIfNull);
-
-        /*if (copyIfNull || source.getQualityFlagId() != null) {
-            if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
-            } else {
-                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
-            }
-        }*/
 
         // Quality flag
         if (copyIfNull || source.getQualityFlagId() != null) {
@@ -149,6 +147,22 @@ public class DenormalizedBatchRepositoryImpl
             }
         }
 
+    }
+
+    @Override
+    public DenormalizedBatchVO getCatchBatchByOperationId(int operationId) {
+        return findOne(hasNoParent()
+            .and(hasOperationId(operationId)))
+            .map(this::toVO)
+            .orElse(null);
+    }
+
+    @Override
+    public DenormalizedBatchVO getCatchBatchBySaleId(int saleId) {
+        return findOne(hasNoParent()
+            .and(hasSaleId(saleId)))
+            .map(this::toVO)
+            .orElse(null);
     }
 
     @Override
@@ -194,7 +208,7 @@ public class DenormalizedBatchRepositoryImpl
     }
 
     @Override
-    public List<DenormalizedBatchVO> denormalized(BatchVO catchBatch) {
+    public List<DenormalizedBatchVO> denormalized(@NonNull BatchVO catchBatch) {
 
         boolean trace = log.isTraceEnabled();
         long startTime = System.currentTimeMillis();
@@ -297,6 +311,9 @@ public class DenormalizedBatchRepositoryImpl
                 TimeUtils.printDurationFrom(startTime),
                 DenormalizedBatches.dumpAsString(result, true, true));
         }
+        else {
+            log.debug("Successfully denormalized batches, in {}", TimeUtils.printDurationFrom(startTime));
+        }
 
         return result;
     }
@@ -316,6 +333,14 @@ public class DenormalizedBatchRepositoryImpl
     public <S extends DenormalizedBatch> S save(S entity) {
         this.getSession().saveOrUpdate(entity);
         return entity;
+    }
+
+    @Override
+    public DenormalizedBatchVO toVO(DenormalizedBatch source) {
+        if (source == null) return null;
+        DenormalizedBatchVO target = createVO();
+        toVO(source, target, true);
+        return target;
     }
 
     /* -- protected methods -- */
@@ -728,9 +753,17 @@ public class DenormalizedBatchRepositoryImpl
             }
         }
 
-        if (samplingRatio == null || elevateFactor == null)
-            throw new SumarisTechnicalException(String.format("Invalid fraction batch {id: %s, label: '%s'}: cannot get or compute the sampling ratio",
+        if (samplingRatio == null || elevateFactor == null) {
+            // If sampling batch has no children: can be skipped
+            if (CollectionUtils.isEmpty(batch.getChildren())) {
+                samplingRatio = 1d;
+                elevateFactor = 1d;
+            }
+            else {
+                throw new SumarisTechnicalException(String.format("Invalid fraction batch {id: %s, label: '%s'}: cannot get or compute the sampling ratio",
                     batch.getId(), batch.getLabel()));
+            }
+        }
 
         // Remember values
         batch.setSamplingRatio(samplingRatio);

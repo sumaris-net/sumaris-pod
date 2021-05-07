@@ -28,6 +28,8 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.batch.DenormalizedBatchRepository;
+import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
@@ -48,7 +50,6 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 
 	@Override
 	public List<DenormalizedBatchVO> denormalize(@NonNull BatchVO catchBatch) {
-		Preconditions.checkNotNull(catchBatch);
 		return denormalizedBatchRepository.denormalized(catchBatch);
 	}
 
@@ -60,7 +61,16 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 			.withRecorderDepartment(false)
 			.build());
 		if (catchBatch == null) return null;
-		return denormalizedBatchRepository.saveAllByOperationId(operationId, denormalize(catchBatch));
+
+		long startTime = System.currentTimeMillis();
+		log.info("Starting to denormalized batches of operation {id: {}}...", operationId);
+
+		List<DenormalizedBatchVO> batches = denormalize(catchBatch);
+		batches = denormalizedBatchRepository.saveAllByOperationId(operationId, batches);
+
+		log.info("Successfully denormalized batches of operation {id: {}} in {}", operationId, TimeUtils.printDurationFrom(startTime));
+
+		return batches;
 	}
 
 	@Override
@@ -71,6 +81,8 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 			.withRecorderDepartment(false)
 			.build());
 		if (catchBatch == null) return null;
-		return denormalizedBatchRepository.saveAllBySaleId(saleId, denormalize(catchBatch));
+		log.info("Starting to denormalized batches... {saleId: {}}", saleId);
+		List<DenormalizedBatchVO> denormalizedBatches = denormalize(catchBatch);
+		return denormalizedBatchRepository.saveAllBySaleId(saleId, denormalizedBatches);
 	}
 }

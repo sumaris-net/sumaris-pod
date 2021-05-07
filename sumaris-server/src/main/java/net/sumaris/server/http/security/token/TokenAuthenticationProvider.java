@@ -1,48 +1,54 @@
-package net.sumaris.server.http.security;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Server
+ * SUMARiS
  * %%
- * Copyright (C) 2018 - 2019 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
+package net.sumaris.server.http.security.token;
+
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.server.config.ExtractionWebConfigurationOption;
+import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.http.security.AuthService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
-import static lombok.AccessLevel.PACKAGE;
+import javax.annotation.PostConstruct;
 
 /**
- * @author peck7 on 30/11/2018.
+ * @author <benoit.lavenier@e-is.pro>
  */
-@Component
-@AllArgsConstructor(access = PACKAGE)
+@Component("tokenAuthenticationProvider")
+@ConditionalOnProperty(
+    name="spring.security.token.enabled",
+    havingValue = "true",
+    matchIfMissing = true)
 public class TokenAuthenticationProvider extends AbstractUserDetailsAuthenticationProvider {
 
-    @NonNull
+    @Autowired
     private AuthService authService;
 
     @Override
@@ -53,10 +59,6 @@ public class TokenAuthenticationProvider extends AbstractUserDetailsAuthenticati
     @Override
     protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
         final Object token = authentication.getCredentials();
-        return Optional
-                .ofNullable(token)
-                .map(String::valueOf)
-                .flatMap(authService::authenticate)
-                .orElseThrow(() -> new UsernameNotFoundException("Cannot find user with authentication token=" + token));
+        return authService.authenticateByToken(String.valueOf(token));
     }
 }

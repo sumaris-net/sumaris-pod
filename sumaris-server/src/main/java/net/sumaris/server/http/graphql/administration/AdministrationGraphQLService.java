@@ -22,33 +22,25 @@ package net.sumaris.server.http.graphql.administration;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
-import io.leangen.graphql.annotations.*;
-import io.leangen.graphql.execution.ResolutionEnvironment;
+import io.leangen.graphql.annotations.GraphQLArgument;
+import io.leangen.graphql.annotations.GraphQLEnvironment;
+import io.leangen.graphql.annotations.GraphQLMutation;
+import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.util.crypto.MD5Util;
-import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.DepartmentFilterVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.security.IsAdmin;
-import net.sumaris.server.http.security.IsGuest;
 import net.sumaris.server.http.security.IsUser;
-import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.administration.ImageService;
-import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.lang3.StringUtils;
-import org.reactivestreams.Publisher;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,24 +53,11 @@ import java.util.Set;
 @Slf4j
 public class AdministrationGraphQLService {
 
-    private String personAvatarUrl;
-    private String departmentLogoUrl;
-    private String gravatarUrl;
-
-    @Resource
-    private SumarisServerConfiguration config;
-
     @Resource
     private PersonService personService;
 
     @Resource
-    private AccountService accountService;
-
-    @Resource
     private DepartmentService departmentService;
-
-    @Resource
-    private ChangesPublisherService changesPublisherService;
 
     @Resource
     private ImageService imageService;
@@ -151,24 +130,6 @@ public class AdministrationGraphQLService {
         return result;
     }
 
-    /* TODO: enable when pagination will be manage in the client app
-    @GraphQLQuery(name = "countPersons", description = "Search in persons")
-    @Transactional(readOnly = true)
-    public Long countPersonsByFilter(@GraphQLArgument(name = "tripFilter") PersonFilterVO tripFilter) {
-        return personService.countByFilter(tripFilter);
-    }*/
-
-    @GraphQLQuery(name = "account", description = "Load a user account")
-    @Transactional(readOnly = true)
-    @IsGuest
-    @PreAuthorize("#pubkey == authentication.name")
-    public AccountVO loadAccount(@P("pubkey") @GraphQLArgument(name = "pubkey") String pubkey) {
-
-        AccountVO result = accountService.getByPubkey(pubkey);
-        imageService.fillAvatar(result);
-        return result;
-    }
-
     @GraphQLQuery(name = "departments", description = "Search in departments")
     @Transactional(readOnly = true)
     public List<DepartmentVO> findDepartments(@GraphQLArgument(name = "filter") DepartmentFilterVO filter,
@@ -204,57 +165,10 @@ public class AdministrationGraphQLService {
 
     /* -- Mutations -- */
 
-    @GraphQLMutation(name = "createAccount", description = "Create an account")
-    public AccountVO createAccount(@GraphQLArgument(name = "account") AccountVO account) {
-        return accountService.createAccount(account);
-    }
-
-    @GraphQLMutation(name = "saveAccount", description = "Create or update an account")
-    @IsGuest
-    @PreAuthorize("hasRole('ROLE_ADMIN') or #account.pubkey == authentication.name")
-    public AccountVO saveAccount(@P("account") @GraphQLArgument(name = "account") AccountVO account) {
-        return accountService.saveAccount(account);
-    }
-
-    @GraphQLMutation(name = "confirmAccountEmail", description = "Confirm an account email")
-    public boolean confirmEmail(@GraphQLArgument(name="email") String email,
-                                @GraphQLArgument(name="code") String signatureHash) {
-        accountService.confirmEmail(email, signatureHash);
-        return true;
-    }
-
-    @GraphQLMutation(name = "sendAccountConfirmationEmail", description = "Resent confirmation email")
-    @IsGuest
-    public boolean sendConfirmationEmail(@GraphQLArgument(name="email") String email,
-                                         @GraphQLArgument(name="locale", defaultValue = "en_GB") String locale) {
-        accountService.sendConfirmationEmail(email, locale);
-        return true;
-    }
-
     @GraphQLMutation(name = "saveDepartment", description = "Create or update a department")
     @IsAdmin
     public DepartmentVO saveDepartment(@GraphQLArgument(name = "department") DepartmentVO department) {
         return departmentService.save(department);
     }
-
-
-    /* -- Subscriptions -- */
-
-    @GraphQLSubscription(name = "updateAccount", description = "Subscribe to an account update")
-    @IsGuest
-    @PreAuthorize("hasRole('ROLE_ADMIN') or #pubkey == authentication.name")
-    public Publisher<AccountVO> updateAccount(
-            @P("pubkey") @GraphQLArgument(name = "pubkey") final String pubkey,
-            @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
-
-        Preconditions.checkNotNull(pubkey, "Missing pubkey");
-        Preconditions.checkArgument(pubkey.length() > 6, "Invalid pubkey");
-
-        PersonVO person = personService.getByPubkey(pubkey);
-
-        return changesPublisherService.getPublisher(Person.class, AccountVO.class, person.getId(), minIntervalInSecond, true);
-    }
-
-    /* -- Protected methods -- */
 
 }

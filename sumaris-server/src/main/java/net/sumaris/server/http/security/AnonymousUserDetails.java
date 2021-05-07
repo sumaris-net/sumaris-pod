@@ -31,13 +31,13 @@ import org.springframework.security.core.authority.AuthorityUtils;
  *
  * @author peck7 on 03/12/2018.
  */
-public class AnonymousUser extends AuthUser {
+public class AnonymousUserDetails extends AuthUserDetails {
 
-    static final AnonymousUser INSTANCE = new AnonymousUser();
+    static final AnonymousUserDetails INSTANCE = new AnonymousUserDetails();
 
-    static final String TOKEN = "anonymous";
+    public static final String TOKEN = "anonymous";
 
-    private AnonymousUser() {
+    private AnonymousUserDetails() {
         super(null,
                 AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
     }

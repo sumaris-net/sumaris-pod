@@ -58,9 +58,6 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
     private DenormalizedBatchService denormalizedBatchService;
 
     @Resource
-    private BatchRepository batchRepository;
-
-    @Resource
     private OperationService operationService;
 
     @Override
@@ -154,8 +151,12 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
                     .build());
 
             operations.forEach(operation -> {
-                List<DenormalizedBatchVO> denormalizedBatches = denormalizedBatchService.denormalizeAndSaveByOperationId(operation.getId());
-                log.trace("Saving {} denormalized batches for operation {id: {}}", CollectionUtils.size(denormalizedBatches), operation.getId());
+                try {
+                    denormalizedBatchService.denormalizeAndSaveByOperationId(operation.getId());
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                    // Continue
+                }
             });
 
             offset += pageSize;

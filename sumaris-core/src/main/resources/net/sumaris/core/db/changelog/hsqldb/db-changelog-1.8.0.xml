@@ -206,6 +206,23 @@
     <dropNotNullConstraint tableName="denormalized_batch" columnName="weight_method_fk"/>
   </changeSet>
 
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-13">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="person" columnName="username"/></not>
+    </preConditions>
+    <addColumn tableName="person">
+      <column name="username" type="VARCHAR(40)"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-14">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="person" columnName="username_extranet"/></not>
+    </preConditions>
+    <addColumn tableName="person">
+      <column name="username_extranet" type="VARCHAR(40)"/>
+    </addColumn>
+  </changeSet>
+
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">

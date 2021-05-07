@@ -27,6 +27,7 @@ package net.sumaris.server.config;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
+import net.sumaris.server.http.security.AuthTokenTypeEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.version.VersionBuilder;
@@ -92,6 +93,14 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
 
     public String getAuthRoleForNotSelfExtraction() {
         return applicationConfig.getOption(SumarisServerConfigurationOption.AUTH_ROLE_NOT_SELF_EXTRACTION_ACCESS.getKey());
+    }
+
+    public boolean enableAuthToken() {
+        return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.SECURITY_AUTHENTICATION_TOKEN_ENABLE.getKey());
+    }
+
+    public boolean enableAuthBasic() {
+        return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.SECURITY_AUTHENTICATION_BASIC_ENABLE.getKey());
     }
 
     /**
@@ -222,50 +231,14 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         return applicationConfig.getOptionAsInt(SumarisServerConfigurationOption.AUTH_TOKEN_LIFE_TIME.getKey());
     }
 
-    /**
-     * <p>find the ActiveMQ broker URL.</p>
-     *
-     * @return a {@link String}
-     */
-    public String getActiveMQBrokerURL() {
-        return applicationConfig.getOption(SumarisServerConfigurationOption.ACTIVEMQ_BROKER_URL.getKey());
-    }
-
-    /**
-     * <p>find the ActiveMQ broker username (or null if no auth).</p>
-     *
-     * @return a {@link String}
-     */
-    public String getActiveMQBrokerUserName() {
-        return applicationConfig.getOption(SumarisServerConfigurationOption.ACTIVEMQ_BROKER_USERNAME.getKey());
-    }
-
-    /**
-     * <p>find the ActiveMQ broker username (or null if no auth).</p>
-     *
-     * @return a {@link Integer}
-     */
-    public String getActiveMQBrokerPassword() {
-        return applicationConfig.getOption(SumarisServerConfigurationOption.ACTIVEMQ_BROKER_PASSWORD.getKey());
-    }
-
-    /**
-     * <p>find the ActiveMQ broker username (or null if no auth).</p>
-     *
-     * @return a {@link Integer}
-     */
-    public int getActiveMQPrefetchLimit() {
-        return applicationConfig.getOptionAsInt(SumarisServerConfigurationOption.ACTIVEMQ_PREFETCH_LIMIT.getKey());
-    }
-
-
-    /**
-     * <p>Is ActiveMQ enabled ?</p>
-     *
-     * @return a {@link Boolean}
-     */
-    public boolean enableActiveMQ() {
-        return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.ACTIVEMQ_ENABLED.getKey());
+    public AuthTokenTypeEnum getAuthTokenType() {
+        if (enableAuthBasic() && enableAuthToken()) {
+            return AuthTokenTypeEnum.BASIC_AND_TOKEN;
+        } else if (enableAuthBasic()) {
+            return AuthTokenTypeEnum.BASIC;
+        } else {
+            return AuthTokenTypeEnum.TOKEN;
+        }
     }
 
     /**

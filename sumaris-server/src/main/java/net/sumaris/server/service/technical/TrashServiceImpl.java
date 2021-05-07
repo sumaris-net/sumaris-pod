@@ -43,6 +43,7 @@ import net.sumaris.core.vo.data.OperationVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -71,9 +72,8 @@ public class TrashServiceImpl implements TrashService {
     private boolean enable;
     private File trashDirectory;
 
-    @Resource(name = "jacksonObjectMapper")
+    @Autowired
     private ObjectMapper objectMapper;
-
 
     @Override
     public <V> Page<V> findAll(@NonNull String entityName, @NonNull Pageable pageable, Class<? extends V> clazz) {

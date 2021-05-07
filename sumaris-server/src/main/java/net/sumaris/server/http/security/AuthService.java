@@ -26,21 +26,20 @@ import com.google.common.collect.ImmutableList;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.security.IAuthService;
-import net.sumaris.server.util.security.AuthDataVO;
+import net.sumaris.server.util.security.AuthTokenVO;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
-@Transactional
 public interface AuthService extends IAuthService<PersonVO> {
 
     String AUTHORITY_PREFIX = "ROLE_";
 
     List<String> PRIORITIZED_AUTHORITIES = ImmutableList.of("ROLE_ADMIN", "ROLE_SUPERVISOR", "ROLE_USER", "ROLE_GUEST");
-
-
-    Optional<PersonVO> getAuthenticatedUser();
 
     /**
      * Check in the security context, that user has the expected authority
@@ -65,8 +64,15 @@ public interface AuthService extends IAuthService<PersonVO> {
         return hasAuthority(AUTHORITY_PREFIX + UserProfileEnum.ADMIN.label);
     }
 
-    Optional<AuthUser> authenticate(String token);
+    AuthTokenVO createNewChallenge();
 
     @Transactional(readOnly = true)
-    AuthDataVO createNewChallenge();
+    Optional<PersonVO> getAuthenticatedUser();
+
+    @Transactional
+    UserDetails authenticateByToken(String token) throws AuthenticationException;
+
+    @Transactional
+    UserDetails authenticateByUsername(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException;
+
 }

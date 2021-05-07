@@ -116,6 +116,7 @@
     <spring.version>5.3.6</spring.version>
     <spring-web.version>5.3.6</spring-web.version>
     <spring-data.version>2.5.0</spring-data.version>
+    <spring-security.version>5.4.6</spring-security.version>
     <querydsl.version>4.2.2</querydsl.version>
     <aspectj.version>1.9.6</aspectj.version>
     <javassist.version>3.27.0-GA</javassist.version>
@@ -141,8 +142,10 @@
     <graphql-java.version>16.2</graphql-java.version>
     <graphql-java-tools.version>11.0.1</graphql-java-tools.version>
     <graphql-java-servlet.version>11.1.0</graphql-java-servlet.version>
+    <graphql-spring-boot.version>7.1.0</graphql-spring-boot.version>
     <spqr.version>0.11.2</spqr.version>
     <kotlin.version>1.3.70</kotlin.version>
+    <unboundid-ldapsdk.version>4.0.14</unboundid-ldapsdk.version>
 
     <!-- database version management -->
     <liquibase.version>3.6.3</liquibase.version>
@@ -461,6 +464,14 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
           </exclusion>
+          <exclusion>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+          </exclusion>
         </exclusions>
       </dependency>
       <dependency>
@@ -486,7 +497,6 @@
         <version>${jnr-ffi.version}</version>
       </dependency>
 
-      <!-- graphqQL-->
       <!-- GraphQL -->
       <dependency>
         <groupId>com.graphql-java</groupId>
@@ -647,16 +657,16 @@
         <artifactId>hibernate-tools</artifactId>
         <version>${hibernate-tools.version}</version>
       </dependency>
-      <dependency>
+      <!--<dependency>
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-search-orm</artifactId>
         <version>${hibernate-search.version}</version>
-      </dependency>
-      <dependency>
+      </dependency>-->
+      <!--<dependency>
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-search-elasticsearch</artifactId>
         <version>${hibernate-search.version}</version>
-      </dependency>
+      </dependency>-->
       <dependency>
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-envers</artifactId>
@@ -768,6 +778,11 @@
         <groupId>com.querydsl</groupId>
         <artifactId>querydsl-jpa</artifactId>
         <version>${querydsl.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-ldap</artifactId>
+        <version>${spring-security.version}</version>
       </dependency>
 
       <!-- Compile -->
@@ -1009,6 +1024,18 @@
         <groupId>org.dbunit</groupId>
         <artifactId>dbunit</artifactId>
         <version>${dbunit.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.graphql-java-kickstart</groupId>
+        <artifactId>graphql-spring-boot-test</artifactId>
+        <version>${graphql-spring-boot.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.unboundid</groupId>
+        <artifactId>unboundid-ldapsdk</artifactId>
+        <version>${unboundid-ldapsdk.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>

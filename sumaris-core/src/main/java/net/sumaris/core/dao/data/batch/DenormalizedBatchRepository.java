@@ -26,13 +26,12 @@ import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.data.DenormalizedBatch;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.util.Set;
 
 public interface DenormalizedBatchRepository
         extends SumarisJpaRepository<DenormalizedBatch, Integer, DenormalizedBatchVO>,
-        DenormalizedBatchRepositoryExtend<DenormalizedBatchVO> {
+    DenormalizedBatchSpecifications<DenormalizedBatch, DenormalizedBatchVO> {
 
     @Query("select id from DenormalizedBatch where operation.id in ?1")
     Set<Integer> getAllIdByOperationId(int operationId);

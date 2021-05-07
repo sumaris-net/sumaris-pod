@@ -105,7 +105,7 @@ public class PersonServiceTest extends AbstractServiceTest{
     @Test
     public void isExistsByEmailHash() {
 
-        PersonVO person = service.get(fixtures.getPersonId(0));
+        PersonVO person = service.getById(fixtures.getPersonId(0));
         Assume.assumeNotNull(person);
         String emailHash = MD5Util.md5Hex(person.getEmail());
 
@@ -159,7 +159,7 @@ public class PersonServiceTest extends AbstractServiceTest{
         Assert.assertNotNull(vo.getId());
 
         // reload and check
-        vo = service.get(vo.getId());
+        vo = service.getById(vo.getId());
         Assert.assertNotNull(vo);
         Assert.assertEquals("first name with profiles", vo.getFirstName());
         Assert.assertNotNull(vo.getProfiles());

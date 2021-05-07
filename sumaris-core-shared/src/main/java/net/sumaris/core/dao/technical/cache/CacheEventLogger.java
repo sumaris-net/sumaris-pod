@@ -25,7 +25,6 @@ package net.sumaris.core.dao.technical.cache;
 import lombok.extern.slf4j.Slf4j;
 import org.ehcache.event.CacheEvent;
 import org.ehcache.event.CacheEventListener;
-import org.springframework.context.ApplicationEventPublisher;
 
 @Slf4j
 public class CacheEventLogger implements CacheEventListener<Object, Object> {
@@ -36,6 +35,7 @@ public class CacheEventLogger implements CacheEventListener<Object, Object> {
 
     @Override
     public void onEvent(CacheEvent cacheEvent) {
-        log.info("custom Caching event {} {} {} {} ", cacheEvent.getType(),cacheEvent.getKey(),cacheEvent.getOldValue(),cacheEvent.getNewValue());
+        // TODO: send clear cache event to the ActiveMQ event queue
+        //log.info("custom Caching event {} {} {} {} ", cacheEvent.getType(),cacheEvent.getKey(),cacheEvent.getOldValue(),cacheEvent.getNewValue());
     }
 }

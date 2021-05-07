@@ -52,7 +52,7 @@ public interface ChangesPublisherService {
     getPublisher(Class<T> entityClass,
                  Class<V> targetClass,
                  K id,
-                 Integer minIntervalInSecond,
+                 Integer intervalInSecond,
                  final boolean startWithActualValue);
 
     @Transactional(readOnly = true)

@@ -66,10 +66,11 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
         return specification;
     }
 
-    default Specification<Sample> addJoinFetch(SampleFetchOptions fetchOptions) {
+    default Specification<Sample> addJoinFetch(SampleFetchOptions fetchOptions, boolean addQueryDistinct) {
         if (fetchOptions == null || !fetchOptions.isWithMeasurementValues()) return null;
 
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
+            if (addQueryDistinct) query.distinct(true); // Need if findAll() is called, to avoid to many rows
             root.fetch(Sample.Fields.MEASUREMENTS, JoinType.LEFT);
             return null;
         });

@@ -34,6 +34,7 @@ import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.Query;
 
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
@@ -54,6 +55,7 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
     String EMAIL_PARAMETER = "email";
     String FIRST_NAME_PARAMETER = "firstName";
     String LAST_NAME_PARAMETER = "lastName";
+    String USERNAME_PARAMETER = "username";
 
     default Specification<Person> hasUserProfileIds(PersonFilterVO filter) {
         // Prepare user profile ids
@@ -99,6 +101,19 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
         return specification;
     }
 
+    default Specification<Person> hasUsername(String username) {
+        BindableSpecification<Person> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, USERNAME_PARAMETER);
+            return criteriaBuilder.or(
+                criteriaBuilder.isNull(parameter),
+                criteriaBuilder.equal(root.get(Person.Fields.USERNAME), parameter),
+                criteriaBuilder.equal(root.get(Person.Fields.USERNAME_EXTRANET), parameter)
+            );
+        });
+        specification.addBind(USERNAME_PARAMETER, username);
+        return specification;
+    }
+
     default Specification<Person> hasEmail(String email) {
         BindableSpecification<Person> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, EMAIL_PARAMETER);
@@ -138,6 +153,8 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
     Optional<PersonVO> findById(int id);
 
     Optional<PersonVO> findByPubkey(String pubkey);
+
+    Optional<PersonVO> findByUsername(String username);
 
     List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 

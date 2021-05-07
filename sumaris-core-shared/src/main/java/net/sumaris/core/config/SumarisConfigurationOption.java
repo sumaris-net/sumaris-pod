@@ -359,6 +359,8 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         String.class,
         false),
 
+    /* -- Liquibase options-- */
+
     LIQUIBASE_RUN_AUTO(
         "spring.liquibase.enabled",
         n("sumaris.config.option.liquibase.should.run.description"),
@@ -393,6 +395,40 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         Boolean.TRUE.toString(),
         boolean.class,
         false),
+
+    /* -- Active MQ options-- */
+
+    ACTIVEMQ_ENABLED(
+        "spring.activemq.pool.enabled",
+        n("sumaris.config.option.spring.activemq.pool.enabled.description"),
+        "false",
+        Boolean.class),
+
+    ACTIVEMQ_BROKER_URL(
+        "spring.activemq.broker-url",
+        n("sumaris.config.option.spring.activemq.broker-url.description"),
+        "vm://embedded?broker.persistent=true",
+        String.class),
+
+    ACTIVEMQ_BROKER_USERNAME(
+        "spring.activemq.broker-username",
+        n("sumaris.config.option.spring.activemq.broker-username.description"),
+        "",
+        String.class),
+
+    ACTIVEMQ_BROKER_PASSWORD(
+        "spring.activemq.broker-password",
+        n("sumaris.config.option.spring.activemq.broker-username.description"),
+        "",
+        String.class),
+
+    ACTIVEMQ_PREFETCH_LIMIT(
+        "spring.activemq.prefetch.limit",
+        n("sumaris.config.option.spring.activemq.prefetch.limit.description"),
+        "10",
+        Integer.class),
+
+    /* -- Functional features options-- */
 
     ENABLE_ANALYTIC_REFERENCES(
         "sumaris.analyticReferences.enable",

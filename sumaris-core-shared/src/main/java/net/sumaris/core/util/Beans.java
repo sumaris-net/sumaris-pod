@@ -57,6 +57,15 @@ public class Beans {
         // helper class does not instantiate
     }
 
+    public static <C> C newInstance(Class<C> objectClass) {
+        Preconditions.checkNotNull(objectClass, "Cant create an instance of 'null'");
+        try {
+            return objectClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new SumarisTechnicalException(e);
+        }
+    }
+
     /**
      * <p>getList.</p>
      *

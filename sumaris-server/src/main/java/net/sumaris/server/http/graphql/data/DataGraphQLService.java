@@ -237,7 +237,6 @@ public class DataGraphQLService {
         vesselService.delete(ids);
     }
 
-
     /* -- Trip -- */
 
     @GraphQLQuery(name = "trips", description = "Search in trips")

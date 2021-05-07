@@ -24,12 +24,10 @@ package net.sumaris.core.service.administration;
 
 
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.referential.UserProfile;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,10 +51,19 @@ public interface PersonService {
 	Long countByFilter(PersonFilterVO filter);
 
 	@Transactional(readOnly = true)
-	PersonVO get(int userId);
+	PersonVO getById(int userId);
 
 	@Transactional(readOnly = true)
 	PersonVO getByPubkey(String pubkey);
+
+	@Transactional(readOnly = true)
+	Optional<PersonVO> findByPubkey(String pubkey);
+
+	@Transactional(readOnly = true)
+	PersonVO getByUsername(String username);
+
+	@Transactional(readOnly = true)
+	Optional<PersonVO> findByUsername(String username);
 
 	@Transactional(readOnly = true)
 	boolean isExistsByEmailHash(String hash);

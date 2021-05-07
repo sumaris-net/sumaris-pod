@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.core.event.jms;
+package net.sumaris.core.event;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +39,6 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.PostConstruct;
-import javax.jms.Destination;
 import javax.jms.JMSContext;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -48,7 +47,7 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 @ConditionalOnClass({JMSContext.class, JmsTemplate.class})
-public class JmsEntityNotifier {
+public class JmsEntityEventProducer {
 
     // WARN: @ConditionOnBean over this class is not working well, that why we use required=false
     @Autowired(required = false)

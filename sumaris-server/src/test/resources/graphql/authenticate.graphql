@@ -1,0 +1,3 @@
+query Authenticate($token: String) {
+    authenticate(token: $token)
+}

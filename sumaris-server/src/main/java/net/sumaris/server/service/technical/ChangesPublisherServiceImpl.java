@@ -179,11 +179,11 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
     getPublisher(final Class<T> entityClass,
                  final Class<V> targetClass,
                  final K id,
-                 Integer minIntervalInSecond,
+                 Integer intervalInSecond,
                  boolean startWithActualValue) {
 
-        Preconditions.checkArgument(minIntervalInSecond == null || minIntervalInSecond.intValue() >= 10, "minimum interval value should be >= 10 seconds");
-        if (minIntervalInSecond == null) minIntervalInSecond = 30;
+        Preconditions.checkArgument(intervalInSecond == null || intervalInSecond >= 10, "interval should be >= 10 seconds");
+        if (intervalInSecond == null) intervalInSecond = 30; // Default interval: 30s
 
         // Check conversion is possible
         if (!conversionService.canConvert(entityClass, targetClass)) {
@@ -196,7 +196,7 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
             throw new DataNotFoundException(I18n.t("sumaris.error.notFound", entityClass.getSimpleName(), id));
         }
 
-        log.info(String.format("Checking changes on %s #%s every %s sec. (total publishers: %s)", entityClass.getSimpleName(), id, minIntervalInSecond, publisherCount.incrementAndGet()));
+        log.info(String.format("Checking changes on %s #%s every %s sec. (total publishers: %s)", entityClass.getSimpleName(), id, intervalInSecond, publisherCount.incrementAndGet()));
 
         final Calendar lastUpdateDate = Calendar.getInstance();
         if (initialEntity.getUpdateDate() != null) {
@@ -210,19 +210,19 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
         stop.subscribe(o -> log.debug(String.format("Closing publisher on %s #%s: max time reached. (total publishers: %s)", entityClass.getSimpleName(), id, publisherCount.get() - 1)));
 
         Observable<V> observable = Observable
-                .interval(minIntervalInSecond, TimeUnit.SECONDS)
+                .interval(intervalInSecond, TimeUnit.SECONDS)
                 .takeUntil(stop)
                 .observeOn(Schedulers.io())
                 .flatMap(n -> {
                     // Try to find a newer bean
                     V newerVOOrNull = self.getIfNewer(entityClass, targetClass, id, lastUpdateDate.getTime());
 
-                    // Update the date used for comparision
+                    // Update the date used for comparison
                     if (newerVOOrNull != null) {
                         lastUpdateDate.setTime(newerVOOrNull.getUpdateDate());
-                        return Observable.just(newerVOOrNull);
+                        return Observable.<V>just(newerVOOrNull);
                     }
-                    return Observable.empty();
+                    return Observable.<V>empty();
                 });
 
         // Sending the initial value when starting

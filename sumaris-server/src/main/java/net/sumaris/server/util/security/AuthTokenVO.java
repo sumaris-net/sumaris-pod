@@ -22,24 +22,22 @@ package net.sumaris.server.util.security;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.text.ParseException;
 
 @Data
-public class AuthDataVO {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class AuthTokenVO {
+    private String username;
     private String pubkey;
     private String challenge;
     private String signature;
-
-    public AuthDataVO(){
-    }
-
-    public AuthDataVO(String pubkey, String challenge, String signature) {
-        this.pubkey = pubkey;
-        this.challenge = challenge;
-        this.signature = signature;
-    }
 
     public String toString() {
         return String.format("%s:%s|%s", pubkey, challenge, signature);
@@ -49,7 +47,7 @@ public class AuthDataVO {
         return toString();
     }
 
-    public static AuthDataVO parse(String token) throws ParseException {
+    public static AuthTokenVO parse(String token) throws ParseException {
         int index1 = token.indexOf(':');
         if (index1 == -1) {
             throw new ParseException("Invalid token. Expected format is: <pubkey>:<challenge>|<signature>", 0);
@@ -58,10 +56,11 @@ public class AuthDataVO {
         if (index2 == -1) {
             throw new ParseException("Invalid token. Expected format is: <pubkey>:<challenge>|<signature>", index1);
         }
-        return new AuthDataVO(
-                token.substring(0, index1),
-                token.substring(index1+1, index2),
-                token.substring(index2+1));
+        return AuthTokenVO.builder()
+            .pubkey(token.substring(0, index1))
+            .challenge(token.substring(index1+1, index2))
+            .signature(token.substring(index2+1))
+            .build();
     }
 
 }

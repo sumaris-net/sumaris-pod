@@ -51,9 +51,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnClass({javax.cache.Cache.class, org.ehcache.Cache.class})
 @ConditionalOnProperty(
-    prefix = "sumaris.cache",
-    name = {"enabled"},
-    matchIfMissing = true)
+    name = "spring.cache.enabled",
+    havingValue = "true",
+    matchIfMissing = true
+)
 @EnableCaching
 @Slf4j
 public class CacheConfiguration extends CachingConfigurerSupport {

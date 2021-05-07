@@ -20,33 +20,32 @@
  * #L%
  */
 
-package net.sumaris.server.service.data;
+package net.sumaris.core.event.data;
 
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.JmsConfiguration;
 import net.sumaris.core.service.data.DenormalizedBatchService;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.JmsListener;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
-@Configuration
+@Component
 @ConditionalOnProperty(
-        prefix = "sumaris.persistence",
-        name = {"denormalizedBatch.enabled"}
-
-        // TODO BLA Mettre à 'true' quand l'élévation sera finit
-        //, matchIfMissing = true
+    name = "sumaris.persistence.denormalizedBatch.enabled",
+    havingValue = "true",
+    matchIfMissing = true
 )
 @Slf4j
-public class DenormalizedBatchConfiguration {
+public class BatchEventListener {
 
     @Resource
     private DenormalizedBatchService denormalizedBatchService;
 
-    @JmsListener(destination = "updateBatch", containerFactory = "jmsListenerContainerFactory")
+    @JmsListener(destination = "updateBatch", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
     public void onUpdateBatch(BatchVO batch) {
 
         BatchVO catchBatch = batch != null && batch.getParent() == null && batch.getParentId() == null ? batch : null;

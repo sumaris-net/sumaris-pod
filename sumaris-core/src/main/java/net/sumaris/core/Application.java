@@ -22,6 +22,7 @@ package net.sumaris.core;
  * #L%
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.action.ActionUtils;
@@ -31,15 +32,18 @@ import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.ApplicationUtils;
 import net.sumaris.core.util.I18nUtil;
 import net.sumaris.core.util.StringUtils;
+import org.hibernate.cache.jcache.ConfigSettings;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JndiConnectionFactoryAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -54,23 +58,24 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.persistence.EntityManager;
 
+
 /**
  * <p>
  * Application class.
  * </p>
- * 
+ *
  */
 @SpringBootApplication(
-		exclude = {
-				LiquibaseAutoConfiguration.class,
-                FreeMarkerAutoConfiguration.class,
-				JmsAutoConfiguration.class,
-				JndiConnectionFactoryAutoConfiguration.class,
-				ActiveMQAutoConfiguration.class
-		},
-		scanBasePackages = {
-				"net.sumaris.core"
-		}
+	exclude = {
+		LiquibaseAutoConfiguration.class,
+		FreeMarkerAutoConfiguration.class,
+		JndiConnectionFactoryAutoConfiguration.class,
+		//JmsAutoConfiguration.class,
+		//ActiveMQAutoConfiguration.class
+	},
+	scanBasePackages = {
+		"net.sumaris.core"
+	}
 )
 @EnableAsync
 @Component("core-application")
@@ -141,7 +146,7 @@ public class Application {
 	 */
 	public static void main(String[] args) {
 		run(args, null);
-    }
+	}
 
 	@Bean
 	public SumarisConfiguration configuration() {
@@ -210,8 +215,11 @@ public class Application {
 		} catch (NoSuchBeanDefinitionException e) {
 			// continue
 		}
-
-
 	}
 
+	@Bean
+	@ConditionalOnMissingBean({ObjectMapper.class})
+	public ObjectMapper objectMapper() {
+		return new ObjectMapper();
+	}
 }

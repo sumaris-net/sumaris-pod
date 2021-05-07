@@ -26,12 +26,14 @@ import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.util.I18nUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import javax.sql.DataSource;
+import java.io.File;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -57,6 +59,7 @@ public abstract class TestConfiguration {
             return createConfiguration(getConfigFileName(), getConfigArgs());
         }
 
+        // Init i18n
         I18nUtil.init(config, getI18nBundleName());
 
         return config;
