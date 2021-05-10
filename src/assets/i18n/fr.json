@@ -194,7 +194,13 @@
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?",
-      "ANALYTIC_REFERENCES_ENABLE": "Stratégie > Références analytiques : Activer ?"
+      "ANALYTIC_REFERENCES_ENABLE": "Stratégie > Références analytiques : Activer ?",
+      "AUTH_TOKEN_TYPE_PLACEHOLDER": "Securité > Type de sécurité",
+      "AUTH_TOKEN_TYPE": {
+        "BASIC": "Basique",
+        "TOKEN": "Cryptographique",
+        "BASIC_AND_TOKEN": "Basique et cryptographique"
+      }
     },
     "CACHE": {
       "NAME": "Nom",

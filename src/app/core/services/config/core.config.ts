@@ -5,6 +5,7 @@ import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {StatusIds} from "../model/model.enum";
 import {UserProfileLabels} from "../model/person.model";
 import {APP_LOCALES} from "../model/settings.model";
+import {AuthTokenType} from "../network.service";
 
 export const CORE_CONFIG_OPTIONS = Object.freeze({
     LOGO: <FormFieldDefinition>{
@@ -41,6 +42,26 @@ export const CORE_CONFIG_OPTIONS = Object.freeze({
                 value: 'COMMON.LAT_LONG.DD_PLACEHOLDER'
             }
         ]
+    },
+    AUTH_TOKEN_TYPE: <FormFieldDefinition>{
+      key: 'sumaris.auth.token.type',
+      label: 'CONFIGURATION.OPTIONS.AUTH_TOKEN_TYPE_PLACEHOLDER',
+      type: 'enum',
+      values: [
+        {
+          key: <AuthTokenType>'token',
+          value: 'CONFIGURATION.OPTIONS.AUTH_TOKEN_TYPE.TOKEN'
+        },
+        {
+          key: <AuthTokenType>'basic',
+          value: 'CONFIGURATION.OPTIONS.AUTH_TOKEN_TYPE.BASIC'
+        },
+        {
+          key: <AuthTokenType>'basic-and-token',
+          value: 'CONFIGURATION.OPTIONS.AUTH_TOKEN_TYPE.BASIC_AND_TOKEN'
+        }
+      ],
+      defaultValue: <AuthTokenType>'basic'
     },
     GRAVATAR_ENABLE: <FormFieldDefinition>{
       key: 'sumaris.gravatar.enable',
