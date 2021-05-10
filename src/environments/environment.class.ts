@@ -38,5 +38,5 @@ export class Environment {
   defaultAndroidInstallUrl?: string;
 
   // Storage
-  storage?: Partial<StorageConfig>;
+  storage?: Partial<StorageConfig>
 }

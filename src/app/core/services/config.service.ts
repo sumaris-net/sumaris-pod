@@ -13,7 +13,7 @@ import {PlatformService} from "./platform.service";
 import {CORE_CONFIG_OPTIONS} from "./config/core.config";
 import {SoftwareService} from "../../referential/services/software.service";
 import {LocationLevelIds, ParameterLabelGroups, PmfmIds, TaxonomicLevelIds} from "../../referential/services/model/model.enum";
-import {Platform, ToastController} from "@ionic/angular";
+import {ToastController} from "@ionic/angular";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {TranslateService} from "@ngx-translate/core";
 import {filter} from "rxjs/operators";
@@ -21,7 +21,6 @@ import {EntityServiceLoadOptions} from "../../shared/services/entity-service.cla
 import {ENVIRONMENT} from "../../../environments/environment.class";
 import {UserProfileLabels} from "./model/person.model";
 import {REFERENTIAL_CONFIG_OPTIONS} from "../../referential/services/config/referential.config";
-import {AccountService} from "./account.service";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -125,10 +124,10 @@ export class ConfigService extends SoftwareService<Configuration> {
   }
 
   constructor(
-    protected platform: Platform,
     protected graphql: GraphqlService,
     protected storage: Storage,
     protected network: NetworkService,
+    protected platform: PlatformService,
     protected file: FileService,
     protected toastController: ToastController,
     protected translate: TranslateService,
@@ -151,6 +150,8 @@ export class ConfigService extends SoftwareService<Configuration> {
     if (this.graphql.started) {
       this.start();
     }
+
+
   }
 
   start(): Promise<void> {
@@ -231,7 +232,7 @@ export class ConfigService extends SoftwareService<Configuration> {
    */
   async save(config: Configuration): Promise<Configuration> {
 
-    console.debug("[config] Saving Pod configuration...", config);
+    console.debug("[config] Saving configuration...", config);
 
     const json = config.asObject();
 
@@ -253,7 +254,7 @@ export class ConfigService extends SoftwareService<Configuration> {
     config.id = savedConfig && savedConfig.id || config.id;
     config.updateDate = savedConfig && savedConfig.updateDate || config.updateDate;
 
-    console.debug("[config] Pod configuration saved!");
+    console.debug("[config] Configuration saved!");
 
     const reloadedConfig = await this.loadByLabel(config.label, {fetchPolicy: "network-only"});
 
@@ -331,7 +332,7 @@ export class ConfigService extends SoftwareService<Configuration> {
     }): Promise<Configuration> {
 
     const now = Date.now();
-    console.debug("[config] Loading Pod configuration...");
+    console.debug("[config] Loading software configuration...");
 
     const query = opts && opts.query || LoadQuery;
     const variables = opts && opts.variables || undefined;
@@ -343,7 +344,7 @@ export class ConfigService extends SoftwareService<Configuration> {
     });
 
     const data = res && res.configuration ? Configuration.fromObject(res.configuration) : undefined;
-    console.info(`[config] Pod configuration loaded in ${Date.now() - now}ms:`, data);
+    console.info(`[config] Software configuration loaded in ${Date.now() - now}ms:`, data);
     return data;
   }
 
@@ -426,7 +427,7 @@ export class ConfigService extends SoftwareService<Configuration> {
       let now = this._debug && Date.now();
 
       // Convert images, for offline usage
-      if (this.network.online && this.platform.is('mobile')) {
+      if (this.network.online && this.platform.mobile) {
         const jobs = [];
 
         // Download logos
