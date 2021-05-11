@@ -14,7 +14,7 @@ cd ${PROJECT_DIR}
 source ${PROJECT_DIR}/scripts/env-global.sh
 
 ### Control that the script is run on `dev` branch
-branch=`git rev-parse --abbrev-ref HEAD`
+branch=$(git rev-parse --abbrev-ref HEAD)
 if [[ ! "$branch" = "master" ]] && [[ ! "$branch" =~ ^release/[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]];
 then
   echo ">> This script must be run under \`master\` or a \`release\` branch"
@@ -22,23 +22,17 @@ then
 fi
 
 ### Get version to release
-current=`grep -m1 -P "version\": \"\d+.\d+.\d+(-(\w+)[0-9]+)?" package.json | grep -oP "\d+.\d+.\d+(-(\w+)[0-9]+)?"`
+current=$(grep -m1 -P "version\": \"\d+.\d+.\d+(-\w+[0-9]+)?" package.json | grep -oP "\d+.\d+.\d+(-\w+[0-9]+)?")
 if [[ "_$current" == "_" ]]; then
   echo "ERROR: Unable to read 'version' in the file 'package.json'."
   echo " - Make sure the file 'package.json' exists and is readable."
+  echo " - Check version format is: x.y.z (x and y should be an integer)"
   exit 1
 fi
-echo "Current version: $current"
-
-### Get repo URL
-PROJECT_NAME=sumaris-app
-REMOTE_URL=`git remote -v | grep -P "push" | grep -oP "(https:\/\/github.com\/|git@github.com:)[^ ]+"`
-REPO="sumaris-net/sumaris-app"
-REPO_API_URL=https://api.github.com/repos/$REPO
-REPO_PUBLIC_URL=https://github.com/$REPO
+echo "Sending v$current extension to Github..."
 
 ###  get auth token
-GITHUB_TOKEN=`cat ~/.config/${PROJECT_NAME}/.github`
+GITHUB_TOKEN=$(cat ~/.config/${PROJECT_NAME}/.github)
 if [[ "_$GITHUB_TOKEN" != "_" ]]; then
     GITHUT_AUTH="Authorization: token $GITHUB_TOKEN"
 else
@@ -48,6 +42,7 @@ else
     exit 1
 fi
 
+### check arguments
 case "$task" in
   del)
     result=`curl -i "$REPO_API_URL/releases/tags/$current"`
@@ -56,6 +51,7 @@ case "$task" in
         echo "Deleting existing release..."
         curl -H ''"$GITHUT_AUTH"'' -XDELETE $release_url
     fi
+    exit 0;
   ;;
 
   pre|rel)

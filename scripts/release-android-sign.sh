@@ -1,25 +1,23 @@
 #!/bin/bash
+
 # Get to the root project
 if [[ "_" == "_${PROJECT_DIR}" ]]; then
-  cd ..
-  PROJECT_DIR=`pwd`
+  SCRIPT_DIR=$(dirname $0)
+  PROJECT_DIR=$(cd ${SCRIPT_DIR}/.. && pwd)
   export PROJECT_DIR
 fi;
 
-# Default env (can be override in file <PROJECT>/.local/env.sh)
+# Default env variables (can be override in '.local/env.sh' file)
 KEYSTORE_FILE=${PROJECT_DIR}/.local/android/Sumaris.keystore
 KEY_ALIAS=Sumaris
 KEYSTORE_PWD=
-APK_RELEASE_DIR=${PROJECT_DIR}/platforms/android/app/build/outputs/apk/release
-APK_UNSIGNED_FILE=${APK_RELEASE_DIR}/app-release-unsigned.apk
-APK_SIGNED_FILE=${APK_RELEASE_DIR}/app-release-signed.apk
-
 
 # Preparing Android environment
-. ${PROJECT_DIR}/scripts/env-android.sh
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
+source ${PROJECT_DIR}/scripts/env-android.sh
+[[ $? -ne 0 ]] && exit 1
+
+APK_SIGNED_FILE=${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release-signed.apk
+APK_UNSIGNED_FILE=${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release-unsigned.apk
 
 cd ${PROJECT_DIR}
 
@@ -41,27 +39,21 @@ if [[ -f "${APK_SIGNED_FILE}" ]]; then
 fi
 
 echo "Executing jarsigner..."
-jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore ${KEYSTORE_FILE} ${APK_UNSIGNED_FILE} Sumaris
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
+jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -storepass ${KEYSTORE_PWD} -keystore ${KEYSTORE_FILE} ${APK_UNSIGNED_FILE} ${KEY_ALIAS}
+[[ $? -ne 0 ]] && exit 1
 echo "Executing jarsigner [OK]"
 
-BUILD_TOOLS_DIR="${ANDROID_SDK_ROOT}/build-tools/28.*/"
+BUILD_TOOLS_DIR="${ANDROID_SDK_ROOT}/build-tools/${ANDROID_SDK_VERSION}/"
 cd ${BUILD_TOOLS_DIR}
 
 echo "Executing zipalign..."
 ./zipalign -v 4 ${APK_UNSIGNED_FILE} ${APK_SIGNED_FILE}
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 echo "Executing zipalign [OK]"
 
 echo "Verify APK signature..."
 ./apksigner verify ${APK_SIGNED_FILE}
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 echo "Verify APK signature [OK]"
 
 echo "Successfully generated signed APK at: ${APK_SIGNED_FILE}"
