@@ -254,13 +254,15 @@
 
 </ion-content>
 
-<!-- Paginator -->
 <ion-footer>
+
+  <!-- Paginator -->
   <mat-paginator [length]="data?.total" [pageSize]="defaultPageSize" [pageSizeOptions]="defaultPageSizeOptions"
                  class="mat-paginator-footer"
                  showFirstLastButtons>
   </mat-paginator>
 
+  <!-- Action buttons -->
   <ion-toolbar class="hidden-xs hidden-sm hidden-mobile">
     <ion-row class="ion-no-padding" nowrap>
       <ion-col>

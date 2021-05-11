@@ -807,7 +807,7 @@
       "VESSEL": "Vessel",
       "LANDING": "Landing:",
       "DATE": "Landing date",
-      "LOCATION": "Sampling site /!\ TODO BLA Landing site",
+      "LOCATION": "Sampling site",
       "OBSERVERS": "Observers:",
       "OBSERVER_PLACEHOLDER": "Observer #",
       "OTHER_FEATURES": "Other features:",
@@ -1093,7 +1093,7 @@
       "METHOD": "Data collecting method",
       "UNIT": "Unit",
       "BTN_ADD_PARAMETER": "Create a new parameter",
-      "BTN_OPEN_PARAMETER": "Open the parameter"
+      "BTN_OPEN_PARAMETER": "Open the parameter",
       "NEW": {
         "TITLE": "New PMFM"
       },

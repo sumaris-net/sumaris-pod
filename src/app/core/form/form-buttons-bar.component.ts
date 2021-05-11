@@ -13,11 +13,9 @@ export class FormButtonsBarComponent implements OnDestroy{
 
     private _subscription = new Subscription();
 
-    @Input()
-    disabled = false;
-
-    @Input()
-    disabledCancel = false;
+    @Input() disabled = false;
+    @Input() disabledCancel = false;
+    @Input() classList: string;
 
     @Output()
     onCancel = new EventEmitter<Event>();
