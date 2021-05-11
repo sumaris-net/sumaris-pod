@@ -361,6 +361,7 @@
     "TITLE": "Utilisateur",
     "AVATAR": "Avatar",
     "EMAIL": "Email",
+    "USERNAME": "Identifiant",
     "PASSWORD": "Mot de passe",
     "FIRST_NAME": "Prénom",
     "LAST_NAME": "Nom",

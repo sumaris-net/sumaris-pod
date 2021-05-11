@@ -1,17 +1,9 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Inject,
-  OnInit,
-  Output
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Inject, OnInit, Output} from "@angular/core";
 import {FormBuilder, Validators} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
 import {RegisterModal} from '../../register/modal/modal-register';
 import {AuthData} from "../../services/account.service";
-import {NetworkService} from "../../services/network.service";
+import {AuthTokenType, NetworkService} from "../../services/network.service";
 import {LocalSettingsService} from "../../services/local-settings.service";
 import {slideUpDownAnimation} from "../../../shared/material/material.animations";
 import {PlatformService} from "../../services/platform.service";
@@ -20,6 +12,8 @@ import {Moment} from "moment";
 import {debounceTime} from "rxjs/operators";
 import {AppForm} from "../../form/form.class";
 import {ENVIRONMENT} from "../../../../environments/environment.class";
+import {CORE_CONFIG_OPTIONS} from "../../services/config/core.config";
+import {ConfigService} from "../../services/config.service";
 
 
 @Component({
@@ -35,6 +29,8 @@ export class AuthForm extends AppForm<AuthData> implements OnInit {
   readonly mobile: boolean;
   canWorkOffline = false;
   showPwd = false;
+
+  usernamePlaceholder: string;
 
   @Output()
   onCancel = new EventEmitter<any>();
@@ -52,6 +48,7 @@ export class AuthForm extends AppForm<AuthData> implements OnInit {
     dateAdapter: DateAdapter<Moment>,
     formBuilder: FormBuilder,
     settings: LocalSettingsService,
+    private configService: ConfigService,
     private modalCtrl: ModalController,
     public network: NetworkService,
     private cd: ChangeDetectorRef,
@@ -59,7 +56,7 @@ export class AuthForm extends AppForm<AuthData> implements OnInit {
   ) {
     super(dateAdapter,
       formBuilder.group({
-      username: [null, Validators.compose([Validators.required, Validators.email])],
+      username: [null, Validators.required],
       password: [null, Validators.required],
       offline: [network.offline]
     }), settings);
@@ -67,15 +64,40 @@ export class AuthForm extends AppForm<AuthData> implements OnInit {
     this.mobile = platform.mobile;
     this.canWorkOffline = this.settings.hasOfflineFeature();
     this._enable = true;
+
   }
 
   ngOnInit() {
     super.ngOnInit();
+
+    // Load config, to set username's label and validator
+    this.registerSubscription(
+      this.configService.config.subscribe(config => {
+        const tokenType = config.getProperty(CORE_CONFIG_OPTIONS.AUTH_TOKEN_TYPE) as AuthTokenType;
+        // Login using email
+        if (tokenType === 'token') {
+          this.usernamePlaceholder = "USER.EMAIL";
+          this.form.get('username').setValidators(Validators.compose([Validators.required, Validators.email]));
+        }
+        // Login using username
+        else {
+          this.usernamePlaceholder = "USER.USERNAME";
+          this.form.get('username').setValidators(Validators.required);
+        }
+      })
+    );
+
     // For DEV only
     if (this.environment.production === false) {
+      // Set the default user, for testing.
+      // (see values in the test database - XML files in the module 'sumaris-core-test-shared')
       this.form.patchValue({
-        username: 'admin@sumaris.net',
-        password: 'admin'
+
+        // Basic auth (using Person.username)
+        // username: 'admq2', password: 'q22006'
+
+        // Token auth (using Person.pubkey)
+        username: 'admin@sumaris.net', password: 'admin'
       });
     }
   }
@@ -100,9 +122,7 @@ export class AuthForm extends AppForm<AuthData> implements OnInit {
     this.registerSubscription(
       this.onSubmit
         .pipe(debounceTime(500))
-        .subscribe(res => {
-          this.loading = false;
-        }));
+        .subscribe(res => this.loading = false));
 
     setTimeout(() => this.onSubmit.emit({
       username: data.username,
