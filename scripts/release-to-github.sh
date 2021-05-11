@@ -112,7 +112,7 @@ case "$task" in
       missing_file=true
     fi
 
-    APK_FILE="${DIRNAME}/platforms/android/app/build/outputs/apk/release/app-release.apk"
+    APK_FILE="${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release-signed.apk"
     if [[ -f "${APK_FILE}" ]]; then
       artifact_name="${PROJECT_NAME}-${current}-android.apk"
       result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/vnd.android.package-archive' -T "${APK_FILE}" "${upload_url}?name=${artifact_name}")
