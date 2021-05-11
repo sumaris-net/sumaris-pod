@@ -50,8 +50,6 @@ public class ConfigurationVO extends SoftwareVO {
     // TODO: add a map by resolution (e.g. hdpi, mdpi, ...)
     //private Map<String, String> logo;
 
-    private Date updateDate;
-
     private Map<String, String> properties;
 
     private List<String> backgroundImages;
