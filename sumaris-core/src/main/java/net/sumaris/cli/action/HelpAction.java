@@ -1,4 +1,4 @@
-package net.sumaris.core.action;
+package net.sumaris.cli.action;
 
 /*-
  * #%L

@@ -52,6 +52,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     String LEVEL_PARAMETER = "level";
     String LEVEL_LABEL_PARAMETER = "levelLabel";
     String SEARCH_TEXT_PARAMETER = "searchText";
+    String INCLUDED_IDS_PARAMETER = "includedIds";
     String EXCLUDED_IDS_PARAMETER = "excludedIds";
 
     default Specification<E> hasId(Integer id) {
@@ -194,6 +195,16 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             );
         });
         specification.addBind(SEARCH_TEXT_PARAMETER, searchText);
+        return specification;
+    }
+
+    default Specification<E> includedIds(Integer[] includedIds) {
+        if (ArrayUtils.isEmpty(includedIds)) return null;
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, INCLUDED_IDS_PARAMETER);
+            return criteriaBuilder.in(root.get(IEntity.Fields.ID)).value(param);
+        });
+        specification.addBind(INCLUDED_IDS_PARAMETER, Arrays.asList(includedIds));
         return specification;
     }
 

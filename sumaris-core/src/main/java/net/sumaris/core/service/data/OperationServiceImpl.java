@@ -127,6 +127,12 @@ public class OperationServiceImpl implements OperationService {
         return operationRepository.get(operationId);
     }
 
+
+    @Override
+    public int getProgramIdById(int id) {
+        return operationRepository.getProgramIdById(id);
+    }
+
     @Override
     public OperationVO save(final OperationVO source) {
         // Check operation validity

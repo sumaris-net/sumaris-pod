@@ -27,13 +27,16 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.StringUtils;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.ActiveMQPrefetchPolicy;
+import org.apache.activemq.broker.BrokerRegistry;
 import org.apache.activemq.broker.BrokerService;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
@@ -44,21 +47,17 @@ import org.springframework.jms.support.converter.MappingJackson2MessageConverter
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
 
+import javax.annotation.PostConstruct;
 import javax.jms.ConnectionFactory;
+import java.net.URI;
 
 @Configuration(proxyBeanMethods = false)
 @Slf4j
 @EnableJms
-@ConditionalOnProperty(
-    name = "spring.jms.enabled",
-    havingValue = "true"
-)
+@ConditionalOnProperty(name = "spring.jms.enabled", matchIfMissing = false, havingValue = "true")
 public class JmsConfiguration {
 
     public static final String CONTAINER_FACTORY_NAME = "jmsListenerContainerFactory";
-
-    @Value("${spring.activemq.broker-url:vm://localhost}")
-    private String brokerUrl;
 
     @Bean
     public JmsTemplate jmsTemplate(CachingConnectionFactory cachingConnectionFactory, MessageConverter messageConverter) {
@@ -116,12 +115,12 @@ public class JmsConfiguration {
         String userName = config.getActiveMQBrokerUserName();
         String password = config.getActiveMQBrokerPassword();
         if (StringUtils.isNotBlank(userName)) {
-            log.info(String.format("Starting JMS broker... {type: 'ActiveMQ', url: '%s', userName: '%s', password: '******'}...", url, userName));
+            log.info(String.format("Connecting to ActiveMQ broker... {url: '%s', userName: '%s', password: '******'}...", url, userName));
             connectionFactory.setUserName(userName);
             connectionFactory.setPassword(password);
         }
         else {
-            log.info(String.format("Starting JMS broker... {type: 'ActiveMQ', url: '%s'}...", url));
+            log.info(String.format("Connecting to ActiveMQ broker... {url: '%s'}...", url));
         }
 
         connectionFactory.setTrustAllPackages(true);
@@ -129,25 +128,18 @@ public class JmsConfiguration {
         return connectionFactory;
     }
 
-    @Bean
-    @ConditionalOnProperty(
-        prefix = "spring.activemq.",
-        name = "broker-url",
-        havingValue = "vm://localhost",
-        matchIfMissing = true
-    )
-    public BrokerService brokerService() throws Exception {
-        final BrokerService broker = new BrokerService();
-        broker.addConnector("tcp://localhost:61616");
-        broker.addConnector("vm://localhost");
-        broker.setPersistent(true);
-        return broker;
-    }
+    /*@Bean
+    public BrokerService brokerService(SumarisConfiguration config) throws Exception {
+        String url = config.getActiveMQBrokerURL();
+        log.info(String.format("Starting ActiveMQ broker... {url: '%s'}...", url));
 
-    @Bean
-    @Primary
-    @ConditionalOnMissingBean
-    ObjectMapper jacksonObjectMapper() {
-        return new ObjectMapper();
-    }
+        String brokerName = URI.create(url).getHost();
+        BrokerService brokerService = new BrokerService();
+        brokerService.addConnector(url);
+        brokerService.setBrokerName(brokerName);
+        brokerService.addConnector("tcp://localhost:61616");
+        brokerService.setPersistent(true);
+        brokerService.start();
+        return brokerService;
+    }*/
 }

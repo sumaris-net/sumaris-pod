@@ -24,9 +24,12 @@ package net.sumaris.core.service.data;
 
 
 import net.sumaris.core.vo.data.batch.BatchVO;
+import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -37,10 +40,11 @@ import java.util.List;
 public interface DenormalizedBatchService {
 
 	@Transactional(readOnly = true)
-	List<DenormalizedBatchVO> denormalize(BatchVO catchBatch);
+	List<DenormalizedBatchVO> denormalize(BatchVO catchBatch, @NotNull DenormalizedBatchOptions options);
 
-	List<DenormalizedBatchVO> denormalizeAndSaveByOperationId(int operationId);
+	List<DenormalizedBatchVO> denormalizeAndSaveByOperationId(int operationId, @Nullable DenormalizedBatchOptions options);
 
-	List<DenormalizedBatchVO> denormalizeAndSaveBySaleId(int saleId);
+	List<DenormalizedBatchVO> denormalizeAndSaveBySaleId(int saleId, @Nullable DenormalizedBatchOptions options);
 
+	DenormalizedBatchOptions createOptionsByProgramId(int programId);
 }

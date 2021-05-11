@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OperationRepositoryImpl
     extends DataRepositoryImpl<Operation, OperationVO, OperationFilterVO, DataFetchOptions>
-    implements OperationRepository {
+    implements OperationSpecifications {
 
     @Autowired
     private PhysicalGearRepository physicalGearRepository;

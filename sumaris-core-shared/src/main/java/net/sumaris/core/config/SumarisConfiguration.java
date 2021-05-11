@@ -208,8 +208,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         applicationConfig.addAlias("-db", "--option", SumarisConfigurationOption.JDBC_URL.getKey());
         applicationConfig.addAlias("--database", "--option", SumarisConfigurationOption.JDBC_URL.getKey());
 
+        // CLI options
         applicationConfig.addAlias("--output", "--option", SumarisConfigurationOption.CLI_OUTPUT_FILE.getKey());
         applicationConfig.addAlias("-f", "--option", SumarisConfigurationOption.CLI_FORCE_OUTPUT.getKey(), "true");
+        applicationConfig.addAlias("--year", "--option", SumarisConfigurationOption.CLI_FILTER_YEAR.getKey());
 
     }
 
@@ -769,6 +771,21 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.CLI_FORCE_OUTPUT.getKey());
     }
 
+    /**
+     * <p>Get year, to filter data.</p>
+     * <p>Used by CLI (Command Line Interface) actions</p>
+     *
+     * @return a boolean.
+     */
+    public Integer getCliFilterYear() {
+        int year = applicationConfig.getOptionAsInt(SumarisConfigurationOption.CLI_FILTER_YEAR.getKey());
+        return year == -1 ? null : year;
+    }
+
+    public Integer getCliFilterTripId() {
+        int tripId = applicationConfig.getOptionAsInt(SumarisConfigurationOption.CLI_FILTER_TRIP_ID.getKey());
+        return tripId == -1 ? null : tripId;
+    }
 
     /**
      * <p>getLaunchMode.</p>
@@ -866,8 +883,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      *
      * @return a {@link Boolean}
      */
-    public boolean enableActiveMQ() {
-        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ACTIVEMQ_ENABLED.getKey());
+    public boolean enableActiveMQPool() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ACTIVEMQ_POOL_ENABLED.getKey());
     }
 
     /* -- protected methods -- */

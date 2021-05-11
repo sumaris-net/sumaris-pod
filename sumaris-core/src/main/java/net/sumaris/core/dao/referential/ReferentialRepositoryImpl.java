@@ -256,6 +256,7 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
             .and(inLevelIds(getDomainClass(), filter.getLevelIds()))
             .and(inLevelLabels(getDomainClass(), filter.getLevelLabels()))
             .and(searchOrJoinSearchText(filter))
+            .and(includedIds(filter.getIncludedIds()))
             .and(excludedIds(filter.getExcludedIds()));
     }
 

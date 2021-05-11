@@ -24,10 +24,6 @@ package net.sumaris.rdf.config;
  * #L%
  */
 
-import net.sumaris.core.action.DatabaseCreateSchemaAction;
-import net.sumaris.core.action.DatabaseGenerateChangeLogAction;
-import net.sumaris.core.action.DatabaseUpdateSchemaAction;
-import net.sumaris.core.action.HelpAction;
 import net.sumaris.rdf.action.RdfDatasetAction;
 import org.nuiton.config.ConfigActionDef;
 

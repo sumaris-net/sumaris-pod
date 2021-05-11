@@ -27,9 +27,13 @@ import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface TripRepository extends
     RootDataRepository<Trip, TripVO, TripFilterVO, DataFetchOptions>,
     TripSpecifications {
 
+    @Query("select p.id from Trip t inner join t.program p where t.id = :id")
+    int getProgramIdById(@Param("id") int id);
 }

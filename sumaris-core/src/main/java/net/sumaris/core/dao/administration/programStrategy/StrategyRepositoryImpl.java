@@ -654,7 +654,7 @@ public class StrategyRepositoryImpl
                     target.setPriorityLevel(item.getPriorityLevel());
 
                     // Taxon name
-                    Optional<TaxonNameVO> taxonName = taxonNameRepository.findTaxonNameReferent(item.getReferenceTaxon().getId());
+                    Optional<TaxonNameVO> taxonName = taxonNameRepository.findReferentByReferenceTaxonId(item.getReferenceTaxon().getId());
                     if (taxonName.isPresent()) {
                         target.setTaxonName(taxonName.get());
                         target.setReferenceTaxonId(taxonName.get().getReferenceTaxonId());

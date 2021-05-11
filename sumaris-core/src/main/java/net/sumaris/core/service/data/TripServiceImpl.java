@@ -169,6 +169,11 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
+    public int getProgramIdById(int id) {
+        return tripRepository.getProgramIdById(id);
+    }
+
+    @Override
     public void fillTripLandingLinks(TripVO target) {
         Preconditions.checkNotNull(target);
         Preconditions.checkNotNull(target.getId());

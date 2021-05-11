@@ -67,6 +67,11 @@ public class ProgramServiceImpl implements ProgramService {
 	}
 
 	@Override
+	public ProgramVO get(int id, ProgramFetchOptions fetchOptions) {
+		return programRepository.get(id, fetchOptions);
+	}
+
+	@Override
 	public ProgramVO getByLabel(String label) {
 		Preconditions.checkNotNull(label);
 		return programRepository.getByLabel(label);

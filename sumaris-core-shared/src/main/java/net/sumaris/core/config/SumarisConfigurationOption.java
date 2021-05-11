@@ -398,7 +398,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
 
     /* -- Active MQ options-- */
 
-    ACTIVEMQ_ENABLED(
+    ACTIVEMQ_POOL_ENABLED(
         "spring.activemq.pool.enabled",
         n("sumaris.config.option.spring.activemq.pool.enabled.description"),
         "false",
@@ -458,6 +458,10 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         Integer.class,
         false),
 
+    /*
+     * CLI options
+     */
+
     CLI_OUTPUT_FILE(
         "sumaris.cli.output.file",
         n("sumaris.config.option.cli.output.file.description"),
@@ -470,6 +474,20 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         n("sumaris.config.option.cli.output.force.description"),
         Boolean.FALSE.toString(),
         Boolean.class,
+        false),
+
+    CLI_FILTER_YEAR(
+        "sumaris.cli.filter.year",
+        n("sumaris.config.option.cli.filter.year.description"),
+        "-1",
+        Integer.class,
+        false),
+
+    CLI_FILTER_TRIP_ID(
+        "sumaris.cli.filter.tripId",
+        n("sumaris.config.option.cli.filter.tripId.description"),
+        "-1",
+        Integer.class,
         false),
 
     CSV_SEPARATOR(
@@ -558,7 +576,29 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         n("sumaris.config.option.persistence.vessel.defaultProgram.label.description"),
         "SIH",
         Boolean.class,
-        false);
+        false),
+
+    ENABLE_BATCH_TAXON_NAME(
+        "sumaris.trip.operation.batch.taxonName.enable",
+        n("sumaris.config.option.trip.operation.batch.taxonName.enable.description"),
+        Boolean.TRUE.toString(),
+        Boolean.class,
+        false),
+
+    ENABLE_BATCH_TAXON_GROUP(
+        "sumaris.trip.operation.batch.taxonGroup.enable",
+        n("sumaris.config.option.trip.operation.batch.taxonGroup.enable.description"),
+        Boolean.TRUE.toString(),
+        Boolean.class,
+        false),
+
+    BATCH_TAXON_GROUP_LABELS_NO_WEIGHT(
+        "sumaris.trip.operation.batch.taxonGroups.noWeight",
+        n("sumaris.config.option.trip.operation.batch.taxonGroups.noWeight.description"),
+        "",
+        String.class,
+        false),
+    ;
 
     /**
      * Configuration key.

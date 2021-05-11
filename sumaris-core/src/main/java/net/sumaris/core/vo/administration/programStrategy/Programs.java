@@ -20,20 +20,26 @@
  * #L%
  */
 
-package net.sumaris.core.service.data.denormalize;
+package net.sumaris.core.vo.administration.programStrategy;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.NonNull;
+import org.apache.commons.collections4.MapUtils;
+import org.nuiton.config.ConfigOptionDef;
 
-import java.io.Serializable;
+/**
+ * Helper class for program
+ */
+public class Programs {
 
-@Data
-@Builder
-public class DenormalizeTripResultVO implements Serializable {
+    protected Programs(){
+        // Helper class
+    }
 
-    private long tripCount;
-    private long operationCount;
-    private long batchCount;
-    private long invalidBatchCount;
-    private long executionTime;
+    public static boolean getPropertyAsBoolean(@NonNull ProgramVO source, ConfigOptionDef option) {
+        return MapUtils.getBooleanValue(source.getProperties(), option.getKey(), Boolean.getBoolean(option.getDefaultValue()));
+    }
+
+    public static String getProperty(@NonNull ProgramVO source, ConfigOptionDef option) {
+        return MapUtils.getString(source.getProperties(), option.getKey(), option.getDefaultValue());
+    }
 }

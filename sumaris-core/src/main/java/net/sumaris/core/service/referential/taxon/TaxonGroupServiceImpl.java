@@ -25,6 +25,7 @@ package net.sumaris.core.service.referential.taxon;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
+import net.sumaris.core.dao.referential.taxon.TaxonGroupSpecifications;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
@@ -32,6 +33,8 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.VersionNotFoundException;
 import net.sumaris.core.vo.filter.IReferentialFilter;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
@@ -41,6 +44,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service("taxonGroupService")
 @Slf4j
@@ -102,5 +106,10 @@ public class TaxonGroupServiceImpl implements TaxonGroupService {
     @Override
     public List<Integer> getAllIdByReferenceTaxonId(int referenceTaxonId, Date startDate, Date endDate) {
         return taxonGroupRepository.getAllIdByReferenceTaxonId(referenceTaxonId, startDate, endDate);
+    }
+
+    @Override
+    public List<TaxonGroupVO> findAllByFilter(ReferentialFilterVO filter) {
+        return taxonGroupRepository.findAll(ReferentialFilterVO.nullToEmpty(filter), ReferentialFetchOptions.builder().build());
     }
 }

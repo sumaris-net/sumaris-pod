@@ -73,6 +73,9 @@ public interface IReferentialFilter extends Serializable {
 
     void setSearchAttribute(String searchAttribute);
 
+    Integer[] getIncludedIds();
+
+    void setIncludedIds(Integer[] includedIds);
 
     Integer[] getExcludedIds();
 

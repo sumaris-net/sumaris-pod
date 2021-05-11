@@ -80,8 +80,7 @@ public interface DenormalizedBatchSpecifications<E extends DenormalizedBatch, V 
 
     List<V> saveAllBySaleId(int saleId, @Nonnull List<V> sources);
 
-    List<V> denormalized(BatchVO catchBatch);
-
     V toVO(E source);
 
+    void copy(BatchVO source, V target, boolean copyIfNull);
 }

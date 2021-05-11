@@ -429,7 +429,7 @@ public class BatchRepositoryImpl
 
         // Taxon name (from reference)
         if (source.getReferenceTaxon() != null && source.getReferenceTaxon().getId() != null) {
-            target.setTaxonName(taxonNameRepository.findTaxonNameReferent(source.getReferenceTaxon().getId()).orElse(null));
+            target.setTaxonName(taxonNameRepository.findReferentByReferenceTaxonId(source.getReferenceTaxon().getId()).orElse(null));
         }
 
         // Parent batch

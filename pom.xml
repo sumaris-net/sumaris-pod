@@ -136,7 +136,6 @@
 
     <jnr-ffi.version>2.2.2</jnr-ffi.version>
     <kalium.version>0.8.1-SNAPSHOT</kalium.version>
-    <!--<kalium.version>0.8.1-SNAPSHOT</kalium.version>-->
     <scrypt.version>1.4.0</scrypt.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
     <graphql-java.version>16.2</graphql-java.version>

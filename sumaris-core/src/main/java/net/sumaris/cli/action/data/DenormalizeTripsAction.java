@@ -20,15 +20,15 @@
  * #L%
  */
 
-package net.sumaris.core.action.data;
+package net.sumaris.cli.action.data;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.action.ActionUtils;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.model.ProgressionModel;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.service.data.denormalize.DenormalizeTripService;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.filter.TripFilterVO;
 
 @Slf4j
@@ -41,16 +41,19 @@ public class DenormalizeTripsAction {
         SumarisConfiguration config = SumarisConfiguration.getInstance();
         DenormalizeTripService tripService = ServiceLocator.instance().getService("denormalizeTripService", DenormalizeTripService.class);
 
-        // Create trip filter
-        TripFilterVO filter = TripFilterVO.builder()
-            //.startDate() // TODO build from cli option ?
-            .tripId(1340)
-            .build();
+        // Create filter
+        TripFilterVO.TripFilterVOBuilder filterBuilder = TripFilterVO.builder()
+            .tripId(config.getCliFilterTripId());
+        Integer year = config.getCliFilterYear();
+        if (year != null && year > 1970) {
+            filterBuilder.startDate(Dates.getFirstDayOfYear(year))
+                .endDate(Dates.getLastSecondOfYear(year));
+        }
 
         // Execute job
         ProgressionModel progression = new ProgressionModel();
         progression.addPropertyChangeListener(IProgressionModel.Fields.MESSAGE, (event) -> log.info(progression.getMessage()));
-        tripService.denormalizeByFilter(filter, progression);
+        tripService.denormalizeByFilter(filterBuilder.build(), progression);
 
     }
 }

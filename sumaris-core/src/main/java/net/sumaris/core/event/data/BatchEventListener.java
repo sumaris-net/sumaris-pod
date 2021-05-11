@@ -25,7 +25,9 @@ package net.sumaris.core.event.data;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.JmsConfiguration;
+import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.data.DenormalizedBatchService;
+import net.sumaris.core.service.data.OperationService;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
@@ -37,13 +39,24 @@ import javax.annotation.Resource;
 @ConditionalOnProperty(
     name = "sumaris.persistence.denormalizedBatch.enabled",
     havingValue = "true",
-    matchIfMissing = true
+    // TODO: change to trus when all errors fixed
+    matchIfMissing = false
 )
 @Slf4j
 public class BatchEventListener {
 
     @Resource
+    private OperationService operationService;
+
+    @Resource
+    private ProgramService programService;
+
+    @Resource
     private DenormalizedBatchService denormalizedBatchService;
+
+    public BatchEventListener() {
+        log.info("Listening Batch save event, to execute denormalization on each changes");
+    }
 
     @JmsListener(destination = "updateBatch", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
     public void onUpdateBatch(BatchVO batch) {
@@ -51,11 +64,13 @@ public class BatchEventListener {
         BatchVO catchBatch = batch != null && batch.getParent() == null && batch.getParentId() == null ? batch : null;
         if (catchBatch == null) return; // Skip if not a catch batch
 
+
         if (catchBatch.getOperationId() != null) {
-            denormalizedBatchService.denormalizeAndSaveByOperationId(catchBatch.getOperationId());
+            denormalizedBatchService.denormalizeAndSaveByOperationId(catchBatch.getOperationId(), null);
         }
         else if (catchBatch.getSaleId() != null) {
-            denormalizedBatchService.denormalizeAndSaveBySaleId(catchBatch.getSaleId());
+            // TODO: compute options
+            denormalizedBatchService.denormalizeAndSaveBySaleId(catchBatch.getSaleId(), null);
         }
         else {
             log.warn("Invalid catch batch update event: no parent found! Expected one of operation or sale.");

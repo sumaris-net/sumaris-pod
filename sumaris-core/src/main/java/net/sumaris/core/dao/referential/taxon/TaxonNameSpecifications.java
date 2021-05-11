@@ -83,11 +83,11 @@ public interface TaxonNameSpecifications extends ReferentialSpecifications<Taxon
     List<TaxonNameVO> getAll(boolean withSynonyms);
 
     @Cacheable(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_TAXON_REFERENCE_ID, unless = "#result == null")
-    Optional<TaxonNameVO> findTaxonNameReferent(int referenceTaxonId);
+    Optional<TaxonNameVO> findReferentByReferenceTaxonId(int referenceTaxonId);
 
     @Cacheable(cacheNames = CacheConfiguration.Names.TAXON_NAMES_BY_TAXON_GROUP_ID, unless = "#result == null")
     List<TaxonNameVO> getAllByTaxonGroupId(int taxonGroupId);
 
-    @Cacheable(cacheNames = CacheConfiguration.Names.REFERENCE_TAXON_ID_BY_TAXON_NAME_ID, key = "#id", unless = "#result == null")
+    @Cacheable(cacheNames = CacheConfiguration.Names.REFERENCE_TAXON_ID_BY_TAXON_NAME_ID)
     Integer getReferenceTaxonIdById(int id);
 }

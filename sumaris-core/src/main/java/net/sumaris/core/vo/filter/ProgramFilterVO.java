@@ -49,5 +49,6 @@ public class ProgramFilterVO implements IReferentialFilter {
 
     private String withProperty;
 
+    private Integer[] includedIds;
     private Integer[] excludedIds;
 }

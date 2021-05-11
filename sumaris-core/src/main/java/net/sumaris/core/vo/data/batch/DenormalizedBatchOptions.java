@@ -20,20 +20,31 @@
  * #L%
  */
 
-package net.sumaris.core.service.data.denormalize;
+package net.sumaris.core.vo.data.batch;
 
 import lombok.Builder;
 import lombok.Data;
+import net.sumaris.core.vo.data.IDataFetchOptions;
 
-import java.io.Serializable;
+import javax.annotation.Nullable;
+import java.util.List;
 
 @Data
 @Builder
-public class DenormalizeTripResultVO implements Serializable {
+public class DenormalizedBatchOptions {
 
-    private long tripCount;
-    private long operationCount;
-    private long batchCount;
-    private long invalidBatchCount;
-    private long executionTime;
+    public static final DenormalizedBatchOptions DEFAULT = DenormalizedBatchOptions.builder().build();
+
+    public static DenormalizedBatchOptions nullToDefault(@Nullable DenormalizedBatchOptions options) {
+        return options != null ? options : DEFAULT;
+    }
+
+    @Builder.Default
+    private boolean enableTaxonGroup = true;
+
+    @Builder.Default
+    private boolean enableTaxonName = true;
+
+    private List<Integer> taxonGroupIdsNoWeight;
+
 }

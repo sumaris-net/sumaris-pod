@@ -110,6 +110,10 @@ public class DatabaseFixtures {
 		}
 	}
 
+	public Integer getOperationIdWithBatches() {
+		return 2;
+	}
+
 	public Integer getObservedLocationId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {

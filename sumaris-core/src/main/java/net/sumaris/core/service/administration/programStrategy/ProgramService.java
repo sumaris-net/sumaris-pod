@@ -26,6 +26,7 @@ package net.sumaris.core.service.administration.programStrategy;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +45,9 @@ public interface ProgramService {
 
 	@Transactional(readOnly = true)
 	ProgramVO get(int id);
+
+	@Transactional(readOnly = true)
+	ProgramVO get(int id, ProgramFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	ProgramVO getByLabel(String label);

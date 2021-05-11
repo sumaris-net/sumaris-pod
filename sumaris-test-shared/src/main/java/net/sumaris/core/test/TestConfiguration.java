@@ -22,6 +22,7 @@ package net.sumaris.core.test;
  * #L%
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -100,4 +101,5 @@ public abstract class TestConfiguration {
     protected String[] getConfigArgs() {
         return null;
     }
+
 }

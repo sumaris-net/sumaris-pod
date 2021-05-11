@@ -1,34 +1,32 @@
-package net.sumaris.core.config;
-
-/*-
+/*
  * #%L
- * Quadrige3 Core :: Quadrige3 Server Core
- * $Id:$
- * $HeadURL:$
+ * SUMARiS
  * %%
- * Copyright (C) 2017 Ifremer
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-import net.sumaris.core.action.DatabaseCreateSchemaAction;
-import net.sumaris.core.action.DatabaseGenerateChangeLogAction;
-import net.sumaris.core.action.DatabaseUpdateSchemaAction;
-import net.sumaris.core.action.HelpAction;
-import net.sumaris.core.action.data.DenormalizeTripsAction;
+package net.sumaris.cli.config;
+
+import net.sumaris.cli.action.DatabaseCreateSchemaAction;
+import net.sumaris.cli.action.DatabaseGenerateChangeLogAction;
+import net.sumaris.cli.action.DatabaseUpdateSchemaAction;
+import net.sumaris.cli.action.HelpAction;
+import net.sumaris.cli.action.data.DenormalizeTripsAction;
 import org.nuiton.config.ConfigActionDef;
 
 /**
@@ -36,7 +34,7 @@ import org.nuiton.config.ConfigActionDef;
  * BatchesServerConfigurationAction class.
  * </p>
  */
-public enum SumarisCoreConfigurationAction implements ConfigActionDef {
+public enum SumarisCliConfigurationAction implements ConfigActionDef {
 
     HELP(HelpAction.class.getName() + "#show", "Shows help", "-h", "--help"),
 
@@ -57,7 +55,7 @@ public enum SumarisCoreConfigurationAction implements ConfigActionDef {
     public final String description;
     public final String[] aliases;
 
-    SumarisCoreConfigurationAction(String action, String description, String... aliases) {
+    SumarisCliConfigurationAction(String action, String description, String... aliases) {
         this.action = action;
         this.description = description;
         this.aliases = aliases;

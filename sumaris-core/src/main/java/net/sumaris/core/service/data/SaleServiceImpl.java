@@ -71,6 +71,11 @@ public class SaleServiceImpl implements SaleService {
 	}
 
 	@Override
+	public int getProgramIdById(int id) {
+		return saleRepository.get(id, DataFetchOptions.MINIMAL).getProgram().getId();
+	}
+
+	@Override
 	public List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sources) {
 		Preconditions.checkNotNull(sources);
 		sources.forEach(this::checkSale);

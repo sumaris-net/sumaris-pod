@@ -26,12 +26,14 @@ package net.sumaris.core.service.referential.taxon;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Transactional
 public interface TaxonGroupService {
@@ -48,4 +50,8 @@ public interface TaxonGroupService {
 
     @Transactional(readOnly = true)
     List<Integer> getAllIdByReferenceTaxonId(int referenceTaxonId, Date startDate, Date endDate);
+
+    @Transactional(readOnly = true)
+    List<TaxonGroupVO> findAllByFilter(ReferentialFilterVO filter);
+
 }

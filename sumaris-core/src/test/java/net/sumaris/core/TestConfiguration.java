@@ -22,9 +22,11 @@ package net.sumaris.core;
  * #L%
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.util.I18nUtil;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -54,5 +56,12 @@ public abstract class TestConfiguration extends net.sumaris.core.test.TestConfig
     @Override
     protected String getI18nBundleName() {
         return I18N_BUNDLE_NAME;
+    }
+
+
+    @Bean
+    @ConditionalOnMissingBean({ObjectMapper.class})
+    public ObjectMapper jacksonObjectMapper() {
+        return new ObjectMapper();
     }
 }

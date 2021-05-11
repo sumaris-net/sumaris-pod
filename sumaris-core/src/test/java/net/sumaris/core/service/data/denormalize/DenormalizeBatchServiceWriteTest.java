@@ -23,9 +23,12 @@ package net.sumaris.core.service.data.denormalize;
  */
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.data.batch.BatchRepository;
+import net.sumaris.core.dao.technical.model.TreeNodeEntities;
 import net.sumaris.core.service.AbstractServiceTest;
+import net.sumaris.core.service.data.BatchService;
 import net.sumaris.core.service.data.DenormalizedBatchService;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.data.DataFetchOptions;
@@ -34,6 +37,7 @@ import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,26 +45,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 @Slf4j
-public class DenormalizeBatchServiceTest extends AbstractServiceTest{
+public class DenormalizeBatchServiceWriteTest extends AbstractServiceTest{
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private BatchRepository batchRepository;
+    private BatchService batchService;
 
     @Autowired
     private DenormalizedBatchService service;
 
+    @Autowired
+    protected DatabaseFixtures fixtures;
+
     @Test
     public void denormalizeAndSaveByOperationId() {
 
-        long startTime = System.currentTimeMillis();
-        List<DenormalizedBatchVO> result = service.denormalizeAndSaveByOperationId(190136);
+        // TODO uncomment
+        //int operationId = fixtures.getOperationIdWithBatches();
+        int operationId = 191343;
 
-        //
+        List<BatchVO> batches = batchService.getAllByOperationId(operationId);
+        BatchVO catchBatch = TreeNodeEntities.listAsTree(batches, BatchVO::getParentId);
+        Assume.assumeNotNull(catchBatch);
+
+        List<DenormalizedBatchVO> result = service.denormalizeAndSaveByOperationId(operationId, null);
+
         Assert.assertNotNull(result);
-        Assert.assertTrue(result.size() > 0);
+        Assert.assertEquals(batches.size(), result.size());
     }
 
 }

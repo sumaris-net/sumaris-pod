@@ -73,7 +73,7 @@ public class TaxonNameRepositoryImpl
     }
 
     @Override
-    public Optional<TaxonNameVO> findTaxonNameReferent(int referenceTaxonId) {
+    public Optional<TaxonNameVO> findReferentByReferenceTaxonId(int referenceTaxonId) {
 
         List<TaxonNameVO> taxonNames = findByFilter(
             TaxonNameFilterVO.builder()

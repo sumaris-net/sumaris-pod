@@ -221,7 +221,7 @@ public class TaxonGroupRepositoryImpl
                                 DateFormat.getDateInstance().format(history.getStartDate())));
                     }
 
-                    TaxonNameVO parent = taxonNameRepository.findTaxonNameReferent(directChildId)
+                    TaxonNameVO parent = taxonNameRepository.findReferentByReferenceTaxonId(directChildId)
                             .orElseThrow(() -> new SumarisTechnicalException("Cannot find taxon name for referenceTaxonId=" + directChildId));
                     List<TaxonName> children = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(ImmutableList.of(parent.getId()));
                     while (CollectionUtils.isNotEmpty(children)) {

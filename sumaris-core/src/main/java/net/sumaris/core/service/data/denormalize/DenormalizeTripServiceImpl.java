@@ -25,7 +25,6 @@ package net.sumaris.core.service.data.denormalize;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.model.ProgressionModel;
@@ -36,29 +35,34 @@ import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.TripVO;
-import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
+import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
 import net.sumaris.core.vo.filter.TripFilterVO;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 
 @Service("denormalizeTripService")
 @Slf4j
 public class DenormalizeTripServiceImpl implements DenormalizeTripService {
 
-    @Resource
+    @Autowired
     private SumarisConfiguration configuration;
 
-    @Resource
+    @Autowired
     private TripService tripService;
 
-    @Resource
+    @Autowired
     private DenormalizedBatchService denormalizedBatchService;
 
-    @Resource
+    @Autowired
     private OperationService operationService;
+
+    @Autowired(required = false)
+    private TaskExecutor taskExecutor;
 
     @Override
     public DenormalizeTripResultVO denormalizeByFilter(@NonNull TripFilterVO filter) {
@@ -86,7 +90,9 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
         int offset = 0;
         int pageSize = 10;
         int tripCount = 0;
-        int operationCount = 0;
+        MutableInt operationCount = new MutableInt(0);
+        MutableInt batchCount = new MutableInt(0);
+        MutableInt invalidBatchCount = new MutableInt(0);
         do {
             // Fetch some trips
             List<TripVO> trips = tripService.findByFilter(filter,
@@ -101,11 +107,14 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
             }
 
             // Denormalize each trip
-            operationCount += trips.stream()
+            trips.stream()
                 .map(TripVO::getId)
                 .map(this::denormalizeById)
-                .mapToLong(DenormalizeTripResultVO::getOperationCount)
-                .sum();
+                .forEach(result -> {
+                    operationCount.add(result.getOperationCount());
+                    batchCount.add(result.getBatchCount());
+                    invalidBatchCount.add(result.getInvalidBatchCount());
+                });
 
             offset += pageSize;
             tripCount += trips.size();
@@ -118,15 +127,19 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
 
         // Success log
         progression.setCurrent(tripCount);
-        progression.setMessage(String.format("Trips denormalization finished, in %s (%s trips, %s operations)",
+        progression.setMessage(String.format("Trips denormalization finished, in %s - %s trips, %s operations, %s batches - %s invalid batch tree (skipped)",
             TimeUtils.printDurationFrom(startTime),
             tripCount,
-            operationCount));
+            operationCount,
+            batchCount,
+            invalidBatchCount));
         log.debug(progression.getMessage());
 
         return DenormalizeTripResultVO.builder()
             .tripCount(tripCount)
-            .operationCount(operationCount)
+            .operationCount(operationCount.intValue())
+            .batchCount(batchCount.intValue())
+            .invalidBatchCount(invalidBatchCount.intValue())
             .executionTime(System.currentTimeMillis() - startTime)
             .build();
     }
@@ -136,10 +149,16 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
         long startTime = System.currentTimeMillis();
         long operationTotal = operationService.countByTripId(tripId);
 
+        // Load denormalized options
+        int programId = tripService.getProgramIdById(tripId);
+        DenormalizedBatchOptions options = denormalizedBatchService.createOptionsByProgramId(programId);
+
         boolean hasMoreData;
         int offset = 0;
         int pageSize = 10;
         int operationCount = 0;
+        MutableInt batchesCount = new MutableInt(0);
+        MutableInt errorCount = new MutableInt(0);
         do {
             // Fetch some operations
             List<OperationVO> operations = operationService.findAllByTripId(tripId,
@@ -152,10 +171,11 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
 
             operations.forEach(operation -> {
                 try {
-                    denormalizedBatchService.denormalizeAndSaveByOperationId(operation.getId());
+                    List<?> batches = denormalizedBatchService.denormalizeAndSaveByOperationId(operation.getId(), options);
+                    batchesCount.add(batches.size());
                 } catch (Exception e) {
                     log.error(e.getMessage());
-                    // Continue
+                    errorCount.increment();
                 }
             });
 
@@ -170,6 +190,8 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
         return DenormalizeTripResultVO.builder()
             .tripCount(1)
             .operationCount(operationCount)
+            .batchCount(batchesCount.intValue())
+            .invalidBatchCount(errorCount.intValue())
             .executionTime(System.currentTimeMillis() - startTime)
             .build();
     }

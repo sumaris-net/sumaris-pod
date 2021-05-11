@@ -25,7 +25,6 @@ package net.sumaris.core.extraction.action;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.action.ActionUtils;
 import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.extraction.exception.UnknownFormatException;
 import net.sumaris.core.extraction.format.ProductFormatEnum;

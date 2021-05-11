@@ -26,10 +26,12 @@ import net.sumaris.core.dao.data.DataSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.filter.OperationFilterVO;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
+import java.util.List;
 
 /**
  * @author peck7 on 01/09/2020.
@@ -52,4 +54,6 @@ public interface OperationSpecifications
         return specification;
     }
 
+
+    List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> operations);
 }

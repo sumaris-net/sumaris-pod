@@ -50,6 +50,7 @@ public class StrategyFilterVO implements IReferentialFilter {
 
     private String withProperty;
 
+    private Integer[] includedIds;
     private Integer[] excludedIds;
 
     /* -- Specific properties -- */

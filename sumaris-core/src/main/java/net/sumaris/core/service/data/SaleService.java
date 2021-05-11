@@ -47,6 +47,9 @@ public interface SaleService {
 	@Transactional(readOnly = true)
 	SaleVO get(int id, DataFetchOptions fetchOptions);
 
+	@Transactional(readOnly = true)
+	int getProgramIdById(int id);
+
 	List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sources);
 
 	SaleVO save(SaleVO sale);
