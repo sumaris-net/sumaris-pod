@@ -250,9 +250,7 @@
 
     <assembly.skip>false</assembly.skip>
 
-    <!-- to deploy with scpexe for maven 3 -->
-    <wagonSshVersion>3.0.0</wagonSshVersion>
-
+    <wagonSshVersion>3.4.3</wagonSshVersion>
   </properties>
 
 
