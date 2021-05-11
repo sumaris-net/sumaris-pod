@@ -4,11 +4,11 @@
     "BTN_CANCEL": "Cancel",
     "BTN_OK": "Ok",
     "BTN_ABORT_CHANGES": "Abort the changes",
-    "BTN_RESET": "Reset",
-    "BTN_CLEAR": "Clear",
     "BTN_ADD": "Add",
     "BTN_APPLY": "Apply",
-    "BTN_EDIT": "Edit",
+    "BTN_BURST_INPUT": "Burst mode",
+    "BTN_BURST_INPUT_HELP": "Enable burst mode",
+    "BTN_CLEAR": "Clear",
     "BTN_CLOSE": "Close",
     "BTN_DONE": "Done",
     "BTN_DOWNLOAD": "Download",
@@ -143,10 +143,11 @@
       "ANDROID_INSTALL_URL": "Android > Install App URL",
       "LOGO": "Menu > Logo (max width: 110px)",
       "FAVICON": "favicon",
+      "GRAVATAR_URL": "User > Gravatar URL (with '{md5}'",
+      "ENABLE_GRAVATAR": "User > Enable Gravatar ?",
       "DEFAULT_LOCALE": "Default Language",
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
       "NOT_SELF_DATA_ACCESS_MIN_ROLE": "User profile (min) to access other people data",
-      "NOT_SELF_EXTRACTION_ACCESS_MIN_ROLE": "User profile (min) to access to other people extractions",
       "APP_MIN_VERSION": "App > Minimal compatible version (x.y.z)",
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
@@ -193,7 +194,13 @@
       },
       "TESTING": "Developer mode ?",
       "ENTITY_TRASH": "Enable trash on pod?",
-      "ANALYTIC_REFERENCES_ENABLE": "Strategy > Analytic references: Enable?"
+      "ANALYTIC_REFERENCES_ENABLE": "Strategy > Analytic references: Enable?",
+      "AUTH_TOKEN_TYPE_PLACEHOLDER": "Security > Authentication type",
+      "AUTH_TOKEN_TYPE": {
+        "BASIC": "Basic",
+        "TOKEN": "Crypto",
+        "BASIC_AND_TOKEN": "Basic and crypto"
+      }
     },
     "CACHE": {
       "NAME": "Name",
@@ -354,6 +361,7 @@
     "TITLE": "User",
     "AVATAR": "Avatar",
     "EMAIL": "Email",
+    "USERNAME": "Username",
     "PASSWORD": "Password",
     "FIRST_NAME": "First name",
     "LAST_NAME": "Last name",
@@ -1206,20 +1214,32 @@
       "TRIP_LATITUDE_DEFAULT_SIGN": "Position > Latitude: Default direction:",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Position > Longitude: Default direction:",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation > End date?",
+      "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Observation > Add landing: Can add vessel?",
+      "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Observation > Add landing: Show history?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Observation > Location level",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Observation > Weekly activity calendar?",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Observation > Weekly activity calendar > Target program",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Observation > Weekly activity calendar > First day of the week",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Observation > Weekly activity calendar > Number of days in the week",
       "LANDING_EDITOR": "Observation > Landing: editor",
       "LANDING_EDITOR_LANDING": "Landing",
       "LANDING_EDITOR_CONTROL": "Control",
       "LANDING_EDITOR_TRIP": "Fishing trip",
-      "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Date?",
+      "LANDING_EDITOR_SAMPLING": "Biological parameters",
+      "LANDING_CREATION_DATE_ENABLE": "Observation > Landings: Show creation date?",
+      "LANDING_RECORDER_PERSON_ENABLE": "Observation > Landings: Show recorder?",
+      "LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE": "Observation > Landings: Show base harbour?",
+      "LANDING_STRATEGY_ENABLE": "Observation > Landing : Enter strategy?",
+      "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Enter date?",
       "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
+      "LANDING_LOCATION_ENABLE": "Observation > Landings : Voir le Port ?",
+      "LANDING_ONE_TAB_ENABLE": "Observation > Landing: single tab?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
-      "MEASUREMENTS_MOBILE_MAX_VISIBLE_BUTTONS": "Qualitative values > Max nb buttons  (mobile)",
-      "SIMPLE_STRATEGIES": "Simple strategies",
-      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME" : "Strategy > PMFM array > Column name",
-      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.SHORT_NAME" : "PMFM",
-      "PROGRAM_STRATEGY_EDITOR_PMFM_TABLE_COLUMN_NAME.LONG_NAME" : "Collected parameter (PMFM)",
-      "STRATEGY_SIMPLE_STRATEGIES_ENABLE": "Strategy : Simple strategies?"
+      "PROGRAM_STRATEGY_EDITOR" : "Strategy > editor",
+      "PROGRAM_STRATEGY_EDITOR_LEGACY": "Default",
+      "PROGRAM_STRATEGY_EDITOR_SAMPLING": "Biological parameters",
+      "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Qualitative values > Max nb buttons (mobile)",
+      "VESSEL_TYPE_ENABLE": "Vessels > Enable vessel type?"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Acquisition levels",
@@ -1354,9 +1374,8 @@
     }
   },
   "EXTRACTION": {
-    "BTN_DOWNLOAD_FILE": "Download as CSV",
-    "BTN_AGGREGATE": "Aggregate",
-    "BTN_AGGREGATE_HELP": "Allow to create a new aggregated output",
+    "BTN_DOWNLOAD_HELP": "Download data (CSV)",
+    "BTN_SAVE_HELP": "Allow to create a product",
     "SPATIAL_AGGREGATION": "Create a spatial aggregation",
     "BTN_PUBLISH": "Publish",
     "BTN_UNPUBLISH": "Make private",
@@ -1372,13 +1391,14 @@
         "IS_SPATIAL": "Spatial aggregation?",
         "BTN_OPEN_MAP": "Show map",
         "BTN_PREVIEW_DOC": "Preview doc",
-        "STRATUM_DOTS": "Stratum :",
-        "FORMAT_DOTS": "Documentation :",
+        "STRATUM_DOTS": "Spatial layers:",
+        "FORMAT_DOTS": "Documentation:",
         "MARKDOWN_HELP": "Use <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a> format",
         "FORMAT_PLACEHOLDER": "Décrivez le format de sortie...",
-        "FORMAT_PREVIEW": "Preview",
+        "FORMAT_PREVIEW_DOTS": "Preview:",
+        "PROCESSING_FREQUENCY": "Processing frequency",
         "STRATA": {
-          "SHEET_NAME": "Sheet",
+          "SHEET_NAME": "Layer",
           "TIME_COLUMN": "Temporal",
           "SPACE_COLUMN": "Geometry",
           "AGG_COLUMN": "Agg column",
@@ -1393,6 +1413,13 @@
           "PUBLIC": "Visibility: public",
           "PRIVATE": "Visibility: private",
           "DISABLE": "Disabling"
+        },
+        "PROCESSING_FREQUENCY_ENUM": {
+          "NEVER": "Never",
+          "MANUALLY": "ManuallyManuelle",
+          "DAILY": "Daily",
+          "WEEKLY": "Weekly",
+          "MONTHLY": "Monthly"
         }
       }
     },
@@ -1404,6 +1431,8 @@
       "CRITERION_END_VALUE": "End",
       "BTN_ADD_CRITERION": "Add a search criterion",
       "BETWEEN": "between",
+      "NULL": "null",
+      "NOT_NULL": "not null",
       "HELP": "To filter quickly, click in the cell. Hold 'Ctrl' to filter on multiple values.",
       "NO_FILTER_PARENTHESIS": "(no filter)",
       "WITH_FILTER_PARENTHESIS": "(filtered)"
@@ -1419,7 +1448,8 @@
       "BTN_SELECT_TYPE": "Data sources"
     },
     "MAP": {
-      "BTN_SELECT_TYPE": "List of maps",
+      "BTN_MAP_LIST": "List of maps",
+      "BTN_MAPS": "Maps",
       "BTN_SELECT_TYPE_HELP": "Show all availables maps",
       "BTN_SELECT_AGG": "Indicator ?",
       "BTN_ADD_CHART": "Chart...",
@@ -1536,13 +1566,13 @@
     },
     "LIVE": {
       "RDB": {
-        "TITLE": "Raw data (RDB v1.3)"
+        "TITLE": "Raw trips (RDB v1.3)"
       },
       "COST": {
-        "TITLE": "Raw data (COST v1.4)"
+        "TITLE": "Raw trips (COST v1.4)"
       },
       "FREE1": {
-        "TITLE": "Raw data (FREE v{{version}})"
+        "TITLE": "Raw trips (FREE v{{version}})"
       },
       "FREE2": {
         "TITLE": "Raw data (FREE2 v{{version}})",
@@ -1557,10 +1587,16 @@
         }
       },
       "SURVIVAL_TEST": {
-        "TITLE": "Raw data (SUMARiS v1.0)"
+        "TITLE": "Raw trips (SUMARiS v1.0)"
+      },
+      "RJB": {
+        "TITLE": "Raw RJB trips (RJB v{{version}})"
+      },
+      "PMFM_TRIP": {
+        "TITLE": "Raw trips (dynamic format)"
       },
       "STRAT": {
-        "TITLE": "Data collection strategy",
+        "TITLE": "Data collection strategies",
         "SHEET": {
           "ST": "Strategies",
           "SM": "Strategy monitoring"
@@ -1691,10 +1727,16 @@
     "DELETE_TRASH_ENTITY_ERROR": "Error while deleting the trash file",
     "ENTITY_STORAGE_MIGRATION_FAILED": "Failed to migrate the local database",
     "STARTUP_FAILED": "Startup failed",
+    "LOAD_ENTITY_ERROR": "Error while loading",
+    "LOAD_ENTITIES_ERROR": "Error when loading the list",
+    "SAVE_ENTITY_ERROR": "Error while saving",
+    "SAVE_ENTITIES_ERROR": "Error while saving the list",
+    "SUBSCRIBE_ENTITY_ERROR": "Error while subscribing to remte changes",
+    "CONTROL_ENTITY_ERROR": "Error while checking data validity",
     "TERMINATE_ENTITY_ERROR": "Cannot terminate entry. <small><br/>If the problem persists, please contact your administrator.</small>",
-    "VALIDATE_ENTITY_ERROR": "Error while validating data",
+    "VALIDATE_ENTITY_ERROR": "Error when validating data",
     "UNVALIDATE_ENTITY_ERROR": "Error while un-validating data",
-    "QUALIFY_ENTITY_ERROR": "Error while qualifying data",
+    "QUALIFY_ENTITY_ERROR": "Error when qualifying data",
     "SYNCHRONIZE_ENTITY_ERROR": "Cannot synchronize. <small><br/>If the problem persists, please contact your administrator.</small>",
     "LOAD_ERROR": "Error while loading",
     "SAVE_ERROR": "Error while saving",
