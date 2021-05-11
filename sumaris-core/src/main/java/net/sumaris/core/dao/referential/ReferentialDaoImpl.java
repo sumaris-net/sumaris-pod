@@ -628,7 +628,7 @@ public class ReferentialDaoImpl
         if (statusIdsClause != null) {
             whereClause = (whereClause == null) ? statusIdsClause : builder.and(whereClause, statusIdsClause);
         }
-        if (excludedIdsParam != null) {
+        if (includedIdsParam != null) {
             whereClause = (whereClause == null) ? includedClause : builder.and(whereClause, includedClause);
         }
         if (excludedIdsParam != null) {
