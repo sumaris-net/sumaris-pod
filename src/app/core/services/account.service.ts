@@ -655,6 +655,7 @@ export class AccountService extends BaseGraphqlService {
 
     if (this._debug) console.debug(`[account] Account restoration...`);
 
+    this.data.authToken = token;
     this.data.pubkey = pubkey;
     this.data.keypair = seckey && {
       publicKey: Base58.decode(pubkey),
