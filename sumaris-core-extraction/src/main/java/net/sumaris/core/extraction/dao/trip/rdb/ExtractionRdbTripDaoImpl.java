@@ -54,8 +54,6 @@ import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
@@ -67,7 +65,6 @@ import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.nuiton.i18n.I18n.t;
@@ -528,7 +525,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         // Load strategies
         List<ExtractionPmfmColumnVO> result = strategyService.findByFilter(StrategyFilterVO.builder()
-                .levelLabels(programLabels.toArray(new String[0]))
+                .programLabels(programLabels.toArray(new String[0]))
                 // TODO: filtrer les strategies via la periode du filtre (si présente) ?
                 // .startDate(...).endDate(...)
                 .build(), Pageable.unpaged(), StrategyFetchOptions.DEFAULT)

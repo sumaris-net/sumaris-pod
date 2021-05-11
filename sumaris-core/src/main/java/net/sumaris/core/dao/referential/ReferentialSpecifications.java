@@ -127,14 +127,13 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     }
 
     default Specification<E> searchOrJoinSearchText(IReferentialFilter filter) {
-        String searchText = Daos.getEscapedSearchText(filter.getSearchText());
         String searchJoinProperty = filter.getSearchJoin() != null ? StringUtils.uncapitalize(filter.getSearchJoin()) : null;
         if (StringUtils.isNotBlank(searchJoinProperty)) {
-            return joinSearchText(searchJoinProperty, filter.getSearchAttribute(), searchText);
+            return joinSearchText(searchJoinProperty, filter.getSearchAttribute(), filter.getSearchText());
         } else {
             return searchText(
                 StringUtils.isNotBlank(filter.getSearchAttribute()) ? ArrayUtils.toArray(filter.getSearchAttribute()) : null,
-                searchText);
+                filter.getSearchText());
         }
     }
 
@@ -163,7 +162,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
                 criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.upper(criteriaBuilder.concat("%", searchTextParam)))
             );
         });
-        specification.addBind(SEARCH_TEXT_PARAMETER, searchText);
+        specification.addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText));
         return specification;
     }
 
@@ -182,11 +181,13 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
                 join = join.join(joinProperties[i], JoinType.INNER);
             }
 
+            // Search on given attribute
             if (StringUtils.isNotBlank(searchAttribute)) {
                 return criteriaBuilder.or(
                     criteriaBuilder.isNull(searchTextParam),
                     criteriaBuilder.like(criteriaBuilder.upper(join.get(searchAttribute)), criteriaBuilder.upper(searchTextParam)));
             }
+
             // Search on label+name
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(searchTextParam),
@@ -194,7 +195,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
                 criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.upper(criteriaBuilder.concat("%", searchTextParam)))
             );
         });
-        specification.addBind(SEARCH_TEXT_PARAMETER, searchText);
+        specification.addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText));
         return specification;
     }
 

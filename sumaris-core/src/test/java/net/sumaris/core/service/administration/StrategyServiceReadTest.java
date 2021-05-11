@@ -28,11 +28,13 @@ import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
+import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -148,4 +150,28 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
         Assert.assertEquals("2020-BIO-0003", label);
     }
 
+
+    @Test
+    public void findByFilter() {
+        // Filter by program
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                .programLabels(new String[]{fixtures.getDefaultProgram().getLabel()})
+                .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(1, strategies.size());
+        }
+
+        // Filter by reference taxon
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                .referenceTaxonIds(new Integer[]{1006})
+                .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(1, strategies.size()); // Should be from the PARAM-BIO program
+        }
+    }
 }

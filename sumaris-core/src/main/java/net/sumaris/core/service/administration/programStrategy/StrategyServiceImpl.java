@@ -89,7 +89,9 @@ public class StrategyServiceImpl implements StrategyService {
 
 	@Override
 	public List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions) {
-		return strategyRepository.findAll(StrategyFilterVO.builder().programId(programId).build(), fetchOptions);
+		return strategyRepository.findAll(StrategyFilterVO.builder()
+				.programIds(new Integer[]{programId})
+			.build(), fetchOptions);
 	}
 
 	@Override

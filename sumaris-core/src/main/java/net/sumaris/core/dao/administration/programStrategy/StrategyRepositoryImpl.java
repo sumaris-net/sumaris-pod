@@ -277,7 +277,8 @@ public class StrategyRepositoryImpl
         super.onBeforeSaveEntity(vo, entity, isNew);
 
         // Verify label is unique by program
-        long count = this.findAll(StrategyFilterVO.builder().programId(vo.getProgramId()).label(vo.getLabel()).build())
+        long count = this.findAll(StrategyFilterVO.builder()
+            .programIds(new Integer[]{vo.getProgramId()}).label(vo.getLabel()).build())
                 .stream()
                 .filter(s -> isNew || !Objects.equals(s.getId(), vo.getId()))
                 .count();
@@ -346,7 +347,11 @@ public class StrategyRepositoryImpl
         Specification<Strategy> spec = super.toSpecification(filter, fetchOptions);
         if (filter.getId() != null) return spec;
         return spec
-            .and(hasProgramIds(filter))
+
+            // Not need, has already defined using levelIds, in the super function
+            //.and(hasProgramIds(filter))
+
+            .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()));
     }
 

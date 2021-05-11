@@ -55,25 +55,16 @@ public class StrategyFilterVO implements IReferentialFilter {
 
     /* -- Specific properties -- */
 
-    private Integer programId;
     private Integer[] programIds;
-
-    // TODO BLA renommer en programLabel ?
-    private String levelLabel;
-    private String[] levelLabels;
+    private String[] programLabels;
 
     private Date startDate;
     private Date endDate;
 
+    private Integer[] referenceTaxonIds;
+
     /* -- Synonym properties (need by IReferentialFilter) -- */
 
-    public Integer getLevelId() {
-        return programId;
-    }
-
-    public void setLevelId(Integer levelId) {
-        this.programId = levelId;
-    }
 
     public Integer[] getLevelIds() {
         return programIds;
@@ -81,5 +72,13 @@ public class StrategyFilterVO implements IReferentialFilter {
 
     public void setLevelIds(Integer[] levelIds) {
         this.programIds = levelIds;
+    }
+
+    public String[] getLevelLabels() {
+        return programLabels;
+    }
+
+    public void setLevelLabels(String[] levelLabels) {
+        this.programLabels = levelLabels;
     }
 }
