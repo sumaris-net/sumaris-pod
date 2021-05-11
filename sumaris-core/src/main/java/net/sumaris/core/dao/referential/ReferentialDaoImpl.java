@@ -505,6 +505,7 @@ public class ReferentialDaoImpl
         String searchText = StringUtils.trimToNull(filter.getSearchText());
         String searchAttribute = StringUtils.trimToNull(filter.getSearchAttribute());
         Integer[] statusIds = filter.getStatusIds();
+        Integer[] includedIds = filter.getIncludedIds();
         Integer[] excludedIds = filter.getExcludedIds();
 
         // Level Ids
@@ -622,6 +623,16 @@ public class ReferentialDaoImpl
         }
 
         // Excluded Ids
+        Predicate includedClause = null;
+        ParameterExpression<Collection> includedIdsParam = null;
+        if (ArrayUtils.isNotEmpty(includedIds)) {
+            includedIdsParam = builder.parameter(Collection.class);
+            includedClause = builder.not(
+                builder.in(entityRoot.get(IEntity.Fields.ID)).value(includedIdsParam)
+            );
+        }
+
+        // Excluded Ids
         Predicate excludedClause = null;
         ParameterExpression<Collection> excludedIdsParam = null;
         if (ArrayUtils.isNotEmpty(excludedIds)) {
@@ -650,6 +661,9 @@ public class ReferentialDaoImpl
 
         if (statusIdsClause != null) {
             whereClause = (whereClause == null) ? statusIdsClause : builder.and(whereClause, statusIdsClause);
+        }
+        if (excludedIdsParam != null) {
+            whereClause = (whereClause == null) ? includedClause : builder.and(whereClause, includedClause);
         }
         if (excludedIdsParam != null) {
             whereClause = (whereClause == null) ? excludedClause : builder.and(whereClause, excludedClause);
@@ -697,6 +711,9 @@ public class ReferentialDaoImpl
         }
         if (statusIdsClause != null) {
             typedQuery.setParameter(statusIdsParam, ImmutableList.copyOf(statusIds));
+        }
+        if (includedClause != null) {
+            typedQuery.setParameter(includedIdsParam, ImmutableList.copyOf(includedIds));
         }
         if (excludedClause != null) {
             typedQuery.setParameter(excludedIdsParam, ImmutableList.copyOf(excludedIds));
