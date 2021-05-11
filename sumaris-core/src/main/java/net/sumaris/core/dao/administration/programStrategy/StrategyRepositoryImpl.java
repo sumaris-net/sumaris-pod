@@ -83,9 +83,6 @@ public class StrategyRepositoryImpl
     private DenormalizedPmfmStrategyRepository denormalizedPmfmStrategyRepository;
 
     @Autowired
-    private PmfmRepository pmfmRepository;
-
-    @Autowired
     private TaxonNameRepository taxonNameRepository;
 
     @Autowired
