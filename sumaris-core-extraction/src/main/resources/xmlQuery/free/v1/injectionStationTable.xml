@@ -39,7 +39,7 @@
   <select alias="EFFECTIVE_EFFORT" type="number"><![CDATA[
     (SELECT PGM.NUMERICAL_VALUE FROM PHYSICAL_GEAR_MEASUREMENT PGM
     WHERE
-      PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK in (&headlineCumulativeLengthPmfmId, &beamCumulativeLengthPmfmId, &netLengthPmfmId)
+      PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK in (&effortPmfmIds)
     )]]></select>
 
 </query>

@@ -22,13 +22,15 @@ package net.sumaris.core.vo.referential;
  * #L%
  */
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @FieldNameConstants
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ReferentialVO implements IReferentialVO {

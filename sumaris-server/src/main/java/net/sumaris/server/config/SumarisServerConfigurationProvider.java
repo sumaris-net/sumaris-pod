@@ -24,8 +24,6 @@ package net.sumaris.server.config;
  * #L%
  */
 
-import net.sumaris.core.config.SumarisConfigurationOption;
-import net.sumaris.core.config.SumarisCoreConfigurationAction;
 import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ConfigActionDef;
 import org.nuiton.config.ConfigOptionDef;

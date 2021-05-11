@@ -29,8 +29,6 @@ import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JndiConnectionFactoryAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
@@ -56,10 +54,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 })
 @EnableAsync
 @Component("rdf-application")
-public class Application extends net.sumaris.core.Application {
+public class Application extends net.sumaris.cli.Application {
 
     public static void run(String[] args, String configFile) {
-        net.sumaris.core.Application.run(Application.class, args, configFile);
+        net.sumaris.cli.Application.run(Application.class, args, configFile);
     }
 
     public static void main(String[] args) {

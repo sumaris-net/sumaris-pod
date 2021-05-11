@@ -25,6 +25,7 @@ package net.sumaris.core.extraction.vo;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 
 import java.util.Date;
@@ -40,8 +41,12 @@ import java.util.List;
 @FieldNameConstants
 public class AggregationTypeVO extends ExtractionTypeVO {
 
-    String documentation;
+    /**
+     * The extraction filter used to create data. Useful to refresh the aggregation
+     */
     String filter;
+    Integer processingFrequencyId;
+    String documentation;
 
     Date updateDate;
     Date creationDate;

@@ -45,8 +45,9 @@ import java.util.Set;
 @Entity
 @Table(name = "sale")
 public class Sale implements IRootDataEntity<Integer>,
-        IWithVesselEntity<Integer, Vessel>,
-        IWithProductsEntity<Integer, Product> {
+    IWithVesselEntity<Integer, Vessel>,
+    IWithBatchesEntity<Integer, Batch>,
+    IWithProductsEntity<Integer, Product> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SALE_SEQ")
@@ -124,6 +125,10 @@ public class Sale implements IRootDataEntity<Integer>,
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Product.class, mappedBy = Product.Fields.SALE)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Product> products = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Batch.class, mappedBy = Batch.Fields.SALE)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<Batch> batches;
 
     /* -- measurements -- */
 

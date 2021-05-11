@@ -26,11 +26,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.GraphQLSchema;
 import io.leangen.graphql.GraphQLSchemaGenerator;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
+import io.leangen.graphql.metadata.strategy.query.OperationInfoGenerator;
+import io.leangen.graphql.metadata.strategy.query.OperationInfoGeneratorParams;
 import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFactory;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.server.graphql.AggregationGraphQLService;
 import net.sumaris.server.graphql.ExtractionGraphQLService;
+import net.sumaris.server.http.graphql.administration.AccountGraphQLService;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
 import net.sumaris.server.http.graphql.administration.ProgramGraphQLService;
 import net.sumaris.server.http.graphql.data.DataGraphQLService;
@@ -39,12 +42,17 @@ import net.sumaris.server.http.graphql.referential.ReferentialExternalGraphQLSer
 import net.sumaris.server.http.graphql.referential.ReferentialGraphQLService;
 import net.sumaris.server.http.graphql.security.AuthGraphQLService;
 import net.sumaris.server.http.graphql.social.SocialGraphQLService;
-import net.sumaris.server.http.graphql.technical.ConfigurationGraphQLService;
-import net.sumaris.server.http.graphql.technical.DefaultTypeTransformer;
-import net.sumaris.server.http.graphql.technical.TrashGraphQLService;
+import net.sumaris.server.http.graphql.technical.*;
+import net.sumaris.server.http.ontology.RestPaths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
@@ -59,10 +67,16 @@ import java.io.Serializable;
 public class GraphQLConfiguration implements WebSocketConfigurer {
 
     @Autowired
+    private AccountGraphQLService accountGraphQLService;
+
+    @Autowired
     private AdministrationGraphQLService administrationService;
 
     @Autowired
     private ProgramGraphQLService programService;
+
+    @Autowired
+    private SoftwareGraphQLService softwareService;
 
     @Autowired
     private ConfigurationGraphQLService configurationService;
@@ -91,6 +105,9 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     @Autowired(required = false)
     private AggregationGraphQLService aggregationGraphQLService;
 
+    @Autowired(required = false)
+    private CacheGraphQLService cacheGraphQLService;
+
     @Autowired
     private AuthGraphQLService authGraphQLService;
 
@@ -98,40 +115,60 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     private ObjectMapper objectMapper;
 
     @Bean
+    public WebMvcConfigurer configureGraphQL() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                // Enable Global CORS support for the application
+                //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
+                registry.addMapping(GraphQLPaths.BASE_PATH)
+                    .allowedOriginPatterns("*")
+                    .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
+                    .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
+                    .allowCredentials(true);
+            }
+        };
+    }
+
+
+    @Bean
     public GraphQLSchema graphQLSchema() {
 
         log.info("Generating GraphQL schema (using SPQR)...");
 
         GraphQLSchemaGenerator generator = new GraphQLSchemaGenerator()
-                .withResolverBuilders(new AnnotatedResolverBuilder())
+            .withResolverBuilders(new AnnotatedResolverBuilder())
 
-                // Auth and technical
-                .withOperationsFromSingleton(authGraphQLService, AuthGraphQLService.class)
-                .withOperationsFromSingleton(configurationService, ConfigurationGraphQLService.class)
-                .withOperationsFromSingleton(trashService, TrashGraphQLService.class)
+            // Auth and technical
+            .withOperationsFromSingleton(authGraphQLService, AuthGraphQLService.class)
+            .withOperationsFromSingleton(accountGraphQLService, AccountGraphQLService.class)
+            .withOperationsFromSingleton(softwareService, SoftwareGraphQLService.class)
+            .withOperationsFromSingleton(configurationService, ConfigurationGraphQLService.class)
+            .withOperationsFromSingleton(trashService, TrashGraphQLService.class)
 
-                // Administration & Referential
-                .withOperationsFromSingleton(administrationService, AdministrationGraphQLService.class)
-                .withOperationsFromSingleton(programService, ProgramGraphQLService.class)
-                .withOperationsFromSingleton(referentialService, ReferentialGraphQLService.class)
-                .withOperationsFromSingleton(pmfmService, PmfmGraphQLService.class)
-                .withOperationsFromSingleton(referentialExternalService, ReferentialExternalGraphQLService.class)
+            // Administration & Referential
+            .withOperationsFromSingleton(administrationService, AdministrationGraphQLService.class)
+            .withOperationsFromSingleton(programService, ProgramGraphQLService.class)
+            .withOperationsFromSingleton(referentialService, ReferentialGraphQLService.class)
+            .withOperationsFromSingleton(pmfmService, PmfmGraphQLService.class)
+            .withOperationsFromSingleton(referentialExternalService, ReferentialExternalGraphQLService.class)
 
-                // Data
-                .withOperationsFromSingleton(dataService, DataGraphQLService.class)
+            // Data
+            .withOperationsFromSingleton(dataService, DataGraphQLService.class)
 
-                // Social
-                .withOperationsFromSingleton(socialService, SocialGraphQLService.class)
+            // Social
+            .withOperationsFromSingleton(socialService, SocialGraphQLService.class)
 
-                .withTypeTransformer(new DefaultTypeTransformer(false, true)
-                        // Replace unbounded IEntity<ID> with IEntity<Serializable>
-                        .addUnboundedReplacement(IEntity.class, Serializable.class))
+            .withTypeTransformer(new DefaultTypeTransformer(false, true)
+                // Replace unbounded IEntity<ID> with IEntity<Serializable>
+                .addUnboundedReplacement(IEntity.class, Serializable.class))
 
-                .withValueMapperFactory(new JacksonValueMapperFactory.Builder()
-                        .withPrototype(objectMapper)
-                        .build());
+            .withValueMapperFactory(new JacksonValueMapperFactory.Builder()
+                .withPrototype(objectMapper)
+                .build());
 
         // Add optional services
+        if (cacheGraphQLService != null) generator.withOperationsFromSingleton(cacheGraphQLService, CacheGraphQLService.class);
         if (extractionGraphQLService != null) generator.withOperationsFromSingleton(extractionGraphQLService, ExtractionGraphQLService.class);
         if (aggregationGraphQLService != null) generator.withOperationsFromSingleton(aggregationGraphQLService, AggregationGraphQLService.class);
 
@@ -145,7 +182,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
         webSocketHandlerRegistry
                 .addHandler(webSocketHandler(), GraphQLPaths.BASE_PATH)
-                .setAllowedOrigins("*") // TODO Spring update will need to change this to allowedOriginPatterns()
+                .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
 

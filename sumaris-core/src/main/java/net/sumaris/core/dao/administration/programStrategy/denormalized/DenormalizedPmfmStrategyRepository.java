@@ -27,8 +27,10 @@ import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
+import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 
 import java.util.List;
 
@@ -36,9 +38,9 @@ public interface DenormalizedPmfmStrategyRepository
     extends SumarisJpaRepository<PmfmStrategy, Integer, DenormalizedPmfmStrategyVO>,
         PmfmStrategySpecifications {
 
-    List<DenormalizedPmfmStrategyVO> findByStrategyId(int strategyId, StrategyFetchOptions fetchOptions);
+    List<DenormalizedPmfmStrategyVO> findByFilter(PmfmStrategyFilterVO filter, PmfmStrategyFetchOptions fetchOptions);
 
-    DenormalizedPmfmStrategyVO toVO(PmfmStrategy source, StrategyFetchOptions fetchOptions);
+    DenormalizedPmfmStrategyVO toVO(PmfmStrategy source, PmfmStrategyFetchOptions fetchOptions);
 
-    DenormalizedPmfmStrategyVO toVO(PmfmStrategy source, Pmfm pmfm, StrategyFetchOptions fetchOptions);
+    DenormalizedPmfmStrategyVO toVO(PmfmStrategy source, Pmfm pmfm, PmfmStrategyFetchOptions fetchOptions);
 }

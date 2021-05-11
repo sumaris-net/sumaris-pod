@@ -52,7 +52,7 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F extends ExtractionFilterVO>
         extends ExtractionRdbTripDaoImpl<C, F>
-        implements ExtractionFree2TripDao<C, F>, Free2Specification {
+        implements Free2Specification {
 
     private static final String XML_QUERY_FREE_PATH = "free2/v%s/%s";
 
@@ -72,32 +72,60 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
     protected ExtractionTableDao extractionTableDao;
 
     @Override
-    public <R extends C> R execute(F filter) {
-        String sheetName = filter != null ? filter.getSheetName() : null;
+    public LiveFormatEnum getFormat() {
+        return LiveFormatEnum.FREE2;
+    }
 
+    @Override
+    public <R extends C> R execute(F filter) {
+        boolean isPreview = filter.isPreview();
+        String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
+
+        // Trip
+        filter.setSheetName(Free2Specification.TRIP_SHEET_NAME); // Force to execute only Trip
+        filter.setPreview(true);
         R context = super.execute(filter);
 
-        // Override some context properties
+        // Restore original values (before was forced to Trip)
+        filter.setPreview(isPreview);
+        filter.setSheetName(sheetName);
+
         context.setFormat(LiveFormatEnum.FREE2);
 
         // Stop here, if sheet already filled
         if (sheetName != null && context.hasSheet(sheetName)) return context;
 
-        // Gear table
-        long rowCount = createGearTable(context);
+        // Station
+        long rowCount = createStationTable(context);
         if (rowCount == 0) return context;
         if (sheetName != null && context.hasSheet(sheetName)) return context;
+
+        // Gear table
+        rowCount = createGearTable(context);
+        if (sheetName != null && context.hasSheet(sheetName)) return context;
+
+        // Species Raw table
+        rowCount = createRawSpeciesListTable(context, true /*exclude invalid station*/);
+        if (rowCount == 0) return context;
 
         // Strategy table
         rowCount = createStrategyTable(context);
         if (rowCount == 0) return context;
         if (sheetName != null && context.hasSheet(sheetName)) return context;
 
-        // Strategy table
+        // Detail table
         rowCount = createDetailTable(context);
+        if (sheetName != null && context.hasSheet(sheetName)) return context;
+
+        // Captures table
+        rowCount = createSpeciesListTable(context);
         if (rowCount == 0) return context;
         if (sheetName != null && context.hasSheet(sheetName)) return context;
 
+        // Mesures
+        rowCount = createSpeciesLengthTable(context);
+        if (rowCount == 0) return context;
+        if (sheetName != null && context.hasSheet(sheetName)) return context;
 
         return context;
     }
@@ -140,7 +168,10 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         xmlQuery.bind("tripTableName", context.getTripTableName());
 
         // Bind some referential ids
-        xmlQuery.bind("contractCodePmfmId", String.valueOf(PmfmEnum.CONTRACT_CODE.getId()));
+        xmlQuery.bind("contractCodePmfmIds", Daos.getSqlInNumbers(
+            PmfmEnum.CONTRACT_CODE.getId(),
+            PmfmEnum.SELF_SAMPLING_PROGRAM.getId()
+        ));
 
         // Date filters
         xmlQuery.setGroup("startDateFilter", context.getStartDate() != null);
@@ -181,24 +212,15 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
 
         xmlQuery.bind("meshSizePmfmId", String.valueOf(PmfmEnum.SMALLER_MESH_GAUGE_MM.getId()));
 
-        xmlQuery.bind("headlineCumulativeLengthPmfmId", String.valueOf(PmfmEnum.HEADLINE_CUMULATIVE_LENGTH.getId()));
-        xmlQuery.bind("beamCumulativeLengthPmfmId", String.valueOf(PmfmEnum.BEAM_CUMULATIVE_LENGTH.getId()));
-        xmlQuery.bind("netLengthPmfmId", String.valueOf(PmfmEnum.NET_LENGTH.getId()));
+        xmlQuery.bind("effortPmfmIds", Daos.getSqlInNumbers(
+            PmfmEnum.HEADLINE_CUMULATIVE_LENGTH.getId(),
+            PmfmEnum.BEAM_CUMULATIVE_LENGTH.getId(),
+            PmfmEnum.NET_LENGTH.getId()));
 
-        xmlQuery.bind("gearSpeedPmfmId", String.valueOf(PmfmEnum.GEAR_SPEED.getId()));
-
+        xmlQuery.bind("gearSpeedPmfmIds", String.valueOf(PmfmEnum.GEAR_SPEED.getId()));
 
         xmlQuery.bind("selectionDevicePmfmId", String.valueOf(PmfmEnum.SELECTIVITY_DEVICE.getId()));
-
-
-        // TODO: add SIH Ifremer missing parameters (see FREE1 format specification) ?
-        //        TOTAL_LENGTH_HAULED Longueur levée,               = NET_LENGTH ?
-        //        TOTAL_NB_HOOKS Nombre total d'hameçons,           missing in SUMARIS
-        //        NB_FISH_POT Nombre de casiers nasses ou poches,   missing in SUMARIS
-        //        HEADLINE_LENGTH Longueur de la corde de dos (cumulée si jumeaux),   = HEADLINE_CUMULATIVE_LENGTH ?
-        //        WIDTH_GEAR Largeur cumulée (drague),              missing in SUMARIS
-        //        SEINE_LENGTH Longueur de la bolinche ou senne     missing in SUMARIS
-
+        xmlQuery.bind("acousticDeterrentDevicePmfmId", String.valueOf(PmfmEnum.ACOUSTIC_DETERRENT_DEVICE.getId()));
 
         return xmlQuery;
     }
@@ -356,9 +378,7 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
     }
 
     protected long createSpeciesLengthTable(C context) {
-
-        // TODO
-       return 0;
+        return super.createSpeciesLengthTable(context);
     }
 
     protected String getQueryFullName(C context, String queryName) {
@@ -366,17 +386,6 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         Preconditions.checkNotNull(context.getVersion());
 
         String versionStr = VERSION_1_9.replaceAll("[.]", "_");
-        switch (queryName) {
-            case "createTripTable":
-            case "createStationTable":
-            case "createRawSpeciesListTable":
-            case "createSpeciesListTable":
-            case "createStrategyTable":
-            case "createDetailTable":
-            case "createGearTable":
-                return String.format(XML_QUERY_FREE_PATH, versionStr, queryName);
-            default:
-                return super.getQueryFullName(context, queryName);
-        }
+        return String.format(XML_QUERY_FREE_PATH, versionStr, queryName);
     }
 }

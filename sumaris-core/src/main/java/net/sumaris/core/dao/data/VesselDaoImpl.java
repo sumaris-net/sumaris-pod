@@ -262,7 +262,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
                 features.setId(featuresEntity.getId());
             } else {
                 // Update features
-                VesselFeatures featuresEntity = getOne(VesselFeatures.class, features.getId());
+                VesselFeatures featuresEntity = getById(VesselFeatures.class, features.getId());
                 lockForUpdate(featuresEntity);
                 vesselFeaturesVOToEntity(features, featuresEntity, true);
                 featuresEntity.setUpdateDate(newUpdateDate);
@@ -288,7 +288,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
                 source.getRegistration().setId(periodEntity.getId());
             } else {
                 // Update period
-                VesselRegistrationPeriod registrationEntity = getOne(VesselRegistrationPeriod.class, registration.getId());
+                VesselRegistrationPeriod registrationEntity = getById(VesselRegistrationPeriod.class, registration.getId());
                 lockForUpdate(registrationEntity);
                 vesselRegistrationPeriodVOToEntity(registration, registrationEntity, true);
                 // Update entity
@@ -513,7 +513,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             if (source.getVesselType() == null) {
                 target.setVesselType(null);
             } else {
-                target.setVesselType(load(VesselType.class, source.getVesselType().getId()));
+                target.setVesselType(getReference(VesselType.class, source.getVesselType().getId()));
             }
         }
 
@@ -522,7 +522,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             if (source.getStatusId() == null) {
                 target.setStatus(null);
             } else {
-                target.setStatus(load(Status.class, source.getStatusId()));
+                target.setStatus(getReference(Status.class, source.getStatusId()));
             }
         }
 
@@ -531,7 +531,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             String defaultProgramLabel = getConfig().getVesselDefaultProgramLabel();
             ProgramVO defaultProgram =  StringUtils.isNotBlank(defaultProgramLabel) ? programRepository.getByLabel(defaultProgramLabel) : null;
             if (defaultProgram  != null && defaultProgram.getId() != null) {
-                target.setProgram(load(Program.class, defaultProgram.getId()));
+                target.setProgram(getReference(Program.class, defaultProgram.getId()));
             }
         }
     }
@@ -560,7 +560,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             if (source.getBasePortLocation() == null || source.getBasePortLocation().getId() == null) {
                 target.setBasePortLocation(null);
             } else {
-                target.setBasePortLocation(load(Location.class, source.getBasePortLocation().getId()));
+                target.setBasePortLocation(getReference(Location.class, source.getBasePortLocation().getId()));
             }
         }
 
@@ -569,12 +569,12 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             if (source.getQualityFlagId() == null) {
                 target.setQualityFlag(null);
             } else {
-                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
+                target.setQualityFlag(getReference(QualityFlag.class, source.getQualityFlagId()));
             }
         }
         else if (copyIfNull) {
             // Set default
-            target.setQualityFlag(load(QualityFlag.class, QualityFlagEnum.NOT_QUALIFED.getId()));
+            target.setQualityFlag(getReference(QualityFlag.class, QualityFlagEnum.NOT_QUALIFED.getId()));
         }
     }
 
@@ -600,13 +600,13 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             if (source.getRegistrationLocation() == null || source.getRegistrationLocation().getId() == null) {
                 target.setRegistrationLocation(null);
             } else {
-                target.setRegistrationLocation(load(Location.class, source.getRegistrationLocation().getId()));
+                target.setRegistrationLocation(getReference(Location.class, source.getRegistrationLocation().getId()));
             }
         }
 
         // default quality flag
         if (target.getQualityFlag() == null) {
-            target.setQualityFlag(load(QualityFlag.class, SumarisConfiguration.getInstance().getDefaultQualityFlagId()));
+            target.setQualityFlag(getReference(QualityFlag.class, SumarisConfiguration.getInstance().getDefaultQualityFlagId()));
         }
 
         // default rank order

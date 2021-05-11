@@ -29,6 +29,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ValidityStatusRepository extends JpaRepository<ValidityStatus, Integer> {
 
     default ValidityStatus getValidStatus() {
-        return getOne(ValidityStatusEnum.VALID.getId());
+        return getById(ValidityStatusEnum.VALID.getId());
     }
 }

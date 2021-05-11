@@ -26,7 +26,7 @@ package net.sumaris.rdf.action;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.action.ActionUtils;
+import net.sumaris.cli.action.ActionUtils;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.service.store.RdfDatasetService;

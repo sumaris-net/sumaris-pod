@@ -39,6 +39,7 @@ import org.springframework.beans.BeanUtils;
 
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Function;
@@ -54,6 +55,15 @@ public class Beans {
 
     protected Beans() {
         // helper class does not instantiate
+    }
+
+    public static <C> C newInstance(Class<C> objectClass) {
+        Preconditions.checkNotNull(objectClass, "Cant create an instance of 'null'");
+        try {
+            return objectClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new SumarisTechnicalException(e);
+        }
     }
 
     /**
@@ -227,6 +237,18 @@ public class Beans {
     }
 
     /**
+     * <p>splitByProperty.</p>
+     *
+     * @param entities list of entities.
+     * @param <K> a K object.
+     * @param <V> a V object.
+     * @return a {@link Map} object.
+     */
+    public static <K extends Serializable, V extends IEntity<K>> List<K> collectIds(V... entities) {
+        return transformCollection(Arrays.asList(entities), IEntity::getId);
+    }
+
+    /**
      * <p>collectProperties.</p>
      *
      * @param collection a {@link Collection} object.
@@ -239,7 +261,21 @@ public class Beans {
         if (CollectionUtils.isEmpty(collection)) return new ArrayList<>();
         Preconditions.checkArgument(StringUtils.isNotBlank(propertyName));
         return collection.stream().map((Function<V, K>) v -> getProperty(v, propertyName)).collect(Collectors.toList());
+    }
 
+    /**
+     * <p>collectProperties.</p>
+     *
+     * @param collection a {@link Collection} object.
+     * @param propertyName a {@link String} object.
+     * @param <K> a K object.
+     * @param <V> a V object.
+     * @return a {@link List} object.
+     */
+    public static <K, V> Set<K> collectDistinctProperties(Collection<V> collection, String propertyName) {
+        if (CollectionUtils.isEmpty(collection)) return new HashSet<>();
+        Preconditions.checkArgument(StringUtils.isNotBlank(propertyName));
+        return collection.stream().map((Function<V, K>) v -> getProperty(v, propertyName)).collect(Collectors.toSet());
     }
 
     private static <K, V> Function<V, K> newPropertyFunction(final String propertyName) {
@@ -261,6 +297,21 @@ public class Beans {
             return (V) PropertyUtils.getProperty(object, propertyName);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new SumarisTechnicalException( String.format("Could not find property %1s on object of type %2s", propertyName, object.getClass().getName()), e);
+        }
+    }
+
+    public static <K, V> V getPrivateProperty(K object, String propertyName) {
+        try {
+            return (V) PropertyUtils.getProperty(object, propertyName);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            try {
+                Field field = object.getClass().getDeclaredField(propertyName);
+                field.setAccessible(true);
+                return (V)field.get(object);
+            } catch (Exception other) {
+                throw new SumarisTechnicalException( String.format("Could not find property %1s on object of type %2s", propertyName, object.getClass().getName()), e);
+
+            }
         }
     }
 

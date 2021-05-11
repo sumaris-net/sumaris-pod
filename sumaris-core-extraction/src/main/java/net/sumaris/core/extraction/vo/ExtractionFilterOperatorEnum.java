@@ -23,25 +23,32 @@ package net.sumaris.core.extraction.vo;
  */
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.exception.SumarisTechnicalException;
 
 import java.util.Arrays;
 
 public enum ExtractionFilterOperatorEnum {
 
-    IN("IN"),
-    NOT_IN("NOT IN"),
-    EQUALS("="),
-    NOT_EQUALS("!="),
-    GREATER_THAN(">"),
-    GREATER_THAN_OR_EQUALS(">="),
-    LESS_THAN("<"),
-    LESS_THAN_OR_EQUALS("<="),
-    BETWEEN("BETWEEN");
+    IN("IN", "NOT IN"),
+    NOT_IN("NOT IN", "IN"),
+    EQUALS("=", "!="),
+    NOT_EQUALS("!=", "="),
+    GREATER_THAN(">", "<="),
+    GREATER_THAN_OR_EQUALS(">=", "<"),
+    LESS_THAN("<", ">="),
+    LESS_THAN_OR_EQUALS("<=", ">"),
+    BETWEEN("BETWEEN", "NOT BETWEEN"),
+    NOT_BETWEEN("NOT BETWEEN", "BETWEEN"), // WARN not exists in SQL. Should be translated
+    NULL("NULL", "NOT NULL"),
+    NOT_NULL("NOT NULL", "NULL") // WARN not exists in SQL. Should be translated
+    ;
 
     private String symbol;
+    private String inverseSymbol;
 
-    ExtractionFilterOperatorEnum(String symbol) {
+    ExtractionFilterOperatorEnum(String symbol, String inverseSymbol) {
         this.symbol = symbol;
+        this.inverseSymbol = inverseSymbol;
     }
 
     public String getSymbol() {
@@ -53,8 +60,11 @@ public enum ExtractionFilterOperatorEnum {
         return Arrays.stream(values())
                 .filter(op -> op.symbol.equalsIgnoreCase(operator))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown operation symbol"));
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Invalid operator's symbol '%s'", operator)));
     }
 
+    public ExtractionFilterOperatorEnum inverse() {
+        return fromSymbol(inverseSymbol);
+    }
 
 }

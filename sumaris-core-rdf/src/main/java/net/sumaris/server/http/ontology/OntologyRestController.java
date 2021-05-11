@@ -37,6 +37,7 @@ import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.rdf.util.RdfFormat;
 import net.sumaris.rdf.util.RdfMediaType;
+import net.sumaris.server.http.RestPaths;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -60,26 +61,24 @@ import java.util.Objects;
 @RestController
 @ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
 @Slf4j
-public class OntologyRestController {
+public class OntologyRestController implements RestPaths {
 
     protected static final String EXTENSION_PATH_PARAM = ".{extension:[a-z0-9-_]+}";
 
     // Schema path
-    public static final String ONTOLOGY_PATH = "/ontology";
-    public static final String SCHEMA_PATH = ONTOLOGY_PATH + "/schema";
-    public static final String SCHEMA_PATH_SLASH = SCHEMA_PATH + "/";
-    public static final String SCHEMA_BY_CLASS = SCHEMA_PATH_SLASH + "{class:[a-zA-Z]+}";
-    public static final String SCHEMA_BY_CLASS_SLASH = SCHEMA_BY_CLASS + "/";
+    public static final String ONT_SCHEMA_PATH = ONTOLOGY_BASE_PATH + "/schema";
+    public static final String ONT_SCHEMA_PATH_SLASH = ONTOLOGY_BASE_PATH + "/";
+    public static final String ONT_SCHEMA_BY_CLASS = ONT_SCHEMA_PATH_SLASH + "{class:[a-zA-Z]+}";
+    public static final String ONT_SCHEMA_BY_CLASS_SLASH = ONT_SCHEMA_BY_CLASS + "/";
 
     // Data path
-    public static final String DATA_PATH = ONTOLOGY_PATH + "/data";
-    public static final String DATA_SLASH_PATH = DATA_PATH + "/";
-    public static final String DATA_BY_CLASS_PATH = DATA_SLASH_PATH + "{class:[a-zA-Z]+}";
-    public static final String DATA_BY_CLASS_SLASH_PATH = DATA_BY_CLASS_PATH + "/";
-    public static final String DATA_BY_OBJECT_PATH = DATA_BY_CLASS_SLASH_PATH + "{id:[0-9a-zA-Z]+}";
+    public static final String ONT_DATA_PATH = ONTOLOGY_BASE_PATH + "/data";
+    public static final String ONT_DATA_SLASH_PATH = ONT_DATA_PATH + "/";
+    public static final String ONT_DATA_BY_CLASS_PATH = ONT_DATA_SLASH_PATH + "{class:[a-zA-Z]+}";
+    public static final String ONT_DATA_BY_CLASS_SLASH_PATH = ONT_DATA_BY_CLASS_PATH + "/";
+    public static final String ONT_DATA_BY_OBJECT_PATH = ONT_DATA_BY_CLASS_SLASH_PATH + "{id:[0-9a-zA-Z]+}";
 
-
-    public static final String CONVERT_PATH = ONTOLOGY_PATH + "/convert";
+    public static final String ONT_CONVERT_PATH = ONTOLOGY_BASE_PATH + "/convert";
 
     @Resource
     private RdfModelService  modelService;
@@ -96,18 +95,18 @@ public class OntologyRestController {
 
     @PostConstruct
     public void init() {
-        log.info("Starting Ontology endpoint {{}}...", SCHEMA_PATH_SLASH);
-        log.info("Starting Ontology endpoint {{}}...", DATA_SLASH_PATH);
+        log.info("Starting Ontology endpoint {{}}...", ONT_SCHEMA_PATH_SLASH);
+        log.info("Starting Ontology endpoint {{}}...", ONT_DATA_SLASH_PATH);
     }
 
     @GetMapping(
             value = {
-                    SCHEMA_PATH,
-                    SCHEMA_PATH + EXTENSION_PATH_PARAM,
-                    SCHEMA_PATH_SLASH,
-                    SCHEMA_BY_CLASS,
-                    SCHEMA_BY_CLASS + EXTENSION_PATH_PARAM,
-                    SCHEMA_BY_CLASS_SLASH
+                ONT_SCHEMA_PATH,
+                    ONT_SCHEMA_PATH + EXTENSION_PATH_PARAM,
+                ONT_SCHEMA_PATH_SLASH,
+                ONT_SCHEMA_BY_CLASS,
+                    ONT_SCHEMA_BY_CLASS + EXTENSION_PATH_PARAM,
+                ONT_SCHEMA_BY_CLASS_SLASH
             },
             produces = {
                     RdfMediaType.APPLICATION_RDF_XML_VALUE,
@@ -158,11 +157,11 @@ public class OntologyRestController {
 
     @GetMapping(
             value = {
-                    DATA_BY_CLASS_PATH,
-                    DATA_BY_CLASS_PATH + EXTENSION_PATH_PARAM,
-                    DATA_BY_CLASS_SLASH_PATH,
-                    DATA_BY_OBJECT_PATH,
-                    DATA_BY_OBJECT_PATH + EXTENSION_PATH_PARAM
+                ONT_DATA_BY_CLASS_PATH,
+                    ONT_DATA_BY_CLASS_PATH + EXTENSION_PATH_PARAM,
+                ONT_DATA_BY_CLASS_SLASH_PATH,
+                ONT_DATA_BY_OBJECT_PATH,
+                    ONT_DATA_BY_OBJECT_PATH + EXTENSION_PATH_PARAM
             },
             produces = {
                     RdfMediaType.APPLICATION_RDF_XML_VALUE,
@@ -225,7 +224,7 @@ public class OntologyRestController {
                 .body(ModelUtils.toBytes(individuals, outputFormat));
     }
 
-    @GetMapping(value = CONVERT_PATH,
+    @GetMapping(value = ONT_CONVERT_PATH,
             produces = {
                     MediaType.APPLICATION_XML_VALUE,
                     RdfMediaType.APPLICATION_RDF_XML_VALUE,

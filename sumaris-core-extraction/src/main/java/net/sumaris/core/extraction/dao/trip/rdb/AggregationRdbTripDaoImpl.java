@@ -26,8 +26,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
@@ -35,9 +35,8 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
-import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
-import net.sumaris.core.extraction.dao.trip.AggregationTripDao;
+import net.sumaris.core.extraction.dao.trip.ExtractionTripDao;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.specification.data.trip.AggRdbSpecification;
 import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
@@ -60,7 +59,10 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -77,8 +79,9 @@ public class AggregationRdbTripDaoImpl<
         F extends ExtractionFilterVO,
         S extends AggregationStrataVO>
         extends ExtractionBaseDaoImpl
-        implements AggregationRdbTripDao<C, F, S>,
-        AggregationTripDao, AggRdbSpecification {
+        implements
+        AggregationRdbTripDao<C, F, S>,
+        AggRdbSpecification {
 
     private static final String HH_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + HH_SHEET_NAME + "_%s";
     private static final String SL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + SL_SHEET_NAME + "_%s";
@@ -100,7 +103,12 @@ public class AggregationRdbTripDaoImpl<
     protected ExtractionTableDao extractionTableDao;
 
     @javax.annotation.Resource(name = "extractionRdbTripDao")
-    protected ExtractionRdbTripDao extractionRdbTripDao;
+    protected ExtractionTripDao<?, ?> extractionRdbTripDao;
+
+    @Override
+    public ProductFormatEnum getFormat() {
+        return ProductFormatEnum.AGG_RDB;
+    }
 
     @Override
     public <R extends C> R aggregate(ExtractionProductVO source, F filter, S strata) {
@@ -125,7 +133,7 @@ public class AggregationRdbTripDaoImpl<
             } else {
                 filterInfo.append("(without filter)");
             }
-            log.info(String.format("Starting aggregation #%s-%s... %s", context.getLabel(), context.getId(), filterInfo.toString()));
+            log.info(String.format("Starting aggregation #%s-%s... %s", context.getLabel(), context.getId(), filterInfo));
         }
 
         // Fill context table names
@@ -229,7 +237,6 @@ public class AggregationRdbTripDaoImpl<
     public MinMaxVO getAggMinMaxByTech(String tableName, F filter, S strata) {
         Preconditions.checkNotNull(strata.getTechColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.TECH_COLUMN_NAME));
         Preconditions.checkNotNull(strata.getAggColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.AGG_COLUMN_NAME));
-        AggregationTechResultVO result = new AggregationTechResultVO();
 
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
 
@@ -248,17 +255,17 @@ public class AggregationRdbTripDaoImpl<
 
     @Override
     public void clean(C context) {
-        super.clean(context);
+        super.dropTables(context);
     }
 
     /* -- protected methods -- */
 
-    protected <C extends AggregationRdbTripContextVO> C createNewContext() {
+    protected <R extends AggregationRdbTripContextVO> R createNewContext() {
         Class<? extends AggregationRdbTripContextVO> contextClass = getContextClass();
         Preconditions.checkNotNull(contextClass);
 
         try {
-            return (C) contextClass.newInstance();
+            return (R) contextClass.newInstance();
         } catch (Exception e) {
             throw new SumarisTechnicalException("Could not create an instance of context class " + contextClass.getName());
         }
@@ -818,20 +825,6 @@ public class AggregationRdbTripDaoImpl<
         } catch (IOException e) {
             throw new SumarisTechnicalException(e);
         }
-    }
-
-    protected int cleanRow(String tableName, ExtractionFilterVO filter, String sheetName) {
-        Preconditions.checkNotNull(tableName);
-        if (filter == null) return 0;
-
-        SumarisTableMetadata table = databaseMetadata.getTable(tableName);
-        Preconditions.checkNotNull(table);
-
-        String whereClauseContent = SumarisTableMetadatas.getSqlWhereClauseContent(table, filter, sheetName, table.getAlias(), true);
-        if (StringUtils.isBlank(whereClauseContent)) return 0;
-
-        String deleteQuery = table.getDeleteQuery(String.format("NOT(%s)", whereClauseContent));
-        return queryUpdate(deleteQuery);
     }
 
     protected Map<String, List<String>> analyzeRow(final String tableName, XMLQuery xmlQuery,

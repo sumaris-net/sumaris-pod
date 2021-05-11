@@ -27,7 +27,10 @@ import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode
+@ToString
 public class StrategyFetchOptions implements IFetchOptions {
 
     public static StrategyFetchOptions DEFAULT = StrategyFetchOptions.builder().build();
@@ -50,8 +53,8 @@ public class StrategyFetchOptions implements IFetchOptions {
     private boolean withDenormalizedPmfms = false;
 
     /**
-     * Compute the PSFM strategy full name (with parameter, matrix, fraction and method names)
+     * Fetch strategy for PSFM strategy
      */
     @Builder.Default
-    private boolean withDenormalizedPmfmCompleteName = false;
+    private PmfmStrategyFetchOptions pmfmsFetchOptions = PmfmStrategyFetchOptions.DEFAULT;
 }

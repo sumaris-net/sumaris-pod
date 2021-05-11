@@ -22,6 +22,7 @@ package net.sumaris.core.vo.data.aggregatedLanding;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IValueObject;
@@ -46,6 +47,7 @@ public class AggregatedLandingVO implements IValueObject<Integer>,
     }
 
     @Override
+    @JsonIgnore
     public Date getVesselDateTime() {
         return null;
     }

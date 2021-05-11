@@ -24,12 +24,10 @@ package net.sumaris.core.dao.referential.pmfm;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.cache.CacheNames;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
-import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.util.Beans;
@@ -66,15 +64,15 @@ public class PmfmRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PMFM_BY_ID, key = "#id", unless = "#result == null")
+    @Cacheable(cacheNames = CacheConfiguration.Names.PMFM_BY_ID, key = "#id", unless = "#result == null")
     public PmfmVO get(int id) {
         return super.get(id);
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PMFM_COMPLETE_NAME_BY_ID, key = "#id", unless = "#result == null")
+    @Cacheable(cacheNames = CacheConfiguration.Names.PMFM_COMPLETE_NAME_BY_ID, key = "#id", unless = "#result == null")
     public String computeCompleteName(int id) {
-        Pmfm pmfm = getOne(id);
+        Pmfm pmfm = getById(id);
         String parameterName = pmfm.getParameter().getName();
         if (pmfm.getUnit() != null && pmfm.getUnit().getId() != UnitEnum.NONE.getId()) {
             parameterName += String.format(" (%s)", pmfm.getUnit().getLabel());
@@ -185,11 +183,11 @@ public class PmfmRepositoryImpl
     @Override
     @Caching(
         evict = {
-                @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
-                @CacheEvict(cacheNames = CacheNames.PMFM_COMPLETE_NAME_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
-                @CacheEvict(cacheNames = CacheNames.PMFM_HAS_PREFIX, allEntries = true),
-                @CacheEvict(cacheNames = CacheNames.PMFM_HAS_SUFFIX, allEntries = true),
-                @CacheEvict(cacheNames = CacheNames.PMFM_HAS_MATRIX, allEntries = true)
+                @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
+                @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_COMPLETE_NAME_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
+                @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_PREFIX, allEntries = true),
+                @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_SUFFIX, allEntries = true),
+                @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_MATRIX, allEntries = true)
         }
     )
     public PmfmVO save(PmfmVO vo) {
@@ -219,7 +217,7 @@ public class PmfmRepositoryImpl
             .filter(Objects::nonNull)
             .forEach(qvId -> {
                 if (entitiesToRemove.remove(qvId) == null) {
-                    entities.add(load(QualitativeValue.class, qvId));
+                    entities.add(getReference(QualitativeValue.class, qvId));
                 }
             });
 
@@ -238,27 +236,27 @@ public class PmfmRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PMFM_HAS_PREFIX)
+    @Cacheable(cacheNames = CacheConfiguration.Names.PMFM_HAS_PREFIX)
     public boolean hasLabelPrefix(int pmfmId, String... labelPrefixes) {
-        return Optional.of(getOne(pmfmId))
+        return Optional.of(getById(pmfmId))
             .map(Pmfm::getLabel)
             .map(StringUtils.startsWithFunction(labelPrefixes))
             .orElse(false);
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PMFM_HAS_SUFFIX)
+    @Cacheable(cacheNames = CacheConfiguration.Names.PMFM_HAS_SUFFIX)
     public boolean hasLabelSuffix(int pmfmId, String... labelSuffixes) {
-        return Optional.of(getOne(pmfmId))
+        return Optional.of(getById(pmfmId))
             .map(Pmfm::getLabel)
             .map(StringUtils.endsWithFunction(labelSuffixes))
             .orElse(false);
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PMFM_HAS_MATRIX)
+    @Cacheable(cacheNames = CacheConfiguration.Names.PMFM_HAS_MATRIX)
     public boolean hasMatrixId(int pmfmId, int... matrixIds) {
-        return Optional.of(getOne(pmfmId))
+        return Optional.of(getById(pmfmId))
             .map(Pmfm::getMatrix)
             .map(matrix -> Arrays.binarySearch(matrixIds, matrix.getId()) != -1)
             .orElse(false);

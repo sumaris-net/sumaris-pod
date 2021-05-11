@@ -28,9 +28,11 @@ import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.vo.data.LandingVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -42,6 +44,7 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing> {
     String TRIP_IDS_PARAM = "tripIds";
     String TRIP_IDS_SET_PARAM = "tripIdsSet";
     String LOCATION_ID_PARAM = "locationId";
+    String LOCATION_IDS_PARAM = "locationIds";
     String VESSEL_ID_PARAM = "vesselId";
     String EXCLUDE_VESSEL_IDS_PARAM = "excludeVesselIds";
     String EXCLUDE_VESSEL_IDS_SET_PARAM = "excludeVesselIdsSet";
@@ -93,6 +96,16 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing> {
             );
         });
         specification.addBind(LOCATION_ID_PARAM, locationId);
+        return specification;
+    }
+
+    default Specification<Landing> inLocationIds(Integer... locationIds) {
+        if (ArrayUtils.isEmpty(locationIds)) return null;
+        BindableSpecification<Landing> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, LOCATION_IDS_PARAM);
+            return criteriaBuilder.in(root.get(Landing.Fields.LOCATION).get(IEntity.Fields.ID)).value(param);
+        });
+        specification.addBind(LOCATION_IDS_PARAM, Arrays.asList(locationIds));
         return specification;
     }
 

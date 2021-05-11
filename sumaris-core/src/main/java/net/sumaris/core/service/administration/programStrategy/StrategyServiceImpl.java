@@ -24,7 +24,6 @@ package net.sumaris.core.service.administration.programStrategy;
 
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.PmfmStrategyRepository;
 import net.sumaris.core.dao.administration.programStrategy.StrategyRepository;
@@ -32,15 +31,15 @@ import net.sumaris.core.dao.administration.programStrategy.denormalized.Denormal
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 @Service("strategyService")
 @Slf4j
@@ -90,38 +89,14 @@ public class StrategyServiceImpl implements StrategyService {
 
 	@Override
 	public List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions) {
-		return strategyRepository.findAll(StrategyFilterVO.builder().programId(programId).build(), fetchOptions);
+		return strategyRepository.findAll(StrategyFilterVO.builder()
+				.programIds(new Integer[]{programId})
+			.build(), fetchOptions);
 	}
 
 	@Override
-	public List<PmfmStrategyVO> findPmfmsByStrategy(int strategyId, StrategyFetchOptions fetchOptions) {
-		return pmfmStrategyRepository.findByStrategyId(strategyId, fetchOptions);
-	}
-
-	@Override
-	public List<PmfmStrategyVO> findPmfmsByProgram(int programId, StrategyFetchOptions fetchOptions) {
-
-		List<StrategyVO> vos = findByProgram(programId, fetchOptions);
-
-		Map<Integer, PmfmStrategyVO> pmfmStrategyByPmfmId = Maps.newHashMap();
-		Beans.getStream(vos)
-				.flatMap(strategy -> strategy.getPmfms().stream())
-				// Sort by strategyId, acquisitionLevel and rankOrder
-				.sorted(Comparator.comparing(ps -> String.format("%s#%s#%s", ps.getStrategyId(), ps.getAcquisitionLevel(), ps.getRankOrder())))
-				// Put in the last (last found will override previous)
-				.forEach(ps -> pmfmStrategyByPmfmId.put(ps.getPmfmId(), ps));
-
-		return Beans.getList(pmfmStrategyByPmfmId.values());
-	}
-
-	@Override
-	public List<PmfmStrategyVO> findPmfmsByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions) {
-		return pmfmStrategyRepository.findByProgramAndAcquisitionLevel(programId, acquisitionLevelId, fetchOptions);
-	}
-
-	@Override
-	public List<DenormalizedPmfmStrategyVO> findDenormalizedPmfmsByStrategy(int strategyId, StrategyFetchOptions fetchOptions) {
-		return denormalizedPmfmStrategyRepository.findByStrategyId(strategyId, fetchOptions);
+	public List<StrategyVO> findNewerByProgramId(int programId, Date updateDate, StrategyFetchOptions fetchOptions) {
+		return strategyRepository.findNewerByProgramId(programId, updateDate, fetchOptions);
 	}
 
 	@Override
@@ -148,6 +123,17 @@ public class StrategyServiceImpl implements StrategyService {
 	public List<StrategyDepartmentVO> getStrategyDepartments(int strategyId) {
 		return strategyRepository.getDepartmentsById(strategyId);
 	}
+
+	@Override
+	public List<PmfmStrategyVO> findPmfmsByFilter(PmfmStrategyFilterVO filter, PmfmStrategyFetchOptions fetchOptions) {
+		return pmfmStrategyRepository.findByFilter(filter, fetchOptions);
+	}
+
+	@Override
+	public List<DenormalizedPmfmStrategyVO> findDenormalizedPmfmsByFilter(PmfmStrategyFilterVO filter, PmfmStrategyFetchOptions fetchOptions) {
+		return denormalizedPmfmStrategyRepository.findByFilter(filter, fetchOptions);
+	}
+
 
 	@Override
 	public String computeNextLabelByProgramId(int programId, String labelPrefix, int nbDigit) {

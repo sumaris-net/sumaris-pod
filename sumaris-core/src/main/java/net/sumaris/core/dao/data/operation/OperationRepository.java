@@ -27,6 +27,8 @@ import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.filter.OperationFilterVO;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -34,8 +36,9 @@ import java.util.List;
  * @author peck7 on 01/09/2020.
  */
 public interface OperationRepository
-    extends DataRepository<Operation, OperationVO, OperationFilterVO, DataFetchOptions>, OperationSpecifications {
+    extends DataRepository<Operation, OperationVO, OperationFilterVO, DataFetchOptions>,
+    OperationSpecifications {
 
-    List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> operations);
-
+    @Query("select p.id from Operation o inner join o.trip t inner join t.program p where o.id = :id")
+    int getProgramIdById(@Param("id") int id);
 }

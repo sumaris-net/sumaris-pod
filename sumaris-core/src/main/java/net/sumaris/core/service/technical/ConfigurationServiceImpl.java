@@ -44,6 +44,7 @@ import net.sumaris.core.service.schema.DatabaseSchemaService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.SoftwareVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.config.ApplicationConfigHelper;
@@ -62,6 +63,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -74,6 +76,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private final SumarisConfiguration configuration;
     private final String currentSoftwareLabel;
+    private boolean ready = false;
 
     @Autowired
     private EntityManager entityManager;
@@ -101,6 +104,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return softwareService.getByLabel(currentSoftwareLabel);
     }
 
+    @Override
+    public boolean isReady() {
+        return ready;
+    }
+
     /* -- event listeners -- */
 
     @Async
@@ -110,18 +118,28 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         if (this.dbVersion == null || !this.dbVersion.equals(event.getSchemaVersion())) {
             this.dbVersion = event.getSchemaVersion();
 
-            // Apply software config
-            applySoftwareConfig();
-
-            // Publish ready event
-            if (event instanceof SchemaReadyEvent) {
-                publisher.publishEvent(new ConfigurationReadyEvent(configuration));
+            if (!configuration.enableConfigurationDbPersistence()) {
+                if (event instanceof SchemaReadyEvent) {
+                    publisher.publishEvent(new ConfigurationReadyEvent(configuration));
+                }
             }
-            // Publish update event
+
             else {
-                publisher.publishEvent(new ConfigurationUpdatedEvent(configuration));
+                // Update the config, from the software properties
+                updateConfigFromSoftwareProperties();
+
+                // Publish ready event
+                if (event instanceof SchemaReadyEvent) {
+                    publisher.publishEvent(new ConfigurationReadyEvent(configuration));
+                }
+                // Publish update event
+                else {
+                    publisher.publishEvent(new ConfigurationUpdatedEvent(configuration));
+                }
             }
 
+            // Mark as ready
+            ready = true;
         }
     }
 
@@ -132,18 +150,24 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             condition = "#event.entityName=='Software'")
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     protected void onSoftwareChanged(AbstractEntityEvent event) {
-        SoftwareVO software = (SoftwareVO)event.getData();
 
-        // Test if same as the current software
-        boolean isCurrent = (software != null && this.currentSoftwareLabel.equals(software.getLabel()));
-        if (isCurrent) {
+        if (!configuration.enableConfigurationDbPersistence()) return; // Skip
 
-            // Apply to config
-            applySoftwareConfig();
+        // Check if should be applied into configuration
+        SoftwareVO software = (SoftwareVO) event.getData();
+        boolean isCurrentSoftware = (software != null && this.currentSoftwareLabel.equals(software.getLabel()));
+
+        if (isCurrentSoftware) {
+            ready = false;
+
+            // Update the config, from the software properties
+            updateConfigFromSoftwareProperties();
 
             // Publish update event
             publisher.publishEvent(new ConfigurationUpdatedEvent(configuration));
 
+            // Mark as ready
+            ready = true;
         }
     }
 
@@ -166,7 +190,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     /* -- protected methods -- */
 
-    protected void applySoftwareConfig() {
+    protected void updateConfigFromSoftwareProperties() {
 
         boolean newDatabase = false;
 
@@ -179,7 +203,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         // if new database or version > 0.9.5, then apply current software properties to config
         // else skip (because software tables not exists)
         Version minVersion = VersionBuilder.create("0.9.5").build();
-        if (newDatabase || minVersion.beforeOrequals(dbVersion)) {
+        if (newDatabase || dbVersion.after(minVersion)) {
             applySoftwareProperties(configuration.getApplicationConfig(), getCurrentSoftware());
         }
         else {
@@ -297,12 +321,23 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                     }
 
                     // Find entities that match the attribute
-                    List<? extends IEntity> matchEntities = entityManager.createQuery(String.format(queryPattern, joinAttribute), annotation.entity())
+                    List<? extends IEntity> matchEntities;
+                    try {
+                        matchEntities = entityManager.createQuery(String.format(queryPattern, joinAttribute), annotation.entity())
                             .setParameter(1, joinValue)
                             .getResultList();
+                    }
+                    catch (PersistenceException e) {
+                        if (log.isDebugEnabled()) {
+                            log.error("Unable to load entities for class {}: {}", entityClassName, e.getMessage(), e);
+                        }
+                        else {
+                            log.error("Unable to load entities for class {}: {}", entityClassName, e.getMessage());
+                        }
+                        return null;
+                    }
 
-                    int size = matchEntities.size();
-                    if (size == 1) {
+                    if (CollectionUtils.size(matchEntities) == 1) {
                         return matchEntities.get(0);
                     }
                     else {

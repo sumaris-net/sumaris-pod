@@ -137,7 +137,7 @@ public class ParameterRepositoryImpl
     }
 
     private List<ReferentialVO> saveQualitativeValues(Integer parameterId, List<ReferentialVO> qualitativeValues) {
-        Parameter parent = getOne(parameterId);
+        Parameter parent = getById(parameterId);
         Date newUpdateDate = parent.getUpdateDate();
 
         // Remember existing QV

@@ -97,6 +97,12 @@ public class Person implements IReferentialWithStatusEntity {
     @Column(name="pubkey", unique = true)
     private String pubkey;
 
+    @Column(name="username", length = 40)
+    private String username;
+
+    @Column(name="username_extranet", length = 40)
+    private String usernameExtranet;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_fk", nullable = false)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)

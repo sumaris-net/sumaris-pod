@@ -28,10 +28,11 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.cache.CacheNames;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -54,6 +55,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -84,13 +86,24 @@ public class ProgramRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PROGRAM_BY_ID)
+    public Optional<ProgramVO> findIfNewerByLabel(String label, Date updateDate, ProgramFetchOptions fetchOptions) {
+        Program source = getQuery(BindableSpecification.where(hasLabel(label))
+            .and(newerThan(updateDate)), Program.class, Sort.by(Program.Fields.ID))
+                .getSingleResult();
+        if (source == null) return Optional.empty();
+
+        ProgramVO target = toVO(source, fetchOptions);
+        return Optional.of(target);
+    }
+
+    @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID)
     public Optional<ProgramVO> findById(int id) {
         return super.findById(id);
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PROGRAM_BY_LABEL)
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL)
     public Optional<ProgramVO> findByLabel(String label) {
         return super.findByLabel(label);
     }
@@ -170,12 +183,12 @@ public class ProgramRepositoryImpl
     @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_ID, key = "#vo.id", condition = "#vo.id != null"),
-            @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#vo.label", condition = "#vo.label != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#vo.id", condition = "#vo.id != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#vo.label", condition = "#vo.label != null"),
         },
         put = {
-            @CachePut(cacheNames= CacheNames.PROGRAM_BY_ID, key="#vo.id", condition = " #vo.id != null"),
-            @CachePut(cacheNames= CacheNames.PROGRAM_BY_LABEL, key="#vo.label", condition = "#vo.label != null")
+            @CachePut(cacheNames= CacheConfiguration.Names.PROGRAM_BY_ID, key="#vo.id", condition = " #vo.id != null"),
+            @CachePut(cacheNames= CacheConfiguration.Names.PROGRAM_BY_LABEL, key="#vo.label", condition = "#vo.label != null")
         }
     )
     public ProgramVO save(ProgramVO vo) {
@@ -203,7 +216,7 @@ public class ProgramRepositoryImpl
                 target.setGearClassification(null);
             }
             else {
-                target.setGearClassification(load(GearClassification.class, gearClassificationId));
+                target.setGearClassification(getReference(GearClassification.class, gearClassificationId));
             }
         }
 
@@ -215,7 +228,7 @@ public class ProgramRepositoryImpl
                 target.setTaxonGroupType(null);
             }
             else {
-                target.setTaxonGroupType(load(TaxonGroupType.class, taxonGroupTypeId));
+                target.setTaxonGroupType(getReference(TaxonGroupType.class, taxonGroupTypeId));
             }
         }
 
@@ -319,8 +332,8 @@ public class ProgramRepositoryImpl
     @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_ID, key = "#id", condition = "#id != null"),
-            @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, allEntries = true)
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#id", condition = "#id != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true)
         }
     )
     public void deleteById(Integer id) {

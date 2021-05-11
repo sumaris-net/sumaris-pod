@@ -123,7 +123,7 @@ public class DenormalizedBatch  implements IEntity<Integer> {
     private Date updateDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "weight_method_fk", nullable = false)
+    @JoinColumn(name = "weight_method_fk")
     private Method weightMethod;
 
     @ManyToOne(fetch = FetchType.LAZY)

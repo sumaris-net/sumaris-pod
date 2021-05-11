@@ -37,9 +37,11 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.data.IWithBatchesEntity;
 import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
@@ -64,15 +66,12 @@ public class BatchRepositoryImpl
         extends DataRepositoryImpl<Batch, BatchVO, BatchFilterVO, BatchFetchOptions>
         implements BatchSpecifications {
 
-    private static final boolean trace = log.isTraceEnabled();
-
     private boolean enableSaveUsingHash;
 
     private final ReferentialDao referentialDao;
     private final TaxonNameRepository taxonNameRepository;
     private final MeasurementDao measurementDao;
     private final ProductRepository productRepository;
-
 
     protected BatchRepositoryImpl(EntityManager entityManager,
                                   ReferentialDao referentialDao,
@@ -88,9 +87,8 @@ public class BatchRepositoryImpl
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
-        this.enableSaveUsingHash = getConfig().enableSampleHashOptimization();
+        this.enableSaveUsingHash = getConfig().enableBatchHashOptimization();
     }
-
 
     @Override
     public BatchVO getCatchBatchByOperationId(int operationId, BatchFetchOptions fetchOptions) {
@@ -98,25 +96,54 @@ public class BatchRepositoryImpl
         if (fetchOptions.isWithChildrenEntities()) {
             // Return all batches as tree form
             return toTree(
-                    findAllVO(BindableSpecification
-                                    .where(hasOperationId(operationId))
-                                    .and(addJoinFetch(fetchOptions)),
+                    findAllVO(
+                        BindableSpecification.where(hasOperationId(operationId)),
                         BatchFetchOptions.builder()
                             .withMeasurementValues(fetchOptions.isWithMeasurementValues())
                             .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
-                            .withChildrenEntities(false)
+                            .withChildrenEntities(false) // Children not need (function toTree() will linked parent/children)
                             .build()
                     ));
         }
 
         // Return the root batch only
         try {
-            return findOne(BindableSpecification
-                    .where(hasNoParent())
+            return findOne(hasNoParent()
                     .and(hasOperationId(operationId))
-                    .and(addJoinFetch(fetchOptions)))
-                    .map(source -> toVO(source, fetchOptions))
-                    .orElse(null);
+                    .and(addJoinFetch(fetchOptions, false))
+                )
+                .map(source -> toVO(source, fetchOptions))
+                .orElse(null);
+        } catch (NoResultException e){
+            return null;
+        }
+    }
+
+    @Override
+    public BatchVO getCatchBatchBySaleId(int saleId, BatchFetchOptions fetchOptions) {
+        if (fetchOptions.isWithChildrenEntities()) {
+            // Return all batches as tree form
+            return toTree(
+                findAllVO(
+                    BindableSpecification.where(hasSaleId(saleId)),
+                    BatchFetchOptions.builder()
+                        .withMeasurementValues(fetchOptions.isWithMeasurementValues())
+                        .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
+                        .withChildrenEntities(false) // Children not need (function toTree() will linked parent/children)
+                        .build()
+                ));
+        }
+
+        // Return the root batch only
+        try {
+            return findOne(
+                BindableSpecification
+                    .where(hasNoParent())
+                    .and(hasSaleId(saleId))
+                    .and(addJoinFetch(fetchOptions, false/*find one*/))
+            )
+            .map(source -> toVO(source, fetchOptions))
+            .orElse(null);
         } catch (NoResultException e){
             return null;
         }
@@ -154,11 +181,11 @@ public class BatchRepositoryImpl
     @Override
     public List<BatchVO> saveByOperationId(int operationId, List<BatchVO> sources) {
 
-        long debugTime = log.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        if (debugTime != 0L) log.debug(String.format("Saving operation {id:%s} batches... {hash_optimization:%s}", operationId, enableSaveUsingHash));
+        long startTime = System.currentTimeMillis();
+        log.debug("Saving operation {id: {}} batches... {hash_optimization: {}}", operationId, enableSaveUsingHash);
 
         // Load parent entity
-        Operation parent = getOne(Operation.class, operationId);
+        Operation parent = getById(Operation.class, operationId);
 
         sources.forEach(source -> source.setOperationId(operationId));
 
@@ -172,7 +199,32 @@ public class BatchRepositoryImpl
             entityManager.clear();
         }
 
-        if (debugTime != 0L) log.debug(String.format("Saving operation {id:%s} batches [OK] in %s ms", operationId, System.currentTimeMillis() - debugTime));
+        log.debug("Saving operation {id: {}} batches [OK] in {}", operationId, TimeUtils.printDurationFrom(startTime));
+
+        return sources;
+    }
+
+    @Override
+    public List<BatchVO> saveBySaleId(int saleId, List<BatchVO> sources) {
+        long startTime = System.currentTimeMillis();
+        log.debug("Saving sale {id: {}} batches... {hash_optimization: {}}", saleId, enableSaveUsingHash);
+
+        // Load parent entity
+        Sale parent = getById(Sale.class, saleId);
+
+        sources.forEach(source -> source.setSaleId(saleId));
+
+        // Save all by parent
+        boolean dirty = saveAllByParent(parent, sources);
+
+        // Flush if need
+        if (dirty) {
+            EntityManager entityManager = getEntityManager();
+            entityManager.flush();
+            entityManager.clear();
+        }
+
+        log.debug("Saving sale {id: {}} batches [OK] in {}", saleId, TimeUtils.printDurationFrom(startTime));
 
         return sources;
     }
@@ -194,9 +246,7 @@ public class BatchRepositoryImpl
 
     @Override
     public BatchVO toTree(List<BatchVO> sources) {
-        if (CollectionUtils.isEmpty(sources)) {
-            return null;
-        }
+        if (CollectionUtils.isEmpty(sources)) return null;
 
         List<BatchVO> roots = sources.stream()
                 // Find the root catch
@@ -228,7 +278,8 @@ public class BatchRepositoryImpl
         // default specification
         return super.toSpecification(filter, fetchOptions)
                 .and(hasOperationId(filter.getOperationId()))
-                .and(addJoinFetch(fetchOptions))
+                .and(hasSaleId(filter.getSaleId()))
+                .and(addJoinFetch(fetchOptions, true))
                 ;
     }
 
@@ -241,8 +292,9 @@ public class BatchRepositoryImpl
         final Set<Integer> sourcesIdsToSkip = enableSaveUsingHash ? Sets.newHashSet() : null;
 
         // Save each batches
+        final boolean trace = log.isTraceEnabled();
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
-        boolean dirty = sources.stream().map(source -> {
+        long updatesCount = sources.stream().map(source -> {
 
             Batch target = null;
             if (source.getId() != null) {
@@ -281,13 +333,15 @@ public class BatchRepositoryImpl
                 }
             }
             if (skip && trace) {
-                log.trace(String.format("Skip batch {id: %s, label: '%s'}", source.getId(), source.getLabel()));
+                log.trace("Skip batch {id: {}, label: '{}'}", source.getId(), source.getLabel());
             }
             return !skip;
         })
             // Count updates
             .filter(Boolean::booleanValue)
-            .count() > 0;
+            .count();
+
+        boolean dirty = updatesCount > 0;
 
         // Remove not processed batches
         if (MapUtils.isNotEmpty(sourcesIdsToProcess)) {
@@ -375,7 +429,7 @@ public class BatchRepositoryImpl
 
         // Taxon name (from reference)
         if (source.getReferenceTaxon() != null && source.getReferenceTaxon().getId() != null) {
-            target.setTaxonName(taxonNameRepository.findTaxonNameReferent(source.getReferenceTaxon().getId()).orElse(null));
+            target.setTaxonName(taxonNameRepository.findReferentByReferenceTaxonId(source.getReferenceTaxon().getId()).orElse(null));
         }
 
         // Parent batch
@@ -446,7 +500,7 @@ public class BatchRepositoryImpl
             if (parentId == null) {
                 target.setParent(null);
             } else {
-                Batch parent = load(Batch.class, parentId);
+                Batch parent = getReference(Batch.class, parentId);
                 target.setParent(parent);
 
                 // Not need to update the children collection, because mapped by the 'parent' property
@@ -480,7 +534,7 @@ public class BatchRepositoryImpl
             if (opeId == null) {
                 target.setOperation(null);
             } else {
-                target.setOperation(load(Operation.class, opeId));
+                target.setOperation(getReference(Operation.class, opeId));
             }
         }
 
@@ -489,7 +543,7 @@ public class BatchRepositoryImpl
             if (source.getTaxonGroup() == null || source.getTaxonGroup().getId() == null) {
                 target.setTaxonGroup(null);
             } else {
-                target.setTaxonGroup(load(TaxonGroup.class, source.getTaxonGroup().getId()));
+                target.setTaxonGroup(getReference(TaxonGroup.class, source.getTaxonGroup().getId()));
             }
         }
 
@@ -499,12 +553,12 @@ public class BatchRepositoryImpl
                 target.setReferenceTaxon(null);
             } else {
                 if (source.getTaxonName().getReferenceTaxonId() != null) {
-                    target.setReferenceTaxon(load(ReferenceTaxon.class, source.getTaxonName().getReferenceTaxonId()));
+                    target.setReferenceTaxon(getReference(ReferenceTaxon.class, source.getTaxonName().getReferenceTaxonId()));
                 } else {
                     // Get the taxon name, then set reference taxon
                     Integer referenceTaxonId = taxonNameRepository.getReferenceTaxonIdById(source.getTaxonName().getId());
                     if (referenceTaxonId != null) {
-                        target.setReferenceTaxon(load(ReferenceTaxon.class, referenceTaxonId));
+                        target.setReferenceTaxon(getReference(ReferenceTaxon.class, referenceTaxonId));
                     } else {
                         throw new DataIntegrityViolationException(String.format("Invalid batch: unknown taxon name {id:%s}", source.getTaxonName().getId()));
                     }
@@ -519,12 +573,12 @@ public class BatchRepositoryImpl
             }
             else {
                 if (source.getTaxonName().getReferenceTaxonId() != null) {
-                    target.setReferenceTaxon(load(ReferenceTaxon.class, source.getTaxonName().getReferenceTaxonId()));
+                    target.setReferenceTaxon(getReference(ReferenceTaxon.class, source.getTaxonName().getReferenceTaxonId()));
                 } else {
                     // Get the taxon name, then set reference taxon
                     Integer referenceTaxonId = taxonNameRepository.getReferenceTaxonIdById(source.getTaxonName().getId());
                     if (referenceTaxonId != null) {
-                        target.setReferenceTaxon(load(ReferenceTaxon.class, referenceTaxonId));
+                        target.setReferenceTaxon(getReference(ReferenceTaxon.class, referenceTaxonId));
                     } else {
                         throw new DataIntegrityViolationException(String.format("Invalid batch: unknown taxon name {id:%s}", source.getTaxonName().getId()));
                     }

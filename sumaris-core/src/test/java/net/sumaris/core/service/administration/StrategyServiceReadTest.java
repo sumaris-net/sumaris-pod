@@ -23,14 +23,18 @@ package net.sumaris.core.service.administration;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
+import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -79,9 +83,12 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
     }
 
     @Test
-    public void findPmfmsByStrategy() {
+    public void findPmfmsByFilter() {
 
-        List<PmfmStrategyVO> pmfmStrategies = service.findPmfmsByStrategy(1, StrategyFetchOptions.builder().build());
+        // Get by strategy
+        List<PmfmStrategyVO> pmfmStrategies = service.findPmfmsByFilter(PmfmStrategyFilterVO.builder()
+                .strategyId(1)
+                .build(), PmfmStrategyFetchOptions.DEFAULT);
         Assert.assertNotNull(pmfmStrategies);
         Assert.assertEquals(80, pmfmStrategies.size());
         PmfmStrategyVO pmfmStrategy = pmfmStrategies.get(0);
@@ -89,12 +96,26 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
         Assert.assertNotNull(pmfmStrategy.getPmfmId());
         Assert.assertNull(pmfmStrategy.getPmfm());
 
+        // Get by program and acquisition level
+        pmfmStrategies = service.findPmfmsByFilter(PmfmStrategyFilterVO.builder()
+                .programId(fixtures.getDefaultProgram().getId())
+                .acquisitionLevelId(AcquisitionLevelEnum.TRIP.getId())
+                .build(), PmfmStrategyFetchOptions.DEFAULT);
+        Assert.assertNotNull(pmfmStrategies);
+        Assert.assertEquals(24, pmfmStrategies.size());
+
     }
 
     @Test
-    public void findDenormalizedPmfmsByStrategy() {
+    public void findDenormalizedPmfmsByFilter() {
 
-        List<DenormalizedPmfmStrategyVO> pmfms = service.findDenormalizedPmfmsByStrategy(1, StrategyFetchOptions.builder().build());
+        List<DenormalizedPmfmStrategyVO> pmfms = service.findDenormalizedPmfmsByFilter(
+                PmfmStrategyFilterVO.builder()
+                    .strategyId(1)
+                    .build(),
+                PmfmStrategyFetchOptions.builder()
+                        .withCompleteName(true)
+                        .build());
         Assert.assertNotNull(pmfms);
         Assert.assertEquals(80, pmfms.size());
         DenormalizedPmfmStrategyVO denormalizedPmfm = pmfms.get(0);
@@ -119,14 +140,6 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
 
     }
 
-    @Test
-    public void findPmfmStrategiesByProgramAndAcquisitionLevel() {
-
-        List<PmfmStrategyVO> pmfmStrategies = service.findPmfmsByProgramAndAcquisitionLevel(fixtures.getDefaultProgram().getId(), 2, StrategyFetchOptions.builder().build());
-        Assert.assertNotNull(pmfmStrategies);
-        Assert.assertEquals(24, pmfmStrategies.size());
-
-    }
 
     @Test
     public void computeNextLabelByProgramId() {
@@ -137,4 +150,28 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
         Assert.assertEquals("2020-BIO-0003", label);
     }
 
+
+    @Test
+    public void findByFilter() {
+        // Filter by program
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                .programLabels(new String[]{fixtures.getDefaultProgram().getLabel()})
+                .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(1, strategies.size());
+        }
+
+        // Filter by reference taxon
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                .referenceTaxonIds(new Integer[]{1006})
+                .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(1, strategies.size()); // Should be from the PARAM-BIO program
+        }
+    }
 }

@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.7.2</version>
+    <version>1.8.0</version>
   </parent>
 
   <artifactId>sumaris-core-shared</artifactId>
@@ -33,10 +33,14 @@
       <artifactId>spring-boot-autoconfigure</artifactId>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>io.leangen.graphql</groupId>
       <artifactId>spqr</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
     </dependency>
 
     <!-- hibernate -->
@@ -48,10 +52,10 @@
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-spatial</artifactId>
     </dependency>
-    <dependency>
+    <!--<dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-search-elasticsearch</artifactId>
-    </dependency>
+    </dependency>-->
 
     <!-- hibernate -->
     <dependency>
@@ -117,8 +121,12 @@
 
     <!-- ehcache -->
     <dependency>
-      <groupId>net.sf.ehcache</groupId>
+      <groupId>org.ehcache</groupId>
       <artifactId>ehcache</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.cache</groupId>
+      <artifactId>cache-api</artifactId>
     </dependency>
 
     <!-- Reflections -->
@@ -170,12 +178,14 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jms</artifactId>
-      <scope>provided</scope>
+      <scope>compile</scope>
+      <!--<optional>true</optional>-->
     </dependency>
     <dependency>
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-broker</artifactId>
-      <scope>provided</scope>
+      <scope>compile</scope>
+      <!--<optional>true</optional>-->
     </dependency>
 
     <dependency>

@@ -29,7 +29,6 @@ import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationAssociation;
 import net.sumaris.core.vo.filter.IReferentialFilter;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import org.springframework.data.jpa.domain.Specification;
@@ -85,8 +84,8 @@ public class LocationRepositoryImpl
     @Override
     public void addAssociation(int childLocationId, int parentLocationId, double childSurfaceRatio) {
         LocationAssociation entity = new LocationAssociation();
-        entity.setChildLocation(load(Location.class, childLocationId));
-        entity.setParentLocation(load(Location.class, parentLocationId));
+        entity.setChildLocation(getReference(Location.class, childLocationId));
+        entity.setParentLocation(getReference(Location.class, parentLocationId));
         entity.setChildSurfaceRatio(childSurfaceRatio);
 
         // Update update_dt

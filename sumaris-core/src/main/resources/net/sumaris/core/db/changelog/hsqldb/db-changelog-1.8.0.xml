@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.8.0.xml">
+
+  <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+  <property name="sqlCheck.not_empty.expectedResult" value="1"/>
+
+  <!-- Add UNIT_CONVERSION table -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-1">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="unit_conversion"/></not>
+    </preConditions>
+    <createTable tableName="unit_conversion">
+      <column name="conversion_coefficient" type="DOUBLE">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="to_unit_fk" type="INT">
+        <constraints primaryKey="true" primaryKeyName="unit_conversion_pk"/>
+      </column>
+      <column name="from_unit_fk" type="INT">
+        <constraints primaryKey="true" primaryKeyName="unit_conversion_pk"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-2" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <not><foreignKeyConstraintExists foreignKeyTableName="unit_conversion" foreignKeyName="FKl67elsp66xfx98wpn0mcs87xf"/></not>
+    </preConditions>
+    <addForeignKeyConstraint baseColumnNames="to_unit_fk" baseTableName="unit_conversion" constraintName="FKl67elsp66xfx98wpn0mcs87xf" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="unit" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-3" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <not><foreignKeyConstraintExists foreignKeyTableName="unit_conversion" foreignKeyName="FKpyndi6gsy4q5yvk8ilgjxgm2d"/></not>
+    </preConditions>
+    <addForeignKeyConstraint baseColumnNames="from_unit_fk" baseTableName="unit_conversion" constraintName="FKpyndi6gsy4q5yvk8ilgjxgm2d" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="unit" validate="true"/>
+  </changeSet>
+
+  <!-- Add table PROCESSING_FREQUENCY -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-4">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="processing_frequency"/></not>
+    </preConditions>
+    <createTable tableName="processing_frequency">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="processing_frequency_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="rank_order" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-5" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <not><foreignKeyConstraintExists foreignKeyTableName="processing_frequency" foreignKeyName="FKi409fmmjj9jjimhcyf57ewrfl"/></not>
+    </preConditions>
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="processing_frequency" constraintName="FKi409fmmjj9jjimhcyf57ewrfl" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status" validate="true"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-6">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PROCESSING_FREQUENCY</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="PROCESSING_FREQUENCY">
+      <column name="ID" valueNumeric="0"/>
+      <column name="LABEL">NEVER</column>
+      <column name="NAME">Never</column>
+      <column name="DESCRIPTION">Avoid any updates</column>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+      <column name="RANK_ORDER" valueNumeric="1"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+    </insert>
+    <insert tableName="PROCESSING_FREQUENCY">
+      <column name="ID" valueNumeric="1"/>
+      <column name="LABEL">MANUALLY</column>
+      <column name="NAME">Manually</column>
+      <column name="DESCRIPTION">Manual execution</column>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+      <column name="RANK_ORDER" valueNumeric="2"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+    </insert>
+    <insert tableName="PROCESSING_FREQUENCY">
+      <column name="ID" valueNumeric="2"/>
+      <column name="LABEL">DAILY</column>
+      <column name="NAME">Daily</column>
+      <column name="DESCRIPTION">Daily execution</column>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+      <column name="RANK_ORDER" valueNumeric="3"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+    </insert>
+    <insert tableName="PROCESSING_FREQUENCY">
+      <column name="ID" valueNumeric="3"/>
+      <column name="LABEL">WEEKLY</column>
+      <column name="NAME">Weekly</column>
+      <column name="DESCRIPTION">Weekly execution</column>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+      <column name="RANK_ORDER" valueNumeric="4"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+    </insert>
+    <insert tableName="PROCESSING_FREQUENCY">
+      <column name="ID" valueNumeric="4"/>
+      <column name="LABEL">MONTHLY</column>
+      <column name="NAME">Monthly</column>
+      <column name="DESCRIPTION">Monthly execution</column>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+      <column name="RANK_ORDER" valueNumeric="5"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+    </insert>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-7" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="extraction_product" columnName="processing_frequency_fk"/></not>
+    </preConditions>
+    <addColumn tableName="extraction_product">
+      <column name="processing_frequency_fk" type="integer">
+      </column>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-8" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <not><foreignKeyConstraintExists foreignKeyTableName="extraction_product" foreignKeyName="FKmg6p41bvv2og0vaphw5t94qwn"/></not>
+    </preConditions>
+    <addForeignKeyConstraint baseColumnNames="processing_frequency_fk" baseTableName="extraction_product" constraintName="FKmg6p41bvv2og0vaphw5t94qwn" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="processing_frequency" validate="true"/>
+  </changeSet>
+
+  <!-- Update existing products, with a frequency 'MANUALLY' -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-9" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not><sqlCheck expectedResult="0">SELECT COUNT(*) FROM extraction_product where processing_frequency_fk is null</sqlCheck></not>
+    </preConditions>
+    <sql endDelimiter=";">
+      update extraction_product set processing_frequency_fk=1 where processing_frequency_fk is null;
+      commit;
+    </sql>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-10" runOnChange="true">
+    <preConditions onFail="HALT">
+      <sqlCheck expectedResult="0">SELECT COUNT(*) FROM extraction_product where processing_frequency_fk is null</sqlCheck>
+    </preConditions>
+    <addNotNullConstraint tableName="extraction_product" columnName="processing_frequency_fk"/>
+  </changeSet>
+
+  <!-- Add missing columns LOCATION_ASSOCIATION.IS_MAIN_ASSOCIATION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-11">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="location_association" columnName="is_main_association"/></not>
+    </preConditions>
+    <addColumn tableName="location_association">
+      <column name="is_main_association" type="boolean"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-12" failOnError="false">
+    <dropNotNullConstraint tableName="denormalized_batch" columnName="weight_method_fk"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-13">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="person" columnName="username"/></not>
+    </preConditions>
+    <addColumn tableName="person">
+      <column name="username" type="VARCHAR(40)"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-14">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="person" columnName="username_extranet"/></not>
+    </preConditions>
+    <addColumn tableName="person">
+      <column name="username_extranet" type="VARCHAR(40)"/>
+    </addColumn>
+  </changeSet>
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031693-200" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='1.8.0'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">1.8.0</column>
+      <column name="DESCRIPTION">
+        - Add tables UNIT_CONVERSION, PROCESSING_FREQUENCY;
+        - Add column EXTRACTION_PRODUCT.PROCESSING_FREQUENCY_FK;
+        - Add column LOCATION_ASSOCIATION.IS_MAIN_ASSOCIATION;
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+        - Add tables UNIT_CONVERSION, PROCESSING_FREQUENCY;
+        - Add column EXTRACTION_PRODUCT.PROCESSING_FREQUENCY_FK;
+        - Add column LOCATION_ASSOCIATION.IS_MAIN_ASSOCIATION;
+      </column>
+    </insert>
+  </changeSet>
+</databaseChangeLog>

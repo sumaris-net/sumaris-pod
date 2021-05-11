@@ -121,12 +121,6 @@ public class ProcessingHistory implements IEntity<Integer> {
 
     /* -- child entities -- */
 
-//    @OneToMany(fetch = FetchType.LAZY, targetEntity = BatchSortingMeasurement.class, mappedBy = BatchSortingMeasurement.PROPERTY_BATCH)
-//    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-//    private List<BatchSortingMeasurement> sortingMeasurements = new ArrayList<>();
-//
-//    @OneToMany(fetch = FetchType.LAZY, targetEntity = BatchQuantificationMeasurement.class, mappedBy = BatchQuantificationMeasurement.PROPERTY_BATCH)
-//    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-//    private List<BatchQuantificationMeasurement> quantificationMeasurements = new ArrayList<>();
+
 
 }

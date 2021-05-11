@@ -24,12 +24,15 @@ package net.sumaris.core.service.social;
 
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.social.UserEventRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.social.EventTypeEnum;
+import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,6 +43,7 @@ import java.util.stream.Collectors;
  * @author <benoit.lavenier@e-is.pro> on 08/07/2020.
  */
 @Service("userEventService")
+@Slf4j
 public class UserEventServiceImpl implements UserEventService {
 
     private final UserEventRepository userEventRepository;
@@ -80,4 +84,6 @@ public class UserEventServiceImpl implements UserEventService {
                 .filter(Objects::nonNull)
                 .forEach(this::delete);
     }
+
+
 }

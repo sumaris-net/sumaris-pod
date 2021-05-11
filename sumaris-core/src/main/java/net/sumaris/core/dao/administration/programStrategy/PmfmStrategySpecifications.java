@@ -31,6 +31,7 @@ import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
+import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nonnull;
@@ -79,5 +80,12 @@ public interface PmfmStrategySpecifications {
         return specification;
     }
 
+    default Specification<PmfmStrategy> toSpecification(PmfmStrategyFilterVO filter) {
+
+        return BindableSpecification
+                .where(hasProgramId(filter.getProgramId()))
+                .and(hasStrategyId(filter.getStrategyId()))
+                .and(hasAcquisitionLevelId(filter.getAcquisitionLevelId()));
+    }
 
 }

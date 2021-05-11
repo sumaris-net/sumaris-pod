@@ -69,6 +69,7 @@ public class LandingRepositoryImpl
             .and(hasTripId(filter.getTripId()))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationId(filter.getLocationId()))
+            .and(inLocationIds(filter.getLocationIds()))
             .and(hasVesselId(filter.getVesselId()))
             .and(hasExcludeVesselIds(filter.getExcludeVesselIds()));
     }
@@ -76,7 +77,7 @@ public class LandingRepositoryImpl
     @Override
     public List<LandingVO> saveAllByObservedLocationId(int observedLocationId, List<LandingVO> sources) {
         // Load parent entity
-        ObservedLocation parent = getOne(ObservedLocation.class, observedLocationId);
+        ObservedLocation parent = getById(ObservedLocation.class, observedLocationId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getProgram().getId());
 
@@ -128,7 +129,7 @@ public class LandingRepositoryImpl
             if (source.getLocation() == null || source.getLocation().getId() == null) {
                 target.setLocation(null);
             } else {
-                target.setLocation(load(Location.class, source.getLocation().getId()));
+                target.setLocation(getReference(Location.class, source.getLocation().getId()));
             }
         }
 
@@ -138,7 +139,7 @@ public class LandingRepositoryImpl
             if (observedLocationId == null) {
                 target.setObservedLocation(null);
             } else {
-                target.setObservedLocation(load(ObservedLocation.class, observedLocationId));
+                target.setObservedLocation(getReference(ObservedLocation.class, observedLocationId));
             }
         }
 
@@ -148,7 +149,7 @@ public class LandingRepositoryImpl
             if (tripId == null) {
                 target.setTrip(null);
             } else {
-                target.setTrip(load(Trip.class, tripId));
+                target.setTrip(getReference(Trip.class, tripId));
             }
         }
 

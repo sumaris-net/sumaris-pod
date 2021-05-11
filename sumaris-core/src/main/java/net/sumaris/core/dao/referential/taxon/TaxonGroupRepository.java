@@ -35,6 +35,6 @@ public interface TaxonGroupRepository
     extends ReferentialRepository<TaxonGroup, TaxonGroupVO, ReferentialFilterVO, ReferentialFetchOptions>,
     TaxonGroupSpecifications {
 
-    TaxonGroup getOneByLabelAndTaxonGroupTypeId(String label, Integer taxonGroupTypeId);
+    TaxonGroup getByLabelAndTaxonGroupTypeId(String label, Integer taxonGroupTypeId);
 
 }

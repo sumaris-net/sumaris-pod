@@ -22,12 +22,16 @@ package net.sumaris.server.http.security;
  * #L%
  */
 
-import net.sumaris.core.service.technical.ConfigurationService;
-import net.sumaris.server.http.filter.HeaderVersionFilter;
+import net.sumaris.server.config.SumarisServerConfiguration;
+import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -43,7 +47,7 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import java.util.Objects;
+import java.util.Collection;
 
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
@@ -54,7 +58,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
-@Order(value = 1)
+@Order(value = 10)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private static final RequestMatcher PUBLIC_URLS = new OrRequestMatcher(
@@ -69,19 +73,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     );
     private static final RequestMatcher PROTECTED_URLS = new NegatedRequestMatcher(PUBLIC_URLS);
 
-    private final TokenAuthenticationProvider provider;
+    private final ApplicationContext applicationContext;
 
-    private final ConfigurationService configurationService;
+    private final SumarisServerConfiguration configuration;
 
-    public WebSecurityConfig(TokenAuthenticationProvider provider, ConfigurationService configurationService) {
+    public WebSecurityConfig(ApplicationContext applicationContext, SumarisServerConfiguration configuration) {
         super();
-        this.provider = Objects.requireNonNull(provider);
-        this.configurationService = Objects.requireNonNull(configurationService);
+        this.applicationContext = applicationContext;
+        this.configuration = configuration;
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) {
-        auth.authenticationProvider(provider);
+        auth.authenticationProvider(authenticationProvider());
     }
 
     @Override
@@ -91,44 +95,57 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-                .sessionManagement()
-                .sessionCreationPolicy(STATELESS)
-                .and()
-                .exceptionHandling()
-                // this entry point handles when you request a protected page and you are not yet
-                // authenticated
-                .defaultAuthenticationEntryPointFor(forbiddenEntryPoint(), PROTECTED_URLS)
-                .and()
-                .authenticationProvider(provider)
-                .addFilterBefore(restAuthenticationFilter(), AnonymousAuthenticationFilter.class)
+        http.sessionManagement()
+            .sessionCreationPolicy(STATELESS)
+            .and()
+            .exceptionHandling()
+            // this entry point handles when you request a protected page and you are not yet
+            // authenticated
+            .defaultAuthenticationEntryPointFor(forbiddenEntryPoint(), PROTECTED_URLS)
+            .and()
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(restAuthenticationFilter(), AnonymousAuthenticationFilter.class)
 
-                // TODO BLA enable the version checked when App will manage the error (code: 553)
-                //.addFilterBefore(headerVersionFilter(), TokenAuthenticationFilter.class)
+            // TODO BLA enable the version checked when App will manage the error (code: 553)
+            //.addFilterBefore(headerVersionFilter(), TokenAuthenticationFilter.class)
 
-                .authorizeRequests()
-                .requestMatchers(PROTECTED_URLS)
-                .authenticated()
-                .and()
-                .csrf().disable()
-                .formLogin().disable()
-                .httpBasic().disable()
-                .logout().disable();
+            .authorizeRequests()
+            .requestMatchers(PROTECTED_URLS)
+            .authenticated()
+            .and()
+            .csrf().disable()
+            .formLogin().disable()
+            .httpBasic().disable()
+            .logout().disable();
     }
 
     @Bean
-    TokenAuthenticationFilter restAuthenticationFilter() throws Exception {
-        final TokenAuthenticationFilter filter = new TokenAuthenticationFilter(PROTECTED_URLS);
+    AuthenticationFilter restAuthenticationFilter() throws Exception {
+        final AuthenticationFilter filter = new AuthenticationFilter(PROTECTED_URLS);
         filter.setAuthenticationManager(authenticationManager());
         filter.setAuthenticationSuccessHandler(successHandler());
+        filter.setEnableAuthToken(configuration.enableAuthToken());
+        filter.setEnableAuthBasic(configuration.enableAuthBasic());
         return filter;
     }
 
     @Bean
-    HeaderVersionFilter headerVersionFilter() {
-        final HeaderVersionFilter filter = new HeaderVersionFilter();
-        //filter.setConfigurationService(configurationService);
-        return filter;
+    @Primary
+    AuthenticationProvider authenticationProvider() {
+        Collection<AuthenticationProvider> delegates = applicationContext.getBeansOfType(AuthenticationProvider.class).values();
+
+        // No provider: error
+        if (delegates.size() == 0) {
+            throw new BeanInitializationException("No authentication provider found! Please set 'spring.security.token.enabled' or 'spring.security.ldap.enabled'");
+        }
+
+        // If only one provider, use it
+        if (delegates.size() == 1) {
+            return delegates.iterator().next();
+        }
+
+        // Create a multiple provider delegator
+        return new MultiAuthenticationProviderDelegator(delegates);
     }
 
     @Bean
@@ -139,11 +156,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     /**
-     * Disable Spring boot automatic tripFilter registration.
+     * Disable Spring boot automatic registration.
      */
     @Bean
-    FilterRegistrationBean disableAutoRegistration(final TokenAuthenticationFilter filter) {
-        final FilterRegistrationBean<TokenAuthenticationFilter> registration = new FilterRegistrationBean<>(filter);
+    FilterRegistrationBean disableAutoRegistration(final AuthenticationFilter filter) {
+        final FilterRegistrationBean<AuthenticationFilter> registration = new FilterRegistrationBean<>(filter);
         registration.setEnabled(false);
         return registration;
     }

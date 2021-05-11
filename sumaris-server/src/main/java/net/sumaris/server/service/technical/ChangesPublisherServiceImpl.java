@@ -23,6 +23,7 @@ package net.sumaris.server.service.technical;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Comparators;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
@@ -30,18 +31,25 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
+import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.dao.technical.EntityDao;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.io.Serializable;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @Service("changesPublisherService")
 @Slf4j
@@ -58,16 +66,124 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
     @Autowired
     private ChangesPublisherService self; // Loop back to be able to force transaction handling
 
+    public <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>, L extends List<V>> Publisher<L>
+    getListPublisher(final Function<Date, L> getter,
+                       Integer minIntervalInSecond,
+                       boolean startWithActualValue) {
+
+        Preconditions.checkArgument(minIntervalInSecond == null || minIntervalInSecond.intValue() >= 10, "minimum interval value should be >= 10 seconds");
+        if (minIntervalInSecond == null) minIntervalInSecond = 30;
+
+        log.info(String.format("Checking changes (using getter function), every %s sec. (total publishers: %s)", minIntervalInSecond, publisherCount.incrementAndGet()));
+
+        final Calendar lastUpdateDate = Calendar.getInstance();
+
+        // Create stop event, after a too long delay (to be sure old publisher are closed)
+        Observable stop = Observable.just(Boolean.TRUE).delay(1, TimeUnit.HOURS);
+        stop.subscribe(o -> log.debug(String.format("Closing publisher after a too long delay (1h) (total publishers: %s)", publisherCount.get() - 1)));
+
+        Observable<L> observable = Observable
+                .interval(minIntervalInSecond, TimeUnit.SECONDS)
+                .takeUntil(stop)
+                .observeOn(Schedulers.io())
+                .flatMap(n -> {
+                    // Try to find a newer bean
+                    L entities = getter.apply(lastUpdateDate.getTime());
+
+                    // Update the date used for comparison
+                    if (CollectionUtils.isNotEmpty(entities)) {
+                        D newUpdateDate = entities.stream()
+                                .map(IUpdateDateEntityBean::getUpdateDate)
+                                .filter(Objects::nonNull)
+                                .max(Comparator.comparingLong(Date::getTime))
+                                .orElse(null);
+                        if (newUpdateDate != null && lastUpdateDate.getTime().before(newUpdateDate)) {
+                            lastUpdateDate.setTime(newUpdateDate);
+                            return Observable.just(entities);
+                        }
+                    }
+                    return Observable.empty();
+                });
+
+        // Sending the initial value when starting
+        if (startWithActualValue) {
+            // Convert the entity into VO
+            L entities = getter.apply(null);
+            if (CollectionUtils.isNotEmpty(entities)) {
+                D newUpdateDate = entities.stream()
+                        .map(IUpdateDateEntityBean::getUpdateDate)
+                        .filter(Objects::nonNull)
+                        .max(Comparator.comparingLong(Date::getTime))
+                        .orElse(null);
+                lastUpdateDate.setTime(newUpdateDate);
+                observable = observable.startWith(entities);
+            }
+        }
+
+        return observable
+                .doAfterTerminate(publisherCount::decrementAndGet) // Decrement counter
+                .toFlowable(BackpressureStrategy.LATEST);
+    }
+
+    public <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>> Publisher<V>
+    getPublisher(final Function<Date, V> getter,
+                       Integer minIntervalInSecond,
+                       boolean startWithActualValue) {
+
+        Preconditions.checkArgument(minIntervalInSecond == null || minIntervalInSecond.intValue() >= 10, "minimum interval value should be >= 10 seconds");
+        if (minIntervalInSecond == null) minIntervalInSecond = 30;
+
+        log.info(String.format("Checking changes (using getter function), every %s sec. (total publishers: %s)", minIntervalInSecond, publisherCount.incrementAndGet()));
+
+
+        final Calendar lastUpdateDate = Calendar.getInstance();
+
+        // Create stop event, after a too long delay (to be sure old publisher are closed)
+        Observable stop = Observable.just(Boolean.TRUE).delay(1, TimeUnit.HOURS);
+        stop.subscribe(o -> log.debug(String.format("Closing publisher after a too long delay (1h) (total publishers: %s)", publisherCount.get() - 1)));
+
+        Observable<V> observable = Observable
+                .interval(minIntervalInSecond, TimeUnit.SECONDS)
+                .takeUntil(stop)
+                .observeOn(Schedulers.io())
+                .flatMap(n -> {
+                    // Try to find a newer bean
+                    V entity = getter.apply(lastUpdateDate.getTime());
+
+                    // Update the date used for comparision
+                    if (entity != null && lastUpdateDate.getTime().before(entity.getUpdateDate())) {
+                        lastUpdateDate.setTime(entity.getUpdateDate());
+                        return Observable.just(entity);
+                    }
+                    return Observable.empty();
+                });
+
+        // Sending the initial value when starting
+        if (startWithActualValue) {
+            // Convert the entity into VO
+            V entity = getter.apply(null);
+            if (entity == null) {
+                throw new DataNotFoundException(I18n.t("sumaris.error.notFound"));
+            }
+            lastUpdateDate.setTime(entity.getUpdateDate());
+            observable = observable.startWith(entity);
+        }
+
+        return observable
+                .doAfterTerminate(publisherCount::decrementAndGet) // Decrement counter
+                .toFlowable(BackpressureStrategy.LATEST);
+    }
+
     @Override
     public <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>, V extends IUpdateDateEntityBean<K, D>> Publisher<V>
     getPublisher(final Class<T> entityClass,
                  final Class<V> targetClass,
                  final K id,
-                 Integer minIntervalInSecond,
+                 Integer intervalInSecond,
                  boolean startWithActualValue) {
 
-        Preconditions.checkArgument(minIntervalInSecond == null || minIntervalInSecond.intValue() >= 10, "minimum interval value should be >= 10 seconds");
-        if (minIntervalInSecond == null) minIntervalInSecond = 30;
+        Preconditions.checkArgument(intervalInSecond == null || intervalInSecond >= 10, "interval should be >= 10 seconds");
+        if (intervalInSecond == null) intervalInSecond = 30; // Default interval: 30s
 
         // Check conversion is possible
         if (!conversionService.canConvert(entityClass, targetClass)) {
@@ -80,8 +196,7 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
             throw new DataNotFoundException(I18n.t("sumaris.error.notFound", entityClass.getSimpleName(), id));
         }
 
-        log.info(String.format("Checking changes on %s #%s every %s sec. (total publishers: %s)", entityClass.getSimpleName(), id, minIntervalInSecond, publisherCount.incrementAndGet()));
-
+        log.info(String.format("Checking changes on %s #%s every %s sec. (total publishers: %s)", entityClass.getSimpleName(), id, intervalInSecond, publisherCount.incrementAndGet()));
 
         final Calendar lastUpdateDate = Calendar.getInstance();
         if (initialEntity.getUpdateDate() != null) {
@@ -92,22 +207,22 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
 
         // Create stop event, after a too long delay (to be sure old publisher are closed)
         Observable stop = Observable.just(Boolean.TRUE).delay(1, TimeUnit.HOURS);
-        stop.subscribe(o -> log.debug(String.format("Closing publisher on %s #%s: max time reached. (total publishers: %s)", entityClass.getSimpleName(), id, publisherCount.decrementAndGet())));
+        stop.subscribe(o -> log.debug(String.format("Closing publisher on %s #%s: max time reached. (total publishers: %s)", entityClass.getSimpleName(), id, publisherCount.get() - 1)));
 
         Observable<V> observable = Observable
-                .interval(minIntervalInSecond, TimeUnit.SECONDS)
+                .interval(intervalInSecond, TimeUnit.SECONDS)
                 .takeUntil(stop)
                 .observeOn(Schedulers.io())
                 .flatMap(n -> {
                     // Try to find a newer bean
                     V newerVOOrNull = self.getIfNewer(entityClass, targetClass, id, lastUpdateDate.getTime());
 
-                    // Update the date used for comparision
+                    // Update the date used for comparison
                     if (newerVOOrNull != null) {
                         lastUpdateDate.setTime(newerVOOrNull.getUpdateDate());
-                        return Observable.just(newerVOOrNull);
+                        return Observable.<V>just(newerVOOrNull);
                     }
-                    return Observable.empty();
+                    return Observable.<V>empty();
                 });
 
         // Sending the initial value when starting
@@ -120,8 +235,9 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
             observable = observable.startWith(initialVO);
         }
 
-
-        return observable.toFlowable(BackpressureStrategy.LATEST);
+        return observable
+                .doAfterTerminate(publisherCount::decrementAndGet) // Decrement counter
+                .toFlowable(BackpressureStrategy.LATEST);
     }
 
     @Override

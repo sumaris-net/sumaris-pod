@@ -55,7 +55,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private AggregationService service;
+    private AggregationService aggregationService;
 
     private String yearRawData;
     private String yearRdbProduct;
@@ -77,7 +77,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
         strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
 
-        File outputFile = service.executeAndDump(type, null, strata);
+        File outputFile = aggregationService.executeAndDump(type, null, strata);
         File root = unpack(outputFile, type);
 
         // HH.csv
@@ -89,10 +89,8 @@ public class AggregationServiceTest extends AbstractServiceTest {
         Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
 
         // HL.csv
-        // Fixme BLA: Cannot link HL rowsto SL rows, so the generated HL is empty
-        //  - tests data mistake: P01_RDB_SPECIES_LENGTH should have same columns as SL rows, to be able to link to SL
-        //File speciesLengthFile = new File(root, AggRdbSpecification.HL_SHEET_NAME + ".csv");
-        //Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
+        File speciesLengthFile = new File(root, AggRdbSpecification.HL_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
     }
 
     @Test
@@ -106,7 +104,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
         strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
 
-        File outputFile = service.executeAndDump(type, null, strata);
+        File outputFile = aggregationService.executeAndDump(type, null, strata);
         File root = unpack(outputFile, type);
 
         // HH.csv
@@ -135,7 +133,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
         strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
 
-        File outputFile = service.executeAndDump(type, null, strata);
+        File outputFile = aggregationService.executeAndDump(type, null, strata);
         Assert.assertTrue(outputFile.exists());
         File root = unpack(outputFile, type);
 
@@ -168,7 +166,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         strata.setSpatialColumnName(AggRdbSpecification.COLUMN_AREA);
         strata.setTimeColumnName(AggRdbSpecification.COLUMN_MONTH);
 
-        AggregationResultVO result = service.executeAndRead(type, filter, strata, 0,100, null, null);
+        AggregationResultVO result = aggregationService.executeAndRead(type, filter, strata, 0,100, null, null);
 
         Assert.assertNotNull(result);
         Assert.assertNotNull(result.getRows());
@@ -191,7 +189,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         type.setLabel(ExtractionProducts.getProductLabel(LiveFormatEnum.SURVIVAL_TEST, System.currentTimeMillis()));
 
         // Save
-        AggregationTypeVO savedType = service.save(type, null);
+        AggregationTypeVO savedType = aggregationService.save(type, null);
         Assert.assertNotNull(savedType);
         Assert.assertNotNull(savedType.getId());
 
@@ -208,7 +206,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         AggregationStrataVO strata = new AggregationStrataVO();
         strata.setSpatialColumnName("area");
 
-        AggregationResultVO result = service.getAggBySpace(savedType, filter, strata, 0,100, null, null);
+        AggregationResultVO result = aggregationService.getAggBySpace(savedType, filter, strata, 0,100, null, null);
 
         Assert.assertNotNull(result);
         Assert.assertNotNull(result.getRows());
@@ -238,7 +236,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         criterion.setValue(yearRdbProduct);
         filter.setCriteria(ImmutableList.of(criterion));
 
-        AggregationTechResultVO result = service.getAggByTech(type, filter, strata, null, null);
+        AggregationTechResultVO result = aggregationService.getAggByTech(type, filter, strata, null, null);
         Assert.assertNotNull(result);
         Assert.assertNotNull(result.getData());
         Assert.assertTrue(result.getData().size() > 0);

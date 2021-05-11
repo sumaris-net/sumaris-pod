@@ -30,12 +30,15 @@ import graphql.ExecutionResult;
 import graphql.GraphQLError;
 import graphql.GraphQLException;
 import graphql.execution.AbortExecutionException;
-import graphql.execution.ExecutionPath;
+import graphql.execution.ResultPath;
 import graphql.kickstart.execution.error.GenericGraphQLError;
+import graphql.schema.SelectedField;
+import io.leangen.graphql.execution.ResolutionEnvironment;
 import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.exception.ErrorHelper;
+import net.sumaris.server.http.GraphQLUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -44,13 +47,14 @@ import org.springframework.security.access.AccessDeniedException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-public class GraphQLHelper {
+public class GraphQLHelper extends GraphQLUtils {
 
     private GraphQLHelper() {
         // helper class
     }
-
 
     public static Map<String, Object> getVariables(Map<String, Object> request, ObjectMapper objectMapper) {
         Object variablesObj = request.get("variables");
@@ -127,7 +131,7 @@ public class GraphQLHelper {
             GraphQLError result = tryCreateGraphQLError(baseException);
             if (result != null) return result;
 
-            return new ExceptionWhileDataFetching(ExecutionPath.fromList(exError.getPath()), // TODO migrate to ResultPath (in graphql-java 16)
+            return new ExceptionWhileDataFetching(ResultPath.fromList(exError.getPath()), // TODO migrate to ResultPath (in graphql-java 16)
                     new GraphQLException(baseException.getMessage()),
                     exError.getLocations().get(0));
         }

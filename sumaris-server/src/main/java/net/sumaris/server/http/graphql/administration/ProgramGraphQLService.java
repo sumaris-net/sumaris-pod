@@ -24,6 +24,7 @@ package net.sumaris.server.http.graphql.administration;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
+import io.leangen.graphql.execution.ResolutionEnvironment;
 import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.Pageables;
@@ -46,16 +47,20 @@ import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.server.http.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
+import net.sumaris.server.service.technical.ChangesPublisherService;
+import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -87,6 +92,9 @@ public class ProgramGraphQLService {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private ChangesPublisherService changesPublisherService;
 
     @Autowired
     public ProgramGraphQLService() {
@@ -132,9 +140,9 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "strategy", description = "Get a strategy")
     @Transactional(readOnly = true)
     public StrategyVO getStrategy(@GraphQLNonNull @GraphQLArgument(name = "id") @NonNull Integer id,
-                                  @GraphQLEnvironment() Set<String> fields) {
+                                  @GraphQLEnvironment ResolutionEnvironment env) {
 
-        return strategyService.get(id, getStrategyFetchOptions(fields));
+        return strategyService.get(id, getStrategyFetchOptions(GraphQLUtils.fields(env)));
     }
 
     @GraphQLQuery(name = "strategies", description = "Search in strategies")
@@ -145,11 +153,11 @@ public class ProgramGraphQLService {
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
             @GraphQLArgument(name = "sortBy", defaultValue = StrategyVO.Fields.LABEL) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-            @GraphQLEnvironment() Set<String> fields) {
+            @GraphQLEnvironment ResolutionEnvironment env) {
 
         return strategyService.findByFilter(filter,
                 Pageables.create(offset, size, sort, SortDirection.fromString(direction)),
-                getStrategyFetchOptions(fields));
+                getStrategyFetchOptions(GraphQLUtils.fields(env)));
     }
 
     @GraphQLQuery(name = "strategiesCount", description = "Get strategies count")
@@ -186,30 +194,35 @@ public class ProgramGraphQLService {
 
     @GraphQLQuery(name = "strategies", description = "Get program's strategies")
     public List<StrategyVO> getStrategiesByProgram(@GraphQLContext ProgramVO program,
-                                                   @GraphQLEnvironment() Set<String> fields) {
+                                                   @GraphQLEnvironment ResolutionEnvironment env) {
         if (program.getStrategies() != null) {
             return program.getStrategies();
         }
-        return strategyService.findByProgram(program.getId(), getStrategyFetchOptions(fields));
+        return strategyService.findByProgram(program.getId(), getStrategyFetchOptions(GraphQLUtils.fields(env)));
     }
 
     @GraphQLQuery(name = "pmfms", description = "Get strategy's pmfms")
-    public List<PmfmStrategyVO> getPmfmsByStrategy(@GraphQLContext StrategyVO strategy,
-                                                   @GraphQLEnvironment() Set<String> fields) {
+    public List<PmfmStrategyVO> getPmfmsByStrategy(@GraphQLContext StrategyVO strategy) {
         if (strategy.getPmfms() != null) {
             return strategy.getPmfms();
         }
-        return strategyService.findPmfmsByStrategy(strategy.getId(),
-                StrategyFetchOptions.builder().withPmfms(true).build());
+        return strategyService.findPmfmsByFilter(PmfmStrategyFilterVO.builder()
+                        .strategyId(strategy.getId()).build(),
+                PmfmStrategyFetchOptions.DEFAULT);
     }
 
     @GraphQLQuery(name = "denormalizedPmfms", description = "Get strategy's denormalized pmfms")
     public List<DenormalizedPmfmStrategyVO> getDenormalizedPmfmByStrategy(@GraphQLContext StrategyVO strategy,
-                                                                          @GraphQLEnvironment() Set<String> fields) {
+                                                                          @GraphQLEnvironment ResolutionEnvironment env) {
         if (strategy.getDenormalizedPmfms() != null) {
             return strategy.getDenormalizedPmfms();
         }
-        return strategyService.findDenormalizedPmfmsByStrategy(strategy.getId(), getPmfmStrategyFetchOptions(fields));
+        Set<String> fields = GraphQLUtils.fields(env);
+        return strategyService.findDenormalizedPmfmsByFilter(PmfmStrategyFilterVO.builder().strategyId(strategy.getId()).build(),
+                PmfmStrategyFetchOptions.builder()
+                        .uniqueByPmfmId(true)
+                        .withCompleteName(fields.contains(DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME))
+                        .build());
     }
 
     @GraphQLQuery(name = "pmfm", description = "Get strategy pmfm")
@@ -288,6 +301,51 @@ public class ProgramGraphQLService {
                 nbDigit == null ? 0 : nbDigit);
     }
 
+    @GraphQLSubscription(name = "updateProgram", description = "Subscribe to changes on a program")
+    @IsUser
+    public Publisher<ProgramVO> updateProgram(@GraphQLArgument(name = "id") final Integer id,
+                                              @GraphQLArgument(name = "label") final String label,
+                                              @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
+                                              @GraphQLEnvironment ResolutionEnvironment env) {
+
+
+
+        // Watch by id
+        if (id != null) {
+            Preconditions.checkArgument(id >= 0, "Invalid 'id' argument");
+            return changesPublisherService.getPublisher(Program.class, ProgramVO.class, id, minIntervalInSecond, true);
+        }
+
+        // Watch by label
+        Preconditions.checkNotNull(label, "Invalid 'label' argument");
+        ProgramFetchOptions fetchOptions = getProgramFetchOptions(GraphQLUtils.fields(env));
+        return changesPublisherService.getPublisher((lastUpdateDate) -> programService.findIfNewerByLabel(label, lastUpdateDate, fetchOptions).orElse(null), minIntervalInSecond, true);
+
+    }
+
+
+    @GraphQLSubscription(name = "updateProgramStrategies", description = "Subscribe to changes on program's strategies")
+    @IsUser
+    public Publisher<List<StrategyVO>> updateProgramStrategies(@GraphQLNonNull @GraphQLArgument(name = "programId") final int programId,
+                                                               @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
+                                                               @GraphQLEnvironment ResolutionEnvironment env) {
+
+        Set<String> fields = GraphQLUtils.fields(env);
+        StrategyFetchOptions fetchOptions = getStrategyFetchOptions(fields);
+
+        Preconditions.checkArgument(programId >= 0, "Invalid programId");
+
+        return changesPublisherService.getListPublisher((lastUpdateDate) -> {
+            if (lastUpdateDate == null) {
+                // Get all
+                return strategyService.findByProgram(programId, fetchOptions);
+            }
+
+            // Get newer strategies
+            return strategyService.findNewerByProgramId(programId, lastUpdateDate, fetchOptions);
+        }, minIntervalInSecond, false /*get only updates, not actual list*/);
+    }
+
     /* -- Mutations -- */
 
     @GraphQLMutation(name = "saveProgram", description = "Save a program (with strategies)")
@@ -351,29 +409,14 @@ public class ProgramGraphQLService {
                                 fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.MAXIMUM_NUMBER_DECIMALS)) ||
                                 fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.SIGNIF_FIGURES_NUMBER))
                 )
-                // Test if should include pmfm's complete name
-                .withDenormalizedPmfmCompleteName(
-                        fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME))
+                // Retrieve how to fetch Pmfms
+                .pmfmsFetchOptions(
+                        PmfmStrategyFetchOptions.builder()
+                                .withCompleteName(fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME)))
+                                .build()
                 )
                 .build();
     }
-
-    protected StrategyFetchOptions getPmfmStrategyFetchOptions(Set<String> fields) {
-        return StrategyFetchOptions.builder()
-                // Test each fields that are computed by inheritance
-                .withDenormalizedPmfms(
-                    fields.contains(DenormalizedPmfmStrategyVO.Fields.LABEL) ||
-                    fields.contains(DenormalizedPmfmStrategyVO.Fields.TYPE) ||
-                    fields.contains(DenormalizedPmfmStrategyVO.Fields.UNIT_LABEL) ||
-                    fields.contains(DenormalizedPmfmStrategyVO.Fields.MAXIMUM_NUMBER_DECIMALS) ||
-                    fields.contains(DenormalizedPmfmStrategyVO.Fields.SIGNIF_FIGURES_NUMBER)
-                )
-                .withDenormalizedPmfmCompleteName(
-                        fields.contains(DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME)
-                )
-                .build();
-    }
-
 
     protected void checkCanEditProgram(Integer programId) {
 

@@ -75,6 +75,7 @@ public class Strategy implements IItemReferentialEntity {
     @Column(length = 2000)
     private String comments;
 
+    @Column(name = "analytic_reference", length = 255)
     private String analyticReference;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -138,6 +138,30 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
 
     AUTH_ROLE_NOT_SELF_EXTRACTION_ACCESS(ExtractionWebConfigurationOption.AUTH_ROLE_NOT_SELF_EXTRACTION_ACCESS),
 
+    SECURITY_LDAP_ENABLED(
+        "spring.security.ldap.enabled",
+        n("sumaris.config.option.spring.security.ldap.enabled.description"),
+        "false",
+        Boolean.class),
+
+    SECURITY_AUTHENTICATION_TOKEN_ENABLE(
+        "spring.security.token.enabled",
+        n("sumaris.config.option.spring.security.token.enabled.description"),
+        "true",
+        Boolean.class),
+
+    SECURITY_AUTHENTICATION_BASIC_ENABLE(
+        "spring.security.basic.enabled",
+        n("sumaris.config.option.spring.security.basic.enabled.description"),
+        "${spring.security.ldap.enabled}",
+        Boolean.class),
+
+    AUTH_TOKEN_TYPE(
+        "sumaris.auth.token.type",
+        n("sumaris.config.option.spring.auth.token.type.description"),
+        null, // NUll == auto detected
+        String.class),
+
     APP_MIN_VERSION(
             "sumaris.app.version.min",
             n("sumaris.config.option.sumaris.app.version.min.description"),
@@ -156,28 +180,6 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             n("sumaris.config.option.upload.directory.description"),
             "${sumaris.data.directory}/uploads",
             File.class),
-
-    ACTIVEMQ_ENABLED(
-            "spring.activemq.pool.enabled",
-            n("sumaris.config.option.spring.activemq.pool.enabled.description"),
-            "false",
-            Boolean.class),
-
-    ACTIVEMQ_BROKER_URL(
-            "spring.activemq.broker-url",
-            n("sumaris.config.option.spring.activemq.broker-url.description"),
-            "vm://embedded?broker.persistent=true",
-            String.class),
-    ACTIVEMQ_BROKER_USERNAME(
-            "spring.activemq.broker-username",
-            n("sumaris.config.option.spring.activemq.broker-username.description"),
-            "",
-            String.class),
-    ACTIVEMQ_BROKER_PASSWORD(
-            "spring.activemq.broker-password",
-            n("sumaris.config.option.spring.activemq.broker-username.description"),
-            "",
-            String.class),
 
     SITE_FAVICON(
             "sumaris.favicon",
@@ -220,6 +222,20 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             "${server.url}/download/android/sumaris-app-latest.apk",
             String.class,
             false),
+
+    ENABLE_GRAVATAR(
+        "sumaris.gravatar.enable",
+        n("sumaris.config.option.gravatar.enable.description"),
+        "false",
+        Boolean.class,
+        false),
+
+    GRAVATAR_URL(
+        "sumaris.gravatar.url",
+        n("sumaris.config.option.gravatar.url.description"),
+        "https://www.gravatar.com/avatar/{md5}",
+        String.class,
+        false)
     ;
 
     /** Configuration key. */

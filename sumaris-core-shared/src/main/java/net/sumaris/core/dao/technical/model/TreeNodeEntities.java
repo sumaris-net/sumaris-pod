@@ -34,8 +34,8 @@ import java.util.stream.Stream;
 
 public class TreeNodeEntities {
 
-    public static <T extends ITreeNodeEntityBean<? extends Serializable, T>> List<T> treeAsList(T catchBatch) {
-        return streamAll(catchBatch).collect(Collectors.toList());
+    public static <T extends ITreeNodeEntityBean<? extends Serializable, T>> List<T> treeAsList(T rootNode) {
+        return streamAll(rootNode).collect(Collectors.toList());
     }
 
     public static <T extends ITreeNodeEntityBean<? extends Serializable, T>> Stream<T> streamAll(T rootNode) {
@@ -86,19 +86,19 @@ public class TreeNodeEntities {
 
 
     protected static <T extends ITreeNodeEntityBean<? extends Serializable, T>, R extends ITreeNodeEntityBean<? extends Serializable, R>>
-        void mapAndAppendToStream(final T node, final Stream.Builder<R> result, final BiFunction<T, R, R> mapFunction, R parentNode) {
-        if (node == null) return;
+        void mapAndAppendToStream(final T sourceNode, final Stream.Builder<R> result, final BiFunction<T, R, R> mapFunction, R parentNode) {
+        if (sourceNode == null) return;
 
         // Visit current
-        R mappedNode = mapFunction.apply(node, parentNode);
+        R targetNode = mapFunction.apply(sourceNode, parentNode);
 
         // Add visited node
-        result.add(mappedNode);
+        result.add(targetNode);
 
         // Process children
-        if (CollectionUtils.isNotEmpty(node.getChildren())) {
+        if (CollectionUtils.isNotEmpty(sourceNode.getChildren())) {
             // Recursive call
-            node.getChildren().forEach(child -> mapAndAppendToStream(child, result, mapFunction, mappedNode));
+            sourceNode.getChildren().forEach(child -> mapAndAppendToStream(child, result, mapFunction, targetNode));
         }
     }
 }

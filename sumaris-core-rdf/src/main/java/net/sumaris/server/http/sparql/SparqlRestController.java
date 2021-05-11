@@ -34,6 +34,7 @@ import net.sumaris.rdf.service.store.RdfDatasetService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.rdf.util.RdfFormat;
 import net.sumaris.rdf.util.RdfMediaType;
+import net.sumaris.server.http.RestPaths;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -63,9 +64,7 @@ import java.util.Optional;
 @RestController
 @ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
 @Slf4j
-public class SparqlRestController {
-
-    public static final String SPARQL_ENDPOINT = "/sparql";
+public class SparqlRestController implements RestPaths {
 
     @Resource
     private RdfSchemaService schemaService;

@@ -39,7 +39,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import java.sql.Types;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 /**
@@ -68,101 +70,25 @@ public class SumarisTableMetadatas {
 
     public static String getSqlWhereClauseContent(SumarisTableMetadata table, ExtractionFilterVO filter,
                                                   String sheetName, String tableAlias) {
-        return getSqlWhereClauseContent(table, filter, sheetName, tableAlias, false);
+        return getSqlWhereClauseContent(table, filter, sheetName, tableAlias, false, false);
     }
 
     public static String getSqlWhereClauseContent(SumarisTableMetadata table, ExtractionFilterVO filter,
-                                                  String appliedSheetName, String tableAlias, boolean skipInvalidCriteria) {
-
-        if (filter == null || CollectionUtils.isEmpty(filter.getCriteria())) return "";
-
-        StringBuilder sql = new StringBuilder();
-
-        //StringBuilder criterionSql = new StringBuilder();
-
-        StringBuilder logicalOperator = new StringBuilder();
-        String aliasWithPoint = tableAlias != null ? (tableAlias + ".") : "";
-
-        filter.getCriteria().stream()
-                .filter(criterion -> appliedSheetName == null || appliedSheetName.equals(criterion.getSheetName()))
-                .forEach(criterion -> {
-
-                    // Get the column to tripFilter
-                    Preconditions.checkNotNull(criterion.getName());
-                    SumarisColumnMetadata column = table != null ? table.getColumnMetadata(criterion.getName().toLowerCase()) : null;
-                    if (column == null) {
-                        if (appliedSheetName != null && !skipInvalidCriteria) {
-                            throw new SumarisTechnicalException(String.format("Invalid criterion: column '%s' not found in table '%s'", criterion.getName(), table.getName()));
-                        } else {
-                            // Continue (=skip)
-                        }
-                    } else {
-                        //criterionSql.setLength(0); // Reset
-                        //criterionSql.append(aliasWithPoint)
-                        //        .append(column.getName());
-                        sql.append(logicalOperator)
-                                .append(aliasWithPoint)
-                                .append(column.getName());
-
-                        // Affect logical operator, for the next criterion
-                        if (logicalOperator.length() == 0) {
-                            if ("OR".equalsIgnoreCase(StringUtils.trim(filter.getOperator()))) {
-                                logicalOperator.append(" OR ");
-                            } else {
-                                logicalOperator.append(" AND ");
-                            }
-                        }
-
-                        ExtractionFilterOperatorEnum operator = criterion.getOperator() == null ? ExtractionFilterOperatorEnum.EQUALS : ExtractionFilterOperatorEnum.fromSymbol(criterion.getOperator());
-
-                        if (criterion.getValue() == null && ArrayUtils.isEmpty(criterion.getValues())) {
-                            switch (operator) {
-                                case NOT_IN:
-                                case NOT_EQUALS:
-                                    sql.append(" IS NOT NULL");
-                                    break;
-                                default:
-                                    sql.append(" IS NULL");
-                            }
-                        } else {
-                            switch (operator) {
-                                case IN:
-                                    sql.append(String.format(" IN (%s)", getInValues(column, criterion)));
-                                    break;
-                                case NOT_IN:
-                                    sql.append(String.format(" NOT IN (%s)", getInValues(column, criterion)));
-                                    break;
-                                case EQUALS:
-                                    sql.append(String.format(" = %s", getSingleValue(column, criterion)));
-                                    break;
-                                case NOT_EQUALS:
-                                    sql.append(String.format(" <> %s", getSingleValue(column, criterion)));
-                                    break;
-                                case LESS_THAN:
-                                    sql.append(String.format(" < %s", getSingleValue(column, criterion)));
-                                    break;
-                                case LESS_THAN_OR_EQUALS:
-                                    sql.append(String.format(" <= %s", getSingleValue(column, criterion)));
-                                    break;
-                                case GREATER_THAN:
-                                    sql.append(String.format(" > %s", getSingleValue(column, criterion)));
-                                    break;
-                                case GREATER_THAN_OR_EQUALS:
-                                    sql.append(String.format(" >= %s", getSingleValue(column, criterion)));
-                                    break;
-                                case BETWEEN:
-                                    sql.append(String.format(" BETWEEN %s AND %s", getBetweenValueByIndex(column, criterion, 0), getBetweenValueByIndex(column, criterion, 1)));
-                                    break;
-                            }
-                        }
-
-                        //sql.append(logicalOperator.toString()).append(criterionSql);
-
-                    }
-                });
-
-        return sql.toString();
+                                                  String appliedSheetName,
+                                                  String tableAlias,
+                                                  boolean skipInvalidCriteria) {
+        return getSqlWhereClauseContent(table, filter, appliedSheetName, tableAlias, skipInvalidCriteria, false);
     }
+
+    public static String getInverseSqlWhereClauseContent(SumarisTableMetadata table, ExtractionFilterVO filter,
+                                                  String appliedSheetName,
+                                                  String tableAlias,
+                                                  boolean skipInvalidCriteria) {
+        return getSqlWhereClauseContent(table, filter, appliedSheetName, tableAlias, skipInvalidCriteria, true /*inverse*/);
+    }
+
+
+
 
     public static String getSingleValue(SumarisColumnMetadata column, ExtractionFilterCriterionVO criterion) {
         if (isDateColumn(column)) return Daos.getSqlToDate(Dates.fromISODateTimeString(criterion.getValue()));
@@ -188,6 +114,14 @@ public class SumarisTableMetadatas {
         Preconditions.checkArgument(criterion.getValues().length == 2, "Invalid criterion: 'values' array must have 2 values, for operator 'BETWEEN'");
         Preconditions.checkArgument(index == 0 || index == 1);
         String value = criterion.getValues()[index];
+
+        if (isDateColumn(column)) {
+            // Parse date
+            Date date = Dates.safeParseDate(value, Dates.ISO_TIMESTAMP_SPEC, "yyyy-MM-dd");
+            Preconditions.checkNotNull(date, String.format("Invalid criterion value '%s'. Expected a date (ISO format, or 'YYYY-MM-DD')", value));
+            // Return TO_DATE(...)
+            return Daos.getSqlToDate(date);
+        }
         return isNumericColumn(column) ? value : ("'" + value + "'");
     }
 
@@ -272,4 +206,159 @@ public class SumarisTableMetadatas {
         if (StringUtils.isBlank(tableAlias)) return columnNames;
         return columnNames.stream().map(c -> tableAlias + "." + c).collect(Collectors.toList());
     }
+
+
+    /* -- protected functions -- */
+
+    protected static String getSqlWhereClauseContent(SumarisTableMetadata table, ExtractionFilterVO filter,
+                                                     String appliedSheetName,
+                                                     String tableAlias,
+                                                     boolean skipInvalidCriteria,
+                                                     boolean inverseTheLogic) {
+
+        if (filter == null || CollectionUtils.isEmpty(filter.getCriteria())) return "";
+
+        StringBuilder sql = new StringBuilder();
+        StringBuilder logicalOperator = new StringBuilder();
+
+        String aliasWithPoint = tableAlias != null ? (tableAlias + ".") : "";
+
+        filter.getCriteria().stream()
+            .filter(criterion -> appliedSheetName == null || appliedSheetName.equals(criterion.getSheetName()))
+            .forEach(criterion -> {
+
+                // Get the column to tripFilter
+                Preconditions.checkNotNull(criterion.getName());
+                SumarisColumnMetadata column = table != null ? table.getColumnMetadata(criterion.getName().toLowerCase()) : null;
+                if (column == null) {
+                    if (appliedSheetName != null && !skipInvalidCriteria) {
+                        throw new SumarisTechnicalException(String.format("Invalid criterion: column '%s' not found in table '%s'", criterion.getName(), table.getName()));
+                    } else {
+                        // Continue (=skip)
+                    }
+                } else {
+                    String columnAndAlias = aliasWithPoint + column.getName();
+
+                    // Append logical operator (between criterion)
+                    sql.append(logicalOperator);
+
+                    ExtractionFilterOperatorEnum operator = criterion.getOperator() == null ? ExtractionFilterOperatorEnum.EQUALS : ExtractionFilterOperatorEnum.fromSymbol(criterion.getOperator());
+
+                    // Inverse the logic, if need
+                    if (inverseTheLogic) operator = operator.inverse();
+
+                    boolean skipCriterion = false;
+
+                    // If no value: use NULL or NOT_NULL
+                    if (criterion.getValue() == null && ArrayUtils.isEmpty(criterion.getValues())) {
+                        switch (operator) {
+                            case NOT_IN:
+                            case NOT_EQUALS:
+                            case NOT_BETWEEN:
+                                operator = ExtractionFilterOperatorEnum.NOT_NULL;
+                                break;
+                            default:
+                                operator = ExtractionFilterOperatorEnum.NULL;
+                        }
+                    }
+                    switch (operator) {
+                        case IN:
+                            sql.append(columnAndAlias)
+                                .append(" IN (")
+                                .append(getInValues(column, criterion))
+                                .append(")");
+                            break;
+                        case NOT_IN:
+                            sql.append("(")
+                                .append(columnAndAlias)
+                                .append(" NOT IN (")
+                                .append(getInValues(column, criterion))
+                                .append(")")
+                                .append(column.isNullable() ? " OR " + columnAndAlias + " IS NULL" : "")
+                                .append(")");
+                            break;
+                        case EQUALS:
+                            sql.append(columnAndAlias)
+                                .append(" = ")
+                                .append(getSingleValue(column, criterion));
+                            break;
+                        case NOT_EQUALS:
+                            sql.append("(")
+                                .append(columnAndAlias)
+                                .append(" <> ")
+                                .append(getSingleValue(column, criterion))
+                                .append(column.isNullable() ? " OR " + columnAndAlias + " IS NULL" : "")
+                                .append(")");
+                            break;
+                        case LESS_THAN:
+                            sql.append(columnAndAlias)
+                                .append(" < ").append(getSingleValue(column, criterion));
+                            break;
+                        case LESS_THAN_OR_EQUALS:
+                            sql.append(columnAndAlias)
+                                .append(" <= ").append(getSingleValue(column, criterion));
+                            break;
+                        case GREATER_THAN:
+                            sql.append(columnAndAlias)
+                                .append(" > ").append(getSingleValue(column, criterion));
+                            break;
+                        case GREATER_THAN_OR_EQUALS:
+                            sql.append(columnAndAlias)
+                                .append(" >= ").append(getSingleValue(column, criterion));
+                            break;
+                        case BETWEEN:
+                            sql.append(columnAndAlias)
+                                .append(" BETWEEN ")
+                                .append(getBetweenValueByIndex(column, criterion, 0))
+                                .append(" AND ").append(getBetweenValueByIndex(column, criterion, 1));
+                            break;
+                        case NOT_BETWEEN:
+                            sql
+                                .append("(")
+                                .append(columnAndAlias)
+                                .append(" < ")
+                                .append(getBetweenValueByIndex(column, criterion, 0))
+                                .append(" OR ")
+                                .append(columnAndAlias)
+                                .append(" > ")
+                                .append(getBetweenValueByIndex(column, criterion, 1))
+                                .append(column.isNullable() ? " OR " + columnAndAlias + " IS NULL" : "")
+                                .append(")");
+                            break;
+                        case NULL:
+                            sql.append(columnAndAlias).append(" IS NULL");
+                            break;
+                        case NOT_NULL:
+                            sql.append(columnAndAlias).append(" IS NOT NULL");
+                            break;
+                        default:
+                            if (!skipInvalidCriteria) {
+                                throw new SumarisTechnicalException(String.format("Invalid criterion: column '%s' has invalid operator '%s' for value '%s'",
+                                    criterion.getName(),
+                                    operator.getSymbol(),
+                                    criterion.getValue() != null ? criterion.getValue() : Arrays.toString(criterion.getValues())));
+                            }
+                            skipCriterion = true;
+                            break;
+                    }
+
+                    // Init the logical operator, for next iteration
+                    if (!skipCriterion && logicalOperator.length() == 0) {
+                        boolean isOR = "OR".equalsIgnoreCase(StringUtils.trim(filter.getOperator()));
+
+                        // Inverse the logic, if need
+                        if (inverseTheLogic) isOR = !isOR;
+
+                        if (isOR) {
+                            logicalOperator.append(" OR ");
+                        } else {
+                            logicalOperator.append(" AND ");
+                        }
+                    }
+                }
+            });
+
+        return sql.toString();
+    }
+
 }

@@ -1,0 +1,357 @@
+dn: dc=ifremer,dc=fr
+dc: ifremer
+objectClass: top
+objectClass: domain
+
+dn: ou=annuaire,dc=ifremer,dc=fr
+objectClass: organizationalUnit
+objectClass: top
+
+dn: uid=tstq2,ou=annuaire,dc=ifremer,dc=fr
+serviceprimaire: PDG-IMN-IDM-ISI
+service: PDG-IMN-IDM-ISI
+userPassword: q22006
+extpasswd:
+memberOf: cn=contribIntranet,ou=liferay,dc=ifremer,dc=fr
+liste: share
+mail:
+numeroabrege: 4956
+telephoneNumber:
+title: agent
+o: IFREMER
+centre: CBREST
+l: BREST
+givenName: Testeur
+cn: IFREMER
+sn: IFREMER
+groupeunix: ditiisi
+gidNumber: 10004
+extuid: t1ee00
+uidNumber: 54419
+employeeNumber: 024419
+uid: tstq2
+objectClass: ficheannuaire
+objectClass: top
+objectClass: person
+objectClass: membresitesweb
+objectClass: extuser
+listesiteweb: portail_ifremer
+listesiteweb: SIH_PROJET
+
+dn: uid=admq2,ou=annuaire,dc=ifremer,dc=fr
+serviceprimaire: PDG-IMN-IDM-ISI
+service: PDG-IMN-IDM-ISI
+userPassword: q22006
+extpasswd:
+memberOf: cn=contribIntranet,ou=liferay,dc=ifremer,dc=fr
+liste: share
+mail:
+numeroabrege: 2903
+telephoneNumber:
+title: agent
+o: IFREMER
+centre: CBREST
+l: BREST
+givenName: Administrateur
+cn: IFREMER
+sn: IFREMER
+groupeunix: ditiisi
+gidNumber: 2903
+extuid: t1ee00
+uidNumber: 2903
+employeeNumber: 02903
+uid: admq2
+objectClass: ficheannuaire
+objectClass: top
+objectClass: person
+objectClass: membresitesweb
+objectClass: extuser
+listesiteweb: portail_ifremer
+listesiteweb: SIH_PROJET
+
+dn: uid=sbocande,ou=annuaire,dc=ifremer,dc=fr
+serviceprimaire: PDG-IMN-IDM-ISI
+service: PDG-IMN-IDM-ISI
+userPassword: stephane
+extpasswd:
+memberOf: cn=contribIntranet,ou=liferay,dc=ifremer,dc=fr
+liste: share
+mail:
+numeroabrege: 4956
+telephoneNumber:
+title: agent
+o: IFREMER
+centre: CBREST
+l: BREST
+givenName: Stephane
+cn: BOCANDE
+sn: BOCANDE
+groupeunix: ditiisi
+gidNumber: 10004
+extuid: sb05f63
+uidNumber: 54419
+employeeNumber: 024419
+uid: sbocande
+objectClass: ficheannuaire
+objectClass: top
+objectClass: person
+objectClass: membresitesweb
+objectClass: extuser
+listesiteweb: portail_ifremer
+listesiteweb: SIH_PROJET
+homeDirectory: /home3/homedir4/perso/sbocande
+
+dn: uid=egauthie,ou=annuaire,dc=ifremer,dc=fr
+serviceprimaire: PDG-IMN-IDM-ISI
+service: PDG-IMN-IDM-ISI
+userPassword: q22006
+extpasswd:
+memberOf: cn=contribIntranet,ou=liferay,dc=ifremer,dc=fr
+liste: share
+mail:
+numeroabrege: 4956
+telephoneNumber:
+title: agent
+o: IFREMER
+centre: CBREST
+l: BREST
+givenName: Emilie
+cn: GAUTHIER
+sn: GAUTHIER
+groupeunix: ditiisi
+gidNumber: 10004
+extuid: 
+uidNumber: 54420
+employeeNumber: 024420
+uid: egauthie
+objectClass: ficheannuaire
+objectClass: top
+objectClass: person
+objectClass: membresitesweb
+objectClass: extuser
+listesiteweb: portail_ifremer
+listesiteweb: SIH_PROJET
+homeDirectory: /home3/homedir4/perso/egauthie
+
+dn: uid=lmaurel,ou=annuaire,dc=ifremer,dc=fr
+serviceprimaire: PDG-IMN-IDM-ISI
+service: PDG-IMN-IDM-ISI
+userPassword: q22006
+extpasswd:
+memberOf: cn=contribIntranet,ou=liferay,dc=ifremer,dc=fr
+liste: share
+mail:
+numeroabrege: 4956
+telephoneNumber:
+title: agent
+o: IFREMER
+centre: CBREST
+l: BREST
+givenName: Laurence
+cn: MAUREL
+sn: MAUREL
+groupeunix: ditiisi
+gidNumber: 10004
+extuid: 
+uidNumber: 60004342
+uid: lmaurel
+objectClass: ficheannuaire
+objectClass: top
+objectClass: person
+objectClass: membresitesweb
+objectClass: extuser
+listesiteweb: portail_ifremer
+listesiteweb: SIH_PROJET
+homeDirectory: /home3/homedir4/perso/lmaurel
+
+dn: uid=ncarn,ou=annuaire,dc=ifremer,dc=fr
+serviceprimaire: PDG-IMN-IDM-ISI
+service: PDG-IMN-IDM-ISI
+userPassword: q22006
+extpasswd:
+memberOf: cn=contribIntranet,ou=liferay,dc=ifremer,dc=fr
+liste: share
+mail:
+numeroabrege: 
+telephoneNumber:
+title: agent
+o: IFREMER
+centre: CBREST
+l: BREST
+givenName: Nolwenn
+cn: DANIOUX
+sn: DANIOUX
+groupeunix: ditiisi
+gidNumber: 10005
+extuid: 
+uidNumber: 54421
+employeeNumber: 024421
+uid: ncarn
+objectClass: ficheannuaire
+objectClass: top
+objectClass: person
+objectClass: membresitesweb
+objectClass: extuser
+listesiteweb: portail_ifremer
+listesiteweb: SIH_PROJET
+homeDirectory: /home3/homedir4/perso/ncarn
+
+dn: uid=fprioul,ou=annuaire,dc=ifremer,dc=fr
+serviceprimaire: PDG-IMN-IDM-ISI
+service: PDG-IMN-IDM-ISI
+userPassword: q22006
+extpasswd:
+memberOf: cn=contribIntranet,ou=liferay,dc=ifremer,dc=fr
+title: agent
+o: IFREMER
+centre: CBREST
+l: BREST
+givenName: François
+cn: DANIOUX
+sn: DANIOUX
+groupeunix: ditiisi
+gidNumber: 10005
+extuid: 
+uidNumber: 54421
+employeeNumber: 024421
+uid: fprioul
+objectClass: ficheannuaire
+objectClass: top
+objectClass: person
+objectClass: membresitesweb
+objectClass: extuser
+listesiteweb: portail_ifremer
+listesiteweb: SIH_PROJET
+homeDirectory: /home3/homedir4/perso/fprioul
+
+dn: uid=al1fa5d,ou=annuaire,dc=ifremer,dc=fr
+objectClass: ficheannuaire
+objectClass: top
+objectClass: person
+objectClass: membresitesweb
+objectClass: extuser
+memberOf: cn=contribIntranet,ou=liferay,dc=ifremer,dc=fr
+extpasswd:
+userPassword: q22006
+extuid: al1fa5d
+employeeNumber: 129629
+sn: LUCIANO
+cn: LUCIANO
+givenName: Anthony
+l: AUTRE
+o: GROUPE_EI
+service: GROUPE_EI
+serviceprimaire: GROUPE_EI
+title: exterieur
+mail:
+listesiteweb: SIH_ENQECO
+
+dn: uid=mf20068,ou=annuaire,dc=ifremer,dc=fr
+objectClass: ficheannuaire
+objectClass: top
+objectClass: person
+objectClass: membresitesweb
+objectClass: extuser
+memberOf: cn=contribIntranet,ou=liferay,dc=ifremer,dc=fr
+extpasswd:
+userPassword: q22006
+extuid: mf20068
+employeeNumber: 129629
+sn: FACON
+cn: FACON
+givenName: Mathilde
+l: AUTRE
+o: GROUPE_EI
+service: GROUPE_EI
+serviceprimaire: GROUPE_EI
+title: exterieur
+mail:
+listesiteweb: SIH_ENQECO
+
+dn: uid=bc1f768,ou=annuaire,dc=ifremer,dc=fr
+objectClass: ficheannuaire
+objectClass: top
+objectClass: person
+objectClass: membresitesweb
+objectClass: extuser
+memberOf: cn=contribIntranet,ou=liferay,dc=ifremer,dc=fr
+extpasswd:
+userPassword: q22006
+extuid: bc1f768
+employeeNumber: 128872
+sn: CAUVIN
+cn: CAUVIN
+givenName: Bruce
+l: AUTRE
+o: GROUPE_EI
+service: GIPRNMR
+serviceprimaire: GIPRNMR
+title: exterieur
+mail:
+listesiteweb: SIH_ENQECO
+
+dn: uid=daroos,ou=annuaire,dc=ifremer,dc=fr
+objectClass: ficheannuaire
+objectClass: top
+objectClass: person
+objectClass: membresitesweb
+objectClass: extuser
+memberOf: cn=contribIntranet,ou=liferay,dc=ifremer,dc=fr
+extpasswd:
+userPassword: q22006
+extuid: daroos
+employeeNumber: 007582
+sn: ROOS
+cn: ROOS
+givenName: David
+l: AUTRE
+o: GROUPE_EI
+service: GIPRNMR
+serviceprimaire: GIPRNMR
+title: exterieur
+mail:
+listesiteweb: SIH_ENQECO
+
+dn: uid=gp1fd2d,ou=annuaire,dc=ifremer,dc=fr
+objectClass: ficheannuaire
+objectClass: top
+objectClass: person
+objectClass: membresitesweb
+objectClass: extuser
+memberOf: cn=contribIntranet,ou=liferay,dc=ifremer,dc=fr
+extpasswd:
+userPassword: q22006
+extuid: gp1fd2d
+employeeNumber: 130349
+sn: POTIN
+cn: POTIN
+givenName: Gael
+l: AUTRE
+o: GROUPE_EI
+service: GIPRNMR
+serviceprimaire: GIPRNMR
+title: exterieur
+mail:
+listesiteweb: SIH_ENQECO
+
+dn: uid=gdurand,ou=annuaire,dc=ifremer,dc=fr
+objectClass: ficheannuaire
+objectClass: top
+objectClass: person
+objectClass: membresitesweb
+objectClass: extuser
+memberOf: cn=contribIntranet,ou=liferay,dc=ifremer,dc=fr
+extpasswd:
+userPassword: q22006
+extuid: gd0c3b6
+employeeNumber: 050102
+sn: DURAND
+cn: DURAND
+givenName: Gaetane
+l: AUTRE
+o: GROUPE_EI
+service: GIPRNMR
+serviceprimaire: GIPRNMR
+title: exterieur
+mail:
+listesiteweb: SIH_ENQECO

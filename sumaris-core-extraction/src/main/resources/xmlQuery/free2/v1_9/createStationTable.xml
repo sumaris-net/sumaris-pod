@@ -8,6 +8,12 @@
     <select alias="TYPE" type="text">'HH'</select>
     <select alias="ID_MAREE" type="number">T.TRIP_CODE</select>
     <select alias="ID_OP" type="number">O.ID</select>
+    <select alias="NUM_OP" type="number"><![CDATA[(
+      SELECT COUNT(O2.ID) + 1 FROM OPERATION O2
+      WHERE O2.TRIP_FK = O.TRIP_FK
+        AND O2.ID <> O.ID
+        AND COALESCE(O2.FISHING_START_DATE_TIME, O2.START_DATE_TIME) < COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)
+    )]]></select>
 
     <!-- Hidden columns used by linked tables -->
     <select alias="STATION_NUMBER" type="hidden">O.ID</select>
@@ -53,14 +59,15 @@
 
     <select alias="METIER2" type="text">G.LABEL || '_' || TG.NAME</select>
     <select alias="METIER3" type="text">null</select>
+    <select alias="METIER_DCF6" type="text">null</select>
 
-    <select alias="MAILL" type="number">(SELECT CAST(ROUND(PGM.NUMERICAL_VALUE) AS INTEGER) FROM PHYSICAL_GEAR_MEASUREMENT PGM WHERE PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&amp;meshSizePmfmId)</select>
+    <select alias="MAILL" type="number">(SELECT PGM.NUMERICAL_VALUE FROM PHYSICAL_GEAR_MEASUREMENT PGM WHERE PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&amp;meshSizePmfmId)</select>
 
     <select alias="EFFORT" type="number"><![CDATA[
-    (SELECT ROUND(PGM.NUMERICAL_VALUE) as INTEGER
+    (SELECT CAST(ROUND(PGM.NUMERICAL_VALUE) as INTEGER)
      FROM PHYSICAL_GEAR_MEASUREMENT PGM
      WHERE
-      PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK in (&headlineCumulativeLengthPmfmId, &beamCumulativeLengthPmfmId, &netLengthPmfmId)
+      PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK in (&effortPmfmIds)
     )]]></select>
 
     <select alias="DISPO_SELECT" type="text"><![CDATA[
@@ -76,16 +83,23 @@
     <!-- TODO: ajouter un PSFM pour le 2eme dispositif selectif -->
     <select alias="DISPO_SELECT2" type="text">null</select>
 
-    <!-- TODO: ajouter un PSFM pour le 2eme dispositif repusif ? -->
-    <select alias="DISPO_REPULS" type="text">null</select>
-    <select alias="DISPO_REPULS1" type="text">null</select>
+    <select alias="DISPO_REPULS" type="text"><![CDATA[(
+    SELECT DECODE(count(*), 1, 'Oui', 'Non')
+    FROM PHYSICAL_GEAR_MEASUREMENT PGM
+    WHERE PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&acousticDeterrentDevicePmfmId
+    )]]></select>
+
+    <select alias="DISPO_REPULS1" type="text"><![CDATA[
+    (SELECT QV.NAME FROM PHYSICAL_GEAR_MEASUREMENT PGM
+      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=PGM.QUALITATIVE_VALUE_FK
+    WHERE
+      PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&acousticDeterrentDevicePmfmId)]]></select>
 
     <select alias="CAPTURE" type="text"><![CDATA[
        CASE WHEN B.ID IS NOT NULL THEN 'Oui'
        ELSE 'Non'
        END
     ]]></select>
-
 
     <select alias="POIDS_REF_CAPT" type="text">null</select> <!-- Not fill (ADAP) -->
     <select alias="NBR_VRAC" type="number">2</select><!-- PR/PNR (ADAP) -->
@@ -95,7 +109,7 @@
     <select alias="GEAR_SPEED" type="number"><![CDATA[
     (SELECT VUM.NUMERICAL_VALUE FROM VESSEL_USE_MEASUREMENT VUM
     WHERE
-      VUM.OPERATION_FK=O.ID and VUM.PMFM_FK in (&gearSpeedPmfmId)
+      VUM.OPERATION_FK=O.ID and VUM.PMFM_FK in (&gearSpeedPmfmIds)
     )]]></select>
     <select alias="VESSEL_ASSOCIATION" type="number">null</select><!-- TODO: à ajouter au modèle -->
     <select alias="IS_CATCH_ON_OPERATION_VESSEL" type="number">null</select><!-- TODO: à ajouter au modèle -->

@@ -26,16 +26,21 @@ import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * @author peck7 on 28/08/2020.
  */
 public interface RootDataSpecifications<E extends IRootDataEntity<? extends Serializable>> extends DataSpecifications<E> {
 
+    String ID_PARAM = "id";
+    String EXCLUDED_IDS_PARAM = "excludedIds";
     String RECORDER_PERSON_ID_PARAM = "recorderPersonId";
     String PROGRAM_LABEL_PARAM = "programLabel";
 
@@ -63,4 +68,25 @@ public interface RootDataSpecifications<E extends IRootDataEntity<? extends Seri
         return specification;
     }
 
+    default Specification<E> excludedIds(Integer[] excludedIds) {
+        if (ArrayUtils.isEmpty(excludedIds)) return null;
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, EXCLUDED_IDS_PARAM);
+            return criteriaBuilder.not(
+                criteriaBuilder.in(root.get(E.Fields.ID)).value(param)
+            );
+        });
+        specification.addBind(EXCLUDED_IDS_PARAM, Arrays.asList(excludedIds));
+        return specification;
+    }
+
+    default Specification<E> id(Integer id) {
+        if (id == null) return null;
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, ID_PARAM);
+            return criteriaBuilder.equal(root.get(E.Fields.ID), param);
+        });
+        specification.addBind(ID_PARAM, id);
+        return specification;
+    }
 }

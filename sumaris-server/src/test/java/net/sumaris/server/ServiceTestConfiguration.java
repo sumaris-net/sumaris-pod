@@ -22,29 +22,32 @@ package net.sumaris.server;
  * #L%
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.graphql.spring.boot.test.GraphQLTestTemplate;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.util.I18nUtil;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication(
-        exclude = {
-                LiquibaseAutoConfiguration.class,
-                FreeMarkerAutoConfiguration.class
-        },
-        scanBasePackages = {
-                "net.sumaris.core.dao",
-                "net.sumaris.core.service",
-                "net.sumaris.core.extraction",
-                "net.sumaris.server"
-        }
+    exclude = {
+        LiquibaseAutoConfiguration.class,
+        FreeMarkerAutoConfiguration.class
+    },
+    scanBasePackages = {
+            "net.sumaris.core.dao",
+            "net.sumaris.core.service",
+            "net.sumaris.core.extraction",
+            "net.sumaris.server"
+    }
 )
 @EntityScan("net.sumaris.core.model")
 @EnableTransactionManagement
@@ -78,5 +81,10 @@ public class ServiceTestConfiguration extends net.sumaris.core.test.TestConfigur
     @Override
     protected String getI18nBundleName() {
         return I18N_BUNDLE_NAME;
+    }
+
+    @Bean
+    public GraphQLTestTemplate graphQLTestTemplate() {
+        return new GraphQLTestTemplate();
     }
 }

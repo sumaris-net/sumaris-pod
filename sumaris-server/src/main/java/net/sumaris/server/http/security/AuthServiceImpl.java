@@ -22,7 +22,9 @@ package net.sumaris.server.http.security;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.JmsConfiguration;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -30,25 +32,29 @@ import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.crypto.CryptoUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.crypto.ServerCryptoService;
-import net.sumaris.server.util.security.AuthDataVO;
+import net.sumaris.server.util.security.AuthTokenVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jms.annotation.JmsListener;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.mapping.Attributes2GrantedAuthoritiesMapper;
 import org.springframework.security.core.authority.mapping.SimpleAttributes2GrantedAuthoritiesMapper;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -58,7 +64,8 @@ import java.util.stream.Collectors;
 public class AuthServiceImpl implements AuthService {
 
     private final ValidationExpiredCache challenges;
-    private final ValidationExpiredCacheMap<AuthUser> checkedTokens;
+    private final ValidationExpiredCacheMap<AuthUserDetails> checkedTokens;
+    private final ValidationExpiredCacheMap<AuthUserDetails> checkedUsernames;
     private final boolean debug;
 
     @Autowired
@@ -72,109 +79,164 @@ public class AuthServiceImpl implements AuthService {
 
     private Attributes2GrantedAuthoritiesMapper authoritiesMapper;
 
+    private boolean enableAuthToken;
+    private boolean enableAuthBasic;
+
     @Autowired
-    public AuthServiceImpl(Environment environment) {
+    public AuthServiceImpl(Environment environment, SumarisServerConfiguration config) {
 
         int challengeLifeTimeInSeconds = Integer.parseInt(environment.getProperty(SumarisServerConfigurationOption.AUTH_CHALLENGE_LIFE_TIME.getKey(), SumarisServerConfigurationOption.AUTH_CHALLENGE_LIFE_TIME.getDefaultValue()));
         this.challenges = new ValidationExpiredCache(challengeLifeTimeInSeconds);
 
         int tokenLifeTimeInSeconds = Integer.parseInt(environment.getProperty(SumarisServerConfigurationOption.AUTH_TOKEN_LIFE_TIME.getKey(), SumarisServerConfigurationOption.AUTH_TOKEN_LIFE_TIME.getDefaultValue()));
         this.checkedTokens = new ValidationExpiredCacheMap<>(tokenLifeTimeInSeconds);
+        this.checkedUsernames = new ValidationExpiredCacheMap<>(tokenLifeTimeInSeconds);
 
         authoritiesMapper = new SimpleAttributes2GrantedAuthoritiesMapper();
+
+        this.enableAuthToken = config.enableAuthToken();
+        this.enableAuthBasic = config.enableAuthBasic();
 
         this.debug = log.isDebugEnabled();
     }
 
-    @JmsListener(destination = "updatePerson", containerFactory = "jmsListenerContainerFactory")
-    protected void onPersonSaved(PersonVO person) throws IOException {
+    @JmsListener(destination = "updatePerson", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
+    protected void onPersonSaved(PersonVO person) {
 
         if (!StringUtils.isNotBlank(person.getPubkey())) return;
         List<String> tokens = accountService.getAllTokensByPubkey(person.getPubkey());
-        if (CollectionUtils.isEmpty(tokens)) return;
-        tokens.forEach(checkedTokens::remove);
+
+        // Clean cache (because user can be disabled)
+        Beans.getStream(tokens).forEach(checkedTokens::remove);
+        Optional.ofNullable(person.getUsername()).ifPresent(checkedUsernames::remove);
+        Optional.ofNullable(person.getUsernameExtranet()).ifPresent(checkedUsernames::remove);
     }
 
     @Override
-    public Optional<AuthUser> authenticate(String token) {
+    public UserDetails authenticateByToken(String token) throws AuthenticationException{
+        Preconditions.checkArgument(enableAuthToken);
 
         // First check anonymous user
-        if (AnonymousUser.TOKEN.equals(token)) return Optional.of(AnonymousUser.INSTANCE);
+        if (AnonymousUserDetails.TOKEN.equals(token)) return AnonymousUserDetails.INSTANCE;
 
         // Check if present in cache
-        if (checkedTokens.contains(token)) return Optional.of(checkedTokens.get(token));
+        if (checkedTokens.contains(token)) return checkedTokens.get(token);
 
         // Parse the token
-        AuthDataVO authData;
+        AuthTokenVO authData;
         try {
-            authData = AuthDataVO.parse(token);
+            authData = AuthTokenVO.parse(token);
         } catch (ParseException e) {
-            log.warn("Authentication failed. Invalid token: " + token);
-            return Optional.empty();
+            throw new BadCredentialsException("Authentication failed. Invalid token: " + token);
         }
 
         // Try to authenticate
-        AuthUser authUser = authenticate(authData);
+        PersonVO user = validateToken(authData);
 
-        return Optional.ofNullable(authUser);
+        // Add username to auth data
+        //authData.setUsername(user.getUsername() != null ? user.getUsername() : user.getUsernameExtranet());
+
+        AuthUserDetails userDetails = new AuthUserDetails(authData, getAuthorities(user));
+
+        log.debug("Authentication succeed for user with pubkey {{}}", user.getPubkey().substring(0, 8));
+
+        // Add token to cache
+        checkedTokens.add(token, userDetails);
+
+        return userDetails;
     }
 
-    private AuthUser authenticate(AuthDataVO authData) {
+    @Override
+    public UserDetails authenticateByUsername(String username, UsernamePasswordAuthenticationToken authentication) {
+        Preconditions.checkArgument(enableAuthBasic);
+
+        // First check anonymous user
+        if (AnonymousUserDetails.TOKEN.equals(username)) return AnonymousUserDetails.INSTANCE;
+
+        // Check if present in cache
+        if (checkedUsernames.contains(username)) return checkedUsernames.get(username);
+
+        // Check user exists
+        PersonVO user = personRepository.findByUsername(username)
+            .orElseThrow(() -> new BadCredentialsException("Authentication failed. User not found: " + username));
+
+        // Check account is enable (or temporary)
+        checkEnabledAccount(user);
+
+        AuthTokenVO.AuthTokenVOBuilder authToken = AuthTokenVO.builder()
+            .username(username);
+
+        // Is token authentication enabled
+        if (enableAuthToken) {
+            String password = String.valueOf(authentication.getCredentials());
+            if (StringUtils.isBlank(password)) throw new BadCredentialsException("Blank password");
+
+            // Generate the pubkey
+            String pubkey = CryptoUtils.encodeBase58(cryptoService.getKeyPair(username, password).getPubKey());
+
+            // Update the database pubkey, if need
+            boolean pubkeyChanged = !Objects.equals(pubkey, user.getPubkey());
+            if (pubkeyChanged) {
+                log.info("Updating pubkey of user {id: {}}. Previous pubkey: {{}}, new: {{}}",
+                    user.getId(),
+                    user.getPubkey() != null ? user.getPubkey().substring(0, 8) : "null",
+                    pubkey.substring(0, 8));
+
+                user.setPubkey(pubkey);
+                user = personRepository.save(user);
+            }
+
+            authToken.pubkey(pubkey);
+        }
+
+        AuthUserDetails userDetails = new AuthUserDetails(authToken.build(), getAuthorities(user));
+
+        log.debug("Authentication succeed for user with username {{}}", username);
+
+        checkedUsernames.add(username, userDetails);
+
+        return userDetails;
+    }
+
+    private PersonVO validateToken(AuthTokenVO authData) throws AuthenticationException {
         String pubkey = authData != null ? authData.getPubkey() : null;
 
         // Check pubkey is valid
         if (!CryptoUtils.isValidPubkey(pubkey)) {
-            if (debug) log.debug("Authentication failed. Bad pubkey format: " + pubkey);
-            return null;
+            throw new BadCredentialsException("Authentication failed. Bad pubkey format: " + pubkey);
         }
 
-        // Check if pubkey can authenticate
-        try {
-            if (!canAuth(pubkey)) {
-                if (debug) log.debug("Authentication failed. User is not allowed to authenticate: " + pubkey);
-                return null;
-            }
-        } catch (DataNotFoundException | DataRetrievalFailureException e) {
-            log.debug("Authentication failed. User not found: " + pubkey);
-            return null;
-        }
+        // Check user exists
+        PersonVO user = personRepository.findByPubkey(pubkey)
+            .orElseThrow(() -> new BadCredentialsException("Authentication failed. User not found: " + pubkey));
+
+        // Check account is enable (or temporary)
+        checkEnabledAccount(user);
 
         // Token exists on database: check as new challenge response
-        boolean isStoredToken = accountService.isStoredToken(authData.asToken(), pubkey);
+        final String token = authData.asToken();
+        boolean isStoredToken = accountService.isStoredToken(token, pubkey);
         if (!isStoredToken) {
             log.debug("Unknown token. Check if response to new challenge...");
 
             // Make sure the challenge exists and not expired
             if (!challenges.contains(authData.getChallenge())) {
-                if (debug)
-                    log.debug("Authentication failed. Challenge not found or expired: " + authData.getChallenge());
-                return null;
+                throw new BadCredentialsException("Authentication failed. Challenge not found or expired: " + authData.getChallenge());
             }
         }
 
         // Check signature
         if (!cryptoService.verify(authData.getChallenge(), authData.getSignature(), pubkey)) {
-            if (debug) log.debug("Authentication failed. Bad challenge signature in token: " + authData.toString());
-            return null;
+            throw new BadCredentialsException("Authentication failed. Bad challenge signature in token: " + authData);
         }
 
         // Auth success !
 
-        // Force challenge to expire
+        // Remove from the challenge list
         challenges.remove(authData.getChallenge());
 
-        // Get authorities
-        List<GrantedAuthority> authorities = getAuthorities(pubkey);
-
-        // Create authenticated user
-        AuthUser authUser = new AuthUser(authData, authorities);
-
-        // Add token to store
-        String token = authData.toString();
-        checkedTokens.add(token, authUser);
-
+        // Save this new token to database
         if (!isStoredToken) {
-            // Save this new token to database
             try {
                 accountService.addToken(token, pubkey);
             } catch (RuntimeException e) {
@@ -183,17 +245,33 @@ public class AuthServiceImpl implements AuthService {
             }
         }
 
-        if (debug) log.debug(String.format("Authentication succeed for user with pubkey {%s}", pubkey.substring(0, 6)));
-
-        return authUser;
+        return user;
     }
 
     @Override
     public Optional<PersonVO> getAuthenticatedUser() {
-        return getAuthPrincipal()
-                .map(AuthUser::getPubkey)
+        Optional<AuthUserDetails> principal = getAuthPrincipal();
+
+        if (!principal.isPresent())  return Optional.empty(); // Skip if no principal
+
+        // If pubkey enable, try to resolve using the pubkey
+        if (enableAuthToken) {
+            Optional<PersonVO> result = principal
+                .map(AuthUserDetails::getPubkey)
                 .filter(Objects::nonNull)
                 .flatMap(personRepository::findByPubkey);
+            if (result.isPresent()) return result;
+        }
+
+        // Else, try to resolve user by username
+        if (enableAuthBasic) {
+            Optional<PersonVO> result = principal.map(AuthUserDetails::getUsername)
+                .filter(Objects::nonNull)
+                .flatMap(personRepository::findByUsername);
+            if (result.isPresent()) return result;
+        }
+
+        return Optional.empty();
     }
 
     @Override
@@ -203,10 +281,21 @@ public class AuthServiceImpl implements AuthService {
 
     /* -- internal methods -- */
 
-    public Optional<AuthUser> getAuthPrincipal() {
+    public Optional<AuthUserDetails> getAuthPrincipal() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
-        if (securityContext != null && securityContext.getAuthentication() != null) {
-            return Optional.ofNullable((AuthUser) securityContext.getAuthentication().getPrincipal());
+        if (securityContext != null && securityContext.getAuthentication() != null
+            && securityContext.getAuthentication() instanceof UsernamePasswordAuthenticationToken) {
+            UsernamePasswordAuthenticationToken authToken = (UsernamePasswordAuthenticationToken) securityContext.getAuthentication();
+
+            Object principal = authToken.getPrincipal();
+            if (principal instanceof AuthUserDetails) return Optional.of((AuthUserDetails) principal);
+
+            String tokenOrPassword = String.valueOf(authToken.getCredentials());
+            if (enableAuthToken && this.checkedTokens.contains(tokenOrPassword)) {
+                return Optional.of(this.checkedTokens.get(tokenOrPassword));
+            }
+
+            return Optional.ofNullable(this.checkedUsernames.get(authToken.getName()));
         }
         return Optional.empty(); // Not auth
     }
@@ -235,34 +324,23 @@ public class AuthServiceImpl implements AuthService {
         return null;
     }
 
-    private List<GrantedAuthority> getAuthorities(String pubkey) {
-        List<Integer> profileIds = accountService.getProfileIdsByPubkey(pubkey);
-
-        return new ArrayList<>(authoritiesMapper.getGrantedAuthorities(profileIds.stream()
-            .map(id -> UserProfileEnum.getById(id).map(Enum::toString).orElse(null))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet())));
-
-    }
-
-    private boolean canAuth(final String pubkey) throws DataNotFoundException {
-        PersonVO person = personRepository.findByPubkey(pubkey)
-                .orElseThrow(() -> new DataRetrievalFailureException(I18n.t("sumaris.error.account.notFound")));
-
+    private void checkEnabledAccount(PersonVO person) throws DataNotFoundException {
         // Cannot auth if user has been deleted or is disable
         StatusEnum status = StatusEnum.valueOf(person.getStatusId());
         if (StatusEnum.DISABLE.equals(status) || StatusEnum.DELETED.equals(status)) {
-            return false;
+            throw new DisabledException("Account is disabled");
         }
-
-        return true;
     }
 
-    public AuthDataVO createNewChallenge() {
+    public AuthTokenVO createNewChallenge() {
         String challenge = newChallenge();
         String signature = cryptoService.sign(challenge);
 
-        AuthDataVO result = new AuthDataVO(cryptoService.getServerPubkey(), challenge, signature);
+        AuthTokenVO result = AuthTokenVO.builder()
+            .pubkey(cryptoService.getServerPubkey())
+            .challenge(challenge)
+            .signature(signature)
+            .build();
 
         if (debug) log.debug("New authentication challenge: " + result.toString());
 
@@ -278,5 +356,13 @@ public class AuthServiceImpl implements AuthService {
         byte[] randomNonce = cryptoService.getBoxRandomNonce();
         String randomNonceStr = CryptoUtils.encodeBase64(randomNonce);
         return cryptoService.hash(randomNonceStr);
+    }
+
+    private Collection<? extends GrantedAuthority> getAuthorities(PersonVO person) {
+        return authoritiesMapper.getGrantedAuthorities(
+            Beans.getStream(person.getProfiles())
+            .map(UserProfileEnum::valueOfLabel)
+            .map(Enum::toString)
+            .collect(Collectors.toSet()));
     }
 }

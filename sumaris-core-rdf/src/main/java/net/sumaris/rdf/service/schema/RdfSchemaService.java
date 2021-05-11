@@ -22,7 +22,7 @@
 
 package net.sumaris.rdf.service.schema;
 
-import net.sumaris.rdf.cache.RdfCacheNames;
+import net.sumaris.rdf.config.RdfCacheConfiguration;
 import net.sumaris.rdf.model.IModelVisitor;
 import net.sumaris.rdf.model.ModelVocabulary;
 import org.apache.jena.rdf.model.Model;
@@ -47,7 +47,7 @@ public interface RdfSchemaService {
      * @param options export options
      * @return a schema representation as an ontology
      */
-    @Cacheable(cacheNames = RdfCacheNames.ONTOLOGY_BY_NAME, key="#options.hashCode()", condition = " #options != null", unless = "#result == null")
+    @Cacheable(cacheNames = RdfCacheConfiguration.Names.ONTOLOGY_BY_NAME, key="#options.hashCode()", condition = " #options != null", unless = "#result == null")
     Model getOntology(RdfSchemaFetchOptions options);
 
     Model getOntology(ModelVocabulary voc);

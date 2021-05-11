@@ -53,13 +53,17 @@ import java.util.Map;
 public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestContextVO, F extends ExtractionFilterVO,
         S extends AggregationStrataVO>
         extends AggregationRdbTripDaoImpl<C, F, S>
-        implements AggregationSurvivalTestDao<C, F, S>,
-        AggSurvivalTestSpecification {
+        implements AggSurvivalTestSpecification {
 
     private static final Logger log = LoggerFactory.getLogger(AggregationSurvivalTestDaoImpl.class);
 
     private static final String ST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ST_SHEET_NAME + "_%s";
     private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RL_SHEET_NAME + "_%s";
+
+    @Override
+    public ProductFormatEnum getFormat() {
+        return ProductFormatEnum.AGG_SURVIVAL_TEST;
+    }
 
     @Override
     public <R extends C> R aggregate(ExtractionProductVO source, F filter, S strata) {

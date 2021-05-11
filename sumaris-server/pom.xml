@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.7.2</version>
+    <version>1.8.0</version>
   </parent>
 
   <artifactId>sumaris-server</artifactId>
@@ -31,7 +31,7 @@
     <jetty.port>8080</jetty.port>
     <jetty.reload>manual</jetty.reload>
     <synchro-server.config>${project.basedir}/src/test/resources/sumaris-server-test.properties</synchro-server.config>
-    <quadrige3.log.file>${project.build.directory}/${bundlePrefix}.log</quadrige3.log.file>
+    <sumaris.log.file>${project.build.directory}/${bundlePrefix}.log</sumaris.log.file>
 
     <!-- Default implementation -->
     <spring.datasource.platform>hsqldb</spring.datasource.platform>
@@ -99,8 +99,18 @@
       <artifactId>spring-boot-starter-websocket</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-web</artifactId>
+    </dependency>
+
+    <!-- Security -->
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-ldap</artifactId>
     </dependency>
 
     <!-- ActiveMQ -->
@@ -110,27 +120,15 @@
     </dependency>
     <dependency>
       <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-broker</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-kahadb-store</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.jms</groupId>
-      <artifactId>javax.jms-api</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-
-    <!-- Actuator
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>-->
-
-    <dependency>
       <groupId>io.reactivex.rxjava2</groupId>
       <artifactId>rxjava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jms</artifactId>
     </dependency>
 
     <!-- GraphQL -->
@@ -153,10 +151,6 @@
     <dependency>
       <groupId>io.leangen.graphql</groupId>
       <artifactId>spqr</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
     </dependency>
     <dependency>
       <groupId>de.grundid.opendatalab</groupId>
@@ -226,6 +220,16 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.graphql-java-kickstart</groupId>
+      <artifactId>graphql-spring-boot-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.unboundid</groupId>
+      <artifactId>unboundid-ldapsdk</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -320,11 +324,19 @@
         </configuration>
         <executions>
           <execution>
+            <id>generate-build-info</id>
+            <goals>
+              <goal>build-info</goal>
+            </goals>
+          </execution>
+
+          <execution>
             <id>package-executable-war</id>
             <goals>
               <goal>repackage</goal>
             </goals>
           </execution>
+
         </executions>
       </plugin>
 
@@ -338,6 +350,7 @@
           <useDefaultDelimiters>false</useDefaultDelimiters>
         </configuration>
       </plugin>
+
     </plugins>
   </build>
 

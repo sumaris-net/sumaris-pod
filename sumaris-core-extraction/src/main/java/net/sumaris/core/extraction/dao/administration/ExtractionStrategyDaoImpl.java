@@ -31,6 +31,7 @@ import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.specification.administration.StratSpecification;
+import net.sumaris.core.extraction.vo.ExtractionFilterCriterionVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.administration.ExtractionStrategyContextVO;
 import net.sumaris.core.extraction.vo.administration.ExtractionStrategyFilterVO;
@@ -71,6 +72,11 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
 
     @Autowired
     protected ResourceLoader resourceLoader;
+
+    @Override
+    public LiveFormatEnum getFormat() {
+        return LiveFormatEnum.STRAT;
+    }
 
     @Override
     public <R extends C> R execute(F filter) {
@@ -125,10 +131,14 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
 
     @Override
     public void clean(C context) {
-        super.clean(context);
+        super.dropTables(context);
     }
 
     /* -- protected methods -- */
+
+    protected Class<? extends ExtractionStrategyContextVO> getContextClass() {
+        return ExtractionStrategyContextVO.class;
+    }
 
     protected <R extends C> R createNewContext() {
         Class<? extends ExtractionStrategyContextVO> contextClass = getContextClass();
@@ -139,10 +149,6 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
         } catch (Exception e) {
             throw new SumarisTechnicalException("Could not create an instance of context class " + contextClass.getName());
         }
-    }
-
-    protected Class<? extends ExtractionStrategyContextVO> getContextClass() {
-        return ExtractionStrategyContextVO.class;
     }
 
     protected void fillContextTableNames(C context) {

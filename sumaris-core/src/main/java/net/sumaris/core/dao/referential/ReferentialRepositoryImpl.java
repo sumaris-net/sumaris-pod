@@ -130,12 +130,12 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
 
     @Override
     public V get(int id) {
-        return toVO(this.getOne(id));
+        return toVO(this.getById(id));
     }
 
     @Override
     public V get(int id, O fetchOptions) {
-        return toVO(this.getOne(id), fetchOptions);
+        return toVO(this.getById(id), fetchOptions);
     }
 
     @Override
@@ -249,13 +249,15 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
         if (filter.getId() != null) {
             return BindableSpecification.where(hasId(filter.getId()));
         }
+        Class<E> clazz = getDomainClass();
         // default specification
         return BindableSpecification
             .where(inStatusIds(filter))
             .and(hasLabel(filter.getLabel()))
-            .and(inLevelIds(getDomainClass(), filter.getLevelIds()))
-            .and(inLevelLabels(getDomainClass(), filter.getLevelLabels()))
+            .and(inLevelIds(clazz, filter.getLevelIds()))
+            .and(inLevelLabels(clazz, filter.getLevelLabels()))
             .and(searchOrJoinSearchText(filter))
+            .and(includedIds(filter.getIncludedIds()))
             .and(excludedIds(filter.getExcludedIds()));
     }
 

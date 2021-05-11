@@ -124,7 +124,7 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public Long countByFilter(TripFilterVO filter) {
+    public long countByFilter(TripFilterVO filter) {
         return tripRepository.count(filter);
     }
 
@@ -166,6 +166,11 @@ public class TripServiceImpl implements TripService {
         }
 
         return target;
+    }
+
+    @Override
+    public int getProgramIdById(int id) {
+        return tripRepository.getProgramIdById(id);
     }
 
     @Override

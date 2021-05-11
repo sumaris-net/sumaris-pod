@@ -103,7 +103,6 @@ public class Daos {
      */
     public static final String DB_DIRECTORY = "db";
 
-    private static final boolean debug = log.isDebugEnabled();
 
     /**
      * <p>Constructor for Daos.</p>
@@ -170,17 +169,11 @@ public class Daos {
                 statement.close();
             } catch (SQLException ignored) {
             }
-            if (debug) {
-                log.debug("Fix this linkage error, damned hsqlsb 1.8.0.7:(");
-            }
+            log.debug("Fix this linkage error, damned hsqlsb 1.8.0.7:(");
         } catch (IllegalAccessError e) {
-            if (debug) {
-                log.debug("Fix this IllegalAccessError error, damned hsqlsb 1.8.0.7:(");
-            }
+            log.debug("Fix this IllegalAccessError error, damned hsqlsb 1.8.0.7:(");
         } catch (Exception e) {
-            if (log.isErrorEnabled()) {
-                log.error("Could not close statement, but do not care", e);
-            }
+            log.error("Could not close statement, but do not care", e);
         }
     }
 
@@ -217,13 +210,9 @@ public class Daos {
                 statement.close();
             } catch (SQLException ignored) {
             }
-            if (debug) {
-                log.debug("Fix this linkage error, damned hsqlsb 1.8.0.7:(");
-            }
+            log.debug("Fix this linkage error, damned hsqlsb 1.8.0.7:(");
         } catch (IllegalAccessError e) {
-            if (debug) {
-                log.debug("Fix this IllegalAccessError error, damned hsqlsb 1.8.0.7:(");
-            }
+            log.debug("Fix this IllegalAccessError error, damned hsqlsb 1.8.0.7:(");
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
                 log.error("Could not close statement, but do not care", e);
@@ -972,9 +961,7 @@ public class Daos {
         }
 
         // Log using a special logger
-        if (debug) {
-            log.debug(sql);
-        }
+        log.debug(sql);
 
         try {
             return stmt.executeUpdate(sql);
@@ -1061,9 +1048,7 @@ public class Daos {
         }
 
         // Log using a special logger
-        if (debug) {
-            log.debug(sql);
-        }
+        log.debug(sql);
 
         try {
             ResultSet rs = stmt.executeQuery(sql);
@@ -1101,9 +1086,7 @@ public class Daos {
         }
 
         // Log using a special logger
-        if (debug) {
-            log.debug(sql);
-        }
+        log.debug(sql);
 
         try {
             ResultSet rs = stmt.executeQuery(sql);
@@ -1205,10 +1188,7 @@ public class Daos {
      */
     public static PreparedStatement prepareQuery(Connection connection, String sql) throws SQLException {
 
-        if (debug) {
-            log.debug(String.format("Execute query: %s", sql));
-        }
-
+        log.debug("Execute query: {}", sql);
         return connection.prepareStatement(sql);
     }
 
@@ -1225,7 +1205,7 @@ public class Daos {
         StringBuilder sb = new StringBuilder();
 
         StringBuilder debugParams = null;
-        if (debug) {
+        if (log.isDebugEnabled()) {
             debugParams = new StringBuilder();
         }
 
@@ -1247,9 +1227,7 @@ public class Daos {
                     .append("?");
             offset = paramMatcher.end();
 
-            if (debug) {
-                debugParams.append(", ").append(bindingValue);
-            }
+            if (debugParams != null) debugParams.append(", ").append(bindingValue);
         }
         if (offset > 0) {
             if (offset < sql.length()) {
@@ -1258,10 +1236,10 @@ public class Daos {
             sql = sb.toString();
         }
 
-        if (debug) {
-            log.debug(String.format("Execute query: %s", sql));
-            log.debug(String.format("  with params: [%s]", debugParams.length() > 2 ? debugParams.substring(2)
-                    : "no binding"));
+        if (debugParams != null) {
+            log.debug("Execute query: {}", sql);
+            log.debug("  with params: [{}]", debugParams.length() > 2 ? debugParams.substring(2)
+                : "no binding");
         }
 
         PreparedStatement statement = connection.prepareStatement(sql);
@@ -1387,7 +1365,7 @@ public class Daos {
             rs = statement.executeQuery();
             if (rs.next()) {
                 Object result = rs.getObject(1);
-                if (result != null && result instanceof Number) {
+                if (result instanceof Number) {
                     return ((Number) result).longValue();
                 }
             }

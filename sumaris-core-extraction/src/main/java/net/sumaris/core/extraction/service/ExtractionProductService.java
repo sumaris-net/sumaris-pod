@@ -22,23 +22,13 @@ package net.sumaris.core.extraction.service;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.extraction.cache.ExtractionCacheNames;
-import net.sumaris.core.extraction.vo.*;
-import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
-import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.extraction.config.ExtractionCacheConfiguration;
 import net.sumaris.core.vo.technical.extraction.*;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 /**
@@ -72,8 +62,8 @@ public interface ExtractionProductService {
 
     @Transactional
     @Caching(evict = {
-            @CacheEvict(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_ID, allEntries = true),
-            @CacheEvict(cacheNames = ExtractionCacheNames.AGGREGATION_TYPE_BY_FORMAT, allEntries = true)
+            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true),
+            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true)
     })
     void delete(int id);
 

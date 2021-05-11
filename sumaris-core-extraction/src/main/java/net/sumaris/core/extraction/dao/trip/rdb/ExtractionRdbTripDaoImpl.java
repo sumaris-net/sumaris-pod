@@ -23,6 +23,7 @@ package net.sumaris.core.extraction.dao.trip.rdb;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.exception.DataNotFoundException;
@@ -30,12 +31,14 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
+import net.sumaris.core.extraction.dao.trip.ExtractionTripDao;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.ExtractionPmfmInfoVO;
+import net.sumaris.core.extraction.vo.ExtractionPmfmColumnVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -43,17 +46,19 @@ import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
+import net.sumaris.core.util.TimeUtils;
+import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
+import net.sumaris.core.vo.filter.StrategyFilterVO;
+import net.sumaris.core.vo.referential.PmfmValueType;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.PersistenceException;
@@ -73,7 +78,7 @@ import static org.nuiton.i18n.I18n.t;
 @Slf4j
 public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
         extends ExtractionBaseDaoImpl
-        implements ExtractionRdbTripDao<C, F> {
+        implements ExtractionTripDao<C, F> {
 
     private static final String TR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RdbSpecification.TR_SHEET_NAME + "_%s";
     private static final String HH_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RdbSpecification.HH_SHEET_NAME + "_%s";
@@ -94,6 +99,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     protected ResourceLoader resourceLoader;
 
     @Override
+    public LiveFormatEnum getFormat() {
+        return LiveFormatEnum.RDB;
+    }
+
+    @Override
     public <R extends C> R execute(F filter) {
         ExtractionTripFilterVO tripFilter = toTripFilterVO(filter);
 
@@ -105,7 +115,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         context.setFormat(LiveFormatEnum.RDB);
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
 
+        // Start log
+        Long startTime = null;
         if (log.isInfoEnabled()) {
+            startTime = System.currentTimeMillis();
             StringBuilder filterInfo = new StringBuilder();
             String filterStr = filter != null ? tripFilter.toString("\n - ") : null;
             if (StringUtils.isNotBlank(filterStr)) {
@@ -114,7 +127,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             else {
                 filterInfo.append("(without filter)");
             }
-            log.info(String.format("Starting extraction #%s-%s (raw data / trips)... %s", context.getLabel(), context.getId(), filterInfo.toString()));
+            log.info("Starting extraction {{}-{}} (raw data / trips)... {}", context.getLabel(), context.getId(), filterInfo.toString());
         }
 
         // Fill context table names
@@ -130,26 +143,6 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             long rowCount = createTripTable(context);
             if (rowCount == 0) throw new DataNotFoundException(t("sumaris.extraction.noData"));
             if (sheetName != null && context.hasSheet(sheetName)) return context;
-
-            // Get programs from trips
-            List<String> programLabels = getTripProgramLabels(context);
-            Preconditions.checkArgument(CollectionUtils.isNotEmpty(programLabels));
-            log.debug("Detected programs: " + programLabels);
-
-            // Get PMFMs from strategies
-            final MultiValuedMap<Integer, PmfmStrategyVO> pmfmStrategiesByProgramId = new ArrayListValuedHashMap<>();
-            programLabels.stream()
-                    .map(programService::getByLabel)
-                    .map(ProgramVO::getId)
-                    .forEach(programId -> {
-                        Collection<PmfmStrategyVO> pmfms = strategyService.findPmfmsByProgram(
-                            programId,
-                            StrategyFetchOptions.builder().withDenormalizedPmfms(true).build()
-                        );
-                        pmfmStrategiesByProgramId.putAll(programId, pmfms);
-                    });
-            List<ExtractionPmfmInfoVO> pmfmInfos = getPmfmInfos(context, pmfmStrategiesByProgramId);
-            context.setPmfmInfos(pmfmInfos);
 
             // Station
             rowCount = createStationTable(context);
@@ -171,15 +164,23 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             return context;
         }
         catch (PersistenceException e) {
-            // If error,clean created tables first, then rethrow the exception
+            // If error, clean created tables first, then rethrow the exception
             clean(context);
+
+            startTime = null; // Avoid log
+
             throw e;
+        }
+        finally {
+            if (startTime != null) {
+                log.info("Extraction {{}-{}} finished in {}", context.getLabel(), context.getId(), TimeUtils.printDurationFrom(startTime));
+            }
         }
     }
 
     @Override
     public void clean(C context) {
-        super.clean(context);
+        dropTables(context);
     }
 
     /* -- protected methods -- */
@@ -215,63 +216,6 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         context.setSpeciesListSheetName(RdbSpecification.SL_SHEET_NAME);
         context.setSpeciesLengthSheetName(RdbSpecification.HL_SHEET_NAME);
         context.setSampleSheetName(RdbSpecification.CA_SHEET_NAME);
-    }
-
-    protected List<ExtractionPmfmInfoVO> getPmfmInfos(C context, MultiValuedMap<Integer, PmfmStrategyVO> pmfmStrategiesByProgramId) {
-
-        Map<String, String> acquisitionLevelAliases = buildAcquisitionLevelAliases(
-                pmfmStrategiesByProgramId.values().stream()
-                        .map(PmfmStrategyVO::getAcquisitionLevel)
-                        .collect(Collectors.toSet()));
-
-
-        List<ExtractionPmfmInfoVO> pmfmInfos = new ArrayList<>();
-        for (Integer programId : pmfmStrategiesByProgramId.keySet()) {
-            for (PmfmStrategyVO pmfmStrategy : pmfmStrategiesByProgramId.get(programId)) {
-                ExtractionPmfmInfoVO pmfmInfo = new ExtractionPmfmInfoVO();
-                pmfmInfo.setProgramId(programId);
-                pmfmInfo.setAcquisitionLevel(pmfmStrategy.getAcquisitionLevel());
-                pmfmInfo.setPmfmId(pmfmStrategy.getPmfmId());
-                pmfmInfo.setRankOrder(pmfmStrategy.getRankOrder());
-
-                pmfmInfo.setAlias(acquisitionLevelAliases.get(pmfmInfo.getAcquisitionLevel()) + pmfmInfo.getPmfmId());
-                //pmfmInfo.setTableName(String.format(PMFM_TABLE_NAME_PATTERN, context.getId(), pmfmInfo.getAlias()));
-                pmfmInfos.add(pmfmInfo);
-            }
-        }
-
-        return pmfmInfos;
-    }
-
-    protected Map<String, String> buildAcquisitionLevelAliases(Set<String> acquisitionLevels) {
-        Map<String, String> aliases = new HashMap<>();
-        for (String acquisitionLevel : acquisitionLevels) {
-            String alias = buildAlias(acquisitionLevel, "_");
-            if (aliases.values().contains(alias)) {
-                int index = 1;
-                String aliasToTest = alias + index;
-                while (aliases.values().contains(aliasToTest)) {
-                    aliasToTest = alias + ++index;
-                }
-                alias = aliasToTest;
-            }
-            aliases.put(acquisitionLevel, alias);
-        }
-        return aliases;
-    }
-
-    protected String buildAlias(String string, String separator) {
-        StringBuilder result = new StringBuilder();
-        Arrays.stream(string.split(separator)).forEach(part -> result.append(part, 0, 1));
-        return result.toString();
-    }
-
-    protected List<String> getTripProgramLabels(C context) {
-
-        XMLQuery xmlQuery = createXMLQuery(context, "distinctTripProgram");
-        xmlQuery.bind("tableName", context.getTripTableName());
-
-        return query(xmlQuery.getSQLQueryAsString(), String.class);
     }
 
     protected long createTripTable(C context) {
@@ -429,6 +373,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         long count = countFrom(tableName);
 
+        // Clean row using generic filter
+        if (count > 0) {
+            cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
+        }
+
         // Add result table to context
         if (count > 0) {
             context.addTableName(tableName,
@@ -458,28 +407,28 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     }
 
     protected long createSpeciesLengthTable(C context) {
+        String tableName = context.getSpeciesLengthTableName();
 
         XMLQuery xmlQuery = createSpeciesLengthQuery(context);
-
-        // aggregate insertion
         execute(xmlQuery);
-        long count = countFrom(context.getSpeciesLengthTableName());
+
+        long count = countFrom(tableName);
 
         // Clean row using generic tripFilter
         if (count > 0) {
-            count -= cleanRow(context.getSpeciesLengthTableName(), context.getFilter(), context.getSpeciesLengthSheetName());
+            count -= cleanRow(tableName, context.getFilter(), context.getSpeciesLengthSheetName());
         }
 
         // Add result table to context
         if (count > 0) {
-            context.addTableName(context.getSpeciesLengthTableName(),
+            context.addTableName(tableName,
                     context.getSpeciesLengthSheetName(),
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
             log.debug(String.format("Species length table: %s rows inserted", count));
         }
         else {
-            context.addRawTableName(context.getSpeciesLengthTableName());
+            context.addRawTableName(tableName);
         }
         return count;
     }
@@ -547,7 +496,118 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         }
     }
 
+    /**
+     * Fill the context's pmfm infos (e.g. used to generate
+     * @param context
+     */
+    protected List<ExtractionPmfmColumnVO> loadPmfmColumns(C context,
+                                                           List<String> programLabels,
+                                                           AcquisitionLevelEnum acquisitionLevel) {
 
+        if (CollectionUtils.isEmpty(programLabels)) return Collections.emptyList(); // no selected programs: skip
 
+        // Create the map that holds the result
+        Map<AcquisitionLevelEnum, List<ExtractionPmfmColumnVO>> pmfmColumns = context.getPmfmsByAcquisitionLevel();
+        if (pmfmColumns == null) {
+            pmfmColumns = Maps.newHashMap();
+            context.setPmfmsByAcquisitionLevel(pmfmColumns);
+        }
 
+        // Already loaded: use the cached values
+        if (pmfmColumns.containsKey(acquisitionLevel)) return pmfmColumns.get(acquisitionLevel);
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Loading PMFM for {program: %s, acquisitionLevel: %s} ...",
+                programLabels,
+                acquisitionLevel
+            ));
+        }
+
+        // Load strategies
+        List<ExtractionPmfmColumnVO> result = strategyService.findByFilter(StrategyFilterVO.builder()
+                .programLabels(programLabels.toArray(new String[0]))
+                // TODO: filtrer les strategies via la periode du filtre (si présente) ?
+                // .startDate(...).endDate(...)
+                .build(), Pageable.unpaged(), StrategyFetchOptions.DEFAULT)
+                .stream()
+                // Then, load PmfmStretegy
+                .flatMap(strategy ->  strategyService.findDenormalizedPmfmsByFilter(
+                            PmfmStrategyFilterVO.builder()
+                                    .strategyId(strategy.getId())
+                                    .acquisitionLevelId(acquisitionLevel.getId())
+                                    .build(),
+                            PmfmStrategyFetchOptions.builder().withCompleteName(false).build()
+                    ).stream())
+                .map(pmfmStrategy -> toPmfmColumnVO(pmfmStrategy, null))
+                .collect(Collectors.toList());
+
+        // save result into the context map
+        pmfmColumns.put(acquisitionLevel, result);
+
+        return result;
+    }
+
+    protected List<String> getTripProgramLabels(C context) {
+
+        XMLQuery xmlQuery = createXMLQuery(context, "distinctTripProgram");
+        xmlQuery.bind("tableName", context.getTripTableName());
+
+        return query(xmlQuery.getSQLQueryAsString(), String.class);
+    }
+
+    private List<ExtractionPmfmColumnVO> toPmfmColumnVO(List<DenormalizedPmfmStrategyVO> pmfmStrategies) {
+
+        Set<String> acquisitionLevels = Beans.collectDistinctProperties(pmfmStrategies, DenormalizedPmfmStrategyVO.Fields.ACQUISITION_LEVEL);
+        // Create prefix map, by acquisition level (used to generate the pmfm alias)
+        Map<String, String> aliasPrefixesByAcquisitionLevel = buildAcquisitionLevelPrefixes(acquisitionLevels);
+
+        return pmfmStrategies.stream().map(source ->
+                toPmfmColumnVO(source, aliasPrefixesByAcquisitionLevel.get(source.getAcquisitionLevel()))
+            )
+            .collect(Collectors.toList());
+    }
+
+    private ExtractionPmfmColumnVO toPmfmColumnVO(DenormalizedPmfmStrategyVO source, String aliasPrefix) {
+        ExtractionPmfmColumnVO target = new ExtractionPmfmColumnVO();
+
+        target.setAcquisitionLevel(source.getAcquisitionLevel());
+        target.setPmfmId(source.getId());
+        target.setLabel(source.getLabel());
+        target.setRankOrder(source.getRankOrder());
+        target.setType(PmfmValueType.fromString(source.getType()));
+
+        target.setAlias(
+                (aliasPrefix != null ? aliasPrefix : "T_")
+                + target.getPmfmId());
+        return target;
+    }
+
+    /**
+     * Build a map of unique alias, by acquisition level.
+     * Will use the first letter if unique, or two letters, or tree, etc.
+     * @param acquisitionLevels
+     * @return
+     */
+    private Map<String, String> buildAcquisitionLevelPrefixes(Set<String> acquisitionLevels) {
+        Map<String, String> aliases = new HashMap<>();
+        for (String acquisitionLevel : acquisitionLevels) {
+            String alias = buildAlias(acquisitionLevel, "_");
+            if (aliases.values().contains(alias)) {
+                int index = 1;
+                String aliasToTest = alias + index;
+                while (aliases.values().contains(aliasToTest)) {
+                    aliasToTest = alias + ++index;
+                }
+                alias = aliasToTest;
+            }
+            aliases.put(acquisitionLevel, alias);
+        }
+        return aliases;
+    }
+
+    protected String buildAlias(String string, String separator) {
+        StringBuilder result = new StringBuilder();
+        Arrays.stream(string.split(separator)).forEach(part -> result.append(part, 0, 1));
+        return result.toString();
+    }
 }

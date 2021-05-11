@@ -153,7 +153,7 @@ public class ProductRepositoryImpl
             if (source.getTaxonGroup() == null || source.getTaxonGroup().getId() == null) {
                 target.setTaxonGroup(null);
             } else {
-                target.setTaxonGroup(load(TaxonGroup.class, source.getTaxonGroup().getId()));
+                target.setTaxonGroup(getReference(TaxonGroup.class, source.getTaxonGroup().getId()));
             }
         }
 
@@ -162,16 +162,16 @@ public class ProductRepositoryImpl
             if (source.getSaleType() == null || source.getSaleType().getId() == null) {
                 target.setSaleType(null);
             } else {
-                target.setSaleType(load(SaleType.class, source.getSaleType().getId()));
+                target.setSaleType(getReference(SaleType.class, source.getSaleType().getId()));
             }
         }
 
         // Weight method if weight exists
         if (source.getWeight() != null) {
             if (source.isWeightCalculated()) {
-                target.setWeightMethod(load(Method.class, MethodEnum.CALCULATED.getId()));
+                target.setWeightMethod(getReference(Method.class, MethodEnum.CALCULATED.getId()));
             } else {
-                target.setWeightMethod(load(Method.class, MethodEnum.MEASURED_BY_OBSERVER.getId()));
+                target.setWeightMethod(getReference(Method.class, MethodEnum.MEASURED_BY_OBSERVER.getId()));
             }
         } else {
             target.setWeightMethod(null);
@@ -204,25 +204,25 @@ public class ProductRepositoryImpl
         // Landing
         Integer landingId = source.getLandingId() != null ? source.getLandingId() : (source.getLanding() != null ? source.getLanding().getId() : null);
         if (copyIfNull || (landingId != null)) {
-            target.setLanding(landingId == null ? null : load(Landing.class, landingId));
+            target.setLanding(landingId == null ? null : getReference(Landing.class, landingId));
         }
 
         // Operation
         Integer operationId = source.getOperationId() != null ? source.getOperationId() : (source.getOperation() != null ? source.getOperation().getId() : null);
         if (copyIfNull || (operationId != null)) {
-            target.setOperation(operationId == null ? null : load(Operation.class, operationId));
+            target.setOperation(operationId == null ? null : getReference(Operation.class, operationId));
         }
 
         // Sale (in SIH, Sale is ExpectedSale and is linked also with Landing)
         Integer saleId = source.getSaleId() != null ? source.getSaleId() : (source.getSale() != null ? source.getSale().getId() : null);
         if (copyIfNull || (saleId != null)) {
-            target.setSale(saleId == null ? null : load(Sale.class, saleId));
+            target.setSale(saleId == null ? null : getReference(Sale.class, saleId));
         }
 
         // Batch (link for sale on batch)
         Integer batchId = source.getBatchId() != null ? source.getBatchId() : (source.getBatch() != null ? source.getBatch().getId() : null);
         if (copyIfNull || (batchId != null)) {
-            target.setBatch(batchId == null ? null : load(Batch.class, batchId));
+            target.setBatch(batchId == null ? null : getReference(Batch.class, batchId));
         }
 
     }
@@ -231,7 +231,7 @@ public class ProductRepositoryImpl
     public List<ProductVO> saveByOperationId(int operationId, @Nonnull List<ProductVO> products) {
 
         // Load parent entity
-        Operation parent = getOne(Operation.class, operationId);
+        Operation parent = getById(Operation.class, operationId);
 
         products.forEach(source -> {
             source.setOperationId(operationId);
@@ -251,7 +251,7 @@ public class ProductRepositoryImpl
     public List<ProductVO> saveByLandingId(int landingId, @Nonnull List<ProductVO> products) {
 
         // Load parent entity
-        Landing parent = getOne(Landing.class, landingId);
+        Landing parent = getById(Landing.class, landingId);
 
         products.forEach(source -> {
             source.setLandingId(landingId);
@@ -269,7 +269,7 @@ public class ProductRepositoryImpl
     public List<ProductVO> saveBySaleId(int saleId, @Nonnull List<ProductVO> products) {
 
         // Load parent entity
-        Sale parent = getOne(Sale.class, saleId);
+        Sale parent = getById(Sale.class, saleId);
 
         // Get landing Id (to optimize linked data for SIH)
         Integer landingId = Optional.ofNullable(parent.getTrip())
@@ -316,7 +316,7 @@ public class ProductRepositoryImpl
             // Get average price per packaging and set it to generic average price pmfm
             String packagingId = product.getMeasurementValues().get(PmfmEnum.PACKAGING.getId());
             if (StringUtils.isNotBlank(packagingId)) {
-                QualitativeValue packaging = load(QualitativeValue.class, Integer.valueOf(packagingId));
+                QualitativeValue packaging = getReference(QualitativeValue.class, Integer.valueOf(packagingId));
                 String avgPackagingPrice = product.getMeasurementValues().remove(getAveragePricePmfmIdByPackaging(packaging));
                 if (StringUtils.isNotBlank(avgPackagingPrice)) {
                     // put it as generic avg price
@@ -364,7 +364,7 @@ public class ProductRepositoryImpl
                     String packagingId = product.getMeasurementValues().get(PmfmEnum.PACKAGING.getId());
                     String averagePrice = product.getMeasurementValues().get(PmfmEnum.AVERAGE_PACKAGING_PRICE.getId());
                     if (StringUtils.isNotBlank(packagingId) && StringUtils.isNotBlank(averagePrice)) {
-                        QualitativeValue packaging = load(QualitativeValue.class, Integer.valueOf(packagingId));
+                        QualitativeValue packaging = getReference(QualitativeValue.class, Integer.valueOf(packagingId));
                         Integer averagePriceForPackingPmfmId = getAveragePricePmfmIdByPackaging(packaging);
                         if (averagePriceForPackingPmfmId != null) {
                             // put it as specified packaging avg price
@@ -414,7 +414,7 @@ public class ProductRepositoryImpl
             String value = source.getMeasurementValues().remove(pmfmId);
 
             if (value != null) {
-                result = load(QualitativeValue.class, Integer.parseInt(value));
+                result = getReference(QualitativeValue.class, Integer.parseInt(value));
             }
         }
 

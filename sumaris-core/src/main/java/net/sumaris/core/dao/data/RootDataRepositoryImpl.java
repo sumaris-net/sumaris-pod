@@ -32,7 +32,6 @@ import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.core.vo.filter.IRootDataFilter;
@@ -42,7 +41,6 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
 import java.sql.Timestamp;
-import java.util.Date;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @NoRepositoryBean
@@ -116,7 +114,7 @@ public abstract class RootDataRepositoryImpl<
 
     public V validate(V vo) {
         Preconditions.checkNotNull(vo);
-        E entity = getOne(vo.getId());
+        E entity = getById(vo.getId());
 
         // Check update date
         if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(vo, entity);
@@ -149,7 +147,7 @@ public abstract class RootDataRepositoryImpl<
 
     private V unvalidate(V vo, boolean save) {
         Preconditions.checkNotNull(vo);
-        E entity = getOne(vo.getId());
+        E entity = getById(vo.getId());
 
         // Check update date
         if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(vo, entity);
@@ -160,7 +158,7 @@ public abstract class RootDataRepositoryImpl<
         // TODO UNVALIDATION PROCESS HERE
         entity.setValidationDate(null);
         entity.setQualificationDate(null);
-        entity.setQualityFlag(load(QualityFlag.class, QualityFlagEnum.NOT_QUALIFED.getId()));
+        entity.setQualityFlag(getReference(QualityFlag.class, QualityFlagEnum.NOT_QUALIFED.getId()));
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();

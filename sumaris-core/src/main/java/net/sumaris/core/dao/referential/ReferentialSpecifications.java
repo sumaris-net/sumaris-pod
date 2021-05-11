@@ -52,6 +52,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     String LEVEL_PARAMETER = "level";
     String LEVEL_LABEL_PARAMETER = "levelLabel";
     String SEARCH_TEXT_PARAMETER = "searchText";
+    String INCLUDED_IDS_PARAMETER = "includedIds";
     String EXCLUDED_IDS_PARAMETER = "excludedIds";
 
     default Specification<E> hasId(Integer id) {
@@ -126,14 +127,13 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     }
 
     default Specification<E> searchOrJoinSearchText(IReferentialFilter filter) {
-        String searchText = Daos.getEscapedSearchText(filter.getSearchText());
         String searchJoinProperty = filter.getSearchJoin() != null ? StringUtils.uncapitalize(filter.getSearchJoin()) : null;
         if (StringUtils.isNotBlank(searchJoinProperty)) {
-            return joinSearchText(searchJoinProperty, filter.getSearchAttribute(), searchText);
+            return joinSearchText(searchJoinProperty, filter.getSearchAttribute(), filter.getSearchText());
         } else {
             return searchText(
                 StringUtils.isNotBlank(filter.getSearchAttribute()) ? ArrayUtils.toArray(filter.getSearchAttribute()) : null,
-                searchText);
+                filter.getSearchText());
         }
     }
 
@@ -162,7 +162,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
                 criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.upper(criteriaBuilder.concat("%", searchTextParam)))
             );
         });
-        specification.addBind(SEARCH_TEXT_PARAMETER, searchText);
+        specification.addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText));
         return specification;
     }
 
@@ -181,11 +181,13 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
                 join = join.join(joinProperties[i], JoinType.INNER);
             }
 
+            // Search on given attribute
             if (StringUtils.isNotBlank(searchAttribute)) {
                 return criteriaBuilder.or(
                     criteriaBuilder.isNull(searchTextParam),
                     criteriaBuilder.like(criteriaBuilder.upper(join.get(searchAttribute)), criteriaBuilder.upper(searchTextParam)));
             }
+
             // Search on label+name
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(searchTextParam),
@@ -193,7 +195,17 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
                 criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.upper(criteriaBuilder.concat("%", searchTextParam)))
             );
         });
-        specification.addBind(SEARCH_TEXT_PARAMETER, searchText);
+        specification.addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText));
+        return specification;
+    }
+
+    default Specification<E> includedIds(Integer[] includedIds) {
+        if (ArrayUtils.isEmpty(includedIds)) return null;
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, INCLUDED_IDS_PARAMETER);
+            return criteriaBuilder.in(root.get(IEntity.Fields.ID)).value(param);
+        });
+        specification.addBind(INCLUDED_IDS_PARAMETER, Arrays.asList(includedIds));
         return specification;
     }
 

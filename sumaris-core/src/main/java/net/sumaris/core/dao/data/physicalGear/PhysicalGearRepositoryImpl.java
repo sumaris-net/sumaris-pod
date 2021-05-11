@@ -118,7 +118,7 @@ public class PhysicalGearRepositoryImpl
             if (gearId == null) {
                 target.setGear(null);
             } else {
-                target.setGear(load(Gear.class, gearId));
+                target.setGear(getReference(Gear.class, gearId));
             }
         }
 
@@ -128,7 +128,7 @@ public class PhysicalGearRepositoryImpl
             if (tripId == null) {
                 target.setTrip(null);
             } else {
-                target.setTrip(load(Trip.class, tripId));
+                target.setTrip(getReference(Trip.class, tripId));
             }
         }
 
@@ -137,7 +137,7 @@ public class PhysicalGearRepositoryImpl
     public List<PhysicalGearVO> saveAllByTripId(final int tripId, final List<PhysicalGearVO> sources) {
 
         // Load parent entity
-        Trip parent = getOne(Trip.class, tripId);
+        Trip parent = getById(Trip.class, tripId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getProgram().getId());
 
@@ -165,7 +165,7 @@ public class PhysicalGearRepositoryImpl
         // Update the parent list
         Daos.replaceEntities(parent.getPhysicalGears(),
             result,
-            (vo) -> load(PhysicalGear.class, vo.getId()));
+            (vo) -> getReference(PhysicalGear.class, vo.getId()));
 
         // Save measurements on each gears
         // NOTE: using the savedGear to be sure to find an id

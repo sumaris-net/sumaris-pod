@@ -42,7 +42,6 @@ import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroupHierarchy;
 import net.sumaris.core.vo.filter.IReferentialFilter;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -133,8 +132,8 @@ public class TaxonGroupRepositoryImpl
                 if (!existingLinksToRemove.remove(childId, childId)
                         && !newLinks.containsEntry(childId, childId)) {
                     TaxonGroupHierarchy tgh = new TaxonGroupHierarchy();
-                    tgh.setParentTaxonGroup(load(TaxonGroup.class, childId));
-                    tgh.setChildTaxonGroup(load(TaxonGroup.class, childId));
+                    tgh.setParentTaxonGroup(getReference(TaxonGroup.class, childId));
+                    tgh.setChildTaxonGroup(getReference(TaxonGroup.class, childId));
                     em.persist(tgh);
                     insertCounter.increment();
                     newLinks.put(childId, childId);
@@ -149,8 +148,8 @@ public class TaxonGroupRepositoryImpl
                     if (!existingLinksToRemove.remove(parentId, childId)
                             && !newLinks.containsEntry(parentId, childId)) {
                         TaxonGroupHierarchy tgh = new TaxonGroupHierarchy();
-                        tgh.setParentTaxonGroup(load(TaxonGroup.class, parentId));
-                        tgh.setChildTaxonGroup(load(TaxonGroup.class, childId));
+                        tgh.setParentTaxonGroup(getReference(TaxonGroup.class, parentId));
+                        tgh.setChildTaxonGroup(getReference(TaxonGroup.class, childId));
                         em.persist(tgh);
                         insertCounter.increment();
                         newLinks.put(parentId, childId);
@@ -222,7 +221,7 @@ public class TaxonGroupRepositoryImpl
                                 DateFormat.getDateInstance().format(history.getStartDate())));
                     }
 
-                    TaxonNameVO parent = taxonNameRepository.findTaxonNameReferent(directChildId)
+                    TaxonNameVO parent = taxonNameRepository.findReferentByReferenceTaxonId(directChildId)
                             .orElseThrow(() -> new SumarisTechnicalException("Cannot find taxon name for referenceTaxonId=" + directChildId));
                     List<TaxonName> children = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(ImmutableList.of(parent.getId()));
                     while (CollectionUtils.isNotEmpty(children)) {
@@ -344,13 +343,16 @@ public class TaxonGroupRepositoryImpl
     @Override
     protected Specification<TaxonGroup> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
         Preconditions.checkNotNull(filter);
-        Integer[] gearIds = filter.getLevelId() != null
-            ? new Integer[]{filter.getLevelId()}
-            : filter.getLevelIds();
+        Integer[] gearIds = filter.getLevelIds();
+        filter.setLevelIds(null);
 
-        return super.toSpecification(filter, fetchOptions)
+        Specification<TaxonGroup> result = super.toSpecification(filter, fetchOptions)
             .and(hasType(TaxonGroupTypeEnum.METIER_SPECIES.getId()))
             .and(inGearIds(gearIds));
 
+        // restore levelIds
+        filter.setLevelIds(gearIds);
+
+        return result;
     }
 }

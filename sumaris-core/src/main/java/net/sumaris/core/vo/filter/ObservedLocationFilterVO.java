@@ -42,15 +42,11 @@ public class ObservedLocationFilterVO implements IRootDataFilter {
     }
 
     private String programLabel;
-
     private Date startDate;
-
     private Date endDate;
-
     private Integer locationId;
-
+    private Integer[] locationIds;
     private Integer recorderDepartmentId;
-
     private Integer recorderPersonId;
 
 }

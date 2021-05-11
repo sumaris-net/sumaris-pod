@@ -26,6 +26,7 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLEnvironment;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
+import io.leangen.graphql.execution.ResolutionEnvironment;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -44,9 +45,11 @@ import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import net.sumaris.server.config.ExtractionWebAutoConfiguration;
+import net.sumaris.server.http.GraphQLUtils;
 import net.sumaris.server.security.ExtractionSecurityService;
 import net.sumaris.server.geojson.ExtractionGeoJsonConverter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hibernate.graph.spi.GraphHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
@@ -79,17 +82,17 @@ public class AggregationGraphQLService {
     @GraphQLQuery(name = "aggregationType", description = "Get one aggregation type")
     @Transactional(readOnly = true)
     public AggregationTypeVO getAggregationType(@GraphQLArgument(name = "id") int id,
-                                                @GraphQLEnvironment() Set<String> fields) {
+                                                @GraphQLEnvironment ResolutionEnvironment env) {
         securityService.checkReadAccess(id);
-        return aggregationService.getTypeById(id, getFetchOptions(fields));
+        return aggregationService.getTypeById(id, getFetchOptions(GraphQLUtils.fields(env)));
     }
 
     @GraphQLQuery(name = "aggregationTypes", description = "Get all available aggregation types")
     @Transactional(readOnly = true)
     public List<AggregationTypeVO> getAllAggregationTypes(@GraphQLArgument(name = "filter") AggregationTypeFilterVO filter,
-                                                          @GraphQLEnvironment() Set<String> fields) {
+                                                          @GraphQLEnvironment ResolutionEnvironment env) {
         filter = fillFilterDefaults(filter);
-        return aggregationService.findTypesByFilter(filter, getFetchOptions(fields));
+        return aggregationService.findTypesByFilter(filter, getFetchOptions(GraphQLUtils.fields(env)));
     }
 
     @GraphQLQuery(name = "aggregationRows", description = "Read an aggregation")
@@ -112,13 +115,15 @@ public class AggregationGraphQLService {
     @Transactional(readOnly = true)
     public List<ExtractionTableColumnVO> getAggregationColumns(@GraphQLArgument(name = "type") AggregationTypeVO type,
                                                                @GraphQLArgument(name = "sheet") String sheetName,
-                                                               @GraphQLEnvironment() Set<String> fields) {
+                                                               @GraphQLEnvironment ResolutionEnvironment env) {
 
         // Check type
         type = aggregationService.getTypeByFormat(type);
 
         // Check access right
         securityService.checkReadAccess(type);
+
+        Set<String> fields = GraphQLUtils.fields(env);
 
         ExtractionTableColumnFetchOptions fetchOptions = ExtractionTableColumnFetchOptions.builder()
                 .withRankOrder(fields.contains(ExtractionTableColumnVO.Fields.RANK_ORDER))
@@ -240,6 +245,7 @@ public class AggregationGraphQLService {
 
     protected ExtractionProductFetchOptions getFetchOptions(Set<String> fields) {
         return ExtractionProductFetchOptions.builder()
+                .withDocumentation(fields.contains(AggregationTypeVO.Fields.DOCUMENTATION))
                 .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
                 .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
                 // Tables (=sheets)

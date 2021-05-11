@@ -54,6 +54,7 @@ public class ReferentialFilterVO implements IReferentialFilter {
     private String searchText;
     private String searchAttribute;
 
+    private Integer[] includedIds;
     private Integer[] excludedIds;
 
 }

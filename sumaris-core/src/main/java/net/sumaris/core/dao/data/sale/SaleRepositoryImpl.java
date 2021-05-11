@@ -101,7 +101,7 @@ public class SaleRepositoryImpl
     @Override
     public List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sales) {
         // Load parent entity
-        Trip parent = getOne(Trip.class, tripId);
+        Trip parent = getById(Trip.class, tripId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getProgram().getId());
 
@@ -147,7 +147,7 @@ public class SaleRepositoryImpl
                 target.setTrip(null);
             }
             else {
-                target.setTrip(load(Trip.class, tripId));
+                target.setTrip(getReference(Trip.class, tripId));
             }
         }
 
@@ -157,7 +157,7 @@ public class SaleRepositoryImpl
                 target.setSaleLocation(null);
             }
             else {
-                target.setSaleLocation(load(Location.class, source.getSaleLocation().getId()));
+                target.setSaleLocation(getReference(Location.class, source.getSaleLocation().getId()));
             }
         }
 
@@ -167,7 +167,7 @@ public class SaleRepositoryImpl
                 target.setSaleType(null);
             }
             else {
-                target.setSaleType(load(SaleType.class, source.getSaleType().getId()));
+                target.setSaleType(getReference(SaleType.class, source.getSaleType().getId()));
             }
         }
     }

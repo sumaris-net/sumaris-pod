@@ -76,7 +76,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 	@Override
 	public ImageAttachmentVO getLogoByLabel(final String label) {
 		Preconditions.checkNotNull(label);
-		Optional<Department> department = Optional.of(departmentRepository.getOne(departmentRepository.getByLabel(label).getId()));
+		Optional<Department> department = Optional.of(departmentRepository.getById(departmentRepository.getByLabel(label).getId()));
 
 		int logoId = department
 			.map(Department::getLogo)

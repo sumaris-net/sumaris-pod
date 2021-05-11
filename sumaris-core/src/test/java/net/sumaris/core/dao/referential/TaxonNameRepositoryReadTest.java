@@ -73,13 +73,13 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
 
     @Test
     public void findTaxonNameReferent() {
-        TaxonNameVO referent = taxonNameRepository.findTaxonNameReferent(1030).orElse(null);
+        TaxonNameVO referent = taxonNameRepository.findReferentByReferenceTaxonId(1030).orElse(null);
         Assert.assertNotNull(referent);
         Assert.assertEquals(Integer.valueOf(1030), referent.getId());
-        referent = taxonNameRepository.findTaxonNameReferent(1023).orElse(null);
+        referent = taxonNameRepository.findReferentByReferenceTaxonId(1023).orElse(null);
         Assert.assertNotNull(referent);
         Assert.assertEquals(Integer.valueOf(1023), referent.getId());
-        referent = taxonNameRepository.findTaxonNameReferent(9999).orElse(null);
+        referent = taxonNameRepository.findReferentByReferenceTaxonId(9999).orElse(null);
         Assert.assertNull(referent);
     }
 
@@ -110,7 +110,7 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
     }
 
     private void assertAllByTaxonGroupLabel(String taxonGroupLabel, int expectedSize) {
-        TaxonGroup tg = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId(taxonGroupLabel, TaxonGroupTypeEnum.FAO.getId());
+        TaxonGroup tg = taxonGroupRepository.getByLabelAndTaxonGroupTypeId(taxonGroupLabel, TaxonGroupTypeEnum.FAO.getId());
         Assume.assumeNotNull(tg);
         List<TaxonNameVO> taxonNames = taxonNameRepository.getAllByTaxonGroupId(tg.getId());
 

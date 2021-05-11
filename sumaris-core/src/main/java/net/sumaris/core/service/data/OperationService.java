@@ -63,4 +63,6 @@ public interface OperationService {
 
 	void delete(List<Integer> ids);
 
+	int getProgramIdById(int id);
+
 }

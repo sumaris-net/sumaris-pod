@@ -24,21 +24,32 @@ package net.sumaris.server.graphql;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.GraphQLArgument;
+import io.leangen.graphql.annotations.GraphQLContext;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.extraction.service.ExtractionService;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.data.PhysicalGearVO;
+import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.server.config.ExtractionWebAutoConfiguration;
+import net.sumaris.server.http.ExtractionRestController;
+import net.sumaris.server.http.ExtractionRestPaths;
 import net.sumaris.server.security.ExtractionSecurityService;
 import net.sumaris.server.security.IDownloadController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,6 +62,8 @@ import java.util.Map;
 @ConditionalOnBean({ExtractionWebAutoConfiguration.class})
 public class ExtractionGraphQLService {
 
+    private String documentationUrl;
+
     @Autowired
     private ExtractionService extractionService;
 
@@ -59,6 +72,20 @@ public class ExtractionGraphQLService {
 
     @Autowired
     private ExtractionSecurityService securityService;
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+
+        // Prepare URL for String formatter
+        String serverUrl = event.getConfiguration().getApplicationConfig().getOption("server.url");
+
+        if (StringUtils.isNotBlank(serverUrl)) {
+            documentationUrl = serverUrl + ExtractionRestPaths.DOC_PATH;
+        }
+        else {
+            documentationUrl = null;
+        }
+    }
 
     @GraphQLQuery(name = "extractionTypes", description = "Get all available extraction types", deprecationReason = "Use liveExtractionTypes and aggregationTypes")
     @Transactional(readOnly = true)
@@ -145,6 +172,20 @@ public class ExtractionGraphQLService {
         String path = downloadController.registerFile(tempFile, true);
 
        return path;
+    }
+
+    @GraphQLQuery(name = "docUrl", description = "Get extraction documentation URL")
+    public String getDocUrl(@GraphQLContext ExtractionTypeVO type) {
+        if (type.getDocUrl() != null) return type.getDocUrl();
+
+        if (documentationUrl != null && type.getCategory() != null && type.getLabel() != null) {
+            String docUrl = documentationUrl.replaceFirst("\\{category[^\\}]*\\}", type.getCategory().name().toLowerCase())
+                .replaceFirst("\\{label[^\\}]*\\}", type.getLabel().toLowerCase());
+            type.setDocUrl(docUrl);
+            return docUrl;
+        }
+
+        return null;
     }
 
 }

@@ -47,7 +47,9 @@ public enum ProductFormatEnum implements IExtractionFormat {
     // Aggregation product
     AGG_RDB (AggRdbSpecification.FORMAT, AggRdbSpecification.SHEET_NAMES, AggRdbSpecification.VERSION_1_3),
     AGG_COST (AggCostSpecification.FORMAT, AggCostSpecification.SHEET_NAMES, AggCostSpecification.VERSION_1_4),
-    AGG_SURVIVAL_TEST (AggSurvivalTestSpecification.FORMAT, AggSurvivalTestSpecification.SHEET_NAMES, AggSurvivalTestSpecification.VERSION_1_0)
+    AGG_SURVIVAL_TEST (AggSurvivalTestSpecification.FORMAT, AggSurvivalTestSpecification.SHEET_NAMES, AggSurvivalTestSpecification.VERSION_1_0),
+
+    //AGG_RJB (AggRjbSpecification.FORMAT, AggRjbSpecification.SHEET_NAMES, AggRjbSpecification.VERSION_1_0)
     ;
 
     private String label;

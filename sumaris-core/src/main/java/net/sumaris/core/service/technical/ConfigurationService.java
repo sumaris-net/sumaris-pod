@@ -30,6 +30,8 @@ public interface ConfigurationService {
 
     SoftwareVO getCurrentSoftware();
 
+    boolean isReady();
+
 }
 
 

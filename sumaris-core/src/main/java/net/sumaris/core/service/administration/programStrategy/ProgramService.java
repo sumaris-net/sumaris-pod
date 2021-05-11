@@ -25,12 +25,14 @@ package net.sumaris.core.service.administration.programStrategy;
 
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
-import net.sumaris.core.vo.administration.programStrategy.ProgramSaveOptions;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author BLA
@@ -45,13 +47,21 @@ public interface ProgramService {
 	ProgramVO get(int id);
 
 	@Transactional(readOnly = true)
+	ProgramVO get(int id, ProgramFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
 	ProgramVO getByLabel(String label);
+
+	@Transactional(readOnly = true)
+	Optional<ProgramVO> findIfNewerByLabel(String label, final Date updateDate, ProgramFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<ProgramVO> getAll();
 
 	@Transactional(readOnly = true)
 	List<ProgramVO> findByFilter(ProgramFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+
+
 
 	ProgramVO save(ProgramVO program, ProgramSaveOptions options);
 

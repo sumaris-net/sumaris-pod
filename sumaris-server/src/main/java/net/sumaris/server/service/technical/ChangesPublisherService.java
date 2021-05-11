@@ -28,16 +28,31 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @Transactional
 public interface ChangesPublisherService {
+
+    @Transactional(readOnly = true)
+    <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>, L extends List<V>> Publisher<L>
+    getListPublisher(final Function<Date, L> supplier,
+                 Integer minIntervalInSecond,
+                 boolean startWithActualValue);
+
+    @Transactional(readOnly = true)
+    <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>> Publisher<V>
+    getPublisher(final Function<Date, V> supplier,
+                 Integer minIntervalInSecond,
+                 boolean startWithActualValue);
 
     @Transactional(readOnly = true)
     <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>, V extends IUpdateDateEntityBean<K, D>> Publisher<V>
     getPublisher(Class<T> entityClass,
                  Class<V> targetClass,
                  K id,
-                 Integer minIntervalInSecond,
+                 Integer intervalInSecond,
                  final boolean startWithActualValue);
 
     @Transactional(readOnly = true)

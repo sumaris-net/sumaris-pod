@@ -22,17 +22,48 @@ package net.sumaris.core.model.administration.programStrategy;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+
+@EntityEnum(entity = AcquisitionLevel.class,
+        joinAttributes = AcquisitionLevel.Fields.LABEL)
 public enum AcquisitionLevelEnum {
 
-  TRIP(1, "TRIP"),
-  SURVIVAL_TEST(7, "SURVIVAL_TEST"),
-  INDIVIDUAL_MONITORING(8, "INDIVIDUAL_MONITORING");
+    TRIP(1, "TRIP"),
+    OPERATION(3, "OPERATION"),
+    CATCH_BATCH(4, "CATCH_BATCH"),
+    SORTING_BATCH(5, "SORTING_BATCH"),
+    SURVIVAL_TEST(7, "SURVIVAL_TEST"),
+    INDIVIDUAL_MONITORING(8, "INDIVIDUAL_MONITORING");
 
-  public final int id;
-  public final String label;
+    private int id;
+    private String label;
 
-  AcquisitionLevelEnum(int id, String label) {
+    AcquisitionLevelEnum(int id, String label) {
       this.id = id;
       this.label = label;
-  }
+    }
+
+    public static AcquisitionLevelEnum valueOf(final int id) {
+        for (AcquisitionLevelEnum v: values()) {
+            if (v.id == id) return v;
+        }
+        throw new IllegalArgumentException("Unknown AcquisitionLevelEnum: " + id);
+    }
+
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
 }

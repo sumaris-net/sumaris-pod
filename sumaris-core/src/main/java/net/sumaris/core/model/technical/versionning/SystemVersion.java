@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -42,7 +43,7 @@ import java.util.Date;
                 "    WHERE\n" +
                 "      id = (select max(id) from SystemVersion)" )
 })
-public class SystemVersion implements IReferentialEntity {
+public class SystemVersion implements IReferentialEntity, IWithDescriptionAndCommentEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SYSTEM_VERSION_SEQ")

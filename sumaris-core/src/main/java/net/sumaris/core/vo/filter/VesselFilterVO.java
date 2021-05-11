@@ -36,6 +36,8 @@ public class VesselFilterVO {
         return f != null ? f : new VesselFilterVO();
     }
 
+    private String programLabel;
+
     private Date date;
 
     private Integer vesselId;

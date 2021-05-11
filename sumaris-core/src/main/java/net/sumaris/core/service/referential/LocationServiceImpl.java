@@ -98,7 +98,7 @@ public class LocationServiceImpl implements LocationService{
         Objects.requireNonNull(cgpmRquareLocationLevel);
 
         Status enableStatus = statusRepository.getEnableStatus();
-        ValidityStatus validStatus = validityStatusRepository.getOne(ValidityStatusEnum.VALID.getId());
+        ValidityStatus validStatus = validityStatusRepository.getById(ValidityStatusEnum.VALID.getId());
 
         // Existing rectangles
         List<LocationVO> existingLocations = locationLevels.values().stream()
@@ -164,7 +164,7 @@ public class LocationServiceImpl implements LocationService{
         Objects.requireNonNull(square10LocationLevel);
 
         Status enableStatus = statusRepository.getEnableStatus();
-        ValidityStatus validStatus = validityStatusRepository.getOne(ValidityStatusEnum.VALID.getId());
+        ValidityStatus validStatus = validityStatusRepository.getById(ValidityStatusEnum.VALID.getId());
 
         // Get existing rectangle
         Map<String, LocationVO> rectangleByLabelMap = Beans.splitByProperty(getExistingRectangles(), Location.Fields.LABEL);
@@ -242,7 +242,7 @@ public class LocationServiceImpl implements LocationService{
         LocationLevel square10LocationLevel = locationLevels.get(LocationLevelEnum.SQUARE_10.getLabel());
         Preconditions.checkNotNull(square10LocationLevel);
 
-        ValidityStatus notValidStatus = validityStatusRepository.getOne(ValidityStatusEnum.INVALID.getId());
+        ValidityStatus notValidStatus = validityStatusRepository.getById(ValidityStatusEnum.INVALID.getId());
         Pattern rectangleLabelPattern = Pattern.compile("[M]?[0-9]{2,3}[A-Z][0-9]");
 
         Map<String, LocationVO> rectangleByLabelMap = Maps.newHashMap();
@@ -305,7 +305,7 @@ public class LocationServiceImpl implements LocationService{
                 }
 
                 // Load square geometry
-                LocationArea locationArea = locationAreaRepository.getOne(objectId);
+                LocationArea locationArea = locationAreaRepository.getById(objectId);
                 Geometry geometry = Locations.getGeometryFromSquare10Label(squareLabel);
                 Preconditions.checkNotNull(geometry, "No geometry found for square with label:" + squareLabel);
 
@@ -491,7 +491,7 @@ public class LocationServiceImpl implements LocationService{
         Map<String, LocationLevel> result = Maps.newHashMap();
 
         Date creationDate = new Date();
-        LocationClassification defaultClassification = locationClassificationRepository.getOne(LocationClassificationEnum.SEA.getId());
+        LocationClassification defaultClassification = locationClassificationRepository.getById(LocationClassificationEnum.SEA.getId());
 
         for (String label: levels.keySet()) {
             String name = StringUtils.trimToNull(levels.get(label));

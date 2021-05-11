@@ -43,10 +43,12 @@ import net.sumaris.core.vo.data.OperationVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 
@@ -70,9 +72,8 @@ public class TrashServiceImpl implements TrashService {
     private boolean enable;
     private File trashDirectory;
 
-    @Resource(name = "jacksonObjectMapper")
+    @Autowired
     private ObjectMapper objectMapper;
-
 
     @Override
     public <V> Page<V> findAll(@NonNull String entityName, @NonNull Pageable pageable, Class<? extends V> clazz) {
@@ -82,7 +83,9 @@ public class TrashServiceImpl implements TrashService {
         // then only deserialize files from the current page
         String sortAttribute = IUpdateDateEntityBean.Fields.UPDATE_DATE;
         if (pageable.getSort() != null && pageable.getSort().isSorted()) {
-            sortAttribute = pageable.getSort().stream().map(o -> o.getProperty()).findFirst().orElse(IUpdateDateEntityBean.Fields.UPDATE_DATE);
+            sortAttribute = pageable.getSort().stream().map(Sort.Order::getProperty)
+                .findFirst()
+                .orElse(IUpdateDateEntityBean.Fields.UPDATE_DATE);
         }
         Preconditions.checkArgument(IUpdateDateEntityBean.Fields.UPDATE_DATE.equals(sortAttribute),
                 String.format("Trash data can only be sorted on '%s'", IUpdateDateEntityBean.Fields.UPDATE_DATE));

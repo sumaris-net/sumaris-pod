@@ -22,15 +22,12 @@ package net.sumaris.core.dao.data.trip;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
@@ -60,6 +57,7 @@ public class TripRepositoryImpl
     @Override
     public Specification<Trip> toSpecification(TripFilterVO filter, DataFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
+            .and(id(filter.getTripId()))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationId(filter.getLocationId()))
             .and(hasVesselId(filter.getVesselId()));
@@ -102,7 +100,7 @@ public class TripRepositoryImpl
             if (source.getDepartureLocation() == null || source.getDepartureLocation().getId() == null) {
                 target.setDepartureLocation(null);
             } else {
-                target.setDepartureLocation(load(Location.class, source.getDepartureLocation().getId()));
+                target.setDepartureLocation(getReference(Location.class, source.getDepartureLocation().getId()));
             }
         }
 
@@ -111,7 +109,7 @@ public class TripRepositoryImpl
             if (source.getReturnLocation() == null || source.getReturnLocation().getId() == null) {
                 target.setReturnLocation(null);
             } else {
-                target.setReturnLocation(load(Location.class, source.getReturnLocation().getId()));
+                target.setReturnLocation(getReference(Location.class, source.getReturnLocation().getId()));
             }
         }
     }
@@ -124,7 +122,7 @@ public class TripRepositoryImpl
         Integer landingId = vo.getLanding() != null && vo.getLanding().getId() != null ? vo.getLanding().getId() : vo.getLandingId();
         Integer observedLocationId = null;
         if (landingId != null) {
-            Landing landing = load(Landing.class, landingId);
+            Landing landing = getReference(Landing.class, landingId);
             if (landing != null) {
                 if (landing.getTrip() == null || !Objects.equals(landing.getTrip().getId(), savedEntity.getId())) {
                     landing.setTrip(savedEntity);

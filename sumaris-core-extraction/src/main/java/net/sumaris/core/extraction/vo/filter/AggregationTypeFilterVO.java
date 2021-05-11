@@ -22,13 +22,18 @@ package net.sumaris.core.extraction.vo.filter;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFilterVO;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class AggregationTypeFilterVO extends ExtractionProductFilterVO {
 
     private Boolean isSpatial;
+    private Integer[] statusIds;
 }

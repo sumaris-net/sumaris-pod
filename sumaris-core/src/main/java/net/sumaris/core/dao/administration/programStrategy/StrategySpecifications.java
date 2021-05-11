@@ -22,42 +22,90 @@ package net.sumaris.core.dao.administration.programStrategy;
  * #L%
  */
 
+import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
-import net.sumaris.core.model.administration.programStrategy.Strategy;
+import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Path;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 /**
  * @author peck7 on 24/08/2020.
  */
-public interface StrategySpecifications {
+public interface StrategySpecifications extends ReferentialSpecifications<Strategy> {
 
-    String PROGRAM_IDS_PARAM = "programIds";
-    String HAS_PROGRAM_PARAM = "hasProgram";
+    String REFERENCE_TAXON_IDS = "referenceTaxonIds";
+    String UPDATE_DATE_GREATER_THAN_PARAM = "updateDateGreaterThan";
 
-    default Specification<Strategy> hasProgramIds(StrategyFilterVO filter) {
-        Integer[] programIds = filter.getProgramId() != null ? new Integer[]{filter.getProgramId()} : filter.getProgramIds();
+    default Specification<Strategy> hasProgramIds(Integer... programIds) {
+        return inLevelIds(Strategy.class, programIds);
+    }
+
+    default Specification<Strategy> newerThan(Date updateDate) {
         BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> programIdsParam = criteriaBuilder.parameter(Collection.class, PROGRAM_IDS_PARAM);
-            ParameterExpression<Boolean> hasProgramParam = criteriaBuilder.parameter(Boolean.class, HAS_PROGRAM_PARAM);
-            return criteriaBuilder.or(
-                    criteriaBuilder.isFalse(hasProgramParam),
-                    criteriaBuilder.in(root.get(Strategy.Fields.PROGRAM).get(Status.Fields.ID)).value(programIdsParam)
-            );
+            ParameterExpression<Date> updateDateParam = criteriaBuilder.parameter(Date.class, UPDATE_DATE_GREATER_THAN_PARAM);
+            return criteriaBuilder.greaterThan(root.get(Strategy.Fields.UPDATE_DATE), updateDateParam);
         });
-        specification.addBind(HAS_PROGRAM_PARAM, !ArrayUtils.isEmpty(programIds));
-        specification.addBind(PROGRAM_IDS_PARAM, ArrayUtils.isEmpty(programIds) ? null : Arrays.asList(programIds));
+        specification.addBind(UPDATE_DATE_GREATER_THAN_PARAM, updateDate);
         return specification;
+    }
+
+    default Specification<Strategy> hasReferenceTaxonIds(Integer... referenceTaxonIds) {
+        if (ArrayUtils.isEmpty(referenceTaxonIds)) return null;
+        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+
+            // Avoid duplictaed entries (because of inner join)
+            query.distinct(true);
+
+            ParameterExpression<Collection> referenceTaxonIdsParam = criteriaBuilder.parameter(Collection.class, REFERENCE_TAXON_IDS);
+            return criteriaBuilder.in(
+                root.join(Strategy.Fields.REFERENCE_TAXONS, JoinType.INNER)
+                    .join(ReferenceTaxonStrategy.Fields.REFERENCE_TAXON, JoinType.INNER)
+                    .get(ReferenceTaxon.Fields.ID))
+                .value(referenceTaxonIdsParam);
+        });
+        specification.addBind(REFERENCE_TAXON_IDS, Arrays.asList(referenceTaxonIds));
+        return specification;
+    }
+
+    default Specification<Strategy> betweenDate(Date startDate, Date endDate) {
+        if (startDate == null && endDate == null) return null;
+        return (root, query, cb) -> {
+
+            Join<?,?> appliedPeriods = root.join(Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT)
+                    .join(AppliedStrategy.Fields.APPLIED_PERIODS, JoinType.LEFT);
+
+            // Start + end date
+            if (startDate != null && endDate != null) {
+                return cb.not(
+                    cb.or(
+                        cb.greaterThan(appliedPeriods.get(AppliedPeriod.Fields.START_DATE), endDate),
+                        cb.lessThan(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
+                    )
+                );
+            }
+            // Start date
+            else if (startDate != null) {
+                return cb.greaterThanOrEqualTo(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate);
+            }
+            // End date
+            else {
+                return cb.lessThanOrEqualTo(appliedPeriods.get(AppliedPeriod.Fields.START_DATE), endDate);
+            }
+        };
     }
 
     List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);
@@ -81,6 +129,8 @@ public interface StrategySpecifications {
     List<StrategyDepartmentVO> saveDepartmentsByStrategyId(int strategyId, List<StrategyDepartmentVO> sources);
 
     String computeNextLabelByProgramId(int programId, String labelPrefix, int nbDigit);
+
+    List<StrategyVO> findNewerByProgramId(final int programId, final Date updateDate, final StrategyFetchOptions fetchOptions);
 
     void saveProgramLocationsByStrategyId(int strategyId);
 

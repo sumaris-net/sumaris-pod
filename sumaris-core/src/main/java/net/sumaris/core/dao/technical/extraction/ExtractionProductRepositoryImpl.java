@@ -26,12 +26,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
-import net.sumaris.core.dao.cache.CacheNames;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.data.DataDaos;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.*;
+import net.sumaris.core.model.technical.history.ProcessingFrequency;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
@@ -70,13 +71,13 @@ public class ExtractionProductRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PRODUCTS_BY_FILTER)
+    @Cacheable(cacheNames = CacheConfiguration.Names.PRODUCTS_BY_FILTER)
     public List<ExtractionProductVO> findAll(ExtractionProductFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
         return super.findAll(filter, fetchOptions);
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.PRODUCT_BY_LABEL)
+    @Cacheable(cacheNames = CacheConfiguration.Names.PRODUCT_BY_LABEL_AND_OPTIONS)
     public ExtractionProductVO getByLabel(String label, ExtractionProductFetchOptions fetchOption) {
         return super.getByLabel(label, fetchOption);
     }
@@ -90,6 +91,7 @@ public class ExtractionProductRepositoryImpl
 
     @Override
     protected void toVO(ExtractionProduct source, ExtractionProductVO target, ExtractionProductFetchOptions fetchOptions, boolean copyIfNull) {
+        // Status
         target.setStatusId(source.getStatus().getId());
 
         // Copy without/with documentation (can be very long)
@@ -98,6 +100,16 @@ public class ExtractionProductRepositoryImpl
         }
         else {
             Beans.copyProperties(source, target);
+        }
+
+        // Processing frequency
+        if (copyIfNull || source.getProcessingFrequency() != null) {
+            if (source.getProcessingFrequency() == null) {
+                target.setProcessingFrequencyId(null);
+            }
+            else {
+                target.setProcessingFrequencyId(source.getProcessingFrequency().getId());
+            }
         }
 
         // Tables
@@ -194,9 +206,8 @@ public class ExtractionProductRepositoryImpl
     @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_LABEL, allEntries = true),
-            @CacheEvict(cacheNames = CacheNames.PRODUCTS, allEntries = true),
-            @CacheEvict(cacheNames = CacheNames.PRODUCTS_BY_FILTER, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PRODUCT_BY_LABEL_AND_OPTIONS, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PRODUCTS_BY_FILTER, allEntries = true),
         }
     )
     public ExtractionProductVO save(ExtractionProductVO vo) {
@@ -219,7 +230,17 @@ public class ExtractionProductRepositoryImpl
             if (source.getParentId() == null) {
                 target.setParent(null);
             } else {
-                target.setParent(load(ExtractionProduct.class, source.getParentId()));
+                target.setParent(getReference(ExtractionProduct.class, source.getParentId()));
+            }
+        }
+
+        // Processing frequency
+        if (copyIfNull || source.getProcessingFrequencyId() != null) {
+            if (source.getProcessingFrequencyId() == null) {
+                target.setProcessingFrequency(null);
+            }
+            else {
+                target.setProcessingFrequency(getReference(ProcessingFrequency.class, source.getProcessingFrequencyId()));
             }
         }
 
@@ -273,7 +294,7 @@ public class ExtractionProductRepositoryImpl
             Map<String, ExtractionProductTable> existingItems = Beans.splitByProperty(
                 Beans.getList(entity.getTables()),
                 ExtractionProductTable.Fields.LABEL);
-            final Status enableStatus = load(Status.class, StatusEnum.ENABLE.getId());
+            final Status enableStatus = getReference(Status.class, StatusEnum.ENABLE.getId());
             if (entity.getTables() == null) {
                 entity.setTables(Lists.newArrayList());
             }
@@ -329,7 +350,7 @@ public class ExtractionProductRepositoryImpl
         final EntityManager em = getEntityManager();
 
         // Load parent
-        ExtractionProductTable parent = getOne(ExtractionProductTable.class, tableId);
+        ExtractionProductTable parent = getById(ExtractionProductTable.class, tableId);
 
         if (CollectionUtils.isEmpty(sources)) {
             if (parent.getColumns() != null) {
@@ -388,7 +409,7 @@ public class ExtractionProductRepositoryImpl
     }
 
     private void saveProductTableValues(List<String> sources, int columnId) {
-        ExtractionProductColumn parent = getOne(ExtractionProductColumn.class, columnId);
+        ExtractionProductColumn parent = getById(ExtractionProductColumn.class, columnId);
 
         final EntityManager em = getEntityManager();
         if (CollectionUtils.isEmpty(sources)) {
@@ -450,7 +471,7 @@ public class ExtractionProductRepositoryImpl
         } else {
             Map<String, ExtractionProductStrata> existingItems = Beans.splitByProperty(entity.getStratum(), ExtractionProductStrata.Fields.LABEL);
             Map<String, ExtractionProductTable> existingTables = Beans.splitByProperty(entity.getTables(), ExtractionProductTable.Fields.LABEL);
-            final Status enableStatus = load(Status.class, StatusEnum.ENABLE.getId());
+            final Status enableStatus = getReference(Status.class, StatusEnum.ENABLE.getId());
             if (entity.getStratum() == null) {
                 entity.setStratum(Lists.newArrayList());
             }
@@ -469,7 +490,7 @@ public class ExtractionProductRepositoryImpl
                         target.setIsDefault(source.getIsDefault());
                     }
                     target.setProduct(entity);
-                    target.setStatus(source.getStatusId() != null ? load(Status.class, source.getStatusId()) : enableStatus);
+                    target.setStatus(source.getStatusId() != null ? getReference(Status.class, source.getStatusId()) : enableStatus);
                     target.setUpdateDate(updateDate);
 
                     // Link to table (find by sheet anem, or find as singleton)
@@ -525,9 +546,8 @@ public class ExtractionProductRepositoryImpl
 
     @Override
     @Caching(evict = {
-        @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_LABEL, allEntries = true),
-        @CacheEvict(cacheNames = CacheNames.PRODUCTS, allEntries = true),
-        @CacheEvict(cacheNames = CacheNames.PRODUCTS_BY_FILTER, allEntries = true)
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PRODUCT_BY_LABEL_AND_OPTIONS, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PRODUCTS_BY_FILTER, allEntries = true)
     })
     public void deleteById(Integer id) {
         super.deleteById(id);

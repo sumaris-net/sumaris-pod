@@ -14,11 +14,11 @@
              ET afficher les nom vernaculaires dans les UI (nécessaire pour ADAP)  -->
         <subselect alias="ESPECE" type="text">TN.COMMENTS</subselect>
         <subselect alias="ESPECE_COM" type="text">TG.NAME</subselect>
-        <subselect alias="PRESENTATION" type="text">DECODE(SL.CATCH_CATEGORY, 'DIS', 'GUT - Eviscéré', 'LAN', 'WHL - Entier', null)</subselect>
+        <subselect alias="PRESENTATION" type="text">DECODE(SL.CATCH_CATEGORY, 'LAN', 'GUT - Eviscéré', null)</subselect>
         <subselect alias="TAUX_ECH" type="number">
           CASE
-          WHEN SL.SAMPLING_RATIO is not null THEN SL.SAMPLING_RATIO
-          WHEN SL.WEIGHT is not null AND SL.WEIGHT != 0 AND SL.SUBSAMPLE_WEIGHT is not null THEN SL.SUBSAMPLE_WEIGHT/SL.WEIGHT
+          WHEN SL.SAMPLING_RATIO is not null THEN ROUND(SL.SAMPLING_RATIO, 7)
+          WHEN SL.WEIGHT is not null AND SL.WEIGHT != 0 AND SL.SUBSAMPLE_WEIGHT is not null THEN ROUND(SL.SUBSAMPLE_WEIGHT/SL.WEIGHT, 7)
           ELSE 1
           END CASE
         </subselect>
@@ -57,7 +57,7 @@
     <select alias="PRODUCT_DESTINATION" type="text">null</select>
 
     <select alias="CONVERSION_COEFFICIENT" type="number">null</select> <!-- TODO manage RTP -->
-    <select alias="ALL_TAUX_ECH" type="text">'1#1#' ||  T.TAUX_ECH</select>
+    <select alias="ALL_TAUX_ECH" type="text">REPLACE(REGEXP_REPLACE('1#1#' || T.TAUX_ECH, '(\.0)?E0', ''), '.', ',')</select>
 
     <!--
 <select alias="" type="text">''</select>

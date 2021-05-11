@@ -23,7 +23,7 @@ package net.sumaris.core.dao.referential.taxon;
  */
 
 import com.google.common.collect.ImmutableList;
-import net.sumaris.core.dao.cache.CacheNames;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
@@ -82,12 +82,12 @@ public interface TaxonNameSpecifications extends ReferentialSpecifications<Taxon
 
     List<TaxonNameVO> getAll(boolean withSynonyms);
 
-    @Cacheable(cacheNames = CacheNames.TAXON_NAME_BY_TAXON_REFERENCE_ID, unless = "#result == null")
-    Optional<TaxonNameVO> findTaxonNameReferent(Integer referenceTaxonId);
+    @Cacheable(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_TAXON_REFERENCE_ID, unless = "#result == null")
+    Optional<TaxonNameVO> findReferentByReferenceTaxonId(int referenceTaxonId);
 
-    @Cacheable(cacheNames = CacheNames.TAXON_NAMES_BY_TAXON_GROUP_ID, unless = "#result == null")
-    List<TaxonNameVO> getAllByTaxonGroupId(Integer taxonGroupId);
+    @Cacheable(cacheNames = CacheConfiguration.Names.TAXON_NAMES_BY_TAXON_GROUP_ID, unless = "#result == null")
+    List<TaxonNameVO> getAllByTaxonGroupId(int taxonGroupId);
 
-    @Cacheable(cacheNames = CacheNames.REFERENCE_TAXON_ID_BY_TAXON_NAME_ID, unless = "#result == null")
+    @Cacheable(cacheNames = CacheConfiguration.Names.REFERENCE_TAXON_ID_BY_TAXON_NAME_ID)
     Integer getReferenceTaxonIdById(int id);
 }

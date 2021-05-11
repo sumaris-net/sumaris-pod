@@ -22,7 +22,12 @@
 
 package net.sumaris.server;
 
+import net.sumaris.core.util.crypto.CryptoUtils;
+import net.sumaris.core.util.crypto.KeyPair;
 import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.service.crypto.ServerCryptoService;
+import net.sumaris.server.util.security.AuthTokenVO;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,18 +35,50 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.concurrent.Callable;
+
+import static org.junit.Assert.fail;
+
 @ActiveProfiles("test")
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {ServiceTestConfiguration.class})
+@SpringBootTest(classes = {ServiceTestConfiguration.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(locations="classpath:sumaris-server-test.properties")
+@Ignore
 public abstract class AbstractServiceTest {
 
     @Autowired
-    protected SumarisServerConfiguration config;
+    protected SumarisServerConfiguration configuration;
+
+    @Autowired
+    private ServerCryptoService cryptoService;
 
     /* -- Internal method -- */
 
-    protected SumarisServerConfiguration getConfig() {
-        return config;
+    protected SumarisServerConfiguration getConfiguration() {
+        return configuration;
+    }
+
+    protected String createToken(String challenge, String login, String password) {
+
+        KeyPair userKeyPair = cryptoService.getKeyPair(login, password);
+        String userPubkey = CryptoUtils.encodeBase58(userKeyPair.getPubKey());
+
+        AuthTokenVO userAuthData = new AuthTokenVO();
+        userAuthData.setPubkey(userPubkey);
+        userAuthData.setChallenge(challenge);
+        userAuthData.setSignature(cryptoService.sign(challenge, userKeyPair.getSecKey()));
+
+        return userAuthData.asToken();
+    }
+
+    protected <T> T assertDoesNotThrow(Callable<T> caller) {
+        try {
+            return caller.call();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Must not send exception, but get: " + e.getMessage());
+        }
+        return null;
     }
 }

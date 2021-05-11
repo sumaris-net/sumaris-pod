@@ -29,26 +29,23 @@ import com.google.common.collect.Lists;
 import it.ozimov.springboot.mail.model.Email;
 import it.ozimov.springboot.mail.model.defaultimpl.DefaultEmail;
 import it.ozimov.springboot.mail.service.EmailService;
-import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.administration.user.UserSettingsRepository;
 import net.sumaris.core.dao.administration.user.UserTokenRepository;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
-import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.administration.PersonService;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.I18nUtil;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
-import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
@@ -61,8 +58,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.dao.DataRetrievalFailureException;
-import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -164,6 +159,20 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public AccountVO getById(int id) {
+
+        PersonVO person = personService.getById(id);
+
+        AccountVO account = new AccountVO();
+        BeanUtils.copyProperties(person, account);
+
+        UserSettingsVO settings = userSettingsRepository.findByIssuer(account.getPubkey()).orElse(null);
+        account.setSettings(settings);
+
+        return account;
+    }
+
+    @Override
     public AccountVO getByPubkey(String pubkey) {
 
         PersonVO person = personService.getByPubkey(pubkey);
@@ -245,12 +254,14 @@ public class AccountServiceImpl implements AccountService {
         Preconditions.checkNotNull(account.getId());
 
         // Get existing account
-        PersonVO existingPerson = personService.get(account.getId());
+        PersonVO existingPerson = personService.getById(account.getId());
 
-        // Check same email
+        // Check same protected properties are unchanged
         Preconditions.checkArgument(Objects.equals(existingPerson.getEmail(), account.getEmail()), "Email could not be changed by the user, but only by an administrator.");
+        Preconditions.checkArgument(Objects.equals(existingPerson.getUsername(), account.getUsername()), "Email could not be changed by the user, but only by an administrator.");
+        Preconditions.checkArgument(Objects.equals(existingPerson.getUsernameExtranet(), account.getUsernameExtranet()), "Email could not be changed by the user, but only by an administrator.");
 
-        // Make sure to restore existing profiles, to avoid any changes by the user himself
+        // Force to keep existing profiles (avoid any changes by user)
         account.setProfiles(existingPerson.getProfiles());
 
         // Do the save
@@ -341,15 +352,6 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public List<Integer> getProfileIdsByPubkey(String pubkey) {
-        PersonVO person = personService.getByPubkey(pubkey);
-        return Beans.getStream(person.getProfiles())
-                    .map(UserProfileEnum::valueOfLabel)
-                    .map(UserProfileEnum::getId)
-                    .collect(Collectors.toList());
-    }
-
-    @Override
     public List<String> getAllTokensByPubkey(String pubkey) {
         return userTokenRepository.findTokenByPubkey(pubkey).stream()
                 .map(UserTokenRepository.TokenOnly::getToken)
@@ -379,17 +381,6 @@ public class AccountServiceImpl implements AccountService {
         return account;
     }
 
-    @JmsListener(destination = "createTrip", containerFactory = "jmsListenerContainerFactory")
-    public void onTripCreated(TripVO entity) {
-        log.info(String.format("New trip {%s}",  entity.getId()));
-        // TODO send event for supervisor
-    }
-
-    @JmsListener(destination = "updateTrip", containerFactory = "jmsListenerContainerFactory")
-    public void onTripUpdated(TripVO entity) {
-        log.info(String.format("Updated trip {%s}",  entity.getId()));
-        // TODO send event for supervisor
-    }
 
     /* -- protected methods -- */
 

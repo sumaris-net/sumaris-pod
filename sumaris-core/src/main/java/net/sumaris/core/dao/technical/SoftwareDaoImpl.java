@@ -56,11 +56,11 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
     private SoftwareRepository softwareRepository;
 
     public SoftwareVO get(int id) {
-        return toVO(softwareRepository.getOne(id));
+        return toVO(softwareRepository.getById(id));
     }
 
     public SoftwareVO getByLabel(String label) {
-        Software source = softwareRepository.getOneByLabel(label);
+        Software source = softwareRepository.getByLabel(label);
         if (source == null) {
             throw new DataRetrievalFailureException(String.format("Software with label '%s' not found", label));
         }
@@ -136,7 +136,7 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
                 target.setStatus(null);
             }
             else {
-                target.setStatus(load(Status.class, source.getStatusId()));
+                target.setStatus(getReference(Status.class, source.getStatusId()));
             }
         }
     }
@@ -233,7 +233,7 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
 
         Software target;
         if (source.getId() != null) {
-            target = softwareRepository.getOneByLabel(source.getLabel());
+            target = softwareRepository.getByLabel(source.getLabel());
         }
         else {
             target = new Software();

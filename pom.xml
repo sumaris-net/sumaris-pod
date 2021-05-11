@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.7.2</version>
+  <version>1.8.0</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -93,17 +93,17 @@
     <ojdbc8.version>12.2.0.1</ojdbc8.version>
     <pgsql.version>42.2.5</pgsql.version>
 
-    <slf4j.version>1.7.27</slf4j.version>
+    <slf4j.version>1.7.30</slf4j.version>
     <logback.version>1.2.3</logback.version>
     <log4j.version>2.12.1</log4j.version>
     <jansi.version>1.9</jansi.version>
     <guava.version>23.0</guava.version>
     <xml-apis.version>2.0.2</xml-apis.version>
-    <elasticsearch.version>6.2.2</elasticsearch.version>
-    <jna.version>4.5.2</jna.version>
-    <tyrus.version>1.15</tyrus.version>
+    <elasticsearch.version>7.10.2</elasticsearch.version>
+    <jna.version>5.8.0</jna.version>
+    <tyrus.version>1.17</tyrus.version>
     <jackson.version>2.11.3</jackson.version><!-- /!\ 2.9.8 import kotlin error -->
-    <stringtemplate.version>4.0.2</stringtemplate.version>
+    <stringtemplate.version>4.1</stringtemplate.version>
     <jTextUtilsVersion>0.3.3</jTextUtilsVersion>
     <commonBeanutilsVersion>1.9.4</commonBeanutilsVersion>
     <opencsv.version>2.4.3</opencsv.version>
@@ -113,36 +113,38 @@
     <hibernate-search.version>5.11.8.Final</hibernate-search.version>
     <hibernate-spatial.version>5.4.27.Final</hibernate-spatial.version>
     <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
-    <spring.version>5.2.12.RELEASE</spring.version>
-    <spring-web.version>5.2.12.RELEASE</spring-web.version>
-    <spring-data.version>2.3.6.RELEASE</spring-data.version>
+    <spring.version>5.3.6</spring.version>
+    <spring-web.version>5.3.6</spring-web.version>
+    <spring-data.version>2.5.0</spring-data.version>
+    <spring-security.version>5.4.6</spring-security.version>
     <querydsl.version>4.2.2</querydsl.version>
     <aspectj.version>1.9.6</aspectj.version>
     <javassist.version>3.27.0-GA</javassist.version>
     <cglib.version>3.3.0</cglib.version>
-    <ehcache.version>2.10.6</ehcache.version>
+    <ehcache.version>3.8.1</ehcache.version>
     <ehcache-monitor.version>2.7.11</ehcache-monitor.version>
-    <lombok.version>1.18.16</lombok.version>
+    <lombok.version>1.18.20</lombok.version>
     <xmlquery.version>1.2</xmlquery.version>
     <jdom2.version>2.0.6</jdom2.version>
     <jaxen.version>1.2.0</jaxen.version>
-    <spring-boot.version>2.3.8.RELEASE</spring-boot.version>
-    <spring-boot-plugin.version>2.3.8.RELEASE</spring-boot-plugin.version>
+    <spring-boot.version>2.4.5</spring-boot.version>
+    <spring-boot-plugin.version>2.4.5</spring-boot-plugin.version>
     <ozimov-email.version>0.6.3</ozimov-email.version>
     <reflections.version>0.9.12</reflections.version>
-    <rxjava.version>2.2.20</rxjava.version>
-    <activemq.version>5.16.0</activemq.version>
+    <rxjava2.version>2.2.21</rxjava2.version>
+    <activemq.version>5.16.2</activemq.version>
 
-    <jnr-ffi.version>2.2.1</jnr-ffi.version>
-    <kalium.version>0.5.0_blavenie</kalium.version>
-    <!--<kalium.version>0.8.1-SNAPSHOT</kalium.version>-->
+    <jnr-ffi.version>2.2.2</jnr-ffi.version>
+    <kalium.version>0.8.2</kalium.version>
     <scrypt.version>1.4.0</scrypt.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
-    <graphql-java.version>13.0</graphql-java.version>
-    <graphql-java-tools.version>6.1.0</graphql-java-tools.version>
-    <graphql-java-servlet.version>9.2.0</graphql-java-servlet.version>
-    <spqr.version>0.10.1</spqr.version>
+    <graphql-java.version>16.2</graphql-java.version>
+    <graphql-java-tools.version>11.0.1</graphql-java-tools.version>
+    <graphql-java-servlet.version>11.1.0</graphql-java-servlet.version>
+    <graphql-spring-boot.version>7.1.0</graphql-spring-boot.version>
+    <spqr.version>0.11.2</spqr.version>
     <kotlin.version>1.3.70</kotlin.version>
+    <unboundid-ldapsdk.version>4.0.14</unboundid-ldapsdk.version>
 
     <!-- database version management -->
     <liquibase.version>3.6.3</liquibase.version>
@@ -158,7 +160,7 @@
     <jmock.version>2.9.0</jmock.version>
     <dbunit.version>2.6.0</dbunit.version>
 
-    <nuitonConfigVersion>3.4</nuitonConfigVersion>
+    <nuitonConfigVersion>3.5</nuitonConfigVersion>
     <nuitonVersionVersion>1.0-rc-2</nuitonVersionVersion>
     <nuitonUtilsVersion>3.0</nuitonUtilsVersion>
     <nuitonI18nVersion>3.7</nuitonI18nVersion>
@@ -192,7 +194,7 @@
 
     <!-- apache maven plugins version -->
     <jarPluginVersion>3.1.2</jarPluginVersion>
-    <sitePluginVersion>3.8.2</sitePluginVersion>
+    <sitePluginVersion>3.9.1</sitePluginVersion>
     <changesPluginVersion>2.12.1</changesPluginVersion>
     <changelogPluginVersion>2.3</changelogPluginVersion>
     <projectInfoReportsPluginVersion>2.9</projectInfoReportsPluginVersion>
@@ -215,7 +217,7 @@
     <findbugsPluginVersion>3.0.5</findbugsPluginVersion>
 
     <!-- web site -->
-    <locales>en</locales>
+    <locales>en,fr</locales>
 
     <!-- I18n configuration -->
     <i18n.bundles>fr_FR,en_GB</i18n.bundles>
@@ -248,9 +250,7 @@
 
     <assembly.skip>false</assembly.skip>
 
-    <!-- to deploy with scpexe for maven 3 -->
-    <wagonSshVersion>3.0.0</wagonSshVersion>
-
+    <wagonSshVersion>3.4.3</wagonSshVersion>
   </properties>
 
 
@@ -368,7 +368,7 @@
       </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-actuator</artifactId>
+        <artifactId>spring-boot-starter-cache</artifactId>
         <version>${spring-boot.version}</version>
       </dependency>
       <dependency>
@@ -405,6 +405,12 @@
         <groupId>org.apache.activemq</groupId>
         <artifactId>activemq-broker</artifactId>
         <version>${activemq.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-jms_1.1_spec</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.activemq</groupId>
@@ -412,14 +418,14 @@
         <version>${activemq.version}</version>
       </dependency>
       <dependency>
-        <groupId>javax.jms</groupId>
-        <artifactId>javax.jms-api</artifactId>
-        <version>2.0.1</version>
+        <groupId>jakarta.jms</groupId>
+        <artifactId>jakarta.jms-api</artifactId>
+        <version>2.0.3</version>
       </dependency>
       <dependency>
         <groupId>io.reactivex.rxjava2</groupId>
         <artifactId>rxjava</artifactId>
-        <version>${rxjava.version}</version>
+        <version>${rxjava2.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
@@ -447,11 +453,6 @@
         <version>${spring-boot.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-jms</artifactId>
-        <version>${spring.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-test</artifactId>
         <version>${spring-boot.version}</version>
@@ -459,6 +460,14 @@
           <exclusion>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -485,7 +494,6 @@
         <version>${jnr-ffi.version}</version>
       </dependency>
 
-      <!-- graphqQL-->
       <!-- GraphQL -->
       <dependency>
         <groupId>com.graphql-java</groupId>
@@ -618,22 +626,8 @@
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>
-        <artifactId>hibernate-ehcache</artifactId>
+        <artifactId>hibernate-jcache</artifactId>
         <version>${hibernate.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>net.sf.ehcache</groupId>
-            <artifactId>ehcache</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>net.sf.ehcache</groupId>
-            <artifactId>ehcache-core</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.jboss.logging</groupId>
-            <artifactId>jboss-logging-annotations</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>
@@ -660,25 +654,32 @@
         <artifactId>hibernate-tools</artifactId>
         <version>${hibernate-tools.version}</version>
       </dependency>
-      <dependency>
+      <!--<dependency>
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-search-orm</artifactId>
         <version>${hibernate-search.version}</version>
-      </dependency>
-      <dependency>
+      </dependency>-->
+      <!--<dependency>
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-search-elasticsearch</artifactId>
         <version>${hibernate-search.version}</version>
-      </dependency>
+      </dependency>-->
       <dependency>
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-envers</artifactId>
         <version>${hibernate.version}</version>
       </dependency>
+
+      <!-- EhCache -->
       <dependency>
-        <groupId>net.sf.ehcache</groupId>
+        <groupId>org.ehcache</groupId>
         <artifactId>ehcache</artifactId>
         <version>${ehcache.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.cache</groupId>
+        <artifactId>cache-api</artifactId>
+        <version>1.1.1</version>
       </dependency>
 
       <!-- XML Query -->
@@ -747,6 +748,11 @@
       </dependency>
       <dependency>
         <groupId>org.springframework</groupId>
+        <artifactId>spring-jms</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
         <artifactId>spring-web</artifactId>
         <version>${spring-web.version}</version>
       </dependency>
@@ -769,6 +775,11 @@
         <groupId>com.querydsl</groupId>
         <artifactId>querydsl-jpa</artifactId>
         <version>${querydsl.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-ldap</artifactId>
+        <version>${spring-security.version}</version>
       </dependency>
 
       <!-- Compile -->
@@ -1010,6 +1021,18 @@
         <groupId>org.dbunit</groupId>
         <artifactId>dbunit</artifactId>
         <version>${dbunit.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.graphql-java-kickstart</groupId>
+        <artifactId>graphql-spring-boot-test</artifactId>
+        <version>${graphql-spring-boot.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.unboundid</groupId>
+        <artifactId>unboundid-ldapsdk</artifactId>
+        <version>${unboundid-ldapsdk.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>

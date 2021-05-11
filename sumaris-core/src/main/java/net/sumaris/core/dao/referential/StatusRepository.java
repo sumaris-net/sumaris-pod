@@ -29,6 +29,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface StatusRepository extends JpaRepository<Status, Integer> {
 
     default Status getEnableStatus() {
-        return getOne(StatusEnum.ENABLE.getId());
+        return getById(StatusEnum.ENABLE.getId());
     }
 }

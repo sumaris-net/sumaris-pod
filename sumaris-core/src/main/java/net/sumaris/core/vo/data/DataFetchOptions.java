@@ -32,6 +32,12 @@ public class DataFetchOptions implements IDataFetchOptions {
 
     public static final DataFetchOptions DEFAULT = DataFetchOptions.builder().build();
 
+    public static final DataFetchOptions MINIMAL = DataFetchOptions.builder()
+        .withRecorderDepartment(false)
+        .withRecorderPerson(false)
+        .withObservers(false)
+        .build();
+
     public static final DataFetchOptions FULL_GRAPH = DataFetchOptions.builder()
             .withChildrenEntities(true)
             .withMeasurementValues(true)

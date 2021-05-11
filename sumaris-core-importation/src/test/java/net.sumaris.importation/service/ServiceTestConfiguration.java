@@ -33,7 +33,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @SpringBootApplication(
         exclude = {
                 LiquibaseAutoConfiguration.class,
-                FreeMarkerAutoConfiguration.class
+                FreeMarkerAutoConfiguration.class,
+                LiquibaseAutoConfiguration.class,
         },
         scanBasePackages = {
             "net.sumaris.core",

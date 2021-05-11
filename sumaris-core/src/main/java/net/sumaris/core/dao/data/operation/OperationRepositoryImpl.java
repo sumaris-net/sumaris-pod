@@ -28,13 +28,10 @@ import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.fishingArea.FishingAreaRepository;
-import net.sumaris.core.dao.data.fishingArea.FishingAreaSpecifications;
 import net.sumaris.core.dao.data.physicalGear.PhysicalGearRepository;
 import net.sumaris.core.dao.data.sample.SampleRepository;
-import net.sumaris.core.dao.data.sample.SampleSpecifications;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.Trip;
@@ -44,19 +41,15 @@ import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
-import net.sumaris.core.vo.data.batch.BatchFilterVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.filter.OperationFilterVO;
-import net.sumaris.core.vo.filter.SampleFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -66,7 +59,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OperationRepositoryImpl
     extends DataRepositoryImpl<Operation, OperationVO, OperationFilterVO, DataFetchOptions>
-    implements OperationRepository {
+    implements OperationSpecifications {
 
     @Autowired
     private PhysicalGearRepository physicalGearRepository;
@@ -145,7 +138,7 @@ public class OperationRepositoryImpl
         }
 
         // Measurements
-        if (fetchOptions != null && fetchOptions.isWithMeasurementValues()) {
+        if (fetchOptions != null && fetchOptions.isWithMeasurementValues() && operationId != null) {
             target.setMeasurements(measurementDao.getOperationVesselUseMeasurements(operationId));
             target.setGearMeasurements(measurementDao.getOperationGearUseMeasurements(operationId));
         }
@@ -156,7 +149,7 @@ public class OperationRepositoryImpl
     public List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> operations) {
 
         // Load parent entity
-        Trip parent = getOne(Trip.class, tripId);
+        Trip parent = getById(Trip.class, tripId);
 
         // Remember existing entities
         final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getOperations()));
@@ -178,7 +171,7 @@ public class OperationRepositoryImpl
         // Update the parent entity
         Daos.replaceEntities(parent.getOperations(),
             result,
-            (vo) -> load(Operation.class, vo.getId()));
+            (vo) -> getReference(Operation.class, vo.getId()));
 
         return result;
     }
@@ -194,7 +187,7 @@ public class OperationRepositoryImpl
                 target.setTrip(null);
             } else {
                 // Use get() and NOT load(), because trip object will be used later (for physicalGears)
-                target.setTrip(getOne(Trip.class, tripId));
+                target.setTrip(getById(Trip.class, tripId));
             }
         }
 
@@ -203,7 +196,7 @@ public class OperationRepositoryImpl
             if (source.getMetier() == null || source.getMetier().getId() == null) {
                 target.setMetier(null);
             } else {
-                target.setMetier(load(Metier.class, source.getMetier().getId()));
+                target.setMetier(getReference(Metier.class, source.getMetier().getId()));
             }
         }
 
@@ -237,7 +230,7 @@ public class OperationRepositoryImpl
                 if (physicalGearId == null) {
                     target.setPhysicalGear(null);
                 } else {
-                    target.setPhysicalGear(load(PhysicalGear.class, physicalGearId));
+                    target.setPhysicalGear(getReference(PhysicalGear.class, physicalGearId));
                 }
             }
         }

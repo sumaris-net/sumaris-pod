@@ -26,6 +26,7 @@ import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramProperty;
+import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -34,7 +35,9 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author peck7 on 24/08/2020.
@@ -42,6 +45,7 @@ import java.util.List;
 public interface ProgramSpecifications {
 
     String PROPERTY_LABEL_PARAM = "propertyLabel";
+    String UPDATE_DATE_GREATER_THAN_PARAM = "updateDateGreaterThan";
 
     default Specification<Program> hasProperty(String propertyLabel) {
         BindableSpecification<Program> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
@@ -54,6 +58,17 @@ public interface ProgramSpecifications {
         specification.addBind(PROPERTY_LABEL_PARAM, propertyLabel);
         return specification;
     }
+
+    default Specification<Program> newerThan(Date updateDate) {
+        BindableSpecification<Program> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Date> updateDateParam = criteriaBuilder.parameter(Date.class, UPDATE_DATE_GREATER_THAN_PARAM);
+            return criteriaBuilder.greaterThan(root.get(Program.Fields.UPDATE_DATE), updateDateParam);
+        });
+        specification.addBind(UPDATE_DATE_GREATER_THAN_PARAM, updateDate);
+        return specification;
+    }
+
+    Optional<ProgramVO> findIfNewerByLabel(String label, Date updateDate, ProgramFetchOptions fetchOptions);
 
     ProgramVO toVO(Program source, ProgramFetchOptions fetchOptions);
 

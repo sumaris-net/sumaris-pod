@@ -25,6 +25,7 @@ package net.sumaris.server.http.config;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.ModelURIs;
 import net.sumaris.rdf.util.RdfFormat;
+import net.sumaris.server.http.RestPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -60,7 +61,7 @@ public class RdfWebConfiguration {
             havingValue = "servlet",
             matchIfMissing = true
     )
-    public WebMvcConfigurer configureRdfStatics() {
+    public WebMvcConfigurer configureRdfWebMvc() {
         return new WebMvcConfigurer() {
             @Override
             public void addViewControllers(ViewControllerRegistry registry) {
@@ -144,11 +145,17 @@ public class RdfWebConfiguration {
             public void addCorsMappings(CorsRegistry registry) {
                 // Enable Global CORS support for the application
                 //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
-                registry.addMapping("/**")
-                        .allowedOrigins("*") // TODO Spring update will need to change this to allowedOriginsPattern()
+                registry.addMapping(RestPaths.SPARQL_ENDPOINT + "/**")
+                        .allowedOriginPatterns("*")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
                         .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
                         .allowCredentials(true);
+
+                registry.addMapping(RestPaths.ONTOLOGY_BASE_PATH + "/**")
+                    .allowedOriginPatterns("*")
+                    .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
+                    .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
+                    .allowCredentials(true);
             }
 
             @Override
