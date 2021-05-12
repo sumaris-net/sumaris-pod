@@ -30,5 +30,7 @@ public interface Free1Specification extends RdbSpecification {
     String VERSION_1 = "1";
     String[] SHEET_NAMES = {RdbSpecification.TR_SHEET_NAME, RdbSpecification.HH_SHEET_NAME, RdbSpecification.SL_SHEET_NAME, RdbSpecification.HL_SHEET_NAME};
 
+    String COLUMN_FISHING_DATE = "fishing_date";
+    String COLUMN_FISHING_DURATION = "fishing_duration";
     String COLUMN_SEX = CostSpecification.COLUMN_SEX;
 }

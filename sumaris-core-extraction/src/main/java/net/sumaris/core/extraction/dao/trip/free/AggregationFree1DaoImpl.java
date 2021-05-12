@@ -74,8 +74,10 @@ public class AggregationFree1DaoImpl<
         super.fillContextTableNames(context);
 
         // Rename some columns
-        context.addColumnNameReplacement(AggRdbSpecification.COLUMN_FISHING_TIME, AggFree1Specification.COLUMN_FISHING_DURATION);
-        context.addColumnNameReplacement(RdbSpecification.COLUMN_INDIVIDUAL_SEX, Free1Specification.COLUMN_SEX);
+        context.addColumnNameReplacement(AggRdbSpecification.COLUMN_FISHING_TIME, Free1Specification.COLUMN_FISHING_DURATION)
+            .addColumnNameReplacement(RdbSpecification.COLUMN_DATE, Free1Specification.COLUMN_FISHING_DATE)
+            .addColumnNameReplacement(RdbSpecification.COLUMN_TIME, Free1Specification.COLUMN_FISHING_TIME)
+            .addColumnNameReplacement(RdbSpecification.COLUMN_INDIVIDUAL_SEX, Free1Specification.COLUMN_SEX);
     }
 
     @Override

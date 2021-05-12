@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.dao.technical;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.Dates;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.sql.DataSource;
@@ -31,6 +32,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -45,6 +47,8 @@ public class Daos extends net.sumaris.core.dao.technical.Daos {
 
 
     private final static String SQL_TO_DATE = "TO_DATE('%s', '%s')";
+
+    private final static String NON_COLUMN_CHAR_REGEXP = "[^A-Z0-9_]";
 
     protected Daos() {
         // Helper class
@@ -134,5 +138,29 @@ public class Daos extends net.sumaris.core.dao.technical.Daos {
         } finally {
             DataSourceUtils.releaseConnection(conn, dataSource);
         }
+    }
+
+    /**
+     * Do column names replacement, but escape sql keyword (e.g. 'DATE' replacement will keep TO_DATE(...) unchanged)
+     * @param sqlQuery
+     * @param columnNamesMapping
+     * @return
+     */
+    public static String sqlReplaceColumnNames(String sqlQuery, Map<String, String> columnNamesMapping) {
+        if (MapUtils.isEmpty(columnNamesMapping)) return sqlQuery; // Skip
+
+        sqlQuery = sqlQuery.toUpperCase();
+
+        for (Map.Entry<String, String> entry: columnNamesMapping.entrySet()) {
+            String sourceColumnName = entry.getKey().toUpperCase();
+            String targetColumnName = entry.getValue().toUpperCase();
+            sqlQuery = sqlQuery
+                .replaceAll("(^|" + NON_COLUMN_CHAR_REGEXP + ")"
+                        + sourceColumnName
+                        + "("+NON_COLUMN_CHAR_REGEXP+"|$)",
+                    "$1" + targetColumnName + "$2");
+        }
+
+        return sqlQuery;
     }
 }

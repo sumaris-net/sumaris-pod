@@ -152,12 +152,13 @@ public class AggregationServiceTest extends AbstractServiceTest {
 
         AggregationStrataVO strata = new AggregationStrataVO();
         strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
-        strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
+        strata.setTimeColumnName(AggRdbSpecification.COLUMN_QUARTER);
 
         ExtractionFilterVO filter = ExtractionFilterVO.builder()
             .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
             .criteria(ImmutableList.of(
                 ExtractionFilterCriterionVO.builder()
+                    .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
                     .name(ProductRdbStation.COLUMN_YEAR)
                     .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
                     .value(yearRawData)
