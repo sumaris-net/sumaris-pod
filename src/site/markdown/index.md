@@ -37,7 +37,7 @@ SUMARiS tools comes with:
 
 ## Documentation  
 
- - User manual: [A quick start guide](doc/user-manual/index.md) (EN);
+ - User manual: [A quick start guide](doc/user-manual/index.md) ([EN](doc/user-manual/index.md) | [FR](doc/user-manual/index_fr.md));
  - [Functional use cases](doc/use-case/index_en.md) ([EN](doc/use-case/index_en.md) | [FR](doc/use-case/index.md));
  - [Database conceptual model](doc/use-case/index_en.md);
  - [Database conceptual model](doc/model/index.md) of the database;

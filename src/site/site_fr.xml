@@ -41,13 +41,13 @@
 
     <bannerLeft>
         <name>${project.name}</name>
-        <href>./index.html</href>
+        <href>./index_fr.html</href>
     </bannerLeft>
 
     <bannerRight>
         <name>${project.name}</name>
         <src>images/logos/logo_sumaris-banner.png</src>
-        <href>./index.html</href>
+        <href>./index_fr.html</href>
     </bannerRight>
 
     <publishDate position="right" format="yyyy-MM-dd"/>
@@ -70,7 +70,7 @@
         </links>
 
         <breadcrumbs>
-            <item name="${project.name}" href="./index.html"/>
+            <item name="${project.name}" href="./index_fr.html"/>
         </breadcrumbs>
 
         <menu name="${project.name}" inherit="top">
@@ -79,7 +79,7 @@
         </menu>
 
         <menu name="Documentation utilisateur" inherit="top">
-            <item name="Manuel utilisateur (EN)" href="doc/user-manual/index.html"/>
+            <item name="Manuel utilisateur" href="doc/user-manual/index_fr.html"/>
             <item name="Cas d'utilisation" href="doc/use-case/index.html"/>
         </menu>
 
