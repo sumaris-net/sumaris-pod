@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
   </parent>
 
   <artifactId>sumaris-core</artifactId>
@@ -364,7 +364,7 @@
         <jdbc.driver.jar>${settings.localRepository}/org/hsqldb/hsqldb/${hsqldb.version}/hsqldb-${hsqldb.version}.jar</jdbc.driver.jar>
         <jdbc.username>sa</jdbc.username>
         <jdbc.password />
-        <jdbc.driver>org.hsqldb.jdbcDriver</jdbc.driver>
+        <jdbc.driver>org.hsqldb.jdbc.JDBCDriver</jdbc.driver>
         <jdbc.schema>PUBLIC</jdbc.schema>
         <hibernate.dialect>net.sumaris.core.dao.technical.hibernate.spatial.HSQLSpatialDialect</hibernate.dialect>
         <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>

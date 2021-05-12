@@ -22,54 +22,39 @@ package net.sumaris.server.http.graphql.technical;
  * #L%
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.leangen.graphql.annotations.GraphQLArgument;
-import io.leangen.graphql.annotations.GraphQLEnvironment;
-import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.cache.Caches;
-import net.sumaris.core.service.administration.DepartmentService;
-import net.sumaris.core.service.technical.ConfigurationService;
-import net.sumaris.core.service.technical.SoftwareService;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.technical.ConfigurationVO;
-import net.sumaris.core.vo.technical.SoftwareVO;
-import net.sumaris.server.config.SumarisServerConfigurationOption;
-import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
 import net.sumaris.server.http.security.IsAdmin;
-import net.sumaris.server.service.administration.ImageService;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.ext.com.google.common.collect.Maps;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.cache.Cache;
 import javax.cache.CacheManager;
-import java.io.IOException;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
-@Transactional
 @Slf4j
-@ConditionalOnBean({CacheManager.class})
+@ConditionalOnProperty(
+    name = "spring.cache.enabled",
+    havingValue = "true",
+    matchIfMissing = true
+)
 public class CacheGraphQLService {
 
-    @Autowired
+    @Autowired(required = false)
     private CacheManager cacheManager;
 
     @GraphQLQuery(name = "cacheStatistics", description = "Get cache statistics")
     @IsAdmin
     public Map<String, Map<String, Long>> getCacheStats() {
-
+        if (cacheManager == null) return Maps.newHashMap();
         return Caches.getStatistics(cacheManager);
     }
 
@@ -78,6 +63,8 @@ public class CacheGraphQLService {
     public boolean clearCache(
         @GraphQLArgument(name = "name") String name
     ) {
+        if (cacheManager == null) return false;
+
         try {
             if (StringUtils.isBlank(name)) {
                 log.info("Clearing caches...");
