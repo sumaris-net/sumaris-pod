@@ -39,6 +39,7 @@ import java.util.List;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @FieldNameConstants
+@ToString(callSuper = true)
 public class AggregationTypeVO extends ExtractionTypeVO {
 
     /**
@@ -52,4 +53,6 @@ public class AggregationTypeVO extends ExtractionTypeVO {
     Date creationDate;
 
     List<AggregationStrataVO> stratum;
+
+
 }

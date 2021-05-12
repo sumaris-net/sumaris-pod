@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.dao.trip.cost;
+package net.sumaris.core.extraction.dao.trip.pmfm;
 
 /*-
  * #%L
@@ -26,42 +26,41 @@ import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDaoImpl;
-import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
-import net.sumaris.core.extraction.specification.data.trip.*;
+import net.sumaris.core.extraction.specification.data.trip.AggCostSpecification;
+import net.sumaris.core.extraction.specification.data.trip.AggPmfmTripSpecification;
+import net.sumaris.core.extraction.specification.data.trip.AggSurvivalTestSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.extraction.vo.trip.survivalTest.AggregationSurvivalTestContextVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-@Repository("aggregationCostDao")
+@Repository("aggregationPmfmTripDao")
 @Lazy
 @Slf4j
-public class AggregationCostDaoImpl<
+public class AggregationPmfmTripDaoImpl<
     C extends AggregationRdbTripContextVO,
     F extends ExtractionFilterVO,
     S extends AggregationStrataVO>
     extends AggregationRdbTripDaoImpl<C, F, S>
-    implements AggCostSpecification {
+    implements AggSurvivalTestSpecification {
 
     @Override
     public ProductFormatEnum getFormat() {
-        return ProductFormatEnum.AGG_COST;
+        return ProductFormatEnum.AGG_PMFM_TRIP;
     }
 
     @Override
     public <R extends C> R aggregate(ExtractionProductVO source, F filter, S strata) {
         R context = super.aggregate(source, filter, strata);
 
-        context.setFormat(ProductFormatEnum.AGG_COST);
+        context.setFormat(ProductFormatEnum.AGG_PMFM_TRIP);
 
         return context;
     }
@@ -74,11 +73,30 @@ public class AggregationCostDaoImpl<
     }
 
     @Override
-    protected void fillContextTableNames(C context) {
-        super.fillContextTableNames(context);
+    protected XMLQuery createSpeciesLengthQuery(ExtractionProductVO source, C context) {
+        XMLQuery xmlQuery = super.createSpeciesLengthQuery(source, context);
 
-        // Rename some columns
-        context.addColumnNameReplacement(RdbSpecification.COLUMN_INDIVIDUAL_SEX, CostSpecification.COLUMN_SEX);
+        // Special case for COST format:
+
+        // - Hide sex columns, then replace by a new column
+        xmlQuery.setGroup("sex", false);
+
+        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesLengthTable"));
+
+        return xmlQuery;
+
+    }
+
+    protected String getQueryFullName(C context, String queryName) {
+        Preconditions.checkNotNull(context);
+        Preconditions.checkNotNull(context.getVersion());
+
+        switch (queryName) {
+            case "injectionSpeciesLengthTable":
+                return getQueryFullName(AggPmfmTripSpecification.FORMAT, AggPmfmTripSpecification.VERSION_1_0, queryName);
+            default:
+                return super.getQueryFullName(context, queryName);
+        }
     }
 
 }

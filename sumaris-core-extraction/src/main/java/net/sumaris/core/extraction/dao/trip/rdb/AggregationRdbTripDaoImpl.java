@@ -50,6 +50,7 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
@@ -59,10 +60,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -290,7 +288,7 @@ public class AggregationRdbTripDaoImpl<
         XMLQuery xmlQuery = createStationQuery(source, context);
 
         // aggregate insertion
-        execute(xmlQuery);
+        execute(context, xmlQuery);
         long count = countFrom(tableName);
 
         if (count == 0) {
@@ -307,7 +305,7 @@ public class AggregationRdbTripDaoImpl<
         // Analyze row
         Map<String, List<String>> columnValues = null;
         if (context.isEnableAnalyze()) {
-            columnValues = analyzeRow(tableName, xmlQuery, COLUMN_YEAR);
+            columnValues = analyzeRow(context, tableName, xmlQuery, COLUMN_YEAR);
         }
 
         // Add result table to context
@@ -333,6 +331,11 @@ public class AggregationRdbTripDaoImpl<
         xmlQuery.bind("rawTripTableName", rawTripTableName);
         xmlQuery.bind("rawStationTableName", rawStationTableName);
         xmlQuery.bind("stationTableName", stationTableName);
+
+        // Bind column names, because som raw tables can have change this (e.g. Free1 format use 'FISHING_DURATION' instead of 'FISHING_TIME')
+        // TODO: find a way to use a replacement map, with regexp, to replace all columns
+        // E.g. a map 'columnNameMapping'
+        //xmlQuery.bind(AggRdbSpecification.COLUMN_FISHING_TIME.toUpperCase(), context.getFishingTimeColumnName().toUpperCase());
 
         // Date
         xmlQuery.setGroup("startDateFilter", context.getStartDate() != null);
@@ -482,7 +485,7 @@ public class AggregationRdbTripDaoImpl<
         XMLQuery xmlQuery = createSpeciesListQuery(source, context);
 
         // aggregate insertion
-        execute(xmlQuery);
+        execute(context, xmlQuery);
         long count = countFrom(tableName);
 
         if (count == 0) {
@@ -499,7 +502,7 @@ public class AggregationRdbTripDaoImpl<
         // Analyze row
         Map<String, List<String>> columnValues = null;
         if (context.isEnableAnalyze()) {
-            columnValues = analyzeRow(tableName, xmlQuery, COLUMN_YEAR);
+            columnValues = analyzeRow(context, tableName, xmlQuery, COLUMN_YEAR);
         }
 
         // Add result table to context
@@ -563,7 +566,7 @@ public class AggregationRdbTripDaoImpl<
         if (xmlQuery == null) return -1; // Skip
 
         // Create the table
-        execute(xmlQuery);
+        execute(context, xmlQuery);
 
         // Create index on SL_ID
         createIndex(tableName, tableName + "_IDX", ImmutableList.of("SL_ID"), false);
@@ -630,7 +633,7 @@ public class AggregationRdbTripDaoImpl<
         XMLQuery xmlQuery = createSpeciesLengthQuery(source, context);
 
         // aggregate insertion
-        execute(xmlQuery);
+        execute(context, xmlQuery);
         long count = countFrom(tableName);
 
         if (count == 0) {
@@ -647,7 +650,7 @@ public class AggregationRdbTripDaoImpl<
         // Analyze row
         Map<String, List<String>> columnValues = null;
         if (context.isEnableAnalyze()) {
-            columnValues = analyzeRow(tableName, xmlQuery, COLUMN_YEAR);
+            columnValues = analyzeRow(context, tableName, xmlQuery, COLUMN_YEAR);
         }
 
         // Add result table to context
@@ -715,7 +718,7 @@ public class AggregationRdbTripDaoImpl<
         if (xmlQuery == null) return -1; // Skip
 
         // aggregate insertion
-        execute(xmlQuery);
+        execute(context, xmlQuery);
         long count = countFrom(tableName);
 
         if (count == 0) {
@@ -732,7 +735,7 @@ public class AggregationRdbTripDaoImpl<
         // Analyze row
         Map<String, List<String>> columnValues = null;
         if (context.isEnableAnalyze()) {
-            columnValues = analyzeRow(tableName, xmlQuery, COLUMN_YEAR);
+            columnValues = analyzeRow(context, tableName, xmlQuery, COLUMN_YEAR);
         }
 
         // Add result table to context
@@ -775,8 +778,23 @@ public class AggregationRdbTripDaoImpl<
         return xmlQuery;
     }
 
-    protected int execute(XMLQuery xmlQuery) {
-        return queryUpdate(xmlQuery.getSQLQueryAsString());
+    protected int execute(C context, XMLQuery xmlQuery) {
+        String sqlQuery = doSqlReplacement(context, xmlQuery.getSQLQueryAsString());
+        return queryUpdate(sqlQuery);
+    }
+
+    protected String doSqlReplacement(C context, String sqlQuery) {
+        sqlQuery = sqlQuery.toUpperCase();
+
+        // Do column nanes replacement
+        // E.g. Rename FISHING_TIME into FISHING_DURATION
+        if (context != null && MapUtils.isNotEmpty(context.getColumnNamesMapping())) {
+            for (Map.Entry<String, String> entry : context.getColumnNamesMapping().entrySet()) {
+                sqlQuery = sqlQuery.replaceAll(entry.getKey().toUpperCase(), entry.getValue().toUpperCase());
+            }
+        }
+
+        return sqlQuery;
     }
 
     protected long countFrom(String tableName) {
@@ -827,14 +845,20 @@ public class AggregationRdbTripDaoImpl<
         }
     }
 
-    protected Map<String, List<String>> analyzeRow(final String tableName, XMLQuery xmlQuery,
-                                                   String... includedNumericColumnNames) {
-        return analyzeRow(tableName, xmlQuery, includedNumericColumnNames, true);
+    protected Map<String, List<String>> analyzeRow(
+        final C context,
+        final String tableName,
+        XMLQuery xmlQuery,
+        String... includedNumericColumnNames) {
+        return analyzeRow(context, tableName, xmlQuery, includedNumericColumnNames, true);
     }
 
-    protected Map<String, List<String>> analyzeRow(final String tableName, XMLQuery xmlQuery,
-                                                   String[] includedNumericColumnNames,
-                                                   boolean excludeHiddenColumns) {
+    protected Map<String, List<String>> analyzeRow(
+        final C context,
+        final String tableName, XMLQuery xmlQuery,
+        String[] includedNumericColumnNames,
+        boolean excludeHiddenColumns) {
+
         Preconditions.checkNotNull(tableName);
         Preconditions.checkNotNull(xmlQuery);
 
@@ -844,11 +868,13 @@ public class AggregationRdbTripDaoImpl<
                 .filter(columnName -> !excludeHiddenColumns || !hiddenColumns.contains(columnName))
                 .collect(Collectors.toMap(
                         c -> c,
-                        c -> query(String.format("SELECT DISTINCT %s FROM %s where %s IS NOT NULL", c, tableName, c), Object.class)
+                        c -> query(
+                            doSqlReplacement(context, String.format("SELECT DISTINCT %s FROM %s where %s IS NOT NULL", c, tableName, c)),
+                            Object.class)
                                 .stream()
                                 .map(String::valueOf)
                                 .collect(Collectors.toList())
-                        )
+                    )
                 );
     }
 

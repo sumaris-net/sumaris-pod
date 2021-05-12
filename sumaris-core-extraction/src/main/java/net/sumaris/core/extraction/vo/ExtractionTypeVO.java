@@ -42,16 +42,23 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @FieldNameConstants
+@ToString(onlyExplicitlyIncluded = true)
 public class ExtractionTypeVO implements IValueObject<Integer>,
         IExtractionFormat,
         IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
 
     Integer id;
+
+    @ToString.Include
     ExtractionCategoryEnum category;
+    @ToString.Include
     String label;
+    @ToString.Include
     String name;
+    @ToString.Include
     String version;
+
     String description;
     String comments;
     String[] sheetNames;
@@ -67,6 +74,6 @@ public class ExtractionTypeVO implements IValueObject<Integer>,
 
     @JsonIgnore
     public boolean isPublic() {
-        return statusId != null && statusId.intValue() == StatusEnum.ENABLE.getId();
+        return statusId != null && statusId == StatusEnum.ENABLE.getId();
     }
 }

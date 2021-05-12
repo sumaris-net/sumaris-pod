@@ -146,7 +146,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         if (xmlQuery == null) return -1;
 
         // aggregate insertion
-        execute(xmlQuery);
+        execute(context, xmlQuery);
         long count = countFrom(tableName);
 
         // Clean row using generic tripFilter
@@ -160,7 +160,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         // Analyze row
         Map<String, List<String>> columnValues = null;
         if (context.isEnableAnalyze()) {
-            columnValues = analyzeRow(tableName, xmlQuery, COLUMN_YEAR);
+            columnValues = analyzeRow(context, tableName, xmlQuery, COLUMN_YEAR);
         }
 
         // Add result table to context
@@ -212,7 +212,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         if (xmlQuery == null) return -1; // Skip
 
         // aggregate insertion
-        execute(xmlQuery);
+        execute(context, xmlQuery);
         long count = countFrom(tableName);
 
         // Clean row using generic tripFilter
@@ -226,7 +226,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         // Analyze row
         Map<String, List<String>> columnValues = null;
         if (context.isEnableAnalyze()) {
-            columnValues = analyzeRow(tableName, xmlQuery, COLUMN_YEAR);
+            columnValues = analyzeRow(context, tableName, xmlQuery, COLUMN_YEAR);
         }
 
         // Add result table to context

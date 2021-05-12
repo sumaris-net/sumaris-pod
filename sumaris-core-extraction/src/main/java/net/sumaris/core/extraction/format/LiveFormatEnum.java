@@ -49,7 +49,7 @@ public enum LiveFormatEnum implements IExtractionFormat {
     FREE2 (Free2Specification.FORMAT, Free2Specification.SHEET_NAMES, Free2Specification.VERSION_1_9),
     SURVIVAL_TEST (SurvivalTestSpecification.FORMAT, SurvivalTestSpecification.SHEET_NAMES, SurvivalTestSpecification.VERSION_1_0),
     PMFM_TRIP(PmfmTripSpecification.FORMAT, PmfmTripSpecification.SHEET_NAMES, PmfmTripSpecification.VERSION_1_0),
-    RJB(RjbSpecification.FORMAT, RjbSpecification.SHEET_NAMES, RjbSpecification.VERSION_1_0)
+    RJB_TRIP(RjbTripSpecification.FORMAT, RjbTripSpecification.SHEET_NAMES, RjbTripSpecification.VERSION_1_0)
     ;
 
     private String label;

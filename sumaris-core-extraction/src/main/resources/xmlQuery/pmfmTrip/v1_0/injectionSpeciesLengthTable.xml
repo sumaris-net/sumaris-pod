@@ -22,10 +22,12 @@
 
 <query type="select">
 
-  <!-- new fields -->
-  <select alias="INDIVIDUAL_COUNT" type="text">SUM(SL.INDIVIDUAL_COUNT)</select>
-  <select alias="SAMPLING_INDIVIDUAL_COUNT" type="text">SUM(SL.SAMPLING_INDIVIDUAL_COUNT)</select>
+  <!-- rename INDIVIDUAL_SEX by SEX-->
+  <select alias="SEX" type="text">B.SEX</select>
 
-  <select alias="LENGTH_CODE" group="lengthCode" type="text">SL.LENGTH_CODE</select>
+  <!-- reinsert last RDB fields, but after SEX -->
+  <select alias="LENGTH_CLASS" type="number">B.LENGTH_CLASS</select>
+  <select alias="NUMBER_AT_LENGTH" type="number">SUM(B.INDIVIDUAL_COUNT)</select>
 
+  <groupby>B.SEX, LENGTH_CLASS</groupby>
 </query>

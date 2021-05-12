@@ -63,7 +63,13 @@ public class AccountGraphQLService {
 
     @GraphQLQuery(name = "account", description = "Load a user account")
     @Transactional(readOnly = true)
-    public AccountVO loadAccount() {
+    public AccountVO loadAccount(
+        @GraphQLArgument(name = "pubkey") String pubkey // Deprecated in 1.8.0
+    ) {
+        if (pubkey != null) {
+            log.warn("Deprecated used of GraphQL 'account' query. Since version 1.8.0, the 'pubkey' argument has been deprecated, and will be ignored.");
+        }
+
         PersonVO person = this.authService.getAuthenticatedUser()
             .orElseThrow(() -> new UnauthorizedException("Accès refusé"));
         AccountVO result = accountService.getById(person.getId());

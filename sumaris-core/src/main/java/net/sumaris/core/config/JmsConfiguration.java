@@ -54,7 +54,7 @@ import java.net.URI;
 @Configuration(proxyBeanMethods = false)
 @Slf4j
 @EnableJms
-@ConditionalOnProperty(name = "spring.jms.enabled", matchIfMissing = false, havingValue = "true")
+@ConditionalOnProperty(name = "spring.jms.enabled", havingValue = "true")
 public class JmsConfiguration {
 
     public static final String CONTAINER_FACTORY_NAME = "jmsListenerContainerFactory";

@@ -25,10 +25,16 @@ package net.sumaris.core.extraction.specification.data.trip;
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface Free1Specification extends RdbSpecification {
-    String FORMAT = "FREE";
-    String VERSION_1 = "1";
-    String[] SHEET_NAMES = {RdbSpecification.TR_SHEET_NAME, RdbSpecification.HH_SHEET_NAME, RdbSpecification.SL_SHEET_NAME, RdbSpecification.HL_SHEET_NAME};
+public interface RjbTripSpecification extends RdbSpecification {
+    String FORMAT = "RJB_TRIP";
+    String VERSION_1_0 = "1.0";
+
+    String[] SHEET_NAMES = {
+        TR_SHEET_NAME,
+        HH_SHEET_NAME,
+        SL_SHEET_NAME,
+        HL_SHEET_NAME
+    };
 
     String COLUMN_SEX = CostSpecification.COLUMN_SEX;
 }

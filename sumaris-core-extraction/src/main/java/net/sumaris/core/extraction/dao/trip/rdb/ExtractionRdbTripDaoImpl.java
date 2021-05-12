@@ -462,13 +462,18 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getLabel());
-        Preconditions.checkNotNull(context.getVersion());
 
+        return getQueryFullName(context.getLabel(), context.getVersion(), queryName);
+    }
+
+    protected String getQueryFullName(String formatLabel, String formatVersion, String queryName) {
+        Preconditions.checkNotNull(formatLabel);
+        Preconditions.checkNotNull(formatVersion);
+        Preconditions.checkNotNull(queryName);
         return String.format("%s/v%s/%s",
-                StringUtils.underscoreToChangeCase(context.getLabel()),
-                context.getVersion().replaceAll("[.]", "_"),
-                queryName);
+            StringUtils.underscoreToChangeCase(formatLabel),
+            formatVersion.replaceAll("[.]", "_"),
+            queryName);
     }
 
     protected XMLQuery createXMLQuery(C context, String queryName) {

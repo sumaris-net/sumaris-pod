@@ -32,7 +32,10 @@ public interface IExtractionFormat {
      * @return
      */
     static String getRawFormatLabel(String label) {
-        return label != null ? label.split("-")[0].toUpperCase() : null;
+        if (label == null) return null;
+        int lastSeparatorIndex = label.lastIndexOf("-");
+        if (lastSeparatorIndex == -1) return label;
+        return label.substring(0, lastSeparatorIndex);
     }
 
     String getLabel();
