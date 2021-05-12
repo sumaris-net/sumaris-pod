@@ -271,7 +271,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
         .toPromise();
 
       const aggType = AggregationType.fromObject({
-        label: `${this.type.label}-${this.accountService.account.id}-${Date.now()}`,
+        label: `${this.type.label}-${this.accountService.account.id}_${Date.now()}`,
         category: this.type.category,
         name: name
       });

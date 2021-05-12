@@ -1584,7 +1584,10 @@
       "TRIP_COUNT_BY_STATION": "Nb de marées, par station",
       "TRIP_COUNT_BY_FISHING_TIME": "Nb de marées, par temps de peche",
       "VESSEL_COUNT": "Nombre de navires",
-      "FISHING_TIME": "Temps de pêche (h dec.)",
+      "DATE": "Date",
+      "TIME": "Heure",
+      "FISHING_DATE": "Date",
+      "FISHING_DURATION": "Temps de pêche (h dec.)",
       "OFFICIAL_LANDINGS_VALUE": "Valeur officielle débarquée (€)",
       "OFFICIAL_LANDINGS_WEIGHT": "Poids officiel débarqué (kg)"
     },
@@ -1635,11 +1638,11 @@
       "SURVIVAL_TEST": {
         "TITLE": "Marées brutes (SUMARiS v{{version}})"
       },
-      "RJB": {
+      "RJB_TRIP": {
         "TITLE": "Marées Pocheteaux (RJB v{{version}})"
       },
       "PMFM_TRIP": {
-        "TITLE": "Marées brutes (format dynamique)"
+        "TITLE": "Marées brutes (PMFM v{{version}})"
       },
       "STRAT": {
         "TITLE": "Stratégies de collecte",

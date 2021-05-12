@@ -453,7 +453,7 @@ export class AggregationService extends BaseGraphqlService {
     if (isNil(entity.id)) {
 
       // Compute label
-      entity.label = `${entity.label}-${Date.now()}`;
+      entity.label = `${entity.format}-${Date.now()}`;
 
       // Recorder department
       entity.recorderDepartment = ReferentialUtils.isNotEmpty(entity.recorderDepartment) ? entity.recorderDepartment : this.accountService.department;

@@ -81,7 +81,10 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
   }
 
   get format(): string {
-    return this.label && this.label.split('-')[0] || undefined;
+    if (!this.label) return undefined;
+    const lastIndex = this.label.lastIndexOf('-');
+    if (lastIndex === -1) return this.label;
+    return this.label.substr(0, lastIndex);
   }
 }
 
