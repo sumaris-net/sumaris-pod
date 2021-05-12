@@ -103,14 +103,15 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
 
         // Inject Pmfm columns
         injectPmfmColumns(context, xmlQuery,
-                getTripProgramLabels(context),
-                AcquisitionLevelEnum.OPERATION,
-                // Excluded PMFM (already exists as RDB format columns)
-                PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
-                PmfmEnum.GEAR_DEPTH_M.getId(),
-                PmfmEnum.BOTTOM_DEPTH_M.getId(),
-                PmfmEnum.SELECTIVITY_DEVICE.getId(),
-                PmfmEnum.TRIP_PROGRESS.getId());
+            getTripProgramLabels(context),
+            AcquisitionLevelEnum.OPERATION,
+            // Excluded PMFM (already exists as RDB format columns)
+            PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
+            PmfmEnum.GEAR_DEPTH_M.getId(),
+            PmfmEnum.BOTTOM_DEPTH_M.getId(),
+            PmfmEnum.SELECTIVITY_DEVICE.getId(),
+            PmfmEnum.TRIP_PROGRESS.getId()
+        );
 
         return xmlQuery;
     }
@@ -150,8 +151,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
                                      XMLQuery xmlQuery,
                                      List<String> programLabels,
                                      AcquisitionLevelEnum acquisitionLevel,
-                                     Integer... excludedPmfmIds
-    ) {
+                                     Integer... excludedPmfmIds) {
+
         // Load PMFM columns to inject
         List<ExtractionPmfmColumnVO> pmfmColumns = loadPmfmColumns(context, programLabels, acquisitionLevel);
 

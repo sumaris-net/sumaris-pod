@@ -64,7 +64,6 @@
     </poweredBy>
 
     <body>
-
         <links>
             <item name="SUMARiS portal" href="https://www.sumaris.net"/>
             <item name="EIS" href="http://www.e-is.pro"/>
@@ -81,6 +80,7 @@
 
         <menu name="User documentation" inherit="top">
             <item name="Quick start guide" href="doc/user-manual/index.html"/>
+<!--            <item name="Guide de démarrage rapide" href="doc/user-manual/index_fr.html"/>-->
             <item name="Use cases" href="doc/use-case/index_en.html"/>
         </menu>
 
@@ -91,7 +91,7 @@
         </menu>
 
         <menu name="Other languages" inherit="top">
-            <item name="Français" href="./fr/index.html"/>
+            <item name="Français" href="fr/index.html"/>
         </menu>
 
         <menu name="Community" inherit="bottom">
@@ -102,6 +102,8 @@
         </menu>
 
         <menu ref="reports" inherit="bottom"/>
-
+        <footer>
+            <![CDATA[<script src="/sumaris-pod/target/site/js/doc.js" type="text/javascript"></script>]]>
+        </footer>
     </body>
 </project>

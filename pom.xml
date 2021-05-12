@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.8.2</version>
+  <version>1.8.3</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -654,16 +654,6 @@
         <artifactId>hibernate-tools</artifactId>
         <version>${hibernate-tools.version}</version>
       </dependency>
-      <!--<dependency>
-        <groupId>org.hibernate</groupId>
-        <artifactId>hibernate-search-orm</artifactId>
-        <version>${hibernate-search.version}</version>
-      </dependency>-->
-      <!--<dependency>
-        <groupId>org.hibernate</groupId>
-        <artifactId>hibernate-search-elasticsearch</artifactId>
-        <version>${hibernate-search.version}</version>
-      </dependency>-->
       <dependency>
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-envers</artifactId>

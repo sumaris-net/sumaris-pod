@@ -49,7 +49,9 @@ import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.TimeUtils;
-import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
+import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
@@ -544,6 +546,13 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                             PmfmStrategyFetchOptions.builder().withCompleteName(false).build()
                     ).stream())
                 .map(pmfmStrategy -> toPmfmColumnVO(pmfmStrategy, null))
+
+                // Group by pmfmId
+                .collect(Collectors.toMap(ExtractionPmfmColumnVO::getPmfmId, ps -> ps))
+                .values().stream()
+
+                // Sort by label
+                .sorted(Comparator.comparing(ExtractionPmfmColumnVO::getLabel, String::compareTo))
                 .collect(Collectors.toList());
 
         // save result into the context map
