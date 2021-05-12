@@ -85,8 +85,14 @@ public class ConfigurationGraphQLService {
 
     @GraphQLQuery(name = "configuration", description = "Load pod configuration")
     public ConfigurationVO getConfiguration(
+        @GraphQLArgument(name = "id") Integer id, // /!\ Deprecated !
+        @GraphQLArgument(name = "label") String label, // /!\ Deprecated !
         @GraphQLEnvironment Set<String> fields
     ) {
+        if (id != null || label != null) {
+            log.warn("Deprecated used of GraphQL 'configuration' query. Since version 1.8.0, arguments 'id' and 'label' have been deprecated, and will be ignored.");
+        }
+
         SoftwareVO software = configurationService.getCurrentSoftware();
 
         // Transform to configuration (fill images, etc.)
