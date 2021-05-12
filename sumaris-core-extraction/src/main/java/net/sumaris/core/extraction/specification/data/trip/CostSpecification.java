@@ -28,4 +28,6 @@ package net.sumaris.core.extraction.specification.data.trip;
 public interface CostSpecification extends RdbSpecification {
     String FORMAT = "COST";
     String VERSION_1_4 = "1.4";
+
+    String COLUMN_SEX = "sex";
 }

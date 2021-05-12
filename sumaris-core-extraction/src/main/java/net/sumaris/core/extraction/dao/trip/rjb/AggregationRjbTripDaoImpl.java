@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.dao.trip.cost;
+package net.sumaris.core.extraction.dao.trip.rjb;
 
 /*-
  * #%L
@@ -26,42 +26,38 @@ import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDaoImpl;
-import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.specification.data.trip.*;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
-import net.sumaris.core.extraction.vo.trip.survivalTest.AggregationSurvivalTestContextVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-@Repository("aggregationCostDao")
+@Repository("aggregationRjbTripDao")
 @Lazy
 @Slf4j
-public class AggregationCostDaoImpl<
+public class AggregationRjbTripDaoImpl<
     C extends AggregationRdbTripContextVO,
     F extends ExtractionFilterVO,
     S extends AggregationStrataVO>
     extends AggregationRdbTripDaoImpl<C, F, S>
-    implements AggCostSpecification {
+    implements AggSurvivalTestSpecification {
 
     @Override
     public ProductFormatEnum getFormat() {
-        return ProductFormatEnum.AGG_COST;
+        return ProductFormatEnum.AGG_RJB_TRIP;
     }
 
     @Override
     public <R extends C> R aggregate(ExtractionProductVO source, F filter, S strata) {
         R context = super.aggregate(source, filter, strata);
 
-        context.setFormat(ProductFormatEnum.AGG_COST);
+        context.setFormat(ProductFormatEnum.AGG_RJB_TRIP);
 
         return context;
     }
@@ -77,8 +73,43 @@ public class AggregationCostDaoImpl<
     protected void fillContextTableNames(C context) {
         super.fillContextTableNames(context);
 
-        // Rename some columns
-        context.addColumnNameReplacement(RdbSpecification.COLUMN_INDIVIDUAL_SEX, CostSpecification.COLUMN_SEX);
+        context.addColumnNameReplacement(RdbSpecification.COLUMN_INDIVIDUAL_SEX, RjbTripSpecification.COLUMN_SEX);
+    }
+
+    @Override
+    protected XMLQuery createSpeciesListQuery(ExtractionProductVO source, C context) {
+        XMLQuery xmlQuery = super.createSpeciesListQuery(source, context);
+
+        // - Hide weight columns (will be replace with columns on individual count)
+        xmlQuery.setGroup("weight", false);
+
+        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesListTable"));
+
+        return xmlQuery;
+
+    }
+
+    @Override
+    protected XMLQuery createSpeciesLengthQuery(ExtractionProductVO source, C context) {
+        XMLQuery xmlQuery = super.createSpeciesLengthQuery(source, context);
+
+        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesLengthTable"));
+
+        return xmlQuery;
+
+    }
+
+    protected String getQueryFullName(C context, String queryName) {
+        Preconditions.checkNotNull(context);
+        Preconditions.checkNotNull(context.getVersion());
+
+        switch (queryName) {
+            case "injectionSpeciesListTable":
+            case "injectionSpeciesLengthTable":
+                return getQueryFullName(AggRjbTripSpecification.FORMAT, AggRjbTripSpecification.VERSION_1_0, queryName);
+            default:
+                return super.getQueryFullName(context, queryName);
+        }
     }
 
 }

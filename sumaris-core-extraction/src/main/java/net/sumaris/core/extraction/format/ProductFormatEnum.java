@@ -25,10 +25,7 @@ package net.sumaris.core.extraction.format;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.specification.data.trip.AggCostSpecification;
-import net.sumaris.core.extraction.specification.data.trip.AggRdbSpecification;
-import net.sumaris.core.extraction.specification.data.trip.AggSurvivalTestSpecification;
-import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
+import net.sumaris.core.extraction.specification.data.trip.*;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 
@@ -47,9 +44,10 @@ public enum ProductFormatEnum implements IExtractionFormat {
     // Aggregation product
     AGG_RDB (AggRdbSpecification.FORMAT, AggRdbSpecification.SHEET_NAMES, AggRdbSpecification.VERSION_1_3),
     AGG_COST (AggCostSpecification.FORMAT, AggCostSpecification.SHEET_NAMES, AggCostSpecification.VERSION_1_4),
+    AGG_FREE (AggFree1Specification.FORMAT, AggFree1Specification.SHEET_NAMES, AggFree1Specification.VERSION_1),
     AGG_SURVIVAL_TEST (AggSurvivalTestSpecification.FORMAT, AggSurvivalTestSpecification.SHEET_NAMES, AggSurvivalTestSpecification.VERSION_1_0),
-
-    //AGG_RJB (AggRjbSpecification.FORMAT, AggRjbSpecification.SHEET_NAMES, AggRjbSpecification.VERSION_1_0)
+    AGG_PMFM_TRIP(AggPmfmTripSpecification.FORMAT, AggPmfmTripSpecification.SHEET_NAMES, AggPmfmTripSpecification.VERSION_1_0),
+    AGG_RJB_TRIP (AggRjbTripSpecification.FORMAT, AggRjbTripSpecification.SHEET_NAMES, AggRjbTripSpecification.VERSION_1_0)
     ;
 
     private String label;
@@ -82,10 +80,11 @@ public enum ProductFormatEnum implements IExtractionFormat {
     public static ProductFormatEnum valueOf(@NonNull String label, @Nullable String version) {
         return findFirst(label, version)
                 .orElseGet(() -> {
-                    if (label.contains(ProductFormatEnum.RDB.name())) {
+                    final String rawFormatLabel = IExtractionFormat.getRawFormatLabel(label);
+                    if (rawFormatLabel.equalsIgnoreCase(RdbSpecification.FORMAT)) {
                         return ProductFormatEnum.RDB;
                     }
-                    throw new SumarisTechnicalException(String.format("Unknown product format '%s'", label));
+                    throw new SumarisTechnicalException(String.format("Unknown product format found, for label '%s'", label));
                 });
     }
 

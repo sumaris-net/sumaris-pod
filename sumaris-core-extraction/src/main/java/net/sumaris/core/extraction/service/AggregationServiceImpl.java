@@ -172,9 +172,7 @@ public class AggregationServiceImpl implements AggregationService {
                     }
 
                     // Execute, from product
-                    AggregationContextVO result = aggregateDao(source, aggregationFilter, strata);
-
-                    return result;
+                    return aggregateDao(source, aggregationFilter, strata);
                 } finally {
                     // Clean intermediate tables
                     extractionService.asyncClean(rawExtractionContext);
@@ -244,6 +242,9 @@ public class AggregationServiceImpl implements AggregationService {
         strata = strata != null ? strata : (context.getStrata() != null ? context.getStrata() : new AggregationStrataVO());
 
         String tableName = StringUtils.isNotBlank(sheetName) ? context.getTableNameBySheetName(sheetName) : null;
+
+        // Missing the expected sheet = return no data
+        if (tableName == null) return createEmptyTechResult();
 
         ProductFormatEnum format = ExtractionFormats.getProductFormat(context);
         return getDao(format).getAggByTech(tableName, filter, strata, sort, direction);
@@ -469,7 +470,35 @@ public class AggregationServiceImpl implements AggregationService {
         return toAggregationType(target);
     }
 
-    /* -- protected -- */
+    public AggregationContextVO aggregateDao(ExtractionProductVO source,
+                                             ExtractionFilterVO filter,
+                                             AggregationStrataVO strata) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getLabel());
+
+        ProductFormatEnum format = ProductFormatEnum.valueOf(AggSpecification.FORMAT_PREFIX + source.getLabel(), null);
+
+        // Aggregate (create agg tables)
+        return getDao(format).aggregate(source, filter, strata);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> asyncClean(AggregationContextVO context) {
+        try {
+            clean(context);
+            return CompletableFuture.completedFuture(Boolean.TRUE);
+        } catch (Exception e) {
+            log.warn(String.format("Error while cleaning aggregation #%s: %s", context.getId(), e.getMessage()), e);
+            return CompletableFuture.completedFuture(Boolean.FALSE);
+        }
+    }
+
+    @Override
+    public void clean(AggregationContextVO context) {
+        clean(context, false);
+    }
+
+    /* -- protected methods -- */
 
     protected List<AggregationTypeVO> getAllAggregationTypes(ExtractionProductFetchOptions fetchOptions) {
         return ImmutableList.<AggregationTypeVO>builder()
@@ -519,37 +548,11 @@ public class AggregationServiceImpl implements AggregationService {
         return result;
     }
 
-    public AggregationContextVO aggregateDao(ExtractionProductVO source,
-                                             ExtractionFilterVO filter,
-                                             AggregationStrataVO strata) {
-        Preconditions.checkNotNull(source);
-        Preconditions.checkNotNull(source.getLabel());
-
-        ProductFormatEnum format = ProductFormatEnum.valueOf(AggSpecification.FORMAT_PREFIX + source.getLabel(), null);
-
-        // Aggregate (create agg tables)
-        return getDao(format).aggregate(source, filter, strata);
+    protected AggregationTechResultVO createEmptyTechResult() {
+        AggregationTechResultVO result = new AggregationTechResultVO();
+        result.setData(Maps.newHashMap());;
+        return result;
     }
-
-    @Override
-    public CompletableFuture<Boolean> asyncClean(AggregationContextVO context) {
-        try {
-            clean(context);
-            return CompletableFuture.completedFuture(Boolean.TRUE);
-        } catch (Exception e) {
-            log.warn(String.format("Error while cleaning aggregation #%s: %s", context.getId(), e.getMessage()), e);
-            return CompletableFuture.completedFuture(Boolean.FALSE);
-        }
-    }
-
-    @Override
-    public void clean(AggregationContextVO context) {
-        clean(context, false);
-    }
-
-
-    /* -- protected methods -- */
-
 
     protected AggregationTypeVO toAggregationType(ExtractionProductVO source) {
         AggregationTypeVO target = new AggregationTypeVO();

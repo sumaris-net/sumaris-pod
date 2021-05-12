@@ -28,12 +28,10 @@ import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
-import net.sumaris.core.extraction.specification.data.trip.CostSpecification;
-import net.sumaris.core.extraction.specification.data.trip.RjbSpecification;
+import net.sumaris.core.extraction.specification.data.trip.RjbTripSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
-import net.sumaris.core.util.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
@@ -46,20 +44,20 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
         extends ExtractionRdbTripDaoImpl<C, F>
-        implements RjbSpecification {
+        implements RjbTripSpecification {
 
     private static final String XML_QUERY_RJB_PATH = "rjb/v%s/%s";
 
     @Override
     public LiveFormatEnum getFormat() {
-        return LiveFormatEnum.RJB;
+        return LiveFormatEnum.RJB_TRIP;
     }
 
     @Override
     public <R extends C> R execute(F filter) {
         R context = super.execute(filter);
 
-        context.setFormat(LiveFormatEnum.RJB);
+        context.setFormat(LiveFormatEnum.RJB_TRIP);
 
         return context;
     }
@@ -148,13 +146,12 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(context.getVersion());
 
-        String versionStr = VERSION_1_0.replaceAll("[.]", "_");
         switch (queryName) {
             case "injectionTripTable":
             case "injectionRawSpeciesListTable":
             case "injectionSpeciesListTable":
             case "injectionSpeciesLengthTable":
-                return String.format(XML_QUERY_RJB_PATH, versionStr, queryName);
+                return getQueryFullName(RjbTripSpecification.FORMAT, RjbTripSpecification.VERSION_1_0, queryName);
             default:
                 return super.getQueryFullName(context, queryName);
         }

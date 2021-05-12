@@ -48,7 +48,6 @@
 
         <where group="vesselFilter" operator="AND">T.VESSEL_IDENTIFIER in (&amp;vesselIds)</where>
         <where group="tripFilter" operator="AND">T.TRIP_CODE in (&amp;tripCodes)</where>
-
       </subquery>
     </with>
 

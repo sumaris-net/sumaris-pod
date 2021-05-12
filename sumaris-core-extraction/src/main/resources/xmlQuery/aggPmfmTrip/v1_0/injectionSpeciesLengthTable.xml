@@ -22,5 +22,9 @@
   -->
 
 <query type="select">
-  <!-- nothing to add -->
+
+  <!-- rename INDIVIDUAL_SEX by SEX-->
+  <select alias="SEX" type="text">HL.SEX</select>
+
+  <groupby>SEX</groupby>
 </query>

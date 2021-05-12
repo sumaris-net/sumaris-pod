@@ -22,10 +22,9 @@
 
 package net.sumaris.core.extraction.specification.data.trip;
 
-/**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
- */
-public interface RjbSpecification extends RdbSpecification {
-    String FORMAT = "RJB";
-    String VERSION_1_0 = "1.0";
+public interface AggRjbTripSpecification extends AggRdbSpecification {
+
+    String FORMAT = AggSpecification.FORMAT_PREFIX + RjbTripSpecification.FORMAT;
+    String VERSION_1_0 = RjbTripSpecification.VERSION_1_0;
+
 }

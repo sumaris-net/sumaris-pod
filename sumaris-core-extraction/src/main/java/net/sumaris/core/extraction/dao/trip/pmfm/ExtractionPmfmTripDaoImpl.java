@@ -55,9 +55,14 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
         extends ExtractionRdbTripDaoImpl<C, F>
         implements PmfmTripSpecification {
 
-    private static final String XML_QUERY_PMFM_PATH = "pmfm/v%s/%s";
+    private static final String XML_QUERY_PMFM_PATH = "pmfmTrip/v%s/%s";
     private static final String XML_QUERY_PMFM_V1_0_PATH = String.format(XML_QUERY_PMFM_PATH,
             VERSION_1_0.replaceAll("[.]", "_"), "%s");
+
+    @Override
+    public LiveFormatEnum getFormat() {
+        return LiveFormatEnum.PMFM_TRIP;
+    }
 
     @Override
     public <R extends C> R execute(F filter) {
@@ -66,11 +71,6 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
         context.setFormat(LiveFormatEnum.PMFM_TRIP);
 
         return context;
-    }
-
-    @Override
-    public LiveFormatEnum getFormat() {
-        return LiveFormatEnum.PMFM_TRIP;
     }
 
     /* -- protected methods -- */
@@ -126,6 +126,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
         xmlQuery.setGroup("lengthClass", false);
         xmlQuery.setGroup("numberAtLength", false);
 
+        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesLengthTable"));
 
         return xmlQuery;
     }
@@ -137,6 +138,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
         switch (queryName) {
             case "injectionTripPmfm":
             case "injectionOperationPmfm":
+            case "injectionSpeciesLengthTable":
                 return String.format(XML_QUERY_PMFM_V1_0_PATH, queryName);
             default:
                 return super.getQueryFullName(context, queryName);

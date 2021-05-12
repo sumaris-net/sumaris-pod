@@ -22,13 +22,12 @@
 
 package net.sumaris.core.extraction.specification.data.trip;
 
-/**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
- */
-public interface Free1Specification extends RdbSpecification {
-    String FORMAT = "FREE";
-    String VERSION_1 = "1";
-    String[] SHEET_NAMES = {RdbSpecification.TR_SHEET_NAME, RdbSpecification.HH_SHEET_NAME, RdbSpecification.SL_SHEET_NAME, RdbSpecification.HL_SHEET_NAME};
+public interface AggFree1Specification extends AggRdbSpecification {
 
-    String COLUMN_SEX = CostSpecification.COLUMN_SEX;
+    String FORMAT = AggSpecification.FORMAT_PREFIX + Free1Specification.FORMAT;
+    String VERSION_1 = Free1Specification.VERSION_1;
+
+    // Agg columns
+    String COLUMN_FISHING_DURATION = "fishing_duration";
+
 }

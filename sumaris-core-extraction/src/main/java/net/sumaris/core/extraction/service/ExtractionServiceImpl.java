@@ -736,7 +736,8 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
         else  {
             log.info("Cleaning extraction #{}-{}", context.getRawFormatLabel(), context.getId());
-            getDao(context.getFormat()).clean(context);
+            log.warn("TODO enable CLEAN !!");
+            //getDao(context.getFormat()).clean(context);
         }
     }
 

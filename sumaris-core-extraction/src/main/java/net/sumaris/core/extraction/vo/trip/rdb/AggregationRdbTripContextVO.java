@@ -22,6 +22,7 @@ package net.sumaris.core.extraction.vo.trip.rdb;
  * #L%
  */
 
+import com.google.common.collect.Maps;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -29,6 +30,7 @@ import lombok.experimental.FieldDefaults;
 import net.sumaris.core.extraction.vo.trip.AggregationTripContextVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
@@ -46,4 +48,10 @@ public class AggregationRdbTripContextVO extends AggregationTripContextVO {
 
     String landingTableName; // CL table
 
+    // Allow to rename column name (e.g FREE1 use FISHING_DURATION instead of FISHING_TIME)
+    Map<String, String> columnNamesMapping = Maps.newHashMap();
+
+    public void addColumnNameReplacement(String sourceColumnName, String targetColumnName) {
+        columnNamesMapping.put(sourceColumnName, targetColumnName);
+    }
 }
