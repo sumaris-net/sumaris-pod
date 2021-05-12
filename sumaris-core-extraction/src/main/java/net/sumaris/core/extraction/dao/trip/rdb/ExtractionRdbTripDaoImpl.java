@@ -548,8 +548,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                 .map(pmfmStrategy -> toPmfmColumnVO(pmfmStrategy, null))
 
                 // Group by pmfmId
-                .collect(Collectors.toMap(ExtractionPmfmColumnVO::getPmfmId, ps -> ps))
-                .values().stream()
+                .collect(Collectors.groupingBy(ExtractionPmfmColumnVO::getPmfmId))
+                .values().stream().map(list -> list.get(0))
 
                 // Sort by label
                 .sorted(Comparator.comparing(ExtractionPmfmColumnVO::getLabel, String::compareTo))

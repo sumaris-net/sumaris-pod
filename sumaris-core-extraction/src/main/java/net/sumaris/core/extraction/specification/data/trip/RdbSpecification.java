@@ -45,6 +45,9 @@ public interface RdbSpecification {
     String COLUMN_VESSEL_IDENTIFIER = "vessel_identifier";
     String COLUMN_TRIP_CODE = "trip_code";
 
+    String COLUMN_DATE = "date";
+    String COLUMN_TIME = "time";
+    String COLUMN_FISHING_TIME = "fishing_time";
     String COLUMN_INDIVIDUAL_SEX = "individual_sex";
 
     String[] SHEET_NAMES = {

@@ -27,7 +27,5 @@ public interface AggFree1Specification extends AggRdbSpecification {
     String FORMAT = AggSpecification.FORMAT_PREFIX + Free1Specification.FORMAT;
     String VERSION_1 = Free1Specification.VERSION_1;
 
-    // Agg columns
-    String COLUMN_FISHING_DURATION = "fishing_duration";
 
 }

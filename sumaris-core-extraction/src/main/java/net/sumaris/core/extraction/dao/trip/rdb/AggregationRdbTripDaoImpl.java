@@ -779,22 +779,12 @@ public class AggregationRdbTripDaoImpl<
     }
 
     protected int execute(C context, XMLQuery xmlQuery) {
-        String sqlQuery = doSqlReplacement(context, xmlQuery.getSQLQueryAsString());
+        String sqlQuery = xmlQuery.getSQLQueryAsString();
+
+        // Do column nanes replacement (e.g. see FREE extraction)
+        sqlQuery = Daos.sqlReplaceColumnNames(sqlQuery, context.getColumnNamesMapping());
+
         return queryUpdate(sqlQuery);
-    }
-
-    protected String doSqlReplacement(C context, String sqlQuery) {
-        sqlQuery = sqlQuery.toUpperCase();
-
-        // Do column nanes replacement
-        // E.g. Rename FISHING_TIME into FISHING_DURATION
-        if (context != null && MapUtils.isNotEmpty(context.getColumnNamesMapping())) {
-            for (Map.Entry<String, String> entry : context.getColumnNamesMapping().entrySet()) {
-                sqlQuery = sqlQuery.replaceAll(entry.getKey().toUpperCase(), entry.getValue().toUpperCase());
-            }
-        }
-
-        return sqlQuery;
     }
 
     protected long countFrom(String tableName) {
@@ -869,7 +859,9 @@ public class AggregationRdbTripDaoImpl<
                 .collect(Collectors.toMap(
                         c -> c,
                         c -> query(
-                            doSqlReplacement(context, String.format("SELECT DISTINCT %s FROM %s where %s IS NOT NULL", c, tableName, c)),
+                            Daos.sqlReplaceColumnNames(
+                                String.format("SELECT DISTINCT %s FROM %s where %s IS NOT NULL", c, tableName, c),
+                                context.getColumnNamesMapping()),
                             Object.class)
                                 .stream()
                                 .map(String::valueOf)

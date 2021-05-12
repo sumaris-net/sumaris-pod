@@ -22,6 +22,8 @@ package net.sumaris.core.extraction.dao.technical;
  * #L%
  */
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.extraction.DatabaseResource;
@@ -107,6 +109,28 @@ public class DaosTest {
             // Test null value
             Assert.assertNull(getDaoHashCode(conn,null));
         }
+    }
+
+    @Test
+    public void sqlReplaceColumnNames(){
+        String sql = "SELECT\n" +
+            "  TO_DATE(S.DATE || ' ' || S.TIME, 'YYYY-MM-DD HH24:MI') AS FISHING_TIME\n" +
+            "  SUM(S.FISHING_TIME) AS TRIP_COUNT_BY_FISHING_TIME\n" +
+            "  S.FISHING_TIME_NOT_REPLACED\n" +
+            "FROM TRIP T\n" +
+            "WHERE\n" +
+            "  0 < S.FISHING_TIME";
+        String expectedSql = "SELECT\n" +
+            "  TO_DATE(S.FISHING_DATE || ' ' || S.TIME, 'YYYY-MM-DD HH24:MI') AS FISHING_DURATION\n" +
+            "  SUM(S.FISHING_DURATION) AS TRIP_COUNT_BY_FISHING_TIME\n" +
+            "  S.FISHING_TIME_NOT_REPLACED\n" +
+            "FROM TRIP T\n" +
+            "WHERE\n" +
+            "  0 < S.FISHING_DURATION";
+        String actualSql = Daos.sqlReplaceColumnNames(sql, ImmutableMap.of("date", "fishing_date",
+            "fishing_time", "fishing_duration"));
+
+        Assert.assertEquals(expectedSql, actualSql);
     }
 
     /* -- protected method -- */
