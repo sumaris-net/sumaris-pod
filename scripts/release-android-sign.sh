@@ -57,3 +57,4 @@ echo "Verify APK signature..."
 echo "Verify APK signature [OK]"
 
 echo "Successfully generated signed APK at: ${APK_SIGNED_FILE}"
+exit 0
