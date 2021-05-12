@@ -55,19 +55,9 @@ export const Fragments = {
   `
 };
 
-
-const LoadDefaultQuery: any = gql`
-query Configuration {
-  configuration {
-    ...ConfigFragment
-  }
-}
-  ${Fragments.config}
-`;
-
 const LoadQuery: any = gql`
-query Configuration($id: Int, $label: String) {
-  configuration(id: $id, label: $label){
+query Configuration{
+  data: configuration{
     ...ConfigFragment
   }
 }
@@ -192,37 +182,30 @@ export class ConfigService extends SoftwareService<Configuration> {
   }
 
   async loadDefault(
-    opts?: {
-      fetchPolicy?: FetchPolicy
-    }): Promise<Configuration> {
-    return this.loadQuery({query: LoadDefaultQuery, ...opts});
+    opts?: EntityServiceLoadOptions): Promise<Configuration> {
+    const now = Date.now();
+    console.debug("[config] Loading Pod configuration...");
+
+    const query = opts && opts.query || LoadQuery;
+    const variables = opts && opts.variables || undefined;
+    const res = await this.graphql.query<{ data: any }>({
+      query,
+      variables,
+      error: {code: ErrorCodes.LOAD_CONFIG_ERROR, message: "ERROR.LOAD_CONFIG_ERROR"},
+      fetchPolicy: opts && opts.fetchPolicy || undefined/*default*/
+    });
+
+    const data = res && res.data ? Configuration.fromObject(res.data) : undefined;
+    console.info(`[config] Pod configuration loaded in ${Date.now() - now}ms:`, data);
+    return data;
   }
 
   async load(
     id: number,
-    opts?: EntityServiceLoadOptions & { label?: string; query?: any }): Promise<Configuration> {
+    opts?: EntityServiceLoadOptions & { query?: any }): Promise<Configuration> {
+    console.warn("[config] Invalid call of configService.load(id). Please use loadDefault() instead");
 
-    return this.loadQuery({
-      variables: {
-        id
-      },
-      ...opts});
-  }
-
-  loadByLabel(
-    label: string,
-    opts?: EntityServiceLoadOptions): Promise<Configuration> {
-
-    return this.loadQuery({
-      variables: {
-        label
-      },
-      ...opts});
-  }
-
-  async existsByLabel(label: string): Promise<boolean> {
-    const existingConfig = await this.loadByLabel(label, {fetchPolicy: "network-only"});
-    return isNotNil(existingConfig && existingConfig.id);
+    return this.loadDefault();
   }
 
   /**
@@ -255,7 +238,7 @@ export class ConfigService extends SoftwareService<Configuration> {
 
     console.debug("[config] Pod configuration saved!");
 
-    const reloadedConfig = await this.loadByLabel(config.label, {fetchPolicy: "network-only"});
+    const reloadedConfig = await this.loadDefault({fetchPolicy: "network-only"});
 
     // If this is the default config
     const defaultConfig = this.$data.getValue();
@@ -322,30 +305,6 @@ export class ConfigService extends SoftwareService<Configuration> {
   }
 
   /* -- protected method -- */
-
-  protected async loadQuery(opts?:
-    {
-      query?: any,
-      variables?: any,
-      fetchPolicy?: FetchPolicy
-    }): Promise<Configuration> {
-
-    const now = Date.now();
-    console.debug("[config] Loading Pod configuration...");
-
-    const query = opts && opts.query || LoadQuery;
-    const variables = opts && opts.variables || undefined;
-    const res = await this.graphql.query<{ configuration: Configuration }>({
-      query,
-      variables,
-      error: {code: ErrorCodes.LOAD_CONFIG_ERROR, message: "ERROR.LOAD_CONFIG_ERROR"},
-      fetchPolicy: opts && opts.fetchPolicy || undefined/*default*/
-    });
-
-    const data = res && res.configuration ? Configuration.fromObject(res.configuration) : undefined;
-    console.info(`[config] Pod configuration loaded in ${Date.now() - now}ms:`, data);
-    return data;
-  }
 
   private async loadOrRestoreLocally() {
     let data;

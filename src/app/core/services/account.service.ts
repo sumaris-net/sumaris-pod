@@ -1106,7 +1106,7 @@ export class AccountService extends BaseGraphqlService {
         // Store the token
         this.onAuthTokenChange.next(token);
 
-        console.info(`[account] Authentication on pod [OK] {pubkey: ${this.data.pubkey.substr(0, 8)}}`);
+        console.info(`[account] Authentication on pod [OK] {pubkey: '${this.data.pubkey.substr(0, 8)}'}`);
         return token; // return the token
       }
 
