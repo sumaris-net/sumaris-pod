@@ -101,6 +101,7 @@ export const DataFragments = {
     }
     measurementValues
     qualityFlagId
+    operationId
     __typename
   }
   ${Fragments.referential}
@@ -243,6 +244,9 @@ export const OperationGroupFragment = {
     products {
       ...ProductFragment
     }
+    samples {
+      ...SampleFragment
+    }
     fishingAreas {
       ...FishingAreaFragment
     }
@@ -251,6 +255,7 @@ export const OperationGroupFragment = {
   ${ReferentialFragments.metier}
   ${DataFragments.packet}
   ${DataFragments.product}
+  ${DataFragments.sample}
   ${DataFragments.fishingArea}
   ${PhysicalGearFragments.physicalGear}
   ${Fragments.measurement}

@@ -1,40 +1,25 @@
-<ion-header>
-  <ion-toolbar color="secondary">
-    <ion-buttons slot="start">
-      <ion-button (click)="cancel()"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-
-    <ion-title [innerHTML]="$title|async">
-    </ion-title>
+<app-modal-toolbar color="secondary"
+                   [title]="$title|async"
+                   (cancel)="cancel()"
+                   (validate)="close($event)"
+                   [canValidate]="!loading"
+                   [showSpinner]="loading">
 
     <ion-buttons slot="end" >
-      <ion-spinner *ngIf="loading; else headerButtons"></ion-spinner>
-
-      <ng-template #headerButtons>
-        <!-- Options menu -->
-        <button mat-icon-button
-                [title]="'COMMON.OPTIONS'|translate"
-                [matMenuTriggerFor]="optionsMenu">
-          <mat-icon>more_vert</mat-icon>
-        </button>
-
-        <!-- Close -->
-        <ion-button [disabled]="disabled"
-                    (click)="close($event)"
-                    visible-xs visible-sm visible-mobile>
-          <ion-icon slot="icon-only" name="checkmark"></ion-icon>
-        </ion-button>
-      </ng-template>
+      <!-- Options menu -->
+      <button mat-icon-button *ngIf="!loading"
+              [title]="'COMMON.OPTIONS'|translate"
+              [matMenuTriggerFor]="optionsMenu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
     </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+</app-modal-toolbar>
 
 <!-- Options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="before">
-  <button mat-menu-item (click)="delete($event)">
+  <button mat-menu-item
+          (click)="delete($event)"
+          [disabled]="disabled">
     <mat-icon>delete_outline</mat-icon>
     <ion-label translate>COMMON.BTN_DELETE</ion-label>
   </button>
@@ -44,7 +29,7 @@
 
   <app-batch-group-form #form
                         [acquisitionLevel]="acquisitionLevel"
-                        [program]="program"
+                        [programLabel]="programLabel"
                         [showTaxonGroup]="showTaxonGroup"
                         [showTaxonName]="showTaxonName"
                         [availableTaxonGroups]="availableTaxonGroups"

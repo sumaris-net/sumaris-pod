@@ -17,7 +17,7 @@
 
         <ion-col size="6" size-md="auto" *ngFor="let pmfm of pmfms; index as i;">
           <app-pmfm-field [pmfm]="pmfm"
-                                      [formControlName]="pmfm.pmfmId.toString()"
+                                      [formControlName]="pmfm.id.toString()"
                                       [tabindex]="tabindex+10+i">
           </app-pmfm-field>
         </ion-col>
@@ -33,7 +33,7 @@
 
         <ion-col size="12" size-md="3" *ngFor="let pmfm of pmfms; index as i;">
           <app-pmfm-field [pmfm]="pmfm"
-                                      [formControlName]="pmfm.pmfmId.toString()"
+                                      [formControlName]="pmfm.id.toString()"
                                       [tabindex]="tabindex+20+i">
           </app-pmfm-field>
         </ion-col>
@@ -50,7 +50,7 @@
 
         <ion-col size="12" size-md="3" *ngFor="let pmfm of pmfms; index as i;">
           <app-pmfm-field [pmfm]="pmfm"
-                                      [formControlName]="pmfm.pmfmId.toString()"
+                                      [formControlName]="pmfm.id.toString()"
                                       [tabindex]="tabindex+30+i">
           </app-pmfm-field>
         </ion-col>

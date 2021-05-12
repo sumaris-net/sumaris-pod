@@ -1,5 +1,10 @@
 import {Injectable, Pipe, PipeTransform} from '@angular/core';
-import {Referential, ReferentialRef, referentialToString} from "../../../core/services/model/referential.model";
+import {
+  Referential,
+  ReferentialRef,
+  referentialsToString,
+  referentialToString
+} from "../../../core/services/model/referential.model";
 
 @Pipe({
   name: 'referentialToString'
@@ -11,7 +16,8 @@ export class ReferentialToStringPipe implements PipeTransform {
   ) {
   }
 
-  transform(obj: Referential | ReferentialRef, args?: any): string {
-    return referentialToString(obj, args);
+  transform(value: Referential | ReferentialRef | any, properties?: string[]): string {
+    if (value instanceof Array) return referentialsToString(value, properties);
+    return referentialToString(value, properties);
   }
 }

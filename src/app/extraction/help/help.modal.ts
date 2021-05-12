@@ -1,31 +1,20 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
-import {BehaviorSubject} from "rxjs";
 import {ModalController} from "@ionic/angular";
 import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 import {ExtractionType} from "../services/model/extraction.model";
 import {isNotNilOrBlank} from "../../shared/functions";
+import {AppHelpModal} from "../../shared/help/help.modal";
 
 @Component({
     selector: 'app-extraction-help-modal',
-    templateUrl: './help.modal.html',
-    changeDetection: ChangeDetectionStrategy.OnPush
+    templateUrl: '../../shared/help/help.modal.html'
 })
-export class ExtractionHelpModal implements OnInit {
-
-  readonly debug: boolean;
-  loading = true;
-  error: string = undefined;
-
-  markdownContent: string;
-  docUrl: string;
+export class ExtractionHelpModal extends AppHelpModal implements OnInit {
 
   @Input()
   type: ExtractionType;
-
-  @Input()
-  showError: boolean = true;
 
   constructor(
       protected injector: Injector,
@@ -35,16 +24,18 @@ export class ExtractionHelpModal implements OnInit {
       protected translate: TranslateService,
       protected cd: ChangeDetectorRef
   ) {
-    // TODO: for DEV only
-    //this.debug = !environment.production;
+    super(injector, viewCtrl, platform, settings, translate, cd);
   }
 
 
   ngOnInit() {
+    if (!this.type) throw new Error("Missing 'type' input");
+    this.title = this.type.name;
 
+    console.debug('[extraction-help-modal] Show help modal for type:', this.type);
     if (isNotNilOrBlank(this.type.description)) {
-      const descriptionSubtitle = this.translate.instant('EXTRACTION.HELP.MODAL.DESCRIPTION');
-      this.markdownContent = `# ${descriptionSubtitle}\n\n${this.type.description}\n\n`;
+      const subtitle = this.translate.instant('EXTRACTION.HELP.MODAL.DESCRIPTION');
+      this.markdownContent = `# ${subtitle}\n\n${this.type.description}\n\n`;
     }
     if (this.type.docUrl) {
       this.loading = true;
@@ -54,27 +45,4 @@ export class ExtractionHelpModal implements OnInit {
       this.markAsLoaded(); // Nothing to load
     }
   }
-
-  async close() {
-      await this.viewCtrl.dismiss();
-  }
-
-  markAsLoaded() {
-    this.loading = false;
-    this.error = null;
-  }
-
-  onLoadError(error?: string) {
-    console.error(error);
-
-    this.error = error;
-    this.loading = false;
-  }
-
-  /* -- protected methods -- */
-
-  protected markForCheck() {
-      this.cd.markForCheck();
-  }
-
 }

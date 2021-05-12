@@ -7,10 +7,10 @@ import {SharedMaterialModule} from "../material.module";
 import {IonicModule} from "@ionic/angular";
 import {CommonModule} from "@angular/common";
 import {ReactiveFormsModule} from "@angular/forms";
-import {NumpadTestPage} from "../numpad/testing/numpad.test";
 import {SwipeTestPage} from "../swipe/testing/swipe.test";
 import {TranslateModule} from "@ngx-translate/core";
 import {DateTimeTestPage} from "../datetime/testing/mat-date-time.test";
+import {ChipsTestPage} from "../chips/testing/chips.test";
 
 
 const routes: Routes = [
@@ -34,15 +34,20 @@ const routes: Routes = [
     pathMatch: 'full',
     component: LatLongTestPage
   },
-  {
-    path: 'numpad',
-    pathMatch: 'full',
-    component: NumpadTestPage
-  },
+  // {
+  //   path: 'numpad',
+  //   pathMatch: 'full',
+  //   component: NumpadTestPage
+  // },
   {
     path: 'swipe',
     pathMatch: 'full',
     component: SwipeTestPage
+  },
+  {
+    path: 'chips',
+    pathMatch: 'full',
+    component: ChipsTestPage
   }
 ];
 
@@ -60,8 +65,9 @@ const routes: Routes = [
     DateTimeTestPage,
     AutocompleteTestPage,
     LatLongTestPage,
-    NumpadTestPage,
-    SwipeTestPage
+    // NumpadTestPage,
+    SwipeTestPage,
+    ChipsTestPage
   ],
   exports: [
     SharedMaterialModule,
@@ -70,8 +76,9 @@ const routes: Routes = [
     MaterialTestingPage,
     AutocompleteTestPage,
     LatLongTestPage,
-    NumpadTestPage,
-    SwipeTestPage
+    // NumpadTestPage,
+    SwipeTestPage,
+    ChipsTestPage
   ]
 })
 export class MaterialTestingModule {

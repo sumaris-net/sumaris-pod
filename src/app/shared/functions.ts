@@ -1,10 +1,4 @@
-import * as moment from "moment";
-import {Duration, isMoment, Moment} from "moment"
-
-
-export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
-export const DATE_UNIX_TIMESTAMP = 'X';
-export const DATE_UNIX_MS_TIMESTAMP = 'x';
+import {LoadResult} from "./services/entity-service.class";
 
 export function isNil<T>(obj: T | null | undefined): boolean {
   return obj === undefined || obj === null;
@@ -24,6 +18,9 @@ export function isNotNilOrNaN<T>(obj: T | null | undefined): boolean {
 export function isNotEmptyArray<T>(obj: T[] | null | undefined): boolean {
   return obj !== undefined && obj !== null && obj.length > 0;
 }
+export function firstArrayValue<T>(obj: T[] | null | undefined): T | undefined {
+  return isNotEmptyArray(obj) ? obj[0] : undefined;
+}
 export function isEmptyArray<T>(obj: T[] | null | undefined): boolean {
   return obj === undefined || obj === null || !obj.length;
 }
@@ -36,9 +33,9 @@ export function notNilOrDefault<T>(obj: T | null | undefined, defaultValue: T): 
 export function arraySize<T>(obj: T[] | null | undefined): number {
   return isNotEmptyArray(obj) && obj.length || 0;
 }
-export function arrayGroupBy<T = any, K extends keyof T = any, M extends {[key: string]: T[]} = {[key: string]: T[]}>(obj: T[], key: keyof T): M{
+export function arrayGroupBy<T = any, K extends keyof T = any, M extends { [key: string]: T[] } = { [key: string]: T[] }>(obj: T[], key: keyof T): M {
   if (isNil(obj)) return null;
-  return obj.reduce(function(rv: any, x) {
+  return obj.reduce(function (rv: any, x) {
     (rv[x[key]] = rv[x[key]] || []).push(x);
     return rv;
   }, {});
@@ -50,10 +47,10 @@ export function trimEmptyToNull<T>(str: string | null | undefined): string | nul
   const value = str && str.trim() || undefined;
   return value && value.length && value || null;
 }
-export function toBoolean(obj: boolean | null | undefined | string, defaultValue: boolean): boolean {
+export function toBoolean(obj: boolean | null | undefined | string, defaultValue?: boolean): boolean {
   return (obj !== undefined && obj !== null) ? (obj !== "false" ? !!obj : false) : defaultValue;
 }
-export function toNumber(obj: number | null | undefined, defaultValue: number): number {
+export function toNumber(obj: number | null | undefined, defaultValue?: number): number {
   return (obj !== undefined && obj !== null) ? +obj : defaultValue;
 }
 export function toFloat(obj: string | null | undefined, defaultValue?: number): number | null {
@@ -65,62 +62,13 @@ export function toInt(obj: string | null | undefined, defaultValue?: number): nu
 export function toNotNil<T = any>(obj: T, defaultValue?: T): any | null {
   return (obj !== undefined && obj !== null) ? obj : defaultValue;
 }
-export function toDateISOString(value: any): string | undefined {
-  if (!value) return undefined;
-
-  // Already a valid ISO date time string (without timezone): use it
-  if (typeof value === "string"
-    && value.indexOf('+') === -1
-    && value.lastIndexOf('Z') === value.length - 1) {
-
-    return value;
+export function removeDuplicatesFromArray<T>(obj: T[] | null | undefined, property?: string): T[] | null | undefined {
+  if (isEmptyArray(obj)) return obj;
+  if (property) {
+    return obj.filter((item, i, array) => array.findIndex(t => t && item && t[property] === item[property]) === i);
   }
-  // Make sure to have a Moment object
-  value = fromDateISOString(value);
-  return value && value.toISOString() || undefined;
+  return obj.filter((item, i, array) => array.findIndex(t => t && item && t === item) === i);
 }
-
-export function fromDateISOString(value: any): Moment | undefined {
-  if (value) {
-    // Already a moment object: use it
-    if (isMoment(value)) return value;
-
-    // Parse the input value, as a ISO date time
-    const date: Moment = moment(value, DATE_ISO_PATTERN);
-    if (date.isValid()) return date;
-
-    console.warn('Wrong date format - Trying to convert from local time: ' + value);
-
-    // Not valid: trying to convert from unix timestamp
-    if (typeof value === 'string') {
-      if (value.length === 10) {
-        return moment(value, DATE_UNIX_TIMESTAMP);
-      }
-      else if (value.length === 13) {
-        return moment(value, DATE_UNIX_MS_TIMESTAMP);
-      }
-    }
-  }
-  return undefined;
-}
-
-export function toDuration(value: number, unit?: moment.unitOfTime.DurationConstructor): Duration {
-  if (!value) return undefined;
-
-  const duration = moment.duration(value, unit);
-
-  // fix 990+ ms
-  if (duration.milliseconds() >= 990) {
-    duration.add(1000 - duration.milliseconds(), "ms");
-  }
-  // fix 59 s
-  if (duration.seconds() >= 59) {
-    duration.add(60 - duration.seconds(), "s");
-  }
-
-  return duration;
-}
-
 export function startsWithUpperCase(input: string, search: string): boolean {
   return input && input.toUpperCase().startsWith(search);
 }
@@ -135,7 +83,7 @@ export function matchUpperCase(input: string, regexp: string): boolean {
  */
 export function noTrailingSlash(path: string): string {
   if (!path || path.trim() === '/') return undefined;
-  if (path.trim().lastIndexOf('/') === path.length -1) return path.substring(0, path.length -1);
+  if (path.trim().lastIndexOf('/') === path.length - 1) return path.substring(0, path.length - 1);
   return path;
 }
 
@@ -154,23 +102,27 @@ export function changeCaseToUnderscore(value: string): string {
   return value.replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase();
 }
 
-export function suggestFromArray<T=any>(items: T[], value: any, options?: {
+export function suggestFromArray<T = any>(items: T[], value: any, options?: {
   searchAttribute?: string
   searchAttributes?: string[]
-}): T[] {
-  if (isNotNil(value) && typeof value === "object") return [value];
+}): LoadResult<T> {
+  if (isNotNil(value) && typeof value === "object") return {data: [value]};
   value = (typeof value === "string" && value !== '*') && value.toUpperCase() || undefined;
-  if (isNilOrBlank(value)) return items;
+  if (isNilOrBlank(value)) return {data: items};
   const keys = options && (options.searchAttribute && [options.searchAttribute] || options.searchAttributes) || ['label'];
 
   // If wildcard, search using regexp
   if ((value as string).indexOf('*') !== -1) {
     value = (value as string).replace('*', '.*');
-    return items.filter(v => keys.findIndex(key => matchUpperCase(getPropertyByPathAsString(v, key), value)) !== -1);
+    return {
+      data: items.filter(v => keys.findIndex(key => matchUpperCase(getPropertyByPathAsString(v, key), value)) !== -1)
+    };
   }
 
   // If wildcard, search using startsWith
-  return (items||[]).filter(v => keys.findIndex(key => startsWithUpperCase(getPropertyByPathAsString(v, key), value)) !== -1);
+  return {
+    data: (items || []).filter(v => keys.findIndex(key => startsWithUpperCase(getPropertyByPathAsString(v, key), value)) !== -1)
+  };
 }
 
 export function suggestFromStringArray(values: string[], value: any, options?: {
@@ -198,7 +150,7 @@ export function joinPropertiesPath<T = any>(obj: T, properties: string[], separa
     .join(separator || " - ");
 }
 
-export function joinProperties<T = any, K  extends keyof T = any>(obj: T, keys: K[], separator?: string): string | undefined {
+export function joinProperties<T = any, K extends keyof T = any>(obj: T, keys: K[], separator?: string): string | undefined {
   if (!obj) throw new Error("Could not display an undefined entity.");
   return keys
     .map(key => getProperty(obj, key))
@@ -238,6 +190,7 @@ export function propertiesPathComparator<T = any>(keys: string[], defaultValues?
 }
 
 export function sort<T>(array: T[], attribute: string): T[] {
+  if (isEmptyArray(array)) return array;
   return array
     .slice() // copy
     .sort((a, b) => {
@@ -285,7 +238,7 @@ export function getPropertyByPathAsString(obj: any, path: string): string | unde
 
 export function sleep(ms: number): Promise<void> {
   if (ms <= 0) return;
-  return new Promise( resolve => setTimeout(resolve, ms) );
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export function round(value: number | undefined | null): number {
@@ -340,11 +293,11 @@ export declare type KeysEnum<T> = { [P in keyof Required<T>]: true };
 
 export function capitalizeFirstLetter(value: string) {
   if (!value || value.length === 0) return value;
-  return value.substr(0,1).toUpperCase() + value.substr(1);
+  return value.substr(0, 1).toUpperCase() + value.substr(1);
 }
 export function uncapitalizeFirstLetter(value: string) {
   if (!value || value.length === 0) return value;
-  return value.substr(0,1).toLowerCase() + value.substr(1);
+  return value.substr(0, 1).toLowerCase() + value.substr(1);
 }
 
 export class Beans {
@@ -355,7 +308,7 @@ export class Beans {
    * @param dataType the class to use as target class
    * @param keys The keys to copy. If empty, will copy only NOT optional properties from the dataType
    */
-  static copy<T>(source: T, dataType: new() => T, keys?: KeysEnum<T>): T {
+  static copy<T>(source: T, dataType: new () => T, keys?: KeysEnum<T>): T {
     if (isNil(source)) return source;
     const target = new dataType();
     Object.keys(keys || target).forEach(key => {

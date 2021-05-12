@@ -2,9 +2,9 @@ import { Injectable } from "@angular/core";
 import { ValidatorService } from "@e-is/ngx-material-table";
 import { FormGroup, FormBuilder } from "@angular/forms";
 import { Person } from "../../../core/services/model/person.model";
-import { AccountValidatorService } from "../../../core/core.module";
 import { Account } from "../../../core/services/model/account.model";
 import { SharedValidators } from "../../../shared/validator/validators";
+import {AccountValidatorService} from "../../../core/services/validator/account.validator";
 
 @Injectable({providedIn: 'root'})
 export class PersonValidatorService implements ValidatorService {
@@ -26,7 +26,7 @@ export class PersonValidatorService implements ValidatorService {
     // This is need to be able to store person that are not using SUMARiS tools (e.g. onboard observers)
     const formConfig = this.accountValidatorService.getFormGroupConfig(data && Account.fromObject(data.asObject()));
     formConfig.pubkey = [data && data.pubkey || null, SharedValidators.pubkey];
-    formConfig.avatar = [''];
+    formConfig.avatar = [data && data.avatar || null];
 
     return this.formBuilder.group(formConfig);
   }

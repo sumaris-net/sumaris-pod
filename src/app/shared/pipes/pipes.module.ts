@@ -11,9 +11,10 @@ import {HighlightPipe} from "./highlight.pipe";
 import {FileSizePipe} from "./file-size.pipe";
 import {DurationPipe} from "./duration.pipe";
 import {EvenPipe, MathAbsPipe, OddPipe} from "./math.pipes";
-import {ArrayLengthPipe, EmptyArrayPipe, NotEmptyArrayPipe} from "./arrays.pipe";
-import {MapGetPipe} from "./maps.pipe";
-
+import {ArrayFirstPipe, ArrayIncludesPipe, ArrayLengthPipe, ArrayPluckPipe, EmptyArrayPipe, NotEmptyArrayPipe} from "./arrays.pipe";
+import {MapGetPipe, MapKeysPipe, MapValuesPipe} from "./maps.pipe";
+import {IsNilOrBlankPipe, IsNotNilOrBlankPipe} from "./string.pipes";
+import {TranslateContextPipe} from "./translate-context.pipe";
 
 @NgModule({
   imports: [
@@ -38,7 +39,15 @@ import {MapGetPipe} from "./maps.pipe";
     NotEmptyArrayPipe,
     EmptyArrayPipe,
     ArrayLengthPipe,
-    MapGetPipe
+    ArrayFirstPipe,
+    ArrayPluckPipe,
+    ArrayIncludesPipe,
+    MapGetPipe,
+    MapKeysPipe,
+    MapValuesPipe,
+    IsNilOrBlankPipe,
+    IsNotNilOrBlankPipe,
+    TranslateContextPipe
   ],
   exports: [
     DateFormatPipe,
@@ -57,7 +66,15 @@ import {MapGetPipe} from "./maps.pipe";
     NotEmptyArrayPipe,
     EmptyArrayPipe,
     ArrayLengthPipe,
-    MapGetPipe
+    ArrayFirstPipe,
+    ArrayPluckPipe,
+    MapGetPipe,
+    MapKeysPipe,
+    MapValuesPipe,
+    IsNilOrBlankPipe,
+    IsNotNilOrBlankPipe,
+    ArrayIncludesPipe,
+    TranslateContextPipe
   ]
 })
 export class SharedPipesModule {

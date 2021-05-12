@@ -1,4 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, EventEmitter, Output} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnDestroy,
+  EventEmitter,
+  Output,
+  Inject
+} from '@angular/core';
 import {ModalController} from '@ionic/angular';
 import {Peer} from "../services/model/peer.model";
 import {Observable, Subject, Subscription} from "rxjs";
@@ -6,7 +15,7 @@ import {fadeInAnimation} from "../../shared/material/material.animations";
 import {HttpClient} from "@angular/common/http";
 import {NetworkUtils, NodeInfo} from "../services/network.utils";
 import {VersionUtils} from "../../shared/version/versions";
-import {environment} from "../../../environments/environment";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 @Component({
   selector: 'select-peer-modal',
@@ -20,7 +29,7 @@ export class SelectPeerModal implements OnDestroy {
   private _subscription = new Subscription();
   loading = true;
   $peers = new Subject<Peer[]>();
-  peerMinVersion = environment.peerMinVersion;
+  peerMinVersion = this.environment.peerMinVersion;
 
   @Input() canCancel = true;
   @Input() allowSelectDownPeer = true;
@@ -30,7 +39,8 @@ export class SelectPeerModal implements OnDestroy {
 
     private viewCtrl: ModalController,
     private cd: ChangeDetectorRef,
-    private http: HttpClient
+    private http: HttpClient,
+    @Inject(ENVIRONMENT) protected environment
   ) {
   }
 

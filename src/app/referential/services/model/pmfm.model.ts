@@ -1,9 +1,9 @@
-import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
+import {Entity, EntityAsObjectOptions, IEntity} from "../../../core/services/model/entity.model";
 import {Referential, ReferentialRef} from "../../../core/services/model/referential.model";
 import {isNotNil} from "../../../shared/functions";
-import {PmfmIds} from "./model.enum";
+import {MethodIds, PmfmIds} from "./model.enum";
 import {Parameter, ParameterType} from "./parameter.model";
-import {PmfmStrategy} from "./pmfm-strategy.model";
+import {PmfmValue} from "./pmfm-value.model";
 
 export declare type PmfmType = ParameterType | 'integer';
 
@@ -11,8 +11,32 @@ export const PMFM_ID_REGEXP = /\d+/;
 
 export const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/]+)[/]\s*(.*)$/);
 
+export interface IPmfm<T extends Entity<T> = Entity<any>> extends IEntity<IPmfm<T>> {
+  id: number;
+  label: string;
 
-export class Pmfm extends Referential<Pmfm> {
+  type: string | PmfmType;
+  minValue: number;
+  maxValue: number;
+  defaultValue: number|PmfmValue;
+  maximumNumberDecimals: number;
+  signifFiguresNumber: number;
+
+  matrixId: number;
+  fractionId: number;
+  methodId: number;
+
+  qualitativeValues: ReferentialRef[];
+
+  unitLabel: string;
+  isQualitative: boolean;
+  required?: boolean;
+  isComputed: boolean;
+  hidden?: boolean;
+  rankOrder?: number;
+}
+
+export class Pmfm extends Referential<Pmfm> implements IPmfm<Pmfm> {
 
   static TYPENAME = 'Pmfm';
 
@@ -37,6 +61,8 @@ export class Pmfm extends Referential<Pmfm> {
   unit: ReferentialRef;
 
   qualitativeValues: ReferentialRef[];
+
+  completeName: string; // Computed attributes
 
   constructor() {
     super();
@@ -103,7 +129,33 @@ export class Pmfm extends Referential<Pmfm> {
     this.unit = source.unit && ReferentialRef.fromObject(source.unit);
 
     this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject) || undefined;
+
+    this.completeName = source.completeName;
     return this;
+  }
+
+  get isQualitative(): boolean {
+    return this.type === 'qualitative_value';
+  }
+
+  get matrixId(): number {
+    return this.matrix && this.matrix.id;
+  }
+
+  get fractionId(): number {
+    return this.fraction && this.fraction.id;
+  }
+
+  get methodId(): number {
+    return this.method && this.method.id;
+  }
+
+  get unitLabel(): string {
+    return this.unit && this.unit.label;
+  }
+
+  get isComputed(): boolean {
+    return PmfmUtils.isComputed(this);
   }
 }
 
@@ -111,37 +163,41 @@ export class Pmfm extends Referential<Pmfm> {
 
 export abstract class PmfmUtils {
 
-  static getFirstQualitativePmfm(pmfms: PmfmStrategy[]): PmfmStrategy {
-    let qvPmfm = pmfms.find(p => p.isQualitative
+  static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[]): P {
+    let qvPmfm = pmfms.find(p => p.type === 'qualitative_value'
       // exclude hidden pmfm (see batch modal)
       && !p.hidden
     );
     // If landing/discard: 'Landing' is always before 'Discard (see issue #122)
-    if (qvPmfm && qvPmfm.pmfmId === PmfmIds.DISCARD_OR_LANDING) {
-      qvPmfm = qvPmfm.clone(); // copy, to keep original array
+    if (qvPmfm && qvPmfm.id === PmfmIds.DISCARD_OR_LANDING) {
+      qvPmfm = qvPmfm.clone() as P; // copy, to keep original array
       qvPmfm.qualitativeValues.sort((qv1, qv2) => qv1.label === 'LAN' ? -1 : 1);
     }
     return qvPmfm;
   }
 
-  static isNumeric(pmfm: PmfmStrategy | Pmfm): boolean {
+  static isNumeric(pmfm: IPmfm): boolean {
     return isNotNil(pmfm.type) && (pmfm.type === 'integer' || pmfm.type === 'double');
   }
 
-  static isAlphanumeric(pmfm: PmfmStrategy | Pmfm): boolean {
+  static isAlphanumeric(pmfm: IPmfm): boolean {
     return isNotNil(pmfm.type) && (pmfm.type === 'string');
   }
 
-  static isDate(pmfm: PmfmStrategy | Pmfm): boolean {
+  static isDate(pmfm: IPmfm): boolean {
     return isNotNil(pmfm.type) && (pmfm.type === 'date');
   }
 
-  static hasUnit(pmfm: PmfmStrategy): boolean {
-    return isNotNil(pmfm.unitLabel) && PmfmUtils.isNumeric(pmfm);
+  static isWeight(pmfm: IPmfm): boolean {
+    return isNotNil(pmfm.label) && pmfm.label.endsWith("WEIGHT");
   }
 
-  static isWeight(pmfm: PmfmStrategy | Pmfm): boolean {
-    return isNotNil(pmfm.label) && pmfm.label.endsWith("WEIGHT");
+  static hasParameterLabelIncludes(pmfm: Pmfm, labels: string[]): boolean {
+    return pmfm && isNotNil(pmfm.parameter) && labels.includes(pmfm.parameter.label);
+  }
+
+  static isComputed(pmfm: IPmfm) {
+    return pmfm.methodId === MethodIds.CALCULATED;
   }
 }
 

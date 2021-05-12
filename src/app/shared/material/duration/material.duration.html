@@ -6,28 +6,35 @@
 
 <!-- writable -->
 <ng-template #writable>
-  <form [formGroup]="form">
+  <mat-form-field [floatLabel]="floatLabel"
+                  [class.mat-form-field-disabled]="formControl.disabled"
+                  [class.mat-form-field-invalid]="formControl.touched && formControl.invalid">
+    <mat-label *ngIf="placeholder && floatLabel != 'never'" translate>COMMON.TIME</mat-label>
 
-    <mat-form-field [floatLabel]="floatLabel"
-                    [class.mat-form-field-invalid]="formControl.touched && form.controls.duration.invalid">
-      <mat-label *ngIf="placeholder && floatLabel != 'never'" translate>COMMON.TIME</mat-label>
+    <div matPrefix><ng-content select="[matPrefix]"></ng-content></div>
 
-      <div matPrefix>
-        <ng-content select="[matPrefix]"></ng-content>
-      </div>
+    <input matInput #matInput type="text"
+           autocomplete="off"
+           [formControl]="textControl"
+           [textMask]="{mask: hourMask, keepCharPositions: true, placeholderChar: placeholderChar, guide: true}"
+           [placeholder]="'COMMON.DURATION_PLACEHOLDER'|translate"
+           [required]="required"
+           (keydown.tab)="moveCaretToSeparator($event, true)"
+           (keydown.shift.tab)="moveCaretToSeparator($event, false)"
+           (keyup.escape)="preventEvent($event)"
+           (blur)="checkIfTouched()"
+           [tabindex]="tabindex !== undefined ? tabindex+1 : undefined">
 
-      <input matInput #matInput type="text"
-             autocomplete="off"
-             formControlName="duration"
-             [textMask]="{mask: hourMask, keepCharPositions: true, placeholderChar: placeholderChar, guide: true}"
-             [placeholder]="'COMMON.DURATION_PLACEHOLDER'|translate"
-             [required]="required"
-             (keyup.escape)="preventEvent($event)"
-             (blur)="checkIfTouched()"
-             [tabindex]="tabindex !== undefined ? tabindex+1 : undefined">
 
-    </mat-form-field>
+    <!-- errors -->
+    <mat-error *ngIf="!formControl.hasError('required') && textControl.hasError('pattern')" translate>ERROR.FIELD_NOT_VALID_PATTERN</mat-error>
+    <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+    <mat-error *ngIf="formControl.hasError('min')">
+      {{(compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate:formControl.errors.min }}</mat-error>
+    <mat-error *ngIf="formControl.hasError('max')">
+      {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:formControl.errors.max }}</mat-error>
 
-  </form>
+    <ng-content select="mat-error"></ng-content>
+  </mat-form-field>
 </ng-template>
 

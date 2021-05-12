@@ -1,6 +1,6 @@
 import {Injectable, InjectionToken} from "@angular/core";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
-import {LoadResult, EntitiesService} from "../../shared/services/entity-service.class";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
+import {LoadResult, IEntitiesService} from "../../shared/services/entity-service.class";
 import {PhysicalGear, Trip} from "./model/trip.model";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {NetworkService} from "../../core/services/network.service";
@@ -9,7 +9,7 @@ import {EntitiesStorage} from "../../core/services/storage/entities-storage.serv
 import {environment} from "../../../environments/environment";
 import {Moment} from "moment";
 import {EMPTY, Observable} from "rxjs";
-import {fromDateISOString, isNil} from "../../shared/functions";
+import {isNil} from "../../shared/functions";
 import {filter, map, throttleTime} from "rxjs/operators";
 import {TripFilter} from "./trip.service";
 import {ErrorCodes} from "./trip.errors";
@@ -17,6 +17,7 @@ import {gql} from "@apollo/client/core";
 import {PhysicalGearFragments} from "./trip.queries";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {SortDirection} from "@angular/material/sort";
+import {fromDateISOString} from "../../shared/dates";
 
 
 export class PhysicalGearFilter {
@@ -51,12 +52,12 @@ const sortByTripDateFn = (n1: PhysicalGear, n2: PhysicalGear) => {
   return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
 };
 
-export const PHYSICAL_GEAR_DATA_SERVICE = new InjectionToken<EntitiesService<PhysicalGear, PhysicalGearFilter>>('PhysicalGearDataService');
+export const PHYSICAL_GEAR_DATA_SERVICE = new InjectionToken<IEntitiesService<PhysicalGear, PhysicalGearFilter>>('PhysicalGearDataService');
 
 
 @Injectable({providedIn: 'root'})
-export class PhysicalGearService extends BaseEntityService
-  implements EntitiesService<PhysicalGear, PhysicalGearFilter> {
+export class PhysicalGearService extends BaseGraphqlService
+  implements IEntitiesService<PhysicalGear, PhysicalGearFilter> {
 
   loading = false;
 
@@ -66,7 +67,7 @@ export class PhysicalGearService extends BaseEntityService
     protected accountService: AccountService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     // -- For DEV only
     this._debug = !environment.production;
@@ -107,10 +108,7 @@ export class PhysicalGearService extends BaseEntityService
 
     return this.graphql.watchQuery<{physicalGears: any[]}>({
         query: LoadAllQuery,
-        variables: {
-          ...variables,
-          filter: remoteFilter
-        },
+        variables,
         error: {code: ErrorCodes.LOAD_PHYSICAL_GEARS_ERROR, message: "TRIP.PHYSICAL_GEAR.ERROR.LOAD_PHYSICAL_GEARS_ERROR"},
         fetchPolicy: options && options.fetchPolicy || undefined
       })

@@ -1,24 +1,19 @@
-import {
-  Department,
-  Entity,
-  EntityAsObjectOptions,
-  fromDateISOString,
-  isNotNil,
-  joinPropertiesPath,
-  Person,
-  ReferentialRef,
-  toDateISOString
-} from "../../../core/core.module";
-import {Moment} from "moment/moment";
-import {IEntity} from "../../../core/services/model/entity.model";
-import {NOT_MINIFY_OPTIONS} from "../../../core/services/model/referential.model";
-import {Vessel} from "./vessel.model";
+import {Moment} from "moment";
+import {Entity, EntityAsObjectOptions, IEntity} from "../../../core/services/model/entity.model";
+import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions, ReferentialRef} from "../../../core/services/model/referential.model";
+import {Vessel} from "../../../vessel/services/model/vessel.model";
+import {Department} from "../../../core/services/model/department.model";
+import {isNotNil, joinPropertiesPath} from "../../../shared/functions";
+import {Person} from "../../../core/services/model/person.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 export interface IWithVesselSnapshotEntity<T> extends IEntity<T> {
   vesselSnapshot: VesselSnapshot;
 }
 
 export class VesselSnapshot extends Entity<VesselSnapshot> {
+
+  static TYPENAME = 'VesselSnapshotVO';
 
   static fromObject(source: any): VesselSnapshot {
     if (!source) return source;
@@ -41,6 +36,7 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
       exteriorMarking: source.features && source.features.exteriorMarking,
       basePortLocation: source.features && source.features.basePortLocation,
       registrationId: source.registration && source.registration.id,
+      registrationCode: source.registration && source.registration.registrationCode,
       registrationStartDate: source.registration && source.registration.startDate,
       registrationEndDate: source.registration && source.registration.endDate,
       registrationLocation: source.registration && source.registration.registrationLocation
@@ -48,6 +44,7 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
     return target;
   }
 
+  program: ReferentialRef;
   vesselType: ReferentialRef;
   vesselStatusId: number;
   name: string;
@@ -71,17 +68,19 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
 
   constructor() {
     super();
-    this.__typename = 'VesselSnapshotVO';
+    this.__typename = VesselSnapshot.TYPENAME;
     this.vesselType = null;
     this.basePortLocation = null;
     this.registrationLocation = null;
     this.recorderDepartment = null;
     this.recorderPerson = null;
+    this.program = null;
   }
 
   clone(): VesselSnapshot {
     const target = new VesselSnapshot();
     target.fromObject(this);
+    target.program = this.program && this.program.clone() || undefined;
     target.vesselType = this.vesselType && this.vesselType.clone() || undefined;
     target.basePortLocation = this.basePortLocation && this.basePortLocation.clone() || undefined;
     target.registrationLocation = this.registrationLocation && this.registrationLocation.clone() || undefined;
@@ -93,6 +92,7 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
 
+    target.program = this.program && this.program.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*always keep for table*/ } as ReferentialAsObjectOptions) || undefined;
     target.vesselType = this.vesselType && this.vesselType.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
     target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
     target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
@@ -129,6 +129,7 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
     this.registrationLocation = source.registrationLocation && ReferentialRef.fromObject(source.registrationLocation);
     this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
+    this.program = source.program && ReferentialRef.fromObject(source.program);
   }
 }
 

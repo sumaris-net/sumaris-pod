@@ -1,16 +1,20 @@
-<app-toolbar visible-xs visible-sm visible-mobile>
-  <ion-button slot="end" mat-icon-button [matMenuTriggerFor]="matmenu">
-    <ion-label class="ion-text-uppercase">&nbsp;{{ currentLocaleCode }}</ion-label>
+<app-toolbar [canGoBack]="false"
+             visible-xs visible-sm visible-mobile>
+
+  <!-- change locale button -->
+  <ion-button slot="end" *ngIf="currentLocaleCode; let code"
+              [matMenuTriggerFor]="localeMenu">
+    <ion-label class="ion-text-uppercase">&nbsp;{{ code }}</ion-label>
     <mat-icon slot="end">arrow_drop_down</mat-icon>
   </ion-button>
 </app-toolbar>
 
 <!-- change locale menu -->
-<mat-menu #matmenu="matMenu">
+<mat-menu #localeMenu="matMenu">
   <button *ngFor="let item of locales"
           mat-menu-item
-          (click)="changeLanguage(item.id)">
-    <ion-label>{{item.name}}</ion-label>
+          (click)="changeLanguage(item.key)">
+    <ion-label>{{item.value}}</ion-label>
   </button>
 </mat-menu>
 
@@ -40,8 +44,10 @@
 
       <ion-buttons slot="end">
         <!-- change locale button -->
-        <ion-button color="secondary" fill="solid" [matMenuTriggerFor]="matmenu">
-          <ion-label class="ion-text-uppercase">&nbsp;{{ currentLocaleCode }}</ion-label>
+        <ion-button color="secondary" fill="solid"
+                    *ngIf="currentLocaleCode; let code"
+                    [matMenuTriggerFor]="localeMenu">
+          <ion-label class="ion-text-uppercase">&nbsp;{{ code }}</ion-label>
           <mat-icon slot="end">arrow_drop_down</mat-icon>
         </ion-button>
       </ion-buttons>
@@ -67,7 +73,7 @@
     </ion-card-header>
     <ion-card-content class="ion-no-padding">
       <ion-text color="primary">
-        <img class="logo" *ngIf="logo" src="{{ logo }}"/>
+        <img class="logo" *ngIf="logo" src="{{ logo }}">
       </ion-text>
       <ion-text *ngIf="!isLogin">
         <br/>
@@ -162,7 +168,7 @@
               <ion-item  detail="true"
                          tappable class="text-1x"
                          [routerLink]="page.path"
-                         routerDirection="forward" lines="none">
+                         routerDirection="root" lines="none">
                 <!-- page icon-->
                 <ion-icon *ngIf="page.icon"    slot="start" [name]="page.icon"></ion-icon>
                 <mat-icon *ngIf="page.matIcon" slot="start">{{page.matIcon}}</mat-icon>
@@ -179,7 +185,7 @@
                          *ngFor="let childPage of page.children"
                          tappable class="text-1x"
                         [routerLink]="childPage.path"
-                        routerDirection="forward">
+                        routerDirection="root">
                 <!-- page icon-->
                 <ion-icon *ngIf="childPage.icon"    slot="start" color="dark" [name]="childPage.icon"></ion-icon>
                 <mat-icon *ngIf="childPage.matIcon" slot="start" color="dark">{{childPage.matIcon}}</mat-icon>

@@ -1,18 +1,19 @@
 import {Directive, Input, OnDestroy, OnInit, Optional, ViewChild} from '@angular/core';
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
-import {AlertController, ToastController} from '@ionic/angular';
+import {AlertController, IonContent, ToastController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
 import {Subscription, TeardownLogic} from 'rxjs';
-import {isNotNil, ToolbarComponent} from '../../shared/shared.module';
 import {AppTable} from '../table/table.class';
 import {AppForm} from './form.class';
 import {FormButtonsBarComponent} from './form-buttons-bar.component';
 import {AppFormHolder, AppFormUtils, IAppForm, IAppFormFactory} from "./form.utils";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
+import {ToolbarComponent} from "../../shared/toolbar/toolbar";
+import {isNotNil, toNumber} from "../../shared/functions";
 
-export class AppTabFormOptions {
+export class AppTabEditorOptions {
 
   /**
    * Number of tab. 1 by default
@@ -51,6 +52,10 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
   error: string;
   loading = true;
   queryParams: Params;
+  i18nContext: {
+    prefix: string;
+    suffix: string;
+  };
 
   @Input() queryTabIndexParamName: string;
 
@@ -59,7 +64,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
   @ViewChild(ToolbarComponent, { static: true }) appToolbar: ToolbarComponent;
   @ViewChild(FormButtonsBarComponent, { static: true }) formButtonsBar: FormButtonsBarComponent;
-
+  @ViewChild(IonContent, {static: true}) content: IonContent;
 
   get tables(): AppTable<any>[] {
     return this._children && (this._children.filter(c => c instanceof AppTable) as AppTable<any>[]);
@@ -74,11 +79,11 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
    */
   get valid(): boolean {
     // Important: Should be not invalid AND not pending, so use '!valid' (DO NOT use 'invalid')
-    return (!this._children || !this._children.find(form => !form.valid));
+    return (!this._children || !this._children.filter(c => c.enabled).find(c => !c.valid));
   }
 
   get invalid(): boolean {
-    return this._children && this._children.find(c => c.invalid) && true;
+    return this._children && this._children.filter(c => c.enabled).find(c => c.invalid) && true;
   }
 
   get pending(): boolean {
@@ -108,7 +113,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
     protected router: Router,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
-    @Optional() options?: AppTabFormOptions
+    @Optional() options?: AppTabEditorOptions
   ) {
     options = {
       tabCount: 1,
@@ -232,6 +237,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
       if (!opts || opts.emitEvent !== false) this.markForCheck();
     }
   }
+
 
   onTabChange(event: MatTabChangeEvent, queryTabIndexParamName?: string): boolean {
     queryTabIndexParamName = queryTabIndexParamName || this.queryTabIndexParamName;
@@ -483,16 +489,25 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
 
   /* -- protected methods -- */
 
-  protected async scrollToTop() {
-    // TODO: FIXME (not working as the page is not the window)
-    const scrollToTop = window.setInterval(() => {
-      const pos = window.pageYOffset;
-      if (pos > 0) {
-        window.scrollTo(0, pos - 20); // how far to scroll on each step
-      } else {
-        window.clearInterval(scrollToTop);
-      }
-    }, 16);
+  protected async scrollToTop(duration?: number) {
+    duration = toNumber(duration, 500);
+
+    if (!this.content) {
+      console.warn(`[tab-editor] Cannot scroll to top. (no 'ion-content' tag found ${this.constructor.name}`);
+
+      // TODO: FIXME (not working as the page is not the window)
+      const scrollToTop = window.setInterval(() => {
+        const pos = window.pageYOffset;
+        if (pos > 0) {
+          window.scrollTo(0, pos - 20); // how far to scroll on each step
+        } else {
+          window.clearInterval(scrollToTop);
+        }
+      }, 16);
+      return;
+    }
+
+    return this.content.scrollToTop(duration);
   }
 
   protected registerSubscription(sub: Subscription|TeardownLogic) {
@@ -557,7 +572,11 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
     if (this.debug) console.debug("[root-editor-form] Page not valid. Checking where (forms, tables)...");
     this._children.forEach(c => {
       // If form
-      if (c instanceof AppForm) {
+      if (c instanceof AppTabEditor) {
+        c.logFormErrors();
+      }
+      // If form
+      else if (c instanceof AppForm) {
         if (!c.empty && !c.valid) {
           if (c.pending) {
             console.warn( `[root-editor-form] [${c.constructor.name.toLowerCase()}] - pending form state`);

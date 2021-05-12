@@ -1,17 +1,10 @@
-import {Moment} from "moment/moment";
-import {
-  fromDateISOString,
-  isEmptyArray,
-  isNil,
-  isNilOrBlank,
-  isNotNil,
-  joinPropertiesPath,
-  toDateISOString
-} from "../../../shared/functions";
+import {Moment} from "moment";
+import {isEmptyArray, isNil, isNilOrBlank, isNotNil, joinPropertiesPath,} from "../../../shared/functions";
 import {FilterFn} from "../../../shared/services/entity-service.class";
 import {ObjectMap, ObjectMapEntry, PropertiesArray, PropertiesMap} from "../../../shared/types";
 import {StoreObject} from "@apollo/client/core";
-import {ReferentialRef} from "../../core.module";
+import {DataEntity} from "../../../data/services/model/data-entity.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 
 export declare interface Cloneable<T> {
@@ -73,8 +66,11 @@ export abstract class Entity<T extends IEntity<any, O, ID>, O extends EntityAsOb
     return other && this.id === other.id;
   }
 
+
+
 }
 
+// @dynamic
 export abstract class EntityUtils {
   // Check that the object has a NOT nil attribute (ID by default)
   static isNotEmpty<T extends IEntity<any> | any>(obj: any | T, checkedAttribute: keyof T): boolean {
@@ -90,7 +86,7 @@ export abstract class EntityUtils {
     return !obj || obj[checkedAttribute] === null || obj[checkedAttribute] === undefined;
   }
 
-  static equals<T extends IEntity<any>|any>(o1: T, o2: T, checkAttribute: keyof T): boolean {
+  static equals<T extends IEntity<any>|any>(o1: T, o2: T, checkAttribute?: keyof T): boolean {
     return (o1 === o2) || (isNil(o1) && isNil(o2))  || (o1 && o2 && o1[checkAttribute] === o2[checkAttribute]);
   }
 
@@ -146,6 +142,22 @@ export abstract class EntityUtils {
     }
   }
 
+  static copyControlDate(source: DataEntity<any> | undefined, target: DataEntity<any>) {
+    if (!source) return;
+
+    // Update (id and updateDate)
+    target.controlDate = fromDateISOString(source.controlDate);
+  }
+
+  static copyQualificationDateAndFlag(source: DataEntity<any> | undefined, target: DataEntity<any>) {
+    if (!source) return;
+
+    // Update (id and updateDate)
+    target.qualificationDate = fromDateISOString(source.qualificationDate); // can be null
+    target.qualificationComments = source.qualificationComments; // can be null
+    target.qualityFlagId = source.qualityFlagId; // can be = 0 (default)
+  }
+
   static async fillLocalIds<T extends IEntity<T>>(items: T[], sequenceFactory: (firstEntity: T, incrementSize: number) => Promise<number>) {
     const newItems = (items || []).filter(item => isNil(item.id) || item.id === 0);
     if (isEmptyArray(newItems)) return;
@@ -175,8 +187,8 @@ export abstract class EntityUtils {
     const isSimplePath = !sortBy || sortBy.indexOf('.') === -1;
     if (isSimplePath) {
       return (a, b) => {
-        const valueA = isNotNil(a) && a[sortBy] || undefined;
-        const valueB = isNotNil(b) && b[sortBy] || undefined;
+        const valueA = isNotNil(a) ? a[sortBy] : undefined;
+        const valueB = isNotNil(b) ? b[sortBy] : undefined;
         return EntityUtils.compare(valueA, valueB, after);
       };
     }

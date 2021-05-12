@@ -1,21 +1,11 @@
 import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {FetchPolicy, gql} from "@apollo/client/core";
 import {EMPTY, Observable} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
-import {
-  EntitiesService,
-  EntityService,
-  EntityServiceLoadOptions,
-  isNil,
-  isNotEmptyArray,
-  isNotNil,
-  LoadResult
-} from "../../shared/shared.module";
-import {BaseEntityService, Department, EntityUtils, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {isEmptyArray, isNilOrBlank} from "../../shared/functions";
+import {isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {NetworkService} from "../../core/services/network.service";
 import {AccountService} from "../../core/services/account.service";
 import {
@@ -26,19 +16,25 @@ import {
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
 } from "../../data/services/model/data-entity.model";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {Operation, OperationFromObjectOptions, Trip, VesselPosition} from "./model/trip.model";
+import {Operation, OperationFromObjectOptions, VesselPosition} from "./model/trip.model";
 import {Measurement} from "./model/measurement.model";
 import {Batch, BatchUtils} from "./model/batch.model";
 import {Sample} from "./model/sample.model";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {EntitiesServiceWatchOptions, FilterFn} from "../../shared/services/entity-service.class";
-import {QueryVariables} from "../../core/services/base.data-service.class";
+import {
+  EntitiesServiceWatchOptions, EntityServiceLoadOptions,
+  FilterFn,
+  IEntitiesService,
+  IEntityService, LoadResult
+} from "../../shared/services/entity-service.class";
+import {BaseGraphqlService, QueryVariables} from "../../core/services/base-graphql-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {chainPromises, firstNotNilPromise} from "../../shared/observables";
-import {FetchPolicy} from "@apollo/client/core";
-import {EntityStoreTypePolicy} from "../../core/services/storage/entity-store.class";
+import {Department} from "../../core/services/model/department.model";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {environment} from "../../../environments/environment";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -161,16 +157,16 @@ export class OperationFilter {
 }
 
 const LoadAllLightQuery: any = gql`
-  query Operations($filter: OperationFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+  query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightOperationFragment
     }
   }
   ${OperationFragments.lightOperation}
 `;
 const LoadAllFullQuery: any = gql`
-  query Operations($filter: OperationFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+  query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...OperationFragment
     }
   }
@@ -185,7 +181,7 @@ const LoadQuery: any = gql`
   ${OperationFragments.operation}
 `;
 const SaveOperations: any = gql`
-  mutation saveOperations($operations:[OperationVOInput]){
+  mutation saveOperations($operations:[OperationVOInput]!){
     saveOperations(operations: $operations){
       ...OperationFragment
     }
@@ -193,7 +189,7 @@ const SaveOperations: any = gql`
   ${OperationFragments.operation}
 `;
 const DeleteOperations: any = gql`
-  mutation deleteOperations($ids:[Int]){
+  mutation deleteOperations($ids:[Int]!){
     deleteOperations(ids: $ids)
   }
 `;
@@ -228,18 +224,16 @@ export declare interface OperationServiceWatchOptions extends
 
   computeRankOrder?: boolean;
   fullLoad?: boolean;
-  fetchPolicy?: FetchPolicy;
+  fetchPolicy?: FetchPolicy; // Avoid the use cache-and-network, that exists in WatchFetchPolicy
 }
 
 
 @Injectable({providedIn: 'root'})
-export class OperationService extends BaseEntityService<Operation, OperationFilter>
-  implements EntitiesService<Operation, OperationFilter, OperationServiceWatchOptions>,
-             EntityService<Operation>{
+export class OperationService extends BaseGraphqlService<Operation, OperationFilter>
+  implements IEntitiesService<Operation, OperationFilter, OperationServiceWatchOptions>,
+             IEntityService<Operation>{
 
-
-
-  loading = false;
+  protected loading = false;
 
   constructor(
     protected graphql: GraphqlService,
@@ -247,7 +241,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     protected accountService: AccountService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     this._mutableWatchQueriesMaxCount = 2;
 
@@ -261,19 +255,6 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
   watchAllByTrip(filter?: OperationFilter & { tripId: number; }, opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
       return this.watchAll(0, -1, null, null, filter, opts);
-  }
-
-  async loadAll(offset: number,
-                size: number,
-                sortBy?: string,
-                sortDirection?: SortDirection,
-                dataFilter?: OperationFilter,
-                opts?: OperationServiceWatchOptions): Promise<Operation[]> {
-     return firstNotNilPromise(
-       this.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts)
-         .pipe(
-           map(res => res.data)
-         ));
   }
 
   /**
@@ -307,8 +288,8 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     const variables: QueryVariables<OperationFilter> = {
       offset: offset || 0,
       size: size >= 0 ? size : 1000,
-      sortBy: (sortBy != 'id' && sortBy) || 'endDateTime',
-      sortDirection: sortDirection || 'asc',
+      sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
+      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
       filter: dataFilter
     };
@@ -317,11 +298,10 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     if (this._debug) console.debug("[operation-service] Loading operations... using options:", variables);
 
     const query = (!opts || opts.fullLoad !== true) ? LoadAllLightQuery : LoadAllFullQuery;
-    return this.mutableWatchQuery<{operations: any[], operationsCount: number}>({
+    return this.mutableWatchQuery<{data: any[]}>({
       queryName: 'LoadAll',
       query: query,
-      arrayFieldName: 'operations',
-      totalFieldName: 'operationsCount',
+      arrayFieldName: 'data',
       insertFilterFn: OperationFilter.searchFilter<Operation>(dataFilter),
       variables: variables,
       error: {code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR"},
@@ -331,21 +311,21 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
       // Skip update during load()
       filter(() => !this.loading),
 
-      map((res) => {
-        const data = (res && res.operations || []).map(source => Operation.fromObject(source, opts));
+      map(({data}) => {
+        const entities = (data || []).map(source => Operation.fromObject(source, opts));
         if (now) {
-          console.debug(`[operation-service] Loaded ${data.length} operations in ${Date.now() - now}ms`);
+          console.debug(`[operation-service] Loaded ${entities.length} operations in ${Date.now() - now}ms`);
           now = undefined;
         }
 
         // Compute rankOrder and re-sort (if enable AND all data fetched)
         if (offset === 0 && size === -1 && (!opts || opts.computeRankOrder !== false)) {
-          this.computeRankOrderAndSort(data, sortBy, sortDirection, dataFilter);
+          this.computeRankOrderAndSort(entities, sortBy, sortDirection, dataFilter);
         }
 
         return {
-          data,
-          total: data.length
+          data: entities,
+          total: entities.length
         };
       }));
   }
@@ -575,7 +555,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
     try {
       // Find operations to delete
-      const res = await this.entities.loadAll<Operation>('OperationVO', {
+      const res = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
         filter: OperationFilter.searchFilter<Operation>(filter)
       });
       const ids = (res && res.data || []).map(o => o.id);
@@ -585,7 +565,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
       return await this.entities.deleteMany(ids, {entityName: Operation.TYPENAME});
     }
     catch (err) {
-      console.error(`[operation-service] Failed to delete operation {tripId: ${filter.tripId}}`, err);
+      console.error(`[operation-service] Failed to delete operations ${JSON.stringify(filter)}`, err);
       throw err;
     }
   }
@@ -604,22 +584,19 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
       console.warn("[operation-service] Trying to load operations without 'filter.tripId'. Skipping.");
       return EMPTY;
     }
-    if (dataFilter.tripId >= 0) throw new Error("Invalid 'filter.tripId': must be a local trip (id<0)!");
+    if (dataFilter.tripId >= 0) throw new Error("Invalid 'filter.tripId': must be a local ID (id<0)!");
 
-    const variables: any = {
+    const variables = {
       offset: offset || 0,
       size: size >= 0 ? size : 1000,
-      sortBy: (sortBy !== 'id' && sortBy) || 'endDateTime',
-      sortDirection: sortDirection || 'asc',
+      sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
+      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
-      filter: dataFilter
+      filter: OperationFilter.searchFilter<Operation>(dataFilter)
     };
 
     if (this._debug) console.debug("[operation-service] Loading operations locally... using options:", variables);
-    return this.entities.watchAll<Operation>(Operation.TYPENAME, {
-      ...variables,
-      filter: OperationFilter.searchFilter<Operation>(dataFilter)
-    }, {fullLoad: opts && opts.fullLoad})
+    return this.entities.watchAll<Operation>(Operation.TYPENAME, variables, {fullLoad: opts && opts.fullLoad})
       .pipe(map(res => {
         const data = (res && res.data || []).map(source => Operation.fromObject(source, opts));
 
@@ -655,10 +632,10 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
   watchRankOrder(source: Operation, opts?: OperationServiceWatchOptions): Observable<number> {
     console.debug(`[operation-service] Loading rankOrder of operation #${source.id}...`);
     const tripId = isNotNil(source.tripId) ? source.tripId : source.trip && source.trip.id;
-    return this.watchAllByTrip({tripId}, opts)
+    return this.watchAllByTrip({tripId}, {fetchPolicy: 'cache-first', ...opts})
       .pipe(
         map(res => {
-          const existingOperation = (res && res.data ||[]).find(o => o.id === source.id);
+          const existingOperation = (res && res.data || []).find(o => o.id === source.id);
           return existingOperation ? existingOperation.rankOrderOnPeriod : null;
         })
       );
@@ -753,9 +730,9 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
       entity.id =  await this.entities.nextValue(entity);
     }
 
-    // Fill all sample id
+    // Fill all sample ids
     const samples = entity.samples && EntityUtils.listOfTreeToArray(entity.samples) || [];
-    await EntityUtils.fillLocalIds(samples, (_, count) => this.entities.nextValues('SampleVO', count));
+    await EntityUtils.fillLocalIds(samples, (_, count) => this.entities.nextValues(Sample.TYPENAME, count));
 
     // Fill all batches id
     const batches = entity.catchBatch && EntityUtils.treeToArray(entity.catchBatch) || [];
@@ -863,6 +840,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
                                     filter?: OperationFilter) {
     // Compute rankOrderOnPeriod, by tripId
     if (filter && isNotNil(filter.tripId)) {
+      const asc = (!sortDirection || sortDirection === 'asc');
       let rankOrderOnPeriod = 1;
       // apply a sorted copy (do NOT change original order), then compute rankOrder
       data.slice().sort(sortByEndDateOrStartDateFn)
@@ -870,7 +848,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
 
       // sort by rankOrderOnPeriod (aka id)
       if (!sortBy || sortBy === 'id') {
-        const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
+        const after = asc ? 1 : -1;
         data.sort((a, b) => {
           const valueA = a.rankOrderOnPeriod;
           const valueB = b.rankOrderOnPeriod;

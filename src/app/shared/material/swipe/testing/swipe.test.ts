@@ -1,7 +1,8 @@
 import {Component, OnInit} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {SharedValidators} from "../../../validator/validators";
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {BehaviorSubject} from "rxjs";
 import {Moment} from "moment";
 import {DateFormatPipe} from "../../../pipes/date-format.pipe";

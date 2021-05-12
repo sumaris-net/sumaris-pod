@@ -27,7 +27,9 @@
     <mat-error *ngIf="formControl.hasError('integer')">
       {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
 
-    <ng-content select="[matSuffix]"></ng-content>
+    <div matSuffix>
+      <ng-content select="[matSuffix]"></ng-content>
+    </div>
   </mat-form-field>
 
   <!-- double -->
@@ -54,7 +56,9 @@
     <mat-error *ngIf="formControl.hasError('maxDecimals')">
       {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS')| translate:{max:
       definition.maximumNumberDecimals} }}</mat-error>
-    <ng-content select="[matSuffix]"></ng-content>
+    <div matSuffix>
+      <ng-content select="[matSuffix]"></ng-content>
+    </div>
   </mat-form-field>
 
   <!-- boolean -->
@@ -168,6 +172,19 @@
     <ng-content select="[matPrefix]"></ng-content>
     <ng-content select="[matSuffix]"></ng-content>
   </mat-autocomplete-field>
+
+  <!-- multi auto-complete -->
+  <mat-chips-field *ngSwitchCase="'entities'"
+                    [class]="classList"
+                    [placeholder]="placeholder"
+                    [floatLabel]="floatLabel"
+                    [formControl]="formControl"
+                    [config]="definition.autocomplete"
+                    [required]="required"
+                    [displayWith]="getDisplayValueFn(definition)">
+    <ng-content select="[matPrefix]"></ng-content>
+    <ng-content select="[matSuffix]"></ng-content>
+  </mat-chips-field>
 
   <!-- other -->
   <div *ngSwitchDefault>

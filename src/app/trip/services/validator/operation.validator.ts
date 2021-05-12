@@ -44,7 +44,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // Add measurement form
     if (opts.withMeasurements) {
-      const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].pmfmStrategies || [])
+      const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms || [])
         .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.OPERATION);
       form.addControl('measurements', this.measurementsValidatorService.getFormGroup(data && data.measurements, {
         isOnFieldMode: opts.isOnFieldMode,

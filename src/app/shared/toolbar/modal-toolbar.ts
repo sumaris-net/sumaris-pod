@@ -1,12 +1,8 @@
-import {ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
-import {ProgressBarService, ProgressMode} from '../services/progress-bar.service';
-import {Router} from "@angular/router";
-import {IonBackButton, IonRouterOutlet, IonSearchbar} from "@ionic/angular";
-import {isNotNil, toBoolean} from "../functions";
-import {debounceTime, distinctUntilChanged, startWith} from "rxjs/operators";
-import {Observable, Subscription} from "rxjs";
+import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {toBoolean} from "../functions";
+import {Subscription} from "rxjs";
 import {Hotkeys} from "../hotkeys/hotkeys.service";
-import {element} from "protractor";
+import {IconRef} from "../types";
 
 @Component({
   selector: 'app-modal-toolbar',
@@ -31,7 +27,9 @@ export class ModalToolbarComponent implements OnInit, OnDestroy {
   showSpinner = false;
 
   @Input()
-  canValidate = true;
+  canValidate: boolean;
+
+  @Input() validateIcon: IconRef = {icon: 'checkmark'};
 
   @Output()
   cancel = new EventEmitter<UIEvent>();
@@ -42,6 +40,7 @@ export class ModalToolbarComponent implements OnInit, OnDestroy {
   constructor(private hotkeys: Hotkeys) {}
 
   ngOnInit() {
+    this.canValidate = toBoolean(this.canValidate, this.validate.observers.length > 0);
 
     // Escape
     this._subscription.add(
@@ -53,4 +52,5 @@ export class ModalToolbarComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this._subscription.unsubscribe();
   }
+
 }

@@ -1,32 +1,23 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {environment, isNotNil, ReferentialRef} from '../../core/core.module';
-import {
-  EntityServiceLoadOptions,
-  fadeInOutAnimation,
-  isNil,
-  isNotEmptyArray,
-  isNotNilOrBlank
-} from '../../shared/shared.module';
-import * as moment from "moment";
+import * as momentImported from "moment";
 import {AcquisitionLevelCodes, SaleTypeIds} from "../../referential/services/model/model.enum";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripForm} from "../trip/trip.form";
 import {BehaviorSubject} from "rxjs";
-import {TripService, TripServiceSaveOptions} from "../services/trip.service";
+import {TripSaveOptions, TripService} from "../services/trip.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {isEmptyArray} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
 import {OperationGroupTable} from "../operationgroup/operation-groups.table";
-import {MatAutocompleteConfigHolder, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {ProductsTable} from "../product/products.table";
-import {Product, ProductFilter} from "../services/model/product.model";
+import {Product, ProductFilter, ProductUtils} from "../services/model/product.model";
 import {PacketsTable} from "../packet/packets.table";
 import {Packet, PacketFilter} from "../services/model/packet.model";
 import {OperationGroup, Trip} from "../services/model/trip.model";
@@ -37,10 +28,17 @@ import {debounceTime, filter, first} from "rxjs/operators";
 import {Sale} from "../services/model/sale.model";
 import {ExpenseForm} from "../expense/expense.form";
 import {FishingAreaForm} from "../fishing-area/fishing-area.form";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {Landing} from "../services/model/landing.model";
-import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {ReferentialRef} from "../../core/services/model/referential.model";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {Program} from "../../referential/services/model/program.model";
+import {environment} from "../../../environments/environment";
+import {Sample} from "../services/model/sample.model";
+
+const moment = momentImported;
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -70,17 +68,18 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   operationGroupAttributes = ['metier.label', 'metier.name'];
 
-  productSalePmfms: PmfmStrategy[];
+  productSalePmfms: DenormalizedPmfmStrategy[];
 
   @ViewChild('tripForm', {static: true}) tripForm: TripForm;
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
   @ViewChild('fishingAreaForm', {static: true}) fishingAreaForm: FishingAreaForm;
   @ViewChild('operationGroupTable', {static: true}) operationGroupTable: OperationGroupTable;
-  @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
   @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
   @ViewChild('packetsTable', {static: true}) packetsTable: PacketsTable;
   @ViewChild('expenseForm', {static: true}) expenseForm: ExpenseForm;
-  // @ViewChild('landedSaleForm', {static: true}) landedSaleForm: LandedSaleForm;
+
+  @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
+
   private _sale: Sale; // pending sale
 
   constructor(
@@ -90,7 +89,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     protected observedLocationService: ObservedLocationService,
     protected vesselService: VesselSnapshotService,
     public network: NetworkService, // Used for DEV (to debug OFFLINE mode)
-    protected formBuilder: FormBuilder
+    protected formBuilder: FormBuilder,
   ) {
     super(injector,
       Trip,
@@ -106,37 +105,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   ngOnInit() {
     super.ngOnInit();
-
-    // Watch program, to configure tables from program properties
-    this.registerSubscription(
-      this.onProgramChanged
-        .subscribe(async program => {
-          if (this.debug) console.debug(`[landedTrip] Program ${program.label} loaded, with properties: `, program.properties);
-
-          // Configure trip form
-          this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
-          if (!this.tripForm.showObservers) {
-            // make sure to reset data observers, if any
-            if (this.data) this.data.observers = [];
-          }
-          this.tripForm.showMetiers = program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE);
-          if (!this.tripForm.showMetiers) {
-            // make sure to reset data metiers, if any
-            if (this.data) this.data.metiers = [];
-          } else {
-            this.tripForm.metiersForm.valueChanges.subscribe(value => {
-              const metiers = ((value || []) as ReferentialRef[]).filter(metier => isNotNilOrBlank(metier));
-              if (JSON.stringify(metiers) !== JSON.stringify(this.$metiers.value || [])) {
-                if (this.debug) console.debug('[landedTrip-page] metiers array has changed', metiers);
-                this.$metiers.next(metiers);
-              }
-            });
-          }
-
-          // Configure fishing area form
-          this.fishingAreaForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID);
-        })
-    );
 
     this.catchFilterForm = this.formBuilder.group({
       operationGroup: [null]
@@ -208,12 +176,38 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   protected registerForms() {
     this.addChildForms([
       this.tripForm, this.measurementsForm, this.fishingAreaForm,
-      // this.landedSaleForm //, this.saleMeasurementsForm
       this.expenseForm,
       this.operationGroupTable, this.productsTable, this.packetsTable
     ]);
   }
 
+  protected async setProgram(program: Program) {
+    if (!program) return; // Skip
+    if (this.debug) console.debug(`[landedTrip] Program ${program.label} loaded, with properties: `, program.properties);
+
+    // Configure trip form
+    this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
+    if (!this.tripForm.showObservers) {
+      // make sure to reset data observers, if any
+      if (this.data) this.data.observers = [];
+    }
+    this.tripForm.showMetiers = program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE);
+    if (!this.tripForm.showMetiers) {
+      // make sure to reset data metiers, if any
+      if (this.data) this.data.metiers = [];
+    } else {
+      this.tripForm.metiersForm.valueChanges.subscribe(value => {
+        const metiers = ((value || []) as ReferentialRef[]).filter(metier => isNotNilOrBlank(metier));
+        if (JSON.stringify(metiers) !== JSON.stringify(this.$metiers.value || [])) {
+          if (this.debug) console.debug('[landedTrip-page] metiers array has changed', metiers);
+          this.$metiers.next(metiers);
+        }
+      });
+    }
+
+    // Configure fishing area form
+    this.fishingAreaForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS);
+  }
 
   async load(id?: number, options?: EntityServiceLoadOptions): Promise<void> {
 
@@ -240,7 +234,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
         // program
         data.program = observedLocation.program;
-        this.programSubject.next(data.program.label);
+        this.$programLabel.next(data.program.label);
 
         // location
         const location = observedLocation.location;
@@ -331,11 +325,11 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     this.tripForm.value = data;
     const isNew = isNil(data.id);
     if (!isNew) {
-      this.programSubject.next(data.program.label);
+      this.$programLabel.next(data.program.label);
       this.$metiers.next(data.metiers);
 
       // fixme trouver un meilleur moment pour charger les pmfms
-      this.productSalePmfms = await this.programService.loadProgramPmfms(data.program.label, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE});
+      this.productSalePmfms = await this.programRefService.loadProgramPmfms(data.program.label, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE});
 
     }
 
@@ -353,26 +347,35 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     this.operationGroupTable.value = operationGroups;
     this.$operationGroups.next(operationGroups);
 
-    let products: Product[] = [];
-    let packets: Packet[] = [];
+    let allProducts: Product[] = [];
+    let allPackets: Packet[] = [];
+    // Iterate over operation groups to collect products, samples and packets
     operationGroups.forEach(operationGroup => {
-      products = products.concat(operationGroup.products);
-      packets = packets.concat(operationGroup.packets);
+      // collect all operation group's samples and dispatch to products
+      const products = operationGroup.products || [];
+      if (isNotEmptyArray(operationGroup.samples)) {
+        products.forEach(product => {
+          product.samples = operationGroup.samples.filter(sample => ProductUtils.isSampleOfProduct(product, sample));
+        });
+      }
+      // collect all operation group's products (with related samples)
+      allProducts = allProducts.concat(products);
+      // collect all operation group's packets
+      allPackets = allPackets.concat(operationGroup.packets);
     });
 
     // Fix products and packets rank orders (reset if rank order are invalid, ie. from SIH)
-    if (!isRankOrderValid(products))
-      fillRankOrder(products);
-    if (!isRankOrderValid(packets))
-      fillRankOrder(packets);
+    if (!isRankOrderValid(allProducts))
+      fillRankOrder(allProducts);
+    if (!isRankOrderValid(allPackets))
+      fillRankOrder(allPackets);
 
     // Sale
     if (data && data.sale && this.productSalePmfms) {
 
       // fix sale startDateTime
-      data.sale.startDateTime = !data.sale.startDateTime ? data.returnDateTime : data.sale.startDateTime;
+      data.sale.startDateTime = data.sale.startDateTime || data.returnDateTime;
 
-      // this.landedSaleForm.value = data.sale;
       // keep sale object in safe place
       this._sale = data.sale;
 
@@ -380,19 +383,19 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       if (isNotEmptyArray(data.sale.products)) {
 
         // First, reset products and packets sales
-        products.forEach(product => product.saleProducts = []);
-        packets.forEach(packet => packet.saleProducts = []);
+        allProducts.forEach(product => product.saleProducts = []);
+        allPackets.forEach(packet => packet.saleProducts = []);
 
         data.sale.products.forEach(saleProduct => {
           if (isNil(saleProduct.batchId)) {
             // = product
-            const productFound = products.find(product => SaleProductUtils.isSaleOfProduct(product, saleProduct, this.productSalePmfms));
+            const productFound = allProducts.find(product => SaleProductUtils.isSaleOfProduct(product, saleProduct, this.productSalePmfms));
             if (productFound) {
               productFound.saleProducts.push(saleProduct);
             }
           } else {
             // = packet
-            const packetFound = packets.find(packet => SaleProductUtils.isSaleOfPacket(packet, saleProduct));
+            const packetFound = allPackets.find(packet => SaleProductUtils.isSaleOfPacket(packet, saleProduct));
             if (packetFound) {
               packetFound.saleProducts.push(saleProduct);
             }
@@ -400,15 +403,15 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
         });
 
         // need fill products.saleProducts.rankOrder
-        products.forEach(p => fillRankOrder(p.saleProducts));
+        allProducts.forEach(p => fillRankOrder(p.saleProducts));
       }
     }
 
     // Products table
-    this.productsTable.value = products;
+    this.productsTable.value = allProducts;
 
     // Packets table
-    this.packetsTable.value = packets;
+    this.packetsTable.value = allPackets;
 
   }
 
@@ -418,7 +421,10 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     if (savedOrContinue) {
       this.loading = true;
       try {
-        await this.router.navigateByUrl(`/trips/${this.data.id}/operations/${id}`);
+        await this.router.navigate(['trips', this.data.id, 'operation', id],
+          {
+            queryParams: {}
+          });
       } finally {
         this.loading = false;
       }
@@ -438,7 +444,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       this.loading = true;
       this.markForCheck();
       try {
-        await this.router.navigateByUrl(`/trips/${this.data.id}/operations/new`);
+        await this.router.navigateByUrl(`/trips/${this.data.id}/operation/new`);
       } finally {
         this.loading = false;
         this.markForCheck();
@@ -450,8 +456,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     const enabled = super.enable(opts);
 
     // Leave program & vessel controls disabled
-    this.form.controls['program'].disable(opts);
-    this.form.controls['vesselSnapshot'].disable(opts);
+    this.form.get('program').disable(opts);
+    this.form.get('vesselSnapshot').disable(opts);
 
     return enabled;
   }
@@ -468,7 +474,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     if (!this.data) return;
 
     // Copy the trip
-    await (this.dataService as TripService).copyLocallyById(this.data.id, {isLandedTrip: true, withOperationGroup: true});
+    await this.dataService.copyLocallyById(this.data.id, {isLandedTrip: true, withOperationGroup: true});
 
   }
 
@@ -539,22 +545,39 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
     // Restore sale
     json.sale = this._sale && this._sale.asObject();
-    // Sale
-    // json.sale = this.landedSaleForm.value;
-    if (json.sale) {
-      // sale products won't be saved with sale directly
-      delete json.sale.products;
-    } else {
-      // need a sale object if any sale product found
+    if (!json.sale) {
+      // Create a sale object if any sale product found
       if (products.find(product => isNotEmptyArray(product.saleProducts))
         || packets.find(packet => isNotEmptyArray(packet.saleProducts))) {
-        json.sale = {saleType: {id: SaleTypeIds.OTHER}};
+        json.sale = {
+          startDateTime: json.returnDateTime,
+          saleType: {id: SaleTypeIds.OTHER}
+        };
       }
     }
 
-    // Affect in each operation group : products and packets
+    if (json.sale) {
+      // Gather all sale products
+      const saleProducts: Product[] = [];
+      products.forEach(product => isNotEmptyArray(product.saleProducts) && saleProducts.push(...product.saleProducts));
+      packets.forEach(packet => {
+        if (isNotEmptyArray(packet.saleProducts)) {
+          packet.saleProducts.forEach(saleProduct => {
+            // Affect batchId (= packet.id)
+            saleProduct.batchId = packet.id;
+          });
+          saleProducts.push(...packet.saleProducts);
+        }
+      });
+      json.sale.products = saleProducts;
+    }
+
+    // Affect in each operation group : products, samples and packets
     operationGroups.forEach(operationGroup => {
       operationGroup.products = products.filter(product => operationGroup.equals(product.parent as OperationGroup));
+      let samples: Sample[] = [];
+      (operationGroup.products || []).forEach(product => samples = samples.concat(product.samples || []));
+      operationGroup.samples = samples;
       operationGroup.packets = packets.filter(packet => operationGroup.equals(packet.parent as OperationGroup));
     });
 
@@ -566,7 +589,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   async save(event, options?: any): Promise<boolean> {
 
-    const saveOptions: TripServiceSaveOptions = {
+    const saveOptions: TripSaveOptions = {
       withLanding: true // indicate service to reload with LandedTrip query
     };
 
@@ -620,22 +643,10 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     return firstInvalidTab > -1 ? firstInvalidTab : this.selectedTabIndex;
   }
 
-  /**
-   * Update route with correct url
-   * workaround for #185
-   *
-   * @param data
-   * @param queryParams
-   */
-  protected async updateRoute(data: Trip, queryParams: any): Promise<boolean> {
-    const commands = this.defaultBackHref.split('/').concat(['trip', data.id.toString()]);
-    return await this.router.navigate(commands, {
-      replaceUrl: true,
-      queryParams: this.queryParams
-    });
+  protected computePageUrl(id: number|'new'): string | any[] {
+    const parentUrl = this.getParentPageUrl();
+    return `${parentUrl}/trip/${id}`;
   }
-
-
 
   protected markForCheck() {
     this.cd.markForCheck();

@@ -1,15 +1,15 @@
 import {TableDataSource, TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {isNotEmptyArray, isNotNil, LoadResult, EntitiesService, toBoolean} from '../../shared/shared.module';
 import {Entity, IEntity} from "../services/model/entity.model";
 import {ErrorCodes} from '../services/errors';
-import {catchError, first, map, takeUntil} from "rxjs/operators";
+import {catchError, map, takeUntil} from "rxjs/operators";
 import {Directive, OnDestroy} from "@angular/core";
-import {EntitiesServiceWatchOptions} from "../../shared/services/entity-service.class";
+import {EntitiesServiceWatchOptions, IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {CollectionViewer} from "@angular/cdk/collections";
 import {firstNotNilPromise} from "../../shared/observables";
-import {environment} from "../../../environments/environment";
+import {isNotEmptyArray, isNotNil, toBoolean} from "../../shared/functions";
+import {TableDataSourceOptions} from "@e-is/ngx-material-table/src/app/ngx-material-table/table-data-source";
 
 
 export declare interface AppTableDataServiceOptions<O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> extends EntitiesServiceWatchOptions {
@@ -17,39 +17,45 @@ export declare interface AppTableDataServiceOptions<O extends EntitiesServiceWat
   readOnly?: boolean;
   [key: string]: any;
 }
-export declare interface AppTableDataSourceOptions<T extends Entity<T>, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> {
-  prependNewElements: boolean;
-  suppressErrors: boolean;
+export class AppTableDataSourceOptions<T extends Entity<T>, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> implements TableDataSourceOptions {
+  prependNewElements?: boolean;
+  suppressErrors?: boolean;
+  keepOriginalDataAfterConfirm?: boolean;
   onRowCreated?: (row: TableElement<T>) => Promise<void> | void;
   dataServiceOptions?: AppTableDataServiceOptions<O>;
+  debug?: boolean;
   [key: string]: any;
 }
 
+// @dynamic
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions>
     extends TableDataSource<T>
     implements OnDestroy {
 
+  private readonly _options: AppTableDataSourceOptions<T, O>;
+  private _loaded = false;
+
   protected readonly _debug: boolean;
-  protected _config: AppTableDataSourceOptions<T, O>;
   protected _creating = false;
   protected _saving = false;
   protected _useValidator = false;
   protected _stopWatchAll$ = new Subject();
-  private _loaded = false;
+  protected _editingRowCount = 0;
 
   $busy = new BehaviorSubject(false);
 
   get serviceOptions(): AppTableDataServiceOptions<O> {
-    return this._config.dataServiceOptions;
+    return this._options.dataServiceOptions;
   }
 
   set serviceOptions(value: AppTableDataServiceOptions<O>)  {
-    this._config.dataServiceOptions = value;
+    this._options.dataServiceOptions = value;
   }
 
   get options(): AppTableDataSourceOptions<T, O> {
-    return this._config;
+    return this._options;
   }
 
   get loaded(): boolean {
@@ -58,27 +64,26 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
 
   /**
    * Creates a new TableDataSource instance, that can be used as datasource of `@angular/cdk` data-table.
-   * @param data Array containing the initial values for the TableDataSource. If not specified, then `dataType` must be specified.
    * @param dataService A service to load and save data
    * @param dataType Type of data contained by the Table. If not specified, then `data` with at least one element must be specified.
+   * @param environment
    * @param validatorService Service that create instances of the FormGroup used to validate row fields.
    * @param config Additional configuration for table.
    */
   constructor(dataType: new() => T,
-              public readonly dataService: EntitiesService<T, F, O>,
+              public readonly dataService: IEntitiesService<T, F, O>,
               validatorService?: ValidatorService,
               config?: AppTableDataSourceOptions<T, O>) {
     super([], dataType, validatorService, config);
-    this._config = {
-      prependNewElements: false,
-      suppressErrors: true,
+    this._options = {
       dataServiceOptions: {},
+      debug: !config.suppressErrors,
       ...config
     };
     this._useValidator = isNotNil(validatorService);
 
     // For DEV ONLY
-    this._debug = !environment.production;
+    this._debug = this._options.debug === true;
   }
 
   ngOnDestroy() {
@@ -95,7 +100,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
            filter?: F): Observable<LoadResult<T>> {
 
     this._stopWatchAll$.next(); // stop previous watch observable
-
+    this._editingRowCount = 0;
     this.$busy.next(true);
     return this.dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions as O)
       .pipe(
@@ -104,7 +109,9 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
         catchError(err => this.handleError(err, 'ERROR.LOAD_DATA_ERROR')),
         map((res: LoadResult<T>) => {
           if (this._saving) {
-            console.error(`[table-datasource] Service ${this.dataService.constructor.name} sent data, while will saving... should skip ?`);
+            console.info(`[table-datasource] Service ${this.dataService.constructor.name} sent data, but still saving: skip`);
+          } else if (this._editingRowCount > 0) {
+            console.warn(`[table-datasource] Service ${this.dataService.constructor.name} sent data, while ${this._editingRowCount} rows still editing: skip; Must check the save behavior on the implemented table !`);
           } else {
             this.$busy.next(false);
             if (this._debug) console.debug(`[table-datasource] Service ${this.dataService.constructor.name} sent new data: updating datasource...`, res);
@@ -176,15 +183,20 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
 
       const savedData = await this.dataService.saveAll(dataToSave, this.serviceOptions);
 
-      if (this._debug) console.debug('[table-datasource] Data saved. Updated data received by service:', savedData);
-      if (this._debug) console.debug('[table-datasource] Updating datasource...', data);
+      if (this._debug) {
+        console.debug('[table-datasource] Data saved. Updated data received by service:', savedData);
+        console.debug('[table-datasource] Updating datasource with data:', data);
+      }
+      // LP 23/03/2021: update datasource is necessary but can be changed to a refetch() on QueryRef (must be created and registered in GraphqlService.watchQuery)
       this.updateDatasource(data, {emitEvent: false});
+
       return true;
     } catch (error) {
       if (this._debug) console.error('[table-datasource] Error while saving: ' + error && error.message || error);
       throw error;
     } finally {
       this._saving = false;
+      this._editingRowCount = 0;
       // Always update the loading indicator
       this.$busy.next(false);
     }
@@ -196,8 +208,8 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
   }
 
   // Overwrite default signature
-  createNew(): void {
-    this.asyncCreateNew();
+  createNew(insertAt?: number): void {
+    this.asyncCreateNew(insertAt);
   }
 
   disconnect(collectionViewer?: CollectionViewer) {
@@ -226,11 +238,13 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
   startEdit(row: TableElement<T>) {
     if (this._debug) console.debug("[table-datasource] Start to edit row", row);
     row.startEdit();
+    this._editingRowCount++;
   }
 
   cancelOrDelete(row: TableElement<T>) {
     if (this._debug) console.debug("[table-datasource] Cancelling or deleting row", row);
     row.cancelOrDelete();
+    this._editingRowCount--;
   }
 
   handleError(error: any, message: string): Observable<LoadResult<T>> {
@@ -302,25 +316,26 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
     return firstNotNilPromise(this.connect(null)) as Promise<TableElement<T>[]>;
   }
 
-  public async asyncCreateNew(): Promise<void> {
+  public async asyncCreateNew(insertAt?: number): Promise<void> {
     if (this._creating) return; // Avoid multiple call
     this._creating = true;
-    super.createNew();
+    super.createNew(insertAt);
     const row = this.getRow(-1);
 
-    if (row && this._config && this._config.onRowCreated) {
-      const res = this._config.onRowCreated(row);
+    if (row && this._options && this._options.onRowCreated) {
+      const res = this._options.onRowCreated(row);
       // If async function, wait the end before ending
       if (res instanceof Promise) {
         try {
           await res;
         }
-        catch(err)  {
-          console.error(err && err.message | err, err);
+        catch (err)  {
+          console.error(err && err.message || err, err);
         }
       }
     }
 
+    this._editingRowCount++;
     this._creating = false;
   }
 
@@ -333,7 +348,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
     let errorsMessage = "";
     Object.getOwnPropertyNames(row.validator.controls)
       .forEach(key => {
-        let control = row.validator.controls[key];
+        const control = row.validator.controls[key];
         if (control.invalid) {
           errorsMessage += "'" + key + "' (" + (control.errors ? Object.getOwnPropertyNames(control.errors) : 'unknown error') + "),";
         }

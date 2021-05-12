@@ -1,13 +1,16 @@
 import {Entity, EntityUtils} from "../../../core/services/model/entity.model";
 import {Moment} from "moment";
-import {ReferentialAsObjectOptions, ReferentialRef} from "../../../core/services/model/referential.model";
-import {fromDateISOString, isNotNil, toDateISOString} from "../../../shared/functions";
+import {Referential, ReferentialAsObjectOptions, ReferentialRef} from "../../../core/services/model/referential.model";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {Strategy} from "./strategy.model";
 import {PropertiesMap} from "../../../shared/types";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {isNotNil} from "../../../shared/functions";
 
 
-export class Program extends Entity<Program> {
+export class Program extends Referential<Program> {
+
+  static TYPENAME = 'ProgramVO';
 
   static fromObject(source: any): Program {
     if (!source || source instanceof Program) return source;
@@ -16,30 +19,17 @@ export class Program extends Entity<Program> {
     return res;
   }
 
-  label: string;
-  name: string;
-  description: string;
-  comments: string;
-  creationDate: Moment;
-  statusId: number;
   properties: PropertiesMap;
-
   gearClassification: ReferentialRef;
   taxonGroupType: ReferentialRef;
   locationClassifications: ReferentialRef[];
   locations: ReferentialRef[];
-
   strategies: Strategy[];
 
-  constructor(data?: {
-    id?: number,
-    label?: string,
-    name?: string
-  }) {
+  constructor() {
     super();
-    this.id = data && data.id;
-    this.label = data && data.label;
-    this.name = data && data.name;
+    this.__typename = Program.TYPENAME;
+    this.properties = {};
   }
 
   clone(): Program {
@@ -56,7 +46,6 @@ export class Program extends Entity<Program> {
       };
     }
     const target: any = super.asObject(opts);
-    target.creationDate = toDateISOString(this.creationDate);
     target.properties = {...this.properties};
     target.gearClassification = this.gearClassification && this.gearClassification.asObject(opts);
     target.taxonGroupType = this.taxonGroupType && this.taxonGroupType.asObject(opts);
@@ -69,23 +58,18 @@ export class Program extends Entity<Program> {
 
   fromObject(source: any) {
     super.fromObject(source);
-    this.label = source.label;
-    this.name = source.name;
-    this.description = source.description;
-    this.comments = source.comments;
-    this.statusId = source.statusId;
-    this.creationDate = fromDateISOString(source.creationDate);
     if (source.properties && source.properties instanceof Array) {
       this.properties = EntityUtils.getPropertyArrayAsObject(source.properties);
     } else {
       this.properties = {...source.properties};
     }
     this.gearClassification = source.gearClassification && ReferentialRef.fromObject(source.gearClassification);
-    this.taxonGroupType = source.taxonGroupType && ReferentialRef.fromObject(source.taxonGroupType);
+    this.taxonGroupType = (source.taxonGroupType && ReferentialRef.fromObject(source.taxonGroupType)) ||
+      (isNotNil(source.taxonGroupTypeId) ? ReferentialRef.fromObject({id: source.taxonGroupTypeId}) : undefined);
     this.locationClassifications = source.locationClassifications  && source.locationClassifications.map(ReferentialRef.fromObject) || [];
     this.locations = source.locations && source.locations.map(ReferentialRef.fromObject) || [];
 
-    this.strategies = (source.strategies || []).map(Strategy.fromObject);
+    this.strategies = source.strategies && source.strategies.map(Strategy.fromObject) || [];
   }
 
   equals(other: Program): boolean {

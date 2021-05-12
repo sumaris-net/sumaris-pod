@@ -3,7 +3,11 @@ import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
 import {Sample} from "../model/sample.model";
-import {toNumber} from "../../../shared/functions";
+import {isNotNil, toNumber} from "../../../shared/functions";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {Subscription} from "rxjs";
+import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
+import {ParameterLabelGroups} from "../../../referential/services/model/model.enum";
 
 @Injectable({providedIn: 'root'})
 export class SampleValidatorService implements ValidatorService {
@@ -42,4 +46,6 @@ export class SampleValidatorService implements ValidatorService {
       ]
     });
   }
+
+
 }

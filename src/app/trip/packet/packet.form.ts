@@ -9,8 +9,11 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {PacketValidatorService} from "../services/validator/packet.validator";
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {ProgramService} from "../../referential/services/program.service";
 import {isNil, isNotEmptyArray, isNotNilOrNaN, round} from "../../shared/functions";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {PlatformService} from "../../core/services/platform.service";
+import {LoadResult} from "../../shared/services/entity-service.class";
+
 
 @Component({
   selector: 'app-packet-form',
@@ -20,62 +23,62 @@ import {isNil, isNotEmptyArray, isNotNilOrNaN, round} from "../../shared/functio
 })
 export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
 
-  computing = false;
+    private _program: string;
 
-  compositionHelper: FormArrayHelper<PacketComposition>;
-  compositionFocusIndex = -1;
+    computing = false;
+    compositionHelper: FormArrayHelper<PacketComposition>;
+    compositionFocusIndex = -1;
 
-  get compositionsFormArray(): FormArray {
-    return this.form.controls.composition as FormArray;
-  }
+    @Input() mobile: boolean;
+    @Input() showError = true;
+    @Input() usageMode: UsageMode;
 
-  private _program: string;
+    @Input()
+    set program(value: string) {
+      this._program = value;
+    }
 
-  @Input()
-  set program(value: string) {
-    this._program = value;
-  }
+    get program(): string {
+      return this._program;
+    }
 
-  get program(): string {
-    return this._program;
-  }
+    get compositionsFormArray(): FormArray {
+      return this.form.controls.composition as FormArray;
+    }
 
-  mobile: boolean;
+    get value(): any {
+      const json = this.form.value;
 
-  @Input() showError = true;
-  @Input() usageMode: UsageMode;
+      // Update rankOrder on composition
+      if (json.composition && isNotEmptyArray(json.composition)) {
+        for (let i = 0; i < json.composition.length; i++) {
+          // Set rankOrder
+          json.composition[i].rankOrder = i + 1;
 
-  get value(): any {
-    const json = this.form.value;
-
-    // Update rankOrder on composition
-    if (json.composition && isNotEmptyArray(json.composition)) {
-      for (let i = 0; i < json.composition.length; i++) {
-        // Set rankOrder
-        json.composition[i].rankOrder = i + 1;
-
-        // Fix ratio if empty
-        for (const index of PacketComposition.indexes) {
-          if (isNotNilOrNaN(json['sampledWeight' + index]) && isNil(json.composition[i]['ratio' + index])) {
-            json.composition[i]['ratio' + index] = 0;
+          // Fix ratio if empty
+          for (const index of PacketComposition.indexes) {
+            if (isNotNilOrNaN(json['sampledWeight' + index]) && isNil(json.composition[i]['ratio' + index])) {
+              json.composition[i]['ratio' + index] = 0;
+            }
           }
         }
       }
+
+      return json;
     }
 
-    return json;
-  }
-
-  constructor(
-    protected dateAdapter: DateAdapter<Moment>,
-    protected validatorService: PacketValidatorService,
-    protected settings: LocalSettingsService,
-    protected cd: ChangeDetectorRef,
-    protected formBuilder: FormBuilder,
-    protected programService: ProgramService
+    constructor(
+      protected dateAdapter: DateAdapter<Moment>,
+      protected validatorService: PacketValidatorService,
+      protected settings: LocalSettingsService,
+      protected formBuilder: FormBuilder,
+      protected programRefService: ProgramRefService,
+      protected platform: PlatformService,
+      protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, validatorService.getFormGroup(undefined, {withComposition: true}), settings);
 
+    this.mobile = platform.mobile;
   }
 
   ngOnInit() {
@@ -86,13 +89,13 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     this.usageMode = this.usageMode || this.settings.usageMode;
 
     this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
+      suggestFn: (value, options) => this.suggestTaxonGroups(value, options)
     });
 
   }
 
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
-    return this.programService.suggestTaxonGroups(value,
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
+    return this.programRefService.suggestTaxonGroups(value,
       {
         program: this.program,
         searchAttribute: options && options.searchAttribute

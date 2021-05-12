@@ -1,21 +1,21 @@
-import {Injectable} from "@angular/core";
+import {Inject, Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {BehaviorSubject, defer, Observable} from 'rxjs';
-import {EntitiesService, LoadResult, SuggestService} from "../../shared/shared.module";
-import {BaseEntityService} from "../../core/services/base.data-service.class";
+import {BehaviorSubject, Observable} from 'rxjs';
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {EntityUtils} from "../../core/services/model/entity.model";
-import {fetchAllPagesWithProgress} from "../../shared/services/entity-service.class";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {environment} from "../../../environments/environment";
-import {Beans, KeysEnum} from "../../shared/functions";
-import {Person} from "../../core/services/model/person.model";
+import {Beans, isNil, isNotEmptyArray, KeysEnum} from "../../shared/functions";
+import {Person, UserProfileLabels} from "../../core/services/model/person.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {SortDirection} from "@angular/material/sort";
+import {JobUtils} from "../../shared/services/job.utils";
+import {FilterFn, IEntitiesService, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 export const PersonFragments = {
   person: gql`fragment PersonFragment on PersonVO {
@@ -44,7 +44,7 @@ export const PersonFragments = {
 // Load persons query
 const LoadAllQuery = gql`
   query Persons($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: PersonFilterVOInput){
-    persons(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+    data: persons(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...PersonFragment
     }
   }
@@ -54,10 +54,10 @@ const LoadAllQuery = gql`
 // Load persons query
 const LoadAllWithTotalQuery = gql`
   query PersonsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: PersonFilterVOInput){
-    persons(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+    data: persons(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...PersonFragment
     }
-    personsCount(filter: $filter)
+    total: personsCount(filter: $filter)
   }
   ${PersonFragments.person}
 `;
@@ -68,11 +68,39 @@ export class PersonFilter {
   searchText?: string;
   statusIds?: number[];
   userProfiles?: string[];
+  excludedIds?: number[];
+  searchAttribute?: string;
 
-  static isEmpty(personFilter: PersonFilter|any): boolean {
-    return Beans.isEmpty<PersonFilter>(personFilter, PersonFilterKeys, {
+  static searchFilter<T extends Person>(f: PersonFilter): (T) => boolean {
+    const filterFns: FilterFn<T>[] = [];
+
+    // Filter by status
+    if (f.statusIds) {
+      filterFns.push((entity) => !!f.statusIds.find(v => entity.statusId === v));
+    }
+
+    // Filter excluded ids
+    if (isNotEmptyArray(f.excludedIds)) {
+      filterFns.push((entity) => isNil(entity.id) || !f.excludedIds.includes(entity.id));
+    }
+
+    // Search text
+    const searchTextFilter = EntityUtils.searchTextFilter(f.searchAttribute || ['lastName', 'firstName', 'department.name'], f.searchText);
+    if (searchTextFilter) filterFns.push(searchTextFilter);
+
+    if (!filterFns.length) return undefined;
+
+    return (entity) => !filterFns.find(fn => !fn(entity));
+  }
+
+  static isEmpty(filter: PersonFilter|any): boolean {
+    return Beans.isEmpty<PersonFilter>(filter, PersonFilterKeys, {
       blankStringLikeEmpty: true
     });
+  }
+
+  static asPodObject(filter: PersonFilter|any) {
+    return Beans.copy(filter, PersonFilter, PersonFilterKeys);
   }
 }
 export const PersonFilterKeys: KeysEnum<PersonFilter> = {
@@ -81,6 +109,8 @@ export const PersonFilterKeys: KeysEnum<PersonFilter> = {
   searchText: true,
   statusIds: true,
   userProfiles: true,
+  excludedIds: true,
+  searchAttribute: true
 };
 
 const SavePersons: any = gql`
@@ -98,15 +128,16 @@ const DeletePersons: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class PersonService extends BaseEntityService<Person, PersonFilter>
-  implements EntitiesService<Person, PersonFilter>, SuggestService<Person, PersonFilter> {
+export class PersonService extends BaseGraphqlService<Person, PersonFilter>
+  implements IEntitiesService<Person, PersonFilter>, SuggestService<Person, PersonFilter> {
 
   constructor(
     protected graphql: GraphqlService,
     protected network: NetworkService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    @Inject(ENVIRONMENT) protected environment
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     // for DEV only -----
     this._debug = !environment.production;
@@ -138,51 +169,73 @@ export class PersonService extends BaseEntityService<Person, PersonFilter>
       size: size || 100,
       sortBy: sortBy || 'lastName',
       sortDirection: sortDirection || 'asc',
-      filter: Beans.copy(filter, PersonFilter, PersonFilterKeys)
+      filter: PersonFilter.asPodObject(filter)
     };
 
     if (this._debug) console.debug("[person-service] Watching persons, using filter: ", variables);
 
-    if ((!opts || opts.withTotal !== false)) {
-      return this.mutableWatchQuery<{ persons: Person[]; personsCount?: number }>({
-        queryName: 'LoadAllWithTotal',
-        query: LoadAllWithTotalQuery,
-        arrayFieldName: 'persons',
-        totalFieldName: 'personsCount',
-        variables,
-        error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
-        fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
+    const withTotal = (!opts || opts.withTotal !== false);
+    return this.mutableWatchQuery<LoadResult<Person>>({
+      queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
+      query: withTotal ? LoadAllWithTotalQuery : LoadAllQuery,
+      arrayFieldName: 'data',
+      totalFieldName: (!opts || opts.withTotal !== false) ? 'total' : undefined,
+      variables,
+      error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
+      fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
+    })
+    .pipe(
+      map(({data, total}) => {
+        return {
+          data: (data || []).map(Person.fromObject),
+          total
+        };
       })
-      .pipe(
-        map((res) => {
-          return {
-            data: (res && res.persons || []).map(Person.fromObject),
-            total: res && res.personsCount || 0
-          };
-        })
-      );
-    }
-    else {
-      return this.mutableWatchQuery<{ persons: Person[] }>({
-        queryName: 'LoadAll',
-        query: LoadAllQuery,
-        arrayFieldName: 'persons',
-        variables,
-        error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
-        fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
-      })
-        .pipe(
-          map((res) => {
-            return {
-              data: (res && res.persons || []).map(Person.fromObject),
-              total: res && res.persons && res.persons.length || 0
-            };
-          })
-        );
-    }
+    );
   }
 
   async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: PersonFilter, opts?: {
+    [key: string]: any;
+    fetchPolicy?: FetchPolicy;
+    debug?: boolean;
+    withTotal?: boolean;
+    toEntity?: boolean;
+  }): Promise<LoadResult<Person>> {
+
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    if (offline) {
+      return this.loadAllLocally(offset, size, sortBy, sortDirection, filter, opts);
+    }
+
+    const variables = {
+      offset: offset || 0,
+      size: size || 100,
+      sortBy: sortBy || 'lastName',
+      sortDirection: sortDirection || 'asc',
+      filter: PersonFilter.asPodObject(filter)
+    };
+
+    const debug = this._debug && (!opts || opts.debug !== false);
+    if (debug) console.debug("[person-service] Loading persons, using filter: ", variables);
+
+    const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
+    const {data, total} = await this.graphql.query<LoadResult<Person>>({
+      query,
+      variables,
+      error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
+      fetchPolicy: opts && opts.fetchPolicy || undefined
+    });
+
+    const entities = (!opts || opts.toEntity !== false) ?
+      (data || []).map(Person.fromObject) :
+      (data || []) as Person[];
+    return {
+      data: entities,
+      total
+    };
+  }
+
+  async loadAllLocally(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: PersonFilter, opts?: {
     [key: string]: any;
     fetchPolicy?: FetchPolicy;
     debug?: boolean;
@@ -194,48 +247,17 @@ export class PersonService extends BaseEntityService<Person, PersonFilter>
       size: size || 100,
       sortBy: sortBy || 'lastName',
       sortDirection: sortDirection || 'asc',
-      filter: Beans.copy(filter, PersonFilter, PersonFilterKeys)
+      filter: PersonFilter.searchFilter(filter)
     };
 
-    const debug = this._debug && (!opts || opts.debug !== false);
-    const now = debug && Date.now();
-    if (debug) console.debug("[person-service] Loading persons, using filter: ", variables);
+    const {data, total} = await this.entities.loadAll<Person>('PersonVO', variables);
 
-    let loadResult: { persons: Person[]; personsCount: number };
-
-    // Offline: use local store
-    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
-    if (offline) {
-      const res = await this.entities.loadAll<Person>('PersonVO',
-        {
-          ...variables,
-          filter: EntityUtils.searchTextFilter(['lastName', 'firstName', 'department.name'], filter.searchText)
-        }
-      );
-      if (debug) console.debug(`[referential-ref-service] Persons loaded (from offline storage) in ${Date.now() - now}ms`);
-      loadResult = {
-        persons: res && res.data,
-        personsCount: res && res.total
-      };
-    }
-
-    // Online: use GraphQL
-    else {
-      const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
-      loadResult = await this.graphql.query<{ persons: Person[]; personsCount: number }>({
-        query,
-        variables,
-        error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
-        fetchPolicy: opts && opts.fetchPolicy || undefined
-      });
-    }
-
-    const data = (!opts || opts.toEntity !== false) ?
-      (loadResult && loadResult.persons || []).map(Person.fromObject) :
-      (loadResult && loadResult.persons || []) as Person[];
+    const entities = (!opts || opts.toEntity !== false) ?
+      (data || []).map(Person.fromObject) :
+      (data || []) as Person[];
     return {
-      data,
-      total: loadResult && loadResult.personsCount
+      data: entities,
+      total
     };
   }
 
@@ -313,43 +335,32 @@ export class PersonService extends BaseEntityService<Person, PersonFilter>
 
   }
 
-  executeImport(opts?: {
-    maxProgression?: number;
-  }): Observable<number>{
+  async executeImport(progression: BehaviorSubject<number>,
+                opts?: {
+                  maxProgression?: number;
+                }): Promise<void> {
 
-    return defer(() => {
-      const maxProgression = opts && opts.maxProgression || 100;
-      const progression = new BehaviorSubject<number>(0);
-      const filter = {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        userProfiles: ['SUPERVISOR', 'USER', 'GUEST']
-      };
+    const maxProgression = opts && opts.maxProgression || 100;
+    const filter = {
+      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      userProfiles: [UserProfileLabels.SUPERVISOR, UserProfileLabels.USER, UserProfileLabels.GUEST]
+    };
 
-      const now = Date.now();
-      console.info("[person-service] Importing persons...");
+    console.info("[person-service] Importing persons...");
 
-      fetchAllPagesWithProgress((offset, size) =>
-          this.loadAll(offset, size, 'id', null, filter, {
-            debug: false,
-            fetchPolicy: "network-only",
-            withTotal: (offset === 0), // Compute total only once
-            toEntity: false
-          }),
-        progression,
-        maxProgression
-      )
-        // Save result locally
-        .then(res => this.entities.saveAll(res.data, {entityName: 'PersonVO', reset: true}))
-        .then(res => {
-          console.info(`[person-service] Successfully import persons in ${Date.now() - now}ms`);
-          progression.complete();
-        })
-        .catch((err: any) => {
-          console.error("[person-service] Error during importation: " + (err && err.message || err), err);
-          progression.error(err);
-        });
-      return progression;
-    });
+    const res = await JobUtils.fetchAllPages((offset, size) =>
+        this.loadAll(offset, size, 'id', null, filter, {
+          debug: false,
+          fetchPolicy: "network-only",
+          withTotal: (offset === 0), // Compute total only once
+          toEntity: false
+        }),
+      progression,
+      {maxProgression: maxProgression * 0.9}
+    );
+
+    // Save result locally
+    await this.entities.saveAll(res.data, {entityName: 'PersonVO', reset: true});
   }
 
   /* -- protected methods -- */

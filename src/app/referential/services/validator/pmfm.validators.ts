@@ -1,17 +1,17 @@
 import {ValidatorFn, Validators} from "@angular/forms";
 import {isNil, isNotNil} from "../../../shared/functions";
 import {SharedValidators} from "../../../shared/validator/validators";
-import {PmfmStrategy} from "../model/pmfm-strategy.model";
+import {IPmfm} from "../model/pmfm.model";
 
 const REGEXP_INTEGER = /^[0-9]+$/;
 const REGEXP_DOUBLE = /^[0-9]+(\.[0-9]+)?$/;
 
 export class PmfmValidators {
 
-  static create(pmfm: PmfmStrategy, validatorFns?: ValidatorFn[], opts?: {forceOptional?: boolean;} ): ValidatorFn {
+  static create(pmfm: IPmfm, validatorFns?: ValidatorFn[], opts?: { forceOptional?: boolean; } ): ValidatorFn {
     validatorFns = validatorFns || [];
     // Add required validator (if NOT force as optional - can occur when on field mode)
-    if (pmfm.isMandatory && (!opts || opts.forceOptional !== true)) {
+    if (pmfm.required && (!opts || opts.forceOptional !== true)) {
       validatorFns.push(Validators.required);
     }
     // If pmfm is alphanumerical

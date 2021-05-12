@@ -1,17 +1,18 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {Observable} from "rxjs";
-import {BaseEntityService, isNil, isNotNil} from "../../core/core.module";
 import {map} from "rxjs/operators";
 
 import {ErrorCodes} from "../../trip/services/trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType} from "./model/extraction.model";
-import {isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
+import {isNil, isNotNil, isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {Fragments} from "../../trip/services/trip.queries";
 import {SortDirection} from "@angular/material/sort";
 import {firstNotNilPromise} from "../../shared/observables";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
+import {environment} from "../../../environments/environment";
 
 
 export const ExtractionFragments = {
@@ -21,6 +22,7 @@ export const ExtractionFragments = {
     label
     name
     description
+    docUrl
     comments
     version
     sheetNames
@@ -39,10 +41,10 @@ export const ExtractionFragments = {
     description
     rankOrder
   }`
-}
+};
 
 
-const LoadTypesQuery: any = gql`
+export const LoadExtractionTypesQuery: any = gql`
   query ExtractionTypes {
     extractionTypes {
       ...ExtractionTypeFragment
@@ -73,13 +75,13 @@ const GetFileQuery: any = gql`
 
 
 @Injectable({providedIn: 'root'})
-export class ExtractionService extends BaseEntityService {
+export class ExtractionService extends BaseGraphqlService {
 
   constructor(
     protected graphql: GraphqlService,
-    protected accountService: AccountService
+    protected accountService: AccountService,
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   /**
@@ -98,9 +100,8 @@ export class ExtractionService extends BaseEntityService {
 
     return this.mutableWatchQuery<{ extractionTypes: ExtractionType[] }>({
       queryName: 'LoadExtractionTypes',
-      query: LoadTypesQuery,
+      query: LoadExtractionTypesQuery,
       arrayFieldName: 'extractionTypes',
-      variables: {},
       error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"},
       ...opts
     })
@@ -110,7 +111,7 @@ export class ExtractionService extends BaseEntityService {
             .filter(json => {
               // Workaround because saveAggregation() doest not add NEW extraction type correctly
               if (!json || isNil(json.label)) {
-                console.warn('[extraction-service] FIXME: Invalid extraction type (no label)... bad cache insertion in saveAggregation() ?')
+                console.warn('[extraction-service] FIXME: Invalid extraction type (no label)... bad cache insertion in saveAggregation() ?');
                 return false;
               }
               return true;
@@ -130,11 +131,13 @@ export class ExtractionService extends BaseEntityService {
 
   /**
    * Load many trips
+   * @param type
    * @param offset
    * @param size
    * @param sortBy
    * @param sortDirection
    * @param filter
+   * @param options
    */
 
   async loadRows(
@@ -225,9 +228,9 @@ export class ExtractionService extends BaseEntityService {
     };
 
     target.criteria = (source.criteria || [])
-      .filter(criterion => isNotNil(criterion.name) && isNotNilOrBlank(criterion.value))
+      .filter(criterion => isNotNil(criterion.name))
       .map(criterion => {
-        const isMulti = (typeof criterion.value === 'string' && criterion.value.indexOf(',') !== -1);
+        const isMulti = typeof criterion.value === 'string' && criterion.value.indexOf(',') !== -1;
         switch (criterion.operator) {
           case '=':
             if (isMulti) {
@@ -262,15 +265,11 @@ export class ExtractionService extends BaseEntityService {
             break;
         }
 
-        return {
-          name: criterion.name,
-          operator: criterion.operator,
-          value: criterion.value,
-          values: criterion.values,
-          sheetName: criterion.sheetName
-        } as ExtractionFilterCriterion;
+        delete criterion.endValue;
+
+        return criterion as ExtractionFilterCriterion;
       })
-      .filter(criterion => isNotNil(criterion.value) || (criterion.values && criterion.values.length));
+      .filter(ExtractionFilterCriterion.isNotEmpty);
 
     return target;
   }

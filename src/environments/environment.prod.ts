@@ -13,7 +13,7 @@ export const environment: Environment = Object.freeze({
   mock: false,
 
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
-  peerMinVersion: '1.6.0',
+  peerMinVersion: '1.8.0',
 
   // FIXME: GraphQL subscription never unsubscribe...
   listenRemoteChanges: false,
@@ -36,6 +36,10 @@ export const environment: Environment = Object.freeze({
     },
     {
       host: 'test.sumaris.net',
+      port: 443
+    },
+    {
+      host: 'isi.ifremer.fr/imagine-server/',
       port: 443
     }
   ],

@@ -1,39 +1,72 @@
-<ion-header>
-  <ion-toolbar color="secondary">
-    <ion-buttons slot="start">
-      <ion-button (click)="cancel()"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
-      </ion-button>
-    </ion-buttons>
+<app-modal-toolbar color="secondary"
+                   [title]="$title|async"
+                   (cancel)="close($event)"
+                   (validate)="onSubmit($event)"
+                   [showSpinner]="loading"
+                   [canValidate]="!enableBurstMode">
 
-    <ion-title>
-      {{$title | async}}
-    </ion-title>
+  <ion-buttons slot="end">
 
-    <ion-buttons slot="end" >
-      <ion-spinner *ngIf="loading"></ion-spinner>
+    <!-- Options menu -->
+    <button mat-icon-button *ngIf="!loading"
+            [title]="'COMMON.OPTIONS'|translate"
+            [matMenuTriggerFor]="optionsMenu">
+      <mat-icon>more_vert</mat-icon>
+    </button>
 
-      <ion-button *ngIf="!loading" (click)="close($event)"
-                  [disabled]="invalid"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+    <!-- Close  -->
+    <ion-button visible-xs visible-sm visible-mobile
+                *ngIf="!loading && enableBurstMode"
+                (click)="close($event)"
+                translate>COMMON.BTN_DONE</ion-button>
 
+    <!-- Validate  -->
+    <ion-button visible-xs visible-sm visible-mobile
+                *ngIf="!loading && enableBurstMode"
+                (click)="onSubmit($event)"
+                [disabled]="!form.valid">
+      <ion-label translate>COMMON.BTN_NEXT</ion-label>
+      <ion-icon slot="end" name="arrow-forward"></ion-icon>
+    </ion-button>
+
+  </ion-buttons>
+</app-modal-toolbar>
+
+<!-- Options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="before">
+
+  <button mat-menu-item
+          (click)="toggleBurstMode()">
+    <mat-icon *ngIf="enableBurstMode">check_box</mat-icon>
+    <mat-icon *ngIf="!enableBurstMode">check_box_outline_blank</mat-icon>
+    <ion-label translate>COMMON.BTN_BURST_INPUT_HELP</ion-label>
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <button mat-menu-item
+          *ngIf="onDelete"
+          (click)="delete($event)">
+    <mat-icon>delete_outline</mat-icon>
+    <ion-label translate>COMMON.BTN_DELETE</ion-label>
+  </button>
+</mat-menu>
 
 <ion-content class="ion-padding">
 
   <app-sample-form #form
                    [debug]="debug"
                    [acquisitionLevel]="acquisitionLevel"
-                   [program]="program"
+                   [programLabel]="programLabel"
+                   [pmfms]="pmfms"
+                   [mapPmfmFn]="mapPmfmFn"
+                   [usageMode]="usageMode"
                    [showLabel]="showLabel"
+                   [showSampleDate]="showDateTime"
                    [showTaxonGroup]="showTaxonGroup"
                    [showTaxonName]="showTaxonName"
-                   (onSubmit)="close($event)">
+                   [maxVisibleButtons]="maxVisibleButtons"
+                   (onSubmit)="onSubmit($event)">
   </app-sample-form>
 
 </ion-content>
@@ -47,14 +80,15 @@
 
       <!-- buttons -->
       <ion-col size="auto">
-        <ion-button fill="clear" color="dark" (click)="cancel()">
+        <ion-button fill="clear" color="dark" (click)="close()">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button [fill]="invalid ? 'clear' : 'solid'"
+        <ion-button color="tertiary"
+                    [fill]="invalid ? 'clear' : 'solid'"
                     [disabled]="loading || invalid"
-                    (keyup.enter)="close($event)"
-                    (click)="close($event)" color="tertiary">
+                    (keyup.enter)="onSubmit($event)"
+                    (click)="onSubmit($event)">
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
           <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
         </ion-button>

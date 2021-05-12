@@ -54,7 +54,7 @@
         </button>
         <mat-error *ngIf="controls.password.hasError('required') && controls.password.touched" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="controls.password.hasError('minlength') && controls.password.touched">
-          <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 8} }}</span>
+          <span>{{'ERROR.FIELD_MIN_LENGTH' | translate: {minLength: 8} }}</span>
         </mat-error>
       </mat-form-field>
 
@@ -99,7 +99,7 @@
           required>
         <mat-error *ngIf="controls.lastName.hasError('required') && controls.lastName.dirty" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="controls.lastName.hasError('minlength') && controls.lastName.dirty">
-          <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 2} }}</span>
+          <span>{{'ERROR.FIELD_MIN_LENGTH' | translate: {minLength: 2} }}</span>
         </mat-error>
       </mat-form-field>
 
@@ -109,7 +109,7 @@
           required>
         <mat-error *ngIf="controls.firstName.hasError('required') && controls.firstName.dirty" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="controls.firstName.hasError('minlength') && controls.firstName.dirty">
-          <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 2} }}</span>
+          <span>{{'ERROR.FIELD_MIN_LENGTH' | translate: {minLength: 2} }}</span>
         </mat-error>
       </mat-form-field>
 

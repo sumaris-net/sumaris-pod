@@ -1,4 +1,4 @@
-import {Injectable, Optional} from '@angular/core';
+import {Inject, Injectable, Optional} from '@angular/core';
 import {Platform, ToastController} from "@ionic/angular";
 import {NetworkService} from "./network.service";
 import {Platforms} from "@ionic/core";
@@ -16,12 +16,16 @@ import {EntitiesStorage} from "./storage/entities-storage.service";
 import {StorageUtils} from "../../shared/services/storage.utils";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {TranslateService} from "@ngx-translate/core";
-import {environment} from "../../../environments/environment";
-import * as moment from "moment/moment";
+import * as momentImported from "moment";
 import {DateAdapter} from "@angular/material/core";
 import {AccountService} from "./account.service";
 import {timer} from "rxjs";
 import {filter, first, tap} from "rxjs/operators";
+import {ENVIRONMENT} from "../../../environments/environment.class";
+import {ConfigService} from "./config.service";
+import {CORE_CONFIG_OPTIONS} from "./config/core.config";
+
+const moment = momentImported;
 
 @Injectable({providedIn: 'root'})
 export class PlatformService {
@@ -53,9 +57,11 @@ export class PlatformService {
     private settings: LocalSettingsService,
     private networkService: NetworkService,
     private accountService: AccountService,
+    private configService: ConfigService,
     private cache: CacheService,
     private storage: Storage,
     private audioProvider: AudioProvider,
+    @Inject(ENVIRONMENT) protected environment,
     @Optional() private browser: InAppBrowser
   ) {
 
@@ -121,10 +127,15 @@ export class PlatformService {
     .then(() => {
       this._started = true;
       this._startPromise = undefined;
-      console.info(`[platform] Starting platform [OK] {mobile: ${this._mobile}, touchUi: ${this.touchUi}} in ${Date.now()-now}ms`);
+      console.info(`[platform] Starting platform [OK] {mobile: ${this._mobile}, touchUi: ${this.touchUi}} in ${Date.now() - now}ms`);
 
       // Update cache configuration when network changed
       this.networkService.onNetworkStatusChanges.subscribe((type) => this.configureCache(type !== 'none'));
+
+      // Update authentication type
+      this.configService.config.subscribe(config => {
+        this.accountService.tokenType = config.getProperty(CORE_CONFIG_OPTIONS.AUTH_TOKEN_TYPE);
+      });
 
       // Wait 1 more seconds, before hiding the splash screen
       setTimeout(() => {
@@ -152,7 +163,7 @@ export class PlatformService {
     return timer(period, period)
       .pipe(
         // For DEBUG :
-        tap(() => this._debug && console.debug("Waiting platform ready...")),
+        //tap(() => this._debug && console.debug("Waiting platform ready...")),
         filter(() => this._started),
         first()
       ).toPromise();
@@ -196,7 +207,7 @@ export class PlatformService {
     console.info("[platform] Configuring translate...");
 
     // this language will be used as a fallback when a translation isn't found in the current language
-    this.translate.setDefaultLang(environment.defaultLocale);
+    this.translate.setDefaultLang(this.environment.defaultLocale);
 
     // When locale changes, apply to date adapter
     this.translate.onLangChange.subscribe(event => {
@@ -230,13 +241,14 @@ export class PlatformService {
       }
     });
 
+    // Use account's locale, when account inheritance enabled in settings
     this.accountService.onLogin.subscribe(account => {
       if (this.settings.settings.accountInheritance) {
         const accountLocale = account.settings && account.settings.locale;
         if (accountLocale && accountLocale !== this.settings.locale) {
           this.settings.apply({
             locale: accountLocale
-          })
+          });
         }
       }
     });
@@ -249,7 +261,6 @@ export class PlatformService {
     this.cache.setDefaultTTL(cacheTTL);
     this.cache.setOfflineInvalidate(false); // Do not invalidate cache when offline
   }
-
 
   protected async storageReady(): Promise<LocalForage> {
 

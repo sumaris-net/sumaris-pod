@@ -4,16 +4,16 @@ import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {FormBuilder} from "@angular/forms";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ProgramService} from "../../referential/services/program.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {TypedExpenseValidatorService} from "../services/validator/typed-expense.validator";
 import {BehaviorSubject} from "rxjs";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {filterNotNil} from "../../shared/observables";
 import {isNotEmptyArray, isNotNilOrNaN, remove, removeAll} from "../../shared/functions";
 import {Measurement} from "../services/model/measurement.model";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {debounceTime, filter} from "rxjs/operators";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 @Component({
   selector: 'app-typed-expense-form',
@@ -24,24 +24,25 @@ import {debounceTime, filter} from "rxjs/operators";
 export class TypedExpenseForm extends MeasurementsForm {
 
   mobile: boolean;
-  $typePmfm = new BehaviorSubject<PmfmStrategy>(undefined);
-  $totalPmfm = new BehaviorSubject<PmfmStrategy>(undefined);
-  $packagingPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  $typePmfm = new BehaviorSubject<IPmfm>(undefined);
+  $totalPmfm = new BehaviorSubject<IPmfm>(undefined);
+  $packagingPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   amountDefinition: FormFieldDefinition;
 
   @Input() rankOrder: number;
 
-  @Input() expenseType: string = 'UNKNOWN';
+  @Input() expenseType = 'UNKNOWN';
 
   @Input()
-  set pmfms(pmfms: PmfmStrategy[]) {
+  set pmfms(pmfms: IPmfm[]) {
     this.setPmfms(pmfms);
   }
 
   @Output() totalValueChanges = new EventEmitter<any>();
 
   get total(): number {
-    return this.$totalPmfm.getValue() && this.form.get(this.$totalPmfm.getValue().pmfmId.toString()).value || 0;
+    const totalPmfm = this.$totalPmfm.getValue();
+    return totalPmfm && this.form.get(totalPmfm.id.toString()).value || 0;
   }
 
   constructor(
@@ -50,10 +51,10 @@ export class TypedExpenseForm extends MeasurementsForm {
     protected formBuilder: FormBuilder,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected platform: PlatformService
   ) {
-    super(dateAdapter, validatorService, formBuilder, programService, settings, cd);
+    super(dateAdapter, validatorService, formBuilder, programRefService, settings, cd);
     this.mobile = platform.mobile;
     this.keepRankOrder = true;
   }
@@ -80,12 +81,15 @@ export class TypedExpenseForm extends MeasurementsForm {
 
     }));
 
-    this.registerSubscription(filterNotNil(this.$totalPmfm).subscribe(totalPmfm => {
-      this.form.get(totalPmfm.pmfmId.toString()).valueChanges.pipe(
-        filter(() => this.totalValueChanges.observers.length > 0),
-        debounceTime(250)
-      ).subscribe(() => this.totalValueChanges.emit(this.form.get(totalPmfm.pmfmId.toString()).value))
-    }))
+    this.registerSubscription(filterNotNil(this.$totalPmfm)
+      .subscribe(totalPmfm => {
+        this.form.get(totalPmfm.id.toString()).valueChanges
+          .pipe(
+            filter(() => this.totalValueChanges.observers.length > 0),
+            debounceTime(250)
+          )
+          .subscribe(() => this.totalValueChanges.emit(this.form.get(totalPmfm.id.toString()).value));
+      }));
 
     // type
     this.registerAutocompleteField('packaging', {
@@ -101,10 +105,10 @@ export class TypedExpenseForm extends MeasurementsForm {
     const values = super.getValue();
 
     // parse values
-    const packagingPmfms: PmfmStrategy[] = this.$packagingPmfms.getValue() || []
+    const packagingPmfms: IPmfm[] = this.$packagingPmfms.getValue() || [];
     if (values && packagingPmfms.length) {
       packagingPmfms.forEach(packagingPmfm => {
-        const value = values.find(v => v.pmfmId === packagingPmfm.pmfmId)
+        const value = values.find(v => v.pmfmId === packagingPmfm.id);
         if (value) {
           if (this.form.value.packaging && this.form.value.packaging.pmfmId === value.pmfmId) {
             value.numericalValue = this.form.value.amount;
@@ -134,13 +138,13 @@ export class TypedExpenseForm extends MeasurementsForm {
 
     // set packaging and amount value
     const packaging = (this.$packagingPmfms.getValue() || [])
-      .find(pmfm => this.form.get(pmfm.pmfmId.toString()) && isNotNilOrNaN(this.form.get(pmfm.pmfmId.toString()).value));
-    const amount = packaging && this.form.get(packaging.pmfmId.toString()).value || undefined;
+      .find(pmfm => this.form.get(pmfm.id.toString()) && isNotNilOrNaN(this.form.get(pmfm.id.toString()).value));
+    const amount = packaging && this.form.get(packaging.id.toString()).value || undefined;
     this.form.patchValue({amount, packaging});
 
   }
 
-  parsePmfms(pmfms: PmfmStrategy[]) {
+  parsePmfms(pmfms: IPmfm[]) {
     if (isNotEmptyArray(pmfms)) {
       const remainingPmfms = pmfms.slice();
       this.$typePmfm.next(remove(remainingPmfms, this.isTypePmfm));
@@ -160,15 +164,15 @@ export class TypedExpenseForm extends MeasurementsForm {
     }
   }
 
-  isTypePmfm(pmfm: PmfmStrategy): boolean {
+  isTypePmfm(pmfm: IPmfm): boolean {
     return pmfm.label.endsWith('TYPE');
   }
 
-  isPackagingPmfm(pmfm: PmfmStrategy): boolean {
+  isPackagingPmfm(pmfm: IPmfm): boolean {
     return pmfm.label.endsWith('WEIGHT') || pmfm.label.endsWith('COUNT');
   }
 
-  isTotalPmfm(pmfm: PmfmStrategy): boolean {
+  isTotalPmfm(pmfm: IPmfm): boolean {
     return pmfm.label.endsWith('COST');
   }
 

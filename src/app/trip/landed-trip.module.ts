@@ -6,7 +6,7 @@ import {LandingsTable} from "./landing/landings.table";
 import {LandingPage} from "./landing/landing.page";
 import {LandingForm} from "./landing/landing.form";
 import {SelectLandingsModal} from "./landing/select-landings.modal";
-import {AuctionControlPage} from "./auctioncontrol/auction-control.page";
+import {AuctionControlPage} from "./landing/auctioncontrol/auction-control.page";
 import {LandedTripPage} from "./landedtrip/landed-trip.page";
 import {OperationGroupTable} from "./operationgroup/operation-groups.table";
 import {ProductsTable} from "./product/products.table";
@@ -31,6 +31,10 @@ import {ReferentialModule} from "../referential/referential.module";
 import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal";
 import {DataModule} from "../data/data.module";
 import {TranslateModule} from "@ngx-translate/core";
+import {SamplesModal} from "./sample/samples.modal";
+import {SamplingLandingPage} from "./landing/sampling/sampling-landing.page";
+import {ObservedLocationOfflineModal} from "./observedlocation/offline/observed-location-offline.modal";
+import {VesselModule} from "../vessel/vessel.module";
 
 
 @NgModule({
@@ -39,14 +43,17 @@ import {TranslateModule} from "@ngx-translate/core";
     DataModule,
     TripModule,
     ReferentialModule,
+    VesselModule,
     TranslateModule.forChild()
   ],
   declarations: [
     ObservedLocationForm,
     ObservedLocationPage,
     ObservedLocationsPage,
+    ObservedLocationOfflineModal,
     LandingsTable,
     LandingPage,
+    SamplingLandingPage,
     LandingForm,
     SelectLandingsModal,
     AggregatedLandingsTable,
@@ -68,7 +75,8 @@ import {TranslateModule} from "@ngx-translate/core";
     PacketSaleForm,
     PacketSaleModal,
     FishingAreaForm,
-    SelectVesselsModal
+    SelectVesselsModal,
+    SamplesModal
   ],
   exports: [
     // Modules
@@ -76,9 +84,11 @@ import {TranslateModule} from "@ngx-translate/core";
     TripModule,
 
     // Components
+    ObservedLocationOfflineModal,
     LandingsTable,
     LandingForm,
     LandingPage,
+    SamplingLandingPage,
     SelectLandingsModal,
     AuctionControlPage
   ]

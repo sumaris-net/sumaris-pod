@@ -3,11 +3,11 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
+  Inject,
   Input,
   OnInit,
   Output
 } from '@angular/core';
-import {AppForm, environment, FormArrayHelper, isNil} from "../../core/core.module";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {FormArray, FormBuilder, Validators} from "@angular/forms";
@@ -17,7 +17,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {NetworkService} from "../../core/services/network.service";
 import {BehaviorSubject, combineLatest, Observable} from "rxjs";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
-import {debounceTime, distinctUntilChanged, filter} from "rxjs/operators";
+import {distinctUntilChanged, filter} from "rxjs/operators";
 import {AggregatedLandingService} from "../services/aggregated-landing.service";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {AggregatedLanding, VesselActivity} from "../services/model/aggregated-landing.model";
@@ -26,11 +26,15 @@ import {DisplayFn} from "../../shared/form/field.model";
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
 import {VesselActivityValidatorService} from "../services/validator/vessel-activity.validator";
 import {getMaxRankOrder} from "../../data/services/model/model.utils";
+import {AppForm} from "../../core/form/form.class";
+import {FormArrayHelper} from "../../core/form/form.utils";
+import {isNil} from "../../shared/functions";
+import {environment} from "../../../environments/environment";
 
 export class AggregatedLandingFormOption {
   dates: Observable<Moment[]> | Moment[];
   initialDate: Moment | undefined;
-  program: string;
+  programLabel: string;
   acquisitionLevel: string;
 }
 
@@ -96,7 +100,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
   $loadingControls = new BehaviorSubject<boolean>(false);
   controlsLoaded = false;
   onRefresh = new EventEmitter<any>();
-  program: string;
+  programLabel: string;
   acquisitionLevel: string;
   dates: Observable<Moment[]> | Moment[];
 
@@ -110,7 +114,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     public network: NetworkService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
   ) {
     super(dateAdapter, null, settings);
     this.mobile = this.settings.mobile;
@@ -127,7 +131,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     }
 
     this.dates = this._options && this._options.dates;
-    this.program = this._options && this._options.program;
+    this.programLabel = this._options && this._options.programLabel;
     this.acquisitionLevel = this._options && this._options.acquisitionLevel;
 
     const form = this.formBuilder.group({
@@ -245,7 +249,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
       {
         allowEmptyArray: true
       }
-    )
+    );
   }
 
   private saveActivitiesAt(date: Moment) {
@@ -253,7 +257,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
       console.warn('Try to save activities at undefined date');
       return;
     }
-    if (this.debug) console.debug(`[aggregated-landing-form] save activities at ${date}`)
+    if (this.debug) console.debug(`[aggregated-landing-form] save activities at ${date}`);
     const newActivities = this.$data.getValue().vesselActivities.filter(value => !value.date.isSame(date)).slice() || [];
     const activities = this.activitiesForm.value.map(v => VesselActivity.fromObject(v));
     newActivities.push(...activities);

@@ -1,7 +1,10 @@
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../../shared/form/field.model";
 import {LocationLevelIds} from "../model/model.enum";
+import {StatusIds} from "../../../core/services/model/model.enum";
 
-export type LandingEditor = 'landing' | 'control' | 'trip';
+export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
+
+export type StrategyEditor = 'legacy' | 'sampling';
 
 export const ProgramProperties = Object.freeze({
   // Trip
@@ -158,16 +161,10 @@ export const ProgramProperties = Object.freeze({
     defaultValue: "false",
     type: 'boolean'
   },
-  OBSERVED_LOCATION_LOCATION_LEVEL_ID: <FormFieldDefinition>{
-    key: 'sumaris.observedLocation.locationLevel.id',
-    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_LOCATION_LEVEL_ID",
-    type: 'entity',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [0,1]
-      }
-    },
+  OBSERVED_LOCATION_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.location.level.ids',
+    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_LOCATION_LEVEL_IDS",
+    type: 'string',
     defaultValue: LocationLevelIds.PORT.toString()
   },
   OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE: <FormFieldDefinition>{
@@ -200,6 +197,19 @@ export const ProgramProperties = Object.freeze({
     defaultValue: "true",
     type: 'boolean'
   },
+  OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.createLanding.history.enable',
+    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY",
+    defaultValue: "true",
+    type: 'boolean'
+  },
+
+  VESSEL_TYPE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.vessel.type.enable',
+    label: "PROGRAM.OPTIONS.VESSEL_TYPE_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
 
   // Landing
   LANDING_EDITOR: <FormFieldDefinition>{
@@ -218,6 +228,10 @@ export const ProgramProperties = Object.freeze({
       {
         key: 'trip',
         value: 'PROGRAM.OPTIONS.LANDING_EDITOR_TRIP'
+      },
+      {
+        key: 'sampling',
+        value: 'PROGRAM.OPTIONS.LANDING_EDITOR_SAMPLING'
       }
     ],
     defaultValue: 'landing'
@@ -228,26 +242,107 @@ export const ProgramProperties = Object.freeze({
     defaultValue: "false",
     type: 'boolean'
   },
+  LANDING_CREATION_DATE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.creationDate.enable',
+    label: "PROGRAM.OPTIONS.LANDING_CREATION_DATE_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
+  LANDING_RECORDER_PERSON_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.recorderPerson.enable',
+    label: "PROGRAM.OPTIONS.LANDING_RECORDER_PERSON_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
+  LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.vesselBasePortLocation.enable',
+    label: "PROGRAM.OPTIONS.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
+  LANDING_LOCATION_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.location.enable',
+    label: "PROGRAM.OPTIONS.LANDING_LOCATION_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
   LANDING_OBSERVERS_ENABLE: <FormFieldDefinition>{
     key: "sumaris.landing.observers.enable",
     label: "PROGRAM.OPTIONS.LANDING_OBSERVERS_ENABLE",
-    defaultValue: "true",
+    defaultValue: "false",
+    type: 'boolean'
+  },
+  LANDING_STRATEGY_ENABLE: <FormFieldDefinition>{
+    key: "sumaris.landing.strategy.enable",
+    label: "PROGRAM.OPTIONS.LANDING_STRATEGY_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
+  LANDING_ONE_TAB_ENABLE: <FormFieldDefinition>{
+    key: "sumaris.landing.oneTab.enable",
+    label: "PROGRAM.OPTIONS.LANDING_ONE_TAB_ENABLE",
+    defaultValue: "false",
     type: 'boolean'
   },
 
   /* -- Landed trip options -- */
 
-  LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID: <FormFieldDefinition>{
-    key: 'sumaris.landedTrip.fishingArea.locationLevel.id',
-    label: 'CONFIGURATION.OPTIONS.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_ID',
+  LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.landedTrip.fishingArea.locationLevel.ids',
+    label: 'PROGRAM.OPTIONS.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS',
     type: 'entity',
     autocomplete: {
       filter: {
         entityName: 'LocationLevel',
-        statusIds: [0,1]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
     defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
+  },
+
+  /* -- Program / Strategy options -- */
+
+  PROGRAM_STRATEGY_EDITOR: <FormFieldDefinition>{
+    key: "sumaris.program.strategy.editor",
+    label: "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR",
+    type: 'enum',
+    values: [
+      {
+        key: 'legacy',
+        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_LEGACY'
+      },
+      {
+        key: 'sampling',
+        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_SAMPLING'
+      }
+    ],
+    defaultValue: "legacy"
+  },
+
+  I18N_SUFFIX: <FormFieldDefinition>{
+    key: "sumaris.i18nSuffix",
+    label: "PROGRAM.OPTIONS.I18N_SUFFIX",
+    type: 'enum',
+    values: [
+      {
+        key: 'legacy',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_LEGACY'
+      },
+      {
+        key: 'SAMPLING.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_SAMPLING'
+      }
+    ],
+    defaultValue: 'legacy'
+  },
+
+  /* -- QUalitative value options -- */
+
+  MEASUREMENTS_MAX_VISIBLE_BUTTONS: <FormFieldDefinition>{
+    key: 'sumaris.measurements.maxVisibleButtons',
+    label: 'PROGRAM.OPTIONS.MEASUREMENTS_MAX_VISIBLE_BUTTONS',
+    type: 'integer',
+    defaultValue: 10 // Use -1 for all
   },
 });
 

@@ -190,7 +190,7 @@
                                            [forceOptional]="usageMode|isOnField"
                                            [acquisitionLevel]="acquisitionLevel"
                                            [debug]="debug"
-                                           [program]="programSubject|async"
+                                           [programLabel]="$programLabel|async"
                                            [tabindex]="30">
                     </app-form-measurements>
                   </ion-col>
@@ -216,20 +216,19 @@
       <app-batch-tree #batchTree
                       queryTabIndexParamName="subtab"
                       [showBatchTables]="showBatchTables"
-                      [program]="programSubject | async"
+                      [programLabel]="$programLabel | async"
                       [usageMode]="usageMode"
                       [debug]="debug">
       </app-batch-tree>
 
-      <!-- tab group for survival test -->
+      <!-- tab group for samples (e.g. survival test) -->
       <mat-tab-group #sampleTabGroup
                      animationDuration="0s"
                      [class.cdk-visually-hidden]="!showSampleTables"
                      [(selectedIndex)]="selectedSampleTabIndex"
                      (selectedTabChange)="onSampleTabChange($event)">
 
-
-        <!-- TAB: Survival tests -->
+        <!-- TAB: Samples  -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST'|translate}}">
           <ng-template mat-tab-label>
             <mat-icon>timer</mat-icon>
@@ -237,9 +236,10 @@
             <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && samplesTable.invalid"></ion-icon>
           </ng-template>
 
-          <app-samples-table #samplesTable [debug]="debug"
-                             acquisitionLevel="SURVIVAL_TEST"
-                             [program]="programSubject|async"
+          <app-samples-table #samplesTable
+                             [debug]="debug"
+                             [acquisitionLevel]="sampleAcquisitionLevel"
+                             [programLabel]="$programLabel|async"
                              [usageMode]="usageMode"
                              [showLabelColumn]="false"
                              [showDateTimeColumn]="true"
@@ -261,7 +261,7 @@
           </ng-template>
 
           <app-individual-monitoring-table #individualMonitoringTable [debug]="true"
-                                           [program]="programSubject | async"
+                                           [programLabel]="$programLabel | async"
                                            [usageMode]="usageMode"
           ></app-individual-monitoring-table>
 
@@ -280,7 +280,7 @@
 
           <app-sub-samples-table #individualReleaseTable [debug]="debug"
                                  acquisitionLevel="INDIVIDUAL_RELEASE"
-                                 [program]="programSubject | async"
+                                 [programLabel]="$programLabel | async"
                                  [showLabelColumn]="false">
           </app-sub-samples-table>
 

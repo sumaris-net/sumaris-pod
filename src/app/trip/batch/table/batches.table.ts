@@ -1,19 +1,6 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Inject,
-  InjectionToken,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../../core/core.module";
-import {isNilOrBlank, isNotNil} from "../../../shared/functions";
+import {isNil, isNilOrBlank, isNotNil} from "../../../shared/functions";
 import {AppMeasurementsTable} from "../../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
 import {UsageMode} from "../../../core/services/model/settings.model";
@@ -23,11 +10,13 @@ import {Batch} from "../../services/model/batch.model";
 import {Operation} from "../../services/model/trip.model";
 import {Landing} from "../../services/model/landing.model";
 import {AcquisitionLevelCodes, PmfmLabelPatterns} from "../../../referential/services/model/model.enum";
-import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
-import {getPmfmName, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {IPmfm, PmfmUtils} from "../../../referential/services/model/pmfm.model";
+import {DenormalizedPmfmStrategy, getPmfmName} from "../../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {BatchModal} from "../modal/batch.modal";
-import {SubBatch} from "../../services/model/subbatch.model";
+import {IReferentialRef, ReferentialRef, referentialToString} from "../../../core/services/model/referential.model";
+import {environment} from "../../../../environments/environment";
+import {LoadResult} from "../../../shared/services/entity-service.class";
 
 export interface BatchFilter {
   operationId?: number;
@@ -58,16 +47,17 @@ export const DATA_TYPE_ACCESSOR = new InjectionToken<new() => Batch>('BatchesTab
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilter = BatchFilter> extends AppMeasurementsTable<T, F>
+export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilter = BatchFilter>
+  extends AppMeasurementsTable<T, F>
   implements OnInit, OnDestroy {
 
-  protected _initialPmfms: PmfmStrategy[];
+  protected _initialPmfms: IPmfm[];
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
 
-  qvPmfm: PmfmStrategy;
-  defaultWeightPmfm: PmfmStrategy;
-  weightPmfmsByMethod: { [key: string]: PmfmStrategy };
+  qvPmfm: IPmfm;
+  defaultWeightPmfm: IPmfm;
+  weightPmfmsByMethod: { [key: string]: IPmfm };
 
   @Input()
   set value(data: T[]) {
@@ -206,7 +196,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     const modal = await this.modalCtrl.create({
       component: BatchModal,
       componentProps: {
-        program: this.program,
+        programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         value: batch,
@@ -240,24 +230,24 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
   /* -- protected methods -- */
 
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     //if (isNilOrBlank(value)) return [];
-    return this.programService.suggestTaxonGroups(value,
+    return this.programRefService.suggestTaxonGroups(value,
       {
-        program: this.program,
+        program: this.programLabel,
         searchAttribute: options && options.searchAttribute
       });
   }
 
-  protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
+  protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     const taxonGroup = this.editedRow && this.editedRow.validator.get('taxonGroup').value;
 
     // IF taxonGroup column exists: taxon group must be filled first
-    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return [];
+    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return {data: []};
 
-    return this.programService.suggestTaxonNames(value,
+    return this.programRefService.suggestTaxonNames(value,
       {
-        program: this.program,
+        programLabel: this.programLabel,
         searchAttribute: options && options.searchAttribute,
         taxonGroupId: taxonGroup && taxonGroup.id || undefined
       });
@@ -271,7 +261,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
    * Allow to remove/Add some pmfms. Can be oerrive by subclasses
    * @param pmfms
    */
-  protected mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
+  protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
     if (!pmfms || !pmfms.length) return pmfms; // Skip (no pmfms)
 
     this._initialPmfms = pmfms; // Copy original pmfms list
@@ -292,7 +282,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     this.qvPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms);
 
     // Remove weight pmfms
-    return pmfms.filter(p => !p.isWeight);
+    return pmfms.filter(p => !PmfmUtils.isWeight(p));
   }
 
   protected async onNewEntity(data: T): Promise<void> {

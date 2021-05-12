@@ -1,6 +1,6 @@
-<app-toolbar color="primary" [canGoBack]="false">
-
-  <ion-title>{{'TRIP.TABLE.TITLE'|translate}}</ion-title>
+<app-toolbar [title]="'TRIP.TABLE.TITLE'|translate"
+             color="primary"
+             [canGoBack]="false">
 
   <ion-buttons slot="end" *ngIf="synchronizationStatus as syncStatus">
 
@@ -34,8 +34,6 @@
     </ion-label>
   </button>
 </mat-menu>
-
-
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
@@ -82,32 +80,23 @@
     <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
   </button>
 
-  <!-- Add local trip -->
-  <button mat-menu-item *ngIf="debug && !offline"
-          (click)="importFromFile()">
-    <mat-icon>insert_drive_file</mat-icon>
-    <ion-label>Import file...</ion-label>
-  </button>
 </mat-menu>
-
 
 <ion-content class="ion-no-padding">
 
   <!-- Network status (+ Install and upgrade link) -->
   <app-install-upgrade-card
-    [isLogin]="accountService.account|isLogin"
+    [isLogin]="isLogin"
     showInstallButton="false"
     showUpgradeWarning="true"
     showOfflineWarning="false"
     [showUpdateOfflineFeature]="showUpdateOfflineFeature"
-    (onUpdateOfflineModeClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})"
-  >
+    (onUpdateOfflineModeClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})">
   </app-install-upgrade-card>
 
   <mat-toolbar>
 
     <ng-container *ngIf="!selection.hasValue(); else hasSelection">
-
 
       <button mat-icon-button
               hidden-xs hidden-sm hidden-mobile
@@ -131,7 +120,7 @@
     <ng-template #hasSelection>
 
       <!-- synchronize -->
-      <ion-button *ngIf="hasReadyToSyncSelection()"
+      <ion-button *ngIf="hasReadyToSyncSelection"
                   expand="block"
                   [color]="offline ? 'danger100' : 'danger'"
                   (click)="synchronizeSelection()">
@@ -140,8 +129,10 @@
       </ion-button>
 
       <!-- delete -->
-      <button mat-icon-button class="hidden-xs hidden-sm" *ngIf="canDelete"
-              [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection($event)">
+      <button mat-icon-button class="hidden-xs hidden-sm"
+              *ngIf="canDelete"
+              [title]="'COMMON.BTN_DELETE'|translate"
+              (click)="deleteSelection($event)">
         <mat-icon>delete</mat-icon>
       </button>
     </ng-template>
@@ -153,7 +144,6 @@
     </ion-item>
 
     <div class="toolbar-spacer"></div>
-
 
     <button mat-icon-button
             [title]="'COMMON.BTN_OPTIONS'|translate"
@@ -212,6 +202,7 @@
           </ion-col>
         </ion-row>
 
+        <!-- Period criteria -->
         <ion-row>
           <ion-col>
             <!-- Start date -->
@@ -225,13 +216,13 @@
           <ion-col>
             <!-- End date -->
             <mat-date-field [placeholder]="'TRIP.TABLE.FILTER.END_DATE'|translate"
-                            [formControl]="filterForm.controls.endDate"
-                            clearable="true">
+                            formControlName="endDate"
+                            [clearable]="true">
             </mat-date-field>
           </ion-col>
         </ion-row>
 
-        <!-- recorder criteria -->
+        <!-- Recorder criteria -->
         <ion-row>
           <ion-col>
             <!-- Recorder department -->
@@ -261,9 +252,10 @@
 
     <mat-action-row>
       <!-- Counter  -->
-      <ion-label [hidden]="(loadingSubject|async) || filterForm.dirty" [color]="resultsLength === 0 && 'danger'"
+      <ion-label [hidden]="(loadingSubject|async) || filterForm.dirty"
+                 [color]="empty && 'danger'"
                  class="ion-padding">
-        {{ (resultsLength ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (resultsLength |
+        {{ (totalRowCount ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (totalRowCount |
               numberFormat)} }}
       </ion-label>
 
@@ -280,18 +272,19 @@
     </mat-action-row>
   </mat-expansion-panel>
 
-
   <!-- error -->
-  <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
+  <ion-item *ngIf="error && mobile" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
   <!-- table -->
-  <mat-table [dataSource]="dataSource" matSort
+  <mat-table [dataSource]="dataSource"
+             matSort
+             matSortDisableClear
              [matSortActive]="defaultSortBy"
              [matSortDirection]="defaultSortDirection"
-    matSortDisableClear [trackBy]="trackByFn">
+             [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
       <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
@@ -316,15 +309,15 @@
 
     <!-- Quality Column -->
     <ng-container matColumnDef="quality">
-      <mat-header-cell *matHeaderCellDef> <!-- FIXME pas triable pour l'instant -->
+      <mat-header-cell *matHeaderCellDef><!-- FIXME pas triable pour l'instant -->
         <ion-label translate>TRIP.TABLE.QUALITY</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <ng-container *ngIf="row.currentData.id >= 0; else synchronizationStatus">
-          <ion-icon color="secondary" name="pencil" *ngIf="!row.currentData.controlDate" slot="icon-only" [title]="'QUALITY.MODIFIED'|translate"></ion-icon>
-          <ion-icon color="tertiary" name="checkmark" *ngIf="row.currentData.controlDate && !row.currentData.validationDate" slot="icon-only" [title]="'QUALITY.CONTROLLED'|translate"></ion-icon>
-          <ion-icon color="tertiary" name="checkmark-circle" *ngIf="row.currentData.validationDate && !row.currentData.qualificationDate" slot="icon-only" [title]="'QUALITY.VALIDATED'|translate"></ion-icon>
-          <ion-icon [color]="qualityFlagToColor(row.currentData.qualityFlagId)" name="flag" *ngIf="row.currentData.validationDate && row.currentData.qualificationDate" slot="icon-only" [title]="'QUALITY.QUALIFIED'|translate"></ion-icon>
+          <ion-icon color="secondary" name="pencil" *ngIf="!row.currentData.controlDate" slot="icon-only" [matTooltip]="'QUALITY.MODIFIED'|translate"></ion-icon>
+          <ion-icon color="tertiary" name="checkmark" *ngIf="row.currentData.controlDate && !row.currentData.validationDate" slot="icon-only" [matTooltip]="'QUALITY.CONTROLLED'|translate"></ion-icon>
+          <ion-icon color="tertiary" name="checkmark-circle" *ngIf="row.currentData.validationDate && !row.currentData.qualificationDate" slot="icon-only" [matTooltip]="'QUALITY.VALIDATED'|translate"></ion-icon>
+          <ion-icon [color]="qualityFlagToColor(row.currentData.qualityFlagId)" name="flag" *ngIf="row.currentData.validationDate && row.currentData.qualificationDate" slot="icon-only" [matTooltip]="'QUALITY.QUALIFIED'|translate"></ion-icon>
         </ng-container>
         <ng-template #synchronizationStatus >
           <ng-container [ngSwitch]="row.currentData.synchronizationStatus">
@@ -342,7 +335,7 @@
         <ion-label translate>TRIP.TABLE.PROGRAM</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{row.currentData.program | referentialToString: ['label'] }}
+        <ion-label>{{row.currentData.program | referentialToString: ['label'] }}</ion-label>
       </mat-cell>
     </ng-container>
 
@@ -401,7 +394,9 @@
       <mat-header-cell *matHeaderCellDef>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <mat-icon color="primary" *ngIf="row.currentData.comments" [title]="row.currentData.comments">comment</mat-icon>
+        <mat-icon color="primary" class="comment"
+                  *ngIf="row.currentData.comments"
+                  [title]="row.currentData.comments">chat_bubble</mat-icon>
       </mat-cell>
     </ng-container>
 
@@ -421,20 +416,21 @@
     </mat-row>
   </mat-table>
 
-  <ion-item *ngIf="!(loadingSubject| async) && !resultsLength">
-    <ion-text color="danger" class="text-italic">
-      {{ (hasOfflineMode && synchronizationStatus !== 'SYNC' ? 'TRIP.TABLE.NO_LOCAL_RESULT' : 'COMMON.NO_RESULT') | translate }}
+  <ion-item *ngIf="!(loadingSubject| async) && !totalRowCount">
+    <ion-text color="danger"
+              class="text-italic"
+              [innerHTML]="(hasOfflineMode && synchronizationStatus !== 'SYNC' ? 'TRIP.TABLE.NO_LOCAL_RESULT' : 'COMMON.NO_RESULT') | translate">
     </ion-text>
   </ion-item>
 
-  <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="!resultsLength">
-    <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>
-    <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="resultsLength" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
-      </mat-paginator>
-    </ion-col>
-  </ion-row>
 </ion-content>
+
+<ion-footer>
+  <mat-paginator class="mat-paginator-footer"
+                 [length]="totalRowCount" [pageSize]="defaultPageSize"
+                 [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
+  </mat-paginator>
+</ion-footer>
 
 <!-- Add button -->
 <ion-fab vertical="bottom" horizontal="end"

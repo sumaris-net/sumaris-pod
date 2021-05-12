@@ -3,20 +3,23 @@ import {MeasurementValuesForm} from "../measurement/measurement-values.form.clas
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {FormBuilder} from "@angular/forms";
-import {ProgramService} from "../../referential/services/program.service";
+import {FormBuilder, FormGroup} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {IReferentialRef} from "../../core/services/model/referential.model";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {environment} from "../../../environments/environment";
-import {AppFormUtils, isNil, isNotNil} from "../../core/core.module";
-import {isNilOrBlank} from "../../shared/functions";
+import {isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
 import {PlatformService} from "../../core/services/platform.service";
 import {SampleValidatorService} from "../services/validator/sample.validator";
 import {Sample} from "../services/model/sample.model";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {AppFormUtils} from "../../core/form/form.utils";
+import {environment} from "../../../environments/environment";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {LoadResult} from "../../shared/services/entity-service.class";
+
+const SAMPLE_FORM_DEFAULT_I18N_PREFIX = "TRIP.SAMPLE.TABLE.";
 
 @Component({
   selector: 'app-sample-form',
@@ -27,32 +30,38 @@ import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model
 export class SampleForm extends MeasurementValuesForm<Sample>
   implements OnInit, OnDestroy {
 
-  mobile: boolean;
-
   focusFieldName: string;
 
+  @Input() i18nPrefix = SAMPLE_FORM_DEFAULT_I18N_PREFIX;
+  @Input() mobile: boolean;
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
   @Input() showLabel = true;
+  @Input() showSampleDate = true;
   @Input() showTaxonGroup = true;
   @Input() showTaxonName = true;
   @Input() showComment = true;
   @Input() showError = true;
+  @Input() maxVisibleButtons: number;
 
-  @Input() mapPmfmFn: (pmfms: PmfmStrategy[]) => PmfmStrategy[];
+  @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[];
+
+  get measurementValues(): FormGroup {
+    return this.form.controls.measurementValues as FormGroup;
+  }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected platform: PlatformService,
     protected cd: ChangeDetectorRef,
     protected validatorService: SampleValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService
+    protected settings: LocalSettingsService,
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
+    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
       validatorService.getFormGroup()
     );
     this.mobile = platform.mobile;
@@ -88,23 +97,23 @@ export class SampleForm extends MeasurementValuesForm<Sample>
 
   /* -- protected methods -- */
 
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
-    return this.programService.suggestTaxonGroups(value,
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
+    return this.programRefService.suggestTaxonGroups(value,
       {
-        program: this.program,
+        program: this.programLabel,
         searchAttribute: options && options.searchAttribute
       });
   }
 
-  protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
+  protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     const taxonGroup = this.form.get('taxonGroup').value;
 
     // IF taxonGroup column exists: taxon group must be filled first
-    if (this.showTaxonGroup && isNilOrBlank(value) && isNil(parent)) return [];
+    if (this.showTaxonGroup && isNilOrBlank(value) && isNil(parent)) return {data: []};
 
-    return this.programService.suggestTaxonNames(value,
+    return this.programRefService.suggestTaxonNames(value,
       {
-        program: this.program,
+        programLabel: this.programLabel,
         searchAttribute: options && options.searchAttribute,
         taxonGroupId: taxonGroup && taxonGroup.id || undefined
       });

@@ -1,6 +1,8 @@
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 
 // LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
+import {ObjectMap} from "../../../shared/types";
+
 export const LocationLevelIds = {
   // Lands
   COUNTRY: 1,
@@ -8,7 +10,8 @@ export const LocationLevelIds = {
   AUCTION: 3,
 
   // At sea
-  ICES_RECTANGLE: 4
+  ICES_RECTANGLE: 4,
+  ICES_DIVISION: 111
 };
 
 export const GearLevelIds = {
@@ -48,9 +51,21 @@ export const PmfmIds = {
   SELF_SAMPLING_PROGRAM: 28,
   CONTROLLED_SPECIES: 134,
   SAMPLE_MEASURED_WEIGHT: 140,
-  OUT_OF_SIZE: 142,
+  SAMPLE_INDIV_COUNT: 153,
+  OUT_OF_SIZE_WEIGHT: 142,
   OUT_OF_SIZE_PCT: 143,
+  OUT_OF_SIZE_INDIV_COUNT: 152,
+  PARASITIZED_INDIV_COUNT: 155,
+  PARASITIZED_INDIV_PCT: 156,
+  DIRTY_INDIV_COUNT: 157,
+  DIRTY_INDIV_PCT: 158,
   VIVACITY: 144,
+
+  /* PARAMBIO pmfms */
+  MORSE_CODE: 358,
+  STRATEGY_LABEL: 359,
+  AGE: 350,
+  SEX: 80,
 
   /* OBSDEB pmfms */
   PACKAGING: 177,
@@ -77,11 +92,26 @@ export const QualitativeLabels = {
   }
 };
 
+export const QualitativeValueIds = {
+  DISCARD_OR_LANDING: {
+    LANDING: 190
+  }
+};
+
 export const MethodIds = {
   MEASURED_BY_OBSERVER: 1,
   OBSERVED_BY_OBSERVER: 2,
   ESTIMATED_BY_OBSERVER: 3,
   CALCULATED: 4
+};
+
+export const ParameterLabelGroups: ObjectMap<string[]> = {
+  ANALYTIC_REFERENCE: ['MORSE_CODE'],
+  WEIGHT: ['WEIGHT'],
+  LENGTH: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'],
+  SEX: ['SEX'],
+  MATURITY: ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'],
+  AGE: ['AGE']
 };
 
 export const PmfmLabelPatterns = {
@@ -153,5 +183,12 @@ export const SaleTypeIds = {
   OTHER: 4
 };
 
+export const ProgramPrivilegeIds = {
+  MANAGER: 1,
+  OBSERVER: 2,
+  VIEWER: 3,
+  VALIDATOR: 4,
+  QUALIFIER: 5
+};
 
 

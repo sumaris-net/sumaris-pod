@@ -28,7 +28,7 @@ const routes: Routes = [
         runGuardsAndResolvers: 'pathParamsChange'
       },
       {
-        path: 'operations/:operationId',
+        path: 'operation/:operationId',
         runGuardsAndResolvers: 'pathParamsChange',
         data: {
           pathIdParam: 'operationId'

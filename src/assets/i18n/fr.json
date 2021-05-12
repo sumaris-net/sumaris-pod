@@ -4,16 +4,17 @@
     "BTN_CANCEL": "Annuler",
     "BTN_OK": "Ok",
     "BTN_ABORT_CHANGES": "Abandonner les modifications",
-    "BTN_RESET": "Réinitialiser",
-    "BTN_CLEAR": "Vider",
     "BTN_ADD": "Ajouter",
     "BTN_APPLY": "Appliquer",
-    "BTN_EDIT": "Modifier",
+    "BTN_BURST_INPUT": "Mode rafale",
+    "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",
+    "BTN_CLEAR": "Vider",
     "BTN_CLOSE": "Fermer",
     "BTN_DONE": "Terminer",
     "BTN_DOWNLOAD": "Télécharger",
     "BTN_DELETE": "Supprimer",
     "BTN_DELETE_FOREVER": "Supprimer définitivement",
+    "BTN_EDIT": "Modifier",
     "BTN_FREEZE_VALUE": "Figer",
     "BTN_FREEZE_VALUE_HELP": "Figer la valeur",
     "BTN_YES_DELETE": "Oui, supprimer",
@@ -26,6 +27,7 @@
     "BTN_FILTER": "Filtrer",
     "BTN_RELOAD": "Mettre à jour",
     "BTN_REFRESH": "Rafraichir",
+    "BTN_RESET": "Réinitialiser",
     "BTN_SEARCH": "Rechercher",
     "BTN_NEXT": "Suivant",
     "BTN_NEXT_SHORT": "Suiv.",
@@ -39,6 +41,7 @@
     "BTN_SHOW_HELP": "Aide en ligne",
     "BTN_HIDE": "Masquer",
     "BTN_HIDE_MENU": "Masquer le menu",
+    "BTN_SHOW": "Afficher",
     "BTN_SHOW_MENU": "Afficher le menu",
     "BTN_SHOW_MORE": "Afficher plus",
     "BTN_SHOW_TRASH_DOTS": "Ouvrir la corbeille...",
@@ -53,10 +56,13 @@
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
+    "DATE_TIME_SECONDS_PATTERN": "DD/MM/YYYY HH:mm:ss",
     "TIME_PATTERN": "HH:mm",
     "DATE_FILE_PATTERN": "YYYY-MM-DD",
     "DATE_SHORT_PATTERN": "DD/MM/YY",
     "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
+    "DATE_YEAR_PATTERN": "YYYY",
+    "DATE_YEAR_PLACEHOLDER": "yyyy",
     "DATE_PLACEHOLDER": "jj/mm/aaaa",
     "DATE_TIME_PLACEHOLDER": "jj/mm/aaaa hh:mm",
 
@@ -137,10 +143,11 @@
       "ANDROID_INSTALL_URL": "Android > Adresse d'installation App",
       "LOGO": "Menu > Logo (largeur max 110px)",
       "FAVICON": "favicon",
+      "GRAVATAR_URL": "Utilisateur > URL Gravatar (avec '{md5}'",
+      "ENABLE_GRAVATAR": "Utilisateur > Utiliser Gravatar ?",
       "DEFAULT_LOCALE": "Langue par défaut",
       "DEFAULT_LATLONG_FORMAT": "Format lat/lon par défaut",
-      "NOT_SELF_DATA_ACCESS_MIN_ROLE": "Role (min) pour l'accès aux données des autres",
-      "NOT_SELF_EXTRACTION_ACCESS_MIN_ROLE": "Role (min) pour l'accès aux extractions des autres",
+      "NOT_SELF_DATA_ACCESS_MIN_ROLE": "Saisie > Role min. pour voir les données des autres",
       "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
@@ -168,10 +175,32 @@
       "ENUMERATION": {
         "LOCATION_LEVEL_COUNTRY_ID": "Référentiel > Niveau de lieu > Pays",
         "LOCATION_LEVEL_PORT_ID": "Référentiel > Niveau de lieu > Port",
-        "LOCATION_LEVEL_AUCTION_ID": "Référentiel > Niveau de lieu > Criée"
+        "LOCATION_LEVEL_AUCTION_ID": "Référentiel > Niveau de lieu > Criée",
+        "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Référentiel > Niveau de lieu > Rectangle statistique CIEM/ICES",
+        "LOCATION_LEVEL_ICES_DIVISION_ID": "Référentiel > Niveau de lieu > Division CIEM/ICES",
+        "TAXONOMIC_LEVEL_FAMILY_ID": "Référentiel > Niveau taxinomique > Famille",
+        "TAXONOMIC_LEVEL_GENUS_ID": "Référentiel > Niveau taxinomique > Genre",
+        "TAXONOMIC_LEVEL_SPECIES_ID": "Référentiel > Niveau taxinomique > Espèce",
+        "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Référentiel > Niveau taxinomique > Sous espèce",
+        "PMFM_MORSE_CODE_ID": "Référentiel > PSFM > Code Morse",
+        "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Ligne de plan",
+        "PMFM_AGE_ID": "Référentiel > PSFM > Âge",
+        "PMFM_SEX_ID": "Référentiel > PSFM > Sexe",
+        "STRATEGY_PARAMETER_AGE_LABEL": "Stratégie > Paramètre > Code âge",
+        "STRATEGY_PARAMETER_SEX_LABEL": "Stratégie > Paramètre > Code sexe",
+        "STRATEGY_PARAMETER_WEIGHT_LABELS": "Stratégie > Paramètre > Codes poids",
+        "STRATEGY_PARAMETER_LENGTH_LABELS": "Stratégie > Paramètre > Codes longueur",
+        "STRATEGY_PARAMETER_MATURITY_LABELS": "Stratégie > Paramètre > Codes maturités"
       },
       "TESTING": "Mode développeur ?",
-      "ENTITY_TRASH": "Activer la corbeille du pod ?"
+      "ENTITY_TRASH": "Activer la corbeille du pod ?",
+      "ANALYTIC_REFERENCES_ENABLE": "Stratégie > Références analytiques : Activer ?",
+      "AUTH_TOKEN_TYPE_PLACEHOLDER": "Securité > Type d'authentification",
+      "AUTH_TOKEN_TYPE": {
+        "BASIC": "Basique",
+        "TOKEN": "Cryptographique",
+        "BASIC_AND_TOKEN": "Basique et cryptographique"
+      }
     },
     "CACHE": {
       "NAME": "Nom",
@@ -190,12 +219,14 @@
     "DATA_ENTRY_DIVIDER": "Saisie de données",
     "DATA_ACCESS_DIVIDER": "Accès aux données",
     "OBSERVED_LOCATIONS": "Observations",
-    "AUCTION_CONTROL": "Contrôles en criée",
+    "AUCTION_OCCASION": "Sorties en criée",
+    "OCCASION": "Sorties",
     "ADMINISTRATION_DIVIDER": "Administration",
     "REFERENTIAL_DIVIDER": "Référentiels",
     "USERS": "Utilisateurs",
     "VESSELS": "Navires",
     "REFERENTIAL": "Listes de références",
+    "PROGRAMS": "Programmes",
     "EXTRACTIONS": "Extractions",
     "MAP": "Cartes",
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
@@ -330,6 +361,7 @@
     "TITLE": "Utilisateur",
     "AVATAR": "Avatar",
     "EMAIL": "Email",
+    "USERNAME": "Identifiant",
     "PASSWORD": "Mot de passe",
     "FIRST_NAME": "Prénom",
     "LAST_NAME": "Nom",
@@ -403,7 +435,7 @@
       "QUALITY": "État",
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaires",
-      "NO_LOCAL_RESULT": "Aucun résultat (parmi les marées non synchronisées)",
+      "NO_LOCAL_RESULT": "Aucun résultat (parmi les marées <b>non synchronisées</b>)",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
         "START_DATE": "Début de période",
@@ -415,7 +447,7 @@
         "RECORDER_PERSON": "Saisisseur"
       },
       "SYNCHRONIZATION_STATUS": {
-        "DIRTY_HELP": "Marées hors-lgne",
+        "DIRTY_HELP": "Marées hors-ligne",
         "READY_TO_SYNC_HELP": "Marées en attente d'envoi",
         "SYNC_HELP": "Marées synchronisées"
       }
@@ -436,10 +468,6 @@
       "SAVE_TRIPS_ERROR": "Erreur lors de la sauvegarde des marées.",
       "SUBSCRIBE_TRIP_ERROR": "Echec de l'abonnement distant aux modifications de la marée.",
       "CONTROL_TRIP_ERROR": "Erreur lors de la terminaison de la marée",
-      "VALIDATE_TRIP_ERROR": "Erreur lors de la validation de la marée",
-      "UNVALIDATE_TRIP_ERROR": "Erreur lors de la dévalidation de la marée",
-      "QUALIFY_TRIP_ERROR": "Erreur lors de la qualification de la marée",
-      "SYNCHRONIZE_TRIP_ERROR": "Synchronisation impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
       "NO_PRACTICED_METIER_FOUND": "Aucun métier pratiqué trouvé"
     },
     "MEASUREMENT": {
@@ -553,7 +581,7 @@
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "WEIGHT": "Poids (kg)",
         "INDIVIDUAL_COUNT": "Nombre individus",
-        "INDIVIDUAL_SAMPLING": "Echantillonage",
+        "INDIVIDUAL_SAMPLING": "Echantillonnage",
         "PRODUCT_SALE": "Ventes"
       },
       "SALE": {
@@ -599,8 +627,6 @@
       "TABLE": {
         "BTN_AUTO_FILL": "Remplissage automatique des espèces",
         "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures individuelles",
-        "BTN_BURST_INPUT": "Mode rafale",
-        "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",
         "LABEL": "Libellé",
         "LABEL_PLACEHOLDER": "Libellé",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
@@ -631,12 +657,15 @@
     },
     "SAMPLE": {
       "NEW": {
-        "TITLE": "Nouvel échantillon"
+        "TITLE": "Nouvel échantillon",
+        "TITLE_PREFIX": "<small>{{prefix}}<br></small>"
       },
       "EDIT": {
         "TITLE": "Echantillon {{label}}",
-        "TAXON_GROUP": "Espèce commerciale (FAO)",
-        "TAXON_NAME": "Espèce scientifique (FAO)"
+        "LABEL_PLACEHOLDER": "Lot",
+        "DATE_TIME_PLACEHOLDER": "Date échantillon",
+        "TAXON_GROUP_PLACEHOLDER": "Espèce commerciale (FAO)",
+        "TAXON_NAME_PLACEHOLDER": "Espèce scientifique (FAO)"
       },
       "TABLE": {
         "LABEL": "Lot",
@@ -646,9 +675,44 @@
         "TAXON_NAME": "Espèce scientifique (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Code espèce",
         "SAMPLE_DATE": "Date/Heure de la mesure",
+        "SAMPLE_DATE_PLACEHOLDER": "Date/Heure",
         "PARENT": "Echantillon parent",
         "COMMENTS": "Commentaires",
-        "BTN_AUTO_FILL": "Remplir automatiquement"
+        "COMMENTS_PLACEHOLDER": "Commentaires",
+        "BTN_AUTO_FILL": "Remplir automatiquement",
+        "WEIGHT": "Poids",
+        "LENGTH": "Taille",
+        "MATURITY": "Maturité",
+        "SEX": "Sexe",
+        "AGE": "Age",
+        "OTHER": "Autre",
+        "SAMPLING": {
+          "LABEL": "Code prélèvement",
+          "LABEL_PLACEHOLDER": "Code prélèvement",
+          "TAXON_GROUP": "Espèce commerciale (FAO)",
+          "TAXON_GROUP_PLACEHOLDER": "Code espèce",
+          "TAXON_NAME": "Espèce scientifique (FAO)",
+          "TAXON_NAME_PLACEHOLDER": "Code espèce",
+          "SAMPLE_DATE": "Date/Heure de la mesure",
+          "PARENT": "Echantillon parent",
+          "MORSE_CODE": "Code Morse",
+          "MORSE_CODE_PLACEHOLDER": "Code Morse",
+          "COMMENTS": "Commentaires",
+          "COMMENTS_PLACEHOLDER": "Commentaires",
+          "BTN_AUTO_FILL": "Remplir automatiquement",
+          "WEIGHT": "Poids",
+          "LENGTH": "Taille",
+          "MATURITY": "Maturité",
+          "SEX": "Sexe",
+          "AGE": "Age",
+          "OTHER": "Autre"
+        }
+      },
+      "ERROR" : {
+        "PARAMETERS.WEIGHT_OR_LENGTH": "Poids ou taille obligatoire"
+      },
+      "SETTINGS": {
+        "BURST_MODE_ENABLE": "Echantillon: activer le mode rafale ?"
       }
     }
   },
@@ -686,25 +750,30 @@
     }
   },
   "OBSERVED_LOCATION": {
-    "DATE_TIME": "Date/heure",
-    "START_DATE": "Date début",
-    "START_DATE_TIME": "Date/heure de début",
-    "END_DATE": "Date fin",
-    "END_DATE_TIME": "Date/heure de fin",
-    "START": "Début :",
-    "END": "Fin :",
-    "LOCATION": "Criée",
-    "LOCATION_AND_DATE": "Lieu / Date :",
-    "TAB_GENERAL": "Détails",
-    "TAB_VESSELS": "Navires observés",
-    "OBSERVER_PLACEHOLDER": "Observateur #",
-    "OBSERVERS": "Observateurs :",
     "NEW": {
-      "TITLE": "Nouveau contrôle"
+      "TITLE": "Nouvelle sortie"
     },
     "EDIT": {
       "TITLE": "{{location}} - {{dateTime}}",
-      "OTHER_FEATURES": "Caractéristiques :"
+      "OTHER_FEATURES": "Caractéristiques :",
+      "TAB_LANDINGS": "Navires observés",
+      "DATE_TIME": "Date/heure",
+      "START_DATE": "Date début",
+      "START_DATE_TIME": "Date/heure de début",
+      "END_DATE": "Date fin",
+      "END_DATE_TIME": "Date/heure de fin",
+      "START": "Début :",
+      "END": "Fin :",
+      "START_END": "Début / Fin :",
+      "LOCATION": "Lieu d'observation",
+      "LOCATION_AND_DATE": "Lieu / Date :",
+      "TAB_GENERAL": "Détails",
+      "OBSERVER_PLACEHOLDER": "Observateur #",
+      "OBSERVERS": "Observateurs :",
+      "SAMPLING": {
+        "TITLE": "{{location}} - {{dateTime}}",
+        "TAB_LANDINGS": "Échantillonnages"
+      }
     },
     "SELECT_VESSEL_MODAL": {
       "TITLE": "Ajout d'un navire",
@@ -713,13 +782,13 @@
       "TAB_NEW_VESSEL": "Nouveau navire"
     },
     "TABLE": {
-      "TITLE": "Contrôles en criée",
       "PROGRAM": "Programme",
       "START_DATE_TIME": "Date/heure",
       "QUALITY": "État",
       "LOCATION": "Criée",
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaires",
+      "NO_LOCAL_RESULT": "Aucun résultat (parmi les sorties <b>non envoyées</b>)",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
         "LOCATION": "Criée",
@@ -727,44 +796,69 @@
         "END_DATE": "Fin de période"
       }
     },
+    "OFFLINE_MODAL": {
+      "TITLE": "Configuration du mode hors-ligne",
+      "HISTORICAL_DATA_DIVIDER": "Historique de données",
+      "ENABLE_HISTORICAL_DATA": "Importer l'historique de données ?",
+      "DURATION_PLACEHOLDER": "Période à importer"
+    },
     "OPTIONS": {
       "ENABLE": "Observations > Activer ?",
-      "NAME": "Observations > Titre (menu, etc.)"
+      "NAME": "Observations > Titre (menu)"
     },
     "ERROR": {
-      "LOAD_ERROR": "Erreur de chargement du contrôle en criée",
-      "LOAD_ALL_ERROR": "Erreur de chargement des contrôles en criée",
-      "SAVE_ERROR": "Erreur de sauvegarde du contrôle en criée",
-      "SAVE_ALL_ERROR": "Erreur de sauvegarde des contrôles en criée",
-      "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du contrôle en criée."
+      "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles."
     }
   },
   "LANDING": {
-    "TITLE_PREFIX": "<small>{{location}} - Débarquement {{date}}<br/></small>",
-    "TAB_GENERAL": "Détails",
-    "PROGRAM": "Programme",
-    "VESSEL": "Navire",
-    "LANDING": "Débarquement :",
-    "DATE_TIME": "Date/Heure",
-    "LOCATION": "Lieu de débarquement",
-    "OBSERVERS": "Observateurs :",
-    "OBSERVER_PLACEHOLDER": "Observateur #",
-    "TAB_SAMPLES": "Echantillons",
     "NEW": {
-      "TITLE": "Nouveau debarquement"
+      "TITLE": "Nouveau débarquement",
+      "SAMPLING": {
+        "TITLE": "Nouvel échantillonnage"
+      }
     },
     "EDIT": {
       "TITLE": "Navire {{vessel}}",
-      "OTHER_FEATURES": "Autres caractéristiques :"
+      "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
+      "TAB_GENERAL": "Détails",
+      "PROGRAM": "Programme",
+      "STRATEGY": "Stratégie :",
+      "STRATEGY_PLACEHOLDER": "Stratégie",
+      "STRATEGY_SUMMARY_TITLE": "Stratégie appliquée",
+      "VESSEL": "Navire",
+      "LANDING": "Débarquement :",
+      "DATE": "Date de débarquement",
+      "LOCATION": "Lieu de débarquement",
+      "OBSERVERS": "Observateurs :",
+      "OBSERVER_PLACEHOLDER": "Observateur #",
+      "OTHER_FEATURES": "Autres caractéristiques :",
+      "TAB_SAMPLES": "Echantillons",
+      "SAMPLING": {
+        "TITLE": "Navire {{vessel}}",
+        "STRATEGY": "Ligne de plan :",
+        "STRATEGY_PLACEHOLDER": "Code ligne de plan",
+        "STRATEGY_SUMMARY_TITLE": "Plan d'échantillonnage",
+        "LANDING": "Débarquement :",
+        "DATE": "Date de débarquement",
+        "TAB_SAMPLES": "Mesures individuelles",
+        "LOCATION": "Port de débarquement"
+      }
     },
     "TABLE": {
       "VESSEL": "Navire",
       "VESSEL_TYPE": "Type",
       "VESSEL_BASE_PORT_LOCATION": "Port d'attache",
       "DATE_TIME": "Date/heure",
-      "LOCATION": "Lieu de débarquement",
+      "LOCATION": "Port de débarquement",
       "OBSERVERS": "Observateurs",
-      "COMMENTS": "Commentaires"
+      "COMMENTS": "Commentaire",
+      "STRATEGY": "Stratégie",
+      "CREATION_DATE": "Date de création",
+      "RECORDER_PERSON" : "Saisisseur",
+      "SAMPLING": {
+        "STRATEGY_LABEL": "Ligne de plan",
+        "MORSE_CODE" : "Code Morse"
+      }
     },
     "SELECT_MODAL": {
       "TITLE": "Détail des navires contrôlés"
@@ -774,7 +868,9 @@
       "LOAD_ERROR": "Erreur de chargement du navire observé.",
       "SAVE_ERROR": "Erreur de sauvegarde du navire observé",
       "SAVE_ALL_ERROR": "Erreur de sauvegarde des navires observés",
-      "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du navire observé."
+      "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du navire observé.",
+      "NO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, il n'y a pas d'effort défini sur la ligne de plan (aucune valeur définie)",
+      "ZERO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, l'effort défini sur la ligne de plan est de 0"
     }
   },
   "AGGREGATED_LANDING": {
@@ -817,7 +913,8 @@
       "TITLE": "Nouveau navire contrôlé"
     },
     "EDIT": {
-      "TITLE": "Navire {{vessel}}"
+      "TITLE": "Navire {{vessel}}",
+      "OTHER_TAXON_GROUP": "Espèce commerciale (FAO)"
     },
     "TAB_SAMPLES": "Points de contrôle",
     "TAXON_GROUP_PLACEHOLDER": "Espèce controllée",
@@ -865,6 +962,7 @@
     "BTN_TERMINATE": "Terminer la saisie",
     "BTN_VALIDATE": "Valider",
     "BTN_UNVALIDATE": "Dévalider",
+    "BTN_TERMINATE_AND_SYNCHRONIZE": "Terminer et synchroniser",
     "BTN_SYNCHRONIZE": "Synchroniser",
     "BTN_QUALIFY": "Qualifier",
     "NOT_SYNCHRONIZED": "Donnée non synchronisée",
@@ -946,8 +1044,8 @@
       }
     },
     "ERROR": {
-      "LOAD_VESSEL_ERROR": "Erreur de chargement des navires.",
-      "SAVE_VESSEL_ERROR": "Erreur lors de la sauvegarde du navire.",
+      "LOAD_ERROR": "Erreur de chargement des navires.",
+      "SAVE_ERROR": "Erreur lors de la sauvegarde du navire.",
       "SAVE_VESSELS_ERROR": "Erreur lors de la sauvegarde des navires."
     }
   },
@@ -984,6 +1082,8 @@
       "TAB_GENERAL": "Détails",
       "TAB_QUALITATIVE_VALUE": "Valeurs qualitatives",
       "TYPE": "Type de valeur",
+      "CODE": "Code paramètre",
+      "NAME": "Nom",
       "NEW": {
         "TITLE": "Nouveau Paramètre"
       },
@@ -1021,6 +1121,18 @@
       "EDIT": {
         "TITLE": "PSFM {{label}} - {{name}}"
       }
+    },
+    "MATRIX": {
+      "NAME": "Support",
+      "DESCRIPTION": "description"
+    },
+    "FRACTION": {
+      "NAME": "Fraction",
+      "DESCRIPTION": "description"
+    },
+    "METHOD": {
+      "NAME": "Méthode de collecte",
+      "DESCRIPTION": "description"
     },
     "LIST": {
       "TITLE": "Listes",
@@ -1061,12 +1173,14 @@
       "METIER": "Métiers",
       "SOFTWARE": "Logiciels"
     },
+    "OPTIONS": {
+      "VESSELS_ENABLE": "Référentiel > Navires: Activer ?"
+    },
     "ERROR": {
-      "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde du référentiel.",
-      "SAVE_REFERENTIALS_ERROR": "Erreur de sauvegarde des référentiels.",
-      "LOAD_REFERENTIAL_ERROR": "Erreur de chargement des référentiels.",
-      "LOAD_REFERENTIAL_ENTITIES_ERROR": "Erreur de chargement des types de référentiel.",
-      "DELETE_REFERENTIALS_ERROR": "Erreur lors de la suppression de référentiels",
+      "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde.",
+      "LOAD_REFERENTIAL_ERROR": "Erreur de chargement.",
+      "DELETE_REFERENTIAL_ERROR": "Erreur lors de la suppression",
+      "SUBSCRIBE_REFERENTIAL_ERROR": "Echec d'abonnement aux modifications distantes.",
       "LOAD_REFERENTIAL_LEVELS_ERROR": "Erreur lors de chargement des niveaux",
       "LOAD_PROGRAM_PMFMS_ERROR": "Erreur lors de chargement des paramètres collectés par le programme",
       "LOAD_PROGRAM_GEARS_ERROR": "Erreur lors de chargement des engins du programme",
@@ -1092,14 +1206,21 @@
     "EDIT": {
       "TITLE": "Programme {{label}} - {{name}}"
     },
+    "LIST": {
+      "TITLE": "Programmes de collecte"
+    },
     "OPTIONS": {
+      "I18N_SUFFIX" : "Dictionnaire thématique",
+      "I18N_SUFFIX_LEGACY" : "Par défaut",
+      "I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
       "TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL": "Marée: Caractéritiques optionelles si saisie terrain ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
-      "TRIP_MAP_CENTER": "Marée > Carte : Position du centre",
-      "TRIP_MAP_ZOOM": "Marée > Carte : Niveau du zoom",
+      "TRIP_MAP_ENABLE": "Marée > Carte: Activer ?",
+      "TRIP_MAP_CENTER": "Marée > Carte: Position du centre",
+      "TRIP_MAP_ZOOM": "Marée > Carte: Niveau du zoom",
       "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce: Auto-remplisage ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce: Espèces commerciales ?",
       "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce: Espèces commerciales sans poids :",
@@ -1114,30 +1235,160 @@
       "TRIP_LATITUDE_DEFAULT_SIGN": "Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Position > Longitude: Direction par défaut :",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation sur site > Date de fin ?",
+      "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Observation sur site > Débarquements: Ajout de navire ?",
+      "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Observation sur site > Afficher l'historique pour ajouter un débarquement ?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Observation sur site > Niveau(x) de lieu",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Observation sur site > Calendrier d'activité hebdomadaire ?",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Observation sur site > Calendrier d'activité hebdomadaire > Programme cible",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Observation sur site > Calendrier d'activité hebdomadaire > Jour de début de semaine",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Observation sur site > Calendrier d'activité hebdomadaire > Nombre de jour de semaine",
       "LANDING_EDITOR": "Observation sur site > Débarquement: éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",
       "LANDING_EDITOR_CONTROL": "Contrôle",
       "LANDING_EDITOR_TRIP": "Marée",
-      "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
+      "LANDING_EDITOR_SAMPLING": "Echantillonnage biologique",
+      "LANDING_CREATION_DATE_ENABLE": "Observation sur site > Débarquements : Afficher la date de création ?",
+      "LANDING_RECORDER_PERSON_ENABLE": "Observation sur site > Débarquements : Afficher le saisisseur ?",
+      "LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE": "Observation sur site > Débarquements : Afficher le port d'attache ?",
+      "LANDING_STRATEGY_ENABLE": "Observation sur site > Débarquement : Saisir la stratégie ?",
+      "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Saisir la date ?",
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
-      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation sur site > Zone de pêche: Niveau(x) de lieu"
+      "LANDING_LOCATION_ENABLE": "Observation sur site > Débarquements : Voir le Port ?",
+      "LANDING_ONE_TAB_ENABLE": "Observation sur site > Débarquement : un seul onglet ?",
+      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
+      "PROGRAM_STRATEGY_EDITOR" : "Stratégie > éditeur",
+      "PROGRAM_STRATEGY_EDITOR_LEGACY": "Par défaut",
+      "PROGRAM_STRATEGY_EDITOR_SAMPLING": "Paramètres biologiques",
+      "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
+      "VESSEL_TYPE_ENABLE": "Navires > Activer le type de navire ?"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Niveaux d'acquisition",
       "LOCATIONS": "Lieux",
+      "TAB_PMFM": "PMFM",
       "GEARS": "Engins",
       "TAXON_GROUPS": "Espèces commerciales",
-      "TAXON_NAMES": "Espèces scientifiques",
+      "TAXON_NAMES": "Espèce cible",
+      "SCIENTIFIC_TAXON_NAMES": "Espèces scientifiques",
       "BTN_APPLY_TO_SELECTED_PMFM": "Appliquer aux PSFMs sélectionnés",
       "BTN_REMOVE_TO_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
       "NEW": {
-        "TITLE": "Nouvelle stratégie"
+        "TITLE": "Nouvelle stratégie",
+        "SAMPLING": {
+          "TITLE": "Nouvelle ligne de plan"
+        }
+      },
+      "EDIT": {
+        "TITLE": "<small>{{program}}<br></small>Stratégie {{label}}",
+        "LABEL": "Code",
+        "ANALYTIC_REFERENCE_PLACEHOLDER": "Code analytique",
+        "DEPARTMENTS": "Service(s) saisisseur(s) :",
+        "DEPARTMENT_PLACEHOLDER": "Service saisisseur #",
+        "LOCATIONS": "Lieux(s) applicables :",
+        "LOCATION_PLACEHOLDER": "Lieu applicable #",
+        "TAXON_NAMES": "Espèce(s) scientifique(s) :",
+        "TAXON_NAME_PLACEHOLDER": "Espèce scientifique #",
+        "QUARTER_PLACEHOLDER": "Trimestre ",
+        "EFFORT": "Effort :",
+        "PARAMETERS_DIVIDER": "Paramètres à mesurer :",
+        "AGE": "Age :",
+        "AGE_PLACEHOLDER": "Age",
+        "SEX": "Sexe :",
+        "SEX_PLACEHOLDER": "Sexe",
+        "WEIGHTS": "Poids : ",
+        "LENGTHS": "Tailles : ",
+        "MATURITIES": "Maturités : ",
+        "CALCIFIED_TYPE": "Pièces calcifiées :",
+        "CALCIFIED_TYPE_PLACEHOLDER": "Type de pièces calcifiées #",
+        "YEAR_PLACEHOLDER": "Année",
+
+        "SAMPLING": {
+          "TITLE": "Ligne de plan {{label}}",
+          "LABEL": "Code ligne de plan - incrément",
+          "ANALYTIC_REFERENCE_PLACEHOLDER": "EOTP",
+          "DEPARTMENTS": "Labo(s) saisisseur(s) :",
+          "DEPARTMENT_PLACEHOLDER": "Laboratoire saisisseur #",
+          "LOCATIONS": "Zone(s) de pêche :",
+          "LOCATION_PLACEHOLDER": "Zone de pêche #",
+          "TAXON_NAMES": "Espèce cible :",
+          "TAXON_NAME_PLACEHOLDER": "Espèce cible",
+          "QUARTER_PLACEHOLDER": "Trimestre ",
+          "EFFORT": "Effort :",
+          "PARAMETERS_DIVIDER": "Paramètres à mesurer :",
+          "AGE": "Age :",
+          "AGE_PLACEHOLDER": "Age",
+          "SEX": "Sexe :",
+          "SEX_PLACEHOLDER": "Sexe",
+          "WEIGHTS": "Poids : ",
+          "LENGTHS": "Tailles : ",
+          "MATURITIES": "Maturités : ",
+          "CALCIFIED_TYPE": "Pièces calcifiées :",
+          "CALCIFIED_TYPE_PLACEHOLDER": "Types de pièces calcifiées #",
+          "YEAR_PLACEHOLDER": "Année"
+        }
+      },
+      "TABLE": {
+        "LABEL": "Code",
+        "LOCATIONS": "Lieu(x) applicable(s)",
+        "ANALYTIC_REFERENCE": "Code analytique",
+        "RECORDER_DEPARTMENTS": "Service(s) saisisseur(s)",
+        "TAXON_NAMES": "Espèce(s) scientifique(s)",
+        "EFFORT_Q1": "Effort T1" ,
+        "EFFORT_Q2": "Effort T2" ,
+        "EFFORT_Q3": "Effort T3" ,
+        "EFFORT_Q4": "Effort T4" ,
+        "PARAMETERS": "Paramètres collectés",
+        "COMMENTS": "Commentaires",
+        "AGE": "Age",
+        "SEX": "Sexe",
+        "WEIGHT": "Poids",
+        "LENGTH": "Taille",
+        "MATURITY": "Maturité",
+        "OTHER": "Autre",
+
+        "SAMPLING": {
+          "LABEL": "Code de la ligne",
+          "LOCATIONS": "Zone(s) de pêche",
+          "ANALYTIC_REFERENCE": "EOTP",
+          "RECORDER_DEPARTMENTS": "Laboratoire(s) saisisseur(s)",
+          "TAXON_NAMES": "Espèce cible",
+          "EFFORT_Q1": "Efforts T1" ,
+          "EFFORT_Q2": "Efforts T2" ,
+          "EFFORT_Q3": "Efforts T3" ,
+          "EFFORT_Q4": "Efforts T4" ,
+          "PARAMETERS": "Paramètres à mesurer",
+          "COMMENTS": "Commentaires",
+          "AGE": "Age",
+          "SEX": "Sexe",
+          "WEIGHT": "Poids",
+          "LENGTH": "Taille",
+          "MATURITY": "Maturité",
+          "OTHER": "Autre"
+        }
+      },
+      "SUMMARY": {
+        "TITLE": "Stratégie",
+        "LOCATIONS" :"Lieux applicables :",
+        "TAXON_NAMES" :"Espèce(s) scientifique(s) :",
+        "TAXON_GROUPS" :"Espèce(s) commerciale(s) :",
+        "BTN_SHOW" :"Ouvrir la stratégie",
+        "SAMPLING" : {
+          "TITLE": "Plan d'échantillonnage",
+          "LOCATIONS" :"Zone(s) de pêche :",
+          "TAXON_NAMES" :"Espèce cible :",
+          "TAXON_GROUPS" :"Espèces commerciales :",
+          "BTN_SHOW": "Ouvrir la ligne de plan"
+        }
       },
       "PMFM_STRATEGY": {
         "ACQUISITION_LEVEL": "Niveau d'acquisition",
         "RANK_ORDER": "Ordre",
-        "PMFM": "Paramètre collecté (PMFM)",
+        "PMFM": "PSFM",
+        "PARAMETER": "Paramètre",
+        "MATRIX": "Support",
+        "FRACTION": "Fraction",
+        "METHOD": "Méthode",
+        "UNIT": "Unité",
         "IS_MANDATORY": "Oblig ?",
         "ACQUISITION_NUMBER": "Nb acquis.",
         "MIN_VALUE": "Min",
@@ -1146,6 +1397,19 @@
         "TABLE": {
           "TITLE": "Paramètres collectés"
         }
+      },
+      "ERROR": {
+        "LOAD_STRATEGY_LABEL_ERROR": "Erreur lors de chargement du label de la stratégie",
+        "LOAD_STRATEGY_REFERENCES_ERROR": "Erreur lors de chargement des références analytiques pour la stratégie",
+        "PARAMETERS.MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}",
+        "PARAMETERS.WEIGHT_OR_LENGTH": "Le poids ou la taille est obligatoire",
+        "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
+        "EFFORT.REALIZED_EFFORT": "Effort obligatoire pour les trimestres ayant des mesures individuelles : {{quarters}}",
+        "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà",
+        "LABEL.ZERO": "L'incrément minimal est 0001",
+        "STRATEGY_HAS_REALIZED_EFFORT": "La ligne de plan {{label}} est liée à une ou plusieurs observations individuelles",
+        "STRATEGIES_HAS_REALIZED_EFFORT": "Les lignes de plan {{label}} sont liées à une ou plusieurs observations individuelles",
+        "PMFM.PMFM_OR_PARAMETER": "Veuillez sélectionner un PSFM ou un paramètre"
       }
     },
     "ERROR": {
@@ -1156,9 +1420,8 @@
     }
   },
   "EXTRACTION": {
-    "BTN_DOWNLOAD_FILE": "Télécharger les données (CSV)",
-    "BTN_AGGREGATE": "Aggréger",
-    "BTN_AGGREGATE_HELP": "Permet de créer un produit aggrégé",
+    "BTN_DOWNLOAD_HELP": "Télécharger les données (CSV)",
+    "BTN_SAVE_HELP": "Permet de créer un produit",
     "SPATIAL_AGGREGATION": "Créer une aggrégation spatiale",
     "BTN_PUBLISH": "Rendre public",
     "BTN_UNPUBLISH": "Rendre privé",
@@ -1174,13 +1437,14 @@
         "IS_SPATIAL": "Aggregation spatiale ?",
         "BTN_OPEN_MAP": "Voir la carte",
         "BTN_PREVIEW_DOC": "Prévisualiser la doc",
-        "STRATUM_DOTS": "Strates :",
-        "FORMAT_DOTS": "Documentation :",
+        "STRATUM_DOTS": "Couches géographiques :",
+        "FORMAT_DOTS": "Documentation du format :",
         "MARKDOWN_HELP": "Saisir au format <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a>",
         "FORMAT_PLACEHOLDER": "Describe the output format...",
-        "FORMAT_PREVIEW": "Prévisualisation",
+        "FORMAT_PREVIEW_DOTS": "Prévisualisation :",
+        "PROCESSING_FREQUENCY": "Fréquence de mise à jour",
         "STRATA": {
-          "SHEET_NAME": "Onglet",
+          "SHEET_NAME": "Couche",
           "TIME_COLUMN": "Temps",
           "SPACE_COLUMN": "Geometrie",
           "AGG_COLUMN": "Cumul",
@@ -1195,6 +1459,13 @@
           "PUBLIC": "Visibilité: publique",
           "PRIVATE": "Visibilité: privé",
           "DISABLE": "Obsolète"
+        },
+        "PROCESSING_FREQUENCY_ENUM": {
+          "NEVER": "Jamais",
+          "MANUALLY": "Manuelle",
+          "DAILY": "Journalière",
+          "WEEKLY": "Hebdomadaire",
+          "MONTHLY": "Mensuelle"
         }
       }
     },
@@ -1206,6 +1477,8 @@
       "CRITERION_END_VALUE": "Fin",
       "BTN_ADD_CRITERION": "Ajouter un critère de recherche",
       "BETWEEN": "entre",
+      "NULL": "vide",
+      "NOT_NULL": "non vide",
       "HELP": "Pour filtrer rapidement, cliquez dans la cellule. Maintenez la touche 'Ctrl' pour filtrer sur plusieurs valeurs.",
       "NO_FILTER_PARENTHESIS": "(non filtrés)",
       "WITH_FILTER_PARENTHESIS": "(filtrés)"
@@ -1218,10 +1491,11 @@
       }
     },
     "TABLE": {
-      "BTN_SELECT_TYPE": "Sources de données"
+      "BTN_SELECT_TYPE": "Sources<span class=\"hidden-xs hidden-sm\"> de données</span>"
     },
     "MAP": {
-      "BTN_SELECT_TYPE": "Liste des cartes",
+      "BTN_MAP_LIST": "Liste des cartes",
+      "BTN_MAPS": "Cartes",
       "BTN_SELECT_TYPE_HELP": "Affiche la liste des cartes disponibles",
       "BTN_SELECT_AGG": "Indicateur ?",
       "BTN_ADD_CHART": "Graphique...",
@@ -1310,7 +1584,10 @@
       "TRIP_COUNT_BY_STATION": "Nb de marées, par station",
       "TRIP_COUNT_BY_FISHING_TIME": "Nb de marées, par temps de peche",
       "VESSEL_COUNT": "Nombre de navires",
-      "FISHING_TIME": "Temps de pêche (h dec.)",
+      "DATE": "Date",
+      "TIME": "Heure",
+      "FISHING_DATE": "Date",
+      "FISHING_DURATION": "Temps de pêche (h dec.)",
       "OFFICIAL_LANDINGS_VALUE": "Valeur officielle débarquée (€)",
       "OFFICIAL_LANDINGS_WEIGHT": "Poids officiel débarqué (kg)"
     },
@@ -1325,6 +1602,12 @@
       "ST": "Tests de survie",
       "RL": "Relachés"
     },
+    "OPTIONS": {
+      "ENABLE": "Extraction > Activer ?",
+      "MAP_ENABLE": "Extraction > Cartes : Activer ?",
+      "PRODUCT_ENABLE": "Extraction > Produits : Activer ?",
+      "NOT_SELF_ACCESS_MIN_ROLE": "Extraction > Role min. pour voir les extractions des autres"
+    },
     "PRODUCT": {
       "P01_RDB": {
         "TITLE": "Appel à données CIEM (RDB v1.3)"
@@ -1332,16 +1615,16 @@
     },
     "LIVE": {
       "RDB": {
-        "TITLE": "Données brutes (RDB v1.3)"
+        "TITLE": "Marées brutes (RDB v{{version}})"
       },
       "COST": {
-        "TITLE": "Données brutes (COST v1.4)"
+        "TITLE": "Marées brutes (COST v{{version}})"
       },
-      "FREE1": {
-        "TITLE": "Données brutes (FREE v{{version}})"
+      "FREE": {
+        "TITLE": "Marées brutes (FREE v{{version}})"
       },
       "FREE2": {
-        "TITLE": "Données brutes (FREE2 v{{version}})",
+        "TITLE": "Marées brutes (FREE2 v{{version}})",
         "SHEET": {
           "MAREE": "Marées",
           "OPERATION_PECHE": "Opérations",
@@ -1349,11 +1632,24 @@
           "STRATEGIE": "Stratégie",
           "DETAIL": "Détail",
           "CAPTURES": "Captures",
-          "MESURES": "Mensures"
+          "MESURES": "Mesures"
         }
       },
       "SURVIVAL_TEST": {
-        "TITLE": "Données brutes (SUMARiS v1.0)"
+        "TITLE": "Marées brutes (SUMARiS v{{version}})"
+      },
+      "RJB_TRIP": {
+        "TITLE": "Marées Pocheteaux (RJB v{{version}})"
+      },
+      "PMFM_TRIP": {
+        "TITLE": "Marées brutes (PMFM v{{version}})"
+      },
+      "STRAT": {
+        "TITLE": "Stratégies de collecte",
+        "SHEET": {
+          "ST": "Stratégies",
+          "SM": "Suivi de stratégies"
+        }
       }
     },
     "ERROR": {
@@ -1380,9 +1676,9 @@
       }
     },
     "SYNCHRONIZATION_STATUS": {
-      "DIRTY": "Hors-ligne",
+      "DIRTY": "Non envoyées",
       "READY_TO_SYNC": "En attente d'envoi",
-      "SYNC": "Synchronisées"
+      "SYNC": "Envoyées"
     },
     "INFO": {
       "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%",
@@ -1420,15 +1716,13 @@
   },
   "ERROR": {
     "ALERT_HEADER": "Erreur",
-    "FIELD_REQUIRED": "Champ obligatoire.",
-    "FIELD_TOO_SHORT": "Valeur trop courte.",
-    "FIELD_TOO_SHORT_WITH_LENGTH": "Valeur trop courte ({{minLength}} caractères min)",
-    "FIELD_TOO_LONG": "Valeur trop longue",
-    "FIELD_TOO_LONG_WITH_LENGTH": "Valeur trop longue ({{maxLength}} caractères max)",
+    "FIELD_REQUIRED": "Champ obligatoire",
+    "FIELD_TOO_SHORT": "Valeur trop courte",
+    "FIELD_MIN_LENGTH": "Valeur trop courte {{minLength && (' (' + minLength + ' caractères min)') }}",
+    "FIELD_MAX_LENGTH": "Valeur trop longue {{maxLength && (' (' + maxLength + ' caractères max)') }}",
     "FIELD_MIN": "La valeur minimale autorisée est {{min}}",
     "FIELD_MIN_COMPACT": "Min autorisée={{min}}",
     "FIELD_MAX": "Valeur maximale autorisée: {{max}}",
-    "FIELD_MAX_LENGTH": "Longueur maximale: {{requiredLength}}",
     "FIELD_MAX_COMPACT": "Max {{max}}",
     "FIELD_MAXIMUM_DECIMALS": "Nombre de décimale incorrect ({{max}} max)",
     "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb décimale max={{max}}",
@@ -1470,18 +1764,32 @@
     "AUTH_CHALLENGE_ERROR": "Erreur lors de l'authentification sur le serveur (récupration du challenge)",
     "TABLE_INVALID_ROW_ERROR": "Il existe une ligne en erreur",
     "TABLE_READ_ONLY": "Tableau en lecture seule",
-    "SAVE_DATA_ERROR": "Erreur lors de la sauvegarde.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
-    "LOAD_DATA_ERROR": "Erreur de chargement des données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "SAVE_DATA_ERROR": "Erreur lors de la sauvegarde. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "LOAD_DATA_ERROR": "Erreur de chargement des données. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "NETWORK_REQUIRED": "Connexion au réseau impossible.<br/><b>Vérifiez votre connexion réseau</b> avant de réessayer.",
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "Pas de réseau. Impossible de synchoniser.",
     "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne.",
     "COPY_STORAGE_ERROR": "Erreur de copie des données",
-    "DATA_MIGRATION_FAILED": "Echec de la migration de données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "DATA_MIGRATION_FAILED": "Echec de la migration de données. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "BAD_APP_VERSION": "Veuillez mettre à jour l'application. La récupération et l'envoi de données avec la version actuelle risque de ne pas fonctionner.</small>",
     "LOAD_TRASH_ENTITY_ERROR": "Erreur de chargement du fichier de corbeille",
     "DELETE_TRASH_ENTITY_ERROR": "Erreur de suppression du fichier en corbeille",
     "ENTITY_STORAGE_MIGRATION_FAILED": "Echec de migration de la base de données locale",
-    "STARTUP_FAILED": "Echec du lancement"
+    "STARTUP_FAILED": "Echec du lancement",
+    "LOAD_ENTITY_ERROR": "Erreur lors de chargement",
+    "LOAD_ENTITIES_ERROR": "Erreur lors de chargement de la liste",
+    "SAVE_ENTITY_ERROR": "Erreur lors de la sauvegarde",
+    "SAVE_ENTITIES_ERROR": "Erreur lors de la sauvegarde de la liste",
+    "SUBSCRIBE_ENTITY_ERROR": "Erreur lors de l'abonnement aux modifications distantes",
+    "CONTROL_ENTITY_ERROR": "Erreur lors du contrôle de la validité des données",
+    "TERMINATE_ENTITY_ERROR": "Terminaision de la saisie impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "VALIDATE_ENTITY_ERROR": "Erreur lors de la validation",
+    "UNVALIDATE_ENTITY_ERROR": "Erreur lors de la dévalidation",
+    "QUALIFY_ENTITY_ERROR": "Erreur lors de la qualification",
+    "SYNCHRONIZE_ENTITY_ERROR": "Synchronisation impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "LOAD_ERROR": "Erreur de chargement",
+    "SAVE_ERROR": "Erreur de sauvegarde",
+    "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -1495,7 +1803,7 @@
     "DELETE_ROWS": "<b>Êtes-vous sûr</b> de vouloir supprimer ces lignes ?",
     "SEND_DEBUG_DATA": "Voulez-vous envoyer ces données à l'administrateur, afin qu'il vous aide ?"
   },
-  "INFO" : {
+  "INFO": {
     "SYNCHRONIZATION_SUCCEED": "Synchronisation terminée avec succès !<br/>Les données ont bien été recues par le serveur.",
     "DEBUG_DATA_SEND": "Demande d'aide envoyée à l'administrateur.",
     "DATA_MIGRATION_STARTED": "Restauration de données en cours.<br/><b>Veuillez patienter...</b>",

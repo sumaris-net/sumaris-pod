@@ -46,7 +46,7 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
 
     // Add measurement form
     // if (opts.withMeasurements) {
-    //   const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].pmfmStrategies || [])
+    //   const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].pmfms || [])
     //     .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.OPERATION);
     //   form.addControl('measurements', this.measurementsValidatorService.getFormGroup(data && data.measurements, {
     //     isOnFieldMode: opts.isOnFieldMode,
@@ -68,7 +68,8 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
         taxonGroup: [data && data.taxonGroup || null, Validators.compose([Validators.required, SharedValidators.entity])],
         weight: [data && data.weight || '', SharedValidators.double({maxDecimals: 2})],
         individualCount: [data && data.individualCount || '', SharedValidators.integer],
-        measurementValues: this.formBuilder.group({})
+        measurementValues: this.formBuilder.group({}),
+        samples: [data && data.samples || null]
         // comments: [data && data.comments || null, Validators.maxLength(2000)]
       });
 

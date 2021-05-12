@@ -1,18 +1,18 @@
 import {Directive, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {FormGroup} from "@angular/forms";
-import {Moment} from 'moment/moment';
+import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {Subscription} from 'rxjs';
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
 import {AppFormUtils, IAppForm} from "./form.utils";
-import {
-  MatAutocompleteConfigHolder,
-  MatAutocompleteFieldAddOptions,
-  MatAutocompleteFieldConfig
-} from "../../shared/material/material.autocomplete";
 import {LocalSettingsService} from "../services/local-settings.service";
+import {
+  MatAutocompleteConfigHolder, MatAutocompleteFieldAddOptions,
+  MatAutocompleteFieldConfig
+} from "../../shared/material/autocomplete/material.autocomplete";
 
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
 
   private _subscription = new Subscription();
@@ -25,7 +25,6 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
   tabGroupAnimationDuration = '200ms';
 
   @Input() debug = false;
-
   @Input() tabindex: number;
 
   get value(): any {
@@ -183,7 +182,6 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
     }
   }
 
-
   markAsPristine(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
     this.form.markAsPristine(opts);
     this.markForCheck();
@@ -195,6 +193,7 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
   }
 
   markAsTouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+    // this.form.markAllAsTouched() // This is not working well (e.g. in TripFrom)
     AppFormUtils.markAsTouched(this.form, opts);
     this.markForCheck();
   }

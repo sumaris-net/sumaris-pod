@@ -1,19 +1,21 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormGroup} from "@angular/forms";
-import {AppEntityEditor, environment, isNil, referentialToString} from "../../core/core.module";
-
 import {ReferentialForm} from "../form/referential.form";
 import {ParameterValidatorService} from "../services/validator/parameter.validator";
-import {EntityServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {Parameter} from "../services/model/parameter.model";
 import {ParameterService} from "../services/parameter.service";
 import {FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {ReferentialRefService} from "../services/referential-ref.service";
-import {ReferentialTable} from "../list/referential.table";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../core/services/model/history.model";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {AppEntityEditor} from "../../core/form/editor.class";
+import {environment} from "../../../environments/environment";
+import {isNil} from "../../shared/functions";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {SimpleReferentialTable} from "../list/referential-simple.table";
 
 @Component({
   selector: 'app-parameter',
@@ -39,7 +41,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
   }
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
-  @ViewChild('qualitativeValuesTable', { static: true }) qualitativeValuesTable: ReferentialTable;
+  @ViewChild('qualitativeValuesTable', { static: true }) qualitativeValuesTable: SimpleReferentialTable;
 
   constructor(
     protected injector: Injector,

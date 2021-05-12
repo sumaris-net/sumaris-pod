@@ -20,7 +20,6 @@
   <ion-grid>
     <ion-row>
 
-
       <ion-col size="12" size-lg="4">
         <mat-accordion>
 
@@ -117,7 +116,7 @@
             <mat-expansion-panel-header>
               <mat-panel-title>
                 <ion-text color="primary">
-                  <span translate>PROGRAM.STRATEGY.TAXON_NAMES</span>
+                  <span translate>PROGRAM.STRATEGY.SCIENTIFIC_TAXON_NAMES</span>
                   <ion-icon name="filter" *ngIf="taxonNameList.hasSelection()"></ion-icon>
                 </ion-text>
               </mat-panel-title>
@@ -139,12 +138,12 @@
       <!-- Pmfm strategies -->
       <ion-col>
         <ion-card class="ion-no-margin">
-            <app-pmfm-strategies-table #pmfmStrategiesTable
+            <app-pmfm-strategies-table #pmfmsTable
                                        [title]="'PROGRAM.STRATEGY.PMFM_STRATEGY.TABLE.TITLE'|translate"
-                                       [program]="program"
                                        [canEdit]="enabled"
                                        [canDelete]="enabled"
-                                       [sticky]="true">
+                                       [sticky]="true"
+                                       [showDetailsColumns]="true">
             </app-pmfm-strategies-table>
         </ion-card>
 

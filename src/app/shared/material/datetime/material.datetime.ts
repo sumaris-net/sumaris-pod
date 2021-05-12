@@ -9,7 +9,6 @@ import {
   OnDestroy,
   OnInit,
   Optional,
-  Output,
   QueryList,
   ViewChild,
   ViewChildren
@@ -26,25 +25,17 @@ import {
   Validators
 } from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
-import {Moment} from "moment/moment";
-import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../../constants';
+import {isMoment, Moment} from "moment";
+import {DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../../constants';
 import {SharedValidators} from '../../validator/validators';
 import {Keyboard} from "@ionic-native/keyboard/ngx";
-import {debounceTime, filter, first, tap} from "rxjs/operators";
+import {filter, first} from "rxjs/operators";
 import {InputElement, setTabIndex} from "../../inputs";
 import {isFocusableElement} from "../../focusable";
-import {merge, Subscription, zip} from "rxjs";
+import {merge, Subscription} from "rxjs";
 import {MatDatepicker, MatDatepickerInputEvent} from "@angular/material/datepicker";
-import {
-  fromDateISOString,
-  isNil,
-  isNilOrBlank,
-  isNotNilOrBlank,
-  sleep,
-  toBoolean,
-  toDateISOString
-} from "../../functions";
-import {isMoment} from "moment";
+import {isNil, isNilOrBlank, sleep, toBoolean} from "../../functions";
+import {fromDateISOString, toDateISOString} from "../../dates";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -111,6 +102,8 @@ export class MatDateTime implements OnInit, OnDestroy, ControlValueAccessor, Inp
   @Input() compact = false;
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
+
+  @Input() autofocus = false;
 
   @Input() set tabindex(value: number) {
     if (this._tabindex !== value) {

@@ -4,7 +4,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  forwardRef,
+  forwardRef, InjectionToken, Injector,
   Input,
   OnInit,
   Optional,
@@ -13,11 +13,12 @@ import {
 } from '@angular/core';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {FloatLabelType} from "@angular/material/form-field";
-import {isNotNilOrBlank, joinPropertiesPath, toBoolean, toDateISOString} from "../../shared/functions";
+import {isNilOrBlank, isNotNilOrBlank, joinPropertiesPath, toBoolean} from "../functions";
 import {DisplayFn, FormFieldDefinition} from "./field.model";
 import {TranslateService} from "@ngx-translate/core";
 import {getColorContrast} from "../graph/colors.utils";
 import {asInputElement, filterNumberInput, selectInputContent} from "../inputs";
+import {toDateISOString} from "../dates";
 
 const noop = () => {
 };
@@ -88,6 +89,7 @@ export class AppFormField implements OnInit, ControlValueAccessor {
   constructor(
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef,
+    protected injector: Injector,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
 
@@ -109,6 +111,8 @@ export class AppFormField implements OnInit, ControlValueAccessor {
 
     if (this.type === "double") {
       this.numberInputStep = this.computeNumberInputStep(this._definition);
+    } else if (this.type === "enum" && this._definition.values instanceof InjectionToken) {
+      this._definition.values = this.computeValuesFromToken(this._definition.values);
     }
   }
 
@@ -122,6 +126,9 @@ export class AppFormField implements OnInit, ControlValueAccessor {
     }
     else if (this.type === 'date') {
       obj = toDateISOString(obj);
+    }
+    else if (this.type === 'entity' && isNilOrBlank(obj)) {
+      obj = null;
     }
     if (obj !== this.formControl.value) {
       //console.debug("Set config value ", this.formControl.value, obj);
@@ -196,6 +203,11 @@ export class AppFormField implements OnInit, ControlValueAccessor {
     } else {
       return "1";
     }
+  }
+
+  protected computeValuesFromToken(token: InjectionToken<any>): any[] {
+    const values = this.injector.get(token);
+    return values instanceof Array ? values : [];
   }
 
   protected checkAndResolveFormControl() {

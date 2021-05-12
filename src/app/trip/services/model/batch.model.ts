@@ -1,17 +1,17 @@
-import {EntityUtils, isNil, isNotNil, ReferentialRef, referentialToString} from "../../../core/core.module";
-import {AcquisitionLevelCodes, PmfmIds, QualityFlagIds} from "../../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes, PmfmIds, QualitativeValueIds, QualityFlagIds} from "../../../referential/services/model/model.enum";
 import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
-import {isNilOrBlank, isNotEmptyArray, isNotNilOrBlank, toNumber} from "../../../shared/functions";
+import {isNil, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank, toNumber} from "../../../shared/functions";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
-import {ITreeItemEntity} from "../../../core/services/model/entity.model";
+import {EntityUtils, ITreeItemEntity} from "../../../core/services/model/entity.model";
 import {
   NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions,
+  ReferentialAsObjectOptions, ReferentialRef, referentialToString,
   ReferentialUtils
 } from "../../../core/services/model/referential.model";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../../../referential/services/model/pmfm-value.model";
+import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';
@@ -228,17 +228,18 @@ export class Batch<T extends Batch<any> = Batch<any>,
   }
 }
 
+// @dynamic
 export class BatchUtils {
 
   static parentToString(parent: Batch, opts?: {
-    pmfm?: PmfmStrategy,
+    pmfm?: IPmfm,
     taxonGroupAttributes: string[];
     taxonNameAttributes: string[];
   }): string {
     if (!parent) return null;
     opts = opts || {taxonGroupAttributes: ['label', 'name'], taxonNameAttributes: ['label', 'name']};
-    if (opts.pmfm && parent.measurementValues && isNotNil(parent.measurementValues[opts.pmfm.pmfmId])) {
-      return PmfmValueUtils.valueToString(parent.measurementValues[opts.pmfm.pmfmId], {pmfm: opts.pmfm});
+    if (opts.pmfm && parent.measurementValues && isNotNil(parent.measurementValues[opts.pmfm.id])) {
+      return PmfmValueUtils.valueToString(parent.measurementValues[opts.pmfm.id], {pmfm: opts.pmfm});
     }
     const hasTaxonGroup = ReferentialUtils.isNotEmpty(parent.taxonGroup);
     const hasTaxonName = ReferentialUtils.isNotEmpty(parent.taxonName);
@@ -272,7 +273,7 @@ export class BatchUtils {
         .length > 0;
   }
 
-  public static canMergeSubBatch(b1: Batch, b2: Batch, pmfms: PmfmStrategy[]): boolean {
+  public static canMergeSubBatch(b1: Batch, b2: Batch, pmfms: IPmfm[]): boolean {
     return EntityUtils.equals(b1.parent, b2.parent, 'label')
       && ReferentialUtils.equals(b1.taxonName, b2.taxonName)
       && MeasurementValuesUtils.equalsPmfms(b1.measurementValues, b2.measurementValues, pmfms);
@@ -316,7 +317,7 @@ export class BatchUtils {
    * @param subAcquisitionLevel
    * @param qvPmfm
    */
-  static prepareSubBatchesForTable(rootBatches: Batch[], subAcquisitionLevel: string, qvPmfm?: PmfmStrategy): Batch[] {
+  static prepareSubBatchesForTable(rootBatches: Batch[], subAcquisitionLevel: string, qvPmfm?: IPmfm): Batch[] {
     if (qvPmfm) {
       return rootBatches.reduce((res, rootBatch) => {
         return res.concat((rootBatch.children || []).reduce((res, qvBatch) => {
@@ -325,7 +326,7 @@ export class BatchUtils {
             .map(child => {
               // Copy QV value from the root batch
               child.measurementValues = child.measurementValues || {};
-              child.measurementValues[qvPmfm.pmfmId] = qvBatch.measurementValues[qvPmfm.pmfmId];
+              child.measurementValues[qvPmfm.id] = qvBatch.measurementValues[qvPmfm.id];
               // Replace parent by the group (instead of the sampling batch)
               child.parentId = rootBatch.id;
               return child;
@@ -438,7 +439,7 @@ export class BatchUtils {
         // Recursive call
         BatchUtils.sumObservedIndividualCount(b.children) :
         // Or get value from individual batches
-        b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL) ? toNumber(b.individualCount,1) :
+        b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL) ? toNumber(b.individualCount, 1) :
           // Default value, if not an individual batches
           // Use '0' because we want only observed batches count
           0)
@@ -473,7 +474,7 @@ export class BatchUtils {
             }
           }
           message += ' ' + key + ':' + value;
-        })
+        });
     }
     else {
 
@@ -507,7 +508,7 @@ export class BatchUtils {
       // Measurement
       if (opts.showMeasure !== false) {
         if (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING]) {
-          message += ' discardOrLanding:' + (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING] == 190 ? 'LAN' : 'DIS');
+          message += ' discardOrLanding:' + (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING] == QualitativeValueIds.DISCARD_OR_LANDING.LANDING ? 'LAN' : 'DIS');
         }
         if (isNotNil(batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM])) {
           message += ' lengthTotal:' + batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM] + 'cm';

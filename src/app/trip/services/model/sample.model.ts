@@ -1,18 +1,19 @@
-import {fromDateISOString, isNil, isNotNil, referentialToString, toDateISOString} from "../../../core/core.module";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {
   NOT_MINIFY_OPTIONS,
   ReferentialAsObjectOptions,
-  ReferentialRef,
+  ReferentialRef, referentialToString,
   ReferentialUtils
 } from "../../../core/services/model/referential.model";
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {ITreeItemEntity} from "../../../core/services/model/entity.model";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
 import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
-import {isNotEmptyArray} from "../../../shared/functions";
+import {isNil, isNotEmptyArray, isNotNil} from "../../../shared/functions";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 
 export class Sample extends RootDataEntity<Sample>
@@ -21,6 +22,7 @@ export class Sample extends RootDataEntity<Sample>
   static TYPENAME = 'SampleVO';
 
   static fromObject(source: any, opts?: { withChildren?: boolean; }): Sample {
+    if (!source || source instanceof Sample) return source;
     const res = new Sample();
     res.fromObject(source, opts);
     return res;
@@ -165,14 +167,14 @@ export class Sample extends RootDataEntity<Sample>
 export class SampleUtils {
 
   static parentToString(parent: Sample, opts?: {
-    pmfm?: PmfmStrategy,
+    pmfm?: IPmfm,
     taxonGroupAttributes: string[];
     taxonNameAttributes: string[];
   }) {
     if (!parent) return null;
     opts = opts || {taxonGroupAttributes: ['label', 'name'], taxonNameAttributes: ['label', 'name']};
-    if (opts.pmfm && parent.measurementValues && isNotNil(parent.measurementValues[opts.pmfm.pmfmId])) {
-      return parent.measurementValues[opts.pmfm.pmfmId];
+    if (opts.pmfm && parent.measurementValues && isNotNil(parent.measurementValues[opts.pmfm.id])) {
+      return parent.measurementValues[opts.pmfm.id];
     }
 
     const hasTaxonGroup = ReferentialUtils.isNotEmpty(parent.taxonGroup) ;

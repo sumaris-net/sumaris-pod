@@ -1,26 +1,27 @@
 import {Inject, Injectable, InjectionToken, Optional} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {FetchPolicy, gql} from "@apollo/client/core";
 import {Configuration} from "./model/config.model";
-import {environment} from "../../../environments/environment";
 import {Storage} from "@ionic/storage";
-import {BehaviorSubject, Observable, of, Subject, Subscription} from "rxjs";
+import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import {ErrorCodes} from "./errors";
-import {FetchPolicy} from "@apollo/client/core";
 import {GraphqlService} from "../graphql/graphql.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
+import {isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {FileService} from "../../shared/file/file.service";
 import {NetworkService} from "./network.service";
 import {PlatformService} from "./platform.service";
-import {EntityServiceLoadOptions} from "../../shared/shared.module";
-import {ConfigOptions} from "./config/core.config";
+import {CORE_CONFIG_OPTIONS} from "./config/core.config";
 import {SoftwareService} from "../../referential/services/software.service";
-import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {VersionUtils} from "../../shared/version/versions";
-import {ToastController} from "@ionic/angular";
+import {LocationLevelIds, ParameterLabelGroups, PmfmIds, TaxonomicLevelIds} from "../../referential/services/model/model.enum";
+import {Platform, ToastController} from "@ionic/angular";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {TranslateService} from "@ngx-translate/core";
-import {filter, map} from "rxjs/operators";
+import {filter} from "rxjs/operators";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {ENVIRONMENT} from "../../../environments/environment.class";
+import {UserProfileLabels} from "./model/person.model";
+import {REFERENTIAL_CONFIG_OPTIONS} from "../../referential/services/config/referential.config";
+import {AccountService} from "./account.service";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -54,19 +55,9 @@ export const Fragments = {
   `
 };
 
-
-const LoadDefaultQuery: any = gql`
-query Configuration {
-  configuration {
-    ...ConfigFragment
-  }
-}
-  ${Fragments.config}
-`;
-
 const LoadQuery: any = gql`
-query Configuration($id: Int, $label: String) {
-  configuration(id: $id, label: $label){
+query Configuration{
+  data: configuration{
     ...ConfigFragment
   }
 }
@@ -97,7 +88,6 @@ const CacheStatistics: any = gql`
 
 export const APP_CONFIG_OPTIONS = new InjectionToken<FormFieldDefinitionMap>('defaultOptions');
 
-
 @Injectable({
   providedIn: 'root',
   deps: [APP_CONFIG_OPTIONS]
@@ -125,22 +115,22 @@ export class ConfigService extends SoftwareService<Configuration> {
   }
 
   constructor(
+    protected platform: Platform,
     protected graphql: GraphqlService,
     protected storage: Storage,
     protected network: NetworkService,
-    protected platform: PlatformService,
     protected file: FileService,
     protected toastController: ToastController,
     protected translate: TranslateService,
-    @Optional() @Inject(APP_CONFIG_OPTIONS) private defaultOptionsMap: FormFieldDefinitionMap
+    @Inject(ENVIRONMENT) protected environment,
+    @Optional() @Inject(APP_CONFIG_OPTIONS) defaultOptionsMap: FormFieldDefinitionMap
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     this._debug = !environment.production;
     if (this._debug) console.debug("[config] Creating service");
 
-    this.defaultOptionsMap = {...ConfigOptions, ...defaultOptionsMap};
-    this._optionDefs = Object.keys(this.defaultOptionsMap).map(name => defaultOptionsMap[name]);
+    this._optionDefs = Object.values({...CORE_CONFIG_OPTIONS, ...defaultOptionsMap});
 
     // Restart if graphql service restart
     this._subscription.add(
@@ -151,8 +141,6 @@ export class ConfigService extends SoftwareService<Configuration> {
     if (this.graphql.started) {
       this.start();
     }
-
-
   }
 
   start(): Promise<void> {
@@ -194,37 +182,30 @@ export class ConfigService extends SoftwareService<Configuration> {
   }
 
   async loadDefault(
-    opts?: {
-      fetchPolicy?: FetchPolicy
-    }): Promise<Configuration> {
-    return this.loadQuery({query: LoadDefaultQuery, ...opts});
+    opts?: EntityServiceLoadOptions): Promise<Configuration> {
+    const now = Date.now();
+    console.debug("[config] Loading Pod configuration...");
+
+    const query = opts && opts.query || LoadQuery;
+    const variables = opts && opts.variables || undefined;
+    const res = await this.graphql.query<{ data: any }>({
+      query,
+      variables,
+      error: {code: ErrorCodes.LOAD_CONFIG_ERROR, message: "ERROR.LOAD_CONFIG_ERROR"},
+      fetchPolicy: opts && opts.fetchPolicy || undefined/*default*/
+    });
+
+    const data = res && res.data ? Configuration.fromObject(res.data) : undefined;
+    console.info(`[config] Pod configuration loaded in ${Date.now() - now}ms:`, data);
+    return data;
   }
 
   async load(
     id: number,
-    opts?: EntityServiceLoadOptions & { label?: string; query?: any }): Promise<Configuration> {
+    opts?: EntityServiceLoadOptions & { query?: any }): Promise<Configuration> {
+    console.warn("[config] Invalid call of configService.load(id). Please use loadDefault() instead");
 
-    return this.loadQuery({
-      variables: {
-        id
-      },
-      ...opts});
-  }
-
-  loadByLabel(
-    label: string,
-    opts?: EntityServiceLoadOptions): Promise<Configuration> {
-
-    return this.loadQuery({
-      variables: {
-        label
-      },
-      ...opts});
-  }
-
-  async existsByLabel(label: string): Promise<boolean> {
-    const existingConfig = await this.loadByLabel(label, {fetchPolicy: "network-only"});
-    return isNotNil(existingConfig && existingConfig.id);
+    return this.loadDefault();
   }
 
   /**
@@ -233,7 +214,7 @@ export class ConfigService extends SoftwareService<Configuration> {
    */
   async save(config: Configuration): Promise<Configuration> {
 
-    console.debug("[config] Saving configuration...", config);
+    console.debug("[config] Saving Pod configuration...", config);
 
     const json = config.asObject();
 
@@ -255,9 +236,9 @@ export class ConfigService extends SoftwareService<Configuration> {
     config.id = savedConfig && savedConfig.id || config.id;
     config.updateDate = savedConfig && savedConfig.updateDate || config.updateDate;
 
-    console.debug("[config] Configuration saved!");
+    console.debug("[config] Pod configuration saved!");
 
-    const reloadedConfig = await this.loadByLabel(config.label, {fetchPolicy: "network-only"});
+    const reloadedConfig = await this.loadDefault({fetchPolicy: "network-only"});
 
     // If this is the default config
     const defaultConfig = this.$data.getValue();
@@ -309,7 +290,7 @@ export class ConfigService extends SoftwareService<Configuration> {
   }
 
   delete(data: Configuration, options?: any): Promise<any> {
-    throw new Error("Not implemented yet!")
+    throw new Error("Not implemented yet!");
   }
 
   listenChanges(id: number, options?: any): Observable<Configuration | undefined> {
@@ -324,30 +305,6 @@ export class ConfigService extends SoftwareService<Configuration> {
   }
 
   /* -- protected method -- */
-
-  protected async loadQuery(opts?:
-    {
-      query?: any,
-      variables?: any,
-      fetchPolicy?: FetchPolicy
-    }): Promise<Configuration> {
-
-    const now = Date.now();
-    console.debug("[config] Loading software configuration...");
-
-    const query = opts && opts.query || LoadQuery;
-    const variables = opts && opts.variables || undefined;
-    const res = await this.graphql.query<{ configuration: Configuration }>({
-      query,
-      variables,
-      error: {code: ErrorCodes.LOAD_CONFIG_ERROR, message: "ERROR.LOAD_CONFIG_ERROR"},
-      fetchPolicy: opts && opts.fetchPolicy || undefined/*default*/
-    });
-
-    const data = res && res.configuration ? Configuration.fromObject(res.configuration) : undefined;
-    console.info(`[config] Software configuration loaded in ${Date.now() - now}ms:`, data);
-    return data;
-  }
 
   private async loadOrRestoreLocally() {
     let data;
@@ -371,7 +328,7 @@ export class ConfigService extends SoftwareService<Configuration> {
     }
 
     // Make sure label has been filled
-    data.label = data.label || environment.name;
+    data.label = data.label || this.environment.name;
 
     // Reset name (if same as label)
     data.name = (data.name !== data.label) ? data.name : undefined;
@@ -379,9 +336,9 @@ export class ConfigService extends SoftwareService<Configuration> {
     // Override enumerations
     this.updateModelEnumerations(data);
 
-    // CHeck compatible version
+    // Check compatible version
     if (wasJustLoaded) {
-
+      // TODO
     }
 
     this.$data.next(data);
@@ -412,7 +369,7 @@ export class ConfigService extends SoftwareService<Configuration> {
     // Or load default value, from the environment
     if (!data) {
       console.debug("[config] No configuration found. Using environment...");
-      data = Configuration.fromObject(environment as any);
+      data = Configuration.fromObject(this.environment as any);
     }
 
     return data;
@@ -428,7 +385,7 @@ export class ConfigService extends SoftwareService<Configuration> {
       let now = this._debug && Date.now();
 
       // Convert images, for offline usage
-      if (this.network.online && this.platform.mobile) {
+      if (this.network.online && this.platform.is('mobile')) {
         const jobs = [];
 
         // Download logos
@@ -498,14 +455,42 @@ export class ConfigService extends SoftwareService<Configuration> {
   }
 
   private updateModelEnumerations(config: Configuration) {
-    console.log("[config] Updating model enumerations...");
+    if (!config.properties) {
+      console.warn("[config] No properties found in pod config! Skip model enumerations update");
+      return;
+    }
+    console.info("[config] Updating model enumerations...");
+
+    // User profiles
+    UserProfileLabels.ADMIN = config.getProperty(CORE_CONFIG_OPTIONS.PROFILE_ADMIN_LABEL);
+    UserProfileLabels.SUPERVISOR = config.getProperty(CORE_CONFIG_OPTIONS.PROFILE_SUPERVISOR_LABEL);
+    UserProfileLabels.USER = config.getProperty(CORE_CONFIG_OPTIONS.PROFILE_USER_LABEL);
 
     // Location Levels
-    LocationLevelIds.COUNTRY = config.getProperty(ConfigOptions.LOCATION_LEVEL_COUNTRY_ID);
-    LocationLevelIds.PORT = config.getProperty(ConfigOptions.LOCATION_LEVEL_PORT_ID);
-    LocationLevelIds.AUCTION = config.getProperty(ConfigOptions.LOCATION_LEVEL_AUCTION_ID);
+    LocationLevelIds.COUNTRY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_COUNTRY_ID);
+    LocationLevelIds.PORT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_PORT_ID);
+    LocationLevelIds.AUCTION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_AUCTION_ID);
+    LocationLevelIds.ICES_RECTANGLE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_RECTANGLE_ID);
+    LocationLevelIds.ICES_DIVISION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_DIVISION_ID);
 
-    // User profiles Label ?
+    // Taxonomic Levels
+    TaxonomicLevelIds.FAMILY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_FAMILY_ID);
+    TaxonomicLevelIds.GENUS = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_GENUS_ID);
+    TaxonomicLevelIds.SPECIES = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_SPECIES_ID);
+    TaxonomicLevelIds.SUBSPECIES = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_SUBSPECIES_ID);
+
+    // Parameters
+    ParameterLabelGroups.AGE = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_AGE_LABEL);
+    ParameterLabelGroups.SEX = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_SEX_LABEL);
+    ParameterLabelGroups.WEIGHT = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_WEIGHT_LABELS);
+    ParameterLabelGroups.LENGTH = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_LENGTH_LABELS);
+    ParameterLabelGroups.MATURITY = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_MATURITY_LABELS);
+
+    // PMFM
+    PmfmIds.MORSE_CODE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_MORSE_CODE_ID);
+    PmfmIds.STRATEGY_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_STRATEGY_LABEL_ID);
+    PmfmIds.AGE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_AGE_ID);
+    PmfmIds.SEX = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SEX_ID);
 
     // Taxon group
     // TODO: add all enumerations

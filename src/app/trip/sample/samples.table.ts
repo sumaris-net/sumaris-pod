@@ -1,39 +1,42 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
 import {SampleValidatorService} from "../services/validator/sample.validator";
-import {isNilOrBlank, isNotNil} from "../../shared/functions";
+import {isEmptyArray, isNil, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model/settings.model";
-import * as moment from "moment";
+import * as momentImported from "moment";
 import {Moment} from "moment";
-import {AppMeasurementsTable} from "../measurement/measurements.table.class";
+import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
-import {SampleModal} from "./sample.modal";
+import {ISampleModalOptions, SampleModal} from "./sample.modal";
 import {FormGroup} from "@angular/forms";
 import {TaxonGroupRef, TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Sample} from "../services/model/sample.model";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {PlatformService} from "../../core/services/platform.service";
+import {IReferentialRef, ReferentialRef} from "../../core/services/model/referential.model";
+import {environment} from "../../../environments/environment";
+import {AppFormUtils} from "../../core/form/form.utils";
+import {filter, map, tap} from "rxjs/operators";
+import {LoadResult} from "../../shared/services/entity-service.class";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {filterNotNil} from "../../shared/observables";
+
+const moment = momentImported;
 
 export interface SampleFilter {
   operationId?: number;
   landingId?: number;
 }
 
+export class SamplesTableOptions extends AppMeasurementsTableOptions<Sample> {
+
+}
+
 export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
 export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
-
+export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
 
 @Component({
   selector: 'app-samples-table',
@@ -44,12 +47,24 @@ export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
-  implements OnInit, OnDestroy {
+export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
-  protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
+
+  get memoryDataService(): InMemoryEntitiesService<Sample, SampleFilter> {
+    return this.dataService as InMemoryEntitiesService<Sample, SampleFilter>;
+  }
+
+  @Input() useSticky = false;
+  @Input() usageMode: UsageMode;
+  @Input() showLabelColumn = false;
+  @Input() showDateTimeColumn = true;
+  @Input() showFabButton = false;
+  @Input() defaultSampleDate: Moment;
+  @Input() defaultTaxonGroup: ReferentialRef;
+  @Input() defaultTaxonName: ReferentialRef;
+  @Input() modalOptions: Partial<ISampleModalOptions>;
 
   @Input()
   set value(data: Sample[]) {
@@ -59,11 +74,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   get value(): Sample[] {
     return this.memoryDataService.value;
   }
-
-  @Input() usageMode: UsageMode;
-  @Input() showLabelColumn = false;
-  @Input() showDateTimeColumn = true;
-  @Input() showFabButton = false;
 
   @Input()
   set showTaxonGroupColumn(value: boolean) {
@@ -83,33 +93,34 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     return this.getShowColumn('taxonName');
   }
 
-  @Input() defaultSampleDate: Moment;
-  @Input() defaultTaxonGroup: ReferentialRef;
-  @Input() defaultTaxonName: ReferentialRef;
-
-  @Output() onInitForm = new EventEmitter<{form: FormGroup, pmfms: PmfmStrategy[]}>();
+  @Output() onPrepareRowForm = new EventEmitter<{form: FormGroup, pmfms: IPmfm[]}>();
 
   constructor(
-    injector: Injector
+    injector: Injector,
+    @Optional() options?: SamplesTableOptions
   ) {
     super(injector,
       Sample,
       new InMemoryEntitiesService<Sample, SampleFilter>(Sample, {
         equals: Sample.equals
       }),
-      injector.get(ValidatorService),
+      injector.get(PlatformService).mobile ? null : injector.get(ValidatorService),
       {
         prependNewElements: false,
         suppressErrors: environment.production,
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
-        reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS
+        reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS,
+        requiredStrategy: false,
+        debug: !environment.production,
+        ...options
       }
     );
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
-    this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
     this.inlineEdition = !this.mobile;
+    this.defaultSortBy = 'rankOrder';
+    this.defaultSortDirection = 'asc';
 
     // Set default value
     this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE; // Default value, can be override by subclasses
@@ -118,17 +129,20 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.debug = !environment.production;
 
     // If init form callback exists, apply it when start row edition
-    if (this.onInitForm) {
-      this.registerSubscription(
-        this.onStartEditingRow.subscribe(row => this.onInitForm.emit({
-              form: row.validator,
-              pmfms: this.$pmfms.getValue()
-            })));
-    }
+    this.registerSubscription(
+      this.onStartEditingRow
+        .pipe(
+          filter(row => row && row.validator && true),
+          map(row => ({form: row.validator, pmfms: this.$pmfms.getValue()})),
+          // DEBUG
+          //tap(() => console.debug('[samples-table] will sent onPrepareRowForm event:', event))
+          tap(event => this.onPrepareRowForm.emit(event))
+        )
+        .subscribe());
   }
 
-  ngOnInit() {
-    super.ngOnInit();
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
 
     this.setShowColumn('label', this.showLabelColumn);
     this.setShowColumn('sampleDate', this.showDateTimeColumn);
@@ -152,24 +166,24 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   /* -- protected methods -- */
 
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     //if (isNilOrBlank(value)) return [];
-    return this.programService.suggestTaxonGroups(value,
+    return this.programRefService.suggestTaxonGroups(value,
       {
-        program: this.program,
+        program: this.programLabel,
         searchAttribute: options && options.searchAttribute
       });
   }
 
-  protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
+  protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     const taxonGroup = this.editedRow && this.editedRow.validator.get('taxonGroup').value;
 
     // IF taxonGroup column exists: taxon group must be filled first
-    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return [];
+    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return {data: []};
 
-    return this.programService.suggestTaxonNames(value,
+    return this.programRefService.suggestTaxonNames(value,
       {
-        program: this.program,
+        programLabel: this.programLabel,
         searchAttribute: options && options.searchAttribute,
         taxonGroupId: taxonGroup && taxonGroup.id || undefined
       });
@@ -192,7 +206,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       data.sampleDate = moment();
     }
 
-    // Taxon group
+    // Default taxon name
     if (isNotNil(this.defaultTaxonName)) {
       data.taxonName = TaxonNameRef.fromObject(this.defaultTaxonName);
     }
@@ -226,7 +240,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     // Prepare entity measurement values
     this.prepareEntityToSave(data);
 
-    const updatedData = await this.openDetailModal(data);
+    const updatedData = await this.openDetailModal(data, row);
     if (updatedData) {
       await this.updateEntityToTable(updatedData, row);
     }
@@ -236,7 +250,10 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     return true;
   }
 
-  async openDetailModal(sample?: Sample): Promise<Sample | undefined> {
+
+  async openDetailModal(sample?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
+    console.debug('[samples-table] Opening detail modal...');
+
     const isNew = !sample && true;
     if (isNew) {
       sample = new Sample();
@@ -247,16 +264,36 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     const modal = await this.modalCtrl.create({
       component: SampleModal,
-      componentProps: {
-        program: this.program,
+      componentProps: <ISampleModalOptions>{
+        programLabel: undefined, // Prefer to pass PMFMs directly, to avoid a reloading
+        pmfms: this.$pmfms.asObservable(),
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         value: sample,
         isNew,
+        i18nPrefix: SAMPLE_TABLE_DEFAULT_I18N_PREFIX,
+        usageMode: this.usageMode,
         showLabel: this.showLabelColumn,
+        showDateTime: this.showDateTimeColumn,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
-        onReady: (obj) => this.onInitForm && this.onInitForm.emit({form: obj.form.form, pmfms: obj.$pmfms.getValue()})
+        onReady: (obj) => this.onPrepareRowForm.emit({form: obj.form.form, pmfms: obj.$pmfms.getValue()}),
+        onSaveAndNew: async (data) => {
+          if (isNil(data.id)) {
+            await this.addEntityToTable(data);
+          }
+          else {
+            this.updateEntityToTable(data, row);
+            row = null; // Avoid to update twice (should never occur, because validateAndContinue always create a new entity)
+          }
+          const newData = new Sample();
+          await this.onNewEntity(newData);
+          return newData;
+        },
+        onDelete: (event, data) => this.delete(event, data),
+
+        // Override using given options
+        ...this.modalOptions,
       },
       keyboardClose: true
     });
@@ -277,6 +314,26 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     return data;
   }
 
+  filterColumnsByTaxonGroup(taxonGroup: TaxonGroupRef) {
+    const toggleLoading = !this.loading;
+    if (toggleLoading) this.markAsLoading();
+
+    try {
+      const taxonGroupId = toNumber(taxonGroup && taxonGroup.id, null);
+      (this.$pmfms.getValue() || []).forEach(pmfm => {
+
+        const show = isNil(taxonGroupId)
+          || !(pmfm instanceof DenormalizedPmfmStrategy)
+          || (isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(taxonGroupId));
+        this.setShowColumn(pmfm.id.toString(), show);
+      });
+
+      this.updateColumns();
+    }
+    finally {
+      if (toggleLoading) this.markAsLoaded();
+    }
+  }
 
   /* -- protected methods -- */
 
@@ -284,8 +341,28 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     // Override by subclasses
   }
 
+  protected async findRowBySample(data: Sample): Promise<TableElement<Sample>> {
+    if (!data || isNil(data.rankOrder)) throw new Error("Missing argument data or data.rankOrder");
+    return (await this.dataSource.getRows())
+      .find(r => r.currentData.rankOrder === data.rankOrder);
+  }
 
-  public markForCheck() {
+  async delete(event: UIEvent, data: Sample): Promise<boolean> {
+    const row = await this.findRowBySample(data);
+
+    // Row not exists: OK
+    if (!row) return true;
+
+    const canDeleteRow = await this.canDeleteRows([row]);
+    if (canDeleteRow === true) {
+      this.cancelOrDelete(event, row, true /*already confirmed*/);
+    }
+    return canDeleteRow;
+  }
+
+  selectInputContent = AppFormUtils.selectInputContent;
+
+  markForCheck() {
     this.cd.markForCheck();
   }
 }

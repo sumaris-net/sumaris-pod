@@ -1,9 +1,14 @@
-import {Entity, IReferentialRef, isNil, isNotNil, Referential, ReferentialRef} from "../../../core/core.module";
-import {ReferentialAsObjectOptions, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {uncapitalizeFirstLetter} from "../../../shared/functions";
+import {
+  IReferentialRef,
+  Referential,
+  ReferentialAsObjectOptions, ReferentialRef,
+  ReferentialUtils
+} from "../../../core/services/model/referential.model";
+import {isNil, isNotNil, uncapitalizeFirstLetter} from "../../../shared/functions";
+import {Entity} from "../../../core/services/model/entity.model";
 
 
-export const TaxonGroupIds = {
+export const TaxonGroupTypeIds = {
   FAO: 2,
   METIER: 3
 };
@@ -17,6 +22,9 @@ export const TaxonomicLevelIds = {
   SUBSPECIES: 29
 };
 
+export const TaxonGroupLabels = {
+  FISH: 'MZZ'
+};
 
 export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRef {
 
@@ -203,4 +211,23 @@ export class Metier extends Referential<Metier> {
       }
     }
   }
+}
+
+export class TaxonUtils {
+
+  static rubinCode(taxonName: string) {
+    if (isNil(taxonName)) return undefined;
+    let rubinCode = undefined;
+    const genusWord = /^[a-zA-Z]{4,}$/;
+    const speciesWord = /^[a-zA-Z]{3,}$/;
+
+    // Rubin code for "Leucoraja circularis": LEUC CIR
+    let str = taxonName.split(" ");
+    if (str.length == 2 && str[0].match(genusWord) && str[1].match(speciesWord)) {
+      rubinCode = str[0].slice(0, 4).toUpperCase() + str[1].slice(0, 3).toUpperCase();
+    }
+
+    return rubinCode
+  }
+
 }

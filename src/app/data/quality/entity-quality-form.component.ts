@@ -1,9 +1,8 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit} from '@angular/core';
 import {DataEntity, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from '../services/model/data-entity.model';
 // import fade in animation
-import {fadeInAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import {AccountService} from "../../core/services/account.service";
-import {DataQualityService, isDataQualityService} from "../services/base.service";
+import {IDataEntityQualityService, isDataQualityService} from "../services/data-quality-service.class";
 import {QualityFlags} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {merge, Subscription} from "rxjs";
@@ -18,9 +17,13 @@ import {AppRootDataEditor} from "../form/root-data-editor.class";
 import {RootDataEntity} from "../services/model/root-data-entity.model";
 import {ReferentialRef} from "../../core/services/model/referential.model";
 import {qualityFlagToColor} from "../services/model/model.utils";
-import {StatusIds} from "../../core/core.module";
 import {UserEventService} from "../../social/services/user-event.service";
 import {OverlayEventDetail} from "@ionic/core";
+import {RootDataSynchroService} from "../services/root-data-synchro-service.class";
+import {isDataSynchroService} from "../services/root-data-synchro-service.class";
+import {isNil, isNotNil} from "../../shared/functions";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {fadeInAnimation} from "../../shared/material/material.animations";
 
 @Component({
   selector: 'app-entity-quality-form',
@@ -34,6 +37,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
   private _debug = false;
   private _subscription = new Subscription();
   private _controlling = false;
+  private _isSynchroService: boolean;
 
   data: T;
   loading = true;
@@ -58,7 +62,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
 
   @Input() editor: AppRootDataEditor<T, any>;
 
-  @Input() service: DataQualityService<T>;
+  @Input() service: IDataEntityQualityService<T>;
 
   constructor(
     protected router: Router,
@@ -83,6 +87,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
     // Check data service exists
     this.service = this.service || isDataQualityService(this.editor.service) && this.editor.service || null;
     if (!this.service) throw new Error("Missing mandatory 'dataService' input!");
+    this._isSynchroService = isDataSynchroService(this.service);
 
     // Subscribe to refresh events
     this._subscription
@@ -117,7 +122,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
       valid = isNil(errors);
 
       if (!valid) {
-        this.editor.setError({message: 'QUALITY.ERROR.INVALID_FORM'});
+        this.editor.setError({message: 'QUALITY.ERROR.INVALID_FORM', details: {errors} });
         this.editor.markAsTouched();
       }
       else {
@@ -194,8 +199,9 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
 
     try {
       console.debug("[quality] Synchronizing entity...");
-      // TODO: clone the data before ??
-      const remoteData = await this.service.synchronize(this.editor.data);
+      // tslint:disable-next-line:no-unused-expression
+      const synchroService = this.service as RootDataSynchroService<T>;
+      const remoteData = await synchroService.synchronize(this.editor.data);
 
       // Success message
       this.showToast({message: 'INFO.SYNCHRONIZATION_SUCCEED', type: 'info', showCloseButton: true});
@@ -210,7 +216,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
       // Update the editor (Will refresh the component)
       this.updateEditor(data, {updateRoute: true});
     }
-    catch(error) {
+    catch (error) {
       this.editor.setError(error);
       const context = error && error.context || (() => this.data.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS));
       this.userEventService.showToastErrorWithContext({
@@ -262,9 +268,11 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
   protected updateView(data?: T) {
     if (this._controlling) return; // Skip
 
-    this.data = data || this.data || this.editor && this.editor.data;
+    data = data || this.data || this.editor && this.editor.data;
+    this.data = data;
 
     this.loading = isNil(data) || isNil(data.id);
+
     if (this.loading) {
       this.canSynchronize = false;
       this.canControl = false;
@@ -278,13 +286,17 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
       const canWrite = this.service.canUserWrite(data);
       const isSupervisor = this.accountService.isSupervisor();
       const isLocalData = data.id < 0;
+
+      // Quality service
       this.canControl = canWrite && (isLocalData && data.synchronizationStatus === 'DIRTY' || isNil(data.controlDate));
       this.canTerminate = this.canControl && (!isLocalData || data.synchronizationStatus === 'DIRTY');
-      this.canSynchronize = canWrite && isLocalData && data.synchronizationStatus === 'READY_TO_SYNC';
       this.canValidate = canWrite && isSupervisor && !isLocalData && isNotNil(data.controlDate) && isNil(data.validationDate);
       this.canUnvalidate = canWrite && isSupervisor && isNotNil(data.controlDate) && isNotNil(data.validationDate);
       this.canQualify = canWrite && isSupervisor /*TODO && isQualifier */ && isNotNil(data.validationDate) && isNil(data.qualificationDate);
       this.canUnqualify = canWrite && isSupervisor && isNotNil(data.validationDate) && isNotNil(data.qualificationDate);
+
+      // Synchro service
+      this.canSynchronize = this._isSynchroService && canWrite && isLocalData && data.synchronizationStatus === 'READY_TO_SYNC';
     }
 
     this.markForCheck();
@@ -312,7 +324,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
   }
 
 
-  protected async showToast<T=any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
+  protected async showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     if (!this.toastController) throw new Error("Missing toastController in component's constructor");
     return await Toasts.show(this.toastController, this.translate, opts);
   }

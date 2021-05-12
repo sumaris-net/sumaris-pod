@@ -3,7 +3,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  EventEmitter, HostListener,
+  EventEmitter,
   Injector,
   Input,
   OnDestroy,
@@ -16,21 +16,24 @@ import {personsToString} from "../../core/services/model/person.model";
 import {referentialToString} from "../../core/services/model/referential.model";
 import {LandingFilter, LandingService} from "../services/landing.service";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes, LocationLevelIds} from "../../referential/services/model/model.enum";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {Moment} from "moment";
 import {LandingValidatorService} from "../services/validator/landing.validator";
 import {Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {Landing} from "../services/model/landing.model";
-import {environment} from "../../../environments/environment";
 import {LandingEditor} from "../../referential/services/config/program.config";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
-import {EntityUtils} from "../../core/core.module";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {environment} from "../../../environments/environment";
+import {isNotNil} from "../../shared/functions";
 
-export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'dateTime', 'observers'];
+export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
+
+const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
 
 @Component({
   selector: 'app-landings-table',
@@ -45,9 +48,11 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   private _parentDateTime;
   private _detailEditor: LandingEditor;
+  private _strategyPmfmId: number;
 
   protected cd: ChangeDetectorRef;
   protected vesselSnapshotService: VesselSnapshotService;
+  protected referentialRefService: ReferentialRefService;
 
   @Output() onNewTrip = new EventEmitter<{ id?: number; row: TableElement<Landing> }>();
 
@@ -55,6 +60,17 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   @Input() canDelete = true;
   @Input() showFabButton = false;
   @Input() showError = true;
+
+  @Input() set strategyPmfmId(value: number) {
+    if (this._strategyPmfmId !== value) {
+      this._strategyPmfmId = value;
+      this.setShowColumn('strategy', isNotNil(this._strategyPmfmId));
+    }
+  }
+
+  get strategyPmfmId(): number {
+    return this._strategyPmfmId;
+  }
 
   @Input() set detailEditor(value: LandingEditor) {
     if (value !== this._detailEditor) {
@@ -70,6 +86,15 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   get isTripDetailEditor(): boolean {
     return this._detailEditor === 'trip';
+  }
+
+  @Input()
+  set showBasePortLocationColumn(value: boolean) {
+    this.setShowColumn('vesselBasePortLocation', value);
+  }
+
+  get showBasePortLocationColumn(): boolean {
+    return this.getShowColumn('vesselBasePortLocation');
   }
 
   @Input()
@@ -98,6 +123,51 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     return this.getShowColumn('id');
   }
 
+  @Input()
+  set showVesselTypeColumn(value: boolean) {
+    this.setShowColumn('vesselType', value);
+  }
+
+  get showVesselTypeColumn(): boolean {
+    return this.getShowColumn('vesselType');
+  }
+
+  @Input()
+  set showLocationColumn(value: boolean) {
+    this.setShowColumn('location', value);
+  }
+
+  get showLocationColumn(): boolean {
+    return this.getShowColumn('location');
+  }
+
+  @Input()
+  set showCreationDateColumn(value: boolean) {
+    this.setShowColumn('creationDate', value);
+  }
+
+  get showCreationDateColumn(): boolean {
+    return this.getShowColumn('creationDate');
+  }
+
+  @Input()
+  set showRecorderPersonColumn(value: boolean) {
+    this.setShowColumn('recorderPerson', value);
+  }
+
+  get showRecorderPersonColumn(): boolean {
+    return this.getShowColumn('recorderPerson');
+  }
+
+  @Input()
+  set showVesselBasePortLocationColumn(value: boolean) {
+    this.setShowColumn('vesselBasePortLocation', value);
+  }
+
+  get showVesselBasePortLocationColumn(): boolean {
+    return this.getShowColumn('vesselBasePortLocation');
+  }
+
   constructor(
     injector: Injector
   ) {
@@ -113,16 +183,18 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
         mapPmfms: (pmfms) => pmfms.filter(p => p.required)
       });
     this.cd = injector.get(ChangeDetectorRef);
-    this.i18nColumnPrefix = 'LANDING.TABLE.';
-    this.autoLoad = false; // waiting parent to be loaded
+    this.i18nColumnPrefix = LANDING_TABLE_DEFAULT_I18N_PREFIX;
+    this.autoLoad = false; // waiting parent to be loaded, or the call of onRefresh.next()
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
-    // TODO  ::: USE NAVIGATOR (check service)
-    this.defaultPageSize = 200; // normal high value
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
+    this.referentialRefService = injector.get(ReferentialRefService);
+    this.saveBeforeDelete = true;
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
+    this.defaultSortBy = 'id';
+    this.defaultSortDirection = 'asc';
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -140,6 +212,15 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
       filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }
+    });
+
+    this.registerAutocompleteField('location', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Location',
+        levelId: LocationLevelIds.PORT
+      },
+      mobile: this.mobile
     });
   }
 
@@ -161,6 +242,10 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     return rows
       .filter(row => vessel.equals(row.currentData.vesselSnapshot))
       .reduce((res, row) => Math.max(res, row.currentData.rankOrderOnVessel || 0), 0);
+  }
+
+  async getMaxRankOrder(): Promise<number> {
+    return super.getMaxRankOrder();
   }
 
   referentialToString = referentialToString;

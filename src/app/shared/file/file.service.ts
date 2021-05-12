@@ -1,13 +1,12 @@
-import {Injectable} from "@angular/core";
+import {Inject, Injectable} from "@angular/core";
 import {Platform} from "@ionic/angular";
-//import {File} from '@ionic-native/file/ngx';
-//import {FileTransfer, FileTransferObject} from "@ionic-native/file-transfer/ngx";
-
-import * as uuidv4 from "uuid/v4";
+import * as uuidv4Imported from "uuid/v4";
 import {Base64ImageReader, Base64ImageResizeOptions} from "./base64-image-reader";
 import {chainPromises, firstNotNilPromise} from "../observables";
 import {HttpClient} from "@angular/common/http";
-import {environment} from "../../../environments/environment";
+import {ENVIRONMENT} from "../../../environments/environment.class";
+
+const uuidv4 = uuidv4Imported;
 
 @Injectable({
   providedIn: 'root',
@@ -33,7 +32,8 @@ export class FileService {
     private platform: Platform,
     //private transfer: FileTransfer,
     //@Optional() private file: File,
-    private http: HttpClient) {
+    private http: HttpClient,
+    @Inject(ENVIRONMENT) protected environment) {
 
     this._debug = !environment.production;
 

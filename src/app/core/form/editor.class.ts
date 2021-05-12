@@ -12,29 +12,24 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController, ToastController} from "@ionic/angular";
 
 import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../../../environments/environment';
 import {Subject} from 'rxjs';
-import {
-  DateFormatPipe,
-  EntityService,
-  EntityServiceLoadOptions,
-  isNil,
-  isNilOrBlank,
-  isNotNil,
-  toBoolean
-} from '../../shared/shared.module';
 import {Moment} from "moment";
 import {AddToPageHistoryOptions, LocalSettingsService} from "../services/local-settings.service";
 import {filter} from "rxjs/operators";
 import {Entity} from "../services/model/entity.model";
 import {HistoryPageReference, UsageMode} from "../services/model/settings.model";
 import {FormGroup} from "@angular/forms";
-import {AppTabEditor, AppTabFormOptions} from "./tab-editor.class";
+import {AppTabEditor, AppTabEditorOptions} from "./tab-editor.class";
 import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
 import {ErrorCodes, ServerErrorCodes} from "../services/errors";
+import {isNotEmptyArray, toNumber} from "../../shared/functions";
+import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
+import {isNil, isNilOrBlank, isNotNil, toBoolean} from "../../shared/functions";
+import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
-export class AppEditorOptions extends AppTabFormOptions {
+export class AppEditorOptions extends AppTabEditorOptions {
   autoLoad?: boolean;
   autoLoadDelay?: number;
   pathIdAttribute?: string;
@@ -50,12 +45,14 @@ export class AppEditorOptions extends AppTabFormOptions {
    */
   autoOpenNextTab?: boolean; // Default to true
 
+  i18nPrefix?: string;
 }
 
+// @dynamic
 @Directive()
 export abstract class AppEntityEditor<
   T extends Entity<T>,
-  S extends EntityService<T> = EntityService<T>
+  S extends IEntityService<T> = IEntityService<T>
   >
   extends AppTabEditor<T, EntityServiceLoadOptions>
   implements OnInit, OnDestroy, AfterViewInit {
@@ -103,6 +100,20 @@ export abstract class AppEntityEditor<
     return this.dataService;
   }
 
+  markAsSaving(opts?: { emitEvent?: boolean; }){
+    if (!this.saving) {
+      this.saving = true;
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
+    }
+  }
+
+  markAsSaved(opts?: { emitEvent?: boolean; }){
+    if (this.saving) {
+      this.saving = false;
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
+    }
+  }
+
   protected constructor(
     injector: Injector,
     protected dataType: new() => T,
@@ -116,11 +127,12 @@ export abstract class AppEntityEditor<
       options);
     options = <AppEditorOptions>{
       // Default options
-      enableListenChanges: (environment.listenRemoteChanges === true),
+      enableListenChanges: (injector.get(ENVIRONMENT).listenRemoteChanges === true),
       pathIdAttribute: 'id',
       autoLoad: true,
       autoLoadDelay: 0,
       autoUpdateRoute: true,
+      i18nPrefix: '',
 
       // Following options are override inside ngOnInit()
       // autoOpenNextTab: ...,
@@ -139,6 +151,10 @@ export abstract class AppEntityEditor<
     this._autoLoadDelay = options.autoLoadDelay;
     this._autoUpdateRoute = options.autoUpdateRoute;
     this._autoOpenNextTab = options.autoOpenNextTab;
+    this.i18nContext = {
+      prefix: options.i18nPrefix,
+      suffix: ''
+    };
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -158,7 +174,7 @@ export abstract class AppEntityEditor<
     this.disable();
   }
 
-  async ngAfterViewInit() {
+  ngAfterViewInit() {
     // Load data
     if (this._autoLoad) {
       setTimeout(() => this.loadFromRoute(), this._autoLoadDelay);
@@ -215,7 +231,7 @@ export abstract class AppEntityEditor<
         openTabIndex: 0,
         ...opts
       });
-      this.loading = false;
+      this.markAsLoaded({emitEvent: false});
     }
 
     // Load existing data
@@ -226,13 +242,13 @@ export abstract class AppEntityEditor<
         this._usageMode = this.computeUsageMode(data);
         await this.onEntityLoaded(data, opts);
         this.updateView(data, opts);
-        this.loading = false;
+        this.markAsLoaded({emitEvent: false});
         this.startListenRemoteChanges();
       }
       catch (err) {
         this.setError(err);
         this.selectedTabIndex = 0;
-        this.loading = false;
+        this.markAsLoaded({emitEvent: false});
       }
     }
   }
@@ -325,7 +341,7 @@ export abstract class AppEntityEditor<
    */
   async updateTabAndRoute(data: T, opts?: {
     openTabIndex?: number;
-  }): Promise<boolean> {
+  }): Promise<void> {
 
     this.queryParams = this.queryParams || {};
 
@@ -345,13 +361,13 @@ export abstract class AppEntityEditor<
       });
     }
     else {
-      await this.router.navigate(['../new'], {
+      await this.router.navigate(['..', 'new'], {
         relativeTo: this.route,
         queryParams: {...this.queryParams, ...forcedQueryParams}
       });
     }
 
-    return this.updateRoute(data, this.queryParams);
+    await this.updateRoute(data, this.queryParams);
   }
 
   /**
@@ -413,17 +429,18 @@ export abstract class AppEntityEditor<
       this.submitted = true;
       return false;
     }
-    this.saving = true;
+
+    this.markAsSaving();
     this.error = undefined;
 
     if (this.debug) console.debug("[data-editor] Saving data...");
 
-    // Get data
-    const data = await this.getValue();
-
-    this.disable();
-
     try {
+      // Get data
+      const data = await this.getValue();
+
+      this.disable();
+
       // Save form
       const updatedData = await this.dataService.save(data, options);
 
@@ -442,6 +459,7 @@ export abstract class AppEntityEditor<
       this.submitted = true;
       this.setError(err);
       this.selectedTabIndex = 0;
+      this.scrollToTop(); // Scroll to top (to show error)
       this.markAsDirty();
       this.enable();
 
@@ -453,9 +471,11 @@ export abstract class AppEntityEditor<
         });
       }
 
+
+
       return false;
     } finally {
-      this.saving = false;
+      this.markAsSaved();
     }
   }
 
@@ -497,16 +517,16 @@ export abstract class AppEntityEditor<
 
     console.debug("[data-editor] Asking to delete...");
 
-    this.saving = true;
+    this.markAsSaving();
     this.error = undefined;
 
-    // Get data
-    const data = await this.getValue();
-    const isNew = this.isNewData;
-
-    this.disable();
-
     try {
+      // Get data
+      const data = await this.getValue();
+      const isNew = this.isNewData;
+
+      this.disable();
+
       if (!isNew) {
         await this.dataService.delete(data);
       }
@@ -520,7 +540,7 @@ export abstract class AppEntityEditor<
       this.submitted = true;
       this.setError(err);
       this.selectedTabIndex = 0;
-      this.saving = false;
+      this.markAsSaved();
       this.enable();
       return false;
     }
@@ -537,6 +557,25 @@ export abstract class AppEntityEditor<
     }, 500);
 
 
+  }
+
+  async reload() {
+    this.loading = true;
+    await this.load(this.data && this.data.id);
+  }
+
+  setError(err: any) {
+    console.error("[data-editor] " + err && err.message || err, err);
+    let userMessage = err && err.message && this.translate.instant(err.message) || err;
+
+    // Add details error (if any) under the main message
+    const detailMessage = err && err.details && (err.details.message || err.details) || undefined;
+    if (detailMessage) {
+      userMessage += `<br/><small class="hidden-xs hidden-sm" title="${detailMessage}">`;
+      userMessage += detailMessage.length < 70 ? detailMessage : detailMessage.substring(0, 67) + '...';
+      userMessage += "</small>";
+    }
+    this.error = userMessage;
   }
 
   /* -- protected methods to override -- */
@@ -561,6 +600,7 @@ export abstract class AppEntityEditor<
     this.registerForms();
     this._dirty = false;
     this.data = null;
+    this.saving = false;
   }
 
   protected async onNewEntity(data: T, options?: EntityServiceLoadOptions): Promise<void> {
@@ -579,10 +619,6 @@ export abstract class AppEntityEditor<
     // can be overwrite by subclasses
   }
 
-  protected async updateRoute(data: T, queryParams: any): Promise<boolean> {
-    // can be overwrite by subclasses
-    return false;
-  }
 
   protected computeUsageMode(data: T): UsageMode {
     return this.settings.isUsageMode('FIELD') ? 'FIELD' : 'DESK';
@@ -603,11 +639,6 @@ export abstract class AppEntityEditor<
 
   protected getJsonValueToSave(): Promise<any> {
     return Promise.resolve(this.form.value);
-  }
-
-  async reload() {
-    this.loading = true;
-    await this.load(this.data && this.data.id);
   }
 
   /**
@@ -648,32 +679,51 @@ export abstract class AppEntityEditor<
     return this.settings.removePageHistory(this.router.url, opts);
   }
 
-  /**
-   * Open the first tab that is invalid
-   */
-  protected openFirstInvalidTab() {
-    const invalidTabIndex = this.getFirstInvalidTabIndex();
-    if (invalidTabIndex !== -1 && this.selectedTabIndex !== invalidTabIndex) {
-      this.selectedTabIndex = invalidTabIndex;
+
+  protected computePageUrl(id: number|'new'): string | any[] {
+    const parentUrl = this.getParentPageUrl();
+    return parentUrl && `${parentUrl}/${id}`;
+  }
+
+  protected getParentPageUrl(withQueryParams?: boolean) {
+    let parentUrl = this.defaultBackHref;
+
+    // Remove query params
+    if (withQueryParams !== true && parentUrl && parentUrl.indexOf('?') !== -1) {
+      parentUrl = parentUrl.substr(0, parentUrl.indexOf('?'));
     }
+
+    return parentUrl;
   }
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
 
-  public setError(err: any) {
-    console.error("[data-editor] " + err && err.message || err, err);
-    let userMessage = err && err.message && this.translate.instant(err.message) || err;
+  /* -- private functions -- */
 
-    // Add details error (if any) under the main message
-    const detailMessage = err && err.details && (err.details.message || err.details) || undefined;
-    if (detailMessage) {
-      userMessage += `<br/><small class="hidden-xs hidden-sm" title="${detailMessage}">`;
-      userMessage += detailMessage.length < 70 ? detailMessage : detailMessage.substring(0, 67) + '...';
-      userMessage += "</small>";
+  /**
+   * Open the first tab that is invalid
+   */
+  private openFirstInvalidTab() {
+    const invalidTabIndex = this.getFirstInvalidTabIndex();
+    if (invalidTabIndex !== -1 && this.selectedTabIndex !== invalidTabIndex) {
+      this.selectedTabIndex = invalidTabIndex;
     }
-    this.error = userMessage;
+  }
+
+  protected async updateRoute(data: T, queryParams: any): Promise<boolean> {
+    const path = this.computePageUrl(isNotNil(data.id) ? data.id : 'new');
+    const commands: any[] = (path && typeof path === 'string') ? path.split('/') : path as any[];
+    if (isNotEmptyArray(commands)) {
+      return await this.router.navigate(commands, {
+        replaceUrl: true,
+        queryParams: this.queryParams
+      });
+    }
+    else {
+      console.warn('Skip page route update. Invalid page path: ', path);
+    }
   }
 }
 

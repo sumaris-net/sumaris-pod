@@ -1,13 +1,52 @@
 /* -- Extraction -- */
 
 import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {fromDateISOString, isNotEmptyArray, toBoolean, toDateISOString} from "../../../shared/functions";
+import {isNotEmptyArray, toBoolean} from "../../../shared/functions";
 import {Moment} from "moment";
 import {IWithRecorderDepartmentEntity, IWithRecorderPersonEntity} from "../../../data/services/model/model.utils";
-import {ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType} from "./extraction.model";
+import {ExtractionColumn, ExtractionFilter, ExtractionType} from "./extraction.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {StatusIds} from "../../../core/services/model/model.enum";
+import {IReferentialRef, StatusValue} from "../../../core/services/model/referential.model";
 
 export type StrataAreaType = 'area' | 'statistical_rectangle' | 'sub_polygon' | 'square';
 export type StrataTimeType = 'year' | 'quarter' | 'month';
+
+export const ProcessingFrequencyIds = {
+  NEVER: 0,
+  MANUALLY: 1,
+  DAILY: 2,
+  WEEKLY: 3,
+  MONTHLY: 4
+};
+
+export declare interface ProcessingFrequency {
+  id: number;
+  label: string;
+}
+export const ProcessingFrequencyList: ProcessingFrequency[] = [
+  {
+    id: ProcessingFrequencyIds.NEVER,
+    label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.NEVER'
+  },
+  {
+    id: ProcessingFrequencyIds.MANUALLY,
+    label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.MANUALLY'
+  },
+  {
+    id: ProcessingFrequencyIds.DAILY,
+    label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.DAILY'
+  },
+  {
+    id: ProcessingFrequencyIds.WEEKLY,
+    label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.WEEKLY'
+  },
+  {
+    id: ProcessingFrequencyIds.MONTHLY,
+    label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.MONTHLY'
+  }
+];
+
 
 export class AggregationType extends ExtractionType<AggregationType>
   implements IWithRecorderDepartmentEntity<AggregationType>,
@@ -25,6 +64,7 @@ export class AggregationType extends ExtractionType<AggregationType>
   category: 'PRODUCT';
   filter: ExtractionFilter;
   documentation: string;
+  processingFrequencyId: number;
   creationDate: Date | Moment;
   stratum: AggregationStrata[];
 
@@ -43,6 +83,7 @@ export class AggregationType extends ExtractionType<AggregationType>
   fromObject(source: any): AggregationType {
     super.fromObject(source);
 
+    this.processingFrequencyId = source.processingFrequencyId;
     this.documentation = source.documentation;
     this.creationDate = fromDateISOString(source.creationDate);
     this.stratum = isNotEmptyArray(source.stratum) && source.stratum.map(AggregationStrata.fromObject) || [];

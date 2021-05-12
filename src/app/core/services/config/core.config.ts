@@ -3,12 +3,11 @@
 // > export declare type ConfigOptions = key of CONFIG_OPTIONS_MAP
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {StatusIds} from "../model/model.enum";
-import {PRIORITIZED_USER_PROFILES} from "../model/person.model";
-import {Locales} from "../model/settings.model";
-import {LocationLevelIds} from "../../../referential/services/model/model.enum";
-import {Property} from "../../../shared/types";
+import {UserProfileLabels} from "../model/person.model";
+import {APP_LOCALES} from "../model/settings.model";
+import {AuthTokenType} from "../network.service";
 
-export const ConfigOptions = Object.freeze({
+export const CORE_CONFIG_OPTIONS = Object.freeze({
     LOGO: <FormFieldDefinition>{
         key: 'sumaris.logo',
         label: 'CONFIGURATION.OPTIONS.LOGO',
@@ -23,10 +22,7 @@ export const ConfigOptions = Object.freeze({
         key: 'sumaris.defaultLocale',
         label: 'CONFIGURATION.OPTIONS.DEFAULT_LOCALE',
         type: 'enum',
-        values: Locales.map(l => <Property>{
-          key: l.id,
-          value: l.name
-        })
+        values: APP_LOCALES
     },
     DEFAULT_LAT_LONG_FORMAT: <FormFieldDefinition>{
         key: 'sumaris.defaultLatLongFormat',
@@ -47,23 +43,46 @@ export const ConfigOptions = Object.freeze({
             }
         ]
     },
+    AUTH_TOKEN_TYPE: <FormFieldDefinition>{
+      key: 'sumaris.auth.token.type',
+      label: 'CONFIGURATION.OPTIONS.AUTH_TOKEN_TYPE_PLACEHOLDER',
+      type: 'enum',
+      values: [
+        {
+          key: <AuthTokenType>'token',
+          value: 'CONFIGURATION.OPTIONS.AUTH_TOKEN_TYPE.TOKEN'
+        },
+        {
+          key: <AuthTokenType>'basic',
+          value: 'CONFIGURATION.OPTIONS.AUTH_TOKEN_TYPE.BASIC'
+        },
+        {
+          key: <AuthTokenType>'basic-and-token',
+          value: 'CONFIGURATION.OPTIONS.AUTH_TOKEN_TYPE.BASIC_AND_TOKEN'
+        }
+      ],
+      defaultValue: <AuthTokenType>'basic'
+    },
+    GRAVATAR_ENABLE: <FormFieldDefinition>{
+      key: 'sumaris.gravatar.enable',
+      label: 'CONFIGURATION.OPTIONS.ENABLE_GRAVATAR',
+      type: 'boolean',
+      defaultValue: false
+    },
+    GRAVATAR_URL: <FormFieldDefinition>{
+      key: 'sumaris.gravatar.url',
+      label: 'CONFIGURATION.OPTIONS.GRAVATAR_URL',
+      type: 'string',
+      defaultValue: 'https://www.gravatar.com/avatar/{md5}'
+    },
     DATA_NOT_SELF_ACCESS_ROLE: <FormFieldDefinition>{
         key: "sumaris.auth.notSelfDataAccess.role",
         label: "CONFIGURATION.OPTIONS.NOT_SELF_DATA_ACCESS_MIN_ROLE",
         type: 'enum',
-        values: PRIORITIZED_USER_PROFILES.map(key => ({
+        values: Object.keys(UserProfileLabels).map(key => ({
             key: 'ROLE_' + key,
             value: 'USER.PROFILE_ENUM.' + key
         }))
-    },
-    EXTRACTION_NOT_SELF_ACCESS_ROLE: <FormFieldDefinition>{
-      key: "sumaris.auth.notSelfExtractionAccess.role",
-      label: "CONFIGURATION.OPTIONS.NOT_SELF_EXTRACTION_ACCESS_MIN_ROLE",
-      type: 'enum',
-      values: PRIORITIZED_USER_PROFILES.map(key => <Property>{
-        key: 'ROLE_' + key,
-        value: 'USER.PROFILE_ENUM.' + key
-      })
     },
     ENTITY_TRASH: <FormFieldDefinition> {
         key: 'sumaris.persistence.trash.enable',
@@ -146,64 +165,34 @@ export const ConfigOptions = Object.freeze({
         type: 'color'
     },
     PROFILE_ADMIN_LABEL: <FormFieldDefinition>{
-        key: 'sumaris.userProfile.ADMIN.label',
+        key: 'sumaris.enumeration.UserProfile.ADMIN.label',
         label: 'CONFIGURATION.OPTIONS.PROFILE.ADMIN',
-        type: 'string'
+        type: 'string',
+        defaultValue: 'ADMIN'
     },
     PROFILE_USER_LABEL: <FormFieldDefinition>{
-        key: 'sumaris.userProfile.USER.label',
+        key: 'sumaris.enumeration.UserProfile.USER.label',
         label: 'CONFIGURATION.OPTIONS.PROFILE.USER',
-        type: 'string'
+        type: 'string',
+        defaultValue: 'USER'
     },
     PROFILE_SUPERVISOR_LABEL: <FormFieldDefinition>{
-        key: 'sumaris.userProfile.SUPERVISOR.label',
+        key: 'sumaris.enumeration.UserProfile.SUPERVISOR.label',
         label: 'CONFIGURATION.OPTIONS.PROFILE.SUPERVISOR',
-        type: 'string'
+        type: 'string',
+        defaultValue: 'SUPERVISOR'
     },
     PROFILE_GUEST_LABEL: <FormFieldDefinition>{
-        key: 'sumaris.userProfile.GUEST.label',
+        key: 'sumaris.enumeration.UserProfile.GUEST.label',
         label: 'CONFIGURATION.OPTIONS.PROFILE.GUEST',
-        type: 'string'
+        type: 'string',
+        defaultValue: 'GUEST'
     },
     ANDROID_INSTALL_URL: <FormFieldDefinition>{
         key: 'sumaris.android.install.url',
         label: 'CONFIGURATION.OPTIONS.ANDROID_INSTALL_URL',
         type: 'string'
-    },
-    LOCATION_LEVEL_COUNTRY_ID: <FormFieldDefinition>{
-        key: 'sumaris.enumeration.LocationLevel.COUNTRY.id',
-        label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_COUNTRY_ID',
-        type: 'entity',
-        autocomplete: {
-          filter: {
-            entityName: 'LocationLevel',
-            statusIds: [0,1]
-          }
-        },
-        defaultValue: LocationLevelIds.COUNTRY
-    },
-    LOCATION_LEVEL_PORT_ID: <FormFieldDefinition>{
-        key: 'sumaris.enumeration.LocationLevel.HARBOUR.id',
-        label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_PORT_ID',
-        type: 'entity',
-        autocomplete: {
-          filter: {
-            entityName: 'LocationLevel',
-            statusIds: [0,1]
-          }
-        },
-        defaultValue: LocationLevelIds.PORT
-    },
-    LOCATION_LEVEL_AUCTION_ID: <FormFieldDefinition>{
-        key: 'sumaris.enumeration.locationLevel.AUCTION.id',
-        label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_AUCTION_ID',
-        type: 'entity',
-        autocomplete: {
-          filter: {
-            entityName: 'LocationLevel',
-            statusIds: [0,1]
-          }
-        },
-        defaultValue: LocationLevelIds.AUCTION
     }
 });
+
+export const CORE_LOCAL_SETTINGS_OPTIONS = Object.freeze({});

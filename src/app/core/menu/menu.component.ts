@@ -19,7 +19,6 @@ import {Configuration} from "../services/model/config.model";
 import {AccountService} from "../services/account.service";
 import {AboutModal} from '../about/modal-about';
 
-import {environment} from '../../../environments/environment';
 import {fadeInAnimation} from '../../shared/material/material.animations';
 import {TranslateService} from "@ngx-translate/core";
 import {isNotNilOrBlank} from "../../shared/functions";
@@ -28,8 +27,10 @@ import {ConfigService} from "../services/config.service";
 import {mergeMap, tap} from "rxjs/operators";
 import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
 import {PlatformService} from "../services/platform.service";
+import {IconRef} from "../../shared/types";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
-export interface MenuItem {
+export interface MenuItem extends IconRef {
   title: string;
   path?: string;
   action?: string | any;
@@ -37,13 +38,14 @@ export interface MenuItem {
   matIcon?: string;
   profile?: UserProfileLabel;
   exactProfile?: UserProfileLabel;
-  color?: string,
+  color?: string;
   cssClass?: string;
   // A config property, to enable the menu item
   ifProperty?: string;
   // A config property, to override the title
   titleProperty?: string;
   titleArgs?: {[key: string]: string};
+  children?: MenuItem[];
 }
 
 export class MenuItems {
@@ -65,7 +67,7 @@ export class MenuItems {
     }
 
     else if (item.exactProfile) {
-      const hasExactProfile =  accountService.isLogin() && accountService.hasExactProfile(item.exactProfile);
+      const hasExactProfile =  accountService.hasExactProfile(item.exactProfile);
       if (!hasExactProfile) {
         if (opts.debug) console.debug(`${opts && opts.logPrefix || '[menu]'} Hide item '${item.title}': need exact profile '${item.exactProfile}' to access path '${item.path}'`);
         return false;
@@ -95,8 +97,7 @@ const SPLIT_PANE_SHOW_WHEN = 'lg';
   selector: 'app-menu',
   templateUrl: 'menu.component.html',
   styleUrls: ['./menu.component.scss'],
-  animations: [fadeInAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  animations: [fadeInAnimation]
 })
 export class MenuComponent implements OnInit {
 
@@ -120,7 +121,7 @@ export class MenuComponent implements OnInit {
   $filteredItems = new BehaviorSubject<MenuItem[]>(undefined);
 
   @Input()
-  appVersion: String = environment.version;
+  appVersion: String = this.environment.version;
 
   @Input() side = "left";
 
@@ -136,6 +137,7 @@ export class MenuComponent implements OnInit {
     protected translate: TranslateService,
     protected configService: ConfigService,
     protected cd: ChangeDetectorRef,
+    @Inject(ENVIRONMENT) protected environment,
     @Optional() @Inject(APP_MENU_ITEMS) public items: MenuItem[]
   ) {
 
@@ -244,7 +246,7 @@ export class MenuComponent implements OnInit {
 
             setTimeout(() => {
               // Back to home
-              return this.router.navigateByUrl('/');
+              return this.router.navigateByUrl('/', {replaceUrl: true /* will clear router history */});
             }, 100);
           }
         }

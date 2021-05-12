@@ -1,45 +1,48 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
-import {EntityService, EntityServiceLoadOptions, isNil, isNotNil} from "../../shared/shared.module";
-import {BaseEntityService, EntityUtils, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {environment} from "../../../environments/environment";
 import {ReferentialService} from "./referential.service";
 import {Observable, of} from "rxjs";
 import {Parameter} from "./model/parameter.model";
 import {ReferentialFragments} from "./referential.fragments";
+import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
+import {isNil, isNotNil} from "../../shared/functions";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
+import {environment} from "../../../environments/environment";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
 const SaveQuery: any = gql`
   mutation SaveParameter($parameter:ParameterVOInput){
     saveParameter(parameter: $parameter){
-      ...FullParameterFragment
+      ...ParameterFragment
     }
   }
   ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.fullParameter}
+  ${ReferentialFragments.parameter}
 `;
 
 const LoadQuery: any = gql`
   query Parameter($label: String, $id: Int){
     parameter(label: $label, id: $id){
-      ...FullParameterFragment
+      ...ParameterFragment
     }
   }
   ${ReferentialFragments.fullReferential}
-  ${ReferentialFragments.fullParameter}
+  ${ReferentialFragments.parameter}
 `;
 
 @Injectable({providedIn: 'root'})
-export class ParameterService extends BaseEntityService implements EntityService<Parameter> {
+export class ParameterService extends BaseGraphqlService implements IEntityService<Parameter> {
 
   constructor(
     protected graphql: GraphqlService,
     protected accountService: AccountService,
     protected referentialService: ReferentialService
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   async existsByLabel(label: string, opts?: { excludedId?: number; }): Promise<boolean> {
@@ -124,7 +127,7 @@ export class ParameterService extends BaseEntityService implements EntityService
   protected copyIdAndUpdateDate(source: Parameter, target: Parameter) {
     EntityUtils.copyIdAndUpdateDate(source, target);
 
-    // Update strategies
+    // Update qualitative values
     if (source.qualitativeValues && target.qualitativeValues) {
       target.qualitativeValues.forEach(entity => {
 

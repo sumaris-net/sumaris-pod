@@ -71,12 +71,12 @@
   </ng-container>
 
   <!-- Pmfms columns -->
-  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
+  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.id.toString()">
     <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
       <ion-label [innerHTML]="pmfm|pmfmName: {withUnit: true, html: true}"></ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm|isDatePmfm">
-      <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.pmfmId] | pmfmValueToString: {pmfm: pmfm, html: true}"></ion-text>
+      <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, html: true}"></ion-text>
     </mat-cell>
   </ng-container>
 
@@ -85,7 +85,9 @@
     <mat-header-cell *matHeaderCellDef>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-icon color="medium" name="chatbox" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
+      <mat-icon class="comment"
+                *ngIf="row.currentData.comments"
+                [title]="row.currentData.comments">chat_bubble</mat-icon>
     </mat-cell>
   </ng-container>
 

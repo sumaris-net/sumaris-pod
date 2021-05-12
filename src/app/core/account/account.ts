@@ -1,13 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnDestroy} from '@angular/core';
 import {Subscription} from 'rxjs';
 import {AccountService} from '../services/account.service';
 import {Account} from '../services/model/account.model';
-import {Locales} from '../services/model/settings.model';
 import {UserSettingsValidatorService} from '../services/validator/user-settings.validator';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {AccountValidatorService} from '../services/validator/account.validator';
 import {AppForm} from '../form/form.class';
-import {Moment} from 'moment/moment';
+import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {AppFormUtils} from '../form/form.utils';
 import {TranslateService} from "@ngx-translate/core";
@@ -15,6 +14,7 @@ import {FormFieldDefinition} from "../../shared/form/field.model";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {LAT_LONG_PATTERNS} from "../../shared/material/latlong/latlong.utils";
 import {StatusIds} from "../services/model/model.enum";
+import {APP_LOCALES, LocaleConfig} from "../services/model/settings.model";
 
 @Component({
   selector: 'page-account',
@@ -37,7 +37,7 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
   additionalFields: FormFieldDefinition[];
   settingsForm: FormGroup;
   settingsContentForm: FormGroup;
-  locales = Locales;
+  locales: LocaleConfig[];
   latLongFormats = LAT_LONG_PATTERNS;
   saving = false;
   submitted = false;
@@ -50,9 +50,12 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     protected settingsValidatorService: UserSettingsValidatorService,
     protected translate: TranslateService,
     protected settings: LocalSettingsService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    @Inject(APP_LOCALES) locales
   ) {
     super(dateAdapter, validatorService.getFormGroup(accountService.account), settings);
+
+    this.locales = locales;
 
     // Add settings fo form
     this.settingsForm = settingsValidatorService.getFormGroup(accountService.account && accountService.account.settings);
@@ -152,7 +155,7 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
       console.debug("[account] Confirmation email sent.");
       this.email.sending = false;
     }
-    catch(err) {
+    catch (err) {
       this.email.sending = false;
       this.email.error = err && err.message || err;
     }

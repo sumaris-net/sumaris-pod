@@ -1,9 +1,12 @@
 import {AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
-import * as moment from 'moment/moment';
+import * as momentImported from "moment";
+const moment = momentImported;
 import {DATE_ISO_PATTERN, PUBKEY_REGEXP} from "../constants";
-import {fromDateISOString, isEmptyArray, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotNilOrNaN} from "../functions";
+import {isEmptyArray, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotNilOrNaN, toBoolean} from "../functions";
 import {Moment} from "moment";
+import {fromDateISOString} from "../dates";
 
+// @dynamic
 export class SharedValidators {
 
   static validDate(control: FormControl): ValidationErrors | null {
@@ -63,8 +66,10 @@ export class SharedValidators {
   }
 
   static integer(control: FormControl): ValidationErrors | null {
-    const value = control.value;
-    if (isNotNil(value) && value !== "" && !Number.isInteger(value)) {
+    if (isNilOrBlank(control.value))
+      return null;
+    const value = parseFloat(control.value);
+    if (isNaN(value) || (value | 0) !== value) {
       return {integer: true};
     }
     return null;
@@ -159,6 +164,7 @@ export class SharedValidators {
 
 }
 
+// @dynamic
 export class SharedFormGroupValidators {
 
   static dateRange(startDateField: string, endDateField: string): ValidatorFn {
@@ -242,6 +248,22 @@ export class SharedFormGroupValidators {
     };
   }
 
+  static requiredIfTrue(fieldName: string, anotherFieldToCheck: string | AbstractControl): ValidatorFn {
+    return (group: FormGroup): ValidationErrors | null => {
+      const control = group.get(fieldName);
+      const anotherControl = (anotherFieldToCheck instanceof AbstractControl) ? anotherFieldToCheck : group.get(anotherFieldToCheck);
+      if (!anotherControl) throw new Error('Unable to find field to check!');
+      if (isNilOrBlank(control.value) && toBoolean(anotherControl.value, false)) {
+        const error = {required: true};
+        control.setErrors(error);
+        control.markAsTouched({onlySelf: true});
+        return error;
+      }
+      SharedValidators.clearError(control, 'required');
+      return null;
+    };
+  }
+
   static requiredIfEmpty(fieldName: string, anotherFieldToCheck: string): ValidatorFn {
     return (group: FormGroup): ValidationErrors | null => {
       const control = group.get(fieldName);
@@ -268,6 +290,7 @@ export class SharedFormGroupValidators {
   }
 }
 
+// @dynamic
 export class SharedFormArrayValidators {
 
   /**

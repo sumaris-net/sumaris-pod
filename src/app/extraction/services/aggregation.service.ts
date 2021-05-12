@@ -1,7 +1,6 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {Observable} from "rxjs";
-import {BaseEntityService, EntityUtils, isNil, isNotNil, StatusIds} from "../../core/core.module";
 import {map} from "rxjs/operators";
 
 import {ErrorCodes} from "../../trip/services/trip.errors";
@@ -16,7 +15,12 @@ import {SortDirection} from "@angular/material/sort";
 import {FilterFn} from "../../shared/services/entity-service.class";
 import {firstNotNilPromise} from "../../shared/observables";
 import {AggregationType, IAggregationStrata} from "./model/aggregation-type.model";
-import {ExtractionFragments} from "./extraction.service";
+import {ExtractionFragments, LoadExtractionTypesQuery} from "./extraction.service";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
+import {isNil, isNotNil} from "../../shared/functions";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {environment} from "../../../environments/environment";
 
 
 export const AggregationFragments = {
@@ -28,12 +32,14 @@ export const AggregationFragments = {
     version
     sheetNames
     description
+    docUrl
     creationDate
     updateDate
     comments
     filter
     isSpatial
     statusId
+    processingFrequencyId
     stratum {
       id
       updateDate
@@ -57,12 +63,11 @@ export const AggregationFragments = {
   `
 };
 
-
-
 const LoadTypeQuery = gql`
   query AggregationType($id: Int!) {
     aggregationType(id: $id) {
       ...AggregationTypeFragment
+      documentation
     }
   }
   ${AggregationFragments.aggregationType}
@@ -126,6 +131,7 @@ const SaveAggregation: any = gql`
   mutation SaveAggregation($type: AggregationTypeVOInput, $filter: ExtractionFilterVOInput){
     saveAggregation(type: $type, filter: $filter){
       ...AggregationTypeFragment
+      documentation
     }
   }
   ${AggregationFragments.aggregationType}
@@ -162,13 +168,13 @@ export class AggregationTypeFilter {
 }
 
 @Injectable({providedIn: 'root'})
-export class AggregationService extends BaseEntityService {
+export class AggregationService extends BaseGraphqlService {
 
   constructor(
     protected graphql: GraphqlService,
     protected accountService: AccountService
   ) {
-    super(graphql);
+    super(graphql, environment);
   }
 
   /**
@@ -195,7 +201,7 @@ export class AggregationService extends BaseEntityService {
       query: LoadTypesQuery,
       arrayFieldName: 'aggregationTypes',
       insertFilterFn: AggregationTypeFilter.searchFilter(dataFilter),
-      variables: variables,
+      variables,
       error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     })
@@ -337,17 +343,17 @@ export class AggregationService extends BaseEntityService {
     return res && { min: 0, max: 0, ...res.aggregationTechMinMax} || null;
   }
 
-  async save(sourceType: AggregationType,
+  async save(entity: AggregationType,
              filter?: ExtractionFilter): Promise<AggregationType> {
     const now = Date.now();
     if (this._debug) console.debug("[aggregation-service] Saving aggregation...");
 
-    // Transform into entity
-    const entity = AggregationType.fromObject(sourceType);
+    // Make sure to have an entity
+    entity = AggregationType.fromObject(entity);
 
     this.fillDefaultProperties(entity);
 
-    const isNew = isNil(sourceType.id);
+    const isNew = isNil(entity.id);
 
     // Transform to json
     const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
@@ -366,18 +372,33 @@ export class AggregationService extends BaseEntityService {
         //if (this._debug)
         console.debug(`[aggregation-service] Aggregation saved in ${Date.now() - now}ms`, savedEntity);
 
-        // Add to cached queries
-        if (isNew) {
+        // Convert into the extraction type
+        const savedExtractionType = ExtractionType.fromObject(savedEntity).asObject({keepTypename: true});
+        savedExtractionType.category = 'PRODUCT';
 
-          // Extraction types
-          {
-            // Convert into the extraction type
-            const savedExtractionType = ExtractionType.fromObject(savedEntity).asObject({keepTypename: true});
-            this.insertIntoMutableCachedQuery(cache, {
-              queryName: 'LoadExtractionTypes',
-              data: savedExtractionType
-            });
-          }
+        // Insert into cached queries
+        if (isNew) {
+          // Insert as an extraction types
+          this.insertIntoMutableCachedQuery(cache, {
+            queryName: "LoadExtractionTypes",
+            query: LoadExtractionTypesQuery,
+            data: savedExtractionType
+          });
+        }
+
+        // Update from cached queries
+        else {
+          // Remove, then insert, from extraction types
+          this.removeFromMutableCachedQueryByIds(cache, {
+            queryName: "LoadExtractionTypes",
+            query: LoadExtractionTypesQuery,
+            ids: savedEntity.id
+          });
+          this.insertIntoMutableCachedQuery(cache, {
+            queryName: "LoadExtractionTypes",
+            query: LoadExtractionTypesQuery,
+            data: savedExtractionType
+          });
 
           // Aggregation types
           this.insertIntoMutableCachedQuery(cache, {
@@ -385,6 +406,8 @@ export class AggregationService extends BaseEntityService {
             data: savedEntity
           });
         }
+
+
       }
     });
 
@@ -430,7 +453,7 @@ export class AggregationService extends BaseEntityService {
     if (isNil(entity.id)) {
 
       // Compute label
-      entity.label = `${entity.label}-${Date.now()}`;
+      entity.label = `${entity.format}-${Date.now()}`;
 
       // Recorder department
       entity.recorderDepartment = ReferentialUtils.isNotEmpty(entity.recorderDepartment) ? entity.recorderDepartment : this.accountService.department;

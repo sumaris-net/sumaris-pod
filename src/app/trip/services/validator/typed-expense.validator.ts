@@ -3,11 +3,11 @@ import {Injectable} from "@angular/core";
 import {AbstractControlOptions, FormGroup, ValidatorFn, Validators} from "@angular/forms";
 import {Measurement} from "../model/measurement.model";
 import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 interface TypedExpenseValidatorOptions extends MeasurementsValidatorOptions {
-  typePmfm?: PmfmStrategy;
-  totalPmfm?: PmfmStrategy;
+  typePmfm?: IPmfm;
+  totalPmfm?: IPmfm;
 }
 
 @Injectable({providedIn: 'root'})
@@ -42,9 +42,9 @@ export class TypedExpenseValidatorService extends MeasurementsValidatorService<M
     // add formGroup validator for type requirement
     const additionalValidators: ValidatorFn[] = [];
     if (opts.typePmfm) {
-      additionalValidators.push(SharedFormGroupValidators.requiredIf(opts.typePmfm.pmfmId.toString(), 'amount'));
+      additionalValidators.push(SharedFormGroupValidators.requiredIf(opts.typePmfm.id.toString(), 'amount'));
       if (opts.totalPmfm) {
-        additionalValidators.push(SharedFormGroupValidators.requiredIf(opts.typePmfm.pmfmId.toString(), opts.totalPmfm.pmfmId.toString()));
+        additionalValidators.push(SharedFormGroupValidators.requiredIf(opts.typePmfm.id.toString(), opts.totalPmfm.id.toString()));
       }
     }
     if (additionalValidators.length) {

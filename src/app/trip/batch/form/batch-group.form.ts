@@ -3,23 +3,25 @@ import {Batch, BatchUtils} from "../../services/model/batch.model";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {AbstractControl, FormBuilder, FormControl} from "@angular/forms";
-import {ProgramService} from "../../../referential/services/program.service";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {AppFormUtils, isNotNil} from "../../../core/core.module";
 import {BatchGroupValidatorService} from "../../services/validator/batch-group.validator";
 import {BehaviorSubject} from "rxjs";
 import {BatchForm} from "./batch.form";
 import {filter, switchMap} from "rxjs/operators";
 import {PlatformService} from "../../../core/services/platform.service";
 import {firstNotNilPromise} from "../../../shared/observables";
-import {fadeInAnimation, InputElement} from "../../../shared/shared.module";
 import {BatchGroup} from "../../services/model/batch-group.model";
 import {MeasurementsValidatorService} from "../../services/validator/measurement.validator";
 import {ReferentialUtils} from "../../../core/services/model/referential.model";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
+import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {IPmfm, PmfmUtils} from "../../../referential/services/model/pmfm.model";
+import {AppFormUtils} from "../../../core/form/form.utils";
+import {InputElement} from "../../../shared/inputs";
+import {isNotNil} from "../../../shared/functions";
+import {fadeInAnimation} from "../../../shared/material/material.animations";
+import {ProgramRefService} from "../../../referential/services/program-ref.service";
 
 @Component({
   selector: 'app-batch-group-form',
@@ -30,10 +32,10 @@ import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
 })
 export class BatchGroupForm extends BatchForm<BatchGroup> {
 
-  $childrenPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  $childrenPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   hasIndividualMeasureControl: AbstractControl;
 
-  @Input() qvPmfm: PmfmStrategy;
+  @Input() qvPmfm: IPmfm;
 
   @Input() taxonGroupsNoWeight: string[];
 
@@ -156,7 +158,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     protected measurementValidatorService: MeasurementsValidatorService,
     protected dateAdapter: DateAdapter<Moment>,
     protected formBuilder: FormBuilder,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected platform: PlatformService,
     protected validatorService: BatchGroupValidatorService,
     protected referentialRefService: ReferentialRefService,
@@ -166,7 +168,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     super(dateAdapter,
       measurementValidatorService,
       formBuilder,
-      programService,
+      programRefService,
       platform,
       validatorService,
       referentialRefService,
@@ -198,12 +200,12 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       data.children = this.qvPmfm.qualitativeValues.map((qv, index) => {
 
         // Find existing child, or create a new one
-        const child = (data.children || []).find(c => +(c.measurementValues[this.qvPmfm.pmfmId]) == qv.id)
+        const child = (data.children || []).find(c => +(c.measurementValues[this.qvPmfm.id]) == qv.id)
           || new Batch();
 
         // Make sure label and rankOrder are correct
         child.label = `${data.label}.${qv.label}`;
-        child.measurementValues[this.qvPmfm.pmfmId] = qv;
+        child.measurementValues[this.qvPmfm.id] = qv;
         child.rankOrder = index + 1;
 
         // Check there is a sampling batch
@@ -265,7 +267,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       });
   }
 
-  protected mapPmfms(pmfms: PmfmStrategy[]) {
+  protected mapPmfms(pmfms: IPmfm[]) {
     this.qvPmfm = this.qvPmfm || PmfmUtils.getFirstQualitativePmfm(pmfms);
     if (this.qvPmfm) {
 
@@ -274,10 +276,10 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
       // Hide for children form, and change it as required
       this.qvPmfm.hidden = true;
-      this.qvPmfm.isMandatory = true;
+      this.qvPmfm.required = true;
 
       // Replace in the list
-      this.$childrenPmfms.next(pmfms.map(p => p.pmfmId === this.qvPmfm.pmfmId ? this.qvPmfm : p));
+      this.$childrenPmfms.next(pmfms.map(p => p.id === this.qvPmfm.id ? this.qvPmfm : p));
 
       // Do not display PMFM in the root batch
       pmfms = [];
@@ -322,7 +324,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
         child.rankOrder = index + 1;
         child.label = `${data.label}.${qv.label}`;
         child.measurementValues = child.measurementValues || {};
-        child.measurementValues[this.qvPmfm.pmfmId.toString()] = '' + qv.id;
+        child.measurementValues[this.qvPmfm.id.toString()] = '' + qv.id;
 
         // Special case: when sampling on individual count only (e.g. RJB - Pocheteau)
         const sampleBatch = BatchUtils.getSamplingChild(child);

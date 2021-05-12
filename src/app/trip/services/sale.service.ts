@@ -1,19 +1,20 @@
 import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
+import {gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {LoadResult, EntitiesService} from "../../shared/shared.module";
-import {BaseEntityService, EntityUtils} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {WatchQueryFetchPolicy} from "@apollo/client/core";
 import {AccountService} from "../../core/services/account.service";
 import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {Sale} from "./model/sale.model";
 import {Sample} from "./model/sample.model";
 import {SortDirection} from "@angular/material/sort";
+import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
+import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {environment} from "../../../environments/environment";
 
 export const SaleFragments = {
   lightSale: gql`fragment LightSaleFragment_PENDING on SaleVO {
@@ -36,6 +37,7 @@ export const SaleFragments = {
   ${Fragments.location}
   ${Fragments.lightDepartment}
   ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${Fragments.referential}
   `,
   sale: gql`fragment SaleFragment_PENDING on SaleVO {
     id
@@ -72,6 +74,7 @@ export const SaleFragments = {
   ${Fragments.location}
   ${DataFragments.sample}
   ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${Fragments.referential}
   `
 };
 
@@ -128,13 +131,13 @@ const sortByEndDateOrStartDateFn = (n1: Sale, n2: Sale) => {
 };
 
 @Injectable({providedIn: 'root'})
-export class SaleService extends BaseEntityService<Sale, SaleFilter> implements EntitiesService<Sale, SaleFilter>{
+export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements IEntitiesService<Sale, SaleFilter>{
 
   constructor(
     protected graphql: GraphqlService,
     protected accountService: AccountService
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     // -- For DEV only
     //this._debug = !environment.production;

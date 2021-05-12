@@ -13,45 +13,11 @@ import {MatPaginatorI18n} from "./material/paginator/material.paginator-i18n";
 import {ProgressBarService} from "./services/progress-bar.service";
 import {HTTP_INTERCEPTORS} from "@angular/common/http";
 import {ProgressInterceptor} from "./interceptors/progess.interceptor";
-import {
-  EntitiesService,
-  EntityService,
-  EntityServiceLoadOptions,
-  LoadResult,
-  SuggestService
-} from "./services/entity-service.class";
-import {
-  changeCaseToUnderscore,
-  fromDateISOString,
-  isNil,
-  isNilOrBlank,
-  isNotEmptyArray,
-  isNotNil,
-  isNotNilOrBlank,
-  joinPropertiesPath,
-  nullIfUndefined,
-  propertyComparator,
-  sleep,
-  sort,
-  startsWithUpperCase,
-  toBoolean,
-  toDateISOString,
-  toFloat,
-  toInt
-} from "./functions";
-import {filterNumberInput, InputElement, selectInputContent} from "./inputs";
-import {
-  fadeInAnimation,
-  fadeInOutAnimation,
-  slideInOutAnimation,
-  slideUpDownAnimation
-} from "./material/material.animations";
-import {Color, ColorScale} from "./graph/graph-colors";
 import {ColorPickerModule} from 'ngx-color-picker';
 import {AppFormField} from "./form/field.component";
 import {AudioProvider} from "./audio/audio";
 import {CloseScrollStrategy, FullscreenOverlayContainer, Overlay, OverlayContainer} from '@angular/cdk/overlay';
-import {Hotkeys, SharedHotkeysModule} from "./hotkeys/shared-hotkeys.module";
+import {SharedHotkeysModule} from "./hotkeys/shared-hotkeys.module";
 import {FileService} from "./file/file.service";
 import {ModalToolbarComponent} from "./toolbar/modal-toolbar";
 import {DragDropModule} from "@angular/cdk/drag-drop";
@@ -65,26 +31,15 @@ import {DateDiffDurationPipe} from "./pipes/date-diff-duration.pipe";
 import {LatitudeFormatPipe, LatLongFormatPipe, LongitudeFormatPipe} from "./pipes/latlong-format.pipe";
 import {HighlightPipe} from "./pipes/highlight.pipe";
 import {NumberFormatPipe} from "./pipes/number-format.pipe";
+import {MarkdownModule} from "ngx-markdown";
+import {AppHelpModal} from "./help/help.modal";
+import {Environment, ENVIRONMENT} from "../../environments/environment.class";
+import {TranslateContextService} from "./services/translate-context.service";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
   return () => overlay.scrollStrategies.close();
 }
-
-export {
-  SuggestService, EntitiesService, LoadResult,
-  EntityService, EntityServiceLoadOptions,
-  isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotEmptyArray, nullIfUndefined, sleep,
-  toBoolean, toFloat, toInt,
-  toDateISOString, fromDateISOString, filterNumberInput,
-  startsWithUpperCase,
-  propertyComparator, joinPropertiesPath, sort, selectInputContent,
-  fadeInAnimation, fadeInOutAnimation, slideInOutAnimation, slideUpDownAnimation, changeCaseToUnderscore,
-  DateFormatPipe, DateFromNowPipe,
-  ToolbarComponent,
-  Color, ColorScale, InputElement,
-  Hotkeys,
-};
 
 @NgModule({
   imports: [
@@ -96,6 +51,7 @@ export {
     TextMaskModule,
     DragDropModule,
     QuicklinkModule, // See https://web.dev/route-preloading-in-angular/
+    MarkdownModule,
 
     // Sub modules
     SharedMaterialModule,
@@ -107,7 +63,8 @@ export {
     ToolbarComponent,
     ModalToolbarComponent,
     AppFormField,
-    AppLoadingSpinner
+    AppLoadingSpinner,
+    AppHelpModal
   ],
   exports: [
     CommonModule,
@@ -118,6 +75,7 @@ export {
     TextMaskModule,
     DragDropModule,
     QuicklinkModule,
+    MarkdownModule,
 
     // Sub-modules
     SharedMaterialModule,
@@ -129,20 +87,25 @@ export {
     ToolbarComponent,
     ModalToolbarComponent,
     AppFormField,
-    AppLoadingSpinner
+    AppLoadingSpinner,
+    AppHelpModal
   ]
 })
 export class SharedModule {
 
-  static forRoot(): ModuleWithProviders<SharedModule> {
+  static forRoot(environment: Environment): ModuleWithProviders<SharedModule> {
     console.debug('[shared] Creating module (root)');
 
     return {
       ngModule: SharedModule,
       providers: [
+
+        { provide: ENVIRONMENT, useValue: environment },
+
         ProgressBarService,
         AudioProvider,
         FileService,
+        TranslateContextService,
 
         // Export Pipes as providers
         DateFormatPipe,
@@ -168,11 +131,11 @@ export class SharedModule {
         // FIXME: try to force a custom overlay for autocomplete, because of there is a bug when using inside an ionic modal
         //{ provide: Overlay, useClass: Overlay},
         { provide: MAT_AUTOCOMPLETE_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
-        { provide: MAT_SELECT_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
         { provide: MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, useValue: {
             autoActiveFirstOption: true
           }
-        }
+        },
+        { provide: MAT_SELECT_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] }
       ]
     };
   }

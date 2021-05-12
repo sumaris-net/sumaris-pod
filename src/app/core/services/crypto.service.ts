@@ -1,11 +1,10 @@
 import {Injectable} from "@angular/core";
-import {box, sign, verify, hash, randomBytes} from "tweetnacl";
+import {box, sign, verify, hash} from "tweetnacl";
+import {Base58} from "./base58";
 
 const scrypt = require('scrypt-async');
 const sha256 =  require('hash.js/lib/hash/sha/256');
 const sha512 =  require('hash.js/lib/hash/sha/512');
-
-export const base58 = require('../../../lib/base58');
 
 const nacl = {
   sign,
@@ -51,15 +50,14 @@ const nacl = {
   }
 };
 
-export const Nacl = nacl;
 export interface CryptoSaltParams {
   N: number;
   r: number;
   p: number;
 }
 export interface KeyPair {
-  publicKey: Uint8Array,
-  secretKey: Uint8Array
+  publicKey: Uint8Array;
+  secretKey: Uint8Array;
 }
 
 @Injectable({providedIn: 'root'})
@@ -102,11 +100,11 @@ export class CryptoService {
       const m = nacl.util.decodeUTF8(message);
       const signedMsg = nacl.sign(m, keypair.secretKey);
       const sig = new Uint8Array(nacl.constants.crypto_sign_BYTES);
-      for (var i = 0; i < sig.length; i++) sig[i] = signedMsg[i];
+      for (let i = 0; i < sig.length; i++) sig[i] = signedMsg[i];
       const signature = nacl.util.encodeBase64(sig);
       resolve(signature);
     });
-  };
+  }
 
   /**
   * Sign a message, from a key pair
@@ -115,23 +113,28 @@ export class CryptoService {
     return new Promise((resolve) => {
       const m = nacl.util.decodeUTF8(message);
       const sig = nacl.util.decodeBase64(signature);
-      const pub = base58.decode(pubkey);
+      const pub = Base58.decode(pubkey);
       const res = nacl.sign.detached.verify(m, sig, pub);
       resolve(res);
     });
-  };
+  }
 
   /**
    * Hash (using SHA256) a message
    */
   sha256(message: string): string {
     return sha256().update(message).digest('hex');
-  };
+  }
 
   /**
    * Hash (using SHA512) a message
    */
   sha512(message: string): string {
     return sha512().update(message).digest('hex');
-  };
+  }
+
+  encodeBase64(message: string): string {
+    const m = nacl.util.decodeUTF8(message);
+    return nacl.util.encodeBase64(m);
+  }
 }

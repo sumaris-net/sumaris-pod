@@ -50,7 +50,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
     // Add measurement form
     if (opts.withMeasurements) {
-      const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].pmfmStrategies || [])
+      const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms || [])
         .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.TRIP);
       form.addControl('measurements', this.measurementsValidatorService.getFormGroup(data && data.measurements, {
         isOnFieldMode: opts.isOnFieldMode,
@@ -122,7 +122,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     opts.withSale = toBoolean(opts.withSale,
       toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE), false));
 
-    opts.withMeasurements = toBoolean(opts.withMeasurements,  toBoolean(!!opts.program, false));
+    opts.withMeasurements = toBoolean(opts.withMeasurements,  !!opts.program);
 
     return opts;
   }

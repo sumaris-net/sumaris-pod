@@ -64,6 +64,7 @@ ion-toast-controller,
   opacity: 0;
 }
 
+ion-toolbar ion-title,
 app-toolbar ion-title {
   small {
     font-weight: normal;
@@ -79,6 +80,7 @@ app-toolbar ion-title {
 }
 
 @media screen and (max-width: $screen-sm-max) {
+  ion-toolbar ion-title,
   app-toolbar ion-title {
     small {
       @include font-size(10pt);
@@ -392,6 +394,37 @@ mat-option:not(:last-child) {
 
 mat-expansion-panel {
 
+  &.filter-panel {
+    // specific
+    z-index: 999;
+    position: absolute;
+    //top: 60px; if filter button is not in app-toolbar
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--ion-color-secondary50);
+    color: var(--ion-color-secondary50-contrast);
+
+    margin-bottom: 5px;
+
+    .form-container {
+      mat-form-field {
+        width: 100%;
+
+        .datetime-md {
+          padding: 0 !important;
+        }
+      }
+    }
+
+    mat-action-row {
+      ion-label {
+        line-height: 36px;
+      }
+    }
+
+  }
+
   .mat-expansion-panel-header,
   mat-expansion-panel-header {
     padding: var(--expansion-panel-header-padding, var(--expansion-panel-padding));
@@ -451,7 +484,11 @@ ion-list {
 // --------------------------------------------------
 // Material Table
 // --------------------------------------------------
-mat-table {
+.mat-table {
+
+  /*.mat-cell, .mat-header-cell, .mat-footer-cell {
+    padding: 0 10px;
+  }*/
 
   .mat-header-cell.disabled {
       color: var(--ion-color-medium, grey);
@@ -488,7 +525,7 @@ mat-table {
     border-left: 2px solid transparent;
     max-height: 52px;
     z-index: 999;
-    padding: 0 !important;
+    padding: 0 0 0 5px !important;
 
     mat-cell:last-child,
     mat-footer-cell:last-child,
@@ -643,6 +680,12 @@ mat-table {
       padding-top: 0.4em;
     }
 
+    .mat-cell > .ion-text-nowrap {
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: pre;
+    }
   }
 
 
@@ -739,8 +782,56 @@ mat-table {
   }
 }
 
+.table-container {
+  max-width: 100%;
+  max-height: 100%;
+  overflow-x: auto;
+}
+
+.mat-paginator-footer {
+
+  background-color: whitesmoke;
+
+  .mat-paginator-outer-container {
+    height: 34px;
+    overflow-y: hidden;
+    .mat-paginator-container {
+      height: 34px;
+      min-height: unset;
+      margin-top: 10px;
+
+      button {
+        height: 34px;
+        width: 34px;
+        line-height: 34px;
+      }
+    }
+  }
+
+}
 
 
+@media screen and (max-width: $screen-sm-max) {
+  .mat-paginator-footer {
+    .mat-paginator-outer-container {
+      .mat-paginator-container {
+
+        // Move paginator to the left,
+        // because floating button are on the right
+        margin-top: 0 !important;
+        justify-content: flex-start;
+
+        // Hide page size (not need on small screens)
+        .mat-paginator-page-size {
+          visibility: hidden;
+          display: none;
+        }
+      }
+    }
+  }
+}
+
+// ------------------------
 // Other material component
 
 .flex-spacer,
@@ -796,6 +887,7 @@ mat-tab-group.mat-tab-group-header-hidden .mat-tab-header {
 mat-tab-group.mat-tab-group-header-pagination-hidden .mat-tab-header-pagination {
   display: none !important;
 }
+
 mat-tab-group.mat-tab-disabled-hidden .mat-tab-disabled {
   display: none !important;
 }
@@ -953,6 +1045,27 @@ ion-item {
 }
 
 // --------------------------------------------------
+// Icon tooltip, and title
+// --------------------------------------------------
+// Fix Button icon name overrides button's own title on mouse over
+/*ion-icon[name='chatbox'] {
+  pointer-events: none !important;
+}*/
+mat-icon,
+ion-icon {
+  &.comment {
+    font-size: 14pt;
+    height: 100%;
+    vertical-align: center;
+    color: var(--ion-color-tertiary, grey);
+
+    &.disabled {
+      color: var(--ion-color-medium, grey);
+    }
+  }
+}
+
+// --------------------------------------------------
 // Icon inside text
 // --------------------------------------------------
 mat-icon,
@@ -998,6 +1111,14 @@ ion-button[expand="full"],
       right: 0;
     }
   }
+}
+
+// --------------------------------------------------
+// Icon multiple
+// --------------------------------------------------
+mat-icon.icon-secondary {
+  position: absolute;
+  left: 0;
 }
 
 // --------------------------------------------------

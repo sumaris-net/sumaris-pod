@@ -1,28 +1,30 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {TripValidatorService} from "../services/validator/trip.validator";
 import {ModalController} from "@ionic/angular";
-import {Moment} from 'moment/moment';
+import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {LocationLevelIds,} from "../../referential/services/model/model.enum";
 
-import {personToString, UserProfileLabel} from "../../core/services/model/person.model";
-import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
+import {Person, personToString, UserProfileLabels} from "../../core/services/model/person.model";
+import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {FormArray, FormBuilder} from "@angular/forms";
 import {PersonService} from "../../admin/services/person.service";
-import {isNotNilOrBlank, toBoolean} from "../../shared/functions";
+import {isNil, isNotNil, isNotNilOrBlank, toBoolean} from "../../shared/functions";
 import {NetworkService} from "../../core/services/network.service";
-import {Vessel} from "../../referential/services/model/vessel.model";
+import {Vessel} from "../../vessel/services/model/vessel.model";
 import {Metier} from "../../referential/services/model/taxon.model";
 import {METIER_DEFAULT_FILTER, MetierFilter} from "../../referential/services/metier.service";
 import {Trip} from "../services/model/trip.model";
 import {ReferentialRefFilter, ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {debounceTime, filter} from "rxjs/operators";
-import {AppForm, FormArrayHelper, isNil, isNotNil, Person, ReferentialRef, StatusIds} from '../../core/core.module';
-import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
+import {VesselModal} from "../../vessel/modal/modal-vessel";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
+import {AppForm} from "../../core/form/form.class";
+import {FormArrayHelper} from "../../core/form/form.utils";
+import {StatusIds} from "../../core/services/model/model.enum";
 
 const TRIP_METIER_DEFAULT_FILTER: MetierFilter = {
   entityName: 'Metier',
@@ -170,12 +172,14 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     });
 
     // Combo: observers
-    const profileLabels: UserProfileLabel[] = ['SUPERVISOR', 'USER', 'GUEST'];
     this.registerAutocompleteField('person', {
-      service: this.personService,
+      // Important, to get the current (focused) control value, in suggestObservers() function (otherwise it will received '*').
+      showAllOnFocus: false,
+      suggestFn: (value, filter) => this.suggestObservers(value, filter),
+      // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: profileLabels
+        userProfiles: [UserProfileLabels.SUPERVISOR, UserProfileLabels.USER, UserProfileLabels.GUEST]
       },
       attributes: ['lastName', 'firstName', 'department.name'],
       displayWith: personToString
@@ -226,7 +230,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Resize observers array
     if (this._showObservers) {
       this.observersHelper.resize(Math.max(1, value.observers.length));
-    } else {
+    }
+    else {
       this.observersHelper.removeAllEmpty();
     }
 
@@ -367,6 +372,22 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       this.metierFilter = metierFilter;
       this.markForCheck();
     }
+  }
+
+  protected suggestObservers(value: any, filter?: any): Promise<any[]> {
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+    const newValue = currentControlValue ? '*' : value;
+
+    // Excluded existing observers, BUT keep the current control value
+    const excludedIds = (this.observersForm.value || [])
+      .filter(ReferentialUtils.isNotEmpty)
+      .filter(person => !currentControlValue || currentControlValue !== person)
+      .map(person => parseInt(person.id));
+
+    return this.personService.suggest(newValue, {
+      ...filter,
+      excludedIds
+    });
   }
 
   protected markForCheck() {

@@ -1,5 +1,4 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {AppForm, AppFormUtils, FormArrayHelper} from "../../core/core.module";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {isNotEmptyArray} from "../../shared/functions";
@@ -12,7 +11,9 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
 import {Subscription} from "rxjs";
 import {fillRankOrder} from "../../data/services/model/model.utils";
 import {SaleProduct, SaleProductUtils} from "../services/model/sale-product.model";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {AppForm} from "../../core/form/form.class";
+import {AppFormUtils, FormArrayHelper} from "../../core/form/form.utils";
 
 @Component({
   selector: 'app-packet-sale-form',
@@ -36,7 +37,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
 
   @Input() showError = true;
   @Input() usageMode: UsageMode;
-  @Input() packetSalePmfms: PmfmStrategy[];
+  @Input() packetSalePmfms: DenormalizedPmfmStrategy[];
 
   get value(): any {
     const json = this.form.value;

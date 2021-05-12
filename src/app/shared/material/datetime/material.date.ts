@@ -23,10 +23,10 @@ import {
   Validators
 } from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../../constants';
 import {SharedValidators} from '../../validator/validators';
-import {sleep, isNil, isNilOrBlank, toBoolean, toDateISOString} from "../../functions";
+import {sleep, isNil, isNilOrBlank, toBoolean} from "../../functions";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {filter, first} from "rxjs/operators";
 import {InputElement, setTabIndex} from "../../inputs";
@@ -35,8 +35,9 @@ import {FloatLabelType} from "@angular/material/form-field";
 import {MatDatepicker, MatDatepickerInputEvent} from "@angular/material/datepicker";
 import {DateAdapter} from "@angular/material/core";
 import {isFocusableElement} from "../../focusable";
+import {toDateISOString} from "../../dates";
 
-export const DEFAULT_VALUE_ACCESSOR: any = {
+const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
   useExisting: forwardRef(() => MatDate),
   multi: true
@@ -91,6 +92,8 @@ export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputEl
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
+  @Input() autofocus = false;
+
   @Input() set tabindex(value: number) {
     if (this._tabindex !== value) {
       this._tabindex = value;
@@ -135,9 +138,10 @@ export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputEl
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-date-time-field>.");
 
+    this.required = toBoolean(this.required, this.formControl.validator === Validators.required);
+
     // Redirect errors from main control, into day sub control
     const $error = new BehaviorSubject<ValidationErrors>(null);
-    this.required = toBoolean(this.required, this.formControl.validator === Validators.required);
     this.dayControl = this.formBuilder.control(null, () => $error.getValue());
 
     // Add custom 'validDate' validator
@@ -181,6 +185,8 @@ export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputEl
   writeValue(obj: any): void {
     if (this.writing) return;
 
+    // console.debug('[mat-date] writeValue:', obj);
+
     if (isNilOrBlank(obj)) {
       this.writing = true;
       this.dayControl.patchValue(null, {emitEvent: false});
@@ -201,7 +207,6 @@ export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputEl
 
     this.writing = true;
 
-    //console.log("call writeValue()", this.date, this.formControl);
     // Set form value
     this.dayControl.patchValue(this.dateAdapter.format(this._value.clone().startOf('day'), this.dayPattern), {emitEvent: false});
     this.writing = false;
@@ -267,13 +272,6 @@ export class MatDate implements OnInit, OnDestroy, ControlValueAccessor, InputEl
   private onFormChange(dayValue): void {
     if (this.writing) return; // Skip if call by self
     this.writing = true;
-
-    if (this.dayControl.invalid) {
-      this.formControl.markAsPending();
-      this.formControl.setErrors({...this.dayControl.errors});
-      this.writing = false;
-      return;
-    }
 
     // Make to remove placeholder chars
     while (dayValue && dayValue.indexOf(this.placeholderChar) !== -1) {

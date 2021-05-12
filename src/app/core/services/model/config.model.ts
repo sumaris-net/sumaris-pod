@@ -1,9 +1,10 @@
-import {Moment} from "moment/moment";
-import {fromDateISOString, isNotNil, toDateISOString} from "../../../shared/functions";
+import {Moment} from "moment";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {Entity, EntityAsObjectOptions, EntityUtils, IEntity} from "./entity.model";
 import {Department} from "./department.model";
 import {PropertiesMap} from "../../../shared/types";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {isNotNil} from "../../../shared/functions";
 
 
 export class Software<T extends Software<any> = Software<any>> extends Entity<T, EntityAsObjectOptions>
@@ -107,7 +108,7 @@ export class Configuration extends Software<Configuration> {
 
   getPropertyAsNumbers(definition: FormFieldDefinition): number[] {
     const value = this.getProperty(definition);
-    if (typeof value == 'string') return value.split(',').map(parseFloat) || undefined;
+    if (typeof value === 'string') return value.split(',').map(parseFloat) || undefined;
     return isNotNil(value) ? [parseFloat(value)] : undefined;
   }
 

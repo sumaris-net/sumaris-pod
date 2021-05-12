@@ -2,8 +2,11 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component, EventEmitter, Input,
-  OnInit, Output,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
   QueryList,
   ViewChild,
   ViewChildren
@@ -13,8 +16,7 @@ import {Moment} from "moment";
 import {FormArray, FormBuilder} from "@angular/forms";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MeasurementsForm} from "../measurement/measurements.form.component";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {ProgramService} from "../../referential/services/program.service";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {PlatformService} from "../../core/services/platform.service";
 import {BehaviorSubject} from "rxjs";
@@ -27,6 +29,8 @@ import {getMaxRankOrder} from "../../data/services/model/model.utils";
 import {TypedExpenseForm} from "./typed-expense.form";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {ObjectMap} from "../../shared/types";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 type TupleType = 'quantity' | 'unitPrice' | 'total';
 
@@ -44,16 +48,16 @@ class TupleValue {
 export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewInit {
 
   mobile: boolean;
-  $estimatedTotalPmfm = new BehaviorSubject<PmfmStrategy>(undefined);
-  $fuelTypePmfm = new BehaviorSubject<PmfmStrategy>(undefined);
-  $fuelPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  $estimatedTotalPmfm = new BehaviorSubject<IPmfm>(undefined);
+  $fuelTypePmfm = new BehaviorSubject<IPmfm>(undefined);
+  $fuelPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   fuelTuple: ObjectMap<TupleValue> = undefined;
-  $engineOilPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  $engineOilPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   engineOilTuple: ObjectMap<TupleValue> = undefined;
-  $hydraulicOilPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  $hydraulicOilPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   hydraulicOilTuple: ObjectMap<TupleValue> = undefined;
-  $miscPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
-  totalPmfms: PmfmStrategy[];
+  $miscPmfms = new BehaviorSubject<IPmfm[]>(undefined);
+  totalPmfms: IPmfm[];
   calculating = false;
 
 
@@ -76,7 +80,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     }
   }
 
-  @Output() onTabChange = new EventEmitter<MatTabChangeEvent>();
+  @Output() selectedTabChange = new EventEmitter<MatTabChangeEvent>();
 
   @ViewChild('iceExpenseForm') iceFrom: TypedExpenseForm;
   @ViewChildren('baitExpenseForm') baitForms: QueryList<TypedExpenseForm>;
@@ -110,10 +114,10 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     protected formBuilder: FormBuilder,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected platform: PlatformService
   ) {
-    super(dateAdapter, validatorService, formBuilder, programService, settings, cd);
+    super(dateAdapter, validatorService, formBuilder, programRefService, settings, cd);
     this.mobile = platform.mobile;
     this.keepRankOrder = true;
     this.tabindex = 0;
@@ -128,7 +132,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
       // Wait form controls ready
       this.ready().then(() => {
-        const expensePmfms: PmfmStrategy[] = pmfms.slice();
+        const expensePmfms: IPmfm[] = pmfms.slice();
         // dispatch pmfms
         this.$estimatedTotalPmfm.next(remove(expensePmfms, this.isEstimatedTotalPmfm));
         this.$fuelTypePmfm.next(remove(expensePmfms, this.isFuelTypePmfm));
@@ -200,7 +204,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   }
 
   realignInkBar() {
-    if(this.tabGroup) this.tabGroup.realignInkBar();
+    if (this.tabGroup) this.tabGroup.realignInkBar();
   }
 
   initBaitHelper() {
@@ -422,11 +426,11 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     }
   }
 
-  registerTotalSubscription(totalPmfms: PmfmStrategy[]) {
+  registerTotalSubscription(totalPmfms: IPmfm[]) {
     if (isNotEmptyArray(totalPmfms)) {
       this.totalPmfms = totalPmfms;
       totalPmfms.forEach(totalPmfm => {
-        this.registerSubscription(this.form.get(totalPmfm.pmfmId.toString()).valueChanges
+        this.registerSubscription(this.form.get(totalPmfm.id.toString()).valueChanges
           .pipe(
             filter(() => !this.applyingValue),
             debounceTime(250)
@@ -441,7 +445,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     let total = 0;
     // sum each total field from main form
     (this.totalPmfms || []).forEach(totalPmfm => {
-      total += this.form.get(totalPmfm.pmfmId.toString()).value;
+      total += this.form.get(totalPmfm.id.toString()).value;
     });
 
     // add total from ice form
@@ -455,51 +459,51 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     this.form.patchValue({calculatedTotal: round(total)});
   }
 
-  getValidTuple(pmfms: PmfmStrategy[]): ObjectMap<TupleValue> {
+  getValidTuple(pmfms: IPmfm[]): ObjectMap<TupleValue> {
     if (pmfms) {
       const quantityPmfm = pmfms.find(this.isQuantityPmfm);
       const unitPricePmfm = pmfms.find(this.isUnitPricePmfm);
       const totalPmfm = pmfms.find(this.isTotalPmfm);
       if (quantityPmfm && unitPricePmfm && totalPmfm) {
         const tuple: ObjectMap<TupleValue> = {};
-        tuple[quantityPmfm.pmfmId.toString()] = {computed: false, type: "quantity"};
-        tuple[unitPricePmfm.pmfmId.toString()] = {computed: false, type: "unitPrice"};
-        tuple[totalPmfm.pmfmId.toString()] = {computed: false, type: "total"};
+        tuple[quantityPmfm.id.toString()] = {computed: false, type: "quantity"};
+        tuple[unitPricePmfm.id.toString()] = {computed: false, type: "unitPrice"};
+        tuple[totalPmfm.id.toString()] = {computed: false, type: "total"};
         return tuple;
       }
     }
     return {};
   }
 
-  isEstimatedTotalPmfm(pmfm: PmfmStrategy): boolean {
+  isEstimatedTotalPmfm(pmfm: IPmfm): boolean {
     return pmfm.label === 'TOTAL_COST';
   }
 
-  isFuelTypePmfm(pmfm: PmfmStrategy): boolean {
+  isFuelTypePmfm(pmfm: IPmfm): boolean {
     return pmfm.label === 'FUEL_TYPE';
   }
 
-  isFuelPmfm(pmfm: PmfmStrategy): boolean {
+  isFuelPmfm(pmfm: IPmfm): boolean {
     return pmfm.label.startsWith('FUEL_');
   }
 
-  isEngineOilPmfm(pmfm: PmfmStrategy): boolean {
+  isEngineOilPmfm(pmfm: IPmfm): boolean {
     return pmfm.label.startsWith('ENGINE_OIL_');
   }
 
-  isHydraulicPmfm(pmfm: PmfmStrategy): boolean {
+  isHydraulicPmfm(pmfm: IPmfm): boolean {
     return pmfm.label.startsWith('HYDRAULIC_OIL_');
   }
 
-  isQuantityPmfm(pmfm: PmfmStrategy): boolean {
+  isQuantityPmfm(pmfm: IPmfm): boolean {
     return pmfm.label.endsWith('VOLUME');
   }
 
-  isUnitPricePmfm(pmfm: PmfmStrategy): boolean {
+  isUnitPricePmfm(pmfm: IPmfm): boolean {
     return pmfm.label.endsWith('UNIT_PRICE');
   }
 
-  isTotalPmfm(pmfm: PmfmStrategy): boolean {
+  isTotalPmfm(pmfm: IPmfm): boolean {
     return pmfm.label.endsWith('COST');
   }
 

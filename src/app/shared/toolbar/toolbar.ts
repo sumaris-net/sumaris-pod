@@ -15,7 +15,8 @@ import {isNotNil, isNotNilOrBlank, toBoolean} from "../functions";
 import {debounceTime, distinctUntilChanged, startWith} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {HammerTapEvent} from "../gesture/hammer.utils";
-import {HAMMER_TAP_TIME} from "../gesture/gesture-config";
+import {HAMMER_PRESS_TIME} from "../gesture/gesture-config";
+import {PredefinedColors} from "@ionic/core";
 
 @Component({
   selector: 'app-toolbar',
@@ -30,11 +31,9 @@ export class ToolbarComponent implements OnInit {
   private _defaultBackHref: string;
   private _backHref: string;
 
-  @Input()
-  title = '';
+  @Input() title: String = '';
 
-  @Input()
-  color = 'primary';
+  @Input() color: PredefinedColors = 'primary';
 
   @Input()
   class = '';
@@ -74,6 +73,9 @@ export class ToolbarComponent implements OnInit {
 
   @Input()
   canGoBack: boolean;
+
+  @Input()
+  canShowMenu = true;
 
   @Output()
   onValidate = new EventEmitter<Event>();
@@ -141,6 +143,7 @@ export class ToolbarComponent implements OnInit {
   }
 
   async goBack(): Promise<void> {
+    console.debug('[toolbar] calling goBack()');
     if (this._backHref) {
       await this.router.navigateByUrl(this._backHref);
     }
@@ -157,7 +160,7 @@ export class ToolbarComponent implements OnInit {
 
   tapClose(event: HammerTapEvent) {
     // DEV only
-    console.debug("[toolbar] tapClose", event.tapCount);
+    // console.debug("[toolbar] tapClose", event.tapCount);
     if (this._validateTapCount > 0) return;
 
     // Distinguish simple and double tap
@@ -180,7 +183,7 @@ export class ToolbarComponent implements OnInit {
 
   tapValidate(event: HammerTapEvent) {
     // DEV only
-    console.debug("[toolbar] tapValidate", event.tapCount);
+    //console.debug("[toolbar] tapValidate", event.tapCount);
 
     if (!this.onValidateAndClose.observers.length) {
       this.onValidate.emit(event.srcEvent || event);
@@ -207,7 +210,7 @@ export class ToolbarComponent implements OnInit {
           // Reset tab count
           this._validateTapCount = 0;
         }
-      }, HAMMER_TAP_TIME+10);
+      }, HAMMER_PRESS_TIME+10);
     }
   }
 }

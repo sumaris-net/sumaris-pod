@@ -1,14 +1,13 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
 
 import {TripService} from '../services/trip.service';
 import {TripForm} from './trip.form';
 import {SaleForm} from '../sale/sale.form';
 import {OperationsTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {environment, fromDateISOString, ReferentialRef} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
-import {EntityServiceLoadOptions, fadeInOutAnimation, isNil, isNotEmptyArray} from '../../shared/shared.module';
-import * as moment from "moment";
+import * as momentImported from "moment";
+const moment = momentImported;
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormGroup} from "@angular/forms";
@@ -24,17 +23,22 @@ import {PromiseEvent} from "../../shared/events";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {PlatformService} from "../../core/services/platform.service";
-import {debounceTime, filter} from "rxjs/operators";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {debounceTime, filter, first} from "rxjs/operators";
+import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {TableElement} from "@e-is/ngx-material-table";
 import {Alerts} from "../../shared/alerts";
 import {Program} from "../../referential/services/model/program.model";
+import {fadeInOutAnimation} from "../../shared/material/material.animations";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {environment} from "../../../environments/environment";
+import {isNil, isNotEmptyArray} from "../../shared/functions";
+import {fromDateISOString} from "../../shared/dates";
 
 const TripPageTabs = {
   GENERAL: 0,
   PHYSICAL_GEARS: 1,
   OPERATIONS: 2
-}
+};
 
 @Component({
   selector: 'app-trip-page',
@@ -56,18 +60,18 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
 
   @ViewChild('saleForm', { static: true }) saleForm: SaleForm;
 
-  @ViewChild('physicalGearsTable', { static: true }) physicalGearTable: PhysicalGearTable;
+  @ViewChild('physicalGearsTable', { static: true }) physicalGearsTable: PhysicalGearTable;
 
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
 
-  @ViewChild('operationsTable', { static: true }) operationTable: OperationsTable;
+  @ViewChild('operationsTable', { static: true }) operationsTable: OperationsTable;
 
   constructor(
     injector: Injector,
     protected entities: EntitiesStorage,
     protected modalCtrl: ModalController,
     protected platform: PlatformService,
-    public network: NetworkService // Used for DEV (to debug OFFLINE mode)
+    public network: NetworkService
   ) {
     super(injector,
       Trip,
@@ -84,26 +88,21 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     this.debug = !environment.production;
   }
 
-  async ngAfterViewInit(): Promise<void> {
-    await super.ngAfterViewInit();
-
-    // Watch program, to configure tables from program properties
-    this.registerSubscription(
-      this.onProgramChanged.subscribe(program => this.setProgram(program))
-    );
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
 
     // Cascade refresh to operation tables
     this.registerSubscription(
       this.onUpdateView
         .pipe(debounceTime(200))
-        .subscribe(() => this.operationTable.onRefresh.emit()));
+        .subscribe(() => this.operationsTable.onRefresh.emit()));
 
     // Before delete gears, check if used in operations
     this.registerSubscription(
-      this.physicalGearTable.onBeforeDeleteRows
+      this.physicalGearsTable.onBeforeDeleteRows
         .subscribe(async (event) => {
           const rows = (event.detail.rows as TableElement<PhysicalGear>[]);
-          const usedGearIds = await this.operationTable.getUsedPhysicalGearIds();
+          const usedGearIds = await this.operationsTable.getUsedPhysicalGearIds();
           const usedGears = rows.map(row => row.currentData)
             .filter(gear => usedGearIds.includes(gear.id));
 
@@ -119,18 +118,21 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
 
     // Allow to show operations tab, when add gear
     this.registerSubscription(
-      this.physicalGearTable.onConfirmEditCreateRow
+      this.physicalGearsTable.onConfirmEditCreateRow
         .subscribe((_) => this.showOperationTable = true));
   }
 
   protected registerForms() {
     this.addChildForms([
-      this.tripForm, this.saleForm, this.measurementsForm,
-      this.physicalGearTable
+      this.tripForm,
+      this.saleForm,
+      this.measurementsForm,
+      this.physicalGearsTable,
+      this.operationsTable
     ]);
   }
 
-  protected setProgram(program: Program) {
+  protected async setProgram(program: Program) {
     if (!program) return; // Skip
 
     if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
@@ -143,9 +145,21 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     if (!this.tripForm.showMetiers) {
       this.data.metiers = []; // make sure to reset data metiers, if any
     }
-    this.physicalGearTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
+    this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
     this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
-    this.operationTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
+    this.operationsTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
+
+    // Toggle showMap to false, when offline
+    if (this.operationsTable.showMap) {
+      const subscription = this.network.onNetworkStatusChanges
+        .pipe(filter(status => status === "none"))
+        .subscribe(status => {
+          this.operationsTable.showMap = false;
+          this.markForCheck();
+          subscription.unsubscribe(); // Remove the subscription (not need anymore)
+        });
+      this.registerSubscription(subscription);
+    }
 
     if (this.isNewData) {
       // If new data, enable gears tab
@@ -163,48 +177,48 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
       console.debug("[trip] New entity: set default values...");
 
       // Fil defaults, using filter applied on trips table
-      const tripFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
-      if (tripFilter) {
+      const searchFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
+      if (searchFilter) {
 
         // Synchronization status
-        if (tripFilter.synchronizationStatus && tripFilter.synchronizationStatus !== 'SYNC') {
+        if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
           data.synchronizationStatus = 'DIRTY';
         }
 
         // program
-        if (tripFilter.program && tripFilter.program.label) {
-          data.program = ReferentialRef.fromObject(tripFilter.program);
-          this.programSubject.next(data.program.label);
+        if (searchFilter.program && searchFilter.program.label) {
+          data.program = ReferentialRef.fromObject(searchFilter.program);
+          this.$programLabel.next(data.program.label);
         }
 
         // Vessel
-        if (tripFilter.vesselSnapshot) {
-          data.vesselSnapshot = VesselSnapshot.fromObject(tripFilter.vesselSnapshot);
+        if (searchFilter.vesselSnapshot) {
+          data.vesselSnapshot = VesselSnapshot.fromObject(searchFilter.vesselSnapshot);
         }
 
         // Location
-        if (tripFilter.location) {
-          data.departureLocation = ReferentialRef.fromObject(tripFilter.location);
+        if (searchFilter.location) {
+          data.departureLocation = ReferentialRef.fromObject(searchFilter.location);
         }
       }
-    }
 
-    // If on field mode
-    if (this.isOnFieldMode) {
       // Listen first opening the operations tab, then save
-      this.tabGroup.selectedTabChange
-        .pipe(
-          filter(event => this.showOperationTable && event.index === TripPageTabs.OPERATIONS)
-        )
-        .subscribe(event => this.save());
+      this.registerSubscription(
+        this.tabGroup.selectedTabChange
+          .pipe(
+            filter(event => this.showOperationTable && event.index === TripPageTabs.OPERATIONS),
+            first()
+          )
+          .subscribe(event => this.save())
+        );
     }
 
     this.showGearTable = false;
     this.showOperationTable = false;
   }
 
-  updateViewState(data: Trip) {
-    super.updateViewState(data);
+  updateViewState(data: Trip, opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    super.updateViewState(data, opts);
 
     // Update tabs state (show/hide)
     this.updateTabsState(data);
@@ -212,40 +226,40 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
 
   updateTabsState(data: Trip) {
     // Enable gears tab if a program has been selected
-    this.showGearTable = !this.isNewData || ReferentialUtils.isNotEmpty(this.programSubject.getValue());
+    this.showGearTable = !this.isNewData || ReferentialUtils.isNotEmpty(this.$programLabel.getValue());
 
     // Enable operations tab if has gears
     this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
   }
 
-  protected async setValue(data: Trip): Promise<void> {
-
+  protected async setValue(data: Trip) {
+    // Set data to form
     this.tripForm.value = data;
+
     const isNew = isNil(data.id);
     if (!isNew) {
-      this.programSubject.next(data.program.label);
+      this.$programLabel.next(data.program.label);
     }
     this.saleForm.value = data && data.sale;
     this.measurementsForm.value = data && data.measurements || [];
-    //this.measurementsForm.updateControls();
 
     // Physical gear table
-    this.physicalGearTable.value = data && data.gears || [];
+    this.physicalGearsTable.value = data && data.gears || [];
 
     // Operations table
-    if (!isNew && this.operationTable) {
-      this.operationTable.setTripId(data.id, {emitEvent: false});
+    if (!isNew && this.operationsTable) {
+      this.operationsTable.setTripId(data.id, {emitEvent: false});
     }
   }
 
-  async onOpenOperation({id, row}) {
+  async onOpenOperation({id, row}: { id?: number; row: TableElement<any>; }) {
 
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
       this.markAsLoading();
 
      setTimeout(async () => {
-        await this.router.navigate(['trips', this.data.id, 'operations', id], {
+        await this.router.navigate(['trips', this.data.id, 'operation', id], {
           queryParams: {}
         });
 
@@ -266,7 +280,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
       this.markAsLoading();
 
       setTimeout(async () => {
-        await this.router.navigate(['trips', this.data.id, 'operations', 'new'], {
+        await this.router.navigate(['trips', this.data.id, 'operation', 'new'], {
           queryParams: {}
         });
         this.markAsLoaded();
@@ -331,8 +345,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
       componentProps: {
         filter,
         allowMultiple: false,
-        program: this.programSubject.getValue(),
-        acquisitionLevel: this.physicalGearTable.acquisitionLevel
+        program: this.$programLabel.getValue(),
+        acquisitionLevel: this.physicalGearsTable.acquisitionLevel
       }
     });
 
@@ -367,19 +381,15 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY'  ? 'FIELD' : 'DESK';
   }
 
-  /**
-   * Compute the title
-   * @param data
-   */
-  protected async computeTitle(data: Trip) {
+  protected computeTitle(data: Trip): Promise<string> {
 
     // new data
     if (!data || isNil(data.id)) {
-      return await this.translate.get('TRIP.NEW.TITLE').toPromise();
+      return this.translate.get('TRIP.NEW.TITLE').toPromise();
     }
 
     // Existing data
-    return await this.translate.get('TRIP.EDIT.TITLE', {
+    return this.translate.get('TRIP.EDIT.TITLE', {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name),
       departureDateTime: data.departureDateTime && this.dateFormat.transform(data.departureDateTime) as string
     }).toPromise();
@@ -398,21 +408,18 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     json.sale = !this.saleForm.empty ? this.saleForm.value : null;
     json.measurements = this.measurementsForm.value;
 
-    if (this.physicalGearTable.dirty) {
-      await this.physicalGearTable.save();
+    if (this.physicalGearsTable.dirty) {
+      await this.physicalGearsTable.save();
     }
-    json.gears = this.physicalGearTable.value;
+    json.gears = this.physicalGearsTable.value;
 
     return json;
   }
 
-  /**
-   * Get the first invalid tab
-   */
   protected getFirstInvalidTabIndex(): number {
     const tab0Invalid = this.tripForm.invalid || this.measurementsForm.invalid;
-    const tab1Invalid = !tab0Invalid && this.physicalGearTable.invalid;
-    const tab2Invalid = !tab1Invalid && this.operationTable.invalid;
+    const tab1Invalid = !tab0Invalid && this.physicalGearsTable.invalid;
+    const tab2Invalid = !tab1Invalid && this.operationsTable.invalid;
 
     return tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
   }

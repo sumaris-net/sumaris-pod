@@ -1,5 +1,5 @@
 import {Observable, of, Subject, Subscription} from "rxjs";
-import {Apollo} from "apollo-angular";
+import {Apollo, QueryRef} from "apollo-angular";
 import {
   ApolloCache,
   ApolloClient,
@@ -15,7 +15,6 @@ import {
 import {ErrorCodes, ServerErrorCodes, ServiceError} from "../services/errors";
 import {catchError, distinctUntilChanged, filter, first, map, mergeMap, throttleTime} from "rxjs/operators";
 
-import {environment} from '../../../environments/environment';
 import {Inject, Injectable, InjectionToken, Optional} from "@angular/core";
 import {ConnectionType, NetworkService} from "../services/network.service";
 import {WebSocketLink} from "@apollo/client/link/ws";
@@ -42,17 +41,20 @@ import {IonicStorageWrapper, persistCache} from "apollo3-cache-persist";
 import {PersistentStorage} from "apollo3-cache-persist/lib/types";
 import {MutationBaseOptions} from "@apollo/client/core/watchQueryOptions";
 import {Cache} from "@apollo/client/cache/core/types/Cache";
+import {ENVIRONMENT} from "../../../environments/environment.class";
+import {CryptoService} from "../services/crypto.service";
+import {ConnectionParamsOptions} from "subscriptions-transport-ws/dist/client";
 
 export interface WatchQueryOptions<V> {
   query: any;
-  variables: V;
+  variables?: V;
   error?: ServiceError;
   fetchPolicy?: WatchQueryFetchPolicy;
 }
 
 export interface MutateQueryOptions<T, V = OperationVariables> extends MutationBaseOptions<T, V> {
   mutation: any;
-  variables: V;
+  variables?: V;
   error?: ServiceError;
   context?: {
     serializationKey?: string;
@@ -81,7 +83,10 @@ export class GraphqlService {
 
   private httpParams: Options;
   private wsParams: WebSocketLink.Configuration;
-  private wsConnectionParams: { authToken?: string } = {};
+  private connectionParams: ConnectionParamsOptions & {
+    authToken?: string;
+    authBasic?: string;
+  } = {};
   private readonly _defaultFetchPolicy: WatchQueryFetchPolicy;
   private onNetworkError = new Subject();
 
@@ -106,6 +111,8 @@ export class GraphqlService {
     private httpLink: HttpLink,
     private network: NetworkService,
     private storage: Storage,
+    private cryptoService: CryptoService,
+    @Inject(ENVIRONMENT) protected environment,
     @Optional() @Inject(APP_GRAPHQL_TYPE_POLICIES) private typePolicies: TypePolicies
   ) {
 
@@ -170,13 +177,25 @@ export class GraphqlService {
     return this._startPromise;
   }
 
-  setAuthToken(authToken: string) {
-    if (authToken) {
-      console.debug("[graphql] Apply authentication token to headers");
-      this.wsConnectionParams.authToken = authToken;
+  setAuthToken(token: string) {
+    if (token) {
+      console.debug("[graphql] Apply token authentication to headers");
+      this.connectionParams.authToken = token;
     } else {
-      console.debug("[graphql] Remove authentication token from headers");
-      delete this.wsConnectionParams.authToken;
+      console.debug("[graphql] Remove token authentication from headers");
+      delete this.connectionParams.authToken;
+      // Clear cache
+      this.clearCache();
+    }
+  }
+
+  setAuthBasic(basic: string) {
+    if (basic) {
+      console.debug("[graphql] Apply basic authentication to headers");
+      this.connectionParams.authBasic = basic;
+    } else {
+      console.debug("[graphql] Remove basic authentication from headers");
+      delete this.connectionParams.authBasic;
       // Clear cache
       this.clearCache();
     }
@@ -197,7 +216,7 @@ export class GraphqlService {
 
   async query<T, V = EmptyObject>(opts: {
     query: any,
-    variables: V,
+    variables?: V,
     error?: ServiceError,
     fetchPolicy?: FetchPolicy
   }): Promise<T> {
@@ -217,6 +236,15 @@ export class GraphqlService {
     return res.data;
   }
 
+  watchQueryRef<T, V = EmptyObject>(opts: WatchQueryOptions<V>): QueryRef<T, V> {
+    return this.apollo.watchQuery<T, V>({
+      query: opts.query,
+      variables: opts.variables,
+      fetchPolicy: opts.fetchPolicy || (this._defaultFetchPolicy as FetchPolicy) || undefined,
+      notifyOnNetworkStatusChange: true
+    });
+  }
+
   watchQuery<T, V = EmptyObject>(opts: WatchQueryOptions<V>): Observable<T> {
     return this.apollo.watchQuery<T, V>({
       query: opts.query,
@@ -224,6 +252,20 @@ export class GraphqlService {
       fetchPolicy: opts.fetchPolicy || (this._defaultFetchPolicy as FetchPolicy) || undefined,
       notifyOnNetworkStatusChange: true
     })
+      .valueChanges
+      .pipe(
+        catchError(error => this.onApolloError<T>(error, opts.error)),
+        map(({data, errors}) => {
+          if (errors) {
+            throw errors[0];
+          }
+          return data;
+        })
+      );
+  }
+
+  queryRefValuesChanges<T, V = EmptyObject>(queryRef: QueryRef<T, V>, opts: WatchQueryOptions<V>): Observable<T> {
+    return queryRef
       .valueChanges
       .pipe(
         catchError(error => this.onApolloError<T>(error, opts.error)),
@@ -374,7 +416,7 @@ export class GraphqlService {
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      let data:any = cache.readQuery(opts);
+      let data: any = cache.readQuery(opts);
 
       if (data && data[opts.arrayFieldName]) {
         // Copy because immutable
@@ -387,7 +429,7 @@ export class GraphqlService {
         if (!newItems.length) return; // No new value
 
         // Append to array
-        data[opts.arrayFieldName] = [ ...data[opts.arrayFieldName], ...newItems]
+        data[opts.arrayFieldName] = [ ...data[opts.arrayFieldName], ...newItems];
 
         // Resort, if need
         if (opts.sortFn) {
@@ -636,7 +678,7 @@ export class GraphqlService {
       options: {
         lazy: true,
         reconnect: true,
-        connectionParams: this.wsConnectionParams
+        connectionParams: this.connectionParams
       },
       webSocketImpl: AppWebSocket,
       uri: wsUri
@@ -656,11 +698,19 @@ export class GraphqlService {
       const retryLink = new RetryLink();
       const authLink = new ApolloLink((operation, forward) => {
 
+        const authorization = [];
+        if (this.connectionParams.authToken) {
+          authorization.push(`token ${this.connectionParams.authToken}`);
+        }
+        if (this.connectionParams.authBasic) {
+          authorization.push(`Basic ${this.connectionParams.authBasic}`);
+        }
         const headers = new HttpHeaders()
-          .append('Authorization', this.wsConnectionParams.authToken ? `token ${this.wsConnectionParams.authToken}` : '')
+          .append('Authorization', authorization);
           //.append('X-App-Name', environment.name)
           //.append('X-App-Version', environment.version)
         ;
+
 
         // Use the setContext method to set the HTTP headers.
         operation.setContext({
@@ -681,7 +731,7 @@ export class GraphqlService {
       });
 
       // Add cache persistence
-      if (environment.persistCache) {
+      if (this.environment.persistCache) {
         console.debug("[graphql] Starting persistence cache...");
         await persistCache({
           cache,
@@ -759,14 +809,14 @@ export class GraphqlService {
               ])
             )
           ),
-        connectToDevTools: !environment.production
+        connectToDevTools: !this.environment.production
       });
 
       this.apollo.client = client;
     }
 
     // Enable tracked queries persistence
-    if (enableTrackMutationQueries && environment.persistCache) {
+    if (enableTrackMutationQueries && this.environment.persistCache) {
 
       try {
         await restoreTrackedQueries({

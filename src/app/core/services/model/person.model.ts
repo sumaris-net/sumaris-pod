@@ -1,13 +1,20 @@
-import {Moment} from "moment/moment";
-import {fromDateISOString, toDateISOString} from "../../../shared/functions";
+import {Moment} from "moment";
 import {ReferentialAsObjectOptions} from "./referential.model";
 import {Entity} from "./entity.model";
-import {Department} from "./department.model";
+import {Department, departmentToString} from "./department.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 
 export type UserProfileLabel = 'ADMIN' | 'USER' | 'SUPERVISOR' | 'GUEST';
 
-
+// Enumeration for User profile.
+// /!\ WARN: Field order is used to known profile hierarchy
+export const UserProfileLabels = {
+  ADMIN: 'ADMIN',
+  SUPERVISOR: 'SUPERVISOR',
+  USER: 'USER',
+  GUEST: 'GUEST'
+};
 
 export class Person<T extends Person<any> = Person<any>> extends Entity<T, ReferentialAsObjectOptions> {
 
@@ -28,8 +35,8 @@ export class Person<T extends Person<any> = Person<any>> extends Entity<T, Refer
   creationDate: Date | Moment;
   statusId: number;
   department: Department;
-  profiles: UserProfileLabel[];
-  mainProfile: UserProfileLabel;
+  profiles: string[];
+  mainProfile: string;
 
   constructor() {
     super();
@@ -56,7 +63,7 @@ export class Person<T extends Person<any> = Person<any>> extends Entity<T, Refer
     target.department = this.department && this.department.asObject(opts) || undefined;
     target.profiles = this.profiles && this.profiles.slice(0) || [];
     // Set profile list from the main profile
-    target.profiles = this.mainProfile && [this.mainProfile] || target.profiles || ['GUEST'];
+    target.profiles = this.mainProfile && [this.mainProfile] || target.profiles || [UserProfileLabels.GUEST];
     target.creationDate = toDateISOString(this.creationDate);
 
     if (!opts || opts.minify !== true) target.mainProfile = getMainProfile(target.profiles);
@@ -82,8 +89,6 @@ export class Person<T extends Person<any> = Person<any>> extends Entity<T, Refer
   }
 }
 
-export const PRIORITIZED_USER_PROFILES: UserProfileLabel[] = ['ADMIN', 'SUPERVISOR', 'USER', 'GUEST'];
-
 export class PersonUtils {
   static getMainProfile = getMainProfile;
   static getMainProfileIndex = getMainProfileIndex;
@@ -92,18 +97,19 @@ export class PersonUtils {
   static personsToString = personsToString;
 }
 
-export function getMainProfile(profiles?: string[]): UserProfileLabel {
-  return profiles && profiles.length && PRIORITIZED_USER_PROFILES.find(pp => profiles.indexOf(pp) > -1) || 'GUEST';
+export function getMainProfile(profiles?: string[]): string {
+  if (!profiles && !profiles.length) return UserProfileLabels.GUEST;
+  return Object.values(UserProfileLabels).find(label => profiles.includes(label)) || UserProfileLabels.GUEST;
 }
 
 export function getMainProfileIndex(profiles?: string[]): number {
-  if (!profiles && !profiles.length) return PRIORITIZED_USER_PROFILES.length - 1; // return last profile
-  const index = PRIORITIZED_USER_PROFILES.findIndex(pp => profiles.indexOf(pp) > -1);
-  return (index !== -1) ? index : (PRIORITIZED_USER_PROFILES.length - 1);
+  if (!profiles && !profiles.length) return Object.values(UserProfileLabels).length - 1; // return last (lower) profile
+  const index = Object.values(UserProfileLabels).findIndex(label => profiles.includes(label));
+  return (index !== -1) ? index : (Object.values(UserProfileLabels).length - 1);
 }
 
 export function hasUpperOrEqualsProfile(actualProfiles: string[], expectedProfile: UserProfileLabel): boolean {
-  const expectedProfileIndex = PRIORITIZED_USER_PROFILES.indexOf(expectedProfile);
+  const expectedProfileIndex = Object.keys(UserProfileLabels).indexOf(expectedProfile);
   return expectedProfileIndex !== -1 && getMainProfileIndex(actualProfiles) <= expectedProfileIndex;
 }
 
@@ -112,9 +118,5 @@ export function personToString(obj: Person): string {
 }
 
 export function personsToString(data: Person[], separator?: string): string {
-  if (!data || !data.length) return '';
-  separator = separator || ", ";
-  return data.reduce((result: string, person: Person, index: number) => {
-    return index ? (result + separator + personToString(person)) : personToString(person);
-  }, '');
+  return (data || []).map(personToString).join(separator || ", ");
 }

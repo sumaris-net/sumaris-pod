@@ -40,6 +40,26 @@ type AggregationResultVO {
   type: ExtractionTypeVO
 }
 
+type AggregationStrataVO {
+  aggColumnName: String
+  aggFunction: String
+  comments: String
+  creationDate: Date
+  description: String
+  id: Int
+  isDefault: Boolean
+  label: String
+  name: String
+  product: ExtractionProductVO
+  productId: Int
+  sheetName: String
+  spatialColumnName: String
+  statusId: Int
+  techColumnName: String
+  timeColumnName: String
+  updateDate: Date
+}
+
 type AggregationTechResultVO {
   data: Map_String_ObjectScalar
 }
@@ -51,6 +71,7 @@ type AggregationTypeVO {
   description: String
   docUrl: String
   documentation: String
+  filter: String
   id: Int
   isSpatial: Boolean
   label: String
@@ -61,9 +82,23 @@ type AggregationTypeVO {
   recorderPerson: PersonVO
   sheetNames: [String]
   statusId: Int
-  stratum: [ExtractionProductStrataVO]
+  stratum: [AggregationStrataVO]
   updateDate: Date
   version: String
+}
+
+type AppliedPeriodVO {
+  acquisitionNumber: Int
+  appliedStrategyId: Int
+  endDate: Date
+  startDate: Date
+}
+
+type AppliedStrategyVO {
+  appliedPeriods: [AppliedPeriodVO]
+  id: Int
+  location: ReferentialVO
+  strategyId: Int
 }
 
 type AuthDataVO {
@@ -121,6 +156,35 @@ type ConfigurationVO {
   updateDate: Date
 }
 
+type DenormalizedPmfmStrategyVO {
+  acquisitionLevel: String
+  acquisitionNumber: Int
+  completeName: String
+  defaultValue: Float
+  fractionId: Int
+  gearIds: [Int]
+  gears: [String]
+  id: Int
+  isMandatory: Boolean
+  label: String
+  matrixId: Int
+  maxValue: Float
+  maximumNumberDecimals: Int
+  methodId: Int
+  minValue: Float
+  name: String
+  parameterId: Int
+  qualitativeValues: [ReferentialVO]
+  rankOrder: Int
+  referenceTaxonIds: [Int]
+  signifFiguresNumber: Int
+  strategyId: Int
+  taxonGroupIds: [Int]
+  type: String
+  unitLabel: String
+  updateDate: Date
+}
+
 type DepartmentVO {
   creationDate: Date
   hasLogo: Boolean
@@ -135,32 +199,13 @@ type DepartmentVO {
   updateDate: Date
 }
 
-type ExtractionProductStrataVO {
-  aggColumnName: String
-  aggFunction: String
-  comments: String
-  creationDate: Date
-  description: String
-  id: Int
-  isDefault: Boolean
-  label: String
-  name: String
-  product: ExtractionProductVO
-  productId: Int
-  sheetName: String
-  spatialColumnName: String
-  statusId: Int
-  techColumnName: String
-  timeColumnName: String
-  updateDate: Date
-}
-
 type ExtractionProductVO {
   category: ExtractionCategoryEnum
   comments: String
   creationDate: Date
   description: String
   documentation: String
+  filter: String
   format: String
   id: Int
   isSpatial: Boolean
@@ -172,7 +217,7 @@ type ExtractionProductVO {
   recorderPerson: PersonVO
   sheetNames: [String]
   statusId: Int
-  stratum: [ExtractionProductStrataVO]
+  stratum: [AggregationStrataVO]
   tableNames: [String]
   tables: [ExtractionTableVO]
   updateDate: Date
@@ -375,7 +420,7 @@ type Mutation {
   "Control an observed location"
   controlObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
   "Control a trip"
-  controlTrip(trip: TripVOInput): TripVO
+  controlTrip(trip: TripVOInput!): TripVO
   "Create an account"
   createAccount(account: AccountVOInput): AccountVO
   "Delete some aggregations"
@@ -400,12 +445,14 @@ type Mutation {
   deleteReferential(entityName: String, id: Int!): Boolean!
   "Delete many referential (by ids)"
   deleteReferentials(entityName: String, ids: [Int]): Boolean!
+  "Delete a strategy"
+  deleteStrategy(id: Int!): Boolean!
   "Delete an entity from the trash"
   deleteTrashEntity(entityName: String, id: String): Boolean!
   "Delete a trip"
   deleteTrip(id: Int!): Boolean!
   "Delete many trips"
-  deleteTrips(ids: [Int]): Boolean!
+  deleteTrips(ids: [Int]!): Boolean!
   "Delete a user event"
   deleteUserEvent(id: Int!): Boolean!
   "Delete many user events"
@@ -413,9 +460,11 @@ type Mutation {
   "Delete a vessel (by vessel features id)"
   deleteVessel(id: Int!): Boolean!
   "Delete many vessels (by vessel features ids)"
-  deleteVessels(ids: [Int]): Boolean!
+  deleteVessels(ids: [Int]!): Boolean!
+  "Qualify an observed location"
+  qualifyObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
   "Qualify a trip"
-  qualifyTrip(trip: TripVOInput): TripVO
+  qualifyTrip(trip: TripVOInput!): TripVO
   "Create or update an account"
   saveAccount(account: AccountVOInput): AccountVO
   "Save aggregated landings"
@@ -429,15 +478,15 @@ type Mutation {
   "Create or update an landing"
   saveLanding(landing: LandingVOInput): LandingVO
   "Create or update many landings"
-  saveLandings(landings: [LandingVOInput]): [LandingVO]
+  saveLandings(landings: [LandingVOInput]!): [LandingVO]
   "Create or update an observed location"
-  saveObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
+  saveObservedLocation(observedLocation: ObservedLocationVOInput, options: ObservedLocationSaveOptionsInput): ObservedLocationVO
   "Create or update many observed locations"
-  saveObservedLocations(observedLocations: [ObservedLocationVOInput]): [ObservedLocationVO]
+  saveObservedLocations(observedLocations: [ObservedLocationVOInput], options: ObservedLocationSaveOptionsInput): [ObservedLocationVO]
   "Create or update an operation"
   saveOperation(operation: OperationVOInput): OperationVO
-  "Save operations"
-  saveOperations(operations: [OperationVOInput]): [OperationVO]
+  "Create or update many operations"
+  saveOperations(operations: [OperationVOInput]!): [OperationVO]
   "Create or update a parameter"
   saveParameter(parameter: ParameterVOInput): ParameterVO
   "Create or update many persons"
@@ -445,33 +494,35 @@ type Mutation {
   "Create or update a pmfm"
   savePmfm(pmfm: PmfmVOInput): PmfmVO
   "Save a program (with strategies)"
-  saveProgram(program: ProgramVOInput): ProgramVO
+  saveProgram(options: ProgramSaveOptionsInput, program: ProgramVOInput!): ProgramVO
   "Create or update a referential"
   saveReferential(referential: ReferentialVOInput): ReferentialVO
   "Create or update many referential"
   saveReferentials(referentials: [ReferentialVOInput]): [ReferentialVO]
   "Save a software configuration"
   saveSoftware(software: SoftwareVOInput): SoftwareVO
+  "Save a strategy"
+  saveStrategy(strategy: StrategyVOInput!): StrategyVO
   "Create or update a trip"
-  saveTrip(saveOptions: TripSaveOptionsInput, trip: TripVOInput, withOperation: Boolean = false): TripVO
+  saveTrip(options: TripSaveOptionsInput, saveOptions: TripSaveOptionsInput, trip: TripVOInput!, withOperation: Boolean = false): TripVO
   "Create or update many trips"
-  saveTrips(saveOptions: TripSaveOptionsInput, trips: [TripVOInput], withOperation: Boolean = false): [TripVO]
+  saveTrips(options: TripSaveOptionsInput, saveOptions: TripSaveOptionsInput, trips: [TripVOInput]!, withOperation: Boolean = false): [TripVO]
   "Sent data to admin, for debug"
   saveUserEvent(userEvent: UserEventVOInput): UserEventVO
   "Create or update a vessel"
-  saveVessel(vessel: VesselVOInput): VesselVO
+  saveVessel(vessel: VesselVOInput!): VesselVO
   "Create or update many vessels"
-  saveVessels(vessels: [VesselVOInput]): [VesselVO]
+  saveVessels(vessels: [VesselVOInput]!): [VesselVO]
   "Resent confirmation email"
   sendAccountConfirmationEmail(email: String, locale: String = "en_GB"): Boolean!
   "Unvalidate an observed location"
   unvalidateObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
   "Unvalidate a trip"
-  unvalidateTrip(trip: TripVOInput): TripVO
+  unvalidateTrip(trip: TripVOInput!): TripVO
   "Validate an observed location"
   validateObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
   "Validate a trip"
-  validateTrip(trip: TripVOInput): TripVO
+  validateTrip(trip: TripVOInput!): TripVO
 }
 
 type ObservedLocationVO {
@@ -480,6 +531,7 @@ type ObservedLocationVO {
   creationDate: Date
   endDateTime: Date
   id: Int
+  landings: [LandingVO]
   location: LocationVO
   "Get measurement values (as a key/value map, using pmfmId as key)"
   measurementValues: Map_Integer_StringScalar
@@ -524,6 +576,8 @@ type OperationGroupVO {
   qualityFlagId: Int
   rankOrderOnPeriod: Int
   recorderDepartment: DepartmentVO
+  "Get operation group's samples"
+  samples: [SampleVO]
   trip: TripVO
   tripId: Int
   updateDate: Date
@@ -592,7 +646,6 @@ type PacketVO {
   rankOrder: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
-  saleProducts: [ProductVO]
   sampledWeights: [Float]
   updateDate: Date
   validationDate: Date
@@ -662,27 +715,31 @@ type PmfmStrategyVO {
   acquisitionLevel: String
   acquisitionNumber: Int
   defaultValue: Float
+  "Get strategy fraction"
+  fraction: ReferentialVO
+  fractionId: Int
   gearIds: [Int]
   gears: [String]
   id: Int
   isMandatory: Boolean
-  label: String
+  "Get strategy matrix"
+  matrix: ReferentialVO
+  matrixId: Int
   maxValue: Float
-  maximumNumberDecimals: Int
+  "Get strategy method"
+  method: ReferentialVO
   methodId: Int
   minValue: Float
-  name: String
+  "Get strategy parameter"
+  parameter: ReferentialVO
+  parameterId: Int
   "Get strategy pmfm"
   pmfm: PmfmVO
   pmfmId: Int
-  qualitativeValues: [ReferentialVO]
   rankOrder: Int
   referenceTaxonIds: [Int]
-  signifFiguresNumber: Int
   strategyId: Int
   taxonGroupIds: [Int]
-  type: String
-  unitLabel: String
   updateDate: Date
 }
 
@@ -712,7 +769,7 @@ type PmfmVO {
   methodId: Int
   minValue: Float
   name: String
-  "Get PMFM's paramater"
+  "Get PMFM's parameter"
   parameter: ParameterVO
   parameterId: Int
   qualitativeValues: [ReferentialVO]
@@ -754,7 +811,6 @@ type ProductVO {
   recorderPerson: PersonVO
   sale: SaleVO
   saleId: Int
-  saleProducts: [ProductVO]
   saleType: ReferentialVO
   sizeCategoryId: Int
   subgroupCount: Float
@@ -775,6 +831,7 @@ type ProgramVO {
   id: Int
   label: String
   locationClassificationIds: [Int]
+  "Get program's location classifications"
   locationClassifications: [ReferentialVO]
   locationIds: [Int]
   locations: [ReferentialVO]
@@ -832,6 +889,10 @@ type Query {
   aggregationType(id: Int!): AggregationTypeVO
   "Get all available aggregation types"
   aggregationTypes(filter: AggregationTypeFilterVOInput): [AggregationTypeVO]
+  "Search in analytic references"
+  analyticReferences(filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ReferentialVO]
+  "Get analytic references count"
+  analyticReferencesCount(filter: ReferentialFilterVOInput): Long
   "Ask for a new auth challenge"
   authChallenge: AuthDataVO
   "Authenticate using a token"
@@ -846,12 +907,14 @@ type Query {
   department(id: Int!): DepartmentVO
   "Search in departments"
   departments(filter: DepartmentFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [DepartmentVO]
+  "Preview some extraction"
+  extraction(filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", type: ExtractionTypeVOInput): [Map_String_StringScalar]
   "Execute extraction to a file"
   extractionFile(filter: ExtractionFilterVOInput, type: ExtractionTypeVOInput): String
   "Preview some extraction rows"
   extractionRows(filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", type: ExtractionTypeVOInput): ExtractionResultVO
   "Get all available extraction types"
-  extractionTypes(filter: ExtractionTypeFilterVOInput): [ExtractionTypeVO]
+  extractionTypes(filter: ExtractionTypeFilterVOInput): [ExtractionTypeVO] @deprecated(reason : "Use liveExtractionTypes and aggregationTypes")
   "Check if email exists (from a md5 hash)"
   isEmailExists(email: String, hash: String): Boolean!
   "Get an observed location, by id"
@@ -862,6 +925,8 @@ type Query {
   landingsCount(filter: LandingFilterVOInput): Long!
   "Get last update date of all referential"
   lastUpdateDate: Date
+  "Get all live extraction types"
+  liveExtractionTypes(filter: ExtractionTypeFilterVOInput): [ExtractionTypeVO]
   "Get a metier by id"
   metier(id: Int!): MetierVO
   "Search in metiers"
@@ -869,9 +934,9 @@ type Query {
   "Get an observed location, by id"
   observedLocation(id: Int!): ObservedLocationVO
   "Search in observed locations"
-  observedLocations(filter: ObservedLocationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDateTime", sortDirection: String = "asc"): [ObservedLocationVO]
+  observedLocations(filter: ObservedLocationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDateTime", sortDirection: String = "asc", trash: Boolean = false): [ObservedLocationVO]
   "Get total number of observed locations"
-  observedLocationsCount(filter: ObservedLocationFilterVOInput): Long!
+  observedLocationsCount(filter: ObservedLocationFilterVOInput, trash: Boolean = false): Long!
   "Get an operation"
   operation(id: Int!): OperationVO
   "Get trip's operation groups"
@@ -908,6 +973,14 @@ type Query {
   referentialsCount(entityName: String, filter: ReferentialFilterVOInput): Long
   "A software config"
   software(id: Int, label: String): SoftwareVO
+  "Search in strategies"
+  strategies(filter: StrategyFilterVOInput!, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [StrategyVO]
+  "Get strategies count"
+  strategiesCount(filter: StrategyFilterVOInput): Long
+  "Get a strategy"
+  strategy(id: Int!): StrategyVO
+  "Get next label for strategy"
+  strategyNextLabel(labelPrefix: String = "", nbDigit: Int = 0, programId: Int!): String
   "Search in taxon names"
   taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonNameVO]
   "Get trash content"
@@ -925,9 +998,9 @@ type Query {
   "Get a vessel"
   vessel(vesselId: Int!): VesselVO
   "Get vessel features history"
-  vesselFeaturesHistory(offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselFeaturesVO]
+  vesselFeaturesHistory(offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int!): [VesselFeaturesVO]
   "Get vessel registration history"
-  vesselRegistrationHistory(offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselRegistrationVO]
+  vesselRegistrationHistory(offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int!): [VesselRegistrationVO]
   "Search in vessel snapshots"
   vesselSnapshots(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "exteriorMarking", sortDirection: String = "asc"): [VesselSnapshotVO]
   "Search in vessels"
@@ -1037,17 +1110,29 @@ type SoftwareVO {
   updateDate: Date
 }
 
+type StrategyDepartmentVO {
+  department: ReferentialVO
+  id: Int
+  location: ReferentialVO
+  privilege: ReferentialVO
+  strategyId: Int
+  updateDate: Date
+}
+
 type StrategyVO {
+  analyticReference: String
+  appliedStrategies: [AppliedStrategyVO]
   comments: String
   creationDate: Date
+  denormalizedPmfms: [DenormalizedPmfmStrategyVO]
+  departments: [StrategyDepartmentVO]
   description: String
   gearIds: [Int]
   gears: [ReferentialVO]
   id: Int
   label: String
   name: String
-  "Get strategy's pmfms"
-  pmfmStrategies: [PmfmStrategyVO]
+  pmfms: [PmfmStrategyVO]
   programId: Int
   statusId: Int
   taxonGroupIds: [Int]
@@ -1083,6 +1168,13 @@ type Subscription {
     "Minimum interval to find changes, in seconds."
     interval: Int = 30
   ): OperationVO
+  "Subscribe to changes on a referential"
+  updateReferential(
+    entityName: String!,
+    id: Int!,
+    "Minimum interval to find changes, in seconds."
+    interval: Int = 30
+  ): ReferentialVO
   "Subscribe to changes on a trip"
   updateTrip(
     id: Int!,
@@ -1126,11 +1218,15 @@ type TaxonNameStrategyVO {
 
 type TaxonNameVO {
   comments: String
+  completeName: String
   creationDate: Date
   description: String
+  endDate: Date
   entityName: String
   id: Int
+  isNaming: Boolean
   isReferent: Boolean
+  isVirtual: Boolean
   label: String
   "Get the level from a referential entity"
   level: ReferentialVO
@@ -1138,14 +1234,18 @@ type TaxonNameVO {
   name: String
   rankOrder: Int
   referenceTaxonId: Int
+  startDate: Date
   statusId: Int
   "Get taxon groups from a taxon name"
   taxonGroupIds: [Int]
+  taxonomicLevelId: Int
   updateDate: Date
+  upperRank: Int
   validityStatusId: Int
 }
 
 type TripVO {
+  TYPENAME: String
   comments: String
   controlDate: Date
   creationDate: Date
@@ -1157,6 +1257,7 @@ type TripVO {
   gears: [PhysicalGearVO]
   id: Int
   landing: LandingVO
+  landingId: Int
   "Get trip's measurements"
   measurementValues: Map_Integer_StringScalar
   "Get trip's measurements"
@@ -1333,6 +1434,7 @@ enum LiveFormatEnum {
   FREE1
   FREE2
   RDB
+  STRAT
   SURVIVAL_TEST
 }
 
@@ -1395,18 +1497,7 @@ input AggregationStrataVOInput {
 }
 
 input AggregationTypeFilterVOInput {
-  id: Int
   isSpatial: Boolean
-  label: String
-  levelId: Int
-  levelIds: [Int]
-  name: String
-  recorderDepartmentId: Int
-  recorderPersonId: Int
-  searchAttribute: String
-  searchJoin: String
-  searchText: String
-  statusIds: [Int]
 }
 
 input AggregationTypeVOInput {
@@ -1416,6 +1507,7 @@ input AggregationTypeVOInput {
   description: String
   docUrl: String
   documentation: String
+  filter: String
   id: Int
   isSpatial: Boolean
   label: String
@@ -1424,9 +1516,23 @@ input AggregationTypeVOInput {
   recorderPerson: PersonVOInput
   sheetNames: [String]
   statusId: Int
-  stratum: [ExtractionProductStrataVOInput]
+  stratum: [AggregationStrataVOInput]
   updateDate: Date
   version: String
+}
+
+input AppliedPeriodVOInput {
+  acquisitionNumber: Int
+  appliedStrategyId: Int
+  endDate: Date
+  startDate: Date
+}
+
+input AppliedStrategyVOInput {
+  appliedPeriods: [AppliedPeriodVOInput]
+  id: Int
+  location: ReferentialVOInput
+  strategyId: Int
 }
 
 input BatchVOInput {
@@ -1475,11 +1581,43 @@ input ConfigurationVOInput {
   updateDate: Date
 }
 
+input DenormalizedPmfmStrategyVOInput {
+  acquisitionLevel: String
+  acquisitionNumber: Int
+  completeName: String
+  defaultValue: Float
+  fractionId: Int
+  gearIds: [Int]
+  gears: [String]
+  id: Int
+  isMandatory: Boolean
+  label: String
+  matrixId: Int
+  maxValue: Float
+  maximumNumberDecimals: Int
+  methodId: Int
+  minValue: Float
+  name: String
+  parameterId: Int
+  qualitativeValues: [ReferentialVOInput]
+  rankOrder: Int
+  referenceTaxonIds: [Int]
+  signifFiguresNumber: Int
+  strategyId: Int
+  taxonGroupIds: [Int]
+  type: String
+  unitLabel: String
+  updateDate: Date
+}
+
 input DepartmentFilterVOInput {
+  excludedIds: [Int]
   id: Int
   label: String
   levelId: Int
   levelIds: [Int]
+  levelLabel: String
+  levelLabels: [String]
   name: String
   searchAttribute: String
   searchJoin: String
@@ -1489,21 +1627,15 @@ input DepartmentFilterVOInput {
 }
 
 input DepartmentVOInput {
-  comments: String
   creationDate: Date
-  description: String
-  entityName: String
   hasLogo: Boolean
   id: Int
   label: String
-  levelId: Int
   logo: String
   name: String
-  rankOrder: Int
   siteUrl: String
   statusId: Int
   updateDate: Date
-  validityStatusId: Int
 }
 
 input ExtractionFilterCriterionVOInput {
@@ -1524,31 +1656,12 @@ input ExtractionFilterVOInput {
   sheetName: String
 }
 
-input ExtractionProductStrataVOInput {
-  aggColumnName: String
-  aggFunction: String
-  comments: String
-  creationDate: Date
-  description: String
-  id: Int
-  isDefault: Boolean
-  label: String
-  name: String
-  product: ExtractionProductVOInput
-  productId: Int
-  sheetName: String
-  spatialColumnName: String
-  statusId: Int
-  techColumnName: String
-  timeColumnName: String
-  updateDate: Date
-}
-
 input ExtractionProductVOInput {
   comments: String
   creationDate: Date
   description: String
   documentation: String
+  filter: String
   format: String
   id: Int
   isSpatial: Boolean
@@ -1558,7 +1671,7 @@ input ExtractionProductVOInput {
   recorderDepartment: DepartmentVOInput
   recorderPerson: PersonVOInput
   statusId: Int
-  stratum: [ExtractionProductStrataVOInput]
+  stratum: [AggregationStrataVOInput]
   tables: [ExtractionTableVOInput]
   updateDate: Date
   version: String
@@ -1599,17 +1712,7 @@ input ExtractionTableVOInput {
 
 input ExtractionTypeFilterVOInput {
   category: String
-  id: Int
-  label: String
-  levelId: Int
-  levelIds: [Int]
-  name: String
-  recorderDepartmentId: Int
   recorderPersonId: Int
-  searchAttribute: String
-  searchJoin: String
-  searchText: String
-  statusIds: [Int]
 }
 
 input ExtractionTypeVOInput {
@@ -1739,10 +1842,13 @@ input MeasurementVOInput {
 
 input MetierFilterVOInput {
   date: Date
+  excludedIds: [Int]
   id: Int
   label: String
   levelId: Int
   levelIds: [Int]
+  levelLabel: String
+  levelLabels: [String]
   name: String
   programLabel: String
   searchAttribute: String
@@ -1779,12 +1885,17 @@ input ObservedLocationFilterVOInput {
   startDate: Date
 }
 
+input ObservedLocationSaveOptionsInput {
+  withLanding: Boolean
+}
+
 input ObservedLocationVOInput {
   comments: String
   controlDate: Date
   creationDate: Date
   endDateTime: Date
   id: Int
+  landings: [LandingVOInput]
   location: LocationVOInput
   measurementValues: Map_Integer_StringScalar
   measurements: [MeasurementVOInput]
@@ -1825,6 +1936,7 @@ input OperationGroupVOInput {
   qualityFlagId: Int
   rankOrderOnPeriod: Int
   recorderDepartment: DepartmentVOInput
+  samples: [SampleVOInput]
   trip: TripVOInput
   tripId: Int
   updateDate: Date
@@ -1884,7 +1996,6 @@ input PacketVOInput {
   rankOrder: Int
   recorderDepartment: DepartmentVOInput
   recorderPerson: PersonVOInput
-  saleProducts: [ProductVOInput]
   sampledWeights: [Float]
   updateDate: Date
   validationDate: Date
@@ -1917,12 +2028,15 @@ input ParameterVOInput {
 
 input PersonFilterVOInput {
   email: String
+  excludedIds: [Int]
   firstName: String
   id: Int
   label: String
   lastName: String
   levelId: Int
   levelIds: [Int]
+  levelLabel: String
+  levelLabels: [String]
   name: String
   pubkey: String
   searchAttribute: String
@@ -1986,26 +2100,26 @@ input PmfmStrategyVOInput {
   acquisitionLevel: String
   acquisitionNumber: Int
   defaultValue: Float
+  fraction: ReferentialVOInput
+  fractionId: Int
   gearIds: [Int]
   gears: [String]
   id: Int
   isMandatory: Boolean
-  label: String
+  matrix: ReferentialVOInput
+  matrixId: Int
   maxValue: Float
-  maximumNumberDecimals: Int
+  method: ReferentialVOInput
   methodId: Int
   minValue: Float
-  name: String
+  parameter: ReferentialVOInput
+  parameterId: Int
   pmfm: PmfmVOInput
   pmfmId: Int
-  qualitativeValues: [ReferentialVOInput]
   rankOrder: Int
   referenceTaxonIds: [Int]
-  signifFiguresNumber: Int
   strategyId: Int
   taxonGroupIds: [Int]
-  type: String
-  unitLabel: String
   updateDate: Date
 }
 
@@ -2064,7 +2178,6 @@ input ProductVOInput {
   recorderPerson: PersonVOInput
   sale: SaleVOInput
   saleId: Int
-  saleProducts: [ProductVOInput]
   saleType: ReferentialVOInput
   sizeCategoryId: Int
   subgroupCount: Float
@@ -2076,16 +2189,23 @@ input ProductVOInput {
 }
 
 input ProgramFilterVOInput {
+  excludedIds: [Int]
   id: Int
   label: String
   levelId: Int
   levelIds: [Int]
+  levelLabel: String
+  levelLabels: [String]
   name: String
   searchAttribute: String
   searchJoin: String
   searchText: String
   statusIds: [Int]
   withProperty: String
+}
+
+input ProgramSaveOptionsInput {
+  withStrategies: Boolean
 }
 
 input ProgramVOInput {
@@ -2131,10 +2251,13 @@ input QuantificationMeasurementVOInput {
 }
 
 input ReferentialFilterVOInput {
+  excludedIds: [Int]
   id: Int
   label: String
   levelId: Int
   levelIds: [Int]
+  levelLabel: String
+  levelLabels: [String]
   name: String
   searchAttribute: String
   searchJoin: String
@@ -2230,16 +2353,47 @@ input SoftwareVOInput {
   updateDate: Date
 }
 
+input StrategyDepartmentVOInput {
+  department: ReferentialVOInput
+  id: Int
+  location: ReferentialVOInput
+  privilege: ReferentialVOInput
+  strategyId: Int
+  updateDate: Date
+}
+
+input StrategyFilterVOInput {
+  excludedIds: [Int]
+  id: Int
+  label: String
+  levelId: Int
+  levelIds: [Int]
+  levelLabel: String
+  levelLabels: [String]
+  name: String
+  programId: Int
+  programIds: [Int]
+  searchAttribute: String
+  searchJoin: String
+  searchText: String
+  statusIds: [Int]
+  withProperty: String
+}
+
 input StrategyVOInput {
+  analyticReference: String
+  appliedStrategies: [AppliedStrategyVOInput]
   comments: String
   creationDate: Date
+  denormalizedPmfms: [DenormalizedPmfmStrategyVOInput]
+  departments: [StrategyDepartmentVOInput]
   description: String
   gearIds: [Int]
   gears: [ReferentialVOInput]
   id: Int
   label: String
   name: String
-  pmfmStrategies: [PmfmStrategyVOInput]
+  pmfms: [PmfmStrategyVOInput]
   programId: Int
   statusId: Int
   taxonGroupIds: [Int]
@@ -2272,10 +2426,13 @@ input TaxonGroupVOInput {
 }
 
 input TaxonNameFilterVOInput {
+  excludedIds: [Int]
   id: Int
   label: String
   levelId: Int
   levelIds: [Int]
+  levelLabel: String
+  levelLabels: [String]
   name: String
   referenceTaxonId: Int
   searchAttribute: String
@@ -2297,18 +2454,25 @@ input TaxonNameStrategyVOInput {
 
 input TaxonNameVOInput {
   comments: String
+  completeName: String
   creationDate: Date
   description: String
+  endDate: Date
   entityName: String
   id: Int
+  isNaming: Boolean
   isReferent: Boolean
+  isVirtual: Boolean
   label: String
   levelId: Int
   name: String
   rankOrder: Int
   referenceTaxonId: Int
+  startDate: Date
   statusId: Int
+  taxonomicLevelId: Int
   updateDate: Date
+  upperRank: Int
   validityStatusId: Int
 }
 
@@ -2339,6 +2503,7 @@ input TripVOInput {
   gears: [PhysicalGearVOInput]
   id: Int
   landing: LandingVOInput
+  landingId: Int
   measurementValues: Map_Integer_StringScalar
   measurements: [MeasurementVOInput]
   metiers: [MetierVOInput]

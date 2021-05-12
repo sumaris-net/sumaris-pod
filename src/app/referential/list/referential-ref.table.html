@@ -1,7 +1,7 @@
 <mat-toolbar *ngIf="showToolbar">
 
   <!-- refresh (debug only) -->
-  <button mat-icon-button small color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
           (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
@@ -124,10 +124,9 @@
       <span translate>REFERENTIAL.COMMENTS</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm">
-      <ion-icon *ngIf="row.currentData.comments"
-                slot="icon-only" color="medium" name="chatbox"
-                [title]="row.currentData.comments">
-      </ion-icon>
+      <mat-icon color="primary" class="comment"
+                *ngIf="row.currentData.comments"
+                [title]="row.currentData.comments">chat_bubble</mat-icon>
     </mat-cell>
   </ng-container>
 
@@ -149,7 +148,7 @@
 <ion-row class="ion-no-padding">
   <ion-col></ion-col>
   <ion-col class="ion-no-padding" size="auto">
-    <mat-paginator [length]="resultsLength" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
+    <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
     </mat-paginator>
   </ion-col>
 </ion-row>

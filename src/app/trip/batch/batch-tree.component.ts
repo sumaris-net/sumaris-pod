@@ -4,7 +4,6 @@ import {AlertController, ModalController} from "@ionic/angular";
 import {BehaviorSubject, defer} from "rxjs";
 import {FormGroup} from "@angular/forms";
 import {OperationService} from "../services/operation.service";
-import {ProgramService} from "../../referential/services/program.service";
 import {debounceTime, filter, map, switchMap} from "rxjs/operators";
 import {TripService} from "../services/trip.service";
 import {Batch, BatchUtils} from "../services/model/batch.model";
@@ -14,7 +13,6 @@ import {BatchGroupsTable} from "./table/batch-groups.table";
 import {SubBatchesTable, SubBatchFilter} from "./table/sub-batches.table";
 import {CatchBatchForm} from "../catch/catch.form";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {AppTabEditor, AppTableUtils, environment} from "../../core/core.module";
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from "@ngx-translate/core";
 import {UsageMode} from "../../core/services/model/settings.model";
@@ -23,6 +21,11 @@ import {firstTruePromise} from "../../shared/observables";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {SubBatch, SubBatchUtils} from "../services/model/subbatch.model";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
+import {AppTabEditor} from "../../core/form/tab-editor.class";
+import {AppTableUtils} from "../../core/table/table.utils";
+import {environment} from "../../../environments/environment";
+import {Program} from "../../referential/services/model/program.model";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 @Component({
   selector: 'app-batch-tree',
@@ -40,7 +43,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   subBatchesService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
 
   data: Batch;
-  programSubject = new BehaviorSubject<string>(undefined);
+  $programLabel = new BehaviorSubject<string>(undefined);
 
   @Input() debug: boolean;
   @Input() mobile: boolean;
@@ -64,8 +67,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
   @Input()
-  set program(value: string) {
-    this.programSubject.next(value);
+  set programLabel(value: string) {
+    this.$programLabel.next(value);
   }
 
   @Input()
@@ -97,11 +100,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     protected router: Router,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected tripService: TripService,
     protected operationService: OperationService,
     protected modalCtrl: ModalController,
-    protected platform: PlatformService
+    protected platform: PlatformService,
   ) {
     super(route, router, alertCtrl, translate,
           {
@@ -135,29 +138,12 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
       // Watch program, to configure tables from program properties
       this.registerSubscription(
-        this.programSubject
+        this.$programLabel
           .pipe(
             filter(isNotNilOrBlank),
-            switchMap(programLabel => this.programService.watchByLabel(programLabel))
+            switchMap(programLabel => this.programRefService.watchByLabel(programLabel))
           )
-          .subscribe(program => {
-            if (this.debug) console.debug(`[batch-tree] Program ${program.label} loaded, with properties: `, program.properties);
-
-            this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
-            this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
-
-            // Some specific taxon groups have no weight collected
-            const taxonGroupsNoWeight = program.getProperty(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
-            this.batchGroupsTable.taxonGroupsNoWeight = taxonGroupsNoWeight && taxonGroupsNoWeight.split(',')
-              .map(label => label.trim().toUpperCase())
-              .filter(isNotNilOrBlank) || undefined;
-
-            // Force taxon name in sub batches, if not filled in root batch
-            if (this.subBatchesTable) {
-              this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn;
-              this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
-            }
-          })
+          .subscribe(program => this.setProgram(program))
       );
 
       if (this.showSubBatchesTable) {
@@ -190,7 +176,26 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         );
       }
     }
+  }
 
+  protected setProgram(program: Program) {
+    if (!program) return;
+    if (this.debug) console.debug(`[batch-tree] Program ${program.label} loaded, with properties: `, program.properties);
+
+    this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
+    this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
+
+    // Some specific taxon groups have no weight collected
+    const taxonGroupsNoWeight = program.getProperty(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
+    this.batchGroupsTable.taxonGroupsNoWeight = taxonGroupsNoWeight && taxonGroupsNoWeight.split(',')
+      .map(label => label.trim().toUpperCase())
+      .filter(isNotNilOrBlank) || undefined;
+
+    // Force taxon name in sub batches, if not filled in root batch
+    if (this.subBatchesTable) {
+      this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn;
+      this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
+    }
   }
 
   async load(id?: number, options?: any): Promise<any> {
@@ -242,10 +247,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       this.catchBatchForm.ready()
     ];
     if (this.showBatchTables) {
-      promises.push(this.batchGroupsTable.onReady());
+      promises.push(this.batchGroupsTable.ready());
 
       if (this.showSubBatchesTable) {
-        promises.push(this.subBatchesTable.onReady());
+        promises.push(this.subBatchesTable.ready());
       }
     }
     return Promise.all(promises);
@@ -259,7 +264,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
     // Make sure this is catch batch
     if (catchBatch && catchBatch.label !== AcquisitionLevelCodes.CATCH_BATCH) {
-      throw new Error('Catch batch should have label=' + AcquisitionLevelCodes.CATCH_BATCH)
+      throw new Error('Catch batch should have label=' + AcquisitionLevelCodes.CATCH_BATCH);
     }
 
     catchBatch = catchBatch || Batch.fromObject({
@@ -282,7 +287,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       this.batchGroupsTable.value = batchGroups;
 
       // Wait batch group table ready (need to be sure the QV pmfm is set)
-      await this.batchGroupsTable.onReady();
+      await this.batchGroupsTable.ready();
       const groupQvPmfm = this.batchGroupsTable.qvPmfm;
       const subBatches: SubBatch[] = SubBatchUtils.fromBatchGroups(batchGroups, {
         groupQvPmfm
@@ -293,7 +298,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         this.subBatchesTable.setAvailableParents(batchGroups, {
           emitEvent: false,
           linkDataToParent: false // Not need here
-        })
+        });
         this.subBatchesTable.value = subBatches;
       } else {
         this.subBatchesService.value = subBatches;
@@ -389,7 +394,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   /* -- protected methods -- */
 
-  async getSubBatches(opts?: {saveIfDirty?: boolean}): Promise<SubBatch[]> {
+  async getSubBatches(opts?: { saveIfDirty?: boolean; }): Promise<SubBatch[]> {
     if (!this.showBatchTables) return undefined;
     if (this.subBatchesTable) {
       // Save table first (if need)

@@ -4,9 +4,10 @@ import {LandingPage} from "./landing/landing.page";
 import {SharedRoutingModule} from "../shared/shared-routing.module";
 import {ObservedLocationsPage} from "./observedlocation/observed-locations.page";
 import {ObservedLocationPage} from "./observedlocation/observed-location.page";
-import {AuctionControlPage} from "./auctioncontrol/auction-control.page";
+import {AuctionControlPage} from "./landing/auctioncontrol/auction-control.page";
 import {LandedTripPage} from "./landedtrip/landed-trip.page";
 import {LandedTripModule} from "./landed-trip.module";
+import {SamplingLandingPage} from "./landing/sampling/sampling-landing.page";
 
 const routes: Routes = [
   {
@@ -27,11 +28,6 @@ const routes: Routes = [
         component: ObservedLocationPage,
         runGuardsAndResolvers: 'pathParamsChange'
       },
-      // {
-      //   path: 'batches',
-      //   component: SubBatchesModal,
-      //   runGuardsAndResolvers: 'pathParamsChange'
-      // },
       {
         path: 'landing/:landingId',
         runGuardsAndResolvers: 'pathParamsChange',
@@ -58,6 +54,21 @@ const routes: Routes = [
             path: '',
             pathMatch: 'full',
             component: AuctionControlPage,
+            runGuardsAndResolvers: 'pathParamsChange'
+          }
+        ]
+      },
+      {
+        path: 'sampling/:samplingId',
+        runGuardsAndResolvers: 'pathParamsChange',
+        data: {
+          pathIdParam: 'samplingId'
+        },
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            component: SamplingLandingPage,
             runGuardsAndResolvers: 'pathParamsChange'
           }
         ]

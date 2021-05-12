@@ -1,27 +1,40 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {AppTable, environment, isNil, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
+import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {ActivatedRoute, Router} from "@angular/router";
-import {AlertController, ModalController} from "@ionic/angular";
+import {ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {AccountService} from "../../core/services/account.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {FormBuilder, FormGroup} from "@angular/forms";
-import {TranslateService} from "@ngx-translate/core";
-import {personsToString, personToString} from "../../core/services/model/person.model";
-import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
+import {FormBuilder} from "@angular/forms";
+import {personToString} from "../../core/services/model/person.model";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {debounceTime, filter, tap} from "rxjs/operators";
-import {ObservedLocationFilter, ObservedLocationService} from "../services/observed-location.service";
+import {ObservedLocationFilter, ObservedLocationOfflineFilter, ObservedLocationService} from "../services/observed-location.service";
 import {ObservedLocationValidatorService} from "../services/validator/observed-location.validator";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {qualityFlagToColor} from "../../data/services/model/model.utils";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {PersonService} from "../../admin/services/person.service";
 import {SharedValidators} from "../../shared/validator/validators";
 import {StatusIds} from "../../core/services/model/model.enum";
+import {AppRootTable} from "../../data/table/root-table.class";
+import {OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS} from "../services/config/trip.config";
+import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {isNil} from "../../shared/functions";
+import {environment} from "../../../environments/environment";
+import {ConfigService} from "../../core/services/config.service";
+import {BehaviorSubject} from "rxjs";
+import {ObservedLocationOfflineModal} from "./offline/observed-location-offline.modal";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {Trip} from "../services/model/trip.model";
+import {UsageMode} from "../../core/services/model/settings.model";
+
+
+export const ObservedLocationsPageSettingsEnum = {
+  PAGE_ID: "observedLocations",
+  FILTER_KEY: "filter",
+  FEATURE_ID: OBSERVED_LOCATION_FEATURE_NAME
+};
 
 @Component({
   selector: 'app-observed-locations-page',
@@ -32,13 +45,10 @@ import {StatusIds} from "../../core/services/model/model.enum";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
+export class ObservedLocationsPage extends AppRootTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
 
-  canEdit: boolean;
-  canDelete: boolean;
-  isAdmin: boolean;
-  filterForm: FormGroup;
-  filterIsEmpty = true;
+  highlightedRow: TableElement<ObservedLocation>;
+  $title = new BehaviorSubject<string>('');
 
   constructor(
     protected injector: Injector,
@@ -48,16 +58,14 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     protected location: Location,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
-    protected accountService: AccountService,
     protected dataService: ObservedLocationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
+    protected programRefService: ProgramRefService,
     protected formBuilder: FormBuilder,
-    protected alertCtrl: AlertController,
-    protected translate: TranslateService,
+    protected configService: ConfigService,
     protected cd: ChangeDetectorRef
   ) {
-
     super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
         .concat([
@@ -68,13 +76,16 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
           'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, null, {
+      dataService,
+      new EntitiesTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService,  null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
           saveOnlyDirtyRows: true
         }
-      })
+      }),
+      null,
+      injector
     );
     this.i18nColumnPrefix = 'OBSERVED_LOCATION.TABLE.';
     this.filterForm = formBuilder.group({
@@ -84,15 +95,16 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
       endDate: [null, SharedValidators.validDate],
       synchronizationStatus: [null],
       recorderDepartment: [null, SharedValidators.entity],
-      recorderPerson: [null, SharedValidators.entity]
+      recorderPerson: [null, SharedValidators.entity],
       // TODO: add observer filter ?
       //,'observer': [null]
     });
-    this.inlineEdition = false;
-    this.confirmBeforeDelete = true;
     this.autoLoad = false;
     this.defaultSortBy = 'startDateTime';
     this.defaultSortDirection = 'desc';
+
+    this.settingsId = ObservedLocationsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
+    this.featureId = ObservedLocationsPageSettingsEnum.FEATURE_ID;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -100,10 +112,6 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
 
   ngOnInit() {
     super.ngOnInit();
-
-    this.isAdmin = this.accountService.isAdmin();
-    this.canEdit = this.isAdmin || this.accountService.isUser();
-    this.canDelete = this.isAdmin;
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
@@ -146,74 +154,107 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
 
     // Update filter when changes
     this.registerSubscription(
-    this.filterForm.valueChanges
-      .pipe(
-        debounceTime(250),
-        filter(() => this.filterForm.valid),
-
-        // Applying the filter
-        tap(json => this.setFilter({
-          programLabel: json.program && typeof json.program === "object" && json.program.label || undefined,
-          startDate: json.startDate,
-          endDate: json.endDate,
-          locationId: json.location && typeof json.location === "object" && json.location.id || undefined,
-          synchronizationStatus: json.synchronizationStatus || undefined,
-          recorderDepartmentId: json.recorderDepartment && typeof json.recorderDepartment === "object" && json.recorderDepartment.id || undefined,
-          recorderPersonId: json.recorderPerson && typeof json.recorderPerson === "object" && json.recorderPerson.id || undefined
-        }, {emitEvent: this.mobile || isNil(this.filter)})),
-
-        // Save filter in settings (after a debounce time)
-        debounceTime(1000),
-        tap(json => this.settings.savePageSetting(this.settingsId, json, 'filter'))
-    )
-    .subscribe());
+      this.filterForm.valueChanges
+        .pipe(
+          debounceTime(250),
+          filter(() => this.filterForm.valid),
+          // Applying the filter
+          tap(json => this.setFilter({
+            programLabel: json.program && typeof json.program === "object" && json.program.label || undefined,
+            startDate: json.startDate,
+            endDate: json.endDate,
+            locationId: json.location && typeof json.location === "object" && json.location.id || undefined,
+            synchronizationStatus: json.synchronizationStatus || undefined,
+            recorderDepartmentId: json.recorderDepartment && typeof json.recorderDepartment === "object" && json.recorderDepartment.id || undefined,
+            recorderPersonId: json.recorderPerson && typeof json.recorderPerson === "object" && json.recorderPerson.id || undefined
+          }, {emitEvent: this.mobile || isNil(this.filter)})),
+          // Save filter in settings (after a debounce time)
+          debounceTime(500),
+          tap(json => this.settings.savePageSetting(this.settingsId, json, ObservedLocationsPageSettingsEnum.FILTER_KEY))
+        )
+        .subscribe());
 
     this.registerSubscription(
-      this.onRefresh.subscribe(() => {
-        this.filterIsEmpty = ObservedLocationFilter.isEmpty(this.filter);
-        this.filterForm.markAsUntouched();
-        this.filterForm.markAsPristine();
-        this.markForCheck();
-      }));
+      this.configService.config.subscribe(config => {
+        const title = config && config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
+        this.$title.next(title);
+      })
+    );
 
-    // Restore filter from settings, or load all rows
+    // Restore filter from settings, or load all
     this.restoreFilterOrLoad();
   }
 
-  referentialToString = referentialToString;
-  personsToString = personsToString;
-  qualityFlagToColor = qualityFlagToColor;
+  clickRow(event: MouseEvent|undefined, row: TableElement<ObservedLocation>): boolean {
+    this.highlightedRow = row;
+    return super.clickRow(event, row);
+  }
 
-  programToString(item: ReferentialRef) {
-    return item && item.label || undefined;
+
+  async openTrashModal(event?: UIEvent) {
+    console.debug('[observed-locations] Opening trash modal...');
+    // TODO BLA
+    /*const modal = await this.modalCtrl.create({
+      component: TripTrashModal,
+      componentProps: {
+        synchronizationStatus: this.filter.synchronizationStatus
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // On dismiss
+    const res = await modal.onDidDismiss();
+    if (!res) return; // CANCELLED*/
+  }
+
+  async prepareOfflineMode(event?: UIEvent, opts?: {
+    toggleToOfflineMode?: boolean;
+    showToast?: boolean;
+    filter?: any;
+  }): Promise<undefined | boolean> {
+    if (this.importing) return; // Skip
+
+    if (event) {
+      const feature = this.settings.getOfflineFeature(this.dataService.featureName) || {
+        name: this.dataService.featureName
+      };
+      const value = <ObservedLocationOfflineFilter>{
+        ...this.filter,
+        ...feature.filter
+      };
+      const modal = await this.modalCtrl.create({
+        component: ObservedLocationOfflineModal,
+        componentProps: {
+          value
+        }, keyboardClose: true
+      });
+
+      // Open the modal
+      modal.present();
+
+      // Wait until closed
+      const res = await modal.onDidDismiss();
+      if (!res || !res.data) return; // User cancelled
+
+      // Update feature filter, and save it into settings
+      feature.filter = res && res.data;
+      this.settings.saveOfflineFeature(feature);
+
+      // DEBUG
+      console.debug('[observed-location-table] Will prepare offline mode, using filter:', feature.filter);
+    }
+
+    return super.prepareOfflineMode(event, opts);
   }
 
   /* -- protected methods -- */
 
-  protected async restoreFilterOrLoad() {
-    console.debug("[observed-locations] Restoring filter from settings...");
-    const json = this.settings.getPageSettings(this.settingsId, 'filter');
 
-    // No default filter: load all trips
-    if (isNil(json) || typeof json !== 'object') {
-      // To avoid a delay (caused by debounceTime in a previous pipe), to refresh content manually
-      this.onRefresh.emit();
-      // But set a empty filter, to avoid automatic apply of next filter changes (caused by condition '|| isNil()' in a previous pipe)
-      this.filterForm.patchValue({}, {emitEvent: false});
-    }
-    // Restore the filter (will apply it)
-    else {
-      this.filterForm.patchValue(json);
-    }
-  }
-
-  protected openRow(id: number): Promise<boolean> {
-    return this.router.navigateByUrl('/observations/' + id);
-  }
-
-  protected openNewRowDetail(): Promise<boolean> {
-    return this.router.navigateByUrl('/observations/new');
-  }
+  protected isFilterEmpty = ObservedLocationFilter.isEmpty;
 
   protected markForCheck() {
     this.cd.markForCheck();

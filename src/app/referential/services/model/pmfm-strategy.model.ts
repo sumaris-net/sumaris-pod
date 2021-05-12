@@ -1,9 +1,10 @@
-import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {Pmfm, PMFM_NAME_REGEXP, PmfmType} from "./pmfm.model";
-import {ReferentialRef} from "../../../core/services/model/referential.model";
+import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
+import {IPmfm, Pmfm, PMFM_NAME_REGEXP, PmfmType, PmfmUtils} from "./pmfm.model";
+import {NOT_MINIFY_OPTIONS, ReferentialRef} from "../../../core/services/model/referential.model";
 import {isNotNil, toNumber} from "../../../shared/functions";
-import { PmfmValue, PmfmValueUtils} from "./pmfm-value.model";
+import {PmfmValue, PmfmValueUtils} from "./pmfm-value.model";
 import {MethodIds} from "./model.enum";
+import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 
 
 /**
@@ -11,49 +12,220 @@ import {MethodIds} from "./model.enum";
  * @param pmfm
  * @param opts
  */
-export function getPmfmName(pmfm: PmfmStrategy, opts?: {
+export function getPmfmName(pmfm: IPmfm, opts?: {
   withUnit?: boolean;
   html?: boolean;
+  withDetails?: boolean;
 }): string {
   if (!pmfm) return undefined;
-  const matches = PMFM_NAME_REGEXP.exec(pmfm.name||'');
-  const name = matches && matches[1] || pmfm.name;
-  if (opts && opts.withUnit && pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')) {
-    if (opts.html) {
-      return `${name}<small><br/>(${pmfm.unitLabel})</small>`;
+
+  let name;
+  if (pmfm instanceof DenormalizedPmfmStrategy) {
+    // Is complete name exists, use it
+    if (opts && opts.withDetails && pmfm.completeName) return pmfm.completeName;
+
+    // Remove parenthesis content, if any
+    const matches = PMFM_NAME_REGEXP.exec(pmfm.name || '');
+    name = matches && matches[1] || pmfm.name;
+  }
+  else if (pmfm instanceof Pmfm) {
+    name = pmfm.parameter && pmfm.parameter.name;
+    if (opts && opts.withDetails) {
+      name += [
+        pmfm.matrix && pmfm.matrix.name,
+        pmfm.fraction && pmfm.fraction.name,
+        pmfm.method && pmfm.method.name
+      ].filter(isNotNil).join(' - ');
     }
-    return `${name} (${pmfm.unitLabel})`;
+  }
+
+  // Append unit
+  if ((!opts || opts.withUnit !== false) && (pmfm.type === 'integer' || pmfm.type === 'double') && pmfm.unitLabel) {
+    if (opts && opts.html) {
+      name += `<small><br/>(${pmfm.unitLabel})</small>`;
+    }
+    else {
+      name += ` (${pmfm.unitLabel})`;
+    }
   }
   return name;
 }
 
-export class PmfmStrategy extends Entity<PmfmStrategy> {
+export interface PmfmStrategyAsObjectOptions extends DataEntityAsObjectOptions {
+  batchAsTree?: boolean;
+}
+export interface PmfmStrategyFromObjectOptions {
+}
 
-  static fromObject(source: any): PmfmStrategy {
+export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectOptions, PmfmStrategyFromObjectOptions> {
+
+  static TYPENAME = 'PmfmStrategyVO';
+
+  static fromObject(source: any, opts?: PmfmStrategyFromObjectOptions): PmfmStrategy {
     if (!source || source instanceof PmfmStrategy) return source;
-    const res = new PmfmStrategy();
-    res.fromObject(source);
-    return res;
+    const target = new PmfmStrategy();
+    target.fromObject(source, opts);
+    return target;
   }
 
   pmfmId: number;
   pmfm: Pmfm;
+  parameter: ReferentialRef;
+  matrix: ReferentialRef;
+  fraction: ReferentialRef;
+  method: ReferentialRef;
 
-  methodId: number;
+  acquisitionNumber: number;
+  minValue: number;
+  maxValue: number;
+  defaultValue: PmfmValue;
+  isMandatory: boolean;
+  rankOrder: number;
+  acquisitionLevel: string|ReferentialRef;
+
+  gearIds: number[];
+  taxonGroupIds: number[];
+  referenceTaxonIds: number[];
+
+  strategyId: number;
+  hidden?: boolean;
+
+  constructor() {
+    super();
+    this.__typename = PmfmStrategy.TYPENAME;
+  }
+
+  clone(): PmfmStrategy {
+    const target = new PmfmStrategy();
+    target.fromObject(this.asObject());
+    return target;
+  }
+
+  asObject(options?: EntityAsObjectOptions): any {
+    const target: any = super.asObject(options);
+    target.acquisitionLevel = (target.acquisitionLevel && typeof target.acquisitionLevel === "object" && target.acquisitionLevel.label)
+      || target.acquisitionLevel;
+
+    target.pmfmId = toNumber(this.pmfmId, this.pmfm && this.pmfm.id);
+    target.pmfm = this.pmfm && this.pmfm.asObject({...NOT_MINIFY_OPTIONS, ...options});
+    target.parameter = this.parameter && this.parameter.asObject({...NOT_MINIFY_OPTIONS, ...options});
+    target.matrix = this.matrix && this.matrix.asObject({...NOT_MINIFY_OPTIONS, ...options});
+    target.fraction = this.fraction && this.fraction.asObject({...NOT_MINIFY_OPTIONS, ...options});
+    target.method = this.method && this.method.asObject({...NOT_MINIFY_OPTIONS, ...options});
+
+    // Serialize default value
+    // only if NOT an alphanumerical value (DB column is a double) or a computed PMFM
+    if (this.defaultValue && (!this.isAlphanumeric && !this.isComputed)) {
+      target.defaultValue = +(PmfmValueUtils.toModelValue(this.defaultValue, this.pmfm));
+    }
+    else {
+      delete target.defaultValue;
+    }
+
+    return target;
+  }
+
+  fromObject(source: any, opts?: PmfmStrategyFromObjectOptions): PmfmStrategy {
+    super.fromObject(source, opts);
+
+    this.pmfm = source.pmfm && Pmfm.fromObject(source.pmfm);
+    this.pmfmId = toNumber(source.pmfmId, source.pmfm && source.pmfm.id);
+    this.parameter = source.parameter && ReferentialRef.fromObject(source.parameter);
+    this.matrix = source.matrix && ReferentialRef.fromObject(source.matrix);
+    this.fraction = source.fraction && ReferentialRef.fromObject(source.fraction);
+    this.method = source.method && ReferentialRef.fromObject(source.method);
+
+    this.minValue = source.minValue;
+    this.maxValue = source.maxValue;
+    this.defaultValue = source.defaultValue;
+    this.acquisitionNumber = source.acquisitionNumber;
+    this.isMandatory = source.isMandatory;
+    this.rankOrder = source.rankOrder;
+    this.acquisitionLevel = source.acquisitionLevel;
+    this.gearIds = source.gearIds && [...source.gearIds] || undefined;
+    this.taxonGroupIds = source.taxonGroupIds && [...source.taxonGroupIds] || undefined;
+    this.referenceTaxonIds = source.referenceTaxonIds && [...source.referenceTaxonIds] || undefined;
+    this.strategyId = source.strategyId;
+
+    return this;
+  }
+
+  get required(): boolean {
+    return this.isMandatory;
+  }
+
+  set required(value: boolean) {
+    this.isMandatory = value;
+  }
+
+  get type(): string|PmfmType {
+    return this.pmfm && this.pmfm.type;
+  }
+
+  get isNumeric(): boolean {
+    return this.type === 'integer' || this.type === 'double';
+  }
+
+  get isAlphanumeric(): boolean {
+    return this.type === 'string';
+  }
+
+  get isDate(): boolean {
+    return this.type === 'date';
+  }
+
+  get isComputed(): boolean {
+    return this.method && this.method.id === MethodIds.CALCULATED;
+  }
+
+  get isQualitative(): boolean {
+    return this.type === 'qualitative_value';
+  }
+
+  equals(other: PmfmStrategy): boolean {
+    return other && (this.id === other.id
+      // Same acquisitionLevel, pmfm, parameter
+      || (this.strategyId === other.strategyId && this.acquisitionLevel === other.acquisitionLevel
+        && ((!this.pmfm && !other.pmfm) || (this.pmfm && other.pmfm && this.pmfm.id === other.pmfm.id))
+        && ((!this.parameter && !other.parameter) || (this.parameter && other.parameter && this.parameter.id === other.parameter.id))
+      )
+    );
+  }
+}
+
+
+export class DenormalizedPmfmStrategy
+  extends DataEntity<DenormalizedPmfmStrategy, PmfmStrategyAsObjectOptions>
+  implements IPmfm<DenormalizedPmfmStrategy> {
+
+  static TYPENAME = 'DenormalizedPmfmStrategyVO';
+
+  static fromObject(source: any, opts?: any): DenormalizedPmfmStrategy {
+    if (!source || source instanceof DenormalizedPmfmStrategy) return source;
+    const res = new DenormalizedPmfmStrategy();
+    res.fromObject(source, opts);
+    return res;
+  }
+
   label: string;
   name: string;
-  headerName: string;
+  completeName: string;
   unitLabel: string;
   type: string | PmfmType;
   minValue: number;
   maxValue: number;
-  maximumNumberDecimals: number;
   defaultValue: PmfmValue;
-  acquisitionNumber: number;
+  maximumNumberDecimals: number;
+  signifFiguresNumber: number;
   isMandatory: boolean;
+  acquisitionNumber: number;
   rankOrder: number;
+  acquisitionLevel: string;
 
-  acquisitionLevel: string|ReferentialRef;
+  parameterId: number;
+  matrixId: number;
+  fractionId: number;
+  methodId: number;
 
   gearIds: number[];
   taxonGroupIds: number[];
@@ -66,38 +238,32 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   constructor() {
     super();
+    this.__typename = DenormalizedPmfmStrategy.TYPENAME;
   }
 
-  clone(): PmfmStrategy {
-    const target = new PmfmStrategy();
-    target.fromObject(this);
+  clone(): DenormalizedPmfmStrategy {
+    const target = new DenormalizedPmfmStrategy();
+    target.fromObject(this.asObject());
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.clone()) || undefined;
     return target;
   }
 
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
-    target.acquisitionLevel = (target.acquisitionLevel && typeof target.acquisitionLevel === "object" && target.acquisitionLevel.label)
-      || target.acquisitionLevel;
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
-
-    target.pmfmId = this.pmfm && toNumber(this.pmfm.id, this.pmfmId);
-    delete target.pmfm;
-
-    if (this.defaultValue) console.log("TODO check serialize PmfmStrategy.defaultValue :", target);
-    target.defaultValue = +(PmfmValueUtils.toModelValue(this.defaultValue, this.pmfm));
-
+    target.defaultValue = +(PmfmValueUtils.toModelValue(this.defaultValue, this));
     return target;
   }
 
-  fromObject(source: any) {
-    super.fromObject(source);
-
-    this.pmfmId = source.pmfmId;
-    this.pmfm = source.pmfm && Pmfm.fromObject(source.pmfm);
+  fromObject(source: any, opts?: any): DenormalizedPmfmStrategy {
+    super.fromObject(source, opts);
+    this.parameterId =  source.parameterId;
+    this.matrixId = source.matrixId;
+    this.fractionId = source.fractionId;
     this.methodId = source.methodId;
     this.label = source.label;
     this.name = source.name;
+    this.completeName = source.completeName;
     this.unitLabel = source.unitLabel;
     this.type = source.type;
     this.minValue = source.minValue;
@@ -105,16 +271,17 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     this.maximumNumberDecimals = source.maximumNumberDecimals;
     this.defaultValue = source.defaultValue;
     this.acquisitionNumber = source.acquisitionNumber;
+    this.signifFiguresNumber = source.signifFiguresNumber;
     this.isMandatory = source.isMandatory;
     this.rankOrder = source.rankOrder;
     this.acquisitionLevel = source.acquisitionLevel;
-    this.gearIds = source.gearIds;
-    this.taxonGroupIds = source.taxonGroupIds;
-    this.referenceTaxonIds = source.referenceTaxonIds;
-    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject)
-      || this.pmfm && (this.pmfm.qualitativeValues || this.pmfm.parameter && this.pmfm.parameter.qualitativeValues)
-      || undefined;
+    this.gearIds = source.gearIds && [...source.gearIds] || undefined;
+    this.taxonGroupIds = source.taxonGroupIds && [...source.taxonGroupIds] || undefined;
+    this.referenceTaxonIds = source.referenceTaxonIds && [...source.referenceTaxonIds] || undefined;
+    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject);
     this.strategyId = source.strategyId;
+
+    return this;
   }
 
   get required(): boolean {
@@ -150,13 +317,20 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   }
 
   get isWeight(): boolean {
-    return this.label && this.label.endsWith("WEIGHT");
+    return PmfmUtils.isWeight(this);
   }
 
-  equals(other: PmfmStrategy): boolean {
+  /**
+   * @deprecated Use id instead
+   */
+  get pmfmId(): number {
+    return this.id;
+  }
+
+  equals(other: DenormalizedPmfmStrategy): boolean {
     return other && (this.id === other.id
-      // Same acquisitionLevel and pmfmId
-      || (this.strategyId === other.strategyId && this.acquisitionLevel === other.acquisitionLevel && (this.pmfmId === other.pmfmId || -this.pmfm && this.pmfm.id === other.pmfmId) )
+      // Same strategy, acquisitionLevel, pmfmId
+      || (this.strategyId === other.strategyId && this.acquisitionLevel === other.acquisitionLevel)
     );
   }
 }

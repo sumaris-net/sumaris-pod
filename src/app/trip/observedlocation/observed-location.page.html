@@ -4,46 +4,83 @@
              (onValidateAndClose)="saveAndClose($event)"
              [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
-             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
-  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
+             [backHref]="defaultBackHref"
+             [canGoBack]="true">
+  <ion-buttons slot="end">
+    <ion-spinner *ngIf="loading"></ion-spinner>
+
+    <ion-button *ngIf="enabled && !isNewData || debug"
+                [matMenuTriggerFor]="optionsMenu"
+                [title]=" 'COMMON.BTN_OPTIONS'|translate">
+      <mat-icon slot="icon-only">more_vert</mat-icon>
+    </ion-button>
+  </ion-buttons>
 </app-toolbar>
 
-<ion-content>
+<!-- Type = options menu -->
+<mat-menu #optionsMenu="matMenu">
 
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)">
+  <!-- delete -->
+  <button mat-menu-item
+          [disabled]="isNewData || disabled"
+          (click)="delete($event)">
+    <ion-label>
+      <mat-icon>delete</mat-icon>&nbsp;
+      <span translate>COMMON.BTN_DELETE</span>
+    </ion-label>
+  </button>
+
+  <!-- reset -->
+  <button mat-menu-item
+          [disabled]="!dirty"
+          (click)="cancel($event)">
+    <ion-label>
+      <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <span translate>COMMON.BTN_RESET</span>
+    </ion-label>
+  </button>
+
+</mat-menu>
+
+<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
+  <mat-tab-group #tabGroup
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)"
+                 [animationDuration]="tabGroupAnimationDuration"
+                 dynamicHeight>
 
     <!-- TAB: general -->
-    <mat-tab label="{{'OBSERVED_LOCATION.TAB_GENERAL'|translate}}">
+    <mat-tab label="{{'OBSERVED_LOCATION.EDIT.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
-        <ion-label translate>OBSERVED_LOCATION.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && observedLocationForm.invalid"></ion-icon>
+        <ion-label translate>OBSERVED_LOCATION.EDIT.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="error || (submitted && observedLocationForm.invalid)"></ion-icon>
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="observedLocationForm.error" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="error || observedLocationForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
-        >
+        <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
       </ion-item>
 
       <ion-grid class="ion-no-padding">
         <ion-row class="ion-no-padding">
-          <ion-col class="ion-no-padding ion-padding-top">
+          <ion-col class="ion-padding">
 
             <!-- observed location -->
             <form-observed-location #observedLocationForm
-                                    [program]="programSubject|async"
+                                    [programLabel]="$programLabel|async"
                                     [showError]="false"
                                     [showEndDateTime]="false"
-                                    (onSubmit)="save($event)"
-                                    [debug]="debug">
-
+                                    [debug]="debug"
+                                    (onSubmit)="save($event)">
             </form-observed-location>
           </ion-col>
-          <ion-col class="ion-no-padding" size="12" size-xl="3">
+
+          <!-- quality data -->
+          <ion-col size="12" size-xl="3" class="ion-no-padding">
             <app-entity-metadata [value]="data">
-              <app-entity-quality-form #qualityForm [editor]="this">
+              <app-entity-quality-form [editor]="this">
               </app-entity-quality-form>
             </app-entity-metadata>
           </ion-col>
@@ -52,12 +89,13 @@
     </mat-tab>
 
     <!-- TAB: Landings -->
-    <mat-tab label="{{'OBSERVED_LOCATION.TAB_VESSELS'|translate}}" [disabled]="isNewData">
+    <mat-tab label="{{'OBSERVED_LOCATION.EDIT.TAB_LANDINGS'|translateContext: i18nContext.suffix }}" [disabled]="!showLandingTab">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="boat"></ion-icon>
         </mat-icon>
-        <ion-label translate>OBSERVED_LOCATION.TAB_VESSELS</ion-label>
+        <ion-label *ngIf="$ready|async; else skeletonText100">{{'OBSERVED_LOCATION.EDIT.TAB_LANDINGS'|translateContext: i18nContext.suffix }}</ion-label>
+
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="landingsTable?.invalid"></ion-icon>
       </ng-template>
 
@@ -71,8 +109,7 @@
 
         <app-landings-table #landingsTable
                             [debug]="debug"
-                            acquisitionLevel="LANDING"
-                            [program]="programSubject|async"
+                            [programLabel]="$programLabel|async"
                             [showObserversColumn]="false"
                             [showDateTimeColumn]="false"
                             (onOpenRow)="onOpenLanding($event)"
@@ -91,8 +128,7 @@
 
         <app-aggregated-landings-table #aggregatedLandingsTable
                                        [debug]="debug"
-                                       (onNewRow)="onNewAggregatedLanding($event)"
-        >
+                                       (onNewRow)="onNewAggregatedLanding($event)">
         </app-aggregated-landings-table>
 
       </div>
@@ -104,8 +140,8 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
-  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading"
+  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
+                    [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 
     <!-- error -->
@@ -117,13 +153,16 @@
   </form-buttons-bar>
 </ion-footer>
 
-<!-- FAB button -->
+<!-- FAB button: add landing -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed"
-         *ngIf="selectedTabIndex === 1" @fadeInOutAnimation
+         *ngIf="selectedTabIndex === 1"
+         @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
-
   <ion-fab-button color="tertiary" (click)="addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
-
 </ion-fab>
+
+<ng-template #skeletonText100>
+  &nbsp;<ion-skeleton-text style="min-width: 100px"></ion-skeleton-text>
+</ng-template>

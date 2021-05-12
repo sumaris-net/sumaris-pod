@@ -32,6 +32,7 @@ const colorsMap: { [key: string]: Color } = {};
 /**
  * Useful class for color conversion
  */
+// @dynamic
 export class Color {
 
   // Helper method, to retrieve a color
@@ -125,6 +126,7 @@ export declare interface ColorScaleLegend {
 /**
  * Helper class for colors scale
  */
+// @dynamic
 export class ColorScale {
 
   static custom = (count: number, options?: ColorScaleOptions) => {

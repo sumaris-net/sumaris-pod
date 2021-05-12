@@ -1,12 +1,4 @@
-import {
-  EntityUtils,
-  fromDateISOString,
-  isNotNil,
-  Person,
-  ReferentialRef,
-  toDateISOString
-} from "../../../core/core.module";
-import {Moment} from "moment/moment";
+import {Moment} from "moment";
 import {DataEntity, DataEntityAsObjectOptions,} from "../../../data/services/model/data-entity.model";
 import {
   IEntityWithMeasurement,
@@ -18,17 +10,24 @@ import {
 } from "./measurement.model";
 import {Sale} from "./sale.model";
 import {Metier} from "../../../referential/services/model/taxon.model";
-import {isEmptyArray} from "../../../shared/functions";
+import {isEmptyArray, isNotNil} from "../../../shared/functions";
 import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
 import {IWithProductsEntity, Product} from "./product.model";
 import {IWithPacketsEntity, Packet} from "./packet.model";
 import {FishingArea} from "./fishing-area.model";
-import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model/referential.model";
+import {
+  NOT_MINIFY_OPTIONS,
+  ReferentialAsObjectOptions,
+  ReferentialRef
+} from "../../../core/services/model/referential.model";
 import {DataRootVesselEntity} from "../../../data/services/model/root-vessel-entity.model";
 import {IWithObserversEntity} from "../../../data/services/model/model.utils";
 import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
 import {Landing} from "./landing.model";
+import {Person} from "../../../core/services/model/person.model";
+import {EntityUtils} from "../../../core/services/model/entity.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 /* -- Helper function -- */
 
@@ -552,6 +551,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
   measurementValues: MeasurementModelValues | MeasurementFormValues;
 
   products: Product[];
+  samples: Sample[];
   packets: Packet[];
   fishingAreas: FishingArea[];
 
@@ -564,6 +564,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
     this.measurements = [];
     this.gearMeasurements = [];
     this.products = [];
+    this.samples = [];
     this.packets = [];
     this.fishingAreas = [];
   }
@@ -595,8 +596,15 @@ export class OperationGroup extends DataEntity<OperationGroup>
       const p = product.asObject(opts);
       // Affect parent link
       p.operationId = target.id;
-      delete p.parent;
       return p;
+    }) || undefined;
+
+    // Samples
+    target.samples = this.samples && this.samples.map(sample => {
+      const s = sample.asObject({...opts, withChildren: true});
+      // Affect parent link
+      s.operationId = target.id;
+      return s;
     }) || undefined;
 
     // Packets
@@ -604,7 +612,6 @@ export class OperationGroup extends DataEntity<OperationGroup>
       const p = packet.asObject(opts);
       // Affect parent link
       p.operationId = target.id;
-      delete p.parent;
       return p;
     }) || undefined;
 
@@ -641,6 +648,14 @@ export class OperationGroup extends DataEntity<OperationGroup>
     // Affect parent
     this.products.forEach(product => {
       product.parent = this;
+      product.operationId = this.id;
+    });
+
+    // Samples
+    this.samples = source.samples && source.samples.map(source => Sample.fromObject(source, {withChildren: true})) || [];
+    // Affect parent
+    this.samples.forEach(sample => {
+      sample.operationId = this.id;
     });
 
     // Packets

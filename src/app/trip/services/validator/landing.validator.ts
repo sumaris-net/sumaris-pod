@@ -7,9 +7,14 @@ import {MeasurementsValidatorService} from "./measurement.validator";
 import {Landing} from "../model/landing.model";
 import {DataRootEntityValidatorOptions} from "../../../data/services/validator/root-data-entity.validator";
 import {DataRootVesselEntityValidatorService} from "../../../data/services/validator/root-vessel-entity.validator";
+import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
+import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
+import {Strategy} from "../../../referential/services/model/strategy.model";
 
 export interface LandingValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;
+  withStrategy?: boolean;
+  strategy: Strategy;
 }
 
 @Injectable({providedIn: 'root'})
@@ -31,16 +36,20 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
 
     const form = super.getFormGroup(data, opts);
 
-    // TODO to activate following code, Landing must have 'measurements' instead of 'measurementValues'
     // Add measurement form
-    // if (opts.withMeasurements) {
-    //   const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].pmfmStrategies || [])
-    //     .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.TRIP);
-    //   form.addControl('measurements', this.measurementsValidatorService.getFormGroup(data && data.measurements, {
-    //     isOnFieldMode: opts.isOnFieldMode,
-    //     pmfms
-    //   }));
-    // }
+    if (opts && opts.withMeasurements) {
+      const measForm = form.get('measurementValues') as FormGroup;
+      const pmfms = (opts.strategy && opts.strategy.denormalizedPmfms)
+        || (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms)
+        || [];
+      pmfms
+        .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.LANDING)
+        .forEach(p => {
+          const key = p.pmfmId.toString();
+          const value = data && data.measurementValues && data.measurementValues[key];
+          measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));
+        });
+    }
 
     return form;
   }
@@ -74,6 +83,9 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
 
     opts.withObservers = toBoolean(opts.withObservers,
       opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE) || false);
+
+    opts.withStrategy = toBoolean(opts.withStrategy,
+      opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE) || false);
 
     opts.withMeasurements = toBoolean(opts.withMeasurements,  toBoolean(!!opts.program, false));
 

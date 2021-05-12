@@ -1,5 +1,4 @@
 import {ChangeDetectorRef, Component, EventEmitter, Input, OnInit} from '@angular/core';
-import {FormArrayHelper, ReferentialRef} from "../../core/core.module";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {FormArray, FormBuilder} from "@angular/forms";
@@ -12,10 +11,11 @@ import {VesselActivity} from "../services/model/aggregated-landing.model";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {VesselActivityValidatorService} from "../services/validator/vessel-activity.validator";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {ProgramService} from "../../referential/services/program.service";
 import {METIER_DEFAULT_FILTER, MetierFilter} from "../../referential/services/metier.service";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
+import {FormArrayHelper} from "../../core/form/form.utils";
+import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 @Component({
   selector: 'app-vessel-activity-form',
@@ -45,7 +45,7 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
     protected dateAdapter: DateAdapter<Moment>,
     protected formBuilder: FormBuilder,
     protected dataService: AggregatedLandingService,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected validatorService: VesselActivityValidatorService,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected referentialRefService: ReferentialRefService,
@@ -54,7 +54,7 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
     public network: NetworkService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd, null,
+    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, null,
       {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       });
@@ -119,7 +119,7 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
     this.metiersHelper.removeAt(index);
   }
 
-  protected mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
+  protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
     return pmfms.filter(p => p.required);
   }
 }

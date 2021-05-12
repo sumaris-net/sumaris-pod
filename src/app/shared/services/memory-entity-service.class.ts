@@ -1,9 +1,8 @@
 import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {EntitiesService, isNotNil, LoadResult} from "../../core/core.module";
 import {EntityUtils, IEntity} from "../../core/services/model/entity.model";
 import {filter, mergeMap} from "rxjs/operators";
-import {isNotEmptyArray} from "../functions";
-import {FilterFnFactory} from "./entity-service.class";
+import {isNotEmptyArray, isNotNil} from "../functions";
+import {FilterFnFactory, IEntitiesService, LoadResult} from "./entity-service.class";
 import {SortDirection} from "@angular/material/sort";
 
 export interface InMemoryEntitiesServiceOptions<T, F> {
@@ -15,7 +14,7 @@ export interface InMemoryEntitiesServiceOptions<T, F> {
   onFilter?: (data: T[], filter: F) => T[] | Promise<T[]>;
 }
 
-export class InMemoryEntitiesService<T extends IEntity<T>, F = any> implements EntitiesService<T, F> {
+export class InMemoryEntitiesService<T extends IEntity<T>, F = any> implements IEntitiesService<T, F> {
 
   private _dataSubject = new BehaviorSubject<LoadResult<T>>(undefined);
 
@@ -114,7 +113,7 @@ export class InMemoryEntitiesService<T extends IEntity<T>, F = any> implements E
 
           return {
             data,
-            total: res && res.total || data.length
+            total: res && res.total || data.length // FIXME: total should be always = data.length, because res.total still has the previous unfiltered data length
           };
         })
       );

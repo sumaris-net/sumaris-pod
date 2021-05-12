@@ -1,5 +1,9 @@
 import {FetchPolicy} from "@apollo/client/core";
 import {StorageConfig} from "@ionic/storage";
+import {InjectionToken} from "@angular/core";
+
+export const ENVIRONMENT = new InjectionToken<Environment>("ENV");
+
 export class Environment {
   name: string;
   version: string;
@@ -34,5 +38,5 @@ export class Environment {
   defaultAndroidInstallUrl?: string;
 
   // Storage
-  storage?: Partial<StorageConfig>
+  storage?: Partial<StorageConfig>;
 }

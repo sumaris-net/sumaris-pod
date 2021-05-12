@@ -12,7 +12,7 @@
       </ion-button>
 
       <!-- show menu button -->
-      <ion-menu-toggle [hidden]="canGoBack">
+      <ion-menu-toggle [hidden]="canGoBack || !canShowMenu">
         <ion-button>
           <ion-icon slot="icon-only" name="menu"></ion-icon>
         </ion-button>
@@ -62,6 +62,8 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+
+  <!-- progress bar -->
   <mat-progress-bar [color]="color" [mode]="$progressBarMode | async">
   </mat-progress-bar>
 </ion-header>

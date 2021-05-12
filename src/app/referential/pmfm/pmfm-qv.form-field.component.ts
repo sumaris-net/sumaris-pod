@@ -1,16 +1,20 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
   forwardRef,
+  Inject,
   Input,
   OnDestroy,
   OnInit,
   Optional,
   Output,
-  ViewChild
+  QueryList,
+  ViewChild,
+  ViewChildren
 } from '@angular/core';
 import {merge, Observable, of} from 'rxjs';
 import {filter, map, takeUntil, tap} from 'rxjs/operators';
@@ -21,17 +25,20 @@ import {FloatLabelType} from "@angular/material/form-field";
 
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
-import {isEmptyArray, isNotEmptyArray, isNotNil, sort, suggestFromArray, toBoolean} from "../../shared/functions";
-import {AppFormUtils, ReferentialRef, referentialToString} from "../../core/core.module";
+import {isEmptyArray, isNotEmptyArray, isNotNil, sort, suggestFromArray, toBoolean, toNumber} from "../../shared/functions";
 import {focusInput, InputElement} from "../../shared/inputs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {PmfmIds} from "../services/model/model.enum";
-import {Pmfm} from "../services/model/pmfm.model";
-import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {IPmfm, Pmfm} from "../services/model/pmfm.model";
+import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {IonButton} from "@ionic/angular";
+import {DOCUMENT} from "@angular/common";
+import {AppFormUtils} from "../../core/form/form.utils";
 
 @Component({
   selector: 'app-pmfm-qv-field',
+  styleUrls: ['./pmfm-qv.form-field.component.scss'],
   templateUrl: './pmfm-qv.form-field.component.html',
   providers: [
     {
@@ -56,6 +63,8 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   mobile = false;
   selectedIndex = -1;
   _tabindex: number;
+  showAllButtons = false;
+  buttonsColCount: number;
 
   get nativeElement(): any {
     return this.matInput && this.matInput.nativeElement;
@@ -64,7 +73,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input()
   displayWith: (obj: ReferentialRef | any) => string;
 
-  @Input() pmfm: PmfmStrategy|Pmfm;
+  @Input() pmfm: IPmfm;
 
   @Input() formControl: FormControl;
 
@@ -88,6 +97,8 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   @Input() sortAttribute: string;
 
+  @Input() maxVisibleButtons: number;
+
   @Input() set tabindex(value: number) {
     this._tabindex = value;
     this.markForCheck();
@@ -109,10 +120,13 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   @ViewChild('matInput') matInput: ElementRef;
 
+  @ViewChildren('button') buttons: QueryList<IonButton>;
+
   constructor(
     private platform: PlatformService,
     private settings: LocalSettingsService,
     private cd: ChangeDetectorRef,
+    @Inject(DOCUMENT) private document: HTMLDocument,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
     this.mobile = platform.mobile;
@@ -128,14 +142,17 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-qv-field>.");
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
-    this._qualitativeValues = this.pmfm.qualitativeValues;
-    if (isEmptyArray(this._qualitativeValues) && this.pmfm instanceof Pmfm) {
-      this._qualitativeValues = this.pmfm.parameter && this.pmfm.parameter.qualitativeValues || [];
-      if (isEmptyArray(this._qualitativeValues)) {
-        console.warn(`The PMFM {label: '${this.pmfm.label}'} has no qualitative values, neither in the PmfmStrategy, nor in Parameter!` );
+    this._qualitativeValues = this.pmfm.qualitativeValues || [];
+    if (isEmptyArray(this._qualitativeValues)) {
+      if (this.pmfm instanceof Pmfm) {
+        // Get qualitative values from parameter
+        this._qualitativeValues = this.pmfm.parameter && this.pmfm.parameter.qualitativeValues || [];
+        if (isEmptyArray(this._qualitativeValues)) {
+          console.warn(`Pmfm {id: ${this.pmfm.id}, label: '${this.pmfm.label}'} has no qualitative values, neither the parent PmfmStrategy!`, this.pmfm);
+        }
       }
     }
-    this.required = toBoolean(this.required, (this.pmfm instanceof PmfmStrategy && this.pmfm.isMandatory));
+    this.required = toBoolean(this.required, this.pmfm.required || false);
 
     this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
 
@@ -149,7 +166,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
       sort(this._qualitativeValues, this.sortAttribute) :
       this._qualitativeValues;
 
-    this.placeholder = this.placeholder || this.pmfm.name || this.computePlaceholder(this.pmfm, this._sortedQualitativeValues);
+    this.placeholder = this.placeholder || getPmfmName(this.pmfm, {withUnit: !this.compact});
     this.displayWith = this.displayWith || ((obj) => referentialToString(obj, displayAttributes));
     this.clearable = this.compact ? false : this.clearable;
 
@@ -171,27 +188,27 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
               map(value => suggestFromArray(this._sortedQualitativeValues, value, {
                 searchAttributes: this.searchAttributes
               })),
-              tap(res => this.updateImplicitValue(res))
+              map(res => res && res.data),
+              tap(items => this.updateImplicitValue(items))
             )
         );
       }
     }
 
-
     // If button, listen enable/disable changes (hack using statusChanges)
     if (this.style === 'button') {
+
+      this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 10);
+      if (this._qualitativeValues.length < this.maxVisibleButtons) {
+        this.maxVisibleButtons = 999; // Not need to limit
+      }
+      this.buttonsColCount = Math.min(Math.min(this.maxVisibleButtons, this._qualitativeValues.length), 10);
 
       this.formControl.statusChanges
         .pipe(
           takeUntil(this._onDestroy)
         )
-        .subscribe(() => {
-          /*if (this.disabled !== this.formControl.disabled) {
-            this.disabled = !this.disabled;
-            this.markForCheck();
-          }*/
-          this.markForCheck();
-        });
+        .subscribe(() => this.markForCheck());
     }
   }
 
@@ -229,11 +246,6 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   setDisabledState(isDisabled: boolean): void {
 
-  }
-
-  computePlaceholder(pmfm: PmfmStrategy|Pmfm, sortedQualitativeValues: ReferentialRef[]): string {
-    if (!sortedQualitativeValues || !sortedQualitativeValues.length) return pmfm && pmfm.name;
-    return sortedQualitativeValues.reduce((res, qv) => (res + "/" + (qv.label || qv.name)), "").substr(1);
   }
 
   _onBlur(event: FocusEvent) {

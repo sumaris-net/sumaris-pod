@@ -1,11 +1,4 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
-import {
-  AppTable,
-  environment,
-  ReferentialRef,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
-} from "../../core/core.module";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
@@ -14,6 +7,10 @@ import {DefaultStatusList} from "../../core/services/model/referential.model";
 import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {debounceTime, filter} from "rxjs/operators";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {environment} from "../../../environments/environment";
+import {Entity} from "../../core/services/model/entity.model";
+import {ReferentialFilter} from "../services/referential.service";
 
 
 @Component({
@@ -22,7 +19,7 @@ import {debounceTime, filter} from "rxjs/operators";
   styleUrls: ['./referential-ref.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ReferentialRefTable extends AppTable<ReferentialRef, ReferentialRefFilter> {
+export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilter> extends AppTable<T, F> {
 
   statusList = DefaultStatusList;
   statusById: any;
@@ -43,19 +40,10 @@ export class ReferentialRefTable extends AppTable<ReferentialRef, ReferentialRef
     return this.filter.entityName;
   }
 
-  /*@Input('datasource') set datasourceInput(datasource: AppTableDataSource<ReferentialRef, ReferentialRefFilter>) {
-    super.setDatasource(datasource);
-  }*/
-
-  // get dirty(): boolean {
-  //   return this._dirty || this.memoryDataService.dirty;
-  // }
-
   constructor(
     protected injector: Injector,
-    protected referentialRefService: ReferentialRefService,
     formBuilder: FormBuilder,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
   ) {
     super(injector.get(ActivatedRoute),
       injector.get(Router),

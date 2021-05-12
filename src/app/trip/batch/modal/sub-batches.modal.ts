@@ -6,16 +6,17 @@ import {SubBatchForm} from "../form/sub-batch.form";
 import {SubBatchValidatorService} from "../../services/validator/sub-batch.validator";
 import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from "../table/sub-batches.table";
 import {AppMeasurementsTableOptions} from "../../measurement/measurements.table.class";
-import {AppFormUtils, isNil} from "../../../core/core.module";
-import {Animation, ModalController} from "@ionic/angular";
-import {isEmptyArray, isNotNilOrBlank, toBoolean} from "../../../shared/functions";
+import {Animation, IonContent, ModalController} from "@ionic/angular";
+import {isEmptyArray, isNil, isNotNilOrBlank, toBoolean} from "../../../shared/functions";
 import {AudioProvider} from "../../../shared/audio/audio";
 import {Alerts} from "../../../shared/alerts";
 import {isObservable, Observable, of, Subject} from "rxjs";
 import {createAnimation} from "@ionic/core";
 import {SubBatch} from "../../services/model/subbatch.model";
 import {BatchGroup} from "../../services/model/batch-group.model";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {AppFormUtils} from "../../../core/form/form.utils";
+import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
@@ -74,6 +75,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   }
 
   @ViewChild('form', { static: true }) form: SubBatchForm;
+  @ViewChild(IonContent) content: IonContent;
 
   get dirty(): boolean {
     return this._dirty || (this.form && this.form.dirty);
@@ -108,7 +110,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
     // TODO: for DEV only ---
     //this.debug = !environment.production;
-
   }
 
   async ngOnInit() {
@@ -170,15 +171,22 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
       });
   }
 
-  protected mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
+  async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {
+    this.scrollToTop();
+
+    return super.doSubmitForm(event, row);
+  }
+
+  protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
     pmfms = super.mapPmfms(pmfms);
 
     const parentTaxonGroupId = this.parentGroup && this.parentGroup.taxonGroup && this.parentGroup.taxonGroup.id;
     if (isNil(parentTaxonGroupId)) return pmfms;
 
     // Filter using parent's taxon group
-    return pmfms.filter(pmfm => isEmptyArray(pmfm.taxonGroupIds) ||
-      pmfm.taxonGroupIds.includes(parentTaxonGroupId));
+    return pmfms.filter(pmfm => !(pmfm instanceof DenormalizedPmfmStrategy)
+      || isEmptyArray(pmfm.taxonGroupIds)
+      || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
   }
 
   async cancel(event?: UIEvent) {
@@ -393,4 +401,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     }, 1500);
   }
 
+
+  async scrollToTop() {
+    return this.content.scrollToTop();
+  }
 }

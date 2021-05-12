@@ -1,4 +1,3 @@
-import {isNil, isNotNil} from "../../../core/core.module";
 import {
   NOT_MINIFY_OPTIONS,
   ReferentialAsObjectOptions,
@@ -7,8 +6,9 @@ import {
 } from "../../../core/services/model/referential.model";
 import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {IEntityWithMeasurement, MeasurementFormValues, MeasurementValuesUtils} from "./measurement.model";
-import {equalsOrNil, isNotNilOrBlank} from "../../../shared/functions";
+import {equalsOrNil, isNil, isNotNil, isNotNilOrBlank} from "../../../shared/functions";
 import {IEntity} from "../../../core/services/model/entity.model";
+import {Sample} from "./sample.model";
 
 export interface IWithProductsEntity<T> extends IEntity<T> {
   products: Product[];
@@ -69,7 +69,6 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
   saleType: ReferentialRef;
 
   measurementValues: MeasurementFormValues;
-  saleProducts: Product[];
 
   operationId: number;
   saleId: number;
@@ -78,6 +77,10 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
 
   // used only for table column
   parent: IWithProductsEntity<any>;
+
+  // Not serialized
+  saleProducts: Product[];
+  samples: Sample[];
 
   constructor() {
     super();
@@ -93,6 +96,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
 
     this.measurementValues = {};
     this.saleProducts = [];
+    this.samples = [];
     this.operationId = null;
     this.saleId = null;
     this.landingId = null;
@@ -110,16 +114,21 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true} as ReferentialAsObjectOptions) || undefined;
     target.saleType = this.saleType && this.saleType.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
 
-    // target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
 
-    target.saleProducts = this.saleProducts && this.saleProducts.map(s => s.asObject(opts)) || [];
+    if (!opts || opts.minify !== true) {
+      target.saleProducts = this.saleProducts && this.saleProducts.map(s => s.asObject(opts)) || [];
+      target.samples = this.samples && this.samples.map(s => s.asObject({...opts, withChildren: false})) || [];
+    } else {
+      delete target.saleProducts;
+      delete target.samples;
+    }
 
     delete target.parent;
     return target;
   }
 
-  fromObject(source: any, opts?: { withChildren: boolean; }): Product {
+  fromObject(source: any): Product {
     super.fromObject(source);
     this.label = source.label;
     this.comments = source.comments;
@@ -141,6 +150,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.measurementValues = source.measurementValues && {...source.measurementValues};
 
     this.saleProducts = source.saleProducts && source.saleProducts.map(saleProduct => Product.fromObject(saleProduct)) || [];
+    this.samples = source.samples && source.samples.map(source => Sample.fromObject(source)) || [];
 
     return this;
   }
@@ -156,5 +166,14 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
         && equalsOrNil(this.individualCount, other.individualCount) && equalsOrNil(this.weight, other.weight)
         && equalsOrNil(this.subgroupCount, other.subgroupCount) && ReferentialUtils.equals(this.saleType, other.saleType)
       );
+  }
+}
+
+export class ProductUtils {
+
+  static isSampleOfProduct(product: Product, sample: Sample): boolean {
+    return product && sample
+      && product.operationId === sample.operationId
+      && product.taxonGroup && sample.taxonGroup && product.taxonGroup.equals(sample.taxonGroup)
   }
 }

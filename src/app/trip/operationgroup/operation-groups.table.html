@@ -96,21 +96,15 @@
   </ng-container>
 
   <!-- Pmfm columns -->
-  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
-    <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
-      <ion-label>{{getPmfmColumnHeader(pmfm)}}
-        <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unitLabel}})</small>
-      </ion-label>
+  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.id.toString()">
+    <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
+      <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
     </mat-header-cell>
-<!--    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">-->
-<!--      {{measurementValueToString(row.currentData.measurementValues[pmfm.pmfmId], pmfm) }}-->
-<!--    </mat-cell>-->
-
-    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate"
-              [class.mat-cell-computed]="pmfm.isComputed">
+    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm|isDatePmfm"
+              [class.mat-cell-computed]="pmfm|isComputedPmfm">
       <app-pmfm-field
         [readonly]="!row.editing"
-        [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
+        [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.id]"
         [compact]="true" floatLabel="never"></app-pmfm-field>
     </mat-cell>
 
@@ -122,7 +116,9 @@
     <mat-header-cell *matHeaderCellDef>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-icon color="medium" name="chatbox" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
+      <mat-icon class="comment"
+                *ngIf="row.currentData.comments"
+                [title]="row.currentData.comments">chat_bubble</mat-icon>
     </mat-cell>
   </ng-container>
 

@@ -15,7 +15,7 @@ export class MatNumpadComponent implements MatNumpadRef {
 
   @Input() keymap: MatNumpadKeymap = DEFAULT_KEYMAP;
 
-  @Input() decimal: boolean = true
+  @Input() decimal = true;
 
   @Input() appendToInput: boolean;
   @Input() disableAnimation = false;

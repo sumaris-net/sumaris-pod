@@ -16,8 +16,7 @@ import {
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion} from "../services/model/extraction.model";
 import {Location} from "@angular/common";
-import {Color, ColorScale, fadeInAnimation, fadeInOutAnimation} from "../../shared/shared.module";
-import {ColorScaleLegendItem} from "../../shared/graph/graph-colors";
+import {Color, ColorScale, ColorScaleLegendItem} from "../../shared/graph/graph-colors";
 import * as L from 'leaflet';
 import {CRS, GeoJSON, MapOptions, WMSParams} from 'leaflet';
 import {Feature} from "geojson";
@@ -30,7 +29,6 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from "@ngx-translate/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
-import {AppFormUtils} from "../../core/core.module";
 import {MatExpansionPanel} from "@angular/material/expansion";
 import {Label, SingleOrMultiDataSet} from "ng2-charts";
 import {ChartLegendOptions, ChartOptions, ChartType} from "chart.js";
@@ -40,6 +38,9 @@ import {AggregationStrata, AggregationType, IAggregationStrata} from "../service
 import {ExtractionUtils} from "../services/extraction.utils";
 import {AggregationService, AggregationTypeFilter} from "../services/aggregation.service";
 import {UnitLabel, UnitLabelPatterns} from "../../referential/services/model/model.enum";
+import {fadeInAnimation, fadeInOutAnimation} from "../../shared/material/material.animations";
+import {AppFormUtils} from "../../core/form/form.utils";
+import {StatusIds} from "../../core/services/model/model.enum";
 
 declare interface LegendOptions {
   min: number;
@@ -297,7 +298,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
 
     // If supervisor, allow to see all aggregations types
     this.typesFilter = {
-      statusIds: this.accountService.hasMinProfile("SUPERVISOR") ? [0, 1, 2] : [1],
+      statusIds: this.accountService.hasMinProfile('SUPERVISOR') ? [StatusIds.DISABLE, StatusIds.ENABLE, StatusIds.TEMPORARY] : [StatusIds.ENABLE],
       isSpatial: true
     };
 
@@ -987,7 +988,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
     }
     // If supervisor, allow to see all aggregations types
     const filter: AggregationTypeFilter = {
-      statusIds: this.accountService.hasMinProfile("SUPERVISOR") ? [0, 1, 2] : [1],
+      statusIds: this.accountService.hasMinProfile('SUPERVISOR')
+        ? [StatusIds.DISABLE, StatusIds.ENABLE, StatusIds.TEMPORARY]
+        : [StatusIds.ENABLE],
       isSpatial: true
     };
     const modal = await this.modalCtrl.create({

@@ -14,31 +14,35 @@ import {TextMaskModule} from "angular2-text-mask";
 import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
 import {MatDatepickerModule} from "@angular/material/datepicker";
 import {MatButtonModule} from "@angular/material/button";
-
+import {MatDateShort} from "./material.dateshort";
+import {SharedDirectivesModule} from "../../directives/directives.module";
 @NgModule({
-  imports: [
-    CommonModule,
-    IonicModule,
-    ReactiveFormsModule,
-    SharedPipesModule,
-    MatCommonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatIconModule,
-    MatButtonModule,
-    MatDatepickerModule,
-    TextMaskModule,
-    NgxMaterialTimepickerModule,
-    TranslateModule.forChild()
-  ],
+    imports: [
+        CommonModule,
+        IonicModule,
+        ReactiveFormsModule,
+        SharedPipesModule,
+        MatCommonModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatIconModule,
+        MatButtonModule,
+        MatDatepickerModule,
+        TextMaskModule,
+        NgxMaterialTimepickerModule,
+        TranslateModule.forChild(),
+        SharedDirectivesModule
+    ],
   exports: [
     MatIconModule,
     MatDate,
-    MatDateTime
+    MatDateTime,
+    MatDateShort
   ],
   declarations: [
     MatDate,
-    MatDateTime
+    MatDateTime,
+    MatDateShort
   ]
 })
 export class SharedMatDateTimeModule {

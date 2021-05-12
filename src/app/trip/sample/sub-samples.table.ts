@@ -1,17 +1,19 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {EntityUtils, environment, joinPropertiesPath} from "../../core/core.module";
 import {PmfmIds} from "../../referential/services/model/model.enum";
 import {SubSampleValidatorService} from "../services/validator/sub-sample.validator";
-import {isNil, isNotNil, toNumber} from "../../shared/functions";
+import {isNil, isNotNil, joinPropertiesPath, toNumber} from "../../shared/functions";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {filterNotNil, firstFalsePromise} from "../../shared/observables";
 import {Sample} from "../services/model/sample.model";
-import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy, getPmfmName} from "../../referential/services/model/pmfm-strategy.model";
 import {SortDirection} from "@angular/material/sort";
 import {PmfmValueUtils} from "../../referential/services/model/pmfm-value.model";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {environment} from "../../../environments/environment";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -41,7 +43,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
   protected cd: ChangeDetectorRef;
   protected memoryDataService: InMemoryEntitiesService<Sample, SubSampleFilter>;
 
-  displayParentPmfm: PmfmStrategy;
+  displayParentPmfm: IPmfm;
 
   @Input()
   set availableParents(parents: Sample[]) {
@@ -51,7 +53,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
 
       // Sort parents by by Tag-ID
       if (this.displayParentPmfm) {
-        this._availableSortedParents = this.sortData(parents.slice(), this.displayParentPmfm.pmfmId.toString());
+        this._availableSortedParents = this.sortData(parents.slice(), this.displayParentPmfm.id.toString());
       }
       else {
         this._availableSortedParents = this.sortData(parents.slice(), 'taxonGroup');
@@ -125,17 +127,17 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
     this.registerSubscription(
       filterNotNil(this.$pmfms)
         .subscribe((pmfms) => {
-          this.displayParentPmfm = pmfms.find(p => p.pmfmId === PmfmIds.TAG_ID);
+          this.displayParentPmfm = pmfms.find(p => p.id === PmfmIds.TAG_ID);
           const displayAttributes = this.settings.getFieldDisplayAttributes('taxonName')
             .map(key => 'taxonName.' + key);
           if (this.displayParentPmfm) {
-            this.autocompleteFields.parent.attributes = [`measurementValues.${this.displayParentPmfm.pmfmId}`].concat(displayAttributes);
+            this.autocompleteFields.parent.attributes = [`measurementValues.${this.displayParentPmfm.id}`].concat(displayAttributes);
             this.autocompleteFields.parent.columnSizes = [4].concat(displayAttributes.map(attr =>
               // If label then col size = 2
               attr.endsWith('label') ? 2 : undefined));
             this.autocompleteFields.parent.columnNames = [getPmfmName(this.displayParentPmfm)];
             this.autocompleteFields.parent.displayWith = (obj) => obj && obj.measurementValues
-              && PmfmValueUtils.valueToString(obj.measurementValues[this.displayParentPmfm.pmfmId], {pmfm: this.displayParentPmfm})
+              && PmfmValueUtils.valueToString(obj.measurementValues[this.displayParentPmfm.id], {pmfm: this.displayParentPmfm})
               || undefined;
           } else {
             this.autocompleteFields.parent.attributes = displayAttributes;
@@ -149,7 +151,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
 
   async autoFillTable() {
     // Wait table is ready
-    await this.onReady();
+    await this.ready();
 
     // Wait table is loaded
     if (this.loading) {
@@ -192,7 +194,6 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
   /**
    * Allow to set value
    * @param data
-   * @param opts
    */
   setValue(data: Sample[]) {
     this.memoryDataService.value = data;
@@ -223,7 +224,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
   protected getI18nColumnName(columnName: string): string {
 
     // Replace parent by TAG_ID pmfms
-    columnName = columnName && columnName === 'parent' && this.displayParentPmfm ? this.displayParentPmfm.pmfmId.toString() : columnName;
+    columnName = columnName && columnName === 'parent' && this.displayParentPmfm ? this.displayParentPmfm.id.toString() : columnName;
 
     return super.getI18nColumnName(columnName);
   }
@@ -310,7 +311,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
 
     if (this.debug) console.debug(`[sub-sample-table] Searching parent {${value || '*'}}...`);
     if (this.displayParentPmfm) { // Search on a specific Pmfm (e.g Tag-ID)
-      return this._availableSortedParents.filter(p => this.startsWithUpperCase(p.measurementValues[this.displayParentPmfm.pmfmId], value));
+      return this._availableSortedParents.filter(p => this.startsWithUpperCase(p.measurementValues[this.displayParentPmfm.id], value));
     }
     // Search on rankOrder
     return this._availableSortedParents.filter(p => p.rankOrder.toString().startsWith(value));

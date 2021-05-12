@@ -14,18 +14,19 @@ import {AccountService} from '../services/account.service';
 import {Account, accountToString} from '../services/model/account.model';
 import {Configuration} from '../services/model/config.model';
 import {Department} from '../services/model/department.model';
-import {HistoryPageReference, Locales, LocalSettings} from '../services/model/settings.model';
+import {APP_LOCALES, HistoryPageReference, LocaleConfig, LocalSettings} from '../services/model/settings.model';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfigService} from '../services/config.service';
-import {fadeInAnimation, isNotNil, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
 import {PlatformService} from "../services/platform.service";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {debounceTime, distinctUntilChanged, map, startWith} from "rxjs/operators";
 import {AuthModal} from "../auth/modal/modal-auth";
-import {environment} from "../../../environments/environment";
 import {NetworkService} from "../services/network.service";
 import {MenuItem, MenuItems} from "../menu/menu.component";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
+import {fadeInAnimation, slideUpDownAnimation} from "../../shared/material/material.animations";
+import {isNotNil, isNotNilOrBlank} from "../../shared/functions";
+import {ENVIRONMENT} from "../../../environments/environment.class";
 
 export function getRandomImage(files: String[]) {
   const imgIndex = Math.floor(Math.random() * files.length);
@@ -65,11 +66,9 @@ export class HomePage implements OnDestroy {
   offline: boolean;
   $filteredButtons = new BehaviorSubject<MenuItem[]>(undefined);
 
-  locales = Locales;
-
   get currentLocaleCode(): string {
     return this.loading ? '' :
-    (this.translate.currentLang || this.translate.defaultLang).substr(0,2);
+    (this.translate.currentLang || this.translate.defaultLang).substr(0, 2);
   }
 
   constructor(
@@ -82,6 +81,8 @@ export class HomePage implements OnDestroy {
     private cd: ChangeDetectorRef,
     public network: NetworkService,
     public settings: LocalSettingsService,
+    @Inject(ENVIRONMENT) protected environment,
+    @Inject(APP_LOCALES) public locales: LocaleConfig[],
     @Optional() @Inject(APP_HOME_BUTTONS) public buttons: MenuItem[]
   ) {
 
@@ -199,10 +200,10 @@ export class HomePage implements OnDestroy {
   }
 
   protected onConfigLoaded(config: Configuration) {
-    console.debug("[home] Configuration loaded:", config);
+    console.debug("[home] Applying configuration", config);
     this._config = config;
 
-    this.appName = config.label || environment.defaultAppName || 'SUMARiS';
+    this.appName = config.label || this.environment.defaultAppName || 'SUMARiS';
     this.logo = config.largeLogo || config.smallLogo || undefined;
     this.description = config.name;
     this.isWeb = this.platform.isWebOrDesktop();
@@ -219,16 +220,16 @@ export class HomePage implements OnDestroy {
           // If offline, filter on local dataURL image
           && (!this.offline || !img.startsWith('http')));
 
-      // Background image found: select one radomly
+      // Background image found: select one randomly
       if (backgroundImages.length) {
         const bgImage = getRandomImage(backgroundImages);
-        this.contentStyle = {'background-image': `url(${bgImage})`};
+        this.contentStyle = bgImage && {'background-image': `url(${bgImage})`} || {};
       }
 
       // Use background color
       else {
         const primaryColor = config.properties && config.properties['sumaris.color.primary'] || 'var(--ion-color-primary)';
-        this.contentStyle = {'background-color': primaryColor};
+        this.contentStyle = primaryColor && {'background-color': primaryColor} || {};
       }
     }
 
@@ -271,6 +272,7 @@ export class HomePage implements OnDestroy {
   }
 
   protected refreshButtons() {
+    if (!this._config) return; // Skip (waiting config to be loaded)
     if (this._debug) console.debug("[home] Refreshing buttons...");
 
     const filteredButtons = (this.buttons || [])

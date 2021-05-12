@@ -3,7 +3,7 @@
   <form-catch-batch #catchBatchForm
                     (onSubmit)="save($event)" [showError]="false" [debug]="debug"
                     acquisitionLevel="CATCH_BATCH"
-                    [program]="programSubject|async"
+                    [programLabel]="$programLabel|async"
                     [tabindex]="200">
   </form-catch-batch>
 </div>
@@ -28,7 +28,7 @@
     <!-- Batches group -->
     <app-batch-groups-table #batchGroupsTable
                             acquisitionLevel="SORTING_BATCH"
-                            [program]="programSubject | async"
+                            [programLabel]="$programLabel | async"
                             [usageMode]="usageMode"
                             [disabled]="disabled"
                             [debug]="debug"
@@ -58,7 +58,7 @@
     <app-sub-batches-table #subBatchesTable
                            *ngIf="showSubBatchesTable"
                            acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
-                           [program]="programSubject | async"
+                           [programLabel]="$programLabel | async"
                            [usageMode]="usageMode"
                            [debug]="debug"
                            [tabindex]="200">

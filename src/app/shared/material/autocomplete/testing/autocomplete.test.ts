@@ -4,6 +4,8 @@ import {SharedValidators} from "../../../validator/validators";
 import {MatAutocompleteConfigHolder} from "../material.autocomplete";
 import {isNotNil, suggestFromArray} from "../../../functions";
 import {BehaviorSubject} from "rxjs";
+import {LoadResult} from "../../../services/entity-service.class";
+import {IEntity} from "../../../../core/services/model/entity.model";
 
 export class Entity {
   id: number;
@@ -11,10 +13,10 @@ export class Entity {
   name: string;
 }
 
-const FAKE_ENTITIES: Entity[] = [
-  {id: 1, label: 'AAA', name: 'Item A'},
-  {id: 2, label: 'BBB', name: 'Item B'},
-  {id: 3, label: 'CCC', name: 'Item C'}
+const FAKE_ENTITIES= [
+  {id: 1, label: 'AAA', name: 'Item A', description: 'Very long description A', comments: 'Very very long comments... again for A'},
+  {id: 2, label: 'BBB', name: 'Item B', description: 'Very long description B', comments: 'Very very long comments... again for B'},
+  {id: 3, label: 'CCC', name: 'Item C', description: 'Very long description C', comments: 'Very very long comments... again for C'}
 ];
 
 function deepCopy(values?: Entity[]): Entity[] {
@@ -68,6 +70,13 @@ export class AutocompleteTestPage implements OnInit {
       displayWith: this.entityToString
     });
 
+    // From items
+    this.autocompleteFields.add('entity-items-large', {
+      items: FAKE_ENTITIES.slice(),
+      attributes: ['label', 'name', 'description', 'comments'],
+      displayWith: this.entityToString
+    });
+
     this.loadData();
     //setTimeout(() => this.loadData(), 1500);
 
@@ -99,7 +108,7 @@ export class AutocompleteTestPage implements OnInit {
     return [item && item.label || undefined, item && item.name || undefined].filter(isNotNil).join(' - ');
   }
 
-  async suggest(value: any, filter?: any): Promise<any[]> {
+  async suggest(value: any, filter?: any): Promise<LoadResult<any>> {
     return suggestFromArray(this._items, value, {
       ...filter,
       searchAttributes: ['label', 'name']

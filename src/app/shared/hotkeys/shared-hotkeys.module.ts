@@ -6,10 +6,6 @@ import {HotkeysDialogComponent} from "./dialog/hotkeys-dialog.component";
 import {MatDialogModule} from "@angular/material/dialog";
 import {MatCommonModule} from "@angular/material/core";
 
-export {
-  Hotkeys
-};
-
 @NgModule({
   imports: [
     CommonModule,

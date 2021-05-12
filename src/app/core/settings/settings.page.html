@@ -1,16 +1,34 @@
-<app-toolbar [title]="'SETTINGS.TITLE'|translate" color="primary" [hasValidate]="form.dirty && !saving"
-             (onValidate)="save($event)">
+<app-toolbar [title]="'SETTINGS.TITLE'|translate" color="primary"
+             [hasValidate]="form.dirty && !saving"
+             [hasClose]="!form.dirty && !saving"
+             (onValidate)="save($event)"
+             (onClose)="close($event)">
 
-  <!-- DEV -->
-  <ion-button slot="end" [matMenuTriggerFor]="matmenu">
-    <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
-  </ion-button>
+  <ion-buttons slot="end">
+    <ion-spinner *ngIf="loading || saving"></ion-spinner>
+
+    <!-- options menu -->
+    <ion-button [matMenuTriggerFor]="optionsMenu">
+      <mat-icon slot="icon-only">more_vert</mat-icon>
+    </ion-button>
+  </ion-buttons>
 </app-toolbar>
 
 <!-- Options menu -->
-<mat-menu #matmenu="matMenu">
+<mat-menu #optionsMenu="matMenu">
+  <!-- Clear cache -->
   <button mat-menu-item (click)="clearCache($event)">
     <ion-label translate>SETTINGS.BTN_CLEAR_CACHE</ion-label>
+  </button>
+
+  <!-- Reset -->
+  <button mat-menu-item
+          [disabled]="!dirty"
+          (click)="cancel($event)">
+    <ion-label>
+      <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <span translate>COMMON.BTN_RESET</span>
+    </ion-label>
   </button>
 </mat-menu>
 
@@ -71,8 +89,8 @@
           <!-- locale -->
           <mat-form-field>
             <mat-select [placeholder]="'SETTINGS.LOCALE'|translate" formControlName="locale" required>
-              <mat-option *ngFor="let item of locales" [value]="item.id">
-                {{item.name}}
+              <mat-option *ngFor="let item of locales" [value]="item.key">
+                {{item.value}}
               </mat-option>
             </mat-select>
             <mat-error *ngIf="form.controls.locale.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
