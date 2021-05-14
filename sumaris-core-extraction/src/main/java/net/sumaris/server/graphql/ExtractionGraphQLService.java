@@ -25,16 +25,20 @@ package net.sumaris.server.graphql;
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLContext;
+import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.extraction.service.ExtractionService;
+import net.sumaris.core.extraction.vo.AggregationTypeVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.PhysicalGearVO;
 import net.sumaris.core.vo.data.TripVO;
@@ -56,6 +60,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 @Service
 @Transactional
@@ -169,9 +174,9 @@ public class ExtractionGraphQLService {
         File tempFile = extractionService.executeAndDump(type, filter);
 
         // Add to download controller
-        String path = downloadController.registerFile(tempFile, true);
+        String filePath = downloadController.registerFile(tempFile, true);
 
-       return path;
+       return filePath;
     }
 
     @GraphQLQuery(name = "docUrl", description = "Get extraction documentation URL")
@@ -188,4 +193,24 @@ public class ExtractionGraphQLService {
         return null;
     }
 
+    @GraphQLMutation(name = "saveExtraction", description = "Create or update a extraction")
+    public ExtractionTypeVO saveExtraction(@GraphQLArgument(name = "type") @NonNull ExtractionTypeVO type,
+                                           @GraphQLArgument(name = "filter") ExtractionFilterVO filter
+    ) {
+        // WHen source extraction is a live extraction: force to clean id
+        if (ExtractionCategoryEnum.LIVE.equals(type.getCategory())
+            || (type.getId() != null && type.getId() < 0)) {
+            type.setId(null);
+        }
+        boolean isNew = type.getId() == null;
+        if (isNew) {
+            securityService.checkWriteAccess();
+            type.setId(null);
+        }
+        else {
+            securityService.checkWriteAccess(type.getId());
+        }
+
+        return extractionService.save(type, filter);
+    }
 }

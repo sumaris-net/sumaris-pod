@@ -62,7 +62,7 @@ public interface AggregationService {
      * @param productId
      */
     @Transactional
-    void updateProduct(int productId);
+    AggregationTypeVO updateProduct(int productId);
 
     /**
      * Do an aggregate
@@ -113,11 +113,11 @@ public interface AggregationService {
                                        @Nullable String sort,
                                        @Nullable SortDirection direction);
 
-    @Transactional
+    @Transactional(timeout = 10000000)
     AggregationTypeVO save(AggregationTypeVO type, @Nullable ExtractionFilterVO filter);
 
     @Async
-    @Transactional(timeout = -1, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(timeout = 10000000, propagation = Propagation.REQUIRES_NEW)
     CompletableFuture<AggregationTypeVO> asyncSave(AggregationTypeVO type, @Nullable ExtractionFilterVO filter);
 
     @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)

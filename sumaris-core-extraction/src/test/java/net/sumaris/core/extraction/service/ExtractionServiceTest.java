@@ -168,6 +168,24 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     }
 
 
+    @Test
+    public void saveLiveRdb() {
+        ExtractionTypeVO type = new ExtractionTypeVO();
+        type.setCategory(ExtractionCategoryEnum.LIVE);
+        type.setLabel(LiveFormatEnum.RDB.name() + "-save");
+        type.setName("RDB live extraction saved as product");
+        type.setStatusId(StatusEnum.TEMPORARY.getId());
+
+        DepartmentVO recDep = new DepartmentVO();
+        recDep.setId(fixtures.getDepartmentId(0));
+        type.setRecorderDepartment(recDep);
+
+        ExtractionTypeVO savedType = service.save(type, null);
+        Assert.assertNotNull(savedType);
+        Assert.assertNotNull(savedType.getId());
+
+    }
+
     /* -- protected methods -- */
 
 

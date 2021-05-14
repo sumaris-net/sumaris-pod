@@ -76,6 +76,10 @@ public class ExtractionConfiguration {
         }
     }
 
+    public String getJdbcURL() {
+        return delegate.getJdbcURL();
+    }
+
     public boolean enableExtractionProduct() {
         return getApplicationConfig().getOptionAsBoolean(ExtractionConfigurationOption.EXTRACTION_PRODUCT_ENABLE.getKey());
     }
@@ -90,6 +94,18 @@ public class ExtractionConfiguration {
 
     public ApplicationConfig getApplicationConfig() {
         return delegate.getApplicationConfig();
+    }
+
+    /**
+     * Extraction query timeout, in millisecond
+     * @return
+     */
+    public int getExtractionQueryTimeout() {
+        return getApplicationConfig().getOptionAsInt(ExtractionConfigurationOption.EXTRACTION_QUERY_TIMEOUT.getKey());
+    }
+
+    public String getCsvSeparator() {
+        return delegate.getCsvSeparator();
     }
 
 }

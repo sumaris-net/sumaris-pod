@@ -31,6 +31,7 @@ import com.google.common.collect.Maps;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.config.ExtractionCacheConfiguration;
 import net.sumaris.core.extraction.dao.AggregationDao;
@@ -324,21 +325,14 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
-    public void updateProduct(int productId) {
+    public AggregationTypeVO updateProduct(int productId) {
 
-        ExtractionProductVO target = productService.findById(productId, ExtractionProductFetchOptions.FOR_UPDATE).orElse(null);
-        Collection<String> existingTablesToDrop = Lists.newArrayList(target.getTableNames());
+        ExtractionProductVO target = productService.findById(productId, ExtractionProductFetchOptions.FOR_UPDATE)
+            .orElseThrow(() -> new DataNotFoundException(String.format("Unknown product {id: %s}", productId)));
+        Collection<String> tablesToDrop = Lists.newArrayList(target.getTableNames());
 
         // Read filter
-        ExtractionFilterVO filter = null;
-        if (StringUtils.isNotBlank(target.getFilter())) {
-            try {
-                filter = objectMapper.readValue(target.getFilter(), ExtractionFilterVO.class);
-            }
-            catch(Exception e) {
-                throw new SumarisTechnicalException("Unparseable filter string: " + e.getMessage(), e);
-            }
-        }
+        ExtractionFilterVO filter = readFilter(target.getFilter());
 
         String rawFormat = target.getRawFormatLabel();
         if (rawFormat.startsWith(AggSpecification.FORMAT_PREFIX)) {
@@ -360,7 +354,10 @@ public class AggregationServiceImpl implements AggregationService {
         productService.save(target);
 
         // Drop old tables
-        dropTables(existingTablesToDrop);
+        dropTables(tablesToDrop);
+
+        // Transform to type
+        return toAggregationType(target);
     }
 
     @Override
@@ -374,7 +371,7 @@ public class AggregationServiceImpl implements AggregationService {
         Preconditions.checkNotNull(source);
         Preconditions.checkNotNull(source.getLabel());
         Preconditions.checkNotNull(source.getName());
-        Collection<String> existingTablesToDrop = Lists.newArrayList();
+        Collection<String> tablesToDrop = Lists.newArrayList();
 
         // Load the product
         ExtractionProductVO target = null;
@@ -394,7 +391,8 @@ public class AggregationServiceImpl implements AggregationService {
             String previousLabel = target.getLabel();
             Preconditions.checkArgument(previousLabel.equalsIgnoreCase(source.getLabel()), "Cannot change a product label");
 
-            filter = filter != null ? filter : readFilterString(target.getFilter());
+            // If not given in arguments, parse the product's filter string
+            filter = filter != null ? filter : readFilter(target.getFilter());
 
         }
 
@@ -413,19 +411,22 @@ public class AggregationServiceImpl implements AggregationService {
 
             // Should clean existing table
             if (!isNew) {
-                existingTablesToDrop.addAll(target.getTableNames());
+                tablesToDrop.addAll(Beans.getList(target.getTableNames()));
             }
 
-            // Prepare a executable type (with label=format)
-            AggregationTypeVO executableType = new AggregationTypeVO();
-            executableType.setLabel(source.getRawFormatLabel());
-            executableType.setCategory(source.getCategory());
-
             // Execute the aggregation
-            AggregationContextVO context = aggregate(executableType, filter, null);
+            {
+                // Prepare a executable type (with label=format)
+                AggregationTypeVO executableType = new AggregationTypeVO();
+                executableType.setLabel(source.getRawFormatLabel());
+                executableType.setCategory(source.getCategory());
 
-            // Update product tables, using the aggregation result
-            toProductVO(context, target);
+                // Execute the aggregation
+                AggregationContextVO context = aggregate(executableType, filter, null);
+
+                // Update product, using the aggregation result
+                toProductVO(context, target);
+            }
 
             // Copy some properties from the given type
             target.setName(source.getName());
@@ -464,7 +465,7 @@ public class AggregationServiceImpl implements AggregationService {
         target = productService.save(target);
 
         // Drop old tables
-        dropTables(existingTablesToDrop);
+        dropTables(tablesToDrop);
 
         // Transform back to type
         return toAggregationType(target);
@@ -688,8 +689,9 @@ public class AggregationServiceImpl implements AggregationService {
         }
     }
 
-    protected ExtractionFilterVO readFilterString(String json) {
+    protected ExtractionFilterVO readFilter(String json) {
         if (StringUtils.isBlank(json)) return null;
+
         try {
             return objectMapper.readValue(json, ExtractionFilterVO.class);
         }

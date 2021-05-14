@@ -26,13 +26,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.vo.ExtractionContextVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
@@ -41,9 +41,12 @@ import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.query.internal.NativeQueryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.orm.hibernate5.SessionHolder;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.Query;
@@ -62,7 +65,7 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
     protected static final String XSL_ORACLE_FILENAME = "xmlQuery/queryOracle.xsl";
 
     @Autowired
-    protected SumarisConfiguration configuration;
+    protected ExtractionConfiguration configuration;
 
     @Autowired
     protected ReferentialService referentialService;
@@ -73,15 +76,17 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
     @Autowired
     protected SumarisDatabaseMetadata databaseMetadata;
 
-
     protected DatabaseType databaseType = null;
 
     protected String dropTableQuery;
+
+    protected int hibernateQueryTimeout;
 
     @PostConstruct
     public void init() {
         this.databaseType = Daos.getDatabaseType(configuration.getJdbcURL());
         this.dropTableQuery = getDialect().getDropTableString("%s");
+        this.hibernateQueryTimeout = Math.max(1, Math.round(configuration.getExtractionQueryTimeout() / 1000));
     }
 
     protected Dialect getDialect() {
@@ -103,19 +108,19 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
 
     @SuppressWarnings("unchecked")
     protected <R> List<R> query(String query, Class<R> jdbcClass) {
-        Query nativeQuery = getEntityManager().createNativeQuery(query);
+        Query nativeQuery = createNativeQuery(query);
         Stream<R> resultStream = (Stream<R>) nativeQuery.getResultStream().map(jdbcClass::cast);
         return resultStream.collect(Collectors.toList());
     }
 
     protected <R> List<R> query(String query, Function<Object[], R> rowMapper) {
-        Query nativeQuery = getEntityManager().createNativeQuery(query);
+        Query nativeQuery = createNativeQuery(query);
         Stream<Object[]> resultStream = (Stream<Object[]>) nativeQuery.getResultStream();
         return resultStream.map(rowMapper).collect(Collectors.toList());
     }
 
     protected <R> List<R> query(String query, Function<Object[], R> rowMapper, int offset, int size) {
-        Query nativeQuery = getEntityManager().createNativeQuery(query)
+        Query nativeQuery = createNativeQuery(query)
                 .setFirstResult(offset)
                 .setMaxResults(size);
         Stream<Object[]> resultStream = (Stream<Object[]>) nativeQuery.getResultStream();
@@ -125,7 +130,7 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
 
     protected int queryUpdate(String query) {
         if (log.isDebugEnabled()) log.debug("execute update: " + query);
-        Query nativeQuery = getEntityManager().createNativeQuery(query);
+        Query nativeQuery = createNativeQuery(query);
         return nativeQuery.executeUpdate();
     }
 
@@ -154,7 +159,7 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
 
     protected long queryCount(String query) {
         if (log.isDebugEnabled()) log.debug("aggregate: " + query);
-        Query nativeQuery = getEntityManager().createNativeQuery(query);
+        Query nativeQuery = createNativeQuery(query);
         Object result = nativeQuery.getSingleResult();
         if (result == null)
             throw new DataRetrievalFailureException(String.format("query count result is null.\nquery: %s", query));
@@ -236,5 +241,20 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
             String sql = String.format("ALTER TABLE %s DROP column %s", tableName, columnName);
             queryUpdate(sql);
         });
+    }
+
+    /**
+     * Create a native query, with the timeout for extraction (should b longer than the default timeout)
+     * @param sql
+     * @return
+     */
+    protected Query createNativeQuery(String sql) {
+        Query query = getEntityManager().createNativeQuery(sql);
+
+        // Set the query timeout (in seconds)
+        query.unwrap(org.hibernate.query.Query.class)
+            .setTimeout(this.hibernateQueryTimeout);
+
+        return query;
     }
 }

@@ -72,6 +72,13 @@ public enum ExtractionConfigurationOption implements ConfigOptionDef {
             n("sumaris.config.option.extraction.product.enable.description"),
             Boolean.FALSE.toString(),
             Boolean.class,
+        false),
+
+    EXTRACTION_QUERY_TIMEOUT(
+        "sumaris.extraction.query.timeout",
+        n("sumaris.config.option.extraction.query.timeout.description"),
+        String.valueOf(5 * 60 * 1000), // 5min
+        Integer.class,
         false)
     ;
 

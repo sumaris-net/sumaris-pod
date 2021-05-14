@@ -75,18 +75,18 @@ public interface TripService extends IRootDataQualityService<TripVO> {
 
 	List<TripVO> save(List<TripVO> trips, TripSaveOptions saveOptions);
 
-	@Transactional(timeout = -1)
+	@Transactional
 	@Async
 	CompletableFuture<Boolean> asyncDelete(int id);
 
-	@Transactional(timeout = -1)
+	@Transactional
 	@Async
 	CompletableFuture<Boolean> asyncDelete(List<Integer> ids);
 
-	@Transactional(timeout = -1)
+	@Transactional
 	void delete(List<Integer> ids);
 
-	@Transactional(timeout = -1)
+	@Transactional
 	void delete(int id);
 
 }
