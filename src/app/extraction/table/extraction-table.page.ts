@@ -46,7 +46,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   dataSource: TableDataSource<ExtractionRow>;
   settingsId: string;
   showHelp = true;
-  canAggregate = false;
+  canCreateProduct = false;
   isAdmin = false;
 
   typesByCategory$: Observable<{key: string, value: ExtractionType[]}[]>;
@@ -160,8 +160,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     const changed = await super.setType(type, opts);
 
     if (changed) {
-
-      this.canAggregate = this.type && !this.type.isSpatial && this.accountService.isSupervisor();
+      this.canCreateProduct = this.type && this.accountService.isSupervisor();
 
       this.resetPaginatorAndSort();
 
@@ -254,7 +253,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
 
   async aggregateAndSave(event?: UIEvent) {
-    if (!this.type || !this.canAggregate) return; // Skip
+    if (!this.type || !this.canCreateProduct) return; // Skip
 
     this.loading = true;
     this.error = null;

@@ -106,10 +106,10 @@
 
 <!-- aggregate menu -->
 <mat-menu #aggregateMenu="matMenu" xPosition="before">
-  <button mat-menu-item *ngIf="!type?.isSpatial" (click)="aggregateAndSave($event)">
+  <button mat-menu-item *ngIf="canCreateProduct && !type?.isSpatial" (click)="aggregateAndSave($event)">
     <ion-label translate>EXTRACTION.SPATIAL_AGGREGATION</ion-label>
   </button>
-  <button mat-menu-item *ngIf="type?.category === 'LIVE'" (click)="save($event)">
+  <button mat-menu-item *ngIf="canCreateProduct && type?.category === 'LIVE'" (click)="save($event)">
     <ion-label translate>EXTRACTION.NEW_PRODUCT</ion-label>
   </button>
 </mat-menu>
@@ -150,7 +150,7 @@
     <ion-label translate>COMMON.BTN_EDIT</ion-label>
   </button>
 
-  <button mat-menu-item *ngIf="canEdit && isAdmin"
+  <button mat-menu-item *ngIf="canEdit || isAdmin"
           (click)="delete($event)">
     <mat-icon>delete</mat-icon>
     <ion-label translate>COMMON.BTN_DELETE</ion-label>
@@ -298,7 +298,7 @@
                      [matTooltip]="'EXTRACTION.BTN_DOWNLOAD_HELP'|translate"></ion-label>
         </ion-button>
 
-        <ion-button *ngIf="canEdit"
+        <ion-button *ngIf="canCreateProduct"
                     fill="solid" color="danger"
                     [matMenuTriggerFor]="aggregateMenu"
                     [matTooltip]="'EXTRACTION.BTN_SAVE_HELP'|translate"
