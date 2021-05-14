@@ -1376,20 +1376,21 @@
   "EXTRACTION": {
     "BTN_DOWNLOAD_HELP": "Download data (CSV)",
     "BTN_SAVE_HELP": "Allow to create a product",
-    "SPATIAL_AGGREGATION": "Create a spatial aggregation",
+    "SPATIAL_AGGREGATION": "Aggregate into a spatial product",
+    "NEW_PRODUCT": "Save a simple produt",
     "BTN_PUBLISH": "Publish",
     "BTN_UNPUBLISH": "Make private",
     "BTN_OPEN_MAP": "View data on a map",
     "TYPE": "Extraction type",
     "AGGREGATION": {
-      "NEW_NAME": "New aggregation / {{name}}",
+      "NEW_NAME": "New product / {{name}}",
       "NEW": {
-        "TITLE": "New aggregation"
+        "TITLE": "New product"
       },
       "EDIT": {
-        "TITLE": "Aggregation {{name}}",
+        "TITLE": "<small>Product <br/></small>{{name}}",
         "IS_SPATIAL": "Spatial aggregation?",
-        "BTN_OPEN_MAP": "Show map",
+        "BTN_OPEN_MAP": "Show the map",
         "BTN_PREVIEW_DOC": "Preview doc",
         "STRATUM_DOTS": "Spatial layers:",
         "FORMAT_DOTS": "Documentation:",

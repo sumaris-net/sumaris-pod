@@ -355,7 +355,7 @@ export class GraphqlService {
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      let data = cache.readQuery<any, V>(opts);
+      let data = cache.readQuery<any, V>({query: opts.query, variables: opts.variables});
 
       if (data && data[opts.arrayFieldName]) {
         // Copy because immutable
@@ -416,7 +416,7 @@ export class GraphqlService {
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      let data: any = cache.readQuery(opts);
+      let data = cache.readQuery<any, V>({query: opts.query, variables: opts.variables});
 
       if (data && data[opts.arrayFieldName]) {
         // Copy because immutable
@@ -469,26 +469,30 @@ export class GraphqlService {
     }
   }
 
+  /**
+   * Remove from cache, and return if removed or not
+   * @param cache
+   * @param opts
+   */
   removeFromCachedQueryById<V = EmptyObject>(cache: ApolloCache<any>,
                                    opts: Cache.ReadQueryOptions<V, any> & {
                                      arrayFieldName: string;
                                      totalFieldName?: string;
-                                     id: string
-                                   }) {
+                                     ids: number; // Do NOT use 'id', as already used by the Apollo API
+                                   }): boolean {
 
     cache = cache || this.apollo.client.cache;
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      let data = cache.readQuery(opts);
+      let data = cache.readQuery<any, V>({query: opts.query, variables: opts.variables});
 
       if (data && data[opts.arrayFieldName]) {
         // Copy because immutable
         data = { ...data };
 
-
-        const index = data[opts.arrayFieldName].findIndex(item => item['id'] === opts.id);
-        if (index === -1) return; // Skip (nothing removed)
+        const index = data[opts.arrayFieldName].findIndex(item => item['id'] === opts.ids);
+        if (index === -1) return false; // Skip (nothing removed)
 
         // Copy, then remove deleted item
         data[opts.arrayFieldName] = data[opts.arrayFieldName].slice();
@@ -511,23 +515,31 @@ export class GraphqlService {
           variables: opts.variables,
           data
         });
+        return true;
       }
       else {
         console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.arrayFieldName);
+        return false;
       }
     } catch (err) {
       // continue
       // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
       if (this._debug) console.warn("[graphql] Error while removing from cache: ", err);
+      return false;
     }
   }
 
+  /**
+   * Remove ids from cache, and return the number of items removed
+   * @param cache
+   * @param opts
+   */
   removeFromCachedQueryByIds<V = EmptyObject>(cache: ApolloCache<any>,
                                     opts: Cache.ReadQueryOptions<V, any> & {
                                       arrayFieldName: string;
                                       totalFieldName?: string;
                                       ids: number[]
-                                    }) {
+                                    }): number {
 
     cache = cache || this.apollo.client.cache;
     opts.arrayFieldName = opts.arrayFieldName || 'data';
@@ -543,7 +555,7 @@ export class GraphqlService {
           return opts.ids.includes(item['id']) ? res.concat(index) : res;
         }, []);
 
-        if (deletedIndexes.length <= 0) return; // Skip (nothing removed)
+        if (deletedIndexes.length <= 0) return 0; // Skip (nothing removed)
 
         // Query has NO total
         if (isNil(opts.totalFieldName)) {
@@ -574,22 +586,27 @@ export class GraphqlService {
             data[opts.totalFieldName] -= deletedIndexes.length; // Remove deletion count
           }
           else {
-            console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.totalFieldName);
+            console.warn('[graphql] Unable to update the total in cached query. Unknown result part: ' + opts.totalFieldName);
           }
+
           cache.writeQuery({
             query: opts.query,
             variables: opts.variables,
             data
           });
+
+          return deletedIndexes.length;
         }
       }
       else {
         console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.arrayFieldName);
+        return 0;
       }
     } catch (err) {
       // continue
       // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
       if (this._debug) console.warn("[graphql] Error while removing from cache: ", err);
+      return 0;
     }
   }
 

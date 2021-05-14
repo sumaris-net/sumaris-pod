@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {ExtractionColumn} from "../../services/model/extraction.model";
+import {ExtractionCategories, ExtractionColumn} from "../../services/model/extraction.model";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../../services/validator/aggregation-type.validator";
 import {ExtractionService} from "../../services/extraction.service";
@@ -56,12 +56,6 @@ export class AggregationTypePage extends AppEntityEditor<AggregationType> implem
       {
         pathIdAttribute: 'aggregationTypeId'
       });
-  }
-
-  ngOnInit() {
-    super.ngOnInit();
-
-
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -148,11 +142,11 @@ export class AggregationTypePage extends AppEntityEditor<AggregationType> implem
     await this.typeForm.updateLists(data);
 
     // Define default back link
-    this.defaultBackHref = '/extraction?category=product&label=' + data.label;
+    this.defaultBackHref = `̀/extraction/data?category=${ExtractionCategories.PRODUCT}&label=${data.label}`;
   }
 
   protected async onEntityDeleted(data: AggregationType): Promise<void> {
     // Change back href
-    this.defaultBackHref = '/extraction';
+    this.defaultBackHref = '/extraction/data';
   }
 }

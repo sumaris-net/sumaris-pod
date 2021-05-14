@@ -1422,18 +1422,19 @@
   "EXTRACTION": {
     "BTN_DOWNLOAD_HELP": "Télécharger les données (CSV)",
     "BTN_SAVE_HELP": "Permet de créer un produit",
-    "SPATIAL_AGGREGATION": "Créer une aggrégation spatiale",
+    "SPATIAL_AGGREGATION": "Aggréger en produit carto.",
+    "NEW_PRODUCT": "Enregistrer en produit simple",
     "BTN_PUBLISH": "Rendre public",
     "BTN_UNPUBLISH": "Rendre privé",
     "BTN_OPEN_MAP": "Visualiser les données sur une carte",
     "TYPE": "Type d'extraction",
     "AGGREGATION": {
-      "NEW_NAME": "Nouvelle aggregation / {{name}}",
+      "NEW_NAME": "Nouveau produit / {{name}}",
       "NEW": {
-        "TITLE": "Nouvelle aggregation"
+        "TITLE": "Nouveau produit"
       },
       "EDIT": {
-        "TITLE": "Aggregation {{name}}",
+        "TITLE": "<small>Produit<br/></small>{{name}}",
         "IS_SPATIAL": "Aggregation spatiale ?",
         "BTN_OPEN_MAP": "Voir la carte",
         "BTN_PREVIEW_DOC": "Prévisualiser la doc",
@@ -1468,6 +1469,9 @@
           "MONTHLY": "Mensuelle"
         }
       }
+    },
+    "PRODUCT": {
+      "NEW_NAME": "Produit {{name}}"
     },
     "FILTER": {
       "TITLE": "Filtrer les données :",
