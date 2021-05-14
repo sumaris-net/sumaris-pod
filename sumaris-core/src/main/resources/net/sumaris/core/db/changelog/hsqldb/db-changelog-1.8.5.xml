@@ -37,6 +37,7 @@
     </addColumn>
     <sql endDelimiter=";">
       update extraction_product_table set table_name_temp=table_name;
+      commit;
     </sql>
     <dropColumn tableName="extraction_product_table" columnName="table_name"/>
     <renameColumn tableName="extraction_product_table" oldColumnName="table_name_temp" newColumnName="table_name"/>
