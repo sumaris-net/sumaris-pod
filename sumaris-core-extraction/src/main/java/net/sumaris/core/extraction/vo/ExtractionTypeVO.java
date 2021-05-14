@@ -66,6 +66,12 @@ public class ExtractionTypeVO implements IValueObject<Integer>,
     Boolean isSpatial;
     String docUrl;
 
+    /**
+     * The extraction filter used to create data. Useful to refresh the aggregation
+     */
+    String filter;
+    Integer processingFrequencyId;
+
     @JsonIgnore
     LiveFormatEnum liveFormat;
 

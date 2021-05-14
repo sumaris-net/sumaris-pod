@@ -218,6 +218,8 @@ public class ExtractionProductRepositoryImpl
     public void toEntity(ExtractionProductVO source, ExtractionProduct target, boolean copyIfNull) {
         super.toEntity(source, target, copyIfNull);
 
+        EntityManager em = getEntityManager();
+
         // Make sure label is uppercase
         if (source.getLabel() != null) {
             String label = source.getLabel().toUpperCase();
@@ -245,10 +247,10 @@ public class ExtractionProductRepositoryImpl
         }
 
         // Recorder person
-        DataDaos.copyRecorderPerson(getEntityManager(), source, target, copyIfNull);
+        DataDaos.copyRecorderPerson(em, source, target, copyIfNull);
 
         // Recorder department
-        DataDaos.copyRecorderDepartment(getEntityManager(), source, target, copyIfNull);
+        DataDaos.copyRecorderDepartment(em, source, target, copyIfNull);
         if (target.getRecorderDepartment() == null && target.getRecorderPerson() != null) {
             // If nul, use recorder person department
             target.setRecorderDepartment(target.getRecorderPerson().getDepartment());
@@ -258,24 +260,23 @@ public class ExtractionProductRepositoryImpl
     @Override
     protected void onAfterSaveEntity(ExtractionProductVO vo, ExtractionProduct savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
+        EntityManager em = getEntityManager();
 
         // Save tables
         saveProductTables(vo, savedEntity);
 
-        getEntityManager().flush();
-        getEntityManager().clear();
+        em.flush();
 
         // Save stratum
         saveProductStratum(vo, savedEntity);
 
-        getEntityManager().flush();
-        getEntityManager().clear();
+        em.flush();
 
         // Final merge
-        getEntityManager().merge(savedEntity);
+        em.merge(savedEntity);
 
-        getEntityManager().flush();
-        getEntityManager().clear();
+        em.flush();
+        em.clear();
 
     }
 
@@ -555,7 +556,8 @@ public class ExtractionProductRepositoryImpl
 
     @Override
     public List<ExtractionTableColumnVO> getColumnsByIdAndTableLabel(int id, String tableLabel) {
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        EntityManager em  = getEntityManager();
+        CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<ExtractionProductColumn> query = cb.createQuery(ExtractionProductColumn.class);
         Root<ExtractionProductColumn> root = query.from(ExtractionProductColumn.class);
 
@@ -577,7 +579,7 @@ public class ExtractionProductRepositoryImpl
         // Sort by rank order
         query.orderBy(cb.asc(root.get(ExtractionProductColumn.Fields.RANK_ORDER)));
 
-        return getEntityManager().createQuery(query)
+        return em.createQuery(query)
             .setParameter(productIdParam, id)
             .setParameter(tableLabelParam, tableLabel)
             .getResultStream()

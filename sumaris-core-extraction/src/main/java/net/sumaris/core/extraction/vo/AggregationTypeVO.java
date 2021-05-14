@@ -42,11 +42,7 @@ import java.util.List;
 @ToString(callSuper = true)
 public class AggregationTypeVO extends ExtractionTypeVO {
 
-    /**
-     * The extraction filter used to create data. Useful to refresh the aggregation
-     */
-    String filter;
-    Integer processingFrequencyId;
+
     String documentation;
 
     Date updateDate;

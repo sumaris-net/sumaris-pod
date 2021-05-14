@@ -38,12 +38,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public interface DenormalizeTripService {
 
-	@Transactional(timeout = -1, propagation = Propagation.NOT_SUPPORTED)
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	DenormalizeTripResultVO denormalizeByFilter(@NonNull TripFilterVO filter);
 
-	@Transactional(timeout = -1, propagation = Propagation.NOT_SUPPORTED)
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	DenormalizeTripResultVO denormalizeByFilter(TripFilterVO filter, IProgressionModel progression);
 
-	@Transactional(timeout = -1)
+	@Transactional
 	DenormalizeTripResultVO denormalizeById(int tripId);
 }

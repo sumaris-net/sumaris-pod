@@ -22,15 +22,17 @@ package net.sumaris.core.extraction.service;
  * #L%
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
@@ -62,6 +64,7 @@ import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.*;
@@ -104,6 +107,9 @@ public class ExtractionServiceImpl implements ExtractionService {
     protected ExtractionConfiguration configuration;
 
     @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
     protected DataSource dataSource;
 
     @Resource(name = "extractionRdbTripDao")
@@ -113,7 +119,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     protected ExtractionStrategyDao extractionStrategyDao;
 
     @Autowired
-    protected ExtractionProductRepository extractionProductRepository;
+    protected ExtractionProductService productService;
 
     @Autowired
     protected ExtractionTableDao extractionTableDao;
@@ -178,21 +184,26 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @Override
     public List<ExtractionTypeVO> getLiveExtractionTypes() {
+
         MutableInt id = new MutableInt(-1);
         return Arrays.stream(LiveFormatEnum.values())
-                .map(format -> {
-                    ExtractionTypeVO type = new ExtractionTypeVO();
-                    type.setId(id.getValue());
-                    type.setLabel(format.getLabel().toLowerCase());
-                    type.setCategory(ExtractionCategoryEnum.LIVE);
-                    type.setSheetNames(format.getSheetNames());
-                    type.setStatusId(StatusEnum.TEMPORARY.getId()); // = not public by default
-                    type.setVersion(format.getVersion());
-                    type.setLiveFormat(format);
-                    id.decrement();
-                    return type;
-                })
-                .collect(Collectors.toList());
+            // Sort by label
+            .sorted(Comparator.comparing(LiveFormatEnum::getLabel))
+            .map(format -> {
+                ExtractionTypeVO type = new ExtractionTypeVO();
+
+                // Generate a negative an unique id
+                type.setId(-1 * format.hashCode());
+
+                type.setLabel(format.getLabel().toLowerCase());
+                type.setCategory(ExtractionCategoryEnum.LIVE);
+                type.setSheetNames(format.getSheetNames());
+                type.setStatusId(StatusEnum.TEMPORARY.getId()); // = not public by default
+                type.setVersion(format.getVersion());
+                type.setLiveFormat(format);
+                return type;
+            })
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -234,7 +245,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         switch (type.getCategory()) {
             case PRODUCT:
-                ExtractionProductVO product = extractionProductRepository.getByLabel(type.getLabel(),
+                ExtractionProductVO product = productService.getByLabel(type.getLabel(),
                         ExtractionProductFetchOptions.TABLES_AND_COLUMNS);
                 Set<String> hiddenColumns = Beans.getStream(product.getTables())
                         .map(ExtractionTableVO::getColumns)
@@ -300,7 +311,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         switch (type.getCategory()) {
             case PRODUCT:
-                ExtractionProductVO product = extractionProductRepository.getByLabel(type.getLabel(),
+                ExtractionProductVO product = productService.getByLabel(type.getLabel(),
                         ExtractionProductFetchOptions.builder()
                                 .withRecorderDepartment(false)
                                 .withRecorderPerson(false)
@@ -367,35 +378,86 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     @Override
-    public ExtractionTypeVO save(ExtractionTypeVO type, ExtractionFilterVO filter) {
-        Preconditions.checkNotNull(type);
+    public ExtractionTypeVO save(ExtractionTypeVO source, ExtractionFilterVO filter) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getLabel(), "Missing 'type.label'");
+        Preconditions.checkNotNull(source.getName(), "Missing 'type.name'");
+        Preconditions.checkArgument(source.getId() == null || source.getId() >= 0); // Negative ID not allowed
+
+        Collection<String> tablesToDrop = Lists.newArrayList();
 
         // Load the product
-        ExtractionProductVO target = extractionProductRepository.findByLabel(
-            type.getLabel(), ExtractionProductFetchOptions.builder().withTables(false).build()
-        ).orElse(null);
+        ExtractionProductVO target = null;
+        if (source.getId() != null) {
+            target = productService.findById(source.getId(), ExtractionProductFetchOptions.FOR_UPDATE).orElse(null);
+        }
 
-        if (target == null) {
+        boolean isNew = target == null;
+        if (isNew) {
             target = new ExtractionProductVO();
-            target.setLabel(type.getLabel());
-            target.setRecorderDepartment(type.getRecorderDepartment());
+            target.setLabel(source.getLabel());
+            target.setRecorderDepartment(source.getRecorderDepartment());
+            target.setRecorderPerson(source.getRecorderPerson());
+        }
+        else {
+            // Check label was not changed
+            String previousLabel = target.getLabel();
+            Preconditions.checkArgument(previousLabel.equalsIgnoreCase(source.getLabel()), "Cannot change a product label");
+
+            // If not given in arguments, parse the product's filter string
+            filter = filter != null ? filter : readFilter(target.getFilter());
         }
 
-        // Execute the aggregation
-        ExtractionContextVO context;
+        // Check if need aggregate (ig new or if filter changed)
+        ProcessingFrequencyEnum frequency = source.getProcessingFrequencyId() != null
+            ? ProcessingFrequencyEnum.valueOf(source.getProcessingFrequencyId())
+            : ProcessingFrequencyEnum.MANUALLY;
+
+        String filterAsString = writeFilterAsString(filter);
+
+        boolean needExecution = (isNew || !Objects.equals(target.getFilter(), filterAsString))
+            && (frequency == ProcessingFrequencyEnum.MANUALLY);
+
+        // Execute the extraction
+        if (needExecution) {
+            // Should clean existing table
+            if (!isNew) {
+                tablesToDrop.addAll(Beans.getList(target.getTableNames()));
+            }
+
+            // Prepare a executable type (with label=format)
+            ExtractionTypeVO executableType = new ExtractionTypeVO();
+            executableType.setLabel(source.getRawFormatLabel());
+            executableType.setCategory(source.getCategory());
+
+            // Run the execution
+            ExtractionContextVO context = execute(executableType, filter);
+
+            // Update product, using the extraction result
+            toProductVO(context, target);
+        }
+
+        // Copy some properties from the given type
         {
-            ExtractionTypeVO cleanType = new ExtractionTypeVO();
-            cleanType.setLabel(type.getRawFormatLabel());
-            cleanType.setCategory(type.getCategory());
-            context = execute(cleanType, filter);
-        }
-        toProductVO(context, target);
+            target.setName(source.getName());
+            target.setDescription(source.getDescription());
+            target.setIsSpatial(false);
 
-        // Set the status
-        target.setStatusId(type.getStatusId());
+            // Default status
+            Integer statusId = source.getStatusId() != null ? source.getStatusId() : StatusEnum.TEMPORARY.getId();
+            target.setStatusId(statusId);
+
+            // Frequency
+            Integer frequencyId = source.getProcessingFrequencyId() != null ? source.getProcessingFrequencyId()
+                : ProcessingFrequencyEnum.MANUALLY.getId();
+            target.setProcessingFrequencyId(frequencyId);
+        }
 
         // Save the product
-        target = extractionProductRepository.save(target);
+        target = productService.save(target);
+
+        // Drop old tables
+        dropTables(tablesToDrop);
 
         // Transform back to type
         return toExtractionTypeVO(target);
@@ -506,7 +568,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         Preconditions.checkNotNull(filter);
 
         return ListUtils.emptyIfNull(
-            extractionProductRepository.findAll(filter, ExtractionProductFetchOptions.builder()
+            productService.findByFilter(filter, ExtractionProductFetchOptions.builder()
                 .withRecorderDepartment(true)
                 .withTables(true)
                 .build()))
@@ -752,5 +814,29 @@ public class ExtractionServiceImpl implements ExtractionService {
         ExtractionDao dao = daosByFormat.get(format);
         if (dao == null) throw new SumarisTechnicalException("Unknown extraction format (no targeted dao): " + format);
         return dao;
+    }
+
+    protected ExtractionFilterVO readFilter(String json) {
+        if (StringUtils.isBlank(json)) return null;
+        try {
+            return objectMapper.readValue(json, ExtractionFilterVO.class);
+        }
+        catch(JsonProcessingException e) {
+            throw new SumarisTechnicalException(e);
+        }
+    }
+
+    protected String writeFilterAsString(ExtractionFilterVO filter) {
+        if (filter == null) return null;
+        try {
+            return objectMapper.writeValueAsString(filter);
+        }
+        catch(JsonProcessingException e) {
+            throw new SumarisTechnicalException(e);
+        }
+    }
+
+    protected void dropTables(Collection<String> tableNames) {
+        Beans.getStream(tableNames).forEach(extractionTableDao::dropTable);
     }
 }
