@@ -478,7 +478,7 @@ export class GraphqlService {
                                    opts: Cache.ReadQueryOptions<V, any> & {
                                      arrayFieldName: string;
                                      totalFieldName?: string;
-                                     id: number
+                                     ids: number; // Do NOT use 'id', as already used by the Apollo API
                                    }): boolean {
 
     cache = cache || this.apollo.client.cache;
@@ -491,7 +491,7 @@ export class GraphqlService {
         // Copy because immutable
         data = { ...data };
 
-        const index = data[opts.arrayFieldName].findIndex(item => item['id'] === opts.id);
+        const index = data[opts.arrayFieldName].findIndex(item => item['id'] === opts.ids);
         if (index === -1) return false; // Skip (nothing removed)
 
         // Copy, then remove deleted item

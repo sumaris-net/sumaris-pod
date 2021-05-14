@@ -187,7 +187,7 @@ export abstract class BaseGraphqlService<T = any, F = any> {
           query: query.query,
           variables: query.variables,
           arrayFieldName: query.arrayFieldName as string,
-          id: (opts.ids as number)
+          ids: opts.ids
         }) ? 1 : 0;
       }
     })
