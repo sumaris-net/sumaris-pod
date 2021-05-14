@@ -48,6 +48,8 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Date;
+
 @Configuration
 @ConditionalOnClass({javax.cache.Cache.class, org.ehcache.Cache.class})
 @ConditionalOnProperty(
@@ -116,6 +118,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             Caches.createHeapCache(cacheManager, Names.DEPARTMENT_BY_LABEL, String.class, DepartmentVO.class, CacheDurations.DEFAULT, 600);
             Caches.createHeapCache(cacheManager, Names.PERSON_BY_ID, Integer.class, PersonVO.class, CacheDurations.DEFAULT, 600);
             Caches.createHeapCache(cacheManager, Names.PERSON_BY_PUBKEY, String.class, PersonVO.class, CacheDurations.DEFAULT, 600);
+            Caches.createHeapCache(cacheManager, Names.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, String.class, Date.class, CacheDurations.DEFAULT, 600);
             Caches.createHeapCache(cacheManager, Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE, VesselSnapshotVO.class, CacheDurations.DEFAULT, 600);
             Caches.createCollectionHeapCache(cacheManager, Names.STRATEGIES_BY_FILTER, StrategyVO.class, CacheDurations.DEFAULT, 100);
             Caches.createHeapCache(cacheManager, Names.STRATEGY_BY_ID, Integer.class, StrategyVO.class, CacheDurations.LONG, 500);
