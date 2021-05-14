@@ -266,13 +266,11 @@ public class ExtractionProductRepositoryImpl
         saveProductTables(vo, savedEntity);
 
         em.flush();
-        em.clear();
 
         // Save stratum
         saveProductStratum(vo, savedEntity);
 
         em.flush();
-        em.clear();
 
         // Final merge
         em.merge(savedEntity);

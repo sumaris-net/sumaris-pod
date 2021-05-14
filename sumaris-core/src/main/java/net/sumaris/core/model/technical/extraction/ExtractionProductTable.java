@@ -72,7 +72,7 @@ public class ExtractionProductTable implements IItemReferentialEntity {
     @Column(name="schema", length = 30)
     private String schema;
 
-    @Column(name="table_name", nullable = false, length = 30)
+    @Column(name="table_name", nullable = false, length = 50)
     private String tableName;
 
     @Column(name = "is_spatial")
