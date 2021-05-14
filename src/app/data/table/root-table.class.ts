@@ -470,8 +470,7 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
       const lastSynchronizationDate = this.settings.getOfflineFeatureLastSyncDate(this.featureId);
 
       // Check only if last synchro older than 10 min
-      if (lastSynchronizationDate && lastSynchronizationDate
-        .isBefore(moment().add(-10, 'minute'))) {
+      if (lastSynchronizationDate && lastSynchronizationDate.isBefore(moment().add(-10, 'minute'))) {
 
         // Get peer last update date, then compare
         const remoteUpdateDate = await this.dataService.lastUpdateDate();
@@ -480,7 +479,7 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
           needUpdate = lastSynchronizationDate.isBefore(remoteUpdateDate);
         }
 
-        console.info(`[trips] Checking referential last update dates: {local: '${toDateISOString(lastSynchronizationDate)}', remote: '${toDateISOString(remoteUpdateDate)}'} - Need upgrade: ${needUpdate}`);
+        console.info(`[root-table] Checking referential last update dates: {local: '${toDateISOString(lastSynchronizationDate)}', remote: '${toDateISOString(remoteUpdateDate)}'} - Need upgrade: ${needUpdate}`);
       }
     }
 

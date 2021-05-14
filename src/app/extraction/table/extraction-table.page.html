@@ -106,8 +106,11 @@
 
 <!-- aggregate menu -->
 <mat-menu #aggregateMenu="matMenu" xPosition="before">
-  <button mat-menu-item *ngIf="!type?.isSpatial" (click)="createAggregation()">
+  <button mat-menu-item *ngIf="!type?.isSpatial" (click)="aggregateAndSave($event)">
     <ion-label translate>EXTRACTION.SPATIAL_AGGREGATION</ion-label>
+  </button>
+  <button mat-menu-item *ngIf="type?.category === 'LIVE'" (click)="save($event)">
+    <ion-label translate>EXTRACTION.NEW_PRODUCT</ion-label>
   </button>
 </mat-menu>
 
@@ -288,16 +291,18 @@
         <ion-button fill="solid" color="tertiary"
                     (click)="downloadAsFile($event)"
                     (keyup.enter)="downloadAsFile($event)"
-                    download="true">
+                    download="true"
+                    [disabled]="loading">
           <mat-icon>get_app</mat-icon>
           <ion-label [innerHTML]="'COMMON.BTN_DOWNLOAD'|translate|uppercase"
                      [matTooltip]="'EXTRACTION.BTN_DOWNLOAD_HELP'|translate"></ion-label>
         </ion-button>
 
-        <ion-button *ngIf="!type?.isSpatial"
+        <ion-button *ngIf="canEdit"
                     fill="solid" color="danger"
                     [matMenuTriggerFor]="aggregateMenu"
-                    [matTooltip]="'EXTRACTION.BTN_SAVE_HELP'|translate">
+                    [matTooltip]="'EXTRACTION.BTN_SAVE_HELP'|translate"
+                    [disabled]="loading">
           <ion-label [innerHTML]="'COMMON.BTN_SAVE'|translate"></ion-label>
           <mat-icon slot="end">arrow_drop_down</mat-icon>
         </ion-button>

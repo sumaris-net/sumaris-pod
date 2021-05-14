@@ -21,9 +21,9 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
   }
 
   static fromObject(source: any): ExtractionType {
+    if (!source || source instanceof ExtractionType) return source;
     const res = new ExtractionType();
     res.fromObject(source);
-    res.__typename = ExtractionType.TYPENAME;
     return res;
   }
 

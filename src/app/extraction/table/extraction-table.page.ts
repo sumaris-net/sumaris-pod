@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
-import {arrayGroupBy, isNil, isNotNil, sleep} from '../../shared/functions';
+import {arrayGroupBy, isNil, isNotNil, propertyComparator, sleep} from '../../shared/functions';
 import {TableDataSource} from "@e-is/ngx-material-table";
 import {ExtractionCategories, ExtractionColumn, ExtractionResult, ExtractionRow, ExtractionType} from "../services/model/extraction.model";
 import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
@@ -253,7 +253,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   }
 
 
-  async createAggregation() {
+  async aggregateAndSave(event?: UIEvent) {
     if (!this.type || !this.canAggregate) return; // Skip
 
     this.loading = true;
@@ -300,6 +300,47 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       this.enable();
     }
 
+  }
+
+  async save(event?: UIEvent) {
+    if (!this.type) return; // Skip
+
+    this.loading = true;
+    this.error = null;
+    this.markForCheck();
+
+    const filter = this.getFilterValue();
+    this.disable();
+
+    try {
+
+      const entity = ExtractionType.fromObject(this.type.asObject());
+      if (isNil(entity.id)) {
+        // Compute a new name
+        entity.name = await this.translate.get('EXTRACTION.PRODUCT.NEW_NAME',
+          {name: this.type.name})
+          .toPromise();
+      }
+
+      // Save extraction
+      const savedEntity = await this.service.save(entity, filter);
+
+      // Wait for types cache updates
+      await sleep(1000);
+
+      // Change current type
+      await this.setType(savedEntity, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
+
+    } catch (err) {
+      console.error(err);
+      this.error = err && err.message || err;
+      this.loading = false;
+      this.markAsDirty();
+    } finally {
+      this.loading = false;
+      this.markForCheck();
+      this.enable();
+    }
   }
 
   async delete(event?: UIEvent) {
@@ -406,9 +447,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
           // Compute name, if need
           types.forEach(t => t.name = t.name || this.getI18nTypeName(t));
           // Sort by name
-          types.sort((t1, t2) => t1.name > t2.name ? 1 : (t1.name < t2.name ? -1 : 0) );
-
-          return types;
+          return types.sort(propertyComparator('name'));
         })
       );
   }

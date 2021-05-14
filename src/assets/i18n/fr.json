@@ -1423,6 +1423,8 @@
     "BTN_DOWNLOAD_HELP": "Télécharger les données (CSV)",
     "BTN_SAVE_HELP": "Permet de créer un produit",
     "SPATIAL_AGGREGATION": "Créer une aggrégation spatiale",
+    "NEW_PRODUCT": "Créer un nouveau produit",
+    "SAVE": "Sauvegarder",
     "BTN_PUBLISH": "Rendre public",
     "BTN_UNPUBLISH": "Rendre privé",
     "BTN_OPEN_MAP": "Visualiser les données sur une carte",
@@ -1468,6 +1470,9 @@
           "MONTHLY": "Mensuelle"
         }
       }
+    },
+    "PRODUCT": {
+      "NEW_NAME": "Produit {{name}}"
     },
     "FILTER": {
       "TITLE": "Filtrer les données :",
