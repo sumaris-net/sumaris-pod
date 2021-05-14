@@ -1434,7 +1434,7 @@
         "TITLE": "Nouveau produit"
       },
       "EDIT": {
-        "TITLE": "Produit {{name}}",
+        "TITLE": "<small>Produit<br/></small>{{name}}",
         "IS_SPATIAL": "Aggregation spatiale ?",
         "BTN_OPEN_MAP": "Voir la carte",
         "BTN_PREVIEW_DOC": "Prévisualiser la doc",
