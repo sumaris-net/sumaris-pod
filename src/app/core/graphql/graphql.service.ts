@@ -89,7 +89,7 @@ export class GraphqlService {
   } = {};
   private readonly _defaultFetchPolicy: WatchQueryFetchPolicy;
   private onNetworkError = new Subject();
-  private customErrorCodes: {code: number; message: string}[] = [];
+  private customErrors: {code: number; message: string}[] = [];
 
   public onStart = new Subject<void>();
 
@@ -656,8 +656,8 @@ export class GraphqlService {
     }
   }
 
-  registerCustomErrorCode(error: {code: number; message: string}) {
-    this.customErrorCodes.push(error);
+  registerCustomError(error: {code: number; message: string}) {
+    this.customErrors.push(error);
   }
 
   /* -- protected methods -- */
@@ -913,7 +913,7 @@ export class GraphqlService {
   private getI18nErrorMessageByCode(errorCode: number): string | undefined {
 
     // look in registered error codes
-    const customError = this.customErrorCodes.find(error => error.code === errorCode);
+    const customError = this.customErrors.find(error => error.code === errorCode);
     if (customError) {
       return customError.message;
     }
