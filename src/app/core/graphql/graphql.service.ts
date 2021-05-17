@@ -89,6 +89,7 @@ export class GraphqlService {
   } = {};
   private readonly _defaultFetchPolicy: WatchQueryFetchPolicy;
   private onNetworkError = new Subject();
+  private customErrorCodes: {code: number; message: string}[] = [];
 
   public onStart = new Subject<void>();
 
@@ -655,6 +656,10 @@ export class GraphqlService {
     }
   }
 
+  registerCustomErrorCode(error: {code: number; message: string}) {
+    this.customErrorCodes.push(error);
+  }
+
   /* -- protected methods -- */
 
   protected async initApollo() {
@@ -906,6 +911,14 @@ export class GraphqlService {
   }
 
   private getI18nErrorMessageByCode(errorCode: number): string | undefined {
+
+    // look in registered error codes
+    const customError = this.customErrorCodes.find(error => error.code === errorCode);
+    if (customError) {
+      return customError.message;
+    }
+
+    // Default, switch on error code
     switch (errorCode) {
       case ServerErrorCodes.UNAUTHORIZED:
         return "ERROR.UNAUTHORIZED";

@@ -37,7 +37,7 @@
     "@angular/router": "^11.2.12",
     "@apollo/client": "^3.3.16",
     "@asymmetrik/ngx-leaflet": "^8.1.0",
-    "@e-is/ngx-material-table": "0.11.8",
+    "@e-is/ngx-material-table": "0.11.9",
     "@ionic-native/audio-management": "^5.32.1",
     "@ionic-native/camera": "^5.32.1",
     "@ionic-native/core": "^5.32.1",
