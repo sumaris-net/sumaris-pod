@@ -13,7 +13,7 @@ import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {isNil, isNotNil, isNotNilOrBlank, sort} from "../../shared/functions";
+import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, sort} from "../../shared/functions";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {environment} from "../../../environments/environment";
 import {firstNotNilPromise} from "../../shared/observables";
@@ -50,7 +50,14 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     'Parameter': '/referential/parameter/:id?label=:label'
   };
 
-  @Input() showLevelColumn = true;
+  @Input() set showLevelColumn(value: boolean) {
+    this.setShowColumn('level', value);
+  }
+
+  get showLevelColumn(): boolean {
+    return this.getShowColumn('level');
+  }
+
   @Input() canSelectEntity = true;
   @Input() title = 'REFERENTIAL.LIST.TITLE';
 
@@ -260,7 +267,10 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     });
 
     this.levels = of(res);
-    this.showLevelColumn = res && res.length > 0;
+
+    if (this.canSelectEntity) {
+      this.showLevelColumn = isNotEmptyArray(res);
+    }
 
     return res;
   }

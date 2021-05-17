@@ -810,6 +810,27 @@ ion-list {
 
 }
 
+
+@media screen and (max-width: $screen-sm-max) {
+  .mat-paginator-footer {
+    .mat-paginator-outer-container {
+      .mat-paginator-container {
+
+        // Move paginator to the left,
+        // because floating button are on the right
+        margin-top: 0 !important;
+        justify-content: flex-start;
+
+        // Hide page size (not need on small screens)
+        .mat-paginator-page-size {
+          visibility: hidden;
+          display: none;
+        }
+      }
+    }
+  }
+}
+
 // ------------------------
 // Other material component
 

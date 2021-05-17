@@ -42,7 +42,7 @@
       </ion-col>
     </ion-row>
 
-    <ion-toolbar>
+    <ion-toolbar *ngIf="form.controls.isSpatial.value">
       <ion-label color="primary" translate>EXTRACTION.AGGREGATION.EDIT.STRATUM_DOTS</ion-label>
     </ion-toolbar>
 

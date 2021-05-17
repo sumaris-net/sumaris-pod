@@ -5,7 +5,7 @@ import {MatAutocompleteConfigHolder} from "../material.autocomplete";
 import {isNotNil, suggestFromArray} from "../../../functions";
 import {BehaviorSubject} from "rxjs";
 import {LoadResult} from "../../../services/entity-service.class";
-import {IEntity} from "../../../../core/services/model/entity.model";
+import Timer = NodeJS.Timer;
 
 export class Entity {
   id: number;
@@ -13,7 +13,7 @@ export class Entity {
   name: string;
 }
 
-const FAKE_ENTITIES= [
+const FAKE_ENTITIES = [
   {id: 1, label: 'AAA', name: 'Item A', description: 'Very long description A', comments: 'Very very long comments... again for A'},
   {id: 2, label: 'BBB', name: 'Item B', description: 'Very long description B', comments: 'Very very long comments... again for B'},
   {id: 3, label: 'CCC', name: 'Item C', description: 'Very long description C', comments: 'Very very long comments... again for C'}
@@ -29,11 +29,15 @@ function deepCopy(values?: Entity[]): Entity[] {
 })
 export class AutocompleteTestPage implements OnInit {
 
-  private _items = deepCopy(FAKE_ENTITIES);
-  private _$items = new BehaviorSubject<Entity[]>(undefined);
+  _items = deepCopy(FAKE_ENTITIES);
+  $items = new BehaviorSubject<Entity[]>(undefined);
 
   form: FormGroup;
   autocompleteFields = new MatAutocompleteConfigHolder();
+  memoryHide = false;
+  memoryMobile = true;
+  memoryAutocompleteFieldName = 'entity-$items';
+  memoryTimer: Timer;
 
   constructor(
     protected formBuilder: FormBuilder
@@ -65,7 +69,7 @@ export class AutocompleteTestPage implements OnInit {
 
     // From items
     this.autocompleteFields.add('entity-$items', {
-      items: this._$items,
+      items: this.$items,
       attributes: ['label', 'name'],
       displayWith: this.entityToString
     });
@@ -101,7 +105,7 @@ export class AutocompleteTestPage implements OnInit {
   }
 
   async loadItems() {
-    this._$items.next(deepCopy(FAKE_ENTITIES));
+    this.$items.next(deepCopy(FAKE_ENTITIES));
   }
 
   entityToString(item: any) {
@@ -123,8 +127,20 @@ export class AutocompleteTestPage implements OnInit {
   compareWithFn(o1: Entity, o2: Entity): boolean {
     return o1 && o2 && o1.id === o2.id;
   }
-  /* -- protected methods -- */
 
+  startMemoryTimer() {
+    this.memoryTimer = setInterval(() => {
+      this.memoryHide = !this.memoryHide;
+    }, 50);
+  }
+
+  stopMemoryTimer() {
+    clearInterval(this.memoryTimer);
+    this.memoryTimer = null;
+    this.memoryHide = false;
+  }
+
+  /* -- protected methods -- */
 
   stringify(value: any) {
     return JSON.stringify(value);

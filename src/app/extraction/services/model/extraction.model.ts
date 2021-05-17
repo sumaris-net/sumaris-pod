@@ -21,9 +21,9 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
   }
 
   static fromObject(source: any): ExtractionType {
+    if (!source || source instanceof ExtractionType) return source;
     const res = new ExtractionType();
     res.fromObject(source);
-    res.__typename = ExtractionType.TYPENAME;
     return res;
   }
 
@@ -81,7 +81,10 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
   }
 
   get format(): string {
-    return this.label && this.label.split('-')[0] || undefined;
+    if (!this.label) return undefined;
+    const lastIndex = this.label.lastIndexOf('-');
+    if (lastIndex === -1) return this.label;
+    return this.label.substr(0, lastIndex);
   }
 }
 

@@ -5,7 +5,7 @@ import {Observable} from "rxjs";
 import {FetchResult} from "@apollo/client/link/core";
 import {EntityUtils} from "./model/entity.model";
 import {ApolloCache} from "@apollo/client/core";
-import {changeCaseToUnderscore, isEmptyArray, isNotEmptyArray, toBoolean} from "../../shared/functions";
+import {changeCaseToUnderscore, isNotEmptyArray, toBoolean} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
 import {Directive, Optional} from "@angular/core";
 import {QueryRef} from "apollo-angular";
@@ -168,14 +168,14 @@ export abstract class BaseGraphqlService<T = any, F = any> {
 
   removeFromMutableCachedQueryByIds(cache: ApolloCache<any>, opts: FindMutableWatchQueriesOptions & {
     ids: number|number[];
-  }) {
+  }): number {
     const queries = this.findMutableWatchQueries(opts);
-    if (!queries.length)  return;
+    if (!queries.length )  return;
 
     console.debug(`[base-data-service] Removing data from watching queries: `, queries);
-    queries.forEach(query => {
+    return queries.map(query => {
       if (opts.ids instanceof Array) {
-        this.graphql.removeFromCachedQueryByIds(cache, {
+        return this.graphql.removeFromCachedQueryByIds(cache, {
           query: query.query,
           variables: query.variables,
           arrayFieldName: query.arrayFieldName as string,
@@ -183,14 +183,16 @@ export abstract class BaseGraphqlService<T = any, F = any> {
         });
       }
       else {
-        this.graphql.removeFromCachedQueryById(cache, {
+        return this.graphql.removeFromCachedQueryById(cache, {
           query: query.query,
           variables: query.variables,
           arrayFieldName: query.arrayFieldName as string,
-          id: opts.ids.toString()
-        });
+          ids: opts.ids
+        }) ? 1 : 0;
       }
-    });
+    })
+    // Sum
+    .reduce((res, count) => res + count, 0);
   }
 
   async refetchMutableQuery(opts: FindMutableWatchQueriesOptions & { variables?: any; }): Promise<void> {

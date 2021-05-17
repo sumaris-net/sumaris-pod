@@ -43,7 +43,8 @@
           <ion-button color="secondary" size="full"
                       *ngIf="form.controls.isSpatial.value"
                       [matTooltip]="'EXTRACTION.BTN_OPEN_MAP'|translate"
-                      (click)="openMap($event)">
+                      (click)="openMap($event)"
+                      [disabled]="loading">
             <mat-icon slot="start">
               <ion-icon name="earth"></ion-icon>
             </mat-icon>

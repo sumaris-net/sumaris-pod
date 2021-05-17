@@ -1422,18 +1422,19 @@
   "EXTRACTION": {
     "BTN_DOWNLOAD_HELP": "Télécharger les données (CSV)",
     "BTN_SAVE_HELP": "Permet de créer un produit",
-    "SPATIAL_AGGREGATION": "Créer une aggrégation spatiale",
+    "SPATIAL_AGGREGATION": "Aggréger en produit carto.",
+    "NEW_PRODUCT": "Enregistrer en produit simple",
     "BTN_PUBLISH": "Rendre public",
     "BTN_UNPUBLISH": "Rendre privé",
     "BTN_OPEN_MAP": "Visualiser les données sur une carte",
     "TYPE": "Type d'extraction",
     "AGGREGATION": {
-      "NEW_NAME": "Nouvelle aggregation / {{name}}",
+      "NEW_NAME": "Nouveau produit / {{name}}",
       "NEW": {
-        "TITLE": "Nouvelle aggregation"
+        "TITLE": "Nouveau produit"
       },
       "EDIT": {
-        "TITLE": "Aggregation {{name}}",
+        "TITLE": "<small>Produit<br/></small>{{name}}",
         "IS_SPATIAL": "Aggregation spatiale ?",
         "BTN_OPEN_MAP": "Voir la carte",
         "BTN_PREVIEW_DOC": "Prévisualiser la doc",
@@ -1468,6 +1469,9 @@
           "MONTHLY": "Mensuelle"
         }
       }
+    },
+    "PRODUCT": {
+      "NEW_NAME": "Produit {{name}}"
     },
     "FILTER": {
       "TITLE": "Filtrer les données :",
@@ -1584,7 +1588,10 @@
       "TRIP_COUNT_BY_STATION": "Nb de marées, par station",
       "TRIP_COUNT_BY_FISHING_TIME": "Nb de marées, par temps de peche",
       "VESSEL_COUNT": "Nombre de navires",
-      "FISHING_TIME": "Temps de pêche (h dec.)",
+      "DATE": "Date",
+      "TIME": "Heure",
+      "FISHING_DATE": "Date",
+      "FISHING_DURATION": "Temps de pêche (h dec.)",
       "OFFICIAL_LANDINGS_VALUE": "Valeur officielle débarquée (€)",
       "OFFICIAL_LANDINGS_WEIGHT": "Poids officiel débarqué (kg)"
     },
@@ -1635,11 +1642,11 @@
       "SURVIVAL_TEST": {
         "TITLE": "Marées brutes (SUMARiS v{{version}})"
       },
-      "RJB": {
+      "RJB_TRIP": {
         "TITLE": "Marées Pocheteaux (RJB v{{version}})"
       },
       "PMFM_TRIP": {
-        "TITLE": "Marées brutes (format dynamique)"
+        "TITLE": "Marées brutes (PMFM v{{version}})"
       },
       "STRAT": {
         "TITLE": "Stratégies de collecte",

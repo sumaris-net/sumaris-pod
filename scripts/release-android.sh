@@ -47,3 +47,5 @@ if [[ ! -f "${APK_SIGNED_FILE}" ]]; then
 else
   echo "Successfully generated signed APK at: ${APK_SIGNED_FILE}"
 fi
+
+exit 0

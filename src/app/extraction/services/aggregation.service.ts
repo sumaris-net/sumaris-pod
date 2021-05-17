@@ -15,7 +15,7 @@ import {SortDirection} from "@angular/material/sort";
 import {FilterFn} from "../../shared/services/entity-service.class";
 import {firstNotNilPromise} from "../../shared/observables";
 import {AggregationType, IAggregationStrata} from "./model/aggregation-type.model";
-import {ExtractionFragments, LoadExtractionTypesQuery} from "./extraction.service";
+import {ExtractionFragments, ExtractionService} from "./extraction.service";
 import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {isNil, isNotNil} from "../../shared/functions";
 import {StatusIds} from "../../core/services/model/model.enum";
@@ -75,7 +75,7 @@ const LoadTypeQuery = gql`
 
 const LoadTypesQuery = gql`
   query AggregationTypes($filter: AggregationTypeFilterVOInput) {
-    aggregationTypes(filter: $filter) {
+    data: aggregationTypes(filter: $filter) {
       ...AggregationTypeFragment
     }
   }
@@ -129,7 +129,7 @@ const LoadAggMinMaxByTechQuery = gql`
 
 const SaveAggregation: any = gql`
   mutation SaveAggregation($type: AggregationTypeVOInput, $filter: ExtractionFilterVOInput){
-    saveAggregation(type: $type, filter: $filter){
+    data: saveAggregation(type: $type, filter: $filter){
       ...AggregationTypeFragment
       documentation
     }
@@ -172,6 +172,7 @@ export class AggregationService extends BaseGraphqlService {
 
   constructor(
     protected graphql: GraphqlService,
+    protected extractionService: ExtractionService,
     protected accountService: AccountService
   ) {
     super(graphql, environment);
@@ -196,17 +197,17 @@ export class AggregationService extends BaseGraphqlService {
       filter: dataFilter
     };
 
-    return this.mutableWatchQuery<{ aggregationTypes: AggregationType[] }>({
+    return this.mutableWatchQuery<{ data: AggregationType[] }>({
       queryName: 'LoadAggregationTypes',
       query: LoadTypesQuery,
-      arrayFieldName: 'aggregationTypes',
+      arrayFieldName: 'data',
       insertFilterFn: AggregationTypeFilter.searchFilter(dataFilter),
       variables,
       error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     })
       .pipe(
-        map((data) => (data && data.aggregationTypes || []).map(AggregationType.fromObject))
+        map((data) => (data && data.data || []).map(AggregationType.fromObject))
       );
   }
 
@@ -359,7 +360,7 @@ export class AggregationService extends BaseGraphqlService {
     const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
     if (this._debug) console.debug("[aggregation-service] Using minify object, to send:", json);
 
-    await this.graphql.mutate<{ saveAggregation: any }>({
+    await this.graphql.mutate<{ data: any }>({
       mutation: SaveAggregation,
       variables: {
         type: json,
@@ -367,38 +368,20 @@ export class AggregationService extends BaseGraphqlService {
       },
       error: {code: ErrorCodes.SAVE_AGGREGATION_ERROR, message: "ERROR.SAVE_DATA_ERROR"},
       update: (cache, {data}) => {
-        const savedEntity = data && data.saveAggregation;
+        const savedEntity = data && data.data;
         EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
         //if (this._debug)
         console.debug(`[aggregation-service] Aggregation saved in ${Date.now() - now}ms`, savedEntity);
 
         // Convert into the extraction type
-        const savedExtractionType = ExtractionType.fromObject(savedEntity).asObject({keepTypename: true});
+        const savedExtractionType = ExtractionType.fromObject(savedEntity).asObject({keepTypename: false});
         savedExtractionType.category = 'PRODUCT';
+        savedExtractionType.__typename = ExtractionType.TYPENAME;
 
         // Insert into cached queries
         if (isNew) {
           // Insert as an extraction types
-          this.insertIntoMutableCachedQuery(cache, {
-            queryName: "LoadExtractionTypes",
-            query: LoadExtractionTypesQuery,
-            data: savedExtractionType
-          });
-        }
-
-        // Update from cached queries
-        else {
-          // Remove, then insert, from extraction types
-          this.removeFromMutableCachedQueryByIds(cache, {
-            queryName: "LoadExtractionTypes",
-            query: LoadExtractionTypesQuery,
-            ids: savedEntity.id
-          });
-          this.insertIntoMutableCachedQuery(cache, {
-            queryName: "LoadExtractionTypes",
-            query: LoadExtractionTypesQuery,
-            data: savedExtractionType
-          });
+          this.extractionService.insertIntoCache(cache, savedExtractionType);
 
           // Aggregation types
           this.insertIntoMutableCachedQuery(cache, {
@@ -407,6 +390,10 @@ export class AggregationService extends BaseGraphqlService {
           });
         }
 
+        // Update from cached queries
+        else {
+          this.extractionService.updateCache(cache, savedExtractionType);
+        }
 
       }
     });
@@ -453,7 +440,7 @@ export class AggregationService extends BaseGraphqlService {
     if (isNil(entity.id)) {
 
       // Compute label
-      entity.label = `${entity.label}-${Date.now()}`;
+      entity.label = `${entity.format}-${Date.now()}`;
 
       // Recorder department
       entity.recorderDepartment = ReferentialUtils.isNotEmpty(entity.recorderDepartment) ? entity.recorderDepartment : this.accountService.department;
