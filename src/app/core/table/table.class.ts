@@ -487,7 +487,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
           if (saved) {
             this.applyFilter(filter, opts);
           }
-        })
+        });
 
       } else {
         // apply filter on non dirty table

@@ -278,7 +278,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
     const items = await this.openSelectReferentialModal({
       filter: {
         entityName: 'Gear',
-        levelId: this.program && this.program.gearClassification ? toNumber(this.program.gearClassification.id, -1) : -1
+        levelId: this.program && this.program.gearClassification ? toNumber(this.program.gearClassification.id, null) : null
       }
     });
 
