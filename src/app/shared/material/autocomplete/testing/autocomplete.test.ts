@@ -5,8 +5,7 @@ import {MatAutocompleteConfigHolder} from "../material.autocomplete";
 import {isNotNil, suggestFromArray} from "../../../functions";
 import {BehaviorSubject} from "rxjs";
 import {LoadResult} from "../../../services/entity-service.class";
-import {IEntity} from "../../../../core/services/model/entity.model";
-import {accessibilityOutline} from "ionicons/icons";
+import Timer = NodeJS.Timer;
 
 export class Entity {
   id: number;
@@ -35,7 +34,9 @@ export class AutocompleteTestPage implements OnInit {
 
   form: FormGroup;
   autocompleteFields = new MatAutocompleteConfigHolder();
-  hide = false;
+  memoryHide = false;
+  memoryAutocompleteFieldName = 'entity-$items';
+  memoryTimer: Timer;
 
   constructor(
     protected formBuilder: FormBuilder
@@ -126,16 +127,16 @@ export class AutocompleteTestPage implements OnInit {
     return o1 && o2 && o1.id === o2.id;
   }
 
-  autocompleteFieldName: any;
   startMemoryTimer() {
-    let counter = 0;
-    setInterval(() => {
-      this.hide = !this.hide;
-      counter++;
-      if (counter % 100 === 0) {
-        console.log("[mat-autocomplete-field]", this._$items.observers.length);
-      }
+    this.memoryTimer = setInterval(() => {
+      this.memoryHide = !this.memoryHide;
     }, 50);
+  }
+
+  stopMemoryTimer() {
+    clearInterval(this.memoryTimer);
+    this.memoryTimer = null;
+    this.memoryHide = false;
   }
 
   /* -- protected methods -- */
