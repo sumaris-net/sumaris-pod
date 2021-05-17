@@ -6,6 +6,7 @@ import {isNotNil, suggestFromArray} from "../../../functions";
 import {BehaviorSubject} from "rxjs";
 import {LoadResult} from "../../../services/entity-service.class";
 import {IEntity} from "../../../../core/services/model/entity.model";
+import {accessibilityOutline} from "ionicons/icons";
 
 export class Entity {
   id: number;
@@ -34,6 +35,7 @@ export class AutocompleteTestPage implements OnInit {
 
   form: FormGroup;
   autocompleteFields = new MatAutocompleteConfigHolder();
+  hide = false;
 
   constructor(
     protected formBuilder: FormBuilder
@@ -123,8 +125,20 @@ export class AutocompleteTestPage implements OnInit {
   compareWithFn(o1: Entity, o2: Entity): boolean {
     return o1 && o2 && o1.id === o2.id;
   }
-  /* -- protected methods -- */
 
+  autocompleteFieldName: any;
+  startMemoryTimer() {
+    let counter = 0;
+    setInterval(() => {
+      this.hide = !this.hide;
+      counter++;
+      if (counter % 100 === 0) {
+        console.log("[mat-autocomplete-field]", this._$items.observers.length);
+      }
+    }, 50);
+  }
+
+  /* -- protected methods -- */
 
   stringify(value: any) {
     return JSON.stringify(value);
