@@ -112,7 +112,8 @@ import {SelectPmfmModal} from "./pmfm/select-pmfm.modal";
     PmfmFormField,
     PmfmQvFormField,
     PmfmsTable,
-    SelectPmfmModal
+    SelectPmfmModal,
+    PmfmStrategiesTable
   ]
 })
 export class ReferentialModule {

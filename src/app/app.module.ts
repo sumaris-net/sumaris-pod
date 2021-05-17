@@ -50,6 +50,7 @@ import {TypePolicies} from "@apollo/client/core";
 import {APP_GRAPHQL_TYPE_POLICIES} from "./core/graphql/graphql.service";
 import {SocialModule} from "./social/social.module";
 import {TRIP_TESTING_PAGES} from "./trip/trip.testing.module";
+import {REFERENTIAL_TESTING_PAGES} from "./referential/referential.testing.module";
 import {
   EXTRACTION_CONFIG_OPTIONS,
   EXTRACTION_GRAPHQL_TYPE_POLICIES
@@ -275,7 +276,7 @@ import {DATE_ISO_PATTERN} from "./shared/dates";
 
     // Testing pages
     { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
-        ...TRIP_TESTING_PAGES
+        ...TRIP_TESTING_PAGES, ...REFERENTIAL_TESTING_PAGES
     ]},
   ],
   bootstrap: [AppComponent],
