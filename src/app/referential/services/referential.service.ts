@@ -387,7 +387,7 @@ export class ReferentialService extends BaseGraphqlService<Referential> implemen
       console.error("[referential-service] Missing 'filter.entityName' or 'label'");
       throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
     }
-
+    filter.label = label;
     const {total} = await this.graphql.query<{ total: number; }>({
       query: CountQuery,
       variables : {
