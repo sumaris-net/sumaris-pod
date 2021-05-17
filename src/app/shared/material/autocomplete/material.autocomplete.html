@@ -116,7 +116,7 @@
               <ion-row>
                 <ion-col *ngFor="let attr of displayAttributes; index as i;"
                          [size]="displayColumnSizes[i]">
-                  <ion-text [innerHTML]="getPropertyByPath(item, attr) | highlight: {search: formControl.value }"></ion-text>
+                  <ion-text [innerHTML]="item | mapGet: attr | highlight: {search: formControl.value }"></ion-text>
                 </ion-col>
               </ion-row>
             </mat-option>
