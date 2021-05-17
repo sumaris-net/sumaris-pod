@@ -20,32 +20,44 @@
       <ion-row><ion-col><ion-text><h4>Debug memory leak</h4></ion-text></ion-col></ion-row>
       <ion-row>
         <ion-col size="2">
-          <ion-button *ngIf="!memoryTimer" (click)="startMemoryTimer()">Start timer</ion-button>
-          <ion-button *ngIf="memoryTimer" (click)="stopMemoryTimer()">Stop timer</ion-button>
+          <ion-button *ngIf="!memoryTimer" (click)="startMemoryTimer()" color="tertiary">Start</ion-button>
+          <ion-button *ngIf="memoryTimer" (click)="stopMemoryTimer()" color="tertiary">Stop</ion-button>
         </ion-col>
         <ion-col size="2">
           <mat-form-field floatLabel="always">
-            <input matInput type="hidden" placeholder="Items type">
+            <input matInput type="text" hidden placeholder="Items type">
             <mat-select (selectionChange)="memoryAutocompleteFieldName=$event.value" [value]="memoryAutocompleteFieldName">
               <mat-option value="entity-$items">Observable</mat-option>
               <mat-option value="entity-suggestFn">Suggest function</mat-option>
             </mat-select>
           </mat-form-field>
         </ion-col>
+        <ion-col size="1" class="ion-no-padding">
+          <mat-form-field floatLabel="always" >
+            <input matInput type="text" hidden placeholder="Mobile ?">
+            <mat-checkbox (change)="memoryMobile=$event.checked" [checked]="memoryMobile">
+            </mat-checkbox>
+          </mat-form-field>
+        </ion-col>
         <ion-col>
           <mat-autocomplete-field formControlName="entity"
                                   *ngIf="!memoryHide && memoryAutocompleteFieldName"
                                   [config]="autocompleteFields.get(memoryAutocompleteFieldName)"
-                                  [mobile]="true"
+                                  [mobile]="memoryMobile"
                                   [compareWith]="compareWithFn"
-                                  [logPrefix]="'[combo-mobile-2]'"
-          ></mat-autocomplete-field>
+                                  [logPrefix]="'[combo-memory-leak]'">
+          </mat-autocomplete-field>
         </ion-col>
       </ion-row>
 
+    </ion-grid>
+
+    <ion-grid *ngIf="!memoryTimer">
 
       <!-- mobile -->
-      <ion-row><ion-col><ion-text><h4>Mobile mode</h4></ion-text></ion-col></ion-row>
+      <ion-row>
+        <ion-col><ion-text><h4>Mobile mode</h4></ion-text></ion-col>
+      </ion-row>
       <ion-row>
         <ion-col>
           <ion-card>
@@ -174,7 +186,9 @@
       </ion-row>
 
       <!-- desktop mode -->
-      <ion-row><ion-col><ion-text><h4>Desktop mode</h4></ion-text></ion-col></ion-row>
+      <ion-row>
+        <ion-col><ion-text><h4>Desktop mode</h4></ion-text></ion-col>
+      </ion-row>
       <ion-row>
         <ion-col>
           <ion-card>

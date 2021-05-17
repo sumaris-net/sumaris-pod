@@ -13,7 +13,7 @@ export class Entity {
   name: string;
 }
 
-const FAKE_ENTITIES= [
+const FAKE_ENTITIES = [
   {id: 1, label: 'AAA', name: 'Item A', description: 'Very long description A', comments: 'Very very long comments... again for A'},
   {id: 2, label: 'BBB', name: 'Item B', description: 'Very long description B', comments: 'Very very long comments... again for B'},
   {id: 3, label: 'CCC', name: 'Item C', description: 'Very long description C', comments: 'Very very long comments... again for C'}
@@ -29,12 +29,13 @@ function deepCopy(values?: Entity[]): Entity[] {
 })
 export class AutocompleteTestPage implements OnInit {
 
-  private _items = deepCopy(FAKE_ENTITIES);
-  private _$items = new BehaviorSubject<Entity[]>(undefined);
+  _items = deepCopy(FAKE_ENTITIES);
+  $items = new BehaviorSubject<Entity[]>(undefined);
 
   form: FormGroup;
   autocompleteFields = new MatAutocompleteConfigHolder();
   memoryHide = false;
+  memoryMobile = true;
   memoryAutocompleteFieldName = 'entity-$items';
   memoryTimer: Timer;
 
@@ -68,7 +69,7 @@ export class AutocompleteTestPage implements OnInit {
 
     // From items
     this.autocompleteFields.add('entity-$items', {
-      items: this._$items,
+      items: this.$items,
       attributes: ['label', 'name'],
       displayWith: this.entityToString
     });
@@ -104,7 +105,7 @@ export class AutocompleteTestPage implements OnInit {
   }
 
   async loadItems() {
-    this._$items.next(deepCopy(FAKE_ENTITIES));
+    this.$items.next(deepCopy(FAKE_ENTITIES));
   }
 
   entityToString(item: any) {
