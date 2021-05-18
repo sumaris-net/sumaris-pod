@@ -1,13 +1,14 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Optional, Output, Provider, ViewChild} from "@angular/core";
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
 import {BehaviorSubject, isObservable, merge, Observable, Subject, Subscription} from "rxjs";
-import {debounceTime, distinctUntilChanged, filter, first, map, startWith, switchMap, takeUntil, takeWhile, tap} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, takeWhile, tap} from "rxjs/operators";
 import {LoadResult, SuggestFn, SuggestService} from "../../services/entity-service.class";
 import {changeCaseToUnderscore, getPropertyByPath, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, joinPropertiesPath, suggestFromArray, toBoolean, toNumber} from "../../functions";
 import {focusInput, InputElement, selectInputContent} from "../../inputs";
 import {firstNotNilPromise} from "../../observables";
 import {CompareWithFn, DisplayFn} from "../../form/field.model";
 import {FloatLabelType} from "@angular/material/form-field";
+import {MatSelect} from "@angular/material/select";
 
 
 export declare interface MatAutocompleteFieldConfig<T = any, F = any> {
@@ -204,7 +205,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @Output('blur') onBlur = new EventEmitter<FocusEvent>();
   @Output('focus') onFocus = new EventEmitter<FocusEvent>();
 
-  @ViewChild('matSelect') matSelect: ElementRef;
+  @ViewChild('matSelect') matSelect: MatSelect;
   @ViewChild('matInputText') matInputText: ElementRef;
 
   get value(): any {
@@ -369,9 +370,9 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     this.filteredItems$ = updateFilteredItemsEvents$
       .pipe(
         //tap(value => console.debug(this.logPrefix + " Received update event: ", value)),
-        switchMap((value) => this.suggest(value, this.filter)),
+        switchMap(value => this.suggest(value, this.filter)),
         // Store implicit value (will use it onBlur if not other value selected)
-        tap(res => this.updateImplicitValue(res))
+        tap(value => this.updateImplicitValue(value))
     );
 
     // Applying implicit value, on blur
@@ -379,31 +380,27 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       this.onBlur
        .pipe(
          // Skip if no implicit value, or has already a value
-         filter(_ => this.searchable)
+         filter(_ => this.searchable),
+         map(_ => this.formControl.value)
        )
-       .subscribe( event => {
-         console.log("Blur event");
-         const existingValue = this.formControl.value;
-         if (this._implicitValue) {
-           // When leave component without object, use implicit value if :
-           // - an explicit value
-           // - field is not empty (user fill something)
-           // - OR field empty but is required
-           if ((this.required && isNilOrBlank(existingValue)) || (isNotNilOrBlank(existingValue) && typeof existingValue !== "object")) {
-             this.writeValue(this._implicitValue);
-             this.formControl.markAsPending({emitEvent: false, onlySelf: true});
-             this.formControl.updateValueAndValidity({emitEvent: false, onlySelf: true});
-           }
-           this._implicitValue = null; // reset the implicit value
+       .subscribe( value => {
+         // When leave component without object, use implicit value if :
+         // - an explicit value
+         // - field is not empty (user fill something)
+         // - OR field empty but is required
+         if (this._implicitValue && ((this.required && isNilOrBlank(value)) || (isNotNilOrBlank(value) && typeof value !== "object"))) {
+           this.writeValue(this._implicitValue);
+           this.formControl.markAsPending({emitEvent: false, onlySelf: true});
+           this.formControl.updateValueAndValidity({emitEvent: false, onlySelf: true});
            this.checkIfTouched();
          }
-         else if (isNilOrBlank(existingValue)) {
-
+         else if (isNilOrBlank(value)) {
            this.writeValue(null);
            this.formControl.markAsPending({emitEvent: false, onlySelf: true});
            this.formControl.updateValueAndValidity({emitEvent: false, onlySelf: true});
            this.checkIfTouched();
          }
+         this._implicitValue = null; // reset the implicit value
        }));
   }
 
@@ -441,7 +438,9 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   }
 
   writeValue(value: any): void {
-    console.debug(this.logPrefix + " Writing value: ", value);
+    // DEBUG
+    // console.debug(this.logPrefix + " Writing value: ", value);
+
     if (value !== this.formControl.value) {
       this.formControl.patchValue(value, {emitEvent: false});
       this._onChangeCallback(value);
@@ -468,7 +467,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       focusInput(this.matInputText);
     }
     else {
-      focusInput(this.matSelect);
+      this.matSelect?.focus();
     }
   }
 
