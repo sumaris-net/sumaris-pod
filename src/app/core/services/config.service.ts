@@ -13,7 +13,7 @@ import {PlatformService} from "./platform.service";
 import {CORE_CONFIG_OPTIONS} from "./config/core.config";
 import {SoftwareService} from "../../referential/services/software.service";
 import {LocationLevelIds, ParameterLabelGroups, PmfmIds, TaxonomicLevelIds} from "../../referential/services/model/model.enum";
-import {ToastController} from "@ionic/angular";
+import {Platform, ToastController} from "@ionic/angular";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {TranslateService} from "@ngx-translate/core";
 import {filter} from "rxjs/operators";
@@ -21,6 +21,7 @@ import {EntityServiceLoadOptions} from "../../shared/services/entity-service.cla
 import {ENVIRONMENT} from "../../../environments/environment.class";
 import {UserProfileLabels} from "./model/person.model";
 import {REFERENTIAL_CONFIG_OPTIONS} from "../../referential/services/config/referential.config";
+import {AccountService} from "./account.service";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -54,19 +55,9 @@ export const Fragments = {
   `
 };
 
-
-const LoadDefaultQuery: any = gql`
-query Configuration {
-  configuration {
-    ...ConfigFragment
-  }
-}
-  ${Fragments.config}
-`;
-
 const LoadQuery: any = gql`
-query Configuration($id: Int, $label: String) {
-  configuration(id: $id, label: $label){
+query Configuration{
+  data: configuration{
     ...ConfigFragment
   }
 }
@@ -124,10 +115,10 @@ export class ConfigService extends SoftwareService<Configuration> {
   }
 
   constructor(
+    protected platform: Platform,
     protected graphql: GraphqlService,
     protected storage: Storage,
     protected network: NetworkService,
-    protected platform: PlatformService,
     protected file: FileService,
     protected toastController: ToastController,
     protected translate: TranslateService,
@@ -150,8 +141,6 @@ export class ConfigService extends SoftwareService<Configuration> {
     if (this.graphql.started) {
       this.start();
     }
-
-
   }
 
   start(): Promise<void> {
@@ -193,37 +182,30 @@ export class ConfigService extends SoftwareService<Configuration> {
   }
 
   async loadDefault(
-    opts?: {
-      fetchPolicy?: FetchPolicy
-    }): Promise<Configuration> {
-    return this.loadQuery({query: LoadDefaultQuery, ...opts});
+    opts?: EntityServiceLoadOptions): Promise<Configuration> {
+    const now = Date.now();
+    console.debug("[config] Loading Pod configuration...");
+
+    const query = opts && opts.query || LoadQuery;
+    const variables = opts && opts.variables || undefined;
+    const res = await this.graphql.query<{ data: any }>({
+      query,
+      variables,
+      error: {code: ErrorCodes.LOAD_CONFIG_ERROR, message: "ERROR.LOAD_CONFIG_ERROR"},
+      fetchPolicy: opts && opts.fetchPolicy || undefined/*default*/
+    });
+
+    const data = res && res.data ? Configuration.fromObject(res.data) : undefined;
+    console.info(`[config] Pod configuration loaded in ${Date.now() - now}ms:`, data);
+    return data;
   }
 
   async load(
     id: number,
-    opts?: EntityServiceLoadOptions & { label?: string; query?: any }): Promise<Configuration> {
+    opts?: EntityServiceLoadOptions & { query?: any }): Promise<Configuration> {
+    console.warn("[config] Invalid call of configService.load(id). Please use loadDefault() instead");
 
-    return this.loadQuery({
-      variables: {
-        id
-      },
-      ...opts});
-  }
-
-  loadByLabel(
-    label: string,
-    opts?: EntityServiceLoadOptions): Promise<Configuration> {
-
-    return this.loadQuery({
-      variables: {
-        label
-      },
-      ...opts});
-  }
-
-  async existsByLabel(label: string): Promise<boolean> {
-    const existingConfig = await this.loadByLabel(label, {fetchPolicy: "network-only"});
-    return isNotNil(existingConfig && existingConfig.id);
+    return this.loadDefault();
   }
 
   /**
@@ -232,7 +214,7 @@ export class ConfigService extends SoftwareService<Configuration> {
    */
   async save(config: Configuration): Promise<Configuration> {
 
-    console.debug("[config] Saving configuration...", config);
+    console.debug("[config] Saving Pod configuration...", config);
 
     const json = config.asObject();
 
@@ -254,9 +236,9 @@ export class ConfigService extends SoftwareService<Configuration> {
     config.id = savedConfig && savedConfig.id || config.id;
     config.updateDate = savedConfig && savedConfig.updateDate || config.updateDate;
 
-    console.debug("[config] Configuration saved!");
+    console.debug("[config] Pod configuration saved!");
 
-    const reloadedConfig = await this.loadByLabel(config.label, {fetchPolicy: "network-only"});
+    const reloadedConfig = await this.loadDefault({fetchPolicy: "network-only"});
 
     // If this is the default config
     const defaultConfig = this.$data.getValue();
@@ -323,30 +305,6 @@ export class ConfigService extends SoftwareService<Configuration> {
   }
 
   /* -- protected method -- */
-
-  protected async loadQuery(opts?:
-    {
-      query?: any,
-      variables?: any,
-      fetchPolicy?: FetchPolicy
-    }): Promise<Configuration> {
-
-    const now = Date.now();
-    console.debug("[config] Loading software configuration...");
-
-    const query = opts && opts.query || LoadQuery;
-    const variables = opts && opts.variables || undefined;
-    const res = await this.graphql.query<{ configuration: Configuration }>({
-      query,
-      variables,
-      error: {code: ErrorCodes.LOAD_CONFIG_ERROR, message: "ERROR.LOAD_CONFIG_ERROR"},
-      fetchPolicy: opts && opts.fetchPolicy || undefined/*default*/
-    });
-
-    const data = res && res.configuration ? Configuration.fromObject(res.configuration) : undefined;
-    console.info(`[config] Software configuration loaded in ${Date.now() - now}ms:`, data);
-    return data;
-  }
 
   private async loadOrRestoreLocally() {
     let data;
@@ -427,7 +385,7 @@ export class ConfigService extends SoftwareService<Configuration> {
       let now = this._debug && Date.now();
 
       // Convert images, for offline usage
-      if (this.network.online && this.platform.mobile) {
+      if (this.network.online && this.platform.is('mobile')) {
         const jobs = [];
 
         // Download logos

@@ -1,5 +1,5 @@
 import {Observable, of, Subject, Subscription} from "rxjs";
-import {Apollo} from "apollo-angular";
+import {Apollo, QueryRef} from "apollo-angular";
 import {
   ApolloCache,
   ApolloClient,
@@ -42,6 +42,8 @@ import {PersistentStorage} from "apollo3-cache-persist/lib/types";
 import {MutationBaseOptions} from "@apollo/client/core/watchQueryOptions";
 import {Cache} from "@apollo/client/cache/core/types/Cache";
 import {ENVIRONMENT} from "../../../environments/environment.class";
+import {CryptoService} from "../services/crypto.service";
+import {ConnectionParamsOptions} from "subscriptions-transport-ws/dist/client";
 
 export interface WatchQueryOptions<V> {
   query: any;
@@ -81,7 +83,10 @@ export class GraphqlService {
 
   private httpParams: Options;
   private wsParams: WebSocketLink.Configuration;
-  private wsConnectionParams: { authToken?: string } = {};
+  private connectionParams: ConnectionParamsOptions & {
+    authToken?: string;
+    authBasic?: string;
+  } = {};
   private readonly _defaultFetchPolicy: WatchQueryFetchPolicy;
   private onNetworkError = new Subject();
 
@@ -106,6 +111,7 @@ export class GraphqlService {
     private httpLink: HttpLink,
     private network: NetworkService,
     private storage: Storage,
+    private cryptoService: CryptoService,
     @Inject(ENVIRONMENT) protected environment,
     @Optional() @Inject(APP_GRAPHQL_TYPE_POLICIES) private typePolicies: TypePolicies
   ) {
@@ -171,13 +177,25 @@ export class GraphqlService {
     return this._startPromise;
   }
 
-  setAuthToken(authToken: string) {
-    if (authToken) {
-      console.debug("[graphql] Apply authentication token to headers");
-      this.wsConnectionParams.authToken = authToken;
+  setAuthToken(token: string) {
+    if (token) {
+      console.debug("[graphql] Apply token authentication to headers");
+      this.connectionParams.authToken = token;
     } else {
-      console.debug("[graphql] Remove authentication token from headers");
-      delete this.wsConnectionParams.authToken;
+      console.debug("[graphql] Remove token authentication from headers");
+      delete this.connectionParams.authToken;
+      // Clear cache
+      this.clearCache();
+    }
+  }
+
+  setAuthBasic(basic: string) {
+    if (basic) {
+      console.debug("[graphql] Apply basic authentication to headers");
+      this.connectionParams.authBasic = basic;
+    } else {
+      console.debug("[graphql] Remove basic authentication from headers");
+      delete this.connectionParams.authBasic;
       // Clear cache
       this.clearCache();
     }
@@ -198,7 +216,7 @@ export class GraphqlService {
 
   async query<T, V = EmptyObject>(opts: {
     query: any,
-    variables: V,
+    variables?: V,
     error?: ServiceError,
     fetchPolicy?: FetchPolicy
   }): Promise<T> {
@@ -218,6 +236,15 @@ export class GraphqlService {
     return res.data;
   }
 
+  watchQueryRef<T, V = EmptyObject>(opts: WatchQueryOptions<V>): QueryRef<T, V> {
+    return this.apollo.watchQuery<T, V>({
+      query: opts.query,
+      variables: opts.variables,
+      fetchPolicy: opts.fetchPolicy || (this._defaultFetchPolicy as FetchPolicy) || undefined,
+      notifyOnNetworkStatusChange: true
+    });
+  }
+
   watchQuery<T, V = EmptyObject>(opts: WatchQueryOptions<V>): Observable<T> {
     return this.apollo.watchQuery<T, V>({
       query: opts.query,
@@ -225,6 +252,20 @@ export class GraphqlService {
       fetchPolicy: opts.fetchPolicy || (this._defaultFetchPolicy as FetchPolicy) || undefined,
       notifyOnNetworkStatusChange: true
     })
+      .valueChanges
+      .pipe(
+        catchError(error => this.onApolloError<T>(error, opts.error)),
+        map(({data, errors}) => {
+          if (errors) {
+            throw errors[0];
+          }
+          return data;
+        })
+      );
+  }
+
+  queryRefValuesChanges<T, V = EmptyObject>(queryRef: QueryRef<T, V>, opts: WatchQueryOptions<V>): Observable<T> {
+    return queryRef
       .valueChanges
       .pipe(
         catchError(error => this.onApolloError<T>(error, opts.error)),
@@ -314,7 +355,7 @@ export class GraphqlService {
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      let data = cache.readQuery<any, V>(opts);
+      let data = cache.readQuery<any, V>({query: opts.query, variables: opts.variables});
 
       if (data && data[opts.arrayFieldName]) {
         // Copy because immutable
@@ -375,7 +416,7 @@ export class GraphqlService {
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      let data: any = cache.readQuery(opts);
+      let data = cache.readQuery<any, V>({query: opts.query, variables: opts.variables});
 
       if (data && data[opts.arrayFieldName]) {
         // Copy because immutable
@@ -428,26 +469,30 @@ export class GraphqlService {
     }
   }
 
+  /**
+   * Remove from cache, and return if removed or not
+   * @param cache
+   * @param opts
+   */
   removeFromCachedQueryById<V = EmptyObject>(cache: ApolloCache<any>,
                                    opts: Cache.ReadQueryOptions<V, any> & {
                                      arrayFieldName: string;
                                      totalFieldName?: string;
-                                     id: string
-                                   }) {
+                                     ids: number; // Do NOT use 'id', as already used by the Apollo API
+                                   }): boolean {
 
     cache = cache || this.apollo.client.cache;
     opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      let data = cache.readQuery(opts);
+      let data = cache.readQuery<any, V>({query: opts.query, variables: opts.variables});
 
       if (data && data[opts.arrayFieldName]) {
         // Copy because immutable
         data = { ...data };
 
-
-        const index = data[opts.arrayFieldName].findIndex(item => item['id'] === opts.id);
-        if (index === -1) return; // Skip (nothing removed)
+        const index = data[opts.arrayFieldName].findIndex(item => item['id'] === opts.ids);
+        if (index === -1) return false; // Skip (nothing removed)
 
         // Copy, then remove deleted item
         data[opts.arrayFieldName] = data[opts.arrayFieldName].slice();
@@ -470,23 +515,31 @@ export class GraphqlService {
           variables: opts.variables,
           data
         });
+        return true;
       }
       else {
         console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.arrayFieldName);
+        return false;
       }
     } catch (err) {
       // continue
       // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
       if (this._debug) console.warn("[graphql] Error while removing from cache: ", err);
+      return false;
     }
   }
 
+  /**
+   * Remove ids from cache, and return the number of items removed
+   * @param cache
+   * @param opts
+   */
   removeFromCachedQueryByIds<V = EmptyObject>(cache: ApolloCache<any>,
                                     opts: Cache.ReadQueryOptions<V, any> & {
                                       arrayFieldName: string;
                                       totalFieldName?: string;
                                       ids: number[]
-                                    }) {
+                                    }): number {
 
     cache = cache || this.apollo.client.cache;
     opts.arrayFieldName = opts.arrayFieldName || 'data';
@@ -502,7 +555,7 @@ export class GraphqlService {
           return opts.ids.includes(item['id']) ? res.concat(index) : res;
         }, []);
 
-        if (deletedIndexes.length <= 0) return; // Skip (nothing removed)
+        if (deletedIndexes.length <= 0) return 0; // Skip (nothing removed)
 
         // Query has NO total
         if (isNil(opts.totalFieldName)) {
@@ -533,22 +586,27 @@ export class GraphqlService {
             data[opts.totalFieldName] -= deletedIndexes.length; // Remove deletion count
           }
           else {
-            console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.totalFieldName);
+            console.warn('[graphql] Unable to update the total in cached query. Unknown result part: ' + opts.totalFieldName);
           }
+
           cache.writeQuery({
             query: opts.query,
             variables: opts.variables,
             data
           });
+
+          return deletedIndexes.length;
         }
       }
       else {
         console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.arrayFieldName);
+        return 0;
       }
     } catch (err) {
       // continue
       // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
       if (this._debug) console.warn("[graphql] Error while removing from cache: ", err);
+      return 0;
     }
   }
 
@@ -637,7 +695,7 @@ export class GraphqlService {
       options: {
         lazy: true,
         reconnect: true,
-        connectionParams: this.wsConnectionParams
+        connectionParams: this.connectionParams
       },
       webSocketImpl: AppWebSocket,
       uri: wsUri
@@ -657,11 +715,19 @@ export class GraphqlService {
       const retryLink = new RetryLink();
       const authLink = new ApolloLink((operation, forward) => {
 
+        const authorization = [];
+        if (this.connectionParams.authToken) {
+          authorization.push(`token ${this.connectionParams.authToken}`);
+        }
+        if (this.connectionParams.authBasic) {
+          authorization.push(`Basic ${this.connectionParams.authBasic}`);
+        }
         const headers = new HttpHeaders()
-          .append('Authorization', this.wsConnectionParams.authToken ? `token ${this.wsConnectionParams.authToken}` : '')
+          .append('Authorization', authorization);
           //.append('X-App-Name', environment.name)
           //.append('X-App-Version', environment.version)
         ;
+
 
         // Use the setContext method to set the HTTP headers.
         operation.setContext({

@@ -97,8 +97,7 @@ const SPLIT_PANE_SHOW_WHEN = 'lg';
   selector: 'app-menu',
   templateUrl: 'menu.component.html',
   styleUrls: ['./menu.component.scss'],
-  animations: [fadeInAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  animations: [fadeInAnimation]
 })
 export class MenuComponent implements OnInit {
 
@@ -247,7 +246,7 @@ export class MenuComponent implements OnInit {
 
             setTimeout(() => {
               // Back to home
-              return this.router.navigateByUrl('/');
+              return this.router.navigateByUrl('/', {replaceUrl: true /* will clear router history */});
             }, 100);
           }
         }

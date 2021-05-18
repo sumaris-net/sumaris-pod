@@ -24,7 +24,9 @@ import {ENVIRONMENT} from "../../../environments/environment.class";
 
 export type ConnectionType = 'none' | 'wifi' | 'ethernet' | 'cell' | 'unknown' ;
 
-export function getConnectionType(type: number) {
+export type AuthTokenType = 'token' | 'basic' | 'basic-and-token';
+
+export function getConnectionType(type: Connection): ConnectionType {
   switch (type) {
     case Connection.NONE:
       return 'none';

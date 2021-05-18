@@ -5,6 +5,7 @@ import {MatAutocompleteConfigHolder} from "../material.autocomplete";
 import {isNotNil, suggestFromArray} from "../../../functions";
 import {BehaviorSubject} from "rxjs";
 import {LoadResult} from "../../../services/entity-service.class";
+import Timer = NodeJS.Timer;
 
 export class Entity {
   id: number;
@@ -12,10 +13,10 @@ export class Entity {
   name: string;
 }
 
-const FAKE_ENTITIES: Entity[] = [
-  {id: 1, label: 'AAA', name: 'Item A'},
-  {id: 2, label: 'BBB', name: 'Item B'},
-  {id: 3, label: 'CCC', name: 'Item C'}
+const FAKE_ENTITIES= [
+  {id: 1, label: 'AAA', name: 'Item A', description: 'Very long description A', comments: 'Very very long comments... again for A'},
+  {id: 2, label: 'BBB', name: 'Item B', description: 'Very long description B', comments: 'Very very long comments... again for B'},
+  {id: 3, label: 'CCC', name: 'Item C', description: 'Very long description C', comments: 'Very very long comments... again for C'}
 ];
 
 function deepCopy(values?: Entity[]): Entity[] {
@@ -33,6 +34,9 @@ export class AutocompleteTestPage implements OnInit {
 
   form: FormGroup;
   autocompleteFields = new MatAutocompleteConfigHolder();
+  memoryHide = false;
+  memoryAutocompleteFieldName = 'entity-$items';
+  memoryTimer: Timer;
 
   constructor(
     protected formBuilder: FormBuilder
@@ -66,6 +70,13 @@ export class AutocompleteTestPage implements OnInit {
     this.autocompleteFields.add('entity-$items', {
       items: this._$items,
       attributes: ['label', 'name'],
+      displayWith: this.entityToString
+    });
+
+    // From items
+    this.autocompleteFields.add('entity-items-large', {
+      items: FAKE_ENTITIES.slice(),
+      attributes: ['label', 'name', 'description', 'comments'],
       displayWith: this.entityToString
     });
 
@@ -115,8 +126,20 @@ export class AutocompleteTestPage implements OnInit {
   compareWithFn(o1: Entity, o2: Entity): boolean {
     return o1 && o2 && o1.id === o2.id;
   }
-  /* -- protected methods -- */
 
+  startMemoryTimer() {
+    this.memoryTimer = setInterval(() => {
+      this.memoryHide = !this.memoryHide;
+    }, 50);
+  }
+
+  stopMemoryTimer() {
+    clearInterval(this.memoryTimer);
+    this.memoryTimer = null;
+    this.memoryHide = false;
+  }
+
+  /* -- protected methods -- */
 
   stringify(value: any) {
     return JSON.stringify(value);

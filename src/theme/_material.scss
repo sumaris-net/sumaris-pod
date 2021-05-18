@@ -18,6 +18,12 @@
 // --------------------------------------------------
 // Override material style
 // --------------------------------------------------
+.mat-tab-group.mat-secondary, .mat-tab-nav-bar.mat-secondary {
+  background-color: var(--ion-color-secondary, $secondary);
+  .mat-tab-link {
+    color: var(--ion-color-secondary-contrast);
+  }
+}
 .mat-tab-group.mat-primary .mat-ink-bar, .mat-tab-nav-bar.mat-primary .mat-ink-bar {
   background-color: var(--ion-color-primary, $primary);
 }

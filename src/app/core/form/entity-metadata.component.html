@@ -2,9 +2,18 @@
   <ion-card @fadeInAnimation>
     <ion-item color="light"
               *ngIf="value &&  (value.recorderDepartment || value.recorderPerson)">
-      <ion-avatar slot="start">
-        <img src="{{ (value.recorderPerson?.avatar || value.recorderDepartment?.logo ) || './assets/img/person.png' }}">
+
+      <!-- recorder avatar -->
+      <ion-avatar slot="start" *ngIf="value.recorderPerson; let recorderPerson">
+        <img *ngIf="recorderPerson.avatar; else generateAvatar"
+          src="{{ recorderPerson.avatar }}">
+        <ng-template #generateAvatar>
+          <svg *ngIf="recorderPerson.id; let personId"
+               width="38" width="38" [data-jdenticon-value]="personId"></svg>
+        </ng-template>
       </ion-avatar>
+
+      <!-- recorder name -->
       <ion-label>
         <ion-card-subtitle translate>COMMON.RECORDER</ion-card-subtitle>
         <ion-card-title>{{value.recorderPerson?.firstName}} {{value.recorderPerson?.lastName}}</ion-card-title>

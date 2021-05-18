@@ -28,10 +28,10 @@
     <ion-reorder-group disabled="false" (ionItemReorder)="onRenderItems($event)">
       <ion-item *ngFor="let column of columns">
         <ion-label>{{column.label|translate}}</ion-label>
-        <ion-reorder slot="end"></ion-reorder>
         <ion-toggle slot="end"
                     *ngIf="column.canHide"
                     [checked]="column.visible" (ionChange)="column.visible=!column.visible"></ion-toggle>
+        <ion-reorder slot="end"></ion-reorder>
       </ion-item>
     </ion-reorder-group>
   </ion-list>

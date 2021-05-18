@@ -187,8 +187,8 @@ export abstract class EntityUtils {
     const isSimplePath = !sortBy || sortBy.indexOf('.') === -1;
     if (isSimplePath) {
       return (a, b) => {
-        const valueA = isNotNil(a) && a[sortBy] || undefined;
-        const valueB = isNotNil(b) && b[sortBy] || undefined;
+        const valueA = isNotNil(a) ? a[sortBy] : undefined;
+        const valueB = isNotNil(b) ? b[sortBy] : undefined;
         return EntityUtils.compare(valueA, valueB, after);
       };
     }

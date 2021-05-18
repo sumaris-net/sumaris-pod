@@ -15,6 +15,15 @@ import {ObservedLocationOfflineFilter} from "../../services/observed-location.se
 import {LocationLevelIds} from "../../../referential/services/model/model.enum";
 import {ProgramRefQueries, ProgramRefService} from "../../../referential/services/program-ref.service";
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
+import {referentialsToString, referentialToString, ReferentialUtils} from "../../../core/services/model/referential.model";
+import {isEmptyArray, isNotEmptyArray} from "../../../shared/functions";
+import {filter, map, merge, tap} from "rxjs/operators";
+import {EntityUtils} from "../../../core/services/model/entity.model";
+import {mergeMap} from "rxjs/internal/operators";
+import {ProgramProperties} from "../../../referential/services/config/program.config";
+import {of} from "rxjs";
+import {Program} from "../../../referential/services/model/program.model";
+import {LoadResult} from "../../../shared/services/entity-service.class";
 
 const moment = momentImported;
 
@@ -76,7 +85,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
       formBuilder.group({
         program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
         enableHistory: [true, Validators.required],
-        location: [null, SharedValidators.entity],
+        location: [null, Validators.required],
         periodDuration: ['15day', Validators.required],
       }),
       settings);
@@ -108,12 +117,38 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
       mobile: this.mobile
     });
 
+    const displayAttributes = this.settings.getFieldDisplayAttributes('location');
+    const locations$ = this.form.get('program').valueChanges
+      .pipe(
+        mergeMap(program => program && program.label && this.programRefService.loadByLabel(program.label) || Promise.resolve()),
+        mergeMap(program => {
+          if (!program) return Promise.resolve();
+          const locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
+          return this.referentialRefService.loadAll(0, 100, displayAttributes[0],  "asc", {
+            entityName: 'Location',
+            levelIds: locationLevelIds
+          });
+        }),
+        map(res => {
+          if (!res || isEmptyArray(res.data)) {
+            this.form.get('location').disable();
+            return [];
+          }
+          else {
+            this.form.get('location').enable();
+            return res.data;
+          }
+        })
+      );
+
     // Location
     this.registerAutocompleteField('location', {
-      service: this.referentialRefService,
-      filter: {
-        entityName: 'Location',
-        levelIds: [LocationLevelIds.AUCTION, LocationLevelIds.PORT]
+      items: locations$,
+      displayWith: (arg) => {
+        if (arg instanceof Array) {
+          return referentialsToString(arg, displayAttributes);
+        }
+        return referentialToString(arg, displayAttributes);
       },
       mobile: this.mobile
     });
@@ -155,8 +190,9 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     }
 
     // Location
-    if (value.locationId) {
-      json.location = await this.referentialRefService.loadById(value.locationId, 'Location');
+    if (isNotEmptyArray(value.locationIds)) {
+      json.location = await Promise.all(value.locationIds
+        .map(id => this.referentialRefService.loadById(id, 'Location')));
     }
 
     // Duration period
@@ -182,7 +218,14 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     value.programLabel = json.program && json.program.label || json.program;
 
     // Location
-    value.locationId = json.location && json.location.id || json.location;
+    if (json.location) {
+      if (json.location instanceof Array) {
+        value.locationIds = json.location.map(entity => entity.id);
+      }
+      else {
+        value.locationIds = [json.location.id];
+      }
+    }
 
     // Set start date
     if (json.enableHistory && json.periodDuration) {

@@ -120,7 +120,7 @@
     <ng-template #hasSelection>
 
       <!-- synchronize -->
-      <ion-button *ngIf="hasReadyToSyncSelection()"
+      <ion-button *ngIf="hasReadyToSyncSelection"
                   expand="block"
                   [color]="offline ? 'danger100' : 'danger'"
                   (click)="synchronizeSelection()">
@@ -252,7 +252,8 @@
 
     <mat-action-row>
       <!-- Counter  -->
-      <ion-label [hidden]="(loadingSubject|async) || filterForm.dirty" [color]="totalRowCount === 0 && 'danger'"
+      <ion-label [hidden]="(loadingSubject|async) || filterForm.dirty"
+                 [color]="empty && 'danger'"
                  class="ion-padding">
         {{ (totalRowCount ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (totalRowCount |
               numberFormat)} }}
@@ -422,14 +423,14 @@
     </ion-text>
   </ion-item>
 
-  <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="!totalRowCount">
-    <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>
-    <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
-      </mat-paginator>
-    </ion-col>
-  </ion-row>
 </ion-content>
+
+<ion-footer>
+  <mat-paginator class="mat-paginator-footer"
+                 [length]="totalRowCount" [pageSize]="defaultPageSize"
+                 [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
+  </mat-paginator>
+</ion-footer>
 
 <!-- Add button -->
 <ion-fab vertical="bottom" horizontal="end"

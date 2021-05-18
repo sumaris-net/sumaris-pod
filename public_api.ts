@@ -4,22 +4,16 @@ export * from './src/environments/environment.class';
 // Shared
 export * from './src/app/shared/constants';
 export * from './src/app/shared/shared.module';
-export * from './src/app/shared/shared-routing.module';
 
 // Shared material
 export * from './src/app/shared/material/material.module';
 export {MatBooleanField} from './src/app/shared/material/boolean/material.boolean';
 export * from './src/app/shared/material/autocomplete/autocomplete.module';
 export * from './src/app/shared/material/autocomplete/material.autocomplete';
+export * from './src/app/shared/material/chips/chips.module';
+export * from './src/app/shared/material/chips/material.chips';
 export * from './src/app/shared/material/material.animations';
 export * from './src/app/shared/material/paginator/material.paginator-i18n';
-export * from './src/app/shared/material/numpad/numpad.module';
-export * from './src/app/shared/material/numpad/numpad.component';
-export * from './src/app/shared/material/numpad/numpad.container';
-export * from './src/app/shared/material/numpad/numpad.content';
-export * from './src/app/shared/material/numpad/numpad.model';
-export * from './src/app/shared/material/numpad/numpad.directive';
-export * from './src/app/shared/material/numpad/numpad.append-to-input.directive';
 
 // Shared components
 export * from './src/app/shared/inputs';
@@ -53,8 +47,11 @@ export * from './src/app/shared/services/progress-bar.service';
 
 // Shared other
 export * from './src/app/shared/types';
+export * from './src/app/shared/dates';
 export * from './src/app/shared/functions';
 export * from './src/app/shared/observables';
+export * from './src/app/shared/events';
+export * from './src/app/shared/alerts';
 export * from './src/app/shared/hotkeys/shared-hotkeys.module';
 export * from './src/app/shared/hotkeys/hotkeys.service';
 export * from './src/app/shared/hotkeys/dialog/hotkeys-dialog.component';
@@ -101,11 +98,15 @@ export * from './src/app/core/services/storage/entities-storage.service';
 export * from './src/app/core/services/validator/base.validator.class';
 
 // Core components
-export * from './src/app/core/form/form-buttons-bar.component';
+export * from './src/app/core/form/editor.class';
 export * from './src/app/core/form/form.class';
-export * from './src/app/core/form/list.form';
 export * from './src/app/core/form/form.utils';
+export * from './src/app/core/form/form-buttons-bar.component';
+export * from './src/app/core/form/list.form';
+export * from './src/app/core/form/properties.form';
+export * from './src/app/core/form/tab-editor.class';
 export * from './src/app/core/table/table.class';
+export * from './src/app/core/table/table.utils';
 export * from './src/app/core/table/memory-table.class';
 export * from './src/app/core/table/entities-table-datasource.class';
 export * from './src/app/core/table/table-select-columns.component';

@@ -6,13 +6,21 @@ if [[ "_" == "_${PROJECT_DIR}" ]]; then
   export PROJECT_DIR
 fi;
 
+echo "Preparing project environment..."
+echo " - using Project dir: $PROJECT_DIR"
+
 if [[ ! -f "${PROJECT_DIR}/package.json" ]]; then
-  echo "Invalid project dir: file 'package.json' not found in ${PROJECT_DIR}"
-  echo "-> Make sure to run the script inside his directory, or export env variable 'PROJECT_DIR'"
+  echo "ERROR: Invalid project dir: file 'package.json' not found in ${PROJECT_DIR}"
+  echo "       -> Make sure to run the script inside his directory, or export env variable 'PROJECT_DIR'"
   exit 1
 fi;
 
-echo "Preparing project environment.."
+PROJECT_NAME=sumaris-app
+REPO="sumaris-net/sumaris-app"
+REPO_API_URL="https://api.github.com/repos/${REPO}"
+REPO_PUBLIC_URL="https://github.com/${REPO}"
+
+
 NODE_VERSION=12
 NODE_OPTIONS=--max-old-space-size=4096 # Avoid Javascript memory heap space
 
@@ -22,12 +30,11 @@ ANDROID_SDK_CLI_VERSION=6858069
 ANDROID_SDK_ROOT="${HOME}/Android/Sdk"
 ANDROID_ALTERNATIVE_SDK_ROOT=/usr/lib/android-sdk
 ANDROID_SDK_CLI_ROOT=${ANDROID_SDK_ROOT}/cli
-ANDROID_OUTPUT_APK=${PROJECT_DIR}/platforms/android/app/build/outputs/apk
+ANDROID_OUTPUT_APK_PREFIX=app
+ANDROID_OUTPUT_APK=${PROJECT_DIR}/platforms/android/${ANDROID_OUTPUT_APK_PREFIX}/build/outputs/apk
 ANDROID_OUTPUT_APK_DEBUG=${ANDROID_OUTPUT_APK}/debug
 ANDROID_OUTPUT_APK_RELEASE=${ANDROID_OUTPUT_APK}/release
-ANDROID_OUTPUT_APK_PREFIX=app
 
-PROJECT_NAME=sumaris-app
 
 
 # /!\ WARN can be define in your <project>/.local/env.sh file
@@ -51,7 +58,7 @@ fi
 if [[ "_" == "_${JAVA_HOME}" ]]; then
   JAVA_CMD=`which java`
   if [[ "_" == "_${JAVA_CMD}" ]]; then
-    echo "No Java installed. Please install java, or set env variable JAVA_HOME "
+    echo "ERROR: No Java installed. Please install java, or set env variable JAVA_HOME "
     exit 1
   fi
 
@@ -74,7 +81,7 @@ if [[ "_" == "_${ANDROID_SDK_ROOT}" || ! -d "${ANDROID_SDK_ROOT}" ]]; then
   if [[ -d "${ANDROID_ALTERNATIVE_SDK_ROOT}" ]]; then
     export ANDROID_SDK_ROOT="${ANDROID_ALTERNATIVE_SDK_ROOT}"
   else
-    echo "Please set env variable ANDROID_SDK_ROOT to an existing directory"
+    echo "ERROR: Please set env variable ANDROID_SDK_ROOT to an existing directory"
     exit 1
   fi
 fi

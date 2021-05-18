@@ -74,6 +74,9 @@ export class ToolbarComponent implements OnInit {
   @Input()
   canGoBack: boolean;
 
+  @Input()
+  canShowMenu = true;
+
   @Output()
   onValidate = new EventEmitter<Event>();
 

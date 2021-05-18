@@ -14,7 +14,7 @@ import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {GraphqlService} from "../graphql/graphql.service";
 import {LocalSettingsService} from "./local-settings.service";
 import {FormFieldDefinition} from "../../shared/form/field.model";
-import {NetworkService} from "./network.service";
+import {AuthTokenType, NetworkService} from "./network.service";
 import {FileService} from "../../shared/file/file.service";
 import {Referential, ReferentialUtils} from "./model/referential.model";
 import {StatusIds} from "./model/model.enum";
@@ -27,6 +27,7 @@ export declare interface AccountHolder {
   loaded: boolean;
   keypair: KeyPair;
   authToken: string;
+  authBasic?: string;
   pubkey: string;
   account: Account;
   person: Person;
@@ -88,8 +89,8 @@ const Fragments = {
 
 // Load account query
 const LoadQuery: any = gql`
-  query Account($pubkey: String){
-    account(pubkey: $pubkey){
+  query Account {
+    account {
       ...AccountFragment
     }
   }
@@ -160,8 +161,8 @@ const AuthChallengeQuery: any = gql`
 `;
 
 const UpdateSubscription: any = gql`
-  subscription updateAccount($pubkey: String, $interval: Int){
-    updateAccount(pubkey: $pubkey, interval: $interval) {
+  subscription updateAccount($interval: Int){
+    updateAccount(interval: $interval) {
       id
       updateDate
     }
@@ -175,6 +176,7 @@ export class AccountService extends BaseGraphqlService {
     loaded: false,
     keypair: null,
     authToken: null,
+    authBasic: null,
     pubkey: null,
     mainProfile: null,
     account: null,
@@ -185,10 +187,12 @@ export class AccountService extends BaseGraphqlService {
   private _startPromise: Promise<any>;
   private _started = false;
   private _$additionalFields = new BehaviorSubject<FormFieldDefinition[]>([]);
+  private _tokenType: AuthTokenType = 'token';
 
   onLogin = new Subject<Account>();
   onLogout = new Subject<any>();
   onAuthTokenChange = new Subject<string | undefined>();
+  onAuthBasicChange = new Subject<string | undefined>();
 
   get account(): Account {
     return this.data.loaded ? this.data.account : undefined;
@@ -208,6 +212,22 @@ export class AccountService extends BaseGraphqlService {
     return this.data.department;
   }
 
+  get tokenType(): AuthTokenType {
+    return this._tokenType;
+  }
+
+  set tokenType(value: AuthTokenType) {
+    if (this._tokenType !== value) {
+      console.info("[account] Using authentication token type: " + value);
+      this._tokenType = value;
+      // Reset values
+      this.data.authToken = undefined;
+      this.onAuthTokenChange.next(undefined);
+      this.data.authBasic = undefined;
+      this.onAuthBasicChange.next(undefined);
+    }
+  }
+
   constructor(
     private cryptoService: CryptoService,
     protected network: NetworkService,
@@ -225,6 +245,7 @@ export class AccountService extends BaseGraphqlService {
 
     // Send auth token to the graphql layer, when changed
     this.onAuthTokenChange.subscribe((token) => this.graphql.setAuthToken(token));
+    this.onAuthBasicChange.subscribe((basic) => this.graphql.setAuthBasic(basic));
 
     // Listen network restart
     this.graphql.onStart.subscribe(async () => {
@@ -255,6 +276,7 @@ export class AccountService extends BaseGraphqlService {
     this.data.loaded = false;
     this.data.keypair = null;
     this.data.authToken = null;
+    this.data.authBasic = null;
     this.data.pubkey = null;
     this.data.mainProfile = null;
     this.data.account = new Account();
@@ -285,9 +307,12 @@ export class AccountService extends BaseGraphqlService {
       this._started = false;
       this._startPromise = undefined;
 
-      const hadAuthToken = this.data.authToken && true;
+      const hadAuth = (this.data.authToken || this.data.authBasic) && true;
       this.resetData();
-      if (hadAuthToken) this.onAuthTokenChange.next(undefined);
+      if (hadAuth) {
+        this.onAuthTokenChange.next(undefined);
+        this.onAuthBasicChange.next(undefined);
+      }
     }
   }
 
@@ -414,7 +439,7 @@ export class AccountService extends BaseGraphqlService {
       this.data.pubkey = account.pubkey;
 
       // Try to auth on pod
-      this.data.authToken = await this.authenticateAndGetToken();
+      await this.authenticate(data);
 
       this.data.loaded = true;
 
@@ -428,6 +453,37 @@ export class AccountService extends BaseGraphqlService {
       console.error(error && error.message || error);
       this.resetData();
       throw error;
+    }
+  }
+
+  async authenticate(data?: AuthData) {
+    // Basic auth
+    if (this._tokenType === 'basic' || this._tokenType === 'basic-and-token') {
+
+      // Generate the authBasic, if used
+      if (!this.data.authBasic) {
+        if (!data || !data.username || !data.password) throw new Error("Missing username and password");
+        this.data.authBasic = this.cryptoService.encodeBase64(`${data.username}:${data.password}`);
+      }
+      this.onAuthBasicChange.next(this.data.authBasic);
+    }
+
+    // Generate the authToken, if used
+    if (this._tokenType === 'token' || this._tokenType === 'basic-and-token') {
+      try {
+        this.data.authToken = await this.authenticateAndGetToken(this.data.authToken);
+      } catch (error) {
+        // Never authenticate, or not ready for offline mode => exit
+        console.error(error);
+        this.resetData();
+        throw error;
+      }
+    }
+
+    // Forget authBasic, to switch to authToken
+    if (this._tokenType === 'basic-and-token') {
+      this.data.authBasic = undefined; // TODO: store it ?
+      this.onAuthBasicChange.next(undefined);
     }
   }
 
@@ -465,10 +521,10 @@ export class AccountService extends BaseGraphqlService {
 
     // Online mode: try to auth on pod
     else {
+
       try {
-        this.data.authToken = await this.authenticateAndGetToken();
-      }
-      catch (error) {
+        await this.authenticate(data);
+      } catch (error) {
         // Never authenticate, or not ready for offline mode => exit
         console.error(error);
         this.resetData();
@@ -484,17 +540,21 @@ export class AccountService extends BaseGraphqlService {
       // If account not found, check if email is valid
       if (err && +(err.code) === ErrorCodes.LOAD_ACCOUNT_ERROR) {
 
-        let isEmailExists;
-        try {
-          isEmailExists = await this.isEmailExists(data.username);
-        } catch (otherError) {
-          throw err; // resend the first error
+        // Check email exists
+        if (data.username.indexOf("@") !== -1) {
+          let isEmailExists;
+          try {
+            isEmailExists = await this.isEmailExists(data.username);
+          } catch (otherError) {
+            throw err; // resend the first error
+          }
+
+          // Email not exists (no account)
+          if (!isEmailExists) {
+            throw { code: ErrorCodes.UNKNOWN_ACCOUNT_EMAIL, message: "ERROR.UNKNOWN_ACCOUNT_EMAIL" };
+          }
         }
 
-        // Email not exists (no account)
-        if (!isEmailExists) {
-          throw { code: ErrorCodes.UNKNOWN_ACCOUNT_EMAIL, message: "ERROR.UNKNOWN_ACCOUNT_EMAIL" };
-        }
         // Email exists, so error = 'bad password'
         throw { code: ErrorCodes.BAD_PASSWORD, message: "ERROR.BAD_PASSWORD" };
       }
@@ -522,7 +582,7 @@ export class AccountService extends BaseGraphqlService {
     if (!this.data.pubkey) throw new Error("User not logged");
     if (this.network.offline) throw new Error("Cannot check account in offline mode");
 
-    await this.loadData({ fetchPolicy: 'network-only' });
+    await this.loadData();
     await this.saveLocally();
 
     console.debug("[account] Successfully reload account");
@@ -542,7 +602,7 @@ export class AccountService extends BaseGraphqlService {
     this.data.loaded = false;
 
     try {
-      const account = (await this.loadAccount(this.data.pubkey, opts)) || new Account();
+      const account = (await this.loadAccount(opts)) || new Account();
 
       // Set defaults
       account.avatar = account.avatar || (this.environment.baseUrl + DEFAULT_AVATAR_IMAGE);
@@ -595,6 +655,7 @@ export class AccountService extends BaseGraphqlService {
 
     if (this._debug) console.debug(`[account] Account restoration...`);
 
+    this.data.authToken = token;
     this.data.pubkey = pubkey;
     this.data.keypair = seckey && {
       publicKey: Base58.decode(pubkey),
@@ -604,8 +665,8 @@ export class AccountService extends BaseGraphqlService {
     // Online mode: try to connect to pod
     if (this.network.online) {
       try {
-        this.data.authToken = await this.authenticateAndGetToken(token);
-        if (!this.data.authToken) throw new Error("Authentication failed");
+        await this.authenticate();
+        if (!this.data.authToken && !this.data.authBasic) throw new Error("Authentication failed");
       }
       catch (error) {
         // Offline feature are enable: continue in offline mode
@@ -765,44 +826,43 @@ export class AccountService extends BaseGraphqlService {
    * Load a account by pubkey
    * @param pubkey
    */
-  public async loadAccount(pubkey: string, opts?: {
+  public async loadAccount(opts?: {
     offline?: boolean;
     fetchPolicy?: FetchPolicy;
   }): Promise<Account | undefined> {
 
     const now = this._debug && Date.now();
-    if (this._debug) console.debug(`[account] Loading account {${pubkey.substring(0, 6)}}...`);
+    if (this._debug) console.debug(`[account] Loading account...`);
     let accountJson: any;
 
-    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only') || (opts && opts.offline === true);
+    const offline = this.network.offline
+      && (!opts || (opts.fetchPolicy !== 'network-only' && opts.fetchPolicy !== 'no-cache'))
+      || (opts && opts.offline === true);
     if (offline) {
       accountJson = await this.storage.get(ACCOUNT_STORAGE_KEY);
       accountJson = accountJson && (typeof accountJson === 'string') && JSON.parse(accountJson) || accountJson;
-      accountJson = accountJson && (accountJson.pubkey === pubkey) && accountJson || null;
-      if (!accountJson) {
-        accountJson = await this.storage.get(ACCOUNT_STORAGE_KEY + '#' + pubkey);
+      accountJson = accountJson && this.data.pubkey && (accountJson.pubkey === this.data.pubkey) && accountJson || null;
+      if (!accountJson && this.data.pubkey) {
+        accountJson = await this.storage.get(ACCOUNT_STORAGE_KEY + '#' + this.data.pubkey);
         accountJson = accountJson && (typeof accountJson === 'string') && JSON.parse(accountJson) || accountJson;
       }
     }
     else {
       const res = await this.graphql.query<{ account: any }>({
         query: LoadQuery,
-        variables: {
-          pubkey: pubkey
-        },
         error: { code: ErrorCodes.LOAD_ACCOUNT_ERROR, message: "ERROR.LOAD_ACCOUNT_ERROR" },
-        fetchPolicy: opts && opts.fetchPolicy || this.environment.apolloFetchPolicy || undefined
+        fetchPolicy: opts && opts.fetchPolicy || 'no-cache' || undefined
       });
       accountJson = res && res.account;
     }
 
     if (accountJson) {
       const account = Account.fromObject(accountJson);
-      if (this._debug) console.debug(`[account] Account {${pubkey.substring(0, 6)}} loaded in ${Date.now() - now}ms`, account);
+      if (this._debug) console.debug(`[account] Account loaded in ${Date.now() - now}ms`, account);
       return account;
     }
     else {
-      console.warn(`[account] Account {${pubkey.substring(0, 6)} not found !`);
+      console.warn(`[account] Account not found !`);
       return undefined;
     }
   }
@@ -816,14 +876,14 @@ export class AccountService extends BaseGraphqlService {
     account.pubkey = account.pubkey || Base58.encode(keyPair.publicKey);
 
     const now = this._debug && Date.now();
-    if (this._debug) console.debug(`[account] Saving account {${account.pubkey.substring(0, 6)}} remotely...`);
+    if (this._debug) console.debug(`[account] Saving account remotely...`);
 
 
     const isNew = !account.id && account.id !== 0;
 
     // If this is an update: get existing account's updateDate, to avoid 'version error' when saving
     if (!isNew) {
-      const existingAccount = await this.loadAccount(account.pubkey, { fetchPolicy: 'network-only' });
+      const existingAccount = await this.loadAccount({ fetchPolicy: 'network-only' });
       if (!existingAccount || !existingAccount.updateDate) {
         throw { code: ErrorCodes.ACCOUNT_NOT_EXISTS, message: "ERROR.ACCOUNT_NOT_EXISTS" };
       }
@@ -943,7 +1003,6 @@ export class AccountService extends BaseGraphqlService {
     const subscription = this.graphql.subscribe<{updateAccount: any}>({
       query: UpdateSubscription,
       variables: {
-        pubkey: this.data.pubkey,
         interval: 10
       },
       error: {
@@ -960,11 +1019,11 @@ export class AccountService extends BaseGraphqlService {
           }
         },
       async error(err) {
-          if (err && err.code == ServerErrorCodes.NOT_FOUND) {
+          if (err && +err.code === ServerErrorCodes.NOT_FOUND) {
             console.info("[account] Account not exists anymore: force user to logout...", err);
             await self.logout();
           }
-          else if (err && err.code == ServerErrorCodes.UNAUTHORIZED) {
+          else if (err && +err.code === ServerErrorCodes.UNAUTHORIZED) {
              console.info("[account] Account not authorized: force user to logout...", err);
              await self.logout();
           }
@@ -1033,20 +1092,21 @@ export class AccountService extends BaseGraphqlService {
       const data = await this.graphql.query<{ authenticate: boolean }, { token: string }>({
         query: AuthQuery,
         variables: {
-          token: token
+          token
         },
         error: {
           code: ErrorCodes.UNAUTHORIZED,
           message: "ERROR.UNAUTHORIZED"
         },
-        fetchPolicy: 'network-only'
+        fetchPolicy: 'no-cache'
       });
 
-      // Token is accepted by the server: store it
+      // Token is accepted by the server
       if (data && data.authenticate) {
+        // Store the token
         this.onAuthTokenChange.next(token);
 
-        console.info(`[account] Authentication on pod [OK] {pubkey: ${this.data.pubkey.substr(0, 8)}}`);
+        console.info(`[account] Authentication on pod [OK] {pubkey: '${this.data.pubkey.substr(0, 8)}'}`);
         return token; // return the token
       }
 

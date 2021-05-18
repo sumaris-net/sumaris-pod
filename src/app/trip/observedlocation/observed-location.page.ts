@@ -146,7 +146,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     if (this.isOnFieldMode) {
       data.startDateTime = moment();
 
-      console.debug("[trip] New entity: set default values...");
+      console.debug("[observed-location] New entity: set default values...");
 
       // Fil defaults, using filter applied on trips table
       const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);
@@ -360,17 +360,16 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     modal.present();
 
     // Wait until closed
-    const res = await modal.onDidDismiss();
+    const {data} = await modal.onDidDismiss();
 
     // If modal return a landing, use it
-    let data = res && res.data && res.data[0];
-    if (data instanceof Landing) {
+    if (data && data[0] instanceof Landing) {
       console.debug("[observed-location] Vessel selection modal result:", data);
-      data = (data as Landing).vesselSnapshot;
+      return (data[0] as Landing).vesselSnapshot;
     }
-    if (data instanceof VesselSnapshot) {
+    if (data && data[0] instanceof VesselSnapshot) {
       console.debug("[observed-location] Vessel selection modal result:", data);
-      const vessel = data as VesselSnapshot;
+      const vessel = data[0] as VesselSnapshot;
       if (excludeVesselIds.includes(data.id)) {
         await showError('AGGREGATED_LANDING.VESSEL_ALREADY_PRESENT', this.alertCtrl, this.translate);
         return;

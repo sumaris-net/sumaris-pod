@@ -1,17 +1,24 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from "@angular/core";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
-import {AccountService} from "../../../core/services/account.service";
+import {AccountService} from "../../core/services/account.service";
 import {Location} from '@angular/common';
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselsTable} from "./vessels.table";
+import {VESSEL_FEATURE_NAME} from "../services/config/vessel.config";
+
+export const VesselsPageSettingsEnum = {
+  PAGE_ID: "vessels",
+  FEATURE_ID: VESSEL_FEATURE_NAME
+};
+
 
 @Component({
   selector: 'app-vessels-page',
   templateUrl: 'vessels.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselsPage {
+export class VesselsPage implements OnInit {
 
   canEdit: boolean;
   canDelete: boolean;
@@ -33,6 +40,9 @@ export class VesselsPage {
     this.canDelete = isAdmin;
   }
 
+  ngOnInit() {
+    this.table.settingsId = VesselsPageSettingsEnum.PAGE_ID;
+  }
 
   /* -- protected methods -- */
 
@@ -41,7 +51,7 @@ export class VesselsPage {
   }
 
   async onOpenRow({id, row}) {
-    return await this.router.navigateByUrl(`/referential/vessels/${row.currentData.id}` );
+    return await this.router.navigateByUrl(`/vessels/${row.currentData.id}` );
   }
 }
 

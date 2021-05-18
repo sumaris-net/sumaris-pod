@@ -13,9 +13,10 @@ import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {isNil, isNotNil, isNotNilOrBlank, sort} from "../../shared/functions";
+import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, sort} from "../../shared/functions";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {environment} from "../../../environments/environment";
+import {firstNotNilPromise} from "../../shared/observables";
 
 
 @Component({
@@ -28,9 +29,9 @@ import {environment} from "../../../environments/environment";
 })
 export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {
 
-  static DEFAULT_ENTITY_NAME = "Program";
+  static DEFAULT_ENTITY_NAME = "Pmfm";
 
-  protected _entityName: string;
+  private _entityName: string;
 
   canEdit = false;
   filterForm: FormGroup;
@@ -49,12 +50,25 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     'Parameter': '/referential/parameter/:id?label=:label'
   };
 
-  @Input() showLevelColumn = true;
+  @Input() set showLevelColumn(value: boolean) {
+    this.setShowColumn('level', value);
+  }
+
+  get showLevelColumn(): boolean {
+    return this.getShowColumn('level');
+  }
+
   @Input() canSelectEntity = true;
   @Input() title = 'REFERENTIAL.LIST.TITLE';
 
   @Input() set entityName(value: string) {
-    this.setEntityName(value, {skipLocationChange: true, emitEvent: !this.loadingSubject.getValue()});
+    if (this._entityName !== value) {
+      this._entityName = value;
+      if (!this.loadingSubject.getValue()) {
+        this.applyEntityName(value, { skipLocationChange: true });
+      }
+
+    }
   }
 
   get entityName(): string {
@@ -114,24 +128,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       'statusId': [null]
     });
 
-    // Listen route parameters
-    this.registerSubscription(
-      this.route.queryParams
-        .pipe(first()) // Do not refresh after the first page load (e.g. when location query path changed)
-        .subscribe(({entity, q, level, status}) => {
-          if (!entity) {
-            this.setEntityName(ReferentialsPage.DEFAULT_ENTITY_NAME);
-          } else {
-            this.filterForm.setValue({
-              entityName: entity,
-              searchText: q || null,
-              levelId: isNotNil(level) ? +level : null,
-              statusId: isNotNil(status) ? +status : null
-            });
-            this.setEntityName(entity, {skipLocationChange: true});
-          }
-        }));
-
     // Fill statusById
     this.statusById = {};
     this.statusList.forEach((status) => this.statusById[status.id] = status);
@@ -142,8 +138,27 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   };
 
   ngOnInit() {
-
     super.ngOnInit();
+
+    // Listen route parameters
+    if (this.canSelectEntity) {
+      this.registerSubscription(
+        this.route.queryParams
+          .pipe(first()) // Do not refresh after the first page load (e.g. when location query path changed)
+          .subscribe(({entity, q, level, status}) => {
+            if (!entity) {
+              this.applyEntityName(ReferentialsPage.DEFAULT_ENTITY_NAME);
+            } else {
+              this.filterForm.patchValue({
+                entityName: entity,
+                searchText: q || null,
+                levelId: isNotNil(level) ? +level : null,
+                statusId: isNotNil(status) ? +status : null
+              }, {emitEvent: false});
+              this.applyEntityName(entity, {skipLocationChange: true});
+            }
+          }));
+    }
 
     // Load entities
     this.registerSubscription(
@@ -174,46 +189,36 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       );
 
     this.registerSubscription(
-    this.onRefresh.subscribe(() => {
-      this.filterIsEmpty = ReferentialFilter.isEmpty({...this.filter, entityName: null /*Ignore*/});
-      this.filterForm.markAsUntouched();
-      this.filterForm.markAsPristine();
-      this.markForCheck();
-    }));
+      this.onRefresh.subscribe(() => {
+        this.filterIsEmpty = ReferentialFilter.isEmpty({...this.filter, entityName: null /*Ignore*/});
+        this.filterForm.markAsUntouched();
+        this.filterForm.markAsPristine();
+        this.markForCheck();
+      }));
+
+    // Force auto Load, when entity name set, and u cannot change
+    if (!this.canSelectEntity && this._entityName) {
+      this.applyEntityName(this._entityName);
+    }
   }
 
-  async setEntityName(entityName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {
-    opts = opts || {emitEvent: true, skipLocationChange: false};
-    // No change: skip
-    if (this._entityName === entityName) return;
+  async applyEntityName(entityName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {
+    opts = {emitEvent: true, skipLocationChange: false, ...opts};
+    this._entityName = entityName;
 
     this.canOpenDetail = false;
 
-    // Wait end of entity loading
-    const entities = this.$entities.getValue();
-    if (isNil(entities) || !entities.length) {
-      console.debug("[referential] Waiting entities to be loaded...");
-      return this.$entities.pipe(filter(isNotNil), first())
-      // Loop
-        .subscribe((entities) => {
-          this.setEntityName(entityName);
-        });
-    }
-
-    const entity = entities.find(e => e.id === entityName);
-    if (!entity) {
-      throw new Error(`[referential] Entity {${entityName}} not found !`);
-    }
-
-    this._entityName = entityName;
-
+    // Wait end of entities loading
     if (this.canSelectEntity) {
+      const entities = await firstNotNilPromise(this.$entities);
+
+      const entity = entities.find(e => e.id === entityName);
+      if (!entity) {
+        throw new Error(`[referential] Entity {${entityName}} not found !`);
+      }
+
       this.$selectedEntity.next(entity);
     }
-
-    this.filterForm.get('entityName').setValue(entityName);
-    this.paginator.pageIndex = 0;
-    this.setFilter(this.filterForm.value, {emitEvent: false});
 
     // Load levels
     await this.loadLevels(entityName);
@@ -221,12 +226,15 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.canOpenDetail = !!this.detailsPath[entityName];
     this.inlineEdition = !this.canOpenDetail;
 
-    if (opts.emitEvent !== false) {
-      console.info(`[referential] Loading ${entityName}...`);
-      this.onRefresh.emit();
-    }
+    // Applying the filter (will reload if emitEvent = true)
+    this.filterForm.patchValue({entityName}, {emitEvent: false});
+    this.applyFilter({
+      ...this.filterForm.value,
+      entityName
+    }, {emitEvent: opts.emitEvent});
 
-    if (opts.skipLocationChange !== false) {
+    // Update route location
+    if (opts.skipLocationChange !== true && this.canSelectEntity) {
       this.router.navigate(['.'], {
         relativeTo: this.route,
         skipLocationChange: false,
@@ -240,7 +248,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   async onEntityNameChange(entityName: string): Promise<any> {
     // No change: skip
     if (this._entityName === entityName) return;
-    this.setEntityName(entityName);
+    this.applyEntityName(entityName);
   }
 
   addRow(event?: any): boolean {
@@ -259,7 +267,10 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     });
 
     this.levels = of(res);
-    this.showLevelColumn = res && res.length > 0;
+
+    if (this.canSelectEntity) {
+      this.showLevelColumn = isNotEmptyArray(res);
+    }
 
     return res;
   }

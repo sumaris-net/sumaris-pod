@@ -1,5 +1,5 @@
-import {Inject, Injectable} from "@angular/core";
-import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
+import {Injectable} from "@angular/core";
+import {ApolloCache, FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 
@@ -13,6 +13,10 @@ import {SortDirection} from "@angular/material/sort";
 import {firstNotNilPromise} from "../../shared/observables";
 import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {environment} from "../../../environments/environment";
+import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
+import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
+import {Person} from "../../core/services/model/person.model";
+import {EntityUtils} from "../../core/services/model/entity.model";
 
 
 export const ExtractionFragments = {
@@ -22,6 +26,7 @@ export const ExtractionFragments = {
     label
     name
     description
+    docUrl
     comments
     version
     sheetNames
@@ -43,9 +48,9 @@ export const ExtractionFragments = {
 };
 
 
-export const LoadExtractionTypesQuery: any = gql`
+export const LoadTypesQuery: any = gql`
   query ExtractionTypes {
-    extractionTypes {
+    data: extractionTypes {
       ...ExtractionTypeFragment
     }
   }
@@ -66,12 +71,20 @@ const LoadRowsQuery: any = gql`
 `;
 
 
-const GetFileQuery: any = gql`
+const GetFileQuery = gql`
   query ExtractionFile($type: ExtractionTypeVOInput, $filter: ExtractionFilterVOInput){
     extractionFile(type: $type, filter: $filter)
   }
 `;
 
+export const SaveExtractionMutation = gql`
+  mutation SaveExtraction($type: ExtractionTypeVOInput, $filter: ExtractionFilterVOInput) {
+    data: saveExtraction(type: $type, filter: $filter) {
+      ...ExtractionTypeFragment
+    }
+  }
+  ${ExtractionFragments.type}
+`;
 
 @Injectable({providedIn: 'root'})
 export class ExtractionService extends BaseGraphqlService {
@@ -97,16 +110,16 @@ export class ExtractionService extends BaseGraphqlService {
     let now = Date.now();
     if (this._debug) console.debug("[extraction-service] Loading extraction types...");
 
-    return this.mutableWatchQuery<{ extractionTypes: ExtractionType[] }>({
+    return this.mutableWatchQuery<{ data: ExtractionType[] }>({
       queryName: 'LoadExtractionTypes',
-      query: LoadExtractionTypesQuery,
-      arrayFieldName: 'extractionTypes',
+      query: LoadTypesQuery,
+      arrayFieldName: 'data',
       error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"},
       ...opts
     })
       .pipe(
         map((data) => {
-          const res = (data && data.extractionTypes || [])
+          const res = (data && data.data || [])
             .filter(json => {
               // Workaround because saveAggregation() doest not add NEW extraction type correctly
               if (!json || isNil(json.label)) {
@@ -168,7 +181,7 @@ export class ExtractionService extends BaseGraphqlService {
       query: LoadRowsQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
-      fetchPolicy: options && options.fetchPolicy || 'network-only'
+      fetchPolicy: options && options.fetchPolicy || 'no-cache'
     });
     if (!res || !res.extractionRows) return null;
     const data = ExtractionResult.fromObject(res.extractionRows);
@@ -227,9 +240,9 @@ export class ExtractionService extends BaseGraphqlService {
     };
 
     target.criteria = (source.criteria || [])
-      .filter(criterion => isNotNil(criterion.name) && isNotNilOrBlank(criterion.value))
+      .filter(criterion => isNotNil(criterion.name))
       .map(criterion => {
-        const isMulti = (typeof criterion.value === 'string' && criterion.value.indexOf(',') !== -1);
+        const isMulti = typeof criterion.value === 'string' && criterion.value.indexOf(',') !== -1;
         switch (criterion.operator) {
           case '=':
             if (isMulti) {
@@ -264,18 +277,111 @@ export class ExtractionService extends BaseGraphqlService {
             break;
         }
 
-        return {
-          name: criterion.name,
-          operator: criterion.operator,
-          value: criterion.value,
-          values: criterion.values,
-          sheetName: criterion.sheetName
-        } as ExtractionFilterCriterion;
+        delete criterion.endValue;
+
+        return criterion as ExtractionFilterCriterion;
       })
-      .filter(criterion => isNotNil(criterion.value) || (criterion.values && criterion.values.length));
+      .filter(ExtractionFilterCriterion.isNotEmpty);
 
     return target;
   }
 
+  async save(entity: ExtractionType, filter: ExtractionFilter): Promise<ExtractionType> {
+    const now = Date.now();
+    if (this._debug) console.debug("[extraction-service] Saving extraction...", entity, filter);
 
+    this.fillDefaultProperties(entity);
+
+    const json = this.asObject(entity);
+
+    const isNew = isNil(entity.id) || entity.id < 0; // Exclude live types
+
+    await this.graphql.mutate<{ data: any }>({
+      mutation: SaveExtractionMutation,
+      variables: { type: json, filter },
+      // TODO : change error code
+      error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
+      update: (cache, {data}) => {
+        const savedEntity = data && data.data;
+        EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
+
+        // Insert into cache
+        if (isNew) {
+          this.insertIntoCache(cache, savedEntity);
+        }
+      }
+    });
+
+    return entity;
+  }
+
+  insertIntoCache(cache: ApolloCache<{data: any}>, type: ExtractionType) {
+    if (!type || !type.label) throw new Error('Invalid type for cache: ' + type);
+
+    console.info('[extraction-service] Inserting into cache:', type);
+    this.insertIntoMutableCachedQuery(cache, {
+      queryName: "LoadExtractionTypes",
+      query: LoadTypesQuery,
+      data: type
+    });
+  }
+
+  updateCache(cache: ApolloCache<{data: any}>, type: ExtractionType) {
+    if (!type || !type.label) throw new Error('Invalid type for cache: ' + type);
+    console.info('[extraction-service] Updating cache:', type);
+    // Remove, then insert, from extraction types
+    const exists = this.removeFromMutableCachedQueryByIds(cache, {
+      queryName: "LoadExtractionTypes",
+      query: LoadTypesQuery,
+      ids: type.id
+    }) > 0;
+    if (exists) {
+      this.insertIntoMutableCachedQuery(cache, {
+        queryName: "LoadExtractionTypes",
+        query: LoadTypesQuery,
+        data: type
+      });
+    }
+  }
+
+  /* -- protected functions -- */
+
+  protected fillDefaultProperties(entity: ExtractionType) {
+    // If new entity
+    const isNew = isNil(entity.id) || entity.id < 0;
+    if (isNew) {
+
+      const person = this.accountService.person;
+
+      // Recorder department
+      if (person && person.department && !entity.recorderDepartment) {
+        entity.recorderDepartment = person.department;
+      }
+
+      // Recorder person
+      if (person && person.id && !entity.recorderPerson) {
+        entity.recorderPerson = person;
+      }
+    }
+  }
+
+  protected asObject(entity: ExtractionType, opts?: DataEntityAsObjectOptions): any {
+    opts = { ...MINIFY_OPTIONS, ...opts };
+    const copy = entity.asObject(opts);
+
+    if (opts && opts.minify) {
+
+      // Comment because need to keep recorder person
+      copy.recorderPerson = entity.recorderPerson && <Person>{
+        id: entity.recorderPerson.id,
+        firstName: entity.recorderPerson.firstName,
+        lastName: entity.recorderPerson.lastName
+      };
+
+      // Keep id only, on department
+      copy.recorderDepartment = entity.recorderDepartment && {id: entity.recorderDepartment && entity.recorderDepartment.id} || undefined;
+    }
+
+    return copy;
+  }
 }

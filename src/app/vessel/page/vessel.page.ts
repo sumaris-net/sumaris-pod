@@ -1,19 +1,19 @@
 import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {VesselService} from '../../services/vessel-service';
+import {VesselService} from '../services/vessel-service';
 import {VesselForm} from '../form/form-vessel';
-import {Vessel} from '../../services/model/vessel.model';
-import {AccountService} from "../../../core/services/account.service";
-import {AppEntityEditor} from "../../../core/form/editor.class";
+import {Vessel} from '../services/model/vessel.model';
+import {AccountService} from "../../core/services/account.service";
+import {AppEntityEditor} from "../../core/form/editor.class";
 import {FormGroup, Validators} from "@angular/forms";
 import * as momentImported from "moment";
 const moment = momentImported;
 import {VesselFeaturesHistoryComponent} from "./vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./vessel-registration-history.component";
-import {SharedValidators} from "../../../shared/validator/validators";
-import {HistoryPageReference} from "../../../core/services/model/history.model";
-import {DateFormatPipe} from "../../../shared/pipes/date-format.pipe";
-import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
-import {isNotNil} from "../../../shared/functions";
+import {SharedValidators} from "../../shared/validator/validators";
+import {HistoryPageReference} from "../../core/services/model/history.model";
+import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {isNotNil} from "../../shared/functions";
 
 @Component({
   selector: 'app-vessel-page',

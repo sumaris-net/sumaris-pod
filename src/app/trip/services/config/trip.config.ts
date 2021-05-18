@@ -60,8 +60,8 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
         value: 'MENU.OCCASION'
       },
       {
-        key: 'MENU.AUCTION_CONTROL',
-        value: 'MENU.AUCTION_CONTROL'
+        key: 'MENU.AUCTION_OCCASION',
+        value: 'MENU.AUCTION_OCCASION'
       }
     ],
     defaultValue: 'MENU.OBSERVED_LOCATIONS'

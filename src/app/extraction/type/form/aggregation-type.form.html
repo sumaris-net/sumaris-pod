@@ -17,8 +17,6 @@
         <mat-form-field floatLabel="never">
           <input matInput hidden>
           <ion-label>&nbsp;</ion-label>
-
-          <!-- checkbox, when compact -->
           <mat-checkbox matPrefix
                         [formControl]="form.controls.isSpatial"
                         labelPosition="after">
@@ -26,19 +24,33 @@
           </mat-checkbox>
         </mat-form-field>
       </ion-col>
+
+      <ion-col>
+        <mat-form-field>
+          <mat-select [formControl]="form.controls.processingFrequencyId"
+                      [placeholder]="'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY'|translate" required>
+            <mat-select-trigger>
+              <span *ngIf="form.controls.statusId.value &gt;= 0">
+              {{ frequenciesById[form.controls.processingFrequencyId.value]?.label | translate}}</span>
+            </mat-select-trigger>
+            <mat-option *ngFor="let item of (frequenciesById | mapValues)" [value]="item.id">
+              {{ item.label |translate }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="form.controls.processingFrequencyId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </ion-col>
     </ion-row>
 
-    <ion-toolbar>
+    <ion-toolbar *ngIf="form.controls.isSpatial.value">
       <ion-label color="primary" translate>EXTRACTION.AGGREGATION.EDIT.STRATUM_DOTS</ion-label>
     </ion-toolbar>
 
     <!-- stratum -->
-    <div *ngFor="let strataForm of strataForms; index as i; first as first; last as last; odd as odd">
-
-      <!-- strata form -->
-      <ion-row [formGroup]="strataForm"
-               class="strata-row"
-               [class.odd]="odd">
+    <ion-row *ngFor="let strataForm of strataForms; index as i; first as first; last as last; odd as odd"
+             class="strata-row"
+             [class.odd]="odd"
+             [formGroup]="strataForm">
 
         <!-- sheet name -->
         <ion-col size-md="2" size="4">
@@ -124,11 +136,10 @@
             <mat-icon>close</mat-icon>
           </button>
         </ion-col>
-      </ion-row>
-    </div>
+    </ion-row>
 
     <ion-row style="min-height: 36px;" class="ion-margin-top">
-      <ion-col size="12">
+      <ion-col size="{{showMarkdownPreview ? 6 : 12}}">
         <ion-label color="primary" translate>EXTRACTION.AGGREGATION.EDIT.FORMAT_DOTS</ion-label>
         <ion-text>&nbsp;(<small [innerHTML]="'EXTRACTION.AGGREGATION.EDIT.MARKDOWN_HELP'|translate"></small>)</ion-text>
         <!-- show preview button -->
@@ -136,6 +147,13 @@
                     size="small" class="ion-float-end" color="light"
                     (click)="toggleDocPreview()">
           <ion-label translate>EXTRACTION.AGGREGATION.EDIT.BTN_PREVIEW_DOC</ion-label>
+        </ion-button>
+      </ion-col>
+      <ion-col size="6" *ngIf="showMarkdownPreview" class="ion-padding-start">
+        <ion-label color="medium" translate>EXTRACTION.AGGREGATION.EDIT.FORMAT_PREVIEW_DOTS</ion-label>
+        <ion-button size="small" class="ion-float-end" color="light"
+                    (click)="toggleDocPreview()">
+          <ion-label class="ion-text-wrap" translate>COMMON.BTN_HIDE</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>
@@ -147,8 +165,8 @@
         <mat-form-field appearance="outline">
           <textarea matInput #format
                     matTextareaAutosize="true"
-                    matAutosizeMinRows="4"
-                    rows="10"
+                    matAutosizeMinRows="5"
+                    rows="20"
                     maxlength="10000"
                     [placeholder]="'EXTRACTION.AGGREGATION.EDIT.FORMAT_PLACEHOLDER'|translate"
                     formControlName="documentation">
@@ -159,26 +177,10 @@
       </ion-col>
 
       <!-- format preview -->
-      <ion-col size="6" *ngIf="showMarkdownPreview">
-        <ion-card style="min-height: 210px;">
-          <ion-card-header>
-            <ion-card-title>
-              <ion-text translate>EXTRACTION.AGGREGATION.EDIT.FORMAT_PREVIEW</ion-text>
-              <ion-button size="small"
-                          class="ion-float-end"
-                          color="medium"
-                          fill="outline"
-                          (click)="toggleDocPreview()">
-                <ion-label class="ion-text-wrap" translate>COMMON.BTN_HIDE</ion-label>
-              </ion-button>
-            </ion-card-title>
-
-          </ion-card-header>
-          <ion-card-content>
-            <markdown [data]="$markdownContent|async" emoji>
-            </markdown>
-          </ion-card-content>
-        </ion-card>
+      <ion-col *ngIf="showMarkdownPreview"
+               class="ion-col-documentation-preview ion-padding-start ion-no-padding-xs">
+        <markdown [data]="$markdownContent|async" emoji>
+        </markdown>
       </ion-col>
     </ion-row>
 

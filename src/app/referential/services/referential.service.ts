@@ -38,7 +38,7 @@ export class ReferentialFilter<ID = number> {
   searchText?: string;
   searchAttribute?: string;
 
-  // TODO BLA add 'includedIds'
+  includedIds?: number[];
   excludedIds?: number[];
 
   static isEmpty(f: ReferentialFilter|any): boolean {
@@ -63,6 +63,7 @@ export class ReferentialFilter<ID = number> {
       levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
       levelLabels: isNotNil(filter.levelLabel) ? [filter.levelLabel] : filter.levelLabels,
       statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE]),
+      includedIds: filter.includedIds,
       excludedIds: filter.excludedIds
     };
   }
@@ -83,7 +84,10 @@ export class ReferentialFilter<ID = number> {
       filterFns.push((entity) => levelIds.includes(entity.levelId));
     }
 
-    // Filter excluded ids
+    // Filter included/excluded ids
+    if (isNotEmptyArray(f.includedIds)) {
+      filterFns.push((entity) => isNotNil(entity.id) && f.includedIds.includes(entity.id));
+    }
     if (isNotEmptyArray(f.excludedIds)) {
       filterFns.push((entity) => isNil(entity.id) || !f.excludedIds.includes(entity.id));
     }
@@ -110,6 +114,7 @@ export const ReferentialFilterKeys: KeysEnum<ReferentialFilter> = {
   searchJoin: true,
   searchText: true,
   searchAttribute: true,
+  includedIds: true,
   excludedIds: true
 };
 
@@ -382,7 +387,7 @@ export class ReferentialService extends BaseGraphqlService<Referential> implemen
       console.error("[referential-service] Missing 'filter.entityName' or 'label'");
       throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
     }
-
+    filter.label = label;
     const {total} = await this.graphql.query<{ total: number; }>({
       query: CountQuery,
       variables : {

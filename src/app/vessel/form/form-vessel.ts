@@ -1,17 +1,18 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {VesselValidatorService} from "../../services/validator/vessel.validator";
-import {Vessel} from "../../services/model/vessel.model";
-import {LocationLevelIds} from "../../services/model/model.enum";
-import {DefaultStatusList, referentialToString} from "../../../core/services/model/referential.model";
+import {VesselValidatorService} from "../services/validator/vessel.validator";
+import {Vessel} from "../services/model/vessel.model";
+import {LocationLevelIds} from "../../referential/services/model/model.enum";
+import {DefaultStatusList, referentialToString} from "../../core/services/model/referential.model";
 import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
-import {ReferentialRefService} from '../../services/referential-ref.service';
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {AccountService} from "../../../core/services/account.service";
+import {ReferentialRefService} from '../../referential/services/referential-ref.service';
+import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {AccountService} from "../../core/services/account.service";
 import {FormGroup} from "@angular/forms";
-import {AppForm} from "../../../core/form/form.class";
-import {StatusIds} from "../../../core/services/model/model.enum";
-import {AppFormUtils} from "../../../core/form/form.utils";
+import {AppForm} from "../../core/form/form.class";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {AppFormUtils} from "../../core/form/form.utils";
+import {toBoolean} from "../../shared/functions";
 
 
 @Component({
@@ -27,7 +28,8 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
   data: Vessel;
   statusList = DefaultStatusList;
   statusById: any;
-  canEditStatus: boolean;
+
+  @Input() canEditStatus: boolean;
 
   @Input() set defaultStatus(value: number) {
     if (this._defaultStatus !== value) {
@@ -76,7 +78,7 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
     super.ngOnInit();
 
     // Compute defaults
-    this.canEditStatus = !this._defaultStatus || this.isAdmin();
+    this.canEditStatus = toBoolean(this.canEditStatus, !this._defaultStatus || this.isAdmin());
 
     // Combo location
     this.registerAutocompleteField('basePortLocation', {

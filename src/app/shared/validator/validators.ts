@@ -2,7 +2,7 @@ import {AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, Va
 import * as momentImported from "moment";
 const moment = momentImported;
 import {DATE_ISO_PATTERN, PUBKEY_REGEXP} from "../constants";
-import {isEmptyArray, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotNilOrNaN, toBoolean} from "../functions";
+import {isEmptyArray, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotNilOrNaN, toBoolean} from "../functions";
 import {Moment} from "moment";
 import {fromDateISOString} from "../dates";
 
@@ -66,8 +66,10 @@ export class SharedValidators {
   }
 
   static integer(control: FormControl): ValidationErrors | null {
-    const value = control.value;
-    if (isNotNil(value) && value !== "" && !Number.isInteger(value)) {
+    if (isNilOrBlank(control.value))
+      return null;
+    const value = parseFloat(control.value);
+    if (isNaN(value) || (value | 0) !== value) {
       return {integer: true};
     }
     return null;

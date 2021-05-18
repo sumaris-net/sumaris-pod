@@ -19,7 +19,7 @@
   </markdown>
 
   <markdown *ngIf="docUrl"
-            [src]="docUrl"
+            [src]="docUrl + '.md'"
             (load)="markAsLoaded()"
             (error)="onLoadError($event)"
             emoji></markdown>

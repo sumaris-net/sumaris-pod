@@ -35,6 +35,7 @@ $primary: #144391;
 $primary100: #718dbc;
 $primary900: #0e2e63;
 $secondary: #75C4FD;
+$secondary50: #d2edfe;
 $secondary100: #abdbfe;
 $secondary900: #5086ad;
 $tertiary: #5b5ef4;
@@ -89,6 +90,8 @@ $colors: (
   primary900: (base: $primary900, contrast: #fff, shade: get-color-shade($primary900), tint: get-color-tint($primary900)),
   /* secondary */
   secondary: (base: $secondary, contrast: #fff, shade: get-color-shade($secondary), tint: get-color-tint($secondary)),
+  /* secondary50 */
+  secondary50: (base: $secondary50, contrast: $dark, shade: get-color-shade($secondary50), tint: get-color-tint($secondary50)),
   /* secondary100 */
   secondary100: (base: $secondary100, contrast: $dark, shade: get-color-shade($secondary100), tint: get-color-tint($secondary100)),
   /* secondary900 */

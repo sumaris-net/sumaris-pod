@@ -49,7 +49,7 @@ import {AppFormUtils} from "../../core/form/form.utils";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, ControlValueAccessor, InputElement {
+export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor, InputElement {
 
   private _onChangeCallback = (_: any) => { };
   private _onTouchedCallback = () => { };
@@ -119,10 +119,6 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
   onBlur = new EventEmitter<FocusEvent>();
 
   @ViewChild('matInput') matInput: ElementRef;
-
-  @ViewChild('suffix', {static: false}) suffixDiv: ElementRef;
-
-  @ViewChildren('injectMatSuffix') suffixInjections: QueryList<ElementRef>;
 
   @ViewChildren('button') buttons: QueryList<IonButton>;
 
@@ -218,20 +214,6 @@ export class PmfmQvFormField implements OnInit, AfterViewInit, OnDestroy, Contro
 
   ngOnDestroy(): void {
     this._onDestroy.emit();
-  }
-
-  ngAfterViewInit() {
-    if (this.suffixDiv) {
-      // Inject suffix elements, into the first injection point found
-      const suffixInjectionPoint = this.suffixInjections.first;
-      if (suffixInjectionPoint) {
-        suffixInjectionPoint.nativeElement.append(this.suffixDiv.nativeElement);
-
-        // Show the suffix div
-        this.suffixDiv.nativeElement.classList.remove('cdk-visually-hidden');
-      }
-
-    }
   }
 
   get value(): any {

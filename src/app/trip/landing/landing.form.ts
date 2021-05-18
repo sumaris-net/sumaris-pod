@@ -1,13 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Output} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
-import {debounceTime, map, tap} from 'rxjs/operators';
+import {debounceTime, map} from 'rxjs/operators';
 import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../referential/services/model/model.enum';
 import {LandingValidatorService} from "../services/validator/landing.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {FormArray, FormBuilder, FormControl, ValidationErrors, Validators} from "@angular/forms";
+import {FormArray, FormBuilder, FormControl, Validators} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
 import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {Person, personToString, UserProfileLabels} from "../../core/services/model/person.model";
@@ -15,19 +15,17 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {Landing} from "../services/model/landing.model";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {ReferentialRefFilter, ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
-import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
+import {VesselModal} from "../../vessel/modal/modal-vessel";
 import {FormArrayHelper} from "../../core/form/form.utils";
-import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {SharedValidators} from "../../shared/validator/validators";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {SamplingStrategyService} from "../../referential/services/sampling-strategy.service";
 import {TranslateService} from "@ngx-translate/core";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
-import {Observable} from "rxjs";
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -168,16 +166,22 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     // Default values
     this.showObservers = toBoolean(this.showObservers, true); // Will init the observers helper
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
-    if (isNil(this.locationLevelIds)) {
+    if (isNil(this.locationLevelIds) && this.showLocation) {
       this.locationLevelIds = [LocationLevelIds.PORT];
+      console.debug("[landing-form] Location level ids:", this.locationLevelIds);
     }
 
     // Combo: programs
+    const programAttributes = this.settings.getFieldDisplayAttributes('program');
     this.registerAutocompleteField('program', {
       service: this.referentialRefService,
-      filter: {
+      attributes: programAttributes,
+      // Increase default column size, for 'label'
+      columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
+      filter: <ReferentialRefFilter>{
         entityName: 'Program'
-      }
+      },
+      mobile: this.mobile
     });
 
     // Combo: strategy
@@ -221,7 +225,10 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     // Combo: observers
     this.registerAutocompleteField('person', {
-      service: this.personService,
+      // Important, to get the current (focused) control value, in suggestObservers() function (otherwise it will received '*').
+      showAllOnFocus: false,
+      suggestFn: (value, filter) => this.suggestObservers(value, filter),
+      // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
         userProfiles: [UserProfileLabels.SUPERVISOR, UserProfileLabels.USER, UserProfileLabels.GUEST]
@@ -344,6 +351,22 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   }
 
   /* -- protected method -- */
+
+  protected suggestObservers(value: any, filter?: any): Promise<any[]> {
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+    const newValue = currentControlValue ? '*' : value;
+
+    // Excluded existing observers, BUT keep the current control value
+    const excludedIds = (this.observersForm.value || [])
+      .filter(ReferentialUtils.isNotEmpty)
+      .filter(person => !currentControlValue || currentControlValue !== person)
+      .map(person => parseInt(person.id));
+
+    return this.personService.suggest(newValue, {
+      ...filter,
+      excludedIds
+    });
+  }
 
   protected setProgramLabel(program: string) {
     super.setProgramLabel(program);

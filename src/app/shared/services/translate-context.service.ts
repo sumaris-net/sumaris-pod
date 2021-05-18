@@ -47,6 +47,11 @@ export class TranslateContextService {
    */
   contextualKey(key: string, context: string) {
 
+    // Append a dot on context if missing
+    if (!context.endsWith('.')) {
+      context = context + '.';
+    }
+
     // Compute a contextual i18n key, using the context as suffix
     const parts = key.split('.');
     return (parts.length === 1)

@@ -113,7 +113,7 @@ export class InMemoryEntitiesService<T extends IEntity<T>, F = any> implements I
 
           return {
             data,
-            total: res && res.total || data.length
+            total: res && res.total || data.length // FIXME: total should be always = data.length, because res.total still has the previous unfiltered data length
           };
         })
       );

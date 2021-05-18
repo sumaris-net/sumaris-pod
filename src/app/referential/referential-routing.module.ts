@@ -1,8 +1,6 @@
 import {RouterModule, Routes} from "@angular/router";
 import {NgModule} from "@angular/core";
 import {ReferentialsPage} from "./list/referentials.page";
-import {VesselsPage} from "./vessel/list/vessels.page";
-import {VesselPage} from "./vessel/page/vessel.page";
 import {ProgramPage} from "./program/program.page";
 import {SoftwarePage} from "./software/software.page";
 import {ParameterPage} from "./pmfm/parameter.page";
@@ -18,28 +16,10 @@ const routes: Routes = [
     path: 'list',
     pathMatch: 'full',
     component: ReferentialsPage,
+    runGuardsAndResolvers: 'pathParamsChange',
     data: {
       profile: 'ADMIN'
     }
-  },
-  {
-    path: 'vessels',
-    children: [
-      {
-        path: '',
-        component: VesselsPage,
-        data: {
-          profile: 'USER'
-        }
-      },
-      {
-        path: ':id',
-        component: VesselPage,
-        data: {
-          profile: 'USER'
-        }
-      }
-    ]
   },
   {
     path: 'programs',

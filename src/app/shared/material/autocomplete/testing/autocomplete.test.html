@@ -16,6 +16,34 @@
 
     <ion-grid>
 
+      <!-- debugging memory leak -->
+      <ion-row><ion-col><ion-text><h4>Debug memory leak</h4></ion-text></ion-col></ion-row>
+      <ion-row>
+        <ion-col size="2">
+          <ion-button *ngIf="!memoryTimer" (click)="startMemoryTimer()">Start timer</ion-button>
+          <ion-button *ngIf="memoryTimer" (click)="stopMemoryTimer()">Stop timer</ion-button>
+        </ion-col>
+        <ion-col size="2">
+          <mat-form-field floatLabel="always">
+            <input matInput type="hidden" placeholder="Items type">
+            <mat-select (selectionChange)="memoryAutocompleteFieldName=$event.value" [value]="memoryAutocompleteFieldName">
+              <mat-option value="entity-$items">Observable</mat-option>
+              <mat-option value="entity-suggestFn">Suggest function</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </ion-col>
+        <ion-col>
+          <mat-autocomplete-field formControlName="entity"
+                                  *ngIf="!memoryHide && memoryAutocompleteFieldName"
+                                  [config]="autocompleteFields.get(memoryAutocompleteFieldName)"
+                                  [mobile]="true"
+                                  [compareWith]="compareWithFn"
+                                  [logPrefix]="'[combo-mobile-2]'"
+          ></mat-autocomplete-field>
+        </ion-col>
+      </ion-row>
+
+
       <!-- mobile -->
       <ion-row><ion-col><ion-text><h4>Mobile mode</h4></ion-text></ion-col></ion-row>
       <ion-row>
@@ -109,6 +137,36 @@
                                       [mobile]="true"
                                       [compareWith]="compareWithFn"
                                       [logPrefix]="'[combo-mobile-2]'"
+              ></mat-autocomplete-field>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="3" offset="9">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Large combo
+                </ion-label>
+                <ion-card-subtitle>
+                  <ion-text color="medium">
+                    <small><pre>class="min-width-large"</pre></small>
+                  </ion-text>
+                </ion-card-subtitle>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-autocomplete-field formControlName="entity"
+                                      [config]="autocompleteFields.get('entity-items-large')"
+                                      [mobile]="true"
+                                      class="min-width-large"
+                                      panelWidth="400px"
+                                      [compareWith]="compareWithFn"
+                                      [logPrefix]="'[combo-desktop-large]'"
               ></mat-autocomplete-field>
             </ion-card-content>
           </ion-card>
@@ -261,6 +319,65 @@
           </ion-card>
         </ion-col>
       </ion-row>
+
+      <ion-row>
+        <ion-col size="9" >
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Full size combo
+                </ion-label>
+                <ion-card-subtitle>
+                  <ion-text color="medium">
+                    <small><pre>class="mat-autocomplete-panel-full-size"</pre></small>
+                  </ion-text>
+                </ion-card-subtitle>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-autocomplete-field formControlName="entity"
+                                      [config]="autocompleteFields.get('entity-items-large')"
+                                      [mobile]="false"
+                                      class="mat-autocomplete-panel-full-size"
+                                      panelWidth="100vw"
+                                      [compareWith]="compareWithFn"
+                                      [logPrefix]="'[combo-desktop-full-size]'"
+              ></mat-autocomplete-field>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <ion-col size="3" >
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Large combo
+                </ion-label>
+                <ion-card-subtitle>
+                  <ion-text color="medium">
+                    <small><pre>panelWidth: string</pre></small>
+                  </ion-text>
+                </ion-card-subtitle>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-autocomplete-field formControlName="entity"
+                                      [config]="autocompleteFields.get('entity-items-large')"
+                                      [mobile]="false"
+                                      panelWidth="400px"
+                                      [compareWith]="compareWithFn"
+                                      [logPrefix]="'[combo-desktop-large]'"
+              ></mat-autocomplete-field>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+
+
+
+
     </ion-grid>
 
   </form>

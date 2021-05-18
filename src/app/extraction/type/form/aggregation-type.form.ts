@@ -1,18 +1,16 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
-import {
-  ExtractionColumn
-} from "../../services/model/extraction.model";
+import {ExtractionColumn} from "../../services/model/extraction.model";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../../services/validator/aggregation-type.validator";
 import {ReferentialForm} from "../../../referential/form/referential.form";
 import {BehaviorSubject} from "rxjs";
-import {arraySize, isNil} from "../../../shared/functions";
+import {arraySize, isNil, isNotNilOrBlank} from "../../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {ExtractionService} from "../../services/extraction.service";
 import {debounceTime} from "rxjs/operators";
-import {AggregationStrata, AggregationType} from "../../services/model/aggregation-type.model";
+import {AggregationStrata, AggregationType, ProcessingFrequency, ProcessingFrequencyList} from "../../services/model/aggregation-type.model";
 import {ExtractionUtils} from "../../services/extraction.utils";
 import {AggregationService} from "../../services/aggregation.service";
 import {FormArrayHelper} from "../../../core/form/form.utils";
@@ -24,6 +22,11 @@ declare interface ColumnMap {
   [sheetName: string]: ExtractionColumn[];
 }
 
+const FrequenciesById: { [id: number]: ProcessingFrequency; } = ProcessingFrequencyList.reduce((res, frequency) => {
+  res[frequency.id] = frequency;
+  return res;
+}, {});
+
 @Component({
   selector: 'app-aggregation-type-form',
   styleUrls: ['./aggregation-type.form.scss'],
@@ -31,6 +34,10 @@ declare interface ColumnMap {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AggregationTypeForm extends AppForm<AggregationType> implements OnInit {
+
+
+  data: AggregationType;
+  frequenciesById = FrequenciesById;
 
   $sheetNames = new BehaviorSubject<String[]>(undefined);
   $timeColumns = new BehaviorSubject<ColumnMap>(undefined);
@@ -51,7 +58,7 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
   stratumFormArray: FormArray;
   stratumHelper: FormArrayHelper<AggregationStrata>;
 
-  showMarkdownPreview = false;
+  showMarkdownPreview = true;
   $markdownContent = new BehaviorSubject<string>(undefined);
 
   @Input()
@@ -74,6 +81,17 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
 
   get strataForms(): FormGroup[] {
     return this.stratumFormArray.controls as FormGroup[];
+  }
+
+  get isSpatial(): boolean {
+    return this.form.controls['isSpatial'].value;
+  }
+
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.enable(opts);
+    if (!this.isSpatial) {
+      this.stratumFormArray.disable();
+    }
   }
 
   constructor(protected dateAdapter: DateAdapter<Moment>,
@@ -108,10 +126,21 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
       );
   }
 
-  async updateLists(type: AggregationType) {
+  async updateLists(type?: AggregationType) {
+    if (type) {
+      this.data = type;
+    }
+    else if (this.data) {
+      type = this.data;
+    }
+    else {
+      return; // Skip
+    }
+
+    console.debug('[aggregation-form] Loading columns of type', type);
 
     // If spatial, load columns
-    if (type.isSpatial) {
+    if (type.isSpatial || this.isSpatial) {
 
       const sheetNames = type.sheetNames || [];
       this.$sheetNames.next(sheetNames);
@@ -170,12 +199,15 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
            if (!isSpatial) {
              this.stratumHelper.resize(0);
              this.stratumHelper.allowEmptyArray = true;
+             this.stratumFormArray.disable();
            }
            else {
              if (this.stratumHelper.size() === 0) {
                this.stratumHelper.resize(1);
              }
              this.stratumHelper.allowEmptyArray = false;
+             this.stratumFormArray.enable();
+             this.updateLists();
            }
         })
     );
@@ -197,13 +229,23 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
     if (data && data.isSpatial) {
       // If spatial product, make sure there is one strata
       this.stratumHelper.resize(Math.max(1, arraySize(data.stratum)));
+      this.stratumHelper.allowEmptyArray = false;
+      this.stratumHelper.enable();
     }
     else {
       this.stratumHelper.resize(0);
+      this.stratumHelper.allowEmptyArray = true;
+      this.stratumHelper.disable();
     }
 
+    // Show doc preview, if doc exists
+    this.showMarkdownPreview = this.showMarkdownPreview && isNotNilOrBlank(data.documentation);
+
     super.setValue(data, opts);
+
   }
+
+
 
   protected markForCheck() {
     this.cd.markForCheck();

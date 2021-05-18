@@ -116,7 +116,7 @@ export class EntitiesStorage {
 
       const entityStore = this.getEntityStore<T>(entityName, {create: false});
       if (!entityStore) return undefined;
-      return entityStore.load(id, opts);
+      return await entityStore.load(id, opts);
     }
     finally {
       this.progressBarService.decrease();

@@ -23,31 +23,30 @@
   }
 }
 
-mat-table  {
-  .mat-cell-numeric {
-    .ion-text {
+.table-container {
+  height: calc(100% - 50px);
+}
+
+.mat-table  {
+  min-width: 100%;
+  --mat-cell-vertical-padding: 4px;
+
+  .mat-header-cell {
+    background-color: whitesmoke;
+  }
+  .mat-header-cell,
+  .mat-cell {
+    padding-inline-start: var(--mat-cell-vertical-padding);
+    //border-left: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  .mat-cell {
+    padding-inline-end: var(--mat-cell-vertical-padding);
+
+    &.mat-cell-numeric {
       text-align: end;
     }
-  }
 
-  .mat-cell-header {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .mat-cell {
-    padding-left: 0.5em;
-    text-overflow: ellipsis;
-    display: grid;
-    max-height: 53px;
-    overflow-wrap: break-word;
-  }
-
-  .mat-column-eu_metier_level6 {
-    min-width: 120px;
-  }
-
-  .mat-cell {
     a {
       color: var(--ion-color-dark) !important;
     }

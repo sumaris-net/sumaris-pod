@@ -42,6 +42,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
   protected _saving = false;
   protected _useValidator = false;
   protected _stopWatchAll$ = new Subject();
+  protected _editingRowCount = 0;
 
   $busy = new BehaviorSubject(false);
 
@@ -99,7 +100,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
            filter?: F): Observable<LoadResult<T>> {
 
     this._stopWatchAll$.next(); // stop previous watch observable
-
+    this._editingRowCount = 0;
     this.$busy.next(true);
     return this.dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions as O)
       .pipe(
@@ -109,6 +110,8 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
         map((res: LoadResult<T>) => {
           if (this._saving) {
             console.info(`[table-datasource] Service ${this.dataService.constructor.name} sent data, but still saving: skip`);
+          } else if (this._editingRowCount > 0) {
+            console.warn(`[table-datasource] Service ${this.dataService.constructor.name} sent data, while ${this._editingRowCount} rows still editing: skip; Must check the save behavior on the implemented table !`);
           } else {
             this.$busy.next(false);
             if (this._debug) console.debug(`[table-datasource] Service ${this.dataService.constructor.name} sent new data: updating datasource...`, res);
@@ -184,6 +187,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
         console.debug('[table-datasource] Data saved. Updated data received by service:', savedData);
         console.debug('[table-datasource] Updating datasource with data:', data);
       }
+      // LP 23/03/2021: update datasource is necessary but can be changed to a refetch() on QueryRef (must be created and registered in GraphqlService.watchQuery)
       this.updateDatasource(data, {emitEvent: false});
 
       return true;
@@ -192,6 +196,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
       throw error;
     } finally {
       this._saving = false;
+      this._editingRowCount = 0;
       // Always update the loading indicator
       this.$busy.next(false);
     }
@@ -203,8 +208,8 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
   }
 
   // Overwrite default signature
-  createNew(): void {
-    this.asyncCreateNew();
+  createNew(insertAt?: number): void {
+    this.asyncCreateNew(insertAt);
   }
 
   disconnect(collectionViewer?: CollectionViewer) {
@@ -233,11 +238,13 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
   startEdit(row: TableElement<T>) {
     if (this._debug) console.debug("[table-datasource] Start to edit row", row);
     row.startEdit();
+    this._editingRowCount++;
   }
 
   cancelOrDelete(row: TableElement<T>) {
     if (this._debug) console.debug("[table-datasource] Cancelling or deleting row", row);
     row.cancelOrDelete();
+    this._editingRowCount--;
   }
 
   handleError(error: any, message: string): Observable<LoadResult<T>> {
@@ -309,10 +316,10 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
     return firstNotNilPromise(this.connect(null)) as Promise<TableElement<T>[]>;
   }
 
-  public async asyncCreateNew(): Promise<void> {
+  public async asyncCreateNew(insertAt?: number): Promise<void> {
     if (this._creating) return; // Avoid multiple call
     this._creating = true;
-    super.createNew();
+    super.createNew(insertAt);
     const row = this.getRow(-1);
 
     if (row && this._options && this._options.onRowCreated) {
@@ -328,6 +335,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
       }
     }
 
+    this._editingRowCount++;
     this._creating = false;
   }
 

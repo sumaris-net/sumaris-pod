@@ -1,37 +1,13 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  EventEmitter,
-  forwardRef,
-  Input,
-  OnDestroy,
-  OnInit,
-  Optional,
-  Output,
-  ViewChild
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Optional, Output, ViewChild} from "@angular/core";
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
 import {BehaviorSubject, isObservable, merge, Observable, Subject, Subscription} from "rxjs";
 import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, takeWhile, tap} from "rxjs/operators";
 import {LoadResult, SuggestFn, SuggestService} from "../../services/entity-service.class";
-import {
-  changeCaseToUnderscore,
-  getPropertyByPath,
-  isNil,
-  isNilOrBlank,
-  isNotNil,
-  isNotNilOrBlank,
-  joinPropertiesPath,
-  suggestFromArray,
-  toBoolean, toNumber
-} from "../../functions";
+import {changeCaseToUnderscore, getPropertyByPath, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, joinPropertiesPath, suggestFromArray, toBoolean, toNumber} from "../../functions";
 import {focusInput, InputElement, selectInputContent} from "../../inputs";
 import {firstNotNilPromise} from "../../observables";
 import {CompareWithFn, DisplayFn} from "../../form/field.model";
 import {FloatLabelType} from "@angular/material/form-field";
-
 
 
 export declare interface MatAutocompleteFieldConfig<T = any, F = any> {
@@ -175,6 +151,9 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @Input() i18nPrefix = 'REFERENTIAL.';
   @Input() noResultMessage = 'COMMON.NO_RESULT';
   @Input('class') classList: string;
+  @Input() panelWidth: string;
+  @Input() matAutocompletePosition: 'auto' | 'above' | 'below' = 'auto';
+  @Input() multiple = false;
 
   @Input() set filter(value: any) {
     // DEBUG
@@ -283,9 +262,14 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         (this.i18nPrefix + changeCaseToUnderscore(attr).toUpperCase());
     });
     this.mobile = toBoolean(this.mobile, false);
-    this.searchable = !this.mobile;
+    this.searchable = !this.mobile && !this.multiple;
     // Default comparator (only need when using mat-select)
     if (!this.searchable && !this.compareWith) this.compareWith = (o1: any, o2: any) => o1 && o2 && o1.id === o2.id;
+    this.panelWidth = this.panelWidth || (this.classList
+      && (this.classList === 'min-width-medium' && '300px')
+        || (this.classList === 'min-width-large' && '400px')
+        || (this.classList === 'min-width-xlarge' && '450px')
+        || (this.classList === 'mat-autocomplete-panel-full-size' && '100vw'));
 
     // No suggestFn: filter on the given items
     if (!this.suggestFn) {
@@ -388,7 +372,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         //tap(value => console.debug(this.logPrefix + " Received update event: ", value)),
         switchMap((value) => this.suggest(value, this.filter)),
         // Store implicit value (will use it onBlur if not other value selected)
-        tap(res => this.updateImplicitValue(res)),
+        tap(res => this.updateImplicitValue(res))
     );
 
     // Applying implicit value, on blur

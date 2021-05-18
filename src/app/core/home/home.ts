@@ -200,7 +200,7 @@ export class HomePage implements OnDestroy {
   }
 
   protected onConfigLoaded(config: Configuration) {
-    console.debug("[home] Configuration loaded:", config);
+    console.debug("[home] Applying configuration", config);
     this._config = config;
 
     this.appName = config.label || this.environment.defaultAppName || 'SUMARiS';
@@ -220,7 +220,7 @@ export class HomePage implements OnDestroy {
           // If offline, filter on local dataURL image
           && (!this.offline || !img.startsWith('http')));
 
-      // Background image found: select one radomly
+      // Background image found: select one randomly
       if (backgroundImages.length) {
         const bgImage = getRandomImage(backgroundImages);
         this.contentStyle = bgImage && {'background-image': `url(${bgImage})`} || {};
@@ -272,6 +272,7 @@ export class HomePage implements OnDestroy {
   }
 
   protected refreshButtons() {
+    if (!this._config) return; // Skip (waiting config to be loaded)
     if (this._debug) console.debug("[home] Refreshing buttons...");
 
     const filteredButtons = (this.buttons || [])

@@ -36,7 +36,7 @@
           <mat-icon>arrow_drop_down</mat-icon>
         </button>
 
-        <div matSuffix #injectMatSuffix></div>
+        <ng-content matSuffix select="[matAfter]"></ng-content>
 
         <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
@@ -143,7 +143,7 @@
         <ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label>
       </ng-template>
 
-      <div matSuffix #injectMatSuffix></div>
+      <ng-content matSuffix select="[matAfter]"></ng-content>
 
       <ion-fab-button matSuffix color="light" size="small"
                       *ngIf="maxVisibleButtons !== 999"
@@ -155,10 +155,4 @@
     </mat-form-field>
   </ng-container>
 
-  <!-- Suffix -->
-  <div class="cdk-visually-hidden">
-    <div #suffix>
-      <ng-content select="[matSuffix]"></ng-content>
-    </div>
-  </div>
 </ng-template>

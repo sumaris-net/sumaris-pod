@@ -3,9 +3,9 @@ import {gql} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {VesselRegistration} from "./model/vessel.model";
 import {map} from "rxjs/operators";
-import {ErrorCodes} from "./errors";
+import {ErrorCodes} from "../../referential/services/errors";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {ReferentialFragments} from "./referential.fragments";
+import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {VesselFilter} from "./vessel-service";
 import {SortDirection} from "@angular/material/sort";
 import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
@@ -25,15 +25,13 @@ export const RegistrationFragments = {
   }`,
 };
 
-export const LoadRegistrationsQuery: any = gql`
-    query VesselRegistrationHistory($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $vesselId: Int){
-        vesselRegistrationHistory(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, vesselId: $vesselId){
+export const LoadRegistrationsQuery: any = gql`query VesselRegistrationHistory($vesselId: Int!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+        vesselRegistrationHistory(vesselId: $vesselId, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
             ...RegistrationFragment
         }
     }
     ${RegistrationFragments.registration}
-    ${ReferentialFragments.location}
-`;
+    ${ReferentialFragments.location}`;
 
 @Injectable({providedIn: 'root'})
 export class VesselRegistrationService

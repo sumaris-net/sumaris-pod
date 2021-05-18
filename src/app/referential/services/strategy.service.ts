@@ -25,7 +25,8 @@ import {StrategyRefService} from "./strategy-ref.service";
 
 
 export class StrategyFilter extends ReferentialFilter {
-
+  //ODO Imagine: enable this, and override function asPodObject() and searchFilter()
+  //referenceTaxonIds?: number[];
 }
 
 const FindStrategyNextLabel: any = gql`
