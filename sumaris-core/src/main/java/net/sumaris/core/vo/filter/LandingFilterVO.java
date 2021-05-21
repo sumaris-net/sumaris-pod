@@ -59,8 +59,6 @@ public class LandingFilterVO implements IRootDataFilter, IVesselFilter {
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;
 
-    private Boolean onlyLast;
-
     private List<Integer> excludeVesselIds;
 
     // Parent

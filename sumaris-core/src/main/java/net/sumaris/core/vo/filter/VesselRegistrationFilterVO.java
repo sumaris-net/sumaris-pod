@@ -4,7 +4,7 @@ package net.sumaris.core.vo.filter;
  * #%L
  * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 - 2020 SUMARiS Consortium
+ * Copyright (C) 2018 - 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,34 +22,26 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.Date;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldNameConstants;
 
 /**
- * @author peck7 on 01/09/2020.
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @Data
 @Builder
-public class SampleFilterVO implements IRootDataFilter {
+@AllArgsConstructor
+@NoArgsConstructor
+@FieldNameConstants
+public class VesselRegistrationFilterVO implements IVesselFilter {
 
-    private Date startDate;
+    public static VesselRegistrationFilterVO nullToEmpty(VesselRegistrationFilterVO f) {
+        return f != null ? f : new VesselRegistrationFilterVO();
+    }
 
-    private Date endDate;
-
-    private String programLabel;
-
-    private Integer locationId;
-
-    private Integer recorderDepartmentId;
-
-    private Integer recorderPersonId;
-
-    private Integer operationId;
-
-    private Integer landingId;
-
-    private Integer parentId;
+    private Integer vesselId;
 
 }
