@@ -1598,6 +1598,12 @@
       <id>jitpack.io</id>
       <url>https://jitpack.io</url>
     </repository>
+
+    <repository>
+      <id>natusoft-repo</id>
+      <name>NS GitHub stuff temp repo</name>
+      <url>https://download.natusoft.se/maven</url>
+    </repository>
   </repositories>
 
   <pluginRepositories>
@@ -1613,6 +1619,16 @@
         <checksumPolicy>fail</checksumPolicy>
       </releases>
     </pluginRepository>
+
+    <pluginRepository>
+      <id>ns-plugin-repo</id>
+      <name>ns-plugin-repository</name>
+      <url>https://download.natusoft.se/maven</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </pluginRepository>
+
   </pluginRepositories>
 
   <distributionManagement>
@@ -1832,17 +1848,142 @@
 
                         <mkdir dir="target/site/doc" />
 
-                        <copy todir="target/site/doc">
+                        <copy todir="${project.build.directory}/site/doc">
                           <fileset dir="src/site/markdown/doc">
                             <exclude name="**/*.md" />
                             <include name="**/*.svg" />
                             <include name="**/*.png" />
                           </fileset>
                         </copy>
+
+                        <echo>Copying .md and .png with format for pdf parsing</echo>
+                        <copy todir="${project.build.directory}/site/temp" flatten="true">
+                          <fileset dir="src/site/markdown/doc/user-manual">
+                            <include name="**/*.md"/>
+                            <include name="**/*.png"/>
+                          </fileset>
+                        </copy>
+
+                        <replaceregexp match="\]\(./" replace="](${project.build.directory}/site/temp/" flags="g" byline="false" >
+                          <fileset dir="${project.build.directory}/site/temp">
+                            <include name="**/*.md"/>
+                          </fileset>
+                        </replaceregexp>
                       </then>
                     </if>
-
                   </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>se.natusoft.tools.doc.markdowndoc</groupId>
+            <artifactId>markdowndoc-maven-plugin</artifactId>
+            <version>3.0.0</version>
+            <executions>
+              <execution>
+                <id>generate-docs-fr</id>
+                <goals>
+                  <goal>doc</goal>
+                </goals>
+                <phase>pre-site</phase>
+                <configuration>
+                  <generatorOptions>
+                    <generator>pdf</generator>
+                    <inputPaths>
+                      ${project.build.directory}/site/temp/changelog_fr.md,
+                      ${project.build.directory}/site/temp/preamble_fr.md,
+                      ${project.build.directory}/site/temp/screens-concepts_fr.md,
+                      ${project.build.directory}/site/temp/entry-progress-screenshot_fr.md,
+                      ${project.build.directory}/site/temp/quality-control_fr.md,
+                      ${project.build.directory}/site/temp/save-validation-qualification_fr.md,
+                      ${project.build.directory}/site/temp/extraction_fr.md,
+                      ${project.build.directory}/site/temp/bugs-troubleshooting-enhancements_fr.md,
+                      ${project.build.directory}/site/temp/summary-important-points_fr.md
+                    </inputPaths>
+                  </generatorOptions>
+                  <pdfGeneratorOptions>
+                    <mss>
+                      ${project.build.directory}/site/css/pdf-generator-style.mss
+                    </mss>
+                    <generateTOC>
+                      true
+                    </generateTOC>
+                    <generateSectionNumbers>
+                      true
+                    </generateSectionNumbers>
+                    <resultFile>
+                      ${project.build.directory}/site/doc/user-manual/sumaris-doc-fr.pdf
+                    </resultFile>
+                    <title>
+                      Guide de démarrage rapide pour le logiciel web de saisie SUMARiS
+                    </title>
+                    <author>
+                      Auteur : E-IS
+                    </author>
+                    <generateTitlePage>
+                      true
+                    </generateTitlePage>
+                    <titlePageImage>
+                      ${project.build.directory}/site/images/sumaris-doc_screen_fr-v0.1.png:110:400
+                    </titlePageImage>
+                    <version>
+                      Version : ${project.version}
+                    </version>
+                  </pdfGeneratorOptions>
+                </configuration>
+              </execution>
+
+              <execution>
+                <id>generate-docs-en</id>
+                <goals>
+                  <goal>doc</goal>
+                </goals>
+                <phase>pre-site</phase>
+                <configuration>
+                  <generatorOptions>
+                    <generator>pdf</generator>
+                    <inputPaths>
+                      ${project.build.directory}/site/temp/changelog.md,
+                      ${project.build.directory}/site/temp/preamble.md,
+                      ${project.build.directory}/site/temp/screens-concepts.md,
+                      ${project.build.directory}/site/temp/entry-progress-screenshot.md,
+                      ${project.build.directory}/site/temp/quality-control.md,
+                      ${project.build.directory}/site/temp/save-validation-qualification.md,
+                      ${project.build.directory}/site/temp/extraction.md,
+                      ${project.build.directory}/site/temp/bugs-troubleshooting-enhancements.md,
+                      ${project.build.directory}/site/temp/summary-important-points.md
+                    </inputPaths>
+                  </generatorOptions>
+                  <pdfGeneratorOptions>
+                    <mss>
+                      ${project.build.directory}/site/css/pdf-generator-style.mss
+                    </mss>
+                    <generateTOC>
+                      true
+                    </generateTOC>
+                    <generateSectionNumbers>
+                      true
+                    </generateSectionNumbers>
+                    <resultFile>
+                      ${project.build.directory}/site/doc/user-manual/sumaris-doc_en.pdf
+                    </resultFile>
+                    <title>
+                      Quick Start user's guide for SUMARiS web entry software
+                    </title>
+                    <author>
+                     Author : E-IS
+                    </author>
+                    <generateTitlePage>
+                      true
+                    </generateTitlePage>
+                    <titlePageImage>
+                      ${project.build.directory}/site/images/sumaris-doc_screen-v0.1.png:110:400
+                    </titlePageImage>
+                    <version>
+                      Version : ${project.version}
+                    </version>
+                  </pdfGeneratorOptions>
                 </configuration>
               </execution>
             </executions>
