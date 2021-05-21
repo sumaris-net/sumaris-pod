@@ -53,6 +53,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   addLandingUsingHistoryModal: boolean;
   $ready = new BehaviorSubject<boolean>(false);
   observedLocationNewName = '';
+  showQualityForm = false;
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
   @ViewChild('landingsTable') landingsTable: LandingsTable;
@@ -116,6 +117,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nContext.suffix = i18nSuffix;
+
+    this.showQualityForm = i18nSuffix === 'legacy';
 
     if (this.landingsTable) {
       this.landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
