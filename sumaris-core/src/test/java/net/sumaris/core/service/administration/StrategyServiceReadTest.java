@@ -102,7 +102,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
                 .acquisitionLevelId(AcquisitionLevelEnum.TRIP.getId())
                 .build(), PmfmStrategyFetchOptions.DEFAULT);
         Assert.assertNotNull(pmfmStrategies);
-        Assert.assertEquals(24, pmfmStrategies.size());
+        Assert.assertEquals(5, pmfmStrategies.size());
 
     }
 
@@ -118,13 +118,16 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
                         .build());
         Assert.assertNotNull(pmfms);
         Assert.assertEquals(80, pmfms.size());
-        DenormalizedPmfmStrategyVO denormalizedPmfm = pmfms.get(0);
-        Assert.assertNotNull(denormalizedPmfm);
-        Assert.assertNotNull(denormalizedPmfm.getId());
-        Assert.assertNotNull(denormalizedPmfm.getUnitLabel());
-        Assert.assertNotNull(denormalizedPmfm.getUnitLabel());
-        Assert.assertNotNull(denormalizedPmfm.getCompleteName());
 
+        long count = pmfms.stream().filter(pmfm -> {
+            Assert.assertNotNull(pmfm);
+            Assert.assertNotNull(pmfm.getId());
+            Assert.assertNotNull(pmfm.getType());
+            Assert.assertNotNull(pmfm.getCompleteName());
+            return pmfm.getUnitLabel() != null;
+        }).count();
+
+        Assert.assertTrue(count > 0);
     }
 
 

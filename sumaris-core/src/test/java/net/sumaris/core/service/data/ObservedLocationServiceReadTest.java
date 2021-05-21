@@ -61,7 +61,7 @@ public class ObservedLocationServiceReadTest extends AbstractServiceTest{
                 .build();
         List<ObservedLocationVO> vos = service.findAll(filter, 0, 100);
         Assert.assertNotNull(vos);
-        Assert.assertEquals(1, vos.size());
+        Assert.assertEquals(3, vos.size());
         vos.stream()
                 .map(ObservedLocationVO::getRecorderDepartment)
                 .map(DepartmentVO::getId)
@@ -76,7 +76,7 @@ public class ObservedLocationServiceReadTest extends AbstractServiceTest{
                 .build();
         List<ObservedLocationVO> vos = service.findAll(filter, 0, 100);
         Assert.assertNotNull(vos);
-        Assert.assertEquals(2, vos.size());
+        Assert.assertEquals(4, vos.size());
         vos.stream()
                 .map(ObservedLocationVO::getRecorderPerson)
                 .map(PersonVO::getId)

@@ -65,7 +65,7 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
         Assert.assertNotNull(program.getId());
         Assert.assertEquals(11, program.getId().intValue());
         Assert.assertNotNull(program.getProperties());
-        Assert.assertEquals(3, program.getProperties().size());
+        Assert.assertEquals(4, program.getProperties().size());
         Assert.assertNull(program.getStrategies()); // no strategy
 
         // Modify name
@@ -80,7 +80,7 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
         Assert.assertNotNull(program);
         Assert.assertEquals("Program Name changed", program.getName());
         Assert.assertNotNull(program.getProperties());
-        Assert.assertEquals(4, program.getProperties().size());
+        Assert.assertEquals(5, program.getProperties().size());
         Assert.assertEquals("PROPERTY_VALUE", program.getProperties().get("PROPERTY_TEST"));
 
         Assert.assertNull(program.getStrategies()); // no strategy
