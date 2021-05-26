@@ -122,7 +122,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     public SumarisConfiguration(ConfigurableEnvironment env,
                                 String... args) {
-        this(env, "application.yml", args);
+        this(env, "application.properties", args);
     }
 
     public SumarisConfiguration(String file,
@@ -141,22 +141,22 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
                                    String file,
                                    String... args) {
 
-        this.applicationConfig = new ApplicationConfig(
-            ApplicationConfigInit.forScopes(ApplicationConfigScope.DEFAULTS,
-                ApplicationConfigScope.CLASS_PATH,
-                ApplicationConfigScope.ENV,
-                ApplicationConfigScope.JVM,
-                ApplicationConfigScope.OPTIONS));
-        this.applicationConfig.setEncoding(Charsets.UTF_8.name());
-        this.applicationConfig.setConfigFileName(file);
+        ApplicationConfigInit configInit = ApplicationConfigInit.forScopes(ApplicationConfigScope.DEFAULTS,
+            ApplicationConfigScope.CLASS_PATH,
+            ApplicationConfigScope.ENV,
+            ApplicationConfigScope.JVM,
+            ApplicationConfigScope.OPTIONS);
 
         // Set options from env
         if (env != null) {
-            Properties options = ConfigurableEnvironments.readProperties(env);
-            options.stringPropertyNames().forEach(key -> {
-                applicationConfig.setOption(key, options.getProperty(key));
-            });
+            Properties defaults = ConfigurableEnvironments.readProperties(env, null);
+            configInit.setDefaults(defaults);
         }
+
+        this.applicationConfig = new ApplicationConfig(configInit);
+        this.applicationConfig.setEncoding(Charsets.UTF_8.name());
+        this.applicationConfig.setConfigFileName(file);
+        if (log.isDebugEnabled()) log.debug("Application options: {}", applicationConfig.getFlatOptions());
 
         // load all default options
         Set<ApplicationConfigProvider> providers = getProviders();
@@ -187,8 +187,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         } catch (ArgumentsParserException e) {
             throw new SumarisTechnicalException(t("sumaris.config.parse.error"), e);
         }
-
-
 
         // Init the application version
         initVersion(applicationConfig);
