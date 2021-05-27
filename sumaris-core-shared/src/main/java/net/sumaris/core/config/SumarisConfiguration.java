@@ -144,7 +144,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         ApplicationConfigInit configInit = ApplicationConfigInit.forScopes(ApplicationConfigScope.DEFAULTS,
             ApplicationConfigScope.CLASS_PATH,
             ApplicationConfigScope.ENV,
-            ApplicationConfigScope.JVM,
             ApplicationConfigScope.OPTIONS);
 
         // Set options from env
