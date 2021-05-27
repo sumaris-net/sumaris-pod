@@ -47,10 +47,10 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     if (program && isNotNil(program.id) && this._program !== program) {
       this._program = program;
       console.debug('[strategy-table] Setting program:', program);
-      this.setFilter( {
+      this.setFilter( StrategyFilter.fromObject({
         ...this.filter,
         levelId: program.id
-      });
+      }));
     }
   }
 

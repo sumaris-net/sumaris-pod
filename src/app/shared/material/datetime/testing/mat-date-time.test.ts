@@ -6,19 +6,23 @@ import {SharedFormGroupValidators} from "../../../validator/validators";
 import {AppFormUtils} from "../../../../core/form/form.utils";
 import {toDateISOString} from "../../../dates";
 import * as momentImported from "moment";
+import Timer = NodeJS.Timer;
 
 const moment = momentImported;
 
 @Component({
   selector: 'app-data-time-test',
-  templateUrl: './mat-date-time.test.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  templateUrl: './mat-date-time.test.html'
 })
 export class DateTimeTestPage implements OnInit {
 
 
   showLogPanel = true;
   logContent = '';
+
+  memoryHide = false;
+  memoryMobile = true;
+  memoryTimer: Timer;
 
   form: FormGroup;
 
@@ -99,6 +103,18 @@ export class DateTimeTestPage implements OnInit {
   clearLogPanel() {
     this.logContent = "";
     this.cd.markForCheck();
+  }
+
+  startMemoryTimer() {
+    this.memoryTimer = setInterval(() => {
+      this.memoryHide = !this.memoryHide;
+    }, 50);
+  }
+
+  stopMemoryTimer() {
+    clearInterval(this.memoryTimer);
+    this.memoryTimer = null;
+    this.memoryHide = false;
   }
 
   stringify = JSON.stringify;

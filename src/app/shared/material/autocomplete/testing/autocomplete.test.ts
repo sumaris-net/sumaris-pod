@@ -39,6 +39,8 @@ export class AutocompleteTestPage implements OnInit {
   memoryAutocompleteFieldName = 'entity-$items';
   memoryTimer: Timer;
 
+  mode: 'mobile'|'desktop'|'memory'|'temp' = 'temp';
+
   constructor(
     protected formBuilder: FormBuilder
   ) {
@@ -60,16 +62,25 @@ export class AutocompleteTestPage implements OnInit {
       displayWith: this.entityToString
     });
 
-    // From items
+    // From items array
     this.autocompleteFields.add('entity-items', {
       items: FAKE_ENTITIES.slice(),
       attributes: ['label', 'name'],
       displayWith: this.entityToString
     });
 
-    // From items
+    // From $items observable
     this.autocompleteFields.add('entity-$items', {
       items: this.$items,
+      attributes: ['label', 'name'],
+      displayWith: this.entityToString
+    });
+
+    // From $items with filter
+    this.autocompleteFields.add('entity-items-filter', {
+      service: {
+        suggest: (value, filter) => this.suggest(value, filter)
+      },
       attributes: ['label', 'name'],
       displayWith: this.entityToString
     });
@@ -82,10 +93,7 @@ export class AutocompleteTestPage implements OnInit {
     });
 
     this.loadData();
-    //setTimeout(() => this.loadData(), 1500);
 
-    //
-    setTimeout(() => this.loadItems(), 1000);
   }
 
   // Load the form with data
@@ -93,7 +101,7 @@ export class AutocompleteTestPage implements OnInit {
     const data = {
       entity: deepCopy(FAKE_ENTITIES)[1], // Select the second
 
-      // THis item is NOT in the items list => i should be displayed anyway
+      // This item is NOT in the items list => i should be displayed anyway
       missingEntity: {
         id: -1, label: '??', name: 'Missing item'
       },
@@ -102,10 +110,14 @@ export class AutocompleteTestPage implements OnInit {
     };
 
     this.form.setValue(data);
+
+    // Load observables
+    setTimeout(() => this.loadItems(), 1000);
   }
 
   async loadItems() {
-    this.$items.next(deepCopy(FAKE_ENTITIES));
+    const items = deepCopy(FAKE_ENTITIES);
+    this.$items.next(items);
   }
 
   entityToString(item: any) {
@@ -128,6 +140,13 @@ export class AutocompleteTestPage implements OnInit {
     return o1 && o2 && o1.id === o2.id;
   }
 
+  toggleMode(value) {
+    if (this.mode !== value) {
+      this.mode = value;
+      this.stopMemoryTimer();
+    }
+  }
+
   startMemoryTimer() {
     this.memoryTimer = setInterval(() => {
       this.memoryHide = !this.memoryHide;
@@ -138,6 +157,11 @@ export class AutocompleteTestPage implements OnInit {
     clearInterval(this.memoryTimer);
     this.memoryTimer = null;
     this.memoryHide = false;
+  }
+
+  updateFilter(fieldName: string) {
+    const filter: { searchAttribute?: string; } = this.autocompleteFields.get(fieldName).filter || {};
+    filter.searchAttribute = (!filter || filter.searchAttribute !== 'name') ? 'name' : 'label';
   }
 
   /* -- protected methods -- */

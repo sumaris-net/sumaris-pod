@@ -23,7 +23,6 @@ export class SelectPmfmModal extends BaseSelectEntityModal<Pmfm, PmfmFilter> imp
     });
   }
 
-
   protected async computeTitle(): Promise<string> {
     return "REFERENTIAL.ENTITY.PMFM";
   }

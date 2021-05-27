@@ -2,15 +2,12 @@
 
 import {isNilOrBlank, isNotNil, noTrailingSlash} from "../../../shared/functions";
 import {Cloneable, Entity, EntityAsObjectOptions} from "./entity.model";
+import {EntityClass} from "./entity.decorators";
 
+@EntityClass({typename: 'PeerVO'})
 export class Peer extends Entity<Peer> implements Cloneable<Peer> {
 
-  static fromObject(source: any): Peer {
-    if (!source || source instanceof Peer) return source;
-    const res = new Peer();
-    res.fromObject(source);
-    return res;
-  }
+  static fromObject: (source: any, opts?: any) => Peer
 
   static parseUrl(peerUrl: string) {
     const url = new URL(peerUrl);
@@ -38,13 +35,7 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
   name: string;
 
   constructor() {
-    super();
-  }
-
-  clone(): Peer {
-    const target = new Peer();
-    target.fromObject(this);
-    return target;
+    super(Peer.TYPENAME);
   }
 
   asObject(options?: EntityAsObjectOptions): any {

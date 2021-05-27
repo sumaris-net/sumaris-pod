@@ -85,9 +85,16 @@ export const CORE_CONFIG_OPTIONS = Object.freeze({
         }))
     },
     ENTITY_TRASH: <FormFieldDefinition> {
-        key: 'sumaris.persistence.trash.enable',
-        label: 'CONFIGURATION.OPTIONS.ENTITY_TRASH',
-        type: 'boolean'
+      key: 'sumaris.persistence.trash.enable',
+      label: 'CONFIGURATION.OPTIONS.ENTITY_TRASH',
+      type: 'boolean',
+      defaultValue: true
+    },
+    UPDATE_TECHNICAL_TABLES: <FormFieldDefinition> {
+      key: 'sumaris.persistence.technicalTables.update',
+      label: 'CONFIGURATION.OPTIONS.UPDATE_TECHNICAL_TABLES',
+      type: 'boolean',
+      defaultValue: false
     },
     TESTING: <FormFieldDefinition>{
         key: 'sumaris.testing.enable',

@@ -1,4 +1,4 @@
-<app-toolbar [title]="title$ | async" color="primary"
+<app-toolbar [title]="$title | async" color="primary"
              [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
              [hasClose]="!loading && !dirty"
@@ -33,10 +33,22 @@
             <app-entity-metadata [value]="data">
               <!-- Vessel actions -->
               <mat-menu #selectTypeMenu="matMenu" xPosition="after">
-                <button mat-menu-item translate (click)="editFeatures()">VESSEL.ACTION.EDIT_FEATURES</button>
-                <button mat-menu-item translate (click)="newFeatures()">VESSEL.ACTION.NEW_FEATURES</button>
+
+                <!-- registration-->
+                <mat-label mat-menu-item class="mat-menu-title" translate>VESSEL.ACTION.REGISTRATION_DIVIDER</mat-label>
                 <button mat-menu-item translate (click)="editRegistration()">VESSEL.ACTION.EDIT_REGISTRATION</button>
                 <button mat-menu-item translate *ngIf="!!data?.registration" (click)="newRegistration()">VESSEL.ACTION.NEW_REGISTRATION</button>
+
+                <mat-divider></mat-divider>
+
+                <!-- registration-->
+                <mat-label mat-menu-item class="mat-menu-title" translate>VESSEL.ACTION.FEATURES_DIVIDER</mat-label>
+                <button mat-menu-item translate (click)="editFeatures()">VESSEL.ACTION.EDIT_FEATURES</button>
+                <button mat-menu-item translate (click)="newFeatures()">VESSEL.ACTION.NEW_FEATURES</button>
+
+                <mat-divider></mat-divider>
+
+                <!-- other (status) -->
                 <button mat-menu-item translate (click)="editStatus()">VESSEL.ACTION.EDIT_STATUS</button>
               </mat-menu>
 
@@ -67,17 +79,18 @@
 
       <ion-row class="ion-no-padding">
         <ion-col class="ion-padding">
-          <app-vessel-features-history-table #featuresHistoryTable>
-          </app-vessel-features-history-table>
+          <app-vessel-registration-history-table #registrationHistoryTable>
+          </app-vessel-registration-history-table>
         </ion-col>
       </ion-row>
 
       <ion-row class="ion-no-padding">
         <ion-col class="ion-padding">
-          <app-vessel-registration-history-table #registrationHistoryTable>
-          </app-vessel-registration-history-table>
+          <app-vessel-features-history-table #featuresHistoryTable>
+          </app-vessel-features-history-table>
         </ion-col>
       </ion-row>
+
     </mat-tab>
 
   </mat-tab-group>

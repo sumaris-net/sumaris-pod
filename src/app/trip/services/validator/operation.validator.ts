@@ -12,7 +12,7 @@ import {toBoolean} from "../../../shared/functions";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
 import {Program} from "../../../referential/services/model/program.model";
 import {MeasurementsValidatorService} from "./measurement.validator";
-import {Operation} from "../model/trip.model";
+import {Operation} from "../model/operation.model";
 
 export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;

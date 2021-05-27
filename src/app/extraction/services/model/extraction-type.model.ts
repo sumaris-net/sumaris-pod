@@ -5,6 +5,8 @@ import {Department} from "../../../core/services/model/department.model";
 import {Person} from "../../../core/services/model/person.model";
 import {Moment} from "moment";
 import {isNotEmptyArray, isNotNilOrBlank} from "../../../shared/functions";
+import {BaseReferential} from "../../../core/services/model/referential.model";
+import {EntityClass} from "../../../core/services/model/entity.decorators";
 
 export declare type ExtractionCategoryType = 'PRODUCT' | 'LIVE';
 export const ExtractionCategories = {
@@ -12,34 +14,26 @@ export const ExtractionCategories = {
   LIVE: 'LIVE',
 };
 
-export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>> extends Entity<T> {
+@EntityClass({typename: 'ExtractionTypeVO'})
+export class ExtractionType<
+  T extends ExtractionType<T, ID> = ExtractionType<any, any>,
+  ID = number
+  >
+  extends BaseReferential<T, ID> {
 
-  static TYPENAME = 'ExtractionTypeVO';
-
+  static fromObject: (source: any, opts?: any) => ExtractionType;
   static equals(o1: ExtractionType, o2: ExtractionType): boolean {
     return o1 && o2 ? o1.label === o2.label && o1.category === o2.category : o1 === o2;
   }
 
-  static fromObject(source: any): ExtractionType {
-    if (!source || source instanceof ExtractionType) return source;
-    const res = new ExtractionType();
-    res.fromObject(source);
-    return res;
-  }
+  category: string = null;
+  version?: string = null;
+  sheetNames: string[] = null;
+  isSpatial: boolean = null;
+  docUrl: string = null;
 
-  category: string;
-  label: string;
-  name?: string;
-  version?: string;
-  sheetNames: string[];
-  statusId: number;
-  isSpatial: boolean;
-  docUrl: string;
-  description: string;
-  comments:  string;
-
-  recorderPerson: Person;
-  recorderDepartment: Department;
+  recorderPerson: Person = null;
+  recorderDepartment: Department = null;
 
   constructor() {
     super();
@@ -47,30 +41,15 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
     this.recorderDepartment = null;
   }
 
-  clone(): T {
-    return this.copy(new ExtractionType() as T);
-  }
-
-  copy(target: T): T {
-    target.fromObject(this);
-    return target;
-  }
-
-  fromObject(source: any): ExtractionType<T> {
-    super.fromObject(source);
-    this.label = source.label;
+  fromObject(source: any, opts?: EntityAsObjectOptions) {
+    super.fromObject(source, opts);
     this.category = source.category;
-    this.name = source.name;
-    this.description = source.description;
-    this.comments = source.comments;
     this.version = source.version;
     this.sheetNames = source.sheetNames;
-    this.statusId = source.statusId;
     this.isSpatial = source.isSpatial;
     this.docUrl = source.docUrl;
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson) || null;
     this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
-    return this;
   }
 
   asObject(options?: EntityAsObjectOptions): any {
@@ -150,7 +129,7 @@ export class ExtractionRow extends Array<any> {
   }
 }
 
-export declare class ExtractionFilter {
+export class ExtractionFilter {
   searchText?: string;
   criteria?: ExtractionFilterCriterion[];
   sheetName?: string;
@@ -183,15 +162,6 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
 
   constructor() {
     super();
-  }
-
-  copy(target: ExtractionFilterCriterion): ExtractionFilterCriterion {
-    target.fromObject(this);
-    return target;
-  }
-
-  clone(): ExtractionFilterCriterion {
-    return this.copy(new ExtractionFilterCriterion());
   }
 
   fromObject(source: any): ExtractionFilterCriterion {

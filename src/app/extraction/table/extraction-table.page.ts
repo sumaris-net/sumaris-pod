@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild
 import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
 import {arrayGroupBy, isNil, isNotNil, propertyComparator, sleep} from '../../shared/functions';
 import {TableDataSource} from "@e-is/ngx-material-table";
-import {ExtractionCategories, ExtractionColumn, ExtractionResult, ExtractionRow, ExtractionType} from "../services/model/extraction.model";
+import {ExtractionCategories, ExtractionColumn, ExtractionResult, ExtractionRow, ExtractionType} from "../services/model/extraction-type.model";
 import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
 import {DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
@@ -22,8 +22,8 @@ import {MatTable} from "@angular/material/table";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
 import {MatExpansionPanel} from "@angular/material/expansion";
-import {AggregationType} from "../services/model/aggregation-type.model";
-import {AggregationService} from "../services/aggregation.service";
+import {ExtractionProduct} from "../services/model/extraction-product.model";
+import {ExtractionProductService} from "../services/extraction-product.service";
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
@@ -70,7 +70,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     platform: PlatformService,
     modalCtrl: ModalController,
     protected location: Location,
-    protected aggregationService: AggregationService,
+    protected aggregationService: ExtractionProductService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl);
@@ -115,7 +115,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
     this.criteriaCount$ = this.criteriaForm.form.valueChanges
       .pipe(
-        map(form => this.criteriaForm.criteriaCount)
+        map(_ => this.criteriaForm.criteriaCount)
       );
   }
 
@@ -195,7 +195,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     if (this.paginator) this.paginator.pageIndex = 0;
   }
 
-  async openSelectColumnsModal(event: any): Promise<any> {
+  async openSelectColumnsModal(event?: any): Promise<any> {
     const columns = this.sortedColumns
       .map((column) => {
         return {
@@ -269,7 +269,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
         {name: this.type.name})
         .toPromise();
 
-      const aggType = AggregationType.fromObject({
+      const aggType = ExtractionProduct.fromObject({
         label: `${this.type.label}-${this.accountService.account.id}_${Date.now()}`,
         category: this.type.category,
         name: name
@@ -361,7 +361,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     this.disable();
 
     try {
-      const aggType = AggregationType.fromObject(this.type.asObject());
+      const aggType = ExtractionProduct.fromObject(this.type.asObject());
       await this.aggregationService.delete(aggType);
 
       // Wait propagation to types

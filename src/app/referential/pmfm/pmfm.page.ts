@@ -209,7 +209,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
     if (!data) return; // Skip
 
     const json = data.asObject();
-    json.entityName = Pmfm.TYPENAME;
+    json.entityName = Pmfm.ENTITY_NAME;
 
     this.form.patchValue(json, {emitEvent: false});
 

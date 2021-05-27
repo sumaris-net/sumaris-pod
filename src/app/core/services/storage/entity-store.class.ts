@@ -1,7 +1,7 @@
 import {BehaviorSubject, Observable} from "rxjs";
 import {Storage} from "@ionic/storage";
 import {map, mergeMap} from "rxjs/operators";
-import {Entity, EntityUtils} from "../model/entity.model";
+import {Entity, EntityUtils, IEntity} from "../model/entity.model";
 import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from "../../../shared/functions";
 import {LoadResult} from "../../../shared/services/entity-service.class";
 import {chainPromises} from "../../../shared/observables";
@@ -11,7 +11,7 @@ export const ENTITIES_STORAGE_KEY_PREFIX = "entities";
 
 export type EntityStoreTypePolicyMode = 'default' | 'by-id';
 
-export declare interface EntityStoreTypePolicy<T extends Entity<T> = Entity<any>, K = keyof T>  {
+export declare interface EntityStoreTypePolicy<T extends Entity<T, any> = Entity<any, any>, K = keyof T>  {
   mode?: EntityStoreTypePolicyMode; // 'default' by default
   skipNonLocalEntities?: boolean; // False by default
   lightFieldsExcludes?: K[]; // none by default
@@ -21,17 +21,21 @@ export declare interface EntityStorageLoadOptions {
   fullLoad?: boolean;
 }
 
-declare interface EntityStatusMap {
-  [key: number]: { index: number; dirty?: boolean; };
+declare interface EntityStatus {
+  index: number;
+  dirty?: boolean;
 }
 
-export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions = EntityStorageLoadOptions> {
+export class EntityStore<
+  T extends IEntity<T, ID>,
+  ID = number,
+  O extends EntityStorageLoadOptions = EntityStorageLoadOptions> {
 
   private readonly _storageKey: string;
   private readonly _onChange = new BehaviorSubject(true);
   private readonly _mapToLightEntity: (T) => T;
   private _cache: T[];
-  private _statusById: EntityStatusMap;
+  private _statusById: Map<ID, EntityStatus>;
   private _sequence: number;
   private _dirty = false;
   private _loaded: boolean;
@@ -66,18 +70,17 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     this._mapToLightEntity = this.createLightEntityMapFn(this.policy);
   }
 
-  nextValue(): number {
+  nextValue(): ID {
     this._sequence = this._sequence - 1;
     this._dirty = true;
-    return this._sequence;
+    return this._sequence as unknown as ID;
   }
 
   currentValue(): number {
     return this._sequence;
   }
 
-
-  async load(id: number, opts?: EntityStorageLoadOptions): Promise<T> {
+  async load(id: ID, opts?: EntityStorageLoadOptions): Promise<T> {
     if (this._mapToLightEntity && (!opts || opts.fullLoad !== false)) {
       return await this.loadFullEntity(id, opts);
     }
@@ -148,14 +151,14 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     return res ;
   }
 
-  save(entity: T, opts? : {emitEvent?: boolean}): T {
-    const status = isNotNil(entity.id) && this._statusById[+entity.id] || {index: undefined};
+  save(entity: T, opts?: {emitEvent?: boolean}): T {
+    const status = isNotNil(entity.id) && this._statusById.get(entity.id) || {index: undefined};
     const isNew = isNil(status.index);
     if (isNew) {
       if (isNil(entity.id)) {
         entity.id = this.nextValue();
       }
-      else if (entity.id < 0 && entity.id > this._sequence) {
+      else if (+entity.id < 0 && +entity.id > this._sequence) {
         console.warn("Trying to save a local entity with an id > sequence. Will replace id by sequence next value");
         entity.id = this.nextValue();
       }
@@ -165,7 +168,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
         // - OR < sequence, and not exists in the index map
       }
 
-      this._statusById[+entity.id] = status;
+      this._statusById.set(entity.id, status);
       status.index = this._cache.push(entity) - 1;
     }
     else {
@@ -212,8 +215,8 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     return result || this._cache.slice();
   }
 
-  delete(id: number, opts?: { emitEvent?: boolean; }): T | undefined {
-    const status = isNotNil(id) ? this._statusById[+id] : undefined;
+  delete(id: ID, opts?: { emitEvent?: boolean; }): T | undefined {
+    const status = isNotNil(id) ? this._statusById.get(id) : undefined;
     const index = status ? status.index : undefined;
     if (isNil(index)) return undefined;
 
@@ -222,7 +225,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
 
     // Remove from cache
     this._cache[index] = undefined;
-    this._statusById[+entity.id] = undefined;
+    this._statusById.delete(entity.id);
 
     // Remove full entity, by id
     if (this.isByIdMode) {
@@ -240,7 +243,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     return entity as T;
   }
 
-  deleteMany(ids: number[], opts?: {emitEvent?: boolean}): T[] {
+  deleteMany(ids: ID[], opts?: {emitEvent?: boolean}): T[] {
 
     // Delete by id, but NOT emit event on each deletion
     const deletedEntities = (ids || [])
@@ -261,7 +264,7 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
   reset(opts?: {emitEvent?: boolean}) {
     this._cache = [];
     this._sequence = 0;
-    this._statusById = {};
+    this._statusById = new Map<ID, any>();
 
     this._dirty = true;
     this._loaded = true;
@@ -432,9 +435,11 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
 
   markAsPristine(opts?: { emitEvent?: boolean; }) {
 
-    Object.values(this._statusById)
-      .filter(isNotNil)
-      .forEach(s => s.dirty = false);
+    for (const s of this._statusById.values()) {
+      if (isNotNil(s)) {
+        s.dirty = false;
+      }
+    }
     this._dirty = false;
 
     // Emit update event
@@ -445,15 +450,15 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
 
   /* -- protected methods -- */
 
-  private loadCachedEntity(id: number, opts?: EntityStorageLoadOptions): T {
-    const status = this._statusById[+id];
+  private loadCachedEntity(id: ID, opts?: EntityStorageLoadOptions): T {
+    const status = this._statusById.get(id);
     const index = status && status.index;
     if (isNil(index)) return undefined; // not exists
     return Object.freeze(this._cache[index]);
   }
 
-  private async loadFullEntity(id: number, opts?: EntityStorageLoadOptions): Promise<T> {
-    const status = this._statusById[+id];
+  private async loadFullEntity(id: ID, opts?: EntityStorageLoadOptions): Promise<T> {
+    const status = this._statusById.get(id);
     const index = status && status.index;
     if (isNil(index)) return undefined; // not exists
 
@@ -473,21 +478,21 @@ export class EntityStore<T extends Entity<T>, O extends EntityStorageLoadOptions
     // Filter non nil (and if need non local) entities
     entities = (entities || [])
         .filter(item => isNotNil(item)
-          && (!this.policy.skipNonLocalEntities || item.id < 0)
+          && (!this.policy.skipNonLocalEntities || +item.id < 0)
         );
 
     this._cache = entities;
 
     // Update the sequence with min(id) of all temporary ids
-    this._sequence = this._cache.reduce((res, item) => item.id < 0 ? Math.min(res, item.id) : res, 0);
+    this._sequence = this._cache.reduce((res, item) => +item.id < 0 ? Math.min(res, +item.id) : res, 0);
 
-    this._statusById = this._cache.reduce((res, item, index) => {
-      res[item.id] = {
+    this._statusById.clear();
+    this._cache.forEach((item, index) => {
+      this._statusById.set(item.id, <EntityStatus>{
         index,
         dirty: false
-      };
-      return res;
-    }, {});
+      });
+    });
 
     this._loaded = true;
 

@@ -3,6 +3,7 @@ import {ReferentialAsObjectOptions} from "./referential.model";
 import {Entity} from "./entity.model";
 import {Department, departmentToString} from "./department.model";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {EntityClass} from "./entity.decorators";
 
 
 export type UserProfileLabel = 'ADMIN' | 'USER' | 'SUPERVISOR' | 'GUEST';
@@ -16,16 +17,12 @@ export const UserProfileLabels = {
   GUEST: 'GUEST'
 };
 
-export class Person<T extends Person<any> = Person<any>> extends Entity<T, ReferentialAsObjectOptions> {
+@EntityClass({typename: 'PersonVO'})
+export class Person<
+  T extends Person<any> = Person<any>
+  > extends Entity<T, number, ReferentialAsObjectOptions> {
 
-  static TYPENAME = 'PersonVO';
-
-  static fromObject(source: any): Person {
-    if (!source || source instanceof Person) return source;
-    const result = new Person();
-    result.fromObject(source);
-    return result;
-  }
+  static fromObject: (source: any, opts?: any) =>  Person;
 
   firstName: string;
   lastName: string;
@@ -38,16 +35,9 @@ export class Person<T extends Person<any> = Person<any>> extends Entity<T, Refer
   profiles: string[];
   mainProfile: string;
 
-  constructor() {
-    super();
+  constructor(__typename?: string) {
+    super(__typename || Person.TYPENAME);
     this.department = null;
-    this.__typename = Person.TYPENAME;
-  }
-
-  clone(): T {
-    const target = new Person() as T;
-    target.fromObject(this);
-    return target;
   }
 
   asObject(opts?: ReferentialAsObjectOptions): any {

@@ -170,7 +170,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       }
       else {
         this.subBatchesService = new InMemoryEntitiesService<SubBatch, SubBatchFilter>(
-          SubBatch, {
+          SubBatch, SubBatchFilter, {
             equals: Batch.equals
           }
         );

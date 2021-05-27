@@ -7,26 +7,64 @@ import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {ReferentialFilter} from "./referential.service";
+
 import {Strategy} from "./model/strategy.model";
 import {BaseEntityGraphqlMutations, BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions} from "./base-entity-service.class";
 import {PlatformService} from "../../core/services/platform.service";
 import {EntityAsObjectOptions, EntityUtils} from "../../core/services/model/entity.model";
 import {SortDirection} from "@angular/material/sort";
-import {ReferentialRefFilter, ReferentialRefService} from "./referential-ref.service";
+import {ReferentialRefService} from "./referential-ref.service";
 import {Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 import {StrategyFragments} from "./strategy.fragments";
-import {isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
-import {LoadResult} from "../../shared/services/entity-service.class";
+import {isNilOrBlank, isNotEmptyArray, isNotNil, toNumber} from "../../shared/functions";
+import {FilterFn, LoadResult} from "../../shared/services/entity-service.class";
 import {BaseReferentialService} from "./base-referential-service.class";
 import {Pmfm} from "./model/pmfm.model";
 import {ProgramRefService} from "./program-ref.service";
 import {StrategyRefService} from "./strategy-ref.service";
+import {BaseReferentialFilter} from "./filter/referential.filter";
+import {ReferentialRefFilter} from "./filter/referential-ref.filter";
+import {EntityClass} from "../../core/services/model/entity.decorators";
 
 
-export class StrategyFilter extends ReferentialFilter {
-  //ODO Imagine: enable this, and override function asPodObject() and searchFilter()
-  //referenceTaxonIds?: number[];
+@EntityClass()
+export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strategy> {
+
+  static fromObject: (source: any, opts?: any) => StrategyFilter;
+
+  static asPodObject(source: any): any {
+    return source && StrategyFilter.fromObject(source).asPodObject();
+  }
+
+  static searchFilter(source: any): FilterFn<Strategy> {
+    return source && StrategyFilter.fromObject(source).asFilterFn();
+  }
+
+  //TODO Imagine: enable this, and override function asPodObject() and searchFilter()
+  referenceTaxonIds?: number[];
+
+  fromObject(source: any) {
+    super.fromObject(source);
+    this.referenceTaxonIds = source.referenceTaxonIds;
+  }
+
+  asObject(opts?: EntityAsObjectOptions): any {
+    const target = super.asObject(opts);
+    target.referenceTaxonIds = this.referenceTaxonIds;
+    return target;
+  }
+
+  buildFilter(): FilterFn<Strategy>[] {
+    const filterFns = super.buildFilter();
+
+    // Filter by reference taxon
+    if (isNotEmptyArray(this.referenceTaxonIds)) {
+      console.warn("TODO: filter local strategy by reference taxon IDs: ", this.referenceTaxonIds);
+      //filterFns.push(t => (t.appliedStrategies...includes(entity.statusId));
+    }
+
+    return filterFns;
+  }
 }
 
 const FindStrategyNextLabel: any = gql`
@@ -148,13 +186,11 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     protected strategyRefService: StrategyRefService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(graphql, platform, Strategy,
+    super(graphql, platform, Strategy, StrategyFilter,
       {
         queries: StrategyQueries,
         mutations: StrategyMutations,
-        subscriptions: strategySubscriptions,
-        filterAsObjectFn: StrategyFilter.asPodObject,
-        filterFnFactory: StrategyFilter.searchFilter
+        subscriptions: strategySubscriptions
       });
   }
 
@@ -165,11 +201,11 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
   }): Promise<boolean> {
     if (isNilOrBlank(label)) throw new Error("Missing argument 'label' ");
 
-    const filter = StrategyFilter.asPodObject({
+    const filter: Partial<StrategyFilter> = {
       label,
       levelId: opts && isNotNil(opts.programId) ? opts.programId : undefined,
       excludedIds: opts && isNotNil(opts.excludedIds) ? opts.excludedIds : undefined,
-    });
+    };
     const {total} = await this.graphql.query<{ total: number }>({
       query: StrategyQueries.count,
       variables: { filter },
@@ -200,31 +236,30 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     size: number,
     sortBy?: string,
     sortDirection?: SortDirection,
-    filter?: ReferentialRefFilter): Promise<LoadResult<ReferentialRef>> {
+    filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
 
+    filter = ReferentialRefFilter.fromObject(filter);
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
       sortBy: sortBy || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: ReferentialFilter.asPodObject(filter)
+      filter: filter && filter.asPodObject()
     };
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[strategy-service] Loading analytic references...`, variables);
 
-    const { data } = await this.graphql.query<{ data: any }>({
+    const { data, total } = await this.graphql.query<LoadResult<any>>({
       query: LoadAllAnalyticReferencesQuery,
-      variables: variables,
+      variables,
       error: { code: ErrorCodes.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR" },
       fetchPolicy: 'cache-first'
     });
 
     if (this._debug) console.debug(`[strategy-service] Analytic references loaded in ${Date.now() - now}ms`);
     const entities = data && data.map(ReferentialRef.fromObject);
-    return {
-      data: entities
-    };
+    return { data: entities, total };
   }
 
   async suggestAnalyticReferences(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection): Promise<LoadResult<ReferentialRef>> {

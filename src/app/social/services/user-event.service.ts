@@ -9,12 +9,12 @@ import {SocialFragments} from "./social.fragments";
 import {SortDirection} from "@angular/material/sort";
 import {
   EntitiesServiceWatchOptions,
-  EntityServiceLoadOptions,
+  EntityServiceLoadOptions, FilterFn,
   IEntitiesService, LoadResult,
   Page
 } from "../../shared/services/entity-service.class";
 import {map} from "rxjs/operators";
-import {isEmptyArray, isNil, isNilOrBlank, toNumber} from "../../shared/functions";
+import {isEmptyArray, isNil, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {OverlayEventDetail} from "@ionic/core";
 import {ToastController} from "@ionic/angular";
@@ -23,10 +23,36 @@ import {NetworkService} from "../../core/services/network.service";
 import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {Entity, EntityUtils} from "../../core/services/model/entity.model";
 import {ENVIRONMENT} from "../../../environments/environment.class";
+import {EntityFilter, EntityFilterUtils} from "../../core/services/model/filter.model";
+import {EntityClass} from "../../core/services/model/entity.decorators";
 
-export class UserEventFilter {
-  issuer?: string;
-  recipient?: string;
+@EntityClass()
+export class UserEventFilter extends EntityFilter<UserEventFilter, UserEvent> {
+
+  static fromObject: (source: any, opts?: any) => UserEventFilter;
+
+  issuer: string = null;
+  recipient: string = null;
+
+  fromObject(source: any, opts?: any) {
+    super.fromObject(source, opts);
+    this.issuer = source.issuer;
+    this.recipient = source.recipient;
+  }
+
+  protected buildFilter(): FilterFn<UserEvent>[] {
+    const filterFns = super.buildFilter();
+
+    // issuer
+    if (this.issuer) {
+      filterFns.push(t => (t.issuer === this.issuer));
+    }
+    if (this.recipient) {
+      filterFns.push(t => (t.recipient === this.recipient));
+    }
+
+    return filterFns;
+  }
 }
 
 const SaveQuery: any = gql`
@@ -71,7 +97,8 @@ export interface UserEventActionDefinition extends UserEventAction<any> {
 }
 
 @Injectable({providedIn: 'root'})
-export class UserEventService extends BaseGraphqlService<UserEvent>
+export class UserEventService
+  extends BaseGraphqlService<UserEvent, UserEventFilter>
   implements IEntitiesService<UserEvent, UserEventFilter, UserEventWatchOptions> {
 
   private _userEventActions: UserEventActionDefinition[] = [];
@@ -110,20 +137,20 @@ export class UserEventService extends BaseGraphqlService<UserEvent>
   }
 
   watchPage(page: Page,
-            filter?: UserEventFilter,
+            filter?: Partial<UserEventFilter>,
             options?: UserEventWatchOptions): Observable<LoadResult<UserEvent>> {
 
     let now = this._debug && Date.now();
     //if (this._debug)
     console.debug("[user-event-service] Loading user events...", filter);
 
-    filter = filter || {};
+    filter = this.asFilter(filter);
 
     // Force recipient to current issuer, if not admin and not specified
     if (isNilOrBlank(filter.recipient) || !this.accountService.isAdmin()) {
       const recipient = this.accountService.account.pubkey;
       if (recipient !== filter.recipient) {
-        console.warn("[user-events-service] Force user event filter.recipient="+ recipient);
+        console.warn("[user-events-service] Force user event filter.recipient=" + recipient);
         filter.recipient = recipient;
       }
     }
@@ -301,8 +328,8 @@ export class UserEventService extends BaseGraphqlService<UserEvent>
     message = this.translate.instant(message);
 
     // Clean details parts
-    if (message && message.indexOf('<small>') != -1) {
-      message = message.substr(0, message.indexOf('<small>') -1);
+    if (message && message.indexOf('<small>') !== -1) {
+      message = message.substr(0, message.indexOf('<small>') - 1);
     }
 
     const res = await this.showToast({
@@ -319,7 +346,7 @@ export class UserEventService extends BaseGraphqlService<UserEvent>
 
     // Send debug data
     try {
-      if (this._debug) console.debug("Sending debug data...")
+      if (this._debug) console.debug("Sending debug data...");
 
       // Call content factory
       let context: any = opts && opts.context;
@@ -344,7 +371,7 @@ export class UserEventService extends BaseGraphqlService<UserEvent>
         showCloseButton: true
       });
     }
-    catch(err) {
+    catch (err) {
       console.error("Error while sending debug data:", err);
     }
   }
@@ -354,6 +381,10 @@ export class UserEventService extends BaseGraphqlService<UserEvent>
     userEvent.eventType = UserEventTypes.DEBUG_DATA;
     userEvent.content = this.convertObjectToString(data);
     return this.save(userEvent);
+  }
+
+  asFilter(filter: Partial<UserEventFilter>): UserEventFilter {
+    return UserEventFilter.fromObject(filter);
   }
 
   /* -- protected methods -- */

@@ -5,9 +5,8 @@ import {ErrorCodes} from "./errors";
 import {FetchPolicy, MutationUpdaterFn, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {SortDirection} from "@angular/material/sort";
 
-import {ReferentialFilter} from "./referential.service";
 import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {EntityServiceLoadOptions, IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
+import {EntityServiceLoadOptions, IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {environment} from "../../../environments/environment";
@@ -17,12 +16,13 @@ import {isEmptyArray, isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {Directive} from "@angular/core";
 import {RefetchQueryDescription} from "@apollo/client/core/watchQueryOptions";
 import {FetchResult} from "@apollo/client/link/core";
+import {EntityFilter, EntityFilterUtils} from "../../core/services/model/filter.model";
 
 
 export interface BaseEntityGraphqlQueries {
   load?: any;
   loadAll: any;
-  loadAllWithTotal: any;
+  loadAllWithTotal?: any;
 }
 export interface BaseEntityGraphqlMutations {
   save?: any;
@@ -35,17 +35,17 @@ export interface BaseEntityGraphqlSubscriptions {
   listenChanges?: any;
 }
 export interface BaseEntityServiceOptions<
-  E extends Entity<any>,
-  F = any,
+  T extends Entity<any, ID>,
+  ID = number,
   Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
   M extends BaseEntityGraphqlMutations = BaseEntityGraphqlMutations,
   S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions> {
   queries: Q;
   mutations?: Partial<M>;
   subscriptions?: Partial<S>;
-  filterAsObjectFn?: (filter: F) => any;
-  equalsFn?: (e1: E, e2: E) => boolean;
-  filterFnFactory?: (filter: F) => ((data: E) => boolean);
+  equalsFn?: (e1: T, e2: T) => boolean;
+  defaultSortBy?: keyof T;
+  defaultSortDirection?: SortDirection;
 }
 
 export interface EntitySaveOptions {
@@ -58,13 +58,17 @@ export interface EntitySaveOptions {
 // @dynamic
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class BaseEntityService<T extends Entity<any>,
-  F = any, // TODO BLA use EntityFilter avec 'includedIds', 'excludedIds'
+export abstract class BaseEntityService<
+  T extends Entity<T, ID>,
+  F extends EntityFilter<F, T, ID>,
+  ID = number,
   Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
   M extends BaseEntityGraphqlMutations = BaseEntityGraphqlMutations,
   S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions>
-  extends BaseGraphqlService<T, F>
-  implements IEntitiesService<T, F> {
+  extends BaseGraphqlService<T, F, ID>
+  implements
+    IEntitiesService<T, F>,
+    IEntityService<T, ID> {
 
   protected readonly _entityName: string;
   protected readonly _typename: string;
@@ -72,23 +76,25 @@ export abstract class BaseEntityService<T extends Entity<any>,
   protected readonly queries: Q;
   protected readonly mutations: Partial<M>;
   protected readonly subscriptions: Partial<S>;
-  protected readonly filterAsObjectFn: (filter: F) => any;
   protected readonly equalsFn: (e1: T, e2: T) => boolean;
-  protected readonly filterFnFactory: (filter: F) => ((data: T) => boolean);
+
+  protected readonly defaultSortBy: keyof T;
+  protected readonly defaultSortDirection: SortDirection;
 
   protected constructor(
     protected graphql: GraphqlService,
     protected platform: PlatformService,
     protected dataType: new() => T,
-    options: BaseEntityServiceOptions<T, F, Q, M, S>
+    protected filterType: new() => F,
+    options: BaseEntityServiceOptions<T, ID, Q, M, S>
   ) {
     super(graphql, environment);
     this.queries = options.queries;
     this.mutations = options.mutations || {};
     this.subscriptions = options.subscriptions || {};
-    this.filterAsObjectFn = options.filterAsObjectFn || ReferentialFilter.asPodObject;
-    this.filterFnFactory = options.filterFnFactory || ReferentialFilter.searchFilter;
     this.equalsFn = options.equalsFn || ((e1, e2) => EntityUtils.equals(e1, e2, 'id'));
+    this.defaultSortBy = options.defaultSortBy || 'id';
+    this.defaultSortDirection = options.defaultSortDirection || 'asc';
 
     platform.ready().then(() => {
       // No limit for updatable watch queries, if desktop
@@ -98,7 +104,7 @@ export abstract class BaseEntityService<T extends Entity<any>,
     });
 
     const obj = new dataType();
-    this._entityName = obj.constructor.name;
+    this._entityName = (dataType as any).CLASSNAME || obj.constructor.name;
     this._typename = obj.__typename || (this._entityName + 'VO');
 
     // For DEV only
@@ -128,7 +134,7 @@ export abstract class BaseEntityService<T extends Entity<any>,
       );
   }
 
-  async load(id: number, opts?: EntityServiceLoadOptions & {
+  async load(id: ID, opts?: EntityServiceLoadOptions & {
     query?: any;
     toEntity?: boolean;
   }): Promise<T> {
@@ -139,7 +145,7 @@ export abstract class BaseEntityService<T extends Entity<any>,
     const { data } = await this.graphql.query<{data: any}>({
       query,
       variables: {
-        id: id
+        id
       },
       fetchPolicy: opts && (opts.fetchPolicy as FetchPolicy) || undefined,
       error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"}
@@ -163,12 +169,14 @@ export abstract class BaseEntityService<T extends Entity<any>,
            }
   ): Observable<LoadResult<T>> {
 
+    filter = this.asFilter(filter);
+
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
-      sortBy: sortBy || 'id',
-      sortDirection: sortDirection || 'asc',
-      filter: this.filterAsObjectFn(filter)
+      sortBy: sortBy || this.defaultSortBy,
+      sortDirection: sortDirection || this.defaultSortDirection,
+      filter: filter && filter.asPodObject()
     };
 
     let now = this._debug && Date.now();
@@ -181,7 +189,7 @@ export abstract class BaseEntityService<T extends Entity<any>,
       query,
       arrayFieldName: 'data',
       totalFieldName: withTotal ? 'total' : undefined,
-      insertFilterFn: this.filterFnFactory(filter),
+      insertFilterFn: filter && filter.asFilterFn(),
       variables,
       error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'
@@ -206,7 +214,7 @@ export abstract class BaseEntityService<T extends Entity<any>,
                 size: number,
                 sortBy?: string,
                 sortDirection?: SortDirection,
-                filter?: F,
+                filter?: Partial<F>,
                 opts?: {
                   [key: string]: any;
                   query?: any;
@@ -219,12 +227,14 @@ export abstract class BaseEntityService<T extends Entity<any>,
 
     const debug = this._debug && (!opts || opts.debug !== false);
 
+    filter = this.asFilter(filter);
+
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
       sortBy: sortBy || 'id',
       sortDirection: sortDirection || 'asc',
-      filter: this.filterAsObjectFn(filter)
+      filter: filter && filter.asPodObject()
     };
 
     const now = Date.now();
@@ -434,7 +444,7 @@ export abstract class BaseEntityService<T extends Entity<any>,
     await this.graphql.mutate<any>({
       mutation: this.mutations.delete,
       variables: {
-        id: id
+        id
       },
       error: {code: ErrorCodes.DELETE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.DELETE_REFERENTIAL_ERROR"},
       update: (proxy, res) => {
@@ -453,7 +463,7 @@ export abstract class BaseEntityService<T extends Entity<any>,
     });
   }
 
-  listenChanges(id: number, opts?: {
+  listenChanges(id: ID, opts?: {
     query?: any;
     variables?: any;
     interval?: number;
@@ -489,7 +499,7 @@ export abstract class BaseEntityService<T extends Entity<any>,
       );
   }
 
-  copyIdAndUpdateDate(source: T | undefined, target: T) {
+  copyIdAndUpdateDate(source: T, target: T) {
     if (!source) return;
 
     // Update (id and updateDate)
@@ -502,6 +512,10 @@ export abstract class BaseEntityService<T extends Entity<any>,
     const target = new this.dataType();
     target.fromObject(source);
     return target;
+  }
+
+  asFilter(source: any): F {
+    return EntityFilterUtils.fromObject(source, this.filterType);
   }
 
   /* -- protected functions -- */

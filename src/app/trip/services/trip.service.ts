@@ -2,7 +2,6 @@ import {Injectable, Injector, Optional} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {filter, map} from "rxjs/operators";
 import * as momentImported from "moment";
-import {Moment} from "moment";
 import {AccountService} from "../../core/services/account.service";
 import {DataFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from "./trip.queries";
 import {GraphqlService} from "../../core/graphql/graphql.service";
@@ -16,7 +15,7 @@ import {
 import {NetworkService} from "../../core/services/network.service";
 import {Observable} from "rxjs";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {Beans, isEmptyArray, isNil, isNotEmptyArray, isNotNil, KeysEnum, toNumber} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNil, toNumber} from "../../shared/functions";
 import {IDataEntityQualityService} from "../../data/services/data-quality-service.class";
 import {OperationFilter, OperationService} from "./operation.service";
 import {VesselSnapshotFragments, VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
@@ -26,23 +25,12 @@ import {chainPromises} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TripValidatorService} from "./validator/trip.validator";
 import {AppFormUtils, FormErrors} from "../../core/form/form.utils";
-import {Operation, PhysicalGear, Trip} from "./model/trip.model";
-import {
-  DataRootEntityUtils,
-  SynchronizationStatus,
-  SynchronizationStatusEnum
-} from "../../data/services/model/root-data-entity.model";
+import {PhysicalGear, Trip} from "./model/trip.model";
+import {DataRootEntityUtils, SynchronizationStatusEnum} from "../../data/services/model/root-data-entity.model";
 import {fillRankOrder} from "../../data/services/model/model.utils";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
-import {
-  EntitiesServiceWatchOptions,
-  EntityServiceLoadOptions,
-  FilterFn,
-  IEntitiesService,
-  IEntityService,
-  LoadResult
-} from "../../shared/services/entity-service.class";
+import {EntitiesServiceWatchOptions, EntityServiceLoadOptions, IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
 import {UserEventService} from "../../social/services/user-event.service";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {OverlayEventDetail} from "@ionic/core";
@@ -53,12 +41,13 @@ import {TRIP_FEATURE_NAME} from "./config/trip.config";
 import {IDataSynchroService, RootDataSynchroService} from "../../data/services/root-data-synchro-service.class";
 import {Entity, EntityUtils} from "../../core/services/model/entity.model";
 import {environment} from "../../../environments/environment";
-import {fromDateISOString, toDateISOString} from 'src/app/shared/dates';
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {Sample} from "./model/sample.model";
 import {EntitySaveOptions} from "../../referential/services/base-entity-service.class";
 import {ErrorCodes} from "../../data/services/errors";
 import {VESSEL_FEATURE_NAME} from "../../vessel/services/config/vessel.config";
+import {TripFilter} from "./filter/trip.filter";
+import {Operation} from "./model/operation.model";
 
 const moment = momentImported;
 
@@ -229,106 +218,6 @@ export const TripFragments = {
 };
 
 
-export class TripFilter {
-  programLabel?: string;
-  vesselId?: number;
-  locationId?: number;
-  startDate?: Date | Moment | string;
-  endDate?: Date | Moment | string;
-  recorderDepartmentId?: number;
-  recorderPersonId?: number;
-  synchronizationStatus?: SynchronizationStatus;
-
-  static isEmpty(f: TripFilter|any): boolean {
-    return Beans.isEmpty<TripFilter>({...f, synchronizationStatus: null}, TripFilterKeys, {
-      blankStringLikeEmpty: true
-    });
-  }
-
-  static searchFilter<T extends Trip>(f: TripFilter): (T) => boolean {
-    if (!f) return undefined;
-
-    const filterFns: FilterFn<T>[] = [];
-
-    // Program
-    if (f.programLabel) {
-      filterFns.push(t => (t.program && t.program.label === f.programLabel));
-    }
-
-    // Vessel
-    if (f.vesselId) {
-      filterFns.push(t => (t.vesselSnapshot && t.vesselSnapshot.id === f.vesselId));
-    }
-
-    // Location
-    if (isNotNil(f.locationId)) {
-      filterFns.push(t => ((t.departureLocation && t.departureLocation.id === f.locationId) || (t.returnLocation && t.returnLocation.id === f.locationId)));
-    }
-
-    // Start/end period
-    const startDate = fromDateISOString(f.startDate);
-    let endDate = fromDateISOString(f.endDate);
-    if (startDate) {
-      filterFns.push(t => t.returnDateTime ? startDate.isSameOrBefore(t.returnDateTime) : startDate.isSameOrBefore(t.departureDateTime));
-    }
-    if (endDate) {
-      endDate = endDate.add(1, 'day').startOf('day');
-      filterFns.push(t => t.departureDateTime && endDate.isAfter(t.departureDateTime));
-    }
-
-    // Recorder department
-    if (isNotNil(f.recorderDepartmentId)) {
-      filterFns.push(t => (t.recorderDepartment && t.recorderDepartment.id === f.recorderDepartmentId));
-    }
-
-    // Recorder person
-    if (isNotNil(f.recorderPersonId)) {
-      filterFns.push(t => (t.recorderPerson && t.recorderPerson.id === f.recorderPersonId));
-    }
-
-    // Synchronization status
-    if (f.synchronizationStatus) {
-      if (f.synchronizationStatus === 'SYNC') {
-        filterFns.push(t => t.synchronizationStatus === 'SYNC' || (!t.synchronizationStatus && t.id >= 0));
-      }
-      else {
-        filterFns.push(t => t.synchronizationStatus && t.synchronizationStatus !== 'SYNC' || t.id < 0);
-      }
-    }
-
-    if (!filterFns.length) return undefined;
-
-    return (entity) => !filterFns.find(fn => !fn(entity));
-  }
-
-  /**
-   * Clean a filter, before sending to the pod (e.g remove 'synchronizationStatus')
-   * @param f
-   */
-  static asPodObject(f: TripFilter): any {
-    if (!f) return f;
-    return {
-      ...f,
-      // Convert dates to string
-      startDate: toDateISOString(f.startDate),
-      endDate: toDateISOString(f.endDate),
-      // Remove fields that not exists in pod
-      synchronizationStatus: undefined
-    };
-  }
-}
-
-export const TripFilterKeys: KeysEnum<TripFilter> = {
-  programLabel: true,
-  vesselId: true,
-  startDate: true,
-  endDate: true,
-  locationId: true,
-  recorderDepartmentId: true,
-  recorderPersonId: true,
-  synchronizationStatus: true
-};
-
 export interface TripLoadOptions extends EntityServiceLoadOptions {
   isLandedTrip?: boolean;
   withOperation?: boolean;
@@ -447,12 +336,12 @@ const TripSubscriptions = {
 
 @Injectable({providedIn: 'root'})
 export class TripService
-  extends RootDataSynchroService<Trip, TripFilter, TripLoadOptions>
+  extends RootDataSynchroService<Trip, TripFilter, number, TripLoadOptions>
   implements
     IEntitiesService<Trip, TripFilter>,
-    IEntityService<Trip, TripLoadOptions>,
+    IEntityService<Trip, number, TripLoadOptions>,
     IDataEntityQualityService<Trip>,
-    IDataSynchroService<Trip, TripLoadOptions>{
+    IDataSynchroService<Trip, number, TripLoadOptions>{
 
   constructor(
     injector: Injector,
@@ -473,13 +362,11 @@ export class TripService
     @Optional() private toastController: ToastController
   ) {
     super(injector,
-      Trip,
+      Trip, TripFilter,
       {
         queries: TripQueries,
         mutations: TripMutations,
-        subscriptions: TripSubscriptions,
-        filterAsObjectFn: TripFilter.asPodObject,
-        filterFnFactory: TripFilter.searchFilter
+        subscriptions: TripSubscriptions
       });
 
     this._featureName = TRIP_FEATURE_NAME;
@@ -512,7 +399,7 @@ export class TripService
            size: number,
            sortBy?: string,
            sortDirection?: SortDirection,
-           dataFilter?: TripFilter,
+           dataFilter?: Partial<TripFilter>,
            opts?: EntitiesServiceWatchOptions ): Observable<LoadResult<Trip>> {
 
     // Load offline
@@ -521,13 +408,15 @@ export class TripService
       return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
 
+    dataFilter = this.asFilter(dataFilter);
+
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
       sortBy: sortBy || (opts && opts.trash ? 'updateDate' : 'departureDateTime'),
       sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
-      filter: TripFilter.asPodObject(dataFilter)
+      filter: dataFilter && dataFilter.asPodObject()
     };
 
     let now = this._debug && Date.now();
@@ -535,12 +424,12 @@ export class TripService
 
     const withTotal = (!opts || opts.withTotal !== false);
     const query = withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
-    return this.mutableWatchQuery<{ data: Trip[]; total: number; }>({
+    return this.mutableWatchQuery<LoadResult<Trip>>({
         queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
         query,
         arrayFieldName: 'data',
         totalFieldName: withTotal ? 'total' : undefined,
-        insertFilterFn: TripFilter.searchFilter(dataFilter),
+        insertFilterFn: dataFilter && dataFilter.asFilterFn(),
         variables,
         error: { code: ErrorCodes.LOAD_ENTITIES_ERROR, message: "ERROR.LOAD_ENTITIES_ERROR" },
         fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
@@ -565,17 +454,18 @@ export class TripService
            size: number,
            sortBy?: string,
            sortDirection?: SortDirection,
-           dataFilter?: TripFilter,
+           dataFilter?: Partial<TripFilter>,
            options?: EntitiesServiceWatchOptions & {
              trash?: boolean;
            }): Observable<LoadResult<Trip>> {
+    dataFilter = this.asFilter(dataFilter);
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
       sortBy: sortBy || 'departureDateTime',
       sortDirection: sortDirection || 'asc',
       trash: options && options.trash || false,
-      filter: TripFilter.searchFilter<Trip>(dataFilter)
+      filter: dataFilter && dataFilter.asFilterFn()
     };
 
     if (this._debug) console.debug("[trip-service] Watching local trips... using options:", variables);
@@ -609,7 +499,7 @@ export class TripService
 
         if (opts && opts.withOperation) {
           data.operations = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
-            filter: OperationFilter.searchFilter<Operation>({tripId: id})
+            filter: OperationFilter.searchFilter({tripId: id})
           });
         }
       }
@@ -628,10 +518,10 @@ export class TripService
       }
 
       // Transform to entity
-      const entities = (!opts || opts.toEntity !== false) ? Trip.fromObject(data) : (data as Trip);
+      const entity = (!opts || opts.toEntity !== false) ? Trip.fromObject(data) : (data as Trip);
 
-      if (entities && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, entities);
-      return entities;
+      if (entity && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, entity);
+      return entity;
     }
     finally {
       this.loading = false;
@@ -1061,6 +951,7 @@ export class TripService
   /**
    * Copy an entity (local or remote) to the local storage
    * @param source
+   * @param opts
    */
   async copyLocally(source: Trip, opts?: TripServiceCopyOptions): Promise<Trip> {
     console.debug("[trip-service] Copy trip locally...", source);

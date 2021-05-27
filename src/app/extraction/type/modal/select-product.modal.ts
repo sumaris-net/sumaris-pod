@@ -1,27 +1,28 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";
 import {ModalController} from "@ionic/angular";
-import {AggregationType} from "../../services/model/aggregation-type.model";
+import {ExtractionProduct} from "../../services/model/extraction-product.model";
 import {Observable} from "rxjs";
 import {first} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
-import {AggregationService, AggregationTypeFilter} from "../../services/aggregation.service";
+import {ExtractionProductService} from "../../services/extraction-product.service";
+import {ExtractionProductFilter} from "../../services/filter/extraction-product.filter";
 
 @Component({
-  selector: 'app-aggregation-type-select-modal',
-  templateUrl: './aggregation-type-select.modal.html',
+  selector: 'app-select-product-modal',
+  templateUrl: './select-product.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AggregationTypeSelectModal implements OnInit {
+export class SelectProductModal implements OnInit {
 
   loading = true;
-  $types: Observable<AggregationType[]>;
+  $types: Observable<ExtractionProduct[]>;
 
-  @Input() filter: AggregationTypeFilter = {};
+  @Input() filter: Partial<ExtractionProductFilter> = {};
   @Input() program: string;
 
   constructor(
     protected viewCtrl: ModalController,
-    protected service: AggregationService,
+    protected service: ExtractionProductService,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
@@ -37,7 +38,7 @@ export class AggregationTypeSelectModal implements OnInit {
     this.$types.pipe(first()).subscribe((_) => this.loading = false);
   }
 
-  selectType(type: AggregationType) {
+  selectType(type: ExtractionProduct) {
 
     this.close(type);
   }
@@ -51,7 +52,7 @@ export class AggregationTypeSelectModal implements OnInit {
     await this.viewCtrl.dismiss();
   }
 
-  getI18nTypeName(type: AggregationType) {
+  getI18nTypeName(type: ExtractionProduct) {
     if (type.name) return type.name;
     const format = type.label && type.label.split('-')[0].toUpperCase();
     const key = `EXTRACTION.PRODUCT.${format}.TITLE`;

@@ -9,28 +9,44 @@ import {
 import {Product} from "./product.model";
 import {equalsOrNil, isNil, isNotNilOrNaN} from "../../../shared/functions";
 import {IEntity} from "../../../core/services/model/entity.model";
+import {DataEntityFilter} from "../../../data/services/model/data-filter.model";
+import {FilterFn} from "../../../shared/services/entity-service.class";
+import {Department} from "../../../core/services/model/department.model";
 
-export interface IWithPacketsEntity<T> extends IEntity<T> {
+export interface IWithPacketsEntity<T, ID = number>
+  extends IEntity<T, ID> {
   packets: Packet[];
 }
 
-export class PacketFilter {
+export class PacketFilter extends DataEntityFilter<PacketFilter, Packet> {
 
-  constructor(parent: IWithPacketsEntity<any>) {
-    this.parent = parent;
+  static fromParent(parent: IWithPacketsEntity<any, any>): PacketFilter {
+    return PacketFilter.fromObject({parent});
   }
 
-  static searchFilter(f: PacketFilter): (Packet) => boolean {
-    if (!f || isNil(f.parent)) return undefined;
-    return (p) => {
-      if (isNil(p.parent) || !f.parent.equals(p.parent)) {
-        return false;
-      }
-      return true;
-    }
+  static fromObject(source: Partial<PacketFilter>): PacketFilter {
+    if (!source || source instanceof PacketFilter) return source as PacketFilter;
+    const target = new PacketFilter();
+    target.fromObject(source);
+    return target;
   }
 
-  parent?: IWithPacketsEntity<any>;
+  static searchFilter(source: Partial<PacketFilter>): FilterFn<Packet>{
+    return source && PacketFilter.fromObject(source).asFilterFn();
+  }
+
+  parent?: IWithPacketsEntity<any, any>;
+
+  fromObject(source: any, opts?: any) {
+    super.fromObject(source, opts);
+    this.parent = source.parent;
+  }
+
+  asFilterFn<E extends Packet>(): FilterFn<E> {
+    if (isNil(this.parent)) return undefined;
+    return (p) => p.parent && this.parent.equals(p.parent);
+  }
+
 }
 
 export class Packet extends DataEntity<Packet> {
@@ -62,7 +78,7 @@ export class Packet extends DataEntity<Packet> {
   sampledRatio5: number;
   sampledRatio6: number;
 
-  parent: IWithPacketsEntity<any>;
+  parent: IWithPacketsEntity<any, any>;
   operationId: number;
 
   // Not serialized

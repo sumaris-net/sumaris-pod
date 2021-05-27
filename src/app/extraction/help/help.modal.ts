@@ -1,9 +1,9 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
+import {ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
 import {ModalController} from "@ionic/angular";
 import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
-import {ExtractionType} from "../services/model/extraction.model";
+import {ExtractionType} from "../services/model/extraction-type.model";
 import {isNotNilOrBlank} from "../../shared/functions";
 import {AppHelpModal} from "../../shared/help/help.modal";
 

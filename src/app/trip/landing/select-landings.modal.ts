@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
 import {LandingsTable} from "./landings.table";
 import {ModalController} from "@ionic/angular";
-import {LandingFilter} from "../services/landing.service";
+import {LandingFilter} from "../services/filter/landing.filter";
 import {AcquisitionLevelCodes, AcquisitionLevelType} from "../../referential/services/model/model.enum";
 import {Landing} from "../services/model/landing.model";
 import {Observable} from "rxjs";
@@ -16,7 +16,7 @@ export class SelectLandingsModal implements OnInit {
 
   @ViewChild('table', { static: true }) table: LandingsTable;
 
-  @Input() filter: LandingFilter = {};
+  @Input() filter: LandingFilter|null = null;
   @Input() acquisitionLevel: AcquisitionLevelType;
   @Input() programLabel: string;
 
@@ -34,8 +34,9 @@ export class SelectLandingsModal implements OnInit {
   }
 
   ngOnInit() {
+    this.filter = this.filter || new LandingFilter();
     this.table.filter = this.filter;
-    this.table.programLabel = this.programLabel;
+    this.table.programLabel = this.programLabel || this.filter.program && this.filter.program.label;
     this.table.acquisitionLevel = this.acquisitionLevel;
     setTimeout(() => {
       this.table.onRefresh.next("modal");

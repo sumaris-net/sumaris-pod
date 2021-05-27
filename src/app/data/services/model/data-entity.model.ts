@@ -47,9 +47,13 @@ export const CLONE_AS_OBJECT_OPTIONS = Object.freeze(<DataEntityAsObjectOptions>
   minify: false
 });
 
-export abstract class DataEntity<T extends DataEntity<any>, O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
-  extends Entity<T, O>
-  implements IWithRecorderDepartmentEntity<T> {
+export abstract class DataEntity<
+  T extends DataEntity<T, ID, O>,
+  ID = number,
+  O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions,
+  FO = any>
+  extends Entity<T, ID, O>
+  implements IWithRecorderDepartmentEntity<T, ID> {
 
   recorderDepartment: Department;
   controlDate: Moment;
@@ -57,8 +61,8 @@ export abstract class DataEntity<T extends DataEntity<any>, O extends DataEntity
   qualificationComments: string;
   qualityFlagId: number;
 
-  protected constructor() {
-    super();
+  protected constructor(__typename?: string) {
+    super(__typename);
     this.recorderDepartment = null;
   }
 
@@ -74,7 +78,7 @@ export abstract class DataEntity<T extends DataEntity<any>, O extends DataEntity
     return target;
   }
 
-  fromObject(source: any, opts?: F) {
+  fromObject(source: any, opts?: FO) {
     super.fromObject(source);
     this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
     this.controlDate = fromDateISOString(source.controlDate);

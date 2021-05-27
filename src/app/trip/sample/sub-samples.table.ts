@@ -8,22 +8,18 @@ import {InMemoryEntitiesService} from "../../shared/services/memory-entity-servi
 import {UsageMode} from "../../core/services/model/settings.model";
 import {filterNotNil, firstFalsePromise} from "../../shared/observables";
 import {Sample} from "../services/model/sample.model";
-import {DenormalizedPmfmStrategy, getPmfmName} from "../../referential/services/model/pmfm-strategy.model";
+import {getPmfmName} from "../../referential/services/model/pmfm-strategy.model";
 import {SortDirection} from "@angular/material/sort";
 import {PmfmValueUtils} from "../../referential/services/model/pmfm-value.model";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {environment} from "../../../environments/environment";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {SampleFilter} from "../services/filter/sample.filter";
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 
-export interface SubSampleFilter {
-  parentId?: number;
-  operationId?: number;
-  landingId?: number;
-}
 
 @Component({
   selector: 'app-sub-samples-table',
@@ -34,14 +30,14 @@ export interface SubSampleFilter {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilter>
+export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   implements OnInit, OnDestroy {
 
   private _availableSortedParents: Sample[] = [];
   private _availableParents: Sample[] = [];
 
   protected cd: ChangeDetectorRef;
-  protected memoryDataService: InMemoryEntitiesService<Sample, SubSampleFilter>;
+  protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
 
   displayParentPmfm: IPmfm;
 
@@ -85,7 +81,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
   ) {
     super(injector,
       Sample,
-      new InMemoryEntitiesService<Sample, SubSampleFilter>(Sample, {
+      new InMemoryEntitiesService(Sample, SampleFilter, {
         onSort: (data, sortBy, sortDirection) => this.sortData(data, sortBy, sortDirection),
         onLoad: (data) => this.onLoadData(data),
         equals: Sample.equals
@@ -98,7 +94,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
         reservedEndColumns: SUB_SAMPLE_RESERVED_END_COLUMNS
       }
     );
-    this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SubSampleFilter>);
+    this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
     // TODO: override openDetailModal(), then uncomment :

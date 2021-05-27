@@ -30,10 +30,13 @@ export declare interface EntityServiceLoadOptions {
   [key: string]: any;
 }
 
-export declare interface IEntityService<T, O = EntityServiceLoadOptions> {
+export declare interface IEntityService<
+  T,
+  ID = any,
+  O = EntityServiceLoadOptions> {
 
   load(
-    id: number,
+    id: ID,
     opts?: O
   ): Promise<T>;
 
@@ -41,7 +44,7 @@ export declare interface IEntityService<T, O = EntityServiceLoadOptions> {
 
   delete(data: T, opts?: any): Promise<any>;
 
-  listenChanges(id: number, opts?: any): Observable<T | undefined>;
+  listenChanges(id: ID, opts?: any): Observable<T | undefined>;
 }
 
 export declare interface EntitiesServiceWatchOptions {
@@ -59,7 +62,7 @@ export declare interface IEntitiesService<T, F, O extends EntitiesServiceWatchOp
     size: number,
     sortBy?: string,
     sortDirection?: SortDirection,
-    filter?: F,
+    filter?: Partial<F>,
     options?: O
   ): Observable<LoadResult<T>>;
 
@@ -73,13 +76,15 @@ export declare interface IEntitiesService<T, F, O extends EntitiesServiceWatchOp
   saveAll(data: T[], options?: any): Promise<T[]>;
 
   deleteAll(data: T[], options?: any): Promise<any>;
+
+  asFilter(filter: Partial<F>): F;
 }
 
 export declare type LoadResultByPageFn<T> = (offset: number, size: number) => Promise<LoadResult<T>>;
 
 
-export interface IEntityFullService<T, F, O extends EntitiesServiceWatchOptions & EntityServiceLoadOptions>
-  extends IEntityService<T, O>, IEntitiesService<T, F, O>  {
+export interface IEntityFullService<T, ID, F, O extends EntitiesServiceWatchOptions & EntityServiceLoadOptions>
+  extends IEntityService<T, ID, O>, IEntitiesService<T, F, O>  {
 }
 
 

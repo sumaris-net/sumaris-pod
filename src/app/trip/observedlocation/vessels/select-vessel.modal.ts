@@ -1,19 +1,11 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from "@angular/core";
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import {LandingsTable} from "../../landing/landings.table";
-import {LandingFilter} from "../../services/landing.service";
+
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
 import {ModalController} from "@ionic/angular";
 import {Landing} from "../../services/model/landing.model";
-import {VesselFilter, VesselService} from "../../../vessel/services/vessel-service";
+import { VesselService} from "../../../vessel/services/vessel-service";
+import {VesselFilter} from "../../../vessel/services/filter/vessel.filter";
 import {VesselsTable} from "../../../vessel/list/vessels.table";
 import {AppTable} from "../../../core/table/table.class";
 import {isEmptyArray, isNotNil, toBoolean} from "../../../shared/functions";
@@ -25,10 +17,12 @@ import {Subscription} from "rxjs";
 import {CORE_CONFIG_OPTIONS} from "../../../core/services/config/core.config";
 import {ConfigService} from "../../../core/services/config.service";
 import {MatTabGroup} from "@angular/material/tabs";
+import {LandingFilter} from "../../services/filter/landing.filter";
 
 @Component({
   selector: 'app-select-vessel-modal',
-  templateUrl: './select-vessel.modal.html',
+  templateUrl: 'select-vessel.modal.html',
+  styleUrls: ['select-vessel.modal.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
@@ -41,8 +35,8 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(VesselForm, { static: false }) vesselForm: VesselForm;
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
 
-  @Input() landingFilter: LandingFilter = {};
-  @Input() vesselFilter: VesselFilter = {};
+  @Input() landingFilter: LandingFilter|null = null;
+  @Input() vesselFilter: any = null;
   @Input() allowMultiple: boolean;
   @Input() allowAddNewVessel: boolean;
   @Input() showVesselTypeColumn: boolean;
@@ -92,9 +86,9 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     // Init landing table
-    this.landingFilter = this.landingFilter || {};
+    this.landingFilter = this.landingFilter || new LandingFilter();
     this.landingsTable.filter = this.landingFilter;
-    this.landingsTable.programLabel = this.landingFilter.programLabel;
+    this.landingsTable.programLabel = this.landingFilter.program && this.landingFilter.program.label;
     this.landingsTable.acquisitionLevel = AcquisitionLevelCodes.LANDING;
 
     // Set defaults
@@ -111,7 +105,8 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
 
       // Set vessel table filter
       if (this.vesselsTable) {
-        this.vesselsTable.setFilter(this.vesselFilter);
+        this.vesselsTable.setFilter(
+          VesselFilter.fromObject(this.vesselFilter));
       }
     }, 200);
   }

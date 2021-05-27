@@ -23,7 +23,7 @@ import {AppTabEditor, AppTabEditorOptions} from "./tab-editor.class";
 import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
 import {ErrorCodes, ServerErrorCodes} from "../services/errors";
-import {isNotEmptyArray, toNumber} from "../../shared/functions";
+import {isInt, isNotEmptyArray, isNumber, toNumber} from "../../shared/functions";
 import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
 import {isNil, isNilOrBlank, isNotNil, toBoolean} from "../../shared/functions";
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
@@ -50,11 +50,13 @@ export class AppEditorOptions extends AppTabEditorOptions {
 
 // @dynamic
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class AppEntityEditor<
-  T extends Entity<T>,
-  S extends IEntityService<T> = IEntityService<T>
+  T extends Entity<T, ID>,
+  S extends IEntityService<T, ID> = IEntityService<T, any>,
+  ID = number
   >
-  extends AppTabEditor<T, EntityServiceLoadOptions>
+  extends AppTabEditor<T, ID, EntityServiceLoadOptions>
   implements OnInit, OnDestroy, AfterViewInit {
 
   private _usageMode: UsageMode;
@@ -70,11 +72,12 @@ export abstract class AppEntityEditor<
   protected settings: LocalSettingsService;
 
   data: T;
-  title$ = new Subject<string>();
   saving = false;
   hasRemoteListener = false;
   defaultBackHref: string;
   historyIcon: {icon?: string; matIcon?: string; };
+
+  $title = new Subject<string>();
   onUpdateView = new EventEmitter<T>();
 
   get usageMode(): UsageMode {
@@ -184,7 +187,10 @@ export abstract class AppEntityEditor<
   ngOnDestroy() {
     super.ngOnDestroy();
 
-    this.title$.unsubscribe();
+    this.$title.complete();
+    this.$title.unsubscribe();
+    this.onUpdateView.complete();
+    this.onUpdateView.unsubscribe();
   }
 
   /**
@@ -197,11 +203,15 @@ export abstract class AppEntityEditor<
     if (!route || isNilOrBlank(this._pathIdAttribute)) {
       throw new Error("Unable to load from route: missing 'route' or 'options.pathIdAttribute'.");
     }
-    const id = route.params[this._pathIdAttribute];
+    let id = route.params[this._pathIdAttribute];
     if (isNil(id) || id === "new") {
       return this.load(undefined, route.params);
     } else {
-      return this.load(+id, route.params);
+      // Convert as number, if need
+      if (isInt(id)) {
+        id = parseInt(id);
+      }
+      return this.load(id, route.params);
     }
   }
 
@@ -210,7 +220,7 @@ export abstract class AppEntityEditor<
    * @param id
    * @param opts
    */
-  async load(id?: number, opts?: EntityServiceLoadOptions & {
+  async load(id?: ID, opts?: EntityServiceLoadOptions & {
     emitEvent?: boolean;
     openTabIndex?: number;
     updateTabAndRoute?: boolean;
@@ -399,8 +409,8 @@ export abstract class AppEntityEditor<
       event.preventDefault();
       event.stopPropagation();
     }
-    if (this.appToolbar && this.appToolbar.canGoBack) {
-      await this.appToolbar.goBack();
+    if (this.toolbar && this.toolbar.canGoBack) {
+      await this.toolbar.goBack();
     }
     else if (this.defaultBackHref) {
       await this.router.navigateByUrl(this.defaultBackHref);
@@ -548,8 +558,8 @@ export abstract class AppEntityEditor<
     // Wait, then go back (wait is need in order to update back href is need)
     setTimeout(() => {
       // Go back
-      if (this.appToolbar && this.appToolbar.canGoBack) {
-        return this.appToolbar.goBack();
+      if (this.toolbar && this.toolbar.canGoBack) {
+        return this.toolbar.goBack();
       } else {
         // Back to home
         return this.router.navigateByUrl('/');
@@ -648,7 +658,7 @@ export abstract class AppEntityEditor<
   protected async updateTitle(data?: T) {
     data = data || this.data;
     const title = await this.computeTitle(data);
-    this.title$.next(title);
+    this.$title.next(title);
 
     // If NOT data, then add to page history
     if (!this.isNewData) {
@@ -680,7 +690,7 @@ export abstract class AppEntityEditor<
   }
 
 
-  protected computePageUrl(id: number|'new'): string | any[] {
+  protected computePageUrl(id: ID|'new'): string | any[] {
     const parentUrl = this.getParentPageUrl();
     return parentUrl && `${parentUrl}/${id}`;
   }

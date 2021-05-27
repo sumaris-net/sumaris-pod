@@ -1,4 +1,4 @@
-<app-toolbar [title]="title$ | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
+<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
              [defaultBackHref]="defaultBackHref" [canGoBack]="true">
   <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 
@@ -30,9 +30,9 @@
     <ion-row class="ion-no-padding ion-padding-top">
       <ion-col>
         <!-- form -->
-        <app-aggregation-type-form #typeForm
-                                   [showError]="false">
-        </app-aggregation-type-form>
+        <app-product-form #typeForm
+                          [showError]="false">
+        </app-product-form>
 
       </ion-col>
 

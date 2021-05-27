@@ -18,7 +18,7 @@ import {HistoryPageReference, UsageMode} from "../../core/services/model/setting
 import {PhysicalGear, Trip} from "../services/model/trip.model";
 import {SelectPhysicalGearModal} from "../physicalgear/select-physical-gear.modal";
 import {ModalController} from "@ionic/angular";
-import {PhysicalGearFilter} from "../services/physicalgear.service";
+import {PhysicalGearFilter} from "../services/filter/physical-gear.filter";
 import {PromiseEvent} from "../../shared/events";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
@@ -45,6 +45,9 @@ const TripPageTabs = {
   templateUrl: './trip.page.html',
   styleUrls: ['./trip.page.scss'],
   animations: [fadeInOutAnimation],
+  providers: [
+    {provide: AppRootDataEditor, useExisting: TripPage}
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TripPage extends AppRootDataEditor<Trip, TripService> {
@@ -145,6 +148,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     if (!this.tripForm.showMetiers) {
       this.data.metiers = []; // make sure to reset data metiers, if any
     }
+    this.tripForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_LOCATION_LEVEL_IDS);
+
     this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
     this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
     this.operationsTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);

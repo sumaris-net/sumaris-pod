@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {BehaviorSubject, defer, merge, Observable, PartialObserver, Subject, Subscription} from "rxjs";
-import {debounceTime, filter, finalize, map, takeUntil, tap} from "rxjs/operators";
+import {BehaviorSubject, defer, Observable, Subject, Subscription} from "rxjs";
+import {filter, finalize, map, tap} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
 import {GraphqlService} from "../../core/graphql/graphql.service";
@@ -9,7 +9,7 @@ import {IEntitiesService, IEntityService, LoadResult} from "../../shared/service
 import {TaxonGroupRef, TaxonGroupTypeIds, TaxonNameRef} from "./model/taxon.model";
 import {firstArrayValue, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, propertiesPathComparator, suggestFromArray} from "../../shared/functions";
 import {CacheService} from "ionic-cache";
-import {ReferentialRefFilter, ReferentialRefService} from "./referential-ref.service";
+import {ReferentialRefService} from "./referential-ref.service";
 import {firstNotNilPromise} from "../../shared/observables";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
@@ -20,7 +20,7 @@ import {Program} from "./model/program.model";
 
 import {DenormalizedPmfmStrategy} from "./model/pmfm-strategy.model";
 import {IWithProgramEntity} from "../../data/services/model/model.utils";
-import {ReferentialFilter} from "./referential.service";
+
 import {StrategyFragments} from "./strategy.fragments";
 import {AcquisitionLevelCodes} from "./model/model.enum";
 import {JobUtils} from "../../shared/services/job.utils";
@@ -30,11 +30,9 @@ import {ConfigService} from "../../core/services/config.service";
 import {PmfmService} from "./pmfm.service";
 import {BaseReferentialService} from "./base-referential-service.class";
 import {BaseEntityGraphqlSubscriptions} from "./base-entity-service.class";
+import {ProgramFilter} from "./filter/program.filter";
+import {ReferentialRefFilter} from "./filter/referential-ref.filter";
 
-
-export class ProgramFilter extends ReferentialFilter {
-
-}
 
 export const ProgramRefQueries = {
   // Load by id, with only properties
@@ -144,16 +142,14 @@ export class ProgramRefService
     protected pmfmService: PmfmService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(graphql, platform, Program,
+    super(graphql, platform, Program, ProgramFilter,
       {
         queries: ProgramRefQueries,
-        subscriptions: ProgramRefSubscriptions,
-        filterAsObjectFn: ProgramFilter.asPodObject,
-        filterFnFactory: ProgramFilter.searchFilter,
+        subscriptions: ProgramRefSubscriptions
       });
   }
 
-  canUserWrite(data: IWithProgramEntity<any>): boolean {
+  canUserWrite(data: IWithProgramEntity<any, any>): boolean {
     if (!data) return false;
 
     // If the user is the recorder: can write
@@ -583,7 +579,7 @@ export class ProgramRefService
       await this.clearCache();
 
       // Create search filter
-      let loadFilter: ProgramFilter = {
+      let loadFilter: any = {
         statusIds:  [StatusIds.ENABLE, StatusIds.TEMPORARY]
       };
 

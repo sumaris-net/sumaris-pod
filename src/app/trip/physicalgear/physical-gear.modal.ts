@@ -1,14 +1,5 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Input,
-  OnInit,
-  Output,
-  ViewChild
-} from "@angular/core";
-import {AlertController, ModalController} from "@ionic/angular";
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Output, ViewChild} from "@angular/core";
+import {AlertController, IonContent, ModalController} from "@ionic/angular";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {PhysicalGearForm} from "./physical-gear.form";
 import {BehaviorSubject} from "rxjs";
@@ -18,6 +9,7 @@ import {Alerts} from "../../shared/alerts";
 import {PhysicalGear} from "../services/model/trip.model";
 import {createPromiseEventEmitter, emitPromiseEvent} from "../../shared/events";
 import {isNil} from "../../shared/functions";
+import {AppFormUtils} from "../../core/form/form.utils";
 
 @Component({
   selector: 'app-physical-gear-modal',
@@ -51,6 +43,8 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
   @Output() onCopyPreviousGearClick = createPromiseEventEmitter<PhysicalGear>();
 
   @ViewChild('form', {static: true}) form: PhysicalGearForm;
+
+  @ViewChild(IonContent, {static: true}) content: IonContent;
 
   get enabled(): boolean {
     return !this.disabled;
@@ -102,28 +96,33 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
       // No result (user cancelled): skip
       if (!selectedData) return;
 
-      // Clone, then clean
-      const data = selectedData.clone();
-      data.id = undefined;
-      data.trip = undefined;
-      data.tripId = undefined;
+      // Create a copy
+      console.log("TODO check copy ");
+      const data = PhysicalGear.fromObject({
+        gear: selectedData.gear,
+        rankOrder: selectedData.rankOrder,
+        measurementValues: selectedData.measurementValues,
+        measurements: selectedData.measurements,
+      });
 
       if (!this.canEditRankOrder) {
         // Apply computed rankOrder
         data.rankOrder = this.originalData.rankOrder;
       }
-      data.comments = undefined;
 
       // Apply to form
       console.debug('[physical-gear-modal] Paste selected gear:', data);
       this.form.unload();
       this.form.reset(data);
+
+      await this.form.ready();
       this.form.markAsDirty();
     }
     catch (err) {
       if (err === 'CANCELLED') return; // Skip
       console.error(err);
       this.form.error = err && err.message || err;
+      this.scrollToTop();
     }
   }
 
@@ -148,12 +147,16 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
     }
 
     try {
+      this.form.error = null;
+
       const gear = this.form.value;
+
       return await this.viewCtrl.dismiss(gear);
     }
     catch (err) {
       this.loading = false;
       this.form.error = err && err.message || err;
+      this.scrollToTop();
       return false;
     }
   }
@@ -191,6 +194,12 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
     }
     else {
       this.$title.next(await this.translate.get('TRIP.PHYSICAL_GEAR.EDIT.TITLE', this.originalData).toPromise());
+    }
+  }
+
+  protected async scrollToTop(duration?: number) {
+    if (this.content) {
+      return this.content.scrollToTop(duration);
     }
   }
 }

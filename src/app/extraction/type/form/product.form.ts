@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
-import {ExtractionColumn} from "../../services/model/extraction.model";
+import {ExtractionColumn} from "../../services/model/extraction-type.model";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../../services/validator/aggregation-type.validator";
 import {ReferentialForm} from "../../../referential/form/referential.form";
@@ -10,9 +10,9 @@ import {Moment} from "moment";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {ExtractionService} from "../../services/extraction.service";
 import {debounceTime} from "rxjs/operators";
-import {AggregationStrata, AggregationType, ProcessingFrequency, ProcessingFrequencyList} from "../../services/model/aggregation-type.model";
+import {AggregationStrata, ExtractionProduct, ProcessingFrequency, ProcessingFrequencyList} from "../../services/model/extraction-product.model";
 import {ExtractionUtils} from "../../services/extraction.utils";
-import {AggregationService} from "../../services/aggregation.service";
+import {ExtractionProductService} from "../../services/extraction-product.service";
 import {FormArrayHelper} from "../../../core/form/form.utils";
 import {AppForm} from "../../../core/form/form.class";
 import {StatusIds} from "../../../core/services/model/model.enum";
@@ -28,15 +28,15 @@ const FrequenciesById: { [id: number]: ProcessingFrequency; } = ProcessingFreque
 }, {});
 
 @Component({
-  selector: 'app-aggregation-type-form',
-  styleUrls: ['./aggregation-type.form.scss'],
-  templateUrl: './aggregation-type.form.html',
+  selector: 'app-product-form',
+  styleUrls: ['product.form.scss'],
+  templateUrl: 'product.form.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AggregationTypeForm extends AppForm<AggregationType> implements OnInit {
+export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
 
 
-  data: AggregationType;
+  data: ExtractionProduct;
   frequenciesById = FrequenciesById;
 
   $sheetNames = new BehaviorSubject<String[]>(undefined);
@@ -99,7 +99,7 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
               protected settings: LocalSettingsService,
               protected validatorService: AggregationTypeValidatorService,
               protected extractionService: ExtractionService,
-              protected aggregationService: AggregationService,
+              protected aggregationService: ExtractionProductService,
               protected cd: ChangeDetectorRef) {
     super(dateAdapter,
       validatorService.getFormGroup(),
@@ -126,7 +126,7 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
       );
   }
 
-  async updateLists(type?: AggregationType) {
+  async updateLists(type?: ExtractionProduct) {
     if (type) {
       this.data = type;
     }
@@ -222,7 +222,7 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
 
   /* -- protected -- */
 
-  setValue(data: AggregationType, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+  setValue(data: ExtractionProduct, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
 
     console.debug('[aggregation-type-form] Setting value: ', data);
     // If spatial, load columns

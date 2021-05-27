@@ -14,7 +14,7 @@ import {
   sleep
 } from "../../shared/functions";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion} from "../services/model/extraction.model";
+import {ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion} from "../services/model/extraction-type.model";
 import {Location} from "@angular/common";
 import {Color, ColorScale, ColorScaleLegendItem} from "../../shared/graph/graph-colors";
 import * as L from 'leaflet';
@@ -22,7 +22,7 @@ import {CRS, GeoJSON, MapOptions, WMSParams} from 'leaflet';
 import {Feature} from "geojson";
 import {debounceTime, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
-import {AggregationTypeSelectModal} from "../type/modal/aggregation-type-select.modal";
+import {SelectProductModal} from "../type/modal/select-product.modal";
 import {AccountService} from "../../core/services/account.service";
 import {ExtractionAbstractPage} from "../form/extraction-abstract.page";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -34,13 +34,14 @@ import {Label, SingleOrMultiDataSet} from "ng2-charts";
 import {ChartLegendOptions, ChartOptions, ChartType} from "chart.js";
 import {DEFAULT_CRITERION_OPERATOR} from "../table/extraction-table.page";
 import {DurationPipe} from "../../shared/pipes/duration.pipe";
-import {AggregationStrata, AggregationType, IAggregationStrata} from "../services/model/aggregation-type.model";
+import {AggregationStrata, ExtractionProduct, IAggregationStrata} from "../services/model/extraction-product.model";
 import {ExtractionUtils} from "../services/extraction.utils";
-import {AggregationService, AggregationTypeFilter} from "../services/aggregation.service";
+import {ExtractionProductService} from "../services/extraction-product.service";
 import {UnitLabel, UnitLabelPatterns} from "../../referential/services/model/model.enum";
 import {fadeInAnimation, fadeInOutAnimation} from "../../shared/material/material.animations";
 import {AppFormUtils} from "../../core/form/form.utils";
 import {StatusIds} from "../../core/services/model/model.enum";
+import {ExtractionProductFilter} from "../services/filter/extraction-product.filter";
 
 declare interface LegendOptions {
   min: number;
@@ -86,7 +87,7 @@ const BASE_LAYER_SLD_BODY = '<sld:StyledLayerDescriptor version="1.0.0" xsi:sche
   animations: [fadeInAnimation, fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
+export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct> {
 
   ready = false;
   started = false;
@@ -189,7 +190,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
   $noData = new BehaviorSubject<boolean>(false);
 
   columnNames = {}; // cache for i18n column name
-  typesFilter: AggregationTypeFilter;
+  productFilter: Partial<ExtractionProductFilter>;
   $title = new BehaviorSubject<string>(undefined);
   $sheetNames = new BehaviorSubject<String[]>(undefined);
   $timeColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
@@ -280,7 +281,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
     platform: PlatformService,
     modalCtrl: ModalController,
     protected location: Location,
-    protected aggregationService: AggregationService,
+    protected aggregationService: ExtractionProductService,
     protected zone: NgZone,
     protected durationPipe: DurationPipe,
     protected aggregationStrataValidator: AggregationTypeValidatorService,
@@ -297,7 +298,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
     this._enabled = true; // enable the form
 
     // If supervisor, allow to see all aggregations types
-    this.typesFilter = {
+    this.productFilter = {
       statusIds: this.accountService.hasMinProfile('SUPERVISOR') ? [StatusIds.DISABLE, StatusIds.ENABLE, StatusIds.TEMPORARY] : [StatusIds.ENABLE],
       isSpatial: true
     };
@@ -362,8 +363,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
     });
   }
 
-  protected watchTypes(): Observable<AggregationType[]> {
-    return this.aggregationService.watchAll(this.typesFilter)
+  protected watchTypes(): Observable<ExtractionProduct[]> {
+    return this.aggregationService.watchAll(this.productFilter)
       .pipe(
         map(types => {
           // Compute name, if need
@@ -376,8 +377,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
       );
   }
 
-  protected fromObject(json: any): AggregationType {
-    return AggregationType.fromObject(json);
+  protected fromObject(json: any): ExtractionProduct {
+    return ExtractionProduct.fromObject(json);
   }
 
   protected async start() {
@@ -395,7 +396,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
     }
   }
 
-  async setType(type: AggregationType, opts?: {
+  async setType(type: ExtractionProduct, opts?: {
     emitEvent?: boolean;
     skipLocationChange?: boolean;
     sheetName?: string;
@@ -503,7 +504,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
     this.markForCheck();
   }
 
-  getI18nSheetName(sheetName?: string, type?: AggregationType, self?: ExtractionAbstractPage<any>): string {
+  getI18nSheetName(sheetName?: string, type?: ExtractionProduct, self?: ExtractionAbstractPage<any>): string {
     const str = super.getI18nSheetName(sheetName, type, self);
     return str.replace(/\([A-Z]+\)$/, '');
   }
@@ -573,7 +574,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
   }
 
   protected async tryLoadByYearIterations(
-    type?: AggregationType,
+    type?: ExtractionProduct,
     startYear?: number,
     endYear?: number
   ) {
@@ -726,7 +727,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
     }
   }
 
-  async loadTechData(type?: AggregationType, strata?: IAggregationStrata,
+  async loadTechData(type?: ExtractionProduct, strata?: IAggregationStrata,
                      filter?: ExtractionFilter) {
     type = type || this.type;
     strata = type && (strata || this.getStrataValue());
@@ -843,7 +844,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
     }
   }
 
-  async loadAnimationOverrides(type: AggregationType, strata: IAggregationStrata, filter: ExtractionFilter):
+  async loadAnimationOverrides(type: ExtractionProduct, strata: IAggregationStrata, filter: ExtractionFilter):
     Promise<{techChartOptions?: TechChartOptions}> {
     if (!type || !strata || !filter) return; // skip
     this.animationOverrides = this.animationOverrides || {};
@@ -987,17 +988,16 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
       event.preventDefault();
     }
     // If supervisor, allow to see all aggregations types
-    const filter: AggregationTypeFilter = {
+    const filter: Partial<ExtractionProductFilter> = {
       statusIds: this.accountService.hasMinProfile('SUPERVISOR')
         ? [StatusIds.DISABLE, StatusIds.ENABLE, StatusIds.TEMPORARY]
         : [StatusIds.ENABLE],
       isSpatial: true
     };
     const modal = await this.modalCtrl.create({
-      component: AggregationTypeSelectModal,
-      componentProps: {
-        filter: filter
-      }, keyboardClose: true
+      component: SelectProductModal,
+      componentProps: { filter },
+      keyboardClose: true
     });
 
     // Open the modal
@@ -1007,8 +1007,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
     const res = await modal.onDidDismiss();
 
     // If new vessel added, use it
-    if (res && res.data instanceof AggregationType) {
-      const type = res.data as AggregationType;
+    if (res && res.data instanceof ExtractionProduct) {
+      const type = res.data as ExtractionProduct;
       await this.setType(type, {emitEvent: false});
 
       const hasData = await this.tryLoadByYearIterations(type);
@@ -1253,8 +1253,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> {
     return filter;
   }
 
-  protected isEquals(t1: AggregationType, t2: AggregationType): boolean {
-    return AggregationType.equals(t1, t2);
+  protected isEquals(t1: ExtractionProduct, t2: ExtractionProduct): boolean {
+    return ExtractionProduct.equals(t1, t2);
   }
 
   protected markForCheck() {

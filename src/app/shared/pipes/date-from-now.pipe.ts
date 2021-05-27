@@ -1,10 +1,7 @@
-import {Pipe, Injectable, PipeTransform} from '@angular/core';
-import {Moment} from "moment";
-import {DateAdapter} from "@angular/material/core";
+import {Injectable, Pipe, PipeTransform} from '@angular/core';
+import {isMoment, Moment} from "moment";
 import {DATE_ISO_PATTERN} from '../constants';
-import {TranslateService} from "@ngx-translate/core";
-import {first} from "rxjs/operators";
-import {firstNotNilPromise} from "../observables";
+import {MomentDateAdapter} from "@angular/material-moment-adapter";
 
 @Pipe({
   name: 'dateFromNow'
@@ -13,11 +10,11 @@ import {firstNotNilPromise} from "../observables";
 export class DateFromNowPipe implements PipeTransform {
 
   constructor(
-    private dateAdapter: DateAdapter<Moment>) {
+    private dateAdapter: MomentDateAdapter) {
   }
 
   transform(value: string | Moment, args?: any): string | Promise<string> {
-    const date = this.dateAdapter.parse(value, DATE_ISO_PATTERN);
+    const date: Moment = isMoment(value) ? value as Moment : this.dateAdapter.parse(value, DATE_ISO_PATTERN);
     return date ? date.fromNow(args && args.withoutSuffix) : '';
   }
 }

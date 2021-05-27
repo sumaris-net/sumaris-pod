@@ -5,17 +5,16 @@ import {Department} from "./department.model";
 import {PropertiesMap} from "../../../shared/types";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 import {isNotNil} from "../../../shared/functions";
+import {EntityClass} from "./entity.decorators";
 
+@EntityClass({typename: 'SoftwareVO'})
+export class Software<
+  T extends Software<any> = Software<any>
+  >
+  extends Entity<T, number>
+  implements IEntity<T, number> {
 
-export class Software<T extends Software<any> = Software<any>> extends Entity<T, EntityAsObjectOptions>
-  implements IEntity<T, EntityAsObjectOptions> {
-
- static fromObject(source: any): Software {
-    if (!source || source instanceof Software) return source;
-    const res = new Software();
-    res.fromObject(source);
-    return res;
-  }
+ static fromObject: (source: any, opts?: any) => Software;
 
   label: string;
   name: string;
@@ -23,14 +22,8 @@ export class Software<T extends Software<any> = Software<any>> extends Entity<T,
   statusId: number;
   properties: PropertiesMap;
 
-  constructor() {
-    super();
-  }
-
-  clone(): T {
-    const target = new Software() as T;
-    target.fromObject(this);
-    return target;
+  constructor(__typename?: string) {
+    super(__typename || Software.TYPENAME);
   }
 
   asObject(options?: EntityAsObjectOptions): any {
@@ -55,14 +48,10 @@ export class Software<T extends Software<any> = Software<any>> extends Entity<T,
   }
 }
 
+@EntityClass({typename: 'ConfigurationVO'})
 export class Configuration extends Software<Configuration> {
 
-  static fromObject(source: Configuration): Configuration {
-    if (!source || source instanceof Configuration) return source;
-    const res = new Configuration();
-    res.fromObject(source);
-    return res;
-  }
+  static fromObject: (source: any, opts?: any) => Configuration;
 
   smallLogo: string;
   largeLogo: string;
@@ -70,7 +59,7 @@ export class Configuration extends Software<Configuration> {
   partners: Department[];
 
   constructor() {
-    super();
+    super(Configuration.TYPENAME);
   }
 
   clone(): Configuration {
@@ -120,6 +109,4 @@ export class Configuration extends Software<Configuration> {
   getProperty<T = string>(definition: FormFieldDefinition): T {
     return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : (definition.defaultValue || undefined);
   }
-
-
 }

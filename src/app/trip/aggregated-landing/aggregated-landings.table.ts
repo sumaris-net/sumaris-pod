@@ -160,24 +160,23 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   }
 
   setParent(parent: ObservedLocation) {
-    if (!parent) {
-      this.setFilter({});
-    } else {
+    const filter = new AggregatedLandingFilter();
+    // Filter on parent
+    if (parent) {
       this.startDate = parent.startDateTime;
-      this.setFilter({
-        observedLocationId: parent.id,
-        programLabel: this._program,
-        locationId: parent.location.id,
-        startDate: parent.startDateTime,
-        endDate: parent.endDateTime || moment(parent.startDateTime).add(this._nbDays, "day")
-      });
+      filter.observedLocationId = parent.id;
+      filter.programLabel = this._program;
+      filter.locationId = parent.location && parent.location.id;
+      filter.startDate = parent.startDateTime;
+      filter.endDate = parent.endDateTime || moment(parent.startDateTime).add(this._nbDays, "day");
     }
+    this.setFilter(filter);
   }
 
   setFilter(filter: AggregatedLandingFilter, opts?: { emitEvent: boolean }) {
 
     // Don't refilter if actual filter is equal
-    if (AggregatedLandingFilter.equals(this.filter, filter))
+    if (this.filter && this.filter.equals(filter))
       return;
 
     super.setFilter(filter, opts);

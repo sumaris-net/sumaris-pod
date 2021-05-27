@@ -150,6 +150,15 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
     super.ngOnInit();
   }
 
+  ngOnDestroy() {
+    super.ngOnDestroy();
+
+    this.onNewItem.complete();
+    this.onNewItem.unsubscribe();
+    this.selectionChanges.complete();
+    this.selectionChanges.unsubscribe();
+  }
+
   setValue(data: T[] | any) {
     data = data || [];
 

@@ -15,6 +15,33 @@
 
     <ion-grid>
 
+      <!-- debugging memory leak -->
+      <ion-row><ion-col><ion-text><h4>Debug memory leak</h4></ion-text></ion-col></ion-row>
+      <ion-row>
+        <ion-col size="2">
+          <ion-button *ngIf="!memoryTimer" (click)="startMemoryTimer()">Start timer</ion-button>
+          <ion-button *ngIf="memoryTimer" (click)="stopMemoryTimer()">Stop timer</ion-button>
+        </ion-col>
+        <ion-col size="2">
+          <mat-form-field floatLabel="never">
+            <input matInput type="text" hidden>
+            <mat-checkbox (change)="memoryMobile=$event.checked" [value]="memoryMobile">
+              Mobile ?
+            </mat-checkbox>
+          </mat-form-field>
+        </ion-col>
+        <ion-col>
+          <mat-date-time-field formControlName="empty"
+                               *ngIf="!memoryHide"
+                               placeholder="Date/Time"
+                               [required]="true"
+                               [mobile]="memoryMobile"
+                               [clearable]="true">
+            <ion-icon matPrefix name="calendar-outline"></ion-icon>
+          </mat-date-time-field>
+        </ion-col>
+      </ion-row>
+
       <!-- Mobile mode -->
       <ion-row><ion-col><ion-text><h4>Mobile mode</h4></ion-text></ion-col></ion-row>
       <ion-row>

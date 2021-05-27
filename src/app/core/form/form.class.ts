@@ -122,6 +122,10 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
 
   ngOnDestroy() {
     this._subscription.unsubscribe();
+    this.onCancel.complete();
+    this.onCancel.unsubscribe();
+    this.onSubmit.complete();
+    this.onSubmit.unsubscribe();
   }
 
   cancel() {
@@ -193,7 +197,7 @@ export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
   }
 
   markAsTouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
-    // this.form.markAllAsTouched() // This is not working well (e.g. in TripFrom)
+    // this.form.markAllAsTouched() // This is not working well (e.g. in TripForm)
     AppFormUtils.markAsTouched(this.form, opts);
     this.markForCheck();
   }

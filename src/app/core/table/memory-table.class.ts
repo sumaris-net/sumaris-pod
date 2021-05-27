@@ -8,12 +8,16 @@ import {isEmptyArray} from "../../shared/functions";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {AppTableDataSourceOptions, EntitiesTableDataSource} from "./entities-table-datasource.class";
 import {AppTable} from "./table.class";
-import {Entity} from "../services/model/entity.model";
+import {IEntity} from "../services/model/entity.model";
 
 // @dynamic
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends AppTable<T, F> {
+export abstract class AppInMemoryTable<
+  T extends IEntity<T, ID>,
+  F = any,
+  ID = number
+  > extends AppTable<T, F, ID> {
 
   @Input() canEdit = false;
   @Input() canDelete = false;
@@ -34,9 +38,9 @@ export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends App
     protected injector: Injector,
     protected columns: string[],
     protected dataType: new () => T,
-    protected memoryDataService: InMemoryEntitiesService<T, F>,
+    protected memoryDataService: InMemoryEntitiesService<T, F, ID>,
     protected validatorService: ValidatorService,
-    options?: AppTableDataSourceOptions<T>,
+    options?: AppTableDataSourceOptions<T, ID>,
     filter?: F
   ) {
     super(injector.get(ActivatedRoute),
@@ -46,7 +50,7 @@ export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends App
       injector.get(ModalController),
       injector.get(LocalSettingsService),
       columns,
-      new EntitiesTableDataSource<T, F>(dataType, memoryDataService, validatorService, options),
+      new EntitiesTableDataSource<T, F, ID>(dataType, memoryDataService, validatorService, options),
       filter,
       injector);
 

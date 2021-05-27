@@ -7,7 +7,7 @@ import {MeasurementsValidatorService} from "../../services/validator/measurement
 import {AbstractControl, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {SubBatchValidatorService} from "../../services/validator/sub-batch.validator";
-import {EntityUtils} from "../../../core/services/model/entity.model";
+import {EntityUtils, isInstanceOf} from "../../../core/services/model/entity.model";
 import {ReferentialUtils} from "../../../core/services/model/referential.model";
 import {UsageMode} from "../../../core/services/model/settings.model";
 import {debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
@@ -364,7 +364,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     if (!this.onNewParentClick) return; // No callback: skip
     const res = await this.onNewParentClick();
 
-    if (res && res instanceof Batch) {
+    if (isInstanceOf(res, Batch)) {
       this.form.get('parent').setValue(res);
     }
   }
@@ -551,7 +551,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     // If there is a parent: filter on parent's taxon group
     const parentTaxonGroupId = this.parentGroup && this.parentGroup.taxonGroup && this.parentGroup.taxonGroup.id;
     if (isNotNil(parentTaxonGroupId)) {
-      pmfms = pmfms.filter(pmfm => !(pmfm instanceof DenormalizedPmfmStrategy)
+      pmfms = pmfms.filter(pmfm => !(isInstanceOf(pmfm, DenormalizedPmfmStrategy))
           || isEmptyArray(pmfm.taxonGroupIds)
           || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
     }

@@ -1,4 +1,4 @@
-import {Directive, Input, OnDestroy, OnInit, Optional, ViewChild} from '@angular/core';
+import {ContentChild, Directive, Input, OnDestroy, OnInit, Optional, ViewChild} from '@angular/core';
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {AlertController, IonContent, ToastController} from '@ionic/angular';
@@ -6,11 +6,11 @@ import {TranslateService} from '@ngx-translate/core';
 import {Subscription, TeardownLogic} from 'rxjs';
 import {AppTable} from '../table/table.class';
 import {AppForm} from './form.class';
-import {FormButtonsBarComponent} from './form-buttons-bar.component';
+import {FormButtonsBarComponent, FormButtonsBarToken} from './form-buttons-bar.component';
 import {AppFormHolder, AppFormUtils, IAppForm, IAppFormFactory} from "./form.utils";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
-import {ToolbarComponent} from "../../shared/toolbar/toolbar";
+import {ToolbarComponent, ToolbarToken} from "../../shared/toolbar/toolbar";
 import {isNotNil, toNumber} from "../../shared/functions";
 
 export class AppTabEditorOptions {
@@ -32,7 +32,8 @@ export class AppTabEditorOptions {
 }
 
 @Directive()
-export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit, OnDestroy {
+// tslint:disable-next-line:directive-class-suffix
+export abstract class AppTabEditor<T = any, ID = number, O = any> implements IAppForm, OnInit, OnDestroy {
 
   private _children: IAppForm[];
   private _subscription = new Subscription();
@@ -45,7 +46,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
   tabGroupAnimationDuration: string;
 
   debug = false;
-  previousDataId: number;
+  previousDataId: ID;
   selectedTabIndex = 0;
 
   submitted = false;
@@ -62,8 +63,11 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
   protected toastController: ToastController;
 
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
-  @ViewChild(ToolbarComponent, { static: true }) appToolbar: ToolbarComponent;
-  @ViewChild(FormButtonsBarComponent, { static: true }) formButtonsBar: FormButtonsBarComponent;
+
+  @ViewChild(ToolbarToken) toolbar: ToolbarToken|null = null;
+
+  @ViewChild(FormButtonsBarToken, { static: true }) formButtonsBar: FormButtonsBarToken|null = null;
+
   @ViewChild(IonContent, {static: true}) content: IonContent;
 
   get tables(): AppTable<any>[] {
@@ -151,8 +155,8 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
     }
 
     // Catch back click events
-    if (this.appToolbar) {
-      this.registerSubscription(this.appToolbar.onBackClick.subscribe(event => this.onBackClick(event)));
+    if (this.toolbar) {
+      this.registerSubscription(this.toolbar.onBackClick.subscribe(event => this.onBackClick(event)));
     }
     if (this.formButtonsBar) {
       this.registerSubscription(this.formButtonsBar.onBack.subscribe(event => this.onBackClick(event)));
@@ -163,13 +167,13 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
     this._subscription.unsubscribe();
   }
 
-  abstract async load(id?: number, options?: O);
+  abstract async load(id?: ID, options?: O);
 
   abstract async save(event?: Event, options?: any): Promise<any>;
 
   abstract async reload();
 
-  addChildForm(form: IAppForm | IAppFormFactory): AppTabEditor<T> {
+  addChildForm(form: IAppForm | IAppFormFactory): AppTabEditor<T, ID, O> {
     if (!form) throw new Error('Trying to register an undefined child form');
     this._children = this._children || [];
     if (typeof form === "function") {
@@ -181,7 +185,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
     return this;
   }
 
-  addChildForms(forms: (IAppForm | IAppFormFactory)[]): AppTabEditor<T> {
+  addChildForms(forms: (IAppForm | IAppFormFactory)[]): AppTabEditor<T, ID, O> {
     (forms || []).forEach(form => this.addChildForm(form));
     return this;
   }
@@ -265,7 +269,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
   /**
    * Action triggered when user swipes
    */
-  onSwipeTab(event: HammerSwipeEvent) {
+  onSwipeTab(event: HammerSwipeEvent): boolean {
     // DEBUG
     // if (this.debug) console.debug("[tab-page] onSwipeTab()");
 
@@ -425,7 +429,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
         }
 
         // Execute the action
-        this.appToolbar.goBack();
+        this.toolbar.goBack();
       }
 
     }, 300);
@@ -518,7 +522,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
     this._subscription.remove(sub);
   }
 
-  protected async saveIfDirtyAndConfirm(event?: UIEvent, opts? : {
+  protected async saveIfDirtyAndConfirm(event?: UIEvent, opts?: {
     emitEvent: boolean;
 
   }): Promise<boolean> {

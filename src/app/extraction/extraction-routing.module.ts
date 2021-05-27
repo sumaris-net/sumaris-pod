@@ -2,7 +2,7 @@ import {RouterModule, Routes} from "@angular/router";
 import {AuthGuardService} from "../core/services/auth-guard.service";
 import {NgModule} from "@angular/core";
 import {ExtractionTablePage} from "./table/extraction-table.page";
-import {AggregationTypePage} from "./type/page/aggregation-type.page";
+import {ProductPage} from "./type/page/product.page";
 import {ExtractionMapPage} from "./map/extraction-map.page";
 import {SharedModule} from "../shared/shared.module";
 
@@ -17,12 +17,12 @@ const routes: Routes = [
     }
   },
   {
-    path: 'aggregation/:aggregationTypeId',
-    component: AggregationTypePage,
+    path: 'product/:productId',
+    component: ProductPage,
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
       profile: 'SUPERVISOR',
-      pathIdParam: 'aggregationTypeId'
+      pathIdParam: 'productId'
     }
   },
   {

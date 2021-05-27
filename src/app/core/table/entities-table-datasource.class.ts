@@ -10,6 +10,7 @@ import {CollectionViewer} from "@angular/cdk/collections";
 import {firstNotNilPromise} from "../../shared/observables";
 import {isNotEmptyArray, isNotNil, toBoolean} from "../../shared/functions";
 import {TableDataSourceOptions} from "@e-is/ngx-material-table/src/app/ngx-material-table/table-data-source";
+import {IEntityFilter} from "../services/model/filter.model";
 
 
 export declare interface AppTableDataServiceOptions<O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> extends EntitiesServiceWatchOptions {
@@ -17,7 +18,10 @@ export declare interface AppTableDataServiceOptions<O extends EntitiesServiceWat
   readOnly?: boolean;
   [key: string]: any;
 }
-export class AppTableDataSourceOptions<T extends Entity<T>, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> implements TableDataSourceOptions {
+export class AppTableDataSourceOptions<
+  T extends Entity<T, ID>,
+  ID = number,
+  O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> implements TableDataSourceOptions {
   prependNewElements?: boolean;
   suppressErrors?: boolean;
   keepOriginalDataAfterConfirm?: boolean;
@@ -30,11 +34,15 @@ export class AppTableDataSourceOptions<T extends Entity<T>, O extends EntitiesSe
 // @dynamic
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions>
+export class EntitiesTableDataSource<
+  T extends IEntity<T, ID>,
+  F = any,
+  ID = number,
+  O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions>
     extends TableDataSource<T>
     implements OnDestroy {
 
-  private readonly _options: AppTableDataSourceOptions<T, O>;
+  private readonly _options: AppTableDataSourceOptions<T, ID, O>;
   private _loaded = false;
 
   protected readonly _debug: boolean;
@@ -54,7 +62,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
     this._options.dataServiceOptions = value;
   }
 
-  get options(): AppTableDataSourceOptions<T, O> {
+  get options(): AppTableDataSourceOptions<T, ID, O> {
     return this._options;
   }
 
@@ -73,11 +81,11 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
   constructor(dataType: new() => T,
               public readonly dataService: IEntitiesService<T, F, O>,
               validatorService?: ValidatorService,
-              config?: AppTableDataSourceOptions<T, O>) {
+              config?: AppTableDataSourceOptions<T, ID, O>) {
     super([], dataType, validatorService, config);
     this._options = {
       dataServiceOptions: {},
-      debug: !config.suppressErrors,
+      debug: config && config.suppressErrors === false,
       ...config
     };
     this._useValidator = isNotNil(validatorService);
@@ -90,6 +98,7 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
     this._stopWatchAll$.next();
     // Unsubscribe from the subject
     this._stopWatchAll$.unsubscribe();
+    this.$busy.complete();
     this.$busy.unsubscribe();
   }
 
@@ -210,6 +219,11 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
   // Overwrite default signature
   createNew(insertAt?: number): void {
     this.asyncCreateNew(insertAt);
+  }
+
+  connect(collectionViewer: CollectionViewer): Observable<TableElement<T>[] | ReadonlyArray<TableElement<T>>> {
+    // DEBUG console.debug("[entities-datasource] connect");
+    return super.connect(collectionViewer);
   }
 
   disconnect(collectionViewer?: CollectionViewer) {

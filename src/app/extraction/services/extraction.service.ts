@@ -5,7 +5,7 @@ import {map} from "rxjs/operators";
 
 import {ErrorCodes} from "../../trip/services/trip.errors";
 import {AccountService} from "../../core/services/account.service";
-import {ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType} from "./model/extraction.model";
+import {ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType} from "./model/extraction-type.model";
 import {isNil, isNotNil, isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {Fragments} from "../../trip/services/trip.queries";

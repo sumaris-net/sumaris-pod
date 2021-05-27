@@ -16,21 +16,15 @@ import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../core/service
 import {StatusIds} from "../../core/services/model/model.enum";
 import {Program} from "./model/program.model";
 import {SortDirection} from "@angular/material/sort";
-import {ReferentialFilter, ReferentialService} from "./referential.service";
+import {ReferentialService} from "./referential.service";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {ProgramFragments} from "./program.fragments";
-import {
-  BaseEntityGraphqlMutations,
-  BaseEntityGraphqlQueries
-} from "./base-entity-service.class";
+import {BaseEntityGraphqlMutations, BaseEntityGraphqlQueries} from "./base-entity-service.class";
 import {ProgramRefService} from "./program-ref.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {BaseReferentialService} from "./base-referential-service.class";
 import {StrategyRefService} from "./strategy-ref.service";
-
-
-export class ProgramFilter extends ReferentialFilter {
-}
+import {ProgramFilter} from "./filter/program.filter";
 
 const ProgramQueries: BaseEntityGraphqlQueries = {
   // Load by id
@@ -91,11 +85,9 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     protected cache: CacheService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql, platform, Program, {
+    super(graphql, platform, Program, ProgramFilter, {
       queries: ProgramQueries,
-      mutations: ProgramMutations,
-      filterAsObjectFn: ProgramFilter.asPodObject,
-      filterFnFactory: ProgramFilter.searchFilter
+      mutations: ProgramMutations
     });
     if (this._debug) console.debug('[program-service] Creating service');
   }
@@ -165,7 +157,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
            size: number,
            sortBy?: string,
            sortDirection?: SortDirection,
-           dataFilter?: ProgramFilter,
+           dataFilter?: Partial<ProgramFilter>,
            opts?: {
              query?: any,
              fetchPolicy: FetchPolicy;
@@ -174,12 +166,13 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
              debug?: boolean;
            }): Promise<LoadResult<Program>> {
 
+    dataFilter = this.asFilter(dataFilter);
+
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
       sortBy: sortBy || 'label',
-      sortDirection: sortDirection || 'asc',
-      filter: dataFilter
+      sortDirection: sortDirection || 'asc'
     };
     const debug = this._debug && (!opts || opts.debug !== false);
     const now = debug && Date.now();
@@ -193,7 +186,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
       res = await this.entities.loadAll(Program.TYPENAME,
         {
           ...variables,
-          filter: ProgramFilter.searchFilter(dataFilter)
+          filter: dataFilter && dataFilter.asFilterFn()
         }
       );
     }
@@ -205,7 +198,10 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
         || ProgramQueries.loadAll;
       res = await this.graphql.query<LoadResult<any>>({
         query,
-        variables,
+        variables: {
+          ...variables,
+          filter: dataFilter && dataFilter.asPodObject()
+        },
         error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAMS_ERROR"},
         fetchPolicy: opts && opts.fetchPolicy || undefined
       });

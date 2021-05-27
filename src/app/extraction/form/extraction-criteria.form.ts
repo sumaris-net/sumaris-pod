@@ -3,7 +3,7 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from '@ngx-translate/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {isNil, isNotEmptyArray, isNotNil, toBoolean} from '../../shared/functions';
-import {CriterionOperator, ExtractionColumn, ExtractionFilterCriterion, ExtractionType} from "../services/model/extraction.model";
+import {CriterionOperator, ExtractionColumn, ExtractionFilterCriterion, ExtractionType} from "../services/model/extraction-type.model";
 import {ExtractionService} from "../services/extraction.service";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {filter, map} from "rxjs/operators";

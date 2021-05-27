@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
-import {FilterFn, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
+import {LoadResult, SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "./referential.fragments";
 import {BehaviorSubject} from "rxjs";
@@ -13,96 +13,10 @@ import {SortDirection} from "@angular/material/sort";
 import {JobUtils} from "../../shared/services/job.utils";
 import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {StatusIds} from "../../core/services/model/model.enum";
-import {Beans, isNotEmptyArray, isNotNil, KeysEnum} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
-import {Moment} from "moment";
-import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {EntityUtils} from "../../core/services/model/entity.model";
-import {toDateISOString} from "../../shared/dates";
+import {VesselSnapshotFilter} from "./filter/vessel.filter";
 
-
-export class VesselSnapshotFilter {
-  programLabel?: string;
-  date?: Date | Moment;
-  vesselId?: number;
-  searchText?: string;
-  statusId?: number;
-  statusIds?: number[];
-  synchronizationStatus?: SynchronizationStatus;
-
-  static isEmpty(f: VesselSnapshotFilter|any): boolean {
-    return Beans.isEmpty<VesselSnapshotFilter>({...f, synchronizationStatus: null}, VesselSnapshotFilterKeys, {
-      blankStringLikeEmpty: true
-    });
-  }
-
-  static searchFilter<T extends VesselSnapshot>(f: VesselSnapshotFilter): (T) => boolean {
-    if (!f) return undefined;
-
-    const filterFns: FilterFn<T>[] = [];
-
-    // Program
-    if (f.programLabel) {
-      filterFns.push(t => (t.program && t.program.label === f.programLabel));
-    }
-
-    // Vessel id
-    if (isNotNil(f.vesselId)) {
-      filterFns.push(t => t.id === f.vesselId);
-    }
-
-    // Status
-    const statusIds = (isNotEmptyArray(f.statusIds) && f.statusIds) || (isNotNil(f.statusId) && [f.statusId]);
-    if (statusIds) {
-      filterFns.push(t => statusIds.includes(t.vesselStatusId));
-    }
-
-    // Synchronization status
-    if (f.synchronizationStatus) {
-      if (f.synchronizationStatus === 'SYNC') {
-        filterFns.push(EntityUtils.isRemote);
-      }
-      else {
-        filterFns.push(EntityUtils.isLocal);
-      }
-    }
-
-    const searchTextFilter = EntityUtils.searchTextFilter(['name', 'exteriorMarking', 'registrationCode'], f.searchText);
-    if (searchTextFilter) filterFns.push(searchTextFilter);
-
-    if (!filterFns.length) return undefined;
-
-    return (entity) => !filterFns.find(fn => !fn(entity));
-  }
-
-  /**
-   * Clean a filter, before sending to the pod (e.g remove 'synchronizationStatus')
-   * @param f
-   */
-  static asPodObject(f: VesselSnapshotFilter): any {
-    if (!f) return f;
-    return {
-      programLabel: f.programLabel,
-      vesselId: f.vesselId,
-      searchText: f.searchText,
-      statusIds: isNotNil(f.statusId) ? [f.statusId] : f.statusIds,
-      // Serialize date
-      date: f && toDateISOString(f.date),
-      // Remove sync status, as it not exists in pod
-      //synchronizationStatus: undefined
-    };
-  }
-}
-
-export const VesselSnapshotFilterKeys: KeysEnum<VesselSnapshotFilter> = {
-  programLabel: true,
-  date: true,
-  vesselId: true,
-  searchText: true,
-  statusId: true,
-  statusIds: true,
-  synchronizationStatus: true
-};
 
 export const VesselSnapshotFragments = {
   lightVesselSnapshot: gql`fragment LightVesselSnapshotFragment on VesselSnapshotVO {
@@ -191,7 +105,7 @@ export class VesselSnapshotService
                 size: number,
                 sortBy?: string,
                 sortDirection?: SortDirection,
-                filter?: VesselSnapshotFilter,
+                filter?: Partial<VesselSnapshotFilter>,
                 opts?: {
                   [key: string]: any;
                   fetchPolicy?: FetchPolicy;
@@ -200,12 +114,13 @@ export class VesselSnapshotService
                   toEntity?: boolean;
                 }): Promise<LoadResult<VesselSnapshot>> {
 
+    filter = this.asFilter(filter);
+
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
       sortBy: sortBy || 'exteriorMarking',
-      sortDirection: sortDirection || 'asc',
-      filter: VesselSnapshotFilter.asPodObject(filter)
+      sortDirection: sortDirection || 'asc'
     };
 
     const debug = this._debug && (!opts || opts.debug !== false);
@@ -220,7 +135,7 @@ export class VesselSnapshotService
       res = await this.entities.loadAll(VesselSnapshot.TYPENAME,
         {
           ...variables,
-          filter: VesselSnapshotFilter.searchFilter(filter)
+          filter: filter && filter.asFilterFn()
         }
       );
     }
@@ -290,7 +205,7 @@ export class VesselSnapshotService
     }): Promise<void> {
 
     const maxProgression = opts && opts.maxProgression || 100;
-    const filter: VesselSnapshotFilter = {
+    const filter: Partial<VesselSnapshotFilter> = {
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
     };
 
@@ -312,6 +227,10 @@ export class VesselSnapshotService
 
     // Save locally
     await this.entities.saveAll(res.data, {entityName: VesselSnapshot.TYPENAME});
+  }
+
+  asFilter(source: Partial<VesselSnapshotFilter>) {
+    return VesselSnapshotFilter.fromObject(source);
   }
 
   /* -- protected methods -- */

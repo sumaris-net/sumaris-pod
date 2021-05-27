@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, OnInit} from "@angular/core";
 import {Person, UserProfileLabels} from "../../../core/services/model/person.model";
 import {DefaultStatusList, referentialToString} from "../../../core/services/model/referential.model";
-import {PersonFilter, PersonService} from "../../services/person.service";
+import {PersonService} from "../../services/person.service";
 import {PersonValidatorService} from "../../services/validator/person.validator";
 import {ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -13,10 +13,11 @@ import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {PlatformService} from "../../../core/services/platform.service";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {debounceTime, filter} from "rxjs/operators";
+import {debounceTime, filter, tap} from "rxjs/operators";
 import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
 import {isNotNil} from "../../../shared/functions";
 import {ENVIRONMENT} from "../../../../environments/environment.class";
+import {PersonFilter} from "../../services/filter/person.filter";
 
 @Component({
   selector: 'app-users-table',
@@ -66,7 +67,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
         ])
         .concat(accountService.additionalFields.map(field => field.key))
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Person, PersonFilter>(Person, dataService, validatorService, {
+      new EntitiesTableDataSource(Person, dataService, validatorService, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
@@ -113,14 +114,15 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
       this.filterForm.valueChanges
         .pipe(
           debounceTime(250),
-          filter(() => this.filterForm.valid)
+          filter(() => this.filterForm.valid),
+          // Applying the filter
+          tap(json => this.setFilter(PersonFilter.fromObject(json), {emitEvent: this.mobile}))
         )
-        // Applying the filter
-        .subscribe(json => this.setFilter(json, { emitEvent: this.mobile })));
+        .subscribe());
 
     this.registerSubscription(
       this.onRefresh.subscribe(() => {
-        this.filterIsEmpty = PersonFilter.isEmpty(this.filter);
+        this.filterIsEmpty = !this.filter || this.filter.isEmpty();
         this.filterForm.markAsUntouched();
         this.filterForm.markAsPristine();
         this.cd.markForCheck();

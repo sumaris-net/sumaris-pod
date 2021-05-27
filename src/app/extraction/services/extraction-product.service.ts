@@ -5,22 +5,23 @@ import {map} from "rxjs/operators";
 
 import {ErrorCodes} from "../../trip/services/trip.errors";
 import {AccountService} from "../../core/services/account.service";
-import {ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType} from "./model/extraction.model";
+import {ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType} from "./model/extraction-type.model";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {FeatureCollection} from "geojson";
 import {Fragments} from "../../trip/services/trip.queries";
 import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
-import {FilterFn} from "../../shared/services/entity-service.class";
 import {firstNotNilPromise} from "../../shared/observables";
-import {AggregationType, IAggregationStrata} from "./model/aggregation-type.model";
+import {ExtractionProduct, IAggregationStrata} from "./model/extraction-product.model";
 import {ExtractionFragments, ExtractionService} from "./extraction.service";
 import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {isNil, isNotNil} from "../../shared/functions";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {environment} from "../../../environments/environment";
+import {ExtractionProductFilter} from "./filter/extraction-product.filter";
+import {LoadResult} from "../../shared/services/entity-service.class";
 
 
 export const AggregationFragments = {
@@ -143,32 +144,8 @@ const DeleteAggregations: any = gql`
   }
 `;
 
-export class AggregationTypeFilter {
-
-  static searchFilter<T extends AggregationType>(f: AggregationTypeFilter): (T) => boolean {
-    const filterFns: FilterFn<T>[] = [];
-
-    // Filter by status
-    if (f.statusIds) {
-      filterFns.push((entity) => !!f.statusIds.find(v => entity.statusId === v));
-    }
-
-    // Filter by spatial
-    if (isNotNil(f.isSpatial)) {
-      filterFns.push((entity) => f.isSpatial === entity.isSpatial);
-    }
-
-    if (!filterFns.length) return undefined;
-
-    return (entity) => !filterFns.find(fn => !fn(entity));
-  }
-
-  statusIds?: number[];
-  isSpatial?: boolean;
-}
-
 @Injectable({providedIn: 'root'})
-export class AggregationService extends BaseGraphqlService {
+export class ExtractionProductService extends BaseGraphqlService {
 
   constructor(
     protected graphql: GraphqlService,
@@ -181,40 +158,42 @@ export class AggregationService extends BaseGraphqlService {
   /**
    * Load aggregated types
    */
-  async loadAll(): Promise<AggregationType[]> {
+  async loadAll(): Promise<ExtractionProduct[]> {
     return await firstNotNilPromise(this.watchAll());
   }
 
   /**
-   * Watch aggregated types
+   * Watch products
    */
-  watchAll(dataFilter?: AggregationTypeFilter,
+  watchAll(dataFilter?: Partial<ExtractionProductFilter>,
            options?: { fetchPolicy?: WatchQueryFetchPolicy }
-  ): Observable<AggregationType[]> {
-    if (this._debug) console.debug("[aggregation-service] Loading geo types...");
+  ): Observable<ExtractionProduct[]> {
+    if (this._debug) console.debug("[product-service] Loading products...");
+
+    dataFilter = this.asFilter(dataFilter);
 
     const variables = {
-      filter: dataFilter
+      filter: dataFilter && dataFilter.asPodObject()
     };
 
-    return this.mutableWatchQuery<{ data: AggregationType[] }>({
+    return this.mutableWatchQuery<LoadResult<ExtractionProduct>>({
       queryName: 'LoadAggregationTypes',
       query: LoadTypesQuery,
       arrayFieldName: 'data',
-      insertFilterFn: AggregationTypeFilter.searchFilter(dataFilter),
+      insertFilterFn: dataFilter && dataFilter.asFilterFn(),
       variables,
       error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     })
       .pipe(
-        map((data) => (data && data.data || []).map(AggregationType.fromObject))
+        map((data) => (data && data.data || []).map(ExtractionProduct.fromObject))
       );
   }
 
   async load(id: number, options?: {
     fetchPolicy?: FetchPolicy
-  }): Promise<AggregationType> {
-    const data = await this.graphql.query<{ aggregationType: AggregationType }>({
+  }): Promise<ExtractionProduct> {
+    const data = await this.graphql.query<{ aggregationType: ExtractionProduct }>({
       query: LoadTypeQuery,
       variables: {
         id
@@ -223,7 +202,7 @@ export class AggregationService extends BaseGraphqlService {
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
 
-    return (data && data.aggregationType && AggregationType.fromObject(data.aggregationType)) || null;
+    return (data && data.aggregationType && ExtractionProduct.fromObject(data.aggregationType)) || null;
   }
 
   /**
@@ -248,7 +227,7 @@ export class AggregationService extends BaseGraphqlService {
     };
 
     const now = Date.now();
-    if (this._debug) console.debug("[aggregation-service] Loading columns... using options:", variables);
+    if (this._debug) console.debug("[product-service] Loading columns... using options:", variables);
     const res = await this.graphql.query<{ aggregationColumns: ExtractionColumn[] }>({
       query: LoadAggColumnsQuery,
       variables: variables,
@@ -261,14 +240,14 @@ export class AggregationService extends BaseGraphqlService {
     // Compute column index
     (data || []).forEach((c, index) => c.index = index);
 
-    if (this._debug) console.debug(`[aggregation-service] Columns ${type.category} ${type.label} loaded in ${Date.now() - now}ms`, data);
+    if (this._debug) console.debug(`[product-service] Columns ${type.category} ${type.label} loaded in ${Date.now() - now}ms`, data);
     return data;
   }
 
   /**
    * Load aggregation as GeoJson
    */
-  async loadGeoJson(type: AggregationType,
+  async loadGeoJson(type: ExtractionProduct,
                     strata: IAggregationStrata,
                     offset: number,
                     size: number,
@@ -344,13 +323,13 @@ export class AggregationService extends BaseGraphqlService {
     return res && { min: 0, max: 0, ...res.aggregationTechMinMax} || null;
   }
 
-  async save(entity: AggregationType,
-             filter?: ExtractionFilter): Promise<AggregationType> {
+  async save(entity: ExtractionProduct,
+             filter?: ExtractionFilter): Promise<ExtractionProduct> {
     const now = Date.now();
-    if (this._debug) console.debug("[aggregation-service] Saving aggregation...");
+    if (this._debug) console.debug("[product-service] Saving product...");
 
     // Make sure to have an entity
-    entity = AggregationType.fromObject(entity);
+    entity = ExtractionProduct.fromObject(entity);
 
     this.fillDefaultProperties(entity);
 
@@ -358,7 +337,7 @@ export class AggregationService extends BaseGraphqlService {
 
     // Transform to json
     const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
-    if (this._debug) console.debug("[aggregation-service] Using minify object, to send:", json);
+    if (this._debug) console.debug("[product-service] Using minify object, to send:", json);
 
     await this.graphql.mutate<{ data: any }>({
       mutation: SaveAggregation,
@@ -371,7 +350,7 @@ export class AggregationService extends BaseGraphqlService {
         const savedEntity = data && data.data;
         EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
         //if (this._debug)
-        console.debug(`[aggregation-service] Aggregation saved in ${Date.now() - now}ms`, savedEntity);
+        console.debug(`[product-service] Product saved in ${Date.now() - now}ms`, savedEntity);
 
         // Convert into the extraction type
         const savedExtractionType = ExtractionType.fromObject(savedEntity).asObject({keepTypename: false});
@@ -401,11 +380,11 @@ export class AggregationService extends BaseGraphqlService {
     return entity;
   }
 
-  async delete(type: AggregationType): Promise<any> {
+  async delete(type: ExtractionProduct): Promise<any> {
     if (!type || isNil(type.id)) throw Error('Missing type or type.id');
 
     const now = Date.now();
-    if (this._debug) console.debug(`[aggregation-service] Deleting aggregation {id: ${type.id}'}`);
+    if (this._debug) console.debug(`[product-service] Deleting product {id: ${type.id}'}`);
 
     await this.graphql.mutate<any>({
       mutation: DeleteAggregations,
@@ -415,26 +394,26 @@ export class AggregationService extends BaseGraphqlService {
       update: (cache) => {
 
         // Remove from cache
-        const cacheKey = {__typename: AggregationType.TYPENAME, id: type.id, label: type.label, category: ExtractionCategories.PRODUCT};
+        const cacheKey = {__typename: ExtractionProduct.TYPENAME, id: type.id, label: type.label, category: ExtractionCategories.PRODUCT};
         cache.evict({ id: cache.identify(cacheKey)});
         cache.evict({ id: cache.identify({
             ...cacheKey,
             __typename: ExtractionType.TYPENAME
           })});
 
-       if (this._debug) console.debug(`[aggregation-service] Aggregation deleted in ${Date.now() - now}ms`);
+       if (this._debug) console.debug(`[product-service] Product deleted in ${Date.now() - now}ms`);
       }
     });
   }
 
-  async deleteAll(entities: AggregationType[]): Promise<any> {
+  async deleteAll(entities: ExtractionProduct[]): Promise<any> {
     await Promise.all((entities || [])
       .filter(t => t && isNotNil(t.id)).map(type => this.delete(type)));
   }
 
   /* -- protected methods  -- */
 
-  protected fillDefaultProperties(entity: AggregationType) {
+  protected fillDefaultProperties(entity: ExtractionProduct) {
 
     // If new trip
     if (isNil(entity.id)) {
@@ -459,8 +438,12 @@ export class AggregationService extends BaseGraphqlService {
     }
   }
 
-  protected copyIdAndUpdateDate(source: AggregationType, target: AggregationType) {
-
+  protected copyIdAndUpdateDate(source: ExtractionProduct, target: ExtractionProduct) {
     EntityUtils.copyIdAndUpdateDate(source, target);
   }
+
+  protected asFilter(filter: Partial<ExtractionProductFilter>): ExtractionProductFilter {
+    return ExtractionProductFilter.fromObject(filter);
+  }
+
 }

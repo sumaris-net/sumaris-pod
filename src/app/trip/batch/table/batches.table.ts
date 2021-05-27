@@ -5,22 +5,33 @@ import {AppMeasurementsTable} from "../../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
 import {UsageMode} from "../../../core/services/model/settings.model";
 import {MeasurementValuesUtils} from "../../services/model/measurement.model";
-import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
+import {TaxonGroupRef, TaxonNameRef} from "../../../referential/services/model/taxon.model";
 import {Batch} from "../../services/model/batch.model";
-import {Operation} from "../../services/model/trip.model";
 import {Landing} from "../../services/model/landing.model";
 import {AcquisitionLevelCodes, PmfmLabelPatterns} from "../../../referential/services/model/model.enum";
 import {IPmfm, PmfmUtils} from "../../../referential/services/model/pmfm.model";
-import {DenormalizedPmfmStrategy, getPmfmName} from "../../../referential/services/model/pmfm-strategy.model";
+import {getPmfmName} from "../../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {BatchModal} from "../modal/batch.modal";
-import {IReferentialRef, ReferentialRef, referentialToString} from "../../../core/services/model/referential.model";
+import {IReferentialRef, referentialToString} from "../../../core/services/model/referential.model";
 import {environment} from "../../../../environments/environment";
-import {LoadResult} from "../../../shared/services/entity-service.class";
+import {FilterFn, LoadResult} from "../../../shared/services/entity-service.class";
+import {EntityFilter} from "../../../core/services/model/filter.model";
+import {Operation} from "../../services/model/operation.model";
+import {isInstanceOf} from "../../../core/services/model/entity.model";
 
-export interface BatchFilter {
+export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
   operationId?: number;
   landingId?: number;
+
+  asFilterFn<E extends Batch>(): FilterFn<E> {
+    return (data) =>
+      (isNil(this.operationId) || data.operationId === this.operationId)
+
+      // TODO enable this:
+      // && (isNil(this.landingId) || data.landingId === this.landingId))
+      ;
+  }
 }
 
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
@@ -36,7 +47,7 @@ export const DATA_TYPE_ACCESSOR = new InjectionToken<new() => Batch>('BatchesTab
     {provide: ValidatorService, useValue: null},  // important: do NOT use validator, to be sure to keep all PMFMS, and not only displayed pmfms
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService<Batch, BatchFilter>(Batch, {
+      useFactory: () => new InMemoryEntitiesService<Batch, BatchFilter>(Batch, BatchFilter, {
         equals: Batch.equals
       })
     },
@@ -92,7 +103,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     return this._dirty || this.memoryDataService.dirty;
   }
 
-  @Input() defaultTaxonGroup: ReferentialRef;
+  @Input() defaultTaxonGroup: TaxonGroupRef;
   @Input() defaultTaxonName: TaxonNameRef;
 
 
@@ -144,9 +155,9 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
   setParent(data: Operation | Landing) {
     if (!data) {
       this.setFilter({} as F);
-    } else if (data instanceof Operation) {
+    } else if (isInstanceOf(data, Operation)) {
       this.setFilter({operationId: data.id} as F);
-    } else if (data instanceof Landing) {
+    } else if (isInstanceOf(data, Landing)) {
       this.setFilter({landingId: data.id} as F);
     }
   }
@@ -220,7 +231,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     this.markAsLoaded();
 
     // Exit if empty
-    if (!(data instanceof Batch)) {
+    if (!isInstanceOf(data, Batch)) {
       return undefined;
     }
 

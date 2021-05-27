@@ -1,7 +1,10 @@
 import {DataEntity} from "./model/data-entity.model";
 import {FormErrors} from "../../core/form/form.utils";
 
-export interface IDataEntityQualityService<T extends DataEntity<T>, O = any> {
+export interface IDataEntityQualityService<
+  T extends DataEntity<T, ID>,
+  ID = number,
+  O = any> {
 
   control(data: T, opts?: O): Promise<FormErrors>;
   terminate(data: T): Promise<T>;

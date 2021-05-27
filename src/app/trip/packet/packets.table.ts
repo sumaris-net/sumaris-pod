@@ -9,7 +9,7 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from "@angular/common";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {BehaviorSubject} from "rxjs";
-import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {PacketModal} from "./packet.modal";
 import {PacketSaleModal} from "../sale/packet-sale.modal";
 import {isNil, isNotEmptyArray} from "../../shared/functions";
@@ -26,16 +26,14 @@ import {ProgramRefService} from "../../referential/services/program-ref.service"
   providers: [
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService<Packet, PacketFilter>(Packet, {
-        filterFnFactory: PacketFilter.searchFilter
-      })
+      useFactory: () => new InMemoryEntitiesService(Packet, PacketFilter)
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnInit {
 
-  @Input() $parents: BehaviorSubject<IWithPacketsEntity<any>[]>;
+  @Input() $parents: BehaviorSubject<IWithPacketsEntity<any, any>[]>;
   @Input() parentAttributes: string[];
 
   @Input() set parentFilter(packetFilter: PacketFilter) {

@@ -6,7 +6,7 @@ import {
   ExtractionColumn,
   ExtractionFilter,
   ExtractionType
-} from "../services/model/extraction.model";
+} from "../services/model/extraction-type.model";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {first, mergeMap} from "rxjs/operators";
 import {firstNotNilPromise} from "../../shared/observables";
@@ -19,7 +19,7 @@ import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {AppTabEditor} from "../../core/form/tab-editor.class";
-import {AggregationType} from "../services/model/aggregation-type.model";
+import {ExtractionProduct} from "../services/model/extraction-product.model";
 import {ExtractionUtils} from "../services/extraction.utils";
 import {ExtractionHelpModal} from "../help/help.modal";
 
@@ -27,7 +27,8 @@ import {ExtractionHelpModal} from "../help/help.modal";
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Directive()
-export abstract class ExtractionAbstractPage<T extends ExtractionType | AggregationType> extends AppTabEditor {
+// tslint:disable-next-line:directive-class-suffix
+export abstract class ExtractionAbstractPage<T extends ExtractionType | ExtractionProduct> extends AppTabEditor {
 
   type: T;
   form: FormGroup;

@@ -1,13 +1,13 @@
 /* -- Extraction -- */
 
 import {arraySize, isNotEmptyArray} from "../../shared/functions";
-import {ExtractionColumn, ExtractionFilter, ExtractionType} from "./model/extraction.model";
-import {AggregationType} from "./model/aggregation-type.model";
+import {ExtractionColumn, ExtractionFilter, ExtractionType} from "./model/extraction-type.model";
+import {ExtractionProduct} from "./model/extraction-product.model";
 
 export const SPATIAL_COLUMNS: string[] = [
-  //'area', FIXME no geometries in Pod
+  //'area', FIXME no area geometries in Pod
   'statistical_rectangle',
-  'sub_polygon',
+  //'sub_polygon', FIXME no sub_polygon in Pod
   'square'
 ];
 export const TIME_COLUMNS:   string[] = ['year', 'quarter', 'month'];
@@ -20,7 +20,8 @@ export class ExtractionUtils {
     spatialColumns: ExtractionColumn[];
     aggColumns: ExtractionColumn[];
     techColumns: ExtractionColumn[];
-    criteriaColumns: ExtractionColumn[];} {
+    criteriaColumns: ExtractionColumn[];
+  } {
 
     const timeColumns = columns.filter(c => TIME_COLUMNS.includes(c.columnName));
     const spatialColumns = columns.filter(c => SPATIAL_COLUMNS.includes(c.columnName));
@@ -54,7 +55,7 @@ export class ExtractionUtils {
     };
   }
 
-  static asQueryParams(type: ExtractionType|AggregationType, filter?: ExtractionFilter): any {
+  static asQueryParams(type: ExtractionType|ExtractionProduct, filter?: ExtractionFilter): any {
     const queryParams: any = {
       category: type && type.category,
       label: type && type.label

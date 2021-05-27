@@ -3,7 +3,7 @@ import {CoreModule} from '../core/core.module';
 import {VesselForm} from "./form/form-vessel";
 import {VesselPage} from "./page/vessel.page";
 import {VesselsTable} from "./list/vessels.table";
-import {VesselModal} from "./modal/modal-vessel";
+import {VesselModal} from "./modal/vessel-modal";
 import {VesselsPage} from "./list/vessels.page";
 import {TranslateModule} from "@ngx-translate/core";
 

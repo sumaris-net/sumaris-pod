@@ -3,7 +3,7 @@ import {EventEmitter, Inject, Injectable, InjectionToken, Optional} from "@angul
 import {Storage} from "@ionic/storage";
 import {Platform} from "@ionic/angular";
 import {catchError, first, switchMap, throttleTime} from "rxjs/operators";
-import {Entity} from "../model/entity.model";
+import {Entity, IEntity} from "../model/entity.model";
 import {isEmptyArray, isNilOrBlank} from "../../../shared/functions";
 import {LoadResult} from "../../../shared/services/entity-service.class";
 import {ENTITIES_STORAGE_KEY_PREFIX, EntityStorageLoadOptions, EntityStore, EntityStoreTypePolicy} from "./entity-store.class";
@@ -29,7 +29,7 @@ export class EntitiesStorage {
   private _startPromise: Promise<void>;
   private _subscription = new Subscription();
 
-  private _stores: { [key: string]: EntityStore<any> } = {};
+  private _stores: { [key: string]: EntityStore<any, any> } = {};
 
   private _$save = new EventEmitter(true);
   private _dirty = false;
@@ -194,7 +194,7 @@ export class EntitiesStorage {
     }
   }
 
-  async delete<T extends Entity<T>>(entity: T, opts?: {
+  async delete<T extends Entity<T, ID>, ID = number>(entity: T, opts?: {
     entityName?: string;
   }): Promise<T> {
     if (!entity) return undefined; // skip
@@ -207,7 +207,7 @@ export class EntitiesStorage {
     });
   }
 
-  async deleteById<T extends Entity<T>>(id: number, opts: {
+  async deleteById<T extends IEntity<T, ID>, ID = number>(id: ID, opts: {
     entityName: string;
     emitEvent?: boolean;
   }): Promise<T> {
@@ -218,7 +218,7 @@ export class EntitiesStorage {
 
     try {
       this.progressBarService.increase();
-      const entityStore = this.getEntityStore<T>(opts.entityName, {create: false});
+      const entityStore = this.getEntityStore<T, ID>(opts.entityName, {create: false});
       if (!entityStore) return undefined;
 
       const deletedEntity = entityStore.delete(id, opts);
@@ -453,20 +453,20 @@ export class EntitiesStorage {
 
   /* -- protected methods -- */
 
-  protected getEntityStore<T extends Entity<T>>(name: string, opts?: {
+  protected getEntityStore<T extends IEntity<T, ID>, ID = number>(name: string, opts?: {
     create?: boolean;
-  }): EntityStore<T> {
+  }): EntityStore<T, ID> {
     let store = this._stores[name];
     if (!store && (!opts || opts.create !== false)) {
       if (this._debug) console.debug(`[entities-storage] Creating store ${name}`);
       const typePolicy = this._typePolicies[name];
-      store = new EntityStore<T>(name, this.storage, typePolicy);
+      store = new EntityStore<T, ID>(name, this.storage, typePolicy);
       this._stores[name] = store;
     }
     return store;
   }
 
-  protected detectEntityName(entityOrName: string | Entity<any>): string {
+  protected detectEntityName(entityOrName: string | Entity<any, any>): string {
     if (!entityOrName) throw Error("Unable to detect entityName of object: " + entityOrName);
     if (typeof entityOrName === 'string') return entityOrName;
     if (entityOrName.__typename) {

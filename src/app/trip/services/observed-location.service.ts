@@ -1,9 +1,8 @@
 import {Injectable, Injector} from "@angular/core";
-import {EntitiesServiceWatchOptions, EntityServiceLoadOptions, FilterFn, IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
+import {EntitiesServiceWatchOptions, EntityServiceLoadOptions, IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
 import {AccountService} from "../../core/services/account.service";
 import {Observable} from "rxjs";
 import * as momentImported from "moment";
-import {Moment} from "moment";
 import {gql} from "@apollo/client/core";
 import {DataFragments, Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
@@ -12,124 +11,28 @@ import {GraphqlService} from "../../core/graphql/graphql.service";
 import {SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {AppFormUtils, FormErrors} from "../../core/form/form.utils";
 import {ObservedLocation} from "./model/observed-location.model";
-import {Beans, isEmptyArray, isNil, isNotEmptyArray, isNotNil, KeysEnum, toNumber} from "../../shared/functions";
-import {DataRootEntityUtils, SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNil, toNumber} from "../../shared/functions";
+import {DataRootEntityUtils} from "../../data/services/model/root-data-entity.model";
 import {SortDirection} from "@angular/material/sort";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {NetworkService} from "../../core/services/network.service";
 import {IDataEntityQualityService} from "../../data/services/data-quality-service.class";
-import {Entity} from "../../core/services/model/entity.model";
-import {LandingFilter, LandingFragments, LandingService} from "./landing.service";
+import {Entity, EntityUtils} from "../../core/services/model/entity.model";
+import {LandingFragments, LandingService} from "./landing.service";
 import {IDataSynchroService, RootDataSynchroService} from "../../data/services/root-data-synchro-service.class";
 import {chainPromises} from "../../shared/observables";
 import {Landing} from "./model/landing.model";
 import {ObservedLocationValidatorService} from "./validator/observed-location.validator";
 import {environment} from "../../../environments/environment";
 import {JobUtils} from "../../shared/services/job.utils";
-import {fromDateISOString, toDateISOString} from "../../shared/dates";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {OBSERVED_LOCATION_FEATURE_NAME} from "./config/trip.config";
-import DurationConstructor = moment.unitOfTime.DurationConstructor;
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {EntitySaveOptions} from "../../referential/services/base-entity-service.class";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VESSEL_FEATURE_NAME} from "../../vessel/services/config/vessel.config";
-
-const moment = momentImported;
-
-
-export class ObservedLocationFilter {
-  programLabel?: string;
-  startDate?: Date | Moment;
-  endDate?: Date | Moment;
-  locationId?: number;
-  recorderDepartmentId?: number;
-  recorderPersonId?: number;
-  synchronizationStatus?: SynchronizationStatus;
-
-  static isEmpty(f: ObservedLocationFilter|any): boolean {
-    return Beans.isEmpty<ObservedLocationFilter>({...f, synchronizationStatus: null}, ObservedLocationFilterKeys, {
-      blankStringLikeEmpty: true
-    });
-  }
-
-  static searchFilter<T extends ObservedLocation>(f: ObservedLocationFilter): (T) => boolean {
-    if (!f) return undefined;
-
-    const filterFns: FilterFn<T>[] = [];
-
-    // Program
-    if (f.programLabel) {
-      filterFns.push(t => (t.program && t.program.label === f.programLabel));
-    }
-
-    // Location
-    if (isNotNil(f.locationId)) {
-      filterFns.push(t => (t.location && t.location.id === f.locationId));
-    }
-
-    // Start/end period
-    const startDate = fromDateISOString(f.startDate);
-    let endDate = fromDateISOString(f.endDate);
-    if (startDate) {
-      filterFns.push(t => t.endDateTime ? startDate.isSameOrBefore(t.endDateTime) : startDate.isSameOrBefore(t.startDateTime));
-    }
-    if (endDate) {
-      endDate = endDate.add(1, 'day');
-      filterFns.push(t => t.startDateTime && endDate.isAfter(t.startDateTime));
-    }
-
-    // Recorder department
-    if (isNotNil(f.recorderDepartmentId)) {
-      filterFns.push(t => (t.recorderDepartment && t.recorderDepartment.id === f.recorderDepartmentId));
-    }
-
-    // Recorder person
-    if (isNotNil(f.recorderPersonId)) {
-      filterFns.push(t => (t.recorderPerson && t.recorderPerson.id === f.recorderPersonId));
-    }
-
-    // Synchronization status
-    if (f.synchronizationStatus) {
-      if (f.synchronizationStatus === 'SYNC') {
-        filterFns.push(t => t.synchronizationStatus === 'SYNC' || (!t.synchronizationStatus && t.id >= 0));
-      }
-      else {
-        filterFns.push(t => t.synchronizationStatus && t.synchronizationStatus !== 'SYNC' || t.id < 0);
-      }
-    }
-
-    if (!filterFns.length) return undefined;
-
-    return (entity) => !filterFns.find(fn => !fn(entity));
-  }
-
-  /**
-   * Clean a filter, before sending to the pod (e.g remove 'synchronizationStatus')
-   * @param f
-   */
-  static asPodObject(f: ObservedLocationFilter): any {
-    if (!f) return f;
-    return {
-      ...f,
-      // Serialize all dates
-      startDate: f && toDateISOString(f.startDate),
-      endDate: f && toDateISOString(f.endDate),
-      // Remove fields that not exists in pod
-      synchronizationStatus: undefined
-    };
-  }
-}
-
-export const ObservedLocationFilterKeys: KeysEnum<ObservedLocationFilter> = {
-  programLabel: true,
-  startDate: true,
-  endDate: true,
-  locationId: true,
-  recorderDepartmentId: true,
-  recorderPersonId: true,
-  synchronizationStatus: true
-};
+import {LandingFilter} from "./filter/landing.filter";
+import {ObservedLocationFilter, ObservedLocationOfflineFilter} from "./filter/observed-location.filter";
 
 
 export interface ObservedLocationSaveOptions extends EntitySaveOptions {
@@ -140,26 +43,6 @@ export interface ObservedLocationSaveOptions extends EntitySaveOptions {
 export interface ObservedLocationLoadOptions extends EntityServiceLoadOptions {
   withLanding?: boolean;
   toEntity?: boolean;
-}
-
-export class ObservedLocationOfflineFilter  {
-  programLabel?: string;
-  startDate?: Date | Moment;
-  endDate?: Date | Moment;
-  locationIds?: number[];
-  periodDuration?: number;
-  periodDurationUnit?: DurationConstructor;
-
-  public static asLandingFilter(f: ObservedLocationOfflineFilter): LandingFilter {
-    if (!f) return undefined;
-    const result = {
-      ...f,
-      // Remove unused attribute
-      periodDuration: undefined,
-      periodDurationUnit: undefined
-    };
-    return <LandingFilter>result;
-  }
 }
 
 export const ObservedLocationFragments = {
@@ -336,12 +219,12 @@ const ObservedLocationSubscriptions = {
 
 @Injectable({providedIn: "root"})
 export class ObservedLocationService
-  extends RootDataSynchroService<ObservedLocation, ObservedLocationFilter, ObservedLocationLoadOptions>
+  extends RootDataSynchroService<ObservedLocation, ObservedLocationFilter, number, ObservedLocationLoadOptions>
   implements
     IEntitiesService<ObservedLocation, ObservedLocationFilter>,
-    IEntityService<ObservedLocation, ObservedLocationLoadOptions>,
-    IDataEntityQualityService<ObservedLocation>,
-    IDataSynchroService<ObservedLocation, ObservedLocationLoadOptions>
+    IEntityService<ObservedLocation, number, ObservedLocationLoadOptions>,
+    IDataEntityQualityService<ObservedLocation, number>,
+    IDataSynchroService<ObservedLocation, number, ObservedLocationLoadOptions>
 {
 
   protected loading = false;
@@ -355,12 +238,10 @@ export class ObservedLocationService
     protected validatorService: ObservedLocationValidatorService,
     protected landingService: LandingService
   ) {
-    super(injector, ObservedLocation, {
+    super(injector, ObservedLocation, ObservedLocationFilter, {
       queries: ObservedLocationQueries,
       mutations: ObservedLocationMutations,
-      subscriptions: ObservedLocationSubscriptions,
-      filterAsObjectFn: ObservedLocationFilter.asPodObject,
-      filterFnFactory: ObservedLocationFilter.searchFilter
+      subscriptions: ObservedLocationSubscriptions
     });
 
     this._featureName = OBSERVED_LOCATION_FEATURE_NAME;
@@ -380,24 +261,26 @@ export class ObservedLocationService
       return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
 
+    dataFilter = this.asFilter(dataFilter);
+
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
       sortBy: sortBy || (opts && opts.trash ? 'updateDate' : 'startDateTime'),
       sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
-      filter: ObservedLocationFilter.asPodObject(dataFilter)
+      filter: dataFilter && dataFilter.asPodObject()
     };
 
     let now = Date.now();
     console.debug("[observed-location-service] Watching observed locations... using options:", variables);
 
-    return this.mutableWatchQuery<{ data: ObservedLocation[]; total: number }>({
+    return this.mutableWatchQuery<LoadResult<ObservedLocation>>({
         queryName: 'LoadAll',
         query: this.queries.loadAllWithTotal,
         arrayFieldName: 'data',
         totalFieldName: 'total',
-        insertFilterFn: ObservedLocationFilter.searchFilter(dataFilter),
+        insertFilterFn: dataFilter && dataFilter.asFilterFn(),
         variables: variables,
         error: {code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "ERROR.LOAD_ERROR"},
         fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
@@ -454,7 +337,9 @@ export class ObservedLocationService
 
         if (opts && opts.withLanding) {
           data.landings = await this.entities.loadAll<Landing>(Landing.TYPENAME, {
-            filter: LandingFilter.searchFilter<Landing>({observedLocationId: id})
+            filter: LandingFilter.fromObject({observedLocationId: id}).asFilterFn()
+          }, {
+            fullLoad: true
           });
         }
       }
@@ -822,7 +707,7 @@ export class ObservedLocationService
   }): Observable<number>[] {
 
     const feature = this.settings.getOfflineFeature(this.featureName);
-    const landingFilter = ObservedLocationOfflineFilter.asLandingFilter(feature && feature.filter);
+    const landingFilter = ObservedLocationOfflineFilter.toLandingFilter(feature && feature.filter);
     if (landingFilter) {
       return [
         ...super.getImportJobs(opts),

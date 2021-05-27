@@ -4,6 +4,8 @@ import {filter, mergeMap} from "rxjs/operators";
 import {isNotEmptyArray, isNotNil} from "../functions";
 import {FilterFnFactory, IEntitiesService, LoadResult} from "./entity-service.class";
 import {SortDirection} from "@angular/material/sort";
+import {EntityFilter, IEntityFilter} from "../../core/services/model/filter.model";
+import {Directive} from "@angular/core";
 
 export interface InMemoryEntitiesServiceOptions<T, F> {
   onSort?: (data: T[], sortBy?: string, sortDirection?: SortDirection) => T[];
@@ -14,7 +16,13 @@ export interface InMemoryEntitiesServiceOptions<T, F> {
   onFilter?: (data: T[], filter: F) => T[] | Promise<T[]>;
 }
 
-export class InMemoryEntitiesService<T extends IEntity<T>, F = any> implements IEntitiesService<T, F> {
+@Directive()
+// tslint:disable-next-line:directive-class-suffix
+export class InMemoryEntitiesService<
+  T extends IEntity<T, ID>,
+  F = any,
+  ID = number>
+  implements IEntitiesService<T, F, ID> {
 
   private _dataSubject = new BehaviorSubject<LoadResult<T>>(undefined);
 
@@ -51,6 +59,7 @@ export class InMemoryEntitiesService<T extends IEntity<T>, F = any> implements I
 
   constructor(
     protected dataType: new() => T,
+    protected filterType: new() => F,
     options?: InMemoryEntitiesServiceOptions<T, F>
   ) {
     options = {
@@ -65,10 +74,22 @@ export class InMemoryEntitiesService<T extends IEntity<T>, F = any> implements I
     this._onSaveFn = options.onSave;
     this._equalsFn = options.equals;
     this._onFilterFn = options.onFilter;
-    this._filterFnFactory = options.filterFnFactory;
+    this._filterFnFactory = options.filterFnFactory || ((f) => {
+      const filter = this.asFilter(f) as F;
+      if (filter instanceof EntityFilter) {
+        return filter.asFilterFn();
+      }
+      return undefined;
+    });
 
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
+  }
+
+  ngOnDestroy() {
+    console.log('TODO Destroying In MemoryDataService...');
+    this._dataSubject.complete();
+    this._dataSubject.unsubscribe();
   }
 
   watchAll(
@@ -110,6 +131,10 @@ export class InMemoryEntitiesService<T extends IEntity<T>, F = any> implements I
             const promiseOrData = this._onFilterFn(data, filterData);
             data = ((promiseOrData instanceof Promise)) ? await promiseOrData : promiseOrData;
           }
+
+          // Apply page
+          // TODO
+          // Add
 
           return {
             data,
@@ -189,6 +214,19 @@ export class InMemoryEntitiesService<T extends IEntity<T>, F = any> implements I
 
   connect(): Observable<LoadResult<T>> {
     return this._dataSubject;
+  }
+
+  asFilter(source: Partial<F>): F {
+    if (!source) return undefined;
+    if (source instanceof EntityFilter) return source as unknown as F;
+    const target = new this.filterType();
+    if (target instanceof EntityFilter) {
+      target.fromObject(source);
+    }
+    else {
+      Object.assign(target, source);
+    }
+    return target;
   }
 
   protected equals(d1: T, d2: T): boolean {

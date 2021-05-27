@@ -8,33 +8,25 @@ import {GraphqlService} from "../../core/graphql/graphql.service";
 import {isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {NetworkService} from "../../core/services/network.service";
 import {AccountService} from "../../core/services/account.service";
-import {
-  DataEntity,
-  DataEntityAsObjectOptions,
-  SAVE_AS_OBJECT_OPTIONS,
-  SAVE_LOCALLY_AS_OBJECT_OPTIONS,
-  SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
-} from "../../data/services/model/data-entity.model";
+import {DataEntity, DataEntityAsObjectOptions, SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {Operation, OperationFromObjectOptions, VesselPosition} from "./model/trip.model";
+import {VesselPosition} from "./model/trip.model";
 import {Measurement} from "./model/measurement.model";
 import {Batch, BatchUtils} from "./model/batch.model";
 import {Sample} from "./model/sample.model";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {
-  EntitiesServiceWatchOptions, EntityServiceLoadOptions,
-  FilterFn,
-  IEntitiesService,
-  IEntityService, LoadResult
-} from "../../shared/services/entity-service.class";
+import {EntitiesServiceWatchOptions, EntityServiceLoadOptions, FilterFn, IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
 import {BaseGraphqlService, QueryVariables} from "../../core/services/base-graphql-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {chainPromises, firstNotNilPromise} from "../../shared/observables";
 import {Department} from "../../core/services/model/department.model";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {environment} from "../../../environments/environment";
+import {DataEntityFilter} from "../../data/services/model/data-filter.model";
+import {Landing} from "./model/landing.model";
+import {Operation, OperationFromObjectOptions} from "./model/operation.model";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -126,36 +118,71 @@ export const OperationFragments = {
   `
 };
 
-export class OperationFilter {
+export class OperationFilter extends DataEntityFilter<OperationFilter, Operation> {
 
-  static searchFilter<T extends Operation>(f: OperationFilter): (T) => boolean {
-    if (!f) return undefined;
+  tripId?: number;
+  excludeId?: number;
 
-    const filterFns: FilterFn<T>[] = [];
+  static fromObject(source: any) {
+    if (!source || source instanceof OperationFilter) return source;
+    const target = new OperationFilter();
+    target.fromObject(source);
+    return target;
+  }
+
+  static searchFilter(source: any): FilterFn<Landing> {
+    return source && OperationFilter.fromObject(source).asFilterFn();
+  }
+
+  fromObject(source: any, opts?: any) {
+    super.fromObject(source, opts);
+    this.tripId = +source.tripId;
+    this.excludeId = +source.excludeId;
+  }
+
+  asPodObject(): any {
+    return {
+      tripId: this.tripId,
+      // Not include in Pod
+      //excludeId: this.excludeId
+    };
+  }
+
+  asFilterFn<E extends Operation>(): FilterFn<E> {
+    const filterFns: FilterFn<E>[] = [];
+
+    const inheritedFn = super.asFilterFn();
+    if (inheritedFn) filterFns.push(inheritedFn);
 
     // Exclude id
-    if (isNotNil(f.excludeId)) {
-      const excludeId = +(f.excludeId);
+    if (isNotNil(this.excludeId)) {
+      const excludeId = this.excludeId;
       filterFns.push(o => o.id !== excludeId);
     }
 
     // Trip
-    if (isNotNil(f.tripId)) {
-      const tripId = +(f.tripId);
+    if (isNotNil(this.tripId)) {
+      const tripId = this.tripId;
       filterFns.push((o => (isNotNil(o.tripId) && o.tripId === tripId)
         || (o.trip && o.trip.id === tripId)));
     }
-
 
     if (!filterFns.length) return undefined;
 
     return (entity) => !filterFns.find(fn => !fn(entity));
   }
 
-  tripId?: number;
-  excludeId?: number;
 }
 
+const LoadAllLightWithTotalQuery: any = gql`
+  query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...LightOperationFragment
+    }
+    total: operationsCount(filter: $filter)
+  }
+  ${OperationFragments.lightOperation}
+`;
 const LoadAllLightQuery: any = gql`
   query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -213,6 +240,16 @@ const sortByEndDateOrStartDateFn = (n1: Operation, n2: Operation) => {
   return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
 };
 
+const sortByAscRankOrderOnPeriod = (n1: Operation, n2: Operation) => {
+  return n1.rankOrderOnPeriod === n2.rankOrderOnPeriod ? 0 :
+    (n1.rankOrderOnPeriod > n2.rankOrderOnPeriod ? 1 : -1);
+};
+
+const sortByDescRankOrderOnPeriod = (n1: Operation, n2: Operation) => {
+  return n1.rankOrderOnPeriod === n2.rankOrderOnPeriod ? 0 :
+    (n1.rankOrderOnPeriod > n2.rankOrderOnPeriod ? -1 : 1);
+};
+
 export declare interface OperationSaveOptions {
   tripId?: number;
   computeBatchRankOrder?: boolean;
@@ -249,11 +286,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     this._debug = !environment.production;
   }
 
-  async loadAllByTrip(filter?: OperationFilter & { tripId: number; }, opts?: OperationServiceWatchOptions): Promise<LoadResult<Operation>> {
+  async loadAllByTrip(filter?: (OperationFilter | any) & { tripId: number; }, opts?: OperationServiceWatchOptions): Promise<LoadResult<Operation>> {
     return firstNotNilPromise(this.watchAllByTrip(filter, opts));
   }
 
-  watchAllByTrip(filter?: OperationFilter & { tripId: number; }, opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
+  watchAllByTrip(filter?: (OperationFilter | any) & { tripId: number; }, opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
       return this.watchAll(0, -1, null, null, filter, opts);
   }
 
@@ -270,13 +307,15 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
            size: number,
            sortBy?: string,
            sortDirection?: SortDirection,
-           dataFilter?: OperationFilter,
+           dataFilter?: OperationFilter|any,
            opts?: OperationServiceWatchOptions
   ): Observable<LoadResult<Operation>> {
 
+    dataFilter = OperationFilter.fromObject(dataFilter);
+
     // Load offline
-    const offlineData = this.network.offline || (dataFilter && dataFilter.tripId < 0) || false;
-    if (offlineData) {
+    const offline = this.network.offline || (dataFilter && dataFilter.tripId < 0) || false;
+    if (offline) {
       return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
 
@@ -291,18 +330,21 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
       sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
-      filter: dataFilter
+      filter: dataFilter && dataFilter.asPodObject()
     };
 
     let now = this._debug && Date.now();
     if (this._debug) console.debug("[operation-service] Loading operations... using options:", variables);
 
-    const query = (!opts || opts.fullLoad !== true) ? LoadAllLightQuery : LoadAllFullQuery;
-    return this.mutableWatchQuery<{data: any[]}>({
+    const withTotal = opts && opts.withTotal === true;
+    const query = (!opts || opts.fullLoad !== true) ? (
+      withTotal ? LoadAllLightWithTotalQuery : LoadAllLightQuery) : LoadAllFullQuery;
+    return this.mutableWatchQuery<LoadResult<any>>({
       queryName: 'LoadAll',
       query: query,
       arrayFieldName: 'data',
-      insertFilterFn: OperationFilter.searchFilter<Operation>(dataFilter),
+      totalFieldName: withTotal ? 'total' : undefined,
+      insertFilterFn: dataFilter.asFilterFn(),
       variables: variables,
       error: {code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR"},
       fetchPolicy: opts && opts.fetchPolicy || undefined
@@ -311,22 +353,21 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       // Skip update during load()
       filter(() => !this.loading),
 
-      map(({data}) => {
-        const entities = (data || []).map(source => Operation.fromObject(source, opts));
+      map(({data, total}) => {
+        const entities = (!opts || opts.toEntity !== false) ?
+          (data || []).map(source => Operation.fromObject(source, opts))
+        : (data || []) as Operation[];
         if (now) {
           console.debug(`[operation-service] Loaded ${entities.length} operations in ${Date.now() - now}ms`);
           now = undefined;
         }
 
         // Compute rankOrder and re-sort (if enable AND all data fetched)
-        if (offset === 0 && size === -1 && (!opts || opts.computeRankOrder !== false)) {
-          this.computeRankOrderAndSort(entities, sortBy, sortDirection, dataFilter);
+        if (!opts || opts.computeRankOrder !== false) {
+          this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter);
         }
 
-        return {
-          data: entities,
-          total: entities.length
-        };
+        return { data: entities, total };
       }));
   }
 
@@ -520,7 +561,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
 
     // Get remote ids, then delete remotely
-    const remoteEntities = (entities || []).filter(EntityUtils.isRemote)
+    const remoteEntities = (entities || []).filter(EntityUtils.isRemote);
     if (isNotEmptyArray(remoteEntities)) {
 
       const remoteIds = remoteEntities.map(e => e.id);
@@ -550,14 +591,14 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
    * @param tripId
    * @param opts
    */
-  async deleteLocally(filter: OperationFilter & { tripId: number; }): Promise<Operation[]> {
+  async deleteLocally(filter: (OperationFilter | any) & { tripId: number; }): Promise<Operation[]> {
     if (!filter || isNil(filter.tripId)) throw new Error("Missing arguments 'filter.tripId'");
 
     try {
       // Find operations to delete
       const res = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
-        filter: OperationFilter.searchFilter<Operation>(filter)
-      });
+        filter: OperationFilter.searchFilter(filter)
+      }, {fullLoad: false});
       const ids = (res && res.data || []).map(o => o.id);
       if (isEmptyArray(ids)) return undefined; // Skip
 
@@ -580,6 +621,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
                  dataFilter?: OperationFilter,
                  opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
 
+    dataFilter = OperationFilter.fromObject(dataFilter);
+
     if (!dataFilter || isNil(dataFilter.tripId)) {
       console.warn("[operation-service] Trying to load operations without 'filter.tripId'. Skipping.");
       return EMPTY;
@@ -592,24 +635,23 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
       sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
-      filter: OperationFilter.searchFilter<Operation>(dataFilter)
+      filter: dataFilter.asFilterFn()
     };
 
     if (this._debug) console.debug("[operation-service] Loading operations locally... using options:", variables);
     return this.entities.watchAll<Operation>(Operation.TYPENAME, variables, {fullLoad: opts && opts.fullLoad})
-      .pipe(map(res => {
-        const data = (res && res.data || []).map(source => Operation.fromObject(source, opts));
+      .pipe(map(({data, total}) => {
+        const entities = (!opts || opts.toEntity !== false) ?
+          (data || []).map(source => Operation.fromObject(source, opts))
+          : (data || []) as Operation[];
 
         // Compute rankOrder and re-sort (if enable AND all data fetched)
-        if (offset === 0 && size === -1 && (!opts || opts.computeRankOrder !== false)) {
-          this.computeRankOrderAndSort(data, sortBy, sortDirection, dataFilter);
+        if (!opts || opts.computeRankOrder !== false) {
+          this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter);
         }
 
-        return {
-          data,
-          total: data.length
-        };
-      }))
+        return { data: entities, total };
+      }));
   }
 
   /**
@@ -639,6 +681,10 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           return existingOperation ? existingOperation.rankOrderOnPeriod : null;
         })
       );
+  }
+
+  asFilter(source: Partial<OperationFilter>): OperationFilter {
+    return OperationFilter.fromObject(source);
   }
 
   /* -- protected methods -- */
@@ -835,25 +881,22 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   }
 
   protected computeRankOrderAndSort(data: Operation[],
+                                    offset: number,
+                                    total: number,
                                     sortBy: string,
-                                    sortDirection: string,
+                                    sortDirection: SortDirection,
                                     filter?: OperationFilter) {
     // Compute rankOrderOnPeriod, by tripId
     if (filter && isNotNil(filter.tripId)) {
       const asc = (!sortDirection || sortDirection === 'asc');
-      let rankOrderOnPeriod = 1;
+      let rankOrderOnPeriod = asc ? 1 + offset : (total - offset - data.length + 1);
       // apply a sorted copy (do NOT change original order), then compute rankOrder
       data.slice().sort(sortByEndDateOrStartDateFn)
         .forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
 
-      // sort by rankOrderOnPeriod (aka id)
-      if (!sortBy || sortBy === 'id') {
-        const after = asc ? 1 : -1;
-        data.sort((a, b) => {
-          const valueA = a.rankOrderOnPeriod;
-          const valueB = b.rankOrderOnPeriod;
-          return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
-        });
+      // sort by rankOrderOnPeriod (received as 'id')
+      if (!sortBy || sortBy === 'id' || sortBy === 'endDateTime') {
+        data.sort(asc ? sortByAscRankOrderOnPeriod : sortByDescRankOrderOnPeriod);
       }
     }
   }

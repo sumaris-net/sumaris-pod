@@ -35,7 +35,7 @@
       <ion-searchbar #searchbar animated
                      type="search"
                      *ngIf="hasSearch"
-                     [hidden]="!showSearchBar"
+                     [class.cdk-visually-hidden]="!showSearchBar"
                      show-cancel-button="always"
                      (ionChange)="onSearch.emit($event)"
                      (ionCancel)="toggleSearchBar()">
@@ -64,6 +64,6 @@
   </ion-toolbar>
 
   <!-- progress bar -->
-  <mat-progress-bar [color]="color" [mode]="$progressBarMode | async">
+  <mat-progress-bar [color]="color" [mode]="progressBarMode$ | async">
   </mat-progress-bar>
 </ion-header>

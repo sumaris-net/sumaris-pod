@@ -12,8 +12,8 @@ $ionicons-font-path: $font-path !default;
 // --------------------------------------------------
 // Import material icons
 // --------------------------------------------------
-@import '~material-design-icons/iconfont/material-icons.css';
-
+$material-design-icons-font-directory-path: '~material-design-icons-iconfont/dist/fonts/';
+@import '~material-design-icons-iconfont/src/material-design-icons';
 
 mat-icon > span {
   position: absolute;

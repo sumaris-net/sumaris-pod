@@ -1,9 +1,9 @@
 import {Moment} from "moment";
 import {joinPropertiesPath} from "../../../shared/functions";
-import {Entity, EntityAsObjectOptions, EntityUtils} from "./entity.model";
+import {Entity, EntityAsObjectOptions, EntityUtils, IEntity} from "./entity.model";
 import {StatusIds} from "./model.enum";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {Person, personToString} from "./person.model";
+import {EntityClass} from "./entity.decorators";
 
 export function referentialToString(obj: Referential | any, properties?: string[]): string | undefined {
   return obj && obj.id && joinPropertiesPath(obj, properties || ['label', 'name']) || undefined;
@@ -37,44 +37,29 @@ export const DefaultStatusList: StatusValue[] = [
 ];
 
 
-export class Referential<T extends Referential<any> = Referential<any>, O extends ReferentialAsObjectOptions = ReferentialAsObjectOptions>
-    extends Entity<T, O> implements IReferentialRef {
+export abstract class BaseReferential<
+  T extends BaseReferential<any, ID, O>,
+  ID = number,
+  O extends ReferentialAsObjectOptions = ReferentialAsObjectOptions,
+  FO = any
+  >
+  extends Entity<T, ID, O, FO>
+  implements IReferentialRef<T, ID> {
 
-  label: string;
-  name: string;
-  description: string;
-  comments: string;
-  creationDate: Date | Moment;
-  statusId: number;
-  validityStatusId: number;
-  levelId: number;
-  parentId: number;
-  rankOrder: number;
-  entityName: string;
+  label: string = null;
+  name: string = null;
+  description: string = null;
+  comments: string = null;
+  creationDate: Date | Moment = null;
+  statusId: number = null;
+  validityStatusId: number = null;
+  levelId: number = null;
+  parentId: number = null;
+  rankOrder: number = null;
+  entityName: string = null;
 
-  constructor(data?: {
-    id?: number,
-    label?: string,
-    name?: string,
-    parentId?: number,
-    levelId?: number,
-    rankOrder?: number,
-    entityName?: string
-  }) {
-    super();
-    this.id = data && data.id;
-    this.label = data && data.label;
-    this.name = data && data.name;
-    this.parentId = data && data.parentId;
-    this.levelId = data && data.levelId;
-    this.rankOrder = data && data.rankOrder;
-    this.entityName = data && data.entityName;
-  }
-
-  clone(): T {
-    const target = new Referential<any>() as T;
-    target.fromObject(this);
-    return target;
+  constructor(__typename?: string) {
+    super(__typename);
   }
 
   asObject(opts?: O): any {
@@ -91,15 +76,15 @@ export class Referential<T extends Referential<any> = Referential<any>, O extend
     return target;
   }
 
-  fromObject(source: any) {
-    super.fromObject(source);
+  fromObject(source: any, opts?: FO) {
+    super.fromObject(source, opts);
     this.label = source.label;
     this.name = source.name;
     this.description = source.description;
     this.comments = source.comments;
     this.statusId = source.statusId;
     this.validityStatusId  = source.validityStatusId;
-    this.levelId = source.levelId && source.levelId !== 0 ? source.levelId : undefined; // Do not set as null (need for account.department, when regsiter)
+    this.levelId = source.levelId && source.levelId !== 0 ? source.levelId : undefined; // Do not set as null (need for account.department, when register)
     this.rankOrder = source.rankOrder;
     this.parentId = source.parentId;
     this.creationDate = fromDateISOString(source.creationDate);
@@ -111,7 +96,20 @@ export class Referential<T extends Referential<any> = Referential<any>, O extend
   }
 }
 
+@EntityClass({typename: 'ReferentialVO'})
+export class Referential extends BaseReferential<Referential> {
+
+  static fromObject: (source: any, opts?: any) => Referential;
+
+  clone(): Referential {
+    const target = new Referential();
+    target.fromObject(this);
+    return target;
+  }
+}
+
 export class ReferentialUtils {
+  // FIXME: remove this
   static fromObject(source: any): Referential {
     if (!source || source instanceof Referential) return source;
     const res = new Referential();
@@ -119,27 +117,30 @@ export class ReferentialUtils {
     return res as Referential;
   }
 
-  static isNotEmpty(obj: any | Referential<any> | ReferentialRef): boolean {
+  static isNotEmpty<T extends BaseReferential<any> | ReferentialRef>(obj: T|any): boolean {
     // A referential entity should always have a 'id' filled (can be negative is local and temporary)
     return EntityUtils.isNotEmpty(obj, 'id');
   }
 
-  static isNotEmptyReferential<T extends Referential<any> | ReferentialRef>(obj: any | Referential<any> | ReferentialRef): obj is T {
+  static isNotEmptyReferential<T extends BaseReferential<any> | ReferentialRef>(obj: T|any): obj is T {
     return EntityUtils.isNotEmpty(obj, 'id');
   }
 
-  static isEmpty(obj: any | Referential<any> | ReferentialRef): boolean {
+  static isEmpty<T extends BaseReferential<any> | ReferentialRef>(obj: T|any): boolean {
     return EntityUtils.isEmpty(obj, 'id');
   }
 
-  static equals(o1: any | Referential<any> | ReferentialRef, o2: any | Referential<any> | ReferentialRef): boolean {
+  static equals<T extends BaseReferential<any> | ReferentialRef>(o1: T|any, o2: T|any): boolean {
     return EntityUtils.equals(o1, o2, 'id');
   }
 
 }
 
-export declare interface IReferentialRef {
-  id: number;
+export declare interface IReferentialRef<
+  T extends IEntity<T, ID> = IEntity<any, any>,
+  ID = number
+  >
+  extends IEntity<T, ID> {
   label: string;
   name: string;
   levelId?: number;
@@ -169,40 +170,26 @@ export const SAVE_AS_OBJECT_OPTIONS: ReferentialAsObjectOptions = {
   keepLocalId: false
 };
 
-export class ReferentialRef<T extends ReferentialRef<any> = ReferentialRef<any>,
-    O extends ReferentialAsObjectOptions = ReferentialAsObjectOptions>
-    extends Entity<T, O>
-    implements IReferentialRef {
+@EntityClass({typename: 'ReferentialVO'})
+export class ReferentialRef<
+  T extends ReferentialRef<any, ID> = ReferentialRef<any, any>,
+  ID = number,
+  O extends ReferentialAsObjectOptions = ReferentialAsObjectOptions,
+  FO = any
+  >
+  extends Entity<T, ID, O, FO>
+  implements IReferentialRef<T, ID> {
 
-  static fromObject<T extends ReferentialRef<any> = ReferentialRef<any>>(source: any): T {
-    if (!source) return source;
-    if (source instanceof ReferentialRef) return source.clone() as T;
-    const res = new ReferentialRef<any>() as T;
-    res.fromObject(source);
-    return res;
-  }
+  static fromObject: (source: any, opts?: any) => ReferentialRef;
 
-  label: string;
-  name: string;
-  statusId: number;
-  entityName: string;
+  label: string = null;
+  name: string = null;
+  statusId: number = null;
+  levelId: number = null;
+  entityName: string = null;
 
-  constructor(data?: {
-    id?: number,
-    label?: string,
-    name?: string,
-    rankOrder?: number
-  }) {
-    super();
-    this.id = data && data.id;
-    this.label = data && data.label;
-    this.name = data && data.name;
-  }
-
-  clone(): T {
-    const target = new ReferentialRef() as T;
-    target.fromObject(this);
-    return target;
+  constructor() {
+    super(ReferentialRef.TYPENAME);
   }
 
   asObject(opts?: O): any {
@@ -219,11 +206,12 @@ export class ReferentialRef<T extends ReferentialRef<any> = ReferentialRef<any>,
     return target;
   }
 
-  fromObject(source: any) {
+  fromObject(source: any, opts?: FO) {
     super.fromObject(source);
+    this.entityName = source.entityName || this.entityName;
     this.label = source.label;
     this.name = source.name;
     this.statusId = source.statusId;
-    this.entityName = source.entityName;
+    this.levelId = source.levelId;
   }
 }

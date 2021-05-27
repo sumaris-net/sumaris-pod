@@ -63,7 +63,8 @@ export class BaseGraphqlServiceOptions {
 }
 
 @Directive()
-export abstract class BaseGraphqlService<T = any, F = any> {
+// tslint:disable-next-line:directive-class-suffix
+export abstract class BaseGraphqlService<T = any, F = any, ID = any> {
 
   protected _debug: boolean;
   protected _logPrefix: string;
@@ -167,7 +168,7 @@ export abstract class BaseGraphqlService<T = any, F = any> {
   }
 
   removeFromMutableCachedQueryByIds(cache: ApolloCache<any>, opts: FindMutableWatchQueriesOptions & {
-    ids: number|number[];
+    ids: ID|ID[];
   }): number {
     const queries = this.findMutableWatchQueries(opts);
     if (!queries.length )  return;

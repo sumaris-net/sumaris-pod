@@ -8,60 +8,37 @@ import {IWithProductsEntity, Product} from "./product.model";
 import {DataRootVesselEntity} from "../../../data/services/model/root-vessel-entity.model";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 import {isNotEmptyArray} from "../../../shared/functions";
+import {EntityUtils} from "../../../core/services/model/entity.model";
+import {EntityClass} from "../../../core/services/model/entity.decorators";
 
-
+@EntityClass({typename: 'SaleVO'})
 export class Sale extends DataRootVesselEntity<Sale>
   implements IWithProductsEntity<Sale> {
 
-  static TYPENAME = 'SaleVO';
+  static fromObject: (source, opts?: any) => Sale;
 
-  static fromObject(source: any): Sale {
-    if (!source) return null;
-    const res = new Sale();
-    res.fromObject(source);
-    return res;
-  }
-
-  startDateTime: Moment;
-  endDateTime: Moment;
-  saleLocation: ReferentialRef;
-  saleType: ReferentialRef;
-  observedLocationId: number;
-  tripId: number;
-  measurements: Measurement[];
-  samples: Sample[];
-  rankOrder: number;
-  observers: Person[];
-  products: Product[];
+  startDateTime: Moment = null;
+  endDateTime: Moment = null;
+  saleLocation: ReferentialRef = null;
+  saleType: ReferentialRef = null;
+  observedLocationId: number = null;
+  tripId: number = null;
+  measurements: Measurement[] = null;
+  samples: Sample[] = null;
+  rankOrder: number = null;
+  observers: Person[] = null;
+  products: Product[] = null;
 
   constructor() {
-    super();
-    this.__typename = Sale.TYPENAME;
-    this.saleLocation = new ReferentialRef();
-    this.saleType = new ReferentialRef();
-    this.measurements = [];
-    this.samples = [];
-    this.observers = [];
-    this.products = [];
+    super(Sale.TYPENAME);
   }
-
-  clone(): Sale {
-    const target = new Sale();
-    target.fromObject(this.asObject());
-    return target;
-  }
-
-  copy(target: Sale) {
-    target.fromObject(this);
-  }
-
 
   fromObject(source: any): Sale {
     super.fromObject(source);
     this.startDateTime = fromDateISOString(source.startDateTime);
     this.endDateTime = fromDateISOString(source.endDateTime);
-    source.saleLocation && this.saleLocation.fromObject(source.saleLocation);
-    source.saleType && this.saleType.fromObject(source.saleType);
+    this.saleLocation = source.saleLocation && ReferentialRef.fromObject(source.saleLocation);
+    this.saleType = source.saleType && ReferentialRef.fromObject(source.saleType);
     this.rankOrder = source.rankOrder;
     this.tripId = source.tripId;
     this.observedLocationId = source.observedLocationId;

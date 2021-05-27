@@ -8,16 +8,16 @@ import {StatusIds} from "../../../core/services/model/model.enum";
 
 /* -- Interface -- */
 
-export interface IWithRecorderDepartmentEntity<T> extends IEntity<T> {
+export interface IWithRecorderDepartmentEntity<T, ID = number> extends IEntity<T, ID> {
   recorderDepartment: Department|ReferentialRef|Referential;
 }
-export interface IWithRecorderPersonEntity<T> extends IEntity<T> {
+export interface IWithRecorderPersonEntity<T, ID = number> extends IEntity<T, ID> {
   recorderPerson: Person;
 }
-export interface IWithObserversEntity<T> extends IEntity<T> {
+export interface IWithObserversEntity<T, ID = number> extends IEntity<T, ID> {
   observers: Person[];
 }
-export interface IWithProgramEntity<T> extends IEntity<T> {
+export interface IWithProgramEntity<T, ID = number> extends IEntity<T, ID> {
   program: Referential | any;
   recorderPerson?: Person;
   recorderDepartment: Referential | any;

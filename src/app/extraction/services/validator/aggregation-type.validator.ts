@@ -1,19 +1,19 @@
 import {Injectable} from "@angular/core";
 import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {SharedValidators} from "../../../shared/validator/validators";
-import {AggregationStrata, AggregationType} from "../model/aggregation-type.model";
+import {AggregationStrata, ExtractionProduct} from "../model/extraction-product.model";
 import {AppValidatorService} from "../../../core/services/validator/base.validator.class";
 import {toBoolean, toNumber} from "../../../shared/functions";
 
 @Injectable({providedIn: 'root'})
-export class AggregationTypeValidatorService extends AppValidatorService<AggregationType> {
+export class AggregationTypeValidatorService extends AppValidatorService<ExtractionProduct> {
 
   constructor(
     protected formBuilder: FormBuilder) {
     super(formBuilder);
   }
 
-  getFormGroup(data?: AggregationType): FormGroup {
+  getFormGroup(data?: ExtractionProduct): FormGroup {
     return this.formBuilder.group({
       __typename: ['AggregationTypeVO'],
       id: [data && data.id || null],
@@ -36,7 +36,7 @@ export class AggregationTypeValidatorService extends AppValidatorService<Aggrega
     });
   }
 
-  getStratumArray(data?: AggregationType): FormArray {
+  getStratumArray(data?: ExtractionProduct): FormArray {
     return this.formBuilder.array(
       (data && data.stratum || []).map(this.getStrataFormGroup)
     );

@@ -33,7 +33,7 @@ import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {PmfmService} from "../../referential/services/pmfm.service";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
 import {PmfmIds} from "../../referential/services/model/model.enum";
-import {EntityUtils} from "../../core/services/model/entity.model";
+import {EntityUtils, isInstanceOf} from "../../core/services/model/entity.model";
 
 const moment = momentImported;
 
@@ -166,7 +166,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       const queryParams = this.route.snapshot.queryParams;
       data.program = this.parent.program;
       data.observers = this.parent.observers;
-      if (this.parent instanceof ObservedLocation) {
+      if (isInstanceOf(this.parent, ObservedLocation)) {
         data.location = this.parent.location;
         data.dateTime = this.parent.startDateTime || this.parent.endDateTime;
         data.tripId = undefined;
@@ -181,7 +181,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         // Define back link
         this.defaultBackHref = `/observations/${this.parent.id}?tab=1`;
       }
-      else if (this.parent instanceof Trip) {
+      else if (isInstanceOf(this.parent, Trip)) {
         data.vesselSnapshot = this.parent.vesselSnapshot;
         data.location = this.parent.returnLocation || this.parent.departureLocation;
         data.dateTime = this.parent.returnDateTime || this.parent.departureDateTime;

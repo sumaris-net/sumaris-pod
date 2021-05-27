@@ -1,39 +1,20 @@
-import {
-  AfterViewInit,
-  Directive,
-  EventEmitter,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output,
-  ViewChild
-} from "@angular/core";
+import {AfterViewInit, Directive, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort, MatSortable, SortDirection} from "@angular/material/sort";
 import {MatTable} from "@angular/material/table";
 import {BehaviorSubject, EMPTY, merge, Observable, of, Subject, Subscription} from 'rxjs';
-import {
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
-  filter,
-  mergeMap,
-  startWith,
-  switchMap,
-  tap
-} from "rxjs/operators";
+import {catchError, debounceTime, distinctUntilChanged, filter, mergeMap, startWith, switchMap, tap} from "rxjs/operators";
 import {TableElement} from "@e-is/ngx-material-table";
 import {EntitiesTableDataSource} from "./entities-table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
-import {Entity} from "../services/model/entity.model";
+import {IEntity} from "../services/model/entity.model";
 import {AlertController, ModalController, Platform, ToastController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ColumnItem, TableSelectColumnsComponent} from './table-select-columns.component';
 import {Location} from '@angular/common';
 import {ErrorCodes} from "../services/errors";
 import {AppFormUtils, IAppForm} from "../form/form.utils";
-import {isNil, isNotNil, toBoolean} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../services/platform.service";
@@ -41,13 +22,12 @@ import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {Alerts} from "../../shared/alerts";
 import {createPromiseEventEmitter, emitPromiseEvent} from "../../shared/events";
 import {Environment} from "../../../environments/environment.class";
-import {
-  MatAutocompleteConfigHolder,
-  MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig
-} from "../../shared/material/autocomplete/material.autocomplete";
+import {MatAutocompleteConfigHolder, MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "../../shared/material/autocomplete/material.autocomplete";
+import {firstFalsePromise} from "../../shared/observables";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const SETTINGS_SORTED_COLUMN = "sortedColumn";
+export const SETTINGS_PAGE_SIZE = "pageSize";
 export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_PAGE_SIZE_OPTIONS = [20, 50, 100, 200, 500];
 export const RESERVED_START_COLUMNS = ['select', 'id'];
@@ -77,7 +57,11 @@ export type SaveActionType = 'delete' | 'sort' | 'filter';
 // @dynamic
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class AppTable<T extends Entity<T>, F = any>
+export abstract class AppTable<
+  T extends IEntity<T, ID>,
+  F = any,
+  ID = number
+  >
   implements OnInit, OnDestroy, AfterViewInit, IAppForm {
 
   private _initialized = false;
@@ -100,7 +84,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   excludesColumns: string[] = [];
   displayedColumns: string[];
-  totalRowCount: number;
+  totalRowCount: number|null = null;
   visibleRowCount: number;
   loadingSubject = new BehaviorSubject<boolean>(true);
   errorSubject = new BehaviorSubject<string>(undefined);
@@ -116,7 +100,6 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   isRateLimitReached = false;
   selection = new SelectionModel<TableElement<T>>(true, []);
   editedRow: TableElement<T> = undefined;
-  onRefresh = new EventEmitter<any>();
   settingsId: string;
   autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
   mobile: boolean;
@@ -139,11 +122,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   @Input() defaultPageSize = DEFAULT_PAGE_SIZE;
   @Input() defaultPageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS;
 
-  @Input() set dataSource(value: EntitiesTableDataSource<T, F>) {
+  @Input() set dataSource(value: EntitiesTableDataSource<T, F, ID>) {
     this.setDatasource(value);
   }
 
-  get dataSource(): EntitiesTableDataSource<T, F> {
+  get dataSource(): EntitiesTableDataSource<T, F, ID> {
     return this._dataSource;
   }
 
@@ -159,7 +142,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return this.loading || this.totalRowCount === 0;
   }
 
-  @Output() onOpenRow = new EventEmitter<{ id?: number; row: TableElement<T> }>();
+  @Output() onRefresh = new EventEmitter<any>();
+  @Output() onOpenRow = new EventEmitter<{ id?: ID; row: TableElement<T> }>();
   @Output() onNewRow = new EventEmitter<any>();
   @Output() onStartEditingRow = new EventEmitter<TableElement<T>>();
   @Output() onConfirmEditCreateRow = new EventEmitter<TableElement<T>>();
@@ -300,8 +284,18 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return this.sort && this.sort.direction && (this.sort.direction === 'desc' ? 'desc' : 'asc') || undefined;
   }
 
+  private _paginator: MatPaginator|null = null;
+
+  @Input() set paginator(value: MatPaginator) {
+    this._paginator = value;
+  }
+
+  get paginator(): MatPaginator {
+    return this._paginator || this.childPaginator;
+  }
+
   @ViewChild(MatTable, {static: false}) table: MatTable<T>;
-  @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator;
+  @ViewChild(MatPaginator, {static: false}) childPaginator: MatPaginator;
   @ViewChild(MatSort, {static: false}) sort: MatSort;
 
   protected constructor(
@@ -312,7 +306,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected columns: string[],
-    protected _dataSource?: EntitiesTableDataSource<T, F>,
+    protected _dataSource?: EntitiesTableDataSource<T, F, ID>,
     private _filter?: F,
     injector?: Injector
   ) {
@@ -349,17 +343,18 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     this.defaultSortBy = sortedColumn.id;
     this.defaultSortDirection = sortedColumn.start;
 
+    this.defaultPageSize = this.getPageSize();
 
     this.registerSubscription(
       this.onRefresh
         .pipe(
           startWith<any, any>(this.autoLoad ? {} : 'skip'),
           switchMap(
-            (any: any) => {
+            (event: any) => {
               this._dirty = false;
               this.selection.clear();
               this.editedRow = undefined;
-              if (any === 'skip' || !this._dataSource) {
+              if (event === 'skip') {
                 return of(undefined);
               }
               if (!this._dataSource) {
@@ -382,6 +377,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
           })
         )
         .subscribe(res => {
+          if (!res) return; // Skip
           if (res && res.data) {
             this.isRateLimitReached = !this.paginator || (res.data.length < this.paginator.pageSize);
             this.visibleRowCount = res.data.length;
@@ -393,8 +389,9 @@ export abstract class AppTable<T extends Entity<T>, F = any>
             this.totalRowCount = 0;
             this.visibleRowCount = 0;
           }
-          this.markAsUntouched();
-          this.markAsPristine();
+          this.markAsUntouched({emitEvent: false});
+          this.markAsPristine({emitEvent: false});
+          this.markAsLoaded({emitEvent: false});
           this.markForCheck();
         }));
 
@@ -434,7 +431,9 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       this.paginator && this.paginator.page
         .pipe(
           mergeMap(async () => this.saveBeforeAction('sort')),
-          filter(res => res === true)
+          filter(res => res === true),
+          // Save page size
+          tap(() => this.settings.savePageSetting(this.settingsId, this.paginator.pageSize, SETTINGS_PAGE_SIZE))
         ) || EMPTY
     ).subscribe(value => {
       this.onSort.emit();
@@ -457,6 +456,20 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       .forEach(col => this.stopCellValueChanges(col));
     this._cellValueChangesDefs = {};
 
+    this.loadingSubject.unsubscribe();
+    this.errorSubject.unsubscribe();
+
+    this.onRefresh.unsubscribe();
+    this.onOpenRow.unsubscribe();
+    this.onNewRow.unsubscribe();
+    this.onStartEditingRow.unsubscribe();
+    this.onConfirmEditCreateRow.unsubscribe();
+    this.onCancelOrDeleteRow.unsubscribe();
+    this.onBeforeDeleteRows.unsubscribe();
+    this.onBeforeSave.unsubscribe();
+    this.onAfterDeletedRows.unsubscribe();
+    this.onSort.unsubscribe();
+
     this._destroy$.next();
     this._destroy$.unsubscribe();
 
@@ -465,7 +478,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  setDatasource(datasource: EntitiesTableDataSource<T, F>) {
+  setDatasource(datasource: EntitiesTableDataSource<T, F, ID>) {
     if (this._dataSource) throw new Error("[table] dataSource already set !");
     if (datasource && this._dataSource !== datasource) {
       this._dataSource = datasource;
@@ -487,7 +500,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
           if (saved) {
             this.applyFilter(filter, opts);
           }
-        })
+        });
 
       } else {
         // apply filter on non dirty table
@@ -506,7 +519,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   protected applyFilter(filter: F, opts: { emitEvent: boolean; }) {
     if (this.debug) console.debug('[table] Applying filter', filter);
     this._filter = filter;
-    if (opts.emitEvent) {
+    if (opts && opts.emitEvent) {
       if (this.paginator && this.paginator.pageIndex > 0) {
         this.paginator.pageIndex = 0;
       }
@@ -515,7 +528,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
 
-  protected listenDatasource(dataSource: EntitiesTableDataSource<T, F>) {
+  protected listenDatasource(dataSource: EntitiesTableDataSource<T, F, ID>) {
     if (!dataSource) throw new Error("[table] dataSource not set !");
 
     // Cleaning previous subscription on datasource
@@ -530,11 +543,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
             distinctUntilChanged(),
 
             // If changed to True: propagate as soon as possible
-            tap((loading) => loading && !this.loadingSubject.getValue() && this.loadingSubject.next(true)),
+            tap((loading) => loading && this.setLoading(true)),
 
             // If changed to False: wait 250ms before propagate (to make sure the spinner has been displayed)
             debounceTime(250),
-            tap(loading => !loading && this.loadingSubject.getValue() && this.loadingSubject.next(false))
+            tap(loading => !loading && this.setLoading(false))
         )
         .subscribe();
 
@@ -689,15 +702,28 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  async deleteSelection(event: UIEvent): Promise<number> {
+  deleteSelection(event: UIEvent): Promise<number> {
+    return this.deleteRows(event, this.selection.selected);
+  }
+
+  async deleteRow(event: UIEvent|null, row: TableElement<T>): Promise<boolean> {
+    const deleteCount = await this.deleteRows(event, [row]);
+    return deleteCount === 1;
+  }
+
+  async deleteRows(event: UIEvent|null, rows: TableElement<T>[]): Promise<number> {
     if (this.readOnly) {
       throw {code: ErrorCodes.TABLE_READ_ONLY, message: 'ERROR.TABLE_READ_ONLY'};
     }
+    if (event) {
+      if (event.defaultPrevented) return 0; // Skip
+      event.preventDefault();
+    }
     if (!this._enabled) return 0;
-    if (this.loading || this.selection.isEmpty()) return 0;
+    if (this.loading || isEmptyArray(rows)) return 0;
 
     // Check if can delete
-    const canDelete = await this.canDeleteRows(this.selection.selected);
+    const canDelete = await this.canDeleteRows(rows);
     if (!canDelete) return 0; // Cannot delete
 
     // If data need to be saved first: do it
@@ -709,10 +735,10 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
     if (this.debug) console.debug("[table] Delete selection...");
 
-    const rowsToDelete = this.selection.selected.slice()
-    // Reverse row order
-    // This is a workaround, need because row.delete() has async execution
-    // and index cache is updated with a delay)
+    const rowsToDelete = rows.slice()
+      // Reverse row order
+      // This is a workaround, need because row.delete() has async execution
+      // and index cache is updated with a delay)
       .sort((a, b) => a.id > b.id ? -1 : 1);
 
     try {
@@ -821,6 +847,18 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return row.id;
   }
 
+  doRefresh(event?: CustomEvent & { target?: EventTarget & { complete?: () => void; }  }) {
+    this.onRefresh.emit(event);
+
+    // When target wait for a complete (e.g. IonRefresher)
+    if (event && event.target && event.target.complete) {
+      setTimeout(async () => {
+        await firstFalsePromise(this.loadingSubject);
+        event.target.complete();
+      });
+    }
+  }
+
 
   /* -- protected method -- */
 
@@ -904,7 +942,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return false; // User cancel the action
   }
 
-  protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {
+  protected async openRow(id: ID, row: TableElement<T>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
@@ -967,6 +1005,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
        return {id: this.defaultSortBy, start: this.defaultSortDirection || 'asc', disableClear: false};
     }
     return {id: 'id', start: 'asc', disableClear: false};
+  }
+
+  protected getPageSize(): number {
+    const pageSize = this.settings.getPageSettings<number>(this.settingsId, SETTINGS_PAGE_SIZE);
+    return pageSize || this.defaultPageSize;
   }
 
   protected getDisplayColumns(): string[] {

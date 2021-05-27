@@ -119,3 +119,4 @@ export * from './src/app/core/peer/select-peer.modal';
 export * from './src/app/social/social.module';
 export * from './src/app/social/services/user-event.service';
 export * from './src/app/social/list/user-events.table';
+export {EntityClass} from "./src/app/core/services/model/entity.decorators";

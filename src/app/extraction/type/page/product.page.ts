@@ -1,35 +1,35 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {ExtractionCategories, ExtractionColumn} from "../../services/model/extraction.model";
+import {ExtractionCategories, ExtractionColumn} from "../../services/model/extraction-type.model";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../../services/validator/aggregation-type.validator";
 import {ExtractionService} from "../../services/extraction.service";
 import {Router} from "@angular/router";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
-import {AggregationTypeForm} from "../form/aggregation-type.form";
+import {ProductForm} from "../form/product.form";
 import {AccountService} from "../../../core/services/account.service";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {ReferentialUtils} from "../../../core/services/model/referential.model";
-import {AggregationType} from "../../services/model/aggregation-type.model";
+import {ExtractionProduct} from "../../services/model/extraction-product.model";
 import {Alerts} from "../../../shared/alerts";
 import {isEmptyArray, isNil} from "../../../shared/functions";
-import {AggregationService} from "../../services/aggregation.service";
+import {ExtractionProductService} from "../../services/extraction-product.service";
 import {AppEntityEditor} from "../../../core/form/editor.class";
 
 @Component({
-  selector: 'app-aggregation-type-page',
-  templateUrl: './aggregation-type.page.html',
-  styleUrls: ['./aggregation-type.page.scss'],
+  selector: 'app-product-page',
+  templateUrl: './product.page.html',
+  styleUrls: ['./product.page.scss'],
   providers: [
     {provide: ValidatorService, useExisting: AggregationTypeValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AggregationTypePage extends AppEntityEditor<AggregationType> implements OnInit {
+export class ProductPage extends AppEntityEditor<ExtractionProduct> implements OnInit {
 
   columns: ExtractionColumn[];
 
-  @ViewChild('typeForm', {static: true}) typeForm: AggregationTypeForm;
+  @ViewChild('typeForm', {static: true}) typeForm: ProductForm;
 
   get form(): FormGroup {
     return this.typeForm.form;
@@ -39,12 +39,12 @@ export class AggregationTypePage extends AppEntityEditor<AggregationType> implem
               protected router: Router,
               protected formBuilder: FormBuilder,
               protected extractionService: ExtractionService,
-              protected aggregationService: AggregationService,
+              protected aggregationService: ExtractionProductService,
               protected accountService: AccountService,
               protected validatorService: AggregationTypeValidatorService,
               protected settings: LocalSettingsService) {
     super(injector,
-      AggregationType,
+      ExtractionProduct,
       // Data service
       {
         load: (id: number, options) => aggregationService.load(id, options),
@@ -94,12 +94,12 @@ export class AggregationTypePage extends AppEntityEditor<AggregationType> implem
 
   /* -- protected -- */
 
-  protected setValue(data: AggregationType) {
+  protected setValue(data: ExtractionProduct) {
     // Apply data to form
     this.typeForm.value = data.asObject();
   }
 
-  protected async getValue(): Promise<AggregationType> {
+  protected async getValue(): Promise<ExtractionProduct> {
     const data = await super.getValue();
 
     // Re add label, because missing when field disable
@@ -111,7 +111,7 @@ export class AggregationTypePage extends AppEntityEditor<AggregationType> implem
     return data;
   }
 
-  protected async computeTitle(data: AggregationType): Promise<string> {
+  protected async computeTitle(data: ExtractionProduct): Promise<string> {
     // new data
     if (!data || isNil(data.id)) {
       return await this.translate.get('EXTRACTION.AGGREGATION.NEW.TITLE').toPromise();
@@ -129,7 +129,7 @@ export class AggregationTypePage extends AppEntityEditor<AggregationType> implem
     this.addChildForm(this.typeForm);
   }
 
-  protected canUserWrite(data: AggregationType): boolean {
+  protected canUserWrite(data: ExtractionProduct): boolean {
 
     return this.accountService.isAdmin()
       // New date allow for supervisors
@@ -138,14 +138,14 @@ export class AggregationTypePage extends AppEntityEditor<AggregationType> implem
       || (ReferentialUtils.isNotEmpty(data && data.recorderDepartment) && this.accountService.canUserWriteDataForDepartment(data.recorderDepartment));
   }
 
-  protected async onEntityLoaded(data: AggregationType, options?: EntityServiceLoadOptions): Promise<void> {
+  protected async onEntityLoaded(data: ExtractionProduct, options?: EntityServiceLoadOptions): Promise<void> {
     await this.typeForm.updateLists(data);
 
     // Define default back link
     this.defaultBackHref = `̀/extraction/data?category=${ExtractionCategories.PRODUCT}&label=${data.label}`;
   }
 
-  protected async onEntityDeleted(data: AggregationType): Promise<void> {
+  protected async onEntityDeleted(data: ExtractionProduct): Promise<void> {
     // Change back href
     this.defaultBackHref = '/extraction/data';
   }

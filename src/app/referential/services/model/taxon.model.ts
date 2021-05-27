@@ -1,11 +1,7 @@
-import {
-  IReferentialRef,
-  Referential,
-  ReferentialAsObjectOptions, ReferentialRef,
-  ReferentialUtils
-} from "../../../core/services/model/referential.model";
+import {BaseReferential, IReferentialRef, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
 import {isNil, isNotNil, uncapitalizeFirstLetter} from "../../../shared/functions";
 import {Entity} from "../../../core/services/model/entity.model";
+import {EntityClass} from "../../../core/services/model/entity.decorators";
 
 
 export const TaxonGroupTypeIds = {
@@ -26,16 +22,13 @@ export const TaxonGroupLabels = {
   FISH: 'MZZ'
 };
 
-export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRef {
+@EntityClass({typename: "TaxonNameVO"})
+export class TaxonNameRef
+  extends Entity<TaxonNameRef, number, ReferentialAsObjectOptions>
+  implements IReferentialRef<TaxonNameRef> {
 
-  static TYPENAME = 'TaxonNameVO';
-
-  static fromObject(source: any): TaxonNameRef {
-    if (isNil(source)) return null;
-    const res = new TaxonNameRef();
-    res.fromObject(source);
-    return res;
-  }
+  static ENTITY_NAME = 'TaxonName';
+  static fromObject: (source: any, opts?: any) => TaxonNameRef;
 
   static equalsOrSameReferenceTaxon(v1: TaxonNameRef, v2: TaxonNameRef): boolean {
     return ReferentialUtils.equals(v1, v2) || (v1 && v2 && isNotNil(v1.referenceTaxonId) && v1.referenceTaxonId === v2.referenceTaxonId);
@@ -53,16 +46,8 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
   referenceTaxonId: number;
 
   constructor() {
-    super();
-  }
-
-  clone(): TaxonNameRef {
-    return this.copy(new TaxonNameRef());
-  }
-
-  copy(target: TaxonNameRef): TaxonNameRef {
-    target.fromObject(this);
-    return target;
+    super(TaxonNameRef.TYPENAME);
+    this.entityName = TaxonNameRef.ENTITY_NAME;
   }
 
   asObject(options?: ReferentialAsObjectOptions): any {
@@ -78,55 +63,35 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
     return target;
   }
 
-  fromObject(source: any): Entity<TaxonNameRef> {
+  fromObject(source: any) {
     super.fromObject(source);
     this.label = source.label;
     this.name = source.name;
     this.statusId = source.statusId;
-    this.entityName = source.entityName || TaxonNameRef.TYPENAME;
+    this.entityName = source.entityName || TaxonNameRef.ENTITY_NAME;
     this.levelId = source.levelId;
     this.referenceTaxonId = source.referenceTaxonId;
     this.taxonGroupIds = source.taxonGroupIds;
-    return this;
   }
 }
 
+@EntityClass({typename: 'TaxonGroupVO'})
+export class TaxonGroupRef extends Entity<TaxonGroupRef, number, ReferentialAsObjectOptions>
+  implements IReferentialRef<TaxonGroupRef> {
 
-export class TaxonGroupRef extends Entity<TaxonGroupRef> implements IReferentialRef {
+  static ENTITY_NAME = 'TaxonGroup';
+  static fromObject: (source: any, opts?: any) => TaxonGroupRef;
 
-  static fromObject(source: any): TaxonGroupRef {
-    if (!source || source instanceof TaxonGroupRef) return source;
-    const res = new TaxonGroupRef();
-    res.fromObject(source);
-    return res;
-  }
-
+  entityName: string;
   label: string;
   name: string;
   statusId: number;
   rankOrder: number;
-  entityName: string;
+  taxonNames: TaxonNameRef[];had
 
-  taxonNames: TaxonNameRef[];
-
-  constructor(data?: {
-    id?: number,
-    label?: string,
-    name?: string
-  }) {
-    super();
-    this.id = data && data.id;
-    this.label = data && data.label;
-    this.name = data && data.name;
-  }
-
-  clone(): TaxonGroupRef {
-    return this.copy(new TaxonGroupRef());
-  }
-
-  copy(target: TaxonGroupRef): TaxonGroupRef {
-    target.fromObject(this);
-    return target;
+  constructor() {
+    super(TaxonGroupRef.TYPENAME);
+    this.entityName = TaxonGroupRef.ENTITY_NAME;
   }
 
   asObject(options?: ReferentialAsObjectOptions): any {
@@ -142,14 +107,13 @@ export class TaxonGroupRef extends Entity<TaxonGroupRef> implements IReferential
     return target;
   }
 
-  fromObject(source: any): Entity<TaxonGroupRef> {
+  fromObject(source: any) {
     super.fromObject(source);
     this.label = source.label;
     this.name = source.name;
     this.statusId = source.statusId;
-    this.entityName = source.entityName || 'TaxonGroupVO';
+    this.entityName = source.entityName || TaxonGroupRef.ENTITY_NAME;
     this.taxonNames = source.taxonNames && source.taxonNames.map(TaxonNameRef.fromObject) || [];
-    return this;
   }
 }
 
@@ -157,27 +121,17 @@ export interface MetierFromObjectOptions {
   useChildAttributes?: false | 'TaxonGroup' | 'Gear';
 }
 
-export class Metier extends Referential<Metier> {
+@EntityClass({typename: "MetierVO"})
+export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectOptions,  MetierFromObjectOptions> {
+  static ENTITY_NAME = 'Metier';
+  static fromObject: (source: any, opts?: MetierFromObjectOptions) => Metier;
 
-  static fromObject(source: any, opts?: MetierFromObjectOptions): Metier {
-    if (isNil(source) || source instanceof Metier) return source;
-    const target = new Metier();
-    target.fromObject(source, opts);
-    return target;
-  }
-
-  gear: ReferentialRef;
-  taxonGroup: ReferentialRef;
+  gear: ReferentialRef = null;
+  taxonGroup: ReferentialRef = null;
 
   constructor() {
-    super();
-    this.taxonGroup = null;
-  }
-
-  clone(): Metier {
-    const target = new Metier();
-    target.fromObject(this);
-    return target;
+    super(Metier.TYPENAME);
+    this.entityName = Metier.ENTITY_NAME;
   }
 
   asObject(opts?: ReferentialAsObjectOptions): any {
@@ -198,7 +152,7 @@ export class Metier extends Referential<Metier> {
 
   fromObject(source: any, opts?: MetierFromObjectOptions) {
     super.fromObject(source);
-    this.entityName = source.entityName || 'Metier';
+    this.entityName = source.entityName || Metier.ENTITY_NAME;
     this.gear = source.gear && ReferentialRef.fromObject(source.gear);
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup);
 
@@ -222,12 +176,12 @@ export class TaxonUtils {
     const speciesWord = /^[a-zA-Z]{3,}$/;
 
     // Rubin code for "Leucoraja circularis": LEUC CIR
-    let str = taxonName.split(" ");
-    if (str.length == 2 && str[0].match(genusWord) && str[1].match(speciesWord)) {
-      rubinCode = str[0].slice(0, 4).toUpperCase() + str[1].slice(0, 3).toUpperCase();
+    const parts = taxonName.split(" ");
+    if (parts.length === 2 && parts[0].match(genusWord) && parts[1].match(speciesWord)) {
+      rubinCode = parts[0].slice(0, 4).toUpperCase() + parts[1].slice(0, 3).toUpperCase();
     }
 
-    return rubinCode
+    return rubinCode;
   }
 
 }

@@ -11,18 +11,68 @@
 
 <ion-content class="ion-padding">
 
+  <!-- Tab nav - mobile/desktop mode -->
+  <nav mat-tab-nav-bar>
+    <a mat-tab-link
+       [active]="mode==='mobile'"
+       (click)="toggleMode('mobile')">
+      <mat-label>Mobile</mat-label>
+    </a>
+    <a mat-tab-link [active]="mode==='desktop'"
+       (click)="toggleMode('desktop')">
+      <mat-label>Desktop</mat-label>
+    </a>
+    <a mat-tab-link [active]="mode==='memory'"
+       (click)="toggleMode('memory')">
+      <mat-label>Memory leak debug</mat-label>
+    </a>
+    <a mat-tab-link
+       [active]="mode==='temp'"
+       (click)="toggleMode('temp')">
+      <mat-label>Temporary</mat-label>
+    </a>
+  </nav>
+
   <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
+    <ion-grid *ngIf="mode === 'temp'">
+      <ion-row>
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-text color="primary">
+                  Items is an Observable
+                </ion-text>
+              </ion-card-title>
+              <ion-card-subtitle>
+                <ion-text color="medium">
+                  <small><pre>items: Observable&lt;any[]&gt;</pre></small>
+                </ion-text>
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-autocomplete-field formControlName="entity"
+                                      [config]="autocompleteFields.get('entity-$items')"
+                                      [logPrefix]="'[combo-desktop-2]'"
+                                      [compareWith]="compareWithFn"
+                                      [mobile]="false"
+              ></mat-autocomplete-field>
+            </ion-card-content>
 
-    <ion-grid>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+
+
+    </ion-grid>
+
+
+    <ion-grid *ngIf="mode === 'memory'">
 
       <!-- debugging memory leak -->
       <ion-row><ion-col><ion-text><h4>Debug memory leak</h4></ion-text></ion-col></ion-row>
       <ion-row>
-        <ion-col size="2">
-          <ion-button *ngIf="!memoryTimer" (click)="startMemoryTimer()" color="tertiary">Start</ion-button>
-          <ion-button *ngIf="memoryTimer" (click)="stopMemoryTimer()" color="tertiary">Stop</ion-button>
-        </ion-col>
         <ion-col size="2">
           <mat-form-field floatLabel="always">
             <input matInput type="text" hidden placeholder="Items type">
@@ -39,6 +89,14 @@
             </mat-checkbox>
           </mat-form-field>
         </ion-col>
+
+        <ion-col size="2">
+          <ion-button *ngIf="!memoryTimer" (click)="startMemoryTimer()" color="tertiary">Start</ion-button>
+          <ion-button *ngIf="memoryTimer" (click)="stopMemoryTimer()" color="tertiary">Stop</ion-button>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
         <ion-col>
           <mat-autocomplete-field formControlName="entity"
                                   *ngIf="!memoryHide && memoryAutocompleteFieldName"
@@ -52,12 +110,9 @@
 
     </ion-grid>
 
-    <ion-grid *ngIf="!memoryTimer">
+    <!-- Mobile mode -->
+    <ion-grid *ngIf="mode === 'mobile'">
 
-      <!-- mobile -->
-      <ion-row>
-        <ion-col><ion-text><h4>Mobile mode</h4></ion-text></ion-col>
-      </ion-row>
       <ion-row>
         <ion-col>
           <ion-card>
@@ -157,7 +212,42 @@
       </ion-row>
 
       <ion-row>
-        <ion-col size="3" offset="9">
+        <ion-col size="9">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Change filter
+                </ion-label>
+                <ion-card-subtitle>
+                  <ion-text color="medium">
+                    <small><pre></pre></small>
+                  </ion-text>
+                </ion-card-subtitle>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-grid class="ion-no-padding">
+                <ion-row>
+                  <ion-col>
+                    <ion-button (click)="updateFilter('entity-items-filter')">Filter on: {{autocompleteFields.get('entity-items-filter').filter?.searchAttribute }}</ion-button>
+                  </ion-col>
+                  <ion-col>
+                    <mat-autocomplete-field formControlName="entity"
+                                            [config]="autocompleteFields.get('entity-items-filter')"
+                                            [mobile]="true"
+                                            [compareWith]="compareWithFn"
+                                            [logPrefix]="'[combo-mobile-filter]'"
+                    ></mat-autocomplete-field>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <ion-col size="3">
           <ion-card>
             <ion-card-header>
               <ion-card-title>
@@ -178,14 +268,16 @@
                                       class="min-width-large"
                                       panelWidth="400px"
                                       [compareWith]="compareWithFn"
-                                      [logPrefix]="'[combo-desktop-large]'"
+                                      [logPrefix]="'[combo-mobile-large]'"
               ></mat-autocomplete-field>
             </ion-card-content>
           </ion-card>
         </ion-col>
       </ion-row>
+    </ion-grid>
 
-      <!-- desktop mode -->
+    <!-- Desktop mode -->
+    <ion-grid *ngIf="mode === 'desktop'">
       <ion-row>
         <ion-col><ion-text><h4>Desktop mode</h4></ion-text></ion-col>
       </ion-row>

@@ -3,8 +3,8 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
-  Input,
-  OnInit,
+  Input, OnDestroy,
+  OnInit, Optional,
   Output,
   ViewChild
 } from '@angular/core';
@@ -12,19 +12,29 @@ import {ProgressBarService, ProgressMode} from '../services/progress-bar.service
 import {Router} from "@angular/router";
 import {IonRouterOutlet, IonSearchbar} from "@ionic/angular";
 import {isNotNil, isNotNilOrBlank, toBoolean} from "../functions";
-import {debounceTime, distinctUntilChanged, startWith} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, startWith, tap} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {HammerTapEvent} from "../gesture/hammer.utils";
 import {HAMMER_PRESS_TIME} from "../gesture/gesture-config";
 import {PredefinedColors} from "@ionic/core";
 
+export abstract class ToolbarToken {
+  abstract onBackClick: Observable<Event>;
+  abstract doBackClick(event: Event);
+  abstract goBack(): Promise<void>;
+  abstract canGoBack: boolean;
+}
+
 @Component({
   selector: 'app-toolbar',
   templateUrl: 'toolbar.html',
   styleUrls: ['./toolbar.scss'],
+  providers: [
+    {provide: ToolbarToken, useExisting: ToolbarComponent}
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ToolbarComponent implements OnInit {
+export class ToolbarComponent implements ToolbarToken, OnInit, OnDestroy {
 
   private _closeTapCount = 0;
   private _validateTapCount = 0;
@@ -92,26 +102,29 @@ export class ToolbarComponent implements OnInit {
   @Output()
   onSearch = new EventEmitter<CustomEvent>();
 
-  $progressBarMode: Observable<ProgressMode>;
+  progressBarMode$: Observable<ProgressMode>;
 
   showSearchBar = false;
 
   @ViewChild('searchbar', {static: true}) searchbar: IonSearchbar;
 
   constructor(
-    private progressBarService: ProgressBarService,
     private router: Router,
     private routerOutlet: IonRouterOutlet,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    @Optional() progressBarService: ProgressBarService
   ) {
 
     // Listen progress bar service mode
-    this.$progressBarMode = this.progressBarService.onProgressChanged
-      .pipe(
-        startWith<ProgressMode, ProgressMode>('none' as ProgressMode),
-        debounceTime(100), // wait 100ms, to group changes
-        distinctUntilChanged()
-      );
+    if (progressBarService) {
+      this.progressBarMode$ = progressBarService.onProgressChanged
+        .pipe(
+          startWith<ProgressMode, ProgressMode>('none' as ProgressMode),
+          tap((mode) => "[toolbar] Updating progressBarMode: " + mode),
+          debounceTime(100), // wait 100ms, to group changes
+          distinctUntilChanged()
+        );
+    }
   }
 
   ngOnInit() {
@@ -120,6 +133,19 @@ export class ToolbarComponent implements OnInit {
       || isNotNilOrBlank(this._backHref)
       || isNotNilOrBlank(this._defaultBackHref));
     this.hasSearch = toBoolean(this.hasSearch, this.onSearch.observers.length > 0);
+  }
+
+  ngOnDestroy() {
+    this.onBackClick.complete();
+    this.onBackClick.unsubscribe();
+    this.onValidate.complete();
+    this.onValidate.unsubscribe();
+    this.onClose.complete();
+    this.onClose.unsubscribe();
+    this.onValidateAndClose.complete();
+    this.onValidateAndClose.unsubscribe();
+    this.onSearch.complete();
+    this.onSearch.unsubscribe();
   }
 
   async toggleSearchBar() {

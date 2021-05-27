@@ -232,7 +232,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   ngOnDestroy() {
     super.ngOnDestroy();
 
-    this.measurementsDataService.close();
+    this.measurementsDataService.ngOnDestroy();
+    this.measurementsDataService = null;
   }
 
   getRowValidator(): FormGroup {

@@ -10,8 +10,9 @@ import {Injector} from "@angular/core";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {NetworkService} from "../../core/services/network.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import * as momentImported from "moment";
 import {Moment} from "moment";
-import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotEmptyArray} from "../../shared/functions";
 import {SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "./model/data-entity.model";
 import {JobUtils} from "../../shared/services/job.utils";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
@@ -22,22 +23,25 @@ import {ErrorCodes} from "./errors";
 import {FetchPolicy} from "@apollo/client/core";
 import {chainPromises} from "../../shared/observables";
 import {ObservedLocation} from "../../trip/services/model/observed-location.model";
-import * as momentImported from "moment";
+import {RootDataEntityFilter} from "./model/root-data-filter.model";
 
 
-export interface IDataSynchroService<T extends RootDataEntity<T>, O = EntityServiceLoadOptions> {
+export interface IDataSynchroService<
+  T extends RootDataEntity<T, ID>,
+  ID = number,
+  O = EntityServiceLoadOptions> {
 
-  load(id: number, opts?: O): Promise<T>;
+  load(id: ID, opts?: O): Promise<T>;
 
   executeImport(opts?: {
     maxProgression?: number;
   }): Observable<number>;
 
-  terminateById(id: number): Promise<T>;
+  terminateById(id: ID): Promise<T>;
 
   terminate(entity: T): Promise<T>;
 
-  synchronizeById(id: number): Promise<T>;
+  synchronizeById(id: ID): Promise<T>;
 
   synchronize(data: T, opts?: any): Promise<T>;
 
@@ -55,14 +59,16 @@ export function isDataSynchroService(object: any): object is IDataSynchroService
 
 export const DEFAULT_FEATURE_NAME = 'synchro';
 
-export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
-  F = any,
+export abstract class RootDataSynchroService<
+  T extends RootDataEntity<T, ID>,
+  F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
+  ID = number,
   O = EntityServiceLoadOptions,
   Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
   M extends BaseRootEntityGraphqlMutations = BaseRootEntityGraphqlMutations,
   S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions>
-  extends BaseRootDataService<T, F, Q, M, S>
-  implements IDataSynchroService<T, O> {
+  extends BaseRootDataService<T, F, ID, Q, M, S>
+  implements IDataSynchroService<T, ID, O> {
 
   protected _featureName: string;
 
@@ -84,9 +90,10 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
   protected constructor (
     injector: Injector,
     dataType: new() => T,
-    options: BaseEntityServiceOptions<T, F, Q, M, S>
+    filterType: new() => F,
+    options: BaseEntityServiceOptions<T, ID, Q, M, S>
   ) {
-    super(injector, dataType, options);
+    super(injector, dataType, filterType, options);
 
     this.referentialRefService = injector.get(ReferentialRefService);
     this.personService = injector.get(PersonService);
@@ -170,7 +177,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
   }
 
 
-  async terminateById(id: number): Promise<T> {
+  async terminateById(id: ID): Promise<T> {
     const entity = await this.load(id);
 
     return this.terminate(entity);
@@ -199,7 +206,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
     return super.terminate(entity);
   }
 
-  async synchronizeById(id: number): Promise<T> {
+  async synchronizeById(id: ID): Promise<T> {
     const entity = await this.load(id);
 
     if (!EntityUtils.isLocal(entity)) return; // skip if not a local entity
@@ -224,7 +231,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
     return this.referentialRefService.lastUpdateDate();
   }
 
-  async load(id: number, opts?: O & {
+  async load(id: ID, opts?: O & {
     fetchPolicy?: FetchPolicy;
     toEntity?: boolean;
   }): Promise<T> {
@@ -239,8 +246,8 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
       let data: any;
 
       // If local entity
-      if (id < 0) {
-        data = await this.entities.load<Vessel>(id, Vessel.TYPENAME);
+      if (+id < 0) {
+        data = await this.entities.load<Vessel>(+id, Vessel.TYPENAME);
         if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"};
       }
 
@@ -274,14 +281,13 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
     }
 
     const ids = entities && entities.map(t => t.id)
-      .filter(id => id >= 0);
+      .filter(id => +id >= 0);
     if (isEmptyArray(ids)) return; // stop if empty
 
     return super.deleteAll(entities, opts);
   }
 
   abstract synchronize(data: T, opts?: any): Promise<T>;
-
 
   /* -- protected methods -- */
 
@@ -290,7 +296,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
 
     // If new, generate a local id
     if (isNew) {
-      entity.id =  await this.entities.nextValue(entity);
+      entity.id = (await this.entities.nextValue(entity)) as unknown as ID;
     }
 
     // Fill default synchronization status
@@ -338,7 +344,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
 
     await chainPromises(localEntities.map(entity => async () => {
 
-      await this.entities.delete(entity, {entityName: this._typename});
+      await this.entities.delete<T, ID>(entity, {entityName: this._typename});
 
       if (trash) {
         // Fill observedLocation's operation, before moving it to trash
@@ -352,4 +358,5 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
 
     }));
   }
+
 }

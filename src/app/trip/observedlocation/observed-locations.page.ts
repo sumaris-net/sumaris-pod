@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController} from "@ionic/angular";
@@ -7,8 +7,7 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
 import {FormBuilder} from "@angular/forms";
 import {personToString} from "../../core/services/model/person.model";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {debounceTime, filter, tap} from "rxjs/operators";
-import {ObservedLocationFilter, ObservedLocationOfflineFilter, ObservedLocationService} from "../services/observed-location.service";
+import {ObservedLocationService} from "../services/observed-location.service";
 import {ObservedLocationValidatorService} from "../services/validator/observed-location.validator";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -20,14 +19,14 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {AppRootTable} from "../../data/table/root-table.class";
 import {OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS} from "../services/config/trip.config";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {isNil} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
 import {ConfigService} from "../../core/services/config.service";
 import {BehaviorSubject} from "rxjs";
 import {ObservedLocationOfflineModal} from "./offline/observed-location-offline.modal";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {Trip} from "../services/model/trip.model";
-import {UsageMode} from "../../core/services/model/settings.model";
+import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
+import {ObservedLocationFilter, ObservedLocationOfflineFilter} from "../services/filter/observed-location.filter";
+import {MatExpansionPanel} from "@angular/material/expansion";
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -40,15 +39,15 @@ export const ObservedLocationsPageSettingsEnum = {
   selector: 'app-observed-locations-page',
   templateUrl: 'observed-locations.page.html',
   styleUrls: ['observed-locations.page.scss'],
-  providers: [
-    {provide: ValidatorService, useExisting: ObservedLocationValidatorService}
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ObservedLocationsPage extends AppRootTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
+export class ObservedLocationsPage extends
+  AppRootTable<ObservedLocation, ObservedLocationFilter, number> implements OnInit {
 
   highlightedRow: TableElement<ObservedLocation>;
   $title = new BehaviorSubject<string>('');
+
+  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
     protected injector: Injector,
@@ -77,14 +76,8 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
           'comments'])
         .concat(RESERVED_END_COLUMNS),
       dataService,
-      new EntitiesTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService,  null, {
-        prependNewElements: false,
-        suppressErrors: environment.production,
-        dataServiceOptions: {
-          saveOnlyDirtyRows: true
-        }
-      }),
-      null,
+      new EntitiesTableDataSource(ObservedLocation, dataService),
+      null, // Filter
       injector
     );
     this.i18nColumnPrefix = 'OBSERVED_LOCATION.TABLE.';
@@ -152,28 +145,6 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
       mobile: this.mobile
     });
 
-    // Update filter when changes
-    this.registerSubscription(
-      this.filterForm.valueChanges
-        .pipe(
-          debounceTime(250),
-          filter(() => this.filterForm.valid),
-          // Applying the filter
-          tap(json => this.setFilter({
-            programLabel: json.program && typeof json.program === "object" && json.program.label || undefined,
-            startDate: json.startDate,
-            endDate: json.endDate,
-            locationId: json.location && typeof json.location === "object" && json.location.id || undefined,
-            synchronizationStatus: json.synchronizationStatus || undefined,
-            recorderDepartmentId: json.recorderDepartment && typeof json.recorderDepartment === "object" && json.recorderDepartment.id || undefined,
-            recorderPersonId: json.recorderPerson && typeof json.recorderPerson === "object" && json.recorderPerson.id || undefined
-          }, {emitEvent: this.mobile || isNil(this.filter)})),
-          // Save filter in settings (after a debounce time)
-          debounceTime(500),
-          tap(json => this.settings.savePageSetting(this.settingsId, json, ObservedLocationsPageSettingsEnum.FILTER_KEY))
-        )
-        .subscribe());
-
     this.registerSubscription(
       this.configService.config.subscribe(config => {
         const title = config && config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
@@ -190,6 +161,34 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
     return super.clickRow(event, row);
   }
 
+  applyFilterAndClosePanel(event?: UIEvent) {
+    this.onRefresh.emit(event);
+    this.filterExpansionPanel.close();
+  }
+
+  resetFilter(event?: UIEvent) {
+    super.resetFilter(event);
+    this.filterExpansionPanel.close();
+  }
+
+  /**
+   * Action triggered when user swipes
+   */
+  onSwipeTab(event: HammerSwipeEvent): boolean {
+    // DEBUG
+    // if (this.debug) console.debug("[observed-locations] onSwipeTab()");
+
+    // Skip, if not a valid swipe event
+    if (!event
+      || event.defaultPrevented || (event.srcEvent && event.srcEvent.defaultPrevented)
+      || event.pointerType !== 'touch'
+    ) {
+      return false;
+    }
+
+    this.toggleSynchronizationStatus();
+    return true;
+  }
 
   async openTrashModal(event?: UIEvent) {
     console.debug('[observed-locations] Opening trash modal...');
@@ -254,7 +253,6 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
   /* -- protected methods -- */
 
 
-  protected isFilterEmpty = ObservedLocationFilter.isEmpty;
 
   protected markForCheck() {
     this.cd.markForCheck();

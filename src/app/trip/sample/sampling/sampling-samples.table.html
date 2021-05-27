@@ -174,7 +174,7 @@
       <ng-template #readonlyComment>
         <mat-icon *ngIf="row.currentData.comments"
                   [title]="row.currentData.comments"
-                  class="comment">chat_bubble</mat-icon>
+                  class="comment"></mat-icon>
       </ng-template>
     </mat-cell>
   </ng-container>
@@ -291,7 +291,7 @@
       <mat-cell *matCellDef="let row" >
         <mat-icon class="comment"
                   *ngIf="row.currentData.comments | isNotNilOrBlank"
-                  [title]="row.currentData.comments">chat_bubble</mat-icon>
+                  [title]="row.currentData.comments"></mat-icon>
       </mat-cell>
     </ng-container>
 

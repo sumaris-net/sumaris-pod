@@ -1,12 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {TripValidatorService} from "../services/validator/trip.validator";
-import {TripFilter, TripService} from "../services/trip.service";
+import {TripService} from "../services/trip.service";
+import {TripFilter} from "../services/filter/trip.filter";
 import {ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder} from "@angular/forms";
-import {debounceTime, filter, tap} from "rxjs/operators";
 import {SharedValidators} from "../../shared/validator/validators";
 import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -18,17 +18,19 @@ import {StatusIds} from "../../core/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
 import {UserEventService} from "../../social/services/user-event.service";
-import {TripTrashModal} from "./trash/trip-trash.modal";
+import {TripTrashModal, TripTrashModalOptions} from "./trash/trip-trash.modal";
 import {TRIP_FEATURE_NAME} from "../services/config/trip.config";
-import {AppRootTable} from "../../data/table/root-table.class";
+import {AppRootTable, AppRootTableSettingsEnum} from "../../data/table/root-table.class";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {isNil} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
+import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
+import {MatExpansionPanel} from "@angular/material/expansion";
+import {slideUpDownAnimation} from "../../shared/material/material.animations";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
-  FILTER_KEY: "filter",
+  FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY,
   FEATURE_ID: TRIP_FEATURE_NAME
 };
 
@@ -39,11 +41,14 @@ export const TripsPageSettingsEnum = {
   providers: [
     {provide: ValidatorService, useExisting: TripValidatorService}
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [slideUpDownAnimation]
 })
 export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
   highlightedRow: TableElement<Trip>;
+
+  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
     protected injector: Injector,
@@ -75,14 +80,8 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
           'comments'])
         .concat(RESERVED_END_COLUMNS),
         dataService,
-      new EntitiesTableDataSource<Trip, TripFilter>(Trip, dataService, null, {
-        prependNewElements: false,
-        suppressErrors: environment.production,
-        dataServiceOptions: {
-          saveOnlyDirtyRows: true
-        }
-      }),
-      null,
+      new EntitiesTableDataSource<Trip, TripFilter>(Trip, dataService),
+      null, // Filter
       injector
     );
     this.i18nColumnPrefix = 'TRIP.TABLE.';
@@ -99,9 +98,10 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
       //,'observer': [null]
     });
 
-    this.autoLoad = false;
+    this.autoLoad = false; // See restoreFilterOrLoad()
     this.defaultSortBy = 'departureDateTime';
     this.defaultSortDirection = 'desc';
+    this.confirmBeforeDelete = true;
 
     this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureId = TripsPageSettingsEnum.FEATURE_ID;
@@ -161,29 +161,6 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
       mobile: this.mobile
     });
 
-    // Update filter when changes
-    this.registerSubscription(
-      this.filterForm.valueChanges
-        .pipe(
-          debounceTime(250),
-          filter(() => this.filterForm.valid),
-          // Applying the filter
-          tap(json => this.setFilter({
-              programLabel: json.program && typeof json.program === "object" && json.program.label || undefined,
-              startDate: json.startDate,
-              endDate: json.endDate,
-              locationId: json.location && typeof json.location === "object" && json.location.id || undefined,
-              vesselId:  json.vesselSnapshot && typeof json.vesselSnapshot === "object" && json.vesselSnapshot.id || undefined,
-              synchronizationStatus: json.synchronizationStatus || undefined,
-              recorderDepartmentId: json.recorderDepartment && typeof json.recorderDepartment === "object" && json.recorderDepartment.id || undefined,
-              recorderPersonId: json.recorderPerson && typeof json.recorderPerson === "object" && json.recorderPerson.id || undefined
-            }, {emitEvent: this.mobile || isNil(this.filter)})),
-          // Save filter in settings (after a debounce time)
-          debounceTime(500),
-          tap(json => this.settings.savePageSetting(this.settingsId, json, TripsPageSettingsEnum.FILTER_KEY))
-        )
-        .subscribe());
-
     // Restore filter from settings, or load all
     this.restoreFilterOrLoad();
   }
@@ -193,13 +170,43 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     return super.clickRow(event, row);
   }
 
+  applyFilterAndClosePanel(event?: UIEvent) {
+    this.onRefresh.emit(event);
+    this.filterExpansionPanel.close();
+  }
+
+  resetFilter(event?: UIEvent) {
+    super.resetFilter(event);
+    this.filterExpansionPanel.close();
+  }
+
+  /**
+   * Action triggered when user swipes
+   */
+  onSwipeTab(event: HammerSwipeEvent): boolean {
+    // DEBUG
+    // if (this.debug) console.debug("[trips] onSwipeTab()");
+
+    // Skip, if not a valid swipe event
+    if (!event
+      || event.defaultPrevented || (event.srcEvent && event.srcEvent.defaultPrevented)
+      || event.pointerType !== 'touch'
+    ) {
+      return false;
+    }
+
+    this.toggleSynchronizationStatus();
+    return true;
+  }
+
   async openTrashModal(event?: UIEvent) {
     console.debug('[trips] Opening trash modal...');
+    const modalOptions: TripTrashModalOptions = {
+      synchronizationStatus: this.filter && this.filter.synchronizationStatus || 'SYNC'
+    };
     const modal = await this.modalCtrl.create({
       component: TripTrashModal,
-      componentProps: {
-        synchronizationStatus: this.filter.synchronizationStatus
-      },
+      componentProps: modalOptions,
       keyboardClose: true,
       cssClass: 'modal-large'
     });
@@ -213,8 +220,6 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
   }
 
   /* -- protected methods -- */
-
-  protected isFilterEmpty = TripFilter.isEmpty;
 
   protected markForCheck() {
     this.cd.markForCheck();

@@ -45,8 +45,7 @@ const DEFAULT_VALUE_ACCESSOR: any = {
 
 const DAY_MASK = [/\d/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/];
 
-const noop = () => {
-};
+const noop = () => {};
 
 @Component({
   selector: 'mat-date-field',

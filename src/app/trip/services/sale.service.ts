@@ -12,9 +12,14 @@ import {Sale} from "./model/sale.model";
 import {Sample} from "./model/sample.model";
 import {SortDirection} from "@angular/material/sort";
 import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
+import {FilterFn, IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {environment} from "../../../environments/environment";
+import {DataEntityFilter} from "../../data/services/model/data-filter.model";
+import {RootDataEntityFilter} from "../../data/services/model/root-data-filter.model";
+import {ReferentialRef} from "../../core/services/model/referential.model";
+import {isNotNil} from "../../shared/functions";
+import {ReferentialRefFilter} from "../../referential/services/filter/referential-ref.filter";
 
 export const SaleFragments = {
   lightSale: gql`fragment LightSaleFragment_PENDING on SaleVO {
@@ -79,10 +84,43 @@ export const SaleFragments = {
 };
 
 
-export declare class SaleFilter {
+export class SaleFilter extends RootDataEntityFilter<SaleFilter, Sale> {
+
+  static fromObject(source: any): SaleFilter {
+    if (!source || source instanceof SaleFilter) return source;
+    const target = new SaleFilter();
+    target.fromObject(target);
+    return target;
+  }
+
   observedLocationId?: number;
   tripId?: number;
+
+  fromObject(source: any) {
+    super.fromObject(source);
+    this.observedLocationId = source.observedLocationId;
+    this.tripId = source.tripId;
+  }
+
+  asFilterFn<E extends Sale>(): FilterFn<E> {
+    const filterFns: FilterFn<E>[] = [];
+
+    const inheritedFn = super.asFilterFn();
+    if (inheritedFn) filterFns.push(inheritedFn);
+
+    if (isNotNil(this.observedLocationId)) {
+      filterFns.push(t => t.observedLocationId === this.observedLocationId);
+    }
+    if (isNotNil(this.tripId)) {
+      filterFns.push(t => t.tripId === this.tripId);
+    }
+
+    if (!filterFns.length) return undefined;
+
+    return entity => !filterFns.find(fn => !fn(entity));
+  }
 }
+
 const LoadAllQuery: any = gql`
   query Sales($filter: SaleFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     sales(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -380,6 +418,11 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
         if (this._debug) console.debug(`[sale-service] Sale deleted in ${Date.now() - now}ms`);
       }
     });
+  }
+
+
+  asFilter(filter: Partial<SaleFilter>): SaleFilter {
+    return SaleFilter.fromObject(filter);
   }
 
   /* -- protected methods -- */

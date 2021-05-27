@@ -8,11 +8,12 @@ import {BehaviorSubject} from "rxjs";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {MetierService} from "../../referential/services/metier.service";
-import {OperationGroup, PhysicalGear} from "../services/model/trip.model";
+import {PhysicalGear} from "../services/model/trip.model";
 import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
 import {environment} from "../../../environments/environment";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {OperationGroup} from "../services/model/operation.model";
 
 export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier', 'physicalGear', 'targetSpecies'];
 export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -25,7 +26,7 @@ export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
     {provide: ValidatorService, useExisting: OperationGroupValidatorService},
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService<OperationGroup, OperationFilter>(OperationGroup)
+      useFactory: () => new InMemoryEntitiesService<OperationGroup, OperationFilter>(OperationGroup, OperationFilter)
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush

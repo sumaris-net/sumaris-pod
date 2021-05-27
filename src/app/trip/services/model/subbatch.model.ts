@@ -4,8 +4,12 @@ import {AcquisitionLevelCodes} from "../../../referential/services/model/model.e
 import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRef} from "../../../core/services/model/referential.model";
 import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {EntityClass} from "../../../core/services/model/entity.decorators";
 
+@EntityClass({typename: 'SubBatchVO', fromObjectStrategy: "recreate"})
 export class SubBatch extends Batch<SubBatch> {
+
+  static fromObject: (source: any, opts?: BatchFromObjectOptions) => SubBatch;
 
   // The parent group (can be != parent)
   parentGroup: BatchGroup;
@@ -20,20 +24,8 @@ export class SubBatch extends Batch<SubBatch> {
     return target;
   }
 
-  static fromObject(source: any, opts?: BatchFromObjectOptions): BatchGroup {
-    const target = new BatchGroup();
-    target.fromObject(source, opts);
-    return target;
-  }
-
   constructor() {
-    super();
-  }
-
-  clone(): SubBatch {
-    const target = new SubBatch();
-    target.fromObject(this.asObject());
-    return target;
+    super(SubBatch.TYPENAME);
   }
 
   asObject(opts?: BatchAsObjectOptions): any {

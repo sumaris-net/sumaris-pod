@@ -9,7 +9,7 @@ import {StrategiesTable} from "../strategy/strategies.table";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {AppPropertiesForm} from "../../core/form/properties.form";
-import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
+import {ReferentialRefService} from "../services/referential-ref.service";
 import {ModalController} from "@ionic/angular";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {ProgramProperties, StrategyEditor} from "../services/config/program.config";
@@ -29,6 +29,7 @@ import {fadeInOutAnimation} from "../../shared/material/material.animations";
 import {AppTable} from "../../core/table/table.class";
 import {SamplingStrategiesTable} from "../strategy/sampling/sampling-strategies.table";
 import {SharedValidators} from "../../shared/validator/validators";
+import {ReferentialRefFilter} from "../services/filter/referential-ref.filter";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -297,12 +298,12 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
   protected async openSelectReferentialModal(opts: {
-    filter: ReferentialRefFilter
+    filter: Partial<ReferentialRefFilter>
   }): Promise<ReferentialRef[]> {
 
     const modal = await this.modalCtrl.create({ component: SelectReferentialModal,
       componentProps: {
-        filter: opts.filter
+        filter: ReferentialRefFilter.fromObject(opts.filter)
       },
       keyboardClose: true,
       cssClass: 'modal-large'

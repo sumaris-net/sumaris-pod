@@ -107,7 +107,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     return this.getValue();
   }
 
-  @Input() set pmfms(pmfms: Observable<DenormalizedPmfmStrategy[]> | DenormalizedPmfmStrategy[]) {
+  @Input() set pmfms(pmfms: Observable<IPmfm[]> | IPmfm[]) {
     this.loading = true;
     this.setPmfms(pmfms);
   }

@@ -94,11 +94,9 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     protected pmfmService: PmfmService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(graphql, platform, SamplingStrategy,
+    super(graphql, platform, SamplingStrategy, StrategyFilter,
       {
-        queries: SamplingStrategyQueries,
-        filterAsObjectFn: StrategyFilter.asPodObject,
-        filterFnFactory: StrategyFilter.searchFilter
+        queries: SamplingStrategyQueries
       });
   }
 
@@ -118,7 +116,8 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
       ));
   }
 
-  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: StrategyFilter,
+  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
+                filter?: Partial<StrategyFilter>,
            opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean; withEffort?: boolean; withParameterGroups?: boolean; toEntity?: boolean; }
   ): Promise<LoadResult<SamplingStrategy>> {
     const res = await super.loadAll(offset, size, sortBy, sortDirection, filter, opts);

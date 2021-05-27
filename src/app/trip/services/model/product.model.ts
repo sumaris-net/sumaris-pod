@@ -9,32 +9,45 @@ import {IEntityWithMeasurement, MeasurementFormValues, MeasurementValuesUtils} f
 import {equalsOrNil, isNil, isNotNil, isNotNilOrBlank} from "../../../shared/functions";
 import {IEntity} from "../../../core/services/model/entity.model";
 import {Sample} from "./sample.model";
+import {IWithPacketsEntity, Packet} from "./packet.model";
+import {FilterFn} from "../../../shared/services/entity-service.class";
+import {DataEntityFilter} from "../../../data/services/model/data-filter.model";
 
-export interface IWithProductsEntity<T> extends IEntity<T> {
+export interface IWithProductsEntity<T, ID = number>
+  extends IEntity<T, ID> {
   products: Product[];
 }
 
-export class ProductFilter {
+export class ProductFilter extends DataEntityFilter<ProductFilter, Product> {
 
-  constructor(parent: IWithProductsEntity<any>) {
-    this.parent = parent;
+  static fromParent(parent: IWithProductsEntity<any, any>): ProductFilter {
+    return ProductFilter.fromObject({parent});
   }
 
-  static searchFilter<P extends Product>(f: ProductFilter): (T) => boolean {
-    if (ProductFilter.isEmpty(f)) return undefined;
-    return (p: P) => {
-      if (isNil(p.parent) || !f.parent.equals(p.parent)) {
-        return false;
-      }
-      return true;
-    }
+  static fromObject(source: Partial<ProductFilter>): ProductFilter {
+    if (!source || source instanceof ProductFilter) return source as ProductFilter;
+    const target = new ProductFilter();
+    target.fromObject(source);
+    return target;
   }
 
-  static isEmpty(f: ProductFilter) {
-    return !f || isNil(f.parent);
+  static searchFilter(source: Partial<ProductFilter>): FilterFn<Product>{
+    return source && ProductFilter.fromObject(source).asFilterFn();
   }
 
-  parent?: IWithProductsEntity<any>;
+  parent?: IWithProductsEntity<any, any>;
+
+  fromObject(source: any, opts?: any) {
+    super.fromObject(source, opts);
+    this.parent = source.parent;
+  }
+
+  buildFilter(): FilterFn<Product>[] {
+    return [
+      (p) => p.parent && this.parent.equals(p.parent)
+    ];
+  }
+
 }
 
 export class Product extends DataEntity<Product> implements IEntityWithMeasurement<Product> {
@@ -174,6 +187,7 @@ export class ProductUtils {
   static isSampleOfProduct(product: Product, sample: Sample): boolean {
     return product && sample
       && product.operationId === sample.operationId
-      && product.taxonGroup && sample.taxonGroup && product.taxonGroup.equals(sample.taxonGroup)
+      && product.taxonGroup && sample.taxonGroup
+      && ReferentialUtils.equals(product.taxonGroup, sample.taxonGroup);
   }
 }

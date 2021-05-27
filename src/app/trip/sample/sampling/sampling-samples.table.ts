@@ -16,11 +16,7 @@ import {Sample} from "../../services/model/sample.model";
 import {TaxonUtils} from "../../../referential/services/model/taxon.model";
 import {SamplingStrategyService} from "../../../referential/services/sampling-strategy.service";
 import {IPmfm} from "../../../referential/services/model/pmfm.model";
-
-export interface SampleFilter {
-  operationId?: number;
-  landingId?: number;
-}
+import {isInstanceOf} from "../../../core/services/model/entity.model";
 
 const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label'];
 const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -84,6 +80,13 @@ export class SamplingSamplesTable extends SamplesTable {
         requiredStrategy: true
       }
     );
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.$strategyLabel.unsubscribe();
+    this.$pmfmGroups.unsubscribe();
+    this.$pmfmGroupColumns.unsubscribe();
   }
 
   protected async onNewEntity(data: Sample): Promise<void> {
@@ -187,7 +190,7 @@ export class SamplingSamplesTable extends SamplesTable {
         pmfm = pmfm.clone(); // Clone, to leave original PMFM unchanged
 
         // Use rankOrder as a group index (will be used in template, to computed column class)
-        if (pmfm instanceof DenormalizedPmfmStrategy) {
+        if (isInstanceOf(pmfm, DenormalizedPmfmStrategy)) {
           pmfm.rankOrder = groupIndex;
         }
 
@@ -218,7 +221,7 @@ export class SamplingSamplesTable extends SamplesTable {
   }
 
 
-  protected async openSelectPmfmsModal(event?: UIEvent, filter?: PmfmFilter,
+  protected async openSelectPmfmsModal(event?: UIEvent, filter?: Partial<PmfmFilter>,
                                        opts?: {
                                          allowMultiple?: boolean;
                                        }): Promise<number[]> {
@@ -226,7 +229,7 @@ export class SamplingSamplesTable extends SamplesTable {
     const modal = await this.modalCtrl.create({
       component: SelectPmfmModal,
       componentProps: {
-        filter,
+        filter: PmfmFilter.fromObject(filter),
         allowMultiple: opts && opts.allowMultiple
       },
       keyboardClose: true,

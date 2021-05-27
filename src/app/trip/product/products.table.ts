@@ -28,7 +28,7 @@ export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // to
   providers: [
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService<Product, ProductFilter>(Product, {
+      useFactory: () => new InMemoryEntitiesService(Product, ProductFilter, {
         equals: Product.equals,
         filterFnFactory: ProductFilter.searchFilter
       })

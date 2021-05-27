@@ -25,6 +25,7 @@ import {TaxonGroupRef} from "../../../referential/services/model/taxon.model";
 import {MatMenuTrigger} from "@angular/material/menu";
 import {BatchGroupValidatorService} from "../../services/validator/batch-group.validator";
 import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {isInstanceOf} from "../../../core/services/model/entity.model";
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
 
@@ -155,7 +156,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     super(injector,
       // Force no validator (readonly mode, if mobile)
       platform.mobile ? null : injector.get(ValidatorService),
-      new InMemoryEntitiesService<BatchGroup, BatchFilter>(BatchGroup, {
+      new InMemoryEntitiesService<BatchGroup, BatchFilter>(BatchGroup, BatchFilter, {
         onLoad: (data) => this.onLoad(data),
         onSave: (data) => this.onSave(data),
         equals: Batch.equals
@@ -473,8 +474,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     else {
       if (this.debug) console.debug('[batch-group-table] First qualitative PMFM found: ' + qvPmfm.label);
 
-      if (isNil(this.defaultWeightPmfm) || (this.defaultWeightPmfm instanceof DenormalizedPmfmStrategy
-        && qvPmfm instanceof DenormalizedPmfmStrategy
+      if (isNil(this.defaultWeightPmfm) || (isInstanceOf(this.defaultWeightPmfm, DenormalizedPmfmStrategy)
+        && isInstanceOf(qvPmfm, DenormalizedPmfmStrategy)
         && qvPmfm.rankOrder < qvPmfm.rankOrder)) {
         throw new Error(`[batch-group-table] Unable to construct the table. First qualitative value PMFM must be define BEFORE any weight PMFM (by rankOrder in PMFM strategy - acquisition level ${this.acquisitionLevel})`);
       }
@@ -769,7 +770,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     this.markAsLoaded();
 
     // Exit if empty
-    if (!(data instanceof BatchGroup)) {
+    if (!isInstanceOf(data, BatchGroup)) {
       return undefined; // Exit if empty
     }
 

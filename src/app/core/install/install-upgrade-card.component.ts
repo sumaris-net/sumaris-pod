@@ -36,7 +36,7 @@ export declare interface InstallAppLink {
   templateUrl: 'install-upgrade-card.component.html',
   styleUrls: ['./install-upgrade-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [fadeInAnimation, slideUpDownAnimation]
+  animations: [slideUpDownAnimation]
 })
 export class AppInstallUpgradeCard implements OnInit, OnDestroy {
 

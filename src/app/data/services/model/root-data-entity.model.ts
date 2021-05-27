@@ -17,24 +17,24 @@ export const SynchronizationStatusEnum = {
   DELETED: <SynchronizationStatus>'DELETED'
 };
 
-export abstract class RootDataEntity<T extends RootDataEntity<any>, O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
-  extends DataEntity<T, O, F>
-  implements IWithRecorderPersonEntity<T>, IWithProgramEntity<T> {
+export abstract class RootDataEntity<
+  T extends RootDataEntity<any, ID, O>,
+  ID = number,
+  O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions,
+  FO = any>
+  extends DataEntity<T, ID, O, FO>
+  implements IWithRecorderPersonEntity<T, ID>,
+    IWithProgramEntity<T, ID> {
 
-  creationDate: Moment;
-  validationDate: Moment;
+  creationDate: Moment = null;
+  validationDate: Moment = null;
   comments: string = null;
-  recorderPerson: Person;
-  program: ReferentialRef;
-  synchronizationStatus?: SynchronizationStatus;
+  recorderPerson: Person = null;
+  program: ReferentialRef = null;
+  synchronizationStatus?: SynchronizationStatus = null;
 
-  protected constructor() {
-    super();
-    this.creationDate = null;
-    this.validationDate = null;
-    this.comments = null;
-    this.recorderPerson = null;
-    this.program = null;
+  protected constructor(__typename?: string) {
+    super(__typename);
   }
 
   asObject(options?: O): any {
@@ -53,7 +53,7 @@ export abstract class RootDataEntity<T extends RootDataEntity<any>, O extends Da
   }
 
 
-  fromObject(source: any, opts?: F) {
+  fromObject(source: any, opts?: FO) {
     super.fromObject(source, opts);
     this.comments = source.comments;
     this.creationDate = fromDateISOString(source.creationDate);
@@ -66,7 +66,7 @@ export abstract class RootDataEntity<T extends RootDataEntity<any>, O extends Da
 
 export abstract class DataRootEntityUtils {
 
-  static copyControlAndValidationDate(source: RootDataEntity<any> | undefined, target: RootDataEntity<any>) {
+  static copyControlAndValidationDate(source: RootDataEntity<any, any> | undefined, target: RootDataEntity<any, any>) {
     if (!source) return;
 
     // Update (id and updateDate)
@@ -77,12 +77,19 @@ export abstract class DataRootEntityUtils {
 
   static copyQualificationDateAndFlag = EntityUtils.copyQualificationDateAndFlag;
 
-  static isLocal(entity: RootDataEntity<any>): boolean {
+  static isLocal(entity: RootDataEntity<any, any>): boolean {
     return entity && (isNil(entity.id) ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0);
   }
 
-  static isRemote(entity: RootDataEntity<any>): boolean {
+  static isRemote(entity: RootDataEntity<any, any>): boolean {
     return entity && !DataRootEntityUtils.isLocal(entity);
   }
 
+  static isLocalAndDirty(entity: RootDataEntity<any, any>): boolean {
+    return entity && entity.id < 0 && entity.synchronizationStatus === 'DIRTY' || false;
+  }
+
+  static isReadyToSync(entity: RootDataEntity<any, any>): boolean {
+    return entity && entity.id < 0 && entity.synchronizationStatus === 'READY_TO_SYNC' || false;
+  }
 }

@@ -2,22 +2,17 @@ import {Moment} from "moment";
 import {Entity, EntityAsObjectOptions, IEntity} from "../../../core/services/model/entity.model";
 import {PredefinedColors} from "@ionic/core";
 import {fromDateISOString} from "../../../shared/dates";
+import {EntityClass} from "../../../core/services/model/entity.decorators";
 
 export const UserEventTypes = {
   DEBUG_DATA: 'DEBUG_DATA',
   INBOX_MESSAGE: 'INBOX_MESSAGE'
 }
 
+@EntityClass({typename: 'UserEventVO'})
 export class UserEvent extends Entity<UserEvent> {
 
-  static TYPE_NAME = "UserEventVO";
-
-  static fromObject(source: any): UserEvent {
-    if (!source || source instanceof UserEvent) return source;
-    const target = new UserEvent();
-    target.fromObject(source);
-    return target;
-  }
+  static fromObject: (source: any, opts?: any) => UserEvent;
 
   eventType: string;
   issuer: string;
@@ -30,14 +25,7 @@ export class UserEvent extends Entity<UserEvent> {
   readSignature: string;
 
   constructor() {
-    super();
-    this.__typename = UserEvent.TYPE_NAME;
-  }
-
-  clone(): UserEvent {
-    const target = new UserEvent();
-    target.fromObject(this);
-    return target;
+    super(UserEvent.TYPENAME);
   }
 
   asObject(opts?: EntityAsObjectOptions): any {

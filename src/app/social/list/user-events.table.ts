@@ -91,8 +91,8 @@ const ICONS_MAP: {[key: string]: UserEventIcon } = {
   templateUrl: './user-events.table.html',
   changeDetection: ChangeDetectionStrategy.OnPush
   })
-export class UserEventsTable extends AppTable<UserEvent, UserEventWatchOptions>
-  implements OnInit, OnDestroy {
+export class UserEventsTable extends AppTable<UserEvent, UserEventFilter>
+  implements OnInit {
 
   dateTimePattern: string;
   canEdit: boolean;
@@ -153,7 +153,7 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventWatchOptions>
     this.canEdit = this.isAdmin || pubkey === this.recipient;
     this.canDelete = this.canEdit;
 
-    this.setDatasource(new EntitiesTableDataSource<UserEvent, UserEventFilter>(UserEvent,
+    this.setDatasource(new EntitiesTableDataSource(UserEvent,
       this.service,
       null,
       {
@@ -164,13 +164,9 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventWatchOptions>
         }
       }));
 
-    this.setFilter({
-      ...this.filter,
-      recipient: this.recipient
-    }, {emitEvent: true});
-  }
-
-  ngOnDestroy() {
+    const filter = this.filter || new UserEventFilter();
+    filter.recipient = this.recipient;
+    this.setFilter(filter, {emitEvent: true});
   }
 
   async start() {
@@ -216,10 +212,8 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventWatchOptions>
 
     if (action && typeof action.executeAction === 'function') {
       try {
-        const res = action.executeAction(event, context);
-        if (res instanceof Promise) {
-          await res;
-        }
+        let res = action.executeAction(event, context);
+        res = (res instanceof Promise) ? await res : res;
       } catch (err) {
         this.error = err && err.message || err;
         console.error(`[user-event] Failed to execute action ${action.name}: ${err && err.message || err}`, err);

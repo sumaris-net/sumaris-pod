@@ -20,7 +20,7 @@ import {ProductsTable} from "../product/products.table";
 import {Product, ProductFilter, ProductUtils} from "../services/model/product.model";
 import {PacketsTable} from "../packet/packets.table";
 import {Packet, PacketFilter} from "../services/model/packet.model";
-import {OperationGroup, Trip} from "../services/model/trip.model";
+import {Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {fillRankOrder, isRankOrderValid} from "../../data/services/model/model.utils";
 import {SaleProductUtils} from "../services/model/sale-product.model";
@@ -37,6 +37,7 @@ import {EntityServiceLoadOptions} from "../../shared/services/entity-service.cla
 import {Program} from "../../referential/services/model/program.model";
 import {environment} from "../../../environments/environment";
 import {Sample} from "../services/model/sample.model";
+import {OperationGroup} from "../services/model/operation.model";
 
 const moment = momentImported;
 
@@ -45,6 +46,7 @@ const moment = momentImported;
   templateUrl: './landed-trip.page.html',
   styleUrls: ['./landed-trip.page.scss'],
   animations: [fadeInOutAnimation],
+  providers: [{provide: AppRootDataEditor, useExisting: LandedTripPage}],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LandedTripPage extends AppRootDataEditor<Trip, TripService> implements OnInit {
@@ -110,8 +112,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       operationGroup: [null]
     });
     this.registerSubscription(this.catchFilterForm.valueChanges.subscribe(() => {
-      this.$productFilter.next(new ProductFilter(this.catchFilterForm.value.operationGroup));
-      this.$packetFilter.next(new PacketFilter(this.catchFilterForm.value.operationGroup));
+      this.$productFilter.next(ProductFilter.fromParent(this.catchFilterForm.value.operationGroup));
+      this.$packetFilter.next(PacketFilter.fromParent(this.catchFilterForm.value.operationGroup));
     }));
 
     // Init operationGroupFilter combobox
@@ -160,6 +162,14 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
         this.expenseForm.realignInkBar();
       }
     }));
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.$metiers.unsubscribe();
+    this.$operationGroups.unsubscribe();
+    this.$productFilter.unsubscribe();
+    this.$packetFilter.unsubscribe();
   }
 
   onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {

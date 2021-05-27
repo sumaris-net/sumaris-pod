@@ -8,7 +8,7 @@ import {Location} from "@angular/common";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ReferentialValidatorService} from "../services/validator/referential.validator";
-import {ReferentialFilter} from "../services/referential.service";
+import {ReferentialFilter} from "../services/filter/referential.filter";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {isNotNil} from "../../shared/functions";
@@ -24,13 +24,13 @@ import {environment} from "../../../environments/environment";
     {
       provide: InMemoryEntitiesService,
       useFactory: () => {
-        return new InMemoryEntitiesService<Referential, ReferentialFilter>(Referential);
+        return new InMemoryEntitiesService(Referential, ReferentialFilter);
       }
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SimpleReferentialTable extends AppInMemoryTable<Referential, ReferentialFilter> {
+export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partial<ReferentialFilter>> {
 
   statusList = DefaultStatusList;
   statusById: any;

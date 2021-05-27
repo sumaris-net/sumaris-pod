@@ -11,7 +11,7 @@ import {LocalSettingsService} from "./core/services/local-settings.service";
 import {ReferentialRefService} from "./referential/services/referential-ref.service";
 import {MatIconRegistry} from "@angular/material/icon";
 import {DomSanitizer} from "@angular/platform-browser";
-import {changeCaseToUnderscore, isNotNil, joinPropertiesPath} from "./shared/functions";
+import {isNotNil, joinPropertiesPath} from "./shared/functions";
 
 @Component({
   selector: 'app-root',
@@ -53,7 +53,7 @@ export class AppComponent {
     console.info('[app] Starting [OK]');
   }
 
-  public onActivate(event) {
+  onActivate(event) {
     // Make sure to scroll on top before changing state
     // See https://stackoverflow.com/questions/48048299/angular-5-scroll-to-top-on-every-route-click
     const scrollToTop = window.setInterval(() => {

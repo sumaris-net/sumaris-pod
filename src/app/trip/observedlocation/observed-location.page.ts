@@ -1,6 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
 import * as momentImported from "moment";
-const moment = momentImported;
 import {ObservedLocationForm} from "./observed-location.form";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {LandingsTable} from "../landing/landings.table";
@@ -13,7 +12,6 @@ import {ReferentialRef, ReferentialUtils} from "../../core/services/model/refere
 import {SelectVesselsModal} from "./vessels/select-vessel.modal";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {Landing} from "../services/model/landing.model";
-import {LandingFilter} from "../services/landing.service";
 import {LandingEditor, ProgramProperties} from "../../referential/services/config/program.config";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {BehaviorSubject} from "rxjs";
@@ -29,7 +27,11 @@ import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
 import {TRIP_CONFIG_OPTIONS} from "../services/config/trip.config";
 import {ConfigService} from "../../core/services/config.service";
-import {LANDING_DEFAULT_I18N_PREFIX} from "../landing/landing.form";
+import {LandingFilter} from "../services/filter/landing.filter";
+import {ValidatorService} from "@e-is/ngx-material-table";
+import {ObservedLocationValidatorService} from "../services/validator/observed-location.validator";
+
+const moment = momentImported;
 
 
 const OBSERVED_LOCATION_DEFAULT_I18N_PREFIX = 'OBSERVED_LOCATION.EDIT.';
@@ -43,7 +45,10 @@ const ObservedLocationPageTabs = {
   selector: 'app-observed-location-page',
   templateUrl: './observed-location.page.html',
   animations: [fadeInOutAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    {provide: AppRootDataEditor, useExisting: ObservedLocationPage}
+  ],
 })
 export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, ObservedLocationService> {
 
@@ -104,6 +109,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   protected async setProgram(program: Program) {
     await super.setProgram(program);
     if (!program) return; // Skip
+
+    console.debug('[observed-location] Settings editor options, using program:', program);
 
     this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
     this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
@@ -175,9 +182,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         this.tabGroup.selectedTabChange
           .pipe(
             filter(event => event.index === ObservedLocationPageTabs.LANDINGS),
-            first()
+            first(),
+            tap(() => this.save())
           )
-          .subscribe(event => this.save())
+          .subscribe()
         );
     }
   }
@@ -205,6 +213,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.tabGroup.realignInkBar();
     }
   }
+
+
 
   protected async setValue(data: ObservedLocation) {
     // Set data to form
@@ -334,7 +344,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     const excludeVesselIds = (toBoolean(excludeExistingVessels, false) && this.aggregatedLandingsTable
       && await this.aggregatedLandingsTable.vesselIdsAlreadyPresent()) || [];
 
-    const landingFilter = <LandingFilter>{
+    const landingFilter = LandingFilter.fromObject({
       programLabel,
       startDate,
       endDate,
@@ -342,7 +352,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       groupByVessel: (this.landingsTable && this.landingsTable.isTripDetailEditor) || (isNotNil(this.aggregatedLandingsTable)),
       excludeVesselIds,
       synchronizationStatus: 'SYNC' // only remote entities. This is required to read 'Remote#LandingVO' local storage
-    };
+    });
 
     const modal = await this.modalCtrl.create({
       component: SelectVesselsModal,

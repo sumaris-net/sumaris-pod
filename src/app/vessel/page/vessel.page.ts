@@ -14,6 +14,7 @@ import {HistoryPageReference} from "../../core/services/model/history.model";
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {isNotNil} from "../../shared/functions";
+import {VesselFeaturesFilter, VesselRegistrationFilter} from "../services/filter/vessel.filter";
 
 @Component({
   selector: 'app-vessel-page',
@@ -55,7 +56,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     private dateAdapter: DateFormatPipe
   ) {
     super(injector, Vessel, vesselService);
-    this.defaultBackHref = '/referential/vessels';
+    this.defaultBackHref = '/vessels';
   }
 
   ngOnInit() {
@@ -69,13 +70,10 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
-    this.registerSubscription(
-      this.onUpdateView.subscribe(() => {
-          this.featuresHistoryTable.setFilter({vesselId: this.data.id});
-          this.registrationHistoryTable.setFilter({vesselId: this.data.id});
-        }
-      )
-    );
+    this.registerSubscription(this.onUpdateView.subscribe(() => {
+      this.featuresHistoryTable.setFilter(VesselFeaturesFilter.fromObject({vesselId: this.data.id}));
+      this.registrationHistoryTable.setFilter(VesselRegistrationFilter.fromObject({vesselId: this.data.id}));
+    }));
 
   }
 
@@ -236,12 +234,11 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
   }
 
   async save(event, options?: any): Promise<boolean> {
-    const res = await super.save(event, {
+    return super.save(event, {
       previousVessel: this.previousVessel,
       isNewFeatures: this.isNewFeatures,
       isNewRegistration: this.isNewRegistration
     });
-    return res;
   }
 
   protected getJsonValueToSave(): Promise<any> {

@@ -17,13 +17,13 @@ import {StorageUtils} from "../../shared/services/storage.utils";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {TranslateService} from "@ngx-translate/core";
 import * as momentImported from "moment";
-import {DateAdapter} from "@angular/material/core";
 import {AccountService} from "./account.service";
 import {timer} from "rxjs";
-import {filter, first, tap} from "rxjs/operators";
+import {filter, first} from "rxjs/operators";
 import {ENVIRONMENT} from "../../../environments/environment.class";
 import {ConfigService} from "./config.service";
 import {CORE_CONFIG_OPTIONS} from "./config/core.config";
+import {MomentDateAdapter} from "@angular/material-moment-adapter";
 
 const moment = momentImported;
 
@@ -49,7 +49,7 @@ export class PlatformService {
     private platform: Platform,
     private toastController: ToastController,
     private translate: TranslateService,
-    private dateAdapter: DateAdapter<any>,
+    private dateAdapter: MomentDateAdapter,
     private splashScreen: SplashScreen,
     private statusBar: StatusBar,
     private keyboard: Keyboard,
@@ -204,7 +204,7 @@ export class PlatformService {
 
 
   protected configureTranslate() {
-    console.info("[platform] Configuring translate...");
+    console.info("[platform] Configuring i18n ...");
 
     // this language will be used as a fallback when a translation isn't found in the current language
     this.translate.setDefaultLang(this.environment.defaultLocale);
@@ -218,9 +218,6 @@ export class PlatformService {
           event.lang = "en_GB";
         }
 
-        // Config date adapter
-        this.dateAdapter.setLocale(event.lang);
-
         // config moment lib
         try {
           moment.locale(event.lang);
@@ -228,10 +225,12 @@ export class PlatformService {
         }
           // If error, fallback to en
         catch (err) {
-          this.dateAdapter.setLocale('en');
           moment.locale('en');
           console.warn('[platform] Unknown local for moment lib. Using default [en]');
         }
+
+        // Config date adapter
+        this.dateAdapter.setLocale(moment.locale());
       }
     });
 

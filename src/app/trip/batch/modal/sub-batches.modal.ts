@@ -17,6 +17,7 @@ import {BatchGroup} from "../../services/model/batch-group.model";
 import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {AppFormUtils} from "../../../core/form/form.utils";
 import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {isInstanceOf} from "../../../core/services/model/entity.model";
 
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
@@ -184,7 +185,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     if (isNil(parentTaxonGroupId)) return pmfms;
 
     // Filter using parent's taxon group
-    return pmfms.filter(pmfm => !(pmfm instanceof DenormalizedPmfmStrategy)
+    return pmfms.filter(pmfm => !(isInstanceOf(pmfm, DenormalizedPmfmStrategy))
       || isEmptyArray(pmfm.taxonGroupIds)
       || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
   }

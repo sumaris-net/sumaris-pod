@@ -4,7 +4,7 @@ import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {environment} from "../../../environments/environment";
-import {ReferentialFilter, ReferentialService} from "./referential.service";
+import {ReferentialService} from "./referential.service";
 import {Pmfm} from "./model/pmfm.model";
 import {Observable, of} from "rxjs";
 import {ReferentialFragments} from "./referential.fragments";
@@ -12,13 +12,7 @@ import {map} from "rxjs/operators";
 import {ReferentialUtils, SAVE_AS_OBJECT_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
 import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {
-  EntityServiceLoadOptions,
-  IEntitiesService,
-  IEntityService,
-  LoadResult,
-  SuggestService
-} from "../../shared/services/entity-service.class";
+import {EntityServiceLoadOptions, IEntitiesService, IEntityService, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
 import {isNil, isNotNil} from "../../shared/functions";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {EntityUtils} from "../../core/services/model/entity.model";
@@ -26,6 +20,8 @@ import {ReferentialRefService} from "./referential-ref.service";
 import {ObjectMap} from "../../shared/types";
 import {CacheService} from "ionic-cache";
 import {CryptoService} from "../../core/services/crypto.service";
+import {BaseReferentialFilter} from "./filter/referential.filter";
+import {EntityClass} from "../../core/services/model/entity.decorators";
 
 const LoadAllQuery = gql`query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
   data: pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -107,8 +103,14 @@ ${ReferentialFragments.referential}
 ${ReferentialFragments.fullReferential}
 ${ReferentialFragments.parameter}`;
 
-export class PmfmFilter extends ReferentialFilter {
+
+@EntityClass()
+export class PmfmFilter extends BaseReferentialFilter<PmfmFilter, Pmfm> {
+
+  static fromObject: (source: any, opts?: any) => PmfmFilter;
+
   entityName?: 'Pmfm';
+
 }
 
 
@@ -120,7 +122,9 @@ const PmfmCacheKeys = {
 
 // TODO BLA: étendre la class BaseReferentialService
 @Injectable({providedIn: 'root'})
-export class PmfmService extends BaseGraphqlService implements IEntityService<Pmfm>,
+export class PmfmService
+  extends BaseGraphqlService<Pmfm, PmfmFilter>
+  implements IEntityService<Pmfm>,
   IEntitiesService<Pmfm, PmfmFilter>,
   SuggestService<Pmfm, PmfmFilter>
 {
@@ -221,13 +225,14 @@ export class PmfmService extends BaseGraphqlService implements IEntityService<Pm
       withDetails?: boolean;
     }
   ): Observable<LoadResult<Pmfm>> {
+    filter = this.asFilter(filter);
     opts = opts || {};
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
       sortBy: sortBy || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: PmfmFilter.asPodObject(filter)
+      filter: filter && filter.asPodObject()
     };
     const now = Date.now();
     if (this._debug) console.debug("[pmfm-service] Watching pmfms using options:", variables);
@@ -269,7 +274,7 @@ export class PmfmService extends BaseGraphqlService implements IEntityService<Pm
                 size: number,
                 sortBy?: string,
                 sortDirection?: SortDirection,
-                filter?: PmfmFilter,
+                filter?: Partial<PmfmFilter>,
                 opts?: {
                   query?: any,
                   fetchPolicy?: FetchPolicy;
@@ -279,12 +284,13 @@ export class PmfmService extends BaseGraphqlService implements IEntityService<Pm
                   debug?: boolean;
                 }): Promise<LoadResult<Pmfm>> {
     opts = opts || {};
+    filter = this.asFilter(filter);
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
       sortBy: sortBy || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: PmfmFilter.asPodObject(filter)
+      filter: filter && filter.asPodObject()
     };
     const debug = this._debug && (opts.debug !== false);
     const now = debug && Date.now();
@@ -302,7 +308,7 @@ export class PmfmService extends BaseGraphqlService implements IEntityService<Pm
       fetchPolicy: opts && opts.fetchPolicy || undefined
     });
 
-    const entities = (!opts || opts.toEntity !== false) ?
+    const entities = opts.toEntity !== false ?
       (data || []).map(Pmfm.fromObject) :
       (data || []) as Pmfm[];
     if (debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`);
@@ -322,7 +328,7 @@ export class PmfmService extends BaseGraphqlService implements IEntityService<Pm
     throw new Error("Not implemented yet");
   }
 
-  async suggest(value: any, filter?: PmfmFilter): Promise<LoadResult<Pmfm>> {
+  async suggest(value: any, filter?: PmfmFilter|any): Promise<LoadResult<Pmfm>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;
     return this.loadAll(0, !value ? 30 : 10, filter && filter.searchAttribute || null, null,
@@ -366,6 +372,10 @@ export class PmfmService extends BaseGraphqlService implements IEntityService<Pm
       res[key] = map[key].map(e => e.id);
       return res;
     }, {});
+  }
+
+  asFilter(filter: Partial<PmfmFilter>): PmfmFilter {
+    return PmfmFilter.fromObject(filter);
   }
 
   /* -- protected methods -- */

@@ -11,19 +11,15 @@ import {LocalSettingsService} from "../../../core/services/local-settings.servic
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {PlatformService} from "../../../core/services/platform.service";
 import {SharedValidators} from "../../../shared/validator/validators";
-import {ObservedLocationOfflineFilter} from "../../services/observed-location.service";
-import {LocationLevelIds} from "../../../referential/services/model/model.enum";
 import {ProgramRefQueries, ProgramRefService} from "../../../referential/services/program-ref.service";
-import DurationConstructor = moment.unitOfTime.DurationConstructor;
-import {referentialsToString, referentialToString, ReferentialUtils} from "../../../core/services/model/referential.model";
+import {referentialsToString, referentialToString} from "../../../core/services/model/referential.model";
 import {isEmptyArray, isNotEmptyArray} from "../../../shared/functions";
-import {filter, map, merge, tap} from "rxjs/operators";
-import {EntityUtils} from "../../../core/services/model/entity.model";
+import {map} from "rxjs/operators";
 import {mergeMap} from "rxjs/internal/operators";
 import {ProgramProperties} from "../../../referential/services/config/program.config";
-import {of} from "rxjs";
 import {Program} from "../../../referential/services/model/program.model";
-import {LoadResult} from "../../../shared/services/entity-service.class";
+import DurationConstructor = moment.unitOfTime.DurationConstructor;
+import {ObservedLocationOfflineFilter} from "../../services/filter/observed-location.filter";
 
 const moment = momentImported;
 

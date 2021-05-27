@@ -7,7 +7,7 @@ import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {ReferentialFilter} from "./referential.service";
+import {ReferentialFilter} from "./filter/referential.filter";
 import {Strategy} from "./model/strategy.model";
 import {BaseEntityGraphqlQueries} from "./base-entity-service.class";
 import {PlatformService} from "../../core/services/platform.service";
@@ -136,11 +136,9 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
     protected cache: CacheService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql, platform, Strategy,
+    super(graphql, platform, Strategy, StrategyFilter,
       {
-        queries: StrategyRefQueries,
-        filterAsObjectFn: StrategyFilter.asPodObject,
-        filterFnFactory: StrategyFilter.searchFilter
+        queries: StrategyRefQueries
       });
   }
 

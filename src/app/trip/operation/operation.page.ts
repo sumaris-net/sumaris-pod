@@ -17,7 +17,7 @@ import {SamplesTable} from "../sample/samples.table";
 import {Batch} from "../services/model/batch.model";
 import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
 import {firstNotNil, firstNotNilPromise} from "../../shared/observables";
-import {Operation, Trip} from "../services/model/trip.model";
+import {Trip} from "../services/model/trip.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
 import {EntityUtils, IEntity} from "../../core/services/model/entity.model";
@@ -28,6 +28,7 @@ import {EntityServiceLoadOptions} from "../../shared/services/entity-service.cla
 import {AppEntityEditor} from "../../core/form/editor.class";
 import {environment} from "../../../environments/environment";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {Operation} from "../services/model/operation.model";
 
 const moment = momentImported;
 
@@ -324,6 +325,16 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
   }
 
+  ngOnDestroy() {
+    super.ngOnDestroy();
+
+    this.$lastOperations.complete();
+    this.$program.complete();
+    this.$programLabel.complete();
+    this.$tripId.complete();
+    this.$tripId.complete();
+  }
+
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
     if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
@@ -521,7 +532,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   setValue(data: Operation) {
 
     // set parent trip
-    const trip = data.trip;
+    const trip = data.trip as Trip;
     delete data.trip;
     this.trip = trip || this.trip;
 
@@ -736,5 +747,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  memoryHide = false;
+  startMemoryTimer() {
+    setInterval(() => {
+      this.memoryHide = !this.memoryHide;
+      this.markForCheck();
+    }, 50);
   }
 }

@@ -1,9 +1,10 @@
 import {Entity, EntityAsObjectOptions, IEntity} from "../../../core/services/model/entity.model";
-import {Referential, ReferentialRef} from "../../../core/services/model/referential.model";
+import {BaseReferential, ReferentialRef} from "../../../core/services/model/referential.model";
 import {isNotNil} from "../../../shared/functions";
 import {MethodIds, PmfmIds} from "./model.enum";
 import {Parameter, ParameterType} from "./parameter.model";
 import {PmfmValue} from "./pmfm-value.model";
+import {EntityClass} from "../../../core/services/model/entity.decorators";
 
 export declare type PmfmType = ParameterType | 'integer';
 
@@ -11,8 +12,11 @@ export const PMFM_ID_REGEXP = /\d+/;
 
 export const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/]+)[/]\s*(.*)$/);
 
-export interface IPmfm<T extends Entity<T> = Entity<any>> extends IEntity<IPmfm<T>> {
-  id: number;
+export interface IPmfm<
+  T extends Entity<T, ID> = Entity<any, any>,
+  ID = number
+  > extends IEntity<IPmfm<T, ID>, ID> {
+  id: ID;
   label: string;
 
   type: string | PmfmType;
@@ -36,16 +40,11 @@ export interface IPmfm<T extends Entity<T> = Entity<any>> extends IEntity<IPmfm<
   rankOrder?: number;
 }
 
-export class Pmfm extends Referential<Pmfm> implements IPmfm<Pmfm> {
+@EntityClass()
+export class Pmfm extends BaseReferential<Pmfm> implements IPmfm<Pmfm> {
 
-  static TYPENAME = 'Pmfm';
-
-  static fromObject(source: any): Pmfm {
-    if (!source || source instanceof Pmfm) return source;
-    const res = new Pmfm();
-    res.fromObject(source);
-    return res;
-  }
+  static ENTITY_NAME = 'Pmfm';
+  static fromObject: (source: any, opts?: any) => Pmfm;
 
   type: string | PmfmType;
   minValue: number;
@@ -66,19 +65,7 @@ export class Pmfm extends Referential<Pmfm> implements IPmfm<Pmfm> {
 
   constructor() {
     super();
-    this.entityName = Pmfm.TYPENAME;
-  }
-
-  clone(): Pmfm {
-    const target = new Pmfm();
-    this.copy(target);
-    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.clone()) || undefined;
-    return target;
-  }
-
-  copy(target: Pmfm): Pmfm {
-    target.fromObject(this);
-    return target;
+    this.entityName = Pmfm.ENTITY_NAME;
   }
 
   asObject(options?: EntityAsObjectOptions): any {
@@ -114,7 +101,7 @@ export class Pmfm extends Referential<Pmfm> implements IPmfm<Pmfm> {
   fromObject(source: any): Pmfm {
     super.fromObject(source);
 
-    this.entityName = source.entityName || Pmfm.TYPENAME;
+    this.entityName = source.entityName || Pmfm.ENTITY_NAME;
     this.type = source.type;
     this.minValue = source.minValue;
     this.maxValue = source.maxValue;

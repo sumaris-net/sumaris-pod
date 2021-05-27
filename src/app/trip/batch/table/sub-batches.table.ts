@@ -21,10 +21,11 @@ import {SubBatch, SubBatchUtils} from "../../services/model/subbatch.model";
 import {BatchGroup} from "../../services/model/batch-group.model";
 import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
 import {AppFormUtils} from "../../../core/form/form.utils";
-import {EntityUtils} from "../../../core/services/model/entity.model";
+import {EntityUtils, isInstanceOf} from "../../../core/services/model/entity.model";
 import {environment} from "../../../../environments/environment";
-import {LoadResult} from "../../../shared/services/entity-service.class";
+import {FilterFn, LoadResult} from "../../../shared/services/entity-service.class";
 import {IPmfm, PmfmUtils} from "../../../referential/services/model/pmfm.model";
+import {EntityFilter} from "../../../core/services/model/filter.model";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -32,10 +33,20 @@ export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'com
 
 export const SUB_BATCHES_TABLE_OPTIONS = new InjectionToken<AppMeasurementsTableOptions<Batch>>('SubBatchesTableOptions');
 
-export interface SubBatchFilter {
+export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch>{
   parentId?: number;
   operationId?: number;
   landingId?: number;
+
+  asFilterFn<E extends Batch>(): FilterFn<E> {
+    return (data) =>
+      (isNil(this.operationId) || data.operationId === this.operationId)
+      && (isNil(this.parentId) || data.parentId === this.parentId)
+
+      // TODO enable this:
+      // && (isNil(this.landingId) || data.landingId === this.landingId))
+      ;
+  }
 }
 
 const subBatchTableOptionsFactory = (injector: Injector) => {
@@ -168,7 +179,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   ) {
     super(injector,
       SubBatch,
-      new InMemoryEntitiesService<SubBatch, SubBatchFilter>(SubBatch, {
+      new InMemoryEntitiesService<SubBatch, SubBatchFilter>(SubBatch, SubBatchFilter, {
         onSort: (data, sortBy, sortDirection) => this.sortData(data, sortBy, sortDirection),
         onLoad: (data) => this.onLoadData(data),
         onSave: (data) => this.onSaveData(data),
@@ -251,7 +262,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
           const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
 
           pmfms.forEach(pmfm => {
-            const enable = !(pmfm instanceof DenormalizedPmfmStrategy) || isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(parenTaxonGroupId);
+            const enable = !isInstanceOf(pmfm, DenormalizedPmfmStrategy) || isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(parenTaxonGroupId);
             const control = controls[pmfm.id];
 
             // Update control state
@@ -517,7 +528,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       .filter(isNotNil);
     if (isNotEmptyArray(parentTaxonGroupIds)) {
       pmfms = pmfms.map(pmfm => {
-        if (pmfm instanceof DenormalizedPmfmStrategy && isNotEmptyArray(pmfm.taxonGroupIds) && pmfm.taxonGroupIds.findIndex(id => parentTaxonGroupIds.includes(id)) === -1) {
+        if (isInstanceOf(pmfm, DenormalizedPmfmStrategy) && isNotEmptyArray(pmfm.taxonGroupIds) && pmfm.taxonGroupIds.findIndex(id => parentTaxonGroupIds.includes(id)) === -1) {
           pmfm = pmfm.clone(); // Keep original
           pmfm.hidden = true;
           pmfm.required = false;
@@ -591,7 +602,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
-    return (data instanceof SubBatch) ? data : undefined;
+    return isInstanceOf(data, SubBatch) ? data : undefined;
   }
 
   protected async addEntityToTable(newBatch: SubBatch): Promise<TableElement<SubBatch>> {

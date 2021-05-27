@@ -15,14 +15,16 @@ import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {PhysicalGearModal} from "./physical-gear.modal";
 import {PhysicalGear} from "../services/model/trip.model";
-import {PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearFilter} from "../services/physicalgear.service";
+import {PHYSICAL_GEAR_DATA_SERVICE} from "../services/physicalgear.service";
 import {createPromiseEventEmitter} from "../../shared/events";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {IEntitiesService} from "../../shared/services/entity-service.class";
 import {environment} from "../../../environments/environment";
+import {PhysicalGearFilter} from "../services/filter/physical-gear.filter";
+import {isInstanceOf} from "../../core/services/model/entity.model";
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
-export const GEAR_RESERVED_END_COLUMNS: string[] = ['comments'];
+export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
 
 
 @Component({
@@ -33,7 +35,7 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['comments'];
     {provide: ValidatorService, useExisting: PhysicalGearValidatorService},
     {
       provide: PHYSICAL_GEAR_DATA_SERVICE,
-      useFactory: () => new InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>(PhysicalGear)
+      useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter)
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -55,10 +57,14 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   @Input() canDelete = true;
   @Input() canSelect = true;
   @Input() copyPreviousGears: (event: UIEvent) => Promise<PhysicalGear>;
-
+  @Input() showToolbar = true;
 
   @Input() set showSelectColumn(show: boolean) {
     this.setShowColumn('select', show);
+  }
+
+  @Input() set showLastUsedColumn(show: boolean) {
+    this.setShowColumn('lastUsed', show);
   }
 
   @Output() onSelectPreviousGear = createPromiseEventEmitter();
@@ -86,6 +92,9 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
 
+    // Excluded columns, by default
+    this.excludesColumns.push('lastUsed');
+
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
   }
@@ -94,6 +103,15 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     super.ngOnInit();
 
     this._enabled = this.canEdit;
+  }
+
+  ngOnDestroy() {
+
+    super.ngOnDestroy();
+    this.onSelectPreviousGear.unsubscribe();
+
+    //this.memoryDataService.ngOnDestroy();
+    //this.memoryDataService = null;
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
@@ -165,7 +183,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[physical-gear-table] Modal result: ", data);
 
-    return (data instanceof PhysicalGear) ? data : undefined;
+    return isInstanceOf(data, PhysicalGear) ? data : undefined;
   }
 
   /* -- protected methods -- */

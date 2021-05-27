@@ -474,11 +474,11 @@ export class GraphqlService {
    * @param cache
    * @param opts
    */
-  removeFromCachedQueryById<V = EmptyObject>(cache: ApolloCache<any>,
+  removeFromCachedQueryById<V = EmptyObject, ID = number>(cache: ApolloCache<any>,
                                    opts: Cache.ReadQueryOptions<V, any> & {
                                      arrayFieldName: string;
                                      totalFieldName?: string;
-                                     ids: number; // Do NOT use 'id', as already used by the Apollo API
+                                     ids: ID; // Do NOT use 'id', as already used by the Apollo API
                                    }): boolean {
 
     cache = cache || this.apollo.client.cache;
@@ -534,11 +534,11 @@ export class GraphqlService {
    * @param cache
    * @param opts
    */
-  removeFromCachedQueryByIds<V = EmptyObject>(cache: ApolloCache<any>,
+  removeFromCachedQueryByIds<V = EmptyObject, ID = number>(cache: ApolloCache<any>,
                                     opts: Cache.ReadQueryOptions<V, any> & {
                                       arrayFieldName: string;
                                       totalFieldName?: string;
-                                      ids: number[]
+                                      ids: ID[]
                                     }): number {
 
     cache = cache || this.apollo.client.cache;
@@ -610,7 +610,8 @@ export class GraphqlService {
     }
   }
 
-  updateToQueryCache<T extends IEntity<any>, V = EmptyObject>(cache: ApolloCache<any>,
+  updateToQueryCache<T extends IEntity<any>,
+    V = EmptyObject>(cache: ApolloCache<any>,
                       opts: Cache.ReadQueryOptions<V, any> & {
                         arrayFieldName: string;
                         totalFieldName?: string;

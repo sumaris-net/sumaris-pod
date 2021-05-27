@@ -21,6 +21,7 @@ import {NodeInfo} from "./network.utils";
 import {HttpUtils} from "../../shared/http/http.utils";
 import {VersionUtils} from "../../shared/version/versions";
 import {ENVIRONMENT} from "../../../environments/environment.class";
+import {isInstanceOf} from "./model/entity.model";
 
 export type ConnectionType = 'none' | 'wifi' | 'ethernet' | 'cell' | 'unknown' ;
 
@@ -523,7 +524,7 @@ export class NetworkService {
 
     if (!peer) return undefined;
 
-    let peerUrl = (peer instanceof Peer) ? peer.url : (peer as string);
+    let peerUrl = isInstanceOf(peer, Peer) ? peer.url : (peer as string);
     // Remove trailing slash
     if (peerUrl.endsWith('/')) {
       peerUrl = peerUrl.substr(0, peerUrl.length - 1);

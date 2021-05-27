@@ -17,7 +17,10 @@ import {ObjectMapEntry} from "../../shared/types";
 import {isNil} from "../../shared/functions";
 
 @Directive()
-export abstract class AbstractSoftwarePage<T extends Software<T>, S extends SoftwareService<T>>
+// tslint:disable-next-line:directive-class-suffix
+export abstract class AbstractSoftwarePage<
+  T extends Software<T>,
+  S extends SoftwareService<T>>
   extends AppEntityEditor<T, S>
   implements OnInit {
 
@@ -166,7 +169,7 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends Soft
         let value = data.properties[option.key];
         const filter = {...option.autocomplete.filter};
         const joinAttribute = option.autocomplete.filter.joinAttribute || 'id';
-        if (joinAttribute == 'id') {
+        if (joinAttribute === 'id') {
           filter.id = parseInt(value);
           value = '*';
         }

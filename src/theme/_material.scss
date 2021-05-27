@@ -11,11 +11,6 @@
 @include angular-material-theme($candy-app-theme);
 
 // --------------------------------------------------
-// Import material icons
-// --------------------------------------------------
-@import '~material-design-icons/iconfont/material-icons.css';
-
-// --------------------------------------------------
 // Override material style
 // --------------------------------------------------
 .mat-tab-group.mat-secondary, .mat-tab-nav-bar.mat-secondary {

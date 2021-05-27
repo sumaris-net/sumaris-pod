@@ -14,7 +14,7 @@ import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 
 import {personsToString} from "../../core/services/model/person.model";
 import {referentialToString} from "../../core/services/model/referential.model";
-import {LandingFilter, LandingService} from "../services/landing.service";
+import {LandingService} from "../services/landing.service";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {AcquisitionLevelCodes, LocationLevelIds} from "../../referential/services/model/model.enum";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
@@ -29,6 +29,7 @@ import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.m
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {environment} from "../../../environments/environment";
 import {isNotNil} from "../../shared/functions";
+import {LandingFilter} from "../services/filter/landing.filter";
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -60,6 +61,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   @Input() canDelete = true;
   @Input() showFabButton = false;
   @Input() showError = true;
+  @Input() showToolbar = true;
 
   @Input() set strategyPmfmId(value: number) {
     if (this._strategyPmfmId !== value) {
@@ -224,16 +226,21 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     });
   }
 
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.onNewTrip.unsubscribe();
+  }
+
   setParent(data: ObservedLocation | Trip) {
     if (!data) {
       this._parentDateTime = undefined;
-      this.setFilter({});
+      this.setFilter(LandingFilter.fromObject({}));
     } else if (data instanceof ObservedLocation) {
       this._parentDateTime = data.startDateTime;
-      this.setFilter({observedLocationId: data.id}, {emitEvent: true/*refresh*/});
+      this.setFilter(LandingFilter.fromObject({observedLocationId: data.id}), {emitEvent: true/*refresh*/});
     } else if (data instanceof Trip) {
       this._parentDateTime = data.departureDateTime;
-      this.setFilter({tripId: data.id}, {emitEvent: true/*refresh*/});
+      this.setFilter(LandingFilter.fromObject({tripId: data.id}), {emitEvent: true/*refresh*/});
     }
   }
 

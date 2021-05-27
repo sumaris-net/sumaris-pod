@@ -4,7 +4,7 @@ import {APP_BASE_HREF} from "@angular/common";
 import {BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule} from "@angular/platform-browser";
 import {CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext} from "@angular/core";
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
-import {MomentDateAdapter} from '@angular/material-moment-adapter';
+import {MAT_MOMENT_DATE_ADAPTER_OPTIONS, MAT_MOMENT_DATE_ADAPTER_OPTIONS_FACTORY, MomentDateAdapter} from '@angular/material-moment-adapter';
 import {SplashScreen} from '@ionic-native/splash-screen/ngx';
 import {StatusBar} from '@ionic-native/status-bar/ngx';
 import {Keyboard} from '@ionic-native/keyboard/ngx';
@@ -58,6 +58,7 @@ import {JDENTICON_CONFIG} from "ngx-jdenticon";
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
+    //NoopAnimationsModule,
     HttpClientModule,
     IonicModule.forRoot(),
     CacheModule.forRoot(),
@@ -105,7 +106,17 @@ import {JDENTICON_CONFIG} from "ngx-jdenticon";
     InAppBrowser,
     AudioManagement,
 
-    {provide: APP_BASE_HREF, useValue: (environment.baseUrl || '/')},
+    //{provide: APP_BASE_HREF, useValue: (environment.baseUrl || '/')},
+    {provide: APP_BASE_HREF, useFactory: function () {
+        try {
+          return document.getElementsByTagName('base')[0].href;
+        }
+        catch (err) {
+          console.error(err);
+          return environment.baseUrl || '/';
+        }
+      }
+    },
     //{ provide: ErrorHandler, useClass: IonicErrorHandler },
 
     {provide: APP_LOCALES, useValue:
@@ -142,7 +153,8 @@ import {JDENTICON_CONFIG} from "ngx-jdenticon";
         }
       }
     },
-    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_DATE_FORMATS]},
+    {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_DATE_FORMATS]},
+    {provide: DateAdapter, useExisting: MomentDateAdapter},
 
     // Configure hammer gesture
     {provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig},
@@ -185,7 +197,7 @@ import {JDENTICON_CONFIG} from "ngx-jdenticon";
         },
         {
           title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
-          matIcon: 'verified_user',
+          matIcon: 'verified',
           profile: 'USER',
           ifProperty: 'sumaris.observedLocation.enable',
           titleProperty: 'sumaris.observedLocation.name'
@@ -228,7 +240,7 @@ import {JDENTICON_CONFIG} from "ngx-jdenticon";
           titleProperty: 'sumaris.trip.name'
         },
         { title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
-          matIcon: 'verified_user',
+          matIcon: 'verified',
           profile: 'USER',
           ifProperty: 'sumaris.observedLocation.enable',
           titleProperty: 'sumaris.observedLocation.name'

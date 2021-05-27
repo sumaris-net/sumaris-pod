@@ -16,23 +16,25 @@ import {MatDatepickerModule} from "@angular/material/datepicker";
 import {MatButtonModule} from "@angular/material/button";
 import {MatDateShort} from "./material.dateshort";
 import {SharedDirectivesModule} from "../../directives/directives.module";
+import {MatMomentDateModule} from "@angular/material-moment-adapter";
 @NgModule({
-    imports: [
-        CommonModule,
-        IonicModule,
-        ReactiveFormsModule,
-        SharedPipesModule,
-        MatCommonModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatIconModule,
-        MatButtonModule,
-        MatDatepickerModule,
-        TextMaskModule,
-        NgxMaterialTimepickerModule,
-        TranslateModule.forChild(),
-        SharedDirectivesModule
-    ],
+  imports: [
+    CommonModule,
+    IonicModule,
+    ReactiveFormsModule,
+    SharedPipesModule,
+    MatCommonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    MatButtonModule,
+    MatDatepickerModule,
+    MatMomentDateModule,
+    TextMaskModule,
+    NgxMaterialTimepickerModule,
+    TranslateModule.forChild(),
+    SharedDirectivesModule
+  ],
   exports: [
     MatIconModule,
     MatDate,

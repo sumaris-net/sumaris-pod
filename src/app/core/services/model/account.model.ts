@@ -1,23 +1,20 @@
 import {UserSettings} from "./settings.model";
 import {Person} from "./person.model";
 import {EntityAsObjectOptions} from "./entity.model";
+import {EntityClass} from "./entity.decorators";
 
 /**
  * A user account
  */
+@EntityClass({typename: 'AccountVO'})
 export class Account extends Person<Account> {
 
-  static fromObject(source: any): Account {
-    if (!source || source instanceof Account) return source;
-    const result = new Account();
-    result.fromObject(source);
-    return result;
-  }
+  static fromObject: (source: any, opts?: any) => Account
 
   settings: UserSettings;
 
   constructor() {
-    super();
+    super(Account.TYPENAME);
     this.settings = new UserSettings();
   }
 

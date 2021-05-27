@@ -24,8 +24,11 @@ export function firstArrayValue<T>(obj: T[] | null | undefined): T | undefined {
 export function isEmptyArray<T>(obj: T[] | null | undefined): boolean {
   return obj === undefined || obj === null || !obj.length;
 }
+export function isArray<T>(obj: any): obj is any[] {
+  return obj && isNotNil(obj['length']) || false;
+}
 export function isNotNilString(obj: any | null | undefined): obj is string {
-  return obj !== undefined && obj !== null && typeof obj === 'string';
+  return obj !== undefined && obj !== null && typeof obj === 'string' || false;
 }
 export function notNilOrDefault<T>(obj: T | null | undefined, defaultValue: T): T {
   return (obj !== undefined && obj !== null) ? obj : defaultValue;
@@ -33,12 +36,27 @@ export function notNilOrDefault<T>(obj: T | null | undefined, defaultValue: T): 
 export function arraySize<T>(obj: T[] | null | undefined): number {
   return isNotEmptyArray(obj) && obj.length || 0;
 }
-export function arrayGroupBy<T = any, K extends keyof T = any, M extends { [key: string]: T[] } = { [key: string]: T[] }>(obj: T[], key: keyof T): M {
+export function arrayGroupBy<
+  T = any,
+  K extends keyof T = any,
+  M extends { [key: string]: T[]
+} = { [key: string]: T[] }>(obj: T[], key: keyof T): M {
   if (isNil(obj)) return null;
-  return obj.reduce(function (rv: any, x) {
+  return obj.reduce((rv: any, x) => {
     (rv[x[key]] = rv[x[key]] || []).push(x);
     return rv;
   }, {});
+}
+export function arrayDistinct<T = any>(obj: T[], properties?: string[]): T[] {
+  if (isEmptyArray(obj)) return obj;
+  properties = properties || Object.keys(obj[0]);
+  const existingIds = new Set<string>();
+  return obj.reduce((res, item) => {
+    const uniqueKey = joinPropertiesPath(item, properties, '|');
+    if (existingIds.has(uniqueKey)) return res; // Skip
+    existingIds.add(uniqueKey);
+    return res.concat(item);
+  }, []);
 }
 export function nullIfUndefined<T>(obj: T | null | undefined): T | null {
   return obj === undefined ? null : obj;
@@ -199,7 +217,10 @@ export function sort<T>(array: T[], attribute: string): T[] {
       return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
     });
 }
-
+const INTEGER_REGEXP = /^[-]?\d+$/;
+export function isInt(value: string): boolean {
+  return isNotNil(value) && INTEGER_REGEXP.test(value);
+}
 const NUMBER_REGEXP = /^[-]?\d+(\.\d+)?$/;
 export function isNumber(value: string): boolean {
   return isNotNil(value) && NUMBER_REGEXP.test(value);
@@ -289,7 +310,7 @@ export function remove<T>(array: T[], predicate: (pmfm: T) => boolean): T {
 
 
 
-export declare type KeysEnum<T> = { [P in keyof Required<T>]: true };
+export declare type KeysEnum<T> = { [P in keyof Required<T>]: boolean };
 
 export function capitalizeFirstLetter(value: string) {
   if (!value || value.length === 0) return value;
@@ -320,10 +341,10 @@ export class Beans {
   /**
    * Says if an object all all properties to nil
    */
-  static isEmpty<T>(data: T, keys?: KeysEnum<T>, opts?: {
+  static isEmpty<T>(data: T, keys?: KeysEnum<T>|string[], opts?: {
     blankStringLikeEmpty?: boolean
   }): boolean {
-    return isNil(data) || Object.keys(keys || data)
+    return isNil(data) || (isArray(keys) ? keys : Object.keys(keys || data))
       // Find index of the first NOT nil value
       .findIndex(key => {
         const value = data[key];
@@ -332,4 +353,5 @@ export class Beans {
         return isNotNil(value);
       }) === -1;
   }
+
 }

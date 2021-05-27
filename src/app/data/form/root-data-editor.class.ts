@@ -21,10 +21,11 @@ import {Moment} from "moment";
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class AppRootDataEditor<
-    T extends RootDataEntity<T>,
-    S extends IEntityService<T> = IEntityService<T>
+  T extends RootDataEntity<T, ID>,
+  S extends IEntityService<T, ID> = IEntityService<T, any>,
+  ID = number
   >
-  extends AppEntityEditor<T, S>
+  extends AppEntityEditor<T, S, ID>
   implements OnInit {
 
   private _$reloadProgram = new Subject();
@@ -162,7 +163,7 @@ export abstract class AppRootDataEditor<
     this._$reloadProgram.unsubscribe();
   }
 
-  async load(id?: number, options?: EntityServiceLoadOptions) {
+  async load(id?: ID, options?: EntityServiceLoadOptions) {
     await super.load(id, options);
 
     // New data
@@ -332,8 +333,6 @@ export abstract class AppRootDataEditor<
     page.subtitle = page.subtitle || this.data.program.label;
     return super.addToPageHistory(page, opts);
   }
-
-
 
   protected async getValue(): Promise<T> {
 

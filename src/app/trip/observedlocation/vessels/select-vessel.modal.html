@@ -4,11 +4,36 @@
                    [canValidate]="canValidate"
                    (validate)="close($event)">
   <ion-title translate>OBSERVED_LOCATION.SELECT_VESSEL_MODAL.TITLE</ion-title>
+
+  <ion-buttons slot="end">
+    <!-- vessel table options -->
+    <ng-container *ngIf="selectedTabIndex === 1">
+      <!-- reset filter -->
+      <button mat-icon-button (click)="vesselsTable.resetFilter()"
+              *ngIf="!vesselsTable.filterIsEmpty">
+        <mat-icon color="accent">filter_list_alt</mat-icon>
+        <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
+      </button>
+
+      <!-- show filter -->
+      <button mat-icon-button (click)="vesselsTable.filterExpansionPanel.toggle()">
+        <mat-icon *ngIf="!vesselsTable.filterIsEmpty; else emptyFilter"
+                  [matBadge]="vesselsTable.filterCriteriaCount"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">filter_list_alt</mat-icon>
+        <ng-template #emptyFilter>
+          <mat-icon>filter_list_alt</mat-icon>
+        </ng-template>
+      </button>
+    </ng-container>
+  </ion-buttons>
 </app-modal-toolbar>
 
-<ion-content class="ion-no-padding">
+<ion-content class="ion-no-padding" scroll-y="false">
 
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex">
+  <mat-tab-group #tabGroup
+                 [(selectedIndex)]="selectedTabIndex">
 
     <!-- TAB: landings -->
     <mat-tab label="{{'OBSERVED_LOCATION.SELECT_VESSEL_MODAL.TAB_LANDINGS'|translate}}">
@@ -44,9 +69,11 @@
 
       <app-vessels-table #vesselsTable
                          [showIdColumn]="false"
-                         [showVesselTypeColumn]="showVesselTypeColumn"
                          [canEdit]="false"
                          [canDelete]="false"
+                         [showToolbar]="false"
+                         [showVesselTypeColumn]="showVesselTypeColumn"
+                         [synchronizationStatus]="'SYNC'"
                          (onOpenRow)="selectRow($event)"
                          (onNewRow)="close($event)">
       </app-vessels-table>

@@ -8,7 +8,7 @@ import {IPmfm, Pmfm} from "../../../referential/services/model/pmfm.model";
 import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {PmfmValue, PmfmValueUtils} from "../../../referential/services/model/pmfm-value.model";
 import {AppFormUtils} from "../../../core/form/form.utils";
-import {IReferentialRef, ReferentialRef} from "../../../core/services/model/referential.model";
+import {ReferentialRef} from "../../../core/services/model/referential.model";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 
 const moment = momentImported;
@@ -24,7 +24,10 @@ export declare interface MeasurementFormValues {
   [id: string]: PmfmValue;
 }
 
-export declare interface IEntityWithMeasurement<T extends IEntity<T>> extends IEntity<T> {
+export declare interface IEntityWithMeasurement<
+  T extends IEntity<T, ID>,
+  ID = number>
+  extends IEntity<T, ID> {
   measurementValues: MeasurementModelValues | MeasurementFormValues;
   rankOrder?: number;
   comments?: string;
@@ -339,8 +342,8 @@ export class MeasurementValuesUtils {
 
   }
 
-  static asObject(source:  { [key: string]: any }, options: DataEntityAsObjectOptions): { [key: string]: any } {
-    if (!options || options.minify !== true || !source) return source;
+  static asObject(source:  { [key: string]: any }, opts?: DataEntityAsObjectOptions): { [key: string]: any } {
+    if (!opts || opts.minify !== true || !source) return source;
     return source && Object.getOwnPropertyNames(source)
       .reduce((map, pmfmId) => {
         const value = notNilOrDefault(source[pmfmId] && source[pmfmId].id, source[pmfmId]);

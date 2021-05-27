@@ -1,56 +1,33 @@
-import {
-  MINIFY_OPTIONS,
-  NOT_MINIFY_OPTIONS,
-  Referential,
-  ReferentialAsObjectOptions,
-  ReferentialRef
-} from "../../../core/services/model/referential.model";
-import {Entity} from "../../../core/services/model/entity.model";
+import {BaseReferential, MINIFY_OPTIONS, NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions, ReferentialRef} from "../../../core/services/model/referential.model";
+import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity.model";
 import {Moment} from "moment";
-import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
 import {TaxonGroupRef, TaxonNameRef} from "./taxon.model";
 import {DenormalizedPmfmStrategy, PmfmStrategy} from "./pmfm-strategy.model";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {EntityClass} from "../../../core/services/model/entity.decorators";
 
 
-export class Strategy<T extends Strategy<any> = Strategy<any>> extends Referential<Strategy> {
+@EntityClass({typename: 'StrategyVO'})
+export class Strategy<
+  T extends Strategy<any> = Strategy<any>
+  > extends BaseReferential<Strategy> {
 
-  static TYPENAME = 'StrategyVO';
+  static fromObject: (source: any, opts?: any) => Strategy;
 
-  static fromObject(source: any): Strategy {
-    if (!source || source instanceof Strategy) return source;
-    const res = new Strategy();
-    res.fromObject(source);
-    return res;
-  }
+  analyticReference: string = null;
+  appliedStrategies: AppliedStrategy[] = null;
+  pmfms: PmfmStrategy[] = null;
+  denormalizedPmfms: DenormalizedPmfmStrategy[] = null;
+  departments: StrategyDepartment[] = null;
 
-  analyticReference: string;
-  creationDate: Moment;
-  appliedStrategies: AppliedStrategy[];
-  pmfms: PmfmStrategy[];
-  denormalizedPmfms: DenormalizedPmfmStrategy[];
-  departments: StrategyDepartment[];
+  gears: any[] = null;
+  taxonGroups: TaxonGroupStrategy[] = null;
+  taxonNames: TaxonNameStrategy[] = null;
+  programId: number = null;
 
-  gears: any[];
-  taxonGroups: TaxonGroupStrategy[];
-  taxonNames: TaxonNameStrategy[];
-  programId: number;
-
-  constructor(data?: {
-    id?: number,
-    label?: string,
-    name?: string
-  }) {
+  constructor() {
     super();
     this.__typename = Strategy.TYPENAME;
-    this.id = data && data.id;
-    this.label = data && data.label;
-    this.name = data && data.name;
-    this.appliedStrategies = [];
-    this.departments = [];
-    this.gears = [];
-    this.taxonGroups = [];
-    this.taxonNames = [];
   }
 
   clone(): T {
@@ -62,7 +39,6 @@ export class Strategy<T extends Strategy<any> = Strategy<any>> extends Referenti
   asObject(opts?: EntityAsObjectOptions): any {
     const target: any = super.asObject(opts);
     target.programId = this.programId;
-    target.creationDate = toDateISOString(this.creationDate);
     target.appliedStrategies = this.appliedStrategies && this.appliedStrategies.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.pmfms = this.pmfms && this.pmfms.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.denormalizedPmfms = this.denormalizedPmfms && this.denormalizedPmfms.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));

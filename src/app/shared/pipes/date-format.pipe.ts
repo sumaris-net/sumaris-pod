@@ -1,8 +1,8 @@
-import { Pipe, Injectable, PipeTransform } from '@angular/core';
+import {Injectable, Pipe, PipeTransform} from '@angular/core';
 import {isMoment, Moment} from "moment";
-import { DateAdapter } from "@angular/material/core";
-import { DATE_ISO_PATTERN } from '../constants';
+import {DATE_ISO_PATTERN} from '../constants';
 import {TranslateService} from "@ngx-translate/core";
+import {MomentDateAdapter} from "@angular/material-moment-adapter";
 
 @Pipe({
     name: 'dateFormat'
@@ -15,7 +15,7 @@ export class DateFormatPipe implements PipeTransform {
   private readonly dateTimeSecondsPattern: string;
 
   constructor(
-      private dateAdapter: DateAdapter<Moment>,
+      private dateAdapter: MomentDateAdapter,
       private translate: TranslateService
       ) {
 
@@ -29,7 +29,7 @@ export class DateFormatPipe implements PipeTransform {
       const pattern = args && args.pattern ||
         (args && args.time ? (args.seconds ? this.dateTimeSecondsPattern : this.dateTimePattern) : this.datePattern);
       // Keep original moment object, if possible (to avoid a conversion)
-      const date: Moment = value && (isMoment(value) ? value : this.dateAdapter.parse(value, DATE_ISO_PATTERN));
+      const date: Moment = isMoment(value) ? value : this.dateAdapter.parse(value, DATE_ISO_PATTERN);
       return date && this.dateAdapter.format(date, pattern) || '';
   }
 

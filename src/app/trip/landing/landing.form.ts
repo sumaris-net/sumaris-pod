@@ -15,17 +15,19 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {Landing} from "../services/model/landing.model";
-import {ReferentialRefFilter, ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
-import {VesselModal} from "../../vessel/modal/modal-vessel";
+import {VesselModal} from "../../vessel/modal/vessel-modal";
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {EntityUtils} from "../../core/services/model/entity.model";
+import {EntityUtils, isInstanceOf} from "../../core/services/model/entity.model";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {SamplingStrategyService} from "../../referential/services/sampling-strategy.service";
 import {TranslateService} from "@ngx-translate/core";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {ReferentialRefFilter} from "../../referential/services/filter/referential-ref.filter";
+import {LoadResult} from "../../shared/services/entity-service.class";
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -338,9 +340,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     const modal = await this.modalCtrl.create({ component: VesselModal });
     modal.onDidDismiss().then(res => {
       // if new vessel added, use it
-      if (res && res.data instanceof VesselSnapshot) {
+      if (res && isInstanceOf(res.data, VesselSnapshot)) {
         console.debug("[landing-form] New vessel added : updating form...", res.data);
-        this.form.controls['vesselSnapshot'].setValue(res.data);
+        this.form.get('vesselSnapshot').setValue(res.data);
         this.markForCheck();
       }
       else {
@@ -352,7 +354,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   /* -- protected method -- */
 
-  protected suggestObservers(value: any, filter?: any): Promise<any[]> {
+  protected suggestObservers(value: any, filter?: any): Promise<LoadResult<Person>> {
     const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
     const newValue = currentControlValue ? '*' : value;
 

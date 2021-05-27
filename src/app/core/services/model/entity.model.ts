@@ -1,5 +1,5 @@
 import {Moment} from "moment";
-import {isEmptyArray, isNil, isNilOrBlank, isNotNil, joinPropertiesPath,} from "../../../shared/functions";
+import {isEmptyArray, isNil, isNilOrBlank, isNotNil, joinPropertiesPath} from "../../../shared/functions";
 import {FilterFn} from "../../../shared/services/entity-service.class";
 import {ObjectMap, ObjectMapEntry, PropertiesArray, PropertiesMap} from "../../../shared/types";
 import {StoreObject} from "@apollo/client/core";
@@ -21,34 +21,63 @@ export interface EntityAsObjectOptions {
   keepLocalId?: boolean; // true by default
 }
 
-export interface IEntity<T, O extends EntityAsObjectOptions = EntityAsObjectOptions, ID = number>
+export interface IEntity<T,
+  ID = number,
+  AO extends EntityAsObjectOptions = EntityAsObjectOptions,
+  FO = any
+  >
   extends Cloneable<T> {
   id: ID;
   updateDate: Moment;
   __typename: string;
   equals(other: T): boolean;
-  clone(): T;
-  asObject(opts?: O): any;
-  fromObject(source: any);
+  clone(opts?: AO & FO): T;
+  copy(target: T, opts?: AO & FO);
+  asObject(opts?: AO): any;
+  fromObject(source: any, opts?: FO);
 }
 
-export declare interface ITreeItemEntity<T extends IEntity<T>> {
-  parentId: number;
+export declare interface ITreeItemEntity<
+  T extends IEntity<T, ID>,
+  ID = number
+  > {
+  parentId: ID;
   parent: T;
   children: T[];
 }
 
+export abstract class Entity<
+  T extends Entity<T, ID, AO, FO>,
+  ID = number,
+  AO extends EntityAsObjectOptions = EntityAsObjectOptions,
+  FO = any>
+  implements IEntity<T, ID, AO, FO> {
 
-export abstract class Entity<T extends IEntity<any, O, ID>, O extends EntityAsObjectOptions = EntityAsObjectOptions, ID = number>
-  implements IEntity<T, O, ID> {
+  // The final classname (injected by @EntityClass())
+  static CLASSNAME: string;
 
-  id: ID;
-  updateDate: Moment;
+  // The GraphQL typename (injected by @EntityClass())
+  static TYPENAME: string;
+
+  id: ID = null;
+  updateDate: Moment = null;
   __typename: string;
 
-  abstract clone(): T;
+  constructor(__typename?: string) {
+    this.__typename = __typename || null;
+  }
 
-  asObject(opts?: O): StoreObject {
+  clone(opts?: AO & FO): T {
+    const target = new (this.constructor as any)() as T;
+    this.copy(target);
+    return target;
+  }
+
+  copy(target: T, opts?: AO & FO) {
+    target.fromObject(this.asObject(opts), opts);
+  }
+
+  asObject(opts?: AO): StoreObject {
     const target: any = Object.assign({}, this); //= {...this};
     if (!opts || opts.keepTypename !== true) delete target.__typename;
     if (opts && opts.keepLocalId === false && target.id < 0) delete target.id;
@@ -56,7 +85,7 @@ export abstract class Entity<T extends IEntity<any, O, ID>, O extends EntityAsOb
     return target;
   }
 
-  fromObject(source: any) {
+  fromObject(source: any, opts?: FO) {
     this.id = (source.id || source.id === 0) ? source.id : undefined;
     this.updateDate = fromDateISOString(source.updateDate);
     this.__typename = source.__typename || this.__typename; // Keep original type (can be set in constructor)
@@ -65,13 +94,17 @@ export abstract class Entity<T extends IEntity<any, O, ID>, O extends EntityAsOb
   equals(other: T): boolean {
     return other && this.id === other.id;
   }
-
-
-
+}
+export function isInstanceOf<T>(obj: any, constructor: new (...args: any[]) => T): obj is T {
+  if (!obj) return false;
+  const result = obj.constructor.name === (constructor as any).CLASSNAME;
+  if (result) console.debug("isInstanceOf() => OK for " + obj.constructor.name, );
+  return result;
 }
 
 // @dynamic
 export abstract class EntityUtils {
+
   // Check that the object has a NOT nil attribute (ID by default)
   static isNotEmpty<T extends IEntity<any> | any>(obj: any | T, checkedAttribute: keyof T): boolean {
     return !!obj && obj[checkedAttribute] !== null && obj[checkedAttribute] !== undefined;
@@ -129,7 +162,7 @@ export abstract class EntityUtils {
     }, {});
   }
 
-  static copyIdAndUpdateDate(source: IEntity<any> | undefined, target: IEntity<any>) {
+  static copyIdAndUpdateDate<T extends Entity<any, any, any>>(source: T, target: T) {
     if (!source) return;
 
     // Update (id and updateDate)
@@ -149,7 +182,7 @@ export abstract class EntityUtils {
     target.controlDate = fromDateISOString(source.controlDate);
   }
 
-  static copyQualificationDateAndFlag(source: DataEntity<any> | undefined, target: DataEntity<any>) {
+  static copyQualificationDateAndFlag(source: DataEntity<any, any> | undefined, target: DataEntity<any, any>) {
     if (!source) return;
 
     // Update (id and updateDate)
@@ -282,12 +315,11 @@ export abstract class EntityUtils {
     });
   }
 
-  static isLocal(entity: IEntity<any>): boolean {
-    return entity && (isNotNil(entity.id) && entity.id < 0);
+  static isLocal(entity: IEntity<any, any> | Entity<any, any>): boolean {
+    return entity && (isNotNil(entity.id) && +entity.id < 0);
   }
 
-  static isRemote(entity: IEntity<any>): boolean {
+  static isRemote(entity: IEntity<any, any> | Entity<any, any>): boolean {
     return entity && !EntityUtils.isLocal(entity);
   }
 }
-

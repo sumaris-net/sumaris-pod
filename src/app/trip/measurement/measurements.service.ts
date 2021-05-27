@@ -109,17 +109,18 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
 
     this._onRefreshPmfms
       .pipe(
-        //debounceTime(10),
         filter(() => this.canWatchPmfms()),
         switchMap(() => this.watchProgramPmfms())
       )
       .subscribe(pmfms => this.applyPmfms(pmfms));
   }
 
-  close() {
+  ngOnDestroy() {
     this.$pmfms.complete();
     this.$pmfms.unsubscribe();
+    this._onRefreshPmfms.complete();
     this._onRefreshPmfms.unsubscribe();
+    this._delegate = null;
   }
 
   watchAll(
@@ -193,7 +194,9 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     return this.delegate.deleteAll(data, options);
   }
 
-
+  asFilter(filter: Partial<F>): F {
+    return this.delegate.asFilter(filter);
+  }
 
   /* -- private methods -- */
 

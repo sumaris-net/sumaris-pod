@@ -1,4 +1,4 @@
-import {Inject, Injectable} from "@angular/core";
+import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {Observable, Subject} from "rxjs";
 import {ErrorCodes} from "./errors";
@@ -50,8 +50,8 @@ const SaveMutation: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class SoftwareService<T extends Software = Software>
-  extends BaseGraphqlService<T>
-  implements IEntityService<T> {
+  extends BaseGraphqlService<T, any, number>
+  implements IEntityService<Software> {
 
   constructor(
     protected graphql: GraphqlService,

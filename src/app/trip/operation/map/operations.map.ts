@@ -1,6 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnInit} from "@angular/core";
 import {BehaviorSubject, Subject} from "rxjs";
-import {Operation} from "../../services/model/trip.model";
 import * as L from "leaflet";
 import {CRS, LayerGroup, MapOptions, PathOptions} from "leaflet";
 import {PlatformService} from "../../../core/services/platform.service";
@@ -22,6 +21,7 @@ import {DateDiffDurationPipe} from "../../../shared/pipes/date-diff-duration.pip
 import {ProgramRefService} from "../../../referential/services/program-ref.service";
 import {mergeMap} from "rxjs/operators";
 import {Program} from "../../../referential/services/model/program.model";
+import {Operation} from "../../services/model/operation.model";
 
 @Component({
   selector: 'app-operations-map',

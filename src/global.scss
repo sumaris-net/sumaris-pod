@@ -30,7 +30,7 @@ body {
 
 // Page Container Structure
 // --------------------------------------------------
-.ion-page {
+/*.ion-page {
   @include position(0, 0, 0, 0);
   display: flex;
   position: absolute;
@@ -39,7 +39,7 @@ body {
   contain: layout size style;
   overflow: hidden;
   z-index: $z-index-page-container;
-}
+}*/
 
 ion-route,
 ion-route-redirect,
@@ -485,7 +485,8 @@ ion-list {
 // Material Table
 // --------------------------------------------------
 .mat-table {
-
+  min-width: 100%;
+  --mat-cell-vertical-padding: 4px;
   /*.mat-cell, .mat-header-cell, .mat-footer-cell {
     padding: 0 10px;
   }*/
@@ -524,39 +525,36 @@ ion-list {
 
     border-left: 2px solid transparent;
     max-height: 52px;
-    z-index: 999;
+    /*z-index: 999;*/
     padding: 0 0 0 5px !important;
 
-    mat-cell:last-child,
-    mat-footer-cell:last-child,
-    mat-header-cell:last-child {
-      padding-right: 8px;
+    .mat-header-cell,
+    .mat-cell {
+      padding-inline-start: var(--mat-cell-vertical-padding);
+      //border-left: 1px solid rgba(0, 0, 0, 0.12);
     }
 
     .mat-column-select {
       overflow: initial;
       max-width: 50px;
-      padding-left: 14px;
     }
 
     .mat-column-id {
-      max-width: 50px;
-      padding-left: 0;
+      min-width: 50px;
+      max-width: 80px;
     }
 
     .mat-column-comments {
-      max-width: 30px;
-      padding-left: 0;
+      min-width: 30px;
     }
 
     .mat-column-actions {
-      max-width: 40px;
-      padding-left: 0;
+      min-width: 40px;
     }
 
     .mat-cell-date-time {
-      min-width: 145px;
-      max-width: 180px;
+      //min-width: 145px;
+      min-width: 180px;
 
       input {
         max-width: 120px;
@@ -566,6 +564,7 @@ ion-list {
 
     .mat-cell.computed mat-form-field,
     .mat-cell-computed,
+    .mat-cell ion-text.computed,
     .mat-cell.calculated mat-form-field,
     .mat-cell-calculated {
       color: var(--ion-color-primary-tint);
@@ -685,6 +684,16 @@ ion-list {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: pre;
+    }
+
+    /* Show when hover row */
+    .mat-cell .visible-hover-row {
+      visibility: hidden;
+    }
+    &:hover {
+      .mat-cell .visible-hover-row {
+        visibility: visible;
+      }
     }
   }
 
@@ -810,8 +819,14 @@ ion-list {
 
 }
 
+html {
+  --form-button-bar-height: 56px;
+}
 
-@media screen and (max-width: $screen-sm-max) {
+html.plt-mobile {
+
+  --form-button-bar-height: 0;
+
   .mat-paginator-footer {
     .mat-paginator-outer-container {
       .mat-paginator-container {
@@ -1051,10 +1066,10 @@ ion-item {
 /*ion-icon[name='chatbox'] {
   pointer-events: none !important;
 }*/
-mat-icon,
-ion-icon {
-  &.comment {
-    font-size: 14pt;
+.mat-cell {
+  /* smaller size, for the comment icon */
+  mat-icon.comment {
+    font-size: 16pt;
     height: 100%;
     vertical-align: center;
     color: var(--ion-color-tertiary, grey);
@@ -1144,6 +1159,12 @@ ion-toast {
     --color: var(--ion-color-danger-contrast);
     --button-color: var(--ion-color-primary);
   }
+}
+// --------------------------------------------------
+// Refresher
+// --------------------------------------------------
+ion-refresher.refresher-native {
+  z-index: 1000;
 }
 
 // --------------------------------------------------

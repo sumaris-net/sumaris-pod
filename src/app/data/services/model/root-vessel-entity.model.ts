@@ -4,13 +4,17 @@ import {DataEntityAsObjectOptions} from "./data-entity.model";
 import {IWithVesselSnapshotEntity, VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
 
 
-export abstract class DataRootVesselEntity<T extends DataRootVesselEntity<any>, O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
-  extends RootDataEntity<T, O, F> implements IWithVesselSnapshotEntity<T> {
+export abstract class DataRootVesselEntity<
+  T extends DataRootVesselEntity<any, ID>,
+  ID = number,
+  O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
+  extends RootDataEntity<T, ID, O, F>
+  implements IWithVesselSnapshotEntity<T, ID> {
 
   vesselSnapshot: VesselSnapshot;
 
-  protected constructor() {
-    super();
+  protected constructor(__typename?: string) {
+    super(__typename);
     this.vesselSnapshot = null;
   }
 

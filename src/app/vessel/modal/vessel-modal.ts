@@ -1,6 +1,6 @@
 import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {Vessel} from "../services/model/vessel.model";
-import {ModalController} from "@ionic/angular";
+import {IonContent, ModalController} from "@ionic/angular";
 import {VesselForm} from '../form/form-vessel';
 import {VesselService} from '../services/vessel-service';
 import {ConfigService} from "../../core/services/config.service";
@@ -8,6 +8,7 @@ import {Subscription} from "rxjs";
 import {CORE_CONFIG_OPTIONS} from "../../core/services/config/core.config";
 import {AppFormUtils} from "../../core/form/form.utils";
 import {isNotNil} from "../../shared/functions";
+import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 
 export interface VesselModalOptions {
   defaultStatus?: number;
@@ -15,8 +16,8 @@ export interface VesselModalOptions {
 }
 
 @Component({
-  selector: 'modal-vessel',
-  templateUrl: './modal-vessel.html'
+  selector: 'vessel-modal',
+  templateUrl: './vessel-modal.html'
 })
 export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
 
@@ -25,6 +26,8 @@ export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
 
   @Input() defaultStatus: number;
   @Input() canEditStatus = true;
+
+  @Input() synchronizationStatus: SynchronizationStatus|null = null;
 
   get disabled() {
     return this.formVessel.disabled;
@@ -38,7 +41,9 @@ export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
     return this.formVessel.valid;
   }
 
-  @ViewChild('formVessel', { static: true }) formVessel: VesselForm;
+  @ViewChild(VesselForm, {static: true}) formVessel: VesselForm;
+
+  @ViewChild(IonContent, {static: true}) content: IonContent;
 
   constructor(
     private vesselService: VesselService,
@@ -93,16 +98,22 @@ export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
       const json = this.formVessel.value;
       const data = Vessel.fromObject(json);
 
+      // Applying the input synchronisation status, if any (need for offline storage)
+      if (this.synchronizationStatus) {
+        data.synchronizationStatus = this.synchronizationStatus;
+      }
+
       this.disable();
+      this.formVessel.error = null;
 
       const savedData = await this.vesselService.save(data);
-      await this.viewCtrl.dismiss(savedData);
-      this.formVessel.error = null;
+      return await this.viewCtrl.dismiss(savedData);
     }
     catch (err) {
       this.formVessel.error = err && err.message || err;
       this.enable();
       this.loading = false;
+      this.scrollToTop();
     }
   }
 
@@ -122,5 +133,12 @@ export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
     this.formVessel.setValue(Vessel.fromObject({}));
     this.formVessel.markAsPristine();
     this.formVessel.markAsUntouched();
+    this.scrollToTop();
+  }
+
+  protected async scrollToTop(duration?: number) {
+    if (this.content) {
+      return this.content.scrollToTop(duration);
+    }
   }
 }

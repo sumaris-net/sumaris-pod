@@ -89,6 +89,7 @@
                  (blur)="onBlur.emit($event)"
                  (focus)="filterInputTextFocusEvent($event)"
                  (keyup.arrowdown)="!autoCombo.showPanel && onDropButtonClick.emit($event)">
+
           <!-- autocomplete -->
           <mat-autocomplete #autoCombo="matAutocomplete"
                             autoActiveFirstOption
@@ -99,7 +100,7 @@
             <ion-row class="mat-autocomplete-header ion-no-padding">
               <ion-col *ngFor="let attr of displayAttributes; index as i; last as isLast" [size]="displayColumnSizes[i]" >
                 <ion-label [innerHTML]="displayColumnNames[i] | translate"></ion-label>
-                <ion-text color="light" *ngIf="isLast" class="ion-float-end ion-padding-end"><i>{{'COMMON.RESULT_COUNT'|translate: {count: itemCount} }}</i></ion-text>
+                <ion-text color="light" *ngIf="itemCount && isLast" class="ion-float-end ion-padding-end"><i>{{'COMMON.RESULT_COUNT'|translate: {count: itemCount} }}</i></ion-text>
               </ion-col>
             </ion-row>
 
@@ -112,7 +113,7 @@
               </ion-row>
             </mat-option>
 
-            <mat-option *ngFor="let item of filteredItems$ | async" [value]="item" class="ion-no-padding" >
+            <mat-option *ngFor="let item of (filteredItems$ | async)" [value]="item" class="ion-no-padding" >
               <ion-row>
                 <ion-col *ngFor="let attr of displayAttributes; index as i;"
                          [size]="displayColumnSizes[i]">
@@ -120,6 +121,11 @@
                 </ion-col>
               </ion-row>
             </mat-option>
+
+            <!-- More item
+            <mat-option *ngIf="items.length < itemCount" class="ion-no-padding" [disabled]="true">
+              Afficher plus
+            </mat-option> -->
           </mat-autocomplete>
         </ng-template>
 

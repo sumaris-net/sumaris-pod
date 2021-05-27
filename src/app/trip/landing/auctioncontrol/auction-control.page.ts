@@ -19,12 +19,14 @@ import {SharedValidators} from "../../../shared/validator/validators";
 import {Program} from "../../../referential/services/model/program.model";
 import {fadeInOutAnimation} from "../../../shared/material/material.animations";
 import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {AppRootDataEditor} from "../../../data/form/root-data-editor.class";
 
 @Component({
   selector: 'app-auction-control',
   styleUrls: ['auction-control.page.scss'],
   templateUrl: './auction-control.page.html',
   animations: [fadeInOutAnimation],
+  providers: [{provide: AppRootDataEditor, useExisting: AuctionControlPage}],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AuctionControlPage extends LandingPage implements OnInit {

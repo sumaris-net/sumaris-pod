@@ -2,14 +2,24 @@ import {Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
 import {Hotkeys} from "../../shared/hotkeys/hotkeys.service";
 import {Subscription} from "rxjs";
 import {filter} from "rxjs/operators";
+import {ToolbarToken} from "../../shared/toolbar/toolbar";
 
+export abstract class FormButtonsBarToken {
+  abstract onCancel: EventEmitter<Event>;
+  abstract onSave: EventEmitter<Event>;
+  abstract onNext: EventEmitter<Event>;
+  abstract onBack: EventEmitter<Event>;
+}
 
 @Component({
-    selector: 'form-buttons-bar',
-    templateUrl: './form-buttons-bar.component.html',
-    styleUrls: ['./form-buttons-bar.component.scss']
+  selector: 'form-buttons-bar',
+  templateUrl: './form-buttons-bar.component.html',
+  styleUrls: ['./form-buttons-bar.component.scss'],
+  providers: [
+    {provide: FormButtonsBarToken, useExisting: FormButtonsBarComponent}
+  ],
 })
-export class FormButtonsBarComponent implements OnDestroy{
+export class FormButtonsBarComponent implements FormButtonsBarToken, OnDestroy {
 
     private _subscription = new Subscription();
 
@@ -50,7 +60,11 @@ export class FormButtonsBarComponent implements OnDestroy{
     }
 
     ngOnDestroy(): void {
-        this._subscription.unsubscribe();
+      this._subscription.unsubscribe();
+      this.onCancel.complete();
+      this.onSave.complete();
+      this.onNext.complete();
+      this.onBack.complete();
     }
 
 }

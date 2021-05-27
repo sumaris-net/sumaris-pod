@@ -6,22 +6,17 @@ import {Department} from "../../../core/services/model/department.model";
 import {isNotNil, joinPropertiesPath} from "../../../shared/functions";
 import {Person} from "../../../core/services/model/person.model";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
+import {EntityClass} from "../../../core/services/model/entity.decorators";
 
-export interface IWithVesselSnapshotEntity<T> extends IEntity<T> {
+export interface IWithVesselSnapshotEntity<T, ID = number> extends IEntity<T, ID> {
   vesselSnapshot: VesselSnapshot;
 }
 
+@EntityClass({typename: 'VesselSnapshotVO', fromObjectStrategy: 'clone'})
 export class VesselSnapshot extends Entity<VesselSnapshot> {
 
-  static TYPENAME = 'VesselSnapshotVO';
-
-  static fromObject(source: any): VesselSnapshot {
-    if (!source) return source;
-    if (source instanceof VesselSnapshot) return source.clone();
-    const res = new VesselSnapshot();
-    res.fromObject(source);
-    return res;
-  }
+  static fromObject: (source: any, opts?: any) => VesselSnapshot;
 
   static fromVessel(source: Vessel | any): VesselSnapshot {
     if (!source) return undefined;
@@ -67,8 +62,7 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
   comments: string;
 
   constructor() {
-    super();
-    this.__typename = VesselSnapshot.TYPENAME;
+    super(VesselSnapshot.TYPENAME);
     this.vesselType = null;
     this.basePortLocation = null;
     this.registrationLocation = null;
@@ -131,13 +125,4 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
     this.program = source.program && ReferentialRef.fromObject(source.program);
   }
-}
-
-export abstract class VesselSnapshotUtils {
-  static vesselSnapshotToString = vesselSnapshotToString;
-}
-
-export function vesselSnapshotToString(obj: VesselSnapshot | any): string | undefined {
-  // TODO may be SFA will prefer 'registrationCode' instead of 'exteriorMarking' ?
-  return obj && isNotNil(obj.id) && joinPropertiesPath(obj, ['exteriorMarking', 'name']) || undefined;
 }

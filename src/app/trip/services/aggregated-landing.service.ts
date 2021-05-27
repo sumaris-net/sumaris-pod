@@ -5,22 +5,35 @@ import {ErrorCodes} from "./trip.errors";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {Beans, isNil, isNotNil} from "../../shared/functions";
+import {isNotNil, isNotNilOrBlank} from "../../shared/functions";
 import {gql} from "@apollo/client/core";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {Observable} from "rxjs";
-import {filter, map, tap} from "rxjs/operators";
+import {filter, map} from "rxjs/operators";
 import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {SortDirection} from "@angular/material/sort";
 import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
-import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
+import {FilterFn, IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
 import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
 import {environment} from "../../../environments/environment";
-import {toDateISOString} from "../../shared/dates";
+import {fromDateISOString, toDateISOString} from "../../shared/dates";
+import {EntityFilter} from "../../core/services/model/filter.model";
+import {Landing} from "./model/landing.model";
+import {EntityClass} from "../../core/services/model/entity.decorators";
+import {EntityAsObjectOptions} from "../../core/services/model/entity.model";
 
-export class AggregatedLandingFilter {
+@EntityClass()
+export class AggregatedLandingFilter extends EntityFilter<AggregatedLandingFilter, AggregatedLanding> {
+
+  static fromObject: (source: any, opts?: any) => AggregatedLandingFilter;
+
+  // FIXME: remove
+  static searchFilter(source: any): FilterFn<AggregatedLanding> {
+    return source && AggregatedLandingFilter.fromObject(source).asFilterFn();
+  }
+
   programLabel?: string;
   startDate?: Moment;
   endDate?: Moment;
@@ -28,33 +41,68 @@ export class AggregatedLandingFilter {
   observedLocationId?: number;
   synchronizationStatus?: SynchronizationStatus;
 
-  static equals(f1: AggregatedLandingFilter | any, f2: AggregatedLandingFilter | any): boolean {
-    return (isNil(f1) && isNil(f2)) ||
-      (
-        isNotNil(f1) && isNotNil(f2) &&
-        f1.programLabel === f2.programLabel &&
-        f1.observedLocationId === f2.observedLocationId &&
-        f1.locationId === f2.locationId &&
-        f1.synchronizationStatus === f2.synchronizationStatus &&
-        ((!f1.startDate && !f2.startDate) || (f1.startDate.isSame(f2.startDate))) &&
-        ((!f1.endDate && !f2.endDate) || (f1.endDate.isSame(f2.endDate)))
-      )
+
+  equals(f2: AggregatedLandingFilter): boolean {
+    return isNotNil(f2)
+      && this.programLabel === f2.programLabel
+      && this.observedLocationId === f2.observedLocationId
+      && this.locationId === f2.locationId
+      && this.synchronizationStatus === f2.synchronizationStatus
+      && ((!this.startDate && !f2.startDate) || (this.startDate.isSame(f2.startDate)))
+      && ((!this.endDate && !f2.endDate) || (this.endDate.isSame(f2.endDate)));
   }
 
-  static isEmpty(f: AggregatedLandingFilter | any): boolean {
-    return Beans.isEmpty({...f, synchronizationStatus: null}, undefined, {
-      blankStringLikeEmpty: true
-    });
+  fromObject(source: any) {
+    super.fromObject(source);
+    this.programLabel = source.programLabel;
+    this.startDate = fromDateISOString(source.startDate);
+    this.endDate = fromDateISOString(source.endDate);
+    this.locationId = source.locationId;
+    this.observedLocationId = source.observedLocationId;
+    this.synchronizationStatus = source.synchronizationStatus;
   }
 
-  static searchFilter<T extends AggregatedLanding>(filter: AggregatedLandingFilter): (T) => boolean {
-    if (AggregatedLandingFilter.isEmpty(filter)) return undefined;
-    return (data: T) => {
-
-      // observedLocationId
-      if (isNotNil(filter.observedLocationId) && filter.observedLocationId !== data.observedLocationId) return false;
-
+  asObject(opts?: EntityAsObjectOptions): any {
+    return {
+      programLabel: this.programLabel,
+      locationId: this.locationId,
+      startDate: toDateISOString(this.startDate),
+      endDate: toDateISOString(this.endDate),
+      observedLocationId: this.observedLocationId
     };
+  }
+
+  protected buildFilter(): FilterFn<AggregatedLanding>[] {
+    const filterFns = super.buildFilter();
+
+    // FIXME: this properties cannot b filtered locally, because not exists !
+    /*// Program
+    if (isNotNilOrBlank(this.programLabel)) {
+      const programLabel = this.programLabel;
+      filterFns.push(t => (t.program && t.program.label === this.programLabel));
+    }
+
+    // Location
+    if (isNotNil(this.locationId)) {
+      filterFns.push((entity) => entity.location && entity.location.id === this.locationId);
+    }
+
+    // Start/end period
+    if (this.startDate) {
+      const startDate = this.startDate.clone();
+      filterFns.push(t => t.dateTime && startDate.isSameOrBefore(t.dateTime));
+    }
+    if (this.endDate) {
+      const endDate = this.endDate.clone().add(1, 'day').startOf('day');
+      filterFns.push(t => t.dateTime && endDate.isAfter(t.dateTime));
+    }*/
+
+    // observedLocationId
+    if (isNotNil(this.observedLocationId)) {
+      filterFns.push((entity) => entity.observedLocationId === this.observedLocationId);
+    }
+
+    return filterFns;
   }
 
 }
@@ -92,7 +140,7 @@ ${VesselActivityFragment}`;
 // Search query
 const LoadAllQuery: any = gql`
   query AggregatedLandings($filter: AggregatedLandingFilterVOInput){
-    aggregatedLandings(filter: $filter){
+    data: aggregatedLandings(filter: $filter){
       ...AggregatedLandingFragment
     }
   }
@@ -150,43 +198,36 @@ export class AggregatedLandingService
     let now = this._debug && Date.now();
     if (this._debug) console.debug("[aggregated-landing-service] Loading aggregated landings... using options:", variables);
 
-    let $loadResult: Observable<{ aggregatedLandings: AggregatedLanding[] }>;
-    const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
+    let res: Observable<LoadResult<AggregatedLanding>>;
 
+    const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
     if (offline) {
-      $loadResult = this.entities.watchAll<AggregatedLanding>('AggregatedLandingVO', {
+      res = this.entities.watchAll<AggregatedLanding>('AggregatedLandingVO', {
         ...variables,
-        filter: AggregatedLandingFilter.searchFilter<AggregatedLanding>(dataFilter)
-      })
-        .pipe(
-          tap(() => {
-              if (this._debug) console.debug(`[aggregated-landing-service] Aggregated landings loaded (from offline storage) in ${Date.now() - now}ms`);
-            }
-          ),
-          map(res => {
-            return {aggregatedLandings: res && res.data};
-          }));
+        filter: dataFilter.asFilterFn()
+      });
 
     } else {
 
-      $loadResult = this.mutableWatchQuery<{ aggregatedLandings: AggregatedLanding[] }>({
+
+      res = this.mutableWatchQuery<{ data: AggregatedLanding[] }>({
         queryName: 'LoadAll',
         query: LoadAllQuery,
-        arrayFieldName: 'aggregatedLandings',
-        insertFilterFn: AggregatedLandingFilter.searchFilter(dataFilter),
+        arrayFieldName: 'data',
+        insertFilterFn: dataFilter && dataFilter.asFilterFn(),
         variables,
         error: {code: ErrorCodes.LOAD_AGGREGATED_LANDINGS_ERROR, message: "AGGREGATED_LANDING.ERROR.LOAD_ALL_ERROR"},
         fetchPolicy: options && options.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
       })
-        .pipe(
-          filter(() => !this.loading)
-        );
+      .pipe(
+        filter(() => !this.loading)
+      );
     }
 
-    return $loadResult.pipe(
+    return res.pipe(
       filter(isNotNil),
       map(res => {
-        const data = (res && res.aggregatedLandings || []).map(AggregatedLanding.fromObject);
+        const data = (res && res.data || []).map(AggregatedLanding.fromObject);
         if (now) {
           console.debug(`[aggregated-landing-service] Loaded {${data.length || 0}} landings in ${Date.now() - now}ms`, data);
           now = undefined;
@@ -230,6 +271,10 @@ export class AggregatedLandingService
 
   deleteAll(data: AggregatedLanding[], options?: any): Promise<any> {
     throw new Error('AggregatedLandingService.deleteAll() not implemented yet');
+  }
+
+  asFilter(filter: Partial<AggregatedLandingFilter>): AggregatedLandingFilter {
+    return AggregatedLandingFilter.fromObject(filter);
   }
 
   protected asObject(entity: AggregatedLanding, options?: DataEntityAsObjectOptions) {

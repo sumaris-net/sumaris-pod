@@ -1,41 +1,26 @@
-import {Entity, EntityUtils} from "../../../core/services/model/entity.model";
-import {Moment} from "moment";
-import {Referential, ReferentialAsObjectOptions, ReferentialRef} from "../../../core/services/model/referential.model";
+import {EntityUtils} from "../../../core/services/model/entity.model";
+import {BaseReferential, ReferentialAsObjectOptions, ReferentialRef} from "../../../core/services/model/referential.model";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {Strategy} from "./strategy.model";
 import {PropertiesMap} from "../../../shared/types";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
 import {isNotNil} from "../../../shared/functions";
+import {EntityClass} from "../../../core/services/model/entity.decorators";
 
+@EntityClass({typename: 'ProgramVO'})
+export class Program extends BaseReferential<Program> {
 
-export class Program extends Referential<Program> {
+  static fromObject: (source: any, opts?: any) => Program;
 
-  static TYPENAME = 'ProgramVO';
-
-  static fromObject(source: any): Program {
-    if (!source || source instanceof Program) return source;
-    const res = new Program();
-    res.fromObject(source);
-    return res;
-  }
-
-  properties: PropertiesMap;
-  gearClassification: ReferentialRef;
-  taxonGroupType: ReferentialRef;
-  locationClassifications: ReferentialRef[];
-  locations: ReferentialRef[];
-  strategies: Strategy[];
+  properties: PropertiesMap = {};
+  gearClassification: ReferentialRef = null;
+  taxonGroupType: ReferentialRef = null;
+  locationClassifications: ReferentialRef[] = null;
+  locations: ReferentialRef[] = null;
+  strategies: Strategy[] = null;
 
   constructor() {
     super();
     this.__typename = Program.TYPENAME;
-    this.properties = {};
-  }
-
-  clone(): Program {
-    const target = new Program();
-    target.fromObject(this);
-    return target;
   }
 
   asObject(opts?: ReferentialAsObjectOptions): any {
