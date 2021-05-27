@@ -1913,7 +1913,7 @@
                       true
                     </generateSectionNumbers>
                     <resultFile>
-                      ${project.build.directory}/site/doc/user-manual/sumaris-doc-fr.pdf
+                      ${project.build.directory}/site/doc/user-manual/sumaris-doc_fr.pdf
                     </resultFile>
                     <title>
                       Guide de démarrage rapide pour le logiciel web de saisie SUMARiS
