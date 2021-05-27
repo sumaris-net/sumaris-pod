@@ -141,18 +141,13 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
                                    String file,
                                    String... args) {
 
-        ApplicationConfigInit configInit = ApplicationConfigInit.forScopes(ApplicationConfigScope.DEFAULTS,
-            ApplicationConfigScope.CLASS_PATH,
-            ApplicationConfigScope.ENV,
-            ApplicationConfigScope.OPTIONS);
+
 
         // Set options from env
-        if (env != null) {
-            Properties defaults = ConfigurableEnvironments.readProperties(env, null);
-            configInit.setDefaults(defaults);
-        }
-
-        this.applicationConfig = new ApplicationConfig(configInit);
+        Properties defaults = (env != null) ? ConfigurableEnvironments.readProperties(env, null) : null;
+        this.applicationConfig = new ApplicationConfig(ApplicationConfigInit
+                .defaultInit()
+                .setDefaults(defaults));
         this.applicationConfig.setEncoding(Charsets.UTF_8.name());
         this.applicationConfig.setConfigFileName(file);
         if (log.isDebugEnabled()) log.debug("Application options: {}", applicationConfig.getFlatOptions());

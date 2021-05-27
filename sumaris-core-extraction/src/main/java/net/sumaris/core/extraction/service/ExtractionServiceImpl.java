@@ -145,7 +145,9 @@ public class ExtractionServiceImpl implements ExtractionService {
     @Autowired
     protected DatabaseSchemaDao databaseSchemaDao;
 
-    private boolean includeProductTypes;
+    private boolean includeProductTypes = false;
+
+    private boolean enableTechnicalTablesUpdate = false;
 
     private Map<IExtractionFormat, ExtractionDao<? extends ExtractionContextVO, ? extends ExtractionFilterVO>>
             daosByFormat = Maps.newHashMap();
@@ -171,9 +173,14 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
-         includeProductTypes = configuration.enableExtractionProduct();
-        if (configuration.enableTechnicalTablesUpdate()) {
-            initRectangleLocations();
+        includeProductTypes = configuration.enableExtractionProduct();
+
+        // Update technical tables (if option changed)
+        if (enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
+            enableTechnicalTablesUpdate = configuration.enableTechnicalTablesUpdate();
+            if (enableTechnicalTablesUpdate) {
+                initRectangleLocations();
+            }
         }
     }
 

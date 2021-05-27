@@ -39,7 +39,9 @@ public class ReferentialFilterVO implements IReferentialFilter {
         return filter == null ? new ReferentialFilterVO() : filter;
     }
 
+    @Deprecated // used includedIds
     private Integer id;
+
     private String label;
     private String name;
 
