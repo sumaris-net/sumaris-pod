@@ -1,12 +1,11 @@
 import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from "./batch.model";
 import {BatchGroup} from "./batch-group.model";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRef} from "../../../core/services/model/referential.model";
 import {IPmfm} from "../../../referential/services/model/pmfm.model";
 import {EntityClass} from "../../../core/services/model/entity.decorators";
 
-@EntityClass({typename: 'SubBatchVO', fromObjectStrategy: "recreate"})
+@EntityClass({typename: 'SubBatchVO', fromObjectReuseStrategy: "clone"})
 export class SubBatch extends Batch<SubBatch> {
 
   static fromObject: (source: any, opts?: BatchFromObjectOptions) => SubBatch;

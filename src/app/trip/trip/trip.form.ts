@@ -193,10 +193,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Combo location
     this.registerAutocompleteField('location', {
       service: this.referentialRefService,
-      filter: {
-        entityName: 'Location',
-        levelId: LocationLevelIds.PORT
-      }
+      filter: this.locationFilter
     });
 
     // Combo: observers

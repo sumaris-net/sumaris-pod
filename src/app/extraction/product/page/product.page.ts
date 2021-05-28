@@ -39,7 +39,7 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
               protected router: Router,
               protected formBuilder: FormBuilder,
               protected extractionService: ExtractionService,
-              protected aggregationService: ExtractionProductService,
+              protected productService: ExtractionProductService,
               protected accountService: AccountService,
               protected validatorService: AggregationTypeValidatorService,
               protected settings: LocalSettingsService) {
@@ -47,14 +47,14 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
       ExtractionProduct,
       // Data service
       {
-        load: (id: number, options) => aggregationService.load(id, options),
-        delete: (type, _) => aggregationService.deleteAll([type]),
-        save: (type, _) => aggregationService.save(type),
+        load: (id: number, options) => productService.load(id, options),
+        delete: (type, _) => productService.deleteAll([type]),
+        save: (type, _) => productService.save(type),
         listenChanges: (id, _) => undefined
       },
       // Editor options
       {
-        pathIdAttribute: 'aggregationTypeId'
+        pathIdAttribute: 'productId'
       });
   }
 

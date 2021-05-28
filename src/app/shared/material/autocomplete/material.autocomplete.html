@@ -61,9 +61,9 @@
             <mat-option class="ion-no-padding"
                         *ngFor="let item of matSelectItems$ | async" [value]="item">
               <ion-row>
-                <ion-col *ngFor="let attr of displayAttributes; index as i;"
+                <ion-col *ngFor="let path of displayAttributes; index as i;"
                          [size]="displayColumnSizes[i]">
-                  <ion-text>{{getPropertyByPath(item, attr)}}</ion-text>
+                  <ion-text>{{item | propertyGet: path }}</ion-text>
                 </ion-col>
               </ion-row>
             </mat-option>
@@ -115,9 +115,9 @@
 
             <mat-option *ngFor="let item of (filteredItems$ | async)" [value]="item" class="ion-no-padding" >
               <ion-row>
-                <ion-col *ngFor="let attr of displayAttributes; index as i;"
+                <ion-col *ngFor="let path of displayAttributes; index as i;"
                          [size]="displayColumnSizes[i]">
-                  <ion-text [innerHTML]="item | mapGet: attr | highlight: {search: formControl.value }"></ion-text>
+                  <ion-text [innerHTML]="item | propertyGet: path | highlight: formControl.value"></ion-text>
                 </ion-col>
               </ion-row>
             </mat-option>

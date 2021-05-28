@@ -13,7 +13,7 @@ export interface IWithVesselSnapshotEntity<T, ID = number> extends IEntity<T, ID
   vesselSnapshot: VesselSnapshot;
 }
 
-@EntityClass({typename: 'VesselSnapshotVO', fromObjectStrategy: 'clone'})
+@EntityClass({typename: 'VesselSnapshotVO', fromObjectReuseStrategy: 'clone'})
 export class VesselSnapshot extends Entity<VesselSnapshot> {
 
   static fromObject: (source: any, opts?: any) => VesselSnapshot;

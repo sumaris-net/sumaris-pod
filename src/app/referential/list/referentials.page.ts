@@ -74,7 +74,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       if (!this.loadingSubject.getValue()) {
         this.applyEntityName(value, { skipLocationChange: true });
       }
-
     }
   }
 
@@ -149,26 +148,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   ngOnInit() {
     super.ngOnInit();
 
-    // Listen route parameters
-    if (this.canSelectEntity) {
-      this.registerSubscription(
-        this.route.queryParams
-          .pipe(first()) // Do not refresh after the first page load (e.g. when location query path changed)
-          .subscribe(({entity, q, level, status}) => {
-            if (!entity) {
-              this.applyEntityName(ReferentialsPage.DEFAULT_ENTITY_NAME);
-            } else {
-              this.filterForm.patchValue({
-                entityName: entity,
-                searchText: q || null,
-                levelId: isNotNil(level) ? +level : null,
-                statusId: isNotNil(status) ? +status : null
-              }, {emitEvent: false});
-              this.applyEntityName(entity, {skipLocationChange: true});
-            }
-          }));
-    }
-
     // Load entities
     this.registerSubscription(
       this.referentialService.loadTypes()
@@ -194,12 +173,15 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
           filter(() => this.filterForm.valid),
           tap(value => {
             const filter = this.asFilter(value);
-            this.filterCriteriaCount = Math.max(1, filter.countNotEmptyCriteria()) - 1 /*remove entityName*/;
+            this.filterCriteriaCount = filter.countNotEmptyCriteria();
             this.filterIsEmpty = this.filterCriteriaCount === 0;
             this.markForCheck();
             // Applying the filter
             this.setFilter(filter, {emitEvent: false});
-          })
+          }),
+          // Save filter in settings (after a debounce time)
+          debounceTime(500),
+          tap(json => this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY))
         )
         .subscribe()
       );
@@ -210,10 +192,43 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
         this.filterForm.markAsPristine();
       }));
 
-    // Force auto Load, when entity name set, and u cannot change
-    if (!this.canSelectEntity && this._entityName) {
+    if (this.canSelectEntity) {
+      this.restoreFilterOrLoad();
+    }
+    else if (this._entityName) {
       this.applyEntityName(this._entityName);
     }
+  }
+
+  protected async restoreFilterOrLoad() {
+    this.markAsLoading();
+
+    const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY);
+    console.debug("[referentials] Restoring filter from settings...", json);
+
+    if (json && json.entityName) {
+      const filter = this.asFilter(json);
+      this.filterForm.patchValue(json, {emitEvent: false});
+      this.filterCriteriaCount = filter.countNotEmptyCriteria();
+      this.filterIsEmpty = this.filterCriteriaCount === 0;
+      this.markForCheck();
+      return this.applyEntityName(filter.entityName);
+    }
+
+    // Check route parameters
+    const {entity, q, level, status} = this.route.snapshot.queryParams;
+    if (entity) {
+      this.filterForm.patchValue({
+        entityName: entity,
+        searchText: q || null,
+        levelId: isNotNil(level) ? +level : null,
+        statusId: isNotNil(status) ? +status : null
+      }, {emitEvent: false});
+      return this.applyEntityName(entity, {skipLocationChange: true});
+    }
+
+    // Load default entity
+    await this.applyEntityName(ReferentialsPage.DEFAULT_ENTITY_NAME);
   }
 
   async applyEntityName(entityName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {

@@ -5,7 +5,7 @@ import {Department} from "../../../core/services/model/department.model";
 import {Person} from "../../../core/services/model/person.model";
 import {Moment} from "moment";
 import {isNotEmptyArray, isNotNilOrBlank} from "../../../shared/functions";
-import {BaseReferential} from "../../../core/services/model/referential.model";
+import {BaseReferential, IReferentialRef, NOT_MINIFY_OPTIONS} from "../../../core/services/model/referential.model";
 import {EntityClass} from "../../../core/services/model/entity.decorators";
 
 export declare type ExtractionCategoryType = 'PRODUCT' | 'LIVE';
@@ -35,14 +35,14 @@ export class ExtractionType<
   recorderPerson: Person = null;
   recorderDepartment: Department = null;
 
-  constructor() {
-    super();
-    this.__typename = ExtractionType.TYPENAME;
+  constructor(__typename?: string) {
+    super(__typename || ExtractionType.TYPENAME);
     this.recorderDepartment = null;
   }
 
   fromObject(source: any, opts?: EntityAsObjectOptions) {
     super.fromObject(source, opts);
+    this.label = source.label;
     this.category = source.category;
     this.version = source.version;
     this.sheetNames = source.sheetNames;
@@ -53,7 +53,7 @@ export class ExtractionType<
   }
 
   asObject(options?: EntityAsObjectOptions): any {
-    const target = super.asObject(options);
+    const target = super.asObject({...options, ...NOT_MINIFY_OPTIONS});
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
     return target;

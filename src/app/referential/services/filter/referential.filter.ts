@@ -71,6 +71,11 @@ export abstract class BaseReferentialFilter<
     return target;
   }
 
+  countNotEmptyCriteria(): number {
+    const nbDefaults = isNil(this.statusId) && isNil(this.statusIds) ? 1 : 0;
+    return super.countNotEmptyCriteria() - nbDefaults;
+  }
+
   protected buildFilter(): FilterFn<T>[] {
     const filterFns = super.buildFilter() || [];
 

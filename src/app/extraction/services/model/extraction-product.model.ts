@@ -47,7 +47,7 @@ export const ProcessingFrequencyList: ProcessingFrequency[] = [
 ];
 
 
-@EntityClass({typename: 'AggregationTypeVO', fromObjectStrategy: "recreate"})
+@EntityClass({typename: 'AggregationTypeVO'})
 export class ExtractionProduct extends ExtractionType<ExtractionProduct>
   implements IWithRecorderDepartmentEntity<ExtractionProduct>,
              IWithRecorderPersonEntity<ExtractionProduct> {
@@ -64,7 +64,7 @@ export class ExtractionProduct extends ExtractionType<ExtractionProduct>
   columns: ExtractionColumn[] = null;
 
   constructor() {
-    super();
+    super(ExtractionProduct.TYPENAME);
   }
 
   fromObject(source: any, opts?: EntityAsObjectOptions) {

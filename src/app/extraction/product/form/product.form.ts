@@ -224,7 +224,7 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
 
   setValue(data: ExtractionProduct, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
 
-    console.debug('[aggregation-type-form] Setting value: ', data);
+    console.debug('[product-form] Setting value: ', data);
     // If spatial, load columns
     if (data && data.isSpatial) {
       // If spatial product, make sure there is one strata

@@ -101,11 +101,6 @@ export class Referential extends BaseReferential<Referential> {
 
   static fromObject: (source: any, opts?: any) => Referential;
 
-  clone(): Referential {
-    const target = new Referential();
-    target.fromObject(this);
-    return target;
-  }
 }
 
 export class ReferentialUtils {

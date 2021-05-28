@@ -158,8 +158,8 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @Input() matAutocompletePosition: 'auto' | 'above' | 'below' = 'auto';
   @Input() multiple = false;
 
-  //@HostBinding('@.disabled')
-  //animationsDisabled = true;
+  @HostBinding('@.disabled')
+  animationsDisabled = true;
 
   @Input() set filter(value: any) {
     // DEBUG
@@ -185,7 +185,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @Input() set items(value: Observable<any[]> | any[]) {
     // Remove previous subscription on items, (if exits)
     if (this._itemsSubscription) {
-      //console.warn(this.logPrefix + " Items received twice !");
+      console.warn(this.logPrefix + " Items received twice !");
       this._subscription.remove(this._itemsSubscription);
       this._itemsSubscription.unsubscribe();
     }
@@ -258,13 +258,17 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     // Default values
     this.displayAttributes = this.displayAttributes || (this.filter && this.filter.attributes) || ['label', 'name'];
     this.displayWith = this.displayWith || ((obj) => obj && joinPropertiesPath(obj, this.displayAttributes));
-    this.displayColumnSizes = this.displayColumnSizes || this.displayAttributes.map(attr => (
-        // If label then col size = 2
-        attr && attr.endsWith('label')) ? 2 :
-        // If rankOrder then col size = 1
-        (attr && attr.endsWith('rankOrder') ? 1 :
-          // Else, auto size
-          undefined));
+    const length = this.displayAttributes.length;
+    this.displayColumnSizes = this.displayColumnSizes
+      // if only column: auto size
+      || (this.displayAttributes.length === 1 && [undefined])
+      || this.displayAttributes.map(attr =>
+        // If label, set col size = 2
+         (attr && attr.endsWith('label')) ? 2 :
+           // If rankOrder => col size = 1
+           ((attr && attr.endsWith('rankOrder')) ? 1
+             // Else => auto size
+             : undefined));
     this.displayColumnNames = this.displayAttributes.map((attr, index) => {
       return this.displayColumnNames && this.displayColumnNames[index] ||
         (this.i18nPrefix + changeCaseToUnderscore(attr).toUpperCase());

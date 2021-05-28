@@ -23,7 +23,7 @@ export interface BatchFromObjectOptions {
 
 // WARN: always recreate en entity, even if source is a Batch
 // because options can have changed
-@EntityClass({typename: 'BatchVO', fromObjectStrategy: 'recreate'})
+@EntityClass({typename: 'BatchVO', fromObjectReuseStrategy: 'clone'})
 export class Batch<
   T extends Batch<T, ID> = Batch<any, any>,
   ID = number,

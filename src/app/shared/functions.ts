@@ -232,15 +232,17 @@ export function isNumberRange(value: string): boolean {
 }
 
 export function getPropertyByPath(obj: any, path: string, defaultValue?: any): any {
-  if (isNil(obj)) return undefined;
+  if (isNil(obj)) return defaultValue;
   if (isNilOrBlank(path)) return obj;
   const i = path.indexOf('.');
+  // Simple property path
   if (i === -1) {
     const res = obj[path];
     return (isNotNil(res) || isNil(defaultValue)) ? res : defaultValue;
   }
+  // Complex property path
   const key = path.substring(0, i);
-  if (isNil(obj[key])) return undefined;
+  if (isNil(obj[key])) return defaultValue;
   if (obj[key] && typeof obj[key] === "object") {
     return getPropertyByPath(obj[key], path.substring(i + 1));
   }

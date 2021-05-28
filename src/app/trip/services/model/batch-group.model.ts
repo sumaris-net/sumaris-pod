@@ -2,7 +2,7 @@ import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from ".
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
 import {EntityClass} from "../../../core/services/model/entity.decorators";
 
-@EntityClass({fromObjectStrategy: "recreate", typename: "BatchGroupVO"})
+@EntityClass({typename: "BatchGroupVO", fromObjectReuseStrategy: "clone"})
 export class BatchGroup extends Batch<BatchGroup> {
 
   static fromObject: (source: any, opts?: BatchFromObjectOptions) => BatchGroup;

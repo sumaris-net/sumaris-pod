@@ -70,7 +70,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     platform: PlatformService,
     modalCtrl: ModalController,
     protected location: Location,
-    protected aggregationService: ExtractionProductService,
+    protected productService: ExtractionProductService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl);
@@ -276,13 +276,13 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       });
 
       // Save aggregation
-      const savedAggType = await this.aggregationService.save(aggType, filter);
+      const savedAggType = await this.productService.save(aggType, filter);
 
       // Wait for types cache updates
       await sleep(1000);
 
       // Open the new aggregation (no wait)
-      await this.openAggregationType(savedAggType);
+      await this.openProduct(savedAggType);
 
       // Change current type
       await this.setType(savedAggType, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
@@ -362,7 +362,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
     try {
       const aggType = ExtractionProduct.fromObject(this.type.asObject());
-      await this.aggregationService.delete(aggType);
+      await this.productService.delete(aggType);
 
       // Wait propagation to types
       await sleep(4000);
@@ -408,7 +408,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     }, 200); // Add a delay need by matTooltip to be hide
   }
 
-  openAggregationType(type?: ExtractionType, event?: UIEvent) {
+  openProduct(type?: ExtractionType, event?: UIEvent) {
     type = type || this.type;
 
     if (event) {
@@ -419,11 +419,11 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
     if (!type) return; // skip if not a aggregation type
 
-    console.debug(`[extraction-table] Opening aggregation type {${type.label}`);
+    console.debug(`[extraction-table] Opening product {${type.label}`);
 
     setTimeout(() => {
       // open the aggregation type
-      this.router.navigateByUrl(`/extraction/aggregation/${type.id}`);
+      this.router.navigateByUrl(`/extraction/product/${type.id}`);
     }, 100);
   }
 

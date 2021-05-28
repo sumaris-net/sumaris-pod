@@ -349,7 +349,6 @@ export class ExtractionProductService extends BaseGraphqlService {
       update: (cache, {data}) => {
         const savedEntity = data && data.data;
         EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
-        //if (this._debug)
         console.debug(`[product-service] Product saved in ${Date.now() - now}ms`, savedEntity);
 
         // Convert into the extraction type
@@ -359,14 +358,14 @@ export class ExtractionProductService extends BaseGraphqlService {
 
         // Insert into cached queries
         if (isNew) {
-          // Insert as an extraction types
-          this.extractionService.insertIntoCache(cache, savedExtractionType);
-
           // Aggregation types
           this.insertIntoMutableCachedQuery(cache, {
             query: LoadTypesQuery,
             data: savedEntity
           });
+
+          // Insert as an extraction types
+          this.extractionService.insertIntoCache(cache, savedExtractionType);
         }
 
         // Update from cached queries

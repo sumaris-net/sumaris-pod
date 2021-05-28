@@ -22,7 +22,7 @@ import {CRS, GeoJSON, MapOptions, WMSParams} from 'leaflet';
 import {Feature} from "geojson";
 import {debounceTime, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
-import {SelectProductModal} from "../type/modal/select-product.modal";
+import {SelectProductModal} from "../product/modal/select-product.modal";
 import {AccountService} from "../../core/services/account.service";
 import {ExtractionAbstractPage} from "../form/extraction-abstract.page";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -355,6 +355,25 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     );
   }
 
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.$layers.unsubscribe();
+    this.$legendItems.unsubscribe();
+    this.$onOverFeature.unsubscribe();
+    this.$selectedFeature.unsubscribe();
+    this.$details.unsubscribe();
+    this.$noData.unsubscribe();
+    this.$title.unsubscribe();
+    this.$sheetNames.unsubscribe();
+    this.$timeColumns.unsubscribe();
+    this.$spatialColumns.unsubscribe();
+    this.$aggColumns.unsubscribe();
+    this.$techColumns.unsubscribe();
+    this.$criteriaColumns.unsubscribe();
+    this.$tech.unsubscribe();
+    this.$years.unsubscribe();
+  }
+
   onMapReady(leafletMap: L.Map) {
     this.map = leafletMap;
 
@@ -542,7 +561,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     this.$techColumns.next(columnsMap.techColumns);
     this.$spatialColumns.next(columnsMap.spatialColumns);
     this.$timeColumns.next(ExtractionUtils.filterWithValues(columnsMap.timeColumns));
-    this.$criteriaColumns.next(ExtractionUtils.filterValuesMinSize(columnsMap.criteriaColumns, 2));
+    this.$criteriaColumns.next(ExtractionUtils.filterValuesMinSize(columnsMap.criteriaColumns, 1));
 
     const yearColumn = (columns || []).find(c => c.columnName === 'year');
     const years = (yearColumn && yearColumn.values || []).map(s => parseInt(s));

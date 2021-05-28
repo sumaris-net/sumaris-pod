@@ -15,6 +15,7 @@ import {ArrayFirstPipe, ArrayIncludesPipe, ArrayLengthPipe, ArrayPluckPipe, Empt
 import {MapGetPipe, MapKeysPipe, MapValuesPipe} from "./maps.pipe";
 import {IsNilOrBlankPipe, IsNotNilOrBlankPipe} from "./string.pipes";
 import {TranslateContextPipe} from "./translate-context.pipe";
+import {PropertyGetPipe} from "./properties.pipe";
 
 @NgModule({
   imports: [
@@ -23,6 +24,7 @@ import {TranslateContextPipe} from "./translate-context.pipe";
     TranslateModule
   ],
   declarations: [
+    PropertyGetPipe,
     DateFormatPipe,
     DateDiffDurationPipe,
     DurationPipe,
@@ -50,6 +52,7 @@ import {TranslateContextPipe} from "./translate-context.pipe";
     TranslateContextPipe
   ],
   exports: [
+    PropertyGetPipe,
     DateFormatPipe,
     DateFromNowPipe,
     DateDiffDurationPipe,

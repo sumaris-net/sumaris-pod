@@ -5,11 +5,11 @@ import {type} from "os";
 export function EntityClass(opts?: {
   typename?: string;
   fromObjectAlwaysNew?: boolean;
-  fromObjectStrategy?: 'default' | 'recreate' | 'clone'
+  fromObjectReuseStrategy?: 'default' | 'clone'
 }) {
 
   opts = {
-    fromObjectStrategy: 'default',
+    fromObjectReuseStrategy: 'default',
     ...opts
   };
 
@@ -25,25 +25,13 @@ export function EntityClass(opts?: {
 
     const typename = opts.typename || `${constructor.name}VO`;
 
-    if (opts.fromObjectStrategy === 'recreate') {
-      return class extends constructor {
-        static CLASSNAME = constructor.name;
-        static TYPENAME = typename;
-        static fromObject(source: any, opts?: any): T {
-          const target: any = new constructor();
-          target.fromObject(source, opts);
-          return target as T;
-        }
-      };
-    }
-
-    if (opts.fromObjectStrategy === 'clone') {
+    if (opts.fromObjectReuseStrategy === 'clone') {
       return class extends constructor {
         static CLASSNAME = constructor.name;
         static TYPENAME = typename;
         static fromObject(source: any, opts?: any): T {
           if (!source) return undefined;
-          //if (isInstanceOf(source, constructor)) return (source as any).clone() as T;
+          if (isInstanceOf(source, constructor)) return (source as any).clone(opts) as T;
           const target: any = new constructor();
           target.fromObject(source, opts);
           return target as T;
