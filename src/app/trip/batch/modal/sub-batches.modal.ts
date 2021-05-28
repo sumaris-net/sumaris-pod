@@ -63,6 +63,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   @Input()
   parentGroup: BatchGroup;
 
+  @Input() maxVisibleButtons: number;
+
   @Input() set disabled(value: boolean) {
     if (value) {
       this.disable();
