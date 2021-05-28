@@ -1072,7 +1072,22 @@
     },
     "TAXON_NAME": {
       "LABEL": "Code espèce scientifique",
-      "NAME": "Libellé espèce scientifique"
+      "NAME": "Libellé espèce scientifique",
+      "PARENT": "Espèce scientifique parente",
+      "IS_REFERENT": "Référent ?",
+      "IS_NAMING": "Nommage conventionnel ?",
+      "IS_VIRTUAL": "Virtuel ?",
+      "USE_EXISTING_REFERENCE_TAXON": "Utiliser référence unique de taxon existante ?",
+      "REFERENCE_TAXON":"Référence unique de taxon",
+      "TAXONOMIC_LEVEL": "Niveau taxonomique",
+      "START_DATE": "Date de début",
+      "END_DATE": "Date de fin",
+      "NEW": {
+        "TITLE": "Nouvelle espèce scientifique"
+      },
+      "EDIT": {
+        "TITLE": "Espèce scientifique {{label}} - {{name}}"
+      }
     },
     "GEAR": {
       "LABEL": "Code engin",
@@ -1164,7 +1179,7 @@
       "TAXON_GROUP_TYPE": "Types de groupe d'espèce",
       "TAXON_GROUP": "Espèces commerciales (FAO)",
       "TAXON_NAME": "Espèces scientifique",
-      "TAXONOMIC_LEVEL": "Niveaux taxinomique",
+      "TAXONOMIC_LEVEL": "Niveaux taxinomiques",
       "REFERENCE_TAXON": "Références uniques de taxon",
       "PROGRAM": "Programmes de collecte",
       "STRATEGY": "Stratégies de collecte",
@@ -1793,7 +1808,8 @@
     "SYNCHRONIZE_ENTITY_ERROR": "Synchronisation impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_ERROR": "Erreur de chargement",
     "SAVE_ERROR": "Erreur de sauvegarde",
-    "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications"
+    "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications",
+    "FIELD_NOT_EXISTS": "Cette valeur n'existe pas"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

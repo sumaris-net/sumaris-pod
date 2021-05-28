@@ -1,5 +1,5 @@
 import {Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {BehaviorSubject, Observable, of, Subject} from "rxjs";
+import {BehaviorSubject, Observable, of} from "rxjs";
 import {debounceTime, filter, first, map} from "rxjs/operators";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {ReferentialValidatorService} from "../services/validator/referential.validator";
@@ -47,7 +47,8 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     'Program': '/referential/programs/:id',
     'Software': '/referential/list/software/:id?label=:label',
     'Pmfm': '/referential/pmfm/:id?label=:label',
-    'Parameter': '/referential/parameter/:id?label=:label'
+    'Parameter': '/referential/parameter/:id?label=:label',
+    'TaxonName': '/referential/taxonName/:id?label=:label'
   };
 
   @Input() set showLevelColumn(value: boolean) {
@@ -135,7 +136,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     // FOR DEV ONLY
     this.debug = true;
-  };
+  }
 
   ngOnInit() {
     super.ngOnInit();

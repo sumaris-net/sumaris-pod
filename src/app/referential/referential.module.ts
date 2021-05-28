@@ -28,6 +28,7 @@ import {SamplingStrategiesTable} from "./strategy/sampling/sampling-strategies.t
 import {SimpleReferentialTable} from "./list/referential-simple.table";
 import {PmfmsTable} from "./pmfm/pmfms.table";
 import {SelectPmfmModal} from "./pmfm/select-pmfm.modal";
+import {TaxonNamePage} from "./taxon/taxon-name.page";
 
 @NgModule({
   imports: [
@@ -65,7 +66,8 @@ import {SelectPmfmModal} from "./pmfm/select-pmfm.modal";
     PmfmFormField,
     PmfmQvFormField,
     PmfmsTable,
-    SelectPmfmModal
+    SelectPmfmModal,
+    TaxonNamePage
   ],
   exports: [
     TranslateModule,
@@ -94,7 +96,8 @@ import {SelectPmfmModal} from "./pmfm/select-pmfm.modal";
     PmfmFormField,
     PmfmQvFormField,
     PmfmsTable,
-    SelectPmfmModal
+    SelectPmfmModal,
+    TaxonNamePage
   ]
 })
 export class ReferentialModule {
