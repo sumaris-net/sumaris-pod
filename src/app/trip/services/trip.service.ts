@@ -25,7 +25,7 @@ import {chainPromises} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TripValidatorService} from "./validator/trip.validator";
 import {AppFormUtils, FormErrors} from "../../core/form/form.utils";
-import {PhysicalGear, Trip} from "./model/trip.model";
+import {Operation, PhysicalGear, Trip} from "./model/trip.model";
 import {DataRootEntityUtils, SynchronizationStatusEnum} from "../../data/services/model/root-data-entity.model";
 import {fillRankOrder} from "../../data/services/model/model.utils";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
@@ -47,7 +47,6 @@ import {EntitySaveOptions} from "../../referential/services/base-entity-service.
 import {ErrorCodes} from "../../data/services/errors";
 import {VESSEL_FEATURE_NAME} from "../../vessel/services/config/vessel.config";
 import {TripFilter} from "./filter/trip.filter";
-import {Operation} from "./model/operation.model";
 
 const moment = momentImported;
 

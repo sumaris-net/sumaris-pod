@@ -20,7 +20,7 @@ import {ProductsTable} from "../product/products.table";
 import {Product, ProductFilter, ProductUtils} from "../services/model/product.model";
 import {PacketsTable} from "../packet/packets.table";
 import {Packet, PacketFilter} from "../services/model/packet.model";
-import {Trip} from "../services/model/trip.model";
+import {OperationGroup, Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {fillRankOrder, isRankOrderValid} from "../../data/services/model/model.utils";
 import {SaleProductUtils} from "../services/model/sale-product.model";
@@ -37,7 +37,6 @@ import {EntityServiceLoadOptions} from "../../shared/services/entity-service.cla
 import {Program} from "../../referential/services/model/program.model";
 import {environment} from "../../../environments/environment";
 import {Sample} from "../services/model/sample.model";
-import {OperationGroup} from "../services/model/operation.model";
 
 const moment = momentImported;
 

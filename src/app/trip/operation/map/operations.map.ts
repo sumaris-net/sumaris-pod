@@ -21,7 +21,7 @@ import {DateDiffDurationPipe} from "../../../shared/pipes/date-diff-duration.pip
 import {ProgramRefService} from "../../../referential/services/program-ref.service";
 import {mergeMap} from "rxjs/operators";
 import {Program} from "../../../referential/services/model/program.model";
-import {Operation} from "../../services/model/operation.model";
+import {Operation} from "../../services/model/trip.model";
 
 @Component({
   selector: 'app-operations-map',

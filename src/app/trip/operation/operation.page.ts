@@ -17,7 +17,7 @@ import {SamplesTable} from "../sample/samples.table";
 import {Batch} from "../services/model/batch.model";
 import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
 import {firstNotNil, firstNotNilPromise} from "../../shared/observables";
-import {Trip} from "../services/model/trip.model";
+import {Operation, Trip} from "../services/model/trip.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
 import {EntityUtils, IEntity} from "../../core/services/model/entity.model";
@@ -28,7 +28,6 @@ import {EntityServiceLoadOptions} from "../../shared/services/entity-service.cla
 import {AppEntityEditor} from "../../core/form/editor.class";
 import {environment} from "../../../environments/environment";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {Operation} from "../services/model/operation.model";
 
 const moment = momentImported;
 

@@ -17,8 +17,8 @@ import {IReferentialRef, referentialToString} from "../../../core/services/model
 import {environment} from "../../../../environments/environment";
 import {FilterFn, LoadResult} from "../../../shared/services/entity-service.class";
 import {EntityFilter} from "../../../core/services/model/filter.model";
-import {Operation} from "../../services/model/operation.model";
 import {isInstanceOf} from "../../../core/services/model/entity.model";
+import {Operation} from "../../services/model/trip.model";
 
 export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
   operationId?: number;

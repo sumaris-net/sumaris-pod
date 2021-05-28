@@ -10,7 +10,7 @@ import {NetworkService} from "../../core/services/network.service";
 import {AccountService} from "../../core/services/account.service";
 import {DataEntity, DataEntityAsObjectOptions, SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {VesselPosition} from "./model/trip.model";
+import {Operation, OperationFromObjectOptions, VesselPosition} from "./model/trip.model";
 import {Measurement} from "./model/measurement.model";
 import {Batch, BatchUtils} from "./model/batch.model";
 import {Sample} from "./model/sample.model";
@@ -26,7 +26,6 @@ import {EntityUtils} from "../../core/services/model/entity.model";
 import {environment} from "../../../environments/environment";
 import {DataEntityFilter} from "../../data/services/model/data-filter.model";
 import {Landing} from "./model/landing.model";
-import {Operation, OperationFromObjectOptions} from "./model/operation.model";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {

@@ -15,7 +15,7 @@ import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {environment} from "../../../environments/environment";
 import {firstNotNilPromise} from "../../shared/observables";
-import {Operation} from "../services/model/operation.model";
+import {Operation} from "../services/model/trip.model";
 
 
 @Component({

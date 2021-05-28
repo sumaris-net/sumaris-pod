@@ -13,7 +13,7 @@ import {isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {AccountService} from "../../core/services/account.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {SharedValidators} from "../../shared/validator/validators";
-import {PhysicalGear, Trip} from "../services/model/trip.model";
+import {Operation, PhysicalGear, Trip} from "../services/model/trip.model";
 import {BehaviorSubject} from "rxjs";
 import {distinctUntilChanged} from "rxjs/operators";
 import {METIER_DEFAULT_FILTER} from "../../referential/services/metier.service";
@@ -23,7 +23,6 @@ import {GeolocationOptions} from "@ionic-native/geolocation";
 import {AppForm} from "../../core/form/form.class";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {fromDateISOString} from "../../shared/dates";
-import {Operation} from "../services/model/operation.model";
 
 @Component({
   selector: 'app-form-operation',
