@@ -92,6 +92,18 @@ public class TaxonNameRepositoryImpl
     @Override
     public Optional<TaxonNameVO> findReferentByReferenceTaxonId(int referenceTaxonId) {
 
+        List<TaxonNameVO> taxonNames = findAllReferentByReferenceTaxonId(referenceTaxonId);
+
+        if (CollectionUtils.isEmpty(taxonNames)) return Optional.empty();
+        if (taxonNames.size() > 1) {
+            log.warn(String.format("ReferenceTaxon {id=%s} has more than one TaxonNames, with IS_REFERENT=1. Will use the first found.", referenceTaxonId));
+        }
+        return Optional.ofNullable(taxonNames.get(0));
+    }
+
+    @Override
+    public List<TaxonNameVO> findAllReferentByReferenceTaxonId(int referenceTaxonId) {
+
         List<TaxonNameVO> taxonNames = findByFilter(
                 TaxonNameFilterVO.builder()
                         .referenceTaxonId(referenceTaxonId)
@@ -99,12 +111,9 @@ public class TaxonNameRepositoryImpl
                         .build(),
                 Pageable.unpaged()
         );
-        if (CollectionUtils.isEmpty(taxonNames)) return Optional.empty();
-        if (taxonNames.size() > 1) {
-            log.warn(String.format("ReferenceTaxon {id=%s} has more than one TaxonNames, with IS_REFERENT=1. Will use the first found.", referenceTaxonId));
-        }
-        return Optional.ofNullable(taxonNames.get(0));
+        return taxonNames;
     }
+
 
     @Override
     public List<TaxonNameVO> getAllByTaxonGroupId(int taxonGroupId) {

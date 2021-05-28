@@ -23,6 +23,7 @@ package net.sumaris.core.service.referential.taxon;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,5 +49,4 @@ public interface TaxonNameService {
     List<TaxonNameVO> getAllByTaxonGroupId(Integer taxonGroupId);
 
     TaxonNameVO save(TaxonNameVO taxonName);
-
 }

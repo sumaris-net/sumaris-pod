@@ -75,14 +75,17 @@ public class TaxonNameServiceImpl implements TaxonNameService {
     public TaxonNameVO save(TaxonNameVO source) {
         Preconditions.checkNotNull(source);
 
-        if (source.getReferenceTaxonId() == null){
+        if (source.getReferenceTaxonId() == null) {
             source.setReferenceTaxonId(referenceTaxonRepository.save(new ReferenceTaxon()).getId());
+        } else if (source.getIsReferent()) {
+            List<TaxonNameVO> taxonNameReferents = taxonNameRepository.findAllReferentByReferenceTaxonId(source.getReferenceTaxonId());
+            for (TaxonNameVO taxonNameVO : taxonNameReferents) {
+                if (source.getId() == null || taxonNameVO.getId().intValue() != source.getId().intValue()) {
+                    taxonNameVO.setIsReferent(false);
+                    save(taxonNameVO);
+                }
+            }
         }
-//        else{
-//            List<TaxonNameVO> taxonNameReferents = taxonNameRepository.
-//        }
-
-
         return taxonNameRepository.save(source);
     }
 }

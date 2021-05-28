@@ -27,12 +27,14 @@ import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.referential.taxon.ReferenceTaxonRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.*;
 import net.sumaris.server.http.security.IsSupervisor;
@@ -44,6 +46,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -55,6 +58,9 @@ public class TaxonNameGraphQLService {
 
     @Autowired
     private TaxonNameService taxonNameService;
+
+    @Autowired
+    private ReferenceTaxonRepository referenceTaxonRepository;
 
     @Autowired
     private ChangesPublisherService changesPublisherService;
@@ -100,16 +106,6 @@ public class TaxonNameGraphQLService {
         return referentialService.countByFilter(Program.class.getSimpleName(), filter);
     }
 
-    @GraphQLSubscription(name = "updateTaxonName", description = "Subscribe to changes on a taxon name")
-    @IsUser
-    public Publisher<TaxonNameVO> updateTaxonName(@GraphQLArgument(name = "id") final Integer id,
-                                                  @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
-                                                  @GraphQLEnvironment ResolutionEnvironment env) {
-
-        Preconditions.checkArgument(id >= 0, "Invalid 'id' argument");
-        return changesPublisherService.getPublisher(TaxonName.class, TaxonNameVO.class, id, minIntervalInSecond, true);
-    }
-
     /* -- Mutations -- */
 
     @GraphQLMutation(name = "saveTaxonName", description = "Save a Taxon name")
@@ -118,4 +114,12 @@ public class TaxonNameGraphQLService {
         return taxonNameService.save(taxonName);
     }
 
+    /* -- Reference Taxon -- */
+
+    @GraphQLQuery(name = "referenceTaxonExists", description = "Search in referenceTaxons")
+    @Transactional(readOnly = true)
+    public Boolean referenceTaxonExists(@GraphQLArgument(name = "id") final Integer id) {
+        Optional<ReferenceTaxon> referenceTaxon = referenceTaxonRepository.findById(id);
+        return referenceTaxon.isPresent();
+    }
 }

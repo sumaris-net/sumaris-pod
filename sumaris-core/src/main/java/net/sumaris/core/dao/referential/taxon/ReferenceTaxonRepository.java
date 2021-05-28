@@ -24,9 +24,16 @@ package net.sumaris.core.dao.referential.taxon;
 
 
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
+import net.sumaris.core.vo.referential.ReferenceTaxonVO;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface ReferenceTaxonRepository extends JpaRepository<ReferenceTaxon, Integer> {
+
+    ReferenceTaxonVO get(int id);
+
+    Optional<ReferenceTaxonVO> findById(int id);
 
     ReferenceTaxon save(ReferenceTaxon referenceTaxon);
 
