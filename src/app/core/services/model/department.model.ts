@@ -1,6 +1,7 @@
 import {EntityAsObjectOptions, EntityUtils} from "./entity.model";
-import {BaseReferential} from "./referential.model";
+import {BaseReferential, ReferentialAsObjectOptions} from "./referential.model";
 import {EntityClass} from "./entity.decorators";
+import {tar} from "@ionic/cli/lib/utils/archive";
 
 @EntityClass({typename: 'DepartmentVO'})
 export class Department extends BaseReferential<Department> {
@@ -22,6 +23,12 @@ export class Department extends BaseReferential<Department> {
     this.logo = source.logo;
     this.siteUrl = source.siteUrl;
     delete this.entityName; // not need
+  }
+
+  asObject(opts?: ReferentialAsObjectOptions): any {
+    const target = super.asObject(opts);
+    delete target.entityName;
+    return target;
   }
 }
 

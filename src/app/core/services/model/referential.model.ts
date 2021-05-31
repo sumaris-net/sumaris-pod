@@ -1,5 +1,5 @@
 import {Moment} from "moment";
-import {joinPropertiesPath} from "../../../shared/functions";
+import {isNil, joinPropertiesPath} from "../../../shared/functions";
 import {Entity, EntityAsObjectOptions, EntityUtils, IEntity} from "./entity.model";
 import {StatusIds} from "./model.enum";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
@@ -46,17 +46,17 @@ export abstract class BaseReferential<
   extends Entity<T, ID, O, FO>
   implements IReferentialRef<T, ID> {
 
-  label: string = null;
-  name: string = null;
-  description: string = null;
-  comments: string = null;
-  creationDate: Date | Moment = null;
-  statusId: number = null;
-  validityStatusId: number = null;
-  levelId: number = null;
-  parentId: number = null;
-  rankOrder: number = null;
-  entityName: string = null;
+  label: string;
+  name: string;
+  description: string;
+  comments: string;
+  creationDate: Date | Moment;
+  statusId: number;
+  validityStatusId: number;
+  levelId: number;
+  parentId: number;
+  rankOrder: number;
+  entityName: string;
 
   constructor(__typename?: string) {
     super(__typename);
@@ -73,6 +73,12 @@ export abstract class BaseReferential<
     const target: any = super.asObject(opts);
     target.creationDate = toDateISOString(this.creationDate);
     if (opts && opts.keepTypename === false) delete target.entityName;
+
+    // Remove nil fields
+    /*Object.keys(target).forEach(key => {
+      if (isNil(target[key])) delete target[key];
+    });*/
+
     return target;
   }
 
@@ -177,11 +183,11 @@ export class ReferentialRef<
 
   static fromObject: (source: any, opts?: any) => ReferentialRef;
 
-  label: string = null;
-  name: string = null;
-  statusId: number = null;
-  levelId: number = null;
-  entityName: string = null;
+  label: string;
+  name: string;
+  statusId: number;
+  levelId: number;
+  entityName: string;
 
   constructor() {
     super(ReferentialRef.TYPENAME);

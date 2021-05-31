@@ -1,14 +1,13 @@
 import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
-import {VesselFeatures, VesselRegistration} from "./model/vessel.model";
+import {FetchPolicy, gql} from "@apollo/client/core";
+import {VesselFeatures} from "./model/vessel.model";
 import {GraphqlService} from "../../core/graphql/graphql.service";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
-import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
+import {IEntitiesService} from "../../shared/services/entity-service.class";
 import {BaseEntityService} from "../../referential/services/base-entity-service.class";
-import {VesselFeaturesFilter, VesselRegistrationFilter} from "./filter/vessel.filter";
+import {VesselFeaturesFilter} from "./filter/vessel.filter";
 import {PlatformService} from "../../core/services/platform.service";
-import {SortDirection} from "@angular/material/sort";
-import {Observable} from "rxjs";
+import {isNotNil} from "../../shared/functions";
 
 export const VesselFeaturesFragments = {
     vesselFeatures: gql`fragment VesselFeaturesFragment on VesselFeaturesVO {
@@ -46,7 +45,7 @@ export const VesselFeatureQueries = {
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}`
-}
+};
 
 @Injectable({providedIn: 'root'})
 export class VesselFeaturesService
@@ -62,6 +61,13 @@ export class VesselFeaturesService
         queries: VesselFeatureQueries,
         defaultSortBy: 'startDate'
       });
+  }
+
+  async count(filter: Partial<VesselFeaturesFilter> & {vesselId: number}, opts?: {
+    fetchPolicy?: FetchPolicy
+  }): Promise<number> {
+    const {data, total} = await this.loadAll(0, 100, null, null, filter, opts);
+    return isNotNil(total) ? total : (data || []).length;
   }
 
   /* -- protected methods -- */

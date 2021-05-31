@@ -163,6 +163,7 @@ export abstract class BaseEntityService<
            sortDirection?: SortDirection,
            filter?: F,
            opts?: {
+             query?: any,
              fetchPolicy?: WatchQueryFetchPolicy;
              withTotal: boolean;
              toEntity?: boolean;
@@ -182,8 +183,11 @@ export abstract class BaseEntityService<
     let now = this._debug && Date.now();
     if (this._debug) console.debug(`[base-entity-service] Watching ${this._entityName}...`, variables);
 
-    const withTotal = (!opts || opts.withTotal !== false);
-    const query = withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
+
+    const withTotal = (!opts || opts.withTotal !== false) && this.queries.loadAllWithTotal && true;
+    const query = (opts && opts.query) // use given query
+      // Or get loadAll or loadAllWithTotal query
+      || withTotal ? this.queries.loadAllWithTotal  : this.queries.loadAll;
     return this.mutableWatchQuery<LoadResult<any>>({
       queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
       query,
@@ -240,9 +244,10 @@ export abstract class BaseEntityService<
     const now = Date.now();
     if (debug) console.debug(`[base-entity-service] Loading ${this._entityName}...`, variables);
 
+    const withTotal = (!opts || opts.withTotal !== false) && this.queries.loadAllWithTotal && true;
     const query = (opts && opts.query) // use given query
       // Or get loadAll or loadAllWithTotal query
-      || ((!opts || opts.withTotal !== false) ? this.queries.loadAllWithTotal : this.queries.loadAll);
+      || withTotal ? this.queries.loadAllWithTotal  : this.queries.loadAll;
     const {data, total} = await this.graphql.query<LoadResult<any>>({
       query,
       variables,

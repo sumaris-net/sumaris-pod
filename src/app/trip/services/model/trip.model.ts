@@ -51,8 +51,8 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
   rankOrderOnPeriod: number = null;
   hasCatch: boolean = null;
   positions: VesselPosition[] = null;
-  startPosition: VesselPosition = new VesselPosition();
-  endPosition: VesselPosition = new VesselPosition();
+  startPosition: VesselPosition = null;
+  endPosition: VesselPosition = null;
 
   metier: Metier = null;
   physicalGear: PhysicalGear = null;
