@@ -112,6 +112,7 @@ export * from './src/app/core/table/entities-table-datasource.class';
 export * from './src/app/core/table/table-select-columns.component';
 export * from './src/app/core/home/home';
 export * from './src/app/core/menu/menu.component';
+export * from './src/app/core/menu/menu.service';
 export * from './src/app/core/about/modal-about';
 export * from './src/app/core/peer/select-peer.modal';
 

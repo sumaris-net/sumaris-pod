@@ -462,8 +462,11 @@ export class AccountService extends BaseGraphqlService {
 
       // Generate the authBasic, if used
       if (!this.data.authBasic) {
-        if (!data || !data.username || !data.password) throw new Error("Missing username and password");
-        this.data.authBasic = this.cryptoService.encodeBase64(`${data.username}:${data.password}`);
+        // Skip if token already provided
+        if (!(this.data.authToken && this._tokenType === 'basic-and-token')) {
+          if (!data || !data.username || !data.password) throw new Error("Missing username and password");
+          this.data.authBasic = this.cryptoService.encodeBase64(`${data.username}:${data.password}`);
+        }
       }
       this.onAuthBasicChange.next(this.data.authBasic);
     }

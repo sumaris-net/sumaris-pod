@@ -29,6 +29,7 @@ import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
 import {PlatformService} from "../services/platform.service";
 import {IconRef} from "../../shared/types";
 import {ENVIRONMENT} from "../../../environments/environment.class";
+import {MenuService} from "./menu.service";
 
 export interface MenuItem extends IconRef {
   title: string;
@@ -137,6 +138,7 @@ export class MenuComponent implements OnInit {
     protected translate: TranslateService,
     protected configService: ConfigService,
     protected cd: ChangeDetectorRef,
+    protected menuService: MenuService,
     @Inject(ENVIRONMENT) protected environment,
     @Optional() @Inject(APP_MENU_ITEMS) public items: MenuItem[]
   ) {
@@ -160,6 +162,10 @@ export class MenuComponent implements OnInit {
     await this.platformService.ready();
 
     this.splitPaneOpened = true;
+    // Listen to menu service event
+    this.menuService.menuToggled$.subscribe(() => {
+      this.toggleSplitPane(new MouseEvent('fromService'));
+    });
 
     // Update component when refresh is need (=login events or config changed)
     this._subscription.add(
@@ -273,6 +279,7 @@ export class MenuComponent implements OnInit {
     } else {
       this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
     }
+    this.menuService.menuVisible(this.splitPaneOpened);
     $event.preventDefault();
   }
 
