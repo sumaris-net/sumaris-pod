@@ -49,7 +49,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     String STATUS_PARAMETER = "status";
     String STATUS_SET_PARAMETER = "statusSet";
     String LABEL_PARAMETER = "label";
-    String LEVEL_PARAMETER = "level";
+    String PROPERTY_PARAMETER_PREFIX = "property";
     String LEVEL_LABEL_PARAMETER = "levelLabel";
     String SEARCH_TEXT_PARAMETER = "searchText";
     String INCLUDED_IDS_PARAMETER = "includedIds";
@@ -91,20 +91,22 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
         }).addBind(LABEL_PARAMETER, label);
     }
 
-    default Specification<E> inLevelIds(Class<E> entityClass, Integer[] levelIds) {
+    default Specification<E> inLevelIds(Class<E> entityClass, Integer... levelIds) {
+        if (ArrayUtils.isEmpty(levelIds)) return null;
         return ReferentialEntities.getLevelPropertyNameByClass(entityClass).map(p -> inJoinPropertyIds(p, levelIds))
             .orElse(null);
     }
 
-    default Specification<E> inJoinPropertyIds(String joinPropertyName, Integer[] ids) {
+    default Specification<E> inJoinPropertyIds(String joinPropertyName, Integer... ids) {
         // If empty: skip to avoid an unused join
         if (ArrayUtils.isEmpty(ids)) return null;
 
+        final String paramName = PROPERTY_PARAMETER_PREFIX + StringUtils.capitalize(joinPropertyName);
         return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> levelParam = criteriaBuilder.parameter(Collection.class, LEVEL_PARAMETER);
+            ParameterExpression<Collection> levelParam = criteriaBuilder.parameter(Collection.class, paramName);
             return criteriaBuilder.in(root.join(joinPropertyName, JoinType.INNER).get(IEntity.Fields.ID)).value(levelParam);
         })
-            .addBind(LEVEL_PARAMETER, Arrays.asList(ids));
+        .addBind(paramName, Arrays.asList(ids));
     }
 
     default Specification<E> inLevelLabels(Class<E> entityClass, String[] levelLabels) {

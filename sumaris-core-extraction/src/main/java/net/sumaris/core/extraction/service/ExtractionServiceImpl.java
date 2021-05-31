@@ -712,16 +712,17 @@ public class ExtractionServiceImpl implements ExtractionService {
             // Insert missing squares
             long square10minCount = referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.SQUARE_10.getId());
             if (square10minCount == 0) {
-                //locationService.insertOrUpdateSquares10();
+                // We don't really need to store square 10x10, because extractions and map can compute it dynamically
+                // locationService.insertOrUpdateSquares10();
             }
 
             if (statisticalRectanglesCount == 0 || square10minCount == 0) {
                 // Update area
                 // FIXME: no stored procedure fillLocationHierarchy on HSQLDB
-                //locationService.insertOrUpdateRectangleAndSquareAreas();
+                locationService.insertOrUpdateRectangleAndSquareAreas();
 
                 // Update location hierarchy
-                //locationService.updateLocationHierarchy();
+                locationService.updateLocationHierarchy();
             }
             return true;
 
