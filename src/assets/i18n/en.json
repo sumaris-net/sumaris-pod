@@ -200,7 +200,8 @@
         "BASIC": "Basic",
         "TOKEN": "Crypto",
         "BASIC_AND_TOKEN": "Basic and crypto"
-      }
+      },
+      "DATA_QUALITY_PROCESS_ENABLE": "Enable quality process ?"
     },
     "CACHE": {
       "NAME": "Name",

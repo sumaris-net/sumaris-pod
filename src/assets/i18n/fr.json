@@ -200,7 +200,8 @@
         "BASIC": "Basique",
         "TOKEN": "Cryptographique",
         "BASIC_AND_TOKEN": "Basique et cryptographique"
-      }
+      },
+      "DATA_QUALITY_PROCESS_ENABLE": "Activer le processus qualité ?"
     },
     "CACHE": {
       "NAME": "Nom",

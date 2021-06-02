@@ -118,8 +118,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nContext.suffix = i18nSuffix;
 
-    this.showQualityForm = i18nSuffix === '';
-
     if (this.landingsTable) {
       this.landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
       this.landingsTable.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);

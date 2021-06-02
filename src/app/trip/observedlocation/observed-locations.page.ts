@@ -28,6 +28,7 @@ import {ObservedLocationOfflineModal} from "./offline/observed-location-offline.
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {Trip} from "../services/model/trip.model";
 import {UsageMode} from "../../core/services/model/settings.model";
+import { DATA_CONFIG_OPTIONS } from "src/app/data/services/config/data.config";
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -178,8 +179,12 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
       this.configService.config.subscribe(config => {
         const title = config && config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
         this.$title.next(title);
+        
+        // Disable quality column
+        this.setShowColumn('quality', config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.DATA_QUALITY_PROCESS_ENABLE));
       })
     );
+
 
     // Restore filter from settings, or load all
     this.restoreFilterOrLoad();
@@ -259,4 +264,5 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
   protected markForCheck() {
     this.cd.markForCheck();
   }
+  
 }
