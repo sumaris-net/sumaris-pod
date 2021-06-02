@@ -69,7 +69,7 @@ export class ObservedLocationsPage extends AppRootTable<ObservedLocation, Observ
     super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
         .concat([
-          // 'quality',
+          'quality',
           'program',
           'location',
           'startDateTime',
