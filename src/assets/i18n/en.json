@@ -201,7 +201,8 @@
         "TOKEN": "Crypto",
         "BASIC_AND_TOKEN": "Basic and crypto"
       },
-      "DATA_QUALITY_PROCESS_ENABLE": "Enable quality process ?"
+      "DATA_QUALITY_PROCESS_ENABLE": "Enable quality process ?",
+      "DATA_SHOW_OBSERVERS_ENABLE": "Enable observers ?"
     },
     "CACHE": {
       "NAME": "Name",
