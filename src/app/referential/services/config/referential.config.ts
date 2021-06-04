@@ -155,18 +155,6 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     },
     defaultValue: TaxonomicLevelIds.SUBSPECIES
   },
-  PMFM_MORSE_CODE_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.pmfm.MORSE_CODE.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_MORSE_CODE_ID',
-    type: 'entity',
-    autocomplete: {
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
-    defaultValue: PmfmIds.MORSE_CODE
-  },
   PMFM_STRATEGY_LABEL_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.pmfm.STRATEGY_LABEL.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_STRATEGY_LABEL_ID',

@@ -182,7 +182,6 @@
         "TAXONOMIC_LEVEL_GENUS_ID": "Référentiel > Niveau taxinomique > Genre",
         "TAXONOMIC_LEVEL_SPECIES_ID": "Référentiel > Niveau taxinomique > Espèce",
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Référentiel > Niveau taxinomique > Sous espèce",
-        "PMFM_MORSE_CODE_ID": "Référentiel > PSFM > Code Morse",
         "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Ligne de plan",
         "PMFM_AGE_ID": "Référentiel > PSFM > Âge",
         "PMFM_SEX_ID": "Référentiel > PSFM > Sexe",
@@ -697,8 +696,6 @@
           "TAXON_NAME_PLACEHOLDER": "Code espèce",
           "SAMPLE_DATE": "Date/Heure de la mesure",
           "PARENT": "Echantillon parent",
-          "MORSE_CODE": "Code Morse",
-          "MORSE_CODE_PLACEHOLDER": "Code Morse",
           "COMMENTS": "Commentaires",
           "COMMENTS_PLACEHOLDER": "Commentaires",
           "BTN_AUTO_FILL": "Remplir automatiquement",
@@ -858,8 +855,7 @@
       "CREATION_DATE": "Date de création",
       "RECORDER_PERSON" : "Saisisseur",
       "SAMPLING": {
-        "STRATEGY_LABEL": "Ligne de plan",
-        "MORSE_CODE" : "Code Morse"
+        "STRATEGY_LABEL": "Ligne de plan"
       }
     },
     "SELECT_MODAL": {

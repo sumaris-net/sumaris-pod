@@ -182,7 +182,6 @@
         "TAXONOMIC_LEVEL_GENUS_ID": "Referential > Taxonomic level > Genus",
         "TAXONOMIC_LEVEL_SPECIES_ID": "Referential > Taxonomic level > Species",
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Referential > Taxonomic level > Subspecies",
-        "PMFM_MORSE_CODE_ID": "Référentiel > PSFM > Morse code",
         "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Strategy label",
         "PMFM_AGE_ID": "Referential > PMFM > Age",
         "PMFM_SEX_ID": "Referential > PMFM > Sex",
@@ -837,8 +836,7 @@
       "CREATION_DATE": "Creation date",
       "RECORDER_PERSON" : "Recorder",
       "SAMPLING": {
-        "STRATEGY_LABEL": "Sample row",
-        "MORSE_CODE" : "Morse code"
+        "STRATEGY_LABEL": "Sample row"
       }
     },
     "SELECT_MODAL": {
