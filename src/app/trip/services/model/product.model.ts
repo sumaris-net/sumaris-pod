@@ -31,10 +31,6 @@ export class ProductFilter extends DataEntityFilter<ProductFilter, Product> {
     return target;
   }
 
-  static searchFilter(source: Partial<ProductFilter>): FilterFn<Product>{
-    return source && ProductFilter.fromObject(source).asFilterFn();
-  }
-
   parent?: IWithProductsEntity<any, any>;
 
   fromObject(source: any, opts?: any) {

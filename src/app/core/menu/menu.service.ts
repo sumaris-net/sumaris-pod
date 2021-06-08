@@ -1,22 +1,30 @@
 import { Injectable } from '@angular/core';
-import {Subject} from 'rxjs';
+import {Observable, Subject} from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MenuService {
 
-  menuToggled$ = new Subject();
-  menuVisible$ = new Subject<boolean>();
+  private readonly _toggledSubject = new Subject<void>();
+  private readonly _visibleSubject = new Subject<boolean>();
 
   constructor() { }
 
+  get menuToggled$(): Observable<void> {
+    return this._toggledSubject.asObservable();
+  }
+
+  get menuVisible$(): Observable<boolean> {
+    return this._visibleSubject.asObservable();
+  }
+
   toggleMenu() {
-    this.menuToggled$.next();
+    this._toggledSubject.next();
   }
 
   menuVisible(value: boolean) {
-    this.menuVisible$.next(value);
+    this._visibleSubject.next(value);
   }
 
 }

@@ -8,7 +8,7 @@ import {Referential, ReferentialRef, ReferentialUtils} from "../../core/services
 import {ReferentialService} from "./referential.service";
 import {IEntitiesService, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/graphql/graphql.service";
-import {LocationLevelIds, TaxonGroupIds, TaxonomicLevelIds} from "./model/model.enum";
+import {LocationLevelIds, ParameterLabelGroups, PmfmIds, TaxonGroupIds, TaxonomicLevelIds} from "./model/model.enum";
 import {Metier, TaxonNameRef} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
@@ -26,8 +26,9 @@ import {ObjectMap} from "../../shared/types";
 import {BaseEntityGraphqlQueries} from "./base-entity-service.class";
 import {TaxonNameRefFilter} from "./filter/taxon-name-ref.filter";
 import {ReferentialRefFilter} from "./filter/referential-ref.filter";
-import {EntityFilterUtils} from "../../core/services/model/filter.model";
-import {MetierFilter} from "./filter/metier.filter";
+import {Configuration} from "../../core/services/model/config.model";
+import {REFERENTIAL_CONFIG_OPTIONS} from "./config/referential.config";
+import {ConfigService} from "../../core/services/config.service";
 
 const LastUpdateDate: any = gql`
   query LastUpdateDate{
@@ -79,10 +80,13 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     protected graphql: GraphqlService,
     protected referentialService: ReferentialService,
     protected accountService: AccountService,
+    protected configService: ConfigService,
     protected network: NetworkService,
     protected entities: EntitiesStorage
   ) {
     super(graphql, environment);
+
+    configService.config.subscribe(config => this.updateModelEnumerations(config));
   }
 
   /**
@@ -574,5 +578,43 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
   asFilter(filter: Partial<ReferentialRefFilter>): ReferentialRefFilter {
     return ReferentialRefFilter.fromObject(filter);
+  }
+
+  private updateModelEnumerations(config: Configuration) {
+    if (!config.properties) {
+      console.warn("[referential-ref] No properties found in pod config! Skip model enumerations update");
+      return;
+    }
+    console.info("[referential-ref] Updating model enumerations...");
+
+    // Location Levels
+    LocationLevelIds.COUNTRY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_COUNTRY_ID);
+    LocationLevelIds.PORT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_PORT_ID);
+    LocationLevelIds.AUCTION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_AUCTION_ID);
+    LocationLevelIds.ICES_RECTANGLE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_RECTANGLE_ID);
+    LocationLevelIds.ICES_DIVISION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_DIVISION_ID);
+
+    // Taxonomic Levels
+    TaxonomicLevelIds.FAMILY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_FAMILY_ID);
+    TaxonomicLevelIds.GENUS = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_GENUS_ID);
+    TaxonomicLevelIds.SPECIES = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_SPECIES_ID);
+    TaxonomicLevelIds.SUBSPECIES = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_SUBSPECIES_ID);
+
+    // Parameters
+    ParameterLabelGroups.AGE = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_AGE_LABEL);
+    ParameterLabelGroups.SEX = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_SEX_LABEL);
+    ParameterLabelGroups.WEIGHT = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_WEIGHT_LABELS);
+    ParameterLabelGroups.LENGTH = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_LENGTH_LABELS);
+    ParameterLabelGroups.MATURITY = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_MATURITY_LABELS);
+
+    // PMFM
+    PmfmIds.MORSE_CODE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_MORSE_CODE_ID);
+    PmfmIds.STRATEGY_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_STRATEGY_LABEL_ID);
+    PmfmIds.AGE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_AGE_ID);
+    PmfmIds.SEX = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SEX_ID);
+
+    // Taxon group
+    // TODO: add all enumerations
+    //TaxonGroupIds.FAO =
   }
 }

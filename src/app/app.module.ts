@@ -49,6 +49,7 @@ import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
 import {DATE_ISO_PATTERN} from "./shared/constants";
 import {VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS} from "./vessel/services/config/vessel.config";
 import {JDENTICON_CONFIG} from "ngx-jdenticon";
+import {APP_ABOUT_PARTNERS, Department} from "@sumaris/ngx-components";
 
 
 @NgModule({
@@ -246,6 +247,32 @@ import {JDENTICON_CONFIG} from "ngx-jdenticon";
           titleProperty: 'sumaris.observedLocation.name'
         },
         { title: '' /*empty divider*/, cssClass: 'visible-mobile'}
+      ]
+    },
+
+    // About partners
+    { provide: APP_ABOUT_PARTNERS, useValue: <Partial<Department>[]>[
+        {
+          siteUrl: 'https://www.interreg2seas.eu', logo: 'assets/img/logo/logo-interreg2seas.png'
+        },
+        {
+          siteUrl: 'https://www.fromnord.fr', logo: 'assets/img/logo/logo-fromnord_50px.png'
+        },
+        {
+          siteUrl: 'https://www.rederscentrale.be', logo: 'assets/img/logo/logo-redercentrale.png'
+        },
+        {
+          siteUrl: 'https://www.ifremer.fr', logo: 'assets/img/logo/logo-ifremer.png'
+        },
+        {
+          siteUrl: 'https://www.ilvo.vlaanderen.be/', logo: 'assets/img/logo/logo-ilvo-text.png'
+        },
+        {
+          siteUrl: 'https://www.nausicaa.fr', logo: 'assets/img/logo/logo-nausicaa.png'
+        },
+        {
+          siteUrl: 'https://www.pecheursdebretagne.eu', logo: 'assets/img/logo/logo-lpdb.png'
+        }
       ]
     },
 

@@ -2,7 +2,7 @@ import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {EntityUtils, IEntity} from "../../core/services/model/entity.model";
 import {filter, mergeMap} from "rxjs/operators";
 import {isNotEmptyArray, isNotNil} from "../functions";
-import {FilterFnFactory, IEntitiesService, LoadResult} from "./entity-service.class";
+import {FilterFn, FilterFnFactory, IEntitiesService, LoadResult} from "./entity-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {EntityFilter, IEntityFilter} from "../../core/services/model/filter.model";
 import {Directive} from "@angular/core";
@@ -13,7 +13,7 @@ export interface InMemoryEntitiesServiceOptions<T, F> {
   onSave?: (data: T[]) => T[] | Promise<T[]>;
   equals?: (d1: T, d2: T) => boolean;
   filterFnFactory?: FilterFnFactory<T, F>;
-  onFilter?: (data: T[], filter: F) => T[] | Promise<T[]>;
+  filterFn?: FilterFn<T>;
 }
 
 @Directive()
@@ -64,7 +64,6 @@ export class InMemoryEntitiesService<
   ) {
     options = {
       onSort: this.sort,
-      onFilter: this.filter,
       equals: this.equals,
       ...options
     };
@@ -73,7 +72,6 @@ export class InMemoryEntitiesService<
     this._onLoad = options.onLoad;
     this._onSaveFn = options.onSave;
     this._equalsFn = options.equals;
-    this._onFilterFn = options.onFilter;
     this._filterFnFactory = options.filterFnFactory || ((f) => {
       const filter = this.asFilter(f) as F;
       if (filter instanceof EntityFilter) {

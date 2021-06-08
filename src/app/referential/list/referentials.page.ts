@@ -45,7 +45,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   levels: Observable<Referential[]>;
   statusList = DefaultStatusList;
   statusById: any;
-  filterIsEmpty = true;
   filterCriteriaCount = 0;
 
   canOpenDetail = false;
@@ -174,7 +173,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
           tap(value => {
             const filter = this.asFilter(value);
             this.filterCriteriaCount = filter.countNotEmptyCriteria();
-            this.filterIsEmpty = this.filterCriteriaCount === 0;
             this.markForCheck();
             // Applying the filter
             this.setFilter(filter, {emitEvent: false});
@@ -210,7 +208,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       const filter = this.asFilter(json);
       this.filterForm.patchValue(json, {emitEvent: false});
       this.filterCriteriaCount = filter.countNotEmptyCriteria();
-      this.filterIsEmpty = this.filterCriteriaCount === 0;
       this.markForCheck();
       return this.applyEntityName(filter.entityName);
     }
