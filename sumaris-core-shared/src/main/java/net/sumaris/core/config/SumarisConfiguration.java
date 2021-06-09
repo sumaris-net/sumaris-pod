@@ -142,18 +142,15 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
                                    String... args) {
 
 
+        // load all default options
+        Set<ApplicationConfigProvider> providers = getProviders();
+        Properties defaults = getDefaults(providers, env);
 
-        // Set options from env
-        Properties defaults = (env != null) ? ConfigurableEnvironments.readProperties(env, null) : null;
-        this.applicationConfig = new ApplicationConfig(ApplicationConfigInit
-                .defaultInit()
+        // Create Nuiton config instance
+        this.applicationConfig = new ApplicationConfig(ApplicationConfigInit.defaultInit()
                 .setDefaults(defaults));
         this.applicationConfig.setEncoding(Charsets.UTF_8.name());
         this.applicationConfig.setConfigFileName(file);
-        if (log.isDebugEnabled()) log.debug("Application options: {}", applicationConfig.getFlatOptions());
-
-        // load all default options
-        Set<ApplicationConfigProvider> providers = getProviders();
 
         // Load transient options keys
         this.transientOptionKeys = ImmutableSet.copyOf(ApplicationConfigHelper.getTransientOptionKeys(providers));
@@ -233,6 +230,22 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
             null,
             null,
             true);
+    }
+
+    protected Properties getDefaults(Set<ApplicationConfigProvider> providers, ConfigurableEnvironment env) {
+
+        // Populate defaults from providers
+        final Properties defaults = new Properties();
+        providers.forEach(provider -> Arrays.stream(provider.getOptions())
+            .filter(configOptionDef -> configOptionDef.getDefaultValue() != null)
+            .forEach(configOptionDef -> defaults.setProperty(configOptionDef.getKey(), configOptionDef.getDefaultValue())));
+
+        // Set options from env if provided
+        if (env != null) {
+            return ConfigurableEnvironments.readProperties(env, defaults);
+        }
+
+        return defaults;
     }
 
     /**
