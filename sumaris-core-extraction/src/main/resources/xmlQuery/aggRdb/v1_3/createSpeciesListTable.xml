@@ -49,7 +49,8 @@
     <select alias="STATION_NUMBER" group="oracle" type="number">ORA_HASH(SL.TRIP_CODE || '-' || SL.STATION_NUMBER)</select>
 
     <!-- SL fields -->
-    <select alias="SPECIES" type="text">MIN(DECODE(TG.LABEL, NULL, SL.SPECIES, TG.LABEL || ' - ' || TG.NAME))</select>
+<!--    <select alias="SPECIES" type="text">MIN(DECODE(TG.LABEL, NULL, SL.SPECIES, TG.LABEL || ' - ' || TG.NAME))</select>-->
+    <select alias="SPECIES" type="text">MIN(CASE TG.LABEL WHEN NULL THEN SL.SPECIES ELSE TG.LABEL || ' - ' || TG.NAME END)</select>
     <select alias="CATCH_CATEGORY" type="text">SL.CATCH_CATEGORY</select>
     <select alias="LANDING_CATEGORY" type="text">SL.LANDING_CATEGORY</select>
     <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">SL.COMMERCIAL_SIZE_CATEGORY_SCALE</select>

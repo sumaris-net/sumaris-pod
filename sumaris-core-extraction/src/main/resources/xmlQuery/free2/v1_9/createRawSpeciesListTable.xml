@@ -34,8 +34,14 @@
 
     <select alias="ID_VRAC" type="hidden">CATCH_B.ID + SORTING_B.RANK_ORDER</select>
     <select alias="NUM_VRAC" type="hidden">SORTING_B.RANK_ORDER</select>
+<!--    <select alias="CATCH_CATEGORY" type="text"><![CDATA[(SELECT-->
+<!--        DECODE(QV.ID, &discardQvId, 'DIS', &landingQvId, 'LAN', null)-->
+<!--      FROM SORTING_MEASUREMENT_B SM-->
+<!--        INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK-->
+<!--      WHERE SM.BATCH_FK = SORTING_B.ID and SM.PMFM_FK=&catchCategoryPmfmId-->
+<!--    )]]></select>    -->
     <select alias="CATCH_CATEGORY" type="text"><![CDATA[(SELECT
-        DECODE(QV.ID, &discardQvId, 'DIS', &landingQvId, 'LAN', null)
+        CASE QV.ID WHEN &discardQvId THEN 'DIS' WHEN &landingQvId THEN 'LAN' ELSE null END
       FROM SORTING_MEASUREMENT_B SM
         INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
       WHERE SM.BATCH_FK = SORTING_B.ID and SM.PMFM_FK=&catchCategoryPmfmId

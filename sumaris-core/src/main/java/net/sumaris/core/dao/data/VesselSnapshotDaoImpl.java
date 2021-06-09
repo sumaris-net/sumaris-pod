@@ -10,12 +10,12 @@ package net.sumaris.core.dao.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -45,6 +45,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
 
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
@@ -128,34 +129,37 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
         ParameterExpression<Boolean> hasStatusIdsParam = cb.parameter(Boolean.class);
         ParameterExpression<Collection> statusIdsParam = cb.parameter(Collection.class);
 
-        query.where(cb.and(
-            // Filter: date
-            cb.or(
+        //Filter: date (outside the where clause because pgsql doesn't accept cb.isNull and cb.isNotNull on date)
+        Predicate datePredicate;
+        if (filter.getDate() != null){
+            datePredicate =  cb.and(
+//              cb.isNotNull(dateParam),
                 cb.and(
-                    // if no date in filter, will return only active period
-                    cb.isNull(dateParam),
-                    cb.isNull(root.get(VesselFeatures.Fields.END_DATE)),
-                    cb.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE))
-                ),
-                cb.and(
-                    cb.isNotNull(dateParam),
-                    cb.and(
-                        cb.or(
+                    cb.or(
                             cb.isNull(root.get(VesselFeatures.Fields.END_DATE)),
                             cb.greaterThan(root.get(VesselFeatures.Fields.END_DATE), dateParam)
-                        ),
-                        cb.lessThan(root.get(VesselFeatures.Fields.START_DATE), dateParam)
                     ),
-                    cb.and(
-                        cb.or(
+                    cb.lessThan(root.get(VesselFeatures.Fields.START_DATE), dateParam)
+                ),
+                cb.and(
+                    cb.or(
                             cb.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE)),
                             cb.greaterThan(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE), dateParam)
-                        ),
-                        cb.lessThan(vrpJoin.get(VesselRegistrationPeriod.Fields.START_DATE), dateParam)
-                    )
+                    ),
+                    cb.lessThan(vrpJoin.get(VesselRegistrationPeriod.Fields.START_DATE), dateParam)
                 )
-            ),
+            );
+        }
+        else {
+            datePredicate =  cb.and(
+                // if no date in filter, will return only active period
+//              cb.isNull(dateParam),
+                cb.isNull(root.get(VesselFeatures.Fields.END_DATE)),
+                cb.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE))
+            );
+        }
 
+        query.where(datePredicate, cb.and(
             // Filter: vessel features id
             cb.or(
                 cb.isNull(vesselFeaturesIdParam),
@@ -170,7 +174,8 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
 
             // Filter: search text (on exterior marking OR id)
             cb.or(
-                cb.isNull(searchNameParam),
+//                cb.isNull(searchNameParam),
+                cb.like(searchNameParam, ""),
                 cb.like(cb.lower(root.get(VesselFeatures.Fields.NAME)), cb.lower(searchNameParam)),
                 cb.like(cb.lower(root.get(VesselFeatures.Fields.EXTERIOR_MARKING)), cb.lower(searchExteriorMarkingParam)),
                 cb.like(cb.lower(vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)), cb.lower(searchRegistrationCodeParam))
@@ -183,13 +188,16 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
             )
         );
 
-
         String searchTextAsPrefix = Daos.getEscapedSearchText(filter.getSearchText());
-        String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%"+searchTextAsPrefix) : null;
+        String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%"+searchTextAsPrefix) : "";
 
-        TypedQuery<VesselSnapshotResult> q = getEntityManager().createQuery(query)
-            .setParameter(dateParam, filter.getDate())
-            .setParameter(vesselFeaturesIdParam, filter.getVesselFeaturesId())
+        TypedQuery<VesselSnapshotResult> q = getEntityManager().createQuery(query);
+
+        if (filter.getDate() != null) {
+            q.setParameter(dateParam, filter.getDate());
+        }
+
+        q.setParameter(vesselFeaturesIdParam, filter.getVesselFeaturesId())
             .setParameter(vesselIdParam, filter.getVesselId())
             .setParameter(searchExteriorMarkingParam, searchTextAsPrefix)
             .setParameter(searchRegistrationCodeParam, searchTextAsPrefix)
@@ -198,6 +206,7 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
             .setParameter(statusIdsParam, statusIds)
             .setFirstResult(offset)
             .setMaxResults(size);
+
         List<VesselSnapshotResult> result = q.getResultList();
         return toVesselSnapshotVOs(result);
     }
