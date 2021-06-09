@@ -104,7 +104,7 @@ export class StrategiesPage {
   }
 
   get loading(): boolean {
-    return this.strategiesTable.loading;
+    return this.strategiesTable && this.strategiesTable.loading;
   }
 
 }
