@@ -38,9 +38,6 @@ public interface LocationService extends LocationByPositionService  {
 
     void updateLocationHierarchy();
 
-    @Transactional(readOnly = true)
-    void printLocationPorts(PrintStream out, String indentation);
-
     /**
      * @deprecated use insertOrUpdateRectangleAndSquareAreas instead
      */

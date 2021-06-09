@@ -254,8 +254,8 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
         return BindableSpecification
             .where(inStatusIds(filter))
             .and(hasLabel(filter.getLabel()))
-            .and(inLevelIds(clazz, filter.getLevelIds()))
-            .and(inLevelLabels(clazz, filter.getLevelLabels()))
+            .and(inLevelIds(clazz, filter.getLevelId() != null ? new Integer[]{filter.getLevelId()} : filter.getLevelIds()))
+            .and(inLevelLabels(clazz, filter.getLevelLabel() != null ? new String[]{filter.getLevelLabel()} : filter.getLevelLabels()))
             .and(searchOrJoinSearchText(filter))
             .and(includedIds(filter.getIncludedIds()))
             .and(excludedIds(filter.getExcludedIds()));

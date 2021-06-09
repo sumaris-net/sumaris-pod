@@ -81,10 +81,11 @@ public class BindableSpecification<T> implements Specification<T>, Serializable 
      * @param parameterName the parameter name
      * @param value         the parameter value
      */
-    public void addBind(String parameterName, Object value) {
+    public <E extends T> BindableSpecification<E> addBind(String parameterName, Object value) {
         bindings.add(typedQuery ->
             // Set the parameter value to the visited TypedQuery
             setParameterIfExists(typedQuery, parameterName, value));
+        return (BindableSpecification<E>)this;
     }
 
     /**

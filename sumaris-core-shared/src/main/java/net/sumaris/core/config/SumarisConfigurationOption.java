@@ -81,6 +81,12 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "${sumaris.data.directory}/temp",
         File.class),
 
+    CACHE_DIRECTORY(
+        "sumaris.cache.directory",
+        n("sumaris.config.option.cache.directory.description"),
+        "${sumaris.data.directory}/cache",
+        File.class),
+
     DB_DIRECTORY(
         "sumaris.persistence.db.directory",
         n("sumaris.config.option.persistence.db.directory.description"),
@@ -130,12 +136,6 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "${user.timezone}",
         String.class,
         false),
-
-    CACHE_DIRECTORY(
-        "sumaris.cache.directory",
-        n("sumaris.config.option.cache.directory.description"),
-        "${sumaris.data.directory}/cache",
-        File.class),
 
     DATASOURCE_TYPE(
         "sumaris.persistence.datasource.type",

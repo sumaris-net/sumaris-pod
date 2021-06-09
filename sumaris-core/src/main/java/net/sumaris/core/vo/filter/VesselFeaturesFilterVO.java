@@ -4,7 +4,7 @@ package net.sumaris.core.vo.filter;
  * #%L
  * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2018 - 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,35 +22,29 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 
+import java.util.Date;
+import java.util.List;
+
+/**
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
+ */
 @Data
-@FieldNameConstants
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class ProgramFilterVO implements IReferentialFilter {
+@NoArgsConstructor
+@FieldNameConstants
+public class VesselFeaturesFilterVO implements IVesselFilter {
 
-    private Integer id;
-    private String label;
-    private String name;
+    public static VesselFeaturesFilterVO nullToEmpty(VesselFeaturesFilterVO f) {
+        return f != null ? f : new VesselFeaturesFilterVO();
+    }
 
-    private Integer[] statusIds;
-    private Integer[] levelIds;
-    private String[] levelLabels;
+    private Integer vesselId;
 
-    private String searchJoin;
-    private String searchText;
-    private String searchAttribute;
-
-    private String withProperty;
-
-    private Integer[] includedIds;
-    private Integer[] excludedIds;
-
-    @Deprecated
-    private Integer levelId;
-    @Deprecated
-    private String levelLabel;
 }

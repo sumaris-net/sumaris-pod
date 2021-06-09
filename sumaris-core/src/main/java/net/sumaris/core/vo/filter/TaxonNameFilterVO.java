@@ -44,10 +44,7 @@ public class TaxonNameFilterVO implements IReferentialFilter {
     private String name;
 
     private Integer[] statusIds;
-
-    private Integer levelId;
     private Integer[] levelIds;
-    private String levelLabel;
     private String[] levelLabels;
 
     private String searchJoin;
@@ -61,4 +58,9 @@ public class TaxonNameFilterVO implements IReferentialFilter {
 
     private Integer[] includedIds;
     private Integer[] excludedIds;
+
+    @Deprecated
+    private Integer levelId;
+    @Deprecated
+    private String levelLabel;
 }

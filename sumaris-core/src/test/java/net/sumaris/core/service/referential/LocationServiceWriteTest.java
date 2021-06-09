@@ -62,7 +62,7 @@ public class LocationServiceWriteTest extends AbstractServiceTest{
         service.updateLocationHierarchy();
 
         PrintStream ps = new PrintStream(new File("target/location_ports_tree-"+System.nanoTime()+".txt"));
-        service.printLocationPorts(ps, " - ");
+        printLocationPorts(ps, " - ");
         ps.close();
     }
 
@@ -82,4 +82,81 @@ public class LocationServiceWriteTest extends AbstractServiceTest{
         assertEquals(new Integer(8550), locationId); // =id of location 'M24C2'
     }
 
+    protected void printLocationPorts(PrintStream out, String indentation) {
+        // FIXME porter le code DAO en Repository
+        /*Preconditions.checkArgument(StringUtils.isNotBlank(indentation));
+        Preconditions.checkNotNull(out);
+
+        Map<String, LocationLevel> locationLevels = createAndGetLocationLevels(ImmutableMap.<String, String>builder()
+                .put(LocationLevelLabels.HARBOUR, "Port")
+                .put(LocationLevelLabels.COUNTRY, "Country")
+                .build());
+
+        LocationLevel countryLocationLevel = locationLevels.find(LocationLevelLabels.COUNTRY);
+        LocationLevel portLocationLevel = locationLevels.find(LocationLevelLabels.HARBOUR);
+
+        List<Integer> processedPorts = Lists.newArrayList();
+        List<Location> countries = locationDao.getLocationByLocationLevel(countryLocationLevel.getId());
+        for (Location country: countries) {
+            if ("1".equals(country.getValidityStatus().getCode())) {
+                out.println(String.format("%s - %s (%s)", country.getLabel(), country.getName(), country.getId()));
+
+                List<Location> nuts3list = locationDao.getLocationByLevelAndParent(
+                        nut3LocationLevel.getId(),
+                        country.getId());
+                for (Location nuts3: nuts3list) {
+                    if ("1".equals(nuts3.getValidityStatus().getCode())) {
+                        out.println(String.format("%s%s - %s (%s)", indentation, nuts3.getLabel(), nuts3.getName(), nuts3.getId()));
+
+                        List<Location> ports = locationDao.getLocationByLevelAndParent(
+                                portLocationLevel.getId(),
+                                nuts3.getId());
+                        for (Location port: ports) {
+                            if ("1".equals(port.getValidityStatus().getCode())) {
+                                out.println(String.format("%s%s%s - %s (%s)", indentation, indentation, port.getLabel(), port.getName(), port.getId()));
+                                processedPorts.add(port.getId());
+                            }
+                        }
+                    }
+                }
+
+                // Port sans NUTS 3 :
+                List<Location> ports = locationDao.getLocationByLevelAndParent(
+                        portLocationLevel.getId(),
+                        country.getId());
+                boolean firstActivePort = true;
+                for (Location port: ports) {
+
+                    if ("1".equals(port.getValidityStatus().getCode())
+                            && !processedPorts.contains(port.getId())) {
+                        if (firstActivePort) {
+                            out.println(String.format("%sSANS NUTS3 (ou sans nuts3 valide):", indentation));
+                            firstActivePort = false;
+                        }
+                        out.println(String.format("%s%s%s - %s (%s)", indentation, indentation, port.getLabel(), port.getName(), port.getId()));
+                        processedPorts.add(port.getId());
+                    }
+                }
+
+            }
+        }
+
+        // Port sans pays :
+        List<Location> ports = locationDao.getLocationByLocationLevel(
+                portLocationLevel.getId());
+        boolean firstActivePort = true;
+        for (Location port: ports) {
+
+            if ("1".equals(port.getValidityStatus().getCode())
+                    && !processedPorts.contains(port.getId())) {
+                if (firstActivePort) {
+                    out.println(String.format("SANS PAYS :", indentation));
+                    out.println(String.format("%sSANS NUTS3 :", indentation));
+                    firstActivePort = false;
+                }
+                out.println(String.format("%s%s%s - %s (%s)", indentation, indentation, port.getLabel(), port.getName(), port.getId()));
+                processedPorts.add(port.getId());
+            }
+        }*/
+    }
 }

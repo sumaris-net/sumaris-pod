@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-1.8.7.xml">
+
+  <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+  <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+  <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+  <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance ! Do not include this changelog file in the master file">
+    <or>
+      <!-- Test if database is empty -->
+      <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+      <!-- OR if expected production database -->
+      <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+    </or>
+  </preConditions>
+
+  <!-- Insert missing LOCATION_ASSOCIATION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031800-401" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        <sqlCheck expectedResult="3">SELECT count(*) FROM location WHERE id in (24639,24640,24877) and location_level_fk=2</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM location_association WHERE child_location_fk in (24639,24640,24877)</sqlCheck>
+      </and>
+    </preConditions>
+    <sql endDelimiter=";">
+      insert into LOCATION_ASSOCIATION (CHILD_LOCATION_FK, PARENT_LOCATION_FK, CHILD_SURFACE_RATIO, UPDATE_DATE)
+      values (24639, 1, 1, TIMESTAMP '2021-05-31 00:00:00.000' );
+      insert into LOCATION_ASSOCIATION (CHILD_LOCATION_FK, PARENT_LOCATION_FK, CHILD_SURFACE_RATIO, UPDATE_DATE)
+      values (24640, 1, 1, TIMESTAMP '2021-05-31 00:00:00.000' );
+      insert into LOCATION_ASSOCIATION (CHILD_LOCATION_FK, PARENT_LOCATION_FK, CHILD_SURFACE_RATIO, UPDATE_DATE)
+      values (24877, 1, 1, TIMESTAMP '2021-05-31 00:00:00.000' );
+
+      insert into LOCATION_HIERARCHY (CHILD_LOCATION_FK, PARENT_LOCATION_FK, CHILD_SURFACE_RATIO, IS_MAIN_ASSOCIATION, UPDATE_DATE)
+      values (24639, 1, 1, 1, TIMESTAMP '2021-05-31 00:00:00.000' );
+      insert into LOCATION_HIERARCHY (CHILD_LOCATION_FK, PARENT_LOCATION_FK, CHILD_SURFACE_RATIO, IS_MAIN_ASSOCIATION, UPDATE_DATE)
+      values (24640, 1, 1, 1, TIMESTAMP '2021-05-31 00:00:00.000' );
+      insert into LOCATION_HIERARCHY (CHILD_LOCATION_FK, PARENT_LOCATION_FK, CHILD_SURFACE_RATIO, IS_MAIN_ASSOCIATION, UPDATE_DATE)
+      values (24877, 1, 1, 1, TIMESTAMP '2021-05-31 00:00:00.000' );
+
+      insert into LOCATION_HIERARCHY (CHILD_LOCATION_FK, PARENT_LOCATION_FK, CHILD_SURFACE_RATIO, IS_MAIN_ASSOCIATION, UPDATE_DATE)
+      values (24639, 24639, 1, 1, TIMESTAMP '2021-05-31 00:00:00.000' );
+      insert into LOCATION_HIERARCHY (CHILD_LOCATION_FK, PARENT_LOCATION_FK, CHILD_SURFACE_RATIO, IS_MAIN_ASSOCIATION, UPDATE_DATE)
+      values (24640, 24639, 1, 1, TIMESTAMP '2021-05-31 00:00:00.000' );
+      insert into LOCATION_HIERARCHY (CHILD_LOCATION_FK, PARENT_LOCATION_FK, CHILD_SURFACE_RATIO, IS_MAIN_ASSOCIATION, UPDATE_DATE)
+      values (24877, 24639, 1, 1, TIMESTAMP '2021-05-31 00:00:00.000' );
+      commit;
+    </sql>
+  </changeSet>
+
+  <!-- Insert missing LOCATION_ASSOCIATION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031800-402" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        <sqlCheck expectedResult="1">SELECT count(*) FROM VESSEL_FEATURES WHERE vessel_fk=953</sqlCheck>
+        <sqlCheck expectedResult="0"><![CDATA[SELECT count(*) FROM VESSEL_FEATURES WHERE vessel_fk=953 and start_date <= to_date('2019-01-01', 'YYYY-MM-DD') ]]></sqlCheck>
+      </and>
+    </preConditions>
+    <sql endDelimiter=";">
+      update VESSEL_FEATURES set START_DATE = TO_DATE('2011-11-03', 'YYYY-MM-DD') where VESSEL_FK=953;
+      commit;
+    </sql>
+  </changeSet>
+
+  <!-- enable technical table update -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1619445031800-403" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">
+          SELECT COUNT(*) from SOFTWARE_PROPERTY where LABEL='sumaris.persistence.technicalTables.update' AND SOFTWARE_FK=2
+        </sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="SOFTWARE_PROPERTY">
+      <column name="ID" valueComputed="NEXT VALUE FOR SOFTWARE_PROPERTY_SEQ"/>
+      <column name="LABEL" value="sumaris.persistence.technicalTables.update"/>
+      <column name="NAME" value="true"/>
+      <column name="SOFTWARE_FK" valueNumeric="2"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+    </insert>
+  </changeSet>
+
+</databaseChangeLog>
