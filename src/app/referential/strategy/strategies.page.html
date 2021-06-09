@@ -1,0 +1,36 @@
+<app-toolbar [title]="$title | async" color="primary">
+<!-- TODO : add filter button -->
+</app-toolbar>
+
+<ion-content>
+    <!-- error -->
+    <ion-item *ngIf="strategiesTable?.error || error; let error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+        <ion-label color="danger" class="error" [innerHTML]="error |translate"></ion-label>
+    </ion-item>
+
+    <ng-container [ngSwitch]="strategyEditor">
+
+        <!-- Biological sampling strategy table -->
+        <app-sampling-strategies-table #samplingStrategiesTable *ngSwitchCase="'sampling'"
+                                    [program]="data"
+                                    [canEdit]="enabled"
+                                    [canDelete]="enabled"
+                                    (onOpenRow)="onOpenStrategy($event)"
+                                    (onNewRow)="onNewStrategy($event)">
+        </app-sampling-strategies-table>
+
+        <!-- legacy strategy table -->
+        <app-strategy-table #legacyStrategiesTable *ngSwitchDefault
+                            [program]="data"
+                            [canEdit]="enabled"
+                            [canDelete]="enabled"
+                            (onOpenRow)="onOpenStrategy($event)"
+                            (onNewRow)="onNewStrategy($event)">
+        </app-strategy-table>
+
+    </ng-container>
+</ion-content>
+<ion-footer>
+    <!-- TODO ADD ERROR IN DESKTOP MODE -->
+</ion-footer>

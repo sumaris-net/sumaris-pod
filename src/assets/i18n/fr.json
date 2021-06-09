@@ -1194,7 +1194,7 @@
   "PROGRAM": {
     "TAB_GENERAL": "Détails",
     "TAB_STRATEGIES": "Stratégies",
-    "TAB_STRATEGIES.TEST": "Lignes de plan",
+    "TAB_STRATEGIES.SAMPLING": "Lignes de plan",
     "TAB_ACCESS_RIGHTS": "Droits d'accès",
     "TAB_PROPERTIES": "Options",
     "TAXON_GROUP_TYPE": "Référentiel des espèces commerciales",

@@ -28,6 +28,7 @@ import {SamplingStrategiesTable} from "./strategy/sampling/sampling-strategies.t
 import {SimpleReferentialTable} from "./list/referential-simple.table";
 import {PmfmsTable} from "./pmfm/pmfms.table";
 import {SelectPmfmModal} from "./pmfm/select-pmfm.modal";
+import {StrategiesPage} from './strategy/strategies.page';
 
 @NgModule({
   imports: [
@@ -51,6 +52,7 @@ import {SelectPmfmModal} from "./pmfm/select-pmfm.modal";
     ProgramsPage,
     ProgramPage,
     SamplingStrategyPage,
+    StrategiesPage,
     StrategyPage,
     StrategyForm,
     StrategiesTable,
@@ -82,6 +84,7 @@ import {SelectPmfmModal} from "./pmfm/select-pmfm.modal";
     ReferentialForm,
     SamplingStrategyForm,
     SamplingStrategyPage,
+    StrategiesPage,
     StrategyPage,
     StrategyForm,
     SoftwarePage,
