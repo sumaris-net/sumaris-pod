@@ -1332,6 +1332,7 @@
           "LOCATIONS" :"Fishing area(s):",
           "TAXON_NAMES" :"Target species:",
           "TAXON_GROUPS" :"Commercial species:",
+          "CALCIFIED_TYPE": "Calcified parts:",
           "BTN_SHOW": "Open the sampling scheme"
         }
       },
