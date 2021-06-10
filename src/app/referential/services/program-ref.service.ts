@@ -56,6 +56,8 @@ export const ProgramRefQueries = {
     }
     ${ProgramFragments.programRef}
     ${StrategyFragments.strategyRef}
+    ${StrategyFragments.lightPmfmStrategy}
+    ${ReferentialFragments.lightPmfm}
     ${StrategyFragments.denormalizedPmfmStrategy}
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
@@ -91,6 +93,8 @@ export const ProgramRefQueries = {
   }
   ${ProgramFragments.programRef}
   ${StrategyFragments.strategyRef}
+  ${StrategyFragments.lightPmfmStrategy}
+  ${ReferentialFragments.lightPmfm}
   ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}

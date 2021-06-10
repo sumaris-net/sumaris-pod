@@ -32,6 +32,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
     location: undefined,
     taxonName: undefined,
     taxonGroup: undefined,
+    caclcifiedType: undefined,
   };
 
   @Input() i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX;

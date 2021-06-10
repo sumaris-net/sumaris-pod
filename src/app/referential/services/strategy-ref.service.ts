@@ -41,6 +41,8 @@ const StrategyRefQueries: BaseEntityGraphqlQueries = {
   ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.strategyRef}
+  ${StrategyFragments.lightPmfmStrategy}
+  ${ReferentialFragments.lightPmfm}
   ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
@@ -62,7 +64,8 @@ const StrategyRefQueries: BaseEntityGraphqlQueries = {
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.lightPmfmStrategy}
+  ${ReferentialFragments.lightPmfm}
   ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
@@ -85,7 +88,8 @@ const StrategyRefQueries: BaseEntityGraphqlQueries = {
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.lightPmfmStrategy}
+  ${ReferentialFragments.lightPmfm}
   ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
@@ -109,7 +113,8 @@ const StrategySubscriptions = {
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.lightPmfmStrategy}
+  ${ReferentialFragments.lightPmfm}
   ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
