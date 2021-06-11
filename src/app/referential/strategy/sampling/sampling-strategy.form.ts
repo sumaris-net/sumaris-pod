@@ -313,7 +313,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     // register year field changes
     this.registerSubscription(this.form.get('year').valueChanges.subscribe(date => this.onDateChange(date)));
-    // this.registerSubscription(this.form.get('taxonName').valueChanges.subscribe(taxon => this.onTaxonChange(taxon)));
+    this.registerSubscription(this.taxonNamesFormArray.valueChanges.subscribe(() => this.onTaxonChange()));
     this.taxonNamesFormArray.valueChanges.subscribe(res => this.loadFilteredPmfm());
 
     const idControl = this.form.get('id');
@@ -917,41 +917,31 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.markAsDirty();
   }
 
-  protected async onTaxonChange(taxon?: any) {
-    taxon = taxon || "XXXXXXX";
+  protected async onTaxonChange() {
 
-    if (!taxon || !this.program) return; // Skip if date or program are missing
+    if (!this.program) return;
+
+    let finalMaskTaxonName;
+    const taxon = this.taxonNamesFormArray.value[0].taxonName;
+    if (taxon) {
+      finalMaskTaxonName = TaxonUtils.rubinCode(taxon.name);
+    } else {
+      finalMaskTaxonName = "XXXXXXX";
+    }
+
+    const finalMaskYear = this.form.get('year').value.format('YY');
+
+    this.labelMask = [...finalMaskYear, '-', finalMaskTaxonName, '-', /\d/, /\d/, /\d/];
+
+    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear}-${finalMaskTaxonName}-`, 3));
+    console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
 
     const labelControl = this.form.get('label');
-    const rubinCode = TaxonUtils.rubinCode(taxon.value);
 
-    if (this.form.get('year').value) {
-      const date = fromDateISOString(this.form.get('year').value.format('YY'));
-      const year = date.format('YY');
-      //update mask
-      this.labelMask = [...year.split(''), '-', rubinCode, '-', /\d/, /\d/, /\d/];
-
-      // get new label sample row code
-      const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${year}-BIO-`, 3));
-      console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
-
-      const label = labelControl.value;
-      if (isNil(label)) {
-        labelControl.setValue(computedLabel);
-      } else {
-        const oldYear = label.split('-').shift();
-        // Update the label, if year change
-        if (year && oldYear && year !== oldYear) {
-          labelControl.setValue(computedLabel);
-          this.markAsDirty();
-        } else {
-          labelControl.setValue(label);
-        }
-      }
-    } else {
-      this.labelMask = [...'xx', '-', rubinCode, '-', /\d/, /\d/, /\d/];
-    }
+    labelControl.setValue(computedLabel);
+    this.markAsDirty();
   }
+
   // TaxonName Helper -----------------------------------------------------------------------------------------------
   protected initTaxonNameHelper() {
     // appliedStrategies => appliedStrategies.location ?
