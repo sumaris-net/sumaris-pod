@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 // import fade in animation
 import {merge, Subscription} from "rxjs";
 import {Router} from "@angular/router";
@@ -37,6 +37,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
 
   @Input() i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX;
   @Input() title: string;
+  @Input() calcifiedTypesDisplayed = false;
   @Input() showOpenLink = false;
 
   @Input("value")

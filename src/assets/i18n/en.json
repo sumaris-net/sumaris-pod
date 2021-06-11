@@ -822,7 +822,8 @@
         "LANDING": "Landing:",
         "DATE": "Landing date",
         "TAB_SAMPLES": "Individual measures",
-        "LOCATION": "Landing location"
+        "LOCATION": "Landing location",
+        "CALCIFIED_TYPE": "Calcified parts:"
       }
     },
     "TABLE": {
@@ -1333,7 +1334,6 @@
           "LOCATIONS" :"Fishing area(s):",
           "TAXON_NAMES" :"Target species:",
           "TAXON_GROUPS" :"Commercial species:",
-          "CALCIFIED_TYPE": "Calcified parts:",
           "BTN_SHOW": "Open the sampling scheme"
         }
       },

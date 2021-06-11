@@ -841,7 +841,8 @@
         "LANDING": "Débarquement :",
         "DATE": "Date de débarquement",
         "TAB_SAMPLES": "Mesures individuelles",
-        "LOCATION": "Port de débarquement"
+        "LOCATION": "Port de débarquement",
+        "CALCIFIED_TYPE": "Pièces calcifiées :"
       }
     },
     "TABLE": {
@@ -1377,7 +1378,6 @@
           "LOCATIONS" :"Zone(s) de pêche :",
           "TAXON_NAMES" :"Espèce cible :",
           "TAXON_GROUPS" :"Espèces commerciales :",
-          "CALCIFIED_TYPE": "Pièces calcifiées :",
           "BTN_SHOW": "Ouvrir la ligne de plan"
         }
       },

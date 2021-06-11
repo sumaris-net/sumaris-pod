@@ -47,20 +47,6 @@
       </ion-label>
     </ng-container>
 
-    <!-- calcified types-->
-    <ng-container *ngIf="data.pmfms | isNotEmptyArray">
-      <ion-label color="primary">{{i18nPrefix + 'CALCIFIED_TYPE'|translate}}</ion-label>
-      <ion-label class="status">
-        <ul>
-          <ng-container *ngFor="let caclcifiedType of data.pmfms; let i=index">
-          <li *ngIf="caclcifiedType.fraction && !caclcifiedType.pmfm">
-            <span>{{caclcifiedType.fraction | referentialToString: displayAttributes.caclcifiedType }}</span>
-          </li>
-          </ng-container>
-        </ul>
-      </ion-label>
-    </ng-container>
-
     <ng-content></ng-content>
 
   </ion-card-content>
