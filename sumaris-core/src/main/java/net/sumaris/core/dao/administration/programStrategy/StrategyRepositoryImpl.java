@@ -25,13 +25,12 @@ package net.sumaris.core.dao.administration.programStrategy;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.administration.programStrategy.denormalized.DenormalizedPmfmStrategyRepository;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
-import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
-import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.exception.NotUniqueException;
@@ -347,12 +346,12 @@ public class StrategyRepositoryImpl
         Specification<Strategy> spec = super.toSpecification(filter, fetchOptions);
         if (filter.getId() != null) return spec;
         return spec
-
-            // Not need, has already defined using levelIds, in the super function
-            //.and(hasProgramIds(filter))
-
-            .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
-            .and(betweenDate(filter.getStartDate(), filter.getEndDate()));
+                .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+                .and(hasAnalyticReference(filter.getAnalyticReference()))
+                .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
+                .and(hasDepartmentIds(filter.getDepartmentIds()))
+                .and(hasLocationIds(filter.getLocationIds()))
+                .and(hasParameterIds(filter.getParameterIds()));
     }
 
     @Override
