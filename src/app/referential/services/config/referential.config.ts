@@ -236,7 +236,7 @@ export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS: FormFieldDefinitionMap = {
     ]
   },
   // Display attributes for referential useful entities
-  ... ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear']
+  ... ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear', 'caclcifiedType']
     // Allow user to choose how to display field (by code+label, code, etc)
     .reduce((res, fieldName) => {
       res[`FIELD_${changeCaseToUnderscore(fieldName).toUpperCase()}_ATTRIBUTES`] = {

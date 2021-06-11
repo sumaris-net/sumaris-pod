@@ -24,6 +24,7 @@ import {Strategy} from "../../../referential/services/model/strategy.model";
 @Component({
   selector: 'app-sampling-landing-page',
   templateUrl: './sampling-landing.page.html',
+  styleUrls: ['./sampling-landing.page.scss'],
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
