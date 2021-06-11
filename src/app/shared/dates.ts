@@ -1,6 +1,6 @@
 import {Duration, isMoment, Moment} from "moment";
 import * as momentImported from "moment";
-import {DATE_ISO_PATTERN} from "./constants";
+import {DATE_ISO_PATTERN, DATE_ISO_TWO_CHARACTER_YEAR_PATTERN} from "./constants";
 const moment = momentImported;
 
 

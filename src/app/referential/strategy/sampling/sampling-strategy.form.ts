@@ -7,7 +7,7 @@ import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
 import { SharedValidators } from 'src/app/shared/validator/validators';
 import { LocalSettingsService } from "../../../core/services/local-settings.service";
 import { IReferentialRef, ReferentialRef, ReferentialUtils } from "../../../core/services/model/referential.model";
-import { fromDateISOString } from "../../../shared/dates";
+import {fromDateISOString} from "../../../shared/dates";
 import { PmfmStrategy } from "../../services/model/pmfm-strategy.model";
 import { Program } from '../../services/model/program.model';
 import {
@@ -17,7 +17,7 @@ import {
   StrategyDepartment,
   TaxonNameStrategy
 } from "../../services/model/strategy.model";
-import { TaxonNameRef } from "../../services/model/taxon.model";
+import {TaxonNameRef, TaxonUtils} from "../../services/model/taxon.model";
 import { ReferentialRefService } from "../../services/referential-ref.service";
 import { StrategyService } from "../../services/strategy.service";
 import { StrategyValidatorService } from '../../services/validator/strategy.validator';
@@ -313,6 +313,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     // register year field changes
     this.registerSubscription(this.form.get('year').valueChanges.subscribe(date => this.onDateChange(date)));
+    // this.registerSubscription(this.form.get('taxonName').valueChanges.subscribe(taxon => this.onTaxonChange(taxon)));
     this.taxonNamesFormArray.valueChanges.subscribe(res => this.loadFilteredPmfm());
 
     const idControl = this.form.get('id');
@@ -418,7 +419,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       1988: 'Otholite', 1567: 'Otholite', 1566: 'Otholite', 1681: 'Otholite', 1772: 'Otholite', 1551: 'Otholite', 1540: 'Otholite', 1543: 'Otholite',
       1573: 'Otholite', 1980: 'Otholite', 1978: 'Otholite', 1690: 'Otholite', 1689: 'Otholite', 1351: 'Otholite', 1996: 'Otholite', 1356: 'Otholite',
       1560: 'Otholite', 1559: 'Otholite'
-    }
+    };
     if (this.ifAge() && this.taxonNamesFormArray.value && this.taxonNamesFormArray.value[0]) {
       const taxon = this.taxonNamesFormArray.value[0];
       const fractionName = map[taxon.taxonName.id];
@@ -527,7 +528,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   async getAnalyticReferenceName(analyticReference): Promise<string> {
     try {
       return await this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label: analyticReference })
-        .then(res => firstArrayValue(res.data).name)
+        .then(res => firstArrayValue(res.data).name);
     } catch (err) {
       console.debug('Error on load AnalyticReference');
     }
@@ -720,7 +721,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         year: firstAppliedPeriod ? firstAppliedPeriod.startDate : moment(),
         analyticReference: data.analyticReference && { label: data.analyticReference, name } || null
       });
-    })
+    });
 
 
 
@@ -895,31 +896,62 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     if (!date || !this.program) return; // Skip if date or program are missing
 
-    const labelControl = this.form.get('label');
+    const finalMaskYear = date.format('YY');
 
-    //update mask
-    const year = date.year().toString();
-    this.labelMask = [...year.split(''), '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
+    let finalMaskTaxonName = null;
+    const taxonNameControl = this.taxonNamesFormArray.value[0];
+    if (taxonNameControl && taxonNameControl.taxonName.name) {
+      finalMaskTaxonName = TaxonUtils.rubinCode(taxonNameControl.taxonName.name);
+    } else {
+      finalMaskTaxonName = "XXXXXXX";
+    }
 
-    // get new label sample row code
-    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${year}-BIO-`, 4));
+    this.labelMask = [...finalMaskYear, '-', finalMaskTaxonName, '-', /\d/, /\d/, /\d/];
+
+    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear}-${finalMaskTaxonName}-`, 3));
     console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
 
-    const label = labelControl.value;
-    if (isNil(label)) {
-      labelControl.setValue(computedLabel);
-    } else {
-      const oldYear = label.split('-').shift();
-      // Update the label, if year change
-      if (year && oldYear && year !== oldYear) {
-        labelControl.setValue(computedLabel);
-        this.markAsDirty();
-      } else {
-        labelControl.setValue(label);
-      }
-    }
+    const labelControl = this.form.get('label');
+
+    labelControl.setValue(computedLabel);
+    this.markAsDirty();
   }
 
+  protected async onTaxonChange(taxon?: any) {
+    taxon = taxon || "XXXXXXX";
+
+    if (!taxon || !this.program) return; // Skip if date or program are missing
+
+    const labelControl = this.form.get('label');
+    const rubinCode = TaxonUtils.rubinCode(taxon.value);
+
+    if (this.form.get('year').value) {
+      const date = fromDateISOString(this.form.get('year').value.format('YY'));
+      const year = date.format('YY');
+      //update mask
+      this.labelMask = [...year.split(''), '-', rubinCode, '-', /\d/, /\d/, /\d/];
+
+      // get new label sample row code
+      const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${year}-BIO-`, 3));
+      console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
+
+      const label = labelControl.value;
+      if (isNil(label)) {
+        labelControl.setValue(computedLabel);
+      } else {
+        const oldYear = label.split('-').shift();
+        // Update the label, if year change
+        if (year && oldYear && year !== oldYear) {
+          labelControl.setValue(computedLabel);
+          this.markAsDirty();
+        } else {
+          labelControl.setValue(label);
+        }
+      }
+    } else {
+      this.labelMask = [...'xx', '-', rubinCode, '-', /\d/, /\d/, /\d/];
+    }
+  }
   // TaxonName Helper -----------------------------------------------------------------------------------------------
   protected initTaxonNameHelper() {
     // appliedStrategies => appliedStrategies.location ?
