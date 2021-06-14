@@ -419,7 +419,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       1988: 'Otholite', 1567: 'Otholite', 1566: 'Otholite', 1681: 'Otholite', 1772: 'Otholite', 1551: 'Otholite', 1540: 'Otholite', 1543: 'Otholite',
       1573: 'Otholite', 1980: 'Otholite', 1978: 'Otholite', 1690: 'Otholite', 1689: 'Otholite', 1351: 'Otholite', 1996: 'Otholite', 1356: 'Otholite',
       1560: 'Otholite', 1559: 'Otholite'
-    }
+    };
     if (this.ifAge() && this.taxonNamesFormArray.value && this.taxonNamesFormArray.value[0]) {
       const taxon = this.taxonNamesFormArray.value[0];
       const fractionName = map[taxon.taxonName.id];
@@ -440,7 +440,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         // searchAttribute: 'id',
         // searchText: taxon.id
       });
-      strategies;
     }
   }
 
@@ -528,7 +527,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   async getAnalyticReferenceName(analyticReference): Promise<string> {
     try {
       return await this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label: analyticReference })
-        .then(res => firstArrayValue(res.data).name)
+        .then(res => firstArrayValue(res.data).name);
     } catch (err) {
       console.debug('Error on load AnalyticReference');
     }
@@ -566,6 +565,15 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    */
   selectMask(input: HTMLInputElement) {
     if (!this.labelMask) input.select();
+/*
+    let labelMaskArray: Array<any>;
+    labelMaskArray = this.labelMask.slice(0, 3);
+    const taxonNameArray = this.labelMask[3].split('');
+    labelMaskArray.concat(taxonNameArray);
+    // this.labelMask[3].split('');
+    // Array.from(this.labelMask[3], x => labelMaskArray.concat(x));
+    labelMaskArray.concat(this.labelMask.slice(-4));
+*/
     const startIndex = this.labelMask.findIndex(c => c instanceof RegExp);
     let endIndex = this.labelMask.slice(startIndex).findIndex(c => !(c instanceof RegExp), startIndex);
     endIndex = (endIndex === -1)
@@ -721,7 +729,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         year: firstAppliedPeriod ? firstAppliedPeriod.startDate : moment(),
         analyticReference: data.analyticReference && { label: data.analyticReference, name } || null
       });
-    })
+    });
 
 
 
@@ -901,14 +909,20 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     let finalMaskTaxonName;
     const taxonNameControl = this.taxonNamesFormArray.value[0];
     if (taxonNameControl && taxonNameControl.taxonName?.name) {
-      finalMaskTaxonName = TaxonUtils.rubinCode(taxonNameControl.taxonName.name);
+      finalMaskTaxonName = [...TaxonUtils.rubinCode(taxonNameControl.taxonName.name)];
     } else {
-      finalMaskTaxonName = "XXXXXXX";
+      finalMaskTaxonName = ["X", "X", "X", "X", "X", "X", "X"];
     }
 
-    this.labelMask = [...finalMaskYear, '-', finalMaskTaxonName, '-', /\d/, /\d/, /\d/];
+    let labelMaskArray = finalMaskYear.split("");
+    labelMaskArray = labelMaskArray.concat(['-']);
+    labelMaskArray = labelMaskArray.concat(finalMaskTaxonName);
+    // @ts-ignore
+    labelMaskArray = labelMaskArray.concat(['-', /\d/, /\d/, /\d/]);
+    this.labelMask = labelMaskArray;
 
-    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear}-${finalMaskTaxonName}-`, 3));
+    const finalMaskTaxonNameString = finalMaskTaxonName.join("");
+    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear}-${finalMaskTaxonNameString}-`, 3));
     console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
 
     const labelControl = this.form.get('label');
