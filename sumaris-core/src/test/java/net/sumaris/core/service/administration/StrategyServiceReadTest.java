@@ -28,6 +28,7 @@ import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.filter.PeriodVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -168,7 +169,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
         // Filter by analytic reference
         {
             StrategyFilterVO filter = StrategyFilterVO.builder()
-                    .analyticReference("P101-0001-01-DF")
+                    .analyticReferences(new String[]{"P101-0001-01-DF"})
                     .build();
             List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
@@ -221,11 +222,14 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             Assert.assertEquals("2020-BIO-0002", strategies.get(1).getLabel());
         }
 
-        // Filter by dates
+        // Filter by periods
         {
             StrategyFilterVO filter = StrategyFilterVO.builder()
-                    .startDate(Dates.safeParseDate("2020-04-01", "yyyy-MM-dd"))
-                    .endDate(Dates.safeParseDate("2020-06-30", "yyyy-MM-dd"))
+                    .periods(new PeriodVO[]{PeriodVO.builder()
+                            .startDate(Dates.safeParseDate("2020-01-01", "yyyy-MM-dd"))
+                            .endDate(Dates.safeParseDate("2020-03-31", "yyyy-MM-dd"))
+                            .build(),
+                    })
                     .build();
             List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);

@@ -31,24 +31,24 @@ import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.filter.PeriodVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import javax.persistence.criteria.Predicate;
+import java.util.*;
 
 /**
  * @author peck7 on 24/08/2020.
  */
 public interface StrategySpecifications extends ReferentialSpecifications<Strategy> {
 
-    String ANALYTIC_REFERENCE = "analyticReference";
+    String ANALYTIC_REFERENCES = "analyticReferences";
     String REFERENCE_TAXON_IDS = "referenceTaxonIds";
     String DEPARTMENT_IDS = "departmentIds";
     String LOCATION_IDS = "locationIds";
@@ -95,15 +95,15 @@ public interface StrategySpecifications extends ReferentialSpecifications<Strate
         };
     }
 
-    default Specification<Strategy> hasAnalyticReference(String analyticReference) {
+    default Specification<Strategy> hasAnalyticReferences(String... analyticReferences) {
+        if (ArrayUtils.isEmpty(analyticReferences)) return null;
         BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, ANALYTIC_REFERENCE);
-            return criteriaBuilder.or(
-                    criteriaBuilder.isNull(parameter),
-                    criteriaBuilder.equal(root.get(Strategy.Fields.ANALYTIC_REFERENCE), parameter)
-            );
+            ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, ANALYTIC_REFERENCES);
+            return criteriaBuilder.in(
+                    root.get(Strategy.Fields.ANALYTIC_REFERENCE))
+                    .value(parameter);
         });
-        specification.addBind(ANALYTIC_REFERENCE, analyticReference);
+        specification.addBind(ANALYTIC_REFERENCES, Arrays.asList(analyticReferences));
         return specification;
     }
 
@@ -178,6 +178,50 @@ public interface StrategySpecifications extends ReferentialSpecifications<Strate
         });
         specification.addBind(PARAMETER_IDS, Arrays.asList(parameterIds));
         return specification;
+    }
+
+    default Specification<Strategy> hasPeriods(PeriodVO... periods) {
+        if (ArrayUtils.isEmpty(periods)) return null;
+        return (root, query, cb) -> {
+            final List<Predicate> predicates = new ArrayList<Predicate>();
+
+            Join<?, ?> appliedPeriods = root.join(Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT)
+                    .join(AppliedStrategy.Fields.APPLIED_PERIODS, JoinType.LEFT);
+
+            for (PeriodVO dates : periods) {
+                Date startDate = dates.getStartDate();
+                Date endDate = dates.getEndDate();
+
+                // Start + end date
+                if (startDate != null && endDate != null) {
+                    predicates.add(
+                            cb.not(
+                                    cb.or(
+                                            cb.greaterThan(appliedPeriods.get(AppliedPeriod.Fields.START_DATE), endDate),
+                                            cb.lessThan(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
+                                    )
+                            )
+                    );
+                }
+
+                // Start date
+                else if (startDate != null) {
+                    predicates.add(
+                            cb.greaterThanOrEqualTo(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
+                    );
+                }
+
+                // End date
+                else if (endDate != null) {
+                    predicates.add(
+                            cb.lessThanOrEqualTo(appliedPeriods.get(AppliedPeriod.Fields.START_DATE), endDate)
+                    );
+                }
+            }
+
+            if (CollectionUtils.isEmpty(predicates)) return null;
+            return cb.or(predicates.toArray(new Predicate[predicates.size()]));
+        };
     }
 
     List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);

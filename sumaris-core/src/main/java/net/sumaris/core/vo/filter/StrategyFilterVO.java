@@ -61,11 +61,12 @@ public class StrategyFilterVO implements IReferentialFilter {
     private Date startDate;
     private Date endDate;
 
-    private String analyticReference;
+    private String[] analyticReferences;
     private Integer[] referenceTaxonIds;
     private Integer[] departmentIds;
     private Integer[] locationIds;
     private Integer[] parameterIds;
+    private PeriodVO[] periods;
 
     /* -- Synonym properties (need by IReferentialFilter) -- */
 

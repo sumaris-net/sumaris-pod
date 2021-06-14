@@ -347,11 +347,12 @@ public class StrategyRepositoryImpl
         if (filter.getId() != null) return spec;
         return spec
                 .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
-                .and(hasAnalyticReference(filter.getAnalyticReference()))
+                .and(hasAnalyticReferences(filter.getAnalyticReferences()))
                 .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
                 .and(hasDepartmentIds(filter.getDepartmentIds()))
                 .and(hasLocationIds(filter.getLocationIds()))
-                .and(hasParameterIds(filter.getParameterIds()));
+                .and(hasParameterIds(filter.getParameterIds()))
+                .and(hasPeriods(filter.getPeriods()));
     }
 
     @Override
