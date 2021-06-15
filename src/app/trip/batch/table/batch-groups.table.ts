@@ -25,6 +25,7 @@ import {TaxonGroupRef} from "../../../referential/services/model/taxon.model";
 import {MatMenuTrigger} from "@angular/material/menu";
 import {BatchGroupValidatorService} from "../../services/validator/batch-group.validator";
 import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {ISampleModalOptions} from "../../sample/sample.modal";
 import {isInstanceOf} from "../../../core/services/model/entity.model";
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
@@ -119,6 +120,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   @Input() taxonGroupsNoWeight: string[];
   @Input() mobile: boolean;
+  @Input() modalOptions: Partial<ISampleModalOptions>;
 
   @Output() onSubBatchesChanges = new EventEmitter<SubBatch[]>();
 
@@ -705,7 +707,9 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         showIndividualCount: !this.settings.isOnFieldMode(this.usageMode),
         availableParents,
         availableSubBatches: this.availableSubBatches,
-        onNewParentClick
+        onNewParentClick,
+        // Override using given options
+        ...this.modalOptions
       },
       keyboardClose: true,
       cssClass: 'modal-large'

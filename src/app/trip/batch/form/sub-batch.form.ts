@@ -63,6 +63,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
   @Input() showParentGroup = true;
 
+  @Input() maxVisibleButtons: number;
+
   @Input() set showTaxonName(show) {
     this._showTaxonName = show;
     const taxonNameControl = this.form && this.form.get('taxonName');

@@ -157,7 +157,8 @@
                              [formControlName]="pmfm.id.toString()"
                              [compact]="compact"
                              [tabindex]="tabindex + 20 + i*2"
-                             (keyup.enter)="focusNextInputOrSubmit($event, last)">
+                             (keyup.enter)="focusNextInputOrSubmit($event, last)"
+                             [maxVisibleButtons]="maxVisibleButtons">
           </app-pmfm-qv-field>
         </ng-container>
 

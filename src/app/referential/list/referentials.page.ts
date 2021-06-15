@@ -53,7 +53,8 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     'Software': '/referential/software/:id?label=:label',
     'Pmfm': '/referential/pmfm/:id?label=:label',
     'Parameter': '/referential/parameter/:id?label=:label',
-    'ExtractionProduct': '/extraction/product/:id?label=:label'
+    'ExtractionProduct': '/extraction/product/:id?label=:label',
+    'TaxonName': '/referential/taxonName/:id?label=:label'
   };
 
   @Input() set showLevelColumn(value: boolean) {

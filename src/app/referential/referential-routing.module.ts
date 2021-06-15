@@ -10,6 +10,7 @@ import {ReferentialModule} from "./referential.module";
 import {StrategyPage} from "./strategy/strategy.page";
 import {ProgramsPage} from "./program/programs.page";
 import {SamplingStrategyPage} from "./strategy/sampling/sampling-strategy.page";
+import {TaxonNamePage} from "./taxon/taxon-name.page";
 
 const routes: Routes = [
   {
@@ -118,6 +119,19 @@ const routes: Routes = [
       }
     ]
   },
+  {
+    path: 'taxonName/:id',
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        component: TaxonNamePage,
+        data: {
+          profile: 'ADMIN'
+        }
+      }
+    ]
+  }
 ];
 
 @NgModule({

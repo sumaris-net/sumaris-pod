@@ -354,7 +354,7 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.measurements.maxVisibleButtons',
     label: 'PROGRAM.OPTIONS.MEASUREMENTS_MAX_VISIBLE_BUTTONS',
     type: 'integer',
-    defaultValue: 10 // Use -1 for all
+    defaultValue: 4 // Use -1 for all
   },
 });
 
