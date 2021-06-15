@@ -676,7 +676,6 @@ public class DatabaseSchemaDaoImpl
             sessionSettings = session.getProperties();
         }
 
-
         MetadataSources metadata = new MetadataSources(
                 new StandardServiceRegistryBuilder()
                         .applySettings(sessionSettings)

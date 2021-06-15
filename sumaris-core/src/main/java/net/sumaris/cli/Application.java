@@ -60,9 +60,7 @@ import org.springframework.stereotype.Component;
 	exclude = {
 		LiquibaseAutoConfiguration.class,
 		FreeMarkerAutoConfiguration.class,
-		JndiConnectionFactoryAutoConfiguration.class,
-		//JmsAutoConfiguration.class,
-		//ActiveMQAutoConfiguration.class
+		JndiConnectionFactoryAutoConfiguration.class
 	},
 	scanBasePackages = {
 		"net.sumaris.core"
