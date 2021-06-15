@@ -163,7 +163,7 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "strategiesCount", description = "Get strategies count")
     @Transactional(readOnly = true)
     public Long getStrategyCount(@GraphQLArgument(name = "filter") StrategyFilterVO filter) {
-        return referentialService.countByFilter(Strategy.class.getSimpleName(), filter);
+        return strategyService.countByFilter(filter);
     }
 
     @GraphQLQuery(name = "taxonGroupType", description = "Get program's taxon group type")

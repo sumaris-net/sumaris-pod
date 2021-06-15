@@ -83,6 +83,11 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
+	public Long countByFilter(StrategyFilterVO filter) {
+		return strategyRepository.count(filter);
+	}
+
+	@Override
 	public List<StrategyVO> findByFilter(StrategyFilterVO filter, Pageable pageable, StrategyFetchOptions fetchOptions) {
 		return strategyRepository.findAll(filter, pageable, fetchOptions).getContent();
 	}
