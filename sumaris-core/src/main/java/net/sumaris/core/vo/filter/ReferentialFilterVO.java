@@ -27,27 +27,30 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
+import lombok.experimental.SuperBuilder;
+import org.apache.commons.lang3.ArrayUtils;
+
+import java.util.Arrays;
 
 @Data
 @FieldNameConstants
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@SuperBuilder
 public class ReferentialFilterVO implements IReferentialFilter {
 
     public static ReferentialFilterVO nullToEmpty(ReferentialFilterVO filter) {
         return filter == null ? new ReferentialFilterVO() : filter;
     }
 
+    @Deprecated // used includedIds
     private Integer id;
+
     private String label;
     private String name;
 
     private Integer[] statusIds;
-
-    private Integer levelId;
     private Integer[] levelIds;
-    private String levelLabel;
     private String[] levelLabels;
 
     private String searchJoin;
@@ -57,4 +60,8 @@ public class ReferentialFilterVO implements IReferentialFilter {
     private Integer[] includedIds;
     private Integer[] excludedIds;
 
+    @Deprecated
+    private Integer levelId;
+    @Deprecated
+    private String levelLabel;
 }

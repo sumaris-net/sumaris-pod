@@ -24,13 +24,14 @@ package net.sumaris.core.dao.referential.metier;
 
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.vo.filter.IReferentialFilter;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -44,7 +45,7 @@ public interface MetierSpecifications
     extends ReferentialSpecifications<Metier> {
 
     String PROGRAM_LABEL_PARAMETER = "programLabel";
-    String TRIP_ID_PARAMETER = "tripId";
+    String EXCLUDED_TRIP_ID_PARAMETER = "tripId";
     String VESSEL_ID_PARAMETER = "vesselId";
     String START_DATE_PARAMETER = "startDate";
     String END_DATE_PARAMETER = "endDate";
@@ -54,25 +55,28 @@ public interface MetierSpecifications
         return inJoinPropertyIds(Metier.Fields.GEAR, gearIds);
     }
 
-    default Specification<Metier> alreadyPracticedMetier(Integer vesselId) {
+    default Specification<Metier> alreadyPracticedMetier(MetierFilterVO filter) {
 
-        if (vesselId == null) return null;
+        if (filter.getVesselId() == null
+            || filter.getStartDate() == null
+            || filter.getEndDate() == null) return null;
 
-        return (root, query, builder) -> {
+        return BindableSpecification.<Metier>where((root, query, builder) -> {
 
             Root<Trip> trips = query.from(Trip.class);
             Join<Trip, Operation> operations = trips.join(Trip.Fields.OPERATIONS, JoinType.INNER);
 
+            ParameterExpression<Integer> vesselIdParameter = builder.parameter(Integer.class, VESSEL_ID_PARAMETER);
             ParameterExpression<String> programLabelParameter = builder.parameter(String.class, PROGRAM_LABEL_PARAMETER);
             ParameterExpression<Date> startDateParam = builder.parameter(Date.class, START_DATE_PARAMETER);
             ParameterExpression<Date> endDateParam = builder.parameter(Date.class, END_DATE_PARAMETER);
-            ParameterExpression<Integer> tripIdParameter = builder.parameter(Integer.class, TRIP_ID_PARAMETER);
+            ParameterExpression<Integer> tripIdParameter = builder.parameter(Integer.class, EXCLUDED_TRIP_ID_PARAMETER);
 
-            Predicate result = builder.and(
+            return builder.and(
                     // Link metier to operation
                     builder.equal(operations.get(Operation.Fields.METIER), root.get(Metier.Fields.ID)),
                     // Vessel
-                    builder.equal(trips.get(Trip.Fields.VESSEL).get(Vessel.Fields.ID), vesselId),
+                    builder.equal(trips.get(Trip.Fields.VESSEL).get(Vessel.Fields.ID), vesselIdParameter),
                     // Date
                     builder.not(
                             builder.or(
@@ -92,15 +96,12 @@ public interface MetierSpecifications
                             builder.notEqual(trips.get(Trip.Fields.ID), tripIdParameter)
                     )
             );
-
-
-            // Exclude given tripId
-//            if (tripId != null) {
-//                result = builder.and(result,
-//                        builder.notEqual(trips.find(Trip.Fields.ID), tripId));
-//            }
-            return result;
-        };
+        })
+        .addBind(START_DATE_PARAMETER, filter.getStartDate())
+        .addBind(END_DATE_PARAMETER, filter.getEndDate())
+        .addBind(VESSEL_ID_PARAMETER, filter.getVesselId())
+        .addBind(PROGRAM_LABEL_PARAMETER, filter.getProgramLabel())
+        .addBind(EXCLUDED_TRIP_ID_PARAMETER, filter.getExcludedTripId());
     }
 
     List<MetierVO> findByFilter(

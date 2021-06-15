@@ -1,8 +1,8 @@
-package net.sumaris.core.vo.filter;
+package net.sumaris.server.http.rest;
 
 /*-
  * #%L
- * SUMARiS:: Core
+ * SUMARiS:: Server
  * %%
  * Copyright (C) 2018 SUMARiS Consortium
  * %%
@@ -22,35 +22,22 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.*;
-import lombok.experimental.FieldNameConstants;
+public interface RestPaths {
 
-@Data
-@FieldNameConstants
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class ProgramFilterVO implements IReferentialFilter {
+    String BASE_PATH = "/api";
 
-    private Integer id;
-    private String label;
-    private String name;
+    String REGISTER_CONFIRM_PATH = BASE_PATH + "/confirmEmail";
 
-    private Integer[] statusIds;
-    private Integer[] levelIds;
-    private String[] levelLabels;
+    String PERSON_AVATAR_PATH = BASE_PATH + "/avatar/{pubkey}";
 
-    private String searchJoin;
-    private String searchText;
-    private String searchAttribute;
+    String DEPARTMENT_LOGO_PATH = BASE_PATH + "/logo/{label}";
 
-    private String withProperty;
+    String IMAGE_PATH = BASE_PATH + "/image/{id}";
 
-    private Integer[] includedIds;
-    private Integer[] excludedIds;
+    String DOWNLOAD_PATH = "/download";
 
-    @Deprecated
-    private Integer levelId;
-    @Deprecated
-    private String levelLabel;
+    String FAVICON = BASE_PATH + "/favicon";
+
+    String NODE_INFO_PATH = BASE_PATH + "/node/info";
+
 }

@@ -57,6 +57,7 @@ public class PersonVO implements IUpdateDateEntityBean<Integer, Date>, IValueObj
 
     // Workaround for issue see https://github.com/sumaris-net/sumaris-app/issues/3
     // TODO: remove this, later
+    @Deprecated
     private String mainProfile;
 
     private Boolean hasAvatar;

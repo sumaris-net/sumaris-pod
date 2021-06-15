@@ -41,9 +41,5 @@ import javax.persistence.EntityManager;
 @Slf4j
 public class JPAConfiguration {
 
-	/*@Bean
-	public JPAQueryFactory jpaQueryFactory(EntityManager em) {
-		return new JPAQueryFactory(em);
-	}*/
 
 }

@@ -44,7 +44,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.core.annotation.Order;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
@@ -60,9 +60,7 @@ import org.springframework.stereotype.Component;
 	exclude = {
 		LiquibaseAutoConfiguration.class,
 		FreeMarkerAutoConfiguration.class,
-		JndiConnectionFactoryAutoConfiguration.class,
-		//JmsAutoConfiguration.class,
-		//ActiveMQAutoConfiguration.class
+		JndiConnectionFactoryAutoConfiguration.class
 	},
 	scanBasePackages = {
 		"net.sumaris.core"
@@ -140,11 +138,11 @@ public class Application {
 	}
 
 	@Bean
-	public SumarisConfiguration configuration() {
+	public SumarisConfiguration configuration(ConfigurableEnvironment env) {
 
 		SumarisConfiguration config = SumarisConfiguration.getInstance();
 		if (config == null) {
-			SumarisConfiguration.initDefault(CONFIG_FILE);
+			SumarisConfiguration.initDefault(env);
 			config = SumarisConfiguration.getInstance();
 		}
 

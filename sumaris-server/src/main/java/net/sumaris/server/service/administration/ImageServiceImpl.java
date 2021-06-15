@@ -33,7 +33,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
-import net.sumaris.server.http.ontology.RestPaths;
+import net.sumaris.server.http.rest.RestPaths;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;

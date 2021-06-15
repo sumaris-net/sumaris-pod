@@ -22,14 +22,9 @@ package net.sumaris.server.http.security.ldap;
  * #L%
  */
 
-import net.sumaris.core.service.administration.PersonService;
-import net.sumaris.core.service.crypto.CryptoService;
-import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.util.crypto.CryptoUtils;
 import net.sumaris.server.http.security.AnonymousUserDetails;
 import net.sumaris.server.http.security.AuthService;
-import net.sumaris.server.http.security.AuthUserDetails;
-import net.sumaris.server.util.security.AuthTokenVO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -38,7 +33,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.LdapUserDetails;
 
-import javax.annotation.Resource;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,13 +41,14 @@ public class LdapAuthenticationProvider
 
     private final String userDn;
 
-    @Resource
-    private AuthService authService;
+    private final AuthService authService;
 
-    public LdapAuthenticationProvider(LdapAuthenticator authenticator, LdapProperties properties) {
+    public LdapAuthenticationProvider(LdapAuthenticator authenticator, LdapProperties properties, AuthService authService) {
         super(authenticator);
         this.userDn = properties.getUserDn();
+        this.authService = authService;
     }
+
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -93,7 +88,6 @@ public class LdapAuthenticationProvider
 
         return authentication;
     }
-
 
     protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
         return authService.authenticateByUsername(username, authentication);

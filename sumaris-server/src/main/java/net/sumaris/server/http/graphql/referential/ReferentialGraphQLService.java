@@ -112,19 +112,32 @@ public class ReferentialGraphQLService {
                 SortDirection.fromString(direction, SortDirection.ASC));
     }
 
+    @GraphQLQuery(name = "referentialsCount", description = "Get referentials count")
+    @Transactional(readOnly = true)
+    public Long getReferentialsCount(@GraphQLArgument(name = "entityName") String entityName,
+                                     @GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
+        return referentialService.countByFilter(entityName, filter);
+    }
+
+
     @GraphQLQuery(name = "metiers", description = "Search in metiers")
     @Transactional(readOnly = true)
     public List<MetierVO> findMetiersByFilter(
-            @GraphQLArgument(name = "filter") MetierFilterVO filter,
-            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-            @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
-            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+        @GraphQLArgument(name = "filter") MetierFilterVO filter,
+        @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+        @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+        @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
+        @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
         return metierRepository.findByFilter(
-                MetierFilterVO.nullToEmpty(filter),
-                offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+            MetierFilterVO.nullToEmpty(filter),
+            offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+    }
 
+    @GraphQLQuery(name = "metiersCount", description = "Count metiers")
+    @Transactional(readOnly = true)
+    public Long countMetiers(@GraphQLArgument(name = "filter") MetierFilterVO filter) {
+        return metierRepository.count(filter);
     }
 
     @GraphQLQuery(name = "metier", description = "Get a metier by id")
@@ -133,12 +146,6 @@ public class ReferentialGraphQLService {
         return metierRepository.get(id);
     }
 
-    @GraphQLQuery(name = "referentialsCount", description = "Get referentials count")
-    @Transactional(readOnly = true)
-    public Long getReferentialsCount(@GraphQLArgument(name = "entityName") String entityName,
-                                     @GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
-        return referentialService.countByFilter(entityName, filter);
-    }
 
     @GraphQLQuery(name = "referentialLevels", description = "Get all levels from entityName")
     @Transactional(readOnly = true)

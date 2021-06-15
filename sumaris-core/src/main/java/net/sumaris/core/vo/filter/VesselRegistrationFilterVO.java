@@ -1,10 +1,10 @@
-package net.sumaris.server.http.ontology;
+package net.sumaris.core.vo.filter;
 
 /*-
  * #%L
- * SUMARiS:: Server
+ * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2018 - 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,22 +22,26 @@ package net.sumaris.server.http.ontology;
  * #L%
  */
 
-public interface RestPaths {
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldNameConstants;
 
-    String BASE_PATH = "/api";
+/**
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
+ */
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@FieldNameConstants
+public class VesselRegistrationFilterVO implements IVesselFilter {
 
-    String REGISTER_CONFIRM_PATH = BASE_PATH + "/confirmEmail";
+    public static VesselRegistrationFilterVO nullToEmpty(VesselRegistrationFilterVO f) {
+        return f != null ? f : new VesselRegistrationFilterVO();
+    }
 
-    String PERSON_AVATAR_PATH = BASE_PATH + "/avatar/{pubkey}";
-
-    String DEPARTMENT_LOGO_PATH = BASE_PATH + "/logo/{label}";
-
-    String IMAGE_PATH = BASE_PATH + "/image/{id}";
-
-    String DOWNLOAD_PATH = "/download";
-
-    String FAVICON = BASE_PATH + "/favicon";
-
-    String NODE_INFO_PATH = BASE_PATH + "/node/info";
+    private Integer vesselId;
 
 }

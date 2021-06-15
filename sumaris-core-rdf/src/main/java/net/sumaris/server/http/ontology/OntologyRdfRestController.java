@@ -37,7 +37,7 @@ import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.rdf.util.RdfFormat;
 import net.sumaris.rdf.util.RdfMediaType;
-import net.sumaris.server.http.RestPaths;
+import net.sumaris.server.http.RdfRestPaths;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -61,7 +61,7 @@ import java.util.Objects;
 @RestController
 @ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
 @Slf4j
-public class OntologyRestController implements RestPaths {
+public class OntologyRdfRestController implements RdfRestPaths {
 
     protected static final String EXTENSION_PATH_PARAM = ".{extension:[a-z0-9-_]+}";
 
