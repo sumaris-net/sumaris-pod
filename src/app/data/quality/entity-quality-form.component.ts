@@ -23,6 +23,9 @@ import {isDataSynchroService, RootDataSynchroService} from "../services/root-dat
 import {isNil, isNotNil} from "../../shared/functions";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {fadeInAnimation} from "../../shared/material/material.animations";
+import { ConfigService } from 'src/app/core/services/config.service';
+import { firstNotNilPromise } from 'src/app/shared/observables';
+import { DATA_CONFIG_OPTIONS } from '../services/config/data.config';
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {IEntityService} from "../../shared/services/entity-service.class";
 import {debounceTime} from "rxjs/operators";
@@ -46,6 +49,7 @@ export class EntityQualityFormComponent<
   private _subscription = new Subscription();
   private _controlling = false;
   private _isSynchroService: boolean;
+  private _enableQualityProcess = true;
 
   data: T;
   loading = true;
@@ -81,8 +85,9 @@ export class EntityQualityFormComponent<
     protected translate: TranslateService,
     public network: NetworkService,
     protected userEventService: UserEventService,
-    platform: PlatformService,
+    protected configService: ConfigService,
     protected cd: ChangeDetectorRef,
+    platform: PlatformService,
     @Optional() editor: AppRootDataEditor<T, S, ID>
   ) {
     this.editor = editor;
@@ -93,7 +98,7 @@ export class EntityQualityFormComponent<
     this._debug = !environment.production;
   }
 
-  ngOnInit(): void {
+  ngOnInit() {
 
     // Check editor exists
     if (!this.editor) throw new Error("Missing mandatory 'editor' input!");
@@ -102,6 +107,13 @@ export class EntityQualityFormComponent<
     this.service = this.service || isDataQualityService(this.editor.service) && this.editor.service || null;
     if (!this.service) throw new Error("Missing mandatory 'dataService' input!");
     this._isSynchroService = isDataSynchroService(this.service);
+
+    // Subscribe to config
+    this._subscription.add(
+      this.configService.config.subscribe(config => {
+        this._enableQualityProcess = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.DATA_QUALITY_PROCESS_ENABLE);
+      })
+    );
 
     // Subscribe to refresh events
     let updateEvent$ = merge(
@@ -313,10 +325,18 @@ export class EntityQualityFormComponent<
       // Quality service
       this.canControl = canWrite && (isLocalData && data.synchronizationStatus === 'DIRTY' || isNil(data.controlDate));
       this.canTerminate = this.canControl && (!isLocalData || data.synchronizationStatus === 'DIRTY');
-      this.canValidate = canWrite && isSupervisor && !isLocalData && isNotNil(data.controlDate) && isNil(data.validationDate);
-      this.canUnvalidate = canWrite && isSupervisor && isNotNil(data.controlDate) && isNotNil(data.validationDate);
-      this.canQualify = canWrite && isSupervisor /*TODO && isQualifier */ && isNotNil(data.validationDate) && isNil(data.qualificationDate);
-      this.canUnqualify = canWrite && isSupervisor && isNotNil(data.validationDate) && isNotNil(data.qualificationDate);
+
+      if (this._enableQualityProcess) {
+        this.canValidate = canWrite && isSupervisor && !isLocalData && isNotNil(data.controlDate) && isNil(data.validationDate);
+        this.canUnvalidate = canWrite && isSupervisor && isNotNil(data.controlDate) && isNotNil(data.validationDate);
+        this.canQualify = canWrite && isSupervisor /*TODO && isQualifier */ && isNotNil(data.validationDate) && isNil(data.qualificationDate);
+        this.canUnqualify = canWrite && isSupervisor && isNotNil(data.validationDate) && isNotNil(data.qualificationDate);
+      } else {
+        this.canValidate = false;
+        this.canUnvalidate = false;
+        this.canQualify = false;
+        this.canUnqualify = false;
+      }
 
       // Synchro service
       this.canSynchronize = this._isSynchroService && canWrite && isLocalData && data.synchronizationStatus === 'READY_TO_SYNC';

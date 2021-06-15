@@ -27,9 +27,8 @@ import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
 import {TRIP_CONFIG_OPTIONS} from "../services/config/trip.config";
 import {ConfigService} from "../../core/services/config.service";
+import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
 import {LandingFilter} from "../services/filter/landing.filter";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {ObservedLocationValidatorService} from "../services/validator/observed-location.validator";
 
 const moment = momentImported;
 
@@ -58,6 +57,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   addLandingUsingHistoryModal: boolean;
   $ready = new BehaviorSubject<boolean>(false);
   observedLocationNewName = '';
+  showQualityForm = false;
+  showRecorder = true;
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
   @ViewChild('landingsTable') landingsTable: LandingsTable;
@@ -99,6 +100,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.registerSubscription(
       this.configService.config.subscribe(config => {
         this.observedLocationNewName = config && config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NEW_NAME);
+        this.showRecorder = config && config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.DATA_SHOW_OBSERVERS_ENABLE);
       })
     );
 

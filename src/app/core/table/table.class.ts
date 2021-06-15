@@ -516,7 +516,7 @@ export abstract class AppTable<
 
   /* -- internal method -- */
 
-  protected applyFilter(filter: F, opts: { emitEvent: boolean; }) {
+  private applyFilter(filter: F, opts: { emitEvent: boolean; }) {
     if (this.debug) console.debug('[table] Applying filter', filter);
     this._filter = filter;
     if (opts && opts.emitEvent) {
@@ -528,7 +528,7 @@ export abstract class AppTable<
   }
 
 
-  protected listenDatasource(dataSource: EntitiesTableDataSource<T, F, ID>) {
+  private listenDatasource(dataSource: EntitiesTableDataSource<T, F>) {
     if (!dataSource) throw new Error("[table] dataSource not set !");
 
     // Cleaning previous subscription on datasource

@@ -254,12 +254,11 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.inlineEdition = !this.canOpenDetail;
 
     // Applying the filter (will reload if emitEvent = true)
-    const filter = ReferentialFilter.fromObject({
+    this.filterForm.patchValue({entityName}, {emitEvent: false});
+    this.setFilter({
       ...this.filterForm.value,
       entityName
     });
-    this.filterForm.patchValue({entityName}, {emitEvent: false});
-    this.applyFilter(filter, {emitEvent: opts.emitEvent});
 
     // Update route location
     if (opts.skipLocationChange !== true && this.canSelectEntity) {

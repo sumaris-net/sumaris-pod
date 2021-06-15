@@ -17,4 +17,7 @@ export class EntityMetadataComponent {
   @Input()
   value: Entity<any> & {creationDate?: Date | Moment; recorderDepartment?: any; recorderPerson?: any};
 
+  @Input()
+  showRecorder = true;
+
 }

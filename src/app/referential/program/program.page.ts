@@ -52,6 +52,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   form: FormGroup;
   i18nFieldPrefix = 'PROGRAM.';
   strategyEditor: StrategyEditor = 'legacy';
+  i18nTabStrategiesSuffix = '';
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
@@ -154,6 +155,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   updateView(data: Program | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
 
     this.strategyEditor = data && data.getProperty<StrategyEditor>(ProgramProperties.PROGRAM_STRATEGY_EDITOR) || 'legacy';
+    this.i18nTabStrategiesSuffix = this.strategyEditor === 'sampling' ? '.TEST' : '';
 
     super.updateView(data, opts);
   }

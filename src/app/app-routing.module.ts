@@ -103,6 +103,11 @@ const routes: Routes = [
       {
         path: 'trip',
         loadChildren: () => import('./trip/trip.testing.module').then(m => m.TripTestingModule)
+      },
+      // Referential module
+      {
+        path: 'referential',
+        loadChildren: () => import('./referential/referential.testing.module').then(m => m.ReferentialTestingModule)
       }
     ]
   },

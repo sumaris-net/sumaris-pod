@@ -97,6 +97,7 @@ import {TaxonNamePage} from "./taxon/taxon-name.page";
     PmfmQvFormField,
     PmfmsTable,
     SelectPmfmModal,
+    PmfmStrategiesTable,
     TaxonNamePage
   ]
 })

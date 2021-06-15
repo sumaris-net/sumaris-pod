@@ -1,7 +1,7 @@
 <ng-container *ngIf="value && value.id">
   <ion-card @fadeInAnimation>
     <ion-item color="light"
-              *ngIf="value &&  (value.recorderDepartment || value.recorderPerson)">
+              *ngIf="value &&  (value.recorderDepartment || value.recorderPerson) && showRecorder">
 
       <!-- recorder avatar -->
       <ion-avatar slot="start" *ngIf="value.recorderPerson; let recorderPerson">

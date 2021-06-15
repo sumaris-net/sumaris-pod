@@ -162,7 +162,7 @@
 
     <!-- TAB: comments -->
     <mat-tab label="{{'COMMON.COMMENTS'|translate}}"
-             [disabled]="!showSamplesTable || !oneTabMode">
+             [disabled]="!oneTabMode">
       <ng-template mat-tab-label>
         <mat-icon color="primary" *ngIf="form.controls.comments.valueChanges | async | isNotNilOrBlank; else emptyComment">chat_bubble</mat-icon>
         <ng-template #emptyComment>

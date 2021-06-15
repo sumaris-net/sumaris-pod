@@ -7,7 +7,7 @@ import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {changeCaseToUnderscore, isNotEmptyArray, isNotNil, removeDuplicatesFromArray} from "../../shared/functions";
+import {changeCaseToUnderscore, isNotEmptyArray, isNotNil, removeDuplicatesFromArray, suggestFromArray} from "../../shared/functions";
 import {BehaviorSubject, Observable, of} from "rxjs";
 import {firstFalsePromise} from "../../shared/observables";
 import {PmfmFilter, PmfmService} from "../services/pmfm.service";
@@ -485,11 +485,12 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   /* -- protected functions -- */
 
   protected async suggestPmfms(value: any, opts?: any): Promise<LoadResult<Pmfm>> {
-    return this.pmfmService.suggest(value, {
+    const res = await this.pmfmService.suggest(value, {
       searchJoin: 'parameter',
       searchAttribute: !this.showPmfmLabel ? 'name' : undefined,
       ...this.pmfmFilter
     });
+    return res;
   }
 
   protected async suggestParameters(value: any, opts?: any): Promise<IReferentialRef[] | LoadResult<IReferentialRef>> {

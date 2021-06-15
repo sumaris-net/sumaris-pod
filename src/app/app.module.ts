@@ -45,10 +45,11 @@ import {TRIP_TESTING_PAGES} from "./trip/trip.testing.module";
 import {EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES} from "./extraction/services/config/extraction.config";
 import {REFERENTIAL_CONFIG_OPTIONS, REFERENTIAL_GRAPHQL_TYPE_POLICIES, REFERENTIAL_LOCAL_SETTINGS_OPTIONS} from "./referential/services/config/referential.config";
 import {FormFieldDefinitionMap} from "./shared/form/field.model";
-import {DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
+import {DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
 import {DATE_ISO_PATTERN} from "./shared/constants";
 import {VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS} from "./vessel/services/config/vessel.config";
 import {JDENTICON_CONFIG} from "ngx-jdenticon";
+import { REFERENTIAL_TESTING_PAGES } from "./referential/referential.testing.module";
 import {APP_ABOUT_PARTNERS, Department} from "@sumaris/ngx-components";
 
 
@@ -180,6 +181,7 @@ import {APP_ABOUT_PARTNERS, Department} from "@sumaris/ngx-components";
       ...CORE_CONFIG_OPTIONS,
       ...REFERENTIAL_CONFIG_OPTIONS,
       ...VESSEL_CONFIG_OPTIONS,
+      ...DATA_CONFIG_OPTIONS,
       ...EXTRACTION_CONFIG_OPTIONS,
       ...TRIP_CONFIG_OPTIONS
     }},
@@ -293,7 +295,7 @@ import {APP_ABOUT_PARTNERS, Department} from "@sumaris/ngx-components";
 
     // Testing pages
     { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
-        ...TRIP_TESTING_PAGES
+        ...TRIP_TESTING_PAGES, ...REFERENTIAL_TESTING_PAGES
     ]},
 
     // Custom identicon style

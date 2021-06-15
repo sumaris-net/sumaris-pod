@@ -71,7 +71,7 @@
     <mat-tab label="{{'PROGRAM.TAB_STRATEGIES'|translate}}" [disabled]="isNewData">
       <ng-template mat-tab-label>
         <mat-icon>date_range</mat-icon>
-        <ion-label translate>PROGRAM.TAB_STRATEGIES</ion-label>
+        <ion-label>{{'PROGRAM.TAB_STRATEGIES' + i18nTabStrategiesSuffix | translate}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="strategiesTable?.invalid"></ion-icon>
       </ng-template>
 
