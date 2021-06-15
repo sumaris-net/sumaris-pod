@@ -228,7 +228,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     // Applying the filter (will reload if emitEvent = true)
     this.filterForm.patchValue({entityName}, {emitEvent: false});
-    this.applyFilter({
+    this.setFilter({
       ...this.filterForm.value,
       entityName
     }, {emitEvent: opts.emitEvent});

@@ -487,7 +487,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
           if (saved) {
             this.applyFilter(filter, opts);
           }
-        })
+        });
 
       } else {
         // apply filter on non dirty table
@@ -503,7 +503,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   /* -- internal method -- */
 
-  protected applyFilter(filter: F, opts: { emitEvent: boolean; }) {
+  private applyFilter(filter: F, opts: { emitEvent: boolean; }) {
     if (this.debug) console.debug('[table] Applying filter', filter);
     this._filter = filter;
     if (opts.emitEvent) {
@@ -515,7 +515,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
 
-  protected listenDatasource(dataSource: EntitiesTableDataSource<T, F>) {
+  private listenDatasource(dataSource: EntitiesTableDataSource<T, F>) {
     if (!dataSource) throw new Error("[table] dataSource not set !");
 
     // Cleaning previous subscription on datasource
