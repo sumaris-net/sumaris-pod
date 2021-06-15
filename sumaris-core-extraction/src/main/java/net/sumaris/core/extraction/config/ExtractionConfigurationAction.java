@@ -40,9 +40,9 @@ public enum ExtractionConfigurationAction implements ConfigActionDef {
     AGGREGATION(AgggregationAction.class.getName() + "#execute", "Execute an aggregation", "--aggregation"),
     EXTRACTION_PRODUCT_UPDATE(ProductAction.class.getName() + "#update", "Update extraction products", "--extraction-product-update");
 
-    public final String action;
-    public final String description;
-    public final String[] aliases;
+    private final String action;
+    private final String description;
+    private final String[] aliases;
 
     ExtractionConfigurationAction(String action, String description, String... aliases) {
         this.action = action;
