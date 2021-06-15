@@ -190,7 +190,7 @@ public final class ExtractionTableColumnOrder {
         
         // Workaround need on SUMARiS DB
         if (fixTableName.startsWith("P01_ICES")) {
-            fixTableName.replaceAll("P01_ICES_", "P01_RDB_");
+            fixTableName = fixTableName.replaceAll("P01_ICES_", "P01_RDB_");
         }
 
         String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(fixTableName);

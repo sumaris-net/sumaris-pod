@@ -176,30 +176,28 @@ public class Application {
 			}
 		}
 
-		waitConfigurationReady(appContext);
 
 		try {
+			waitConfigurationReady(appContext);
+
 			SumarisConfiguration.getInstance().getApplicationConfig().doAllAction();
 			System.exit(0);
 		} catch(Exception e) {
-			log.error("Error while executing action", e);
+			if (!(e instanceof InterruptedException)) {
+				log.error("Error while executing action", e);
+			}
 			System.exit(1);
 		}
 	}
 
-	protected static void waitConfigurationReady(ApplicationContext appContext) {
+	protected static void waitConfigurationReady(ApplicationContext appContext) throws InterruptedException {
 		try {
 			// Get the configuration service bean
 			ConfigurationService service = appContext.getBean(ConfigurationService.class);
 
 			// Make sure configuration has been loaded
 			while(!service.isReady()) {
-				try {
-					Thread.sleep(1000);
-				}
-				catch (InterruptedException e) {
-					// End
-				}
+				Thread.sleep(1000);
 			}
 		} catch (NoSuchBeanDefinitionException e) {
 			// continue
