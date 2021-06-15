@@ -33,7 +33,7 @@ import org.w3.GEO;
  * see http://www.sandre.eaufrance.fr/atlas/srv/fre/catalog.search#/metadata/0bea2eb9-a4ee-4a81-b494-bd4fb5338ef8
  */
 public class INC {
-    public static final String NS = "http://id.eaufrance.fr/ddd/INC/";
+    public static final String NS = "http://id.eaufrance.fr/ddd/INC/1.0/";
 
     public static final String PREFIX = "inc";
     public static String getURI() {
@@ -52,14 +52,14 @@ public class INC {
 
     public static final Resource Interlocuteur = resource("Interlocuteur");
 
-    public static final Resource AdresseInterlocuteur = resource("1.0/#AdresseInterlocuteur");
-    public static final Resource Compl2Adresse = resource("1.0/Compl2Adresse");
-    public static final Resource Compl3Adresse = resource("1.0/Compl3Adresse");
-    public static final Resource NumLbVoieAdresse = resource("1.0/NumLbVoieAdresse");
-    public static final Resource LgAcheAdresse = resource("1.0/LgAcheAdresse");
-    public static final Resource PaysInterlocuteur = resource("1.0/PaysInterlocuteur");
-    public static final Resource CdPays = resource("1.0/CdPays");
-    public static final Resource DateCreInterlocuteur = resource("1.0/DateCreInterlocuteur");
-    public static final Resource DateMAJInterlocuteur = resource("1.0/DateMAJInterlocuteur");
+    public static final Resource AdresseInterlocuteur = resource("AdresseInterlocuteur");
+    public static final Resource Compl2Adresse = resource("Compl2Adresse");
+    public static final Resource Compl3Adresse = resource("Compl3Adresse");
+    public static final Resource NumLbVoieAdresse = resource("NumLbVoieAdresse");
+    public static final Resource LgAcheAdresse = resource("LgAcheAdresse");
+    public static final Resource PaysInterlocuteur = resource("PaysInterlocuteur");
+    public static final Resource CdPays = resource("CdPays");
+    public static final Resource DateCreInterlocuteur = resource("DateCreInterlocuteur");
+    public static final Resource DateMAJInterlocuteur = resource("DateMAJInterlocuteur");
 
 }

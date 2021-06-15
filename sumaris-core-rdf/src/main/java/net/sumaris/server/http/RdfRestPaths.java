@@ -22,7 +22,7 @@
 
 package net.sumaris.server.http;
 
-public interface RestPaths {
+public interface RdfRestPaths {
     String SPARQL_ENDPOINT = "/sparql";
 
     String ONTOLOGY_BASE_PATH = "/ontology";
