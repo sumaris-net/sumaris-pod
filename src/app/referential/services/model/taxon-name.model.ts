@@ -1,32 +1,28 @@
-import {Referential, ReferentialRef} from "../../../core/services/model/referential.model";
+import {BaseReferential, Referential, ReferentialRef} from "../../../core/services/model/referential.model";
 import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
 import {Moment} from "moment";
+import {EntityClass} from "@app/core/services/model/entity.decorators";
 
-export class TaxonName extends Referential<TaxonName> {
+@EntityClass({typename: 'TaxonNameVO'})
+export class TaxonName extends BaseReferential<TaxonName> {
 
-  static TYPENAME = 'TaxonName';
-
-  static fromObject(source: any): TaxonName {
-    if (!source || source instanceof TaxonName) return source;
-    const res = new TaxonName();
-    res.fromObject(source);
-    return res;
-  }
+  static ENTITY_NAME = 'TaxonName';
+  static fromObject: (source: any, opts?: any) => TaxonName;
 
   isReferent: boolean;
   isNaming: boolean;
   isVirtual: boolean;
   taxonGroupIds: number[];
   referenceTaxonId: number;
-  taxonomicLevel: Referential;
-  parentTaxonName: TaxonName;
+  taxonomicLevel: ReferentialRef;
+  parentTaxonName: ReferentialRef;
   useExistingReferenceTaxon: boolean;
   startDate: Moment;
   endDate: Moment;
 
   constructor() {
-    super();
-    this.entityName = TaxonName.TYPENAME;
+    super(TaxonName.TYPENAME);
+    this.entityName = TaxonName.ENTITY_NAME;
   }
 
   clone(): TaxonName {

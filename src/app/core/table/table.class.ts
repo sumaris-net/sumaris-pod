@@ -528,7 +528,7 @@ export abstract class AppTable<
   }
 
 
-  private listenDatasource(dataSource: EntitiesTableDataSource<T, F>) {
+  private listenDatasource(dataSource: EntitiesTableDataSource<T, F, ID>) {
     if (!dataSource) throw new Error("[table] dataSource not set !");
 
     // Cleaning previous subscription on datasource

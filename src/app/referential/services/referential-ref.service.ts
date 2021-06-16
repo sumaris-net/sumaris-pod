@@ -608,7 +608,6 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     ParameterLabelGroups.MATURITY = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_MATURITY_LABELS);
 
     // PMFM
-    PmfmIds.MORSE_CODE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_MORSE_CODE_ID);
     PmfmIds.STRATEGY_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_STRATEGY_LABEL_ID);
     PmfmIds.AGE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_AGE_ID);
     PmfmIds.SEX = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SEX_ID);
