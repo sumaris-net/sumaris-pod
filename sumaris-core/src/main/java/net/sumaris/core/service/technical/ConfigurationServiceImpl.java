@@ -188,9 +188,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         }
     }
 
-    /* -- protected methods -- */
-
-    protected void updateConfigFromSoftwareProperties() {
+    @Override
+    public void updateConfigFromSoftwareProperties() {
 
         boolean newDatabase = false;
 
@@ -214,6 +213,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         updateModelEnumerations();
     }
 
+    /* -- protected methods -- */
 
     protected void applySoftwareProperties(ApplicationConfig appConfig, SoftwareVO software) {
         if (software == null) {

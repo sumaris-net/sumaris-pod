@@ -30,10 +30,7 @@ import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
@@ -51,24 +48,20 @@ public class ConfigurationServiceOracleTest extends AbstractServiceTest {
     private PersonService service;
 
     @Autowired
-    private ReferentialService referentialService;
-
-    @Autowired
     private ConfigurationService configurationService;
 
-    @Test
-    public void applySoftwareConfig() {
+    @Before
+    public void setup() {
         // force apply software configuration
-        configurationService.applySoftwareConfig();
+        configurationService.updateConfigFromSoftwareProperties();
     }
 
     @Test
-    public void checkUserProfile() {
-
+    public void checkUserProfileEnumOverride() {
         // ADMIN label must be changed
         Assert.assertEquals("ALLEGRO_ADMINISTRATEUR", UserProfileEnum.ADMIN.getLabel());
 
-        PersonVO person = service.get(33); // jlucas
+        PersonVO person = service.getById(33); // jlucas
         Assert.assertNotNull(person);
         Assert.assertNotNull(person.getProfiles());
         Assert.assertTrue(person.getProfiles().size() > 1);
@@ -78,7 +71,7 @@ public class ConfigurationServiceOracleTest extends AbstractServiceTest {
     }
 
     @Test
-    public void checkQualityFlag() {
+    public void checkQualityFlagEnumOverride() {
 
         Assert.assertEquals((Integer) 0, QualityFlagEnum.NOT_QUALIFIED.getId());
         Assert.assertEquals((Integer) 1, QualityFlagEnum.GOOD.getId());

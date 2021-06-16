@@ -188,8 +188,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         // Prepare basedir
         fixBasedir(applicationConfig);
 
-        if (log.isDebugEnabled())
-            log.debug(applicationConfig.getPrintableConfig(null, 4));
+        if (log.isTraceEnabled())
+            log.trace(applicationConfig.getPrintableConfig(null, 4));
 
     }
 

@@ -32,6 +32,7 @@ public interface ConfigurationService {
 
     boolean isReady();
 
+    void updateConfigFromSoftwareProperties();
 }
 
 
