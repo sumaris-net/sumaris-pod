@@ -233,7 +233,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         int qualityFlagId = vo.getQualityFlagId() != null ? vo.getQualityFlagId() : 0;
 
         // If not qualify, then remove the qualification date
-        if (qualityFlagId == QualityFlagEnum.NOT_QUALIFED.getId()) {
+        if (qualityFlagId == QualityFlagEnum.NOT_QUALIFIED.getId()) {
             entity.setQualificationDate(null);
         }
         else {

@@ -22,8 +22,8 @@
 
 package net.sumaris.core.model.referential;
 
-import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -31,43 +31,42 @@ import java.util.Arrays;
 @EntityEnum(entity = QualityFlag.class, joinAttributes = {IEntity.Fields.ID})
 public enum QualityFlagEnum implements Serializable {
 
-    NOT_QUALIFED(0, "Not qualified"),
+    NOT_QUALIFIED(0, "Not qualified"),
     GOOD(1, "Good"),
     OUT_STATS(2, "Out of statistics"),
     DOUBTFUL(3, "Doubtful"),
     BAD(4, "Bad"),
     FIXED(5, "Fixed"),
     NOT_COMPLETED(8, "Not completed"),
-    MISSING(9, "Missing")
-    ;
+    MISSING(9, "Missing");
 
     public static QualityFlagEnum valueOf(final int id) {
         return Arrays.stream(values())
-                .filter(enumValue -> enumValue.id == id)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown QualityFlagEnum: " + id));
+            .filter(enumValue -> enumValue.id == id)
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown QualityFlagEnum: " + id));
     }
 
     public static QualityFlagEnum byLabel(final String label) {
         return Arrays.stream(values())
-                .filter(level -> label.equals(level.label))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown QualityFlagEnum: " + label));
+            .filter(level -> label.equals(level.label))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown QualityFlagEnum: " + label));
     }
 
-    private int id;
+    private Integer id;
     private String label;
 
-    QualityFlagEnum(int id, String label) {
+    QualityFlagEnum(Integer id, String label) {
         this.id = id;
         this.label = label;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

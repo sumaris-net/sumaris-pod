@@ -134,10 +134,51 @@ public class TripRepositoryImpl
             }
 
         }
-
         // Update the given VO (will be returned by the save() function)
         vo.setLandingId(landingId);
         vo.setObservedLocationId(observedLocationId);
+    }
+
+    @Override
+    // TODO BLA check if need
+    public TripVO qualify(TripVO vo) {
+        Preconditions.checkNotNull(vo);
+
+        Trip entity = getOne(Trip.class, vo.getId());
+
+        // Check update date
+        Daos.checkUpdateDateForUpdate(vo, entity);
+
+        // Lock entityName
+        // lockForUpdate(entity);
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        int qualityFlagId = vo.getQualityFlagId() != null ? vo.getQualityFlagId() : 0;
+
+        // If not qualify, then remove the qualification date
+        if (qualityFlagId == QualityFlagEnum.NOT_QUALIFIED.getId()) {
+            entity.setQualificationDate(null);
+        } else {
+            entity.setQualificationDate(newUpdateDate);
+        }
+        // Apply a find, because can return a null value (e.g. if id is not in the DB instance)
+        entity.setQualityFlag(find(QualityFlag.class, qualityFlagId));
+
+        // TODO UNVALIDATION PROCESS HERE
+        // - insert into qualification history
+
+        // Save entityName
+        getEntityManager().merge(entity);
+
+        // Update source
+        vo.setQualificationDate(entity.getQualificationDate());
+        vo.setQualityFlagId(entity.getQualityFlag() != null ? entity.getQualityFlag().getId() : 0);
+        vo.setUpdateDate(newUpdateDate);
+
+        return vo;
     }
 
 }

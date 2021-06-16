@@ -12,12 +12,12 @@ package net.sumaris.core.util;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -70,13 +70,13 @@ public class Beans {
      * <p>getList.</p>
      *
      * @param list a {@link Collection} object.
-     * @param <E> a E object.
+     * @param <E>  a E object.
      * @return a {@link List} object.
      */
     public static <E> List<E> getList(Collection<E> list) {
         if (CollectionUtils.isEmpty(list)) {
             return Lists.newArrayList();
-        } else if (list instanceof List<?>){
+        } else if (list instanceof List<?>) {
             return (List<E>) list;
         } else {
             return Lists.newArrayList(list);
@@ -87,7 +87,7 @@ public class Beans {
      * <p>getList.</p>
      *
      * @param list a {@link Collection} object.
-     * @param <E> a E object.
+     * @param <E>  a E object.
      * @return a {@link List} object.
      */
     public static <E> Stream<E> getStream(Collection<E> list) {
@@ -108,7 +108,7 @@ public class Beans {
      * <p>getListWithoutNull.</p>
      *
      * @param list a {@link Collection} object.
-     * @param <E> a E object.
+     * @param <E>  a E object.
      * @return a {@link List} object.
      */
     public static <E> List<E> getListWithoutNull(Collection<E> list) {
@@ -121,7 +121,7 @@ public class Beans {
      * <p>getSet.</p>
      *
      * @param list a {@link Collection} object.
-     * @param <E> a E object.
+     * @param <E>  a E object.
      * @return a {@link Set} object.
      */
     public static <E> Set<E> getSet(Collection<E> list) {
@@ -136,7 +136,7 @@ public class Beans {
      * <p>getSetWithoutNull.</p>
      *
      * @param list a {@link Collection} object.
-     * @param <E> a E object.
+     * @param <E>  a E object.
      * @return a {@link Set} object.
      */
     public static <E> Set<E> getSetWithoutNull(Collection<E> list) {
@@ -174,10 +174,10 @@ public class Beans {
     /**
      * <p>splitByProperty.</p>
      *
-     * @param list a {@link Iterable} object.
+     * @param list         a {@link Iterable} object.
      * @param propertyName a {@link String} object.
-     * @param <K> a K object.
-     * @param <V> a V object.
+     * @param <K>          a K object.
+     * @param <V>          a V object.
      * @return a {@link Map} object.
      */
     public static <K, V> Map<K, V> splitByProperty(Iterable<V> list, String propertyName) {
@@ -189,10 +189,10 @@ public class Beans {
     /**
      * <p>splitByProperty.</p>
      *
-     * @param list a {@link Iterable} object.
+     * @param list         a {@link Iterable} object.
      * @param propertyName a {@link String} object.
-     * @param <K> a K object.
-     * @param <V> a V object.
+     * @param <K>          a K object.
+     * @param <V>          a V object.
      * @return a {@link Map} object.
      */
     public static <K, V> ListMultimap<K, V> splitByNotUniqueProperty(Iterable<V> list, String propertyName) {
@@ -205,7 +205,7 @@ public class Beans {
      * <p>splitByProperty.</p>
      *
      * @param list a {@link Iterable} object.
-     * @param <V> a V object.
+     * @param <V>  a V object.
      * @return a {@link Map} object.
      */
     public static <V> Multimap<Integer, V> splitByNotUniqueHashcode(Iterable<V> list) {
@@ -216,8 +216,8 @@ public class Beans {
      * <p>splitByProperty.</p>
      *
      * @param list a {@link Iterable} object.
-     * @param <K> a K object.
-     * @param <V> a V object.
+     * @param <K>  a K object.
+     * @param <V>  a V object.
      * @return a {@link Map} object.
      */
     public static <K extends Serializable, V extends IEntity<K>> Map<K, V> splitById(Iterable<V> list) {
@@ -228,8 +228,8 @@ public class Beans {
      * <p>splitByProperty.</p>
      *
      * @param list a {@link Iterable} object.
-     * @param <K> a K object.
-     * @param <V> a V object.
+     * @param <K>  a K object.
+     * @param <V>  a V object.
      * @return a {@link Map} object.
      */
     public static <K extends Serializable, V extends IEntity<K>> List<K> collectIds(Collection<V> list) {
@@ -251,10 +251,10 @@ public class Beans {
     /**
      * <p>collectProperties.</p>
      *
-     * @param collection a {@link Collection} object.
+     * @param collection   a {@link Collection} object.
      * @param propertyName a {@link String} object.
-     * @param <K> a K object.
-     * @param <V> a V object.
+     * @param <K>          a K object.
+     * @param <V>          a V object.
      * @return a {@link List} object.
      */
     public static <K, V> List<K> collectProperties(Collection<V> collection, String propertyName) {
@@ -296,7 +296,7 @@ public class Beans {
         try {
             return (V) PropertyUtils.getProperty(object, propertyName);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new SumarisTechnicalException( String.format("Could not find property %1s on object of type %2s", propertyName, object.getClass().getName()), e);
+            throw new SumarisTechnicalException(String.format("Could not find property %1s on object of type %2s", propertyName, object.getClass().getName()), e);
         }
     }
 
@@ -328,7 +328,7 @@ public class Beans {
         try {
             PropertyUtils.setProperty(object, propertyName, value);
         } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-            throw new SumarisTechnicalException( String.format("Could not set property %1s not found on object of type %2s", propertyName, object.getClass().getName()), e);
+            throw new SumarisTechnicalException(String.format("Could not set property %1s not found on object of type %2s", propertyName, object.getClass().getName()), e);
         }
     }
 
@@ -350,7 +350,7 @@ public class Beans {
         if (StringUtils.isBlank(value)) return new String[0];
         StringTokenizer tokenizer = new StringTokenizer(value, delimiter);
         String[] values = new String[tokenizer.countTokens()];
-        int i=0;
+        int i = 0;
         while (tokenizer.hasMoreTokens()) {
             values[i] = tokenizer.nextToken();
             i++;
@@ -382,14 +382,13 @@ public class Beans {
 
         if (SortDirection.ASC.equals(sortDirection)) {
             return (o1, o2) -> propertyComparator.compare(
-                        getProperty(o1, sortAttribute),
-                        getProperty(o2, sortAttribute)
-                );
-        }
-        else {
+                getProperty(o1, sortAttribute),
+                getProperty(o2, sortAttribute)
+            );
+        } else {
             return (o1, o2) -> propertyComparator.compare(
-                    getProperty(o2, sortAttribute),
-                    getProperty(o1, sortAttribute)
+                getProperty(o2, sortAttribute),
+                getProperty(o1, sortAttribute)
             );
         }
     }
@@ -403,6 +402,7 @@ public class Beans {
 
     /**
      * Usefull method that ignore complex type, as list
+     *
      * @param source
      * @param target
      */
@@ -412,6 +412,7 @@ public class Beans {
 
     /**
      * Usefull method that ignore complex type, as list
+     *
      * @param source
      * @param target
      */

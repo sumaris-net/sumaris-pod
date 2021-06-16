@@ -13,7 +13,7 @@
   <logger name="hsqldb" level="WARN" />
   <logger name="liquibase" level="ERROR" />
   <logger name="org.nuiton" level="ERROR" />
-  <logger name="net.sumaris" level="INFO" />
+  <logger name="net.sumaris" level="DEBUG" />
 
   <root level="warn">
     <appender-ref ref="STDOUT"/>

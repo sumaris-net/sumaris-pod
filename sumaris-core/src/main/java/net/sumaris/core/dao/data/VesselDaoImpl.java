@@ -574,7 +574,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
         }
         else if (copyIfNull) {
             // Set default
-            target.setQualityFlag(getReference(QualityFlag.class, QualityFlagEnum.NOT_QUALIFED.getId()));
+            target.setQualityFlag(getReference(QualityFlag.class, QualityFlagEnum.NOT_QUALIFIED.getId()));
         }
     }
 

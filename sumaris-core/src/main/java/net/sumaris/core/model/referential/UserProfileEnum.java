@@ -10,12 +10,12 @@ package net.sumaris.core.model.referential;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -55,10 +55,10 @@ public enum UserProfileEnum {
     }
 
 
-    public int id;
+    public Integer id;
     public String label;
 
-    UserProfileEnum(int id, String label) {
+    UserProfileEnum(Integer id, String label) {
       this.id = id;
       this.label = label;
     }
@@ -69,12 +69,12 @@ public enum UserProfileEnum {
      *
      * @return int the id
      */
-    public int getId()
+    public Integer getId()
     {
         return this.id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -84,8 +84,7 @@ public enum UserProfileEnum {
      *
      * @return int the id
      */
-    public String getLabel()
-    {
+    public String getLabel() {
         return this.label;
     }
 
