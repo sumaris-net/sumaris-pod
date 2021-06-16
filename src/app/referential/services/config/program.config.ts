@@ -1,6 +1,6 @@
-import {FormFieldDefinition, FormFieldDefinitionMap} from "../../../shared/form/field.model";
+import {FormFieldDefinition, FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
 import {LocationLevelIds} from "../model/model.enum";
-import {StatusIds} from "../../../core/services/model/model.enum";
+import {StatusIds}  from "@sumaris-net/ngx-components";
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 

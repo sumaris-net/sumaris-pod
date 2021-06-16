@@ -1,20 +1,20 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
-import {LoadResult, SuggestService} from "../../shared/services/entity-service.class";
-import {GraphqlService} from "../../core/graphql/graphql.service";
+import {LoadResult, SuggestService} from "@sumaris-net/ngx-components";
+import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {ReferentialFragments} from "./referential.fragments";
 import {BehaviorSubject} from "rxjs";
-import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {NetworkService}  from "@sumaris-net/ngx-components";
+import {EntitiesStorage}  from "@sumaris-net/ngx-components";
+import {ReferentialUtils}  from "@sumaris-net/ngx-components";
 import {VesselSnapshot} from "./model/vessel-snapshot.model";
 import {SortDirection} from "@angular/material/sort";
-import {JobUtils} from "../../shared/services/job.utils";
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {StatusIds} from "../../core/services/model/model.enum";
+import {JobUtils} from "@sumaris-net/ngx-components";
+import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
+import {StatusIds}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
-import {EntityUtils} from "../../core/services/model/entity.model";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
 import {VesselSnapshotFilter} from "./filter/vessel.filter";
 
 

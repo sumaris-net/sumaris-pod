@@ -4,12 +4,12 @@ import {BehaviorSubject} from "rxjs";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {BatchForm} from "../form/batch.form";
 import {ModalController} from "@ionic/angular";
-import {PlatformService} from "../../../core/services/platform.service";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {TranslateService} from "@ngx-translate/core";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {toBoolean} from "../../../shared/functions";
-import {AppFormUtils} from "../../../core/form/form.utils";
+import {toBoolean} from "@sumaris-net/ngx-components";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
 
 @Component({
     selector: 'app-batch-modal',

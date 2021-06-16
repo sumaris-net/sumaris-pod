@@ -6,15 +6,15 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {OperationFilter, OperationService, OperationServiceWatchOptions} from "../services/operation.service";
 import {TranslateService} from "@ngx-translate/core";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
-import {isNotNil, toBoolean} from "../../shared/functions";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {LatLongPattern} from "@sumaris-net/ngx-components";
+import {isNotNil, toBoolean} from "@sumaris-net/ngx-components";
 import {OperationsMap} from "./map/operations.map";
-import {AccountService} from "../../core/services/account.service";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
+import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
-import {firstNotNilPromise} from "../../shared/observables";
+import {firstNotNilPromise} from "@sumaris-net/ngx-components";
 import {Operation} from "../services/model/trip.model";
 
 

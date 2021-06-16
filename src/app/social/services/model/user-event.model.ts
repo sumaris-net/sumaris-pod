@@ -1,8 +1,8 @@
 import {Moment} from "moment";
-import {Entity, EntityAsObjectOptions, IEntity} from "../../../core/services/model/entity.model";
+import {Entity, EntityAsObjectOptions, IEntity}  from "@sumaris-net/ngx-components";
 import {PredefinedColors} from "@ionic/core";
-import {fromDateISOString} from "../../../shared/dates";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {fromDateISOString} from "@sumaris-net/ngx-components";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 
 export const UserEventTypes = {
   DEBUG_DATA: 'DEBUG_DATA',

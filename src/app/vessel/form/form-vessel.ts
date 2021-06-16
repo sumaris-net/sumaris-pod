@@ -2,17 +2,17 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {VesselValidatorService} from "../services/validator/vessel.validator";
 import {Vessel} from "../services/model/vessel.model";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {DefaultStatusList, referentialToString} from "../../core/services/model/referential.model";
+import {DefaultStatusList, referentialToString}  from "@sumaris-net/ngx-components";
 import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
 import {ReferentialRefService} from '../../referential/services/referential-ref.service';
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AccountService} from "../../core/services/account.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {AccountService}  from "@sumaris-net/ngx-components";
 import {FormGroup} from "@angular/forms";
-import {AppForm} from "../../core/form/form.class";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {AppFormUtils} from "../../core/form/form.utils";
-import {toBoolean} from "../../shared/functions";
+import {AppForm}  from "@sumaris-net/ngx-components";
+import {StatusIds}  from "@sumaris-net/ngx-components";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
+import {toBoolean} from "@sumaris-net/ngx-components";
 
 
 @Component({

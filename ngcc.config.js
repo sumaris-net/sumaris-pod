@@ -8,7 +8,14 @@ module.exports = {
     '@sumaris-net/ngx-components': {
       ignorableDeepImportMatchers: [
         /@ionic-native\//,
+        /ionic-cache\//,
         /uuid\//,
+        /zone.js\//,
+        /zone-error\//,
+        /@apollo\//,
+        /apollo-angular\//,
+        /moment\//,
+        /ngx-material-table\//
       ]
     }
   }

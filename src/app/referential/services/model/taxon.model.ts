@@ -1,7 +1,7 @@
-import {BaseReferential, IReferentialRef, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {isNil, isNotNil, uncapitalizeFirstLetter} from "../../../shared/functions";
-import {Entity} from "../../../core/services/model/entity.model";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {BaseReferential, IReferentialRef, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {isNil, isNotNil, uncapitalizeFirstLetter} from "@sumaris-net/ngx-components";
+import {Entity}  from "@sumaris-net/ngx-components";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 
 
 export const TaxonGroupTypeIds = {

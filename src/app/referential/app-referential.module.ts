@@ -1,6 +1,5 @@
 import {NgModule} from '@angular/core';
-import {CoreModule} from '../core/core.module';
-import {ReferentialsPage} from './list/referentials.page';
+import {CoreModule} from "@sumaris-net/ngx-components";
 
 import {ReferentialForm} from "./form/referential.form";
 import {ProgramPage} from "./program/program.page";
@@ -29,13 +28,16 @@ import {SimpleReferentialTable} from "./list/referential-simple.table";
 import {PmfmsTable} from "./pmfm/pmfms.table";
 import {SelectPmfmModal} from "./pmfm/select-pmfm.modal";
 import {TaxonNamePage} from "./taxon/taxon-name.page";
+import {ReferentialsPage} from '@app/referential/list/referentials.page';
+import {AppCoreModule} from '@app/core/core.module';
 
 @NgModule({
   imports: [
     CommonModule,
-    CoreModule,
     TextMaskModule,
-    TranslateModule.forChild()
+    TranslateModule.forChild(),
+
+    AppCoreModule
   ],
   declarations: [
     // Pipes
@@ -101,5 +103,5 @@ import {TaxonNamePage} from "./taxon/taxon-name.page";
     TaxonNamePage
   ]
 })
-export class ReferentialModule {
+export class AppReferentialModule {
 }

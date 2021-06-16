@@ -68,13 +68,13 @@
           <ion-col class="ion-padding">
 
             <!-- observed location -->
-            <form-observed-location #observedLocationForm
-                                    [programLabel]="$programLabel|async"
-                                    [showError]="false"
-                                    [showEndDateTime]="false"
-                                    [debug]="debug"
-                                    (onSubmit)="save($event)">
-            </form-observed-location>
+            <app-form-observed-location #observedLocationForm
+                                        [programLabel]="$programLabel|async"
+                                        [showError]="false"
+                                        [showEndDateTime]="false"
+                                        [debug]="debug"
+                                        (onSubmit)="save($event)">
+            </app-form-observed-location>
           </ion-col>
 
           <!-- quality data -->

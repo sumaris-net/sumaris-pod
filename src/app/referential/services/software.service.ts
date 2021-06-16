@@ -2,11 +2,11 @@ import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {Observable, Subject} from "rxjs";
 import {ErrorCodes} from "./errors";
-import {isNotNil} from "../../shared/functions";
-import {Software} from "../../core/services/model/config.model";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
+import {isNotNil} from "@sumaris-net/ngx-components";
+import {Software}  from "@sumaris-net/ngx-components";
+import {GraphqlService}  from "@sumaris-net/ngx-components";
+import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
+import {EntityServiceLoadOptions, IEntityService} from "@sumaris-net/ngx-components";
 import {Environment} from "../../../environments/environment.class";
 
 /* ------------------------------------

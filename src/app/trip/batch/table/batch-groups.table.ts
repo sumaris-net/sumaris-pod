@@ -2,21 +2,21 @@ import {ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Outpu
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {FormGroup, Validators} from "@angular/forms";
 import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from "./batches.table";
-import {isNil, isNotEmptyArray, isNotNil, isNotNilOrNaN, propertiesPathComparator, toFloat, toInt, toNumber} from "../../../shared/functions";
+import {isNil, isNotEmptyArray, isNotNil, isNotNilOrNaN, propertiesPathComparator, toFloat, toInt, toNumber} from "@sumaris-net/ngx-components";
 import {AcquisitionLevelCodes, MethodIds} from "../../../referential/services/model/model.enum";
 import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
+import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
 import {MeasurementFormValues, MeasurementValuesUtils} from "../../services/model/measurement.model";
 import {ModalController} from "@ionic/angular";
 import {Batch, BatchUtils, BatchWeight} from "../../services/model/batch.model";
-import {ColumnItem, TableSelectColumnsComponent} from "../../../core/table/table-select-columns.component";
-import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, SETTINGS_DISPLAY_COLUMNS} from "../../../core/table/table.class";
+import {ColumnItem, TableSelectColumnsComponent}  from "@sumaris-net/ngx-components";
+import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, SETTINGS_DISPLAY_COLUMNS}  from "@sumaris-net/ngx-components";
 import {BatchGroupModal} from "../modal/batch-group.modal";
-import {FormFieldDefinition} from "../../../shared/form/field.model";
-import {firstFalsePromise} from "../../../shared/observables";
+import {FormFieldDefinition} from "@sumaris-net/ngx-components";
+import {firstFalsePromise} from "@sumaris-net/ngx-components";
 import {BatchGroup} from "../../services/model/batch-group.model";
-import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {PlatformService} from "../../../core/services/platform.service";
+import {IReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {PlatformService}  from "@sumaris-net/ngx-components";
 import {SubBatch} from "../../services/model/subbatch.model";
 import {defer, Observable, Subject} from "rxjs";
 import {map, takeUntil} from "rxjs/operators";
@@ -26,7 +26,7 @@ import {MatMenuTrigger} from "@angular/material/menu";
 import {BatchGroupValidatorService} from "../../services/validator/batch-group.validator";
 import {IPmfm} from "../../../referential/services/model/pmfm.model";
 import {ISampleModalOptions} from "../../sample/sample.modal";
-import {isInstanceOf} from "../../../core/services/model/entity.model";
+import {isInstanceOf}  from "@sumaris-net/ngx-components";
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
 

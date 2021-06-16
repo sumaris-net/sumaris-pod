@@ -1,30 +1,36 @@
-import {Injectable} from "@angular/core";
-import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {Observable} from "rxjs";
-import {map} from "rxjs/operators";
-import {ErrorCodes} from "./errors";
-import {ReferentialFragments} from "./referential.fragments";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
-import {isNil, isNotNil} from "../../shared/functions";
-import {CacheService} from "ionic-cache";
-import {ReferentialRefService} from "./referential-ref.service";
-import {AccountService} from "../../core/services/account.service";
-import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../core/services/model/referential.model";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {Program} from "./model/program.model";
-import {SortDirection} from "@angular/material/sort";
-import {ReferentialService} from "./referential.service";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {ProgramFragments} from "./program.fragments";
-import {BaseEntityGraphqlMutations, BaseEntityGraphqlQueries} from "./base-entity-service.class";
-import {ProgramRefService} from "./program-ref.service";
-import {PlatformService} from "../../core/services/platform.service";
-import {BaseReferentialService} from "./base-referential-service.class";
-import {StrategyRefService} from "./strategy-ref.service";
-import {ProgramFilter} from "./filter/program.filter";
+import {Injectable} from '@angular/core';
+import {FetchPolicy, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
+import {ErrorCodes} from './errors';
+import {ReferentialFragments} from './referential.fragments';
+import {
+  AccountService,
+  EntitiesStorage,
+  EntityUtils,
+  GraphqlService,
+  IEntitiesService,
+  IEntityService,
+  isNil,
+  isNotNil,
+  LoadResult,
+  NetworkService,
+  PlatformService,
+  ReferentialAsObjectOptions,
+  StatusIds
+} from '@sumaris-net/ngx-components';
+import {CacheService} from 'ionic-cache';
+import {ReferentialRefService} from './referential-ref.service';
+import {Program} from './model/program.model';
+import {SortDirection} from '@angular/material/sort';
+import {ReferentialService} from './referential.service';
+import {ProgramFragments} from './program.fragments';
+import {BaseEntityGraphqlMutations, BaseEntityGraphqlQueries} from '@sumaris-net/ngx-components';
+import {ProgramRefService} from './program-ref.service';
+import {BaseReferentialService} from './base-referential-service.class';
+import {StrategyRefService} from './strategy-ref.service';
+import {ProgramFilter} from './filter/program.filter';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 const ProgramQueries: BaseEntityGraphqlQueries = {
   // Load by id

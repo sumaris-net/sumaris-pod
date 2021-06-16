@@ -1,35 +1,21 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output
-} from "@angular/core";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 
-import {personsToString} from "../../core/services/model/person.model";
-import {referentialToString} from "../../core/services/model/referential.model";
-import {LandingService} from "../services/landing.service";
-import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {AcquisitionLevelCodes, LocationLevelIds} from "../../referential/services/model/model.enum";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {Moment} from "moment";
-import {LandingValidatorService} from "../services/validator/landing.validator";
-import {Trip} from "../services/model/trip.model";
-import {ObservedLocation} from "../services/model/observed-location.model";
-import {Landing} from "../services/model/landing.model";
-import {LandingEditor} from "../../referential/services/config/program.config";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {environment} from "../../../environments/environment";
-import {isNotNil} from "../../shared/functions";
-import {LandingFilter} from "../services/filter/landing.filter";
+import {isNotNil, referentialToString, StatusIds} from '@sumaris-net/ngx-components';
+import {LandingService} from '../services/landing.service';
+import {AppMeasurementsTable} from '../measurement/measurements.table.class';
+import {AcquisitionLevelCodes, LocationLevelIds} from '../../referential/services/model/model.enum';
+import {VesselSnapshotService} from '../../referential/services/vessel-snapshot.service';
+import {Moment} from 'moment';
+import {LandingValidatorService} from '../services/validator/landing.validator';
+import {Trip} from '../services/model/trip.model';
+import {ObservedLocation} from '../services/model/observed-location.model';
+import {Landing} from '../services/model/landing.model';
+import {LandingEditor} from '../../referential/services/config/program.config';
+import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
+import {ReferentialRefService} from '../../referential/services/referential-ref.service';
+import {environment} from '../../../environments/environment';
+import {LandingFilter} from '../services/filter/landing.filter';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -256,7 +242,6 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   }
 
   referentialToString = referentialToString;
-  personsToString = personsToString;
 
   getLandingDate(landing?: Landing): Moment {
     if (!landing || !landing.dateTime) return undefined;

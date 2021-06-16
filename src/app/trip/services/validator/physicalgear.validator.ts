@@ -1,8 +1,8 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedValidators} from "../../../shared/validator/validators";
-import {toNumber} from "../../../shared/functions";
+import {SharedValidators} from "@sumaris-net/ngx-components";
+import {toNumber} from "@sumaris-net/ngx-components";
 import {PhysicalGear} from "../model/trip.model";
 
 @Injectable({providedIn: 'root'})

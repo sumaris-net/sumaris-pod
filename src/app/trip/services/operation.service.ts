@@ -1,31 +1,44 @@
-import {Injectable} from "@angular/core";
-import {FetchPolicy, gql} from "@apollo/client/core";
-import {EMPTY, Observable} from "rxjs";
-import {filter, first, map} from "rxjs/operators";
-import {ErrorCodes} from "./trip.errors";
-import {DataFragments, Fragments} from "./trip.queries";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil} from "../../shared/functions";
-import {NetworkService} from "../../core/services/network.service";
-import {AccountService} from "../../core/services/account.service";
-import {DataEntity, DataEntityAsObjectOptions, SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {Operation, OperationFromObjectOptions, VesselPosition} from "./model/trip.model";
-import {Measurement} from "./model/measurement.model";
-import {Batch, BatchUtils} from "./model/batch.model";
-import {Sample} from "./model/sample.model";
-import {ReferentialFragments} from "../../referential/services/referential.fragments";
-import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {EntitiesServiceWatchOptions, EntityServiceLoadOptions, FilterFn, IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
-import {BaseGraphqlService, QueryVariables} from "../../core/services/base-graphql-service.class";
-import {SortDirection} from "@angular/material/sort";
-import {chainPromises, firstNotNilPromise} from "../../shared/observables";
-import {Department} from "../../core/services/model/department.model";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {environment} from "../../../environments/environment";
-import {DataEntityFilter} from "../../data/services/model/data-filter.model";
-import {Landing} from "./model/landing.model";
+import {Injectable} from '@angular/core';
+import {FetchPolicy, gql} from '@apollo/client/core';
+import {EMPTY, Observable} from 'rxjs';
+import {filter, first, map} from 'rxjs/operators';
+import {ErrorCodes} from './trip.errors';
+import {DataFragments, Fragments} from './trip.queries';
+import {
+  AccountService,
+  BaseGraphqlService,
+  chainPromises,
+  Department,
+  EntitiesServiceWatchOptions,
+  EntitiesStorage,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  FilterFn,
+  firstNotNilPromise,
+  GraphqlService,
+  IEntitiesService,
+  IEntityService,
+  isEmptyArray,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  LoadResult,
+  NetworkService,
+  QueryVariables
+} from '@sumaris-net/ngx-components';
+import {DataEntity, DataEntityAsObjectOptions, SAVE_AS_OBJECT_OPTIONS, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '../../data/services/model/data-entity.model';
+import {Operation, OperationFromObjectOptions, VesselPosition} from './model/trip.model';
+import {Measurement} from './model/measurement.model';
+import {Batch, BatchUtils} from './model/batch.model';
+import {Sample} from './model/sample.model';
+import {ReferentialFragments} from '../../referential/services/referential.fragments';
+import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum';
+import {SortDirection} from '@angular/material/sort';
+import {environment} from '../../../environments/environment';
+import {DataEntityFilter} from '../../data/services/model/data-filter.model';
+import {Landing} from './model/landing.model';
+import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -491,7 +504,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           context.tracked = (entity.tripId >= 0);
           if (isNotNil(entity.id)) context.serializationKey = `${Operation.TYPENAME}:${entity.id}`;
 
-          return { saveOperations: [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)] };
+          return { saveOperations: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)] };
         },
         update: (proxy, {data}) => {
           const savedEntity = data && data.saveOperations && data.saveOperations[0];
@@ -701,7 +714,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     // Make sure to fill id, with local ids
     await this.fillOfflineDefaultProperties(entity);
 
-    const jsonLocal = this.asObject(entity, {...SAVE_LOCALLY_AS_OBJECT_OPTIONS, batchAsTree: false, sampleAsTree: false});
+    const jsonLocal = this.asObject(entity, {...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, batchAsTree: false, sampleAsTree: false});
     if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', jsonLocal);
 
     // Save response locally

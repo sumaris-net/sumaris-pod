@@ -1,12 +1,21 @@
-import {Moment} from "moment";
-import {isNil, isNilOrBlank, isNotNil} from "../../../shared/functions";
-import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {Entity, EntityAsObjectOptions, EntityUtils} from "../../../core/services/model/entity.model";
-import {Department} from "../../../core/services/model/department.model";
-import {Person} from "../../../core/services/model/person.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {Moment} from 'moment';
+import {
+  Department,
+  Entity,
+  EntityAsObjectOptions,
+  EntityClass,
+  fromDateISOString,
+  isNil,
+  isNilOrBlank,
+  isNotNil,
+  Person,
+  ReferentialAsObjectOptions,
+  ReferentialRef,
+  ReferentialUtils,
+  toDateISOString
+} from '@sumaris-net/ngx-components';
+import {RootDataEntity} from '../../../data/services/model/root-data-entity.model';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 @EntityClass({typename: 'VesselVO'})
 export class Vessel extends RootDataEntity<Vessel> {

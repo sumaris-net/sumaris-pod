@@ -1,35 +1,38 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Optional} from '@angular/core';
-import {DataEntity, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from '../services/model/data-entity.model';
+import {DataEntity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from '../services/model/data-entity.model';
 // import fade in animation
-import {AccountService} from "../../core/services/account.service";
-import {IDataEntityQualityService, isDataQualityService} from "../services/data-quality-service.class";
-import {QualityFlags} from "../../referential/services/model/model.enum";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {merge, Subscription} from "rxjs";
-import {NetworkService} from "../../core/services/network.service";
-import {Router} from "@angular/router";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ShowToastOptions, Toasts} from "../../shared/toasts";
-import {ToastController} from "@ionic/angular";
-import {TranslateService} from "@ngx-translate/core";
-import {environment} from "../../../environments/environment";
-import {AppRootDataEditor} from "../form/root-data-editor.class";
-import {RootDataEntity} from "../services/model/root-data-entity.model";
-import {ReferentialRef} from "../../core/services/model/referential.model";
-import {qualityFlagToColor} from "../services/model/model.utils";
-import {UserEventService} from "../../social/services/user-event.service";
-import {OverlayEventDetail} from "@ionic/core";
-import {isDataSynchroService, RootDataSynchroService} from "../services/root-data-synchro-service.class";
-import {isNil, isNotNil} from "../../shared/functions";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {fadeInAnimation} from "../../shared/material/material.animations";
-import { ConfigService } from 'src/app/core/services/config.service';
-import { firstNotNilPromise } from 'src/app/shared/observables';
-import { DATA_CONFIG_OPTIONS } from '../services/config/data.config';
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {IEntityService} from "../../shared/services/entity-service.class";
-import {debounceTime} from "rxjs/operators";
-import {PlatformService} from "../../core/services/platform.service";
+import {
+  AccountService,
+  ConfigService,
+  EntityUtils,
+  fadeInAnimation,
+  IEntityService,
+  isNil,
+  isNotNil,
+  LocalSettingsService,
+  NetworkService,
+  PlatformService,
+  ReferentialRef,
+  ShowToastOptions,
+  StatusIds,
+  Toasts
+} from '@sumaris-net/ngx-components';
+import {IDataEntityQualityService, isDataQualityService} from '../services/data-quality-service.class';
+import {QualityFlags} from '../../referential/services/model/model.enum';
+import {ReferentialRefService} from '../../referential/services/referential-ref.service';
+import {merge, Subscription} from 'rxjs';
+import {Router} from '@angular/router';
+import {ToastController} from '@ionic/angular';
+import {TranslateService} from '@ngx-translate/core';
+import {environment} from '../../../environments/environment';
+import {AppRootDataEditor} from '../form/root-data-editor.class';
+import {RootDataEntity} from '../services/model/root-data-entity.model';
+import {qualityFlagToColor} from '../services/model/model.utils';
+import {UserEventService} from '../../social/services/user-event.service';
+import {OverlayEventDetail} from '@ionic/core';
+import {isDataSynchroService, RootDataSynchroService} from '../services/root-data-synchro-service.class';
+import {debounceTime} from 'rxjs/operators';
+import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
 
 @Component({
   selector: 'app-entity-quality-form',
@@ -251,7 +254,7 @@ export class EntityQualityFormComponent<
     }
     catch (error) {
       this.editor.setError(error);
-      const context = error && error.context || (() => this.data.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS));
+      const context = error && error.context || (() => this.data.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE));
       this.userEventService.showToastErrorWithContext({
         error,
         context

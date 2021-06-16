@@ -1,13 +1,24 @@
-import {AcquisitionLevelCodes, PmfmIds, QualitativeValueIds, QualityFlagIds} from "../../../referential/services/model/model.enum";
-import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
-import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
-import {isNil, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank, toNumber} from "../../../shared/functions";
-import {TaxonGroupRef, TaxonNameRef} from "../../../referential/services/model/taxon.model";
-import {EntityUtils, ITreeItemEntity} from "../../../core/services/model/entity.model";
-import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions, referentialToString, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {PmfmValueUtils} from "../../../referential/services/model/pmfm-value.model";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {AcquisitionLevelCodes, PmfmIds, QualitativeValueIds, QualityFlagIds} from '../../../referential/services/model/model.enum';
+import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
+import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
+import {
+  EntityClass,
+  EntityUtils,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  ITreeItemEntity,
+  ReferentialAsObjectOptions,
+  referentialToString,
+  ReferentialUtils,
+  toNumber
+} from '@sumaris-net/ngx-components';
+import {TaxonGroupRef, TaxonNameRef} from '../../../referential/services/model/taxon.model';
+import {PmfmValueUtils} from '../../../referential/services/model/pmfm-value.model';
+import {IPmfm} from '../../../referential/services/model/pmfm.model';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';

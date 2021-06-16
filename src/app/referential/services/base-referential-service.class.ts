@@ -3,11 +3,11 @@ import {Observable} from "rxjs";
 import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {SortDirection} from "@angular/material/sort";
 
-import {BaseReferential, ReferentialUtils} from "../../core/services/model/referential.model";
-import {EntityServiceLoadOptions, LoadResult} from "../../shared/services/entity-service.class";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {PlatformService} from "../../core/services/platform.service";
-import {isNotNil} from "../../shared/functions";
+import {BaseReferential, ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {EntityServiceLoadOptions, LoadResult} from "@sumaris-net/ngx-components";
+import {GraphqlService}  from "@sumaris-net/ngx-components";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {isNotNil} from "@sumaris-net/ngx-components";
 import {Directive} from "@angular/core";
 import {BaseEntityService, BaseEntityServiceOptions} from "./base-entity-service.class";
 import {BaseReferentialFilter} from "./filter/referential.filter";

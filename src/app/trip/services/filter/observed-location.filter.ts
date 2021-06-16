@@ -2,10 +2,10 @@ import {Moment} from "moment";
 import {LandingFilter} from "./landing.filter";
 import {RootDataEntityFilter} from "../../../data/services/model/root-data-filter.model";
 import {ObservedLocation} from "../model/observed-location.model";
-import {ReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {FilterFn} from "../../../shared/services/entity-service.class";
+import {ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
+import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
+import {FilterFn} from "@sumaris-net/ngx-components";
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocationFilter, ObservedLocation> {

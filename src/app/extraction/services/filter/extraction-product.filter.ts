@@ -1,9 +1,9 @@
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 import {BaseReferentialFilter} from "../../../referential/services/filter/referential.filter";
 import {ExtractionProduct} from "../model/extraction-product.model";
-import {FilterFn} from "../../../shared/services/entity-service.class";
-import {isNotEmptyArray, isNotNil} from "../../../shared/functions";
-import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
+import {FilterFn} from "@sumaris-net/ngx-components";
+import {isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
+import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
 
 @EntityClass()
 export class ExtractionProductFilter extends BaseReferentialFilter<ExtractionProductFilter, ExtractionProduct> {

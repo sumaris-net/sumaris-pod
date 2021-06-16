@@ -5,16 +5,16 @@ import {AggregationTypeValidatorService} from "../../services/validator/aggregat
 import {ExtractionService} from "../../services/extraction.service";
 import {Router} from "@angular/router";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
+import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
 import {ProductForm} from "../form/product.form";
-import {AccountService} from "../../../core/services/account.service";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {ReferentialUtils} from "../../../core/services/model/referential.model";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {ReferentialUtils}  from "@sumaris-net/ngx-components";
 import {ExtractionProduct} from "../../services/model/extraction-product.model";
-import {Alerts} from "../../../shared/alerts";
-import {isEmptyArray, isNil} from "../../../shared/functions";
+import {Alerts} from "@sumaris-net/ngx-components";
+import {isEmptyArray, isNil} from "@sumaris-net/ngx-components";
 import {ExtractionProductService} from "../../services/extraction-product.service";
-import {AppEntityEditor} from "../../../core/form/editor.class";
+import {AppEntityEditor}  from "@sumaris-net/ngx-components";
 
 @Component({
   selector: 'app-product-page',

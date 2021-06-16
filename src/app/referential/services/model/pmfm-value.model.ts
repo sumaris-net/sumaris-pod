@@ -1,9 +1,9 @@
 import {Moment} from "moment";
-import {ReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {isNil, isNilOrBlank, isNotNil, isNotNilOrNaN, joinPropertiesPath} from "../../../shared/functions";
+import {ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {isNil, isNilOrBlank, isNotNil, isNotNilOrNaN, joinPropertiesPath} from "@sumaris-net/ngx-components";
 import {IPmfm, Pmfm} from "./pmfm.model";
 import {DenormalizedPmfmStrategy} from "./pmfm-strategy.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
 
 export declare type PmfmValue = number | string | boolean | Moment | ReferentialRef<any>;
 export declare type PmfmDefinition = DenormalizedPmfmStrategy | Pmfm;

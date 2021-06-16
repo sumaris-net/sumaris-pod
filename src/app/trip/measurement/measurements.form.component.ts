@@ -7,11 +7,11 @@ import {filter, throttleTime} from "rxjs/operators";
 import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {FormBuilder} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {isNil, isNotNil, sleep} from '../../shared/functions';
+import {isNil, isNotNil, sleep} from "@sumaris-net/ngx-components";
 import {Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils} from "../services/model/measurement.model";
-import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppForm} from "../../core/form/form.class";
+import {filterNotNil, firstNotNilPromise} from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {AppForm}  from "@sumaris-net/ngx-components";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
 

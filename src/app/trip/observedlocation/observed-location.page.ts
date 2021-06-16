@@ -1,34 +1,41 @@
 import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
-import * as momentImported from "moment";
-import {ObservedLocationForm} from "./observed-location.form";
-import {ObservedLocationService} from "../services/observed-location.service";
-import {LandingsTable} from "../landing/landings.table";
-import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
-import {FormGroup} from "@angular/forms";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {ModalController} from "@ionic/angular";
-import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
-import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {SelectVesselsModal} from "./vessels/select-vessel.modal";
-import {ObservedLocation} from "../services/model/observed-location.model";
-import {Landing} from "../services/model/landing.model";
-import {LandingEditor, ProgramProperties} from "../../referential/services/config/program.config";
-import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
-import {BehaviorSubject} from "rxjs";
-import {firstNotNilPromise, firstTruePromise} from "../../shared/observables";
-import {filter, first, tap} from "rxjs/operators";
-import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings.table";
-import {showError} from "../../shared/alerts";
-import {Program} from "../../referential/services/model/program.model";
-import {PlatformService} from "../../core/services/platform.service";
-import {ObservedLocationsPageSettingsEnum} from "./observed-locations.page";
-import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {isNil, isNotNil, toBoolean} from "../../shared/functions";
-import {environment} from "../../../environments/environment";
-import {TRIP_CONFIG_OPTIONS} from "../services/config/trip.config";
-import {ConfigService} from "../../core/services/config.service";
+import * as momentImported from 'moment';
+import {ObservedLocationForm} from './observed-location.form';
+import {ObservedLocationService} from '../services/observed-location.service';
+import {LandingsTable} from '../landing/landings.table';
+import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
+import {FormGroup} from '@angular/forms';
+import {
+  Alerts,
+  ConfigService,
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  firstNotNilPromise,
+  firstTruePromise,
+  HistoryPageReference,
+  isNil,
+  isNotNil,
+  PlatformService,
+  ReferentialRef,
+  ReferentialUtils,
+  toBoolean,
+  UsageMode
+} from '@sumaris-net/ngx-components';
+import {ModalController} from '@ionic/angular';
+import {SelectVesselsModal} from './vessels/select-vessel.modal';
+import {ObservedLocation} from '../services/model/observed-location.model';
+import {Landing} from '../services/model/landing.model';
+import {LandingEditor, ProgramProperties} from '../../referential/services/config/program.config';
+import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
+import {BehaviorSubject} from 'rxjs';
+import {filter, first, tap} from 'rxjs/operators';
+import {AggregatedLandingsTable} from '../aggregated-landing/aggregated-landings.table';
+import {Program} from '../../referential/services/model/program.model';
+import {ObservedLocationsPageSettingsEnum} from './observed-locations.page';
+import {environment} from '../../../environments/environment';
+import {TRIP_CONFIG_OPTIONS} from '../services/config/trip.config';
 import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
-import {LandingFilter} from "../services/filter/landing.filter";
+import {LandingFilter} from '../services/filter/landing.filter';
 
 const moment = momentImported;
 
@@ -383,7 +390,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       console.debug("[observed-location] Vessel selection modal result:", data);
       const vessel = data[0] as VesselSnapshot;
       if (excludeVesselIds.includes(data.id)) {
-        await showError('AGGREGATED_LANDING.VESSEL_ALREADY_PRESENT', this.alertCtrl, this.translate);
+        await Alerts.showError('AGGREGATED_LANDING.VESSEL_ALREADY_PRESENT', this.alertCtrl, this.translate);
         return;
       }
       return vessel;

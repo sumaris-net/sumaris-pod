@@ -1,30 +1,29 @@
 import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {CoreModule} from '../core/core.module';
-import {UsersPage} from './users/list/users';
-import {ReferentialModule} from "../referential/referential.module";
-import {ConfigurationPage} from "./config/configuration.page";
-import {SocialModule} from "../social/social.module";
-import {NgxJdenticonModule} from "ngx-jdenticon";
+import {AppReferentialModule} from '../referential/app-referential.module';
+import {ConfigurationPage} from './config/configuration.page';
+import {SocialModule} from '../social/social.module';
+import {NgxJdenticonModule} from 'ngx-jdenticon';
+import {AppCoreModule} from '@app/core/core.module';
 
 @NgModule({
   imports: [
     CommonModule,
-    CoreModule,
     SocialModule,
-    ReferentialModule,
-    NgxJdenticonModule
+    NgxJdenticonModule,
+
+    // App modules
+    AppCoreModule,
+    AppReferentialModule
   ],
   declarations: [
-    UsersPage,
     ConfigurationPage
   ],
   exports: [
-    UsersPage,
     ConfigurationPage
   ]
 })
-export class AdminModule {
+export class AppAdminModule {
 
   constructor() {
     console.debug('[admin] Creating module');

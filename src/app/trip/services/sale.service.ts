@@ -4,21 +4,21 @@ import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {AccountService} from "../../core/services/account.service";
+import {GraphqlService}  from "@sumaris-net/ngx-components";
+import {AccountService}  from "@sumaris-net/ngx-components";
 import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {Sale} from "./model/sale.model";
 import {Sample} from "./model/sample.model";
 import {SortDirection} from "@angular/material/sort";
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {FilterFn, IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
-import {EntityUtils} from "../../core/services/model/entity.model";
+import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
+import {FilterFn, IEntitiesService, LoadResult} from "@sumaris-net/ngx-components";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {DataEntityFilter} from "../../data/services/model/data-filter.model";
 import {RootDataEntityFilter} from "../../data/services/model/root-data-filter.model";
-import {ReferentialRef} from "../../core/services/model/referential.model";
-import {isNotNil} from "../../shared/functions";
+import {ReferentialRef}  from "@sumaris-net/ngx-components";
+import {isNotNil} from "@sumaris-net/ngx-components";
 import {ReferentialRefFilter} from "../../referential/services/filter/referential-ref.filter";
 
 export const SaleFragments = {

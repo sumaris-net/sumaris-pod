@@ -1,6 +1,6 @@
 import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from "./batch.model";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 
 @EntityClass({typename: "BatchGroupVO", fromObjectReuseStrategy: "clone"})
 export class BatchGroup extends Batch<BatchGroup> {

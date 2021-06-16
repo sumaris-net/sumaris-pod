@@ -5,18 +5,18 @@ import {ErrorCodes} from "./errors";
 import {FetchPolicy, MutationUpdaterFn, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {SortDirection} from "@angular/material/sort";
 
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {EntityServiceLoadOptions, IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {PlatformService} from "../../core/services/platform.service";
+import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
+import {EntityServiceLoadOptions, IEntitiesService, IEntityService, LoadResult} from "@sumaris-net/ngx-components";
+import {GraphqlService}  from "@sumaris-net/ngx-components";
+import {PlatformService}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
-import {Entity, EntityAsObjectOptions, EntityUtils} from "../../core/services/model/entity.model";
-import {chainPromises} from "../../shared/observables";
-import {isEmptyArray, isNil, isNotNil, toBoolean} from "../../shared/functions";
+import {Entity, EntityAsObjectOptions, EntityUtils}  from "@sumaris-net/ngx-components";
+import {chainPromises} from "@sumaris-net/ngx-components";
+import {isEmptyArray, isNil, isNotNil, toBoolean} from "@sumaris-net/ngx-components";
 import {Directive} from "@angular/core";
 import {RefetchQueryDescription} from "@apollo/client/core/watchQueryOptions";
 import {FetchResult} from "@apollo/client/link/core";
-import {EntityFilter, EntityFilterUtils} from "../../core/services/model/filter.model";
+import {EntityFilter, EntityFilterUtils}  from "@sumaris-net/ngx-components";
 
 
 export interface BaseEntityGraphqlQueries {

@@ -1,7 +1,5 @@
-import {BaseReferential, Referential, ReferentialRef} from "../../../core/services/model/referential.model";
-import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {Moment} from "moment";
-import {EntityClass} from "@app/core/services/model/entity.decorators";
+import {BaseReferential, EntityAsObjectOptions, EntityClass, ReferentialRef} from '@sumaris-net/ngx-components';
+import {Moment} from 'moment';
 
 @EntityClass({typename: 'TaxonNameVO'})
 export class TaxonName extends BaseReferential<TaxonName> {

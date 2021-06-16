@@ -4,19 +4,20 @@ import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 
 import {ErrorCodes} from "../../trip/services/trip.errors";
-import {AccountService} from "../../core/services/account.service";
+import {AccountService}  from "@sumaris-net/ngx-components";
 import {ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType} from "./model/extraction-type.model";
-import {isNil, isNotNil, isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
-import {GraphqlService} from "../../core/graphql/graphql.service";
+import {isNil, isNotNil, isNotNilOrBlank, trimEmptyToNull} from "@sumaris-net/ngx-components";
+import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {Fragments} from "../../trip/services/trip.queries";
 import {SortDirection} from "@angular/material/sort";
-import {firstNotNilPromise} from "../../shared/observables";
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
+import {firstNotNilPromise} from "@sumaris-net/ngx-components";
+import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
-import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
-import {Person} from "../../core/services/model/person.model";
-import {EntityUtils} from "../../core/services/model/entity.model";
+
+import {Person}  from "@sumaris-net/ngx-components";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
+import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 
 export const ExtractionFragments = {
@@ -287,7 +288,6 @@ export class ExtractionService extends BaseGraphqlService {
   }
 
   async save(entity: ExtractionType, filter: ExtractionFilter): Promise<ExtractionType> {
-    const now = Date.now();
     if (this._debug) console.debug("[extraction-service] Saving extraction...", entity, filter);
 
     this.fillDefaultProperties(entity);

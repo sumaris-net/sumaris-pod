@@ -1,35 +1,35 @@
 import {Injectable, Injector} from "@angular/core";
-import {EntitiesServiceWatchOptions, EntityServiceLoadOptions, IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
-import {AccountService} from "../../core/services/account.service";
+import {EntitiesServiceWatchOptions, EntityServiceLoadOptions, IEntitiesService, IEntityService, LoadResult} from "@sumaris-net/ngx-components";
+import {AccountService}  from "@sumaris-net/ngx-components";
 import {Observable} from "rxjs";
 import * as momentImported from "moment";
 import {gql} from "@apollo/client/core";
 import {DataFragments, Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
 import {filter, map} from "rxjs/operators";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
-import {AppFormUtils, FormErrors} from "../../core/form/form.utils";
+import {GraphqlService}  from "@sumaris-net/ngx-components";
+import {SAVE_AS_OBJECT_OPTIONS, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from "../../data/services/model/data-entity.model";
+import {AppFormUtils, FormErrors}  from "@sumaris-net/ngx-components";
 import {ObservedLocation} from "./model/observed-location.model";
-import {isEmptyArray, isNil, isNotEmptyArray, isNotNil, toNumber} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNil, toNumber} from "@sumaris-net/ngx-components";
 import {DataRootEntityUtils} from "../../data/services/model/root-data-entity.model";
 import {SortDirection} from "@angular/material/sort";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {NetworkService} from "../../core/services/network.service";
+import {EntitiesStorage}  from "@sumaris-net/ngx-components";
+import {NetworkService}  from "@sumaris-net/ngx-components";
 import {IDataEntityQualityService} from "../../data/services/data-quality-service.class";
-import {Entity, EntityUtils} from "../../core/services/model/entity.model";
+import {Entity, EntityUtils}  from "@sumaris-net/ngx-components";
 import {LandingFragments, LandingService} from "./landing.service";
 import {IDataSynchroService, RootDataSynchroService} from "../../data/services/root-data-synchro-service.class";
-import {chainPromises} from "../../shared/observables";
+import {chainPromises} from "@sumaris-net/ngx-components";
 import {Landing} from "./model/landing.model";
 import {ObservedLocationValidatorService} from "./validator/observed-location.validator";
 import {environment} from "../../../environments/environment";
-import {JobUtils} from "../../shared/services/job.utils";
+import {JobUtils} from "@sumaris-net/ngx-components";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {OBSERVED_LOCATION_FEATURE_NAME} from "./config/trip.config";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {EntitySaveOptions} from "../../referential/services/base-entity-service.class";
-import {StatusIds} from "../../core/services/model/model.enum";
+import {StatusIds}  from "@sumaris-net/ngx-components";
 import {VESSEL_FEATURE_NAME} from "../../vessel/services/config/vessel.config";
 import {LandingFilter} from "./filter/landing.filter";
 import {ObservedLocationFilter, ObservedLocationOfflineFilter} from "./filter/observed-location.filter";
@@ -477,7 +477,7 @@ export class ObservedLocationService
     const landings = entity.landings;
     delete entity.landings;
 
-    const jsonLocal = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+    const jsonLocal = this.asObject(entity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE);
     if (this._debug) console.debug('[observed-location-service] [offline] Saving observed location locally...', jsonLocal);
 
     // Save observed location locally
@@ -592,7 +592,7 @@ export class ObservedLocationService
         entity.landings = landings;
         entity.updateDate = trashUpdateDate;
 
-        const json = entity.asObject({...SAVE_LOCALLY_AS_OBJECT_OPTIONS, keepLocalId: false});
+        const json = entity.asObject({...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, keepLocalId: false});
 
         // Add to trash
         await this.entities.saveToTrash(json, {entityName: ObservedLocation.TYPENAME});
@@ -674,7 +674,7 @@ export class ObservedLocationService
         ...err,
         code: ErrorCodes.SYNCHRONIZE_OBSERVED_LOCATION_ERROR,
         message: "ERROR.SYNCHRONIZE_ERROR",
-        context: entity.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS)
+        context: entity.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE)
       };
     }
 

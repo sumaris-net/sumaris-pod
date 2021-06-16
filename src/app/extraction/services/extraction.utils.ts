@@ -1,6 +1,6 @@
 /* -- Extraction -- */
 
-import {arraySize, isNotEmptyArray} from "../../shared/functions";
+import {arraySize, isNotEmptyArray} from "@sumaris-net/ngx-components";
 import {ExtractionColumn, ExtractionFilter, ExtractionType} from "./model/extraction-type.model";
 import {ExtractionProduct} from "./model/extraction-product.model";
 

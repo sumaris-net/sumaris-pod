@@ -6,12 +6,12 @@ import {ReferentialRefService} from "../../../referential/services/referential-r
 import {ProgramService} from "../../../referential/services/program.service";
 import {mergeMap} from "rxjs/operators";
 import {BatchTreeComponent} from "../batch-tree.component";
-import {MatAutocompleteConfigHolder} from "../../../shared/material/autocomplete/material.autocomplete";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {MatAutocompleteConfigHolder} from "@sumaris-net/ngx-components";
+import {SharedValidators} from "@sumaris-net/ngx-components";
 import {PmfmIds} from "../../../referential/services/model/model.enum";
-import {isEmptyArray, isNotNil, toNumber} from "../../../shared/functions";
-import {EntityUtils} from "../../../core/services/model/entity.model";
-import {EntitiesStorage} from "../../../core/services/storage/entities-storage.service";
+import {isEmptyArray, isNotNil, toNumber} from "@sumaris-net/ngx-components";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
+import {EntitiesStorage}  from "@sumaris-net/ngx-components";
 import {ProgramRefService} from "../../../referential/services/program-ref.service";
 
 function getSortingMeasValues(opts?: {

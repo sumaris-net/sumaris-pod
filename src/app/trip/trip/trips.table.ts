@@ -1,32 +1,34 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit, ViewChild} from "@angular/core";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {TripValidatorService} from "../services/validator/trip.validator";
-import {TripService} from "../services/trip.service";
-import {TripFilter} from "../services/filter/trip.filter";
-import {ModalController} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {TripValidatorService} from '../services/validator/trip.validator';
+import {TripService} from '../services/trip.service';
+import {TripFilter} from '../services/filter/trip.filter';
+import {ModalController} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
-import {FormBuilder} from "@angular/forms";
-import {SharedValidators} from "../../shared/validator/validators";
-import {PlatformService} from "../../core/services/platform.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {personToString} from "../../core/services/model/person.model";
-import {Trip} from "../services/model/trip.model";
-import {PersonService} from "../../admin/services/person.service";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {UserEventService} from "../../social/services/user-event.service";
-import {TripTrashModal, TripTrashModalOptions} from "./trash/trip-trash.modal";
-import {TRIP_FEATURE_NAME} from "../services/config/trip.config";
-import {AppRootTable, AppRootTableSettingsEnum} from "../../data/table/root-table.class";
-import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {environment} from "../../../environments/environment";
-import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
-import {MatExpansionPanel} from "@angular/material/expansion";
-import {slideUpDownAnimation} from "../../shared/material/material.animations";
+import {FormBuilder} from '@angular/forms';
+import {
+  EntitiesTableDataSource,
+  HammerSwipeEvent,
+  LocalSettingsService, PersonService,
+  PersonUtils,
+  PlatformService,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+  SharedValidators,
+  slideUpDownAnimation,
+  StatusIds
+} from '@sumaris-net/ngx-components';
+import {VesselSnapshotService} from '../../referential/services/vessel-snapshot.service';
+import {Trip} from '../services/model/trip.model';
+import {ReferentialRefService} from '../../referential/services/referential-ref.service';
+import {LocationLevelIds} from '../../referential/services/model/model.enum';
+import {UserEventService} from '../../social/services/user-event.service';
+import {TripTrashModal, TripTrashModalOptions} from './trash/trip-trash.modal';
+import {TRIP_FEATURE_NAME} from '../services/config/trip.config';
+import {AppRootTable, AppRootTableSettingsEnum} from '../../data/table/root-table.class';
+import {environment} from '../../../environments/environment';
+import {MatExpansionPanel} from '@angular/material/expansion';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -157,7 +159,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: personToString,
+      displayWith: PersonUtils.personToString,
       mobile: this.mobile
     });
 

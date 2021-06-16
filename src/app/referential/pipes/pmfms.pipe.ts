@@ -3,9 +3,9 @@ import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {MethodIds} from "../services/model/model.enum";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
 import {IPmfm} from "../services/model/pmfm.model";
-import {isNil, isNilOrBlank, isNotNilOrBlank} from "../../shared/functions";
+import {isNil, isNilOrBlank, isNotNilOrBlank} from "@sumaris-net/ngx-components";
 import {TranslateService} from "@ngx-translate/core";
-import {TranslateContextService} from "../../shared/services/translate-context.service";
+import {TranslateContextService} from "@sumaris-net/ngx-components";
 
 @Pipe({
     name: 'pmfmName'

@@ -1,9 +1,14 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, ViewChild} from "@angular/core";
-import {PlatformService} from "../../core/services/platform.service";
-import {ExtractionService} from "../services/extraction.service";
-import {BehaviorSubject, Observable, Subject, Subscription, timer} from "rxjs";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, ViewChild} from '@angular/core';
 import {
+  AccountService,
+  AppFormUtils,
   arraySize,
+  Color,
+  ColorScale,
+  ColorScaleLegendItem,
+  DurationPipe,
+  fadeInAnimation,
+  fadeInOutAnimation,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
@@ -11,37 +16,35 @@ import {
   isNotNilOrBlank,
   isNumber,
   isNumberRange,
-  sleep
-} from "../../shared/functions";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion} from "../services/model/extraction-type.model";
-import {Location} from "@angular/common";
-import {Color, ColorScale, ColorScaleLegendItem} from "../../shared/graph/graph-colors";
+  LocalSettingsService,
+  PlatformService,
+  sleep,
+  StatusIds
+} from '@sumaris-net/ngx-components';
+import {ExtractionService} from '../services/extraction.service';
+import {BehaviorSubject, Observable, Subject, Subscription, timer} from 'rxjs';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion} from '../services/model/extraction-type.model';
+import {Location} from '@angular/common';
 import * as L from 'leaflet';
 import {CRS, GeoJSON, MapOptions, WMSParams} from 'leaflet';
-import {Feature} from "geojson";
-import {debounceTime, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
-import {AlertController, ModalController, ToastController} from "@ionic/angular";
-import {SelectProductModal} from "../product/modal/select-product.modal";
-import {AccountService} from "../../core/services/account.service";
-import {ExtractionAbstractPage} from "../form/extraction-abstract.page";
-import {ActivatedRoute, Router} from "@angular/router";
-import {TranslateService} from "@ngx-translate/core";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
-import {MatExpansionPanel} from "@angular/material/expansion";
-import {Label, SingleOrMultiDataSet} from "ng2-charts";
-import {ChartLegendOptions, ChartOptions, ChartType} from "chart.js";
-import {DEFAULT_CRITERION_OPERATOR} from "../table/extraction-table.page";
-import {DurationPipe} from "../../shared/pipes/duration.pipe";
-import {AggregationStrata, ExtractionProduct, IAggregationStrata} from "../services/model/extraction-product.model";
-import {ExtractionUtils} from "../services/extraction.utils";
-import {ExtractionProductService} from "../services/extraction-product.service";
-import {UnitLabel, UnitLabelPatterns} from "../../referential/services/model/model.enum";
-import {fadeInAnimation, fadeInOutAnimation} from "../../shared/material/material.animations";
-import {AppFormUtils} from "../../core/form/form.utils";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {ExtractionProductFilter} from "../services/filter/extraction-product.filter";
+import {Feature} from 'geojson';
+import {debounceTime, filter, map, switchMap, tap, throttleTime} from 'rxjs/operators';
+import {AlertController, ModalController, ToastController} from '@ionic/angular';
+import {SelectProductModal} from '../product/modal/select-product.modal';
+import {ExtractionAbstractPage} from '../form/extraction-abstract.page';
+import {ActivatedRoute, Router} from '@angular/router';
+import {TranslateService} from '@ngx-translate/core';
+import {AggregationTypeValidatorService} from '../services/validator/aggregation-type.validator';
+import {MatExpansionPanel} from '@angular/material/expansion';
+import {Label, SingleOrMultiDataSet} from 'ng2-charts';
+import {ChartLegendOptions, ChartOptions, ChartType} from 'chart.js';
+import {DEFAULT_CRITERION_OPERATOR} from '../table/extraction-table.page';
+import {AggregationStrata, ExtractionProduct, IAggregationStrata} from '../services/model/extraction-product.model';
+import {ExtractionUtils} from '../services/extraction.utils';
+import {ExtractionProductService} from '../services/extraction-product.service';
+import {UnitLabel, UnitLabelPatterns} from '@app/referential/services/model/model.enum';
+import {ExtractionProductFilter} from '../services/filter/extraction-product.filter';
 
 declare interface LegendOptions {
   min: number;

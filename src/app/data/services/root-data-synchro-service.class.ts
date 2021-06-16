@@ -1,37 +1,42 @@
-import {concat, defer, Observable, of, timer} from "rxjs";
-import {catchError, map, switchMap, tap} from "rxjs/operators";
-import {DataRootEntityUtils, RootDataEntity, SynchronizationStatusEnum} from "./model/root-data-entity.model";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {BaseRootDataService, BaseRootEntityGraphqlMutations} from "./root-data-service.class";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {PersonService} from "../../admin/services/person.service";
-import {Injector} from "@angular/core";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {NetworkService} from "../../core/services/network.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import * as momentImported from "moment";
-import {Moment} from "moment";
-import {isEmptyArray, isNil, isNotEmptyArray} from "../../shared/functions";
-import {SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "./model/data-entity.model";
-import {JobUtils} from "../../shared/services/job.utils";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions, BaseEntityServiceOptions} from "../../referential/services/base-entity-service.class";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {Vessel} from "../../vessel/services/model/vessel.model";
-import {ErrorCodes} from "./errors";
-import {FetchPolicy} from "@apollo/client/core";
-import {chainPromises} from "../../shared/observables";
-import {ObservedLocation} from "../../trip/services/model/observed-location.model";
-import {RootDataEntityFilter} from "./model/root-data-filter.model";
+import {concat, defer, Observable, of, timer} from 'rxjs';
+import {catchError, map, switchMap, tap} from 'rxjs/operators';
+import {DataRootEntityUtils, RootDataEntity, SynchronizationStatusEnum} from './model/root-data-entity.model';
+import {
+  chainPromises, EntitiesServiceWatchOptions,
+  EntitiesStorage,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  JobUtils,
+  LocalSettingsService,
+  NetworkService,
+  PersonService
+} from '@sumaris-net/ngx-components';
+import {BaseRootDataService, BaseRootEntityGraphqlMutations} from './root-data-service.class';
+
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {Injector} from '@angular/core';
+import * as momentImported from 'moment';
+import {Moment} from 'moment';
+import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from './model/data-entity.model';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions, BaseEntityServiceOptions} from '../../referential/services/base-entity-service.class';
+import {Vessel} from '@app/vessel/services/model/vessel.model';
+import {ErrorCodes} from './errors';
+import {FetchPolicy} from '@apollo/client/core';
+import {ObservedLocation} from '@app/trip/services/model/observed-location.model';
+import {RootDataEntityFilter} from './model/root-data-filter.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 
 
 export interface IDataSynchroService<
   T extends RootDataEntity<T, ID>,
   ID = number,
-  O = EntityServiceLoadOptions> {
+  LO extends EntityServiceLoadOptions = EntityServiceLoadOptions> {
 
-  load(id: ID, opts?: O): Promise<T>;
+  load(id: ID, opts?: LO): Promise<T>;
 
   executeImport(opts?: {
     maxProgression?: number;
@@ -63,12 +68,13 @@ export abstract class RootDataSynchroService<
   T extends RootDataEntity<T, ID>,
   F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
   ID = number,
-  O = EntityServiceLoadOptions,
+  WO extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions,
+  LO extends EntityServiceLoadOptions = EntityServiceLoadOptions,
   Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
   M extends BaseRootEntityGraphqlMutations = BaseRootEntityGraphqlMutations,
   S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions>
-  extends BaseRootDataService<T, F, ID, Q, M, S>
-  implements IDataSynchroService<T, ID, O> {
+  extends BaseRootDataService<T, F, ID, WO, LO, Q, M, S>
+  implements IDataSynchroService<T, ID, LO> {
 
   protected _featureName: string;
 
@@ -193,7 +199,7 @@ export abstract class RootDataSynchroService<
       // Update sync status
       entity.synchronizationStatus = 'READY_TO_SYNC';
 
-      const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+      const json = this.asObject(entity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE);
       if (this._debug) console.debug(`${this._logPrefix}Terminate {${entity.id}} locally...`, json);
 
       // Save entity locally
@@ -231,7 +237,7 @@ export abstract class RootDataSynchroService<
     return this.referentialRefService.lastUpdateDate();
   }
 
-  async load(id: ID, opts?: O & {
+  async load(id: ID, opts?: LO & {
     fetchPolicy?: FetchPolicy;
     toEntity?: boolean;
   }): Promise<T> {
@@ -350,7 +356,7 @@ export abstract class RootDataSynchroService<
         // Fill observedLocation's operation, before moving it to trash
         entity.updateDate = trashUpdateDate;
 
-        const json = entity.asObject({...SAVE_LOCALLY_AS_OBJECT_OPTIONS, keepLocalId: false});
+        const json = entity.asObject({...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, keepLocalId: false});
 
         // Add to trash
         await this.entities.saveToTrash(json, {entityName: ObservedLocation.TYPENAME});

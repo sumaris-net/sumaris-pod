@@ -1,8 +1,8 @@
 import {DataEntityFilter} from "../../../data/services/model/data-filter.model";
 import {Sample} from "../model/sample.model";
-import {FilterFn} from "../../../shared/services/entity-service.class";
-import {isNil} from "../../../shared/functions";
-import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
+import {FilterFn} from "@sumaris-net/ngx-components";
+import {isNil} from "@sumaris-net/ngx-components";
+import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
 
 
 export class SampleFilter extends DataEntityFilter<SampleFilter, Sample> {

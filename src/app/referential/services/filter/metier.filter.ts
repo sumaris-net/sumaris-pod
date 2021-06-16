@@ -1,9 +1,9 @@
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 import {ReferentialRefFilter} from "./referential-ref.filter";
 import {Metier} from "../model/taxon.model";
 import {Moment} from "moment";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
+import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
+import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
 
 @EntityClass()
 export class MetierFilter extends ReferentialRefFilter {

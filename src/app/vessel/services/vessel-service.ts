@@ -1,31 +1,36 @@
-import {Injectable, Injector} from "@angular/core";
-import {gql} from "@apollo/client/core";
-import {Observable} from "rxjs";
-import {QualityFlagIds} from "../../referential/services/model/model.enum";
-import {MINIFY_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "../../core/services/model/referential.model";
-import {map} from "rxjs/operators";
-import {Moment} from "moment";
-import {ReferentialFragments} from "../../referential/services/referential.fragments";
-import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from "../../shared/functions";
-import {EntityAsObjectOptions, EntityUtils} from "../../core/services/model/entity.model";
-import {VesselFeatureQueries, VesselFeaturesFragments, VesselFeaturesService} from "./vessel-features.service";
-import {VesselRegistrationsQueries, RegistrationFragments, VesselRegistrationService} from "./vessel-registration.service";
-import {Vessel} from "./model/vessel.model";
-import {Person} from "../../core/services/model/person.model";
-import {Department} from "../../core/services/model/department.model";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
-import {SortDirection} from "@angular/material/sort";
-import {FilterFn, IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
-import {DataRootEntityUtils} from "../../data/services/model/root-data-entity.model";
-import {IDataSynchroService, RootDataSynchroService} from "../../data/services/root-data-synchro-service.class";
-import {FormErrors} from "../../core/form/form.utils";
-import {BaseEntityGraphqlQueries, EntitySaveOptions} from "../../referential/services/base-entity-service.class";
-import {fromDateISOString, toDateISOString} from "../../shared/dates";
-import {BaseRootEntityGraphqlMutations} from "../../data/services/root-data-service.class";
-import {VESSEL_FEATURE_NAME} from "./config/vessel.config";
-import {RootDataEntityFilter} from "../../data/services/model/root-data-filter.model";
-import {VesselFilter} from "./filter/vessel.filter";
+import {Injectable, Injector} from '@angular/core';
+import {gql} from '@apollo/client/core';
+import {Observable} from 'rxjs';
+import {QualityFlagIds} from '../../referential/services/model/model.enum';
+import {
+  Department,
+  EntityAsObjectOptions,
+  EntityUtils,
+  FormErrors,
+  IEntitiesService,
+  IEntityService,
+  isEmptyArray,
+  isNil,
+  isNotNil,
+  LoadResult,
+  MINIFY_ENTITY_FOR_LOCAL_STORAGE,
+  Person,
+  StatusIds
+} from '@sumaris-net/ngx-components';
+import {map} from 'rxjs/operators';
+import {ReferentialFragments} from '../../referential/services/referential.fragments';
+import {VesselFeatureQueries, VesselFeaturesFragments, VesselFeaturesService} from './vessel-features.service';
+import {RegistrationFragments, VesselRegistrationService, VesselRegistrationsQueries} from './vessel-registration.service';
+import {Vessel} from './model/vessel.model';
+import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
+import {SortDirection} from '@angular/material/sort';
+import {DataRootEntityUtils} from '../../data/services/model/root-data-entity.model';
+import {IDataSynchroService, RootDataSynchroService} from '../../data/services/root-data-synchro-service.class';
+import {BaseEntityGraphqlQueries, EntitySaveOptions} from '../../referential/services/base-entity-service.class';
+import {BaseRootEntityGraphqlMutations} from '../../data/services/root-data-service.class';
+import {VESSEL_FEATURE_NAME} from './config/vessel.config';
+import {VesselFilter} from './filter/vessel.filter';
+import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 
 export const VesselFragments = {
@@ -307,14 +312,14 @@ export class VesselService
       // Make sure to fill id, with local ids
       await this.fillOfflineDefaultProperties(entity);
 
-      const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+      const json = this.asObject(entity, MINIFY_ENTITY_FOR_LOCAL_STORAGE);
       if (this._debug) console.debug('[vessel-service] [offline] Saving vessel locally...', json);
 
       // Save vessel locally
       await this.entities.save(json);
 
       // Transform to vesselSnapshot, and add to offline storage
-      const vesselSnapshot = VesselSnapshot.fromVessel(entity).asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+      const vesselSnapshot = VesselSnapshot.fromVessel(entity).asObject(MINIFY_ENTITY_FOR_LOCAL_STORAGE);
       await this.entities.save(vesselSnapshot);
 
       return entity;
@@ -367,14 +372,14 @@ export class VesselService
       // Make sure to fill id, with local ids
       await this.fillOfflineDefaultProperties(entity);
 
-      const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+      const json = this.asObject(entity, MINIFY_ENTITY_FOR_LOCAL_STORAGE);
       if (this._debug) console.debug('[vessel-service] [offline] Saving vessel locally...', json);
 
       // Save vessel locally
       await this.entities.save(json);
 
       // Transform to vesselSnapshot, and add to offline storage
-      const vesselSnapshot = VesselSnapshot.fromVessel(entity).asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+      const vesselSnapshot = VesselSnapshot.fromVessel(entity).asObject(MINIFY_ENTITY_FOR_LOCAL_STORAGE);
       await this.entities.save(vesselSnapshot);
 
       return entity;

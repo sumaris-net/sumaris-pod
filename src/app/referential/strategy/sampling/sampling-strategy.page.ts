@@ -2,24 +2,24 @@ import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {ActivatedRoute} from "@angular/router";
 import * as momentImported from "moment";
-import {HistoryPageReference} from "src/app/core/services/model/settings.model";
-import {PlatformService} from "src/app/core/services/platform.service";
-import {AccountService} from "../../../core/services/account.service";
+import {HistoryPageReference}  from "@sumaris-net/ngx-components";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {AccountService}  from "@sumaris-net/ngx-components";
 import {ProgramProperties} from "../../services/config/program.config";
 import {PmfmStrategy} from "../../services/model/pmfm-strategy.model";
 import {Strategy} from "../../services/model/strategy.model";
 import {PmfmService} from "../../services/pmfm.service";
 import {StrategyService} from "../../services/strategy.service";
 import {SamplingStrategyForm} from "./sampling-strategy.form";
-import {AppEntityEditor} from "../../../core/form/editor.class";
-import {isNil, isNotEmptyArray, isNotNil, toNumber} from "../../../shared/functions";
-import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
-import {firstNotNilPromise} from "../../../shared/observables";
+import {AppEntityEditor}  from "@sumaris-net/ngx-components";
+import {isNil, isNotEmptyArray, isNotNil, toNumber} from "@sumaris-net/ngx-components";
+import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
+import {firstNotNilPromise} from "@sumaris-net/ngx-components";
 import {BehaviorSubject} from "rxjs";
 import {Program} from "../../services/model/program.model";
 import {ProgramService} from "../../services/program.service";
 import {AcquisitionLevelCodes, PmfmIds} from "../../services/model/model.enum";
-import {StatusIds} from "../../../core/services/model/model.enum";
+import {StatusIds}  from "@sumaris-net/ngx-components";
 
 const moment = momentImported;
 

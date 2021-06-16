@@ -1,11 +1,11 @@
-import {EntityFilter} from "../../../core/services/model/filter.model";
-import {IReferentialRef, Referential} from "../../../core/services/model/referential.model";
-import {EntityAsObjectOptions, EntityUtils} from "../../../core/services/model/entity.model";
-import {isNil, isNotEmptyArray, isNotNil} from "../../../shared/functions";
-import {StatusIds} from "../../../core/services/model/model.enum";
-import {FilterFn} from "../../../shared/services/entity-service.class";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
-import {toDateISOString} from "../../../shared/dates";
+import {EntityFilter}  from "@sumaris-net/ngx-components";
+import {IReferentialRef, Referential}  from "@sumaris-net/ngx-components";
+import {EntityAsObjectOptions, EntityUtils}  from "@sumaris-net/ngx-components";
+import {isNil, isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
+import {StatusIds}  from "@sumaris-net/ngx-components";
+import {FilterFn} from "@sumaris-net/ngx-components";
+import {EntityClass}  from "@sumaris-net/ngx-components";
+import {toDateISOString} from "@sumaris-net/ngx-components";
 
 export abstract class BaseReferentialFilter<
   F extends EntityFilter<F, T, ID, AO, FO>,

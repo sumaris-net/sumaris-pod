@@ -3,8 +3,8 @@ import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angul
 import {PmfmStrategy} from "../model/pmfm-strategy.model";
 
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {SharedValidators} from "../../../shared/validator/validators";
-import {isNotNil} from "../../../shared/functions";
+import {SharedValidators} from "@sumaris-net/ngx-components";
+import {isNotNil} from "@sumaris-net/ngx-components";
 
 @Injectable({providedIn: 'root'})
 export class PmfmStrategyValidatorService implements ValidatorService {

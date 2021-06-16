@@ -1,11 +1,12 @@
 import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {Moment} from "moment";
 import {IWithVesselSnapshotEntity, VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
-import {NOT_MINIFY_OPTIONS, ReferentialRef} from "../../../core/services/model/referential.model";
-import {isEmptyArray, isNotNil} from "../../../shared/functions";
-import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {ReferentialRef}  from "@sumaris-net/ngx-components";
+import {isEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
+import {Entity, EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
+import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
+import {EntityClass}  from "@sumaris-net/ngx-components";
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export class VesselActivity extends Entity<VesselActivity> {
 

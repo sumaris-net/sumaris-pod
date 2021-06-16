@@ -1,5 +1,5 @@
 import {NgModule} from '@angular/core';
-import {CoreModule} from '../core/core.module';
+import {CoreModule} from "@sumaris-net/ngx-components";
 import {VesselForm} from "./form/form-vessel";
 import {VesselPage} from "./page/vessel.page";
 import {VesselsTable} from "./list/vessels.table";
@@ -9,19 +9,22 @@ import {TranslateModule} from "@ngx-translate/core";
 
 import {TextMaskModule} from "angular2-text-mask";
 import {CommonModule} from "@angular/common";
-import {DataModule} from "../data/data.module";
+import {AppDataModule} from "../data/app-data.module";
 import {VesselFeaturesHistoryComponent} from "./page/vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./page/vessel-registration-history.component";
-import {ReferentialModule} from "../referential/referential.module";
+import {AppReferentialModule} from "../referential/app-referential.module";
+import {AppCoreModule} from '@app/core/core.module';
 
 @NgModule({
   imports: [
     CommonModule,
-    CoreModule,
-    ReferentialModule,
-    DataModule,
     TextMaskModule,
-    TranslateModule.forChild()
+    TranslateModule.forChild(),
+
+    // App modules
+    AppCoreModule,
+    AppReferentialModule,
+    AppDataModule,
   ],
   declarations: [
 

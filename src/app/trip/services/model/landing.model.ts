@@ -1,14 +1,11 @@
-import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
-import {Moment} from "moment";
-import {MeasurementModelValues, MeasurementValuesUtils} from "./measurement.model";
-import {Sample} from "./sample.model";
-import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {DataRootVesselEntity} from "../../../data/services/model/root-vessel-entity.model";
-import {IWithObserversEntity} from "../../../data/services/model/model.utils";
-import {Person} from "../../../core/services/model/person.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {EntityUtils} from "../../../core/services/model/entity.model";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
+import {Moment} from 'moment';
+import {MeasurementModelValues, MeasurementValuesUtils} from './measurement.model';
+import {Sample} from './sample.model';
+import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
+import {IWithObserversEntity} from '@app/data/services/model/model.utils';
+import {EntityClass, fromDateISOString, Person, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils, toDateISOString} from '@sumaris-net/ngx-components';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 /**
  * Landing entity

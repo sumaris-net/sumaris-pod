@@ -1,12 +1,12 @@
-import {EntityFilter} from "../../../core/services/model/filter.model";
+import {EntityFilter}  from "@sumaris-net/ngx-components";
 import {Vessel, VesselFeatures, VesselRegistration} from "../model/vessel.model";
-import {FilterFn} from "../../../shared/services/entity-service.class";
-import {isNil, isNotEmptyArray, isNotNil} from "../../../shared/functions";
+import {FilterFn} from "@sumaris-net/ngx-components";
+import {isNil, isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
 import {RootDataEntityFilter} from "../../../data/services/model/root-data-filter.model";
 import {Moment} from "moment";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {EntityAsObjectOptions, EntityUtils} from "../../../core/services/model/entity.model";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
+import {EntityAsObjectOptions, EntityUtils}  from "@sumaris-net/ngx-components";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 
 @EntityClass()
 export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {

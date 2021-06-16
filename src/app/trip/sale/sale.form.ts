@@ -2,14 +2,14 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {SaleValidatorService} from "../services/validator/sale.validator";
 import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {Sale} from "../services/model/sale.model";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {AppForm} from "../../core/form/form.class";
-import {referentialToString} from "../../core/services/model/referential.model";
+import {AppForm}  from "@sumaris-net/ngx-components";
+import {referentialToString}  from "@sumaris-net/ngx-components";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {StatusIds} from "../../core/services/model/model.enum";
+import {StatusIds}  from "@sumaris-net/ngx-components";
 
 @Component({
   selector: 'form-sale',

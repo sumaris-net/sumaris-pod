@@ -1,20 +1,24 @@
-import {ChangeDetectorRef, Directive, Injector, OnInit, ViewChild} from "@angular/core";
-import {AbstractControl, FormArray, FormGroup} from "@angular/forms";
-import {EntityUtils} from '../../core/services/model/entity.model';
-import {Software} from '../../core/services/model/config.model';
-import {FormArrayHelper} from "../../core/form/form.utils";
-import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {PlatformService} from "../../core/services/platform.service";
-import {AccountService} from "../../core/services/account.service";
-import {ReferentialForm} from "../form/referential.form";
-import {SoftwareService} from "../services/software.service";
-import {SoftwareValidatorService} from "../services/validator/software.validator";
-import {AppEditorOptions, AppEntityEditor} from "../../core/form/editor.class";
-import {CORE_CONFIG_OPTIONS} from "../../core/services/config/core.config";
-import {ReferentialRefService} from "../services/referential-ref.service";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {ObjectMapEntry} from "../../shared/types";
-import {isNil} from "../../shared/functions";
+import {ChangeDetectorRef, Directive, Injector, OnInit, ViewChild} from '@angular/core';
+import {AbstractControl, FormArray, FormGroup} from '@angular/forms';
+import {
+  AccountService,
+  AppEditorOptions,
+  AppEntityEditor,
+  CORE_CONFIG_OPTIONS,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  FormArrayHelper,
+  FormFieldDefinition,
+  FormFieldDefinitionMap,
+  isNil,
+  ObjectMapEntry,
+  PlatformService,
+  Software
+} from '@sumaris-net/ngx-components';
+import {ReferentialForm} from '../form/referential.form';
+import {SoftwareService} from '../services/software.service';
+import {SoftwareValidatorService} from '../services/validator/software.validator';
+import {ReferentialRefService} from '../services/referential-ref.service';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix

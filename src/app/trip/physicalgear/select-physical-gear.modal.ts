@@ -3,13 +3,13 @@ import {ModalController} from "@ionic/angular";
 import {PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearService} from "../services/physicalgear.service";
 import {TableElement} from "@e-is/ngx-material-table";
 import {PhysicalGear} from "../services/model/trip.model";
-import {isNotNil, toBoolean} from "../../shared/functions";
+import {isNotNil, toBoolean} from "@sumaris-net/ngx-components";
 import {AcquisitionLevelCodes, AcquisitionLevelType} from "../../referential/services/model/model.enum";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {IEntitiesService} from "../../shared/services/entity-service.class";
+import {IEntitiesService} from "@sumaris-net/ngx-components";
 import {Observable} from "rxjs";
 import {PhysicalGearFilter} from "../services/filter/physical-gear.filter";
-import {PlatformService} from "../../core/services/platform.service";
+import {PlatformService}  from "@sumaris-net/ngx-components";
 import {Browser} from "leaflet";
 import mobile = Browser.mobile;
 

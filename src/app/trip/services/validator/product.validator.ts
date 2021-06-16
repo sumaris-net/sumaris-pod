@@ -5,10 +5,10 @@ import {
   SharedFormArrayValidators,
   SharedFormGroupValidators,
   SharedValidators
-} from "../../../shared/validator/validators";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+} from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {Program} from "../../../referential/services/model/program.model";
-import {toBoolean} from "../../../shared/functions";
+import {toBoolean} from "@sumaris-net/ngx-components";
 import {
   DataEntityValidatorOptions,
   DataEntityValidatorService

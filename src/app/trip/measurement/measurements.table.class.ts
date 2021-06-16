@@ -6,20 +6,20 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from '@ngx-translate/core';
-import {isNil, isNotNil} from "../../shared/functions";
+import {isNil, isNotNil} from "@sumaris-net/ngx-components";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {MeasurementsDataService} from "./measurements.service";
-import {AppTableDataSourceOptions, EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
+import {AppTableDataSourceOptions, EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
+import {filterNotNil, firstNotNilPromise} from "@sumaris-net/ngx-components";
 import {AcquisitionLevelType} from "../../referential/services/model/model.enum";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {Alerts} from "../../shared/alerts";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {Alerts} from "@sumaris-net/ngx-components";
 import {DenormalizedPmfmStrategy, getPmfmName} from "../../referential/services/model/pmfm-strategy.model";
 import {IPmfm, PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
-import {IEntitiesService} from "../../shared/services/entity-service.class";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {IEntitiesService} from "@sumaris-net/ngx-components";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {Entity} from "../../core/services/model/entity.model";
+import {Entity}  from "@sumaris-net/ngx-components";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 

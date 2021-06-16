@@ -11,16 +11,16 @@ import {
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {Strategy} from "../services/model/strategy.model";
-import {isNotNil, toBoolean} from "../../shared/functions";
-import {DefaultStatusList} from "../../core/services/model/referential.model";
+import {isNotNil, toBoolean} from "@sumaris-net/ngx-components";
+import {DefaultStatusList}  from "@sumaris-net/ngx-components";
 import {StrategyFilter, StrategyService} from "../services/strategy.service";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {Program} from "../services/model/program.model";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
+import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
 import {ENVIRONMENT} from "../../../environments/environment.class";
 
 

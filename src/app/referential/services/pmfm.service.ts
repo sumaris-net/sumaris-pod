@@ -1,27 +1,27 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
-import {AccountService} from "../../core/services/account.service";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {environment} from "../../../environments/environment";
+import {AccountService, MINIFY_ENTITY_FOR_POD} from '@sumaris-net/ngx-components';
+import {GraphqlService}  from "@sumaris-net/ngx-components";
+import {environment} from '@environments/environment';
 import {ReferentialService} from "./referential.service";
 import {Pmfm} from "./model/pmfm.model";
 import {Observable, of} from "rxjs";
 import {ReferentialFragments} from "./referential.fragments";
 import {map} from "rxjs/operators";
-import {ReferentialUtils, SAVE_AS_OBJECT_OPTIONS} from "../../core/services/model/referential.model";
+import {ReferentialUtils}  from "@sumaris-net/ngx-components";
 import {SortDirection} from "@angular/material/sort";
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {EntityServiceLoadOptions, IEntitiesService, IEntityService, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
-import {isNil, isNotNil} from "../../shared/functions";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {EntityUtils} from "../../core/services/model/entity.model";
+import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
+import {EntityServiceLoadOptions, IEntitiesService, IEntityService, LoadResult, SuggestService} from "@sumaris-net/ngx-components";
+import {isNil, isNotNil} from "@sumaris-net/ngx-components";
+import {StatusIds}  from "@sumaris-net/ngx-components";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
 import {ReferentialRefService} from "./referential-ref.service";
-import {ObjectMap} from "../../shared/types";
+import {ObjectMap} from "@sumaris-net/ngx-components";
 import {CacheService} from "ionic-cache";
-import {CryptoService} from "../../core/services/crypto.service";
+import {CryptoService}  from "@sumaris-net/ngx-components";
 import {BaseReferentialFilter} from "./filter/referential.filter";
-import {EntityClass} from "../../core/services/model/entity.decorators";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 
 const LoadAllQuery = gql`query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
   data: pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -172,7 +172,7 @@ export class PmfmService
     this.fillDefaultProperties(entity);
 
     // Transform into json
-    const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
+    const json = entity.asObject(MINIFY_ENTITY_FOR_POD);
 
     const now = Date.now();
     if (this._debug) console.debug(`[pmfm-service] Saving Pmfm...`, json);

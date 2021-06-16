@@ -1,13 +1,13 @@
 import {Directive, Input, OnInit, Optional, ViewChild} from "@angular/core";
 import {ModalController} from "@ionic/angular";
-import {isNotNil, toBoolean} from "../../shared/functions";
+import {isNotNil, toBoolean} from "@sumaris-net/ngx-components";
 import {Subject} from "rxjs";
-import {AppTableDataSourceOptions, EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {ReferentialRef} from "../../core/services/model/referential.model";
+import {AppTableDataSourceOptions, EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
+import {ReferentialRef}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
-import {IEntity} from "../../core/services/model/entity.model";
-import {IEntitiesService} from "../../shared/services/entity-service.class";
-import {AppTable} from "../../core/table/table.class";
+import {IEntity}  from "@sumaris-net/ngx-components";
+import {IEntitiesService} from "@sumaris-net/ngx-components";
+import {AppTable}  from "@sumaris-net/ngx-components";
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix

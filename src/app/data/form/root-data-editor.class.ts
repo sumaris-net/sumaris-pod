@@ -1,16 +1,16 @@
 import {Directive, Injector, OnInit} from '@angular/core';
 
 import {BehaviorSubject, merge, Subject, Subscription} from 'rxjs';
-import {changeCaseToUnderscore, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank} from '../../shared/functions';
+import {changeCaseToUnderscore, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
 import {distinctUntilChanged, filter, map, switchMap, tap} from "rxjs/operators";
 import {Program} from "../../referential/services/model/program.model";
-import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
-import {AppEditorOptions, AppEntityEditor} from "../../core/form/editor.class";
-import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {HistoryPageReference} from "../../core/services/model/settings.model";
+import {EntityServiceLoadOptions, IEntityService} from "@sumaris-net/ngx-components";
+import {AppEditorOptions, AppEntityEditor}  from "@sumaris-net/ngx-components";
+import {ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {HistoryPageReference}  from "@sumaris-net/ngx-components";
 import {RootDataEntity} from "../services/model/root-data-entity.model";
-import {MatAutocompleteConfigHolder, MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "../../shared/material/autocomplete/material.autocomplete";
-import {AddToPageHistoryOptions} from "../../core/services/local-settings.service";
+import {MatAutocompleteConfigHolder, MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "@sumaris-net/ngx-components";
+import {AddToPageHistoryOptions}  from "@sumaris-net/ngx-components";
 import {Strategy} from "../../referential/services/model/strategy.model";
 import {StrategyRefService} from "../../referential/services/strategy-ref.service";
 import {ProgramRefService} from "../../referential/services/program-ref.service";

@@ -3,19 +3,19 @@ import {ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormGroup} from "@angular/forms";
 import {ReferentialForm} from "../form/referential.form";
 import {ParameterValidatorService} from "../services/validator/parameter.validator";
-import {AccountService} from "../../core/services/account.service";
-import {FormFieldDefinitionMap} from "../../shared/form/field.model";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
 import {ReferentialRefService} from "../services/referential-ref.service";
-import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
-import {HistoryPageReference} from "../../core/services/model/history.model";
-import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {AppEntityEditor} from "../../core/form/editor.class";
-import {isNil, joinPropertiesPath} from "../../shared/functions";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {referentialToString, ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {HistoryPageReference}  from "@sumaris-net/ngx-components";
+import {fadeInOutAnimation} from "@sumaris-net/ngx-components";
+import {AppEntityEditor}  from "@sumaris-net/ngx-components";
+import {isNil, joinPropertiesPath} from "@sumaris-net/ngx-components";
+import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
 import {TaxonName} from "../services/model/taxon-name.model";
 import {TaxonNameService} from "../services/taxon-name.service";
 import {TaxonNameValidatorService} from "../services/validator/taxon-name.validator";
-import {MatAutocompleteFieldConfig} from "../../shared/material/autocomplete/material.autocomplete";
+import {MatAutocompleteFieldConfig} from "@sumaris-net/ngx-components";
 import {ENVIRONMENT} from "../../../environments/environment.class";
 
 @Component({

@@ -5,13 +5,13 @@ import {Moment} from "moment";
 import {FormBuilder} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {ModalController} from "@ionic/angular";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {NetworkService} from "../../core/services/network.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {NetworkService}  from "@sumaris-net/ngx-components";
 import {FishingAreaValidatorService} from "../services/validator/fishing-area.validator";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
 import {debounceTime, distinctUntilChanged, filter, pluck} from "rxjs/operators";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
-import {AppForm} from "../../core/form/form.class";
+import {ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {AppForm}  from "@sumaris-net/ngx-components";
 
 @Component({
   selector: 'app-fishing-area-form',

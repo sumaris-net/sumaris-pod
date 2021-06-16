@@ -1,10 +1,10 @@
-import {Person} from "../../../core/services/model/person.model";
+import {Person}  from "@sumaris-net/ngx-components";
 import {FormBuilder, FormControl, Validators} from "@angular/forms";
-import {SharedFormArrayValidators, SharedValidators} from "../../../shared/validator/validators";
+import {SharedFormArrayValidators, SharedValidators} from "@sumaris-net/ngx-components";
 import {RootDataEntity} from "../model/root-data-entity.model";
 import {IWithObserversEntity} from "../model/model.utils";
 import {Program} from "../../../referential/services/model/program.model";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {Optional} from "@angular/core";
 import {DataEntityValidatorOptions, DataEntityValidatorService} from "./data-entity.validator";
 

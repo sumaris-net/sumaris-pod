@@ -1,10 +1,11 @@
-import {BaseReferential, MINIFY_OPTIONS, NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions, ReferentialRef} from "../../../core/services/model/referential.model";
-import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity.model";
+import {BaseReferential, ReferentialAsObjectOptions, ReferentialRef}  from "@sumaris-net/ngx-components";
+import {Entity, EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
 import {Moment} from "moment";
 import {TaxonGroupRef, TaxonNameRef} from "./taxon.model";
 import {DenormalizedPmfmStrategy, PmfmStrategy} from "./pmfm-strategy.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
+import {EntityClass}  from "@sumaris-net/ngx-components";
+import {MINIFY_OPTIONS, NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 
 @EntityClass({typename: 'StrategyVO'})

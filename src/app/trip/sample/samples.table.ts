@@ -1,12 +1,12 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Optional, Output} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {SampleValidatorService} from "../services/validator/sample.validator";
-import {isEmptyArray, isNil, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
-import {UsageMode} from "../../core/services/model/settings.model";
+import {isEmptyArray, isNil, isNilOrBlank, isNotNil, toNumber} from "@sumaris-net/ngx-components";
+import {UsageMode}  from "@sumaris-net/ngx-components";
 import * as momentImported from "moment";
 import {Moment} from "moment";
 import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
-import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
+import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
 import {ISampleModalOptions, SampleModal} from "./sample.modal";
 import {FormGroup} from "@angular/forms";
 import {TaxonGroupRef, TaxonNameRef} from "../../referential/services/model/taxon.model";
@@ -14,16 +14,16 @@ import {Sample} from "../services/model/sample.model";
 import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {PlatformService} from "../../core/services/platform.service";
-import {IReferentialRef, ReferentialRef} from "../../core/services/model/referential.model";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {IReferentialRef, ReferentialRef}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
-import {AppFormUtils} from "../../core/form/form.utils";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
 import {filter, map, tap} from "rxjs/operators";
-import {LoadResult} from "../../shared/services/entity-service.class";
+import {LoadResult} from "@sumaris-net/ngx-components";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
-import {firstNotNilPromise} from "../../shared/observables";
+import {firstNotNilPromise} from "@sumaris-net/ngx-components";
 import {SampleFilter} from "../services/filter/sample.filter";
-import {isInstanceOf} from "../../core/services/model/entity.model";
+import {isInstanceOf}  from "@sumaris-net/ngx-components";
 
 const moment = momentImported;
 

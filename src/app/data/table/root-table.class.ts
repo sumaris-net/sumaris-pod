@@ -4,26 +4,26 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormGroup} from "@angular/forms";
 import {catchError, debounceTime, distinctUntilChanged, filter, map, tap, throttleTime} from "rxjs/operators";
-import {PlatformService} from "../../core/services/platform.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AccountService} from "../../core/services/account.service";
-import {ConnectionType, NetworkService} from "../../core/services/network.service";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {ConnectionType, NetworkService}  from "@sumaris-net/ngx-components";
 import {BehaviorSubject} from "rxjs";
-import {personsToString} from "../../core/services/model/person.model";
-import {chainPromises} from "../../shared/observables";
-import {isEmptyArray, isNil, isNotNil, toBoolean} from "../../shared/functions";
+import {PersonUtils}  from "@sumaris-net/ngx-components";
+import {chainPromises} from "@sumaris-net/ngx-components";
+import {isEmptyArray, isNil, isNotNil, toBoolean} from "@sumaris-net/ngx-components";
 import {DataRootEntityUtils, RootDataEntity, SynchronizationStatus} from "../services/model/root-data-entity.model";
 import {qualityFlagToColor} from "../services/model/model.utils";
 import {UserEventService} from "../../social/services/user-event.service";
 import {IDataSynchroService} from "../services/root-data-synchro-service.class";
-import {referentialToString} from "../../core/services/model/referential.model";
-import {AppTable} from "../../core/table/table.class";
-import {toDateISOString} from "../../shared/dates";
+import {referentialToString}  from "@sumaris-net/ngx-components";
+import {AppTable}  from "@sumaris-net/ngx-components";
+import {toDateISOString} from "@sumaris-net/ngx-components";
 import * as momentImported from "moment";
 import {TableElement} from "@e-is/ngx-material-table";
 import {RootDataEntityFilter} from "../services/model/root-data-filter.model";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {EntityUtils} from "../../core/services/model/entity.model";
+import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
 
 const moment = momentImported;
 
@@ -465,7 +465,6 @@ export abstract class AppRootTable<
   }
 
   referentialToString = referentialToString;
-  personsToString = personsToString;
   qualityFlagToColor = qualityFlagToColor;
 
   /* -- protected methods -- */

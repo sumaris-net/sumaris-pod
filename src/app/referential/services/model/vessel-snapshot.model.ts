@@ -1,13 +1,8 @@
-import {Moment} from "moment";
-import {Entity, EntityAsObjectOptions, IEntity} from "../../../core/services/model/entity.model";
-import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions, ReferentialRef} from "../../../core/services/model/referential.model";
-import {Vessel} from "../../../vessel/services/model/vessel.model";
-import {Department} from "../../../core/services/model/department.model";
-import {isNotNil, joinPropertiesPath} from "../../../shared/functions";
-import {Person} from "../../../core/services/model/person.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {Moment} from 'moment';
+import {Department, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
+import {Vessel} from '@app/vessel/services/model/vessel.model';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+
 
 export interface IWithVesselSnapshotEntity<T, ID = number> extends IEntity<T, ID> {
   vesselSnapshot: VesselSnapshot;

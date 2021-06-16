@@ -12,16 +12,16 @@ import {
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {PhysicalGearValidatorService} from "../services/validator/physicalgear.validator";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
+import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
 import {PhysicalGearModal} from "./physical-gear.modal";
 import {PhysicalGear} from "../services/model/trip.model";
 import {PHYSICAL_GEAR_DATA_SERVICE} from "../services/physicalgear.service";
-import {createPromiseEventEmitter} from "../../shared/events";
+import {createPromiseEventEmitter} from "@sumaris-net/ngx-components";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {IEntitiesService} from "../../shared/services/entity-service.class";
+import {IEntitiesService} from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {PhysicalGearFilter} from "../services/filter/physical-gear.filter";
-import {isInstanceOf} from "../../core/services/model/entity.model";
+import {isInstanceOf}  from "@sumaris-net/ngx-components";
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];

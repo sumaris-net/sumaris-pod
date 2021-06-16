@@ -3,32 +3,32 @@ import {FetchPolicy, gql} from "@apollo/client/core";
 import {BehaviorSubject, Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
-import {AccountService} from "../../core/services/account.service";
-import {Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {Referential, ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
 import {ReferentialService} from "./referential.service";
-import {IEntitiesService, LoadResult, SuggestService} from "../../shared/services/entity-service.class";
-import {GraphqlService} from "../../core/graphql/graphql.service";
+import {IEntitiesService, LoadResult, SuggestService} from "@sumaris-net/ngx-components";
+import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {LocationLevelIds, ParameterLabelGroups, PmfmIds, TaxonGroupIds, TaxonomicLevelIds} from "./model/model.enum";
 import {Metier, TaxonNameRef} from "./model/taxon.model";
-import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
+import {NetworkService}  from "@sumaris-net/ngx-components";
+import {EntitiesStorage}  from "@sumaris-net/ngx-components";
 import {ReferentialFragments} from "./referential.fragments";
 import {SortDirection} from "@angular/material/sort";
 import {Moment} from "moment";
-import {isEmptyArray} from "../../shared/functions";
-import {JobUtils} from "../../shared/services/job.utils";
-import {chainPromises} from "../../shared/observables";
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {environment} from "../../../environments/environment";
-import {fromDateISOString} from "../../shared/dates";
-import {ObjectMap} from "../../shared/types";
+import {isEmptyArray} from "@sumaris-net/ngx-components";
+import {JobUtils} from "@sumaris-net/ngx-components";
+import {chainPromises} from "@sumaris-net/ngx-components";
+import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
+import {StatusIds}  from "@sumaris-net/ngx-components";
+import {environment} from '@environments/environment';
+import {fromDateISOString} from "@sumaris-net/ngx-components";
+import {ObjectMap} from "@sumaris-net/ngx-components";
 import {BaseEntityGraphqlQueries} from "./base-entity-service.class";
 import {TaxonNameRefFilter} from "./filter/taxon-name-ref.filter";
 import {ReferentialRefFilter} from "./filter/referential-ref.filter";
-import {Configuration} from "../../core/services/model/config.model";
+import {Configuration}  from "@sumaris-net/ngx-components";
 import {REFERENTIAL_CONFIG_OPTIONS} from "./config/referential.config";
-import {ConfigService} from "../../core/services/config.service";
+import {ConfigService}  from "@sumaris-net/ngx-components";
 
 const LastUpdateDate: any = gql`
   query LastUpdateDate{
@@ -291,7 +291,9 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     return res.data[0];
   }
 
-  async suggest(value: any, filter?: Partial<ReferentialRefFilter>, sortBy?: keyof Referential, sortDirection?: SortDirection,
+  async suggest(value: any, filter?: Partial<ReferentialRefFilter>,
+                sortBy?: keyof Referential | 'rankOrder',
+                sortDirection?: SortDirection,
                 opts?: {
                   fetchPolicy?: FetchPolicy;
                 }): Promise<LoadResult<ReferentialRef>> {

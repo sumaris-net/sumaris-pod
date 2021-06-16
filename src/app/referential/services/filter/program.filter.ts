@@ -1,6 +1,6 @@
 import {BaseReferentialFilter} from "./referential.filter";
 import {Program} from "../model/program.model";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 
 @EntityClass()
 export class ProgramFilter extends BaseReferentialFilter<ProgramFilter, Program> {

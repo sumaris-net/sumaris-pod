@@ -6,11 +6,11 @@ import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {OperationGroupValidatorService} from "../services/validator/operation-group.validator";
 import {BehaviorSubject} from "rxjs";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
+import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
 import {MetierService} from "../../referential/services/metier.service";
 import {OperationGroup, PhysicalGear} from "../services/model/trip.model";
 import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
+import {ReferentialRef, referentialToString}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
 

@@ -1,33 +1,39 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment';
-import {DateAdapter} from "@angular/material/core";
+import {DateAdapter} from '@angular/material/core';
 import {debounceTime, map} from 'rxjs/operators';
 import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../referential/services/model/model.enum';
-import {LandingValidatorService} from "../services/validator/landing.validator";
-import {PersonService} from "../../admin/services/person.service";
-import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
-import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {FormArray, FormBuilder, FormControl, Validators} from "@angular/forms";
-import {ModalController} from "@ionic/angular";
-import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {Person, personToString, UserProfileLabels} from "../../core/services/model/person.model";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {isNil, isNotNil, toBoolean} from "../../shared/functions";
-import {Landing} from "../services/model/landing.model";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
-import {VesselModal} from "../../vessel/modal/vessel-modal";
-import {FormArrayHelper} from "../../core/form/form.utils";
-import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {EntityUtils, isInstanceOf} from "../../core/services/model/entity.model";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {SamplingStrategyService} from "../../referential/services/sampling-strategy.service";
-import {TranslateService} from "@ngx-translate/core";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
-import {ReferentialRefFilter} from "../../referential/services/filter/referential-ref.filter";
-import {LoadResult} from "../../shared/services/entity-service.class";
+import {LandingValidatorService} from '../services/validator/landing.validator';
+import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {FormArray, FormBuilder, FormControl, Validators} from '@angular/forms';
+import {ModalController} from '@ionic/angular';
+import {
+  EntityUtils,
+  FormArrayHelper,
+  isInstanceOf,
+  isNil,
+  isNotNil,
+  LoadResult,
+  LocalSettingsService,
+  Person, PersonService,
+  PersonUtils,
+  ReferentialRef,
+  ReferentialUtils,
+  StatusIds,
+  toBoolean, UserProfileLabel
+} from '@sumaris-net/ngx-components';
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {Landing} from '../services/model/landing.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {VesselModal} from '@app/vessel/modal/vessel-modal';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
+import {TranslateService} from '@ngx-translate/core';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -233,10 +239,10 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: [UserProfileLabels.SUPERVISOR, UserProfileLabels.USER, UserProfileLabels.GUEST]
+        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST']
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: personToString
+      displayWith: PersonUtils.personToString
     });
 
     // Propagate program
@@ -287,7 +293,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     // Propagate the strategy
     const strategyLabel = Object.entries(data.measurementValues || {})
-      .filter(([pmfmId, _]) => +pmfmId == PmfmIds.STRATEGY_LABEL)
+      .filter(([pmfmId, _]) => +pmfmId === PmfmIds.STRATEGY_LABEL)
       .map(([_, value]) => value)
       .find(isNotNil) as string;
     this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));

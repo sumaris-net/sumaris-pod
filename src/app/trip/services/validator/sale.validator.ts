@@ -1,8 +1,8 @@
 import {Injectable} from "@angular/core";
 import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
-import {toBoolean} from "../../../shared/functions";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {SharedFormGroupValidators, SharedValidators} from "@sumaris-net/ngx-components";
+import {toBoolean} from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {Sale} from "../model/sale.model";
 import {
   DataRootEntityValidatorOptions,

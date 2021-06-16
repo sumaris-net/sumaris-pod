@@ -7,17 +7,18 @@ import {Landing} from "../../services/model/landing.model";
 import { VesselService} from "../../../vessel/services/vessel-service";
 import {VesselFilter} from "../../../vessel/services/filter/vessel.filter";
 import {VesselsTable} from "../../../vessel/list/vessels.table";
-import {AppTable} from "../../../core/table/table.class";
-import {isEmptyArray, isNotNil, toBoolean} from "../../../shared/functions";
+import {AppTable}  from "@sumaris-net/ngx-components";
+import {isEmptyArray, isNotNil, toBoolean} from "@sumaris-net/ngx-components";
 import {VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
 import {VesselForm} from "../../../vessel/form/form-vessel";
-import {AppFormUtils} from "../../../core/form/form.utils";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
 import {Vessel} from "../../../vessel/services/model/vessel.model";
 import {Subscription} from "rxjs";
-import {CORE_CONFIG_OPTIONS} from "../../../core/services/config/core.config";
-import {ConfigService} from "../../../core/services/config.service";
+import {CORE_CONFIG_OPTIONS}  from "@sumaris-net/ngx-components";
+import {ConfigService}  from "@sumaris-net/ngx-components";
 import {MatTabGroup} from "@angular/material/tabs";
 import {LandingFilter} from "../../services/filter/landing.filter";
+import {VESSEL_CONFIG_OPTIONS} from '@app/vessel/services/config/vessel.config';
 
 @Component({
   selector: 'app-select-vessel-modal',
@@ -117,7 +118,7 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
     if (this.allowAddNewVessel && this.vesselForm) {
       this.subscription.add(
         this.configService.config.subscribe(config => setTimeout(() => {
-          this.vesselForm.defaultStatus = config.getPropertyAsInt(CORE_CONFIG_OPTIONS.VESSEL_DEFAULT_STATUS);
+          this.vesselForm.defaultStatus = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_DEFAULT_STATUS);
           this.vesselForm.enable();
         }))
       );

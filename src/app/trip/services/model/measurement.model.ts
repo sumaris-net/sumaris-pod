@@ -1,15 +1,15 @@
 import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {FormGroup} from "@angular/forms";
-import {arraySize, isEmptyArray, isNil, isNotNil, notNilOrDefault} from "../../../shared/functions";
+import {arraySize, isEmptyArray, isNil, isNotNil, notNilOrDefault} from "@sumaris-net/ngx-components";
 import * as momentImported from "moment";
 import {isMoment} from "moment";
-import {IEntity} from "../../../core/services/model/entity.model";
+import {IEntity}  from "@sumaris-net/ngx-components";
 import {IPmfm, Pmfm} from "../../../referential/services/model/pmfm.model";
 import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {PmfmValue, PmfmValueUtils} from "../../../referential/services/model/pmfm-value.model";
-import {AppFormUtils} from "../../../core/form/form.utils";
-import {ReferentialRef} from "../../../core/services/model/referential.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
+import {ReferentialRef}  from "@sumaris-net/ngx-components";
+import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
 
 const moment = momentImported;
 

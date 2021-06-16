@@ -3,18 +3,18 @@ import {ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormGroup} from "@angular/forms";
 import {ReferentialForm} from "../form/referential.form";
 import {ParameterValidatorService} from "../services/validator/parameter.validator";
-import {AccountService} from "../../core/services/account.service";
+import {AccountService}  from "@sumaris-net/ngx-components";
 import {Parameter} from "../services/model/parameter.model";
 import {ParameterService} from "../services/parameter.service";
-import {FormFieldDefinitionMap} from "../../shared/form/field.model";
+import {FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
 import {ReferentialRefService} from "../services/referential-ref.service";
-import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
-import {HistoryPageReference} from "../../core/services/model/history.model";
-import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {AppEntityEditor} from "../../core/form/editor.class";
+import {referentialToString, ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {HistoryPageReference}  from "@sumaris-net/ngx-components";
+import {fadeInOutAnimation} from "@sumaris-net/ngx-components";
+import {AppEntityEditor}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
-import {isNil} from "../../shared/functions";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {isNil} from "@sumaris-net/ngx-components";
+import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
 import {SimpleReferentialTable} from "../list/referential-simple.table";
 
 @Component({

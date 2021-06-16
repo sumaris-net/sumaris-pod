@@ -1,11 +1,10 @@
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
-import {HomePage} from './core/home/home';
-import {RegisterConfirmPage} from './core/register/confirm/confirm';
-import {AccountPage} from './core/account/account';
-import {SettingsPage} from "./core/settings/settings.page";
-import {AuthGuardService} from "./core/services/auth-guard.service";
-import {SHARED_ROUTE_OPTIONS, SharedRoutingModule} from "./shared/shared-routing.module";
+import {AccountPage, HomePage} from '@sumaris-net/ngx-components';
+import {SettingsPage}  from "@sumaris-net/ngx-components";
+import {AuthGuardService}  from "@sumaris-net/ngx-components";
+import {SHARED_ROUTE_OPTIONS, SharedRoutingModule} from "@sumaris-net/ngx-components";
+import {RegisterConfirmPage}  from '@sumaris-net/ngx-components';
 
 const routes: Routes = [
   // Core path
@@ -38,7 +37,7 @@ const routes: Routes = [
   {
     path: 'admin',
     canActivate: [AuthGuardService],
-    loadChildren: () => import('./admin/admin-routing.module').then(m => m.AdminRoutingModule)
+    loadChildren: () => import('./admin/admin-routing.module').then(m => m.AppAdminRoutingModule)
   },
 
   // Referential
@@ -82,7 +81,7 @@ const routes: Routes = [
     data: {
       profile: 'GUEST'
     },
-    loadChildren: () => import('./extraction/extraction.module').then(m => m.ExtractionModule)
+    loadChildren: () => import('./extraction/extraction-routing.module').then(m => m.AppExtractionRoutingModule)
   },
 
   // Test module (disable in menu, by default - can be enable by the Pod configuration page)
@@ -97,7 +96,7 @@ const routes: Routes = [
       // Shared module
       {
         path: 'shared',
-        loadChildren: () => import('./shared/shared.testing.module').then(m => m.SharedTestingModule)
+        loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.SharedTestingModule)
       },
       // Trip module
       {

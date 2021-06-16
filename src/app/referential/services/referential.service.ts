@@ -3,18 +3,18 @@ import {FetchPolicy, gql, MutationUpdaterFn} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
-import {AccountService} from "../../core/services/account.service";
-import {GraphqlService} from "../../core/graphql/graphql.service";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {ReferentialFragments} from "./referential.fragments";
 import {environment} from "../../../environments/environment";
-import {isNil, isNotNil} from "../../shared/functions";
-import {Referential, ReferentialUtils} from "../../core/services/model/referential.model";
-import {StatusIds} from "../../core/services/model/model.enum";
+import {isNil, isNotNil} from "@sumaris-net/ngx-components";
+import {Referential, ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {StatusIds}  from "@sumaris-net/ngx-components";
 import {SortDirection} from "@angular/material/sort";
-import {PlatformService} from "../../core/services/platform.service";
-import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {EntityUtils} from "../../core/services/model/entity.model";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {IEntitiesService, LoadResult} from "@sumaris-net/ngx-components";
+import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
 import {ReferentialFilter} from "./filter/referential.filter";
 
 

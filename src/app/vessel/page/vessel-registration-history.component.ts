@@ -1,15 +1,15 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from '@angular/core';
-import {AppTable} from "../../core/table/table.class";
+import {AppTable}  from "@sumaris-net/ngx-components";
 
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {AccountService} from "../../core/services/account.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
 import {VesselRegistrationService} from "../services/vessel-registration.service";
 import {VesselRegistration} from "../services/model/vessel.model";
-import {referentialToString} from "../../core/services/model/referential.model";
+import {referentialToString}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {VesselRegistrationFilter} from "../services/filter/vessel.filter";
 

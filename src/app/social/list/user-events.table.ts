@@ -10,20 +10,20 @@ import {
 } from "@angular/core";
 import {TableElement} from "@e-is/ngx-material-table";
 import {UserEventFilter, UserEventService, UserEventWatchOptions} from "../services/user-event.service";
-import {AccountService} from "../../core/services/account.service";
+import {AccountService}  from "@sumaris-net/ngx-components";
 import {UserEvent, UserEventAction, UserEventTypes} from "../services/model/user-event.model";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {toBoolean} from "../../shared/functions";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {toBoolean} from "@sumaris-net/ngx-components";
 import {Moment} from "moment";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
 import {SortDirection} from "@angular/material/sort";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
+import {EntitiesStorage}  from "@sumaris-net/ngx-components";
 import {PredefinedColors} from "@ionic/core";
-import {IEntity} from "../../core/services/model/entity.model";
+import {IEntity}  from "@sumaris-net/ngx-components";
 import {ENVIRONMENT} from "../../../environments/environment.class";
 
 

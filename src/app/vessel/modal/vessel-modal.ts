@@ -3,12 +3,14 @@ import {Vessel} from "../services/model/vessel.model";
 import {IonContent, ModalController} from "@ionic/angular";
 import {VesselForm} from '../form/form-vessel';
 import {VesselService} from '../services/vessel-service';
-import {ConfigService} from "../../core/services/config.service";
+import {ConfigService}  from "@sumaris-net/ngx-components";
 import {Subscription} from "rxjs";
-import {CORE_CONFIG_OPTIONS} from "../../core/services/config/core.config";
-import {AppFormUtils} from "../../core/form/form.utils";
-import {isNotNil} from "../../shared/functions";
+import {CORE_CONFIG_OPTIONS}  from "@sumaris-net/ngx-components";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
+import {isNotNil} from "@sumaris-net/ngx-components";
 import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
+import {APP_CORE_CONFIG_OPTIONS} from '@app/core/services/config/core.config';
+import {VESSEL_CONFIG_OPTIONS} from '@app/vessel/services/config/vessel.config';
 
 export interface VesselModalOptions {
   defaultStatus?: number;
@@ -62,7 +64,7 @@ export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
       this.subscription.add(
         this.configService.config.subscribe(config => {
           if (config && config.properties) {
-            const defaultStatus = config.properties[CORE_CONFIG_OPTIONS.VESSEL_DEFAULT_STATUS.key];
+            const defaultStatus = config.properties[VESSEL_CONFIG_OPTIONS.VESSEL_DEFAULT_STATUS.key];
             if (defaultStatus) {
               this.formVessel.defaultStatus = +defaultStatus;
             }

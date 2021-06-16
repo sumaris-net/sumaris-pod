@@ -1,10 +1,10 @@
 import {BaseReferentialFilter} from "./referential.filter";
 import {TaxonNameRef} from "../model/taxon.model";
-import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
+import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
 import {StoreObject} from "@apollo/client/core";
-import {isNotEmptyArray, isNotNil} from "../../../shared/functions";
-import {FilterFn} from "../../../shared/services/entity-service.class";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
+import {FilterFn} from "@sumaris-net/ngx-components";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 
 @EntityClass()
 export class TaxonNameRefFilter extends BaseReferentialFilter<TaxonNameRefFilter, TaxonNameRef> {

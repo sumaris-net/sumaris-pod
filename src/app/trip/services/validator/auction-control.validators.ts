@@ -2,9 +2,9 @@ import {FormGroup, ValidationErrors, Validators} from "@angular/forms";
 import {Subject, Subscription} from "rxjs";
 import {debounceTime, filter, map, startWith, tap} from "rxjs/operators";
 import {PmfmIds} from "../../../referential/services/model/model.enum";
-import {AppFormUtils} from "../../../core/form/form.utils";
-import {isNotNilOrBlank} from "../../../shared/functions";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
+import {isNotNilOrBlank} from "@sumaris-net/ngx-components";
+import {SharedValidators} from "@sumaris-net/ngx-components";
 import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 export class AuctionControlValidators {

@@ -1,11 +1,11 @@
 import {RootDataEntityFilter} from "../../../data/services/model/root-data-filter.model";
 import {Landing} from "../model/landing.model";
-import {FilterFn} from "../../../shared/services/entity-service.class";
+import {FilterFn} from "@sumaris-net/ngx-components";
 import {Moment} from "moment";
-import {isNotEmptyArray, isNotNil} from "../../../shared/functions";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
+import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
+import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 
 @EntityClass()
 export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> {

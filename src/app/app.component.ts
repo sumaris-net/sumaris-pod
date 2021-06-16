@@ -1,17 +1,17 @@
 import {Component, Inject} from '@angular/core';
-import {ConfigService} from './core/services/config.service';
+import {ConfigService} from "@sumaris-net/ngx-components";
 import {DOCUMENT} from "@angular/common";
-import {Configuration} from "./core/services/model/config.model";
-import {PlatformService} from "./core/services/platform.service";
+import {Configuration}  from "@sumaris-net/ngx-components";
+import {PlatformService}  from "@sumaris-net/ngx-components";
 import {throttleTime} from "rxjs/operators";
-import {FormFieldDefinition} from "./shared/form/field.model";
-import {getColorContrast, getColorShade, getColorTint, hexToRgbArray, mixHex} from "./shared/graph/colors.utils";
-import {AccountService} from "./core/services/account.service";
-import {LocalSettingsService} from "./core/services/local-settings.service";
+import {FormFieldDefinition} from "@sumaris-net/ngx-components";
+import {getColorContrast, getColorShade, getColorTint, hexToRgbArray, mixHex} from "@sumaris-net/ngx-components";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {ReferentialRefService} from "./referential/services/referential-ref.service";
 import {MatIconRegistry} from "@angular/material/icon";
 import {DomSanitizer} from "@angular/platform-browser";
-import {isNotNil, joinPropertiesPath} from "./shared/functions";
+import {isNotNil, joinPropertiesPath} from "@sumaris-net/ngx-components";
 
 @Component({
   selector: 'app-root',

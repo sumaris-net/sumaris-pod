@@ -1,13 +1,13 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql} from "@apollo/client/core";
 import {VesselFeatures} from "./model/vessel.model";
-import {GraphqlService} from "../../core/graphql/graphql.service";
+import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
-import {IEntitiesService} from "../../shared/services/entity-service.class";
+import {IEntitiesService} from "@sumaris-net/ngx-components";
 import {BaseEntityService} from "../../referential/services/base-entity-service.class";
 import {VesselFeaturesFilter} from "./filter/vessel.filter";
-import {PlatformService} from "../../core/services/platform.service";
-import {isNotNil} from "../../shared/functions";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {isNotNil} from "@sumaris-net/ngx-components";
 
 export const VesselFeaturesFragments = {
     vesselFeatures: gql`fragment VesselFeaturesFragment on VesselFeaturesVO {

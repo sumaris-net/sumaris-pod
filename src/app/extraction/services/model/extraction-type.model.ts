@@ -1,12 +1,8 @@
 /* -- Extraction -- */
 
-import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {Department} from "../../../core/services/model/department.model";
-import {Person} from "../../../core/services/model/person.model";
-import {Moment} from "moment";
-import {isNotEmptyArray, isNotNilOrBlank} from "../../../shared/functions";
-import {BaseReferential, IReferentialRef, NOT_MINIFY_OPTIONS} from "../../../core/services/model/referential.model";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {BaseReferential, Department, Entity, EntityAsObjectOptions, EntityClass, isNotEmptyArray, isNotNilOrBlank, Person} from '@sumaris-net/ngx-components';
+import {Moment} from 'moment';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export declare type ExtractionCategoryType = 'PRODUCT' | 'LIVE';
 export const ExtractionCategories = {

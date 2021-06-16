@@ -1,14 +1,14 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnInit, Optional, Output, ViewChild} from '@angular/core';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {FloatLabelType} from "@angular/material/form-field";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {isNil, toBoolean} from "../../shared/functions";
-import {filterNumberInput, focusInput, InputElement, setTabIndex} from "../../shared/inputs";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {isNil, toBoolean} from "@sumaris-net/ngx-components";
+import {filterNumberInput, focusInput, InputElement, setTabIndex} from "@sumaris-net/ngx-components";
 import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {IPmfm, PmfmUtils} from "../services/model/pmfm.model";
 import {PmfmValidators} from "../services/validator/pmfm.validators";
 import {PmfmLabelPatterns, UnitLabel, UnitLabelPatterns} from "../services/model/model.enum";
-import {AppFormUtils} from "../../core/form/form.utils";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
 
 const noop = () => {
 };

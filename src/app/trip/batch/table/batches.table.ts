@@ -1,9 +1,9 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {isNil, isNilOrBlank, isNotNil} from "../../../shared/functions";
+import {isNil, isNilOrBlank, isNotNil} from "@sumaris-net/ngx-components";
 import {AppMeasurementsTable} from "../../measurement/measurements.table.class";
-import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
-import {UsageMode} from "../../../core/services/model/settings.model";
+import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
+import {UsageMode}  from "@sumaris-net/ngx-components";
 import {MeasurementValuesUtils} from "../../services/model/measurement.model";
 import {TaxonGroupRef, TaxonNameRef} from "../../../referential/services/model/taxon.model";
 import {Batch} from "../../services/model/batch.model";
@@ -13,11 +13,11 @@ import {IPmfm, PmfmUtils} from "../../../referential/services/model/pmfm.model";
 import {getPmfmName} from "../../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {BatchModal} from "../modal/batch.modal";
-import {IReferentialRef, referentialToString} from "../../../core/services/model/referential.model";
+import {IReferentialRef, referentialToString}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../../environments/environment";
-import {FilterFn, LoadResult} from "../../../shared/services/entity-service.class";
-import {EntityFilter} from "../../../core/services/model/filter.model";
-import {isInstanceOf} from "../../../core/services/model/entity.model";
+import {FilterFn, LoadResult} from "@sumaris-net/ngx-components";
+import {EntityFilter}  from "@sumaris-net/ngx-components";
+import {isInstanceOf}  from "@sumaris-net/ngx-components";
 import {Operation} from "../../services/model/trip.model";
 
 export class BatchFilter extends EntityFilter<BatchFilter, Batch> {

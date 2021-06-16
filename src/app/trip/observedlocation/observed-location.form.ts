@@ -1,29 +1,33 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment';
-import {DateAdapter} from "@angular/material/core";
-import {debounceTime, filter, map} from 'rxjs/operators';
-import {ObservedLocationValidatorService} from "../services/validator/observed-location.validator";
-import {PersonService} from "../../admin/services/person.service";
-import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
-import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {Person, personToString, UserProfileLabels} from "../../core/services/model/person.model";
-import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {isEmptyArray, isNil, isNotNil, toBoolean} from "../../shared/functions";
-import {ObservedLocation} from "../services/model/observed-location.model";
-import {AcquisitionLevelCodes, LocationLevelIds} from "../../referential/services/model/model.enum";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {FormArrayHelper} from "../../core/form/form.utils";
-import {fromDateISOString} from "../../shared/dates";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {ReferentialRefFilter} from "../../referential/services/filter/referential-ref.filter";
-import {ProgramProperties} from "../../referential/services/config/program.config";
-import {LoadResult} from "../../shared/services/entity-service.class";
+import {DateAdapter} from '@angular/material/core';
+import {debounceTime, filter, map, tap} from 'rxjs/operators';
+import {ObservedLocationValidatorService} from '../services/validator/observed-location.validator';
+import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
+import {
+  FormArrayHelper,
+  fromDateISOString,
+  isEmptyArray,
+  isNil,
+  isNotNil,
+  LoadResult,
+  LocalSettingsService,
+  Person, PersonService, PersonUtils,
+  referentialToString,
+  ReferentialUtils,
+  StatusIds,
+  toBoolean, UserProfileLabel
+} from '@sumaris-net/ngx-components';
+import {ObservedLocation} from '../services/model/observed-location.model';
+import {AcquisitionLevelCodes, LocationLevelIds} from '@app/referential/services/model/model.enum';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
 
 @Component({
-  selector: 'form-observed-location',
+  selector: 'app-form-observed-location',
   templateUrl: './observed-location.form.html',
   styleUrls: ['./observed-location.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -150,10 +154,10 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
       // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: [UserProfileLabels.SUPERVISOR, UserProfileLabels.USER]
+        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER']
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: personToString
+      displayWith: PersonUtils.personToString
     });
 
     // Propagate program
@@ -171,12 +175,12 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         .pipe(
           debounceTime(150),
           filter(v => isNotNil(v) && !this.showEndDateTime),
-          map(fromDateISOString)
+          map(fromDateISOString),
+          tap(startDateTime => this.form.patchValue({
+            endDateTime: startDateTime.add(1, 'millisecond')
+          }, {emitEvent: false}))
         )
-        .subscribe(startDateTime => {
-          this.form.patchValue({endDateTime: startDateTime.add(1, 'millisecond')}, {emitEvent: false})
-        }
-      )
+        .subscribe()
     );
   }
 

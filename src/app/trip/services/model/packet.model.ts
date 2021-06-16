@@ -1,17 +1,8 @@
-import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
-import {
-  NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions,
-  ReferentialRef,
-  referentialToString,
-  ReferentialUtils
-} from "../../../core/services/model/referential.model";
-import {Product} from "./product.model";
-import {equalsOrNil, isNil, isNotNilOrNaN} from "../../../shared/functions";
-import {IEntity} from "../../../core/services/model/entity.model";
-import {DataEntityFilter} from "../../../data/services/model/data-filter.model";
-import {FilterFn} from "../../../shared/services/entity-service.class";
-import {Department} from "../../../core/services/model/department.model";
+import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
+import {equalsOrNil, FilterFn, IEntity, isNil, isNotNilOrNaN, ReferentialAsObjectOptions, ReferentialRef, referentialToString, ReferentialUtils} from '@sumaris-net/ngx-components';
+import {Product} from './product.model';
+import {DataEntityFilter} from '../../../data/services/model/data-filter.model';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export interface IWithPacketsEntity<T, ID = number>
   extends IEntity<T, ID> {

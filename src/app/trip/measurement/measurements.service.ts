@@ -1,13 +1,13 @@
 import {BehaviorSubject, isObservable, Observable} from "rxjs";
 import {filter, first, map, switchMap, tap} from "rxjs/operators";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
-import {EntityUtils} from "../../core/services/model/entity.model";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
 import {Directive, EventEmitter, Injector, Input, Optional} from "@angular/core";
-import {firstNotNilPromise} from "../../shared/observables";
+import {firstNotNilPromise} from "@sumaris-net/ngx-components";
 import {IPmfm, PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
 import {SortDirection} from "@angular/material/sort";
-import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
-import {isNil, isNotNil} from "../../shared/functions";
+import {IEntitiesService, LoadResult} from "@sumaris-net/ngx-components";
+import {isNil, isNotNil} from "@sumaris-net/ngx-components";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 
 @Directive()

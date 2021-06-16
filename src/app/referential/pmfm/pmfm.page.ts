@@ -1,25 +1,25 @@
 import {ChangeDetectionStrategy, Component, Inject, Injector, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, FormGroup} from "@angular/forms";
-import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
+import {referentialToString, ReferentialUtils}  from "@sumaris-net/ngx-components";
 import {ReferentialForm} from "../form/referential.form";
 import {PmfmValidatorService} from "../services/validator/pmfm.validator";
-import {AccountService} from "../../core/services/account.service";
+import {AccountService}  from "@sumaris-net/ngx-components";
 import {Pmfm} from "../services/model/pmfm.model";
 import {Parameter} from "../services/model/parameter.model";
 import {PmfmService} from "../services/pmfm.service";
-import {FormFieldDefinitionMap} from "../../shared/form/field.model";
+import {FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {ParameterService} from "../services/parameter.service";
 import {filter, mergeMap} from "rxjs/operators";
 import {Observable} from "rxjs";
-import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {isNil, joinPropertiesPath} from "../../shared/functions";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {AppEntityEditor} from "../../core/form/editor.class";
-import {MatAutocompleteFieldConfig} from "../../shared/material/autocomplete/material.autocomplete";
+import {fadeInOutAnimation} from "@sumaris-net/ngx-components";
+import {isNil, joinPropertiesPath} from "@sumaris-net/ngx-components";
+import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
+import {AppEntityEditor}  from "@sumaris-net/ngx-components";
+import {MatAutocompleteFieldConfig} from "@sumaris-net/ngx-components";
 import {ENVIRONMENT} from "../../../environments/environment.class";
-import {HistoryPageReference} from "../../core/services/model/history.model";
+import {HistoryPageReference}  from "@sumaris-net/ngx-components";
 
 @Component({
   selector: 'app-pmfm',

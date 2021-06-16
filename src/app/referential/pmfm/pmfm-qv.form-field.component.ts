@@ -23,18 +23,18 @@ import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR
 import {FloatLabelType} from "@angular/material/form-field";
 
 
-import {SharedValidators} from '../../shared/validator/validators';
-import {PlatformService} from "../../core/services/platform.service";
-import {isEmptyArray, isNotEmptyArray, isNotNil, sort, suggestFromArray, toBoolean, toNumber} from "../../shared/functions";
-import {focusInput, InputElement} from "../../shared/inputs";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
+import {SharedValidators} from "@sumaris-net/ngx-components";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {isEmptyArray, isNotEmptyArray, isNotNil, sort, suggestFromArray, toBoolean, toNumber} from "@sumaris-net/ngx-components";
+import {focusInput, InputElement} from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {ReferentialRef, referentialToString, ReferentialUtils}  from "@sumaris-net/ngx-components";
 import {PmfmIds} from "../services/model/model.enum";
 import {IPmfm, Pmfm} from "../services/model/pmfm.model";
 import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {IonButton} from "@ionic/angular";
 import {DOCUMENT} from "@angular/common";
-import {AppFormUtils} from "../../core/form/form.utils";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
 
 @Component({
   selector: 'app-pmfm-qv-field',

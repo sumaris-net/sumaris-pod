@@ -1,5 +1,5 @@
 import {FormBuilder, Validators} from "@angular/forms";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {SharedValidators} from "@sumaris-net/ngx-components";
 
 import {DataRootEntityValidatorOptions, DataRootEntityValidatorService} from "./root-data-entity.validator";
 import {DataRootVesselEntity} from "../model/root-vessel-entity.model";

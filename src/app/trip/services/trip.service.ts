@@ -1,52 +1,64 @@
-import {Injectable, Injector, Optional} from "@angular/core";
-import {gql} from "@apollo/client/core";
-import {filter, map} from "rxjs/operators";
-import * as momentImported from "moment";
-import {AccountService} from "../../core/services/account.service";
-import {DataFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from "./trip.queries";
-import {GraphqlService} from "../../core/graphql/graphql.service";
+import {Injectable, Injector, Optional} from '@angular/core';
+import {gql} from '@apollo/client/core';
+import {filter, map} from 'rxjs/operators';
+import * as momentImported from 'moment';
+import {
+  AccountService,
+  AppFormUtils, BaseEntityGraphqlQueries,
+  chainPromises,
+  EntitiesServiceWatchOptions,
+  EntitiesStorage,
+  Entity,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  FormErrors,
+  GraphqlService,
+  IEntitiesService,
+  IEntityService,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  LoadResult,
+  LocalSettingsService,
+  NetworkService, PersonService,
+  ShowToastOptions,
+  Toasts,
+  toNumber,
+} from '@sumaris-net/ngx-components';
+import {DataFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from './trip.queries';
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
   SAVE_AS_OBJECT_OPTIONS,
-  SAVE_LOCALLY_AS_OBJECT_OPTIONS,
-  SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
-} from "../../data/services/model/data-entity.model";
-import {NetworkService} from "../../core/services/network.service";
-import {Observable} from "rxjs";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {isEmptyArray, isNil, isNotEmptyArray, isNotNil, toNumber} from "../../shared/functions";
-import {IDataEntityQualityService} from "../../data/services/data-quality-service.class";
-import {OperationFilter, OperationService} from "./operation.service";
-import {VesselSnapshotFragments, VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {PersonService} from "../../admin/services/person.service";
-import {chainPromises} from "../../shared/observables";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {TripValidatorService} from "./validator/trip.validator";
-import {AppFormUtils, FormErrors} from "../../core/form/form.utils";
-import {Operation, PhysicalGear, Trip} from "./model/trip.model";
-import {DataRootEntityUtils, SynchronizationStatusEnum} from "../../data/services/model/root-data-entity.model";
-import {fillRankOrder} from "../../data/services/model/model.utils";
-import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
-import {SortDirection} from "@angular/material/sort";
-import {EntitiesServiceWatchOptions, EntityServiceLoadOptions, IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
-import {UserEventService} from "../../social/services/user-event.service";
-import {ShowToastOptions, Toasts} from "../../shared/toasts";
-import {OverlayEventDetail} from "@ionic/core";
-import {TranslateService} from "@ngx-translate/core";
-import {ToastController} from "@ionic/angular";
-import {TrashRemoteService} from "../../core/services/trash-remote.service";
-import {TRIP_FEATURE_NAME} from "./config/trip.config";
-import {IDataSynchroService, RootDataSynchroService} from "../../data/services/root-data-synchro-service.class";
-import {Entity, EntityUtils} from "../../core/services/model/entity.model";
-import {environment} from "../../../environments/environment";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {Sample} from "./model/sample.model";
-import {EntitySaveOptions} from "../../referential/services/base-entity-service.class";
-import {ErrorCodes} from "../../data/services/errors";
-import {VESSEL_FEATURE_NAME} from "../../vessel/services/config/vessel.config";
-import {TripFilter} from "./filter/trip.filter";
+  MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
+  SERIALIZE_FOR_OPTIMISTIC_RESPONSE
+} from '../../data/services/model/data-entity.model';
+import {Observable} from 'rxjs';
+import {IDataEntityQualityService} from '../../data/services/data-quality-service.class';
+import {OperationFilter, OperationService} from './operation.service';
+import {VesselSnapshotFragments, VesselSnapshotService} from '../../referential/services/vessel-snapshot.service';
+import {ReferentialRefService} from '../../referential/services/referential-ref.service';
+import {TripValidatorService} from './validator/trip.validator';
+import {Operation, PhysicalGear, Trip} from './model/trip.model';
+import {DataRootEntityUtils, SynchronizationStatusEnum} from '../../data/services/model/root-data-entity.model';
+import {fillRankOrder} from '../../data/services/model/model.utils';
+import {SortDirection} from '@angular/material/sort';
+import {UserEventService} from '../../social/services/user-event.service';
+import {OverlayEventDetail} from '@ionic/core';
+import {TranslateService} from '@ngx-translate/core';
+import {ToastController} from '@ionic/angular';
+import {TRIP_FEATURE_NAME} from './config/trip.config';
+import {IDataSynchroService, RootDataSynchroService} from '../../data/services/root-data-synchro-service.class';
+import {environment} from '../../../environments/environment';
+import {ProgramRefService} from '../../referential/services/program-ref.service';
+import {Sample} from './model/sample.model';
+import {EntitySaveOptions} from '../../referential/services/base-entity-service.class';
+import {ErrorCodes} from '../../data/services/errors';
+import {VESSEL_FEATURE_NAME} from '../../vessel/services/config/vessel.config';
+import {TripFilter} from './filter/trip.filter';
+import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {TrashRemoteService} from '@app/core/services/trash-remote.service';
 
 const moment = momentImported;
 
@@ -237,7 +249,7 @@ export interface TripServiceCopyOptions extends TripSaveOptions {
   displaySuccessToast?: boolean;
 }
 
-const TripQueries = {
+const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any; } = {
 
   // Load a trip
   load: gql` query Trip($id: Int!) {
@@ -422,7 +434,7 @@ export class TripService
     if (this._debug) console.debug("[trip-service] Watching trips... using options:", variables);
 
     const withTotal = (!opts || opts.withTotal !== false);
-    const query = withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
+    const query = withTotal ? TripQueries.loadAllWithTotal : TripQueries.loadAll;
     return this.mutableWatchQuery<LoadResult<Trip>>({
         queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
         query,
@@ -504,7 +516,7 @@ export class TripService
       }
 
       else {
-        const query = isLandedTrip ? TripQueries.loadLandedTrip : this.queries.load;
+        const query = isLandedTrip ? TripQueries.loadLandedTrip : TripQueries.load;
 
         // Load remotely
         const res = await this.graphql.query<{ data: Trip }>({
@@ -614,7 +626,7 @@ export class TripService
         if (isNotNil(entity.id)) context.serializationKey = `${Trip.TYPENAME}:${entity.id}`;
 
         return {
-          data: [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)]
+          data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)]
         };
       } : undefined;
 
@@ -704,7 +716,7 @@ export class TripService
     const operations = entity.operations;
     delete entity.operations;
 
-    const jsonLocal = this.asObject(entity, {...SAVE_LOCALLY_AS_OBJECT_OPTIONS, batchAsTree: false});
+    const jsonLocal = this.asObject(entity, {...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, batchAsTree: false});
     if (this._debug) console.debug('[trip-service] [offline] Saving trip locally...', jsonLocal);
 
     // Save trip locally
@@ -768,7 +780,7 @@ export class TripService
         ...err,
         code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR,
         message: "ERROR.SYNCHRONIZE_ENTITY_ERROR",
-        context: entity.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS)
+        context: entity.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE)
       };
     }
 
@@ -910,7 +922,7 @@ export class TripService
         entity.operations = operations;
         entity.updateDate = trashUpdateDate;
 
-        const json = entity.asObject({...SAVE_LOCALLY_AS_OBJECT_OPTIONS, keepLocalId: false});
+        const json = entity.asObject({...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, keepLocalId: false});
 
         // Add to trash
         await this.entities.saveToTrash(json, {entityName: Trip.TYPENAME});

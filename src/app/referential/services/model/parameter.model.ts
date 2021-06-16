@@ -1,7 +1,7 @@
-import {BaseReferential, Referential, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {isNotNil} from "../../../shared/functions";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {BaseReferential, Referential, ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
+import {isNotNil} from "@sumaris-net/ngx-components";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 
 export declare type ParameterType = 'double' | 'string' | 'qualitative_value' | 'date' | 'boolean' ;
 

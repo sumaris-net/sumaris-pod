@@ -1,30 +1,41 @@
-import {Injectable} from "@angular/core";
-import {FetchPolicy, gql, StoreObject} from "@apollo/client/core";
-import {ReferentialFragments} from "./referential.fragments";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {CacheService} from "ionic-cache";
-import {ErrorCodes} from "./errors";
-import {AccountService} from "../../core/services/account.service";
-import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
+import {Injectable} from '@angular/core';
+import {FetchPolicy, gql, StoreObject} from '@apollo/client/core';
+import {ReferentialFragments} from './referential.fragments';
+import {
+  AccountService,
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlQueries,
+  BaseEntityGraphqlSubscriptions,
+  EntitiesStorage,
+  EntityAsObjectOptions,
+  EntityClass,
+  EntityUtils,
+  FilterFn,
+  GraphqlService,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  LoadResult,
+  NetworkService,
+  PlatformService,
+  Referential,
+  ReferentialRef,
+  ReferentialUtils,
+  toNumber
+} from '@sumaris-net/ngx-components';
+import {CacheService} from 'ionic-cache';
+import {ErrorCodes} from './errors';
 
-import {Strategy} from "./model/strategy.model";
-import {BaseEntityGraphqlMutations, BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions} from "./base-entity-service.class";
-import {PlatformService} from "../../core/services/platform.service";
-import {EntityAsObjectOptions, EntityUtils} from "../../core/services/model/entity.model";
-import {SortDirection} from "@angular/material/sort";
-import {ReferentialRefService} from "./referential-ref.service";
-import {Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {StrategyFragments} from "./strategy.fragments";
-import {isNilOrBlank, isNotEmptyArray, isNotNil, toNumber} from "../../shared/functions";
-import {FilterFn, LoadResult} from "../../shared/services/entity-service.class";
-import {BaseReferentialService} from "./base-referential-service.class";
-import {Pmfm} from "./model/pmfm.model";
-import {ProgramRefService} from "./program-ref.service";
-import {StrategyRefService} from "./strategy-ref.service";
-import {BaseReferentialFilter} from "./filter/referential.filter";
-import {ReferentialRefFilter} from "./filter/referential-ref.filter";
-import {EntityClass} from "../../core/services/model/entity.decorators";
+import {Strategy} from './model/strategy.model';
+import {SortDirection} from '@angular/material/sort';
+import {ReferentialRefService} from './referential-ref.service';
+import {StrategyFragments} from './strategy.fragments';
+import {BaseReferentialService} from './base-referential-service.class';
+import {Pmfm} from './model/pmfm.model';
+import {ProgramRefService} from './program-ref.service';
+import {StrategyRefService} from './strategy-ref.service';
+import {BaseReferentialFilter} from './filter/referential.filter';
+import {ReferentialRefFilter} from './filter/referential-ref.filter';
 
 
 @EntityClass()

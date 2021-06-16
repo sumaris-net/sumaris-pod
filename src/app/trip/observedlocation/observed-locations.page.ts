@@ -5,26 +5,24 @@ import {ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {FormBuilder} from "@angular/forms";
-import {personToString} from "../../core/services/model/person.model";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {EntitiesTableDataSource, PersonService, PersonUtils} from '@sumaris-net/ngx-components';
 import {ObservedLocationService} from "../services/observed-location.service";
-import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {PlatformService} from "../../core/services/platform.service";
+import {LocationLevelIds} from '@app/referential/services/model/model.enum';
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {PlatformService}  from "@sumaris-net/ngx-components";
 import {ObservedLocation} from "../services/model/observed-location.model";
-import {PersonService} from "../../admin/services/person.service";
-import {SharedValidators} from "../../shared/validator/validators";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {AppRootTable} from "../../data/table/root-table.class";
+import {SharedValidators} from "@sumaris-net/ngx-components";
+import {StatusIds}  from "@sumaris-net/ngx-components";
+import {AppRootTable} from '@app/data/table/root-table.class';
 import {OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS} from "../services/config/trip.config";
-import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {environment} from "../../../environments/environment";
-import {ConfigService} from "../../core/services/config.service";
+import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
+import {environment} from '@environments/environment';
+import {ConfigService}  from "@sumaris-net/ngx-components";
 import {BehaviorSubject} from "rxjs";
 import {ObservedLocationOfflineModal} from "./offline/observed-location-offline.modal";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {DATA_CONFIG_OPTIONS} from "src/app/data/services/config/data.config";
-import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
+import {HammerSwipeEvent} from "@sumaris-net/ngx-components";
 import {ObservedLocationFilter, ObservedLocationOfflineFilter} from "../services/filter/observed-location.filter";
 import {MatExpansionPanel} from "@angular/material/expansion";
 
@@ -141,7 +139,7 @@ export class ObservedLocationsPage extends
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: personToString,
+      displayWith: PersonUtils.personToString,
       mobile: this.mobile
     });
 

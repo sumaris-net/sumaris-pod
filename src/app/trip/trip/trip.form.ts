@@ -1,36 +1,47 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {TripValidatorService} from "../services/validator/trip.validator";
-import {ModalController} from "@ionic/angular";
+import {TripValidatorService} from '../services/validator/trip.validator';
+import {ModalController} from '@ionic/angular';
 import {Moment} from 'moment';
-import {DateAdapter} from "@angular/material/core";
-import {LocationLevelIds} from "../../referential/services/model/model.enum";
+import {DateAdapter} from '@angular/material/core';
+import {LocationLevelIds} from '@app/referential/services/model/model.enum';
 
-import {Person, personToString, UserProfileLabels} from "../../core/services/model/person.model";
-import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
-import {UsageMode} from "../../core/services/model/settings.model";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {FormArray, FormBuilder} from "@angular/forms";
-import {PersonService} from "../../admin/services/person.service";
-import {isEmptyArray, isNil, isNotNil, isNotNilOrBlank, toBoolean} from "../../shared/functions";
-import {NetworkService} from "../../core/services/network.service";
-import {Vessel} from "../../vessel/services/model/vessel.model";
-import {METIER_DEFAULT_FILTER, MetierService} from "../../referential/services/metier.service";
-import {Trip} from "../services/model/trip.model";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {debounceTime, filter} from "rxjs/operators";
-import {VesselModal} from "../../vessel/modal/vessel-modal";
-import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
-import {AppForm} from "../../core/form/form.class";
-import {FormArrayHelper} from "../../core/form/form.utils";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {ReferentialRefFilter} from "../../referential/services/filter/referential-ref.filter";
-import {LoadResult} from "../../shared/services/entity-service.class";
-import {Metier} from "../../referential/services/model/taxon.model";
-import {MetierFilter} from "../../referential/services/filter/metier.filter";
-import {fromDateISOString} from "../../shared/dates";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {MatAutocompleteField} from "../../shared/material/autocomplete/material.autocomplete";
+import {
+  AppForm,
+  EntityUtils,
+  FormArrayHelper,
+  fromDateISOString,
+  isEmptyArray,
+  isNil,
+  isNotNil,
+  isNotNilOrBlank,
+  LoadResult,
+  LocalSettingsService,
+  MatAutocompleteField,
+  NetworkService,
+  Person,
+  PersonService,
+  PersonUtils,
+  ReferentialRef,
+  referentialToString,
+  ReferentialUtils,
+  StatusIds,
+  toBoolean,
+  UsageMode,
+  UserProfileLabel
+} from '@sumaris-net/ngx-components';
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {FormArray, FormBuilder} from '@angular/forms';
+
+import {Vessel} from '@app/vessel/services/model/vessel.model';
+import {METIER_DEFAULT_FILTER, MetierService} from '@app/referential/services/metier.service';
+import {Trip} from '../services/model/trip.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {debounceTime, filter} from 'rxjs/operators';
+import {VesselModal} from '@app/vessel/modal/vessel-modal';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
+import {Metier} from '@app/referential/services/model/taxon.model';
+import {MetierFilter} from '@app/referential/services/filter/metier.filter';
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
@@ -204,10 +215,10 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: [UserProfileLabels.SUPERVISOR, UserProfileLabels.USER, UserProfileLabels.GUEST]
+        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST']
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: personToString
+      displayWith: PersonUtils.personToString
     });
 
     // Combo: metiers

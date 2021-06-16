@@ -8,10 +8,10 @@ import {FormBuilder, FormGroup} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
 import {filter, throttleTime} from "rxjs/operators";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
-import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppForm} from "../../core/form/form.class";
-import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from "../../shared/functions";
+import {filterNotNil, firstNotNilPromise} from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {AppForm}  from "@sumaris-net/ngx-components";
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
 

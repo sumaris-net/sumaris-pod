@@ -1,13 +1,14 @@
-import {ReferentialRef} from "../../../core/services/model/referential.model";
-import {Person} from "../../../core/services/model/person.model";
+import {ReferentialRef}  from "@sumaris-net/ngx-components";
+import {Person}  from "@sumaris-net/ngx-components";
 import {Moment} from "moment";
 
-import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model/referential.model";
+import {ReferentialAsObjectOptions}  from "@sumaris-net/ngx-components";
 import {DataEntity, DataEntityAsObjectOptions} from "./data-entity.model";
 import {IWithProgramEntity, IWithRecorderPersonEntity} from "./model.utils";
-import {EntityUtils} from "../../../core/services/model/entity.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {isNil} from "../../../shared/functions";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
+import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
+import {isNil} from "@sumaris-net/ngx-components";
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export type SynchronizationStatus = 'DIRTY' | 'READY_TO_SYNC' | 'SYNC' | 'DELETED';
 export const SynchronizationStatusEnum = {
@@ -68,14 +69,15 @@ export abstract class DataRootEntityUtils {
 
   static copyControlAndValidationDate(source: RootDataEntity<any, any> | undefined, target: RootDataEntity<any, any>) {
     if (!source) return;
-
-    // Update (id and updateDate)
     target.controlDate = fromDateISOString(source.controlDate);
     target.validationDate = fromDateISOString(source.validationDate);
-
   }
 
-  static copyQualificationDateAndFlag = EntityUtils.copyQualificationDateAndFlag;
+  static copyQualificationDateAndFlag(source: RootDataEntity<any, any> | undefined, target: RootDataEntity<any, any>) {
+    if (!source) return;
+    target.qualificationDate = fromDateISOString(source.qualificationDate);
+    target.qualityFlagId = source.qualityFlagId;
+  }
 
   static isLocal(entity: RootDataEntity<any, any>): boolean {
     return entity && (isNil(entity.id) ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0);

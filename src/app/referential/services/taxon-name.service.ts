@@ -1,19 +1,23 @@
-import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
-import {ErrorCodes} from "./errors";
-import {AccountService} from "../../core/services/account.service";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {ReferentialService} from "./referential.service";
-import {Observable, of} from "rxjs";
-import {ReferentialFragments} from "./referential.fragments";
-import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
-import {isNil, isNotNil} from "../../shared/functions";
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {environment} from "../../../environments/environment";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {TaxonName} from "./model/taxon-name.model";
-import {SAVE_AS_OBJECT_OPTIONS} from "../../core/services/model/referential.model";
+import {Injectable} from '@angular/core';
+import {gql} from '@apollo/client/core';
+import {ErrorCodes} from './errors';
+import {
+  AccountService,
+  BaseGraphqlService,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  GraphqlService,
+  IEntityService,
+  isNil,
+  isNotNil,
+  MINIFY_ENTITY_FOR_POD,
+  StatusIds
+} from '@sumaris-net/ngx-components';
+import {ReferentialService} from './referential.service';
+import {Observable, of} from 'rxjs';
+import {ReferentialFragments} from './referential.fragments';
+import {environment} from '@environments/environment';
+import {TaxonName} from './model/taxon-name.model';
 
 const SaveQuery: any = gql`
   mutation saveTaxonName($taxonName:TaxonNameVOInput!){
@@ -96,7 +100,7 @@ export class TaxonNameService extends BaseGraphqlService implements IEntityServi
     this.fillDefaultProperties(entity);
 
     // Transform into json
-    const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
+    const json = entity.asObject(MINIFY_ENTITY_FOR_POD);
 
     const now = Date.now();
     if (this._debug) console.debug(`[taxon-name-service] Saving Taxon Name ...`, json);

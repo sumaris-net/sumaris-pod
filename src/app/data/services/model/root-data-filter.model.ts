@@ -1,10 +1,11 @@
 import {RootDataEntity, SynchronizationStatus} from "./root-data-entity.model";
-import {Person} from "../../../core/services/model/person.model";
-import {NOT_MINIFY_OPTIONS, ReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
+import {Person}  from "@sumaris-net/ngx-components";
+import {ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
 import {DataEntityFilter} from "./data-filter.model";
-import {isNotNil, isNotNilOrBlank} from "../../../shared/functions";
-import {EntityAsObjectOptions, EntityUtils} from "../../../core/services/model/entity.model";
-import {FilterFn} from "../../../shared/services/entity-service.class";
+import {isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
+import {EntityAsObjectOptions, EntityUtils}  from "@sumaris-net/ngx-components";
+import {FilterFn} from "@sumaris-net/ngx-components";
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export abstract class RootDataEntityFilter<
   T extends RootDataEntityFilter<T, E, EID, AS, FO>,

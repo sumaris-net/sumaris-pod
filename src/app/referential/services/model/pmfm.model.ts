@@ -1,10 +1,10 @@
-import {Entity, EntityAsObjectOptions, IEntity} from "../../../core/services/model/entity.model";
-import {BaseReferential, ReferentialRef} from "../../../core/services/model/referential.model";
-import {isNotNil} from "../../../shared/functions";
+import {Entity, EntityAsObjectOptions, IEntity}  from "@sumaris-net/ngx-components";
+import {BaseReferential, ReferentialRef}  from "@sumaris-net/ngx-components";
+import {isNotNil} from "@sumaris-net/ngx-components";
 import {MethodIds, PmfmIds} from "./model.enum";
 import {Parameter, ParameterType} from "./parameter.model";
 import {PmfmValue} from "./pmfm-value.model";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 
 export declare type PmfmType = ParameterType | 'integer';
 

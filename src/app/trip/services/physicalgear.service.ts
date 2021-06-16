@@ -1,14 +1,14 @@
 import {Injectable, InjectionToken} from "@angular/core";
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
+import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
+import {IEntitiesService, LoadResult} from "@sumaris-net/ngx-components";
 import {PhysicalGear, Trip} from "./model/trip.model";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {NetworkService} from "../../core/services/network.service";
-import {AccountService} from "../../core/services/account.service";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
+import {GraphqlService}  from "@sumaris-net/ngx-components";
+import {NetworkService}  from "@sumaris-net/ngx-components";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {EntitiesStorage}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {EMPTY, Observable} from "rxjs";
-import {arrayDistinct, getPropertyByPath, isNil} from "../../shared/functions";
+import {arrayDistinct, getPropertyByPath, isNil} from "@sumaris-net/ngx-components";
 import {filter, map, throttleTime} from "rxjs/operators";
 
 import {ErrorCodes} from "./trip.errors";
@@ -16,11 +16,11 @@ import {gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {PhysicalGearFragments} from "./trip.queries";
 import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {SortDirection} from "@angular/material/sort";
-import {fromDateISOString} from "../../shared/dates";
+import {fromDateISOString} from "@sumaris-net/ngx-components";
 import {TripFilter} from "./filter/trip.filter";
 import {PhysicalGearFilter} from "./filter/physical-gear.filter";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {CryptoService} from "../../core/services/crypto.service";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
+import {CryptoService}  from "@sumaris-net/ngx-components";
 
 
 const LoadAllQuery: any = gql`

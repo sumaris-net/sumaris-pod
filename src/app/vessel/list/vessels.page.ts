@@ -1,14 +1,14 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from "@angular/core";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
-import {AccountService} from "../../core/services/account.service";
+import {AccountService}  from "@sumaris-net/ngx-components";
 import {Location} from '@angular/common';
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {VesselsTable} from "./vessels.table";
 import {VESSEL_FEATURE_NAME} from "../services/config/vessel.config";
 import {TableElement} from "@e-is/ngx-material-table";
-import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
-import {PlatformService} from "../../core/services/platform.service";
+import {HammerSwipeEvent} from "@sumaris-net/ngx-components";
+import {PlatformService}  from "@sumaris-net/ngx-components";
 
 export const VesselsPageSettingsEnum = {
   PAGE_ID: "vessels",

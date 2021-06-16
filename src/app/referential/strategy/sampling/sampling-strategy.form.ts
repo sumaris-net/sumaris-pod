@@ -1,59 +1,48 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn } from "@angular/forms";
-import { DateAdapter } from "@angular/material/core";
-import * as momentImported from "moment";
-import { Moment } from 'moment';
-import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
-import { SharedValidators } from 'src/app/shared/validator/validators';
-import { LocalSettingsService } from "../../../core/services/local-settings.service";
-import { IReferentialRef, ReferentialRef, ReferentialUtils } from "../../../core/services/model/referential.model";
-import { fromDateISOString } from "../../../shared/dates";
-import { PmfmStrategy } from "../../services/model/pmfm-strategy.model";
-import { Program } from '../../services/model/program.model';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
+import {FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn} from '@angular/forms';
+import {DateAdapter} from '@angular/material/core';
+import * as momentImported from 'moment';
+import {Moment} from 'moment';
 import {
-  AppliedPeriod,
-  AppliedStrategy,
-  Strategy,
-  StrategyDepartment,
-  TaxonNameStrategy
-} from "../../services/model/strategy.model";
-import { TaxonNameRef } from "../../services/model/taxon.model";
-import { ReferentialRefService } from "../../services/referential-ref.service";
-import { StrategyService } from "../../services/strategy.service";
-import { StrategyValidatorService } from '../../services/validator/strategy.validator';
-import { PmfmStrategiesTable, PmfmStrategyFilter } from "../pmfm-strategies.table";
-import {
-  AcquisitionLevelCodes,
-  LocationLevelIds,
-  ParameterLabelGroups, PmfmIds,
-  ProgramPrivilegeIds, TaxonomicLevelIds
-} from '../../services/model/model.enum';
-import { AppForm } from "../../../core/form/form.class";
-import { AppFormUtils, FormArrayHelper } from "../../../core/form/form.utils";
-import { EntityUtils } from "../../../core/services/model/entity.model";
-import { Pmfm, PmfmUtils } from "../../services/model/pmfm.model";
-import {
+  AppForm,
+  AppFormUtils,
+  DEFAULT_PLACEHOLDER_CHAR,
+  EntityUtils,
   firstArrayValue,
+  firstNotNilPromise,
+  FormArrayHelper,
+  fromDateISOString,
+  IReferentialRef,
   isEmptyArray,
-  isNil,
+  isNil, isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  removeDuplicatesFromArray,
+  LoadResult,
+  LocalSettingsService,
+  MatAutocompleteField,
+  ObjectMap,
+  ReferentialRef,
+  ReferentialUtils,
+  removeDuplicatesFromArray, SharedValidators,
+  StatusIds,
   suggestFromArray,
   toNumber
-} from "../../../shared/functions";
-import { StatusIds } from "../../../core/services/model/model.enum";
-import { ProgramProperties } from "../../services/config/program.config";
-import { BehaviorSubject, merge } from "rxjs";
-import { SamplingStrategyService } from '../../services/sampling-strategy.service';
-import { PmfmFilter, PmfmService } from "../../services/pmfm.service";
-import { firstNotNilPromise } from "../../../shared/observables";
-import { MatAutocompleteField } from "../../../shared/material/autocomplete/material.autocomplete";
-import { ObjectMap } from 'src/app/shared/types';
-import { SamplingStrategy, StrategyEffort } from '../../services/model/sampling-strategy.model';
-import { LoadResult } from "../../../shared/services/entity-service.class";
-import { EntitiesTableDataSource } from 'src/app/core/table/entities-table-datasource.class';
+} from '@sumaris-net/ngx-components';
+import {PmfmStrategy} from '../../services/model/pmfm-strategy.model';
+import {Program} from '../../services/model/program.model';
+import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from '../../services/model/strategy.model';
+import {TaxonNameRef} from '../../services/model/taxon.model';
+import {ReferentialRefService} from '../../services/referential-ref.service';
+import {StrategyService} from '../../services/strategy.service';
+import {StrategyValidatorService} from '../../services/validator/strategy.validator';
+import {PmfmStrategiesTable} from '../pmfm-strategies.table';
+import {AcquisitionLevelCodes, LocationLevelIds, ParameterLabelGroups, PmfmIds, ProgramPrivilegeIds, TaxonomicLevelIds} from '../../services/model/model.enum';
+import {ProgramProperties} from '../../services/config/program.config';
+import {BehaviorSubject, merge} from 'rxjs';
+import {SamplingStrategyService} from '../../services/sampling-strategy.service';
+import {PmfmFilter, PmfmService} from '../../services/pmfm.service';
+import {SamplingStrategy, StrategyEffort} from '@app/referential/services/model/sampling-strategy.model';
 
 const moment = momentImported;
 
@@ -439,7 +428,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         // searchAttribute: 'id',
         // searchText: taxon.id
       });
-      strategies;
     }
   }
 
@@ -496,7 +484,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     const fractions = (
       await Promise.all(
-        fractionIds.map(id => this.referentialRefService.loadAll(0, 1, null, null, { id, entityName: 'Fraction' })
+        fractionIds.map(id => this.referentialRefService.loadAll(0, 1, null, null, { includedIds: [id], entityName: 'Fraction' })
           .then(res => res && firstArrayValue(res.data)))
       ))
       .filter(isNotNil)
@@ -524,10 +512,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
 
-  async getAnalyticReferenceName(analyticReference): Promise<string> {
+  async getAnalyticReferenceByLabel(label: string): Promise<ReferentialRef> {
+    if (isNilOrBlank(label)) return undefined;
     try {
-      return await this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label: analyticReference })
-        .then(res => firstArrayValue(res.data).name)
+      const res = await this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label });
+      return firstArrayValue(res && res.data || []);
     } catch (err) {
       console.debug('Error on load AnalyticReference');
     }
@@ -714,18 +703,15 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Get fisrt period
     const firstAppliedPeriod = firstArrayValue(appliedStrategyWithPeriods.appliedPeriods);
 
-
-    this.getAnalyticReferenceName(data.analyticReference).then(name => {
+    this.getAnalyticReferenceByLabel(data.analyticReference).then(data => {
       this.form.patchValue({
         year: firstAppliedPeriod ? firstAppliedPeriod.startDate : moment(),
-        analyticReference: data.analyticReference && { label: data.analyticReference, name } || null
+        analyticReference: data && { label: data.label, name: data.name } || null
       });
-    })
-
-
+    });
 
     // If new
-    if (!data.id) {
+    if (isNil(data.id)) {
       // pmfms = [null, null];
       this.form.get('sex').patchValue(null);
       this.form.get('age').patchValue(null);

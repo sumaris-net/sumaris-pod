@@ -22,7 +22,6 @@
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
-            "aot": true,
             "allowedCommonJsDependencies": [
               "hammerjs",
               "angular2-text-mask",
@@ -37,8 +36,7 @@
               "apollo-link-logger",
               "zen-observable",
               "subscriptions-transport-ws",
-              "chart.js",
-              "react"
+              "chart.js"
             ],
             "assets": [
               {
@@ -88,9 +86,7 @@
               }
             ],
             "styles": [
-              "node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
-              "src/global.scss",
-              "node_modules/prismjs/themes/prism-okaidia.css"
+              "src/global.scss"
             ],
             "scripts": [
               "node_modules/marked/lib/marked.js",
@@ -118,6 +114,7 @@
               "extractLicenses": true,
               "vendorChunk": false,
               "buildOptimizer": true,
+              "aot": true,
               "budgets": [
                 {
                   "type": "initial",

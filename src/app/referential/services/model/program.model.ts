@@ -1,10 +1,10 @@
-import {EntityUtils} from "../../../core/services/model/entity.model";
-import {BaseReferential, ReferentialAsObjectOptions, ReferentialRef} from "../../../core/services/model/referential.model";
-import {FormFieldDefinition} from "../../../shared/form/field.model";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
+import {BaseReferential, ReferentialAsObjectOptions, ReferentialRef}  from "@sumaris-net/ngx-components";
+import {FormFieldDefinition} from "@sumaris-net/ngx-components";
 import {Strategy} from "./strategy.model";
-import {PropertiesMap} from "../../../shared/types";
-import {isNotNil} from "../../../shared/functions";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {PropertiesMap} from "@sumaris-net/ngx-components";
+import {isNotNil} from "@sumaris-net/ngx-components";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 
 @EntityClass({typename: 'ProgramVO'})
 export class Program extends BaseReferential<Program> {

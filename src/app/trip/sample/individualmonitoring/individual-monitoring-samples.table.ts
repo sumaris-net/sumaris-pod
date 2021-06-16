@@ -5,7 +5,7 @@ import {FormGroup, Validators} from "@angular/forms";
 import {AcquisitionLevelCodes, PmfmIds} from "../../../referential/services/model/model.enum";
 import {filter, tap} from "rxjs/operators";
 import {SubSamplesTable} from "../sub-samples.table";
-import {isNotNil} from "../../../shared/functions";
+import {isNotNil} from "@sumaris-net/ngx-components";
 
 
 @Component({

@@ -5,7 +5,7 @@ import {LandingFilter} from "../services/filter/landing.filter";
 import {AcquisitionLevelCodes, AcquisitionLevelType} from "../../referential/services/model/model.enum";
 import {Landing} from "../services/model/landing.model";
 import {Observable} from "rxjs";
-import {isNotNil} from "../../shared/functions";
+import {isNotNil} from "@sumaris-net/ngx-components";
 
 @Component({
   selector: 'app-select-landings-modal',

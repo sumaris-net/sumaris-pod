@@ -1,11 +1,8 @@
-import {Entity, EntityAsObjectOptions, isInstanceOf} from "../../../core/services/model/entity.model";
-import {IPmfm, Pmfm, PMFM_NAME_REGEXP, PmfmType, PmfmUtils} from "./pmfm.model";
-import {NOT_MINIFY_OPTIONS, ReferentialRef} from "../../../core/services/model/referential.model";
-import {isNotNil, toNumber} from "../../../shared/functions";
-import {PmfmValue, PmfmValueUtils} from "./pmfm-value.model";
-import {MethodIds} from "./model.enum";
-import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
-import {EntityClass} from "../../../core/services/model/entity.decorators";
+import {Entity, EntityAsObjectOptions, EntityClass, isInstanceOf, isNotNil, ReferentialRef, toNumber} from '@sumaris-net/ngx-components';
+import {IPmfm, Pmfm, PMFM_NAME_REGEXP, PmfmType, PmfmUtils} from './pmfm.model';
+import {PmfmValue, PmfmValueUtils} from './pmfm-value.model';
+import {MethodIds} from './model.enum';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 
 /**

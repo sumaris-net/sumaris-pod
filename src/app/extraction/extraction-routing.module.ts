@@ -1,10 +1,11 @@
 import {RouterModule, Routes} from "@angular/router";
-import {AuthGuardService} from "../core/services/auth-guard.service";
+import {AuthGuardService}  from "@sumaris-net/ngx-components";
 import {NgModule} from "@angular/core";
 import {ExtractionTablePage} from "./table/extraction-table.page";
 import {ProductPage} from "./product/page/product.page";
 import {ExtractionMapPage} from "./map/extraction-map.page";
-import {SharedModule} from "../shared/shared.module";
+import {SharedModule} from "@sumaris-net/ngx-components";
+import {AppExtractionModule} from '@app/extraction/extraction.module';
 
 const routes: Routes = [
   {
@@ -44,9 +45,10 @@ const routes: Routes = [
 @NgModule({
   imports: [
     SharedModule,
+    AppExtractionModule,
     RouterModule.forChild(routes)
   ],
   exports: [RouterModule]
 })
-export class ExtractionRoutingModule {
+export class AppExtractionRoutingModule {
 }

@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from '@ngx-translate/core';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {isNil, isNotEmptyArray, isNotNil, toBoolean} from '../../shared/functions';
+import {isNil, isNotEmptyArray, isNotNil, toBoolean} from "@sumaris-net/ngx-components";
 import {CriterionOperator, ExtractionColumn, ExtractionFilterCriterion, ExtractionType} from "../services/model/extraction-type.model";
 import {ExtractionService} from "../services/extraction.service";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
@@ -10,10 +10,10 @@ import {filter, map} from "rxjs/operators";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {ExtractionCriteriaValidatorService} from "../services/validator/extraction-criterion.validator";
-import {FormFieldDefinition, FormFieldType} from "../../shared/form/field.model";
-import {AccountService} from "../../core/services/account.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppForm} from "../../core/form/form.class";
+import {FormFieldDefinition, FormFieldType} from "@sumaris-net/ngx-components";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {AppForm}  from "@sumaris-net/ngx-components";
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';

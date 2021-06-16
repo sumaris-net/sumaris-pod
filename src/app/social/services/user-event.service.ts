@@ -1,8 +1,8 @@
 import {Inject, Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
-import {AccountService} from "../../core/services/account.service";
-import {GraphqlService} from "../../core/graphql/graphql.service";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {Observable, of} from "rxjs";
 import {UserEvent, UserEventAction, UserEventTypes} from "./model/user-event.model";
 import {SocialFragments} from "./social.fragments";
@@ -12,19 +12,19 @@ import {
   EntityServiceLoadOptions, FilterFn,
   IEntitiesService, LoadResult,
   Page
-} from "../../shared/services/entity-service.class";
+} from "@sumaris-net/ngx-components";
 import {map} from "rxjs/operators";
-import {isEmptyArray, isNil, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
-import {ShowToastOptions, Toasts} from "../../shared/toasts";
+import {isEmptyArray, isNil, isNilOrBlank, isNotNil, toNumber} from "@sumaris-net/ngx-components";
+import {ShowToastOptions, Toasts} from "@sumaris-net/ngx-components";
 import {OverlayEventDetail} from "@ionic/core";
 import {ToastController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
-import {NetworkService} from "../../core/services/network.service";
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {Entity, EntityUtils} from "../../core/services/model/entity.model";
+import {NetworkService}  from "@sumaris-net/ngx-components";
+import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
+import {Entity, EntityUtils}  from "@sumaris-net/ngx-components";
 import {ENVIRONMENT} from "../../../environments/environment.class";
-import {EntityFilter, EntityFilterUtils} from "../../core/services/model/filter.model";
-import {EntityClass} from "../../core/services/model/entity.decorators";
+import {EntityFilter, EntityFilterUtils}  from "@sumaris-net/ngx-components";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 
 @EntityClass()
 export class UserEventFilter extends EntityFilter<UserEventFilter, UserEvent> {

@@ -1,18 +1,21 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {DefaultStatusList, Referential} from "../../core/services/model/referential.model";
-import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
-import {ActivatedRoute, Router} from "@angular/router";
-import {ModalController, Platform} from "@ionic/angular";
-import {Location} from "@angular/common";
-import {AccountService} from "../../core/services/account.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ReferentialValidatorService} from "../services/validator/referential.validator";
-import {ReferentialFilter} from "../services/filter/referential.filter";
-import {AppInMemoryTable} from "../../core/table/memory-table.class";
-import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {isNotNil} from "../../shared/functions";
-import {environment} from "../../../environments/environment";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {
+  AccountService,
+  AppInMemoryTable,
+  DefaultStatusList,
+  InMemoryEntitiesService,
+  LocalSettingsService,
+  Referential,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS
+} from '@sumaris-net/ngx-components';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ModalController, Platform} from '@ionic/angular';
+import {Location} from '@angular/common';
+import {ReferentialValidatorService} from '../services/validator/referential.validator';
+import {ReferentialFilter} from '../services/filter/referential.filter';
+import {environment} from '@environments/environment';
 
 
 @Component({
@@ -105,8 +108,8 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
   }
 
   ngOnInit() {
-    if (isNotNil(this.hasRankOrder)) {
-      this.memoryDataService.hasRankOrder = this.hasRankOrder;
+    if (this.hasRankOrder) {
+      this.memoryDataService.addSortByReplacement('id', 'rankOrder');
     }
 
     super.ngOnInit();

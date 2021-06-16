@@ -4,12 +4,12 @@ import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum
 import {PhysicalGearForm} from "./physical-gear.form";
 import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
-import {PlatformService} from "../../core/services/platform.service";
-import {Alerts} from "../../shared/alerts";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {Alerts} from "@sumaris-net/ngx-components";
 import {PhysicalGear} from "../services/model/trip.model";
-import {createPromiseEventEmitter, emitPromiseEvent} from "../../shared/events";
-import {isNil} from "../../shared/functions";
-import {AppFormUtils} from "../../core/form/form.utils";
+import {createPromiseEventEmitter, emitPromiseEvent} from "@sumaris-net/ngx-components";
+import {isNil} from "@sumaris-net/ngx-components";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
 
 @Component({
   selector: 'app-physical-gear-modal',

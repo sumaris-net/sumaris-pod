@@ -10,20 +10,20 @@ import {
   ViewChild
 } from "@angular/core";
 import {Batch, BatchUtils} from "../../services/model/batch.model";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {AlertController, ModalController} from "@ionic/angular";
 import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {AcquisitionLevelCodes, QualityFlagIds} from "../../../referential/services/model/model.enum";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {BatchGroupForm} from "../form/batch-group.form";
-import {isNil, toBoolean} from "../../../shared/functions";
+import {isNil, toBoolean} from "@sumaris-net/ngx-components";
 import {debounceTime, map, startWith} from "rxjs/operators";
-import {PlatformService} from "../../../core/services/platform.service";
-import {Alerts} from "../../../shared/alerts";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {Alerts} from "@sumaris-net/ngx-components";
 import {BatchGroup} from "../../services/model/batch-group.model";
-import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {AppFormUtils} from "../../../core/form/form.utils";
+import {IReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../../environments/environment";
 
 @Component({

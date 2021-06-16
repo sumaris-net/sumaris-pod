@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {VesselRegistration} from "../model/vessel.model";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {SharedValidators} from "@sumaris-net/ngx-components";
 
 @Injectable({providedIn: 'root'})
 export class VesselRegistrationValidatorService implements ValidatorService {

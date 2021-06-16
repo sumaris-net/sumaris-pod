@@ -1,32 +1,46 @@
-import {Injectable, Injector} from "@angular/core";
-import {EntitiesServiceWatchOptions, EntityServiceLoadOptions, IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
-import {BehaviorSubject, EMPTY, Observable} from "rxjs";
-import {Landing} from "./model/landing.model";
-import {gql} from "@apollo/client/core";
-import {DataFragments, Fragments} from "./trip.queries";
-import {ErrorCodes} from "./trip.errors";
-import {filter, map} from "rxjs/operators";
-import {isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil,} from "../../shared/functions";
-import {BaseRootDataService} from "../../data/services/root-data-service.class";
-import {Sample} from "./model/sample.model";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {DataEntityAsObjectOptions, SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
-import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
-import {FormErrors} from "../../core/form/form.utils";
-import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import * as momentImported from "moment";
-import {DataRootEntityUtils} from "../../data/services/model/root-data-entity.model";
-import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
-import {SortDirection} from "@angular/material/sort";
-import {chainPromises, firstNotNilPromise} from "../../shared/observables";
-import {JobUtils} from "../../shared/services/job.utils";
-import {fromDateISOString} from "../../shared/dates";
-import {Person} from "../../core/services/model/person.model";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {BaseEntityGraphqlMutations, BaseEntityGraphqlSubscriptions, EntitySaveOptions} from "../../referential/services/base-entity-service.class";
-import {ReferentialFragments} from "../../referential/services/referential.fragments";
-import {LandingFilter} from "./filter/landing.filter";
+import {Injectable, Injector} from '@angular/core';
+import {
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlSubscriptions,
+  chainPromises,
+  EntitiesServiceWatchOptions,
+  EntitiesStorage,
+  EntitySaveOptions,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  firstNotNilPromise,
+  FormErrors,
+  fromDateISOString,
+  IEntitiesService,
+  IEntityService,
+  isEmptyArray,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  JobUtils,
+  LoadResult,
+  NetworkService,
+  Person
+} from '@sumaris-net/ngx-components';
+import {BehaviorSubject, EMPTY, Observable} from 'rxjs';
+import {Landing} from './model/landing.model';
+import {gql} from '@apollo/client/core';
+import {DataFragments, Fragments} from './trip.queries';
+import {ErrorCodes} from './trip.errors';
+import {filter, map} from 'rxjs/operators';
+import {BaseRootDataService} from '@app/data/services/root-data-service.class';
+import {Sample} from './model/sample.model';
+import {VesselSnapshotFragments} from '@app/referential/services/vessel-snapshot.service';
+import * as momentImported from 'moment';
+import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
+
+import {SortDirection} from '@angular/material/sort';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {ReferentialFragments} from '@app/referential/services/referential.fragments';
+import {LandingFilter} from './filter/landing.filter';
+import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
 
 const moment = momentImported;
 
@@ -299,7 +313,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     const fullLoad = (opts && opts.fullLoad === true);
     const withTotal = (!opts || opts.withTotal !== false);
     const query = fullLoad ? LandingQueries.loadAllFullWithTotal :
-      (withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll);
+      (withTotal ? LandingQueries.loadAllWithTotal : LandingQueries.loadAll);
 
     return this.mutableWatchQuery<{ data: any[]; total: number; }>({
         queryName: 'LoadAll',
@@ -487,11 +501,11 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
         if (isNotNil(entity.id)) context.serializationKey = `${Landing.TYPENAME}:${entity.id}`;
 
-        return { data: [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)] };
+        return { data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)] };
       } : undefined;
 
     // Transform into json
-    const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
+    const json = this.asObject(entity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE);
     if (this._debug) console.debug("[landing-service] Using minify object, to send:", json);
 
     await this.graphql.mutate<{ data: any }>({
@@ -763,7 +777,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     // Make sure to fill id, with local ids
     await this.fillOfflineDefaultProperties(entity);
 
-    const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+    const json = this.asObject(entity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE);
     if (this._debug) console.debug('[landing-service] [offline] Saving landing locally...', json);
 
     // Save response locally

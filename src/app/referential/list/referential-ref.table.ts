@@ -2,13 +2,13 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} 
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {DefaultStatusList} from "../../core/services/model/referential.model";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {DefaultStatusList}  from "@sumaris-net/ngx-components";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {debounceTime, filter} from "rxjs/operators";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
-import {Entity} from "../../core/services/model/entity.model";
+import {Entity}  from "@sumaris-net/ngx-components";
 import {ReferentialFilter} from "../services/filter/referential.filter";
 
 

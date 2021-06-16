@@ -1,28 +1,37 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output} from '@angular/core';
-import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {TableElement} from "@e-is/ngx-material-table";
-import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
-import {environment} from "../../../environments/environment";
-import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.validator";
-import {AppInMemoryTable} from "../../core/table/memory-table.class";
-import {ReferentialRefService} from "../services/referential-ref.service";
-import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {changeCaseToUnderscore, isNotEmptyArray, isNotNil, removeDuplicatesFromArray, suggestFromArray} from "../../shared/functions";
-import {BehaviorSubject, Observable, of} from "rxjs";
-import {firstFalsePromise} from "../../shared/observables";
-import {PmfmFilter, PmfmService} from "../services/pmfm.service";
-import {Pmfm} from "../services/model/pmfm.model";
-import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasource.class";
-import {debounceTime, map, startWith, switchMap} from "rxjs/operators";
-import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
-import {PmfmValueUtils} from "../services/model/pmfm-value.model";
-import {FilterFn, LoadResult} from "../../shared/services/entity-service.class";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {Parameter} from "../services/model/parameter.model";
-import {EntityFilter, EntityFilterUtils} from "../../core/services/model/filter.model";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {EntityClass} from "../../core/services/model/entity.decorators";
+import {
+  AppInMemoryTable,
+  AppTableDataSourceOptions,
+  changeCaseToUnderscore,
+  EntityClass,
+  EntityFilter,
+  FilterFn,
+  firstFalsePromise,
+  FormFieldDefinition,
+  FormFieldDefinitionMap,
+  InMemoryEntitiesService,
+  IReferentialRef,
+  isNotEmptyArray,
+  isNotNil,
+  LoadResult,
+  ReferentialRef,
+  ReferentialUtils,
+  removeDuplicatesFromArray,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+  StatusIds
+} from '@sumaris-net/ngx-components';
+import {TableElement} from '@e-is/ngx-material-table';
+import {environment} from '@environments/environment';
+import {PmfmStrategyValidatorService} from '../services/validator/pmfm-strategy.validator';
+import {ReferentialRefService} from '../services/referential-ref.service';
+import {BehaviorSubject, Observable, of} from 'rxjs';
+import {PmfmFilter, PmfmService} from '../services/pmfm.service';
+import {Pmfm} from '../services/model/pmfm.model';
+import {debounceTime, map, startWith, switchMap} from 'rxjs/operators';
+import {PmfmStrategy} from '../services/model/pmfm-strategy.model';
+import {PmfmValueUtils} from '../services/model/pmfm-value.model';
+import {Parameter} from '../services/model/parameter.model';
 
 @EntityClass()
 export class PmfmStrategyFilter extends EntityFilter<PmfmStrategyFilter, PmfmStrategy> {

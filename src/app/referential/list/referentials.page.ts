@@ -1,26 +1,36 @@
-import {Component, Injector, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
-import {BehaviorSubject, Observable, of} from "rxjs";
-import {debounceTime, filter, first, map, tap} from "rxjs/operators";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {ReferentialValidatorService} from "../services/validator/referential.validator";
-import {ReferentialService} from "../services/referential.service";
-import {DefaultStatusList, Referential} from "../../core/services/model/referential.model";
-import {ModalController, Platform} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
-import {AccountService} from '../../core/services/account.service';
+import {Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {BehaviorSubject, Observable, of} from 'rxjs';
+import {debounceTime, filter, map, tap} from 'rxjs/operators';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {ReferentialValidatorService} from '../services/validator/referential.validator';
+import {ReferentialService} from '../services/referential.service';
+import {
+  AccountService,
+  AppTable,
+  DefaultStatusList,
+  EntitiesTableDataSource,
+  firstNotNilPromise,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  LocalSettingsService,
+  Referential,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+  slideUpDownAnimation,
+  sort
+} from '@sumaris-net/ngx-components';
+import {ModalController, Platform} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
-import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
-import {TranslateService} from "@ngx-translate/core";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, sort} from "../../shared/functions";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {environment} from "../../../environments/environment";
-import {firstNotNilPromise} from "../../shared/observables";
-import {ReferentialFilter} from "../services/filter/referential.filter";
-import {MatExpansionPanel} from "@angular/material/expansion";
-import {slideUpDownAnimation} from "../../shared/material/material.animations";
-import {AppRootTableSettingsEnum} from "../../data/table/root-table.class";
+import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
+import {TranslateService} from '@ngx-translate/core';
+import {environment} from '../../../environments/environment';
+import {ReferentialFilter} from '../services/filter/referential.filter';
+import {MatExpansionPanel} from '@angular/material/expansion';
+import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
+
 
 
 @Component({
@@ -40,8 +50,8 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
   canEdit = false;
   filterForm: FormGroup;
-  $selectedEntity = new BehaviorSubject<{ id: string, label: string, level?: string, levelLabel?: string }>(undefined);
-  $entities = new BehaviorSubject<{ id: string, label: string, level?: string, levelLabel?: string }[]>(undefined);
+  $selectedEntity = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }>(undefined);
+  $entities = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }[]>(undefined);
   levels: Observable<Referential[]>;
   statusList = DefaultStatusList;
   statusById: any;
@@ -130,10 +140,10 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.setShowColumn('updateDate', !this.mobile); // Hide by default, if mobile
 
     this.filterForm = formBuilder.group({
-      'entityName': [null],
-      'searchText': [null],
-      'levelId': [null],
-      'statusId': [null]
+      entityName: [null],
+      searchText: [null],
+      levelId: [null],
+      statusId: [null]
     });
 
     // Fill statusById
@@ -152,14 +162,12 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.registerSubscription(
       this.referentialService.loadTypes()
         .pipe(
-          map(types => types.map(type => {
-            return {
+          map(types => types.map(type => ({
               id: type.id,
               label: this.getI18nEntityName(type.id),
               level: type.level,
               levelLabel: this.getI18nEntityName(type.level)
-            };
-          })),
+            }))),
           map(types => sort(types, 'label'))
         )
         .subscribe(types => this.$entities.next(types))
@@ -254,11 +262,12 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.inlineEdition = !this.canOpenDetail;
 
     // Applying the filter (will reload if emitEvent = true)
-    this.filterForm.patchValue({entityName}, {emitEvent: false});
-    this.setFilter({
+    const filter = ReferentialFilter.fromObject({
       ...this.filterForm.value,
       entityName
     });
+    this.filterForm.patchValue({entityName}, {emitEvent: false});
+    this.setFilter(filter, {emitEvent: opts.emitEvent});
 
     // Update route location
     if (opts.skipLocationChange !== true && this.canSelectEntity) {

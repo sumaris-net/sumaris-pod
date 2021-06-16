@@ -1,10 +1,10 @@
-import {EntityFilter} from "../../../core/services/model/filter.model";
+import {EntityFilter}  from "@sumaris-net/ngx-components";
 import {DataEntity} from "./data-entity.model";
-import {Department} from "../../../core/services/model/department.model";
-import {isNotNil} from "../../../shared/functions";
-import {FilterFn} from "../../../shared/services/entity-service.class";
-import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {NOT_MINIFY_OPTIONS} from "../../../core/services/model/referential.model";
+import {Department}  from "@sumaris-net/ngx-components";
+import {isNotNil} from "@sumaris-net/ngx-components";
+import {FilterFn} from "@sumaris-net/ngx-components";
+import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export abstract class DataEntityFilter<
   T extends DataEntityFilter<T, E, EID, AO, FO>,
