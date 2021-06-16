@@ -56,8 +56,8 @@
         <mat-option *ngFor="let item of items | async" [value]="item" class="ion-no-padding">
           <ion-row>
               <ion-col *ngFor="let attr of searchAttributes"
-                       size="{{attr==='label'?3:undefined}}"
-                       [innerHTML]="item && item[attr] | highlight: {search: formControl.value }"></ion-col>
+                       size="{{attr==='label' ? 3 : undefined}}"
+                       [innerHTML]="item | mapGet: attr | highlight: formControl.value"></ion-col>
           </ion-row>
         </mat-option>
       </mat-autocomplete>
