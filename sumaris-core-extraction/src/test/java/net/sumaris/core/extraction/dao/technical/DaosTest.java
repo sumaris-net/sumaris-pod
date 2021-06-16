@@ -93,7 +93,7 @@ public class DaosTest {
                     // Hsqldb function is equivalent to Java String.hashCode()
                     if (dbType == DatabaseType.hsqldb) {
                         Assert.assertEquals(String.format("Invalid hashCode for expresion '%s'. Expected: %s, Actual: %s", expression,
-                                expression.hashCode(), result.intValue()),
+                                expression.hashCode(), result),
                                 expression.hashCode(), result.intValue());
                     }
                 }
@@ -150,10 +150,11 @@ public class DaosTest {
                 + " HASH FROM status WHERE id=0";
 
         try (PreparedStatement ps = Daos.prepareQuery(conn, sql)) {
-            ResultSet rs = ps.executeQuery();
-            Assert.assertTrue(rs.next());
-            Integer result = rs.getObject("HASH", Integer.class);
-            return result;
+            try (ResultSet rs = ps.executeQuery()) {
+                Assert.assertTrue(rs.next());
+                Integer result = rs.getObject("HASH", Integer.class);
+                return result;
+            }
         }
     }
 }

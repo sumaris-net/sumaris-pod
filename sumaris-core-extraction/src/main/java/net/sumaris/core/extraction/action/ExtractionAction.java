@@ -50,7 +50,7 @@ public class ExtractionAction {
     /**
      * <p>execute.</p>
      */
-    public void execute() {
+    public void run() {
         ExtractionConfiguration config = ExtractionConfiguration.instance();
         ExtractionService service = ServiceLocator.instance().getService("extractionService", ExtractionService.class);
 
