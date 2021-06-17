@@ -39,6 +39,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
   observers: Person[];
 
   samples: Sample[];
+  samplesCount?: number;
 
   constructor() {
     super();
@@ -91,6 +92,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
 
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
+    this.samplesCount = source.samplesCount;
 
     return this;
   }

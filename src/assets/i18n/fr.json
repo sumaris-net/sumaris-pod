@@ -856,6 +856,7 @@
       "STRATEGY": "Stratégie",
       "CREATION_DATE": "Date de création",
       "RECORDER_PERSON" : "Saisisseur",
+      "SAMPLES_COUNT": "Échantillonnages",
       "SAMPLING": {
         "STRATEGY_LABEL": "Ligne de plan"
       }
@@ -1254,7 +1255,8 @@
       "LANDING_STRATEGY_ENABLE": "Observation sur site > Débarquement : Saisir la stratégie ?",
       "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Saisir la date ?",
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
-      "LANDING_LOCATION_ENABLE": "Observation sur site > Débarquements : Voir le Port ?",
+      "LANDING_LOCATION_ENABLE": "Observation sur site > Débarquements : Afficher le port ?",
+      "LANDING_SAMPLES_COUNT_ENABLE": "Observation sur site > Débarquements : Afficher le nombre d'échantillonnages ?",
       "LANDING_ONE_TAB_ENABLE": "Observation sur site > Débarquement : un seul onglet ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
       "PROGRAM_STRATEGY_EDITOR" : "Stratégie > éditeur",

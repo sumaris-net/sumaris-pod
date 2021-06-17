@@ -187,6 +187,16 @@
     </mat-cell>
   </ng-container>
 
+  <!-- Sample count column -->
+  <ng-container matColumnDef="samplesCount">
+    <mat-header-cell *matHeaderCellDef>
+      <ion-label translate>LANDING.TABLE.SAMPLES_COUNT</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.samplesCount }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
   <!-- Comments column -->
   <ng-container matColumnDef="comments">
     <mat-header-cell *matHeaderCellDef>

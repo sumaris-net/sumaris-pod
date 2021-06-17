@@ -837,6 +837,7 @@
       "STRATEGY": "Strategy",
       "CREATION_DATE": "Creation date",
       "RECORDER_PERSON" : "Recorder",
+      "SAMPLES_COUNT": "Samples count",
       "SAMPLING": {
         "STRATEGY_LABEL": "Sample row"
       }
@@ -1235,7 +1236,8 @@
       "LANDING_STRATEGY_ENABLE": "Observation > Landing : Enter strategy?",
       "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Enter date?",
       "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
-      "LANDING_LOCATION_ENABLE": "Observation > Landings : Voir le Port ?",
+      "LANDING_LOCATION_ENABLE": "Observation > Landings: Show harbour?",
+      "LANDING_SAMPLES_COUNT_ENABLE": "Observation > Landings: Show sample count?",
       "LANDING_ONE_TAB_ENABLE": "Observation > Landing: single tab?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
       "PROGRAM_STRATEGY_EDITOR" : "Strategy > editor",

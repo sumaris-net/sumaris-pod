@@ -128,7 +128,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.landingsTable.showCreationDateColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE);
       this.landingsTable.showRecorderPersonColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
       this.landingsTable.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
-      this.landingsTable.showLocationColumn =  program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
+      this.landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
+      this.landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
       this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
 
       this.landingsTable.i18nColumnSuffix = i18nSuffix;
