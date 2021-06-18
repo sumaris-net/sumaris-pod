@@ -94,8 +94,6 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
     this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, {withUnit: !this.compact});
     this.required = toBoolean(this.required, this.pmfm.required);
 
-    console.log('TODO: pmfm', this.placeholder);
-
     this.updateTabIndex();
 
     // Compute the field type (use special case for Latitude/Longitude)

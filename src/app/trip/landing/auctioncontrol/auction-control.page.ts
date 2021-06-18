@@ -6,7 +6,7 @@ import {BehaviorSubject, Observable, Subscription} from "rxjs";
 import {Landing} from "../../services/model/landing.model";
 import {AuctionControlValidators} from "../../services/validator/auction-control.validators";
 import {ModalController} from "@ionic/angular";
-import {EntityServiceLoadOptions, LoadResult} from "@sumaris-net/ngx-components";
+import {EntityServiceLoadOptions, isInstanceOf, LoadResult} from '@sumaris-net/ngx-components';
 import {IReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
 import {HistoryPageReference}  from "@sumaris-net/ngx-components";
 import {ObservedLocation} from "../../services/model/observed-location.model";
@@ -331,7 +331,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   }
 
   protected async computeTitle(data: Landing): Promise<string> {
-    const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
+    const titlePrefix = this.parent && isInstanceOf(this.parent, ObservedLocation) &&
       await this.translate.get('AUCTION_CONTROL.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''

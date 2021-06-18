@@ -10,7 +10,7 @@ import {
   EntityUtils,
   FormArrayHelper,
   fromDateISOString,
-  isEmptyArray,
+  isEmptyArray, isInstanceOf,
   isNil,
   isNotNil,
   isNotNilOrBlank,
@@ -306,8 +306,9 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // if new vessel added, use it
     const vessel = res && res.data;
     if (vessel) {
-      const vesselSnapshot = (vessel instanceof VesselSnapshot) ? vessel :
-        (vessel instanceof Vessel ? VesselSnapshot.fromVessel(vessel) : VesselSnapshot.fromObject(vessel));
+      const vesselSnapshot = isInstanceOf(vessel, VesselSnapshot)
+        ? vessel
+        : (isInstanceOf(vessel, Vessel) ? VesselSnapshot.fromVessel(vessel) : VesselSnapshot.fromObject(vessel));
       console.debug("[trip-form] New vessel added : updating form...", vesselSnapshot);
       this.form.controls['vesselSnapshot'].setValue(vesselSnapshot);
       this.markForCheck();

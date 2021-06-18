@@ -12,7 +12,7 @@ import {
   fadeInOutAnimation,
   firstNotNilPromise,
   firstTruePromise,
-  HistoryPageReference,
+  HistoryPageReference, isInstanceOf,
   isNil,
   isNotNil,
   PlatformService,
@@ -382,11 +382,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     const {data} = await modal.onDidDismiss();
 
     // If modal return a landing, use it
-    if (data && data[0] instanceof Landing) {
+    if (data && isInstanceOf(data[0], Landing)) {
       console.debug("[observed-location] Vessel selection modal result:", data);
       return (data[0] as Landing).vesselSnapshot;
     }
-    if (data && data[0] instanceof VesselSnapshot) {
+    if (data && isInstanceOf(data[0], VesselSnapshot)) {
       console.debug("[observed-location] Vessel selection modal result:", data);
       const vessel = data[0] as VesselSnapshot;
       if (excludeVesselIds.includes(data.id)) {

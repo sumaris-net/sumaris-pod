@@ -11,7 +11,7 @@ import {
   AppTable,
   AppTableDataSourceOptions,
   EntitiesTableDataSource,
-  Entity,
+  Entity, EntityUtils,
   filterNotNil,
   firstNotNilPromise,
   IEntitiesService,

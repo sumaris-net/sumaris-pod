@@ -1,7 +1,7 @@
 import {Moment} from "moment";
 import {ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
 import {isNil, isNilOrBlank, isNotNil, isNotNilOrNaN, joinPropertiesPath} from "@sumaris-net/ngx-components";
-import {IPmfm, Pmfm} from "./pmfm.model";
+import {IPmfm, Pmfm, PmfmUtils} from './pmfm.model';
 import {DenormalizedPmfmStrategy} from "./pmfm-strategy.model";
 import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
 
@@ -38,7 +38,7 @@ export abstract class PmfmValueUtils {
       case "qualitative_value":
         if (isNotNil(value)) {
           const qvId = (typeof value === "object") ? value.id : parseInt(value);
-          return (pmfm.qualitativeValues || (pmfm instanceof Pmfm && pmfm.parameter && pmfm.parameter.qualitativeValues) || [])
+          return (pmfm.qualitativeValues || (PmfmUtils.isFullPmfm(pmfm) && pmfm.parameter && pmfm.parameter.qualitativeValues) || [])
             .find(qv => qv.id === qvId) || null;
         }
         return null;
@@ -63,7 +63,7 @@ export abstract class PmfmValueUtils {
       case "qualitative_value":
         if (value && typeof value !== "object") {
           const qvId = parseInt(value);
-          value = opts.pmfm && (opts.pmfm.qualitativeValues || (opts.pmfm instanceof Pmfm && opts.pmfm.parameter && opts.pmfm.parameter.qualitativeValues) || [])
+          value = opts.pmfm && (opts.pmfm.qualitativeValues || (PmfmUtils.isFullPmfm(opts.pmfm) && opts.pmfm.parameter && opts.pmfm.parameter.qualitativeValues) || [])
             .find(qv => qv.id === qvId) || null;
         }
         return value && ((opts.propertyNames && joinPropertiesPath(value, opts.propertyNames)) || value.name || value.label) || null;

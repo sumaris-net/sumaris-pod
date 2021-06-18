@@ -252,7 +252,7 @@ export class ObservedLocationService
   }
 
   watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
-           dataFilter?: ObservedLocationFilter,
+           dataFilter?: Partial<ObservedLocationFilter>,
            opts?: EntitiesServiceWatchOptions): Observable<LoadResult<ObservedLocation>> {
 
     // Load offline
@@ -298,15 +298,17 @@ export class ObservedLocationService
   }
 
   watchAllLocally(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
-           dataFilter?: ObservedLocationFilter,
+           dataFilter?: Partial<ObservedLocationFilter>,
            opts?: EntitiesServiceWatchOptions): Observable<LoadResult<ObservedLocation>> {
+
+    dataFilter = this.asFilter(dataFilter);
 
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
       sortBy: sortBy || 'startDateTime',
       sortDirection: sortDirection || 'asc',
-      filter: ObservedLocationFilter.searchFilter<ObservedLocation>(dataFilter)
+      filter: dataFilter && dataFilter.asFilterFn()
     };
 
     console.debug("[observed-location-service] Watching local observed locations... using options:", variables);

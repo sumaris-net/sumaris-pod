@@ -9,7 +9,7 @@ import {
   DurationPipe,
   fadeInAnimation,
   fadeInOutAnimation,
-  isEmptyArray,
+  isEmptyArray, isInstanceOf,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -1028,9 +1028,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     // Wait until closed
     const res = await modal.onDidDismiss();
 
-    // If new vessel added, use it
-    if (res && res.data instanceof ExtractionProduct) {
-      const type = res.data as ExtractionProduct;
+    // If selected a product, use it
+    if (res && isInstanceOf(res.data, ExtractionProduct)) {
+      const type = res.data;
       await this.setType(type, {emitEvent: false});
 
       const hasData = await this.tryLoadByYearIterations(type);

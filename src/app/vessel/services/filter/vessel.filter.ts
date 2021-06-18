@@ -1,12 +1,7 @@
-import {EntityFilter}  from "@sumaris-net/ngx-components";
-import {Vessel, VesselFeatures, VesselRegistration} from "../model/vessel.model";
-import {FilterFn} from "@sumaris-net/ngx-components";
-import {isNil, isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
-import {RootDataEntityFilter} from "../../../data/services/model/root-data-filter.model";
-import {Moment} from "moment";
-import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
-import {EntityAsObjectOptions, EntityUtils}  from "@sumaris-net/ngx-components";
-import {EntityClass}  from "@sumaris-net/ngx-components";
+import {EntityAsObjectOptions, EntityClass, EntityFilter, EntityUtils, FilterFn, fromDateISOString, isNotEmptyArray, isNotNil, toDateISOString} from '@sumaris-net/ngx-components';
+import {Vessel, VesselFeatures, VesselRegistration} from '../model/vessel.model';
+import {RootDataEntityFilter} from '../../../data/services/model/root-data-filter.model';
+import {Moment} from 'moment';
 
 @EntityClass()
 export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
@@ -59,14 +54,10 @@ export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
   }
 }
 
+@EntityClass()
 export class VesselFeaturesFilter extends EntityFilter<VesselFeaturesFilter, VesselFeatures> {
 
-  static fromObject(source: any): VesselFeaturesFilter {
-    if (!source || source instanceof VesselFeaturesFilter) return source;
-    const target = new VesselFeaturesFilter();
-    target.fromObject(source);
-    return target;
-  }
+  static fromObject: (source: any, opts?: any) => VesselFeaturesFilter;
 
   vesselId: number;
 
@@ -75,15 +66,13 @@ export class VesselFeaturesFilter extends EntityFilter<VesselFeaturesFilter, Ves
     this.vesselId = source.vesselId;
   }
 
-  asPodObject(): any {
-    return {
-      vesselId: this.vesselId
-    };
-  }
+  protected buildFilter(): FilterFn<VesselFeatures>[] {
+    const filterFns = super.buildFilter();
+    if (isNotNil(this.vesselId)) {
+      filterFns.push((e) => e.vesselId === this.vesselId);
+    }
 
-  asFilterFn<E extends VesselFeatures>(): FilterFn<E> {
-    if (isNil(this.vesselId)) return undefined;
-    return (e) => e.vesselId === this.vesselId;
+    return filterFns;
   }
 
 }

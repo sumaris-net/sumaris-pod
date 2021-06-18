@@ -1,25 +1,17 @@
-import {Injectable} from "@angular/core";
-import {gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {Observable} from "rxjs";
-import {map} from "rxjs/operators";
-import {ErrorCodes} from "./trip.errors";
-import {DataFragments, Fragments} from "./trip.queries";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
-import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
-import {Sale} from "./model/sale.model";
-import {Sample} from "./model/sample.model";
-import {SortDirection} from "@angular/material/sort";
-import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
-import {FilterFn, IEntitiesService, LoadResult} from "@sumaris-net/ngx-components";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {DataEntityFilter} from "../../data/services/model/data-filter.model";
-import {RootDataEntityFilter} from "../../data/services/model/root-data-filter.model";
-import {ReferentialRef}  from "@sumaris-net/ngx-components";
-import {isNotNil} from "@sumaris-net/ngx-components";
-import {ReferentialRefFilter} from "../../referential/services/filter/referential-ref.filter";
+import {Injectable} from '@angular/core';
+import {gql, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
+import {ErrorCodes} from './trip.errors';
+import {DataFragments, Fragments} from './trip.queries';
+import {AccountService, BaseGraphqlService, EntityUtils, GraphqlService, IEntitiesService, LoadResult} from '@sumaris-net/ngx-components';
+import {SAVE_AS_OBJECT_OPTIONS} from '../../data/services/model/data-entity.model';
+import {VesselSnapshotFragments} from '../../referential/services/vessel-snapshot.service';
+import {Sale} from './model/sale.model';
+import {Sample} from './model/sample.model';
+import {SortDirection} from '@angular/material/sort';
+import {environment} from '../../../environments/environment';
+import {SaleFilter} from '@app/trip/services/filter/sale.filter';
 
 export const SaleFragments = {
   lightSale: gql`fragment LightSaleFragment_PENDING on SaleVO {
@@ -82,44 +74,6 @@ export const SaleFragments = {
   ${Fragments.referential}
   `
 };
-
-
-export class SaleFilter extends RootDataEntityFilter<SaleFilter, Sale> {
-
-  static fromObject(source: any): SaleFilter {
-    if (!source || source instanceof SaleFilter) return source;
-    const target = new SaleFilter();
-    target.fromObject(target);
-    return target;
-  }
-
-  observedLocationId?: number;
-  tripId?: number;
-
-  fromObject(source: any) {
-    super.fromObject(source);
-    this.observedLocationId = source.observedLocationId;
-    this.tripId = source.tripId;
-  }
-
-  asFilterFn<E extends Sale>(): FilterFn<E> {
-    const filterFns: FilterFn<E>[] = [];
-
-    const inheritedFn = super.asFilterFn();
-    if (inheritedFn) filterFns.push(inheritedFn);
-
-    if (isNotNil(this.observedLocationId)) {
-      filterFns.push(t => t.observedLocationId === this.observedLocationId);
-    }
-    if (isNotNil(this.tripId)) {
-      filterFns.push(t => t.tripId === this.tripId);
-    }
-
-    if (!filterFns.length) return undefined;
-
-    return entity => !filterFns.find(fn => !fn(entity));
-  }
-}
 
 const LoadAllQuery: any = gql`
   query Sales($filter: SaleFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){

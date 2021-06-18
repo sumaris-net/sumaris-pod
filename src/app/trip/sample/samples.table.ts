@@ -322,12 +322,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     if (data && this.debug) console.debug("[samples-table] Modal result: ", data);
     this.markAsLoaded();
 
-    // Exit if empty
-    if (!(data instanceof Sample)) {
-      return undefined;
-    }
-
-    return data;
+    return isInstanceOf(data, Sample) ? data : undefined;
   }
 
   filterColumnsByTaxonGroup(taxonGroup: TaxonGroupRef) {

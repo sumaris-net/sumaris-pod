@@ -4,7 +4,7 @@ import {BehaviorSubject, Subscription} from "rxjs";
 import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ParameterLabelGroups, PmfmIds} from "../../../referential/services/model/model.enum";
 import {PmfmService} from "../../../referential/services/pmfm.service";
-import {ObjectMap} from "@sumaris-net/ngx-components";
+import {isInstanceOf, ObjectMap} from '@sumaris-net/ngx-components';
 import {BiologicalSamplingValidators} from "../../services/validator/biological-sampling.validators";
 import {LandingPage} from "../landing.page";
 import {Landing} from "../../services/model/landing.model";
@@ -121,7 +121,7 @@ export class SamplingLandingPage extends LandingPage {
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onNewEntity(data, options);
     // By default, set location to parent location
-    if (this.parent && this.parent instanceof ObservedLocation) {
+    if (this.parent && isInstanceOf(this.parent, ObservedLocation)) {
       this.landingForm.form.get('location').patchValue(data.location);
     }
   }

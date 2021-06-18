@@ -1,7 +1,7 @@
 import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 
-import {isNotNil, referentialToString, StatusIds} from '@sumaris-net/ngx-components';
+import {isInstanceOf, isNotNil, referentialToString, StatusIds} from '@sumaris-net/ngx-components';
 import {LandingService} from '../services/landing.service';
 import {AppMeasurementsTable} from '../measurement/measurements.table.class';
 import {AcquisitionLevelCodes, LocationLevelIds} from '../../referential/services/model/model.enum';
@@ -221,10 +221,10 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     if (!data) {
       this._parentDateTime = undefined;
       this.setFilter(LandingFilter.fromObject({}));
-    } else if (data instanceof ObservedLocation) {
+    } else if (isInstanceOf(data, ObservedLocation)) {
       this._parentDateTime = data.startDateTime;
       this.setFilter(LandingFilter.fromObject({observedLocationId: data.id}), {emitEvent: true/*refresh*/});
-    } else if (data instanceof Trip) {
+    } else if (isInstanceOf(data, Trip)) {
       this._parentDateTime = data.departureDateTime;
       this.setFilter(LandingFilter.fromObject({tripId: data.id}), {emitEvent: true/*refresh*/});
     }

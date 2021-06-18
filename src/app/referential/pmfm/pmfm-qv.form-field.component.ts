@@ -26,7 +26,7 @@ import {
   AppFormUtils,
   focusInput,
   InputElement,
-  isEmptyArray,
+  isEmptyArray, isInstanceOf,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
@@ -41,7 +41,7 @@ import {
   toNumber
 } from '@sumaris-net/ngx-components';
 import {PmfmIds} from '../services/model/model.enum';
-import {IPmfm, Pmfm, PmfmUtils} from '../services/model/pmfm.model';
+import {IPmfm, PmfmUtils} from '../services/model/pmfm.model';
 import {PmfmStrategy} from '../services/model/pmfm-strategy.model';
 import {IonButton} from '@ionic/angular';
 import {DOCUMENT} from '@angular/common';
@@ -153,13 +153,11 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
     this._qualitativeValues = this.pmfm.qualitativeValues || [];
-    if (isEmptyArray(this._qualitativeValues)) {
-      if (this.pmfm instanceof Pmfm) {
-        // Get qualitative values from parameter
-        this._qualitativeValues = this.pmfm.parameter && this.pmfm.parameter.qualitativeValues || [];
-        if (isEmptyArray(this._qualitativeValues)) {
-          console.warn(`Pmfm {id: ${this.pmfm.id}, label: '${this.pmfm.label}'} has no qualitative values, neither the parent PmfmStrategy!`, this.pmfm);
-        }
+    if (isEmptyArray(this._qualitativeValues) && PmfmUtils.isFullPmfm(this.pmfm)) {
+      // Get qualitative values from parameter
+      this._qualitativeValues = this.pmfm.parameter && this.pmfm.parameter.qualitativeValues || [];
+      if (isEmptyArray(this._qualitativeValues)) {
+        console.warn(`Pmfm {id: ${this.pmfm.id}, label: '${this.pmfm.label}'} has no qualitative values, neither the parent PmfmStrategy!`, this.pmfm);
       }
     }
     this.required = toBoolean(this.required, this.pmfm.required || false);
@@ -172,7 +170,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     this.sortAttribute =  isNotNil(this.sortAttribute) ? this.sortAttribute : (attributes[0]);
 
     // Sort values
-    this._sortedQualitativeValues = (this.pmfm instanceof PmfmStrategy && this.pmfm.pmfmId !== PmfmIds.DISCARD_OR_LANDING) ?
+    this._sortedQualitativeValues = (isInstanceOf(this.pmfm, PmfmStrategy) && this.pmfm.pmfmId !== PmfmIds.DISCARD_OR_LANDING) ?
       sort(this._qualitativeValues, this.sortAttribute) :
       this._qualitativeValues;
 

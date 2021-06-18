@@ -1,7 +1,7 @@
 import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from "./batch.model";
 import {BatchGroup} from "./batch-group.model";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {ReferentialRef}  from "@sumaris-net/ngx-components";
+import {ReferentialRef, ReferentialUtils} from '@sumaris-net/ngx-components';
 import {IPmfm} from "../../../referential/services/model/pmfm.model";
 import {EntityClass}  from "@sumaris-net/ngx-components";
 
@@ -130,7 +130,7 @@ export class SubBatchUtils {
           // Find sub batches for this QV pmfm's value
           const children = groupSubBatches.filter(sb => {
             let qvValue = sb.measurementValues[qvPmfmId];
-            if (qvValue instanceof ReferentialRef) qvValue = qvValue.id;
+            if (ReferentialUtils.isNotEmpty(qvValue)) qvValue = qvValue.id;
             // WARN: use '==' and NOT '===', because measurementValues can use string, for values
             return qvValue == parent.measurementValues[qvPmfmId];
           });

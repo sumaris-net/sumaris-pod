@@ -4,7 +4,7 @@ import {
   AppTableDataSourceOptions,
   changeCaseToUnderscore,
   EntityClass,
-  EntityFilter,
+  EntityFilter, EntityUtils,
   FilterFn,
   firstFalsePromise,
   FormFieldDefinition,
@@ -51,7 +51,7 @@ export class PmfmStrategyFilter extends EntityFilter<PmfmStrategyFilter, PmfmStr
     // Acquisition Level
     if (this.acquisitionLevel) {
       const acquisitionLevel = this.acquisitionLevel;
-      filterFns.push(t => ((t.acquisitionLevel instanceof ReferentialRef ? t.acquisitionLevel.label : t.acquisitionLevel) === acquisitionLevel));
+      filterFns.push(t => ((EntityUtils.isNotEmpty(t.acquisitionLevel, 'label') ? t.acquisitionLevel['label'] : t.acquisitionLevel) === acquisitionLevel));
     }
 
     // Locations
@@ -374,7 +374,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   }
 
   protected async onSave(data: PmfmStrategy[]): Promise<PmfmStrategy[]> {
-    console.debug("[pmfm-strategy-table] Saving...");
+    console.debug("[pmfm-strategy-table] Saving...", data);
 
     // Convert to JSON
     //return data.map(source => source instanceof PmfmStrategy ? source.asObject() : source);

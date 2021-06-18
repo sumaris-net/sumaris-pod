@@ -7,12 +7,12 @@ import {
   SharedValidators
 } from "@sumaris-net/ngx-components";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {Program} from "../../../referential/services/model/program.model";
+import {Program} from '@app/referential/services/model/program.model';
 import {toBoolean} from "@sumaris-net/ngx-components";
 import {
   DataEntityValidatorOptions,
   DataEntityValidatorService
-} from "../../../data/services/validator/data-entity.validator";
+} from '@app/data/services/validator/data-entity.validator';
 import {MeasurementsValidatorService} from "./measurement.validator";
 import {Product} from "../model/product.model";
 import {OperationGroup} from "../model/trip.model";

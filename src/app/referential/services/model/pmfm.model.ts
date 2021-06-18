@@ -52,8 +52,21 @@ export interface IDenormalizedPmfm<
   referenceTaxonIds: number[];
 }
 
-@EntityClass()
-export class Pmfm extends BaseReferential<Pmfm> implements IPmfm<Pmfm> {
+
+export interface IFullPmfm<
+  T extends Entity<T, ID> = Entity<any, any>,
+  ID = number
+  > extends IPmfm<T, ID> {
+
+  parameter: Parameter;
+  matrix: ReferentialRef;
+  fraction: ReferentialRef;
+  method: ReferentialRef;
+  unit: ReferentialRef;
+}
+
+@EntityClass({typename: 'PmfmVO'})
+export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
 
   static ENTITY_NAME = 'Pmfm';
   static fromObject: (source: any, opts?: any) => Pmfm;
@@ -76,7 +89,7 @@ export class Pmfm extends BaseReferential<Pmfm> implements IPmfm<Pmfm> {
   completeName: string; // Computed attributes
 
   constructor() {
-    super();
+    super(Pmfm.TYPENAME);
     this.entityName = Pmfm.ENTITY_NAME;
   }
 
@@ -201,6 +214,10 @@ export abstract class PmfmUtils {
     return (pmfm['completeName'] || pmfm['name']) && true;
   }
 
+  static isFullPmfm(pmfm: IPmfm): pmfm is IFullPmfm {
+    return pmfm['parameter'] && true;
+  }
+
   /**
    * Compute a PMFM.NAME, with the last part of the name
    * @param pmfm
@@ -221,7 +238,7 @@ export abstract class PmfmUtils {
       // Remove parenthesis content, if any
       const matches = PMFM_NAME_REGEXP.exec(pmfm.name || '');
       name = matches && matches[1] || pmfm.name;
-    } else if (pmfm instanceof Pmfm) {
+    } else if (PmfmUtils.isFullPmfm(pmfm)) {
       name = pmfm.parameter && pmfm.parameter.name;
       if (opts && opts.withDetails) {
         name += [

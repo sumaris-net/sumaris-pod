@@ -1,7 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {Platform} from "@ionic/angular";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {OperationFilter} from "../services/operation.service";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {OperationGroupValidatorService} from "../services/validator/operation-group.validator";
 import {BehaviorSubject} from "rxjs";
@@ -13,6 +12,7 @@ import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-st
 import {ReferentialRef, referentialToString}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {OperationFilter} from "@app/trip/services/filter/operation.filter";
 
 export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier', 'physicalGear', 'targetSpecies'];
 export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];

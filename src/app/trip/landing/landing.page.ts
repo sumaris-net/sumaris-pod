@@ -227,7 +227,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       data.program = ReferentialUtils.isNotEmpty(data.program) ? data.program : this.parent.program;
       data.observers = isNotEmptyArray(data.observers) && data.observers || this.parent.observers;
 
-      if (this.parent instanceof ObservedLocation) {
+      if (isInstanceOf(this.parent, ObservedLocation)) {
         data.location = data.location || this.parent.location;
         data.dateTime = data.dateTime || this.parent.startDateTime || this.parent.endDateTime;
         data.tripId = undefined;
@@ -235,7 +235,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         // Define back link
         this.defaultBackHref = `/observations/${this.parent.id}?tab=1`;
       }
-      else if (this.parent instanceof Trip) {
+      else if (isInstanceOf(this.parent, Trip)) {
         data.vesselSnapshot = this.parent.vesselSnapshot;
         data.location = data.location || this.parent.returnLocation || this.parent.departureLocation;
         data.dateTime = data.dateTime || this.parent.returnDateTime || this.parent.departureDateTime;
@@ -274,11 +274,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     super.updateView(data, opts);
 
     if (this.parent) {
-      if (this.parent instanceof ObservedLocation) {
+      if (isInstanceOf(this.parent, ObservedLocation)) {
         this.landingForm.showProgram = false;
         this.landingForm.showVessel = true;
 
-      } else if (this.parent instanceof Trip) {
+      } else if (isInstanceOf(this.parent, Trip)) {
 
         // Hide some fields
         this.landingForm.showProgram = false;
@@ -433,7 +433,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
-    const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
+    const titlePrefix = this.parent && isInstanceOf(this.parent, ObservedLocation) &&
       await this.translate.get('LANDING.EDIT.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''

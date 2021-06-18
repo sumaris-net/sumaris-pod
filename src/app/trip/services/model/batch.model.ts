@@ -3,7 +3,7 @@ import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/mode
 import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
 import {
   EntityClass,
-  EntityUtils,
+  EntityUtils, isInstanceOf,
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
@@ -457,7 +457,7 @@ export class BatchUtils {
         .forEach(key => {
           let value = batch[key];
           if (value instanceof Object) {
-            if (!(value instanceof Batch)) {
+            if (!isInstanceOf(value, Batch)) {
               value = JSON.stringify(value);
             }
           }

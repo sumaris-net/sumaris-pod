@@ -13,7 +13,6 @@ import {
   EntitiesStorage,
   EntityServiceLoadOptions,
   EntityUtils,
-  FilterFn,
   firstNotNilPromise,
   GraphqlService,
   IEntitiesService,
@@ -27,7 +26,7 @@ import {
   NetworkService,
   QueryVariables
 } from '@sumaris-net/ngx-components';
-import {DataEntity, DataEntityAsObjectOptions, SAVE_AS_OBJECT_OPTIONS, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '../../data/services/model/data-entity.model';
+import {DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '../../data/services/model/data-entity.model';
 import {Operation, OperationFromObjectOptions, VesselPosition} from './model/trip.model';
 import {Measurement} from './model/measurement.model';
 import {Batch, BatchUtils} from './model/batch.model';
@@ -36,9 +35,8 @@ import {ReferentialFragments} from '../../referential/services/referential.fragm
 import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum';
 import {SortDirection} from '@angular/material/sort';
 import {environment} from '../../../environments/environment';
-import {DataEntityFilter} from '../../data/services/model/data-filter.model';
-import {Landing} from './model/landing.model';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -129,62 +127,6 @@ export const OperationFragments = {
   ${DataFragments.fishingArea}
   `
 };
-
-export class OperationFilter extends DataEntityFilter<OperationFilter, Operation> {
-
-  tripId?: number;
-  excludeId?: number;
-
-  static fromObject(source: any) {
-    if (!source || source instanceof OperationFilter) return source;
-    const target = new OperationFilter();
-    target.fromObject(source);
-    return target;
-  }
-
-  static searchFilter(source: any): FilterFn<Landing> {
-    return source && OperationFilter.fromObject(source).asFilterFn();
-  }
-
-  fromObject(source: any, opts?: any) {
-    super.fromObject(source, opts);
-    this.tripId = +source.tripId;
-    this.excludeId = +source.excludeId;
-  }
-
-  asPodObject(): any {
-    return {
-      tripId: this.tripId,
-      // Not include in Pod
-      //excludeId: this.excludeId
-    };
-  }
-
-  asFilterFn<E extends Operation>(): FilterFn<E> {
-    const filterFns: FilterFn<E>[] = [];
-
-    const inheritedFn = super.asFilterFn();
-    if (inheritedFn) filterFns.push(inheritedFn);
-
-    // Exclude id
-    if (isNotNil(this.excludeId)) {
-      const excludeId = this.excludeId;
-      filterFns.push(o => o.id !== excludeId);
-    }
-
-    // Trip
-    if (isNotNil(this.tripId)) {
-      const tripId = this.tripId;
-      filterFns.push((o => (isNotNil(o.tripId) && o.tripId === tripId)
-        || (o.trip && o.trip.id === tripId)));
-    }
-
-    if (!filterFns.length) return undefined;
-
-    return (entity) => !filterFns.find(fn => !fn(entity));
-  }
-
-}
 
 const LoadAllLightWithTotalQuery: any = gql`
   query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -323,8 +265,6 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
            opts?: OperationServiceWatchOptions
   ): Observable<LoadResult<Operation>> {
 
-    dataFilter = OperationFilter.fromObject(dataFilter);
-
     // Load offline
     const offline = this.network.offline || (dataFilter && dataFilter.tripId < 0) || false;
     if (offline) {
@@ -336,13 +276,15 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       return EMPTY;
     }
 
+    dataFilter = this.asFilter(dataFilter);
+
     const variables: QueryVariables<OperationFilter> = {
       offset: offset || 0,
       size: size >= 0 ? size : 1000,
       sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
       sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
-      filter: dataFilter && dataFilter.asPodObject()
+      filter: dataFilter.asPodObject()
     };
 
     let now = this._debug && Date.now();
@@ -603,13 +545,15 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
    * @param tripId
    * @param opts
    */
-  async deleteLocally(filter: (OperationFilter | any) & { tripId: number; }): Promise<Operation[]> {
+  async deleteLocally(filter: Partial<OperationFilter> & { tripId: number; }): Promise<Operation[]> {
     if (!filter || isNil(filter.tripId)) throw new Error("Missing arguments 'filter.tripId'");
+
+    const dataFilter = this.asFilter(filter);
 
     try {
       // Find operations to delete
       const res = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
-        filter: OperationFilter.searchFilter(filter)
+        filter: dataFilter.asFilterFn()
       }, {fullLoad: false});
       const ids = (res && res.data || []).map(o => o.id);
       if (isEmptyArray(ids)) return undefined; // Skip
@@ -633,13 +577,14 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
                  dataFilter?: OperationFilter,
                  opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
 
-    dataFilter = OperationFilter.fromObject(dataFilter);
 
     if (!dataFilter || isNil(dataFilter.tripId)) {
       console.warn("[operation-service] Trying to load operations without 'filter.tripId'. Skipping.");
       return EMPTY;
     }
     if (dataFilter.tripId >= 0) throw new Error("Invalid 'filter.tripId': must be a local ID (id<0)!");
+
+    dataFilter = this.asFilter(dataFilter);
 
     const variables = {
       offset: offset || 0,
