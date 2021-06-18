@@ -214,7 +214,7 @@ export class AggregatedLandingService
     } else {
 
 
-      res = this.mutableWatchQuery<{ data: AggregatedLanding[] }>({
+      res = this.mutableWatchQuery<LoadResult<AggregatedLanding>>({
         queryName: 'LoadAll',
         query: LoadAllQuery,
         arrayFieldName: 'data',

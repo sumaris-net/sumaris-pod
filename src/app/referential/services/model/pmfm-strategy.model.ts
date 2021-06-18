@@ -1,53 +1,9 @@
-import {Entity, EntityAsObjectOptions, EntityClass, isInstanceOf, isNotNil, ReferentialRef, toNumber} from '@sumaris-net/ngx-components';
-import {IPmfm, Pmfm, PMFM_NAME_REGEXP, PmfmType, PmfmUtils} from './pmfm.model';
+import {Entity, EntityAsObjectOptions, EntityClass, ReferentialRef, toNumber} from '@sumaris-net/ngx-components';
+import {IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils} from './pmfm.model';
 import {PmfmValue, PmfmValueUtils} from './pmfm-value.model';
 import {MethodIds} from './model.enum';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
-
-/**
- * Compute a PMFM.NAME, with the last part of the name
- * @param pmfm
- * @param opts
- */
-export function getPmfmName(pmfm: IPmfm, opts?: {
-  withUnit?: boolean;
-  html?: boolean;
-  withDetails?: boolean;
-}): string {
-  if (!pmfm) return undefined;
-
-  let name;
-  if (isInstanceOf(pmfm, DenormalizedPmfmStrategy)) {
-    // Is complete name exists, use it
-    if (opts && opts.withDetails && pmfm.completeName) return pmfm.completeName;
-
-    // Remove parenthesis content, if any
-    const matches = PMFM_NAME_REGEXP.exec(pmfm.name || '');
-    name = matches && matches[1] || pmfm.name;
-  }
-  else if (pmfm instanceof Pmfm) {
-    name = pmfm.parameter && pmfm.parameter.name;
-    if (opts && opts.withDetails) {
-      name += [
-        pmfm.matrix && pmfm.matrix.name,
-        pmfm.fraction && pmfm.fraction.name,
-        pmfm.method && pmfm.method.name
-      ].filter(isNotNil).join(' - ');
-    }
-  }
-
-  // Append unit
-  if ((!opts || opts.withUnit !== false) && (pmfm.type === 'integer' || pmfm.type === 'double') && pmfm.unitLabel) {
-    if (opts && opts.html) {
-      name += `<small><br/>(${pmfm.unitLabel})</small>`;
-    }
-    else {
-      name += ` (${pmfm.unitLabel})`;
-    }
-  }
-  return name;
-}
 
 @EntityClass({typename: "PmfmStrategyVO"})
 export class PmfmStrategy extends Entity<PmfmStrategy> {
@@ -173,7 +129,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 @EntityClass({typename: 'DenormalizedPmfmStrategyVO'})
 export class DenormalizedPmfmStrategy
   extends Entity<DenormalizedPmfmStrategy>
-  implements IPmfm<DenormalizedPmfmStrategy> {
+  implements IDenormalizedPmfm<DenormalizedPmfmStrategy> {
 
   static fromObject: (source: any, opts?: any) => DenormalizedPmfmStrategy;
 

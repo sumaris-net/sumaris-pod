@@ -1,27 +1,14 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Inject,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output
-} from "@angular/core";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {PhysicalGearValidatorService} from "../services/validator/physicalgear.validator";
-import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
-import {PhysicalGearModal} from "./physical-gear.modal";
-import {PhysicalGear} from "../services/model/trip.model";
-import {PHYSICAL_GEAR_DATA_SERVICE} from "../services/physicalgear.service";
-import {createPromiseEventEmitter} from "@sumaris-net/ngx-components";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {IEntitiesService} from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {PhysicalGearFilter} from "../services/filter/physical-gear.filter";
-import {isInstanceOf}  from "@sumaris-net/ngx-components";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {PhysicalGearValidatorService} from '../services/validator/physicalgear.validator';
+import {AppMeasurementsTable} from '../measurement/measurements.table.class';
+import {createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService, isInstanceOf} from '@sumaris-net/ngx-components';
+import {PhysicalGearModal} from './physical-gear.modal';
+import {PhysicalGear} from '../services/model/trip.model';
+import {PHYSICAL_GEAR_DATA_SERVICE} from '../services/physicalgear.service';
+import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum';
+import {environment} from '../../../environments/environment';
+import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];

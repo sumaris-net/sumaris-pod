@@ -1,20 +1,15 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {PmfmIds} from "../../referential/services/model/model.enum";
-import {SubSampleValidatorService} from "../services/validator/sub-sample.validator";
-import {isNil, isNotNil, joinPropertiesPath, toNumber} from "@sumaris-net/ngx-components";
-import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
-import {UsageMode}  from "@sumaris-net/ngx-components";
-import {filterNotNil, firstFalsePromise} from "@sumaris-net/ngx-components";
-import {Sample} from "../services/model/sample.model";
-import {getPmfmName} from "../../referential/services/model/pmfm-strategy.model";
-import {SortDirection} from "@angular/material/sort";
-import {PmfmValueUtils} from "../../referential/services/model/pmfm-value.model";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
-import {SampleFilter} from "../services/filter/sample.filter";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {PmfmIds} from '@app/referential/services/model/model.enum';
+import {SubSampleValidatorService} from '../services/validator/sub-sample.validator';
+import {EntityUtils, filterNotNil, firstFalsePromise, InMemoryEntitiesService, isNil, isNotNil, joinPropertiesPath, toNumber, UsageMode} from '@sumaris-net/ngx-components';
+import {AppMeasurementsTable} from '../measurement/measurements.table.class';
+import {Sample} from '../services/model/sample.model';
+import {SortDirection} from '@angular/material/sort';
+import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
+import {environment} from '@environments/environment';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {SampleFilter} from '../services/filter/sample.filter';
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -131,7 +126,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
             this.autocompleteFields.parent.columnSizes = [4].concat(displayAttributes.map(attr =>
               // If label then col size = 2
               attr.endsWith('label') ? 2 : undefined));
-            this.autocompleteFields.parent.columnNames = [getPmfmName(this.displayParentPmfm)];
+            this.autocompleteFields.parent.columnNames = [PmfmUtils.getPmfmName(this.displayParentPmfm)];
             this.autocompleteFields.parent.displayWith = (obj) => obj && obj.measurementValues
               && PmfmValueUtils.valueToString(obj.measurementValues[this.displayParentPmfm.id], {pmfm: this.displayParentPmfm})
               || undefined;

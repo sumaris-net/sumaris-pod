@@ -15,7 +15,7 @@ import {ReferentialRef}  from "@sumaris-net/ngx-components";
 import {Sample} from "../../services/model/sample.model";
 import {TaxonUtils} from "../../../referential/services/model/taxon.model";
 import {SamplingStrategyService} from "../../../referential/services/sampling-strategy.service";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
 import {isInstanceOf}  from "@sumaris-net/ngx-components";
 
 const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label'];
@@ -190,7 +190,7 @@ export class SamplingSamplesTable extends SamplesTable {
         pmfm = pmfm.clone(); // Clone, to leave original PMFM unchanged
 
         // Use rankOrder as a group index (will be used in template, to computed column class)
-        if (isInstanceOf(pmfm, DenormalizedPmfmStrategy)) {
+        if (PmfmUtils.isDenormalizedPmfm(pmfm)) {
           pmfm.rankOrder = groupIndex;
         }
 

@@ -1,11 +1,9 @@
-import {ChangeDetectorRef, Injectable, Injector, Pipe, PipeTransform} from '@angular/core';
-import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
-import {MethodIds} from "../services/model/model.enum";
-import {PmfmValueUtils} from "../services/model/pmfm-value.model";
-import {IPmfm} from "../services/model/pmfm.model";
-import {isNil, isNilOrBlank, isNotNilOrBlank} from "@sumaris-net/ngx-components";
-import {TranslateService} from "@ngx-translate/core";
-import {TranslateContextService} from "@sumaris-net/ngx-components";
+import {Injectable, Pipe, PipeTransform} from '@angular/core';
+import {MethodIds} from '../services/model/model.enum';
+import {PmfmValueUtils} from '../services/model/pmfm-value.model';
+import {IPmfm, PmfmUtils} from '../services/model/pmfm.model';
+import {isNotNilOrBlank, TranslateContextService} from '@sumaris-net/ngx-components';
+import {TranslateService} from '@ngx-translate/core';
 
 @Pipe({
     name: 'pmfmName'
@@ -44,7 +42,7 @@ export class PmfmNamePipe implements PipeTransform {
     }
 
     // Default name, computed from the PMFM object
-    return getPmfmName(pmfm, opts);
+    return PmfmUtils.getPmfmName(pmfm, opts);
   }
 }
 

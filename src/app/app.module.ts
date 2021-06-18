@@ -31,7 +31,8 @@ import {
   Department,
   EntitiesStorageTypePolicies,
   FormFieldDefinitionMap,
-  LocalSettings,
+  LocalSettings, SharedModule,
+  SocialModule,
   TestingPage
 } from '@sumaris-net/ngx-components';
 import {environment} from '@environments/environment';
@@ -48,7 +49,6 @@ import {CacheModule} from 'ionic-cache';
 import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
 import {MarkdownModule, MarkedOptions} from 'ngx-markdown';
 import {TypePolicies} from '@apollo/client/core';
-import {SocialModule} from './social/social.module';
 import {TRIP_TESTING_PAGES} from './trip/trip.testing.module';
 import {EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES} from './extraction/services/config/extraction.config';
 import {REFERENTIAL_CONFIG_OPTIONS, REFERENTIAL_GRAPHQL_TYPE_POLICIES, REFERENTIAL_LOCAL_SETTINGS_OPTIONS} from './referential/services/config/referential.config';
@@ -60,7 +60,6 @@ import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {AppSharedModule} from '@app/shared/shared.module';
 import {APP_CORE_CONFIG_OPTIONS} from '@app/core/services/config/core.config';
 import {AppCoreModule} from '@app/core/core.module';
-
 
 
 @NgModule({
@@ -108,7 +107,8 @@ import {AppCoreModule} from '@app/core/core.module';
 
     // functional modules
     AppCoreModule.forRoot(),
-    AppSharedModule.forRoot(environment),
+    AppSharedModule,
+    SharedModule.forRoot(environment),
     SocialModule.forRoot(),
     HammerModule,
     AppRoutingModule

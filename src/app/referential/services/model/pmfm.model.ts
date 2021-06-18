@@ -1,10 +1,8 @@
-import {Entity, EntityAsObjectOptions, IEntity}  from "@sumaris-net/ngx-components";
-import {BaseReferential, ReferentialRef}  from "@sumaris-net/ngx-components";
-import {isNotNil} from "@sumaris-net/ngx-components";
-import {MethodIds, PmfmIds} from "./model.enum";
-import {Parameter, ParameterType} from "./parameter.model";
-import {PmfmValue} from "./pmfm-value.model";
-import {EntityClass}  from "@sumaris-net/ngx-components";
+import {BaseReferential, Entity, EntityAsObjectOptions, EntityClass, IEntity, isInstanceOf, isNotNil, ReferentialRef} from '@sumaris-net/ngx-components';
+import {MethodIds, PmfmIds} from './model.enum';
+import {Parameter, ParameterType} from './parameter.model';
+import {PmfmValue} from './pmfm-value.model';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 
 export declare type PmfmType = ParameterType | 'integer';
 
@@ -38,6 +36,20 @@ export interface IPmfm<
   isComputed: boolean;
   hidden?: boolean;
   rankOrder?: number;
+
+}
+
+export interface IDenormalizedPmfm<
+  T extends Entity<T, ID> = Entity<any, any>,
+  ID = number
+  > extends IPmfm<T, ID> {
+
+  completeName?: string;
+  name?: string;
+
+  gearIds: number[];
+  taxonGroupIds: number[];
+  referenceTaxonIds: number[];
 }
 
 @EntityClass()
@@ -146,8 +158,6 @@ export class Pmfm extends BaseReferential<Pmfm> implements IPmfm<Pmfm> {
   }
 }
 
-
-
 export abstract class PmfmUtils {
 
   static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[]): P {
@@ -186,5 +196,52 @@ export abstract class PmfmUtils {
   static isComputed(pmfm: IPmfm) {
     return pmfm.methodId === MethodIds.CALCULATED;
   }
+
+  static isDenormalizedPmfm(pmfm: IPmfm): pmfm is IDenormalizedPmfm {
+    return (pmfm['completeName'] || pmfm['name']) && true;
+  }
+
+  /**
+   * Compute a PMFM.NAME, with the last part of the name
+   * @param pmfm
+   * @param opts
+   */
+  static getPmfmName(pmfm: IPmfm, opts?: {
+    withUnit?: boolean;
+    html?: boolean;
+    withDetails?: boolean;
+  }): string {
+    if (!pmfm) return undefined;
+
+    let name;
+    if (PmfmUtils.isDenormalizedPmfm(pmfm)) {
+      // Is complete name exists, use it
+      if (opts && opts.withDetails && pmfm.completeName) return pmfm.completeName;
+
+      // Remove parenthesis content, if any
+      const matches = PMFM_NAME_REGEXP.exec(pmfm.name || '');
+      name = matches && matches[1] || pmfm.name;
+    } else if (pmfm instanceof Pmfm) {
+      name = pmfm.parameter && pmfm.parameter.name;
+      if (opts && opts.withDetails) {
+        name += [
+          pmfm.matrix && pmfm.matrix.name,
+          pmfm.fraction && pmfm.fraction.name,
+          pmfm.method && pmfm.method.name
+        ].filter(isNotNil).join(' - ');
+      }
+    }
+
+    // Append unit
+    if ((!opts || opts.withUnit !== false) && (pmfm.type === 'integer' || pmfm.type === 'double') && pmfm.unitLabel) {
+      if (opts && opts.html) {
+        name += `<small><br/>(${pmfm.unitLabel})</small>`;
+      } else {
+        name += ` (${pmfm.unitLabel})`;
+      }
+    }
+    return name;
+  }
 }
+
 

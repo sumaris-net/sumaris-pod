@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -20,21 +19,32 @@ import {merge, Observable, of} from 'rxjs';
 import {filter, map, takeUntil, tap} from 'rxjs/operators';
 
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators} from '@angular/forms';
-import {FloatLabelType} from "@angular/material/form-field";
+import {FloatLabelType} from '@angular/material/form-field';
 
 
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {isEmptyArray, isNotEmptyArray, isNotNil, sort, suggestFromArray, toBoolean, toNumber} from "@sumaris-net/ngx-components";
-import {focusInput, InputElement} from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {ReferentialRef, referentialToString, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {PmfmIds} from "../services/model/model.enum";
-import {IPmfm, Pmfm} from "../services/model/pmfm.model";
-import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
-import {IonButton} from "@ionic/angular";
-import {DOCUMENT} from "@angular/common";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
+import {
+  AppFormUtils,
+  focusInput,
+  InputElement,
+  isEmptyArray,
+  isNotEmptyArray,
+  isNotNil,
+  LocalSettingsService,
+  PlatformService,
+  ReferentialRef,
+  referentialToString,
+  ReferentialUtils,
+  SharedValidators,
+  sort,
+  suggestFromArray,
+  toBoolean,
+  toNumber
+} from '@sumaris-net/ngx-components';
+import {PmfmIds} from '../services/model/model.enum';
+import {IPmfm, Pmfm, PmfmUtils} from '../services/model/pmfm.model';
+import {PmfmStrategy} from '../services/model/pmfm-strategy.model';
+import {IonButton} from '@ionic/angular';
+import {DOCUMENT} from '@angular/common';
 
 @Component({
   selector: 'app-pmfm-qv-field',
@@ -166,7 +176,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
       sort(this._qualitativeValues, this.sortAttribute) :
       this._qualitativeValues;
 
-    this.placeholder = this.placeholder || getPmfmName(this.pmfm, {withUnit: !this.compact});
+    this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, {withUnit: !this.compact});
     this.displayWith = this.displayWith || ((obj) => referentialToString(obj, displayAttributes));
     this.clearable = this.compact ? false : this.clearable;
 

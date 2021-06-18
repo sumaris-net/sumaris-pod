@@ -20,7 +20,7 @@ import {environment} from "../../../environments/environment";
 import {AppFormUtils}  from "@sumaris-net/ngx-components";
 import {filter, map, tap} from "rxjs/operators";
 import {LoadResult} from "@sumaris-net/ngx-components";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {IPmfm, PmfmUtils} from '../../referential/services/model/pmfm.model';
 import {firstNotNilPromise} from "@sumaris-net/ngx-components";
 import {SampleFilter} from "../services/filter/sample.filter";
 import {isInstanceOf}  from "@sumaris-net/ngx-components";
@@ -339,7 +339,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       (this.$pmfms.getValue() || []).forEach(pmfm => {
 
         const show = isNil(taxonGroupId)
-          || !isInstanceOf(pmfm, DenormalizedPmfmStrategy)
+          || !PmfmUtils.isDenormalizedPmfm(pmfm)
           || (isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(taxonGroupId));
         this.setShowColumn(pmfm.id.toString(), show);
       });

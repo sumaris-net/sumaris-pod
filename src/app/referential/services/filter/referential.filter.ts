@@ -37,6 +37,10 @@ export abstract class BaseReferentialFilter<
   includedIds?: ID[];
   excludedIds?: ID[];
 
+  constructor(__typename?: string) {
+    super(__typename);
+  }
+
   fromObject(source: any, opts?: FO) {
     super.fromObject(source, opts);
     this.entityName = source.entityName || this.entityName;
@@ -114,7 +118,6 @@ export class ReferentialFilter
   static fromObject: (source: any, opts?: any) => ReferentialFilter;
 
   constructor() {
-    super();
-    this.__typename = ReferentialFilter.TYPENAME;
+    super(ReferentialFilter.TYPENAME);
   }
 }

@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from '@angular/core';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {TripValidatorService} from '../services/validator/trip.validator';
 import {TripService} from '../services/trip.service';
@@ -8,27 +8,31 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
 import {FormBuilder} from '@angular/forms';
 import {
+  ConfigService,
   EntitiesTableDataSource,
-  HammerSwipeEvent,
-  LocalSettingsService, PersonService,
+  HammerSwipeEvent, isNotNil,
+  LocalSettingsService,
+  PersonService,
   PersonUtils,
   PlatformService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SharedValidators,
   slideUpDownAnimation,
-  StatusIds
+  StatusIds,
+  UserEventService
 } from '@sumaris-net/ngx-components';
-import {VesselSnapshotService} from '../../referential/services/vessel-snapshot.service';
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
 import {Trip} from '../services/model/trip.model';
-import {ReferentialRefService} from '../../referential/services/referential-ref.service';
-import {LocationLevelIds} from '../../referential/services/model/model.enum';
-import {UserEventService} from '../../social/services/user-event.service';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {LocationLevelIds} from '@app/referential/services/model/model.enum';
 import {TripTrashModal, TripTrashModalOptions} from './trash/trip-trash.modal';
 import {TRIP_FEATURE_NAME} from '../services/config/trip.config';
-import {AppRootTable, AppRootTableSettingsEnum} from '../../data/table/root-table.class';
-import {environment} from '../../../environments/environment';
-import {MatExpansionPanel} from '@angular/material/expansion';
+import {AppRootTable, AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
+import {environment} from '@environments/environment';
+import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
+import {first} from 'rxjs/internal/operators';
+import {filter, tap} from 'rxjs/operators';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -49,8 +53,8 @@ export const TripsPageSettingsEnum = {
 export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
   highlightedRow: TableElement<Trip>;
-
-  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
+  showRecorder = true;
+  showObservers = true;
 
   constructor(
     protected injector: Injector,
@@ -65,6 +69,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
+    protected configService: ConfigService,
     protected formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
   ) {
@@ -79,6 +84,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
           'departureDateTime',
           'returnDateTime',
           'observers',
+          'recorderPerson',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
         dataService,
@@ -163,23 +169,33 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
       mobile: this.mobile
     });
 
-    // Restore filter from settings, or load all
-    this.restoreFilterOrLoad();
+    this.registerSubscription(
+      this.configService.config
+        .pipe(
+          filter(isNotNil),
+          tap(config => {
+            console.info('[trips] Init from config', config);
+            this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
+            this.setShowColumn('recorderPerson', this.showRecorder, {emitEvent: false});
+
+            this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
+            this.setShowColumn('observers', this.showObservers, {emitEvent: false});
+
+            this.updateColumns();
+
+            // Restore filter from settings, or load all
+            this.restoreFilterOrLoad();
+          })
+        )
+        .subscribe()
+    )
+
+
   }
 
   clickRow(event: MouseEvent|undefined, row: TableElement<Trip>): boolean {
     this.highlightedRow = row;
     return super.clickRow(event, row);
-  }
-
-  applyFilterAndClosePanel(event?: UIEvent) {
-    this.onRefresh.emit(event);
-    this.filterExpansionPanel.close();
-  }
-
-  resetFilter(event?: UIEvent) {
-    super.resetFilter(event);
-    this.filterExpansionPanel.close();
   }
 
   /**

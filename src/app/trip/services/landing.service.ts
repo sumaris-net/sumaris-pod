@@ -19,7 +19,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   JobUtils,
-  LoadResult,
+  LoadResult, MINIFY_ENTITY_FOR_POD,
   NetworkService,
   Person
 } from '@sumaris-net/ngx-components';
@@ -315,7 +315,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     const query = fullLoad ? LandingQueries.loadAllFullWithTotal :
       (withTotal ? LandingQueries.loadAllWithTotal : LandingQueries.loadAll);
 
-    return this.mutableWatchQuery<{ data: any[]; total: number; }>({
+    return this.mutableWatchQuery<LoadResult<any>>({
         queryName: 'LoadAll',
         query,
         arrayFieldName: "data",
@@ -425,13 +425,13 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         this.fillDefaultProperties(entity, opts);
         // Reset quality properties
         this.resetQualityProperties(entity);
-        return this.asObject(entity);
+        return this.asObject(entity, MINIFY_ENTITY_FOR_POD);
       });
 
     const now = Date.now();
     if (this._debug) console.debug("[landing-service] Saving landings...", json);
 
-    await this.graphql.mutate<{data: any[]}>({
+    await this.graphql.mutate<LoadResult<any>>({
       mutation: this.mutations.saveAll,
       variables: {
         data: json
@@ -505,7 +505,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       } : undefined;
 
     // Transform into json
-    const json = this.asObject(entity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE);
+    const json = this.asObject(entity, MINIFY_ENTITY_FOR_POD);
     if (this._debug) console.debug("[landing-service] Using minify object, to send:", json);
 
     await this.graphql.mutate<{ data: any }>({

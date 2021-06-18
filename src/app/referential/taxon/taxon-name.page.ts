@@ -1,22 +1,26 @@
-import {ChangeDetectionStrategy, Component, Inject, Injector, OnInit, ViewChild} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {AbstractControl, FormGroup} from "@angular/forms";
-import {ReferentialForm} from "../form/referential.form";
-import {ParameterValidatorService} from "../services/validator/parameter.validator";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
-import {ReferentialRefService} from "../services/referential-ref.service";
-import {referentialToString, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {HistoryPageReference}  from "@sumaris-net/ngx-components";
-import {fadeInOutAnimation} from "@sumaris-net/ngx-components";
-import {AppEntityEditor}  from "@sumaris-net/ngx-components";
-import {isNil, joinPropertiesPath} from "@sumaris-net/ngx-components";
-import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
-import {TaxonName} from "../services/model/taxon-name.model";
-import {TaxonNameService} from "../services/taxon-name.service";
-import {TaxonNameValidatorService} from "../services/validator/taxon-name.validator";
-import {MatAutocompleteFieldConfig} from "@sumaris-net/ngx-components";
-import {ENVIRONMENT} from "../../../environments/environment.class";
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {AbstractControl, FormGroup} from '@angular/forms';
+import {ReferentialForm} from '../form/referential.form';
+import {ParameterValidatorService} from '../services/validator/parameter.validator';
+import {
+  AccountService,
+  AppEntityEditor,
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  FormFieldDefinitionMap,
+  HistoryPageReference,
+  isNil,
+  joinPropertiesPath,
+  MatAutocompleteFieldConfig,
+  referentialToString,
+  ReferentialUtils
+} from '@sumaris-net/ngx-components';
+import {ReferentialRefService} from '../services/referential-ref.service';
+import {TaxonName} from '../services/model/taxon-name.model';
+import {TaxonNameService} from '../services/taxon-name.service';
+import {TaxonNameValidatorService} from '../services/validator/taxon-name.validator';
+import {environment} from '@environments/environment';
 
 @Component({
   selector: 'app-taxon-name',
@@ -47,8 +51,7 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> implements OnInit 
     protected accountService: AccountService,
     protected validatorService: TaxonNameValidatorService,
     protected TaxonNameService: TaxonNameService,
-    protected referentialRefService: ReferentialRefService,
-    @Inject(ENVIRONMENT) protected environment
+    protected referentialRefService: ReferentialRefService
   ) {
     super(injector,
       TaxonName,

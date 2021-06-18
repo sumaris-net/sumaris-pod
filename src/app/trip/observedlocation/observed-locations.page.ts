@@ -40,12 +40,10 @@ export const ObservedLocationsPageSettingsEnum = {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ObservedLocationsPage extends
-  AppRootTable<ObservedLocation, ObservedLocationFilter, number> implements OnInit {
+  AppRootTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
 
   highlightedRow: TableElement<ObservedLocation>;
   $title = new BehaviorSubject<string>('');
-
-  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
     protected injector: Injector,
@@ -148,8 +146,9 @@ export class ObservedLocationsPage extends
         const title = config && config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
         this.$title.next(title);
 
-        // Disable quality column
-        this.setShowColumn('quality', config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.DATA_QUALITY_PROCESS_ENABLE));
+        // Enable/Disable columns
+        this.setShowColumn('quality', config && config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE));
+        this.setShowColumn('recorderPerson', config && config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER));
       })
     );
 
@@ -160,16 +159,6 @@ export class ObservedLocationsPage extends
   clickRow(event: MouseEvent|undefined, row: TableElement<ObservedLocation>): boolean {
     this.highlightedRow = row;
     return super.clickRow(event, row);
-  }
-
-  applyFilterAndClosePanel(event?: UIEvent) {
-    this.onRefresh.emit(event);
-    this.filterExpansionPanel.close();
-  }
-
-  resetFilter(event?: UIEvent) {
-    super.resetFilter(event);
-    this.filterExpansionPanel.close();
   }
 
   /**

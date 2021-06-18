@@ -202,7 +202,8 @@
         "BASIC_AND_TOKEN": "Basique et cryptographique"
       },
       "DATA_QUALITY_PROCESS_ENABLE": "Activer le processus qualité ?",
-      "DATA_SHOW_OBSERVERS_ENABLE": "Activer les observateurs ?"
+      "DATA_SHOW_RECORDER": "Afficher le saisisseur ?",
+      "DATA_SHOW_OBSERVERS": "Afficher les observateurs ?"
     },
     "CACHE": {
       "NAME": "Nom",
@@ -436,6 +437,7 @@
       "RETURN_LOCATION": "Port de retour",
       "QUALITY": "État",
       "OBSERVERS": "Observateurs",
+      "RECORDER_PERSON": "Saisisseur",
       "COMMENTS": "Commentaires",
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les marées <b>non synchronisées</b>)",
       "FILTER": {

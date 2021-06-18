@@ -32,7 +32,7 @@ import {SampleModal} from './sample/sample.modal';
 import {SelectPhysicalGearModal} from './physicalgear/select-physical-gear.modal';
 import {AppDataModule} from '../data/app-data.module';
 import {OperationsMap} from './operation/map/operations.map';
-import {SocialModule} from '../social/social.module';
+import {SocialModule} from '@sumaris-net/ngx-components';
 import {BatchModal} from './batch/modal/batch.modal';
 import {TranslateModule} from '@ngx-translate/core';
 import {CommonModule} from '@angular/common';

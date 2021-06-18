@@ -24,11 +24,11 @@ import {merge, Subscription} from 'rxjs';
 import {Router} from '@angular/router';
 import {ToastController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../../../environments/environment';
+import {environment} from '@environments/environment';
 import {AppRootDataEditor} from '../form/root-data-editor.class';
 import {RootDataEntity} from '../services/model/root-data-entity.model';
 import {qualityFlagToColor} from '../services/model/model.utils';
-import {UserEventService} from '../../social/services/user-event.service';
+import {UserEventService} from '@sumaris-net/ngx-components';
 import {OverlayEventDetail} from '@ionic/core';
 import {isDataSynchroService, RootDataSynchroService} from '../services/root-data-synchro-service.class';
 import {debounceTime} from 'rxjs/operators';
@@ -114,7 +114,7 @@ export class EntityQualityFormComponent<
     // Subscribe to config
     this._subscription.add(
       this.configService.config.subscribe(config => {
-        this._enableQualityProcess = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.DATA_QUALITY_PROCESS_ENABLE);
+        this._enableQualityProcess = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
       })
     );
 

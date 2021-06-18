@@ -10,14 +10,14 @@
     <ng-container *ngIf="selectedTabIndex === 1">
       <!-- reset filter -->
       <button mat-icon-button (click)="vesselsTable.resetFilter()"
-              *ngIf="!vesselsTable.filterIsEmpty">
+              *ngIf="vesselsTable.filterCriteriaCount">
         <mat-icon color="accent">filter_list_alt</mat-icon>
         <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
       </button>
 
       <!-- show filter -->
       <button mat-icon-button (click)="vesselsTable.filterExpansionPanel.toggle()">
-        <mat-icon *ngIf="!vesselsTable.filterIsEmpty; else emptyFilter"
+        <mat-icon *ngIf="vesselsTable.filterCriteriaCount; else emptyFilter"
                   [matBadge]="vesselsTable.filterCriteriaCount"
                   matBadgeColor="accent"
                   matBadgeSize="small"

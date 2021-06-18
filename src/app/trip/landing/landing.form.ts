@@ -346,7 +346,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     const modal = await this.modalCtrl.create({ component: VesselModal });
     modal.onDidDismiss().then(res => {
       // if new vessel added, use it
-      if (res && isInstanceOf(res.data, VesselSnapshot)) {
+      if (res &&  isInstanceOf(res.data, VesselSnapshot)) {
         console.debug("[landing-form] New vessel added : updating form...", res.data);
         this.form.get('vesselSnapshot').setValue(res.data);
         this.markForCheck();

@@ -18,13 +18,13 @@
 
       <!-- reset filter -->
       <button mat-icon-button (click)="table.resetFilter()"
-              *ngIf="!table.filterIsEmpty">
+              *ngIf="table.filterCriteriaCount">
         <mat-icon color="accent">filter_list_alt</mat-icon>
         <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
       </button>
 
       <button mat-icon-button (click)="table.filterExpansionPanel.toggle()">
-        <mat-icon *ngIf="!table.filterIsEmpty; else emptyFilter"
+        <mat-icon *ngIf="table.filterCriteriaCount; else emptyFilter"
                   [matBadge]="table.filterCriteriaCount"
                   matBadgeColor="accent"
                   matBadgeSize="small"

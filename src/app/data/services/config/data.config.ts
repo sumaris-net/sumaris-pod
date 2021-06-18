@@ -23,15 +23,21 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     type: 'boolean',
     defaultValue: true
   },
-  DATA_QUALITY_PROCESS_ENABLE: <FormFieldDefinition>{
+  QUALITY_PROCESS_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.data.quality.process.enable',
     label: 'CONFIGURATION.OPTIONS.DATA_QUALITY_PROCESS_ENABLE',
     type: 'boolean',
     defaultValue: true
   },
-  DATA_SHOW_OBSERVERS_ENABLE: <FormFieldDefinition>{
+  SHOW_RECORDER: <FormFieldDefinition>{
+    key: 'sumaris.data.show.recorder.enable',
+    label: 'CONFIGURATION.OPTIONS.DATA_SHOW_RECORDER',
+    type: 'boolean',
+    defaultValue: true
+  },
+  SHOW_OBSERVERS: <FormFieldDefinition>{
     key: 'sumaris.data.show.observer.enable',
-    label: 'CONFIGURATION.OPTIONS.DATA_SHOW_OBSERVERS_ENABLE',
+    label: 'CONFIGURATION.OPTIONS.DATA_SHOW_OBSERVERS',
     type: 'boolean',
     defaultValue: true
   }

@@ -1,26 +1,32 @@
-import {Directive, Injector, Input, OnDestroy, OnInit, Optional} from "@angular/core";
+import {Directive, Injector, Input, OnDestroy, OnInit, Optional} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {ModalController, Platform} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {ModalController, Platform} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
-import {FormBuilder, FormGroup} from "@angular/forms";
+import {FormBuilder, FormGroup} from '@angular/forms';
 import {TranslateService} from '@ngx-translate/core';
-import {isNil, isNotNil} from "@sumaris-net/ngx-components";
-import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
-import {MeasurementsDataService} from "./measurements.service";
-import {AppTableDataSourceOptions, EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
-import {filterNotNil, firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {AcquisitionLevelType} from "../../referential/services/model/model.enum";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {Alerts} from "@sumaris-net/ngx-components";
-import {DenormalizedPmfmStrategy, getPmfmName} from "../../referential/services/model/pmfm-strategy.model";
-import {IPmfm, PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
-import {IEntitiesService} from "@sumaris-net/ngx-components";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
-import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {Entity}  from "@sumaris-net/ngx-components";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {
+  Alerts,
+  AppTable,
+  AppTableDataSourceOptions,
+  EntitiesTableDataSource,
+  Entity,
+  filterNotNil,
+  firstNotNilPromise,
+  IEntitiesService,
+  isNil,
+  isNotNil,
+  LocalSettingsService,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS
+} from '@sumaris-net/ngx-components';
+import {IEntityWithMeasurement, MeasurementValuesUtils} from '../services/model/measurement.model';
+import {MeasurementsDataService} from './measurements.service';
+import {AcquisitionLevelType} from '../../referential/services/model/model.enum';
+import {IPmfm, PMFM_ID_REGEXP, PmfmUtils} from '../../referential/services/model/pmfm.model';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {ProgramRefService} from '../../referential/services/program-ref.service';
 
 
 export class AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T>{
@@ -485,7 +491,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     if (PMFM_ID_REGEXP.test(columnName)) {
       const pmfmId = parseInt(columnName);
       const pmfm = (this.$pmfms.getValue() || []).find(p => p.id === pmfmId);
-      if (pmfm) return getPmfmName(pmfm);
+      if (pmfm) return PmfmUtils.getPmfmName(pmfm);
     }
 
     return super.getI18nColumnName(columnName);
@@ -499,8 +505,5 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     // Adapt entity measurement values to reactive form
     MeasurementValuesUtils.normalizeEntityToForm(data, pmfms, row.validator);
   }
-
-  getPmfmColumnHeader = getPmfmName;
-
 }
 

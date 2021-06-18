@@ -1,13 +1,9 @@
-import {Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
-import {Observable, Subject} from "rxjs";
-import {ErrorCodes} from "./errors";
-import {isNotNil} from "@sumaris-net/ngx-components";
-import {Software}  from "@sumaris-net/ngx-components";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
-import {EntityServiceLoadOptions, IEntityService} from "@sumaris-net/ngx-components";
-import {Environment} from "../../../environments/environment.class";
+import {Injectable} from '@angular/core';
+import {gql} from '@apollo/client/core';
+import {Observable, Subject} from 'rxjs';
+import {ErrorCodes} from './errors';
+import {BaseGraphqlService, EntityServiceLoadOptions, GraphqlService, IEntityService, isNotNil, Software} from '@sumaris-net/ngx-components';
+import {environment} from '@environments/environment';
 
 /* ------------------------------------
  * GraphQL queries
@@ -54,10 +50,9 @@ export class SoftwareService<T extends Software = Software>
   implements IEntityService<Software> {
 
   constructor(
-    protected graphql: GraphqlService,
-    protected environment: Environment
-) {
-    super(graphql, environment);
+    protected graphql: GraphqlService
+  ) {
+    super(graphql, {production: environment.production});
 
     if (this._debug) console.debug("[software-service] Creating service");
   }

@@ -29,7 +29,7 @@ import {FloatLabelType} from "@angular/material/form-field";
 import {AppFormUtils}  from "@sumaris-net/ngx-components";
 import {ProgramRefService} from "../../../referential/services/program-ref.service";
 import {LoadResult} from "@sumaris-net/ngx-components";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
 
 
 @Component({
@@ -553,7 +553,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     // If there is a parent: filter on parent's taxon group
     const parentTaxonGroupId = this.parentGroup && this.parentGroup.taxonGroup && this.parentGroup.taxonGroup.id;
     if (isNotNil(parentTaxonGroupId)) {
-      pmfms = pmfms.filter(pmfm => !(isInstanceOf(pmfm, DenormalizedPmfmStrategy))
+      pmfms = pmfms.filter(pmfm => !PmfmUtils.isDenormalizedPmfm(pmfm)
           || isEmptyArray(pmfm.taxonGroupIds)
           || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
     }

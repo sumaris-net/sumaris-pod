@@ -2,7 +2,7 @@ import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {AppReferentialModule} from '../referential/app-referential.module';
 import {ConfigurationPage} from './config/configuration.page';
-import {SocialModule} from '../social/social.module';
+import {SocialModule} from '@sumaris-net/ngx-components';
 import {NgxJdenticonModule} from 'ngx-jdenticon';
 import {AppCoreModule} from '@app/core/core.module';
 

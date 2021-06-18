@@ -1,29 +1,33 @@
-import {Directive, Injector, Input} from "@angular/core";
-import {ModalController, Platform} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
+import {Directive, Injector, Input, ViewChild} from '@angular/core';
+import {ModalController, Platform} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
-import {FormGroup} from "@angular/forms";
-import {catchError, debounceTime, distinctUntilChanged, filter, map, tap, throttleTime} from "rxjs/operators";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {ConnectionType, NetworkService}  from "@sumaris-net/ngx-components";
-import {BehaviorSubject} from "rxjs";
-import {PersonUtils}  from "@sumaris-net/ngx-components";
-import {chainPromises} from "@sumaris-net/ngx-components";
-import {isEmptyArray, isNil, isNotNil, toBoolean} from "@sumaris-net/ngx-components";
-import {DataRootEntityUtils, RootDataEntity, SynchronizationStatus} from "../services/model/root-data-entity.model";
-import {qualityFlagToColor} from "../services/model/model.utils";
-import {UserEventService} from "../../social/services/user-event.service";
-import {IDataSynchroService} from "../services/root-data-synchro-service.class";
-import {referentialToString}  from "@sumaris-net/ngx-components";
-import {AppTable}  from "@sumaris-net/ngx-components";
-import {toDateISOString} from "@sumaris-net/ngx-components";
-import * as momentImported from "moment";
-import {TableElement} from "@e-is/ngx-material-table";
-import {RootDataEntityFilter} from "../services/model/root-data-filter.model";
-import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
+import {FormGroup} from '@angular/forms';
+import {catchError, debounceTime, distinctUntilChanged, filter, map, tap, throttleTime} from 'rxjs/operators';
+import {
+  AccountService,
+  AppTable,
+  chainPromises,
+  ConnectionType,
+  EntitiesTableDataSource,
+  isEmptyArray,
+  isNotNil,
+  LocalSettingsService,
+  NetworkService,
+  PlatformService,
+  referentialToString,
+  toBoolean,
+  toDateISOString,
+  UserEventService
+} from '@sumaris-net/ngx-components';
+import {BehaviorSubject} from 'rxjs';
+import {DataRootEntityUtils, RootDataEntity, SynchronizationStatus} from '../services/model/root-data-entity.model';
+import {qualityFlagToColor} from '../services/model/model.utils';
+import {IDataSynchroService} from '../services/root-data-synchro-service.class';
+import * as momentImported from 'moment';
+import {TableElement} from '@e-is/ngx-material-table';
+import {RootDataEntityFilter} from '../services/model/root-data-filter.model';
+import {MatExpansionPanel} from '@angular/material/expansion';
 
 const moment = momentImported;
 
@@ -48,7 +52,6 @@ export abstract class AppRootTable<
   canDelete: boolean;
   isAdmin: boolean;
   filterForm: FormGroup;
-  filterIsEmpty = true;
   filterCriteriaCount = 0;
   showUpdateOfflineFeature = false;
   offline = false;
@@ -59,6 +62,10 @@ export abstract class AppRootTable<
   featureId: string;
 
   synchronizationStatusList: SynchronizationStatus[] = ['DIRTY', 'SYNC'];
+
+  get filterIsEmpty(): boolean {
+    return this.filterCriteriaCount === 0;
+  }
 
   get synchronizationStatus(): SynchronizationStatus {
     return this.filterForm.controls.synchronizationStatus.value || 'SYNC' /*= the default status*/;
@@ -72,6 +79,8 @@ export abstract class AppRootTable<
   get isLogin(): boolean {
     return this.accountService.isLogin();
   }
+
+  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   protected constructor(
     route: ActivatedRoute,
@@ -144,7 +153,6 @@ export abstract class AppRootTable<
           tap(value => {
             const filter = this.asFilter(value);
             this.filterCriteriaCount = filter.countNotEmptyCriteria();
-            this.filterIsEmpty = this.filterCriteriaCount === 0;
             this.markForCheck();
             // Update the filter, without reloading the content
             this.setFilter(filter, {emitEvent: false});
@@ -459,9 +467,15 @@ export abstract class AppRootTable<
     }
   }
 
+  applyFilterAndClosePanel(event?: UIEvent) {
+    this.onRefresh.emit(event);
+    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+  }
+
   resetFilter(event?: UIEvent) {
     this.filterForm.reset();
     this.setFilter(null, {emitEvent: true});
+    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
   }
 
   referentialToString = referentialToString;
@@ -485,6 +499,7 @@ export abstract class AppRootTable<
     console.debug("[root-table] Restoring filter from settings...");
 
     const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
+
     const filter = this.asFilter(json);
 
     this.hasOfflineMode = (filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || (await this.dataService.hasOfflineData());

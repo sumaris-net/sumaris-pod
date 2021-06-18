@@ -46,9 +46,6 @@ export const VesselsTableSettingsEnum = {
 })
 export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements OnInit {
 
-  isAdmin: boolean;
-  filterForm: FormGroup;
-  filterIsEmpty = true;
   locations: Observable<ReferentialRef[]>;
   vesselTypes: Observable<ReferentialRef[]>;
   statusList = DefaultStatusList;
@@ -137,6 +134,7 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
     this.autoLoad = false;
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
+    this.showIdColumn = accountService.isAdmin();
 
     // Fill statusById
     this.statusById = {};

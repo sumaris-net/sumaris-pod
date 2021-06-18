@@ -21,13 +21,13 @@
 
       <!-- reset filter -->
       <button mat-icon-button (click)="resetFilter()"
-              *ngIf="!filterIsEmpty">
+              *ngIf="filterCriteriaCount">
         <mat-icon color="accent">filter_list_alt</mat-icon>
         <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
       </button>
 
       <button mat-icon-button (click)="filterExpansionPanel.toggle()">
-        <mat-icon *ngIf="!filterIsEmpty; else emptyFilter"
+        <mat-icon *ngIf="filterCriteriaCount; else emptyFilter"
                   [matBadge]="filterCriteriaCount"
                   matBadgeColor="accent"
                   matBadgeSize="small"
@@ -361,6 +361,23 @@
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-text>{{ row.currentData.observers | personToString }}</ion-text>
+        </td>
+      </ng-container>
+
+      <!-- Recorder -->
+      <ng-container matColumnDef="recorderPerson">
+        <th mat-header-cell *matHeaderCellDef>
+          <ion-label translate>OBSERVED_LOCATION.TABLE.RECORDER_PERSON</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-text>
+            <ng-container *ngIf="row.currentData.recorderPerson; let recorderPerson; else recorderDepartment">
+              {{ recorderPerson | personToString }}
+            </ng-container>
+            <ng-template #recorderDepartment>
+              {{ row.currentData.recorderDepartment?.label }}
+            </ng-template>
+          </ion-text>
         </td>
       </ng-container>
 

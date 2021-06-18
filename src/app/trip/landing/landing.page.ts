@@ -1,39 +1,46 @@
 import {ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, Optional, QueryList, ViewChild, ViewChildren} from '@angular/core';
 
-import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
-import {LandingForm} from "./landing.form";
-import {SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable} from "../sample/samples.table";
-import {UsageMode}  from "@sumaris-net/ngx-components";
-import {ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {LandingService} from "../services/landing.service";
-import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
-import {FormGroup} from "@angular/forms";
-import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
-import {ObservedLocationService} from "../services/observed-location.service";
-import {TripService} from "../services/trip.service";
-import {debounceTime, filter, tap, throttleTime} from "rxjs/operators";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {Landing} from "../services/model/landing.model";
-import {Trip} from "../services/model/trip.model";
-import {ObservedLocation} from "../services/model/observed-location.model";
-import {ProgramProperties} from "../../referential/services/config/program.config";
-import {AppEditorOptions}  from "@sumaris-net/ngx-components";
-import {Program} from "../../referential/services/model/program.model";
-import {fromDateISOString} from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent} from "../../data/strategy/strategy-summary-card.component";
-import {merge, Subscription} from "rxjs";
-import {Strategy} from "../../referential/services/model/strategy.model";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import * as momentImported from "moment";
-import {fadeInOutAnimation} from "@sumaris-net/ngx-components";
-import {PmfmService} from "../../referential/services/pmfm.service";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
-import {PmfmIds} from "../../referential/services/model/model.enum";
-import {EntityUtils, isInstanceOf}  from "@sumaris-net/ngx-components";
+import {
+  AppEditorOptions,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  fadeInOutAnimation,
+  firstArrayValue,
+  firstNotNilPromise,
+  fromDateISOString,
+  isEmptyArray,
+  isInstanceOf,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  PlatformService,
+  ReferentialUtils,
+  UsageMode
+} from '@sumaris-net/ngx-components';
+import {LandingForm} from './landing.form';
+import {SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable} from '../sample/samples.table';
+import {LandingService} from '../services/landing.service';
+import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
+import {FormGroup} from '@angular/forms';
+import {ObservedLocationService} from '../services/observed-location.service';
+import {TripService} from '../services/trip.service';
+import {debounceTime, filter, tap, throttleTime} from 'rxjs/operators';
+import {ReferentialRefService} from '../../referential/services/referential-ref.service';
+import {VesselSnapshotService} from '../../referential/services/vessel-snapshot.service';
+import {Landing} from '../services/model/landing.model';
+import {Trip} from '../services/model/trip.model';
+import {ObservedLocation} from '../services/model/observed-location.model';
+import {ProgramProperties} from '../../referential/services/config/program.config';
+import {Program} from '../../referential/services/model/program.model';
+import {environment} from '../../../environments/environment';
+import {STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent} from '../../data/strategy/strategy-summary-card.component';
+import {merge, Subscription} from 'rxjs';
+import {Strategy} from '../../referential/services/model/strategy.model';
+import * as momentImported from 'moment';
+import {PmfmService} from '../../referential/services/pmfm.service';
+import {IPmfm} from '../../referential/services/model/pmfm.model';
+import {PmfmIds} from '../../referential/services/model/model.enum';
 
 const moment = momentImported;
 
@@ -166,7 +173,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       const queryParams = this.route.snapshot.queryParams;
       data.program = this.parent.program;
       data.observers = this.parent.observers;
-      if (isInstanceOf(this.parent, ObservedLocation)) {
+      if ( isInstanceOf(this.parent, ObservedLocation)) {
         data.location = this.parent.location;
         data.dateTime = this.parent.startDateTime || this.parent.endDateTime;
         data.tripId = undefined;

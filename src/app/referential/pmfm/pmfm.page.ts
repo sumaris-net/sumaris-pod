@@ -1,25 +1,29 @@
-import {ChangeDetectionStrategy, Component, Inject, Injector, OnInit, ViewChild} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {AbstractControl, FormGroup} from "@angular/forms";
-import {referentialToString, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {ReferentialForm} from "../form/referential.form";
-import {PmfmValidatorService} from "../services/validator/pmfm.validator";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {Pmfm} from "../services/model/pmfm.model";
-import {Parameter} from "../services/model/parameter.model";
-import {PmfmService} from "../services/pmfm.service";
-import {FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
-import {ReferentialRefService} from "../services/referential-ref.service";
-import {ParameterService} from "../services/parameter.service";
-import {filter, mergeMap} from "rxjs/operators";
-import {Observable} from "rxjs";
-import {fadeInOutAnimation} from "@sumaris-net/ngx-components";
-import {isNil, joinPropertiesPath} from "@sumaris-net/ngx-components";
-import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
-import {AppEntityEditor}  from "@sumaris-net/ngx-components";
-import {MatAutocompleteFieldConfig} from "@sumaris-net/ngx-components";
-import {ENVIRONMENT} from "../../../environments/environment.class";
-import {HistoryPageReference}  from "@sumaris-net/ngx-components";
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {AbstractControl, FormGroup} from '@angular/forms';
+import {
+  AccountService,
+  AppEntityEditor,
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  FormFieldDefinitionMap,
+  HistoryPageReference,
+  isNil,
+  joinPropertiesPath,
+  MatAutocompleteFieldConfig,
+  referentialToString,
+  ReferentialUtils
+} from '@sumaris-net/ngx-components';
+import {ReferentialForm} from '../form/referential.form';
+import {PmfmValidatorService} from '../services/validator/pmfm.validator';
+import {Pmfm} from '../services/model/pmfm.model';
+import {Parameter} from '../services/model/parameter.model';
+import {PmfmService} from '../services/pmfm.service';
+import {ReferentialRefService} from '../services/referential-ref.service';
+import {ParameterService} from '../services/parameter.service';
+import {filter, mergeMap} from 'rxjs/operators';
+import {Observable} from 'rxjs';
+import {environment} from '@environments/environment';
 
 @Component({
   selector: 'app-pmfm',
@@ -53,8 +57,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
     protected validatorService: PmfmValidatorService,
     protected pmfmService: PmfmService,
     protected parameterService: ParameterService,
-    protected referentialRefService: ReferentialRefService,
-    @Inject(ENVIRONMENT) protected environment
+    protected referentialRefService: ReferentialRefService
   ) {
     super(injector,
       Pmfm,

@@ -16,8 +16,9 @@ import {SubBatch} from "../../services/model/subbatch.model";
 import {BatchGroup} from "../../services/model/batch-group.model";
 import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
 import {isInstanceOf}  from "@sumaris-net/ngx-components";
+import {PmfmIds} from '@app/referential/services/model/model.enum';
 
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
@@ -187,7 +188,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     if (isNil(parentTaxonGroupId)) return pmfms;
 
     // Filter using parent's taxon group
-    return pmfms.filter(pmfm => !(isInstanceOf(pmfm, DenormalizedPmfmStrategy))
+    return pmfms.filter(pmfm => !PmfmUtils.isDenormalizedPmfm(pmfm)
       || isEmptyArray(pmfm.taxonGroupIds)
       || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
   }

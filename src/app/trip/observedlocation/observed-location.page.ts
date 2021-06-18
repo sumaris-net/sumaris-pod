@@ -107,7 +107,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.registerSubscription(
       this.configService.config.subscribe(config => {
         this.observedLocationNewName = config && config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NEW_NAME);
-        this.showRecorder = config && config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.DATA_SHOW_OBSERVERS_ENABLE);
+        this.showRecorder = config && config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
       })
     );
 
