@@ -58,6 +58,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   showRecorder = true;
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
+  // TODO BLA landingsTable must be an EditableLandingsTable for ObsDeb
   @ViewChild('landingsTable') landingsTable: LandingsTable;
   @ViewChild('aggregatedLandingsTable') aggregatedLandingsTable: AggregatedLandingsTable;
 

@@ -179,11 +179,14 @@
               [class.mat-cell-date-time]="pmfm|isDatePmfm"
               [class.mat-cell-computed]="pmfm|isComputedPmfm">
       <app-pmfm-field
-        [readonly]="!row.editing"
+        *ngIf="row.editing; else readOnly"
         [pmfm]="pmfm"
         [formControl]="row.validator.controls.measurementValues.controls[pmfm.id.toString()]"
         floatLabel="never">
       </app-pmfm-field>
+      <ng-template #readOnly>
+        <ion-text>{{ row.currentData.measurementValues[pmfm.id] | pmfmValue:{pmfm:pmfm} }}</ion-text>
+      </ng-template>
     </mat-cell>
   </ng-container>
 
@@ -213,18 +216,18 @@
     <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
-      <ion-spinner *ngIf="row.validator.pending" name="dots"
+      <ion-spinner *ngIf="row.validator?.pending" name="dots"
                    [ngClass]="{'center':true}"></ion-spinner>
 
       <!-- undo or delete  -->
-      <button mat-icon-button color="light" *ngIf="row.validator.invalid"
+      <button mat-icon-button color="light" *ngIf="row.validator?.invalid"
               [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
               (click)="cancelOrDelete($event, row)">
         <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
         <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
       </button>
       <!-- validate -->
-      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
+      <button mat-icon-button color="light" *ngIf="row.validator?.valid && row.id !== -1"
               [title]="'COMMON.BTN_VALIDATE'|translate"
               (click)="confirmEditCreate($event, row)">
         <mat-icon>check</mat-icon>
@@ -242,8 +245,8 @@
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
   <mat-row *matRowDef="let row; columns: displayedColumns;"
-           [class.mat-row-error]="row.validator.invalid"
-           [class.mat-row-dirty]="row.validator.dirty"
+           [class.mat-row-error]="row.validator?.invalid"
+           [class.mat-row-dirty]="row.validator?.dirty"
            [class.mat-row-disabled]="!row.editing"
            (click)="clickRow($event, row)"></mat-row>
 

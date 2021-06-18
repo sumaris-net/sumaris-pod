@@ -65,7 +65,6 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
       rankOrder: [toNumber(data && data.rankOrder, null), Validators.compose([SharedValidators.integer, Validators.min(1)])],
       rankOrderOnVessel: [toNumber(data && data.rankOrderOnVessel, null), Validators.compose([SharedValidators.integer, Validators.min(1)])],
       measurementValues: this.formBuilder.group({}),
-      samplesCount: [toNumber(data && data.samplesCount, null), Validators.compose([SharedValidators.integer, Validators.min(0)])],
       observedLocationId: [toNumber(data && data.observedLocationId, null)],
       tripId: [toNumber(data && data.tripId, null)],
       comments: [data && data.comments || null]

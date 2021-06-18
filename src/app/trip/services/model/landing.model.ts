@@ -12,6 +12,7 @@ import {DataRootVesselEntity} from "../../../data/services/model/root-vessel-ent
 import {IWithObserversEntity} from "../../../data/services/model/model.utils";
 import {Person} from "../../../core/services/model/person.model";
 import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {toNumber} from "../../../shared/functions";
 
 /**
  * Landing entity
@@ -92,7 +93,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
 
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
-    this.samplesCount = source.samplesCount;
+    this.samplesCount = toNumber(source.samplesCount, this.samples?.length);
 
     return this;
   }

@@ -19,7 +19,6 @@ import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {AcquisitionLevelCodes, LocationLevelIds} from "../../referential/services/model/model.enum";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {Moment} from "moment";
-import {LandingValidatorService} from "../services/validator/landing.validator";
 import {Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {Landing} from "../services/model/landing.model";
@@ -40,7 +39,7 @@ const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
   templateUrl: 'landings.table.html',
   styleUrls: ['landings.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: LandingValidatorService}
+    {provide: ValidatorService, useValue: null}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

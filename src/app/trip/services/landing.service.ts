@@ -260,6 +260,7 @@ export const LandingFragments = {
     samples {
       ...SampleFragment
     }
+    samplesCount
   }`
 };
 
