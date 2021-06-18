@@ -869,7 +869,9 @@ public class DataGraphQLService {
             return landing.getSamples();
         }
 
-        return sampleService.getAllByLandingId(landing.getId());
+        List<SampleVO> samples = sampleService.getAllByLandingId(landing.getId());
+        landing.setSamples(samples);
+        return samples;
     }
 
     @GraphQLQuery(name = "samplesCount", description = "Get number of samples")
@@ -877,6 +879,9 @@ public class DataGraphQLService {
         // Avoid a reloading (e.g. when saving)
         if (landing.getSamplesCount() != null) {
             return landing.getSamplesCount();
+        }
+        if (landing.getSamples() != null) {
+            return landing.getSamples().size();
         }
 
         return sampleService.countByLandingId(landing.getId());
