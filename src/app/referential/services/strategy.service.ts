@@ -22,11 +22,44 @@ import {BaseReferentialService} from "./base-referential-service.class";
 import {Pmfm} from "./model/pmfm.model";
 import {ProgramRefService} from "./program-ref.service";
 import {StrategyRefService} from "./strategy-ref.service";
+import { StatusIds } from "src/app/core/services/model/model.enum";
 
 
 export class StrategyFilter extends ReferentialFilter {
   //ODO Imagine: enable this, and override function asPodObject() and searchFilter()
   //referenceTaxonIds?: number[];
+  analyticReferences?: string;
+  departmentIds?: number[];
+  locationIds?: number[];
+  parameterIds?: number[];
+  taxonIds?: number[];
+  periods?: any[];
+
+  /**
+   * Clean a filter, before sending to the pod (e.g remove 'levelId', 'statusId')
+   * @param filter
+   */
+   static asPodObject<T extends ReferentialFilter = ReferentialFilter>(filter: StrategyFilter): any {
+    if (!filter) return filter;
+    return {
+      id: filter.id,
+      label: filter.label,
+      name: filter.name,
+      searchText: filter.searchText,
+      searchAttribute: filter.searchAttribute,
+      searchJoin: filter.searchJoin,
+      levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
+      levelLabels: isNotNil(filter.levelLabel) ? [filter.levelLabel] : filter.levelLabels,
+      statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE]),
+      includedIds: filter.includedIds,
+      excludedIds: filter.excludedIds,
+      analyticReferences: filter.analyticReferences,
+      departmentIds: filter.departmentIds,
+      locationIds: filter.locationIds,
+      parameterIds: filter.parameterIds,
+      periods: filter.periods
+    };
+  }
 }
 
 const FindStrategyNextLabel: any = gql`

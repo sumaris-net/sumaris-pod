@@ -15,6 +15,12 @@
     <mat-icon>refresh</mat-icon>
   </button>
 
+  <button mat-button color="{{filterIsEmpty ? '' : 'primary'}}" [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
+    <mat-icon>filter_list</mat-icon>
+    <ion-text *ngIf="!filterIsEmpty">
+    <span [innerHTML]="'COMMON.TABLE.FILTERED_PARENTHESIS'|translate"></span></ion-text>
+  </button>
+
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate:errorDetails"></ion-label>
@@ -26,6 +32,139 @@
     <mat-icon>more_vert</mat-icon>
   </button>
 </mat-toolbar>
+
+
+  <!-- search -->
+  <mat-expansion-panel #filterExpansionPanel class="ion-no-padding">
+    <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
+
+      <ion-grid>
+        
+        <!-- Recorder criteria -->
+        <ion-row>
+          <ion-col>
+            <!-- department -->
+            <mat-autocomplete-field
+              [placeholder]="i18nColumnPrefix + 'ANALYTIC_REFERENCE'|translate"
+              formControlName="analyticReference"
+              [config]="autocompleteFields.analyticReference"
+              [i18nPrefix]="'analyticReference.'"
+              [clearable]="true">
+              <!-- <ion-icon matPrefix name="analyticReference"></ion-icon> -->
+            </mat-autocomplete-field>
+          </ion-col>
+
+          <ion-col>
+            <!-- department -->
+            <mat-autocomplete-field
+              [placeholder]="i18nColumnPrefix + 'RECORDER_DEPARTMENTS'|translate"
+              formControlName="department"
+              [config]="autocompleteFields.department"
+              [i18nPrefix]="'DEPARTMENT.'"
+              [clearable]="true">
+              <!-- <ion-icon matPrefix name="department"></ion-icon> -->
+            </mat-autocomplete-field>
+          </ion-col>
+
+          
+        </ion-row>
+        <ion-row>
+
+          <ion-col>
+            <!-- taxonName -->
+            <mat-autocomplete-field
+              [placeholder]="i18nColumnPrefix + 'TAXON_NAMES'|translate"
+              formControlName="taxonName"
+              [config]="autocompleteFields.taxonName"
+              [i18nPrefix]="'TAXONNAME.'"
+              [clearable]="true">
+              <!-- <ion-icon matPrefix name="location"></ion-icon> -->
+            </mat-autocomplete-field>
+          </ion-col>
+
+          <ion-col>
+            <!-- department -->
+            <mat-autocomplete-field
+              [placeholder]="i18nColumnPrefix + 'LOCATIONS'|translate"
+              formControlName="location"
+              [config]="autocompleteFields.location"
+              [i18nPrefix]="'LOCATION.'"
+              [clearable]="true">
+              <!-- <ion-icon matPrefix name="location"></ion-icon> -->
+            </mat-autocomplete-field>
+          </ion-col>
+        </ion-row>
+        <!-- Period criteria -->
+        <ion-row>
+          <ion-col>
+            <!-- Start date -->
+            <!-- <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE'|translate"
+                            formControlName="startDate"
+                            [clearable]="true">
+            </mat-date-field> -->
+            <mat-date-short-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE'|translate"
+              formControlName="startDate" >
+            </mat-date-short-field>
+              <!-- <ion-icon matPrefix name="calendar-outline"></ion-icon> -->
+          </ion-col>
+
+          <ion-col>
+            <!-- End date -->
+            <!-- <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE'|translate"
+                            formControlName="endDate"
+                            [clearable]="true">
+            </mat-date-field> -->
+            <mat-date-short-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE'|translate"
+              formControlName="endDate" >
+            </mat-date-short-field>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <!-- Efforts / Quarters column -->
+          <ion-col formGroupName="periods">
+            <ion-label>{{i18nColumnPrefix + 'EFFORTS' |translate }}</ion-label>
+          </ion-col>
+          <ng-container *ngFor="let quarter of quarters">
+            <ion-col formGroupName="periods">
+              <mat-checkbox class="example-margin" formControlName="{{'effortQ'+quarter}}">{{i18nColumnPrefix + 'EFFORT_Q' + quarter |translate }}</mat-checkbox>
+            </ion-col>
+          </ng-container>
+        </ion-row>
+        <ion-row>
+          <!-- Pmfms -->
+          <ion-col formGroupName="periods">
+            <ion-label>{{i18nColumnPrefix + 'PMFMS' |translate }}</ion-label>
+          </ion-col>
+          <ng-container *ngFor="let pmfm of pmfmIds | keyvalue">
+            <ion-col formGroupName="pmfmIds">
+              <mat-checkbox class="example-margin" formControlName="{{pmfm.key}}">{{i18nColumnPrefix + pmfm.key |translate }}</mat-checkbox>
+            </ion-col>
+          </ng-container>
+        </ion-row>
+      </ion-grid>
+    </form>
+
+    <mat-action-row>
+      <!-- Counter  -->
+      <ion-label [hidden]="(loadingSubject|async) || filterForm.dirty"
+                 [color]="empty && 'danger'"
+                 class="ion-padding">
+        {{ (totalRowCount ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (totalRowCount |
+              numberFormat)} }}
+      </ion-label>
+
+      <div class="toolbar-spacer"></div>
+
+      <!-- Search button -->
+      <ion-button mat-button
+                  *ngIf="!mobile"
+                  [color]="filterForm.dirty ? 'tertiary' : undefined"
+                  [fill]="filterForm.dirty ? 'solid' : 'clear'"
+                  (click)="onRefresh.emit()">
+        <ion-text translate>COMMON.BTN_SEARCH</ion-text>
+      </ion-button>
+    </mat-action-row>
+  </mat-expansion-panel>
 
 <!-- error -->
 <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">

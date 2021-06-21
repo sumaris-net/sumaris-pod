@@ -196,6 +196,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.lengthPmfmStrategiesTable.disable();
       this.maturityPmfmStrategiesTable.disable();
       this.taxonNamesFormArray.disable();
+      this.appliedStrategiesForm.disable();
       this.form.get('analyticReference').disable();
       this.form.get('year').disable();
       this.form.get('label').disable();
