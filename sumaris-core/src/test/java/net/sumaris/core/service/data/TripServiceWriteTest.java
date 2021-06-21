@@ -124,7 +124,9 @@ public class TripServiceWriteTest extends AbstractServiceTest{
             Assume.assumeNoException(e);
         }
 
-        service.asyncDelete(savedVO.getId());
+        if (savedVO != null) {
+            service.asyncDelete(savedVO.getId());
+        }
     }
 
     /* -- Protected -- */

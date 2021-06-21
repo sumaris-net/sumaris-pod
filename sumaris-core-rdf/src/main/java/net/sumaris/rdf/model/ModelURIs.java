@@ -44,84 +44,83 @@ import java.util.stream.Collectors;
 public class ModelURIs {
 
     public static final Map<String, String> NAMESPACE_BY_PREFIX = ImmutableMap.<String, String>builder()
-            .put("rdf", RDF.uri)
-            .put("rdfs", RDFS.getURI())
-            .put("owl", OWL2.NS)
+        .put("rdf", RDF.uri)
+        .put("rdfs", RDFS.getURI())
+        .put("owl", OWL2.NS)
 
-            .put("dc", DC_11.NS)
-            .put("dcam", "http://purl.org/dc/dcam/") // DCMI abstract model
-            .put("dcterms", DCTerms.NS) // DCMI Terms
-            .put("dctypes", DCTypes.NS) // DCMI Types
+        .put("dc", DC_11.NS)
+        .put("dcam", "http://purl.org/dc/dcam/") // DCMI abstract model
+        .put("dcterms", DCTerms.NS) // DCMI Terms
+        .put("dctypes", DCTypes.NS) // DCMI Types
 
-            .put("foaf", FOAF.NS)
-            .put("skos", SKOS.getURI())
-            .put(GR.PREFIX, GR.NS) // Good relation
-            .put(W3NS.Org.PREFIX, W3NS.Org.NS)
-            .put(SCHEMA.PREFIX, SCHEMA.NS)
+        .put("foaf", FOAF.NS)
+        .put("skos", SKOS.getURI())
+        .put(GR.PREFIX, GR.NS) // Good relation
+        .put(W3NS.Org.PREFIX, W3NS.Org.NS)
+        .put(SCHEMA.PREFIX, SCHEMA.NS)
 
-            // Spatial
-            .put("spatial",org.eclipse.rdf4j.model.vocabulary.GEO.NAMESPACE) // GeoSparql
-            .put("geo", "http://www.w3.org/2003/01/geo/wgs84_pos#")
-            .put("gn", "http://www.geonames.org/ontology#") // Geo names
+        // Spatial
+        .put("spatial",org.eclipse.rdf4j.model.vocabulary.GEO.NAMESPACE) // GeoSparql
+        .put("geo", "http://www.w3.org/2003/01/geo/wgs84_pos#")
+        .put("gn", "http://www.geonames.org/ontology#") // Geo names
 
 
-            // Darwin core
-            .put("dwc", DWC.Terms.NS)
-            .put("dwciri", "http://rs.tdwg.org/dwc/iri/")
-            .put("dwctax", "http://rs.tdwg.org/ontology/voc/TaxonName#")
+        // Darwin core
+        .put("dwc", DWC.Terms.NS)
+        .put("dwciri", "http://rs.tdwg.org/dwc/iri/")
+        .put("dwctax", "http://rs.tdwg.org/ontology/voc/TaxonName#")
 
-            // TaxonConcept
-            .put("txn", "http://lod.taxonconcept.org/ontology/txn.owl")
+        // TaxonConcept
+        .put("txn", "http://lod.taxonconcept.org/ontology/txn.owl")
 
-            // Sandre
-            .put("apt", APT.NS)
-            .put("apt2", APT.NS + "2.1/")
-            .put("inc", INC.NS)
-            .put("inc1", INC.NS + "1.0/")
+        // Data catalog
+        .put("dcat", "http://www.w3.org/ns/dcat")
 
-            // TaxRef (MNHN)
-            .put("taxref", "http://taxref.mnhn.fr/lod/")
-            .put("taxrefprop", "http://taxref.mnhn.fr/lod/property/")
+        // Sandre
+        .put("apt", APT.NS)
+        .put("inc", INC.NS)
 
-            // Data catalog
-            .put("dcat", "http://www.w3.org/ns/dcat")
+        // TaxRef (MNHN)
+        .put("taxref", "http://taxref.mnhn.fr/lod/")
+        .put("taxrefprop", "http://taxref.mnhn.fr/lod/property/")
 
-            .build();
+
+        .build();
 
     public static final Map<String, String> RDF_URL_BY_PREFIX = ImmutableMap.<String, String>builder()
-            .put("rdf",  RDF.uri)
-            .put("rdfs", RDFS.getURI())
-            .put("owl",  OWL2.NS)
+        .put("rdf",  RDF.uri)
+        .put("rdfs", RDFS.getURI())
+        .put("owl",  OWL2.NS)
 
-            .put("dc", "https://www.dublincore.org/specifications/dublin-core/dcmi-terms/dublin_core_elements.rdf")
-            .put("dcam", "https://www.dublincore.org/specifications/dublin-core/dcmi-terms/dublin_core_abstract_model.rdf")
-            .put("dcterms", "https://www.dublincore.org/specifications/dublin-core/dcmi-terms/dublin_core_terms.rdf")
-            .put("dctypes", "https://www.dublincore.org/specifications/dublin-core/dcmi-terms/dublin_core_type.rdf")
+        .put("dc", "https://www.dublincore.org/specifications/dublin-core/dcmi-terms/dublin_core_elements.rdf")
+        .put("dcam", "https://www.dublincore.org/specifications/dublin-core/dcmi-terms/dublin_core_abstract_model.rdf")
+        .put("dcterms", "https://www.dublincore.org/specifications/dublin-core/dcmi-terms/dublin_core_terms.rdf")
+        .put("dctypes", "https://www.dublincore.org/specifications/dublin-core/dcmi-terms/dublin_core_type.rdf")
 
-            // TODO: find the prefix
-            .put("spatial", org.eclipse.rdf4j.model.vocabulary.GEO.NAMESPACE)
-            .put("geo", GEO.WGS84Pos.NS)
-            .put("gn", "http://www.geonames.org/ontology") // Geo names
+        // TODO: find the prefix
+        .put("spatial", org.eclipse.rdf4j.model.vocabulary.GEO.NAMESPACE)
+        .put("geo", GEO.WGS84Pos.NS)
+        .put("gn", "http://www.geonames.org/ontology") // Geo names
 
-            //.put("", "http://www.w3.org/2000/10/swap/pim/contact")
-            .put("foaf", "http://xmlns.com/foaf/spec/index.rdf")
-            .put("skos", SKOS.getURI())
+        //.put("", "http://www.w3.org/2000/10/swap/pim/contact")
+        .put("foaf", "http://xmlns.com/foaf/spec/index.rdf")
+        .put("skos", SKOS.getURI())
 
-            // Darwin core
-            .put("dwc", "http://rs.tdwg.org/dwc/terms/")
-            .put("dwctax", "http://rs.tdwg.org/ontology/voc/TaxonName.rdf")
+        // Darwin core
+        .put("dwc", "http://rs.tdwg.org/dwc/terms/")
+        .put("dwctax", "http://rs.tdwg.org/ontology/voc/TaxonName.rdf")
 
-            // TaxonConcept
-            .put("txn", "http://lod.taxonconcept.org/ontology/txn.owl")
+        // TaxonConcept
+        .put("txn", "http://lod.taxonconcept.org/ontology/txn.owl")
 
-            // Sandre
-            .put("apt", "http://owl.sandre.eaufrance.fr/apt/2.1/sandre_fmt_owl_apt.owl")
-            .put("inc", "http://owl.sandre.eaufrance.fr/inc/1/sandre_fmt_owl_inc.owl")
+        // Sandre
+        .put("apt", "http://owl.sandre.eaufrance.fr/apt/2.1/sandre_fmt_owl_apt.owl")
+        .put("inc", "http://owl.sandre.eaufrance.fr/inc/1/sandre_fmt_owl_inc.owl")
 
-            // Data Catalog
-            .put("dcat", "http://www.w3.org/ns/dcat")
+        // Data Catalog
+        .put("dcat", "http://www.w3.org/ns/dcat")
 
-            .build();
+        .build();
 
     public static String getClassUri(Resource schema, Class clazz) {
         return getClassUri(schema.getURI(), clazz);

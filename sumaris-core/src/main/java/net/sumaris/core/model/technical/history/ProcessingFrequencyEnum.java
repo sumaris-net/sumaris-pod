@@ -29,7 +29,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 
-@EntityEnum(entity = ProcessingFrequency.class)
+@EntityEnum(entity = ProcessingFrequency.class, joinAttributes = {"label"})
 public enum ProcessingFrequencyEnum implements Serializable {
 
     NEVER(0, "NEVER"),
@@ -44,10 +44,10 @@ public enum ProcessingFrequencyEnum implements Serializable {
             .findFirst().orElseThrow(() -> new IllegalArgumentException("Unknown ProcessingFrequencyEnum: " + id));
     }
 
-    private int id;
+    private Integer id;
     private String label;
 
-    ProcessingFrequencyEnum(int id, String label) {
+    ProcessingFrequencyEnum(Integer id, String label) {
         this.id = id;
         this.label = label;
     }
@@ -57,12 +57,12 @@ public enum ProcessingFrequencyEnum implements Serializable {
      *
      * @return int the id
      */
-    public int getId()
+    public Integer getId()
     {
         return this.id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

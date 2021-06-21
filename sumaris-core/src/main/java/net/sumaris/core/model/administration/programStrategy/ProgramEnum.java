@@ -32,10 +32,10 @@ public enum ProgramEnum implements Serializable {
 
     SIH(0, "SIH");
 
-    private int id;
+    private Integer id;
     private String label;
 
-    ProgramEnum(int id, String label) {
+    ProgramEnum(Integer id, String label) {
         this.id = id;
         this.label = label;
     }
@@ -52,11 +52,11 @@ public enum ProgramEnum implements Serializable {
                 .orElseThrow(() -> new IllegalArgumentException("Unknown ProgramEnum label: " + label));
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

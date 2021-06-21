@@ -33,8 +33,6 @@ public final class HttpHeaders {
     public static String ACCESS_CONTROL_DENY_DELETION_ENTITIES = "Access-Control-Deny-Deletion-Entities";
 
     public static String HEADER_USER_AGENT = "User-Agent";
-    public static String X_APP_NAME = "X-App-Name";
-    public static String X_APP_VERSION = "X-App-Version";
 
 
 

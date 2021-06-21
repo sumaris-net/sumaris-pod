@@ -50,7 +50,7 @@ public class ExtractionGeoJsonConverter {
     private Map<String, Function<String, Geometry>> convertersByColumnNames = Maps.newConcurrentMap();
 
     public FeatureCollection toFeatureCollection(final ExtractionResultVO result,
-                                                 final String spatialColumnName) {
+                                                 @NonNull final String spatialColumnName) {
         return toFeatureCollection(result, spatialColumnName,
                 findGeometryConverterByColumnName(spatialColumnName).orElse(null));
     }

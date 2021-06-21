@@ -158,7 +158,7 @@ public abstract class RootDataRepositoryImpl<
         // TODO UNVALIDATION PROCESS HERE
         entity.setValidationDate(null);
         entity.setQualificationDate(null);
-        entity.setQualityFlag(getReference(QualityFlag.class, QualityFlagEnum.NOT_QUALIFED.getId()));
+        entity.setQualityFlag(getReference(QualityFlag.class, QualityFlagEnum.NOT_QUALIFIED.getId()));
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -171,7 +171,7 @@ public abstract class RootDataRepositoryImpl<
         // Update source
         vo.setValidationDate(null);
         vo.setQualificationDate(null);
-        vo.setQualityFlagId(QualityFlagEnum.NOT_QUALIFED.getId());
+        vo.setQualityFlagId(QualityFlagEnum.NOT_QUALIFIED.getId());
         vo.setUpdateDate(newUpdateDate);
 
         return vo;

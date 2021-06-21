@@ -25,29 +25,34 @@ package net.sumaris.core.dao.administration.programStrategy;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.*;
-import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.pmfm.Parameter;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.vo.administration.programStrategy.*;
-import net.sumaris.core.vo.filter.StrategyFilterVO;
+import net.sumaris.core.vo.filter.PeriodVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Path;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import javax.persistence.criteria.Predicate;
+import java.util.*;
 
 /**
  * @author peck7 on 24/08/2020.
  */
 public interface StrategySpecifications extends ReferentialSpecifications<Strategy> {
 
+    String ANALYTIC_REFERENCES = "analyticReferences";
     String REFERENCE_TAXON_IDS = "referenceTaxonIds";
+    String DEPARTMENT_IDS = "departmentIds";
+    String LOCATION_IDS = "locationIds";
+    String PARAMETER_IDS = "pmfmIds";
     String UPDATE_DATE_GREATER_THAN_PARAM = "updateDateGreaterThan";
 
     default Specification<Strategy> hasProgramIds(Integer... programIds) {
@@ -60,24 +65,6 @@ public interface StrategySpecifications extends ReferentialSpecifications<Strate
             return criteriaBuilder.greaterThan(root.get(Strategy.Fields.UPDATE_DATE), updateDateParam);
         });
         specification.addBind(UPDATE_DATE_GREATER_THAN_PARAM, updateDate);
-        return specification;
-    }
-
-    default Specification<Strategy> hasReferenceTaxonIds(Integer... referenceTaxonIds) {
-        if (ArrayUtils.isEmpty(referenceTaxonIds)) return null;
-        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-
-            // Avoid duplictaed entries (because of inner join)
-            query.distinct(true);
-
-            ParameterExpression<Collection> referenceTaxonIdsParam = criteriaBuilder.parameter(Collection.class, REFERENCE_TAXON_IDS);
-            return criteriaBuilder.in(
-                root.join(Strategy.Fields.REFERENCE_TAXONS, JoinType.INNER)
-                    .join(ReferenceTaxonStrategy.Fields.REFERENCE_TAXON, JoinType.INNER)
-                    .get(ReferenceTaxon.Fields.ID))
-                .value(referenceTaxonIdsParam);
-        });
-        specification.addBind(REFERENCE_TAXON_IDS, Arrays.asList(referenceTaxonIds));
         return specification;
     }
 
@@ -105,6 +92,135 @@ public interface StrategySpecifications extends ReferentialSpecifications<Strate
             else {
                 return cb.lessThanOrEqualTo(appliedPeriods.get(AppliedPeriod.Fields.START_DATE), endDate);
             }
+        };
+    }
+
+    default Specification<Strategy> hasAnalyticReferences(String... analyticReferences) {
+        if (ArrayUtils.isEmpty(analyticReferences)) return null;
+        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, ANALYTIC_REFERENCES);
+            return criteriaBuilder.in(
+                    root.get(Strategy.Fields.ANALYTIC_REFERENCE))
+                    .value(parameter);
+        });
+        specification.addBind(ANALYTIC_REFERENCES, Arrays.asList(analyticReferences));
+        return specification;
+    }
+
+    default Specification<Strategy> hasReferenceTaxonIds(Integer... referenceTaxonIds) {
+        if (ArrayUtils.isEmpty(referenceTaxonIds)) return null;
+        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+
+            // Avoid duplicated entries (because of inner join)
+            query.distinct(true);
+
+            ParameterExpression<Collection> parameter = criteriaBuilder.parameter(Collection.class, REFERENCE_TAXON_IDS);
+            return criteriaBuilder.in(
+                    root.join(Strategy.Fields.REFERENCE_TAXONS, JoinType.INNER)
+                            .join(ReferenceTaxonStrategy.Fields.REFERENCE_TAXON, JoinType.INNER)
+                            .get(ReferenceTaxon.Fields.ID))
+                    .value(parameter);
+        });
+        specification.addBind(REFERENCE_TAXON_IDS, Arrays.asList(referenceTaxonIds));
+        return specification;
+    }
+
+    default Specification<Strategy> hasDepartmentIds(Integer... departmentIds) {
+        if (ArrayUtils.isEmpty(departmentIds)) return null;
+        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+
+            // Avoid duplicated entries (because of inner join)
+            query.distinct(true);
+
+            ParameterExpression<Collection> parameter = criteriaBuilder.parameter(Collection.class, DEPARTMENT_IDS);
+            return criteriaBuilder.in(
+                    root.join(Strategy.Fields.DEPARTMENTS, JoinType.INNER)
+                            .join(StrategyDepartment.Fields.DEPARTMENT, JoinType.INNER)
+                            .get(Department.Fields.ID))
+                    .value(parameter);
+        });
+        specification.addBind(DEPARTMENT_IDS, Arrays.asList(departmentIds));
+        return specification;
+    }
+
+    default Specification<Strategy> hasLocationIds(Integer... locationIds) {
+        if (ArrayUtils.isEmpty(locationIds)) return null;
+        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+
+            // Avoid duplicated entries (because of inner join)
+            query.distinct(true);
+
+            ParameterExpression<Collection> parameter = criteriaBuilder.parameter(Collection.class, LOCATION_IDS);
+            return criteriaBuilder.in(
+                    root.join(Strategy.Fields.APPLIED_STRATEGIES, JoinType.INNER)
+                            .join(AppliedStrategy.Fields.LOCATION, JoinType.INNER)
+                            .get(Location.Fields.ID))
+                    .value(parameter);
+        });
+        specification.addBind(LOCATION_IDS, Arrays.asList(locationIds));
+        return specification;
+    }
+
+    default Specification<Strategy> hasParameterIds(Integer... parameterIds) {
+        if (ArrayUtils.isEmpty(parameterIds)) return null;
+        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+
+            // Avoid duplicated entries (because of inner join)
+            query.distinct(true);
+
+            ParameterExpression<Collection> parameter = criteriaBuilder.parameter(Collection.class, PARAMETER_IDS);
+            return criteriaBuilder.in(
+                    root.join(Strategy.Fields.PMFMS, JoinType.INNER)
+                            .join(PmfmStrategy.Fields.PMFM, JoinType.INNER)
+                            .join(Pmfm.Fields.PARAMETER, JoinType.INNER)
+                            .get(Parameter.Fields.ID))
+                    .value(parameter);
+        });
+        specification.addBind(PARAMETER_IDS, Arrays.asList(parameterIds));
+        return specification;
+    }
+
+    default Specification<Strategy> hasPeriods(PeriodVO... periods) {
+        if (ArrayUtils.isEmpty(periods)) return null;
+        return (root, query, cb) -> {
+            final List<Predicate> predicates = new ArrayList<Predicate>();
+
+            Join<?, ?> appliedPeriods = root.join(Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT)
+                    .join(AppliedStrategy.Fields.APPLIED_PERIODS, JoinType.LEFT);
+
+            for (PeriodVO dates : periods) {
+                Date startDate = dates.getStartDate();
+                Date endDate = dates.getEndDate();
+
+                // Start + end date
+                if (startDate != null && endDate != null) {
+                    predicates.add(
+                            cb.not(
+                                    cb.or(
+                                            cb.greaterThan(appliedPeriods.get(AppliedPeriod.Fields.START_DATE), endDate),
+                                            cb.lessThan(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
+                                    )
+                            )
+                    );
+                }
+
+                // Start date
+                else if (startDate != null) {
+                    predicates.add(
+                            cb.greaterThanOrEqualTo(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
+                    );
+                }
+
+                // End date
+                else if (endDate != null) {
+                    predicates.add(
+                            cb.lessThanOrEqualTo(appliedPeriods.get(AppliedPeriod.Fields.START_DATE), endDate)
+                    );
+                }
+            }
+
+            if (CollectionUtils.isEmpty(predicates)) return null;
+            return cb.or(predicates.toArray(new Predicate[predicates.size()]));
         };
     }
 

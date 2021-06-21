@@ -50,4 +50,6 @@ public class SampleFilterVO implements IRootDataFilter {
 
     private Integer landingId;
 
+    private Integer parentId;
+
 }

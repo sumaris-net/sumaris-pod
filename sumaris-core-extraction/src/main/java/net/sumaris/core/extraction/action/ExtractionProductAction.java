@@ -46,12 +46,12 @@ import java.util.List;
  *
  */
 @Slf4j
-public class ProductAction {
+public class ExtractionProductAction {
 
     /**
      * <p>Update a product (execute extraction or aggregation).</p>
      */
-    public void update() {
+    public void update() throws InterruptedException {
         // Get beans
         ExtractionConfiguration config = ExtractionConfiguration.instance();
         ExtractionProductService productService = ServiceLocator.instance().getService("extractionProductService", ExtractionProductService.class);
@@ -87,14 +87,8 @@ public class ProductAction {
         for (ExtractionProductVO product: products) {
             log.info("Updating product {{}}...", product.getLabel());
 
-            try {
-                aggregationService.updateProduct(product.getId());
-                Thread.sleep(10000); // Waiting 10s, to let DB drop tables (asynchronously)
-            }
-            catch (InterruptedException e) {
-                // Stop
-                return;
-            }
+            aggregationService.updateProduct(product.getId());
+            Thread.sleep(10000); // Waiting 10s, to let DB drop tables (asynchronously)
         }
 
         log.info("Updating products... {frequency: '{}'}", frequency);

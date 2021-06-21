@@ -26,7 +26,9 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.filter.PeriodVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -156,6 +158,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
 
     @Test
     public void findByFilter() {
+
         // Filter by program
         {
             StrategyFilterVO filter = StrategyFilterVO.builder()
@@ -166,15 +169,75 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             Assert.assertEquals(1, strategies.size());
         }
 
+        // Filter by analytic reference
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                    .analyticReferences(new String[]{"P101-0001-01-DF"})
+                    .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(1, strategies.size());
+            Assert.assertEquals("2020-BIO-0001", strategies.get(0).getLabel());
+        }
+
         // Filter by reference taxon
         {
             StrategyFilterVO filter = StrategyFilterVO.builder()
                 .referenceTaxonIds(new Integer[]{1006})
                 .build();
             List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
-
             Assert.assertNotNull(strategies);
-            Assert.assertEquals(1, strategies.size()); // Should be from the PARAM-BIO program
+            Assert.assertEquals(1, strategies.size());
+            Assert.assertEquals("2020-BIO-0001", strategies.get(0).getLabel());
+        }
+
+        // Filter by department
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                    .departmentIds(new Integer[]{3})
+                    .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(1, strategies.size());
+            Assert.assertEquals("2020-BIO-0001", strategies.get(0).getLabel());
+        }
+
+        // Filter by location
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                    .locationIds(new Integer[]{101})
+                    .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(1, strategies.size());
+            Assert.assertEquals("2020-BIO-0001", strategies.get(0).getLabel());
+        }
+
+        // Filter by pmfm
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                    .parameterIds(new Integer[]{350, 351})
+                    .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(2, strategies.size());
+            Assert.assertEquals("2020-BIO-0001", strategies.get(0).getLabel());
+            Assert.assertEquals("2020-BIO-0002", strategies.get(1).getLabel());
+        }
+
+        // Filter by periods
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                    .periods(new PeriodVO[]{PeriodVO.builder()
+                            .startDate(Dates.safeParseDate("2020-01-01", "yyyy-MM-dd"))
+                            .endDate(Dates.safeParseDate("2020-03-31", "yyyy-MM-dd"))
+                            .build(),
+                    })
+                    .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(1, strategies.size());
+            Assert.assertEquals("2020-BIO-0001", strategies.get(0).getLabel());
         }
     }
 }

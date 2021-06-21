@@ -194,22 +194,29 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "vesselFeaturesHistory", description = "Get vessel features history")
     @Transactional(readOnly = true)
     @IsUser
-    public List<VesselFeaturesVO> getVesselFeaturesHistory(@GraphQLNonNull @GraphQLArgument(name = "vesselId") Integer vesselId,
+    public List<VesselFeaturesVO> getVesselFeaturesHistory(
+        @GraphQLArgument(name = "vesselId") Integer vesselId,
+        @GraphQLArgument(name = "filter") VesselFeaturesFilterVO filter,
                                                            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                                            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
                                                            @GraphQLArgument(name = "sortBy", defaultValue = VesselFeaturesVO.Fields.START_DATE) String sort,
                                                            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+        vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
+        Preconditions.checkNotNull(vesselId);
         return vesselService.getFeaturesByVesselId(vesselId, offset, size, sort, SortDirection.fromString(direction));
     }
 
     @GraphQLQuery(name = "vesselRegistrationHistory", description = "Get vessel registration history")
     @Transactional(readOnly = true)
     @IsUser
-    public List<VesselRegistrationVO> getVesselRegistrationHistory(@GraphQLNonNull @GraphQLArgument(name = "vesselId") Integer vesselId,
+    public List<VesselRegistrationVO> getVesselRegistrationHistory(@GraphQLArgument(name = "vesselId") Integer vesselId,
+                                                                   @GraphQLArgument(name = "filter") VesselRegistrationFilterVO filter,
                                                                    @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                                                    @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
                                                                    @GraphQLArgument(name = "sortBy", defaultValue = VesselRegistrationVO.Fields.START_DATE) String sort,
                                                                    @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+        vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
+        Preconditions.checkNotNull(vesselId);
         return vesselService.getRegistrationsByVesselId(vesselId, offset, size, sort, SortDirection.fromString(direction));
     }
 

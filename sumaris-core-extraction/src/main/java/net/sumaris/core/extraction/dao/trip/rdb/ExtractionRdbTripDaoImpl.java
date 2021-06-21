@@ -141,27 +141,48 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         // -- Execute the extraction --
 
         try {
-            // Trip
-            long rowCount = createTripTable(context);
-            if (rowCount == 0) throw new DataNotFoundException(t("sumaris.extraction.noData"));
-            if (sheetName != null && context.hasSheet(sheetName)) return context;
+            // If only CL expected: skip station/species aggregation
+            boolean hasSomeRow = false;
+            if (!RdbSpecification.CL_SHEET_NAME.equals(sheetName)) {
+                // Trip
+                long rowCount = createTripTable(context);
+                hasSomeRow = rowCount > 0;
+                if (sheetName != null && context.hasSheet(sheetName)) return context;
 
-            // Station
-            rowCount = createStationTable(context);
-            if (rowCount == 0) return context;
-            if (sheetName != null && context.hasSheet(sheetName)) return context;
+                // Station
+                if (rowCount != 0) {
+                    rowCount = createStationTable(context);
+                    if (sheetName != null && context.hasSheet(sheetName)) return context;
+                }
 
-            // Species Raw table
-            rowCount = createRawSpeciesListTable(context, true /*exclude invalid station*/);
-            if (rowCount == 0) return context;
+                // Species Raw table
+                if (rowCount != 0) {
+                    rowCount = createRawSpeciesListTable(context, true /*exclude invalid station*/);
+                    if (sheetName != null && context.hasSheet(sheetName)) return context;
+                }
 
-            // Species List
-            rowCount = createSpeciesListTable(context);
-            if (rowCount == 0) return context;
-            if (sheetName != null && context.hasSheet(sheetName)) return context;
+                // Species List
+                if (rowCount != 0) {
+                    rowCount = createSpeciesListTable(context);
+                    if (sheetName != null && context.hasSheet(sheetName)) return context;
+                }
 
-            // Species Length
-            createSpeciesLengthTable(context);
+                // Species Length
+                if (rowCount != 0) {
+                    createSpeciesLengthTable(context);
+                    if (sheetName != null && context.hasSheet(sheetName)) return context;
+                }
+            }
+
+            // Landing table
+            {
+                long rowCount = createLandingTable(context);
+                hasSomeRow = hasSomeRow || rowCount > 0;
+                if (sheetName != null && context.hasSheet(sheetName)) return context;
+            }
+
+            // No data
+            if (!hasSomeRow) throw new DataNotFoundException(t("sumaris.extraction.noData"));
 
             return context;
         }
@@ -450,6 +471,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("millimeterUnitId", String.valueOf(UnitEnum.MM.getId()));
 
         return xmlQuery;
+    }
+
+    protected long createLandingTable(C context) {
+        // TODO create the landing query and table
+        return 0;
     }
 
     protected int execute(XMLQuery xmlQuery) {

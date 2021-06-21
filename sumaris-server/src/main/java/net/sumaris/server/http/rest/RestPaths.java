@@ -1,8 +1,8 @@
-package net.sumaris.core.service.technical;
+package net.sumaris.server.http.rest;
 
 /*-
  * #%L
- * SUMARiS:: Core
+ * SUMARiS:: Server
  * %%
  * Copyright (C) 2018 SUMARiS Consortium
  * %%
@@ -10,29 +10,34 @@ package net.sumaris.core.service.technical;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-import net.sumaris.core.vo.technical.SoftwareVO;
-import org.springframework.transaction.annotation.Transactional;
+public interface RestPaths {
 
-@Transactional(readOnly = true)
-public interface ConfigurationService {
+    String BASE_PATH = "/api";
 
-    SoftwareVO getCurrentSoftware();
+    String REGISTER_CONFIRM_PATH = BASE_PATH + "/confirmEmail";
 
-    boolean isReady();
+    String PERSON_AVATAR_PATH = BASE_PATH + "/avatar/{pubkey}";
 
-    void updateConfigFromSoftwareProperties();
+    String DEPARTMENT_LOGO_PATH = BASE_PATH + "/logo/{label}";
+
+    String IMAGE_PATH = BASE_PATH + "/image/{id}";
+
+    String DOWNLOAD_PATH = "/download";
+
+    String FAVICON = BASE_PATH + "/favicon";
+
+    String NODE_INFO_PATH = BASE_PATH + "/node/info";
+
 }
-
-

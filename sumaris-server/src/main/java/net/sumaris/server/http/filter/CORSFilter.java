@@ -36,9 +36,7 @@ import java.io.IOException;
 public class CORSFilter implements Filter {
 
     public static String ALLOWED_HEADERS = "Accept, Accept-Language, Content-Language, Access-Control-Allow-Origin, Content-Type, "
-            + HttpHeaders.AUTHORIZATION + ", "
-            + HttpHeaders.X_APP_NAME + ", "
-            + HttpHeaders.X_APP_VERSION;
+            + HttpHeaders.AUTHORIZATION;
     public static String ALLOWED_METHODS = "GET, PUT, POST, DELETE, OPTIONS";
     public static String ALLOWED_CREDENTIALS = "true";
     public static String MAX_AGE = "3600";
@@ -53,7 +51,7 @@ public class CORSFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
 
-        // Add excepted headers
+        // Add CORS headers
         setCorsHeaders(request, response);
 
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
@@ -68,7 +66,7 @@ public class CORSFilter implements Filter {
 
     }
 
-    static void setCorsHeaders(HttpServletRequest request, HttpServletResponse response) {
+    private void setCorsHeaders(HttpServletRequest request, HttpServletResponse response) {
         response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
         response.setHeader("Access-Control-Allow-Credentials", ALLOWED_CREDENTIALS);
         response.setHeader("Access-Control-Allow-Methods", ALLOWED_METHODS);

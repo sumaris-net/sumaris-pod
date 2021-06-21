@@ -1,8 +1,10 @@
-/*
+package net.sumaris.core.vo.filter;
+
+/*-
  * #%L
- * SUMARiS
+ * SUMARiS:: Core
  * %%
- * Copyright (C) 2019 SUMARiS Consortium
+ * Copyright (C) 2018 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -20,13 +22,23 @@
  * #L%
  */
 
-package net.sumaris.server.http;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldNameConstants;
 
-public interface RestPaths {
-    String SPARQL_ENDPOINT = "/sparql";
+import java.io.Serializable;
+import java.util.Date;
 
-    String ONTOLOGY_BASE_PATH = "/ontology";
+@Data
+@FieldNameConstants
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class PeriodVO implements Serializable {
 
-    String WEBVOWL_BASE_PATH = "/webvowl";
+    private Date startDate;
+    private Date endDate;
 
 }

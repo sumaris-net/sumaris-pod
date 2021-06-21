@@ -48,9 +48,9 @@ import java.util.stream.Collectors;
 public class AgggregationAction {
 
     /**
-     * <p>execute.</p>
+     * <p>run.</p>
      */
-    public void execute() {
+    public void run() {
         ExtractionConfiguration config = ExtractionConfiguration.instance();
         AggregationService aggregationService = ServiceLocator.instance().getService("aggregationService", AggregationService.class);
         ExtractionProductService productService = ServiceLocator.instance().getService("extractionProductService", ExtractionProductService.class);

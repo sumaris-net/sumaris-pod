@@ -10,12 +10,12 @@ package net.sumaris.core.model.referential.pmfm;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -28,7 +28,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 @EntityEnum(entity = Pmfm.class, joinAttributes = Pmfm.Fields.LABEL, required = false)
-public enum PmfmEnum implements Serializable  {
+public enum PmfmEnum implements Serializable {
 
     SMALLER_MESH_GAUGE_MM(3, "SMALLER_MESH_GAUGE_MM"),
     GEAR_SPEED(9, "GEAR_SPEED"),
@@ -51,7 +51,7 @@ public enum PmfmEnum implements Serializable  {
     ACOUSTIC_DETERRENT_DEVICE(5, "ACOUSTIC_DETERRENT_DEVICE"),
     SUBSTRATE_TYPE(31, "SUBSTRATE_TYPE"),
     SEA_STATE(33, "SEA_STATE"),
-    TRIP_PROGRESS(34,"TRIP_PROGRESS"),
+    TRIP_PROGRESS(34, "TRIP_PROGRESS"),
     SURVIVAL_SAMPLING_TYPE(35, "SURVIVAL_SAMPLING_TYPE"),
     CONTRACT_CODE(311, "CONTRACT_CODE"),
 
@@ -105,15 +105,15 @@ public enum PmfmEnum implements Serializable  {
 
     public static PmfmEnum valueOf(final int id) {
         return Arrays.stream(values())
-                .filter(enumValue -> enumValue.id == id)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown PmfmEnum: " + id));
+            .filter(enumValue -> enumValue.id == id)
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown PmfmEnum: " + id));
     }
 
-    private int id;
+    private Integer id;
     private String label;
 
-    PmfmEnum(int id, String label) {
+    PmfmEnum(Integer id, String label) {
         this.id = id;
         this.label = label;
     }
@@ -123,17 +123,15 @@ public enum PmfmEnum implements Serializable  {
      *
      * @return int the id
      */
-    public int getId()
-    {
+    public Integer getId() {
         return this.id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public String getLabel()
-    {
+    public String getLabel() {
         return this.label;
     }
 

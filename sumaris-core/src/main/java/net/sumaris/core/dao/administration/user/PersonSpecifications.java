@@ -62,7 +62,7 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
         Collection<Integer> userProfileIds;
         if (ArrayUtils.isNotEmpty(filter.getUserProfiles())) {
             userProfileIds = Arrays.stream(filter.getUserProfiles())
-                .map(UserProfileEnum::valueOfLabel)
+                .map(UserProfileEnum::valueOf)
                 .map(profile -> profile.id)
                 .collect(Collectors.toList());
         }

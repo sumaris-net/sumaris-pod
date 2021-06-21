@@ -27,18 +27,19 @@ package net.sumaris.core.config;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.env.ConfigurableEnvironments;
 import org.apache.commons.lang3.StringUtils;
-import org.nuiton.config.ApplicationConfig;
-import org.nuiton.config.ApplicationConfigHelper;
-import org.nuiton.config.ApplicationConfigProvider;
-import org.nuiton.config.ArgumentsParserException;
+import org.nuiton.config.*;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.io.File;
 import java.io.IOException;
@@ -95,11 +96,13 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     private File configFile;
 
+    protected final Set<String> transientOptionKeys;
+
     /**
      * <p>initDefault.</p>
      */
-    public static void initDefault(String configFile) {
-        instance = new SumarisConfiguration(configFile, args);
+    public static void initDefault(@NonNull ConfigurableEnvironment env) {
+        instance = new SumarisConfiguration(env, args);
         setInstance(instance);
     }
 
@@ -111,34 +114,48 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     public SumarisConfiguration(ApplicationConfig applicationConfig) {
         super();
         this.applicationConfig = applicationConfig;
+        this.transientOptionKeys = null;
+
+        // Override application version
+        initVersion(applicationConfig);
+    }
+
+    public SumarisConfiguration(ConfigurableEnvironment env,
+                                String... args) {
+        this(env, "application.properties", args);
+    }
+
+    public SumarisConfiguration(String file,
+                                String... args) {
+        this(null, file, args);
     }
 
     /**
      * <p>Constructor for SumarisConfiguration.</p>
      *
+     * @param env a {@link ConfigurableEnvironment} object.
      * @param file a {@link String} object.
      * @param args a {@link String} object.
      */
-    public SumarisConfiguration(String file, String... args) {
-        super();
+    protected SumarisConfiguration(ConfigurableEnvironment env,
+                                   String file,
+                                   String... args) {
 
-        this.applicationConfig = new ApplicationConfig();
+
+        // load all default options
+        Set<ApplicationConfigProvider> providers = getProviders();
+        Properties defaults = getDefaults(providers, env);
+
+        // Create Nuiton config instance
+        this.applicationConfig = new ApplicationConfig(ApplicationConfigInit.defaultInit()
+                .setDefaults(defaults));
         this.applicationConfig.setEncoding(Charsets.UTF_8.name());
         this.applicationConfig.setConfigFileName(file);
 
+        // Load transient options keys
+        this.transientOptionKeys = ImmutableSet.copyOf(ApplicationConfigHelper.getTransientOptionKeys(providers));
 
         System.setProperty("logging.level.Hibernate Types", "error");
-
-        // find all config providers
-        Set<ApplicationConfigProvider> providers =
-                ApplicationConfigHelper.getProviders(null,
-                        null,
-                        null,
-                        true);
-
-        // load all default options
-        ApplicationConfigHelper.loadAllDefaultOption(applicationConfig,
-                providers);
 
         // Load actions
         for (ApplicationConfigProvider provider : providers) {
@@ -150,6 +167,9 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
         // Override some external module default config (sumaris)
         overrideExternalModulesDefaultOptions(applicationConfig);
+
+        ApplicationConfigHelper.loadAllDefaultOption(applicationConfig, providers);
+
 
         // parse config file and inline arguments
         try {
@@ -163,34 +183,13 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         initVersion(applicationConfig);
 
         // Init time zone
-        initTimeZone();
+        initTimeZone(applicationConfig);
 
-        // TODO Review this, this is very dirty to do this...
-        File appBasedir = applicationConfig.getOptionAsFile(
-                SumarisConfigurationOption.BASEDIR.getKey());
+        // Prepare basedir
+        fixBasedir(applicationConfig);
 
-        if (appBasedir == null) {
-            appBasedir = new File("");
-        }
-        if (!appBasedir.isAbsolute()) {
-            appBasedir = new File(appBasedir.getAbsolutePath());
-        }
-        if (appBasedir.getName().equals("..")) {
-            appBasedir = appBasedir.getParentFile().getParentFile();
-        }
-        if (appBasedir.getName().equals(".")) {
-            appBasedir = appBasedir.getParentFile();
-        }
-        if (log.isInfoEnabled()) {
-            String appName = applicationConfig.getOption(SumarisConfigurationOption.APP_NAME.getKey());
-            log.info(String.format("Starting {%s} on basedir {%s}", appName, appBasedir));
-        }
-        applicationConfig.setOption(
-                SumarisConfigurationOption.BASEDIR.getKey(),
-                appBasedir.getAbsolutePath());
-
-        if (log.isDebugEnabled())
-            log.debug(applicationConfig.getPrintableConfig(null, 4));
+        if (log.isTraceEnabled())
+            log.trace(applicationConfig.getPrintableConfig(null, 4));
 
     }
 
@@ -225,10 +224,34 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     }
 
+    protected static Set<ApplicationConfigProvider> getProviders() {
+        // get allOfToList config providers
+        return ApplicationConfigHelper.getProviders(null,
+            null,
+            null,
+            true);
+    }
+
+    protected Properties getDefaults(Set<ApplicationConfigProvider> providers, ConfigurableEnvironment env) {
+
+        // Populate defaults from providers
+        final Properties defaults = new Properties();
+        providers.forEach(provider -> Arrays.stream(provider.getOptions())
+            .filter(configOptionDef -> configOptionDef.getDefaultValue() != null)
+            .forEach(configOptionDef -> defaults.setProperty(configOptionDef.getKey(), configOptionDef.getDefaultValue())));
+
+        // Set options from env if provided
+        if (env != null) {
+            return ConfigurableEnvironments.readProperties(env, defaults);
+        }
+
+        return defaults;
+    }
+
     /**
      * Initialization default timezone, from configuration (mantis #24623)
      */
-    protected void initTimeZone() {
+    protected void initTimeZone(ApplicationConfig applicationConfig) {
 
         String dbTimeZone = applicationConfig.getOption(SumarisConfigurationOption.DB_TIMEZONE.getKey());
         if (StringUtils.isNotBlank(dbTimeZone)) {
@@ -296,6 +319,32 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     }
 
+    protected void fixBasedir(ApplicationConfig applicationConfig) {
+        // TODO Review this, this is very dirty to do this...
+        File appBasedir = applicationConfig.getOptionAsFile(
+            SumarisConfigurationOption.BASEDIR.getKey());
+
+        if (appBasedir == null) {
+            appBasedir = new File("");
+        }
+        if (!appBasedir.isAbsolute()) {
+            appBasedir = new File(appBasedir.getAbsolutePath());
+        }
+        if (appBasedir.getName().equals("..")) {
+            appBasedir = appBasedir.getParentFile().getParentFile();
+        }
+        if (appBasedir.getName().equals(".")) {
+            appBasedir = appBasedir.getParentFile();
+        }
+        if (log.isInfoEnabled()) {
+            String appName = applicationConfig.getOption(SumarisConfigurationOption.APP_NAME.getKey());
+            log.info(String.format("Starting {%s} on basedir {%s}", appName, appBasedir));
+        }
+        applicationConfig.setOption(
+            SumarisConfigurationOption.BASEDIR.getKey(),
+            appBasedir.getAbsolutePath());
+    }
+
 
 
     /**
@@ -312,6 +361,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
             configFile = new File(dir, applicationConfig.getConfigFileName());
         }
         return configFile;
+    }
+
+    public Set<String> getTransientOptionKeys() {
+        return transientOptionKeys;
     }
 
     /**
