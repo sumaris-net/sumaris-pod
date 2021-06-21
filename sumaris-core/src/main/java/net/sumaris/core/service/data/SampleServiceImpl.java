@@ -55,6 +55,16 @@ public class SampleServiceImpl implements SampleService {
 	protected MeasurementDao measurementDao;
 
 	@Override
+	public Long countByFilter(SampleFilterVO filter) {
+		return sampleRepository.count(filter);
+	}
+
+	@Override
+	public Long countByLandingId(int landingId) {
+		return sampleRepository.count(SampleFilterVO.builder().landingId(landingId).build());
+	}
+
+	@Override
 	public List<SampleVO> getAllByOperationId(int operationId) {
 		return sampleRepository.findAll(SampleFilterVO.builder().operationId(operationId).build());
 	}

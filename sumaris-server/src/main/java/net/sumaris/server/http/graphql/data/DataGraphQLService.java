@@ -869,7 +869,29 @@ public class DataGraphQLService {
             return landing.getSamples();
         }
 
-        return sampleService.getAllByLandingId(landing.getId());
+        List<SampleVO> samples = sampleService.getAllByLandingId(landing.getId());
+        landing.setSamples(samples);
+        return samples;
+    }
+
+    @GraphQLQuery(name = "samplesCount", description = "Get number of samples")
+    public long countSamplesByLanding(@GraphQLContext LandingVO landing) {
+        // Avoid a reloading (e.g. when saving)
+        if (landing.getSamplesCount() != null) {
+            return landing.getSamplesCount();
+        }
+        if (landing.getSamples() != null) {
+            return landing.getSamples().size();
+        }
+
+        return sampleService.countByLandingId(landing.getId());
+    }
+
+    @GraphQLQuery(name = "samplesCount", description = "Get total number of samples")
+    @Transactional(readOnly = true)
+    @IsUser
+    public long countSamples(@GraphQLArgument(name = "filter") SampleFilterVO filter) {
+        return sampleService.countByFilter(filter);
     }
 
     /* -- Batch -- */
