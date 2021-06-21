@@ -31,7 +31,7 @@ const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> implements OnInit, AfterViewInit, OnDestroy {
+export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> implements OnInit, OnDestroy {
 
   private _parentDateTime;
   private _detailEditor: LandingEditor;

@@ -6,6 +6,7 @@ import {AcquisitionLevelCodes, AcquisitionLevelType} from "../../referential/ser
 import {Landing} from "../services/model/landing.model";
 import {Observable} from "rxjs";
 import {isNotNil} from "@sumaris-net/ngx-components";
+import {TableElement} from '@e-is/ngx-material-table';
 
 @Component({
   selector: 'app-select-landings-modal',
@@ -45,9 +46,9 @@ export class SelectLandingsModal implements OnInit {
   }
 
 
-  selectRow({id, row}) {
-    if (row) {
-      this.table.selection.select(row);
+  selectRow(event: { id?: number; row: TableElement<Landing>; }) {
+    if (event.row) {
+      this.table.selection.select(event.row);
       //this.close();
     }
   }
