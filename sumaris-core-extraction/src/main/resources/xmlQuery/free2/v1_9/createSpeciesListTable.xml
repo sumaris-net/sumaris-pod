@@ -21,7 +21,7 @@
           WHEN SL.SAMPLING_RATIO is not null THEN ROUND(SL.SAMPLING_RATIO, 7)
           WHEN SL.WEIGHT is not null AND SL.WEIGHT != 0 AND SL.SUBSAMPLE_WEIGHT is not null THEN ROUND(SL.SUBSAMPLE_WEIGHT/SL.WEIGHT, 7)
           ELSE 1
-          END CASE
+          END
         </subselect>
         <subselect alias="POIDS_REF" type="number">SL.SUBSAMPLE_WEIGHT</subselect>
         <subselect alias="METHODE_POIDS_REF" type="text">METHOD.NAME</subselect>

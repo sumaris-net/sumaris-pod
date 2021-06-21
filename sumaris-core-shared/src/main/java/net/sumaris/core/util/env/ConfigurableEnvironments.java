@@ -22,9 +22,9 @@ public class ConfigurableEnvironments {
                 .filter(source -> source instanceof MapPropertySource)
                 .map(source -> (MapPropertySource)source).collect(Collectors.toList());
         Properties target = defaultOptions;
+        target = new Properties(target);
         for (MapPropertySource source: sources) {
             // Cascade properties (keep original order)
-            target = new Properties(target);
             for (String key: source.getPropertyNames()) {
                 Object value = source.getProperty(key);
                 if (value != null) {

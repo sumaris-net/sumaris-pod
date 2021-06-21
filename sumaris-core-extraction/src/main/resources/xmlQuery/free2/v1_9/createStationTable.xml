@@ -42,7 +42,7 @@
     )]]></select>
 
     <select alias="DATE_FIN" type="text">TO_CHAR(COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), 'DD-MM-YYYY HH24:MI:SS')</select>
-    <select alias="DUREE_OP" type="number">EXTRACT(MINUTE FROM (COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)) MINUTE)</select>
+    <select alias="DUREE_OP" type="number">EXTRACT(MINUTE FROM (COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)))</select>
     <select alias="LAT_DEB_OP" type="number">P_START.LATITUDE</select>
     <select alias="LONG_DEB_OP" type="number">P_START.LONGITUDE</select>
     <select alias="LAT_FIN_OP" type="number">P_END.LATITUDE</select>

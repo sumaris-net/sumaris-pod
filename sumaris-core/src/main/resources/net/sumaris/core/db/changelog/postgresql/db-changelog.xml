@@ -6,5 +6,10 @@
   logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/db-changelog-master.xml">
 
   <!-- Processing updates -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1557825240100-1" runOnChange="true" runAlways="true">
+    <sqlFile relativeToChangelogFile="true" path="db-create-procedures.sql" endDelimiter="//"
+             splitStatements="true"
+             stripComments="true"/>
+  </changeSet>
 
 </databaseChangeLog>
