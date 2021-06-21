@@ -446,13 +446,13 @@
       </activation>
 
       <properties>
-        <jdbc.url>jdbc:postgresql://localhost:5432/sumaris</jdbc.url>
+        <jdbc.url>jdbc:postgresql://localhost:5432/sumaris-test</jdbc.url>
         <jdbc.driver.jar>${settings.localRepository}/org/postgresql/postgresql/${pgsql.version}/postgresql-${pgsql.version}.jar</jdbc.driver.jar>
         <jdbc.username>sumaris</jdbc.username>
         <jdbc.password>sumaris</jdbc.password>
-        <jdbc.schema>sumaris</jdbc.schema>
+        <jdbc.schema>public</jdbc.schema>
         <jdbc.driver>org.postgresql.Driver</jdbc.driver>
-        <hibernate.dialect>org.hibernate.dialect.PostgreSQL9Dialect</hibernate.dialect>
+        <hibernate.dialect>org.hibernate.dialect.PostgreSQL10Dialect</hibernate.dialect>
         <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
       </properties>
 

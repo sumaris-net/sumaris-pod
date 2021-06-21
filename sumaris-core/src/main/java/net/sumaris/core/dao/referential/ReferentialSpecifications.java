@@ -85,10 +85,10 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
         return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> labelParam = criteriaBuilder.parameter(String.class, LABEL_PARAMETER);
             return criteriaBuilder.or(
-                criteriaBuilder.isNull(labelParam),
+                criteriaBuilder.like(labelParam, ""),
                 criteriaBuilder.equal(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(labelParam))
             );
-        }).addBind(LABEL_PARAMETER, label);
+        }).addBind(LABEL_PARAMETER, label != null ? label : "");
     }
 
     default Specification<E> inLevelIds(Class<E> entityClass, Integer... levelIds) {
@@ -142,7 +142,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
                 // search on all attributes
                 List<Predicate> predicates = new ArrayList<>();
                 predicates.add(
-                    criteriaBuilder.isNull(searchTextParam)
+                    criteriaBuilder.like(searchTextParam, "")
                 );
                 Arrays.stream(searchAttributes).forEach(searchAttribute ->
                     predicates.add(
@@ -155,7 +155,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             }
             // Search on label+name only
             return criteriaBuilder.or(
-                criteriaBuilder.isNull(searchTextParam),
+                criteriaBuilder.like(searchTextParam, ""),
                 criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(searchTextParam)),
                 criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.upper(criteriaBuilder.concat("%", searchTextParam)))
             );
@@ -181,13 +181,13 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             // Search on given attribute
             if (StringUtils.isNotBlank(searchAttribute)) {
                 return criteriaBuilder.or(
-                    criteriaBuilder.isNull(searchTextParam),
+                    criteriaBuilder.like(searchTextParam, ""),
                     criteriaBuilder.like(criteriaBuilder.upper(join.get(searchAttribute)), criteriaBuilder.upper(searchTextParam)));
             }
 
             // Search on label+name
             return criteriaBuilder.or(
-                criteriaBuilder.isNull(searchTextParam),
+                criteriaBuilder.like(searchTextParam, ""),
                 criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(searchTextParam)),
                 criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.upper(criteriaBuilder.concat("%", searchTextParam)))
             );

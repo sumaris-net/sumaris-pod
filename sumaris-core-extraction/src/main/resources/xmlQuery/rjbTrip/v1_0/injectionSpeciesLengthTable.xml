@@ -30,7 +30,7 @@
   <select alias="NUMBER_AT_LENGTH" type="number">SUM(B.INDIVIDUAL_COUNT)</select>
   <select alias="IS_DEAD" type="text"><![CDATA[(
     SELECT
-      DECODE(SM.NUMERICAL_VALUE, 0, 'N', 1, 'Y', null)
+      CASE SM.NUMERICAL_VALUE WHEN 0 THEN 'N' WHEN 1 THEN 'Y' ELSE null END
     FROM
       SORTING_MEASUREMENT_B SM
     WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&isDeadPmfmId

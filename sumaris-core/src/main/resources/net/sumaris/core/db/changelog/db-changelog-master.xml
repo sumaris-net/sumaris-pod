@@ -6,6 +6,8 @@
         logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/db-changelog-master.xml">
 
   <property name="dbms" value="hsqldb" dbms="hsqldb"/>
+  <property name="dbms" value="oracle" dbms="oracle"/>
+  <property name="dbms" value="postgresql" dbms="postgresql"/>
 
   <!-- Processing updates -->
   <include relativeToChangelogFile="true" file="${dbms}/db-changelog.xml"/>
