@@ -8,7 +8,7 @@ export declare type PmfmType = ParameterType | 'integer';
 
 export const PMFM_ID_REGEXP = /\d+/;
 
-export const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/]+)[/]\s*(.*)$/);
+export const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/(]+)[/(]\s*(.*)$/);
 
 export interface IPmfm<
   T extends Entity<T, ID> = Entity<any, any>,
