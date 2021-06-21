@@ -87,6 +87,10 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     return this._detailEditor === 'trip';
   }
 
+  get isEditable(): boolean {
+    return this.inlineEdition;
+  }
+
   @Input()
   set showBasePortLocationColumn(value: boolean) {
     this.setShowColumn('vesselBasePortLocation', value);

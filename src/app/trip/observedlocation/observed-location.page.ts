@@ -1,6 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
 import * as momentImported from "moment";
-const moment = momentImported;
 import {ObservedLocationForm} from "./observed-location.form";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {LandingsTable} from "../landing/landings.table";
@@ -18,7 +17,7 @@ import {LandingEditor, ProgramProperties} from "../../referential/services/confi
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {BehaviorSubject} from "rxjs";
 import {firstNotNilPromise, firstTruePromise} from "../../shared/observables";
-import {filter, first, tap} from "rxjs/operators";
+import {filter, first} from "rxjs/operators";
 import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings.table";
 import {showError} from "../../shared/alerts";
 import {Program} from "../../referential/services/model/program.model";
@@ -29,8 +28,10 @@ import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
 import {TRIP_CONFIG_OPTIONS} from "../services/config/trip.config";
 import {ConfigService} from "../../core/services/config.service";
-import {LANDING_DEFAULT_I18N_PREFIX} from "../landing/landing.form";
-import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
+import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
+import {EditableLandingsTable} from "../landing/editable-landings.table";
+
+const moment = momentImported;
 
 
 const OBSERVED_LOCATION_DEFAULT_I18N_PREFIX = 'OBSERVED_LOCATION.EDIT.';
@@ -56,18 +57,28 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   observedLocationNewName = '';
   showQualityForm = false;
   showRecorder = true;
+  landingEditor: LandingEditor = undefined;
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
   // TODO BLA landingsTable must be an EditableLandingsTable for ObsDeb
-  @ViewChild('landingsTable') landingsTable: LandingsTable;
+  @ViewChild('notEditableLandingsTable') notEditableLandingsTable: LandingsTable;
+  @ViewChild('editableLandingsTable') editableLandingsTable: EditableLandingsTable;
   @ViewChild('aggregatedLandingsTable') aggregatedLandingsTable: AggregatedLandingsTable;
 
-  get landingEditor(): LandingEditor {
+  /*get landingEditor(): LandingEditor {
     return this.landingsTable ? this.landingsTable.detailEditor : undefined;
   }
 
   set landingEditor(value: LandingEditor) {
     if (this.landingsTable) this.landingsTable.detailEditor = value;
+  }
+
+  get isEditableLandingTable(): boolean {
+    return this.landingsTable ? this.landingsTable.isEditable : false;
+  }*/
+
+  get landingsTable(): LandingsTable {
+    return this.landingEditor === 'trip' ? this.editableLandingsTable : this.notEditableLandingsTable;
   }
 
   constructor(
@@ -122,7 +133,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nContext.suffix = i18nSuffix;
 
+    this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
+
     if (this.landingsTable) {
+      this.landingsTable.i18nColumnSuffix = i18nSuffix;
+      this.landingsTable.detailEditor = this.landingEditor;
+
       this.landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
       this.landingsTable.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
       this.landingsTable.showObserversColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
@@ -131,11 +147,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.landingsTable.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
       this.landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
       this.landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
-      this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
-
-      this.landingsTable.i18nColumnSuffix = i18nSuffix;
     } else if (this.aggregatedLandingsTable) {
-
       this.aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
       this.aggregatedLandingsTable.program = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
     }
