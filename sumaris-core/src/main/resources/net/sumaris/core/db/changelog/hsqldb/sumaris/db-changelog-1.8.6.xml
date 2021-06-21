@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/sumaris/db-changelog-1.4.6.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.sumaris.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'SUMARiS'"/>
+    <property name="sqlCheck.sumaris.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a SUMARiS database instance ! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- Insert REFERENCE_TAXON -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-305" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM REFERENCE_TAXON where ID IN (1062, 1063)</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="REFERENCE_TAXON">
+            <column name="ID" valueNumeric="1062"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="REFERENCE_TAXON">
+            <column name="ID" valueNumeric="1063"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- Insert TAXON_NAME -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-305" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM TAXON_NAME where ID IN (1062, 1063)</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="TAXON_NAME">
+            <column name="ID" valueNumeric="1062"/>
+            <column name="CREATION_DATE" valueComputed="current_timestamp"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="LABEL" valueBoolean="LBS"/>
+            <column name="NAME" value="Homarus"/>
+            <column name="START_DATE" valueComputed="current_timestamp"/>
+            <column name="PARENT_TAXON_NAME_FK" valueNumeric="1041"/>
+            <column name="REFERENCE_TAXON_FK" valueNumeric="1062"/>
+            <column name="STATUS_FK" valueBoolean="1"/>
+            <column name="TAXONOMIC_LEVEL" valueNumeric="28" />
+        </insert>
+        <insert tableName="TAXON_NAME">
+            <column name="ID" valueNumeric="1063"/>
+            <column name="CREATION_DATE" valueComputed="current_timestamp"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="LABEL" valueBoolean="LBE"/>
+            <column name="NAME" value="Homarus Gammarus"/>
+            <column name="START_DATE" valueComputed="current_timestamp"/>
+            <column name="PARENT_TAXON_NAME_FK" valueNumeric="1062"/>
+            <column name="REFERENCE_TAXON_FK" valueNumeric="1063"/>
+            <column name="STATUS_FK" valueBoolean="1"/>
+            <column name="TAXONOMIC_LEVEL" valueNumeric="29" />
+        </insert>
+    </changeSet>
+
+    <!-- Insert TAXON_GROUP -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-305" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM TAXON_GROUP where ID = 1025 </sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="TAXON_GROUP">
+            <column name="ID" valueNumeric="1025"/>
+            <column name="CREATION_DATE" valueComputed="current_timestamp"/>
+            <column name="LABEL" valueBoolean="LBE"/>
+            <column name="COMMENTS" value="Homard Européen"/>
+            <column name="NAME" value="Homarus gammarus"/>
+            <column name="PARENT_TAXON_GROUP_FK" valueNumeric="1130"/>
+            <column name="STATUS_FK" valueBoolean="1"/>
+        </insert>
+    </changeSet>
+
+    <!-- Insert TAXON_GROUP_HISTORICAL_RECORD -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1603121052996-305" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM TAXON_GROUP_HISTORICAL_RECORD where ID = 24 </sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="TAXON_GROUP_HISTORICAL_RECORD">
+            <column name="ID" valueNumeric="24"/>
+            <column name="START_DATE" valueComputed="current_timestamp"/>
+            <column name="REFERENCE_TAXON_FK" valueNumeric="1063"/>
+            <column name="TAXON_GROUP_FK" valueNumeric="1025"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

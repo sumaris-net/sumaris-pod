@@ -147,7 +147,9 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         Properties defaults = getDefaults(providers, env);
 
         // Create Nuiton config instance
-        this.applicationConfig = new ApplicationConfig(ApplicationConfigInit.defaultInit()
+        this.applicationConfig = new ApplicationConfig(ApplicationConfigInit.forAllScopesWithout(
+                ApplicationConfigScope.HOME
+        )
                 .setDefaults(defaults));
         this.applicationConfig.setEncoding(Charsets.UTF_8.name());
         this.applicationConfig.setConfigFileName(file);
@@ -167,9 +169,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
         // Override some external module default config (sumaris)
         overrideExternalModulesDefaultOptions(applicationConfig);
-
-        ApplicationConfigHelper.loadAllDefaultOption(applicationConfig, providers);
-
 
         // parse config file and inline arguments
         try {

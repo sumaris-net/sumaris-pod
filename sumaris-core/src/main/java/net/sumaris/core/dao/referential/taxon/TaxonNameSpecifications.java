@@ -85,6 +85,8 @@ public interface TaxonNameSpecifications extends ReferentialSpecifications<Taxon
     @Cacheable(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_TAXON_REFERENCE_ID, unless = "#result == null")
     Optional<TaxonNameVO> findReferentByReferenceTaxonId(int referenceTaxonId);
 
+    List<TaxonNameVO> findAllReferentByReferenceTaxonId(int referenceTaxonId);
+
     @Cacheable(cacheNames = CacheConfiguration.Names.TAXON_NAMES_BY_TAXON_GROUP_ID, unless = "#result == null")
     List<TaxonNameVO> getAllByTaxonGroupId(int taxonGroupId);
 

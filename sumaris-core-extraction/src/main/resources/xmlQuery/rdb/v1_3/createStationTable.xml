@@ -35,13 +35,14 @@
     <select alias="STATION_NUMBER" type="number">O.ID</select>
 
     <!-- other fields -->
-    <select alias="FISHING_VALIDITY" type="text"><![CDATA[(SELECT DECODE(VUM.NUMERICAL_VALUE, 1, 'V', 0, 'I', null) FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&normalProgressPmfmId)]]></select>
+<!--    <select alias="FISHING_VALIDITY" type="text"><![CDATA[(SELECT DECODE(VUM.NUMERICAL_VALUE, 1, 'V', 0, 'I', null) FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&normalProgressPmfmId)]]></select>-->
+    <select alias="FISHING_VALIDITY" type="text"><![CDATA[(SELECT CASE VUM.NUMERICAL_VALUE WHEN 1 THEN 'V' WHEN 0 THEN 'I' ELSE null END FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&normalProgressPmfmId)]]></select>
     <select alias="AGGREGATION_LEVEL" type="text">'H'</select>
     <select alias="CATCH_REGISTRATION" type="text">'All'</select><!-- TODO : check batch lan/dis -->
     <select alias="SPECIES_REGISTRATION" type="text">'Par'</select><!-- TODO : check batch exhaustiveness -->
     <select alias="DATE" group="date" type="text">TO_CHAR(COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), 'YYYY-MM-DD')</select>
     <select alias="TIME" group="time" type="text">TO_CHAR(COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), 'HH24:MI')</select>
-    <select alias="FISHING_TIME" group="fishingTime" type="number">EXTRACT(MINUTE FROM (COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)) MINUTE)</select>
+    <select alias="FISHING_TIME" group="fishingTime" type="number">EXTRACT(MINUTE FROM (COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)))</select>
     <select alias="POS_START_LAT" type="number">P_START.LATITUDE</select>
     <select alias="POS_START_LON" type="number">P_START.LONGITUDE</select>
     <select alias="POS_END_LAT" type="number">P_END.LATITUDE</select>

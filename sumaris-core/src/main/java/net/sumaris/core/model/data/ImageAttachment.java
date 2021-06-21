@@ -94,7 +94,6 @@ public class ImageAttachment implements IDataEntity<Integer>,
     @Column(name = "content_type", nullable = false, length = 100)
     private String contentType;
 
-    @Lob
     @Column(length=20971520)
     private String content;
 

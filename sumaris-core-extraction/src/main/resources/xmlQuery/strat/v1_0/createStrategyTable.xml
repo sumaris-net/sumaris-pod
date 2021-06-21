@@ -38,6 +38,7 @@
 
     <select alias="LOCATION_CODES" group="hsqldb" type="text">GROUP_CONCAT(distinct L.LABEL SEPARATOR ',')</select>
     <select alias="LOCATION_CODES" group="oracle" type="text">LISTAGG(L.LABEL, ',') WITHIN GROUP (ORDER BY L.LABEL)</select>
+    <select alias="LOCATION_CODES" group="pgsql" type="text">STRING_AGG(distinct L.LABEL, ',')</select>
 
     <!-- hidden columns -->
     <select alias="PROGRAM_ID" type="hidden">P.ID</select>

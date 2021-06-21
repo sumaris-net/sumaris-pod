@@ -721,6 +721,9 @@ public class DatabaseSchemaDaoImpl
         if (Daos.isOracleDatabase(connection)) {
             return "SELECT DBTIMEZONE FROM DUAL";
         }
+        if (Daos.isPostgresqlDatabase(connection)){
+            return "SELECT TO_CHAR(age(now() at time zone 'UTC', now()), 'HH24:MI');";
+        }
         throw new SumarisTechnicalException("Could not determine database type");
     }
 
