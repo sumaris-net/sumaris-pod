@@ -43,7 +43,7 @@ export class TaxonNameRefFilter extends BaseReferentialFilter<TaxonNameRefFilter
             filterFns.push(entity => entity.taxonGroupIds && entity.taxonGroupIds.includes(this.taxonGroupId));
         } else if (isNotEmptyArray(this.taxonGroupIds)) {
             const taxonGroupIds = this.taxonGroupIds;
-            filterFns.push(entity => entity.taxonGroupIds && entity.taxonGroupIds.findIndex(taxonGroupIds.includes) !== -1);
+            filterFns.push(entity => entity.taxonGroupIds && entity.taxonGroupIds.findIndex(id => taxonGroupIds.includes(id)) !== -1);
         }
 
         if (!filterFns.length) return undefined;

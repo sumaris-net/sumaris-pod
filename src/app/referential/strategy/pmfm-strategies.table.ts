@@ -62,19 +62,19 @@ export class PmfmStrategyFilter extends EntityFilter<PmfmStrategyFilter, PmfmStr
     // Gears
     if (isNotEmptyArray(this.gearIds)) {
       const gearIds = this.gearIds;
-      filterFns.push(t => t.gearIds && t.gearIds.findIndex(gearIds.includes) !== -1);
+      filterFns.push(t => t.gearIds && t.gearIds.findIndex(id => gearIds.includes(id)) !== -1);
     }
 
     // Taxon groups
     if (isNotEmptyArray(this.taxonGroupIds)) {
       const taxonGroupIds = this.taxonGroupIds;
-      filterFns.push(t => t.taxonGroupIds && t.taxonGroupIds.findIndex(taxonGroupIds.includes) !== -1);
+      filterFns.push(t => t.taxonGroupIds && t.taxonGroupIds.findIndex(id => taxonGroupIds.includes(id)) !== -1);
     }
 
     // Taxon names
     if (isNotEmptyArray(this.referenceTaxonIds)) {
       const referenceTaxonIds = this.referenceTaxonIds;
-      filterFns.push(t => t.referenceTaxonIds && t.referenceTaxonIds.findIndex(referenceTaxonIds.includes) !== -1);
+      filterFns.push(t => t.referenceTaxonIds && t.referenceTaxonIds.findIndex(id => referenceTaxonIds.includes(id)) !== -1);
     }
 
     return filterFns;
@@ -362,7 +362,9 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     return data.map(source => {
       const target: any = source instanceof PmfmStrategy ? source.asObject() : source;
-      target.acquisitionLevel = acquisitionLevels.find(i => i.label === target.acquisitionLevel);
+      if (typeof target.acquisitionLevel === "string"){
+        target.acquisitionLevel = acquisitionLevels.find(i => i.label === target.acquisitionLevel);
+      }
 
       if (isNotNil(target.defaultValue)) {
         console.debug("[pmfm-strategy-table] TODO check default value is valid: ", target.defaultValue);

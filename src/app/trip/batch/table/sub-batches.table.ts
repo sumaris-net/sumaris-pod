@@ -538,7 +538,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       .filter(isNotNil);
     if (isNotEmptyArray(parentTaxonGroupIds)) {
       pmfms = pmfms.map(pmfm => {
-        if (PmfmUtils.isDenormalizedPmfm(pmfm) && isNotEmptyArray(pmfm.taxonGroupIds) && pmfm.taxonGroupIds.some(parentTaxonGroupIds.includes)) {
+        if (PmfmUtils.isDenormalizedPmfm(pmfm) && isNotEmptyArray(pmfm.taxonGroupIds) && pmfm.taxonGroupIds.some(id => parentTaxonGroupIds.includes(id))) {
           pmfm = pmfm.clone(); // Keep original
           pmfm.hidden = true;
           pmfm.required = false;
