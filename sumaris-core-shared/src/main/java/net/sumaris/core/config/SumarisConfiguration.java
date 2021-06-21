@@ -148,8 +148,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
         // Create Nuiton config instance
         this.applicationConfig = new ApplicationConfig(ApplicationConfigInit.forAllScopesWithout(
-                ApplicationConfigScope.HOME,
-                ApplicationConfigScope.CLASS_PATH
+                ApplicationConfigScope.HOME
         )
                 .setDefaults(defaults));
         this.applicationConfig.setEncoding(Charsets.UTF_8.name());

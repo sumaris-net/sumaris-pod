@@ -72,8 +72,6 @@ import org.springframework.stereotype.Component;
 @Profile("!test")
 public class Application {
 
-	private static String CONFIG_FILE;
-
 	private static String[] ARGS;
 
 	public static void run(String[] args, String configFile) {
@@ -90,15 +88,12 @@ public class Application {
 		}
 
 		// Could override config file id (useful for dev)
-		configFile = StringUtils.isNotBlank(configFile) ? configFile : "application.properties";
+		configFile = StringUtils.isNotBlank(configFile) ? configFile : "application-core.properties";
 		if (System.getProperty(configFile) != null) {
-			configFile = System.getProperty(CONFIG_FILE);
-			CONFIG_FILE = configFile.replaceAll("\\\\", "/");
+			configFile = System.getProperty(configFile);
+			configFile = configFile.replaceAll("\\\\", "/");
 			// Override spring location file
-			System.setProperty("spring.config.location", CONFIG_FILE);
-		}
-		else {
-			CONFIG_FILE = configFile;
+			System.setProperty("spring.config.location", configFile);
 		}
 
 		SumarisConfiguration.setInstance(null); // Reset existing config
