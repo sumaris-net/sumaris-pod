@@ -65,7 +65,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
     this.form = validatorService.getFormGroup();
 
     // default values
-    this.defaultBackHref = "/referential/list?entity=Pmfm";
+    this.defaultBackHref = "/referential/pmfm";
     this.canEdit = this.accountService.isAdmin();
 
     this.debug = !environment.production;

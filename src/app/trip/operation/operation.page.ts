@@ -730,6 +730,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           .filter(isNotNilOrBlank)
           .map(label => label.trim().toUpperCase());
       }
+    } else {
+      const taxonGroupRefs = await this.programRefService.loadTaxonGroups(this.$programLabel.getValue());
+      defaultTaxonGroups = taxonGroupRefs.map(taxonGroup => taxonGroup.label);
     }
 
     // Set table's default taxon groups

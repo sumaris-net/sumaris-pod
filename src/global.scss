@@ -16,3 +16,7 @@
 :root {
   @include css-variables-to-root();
 }
+
+ion-button.mat-form-field-button.ion-color.md.button.button-solid {
+  text-transform: capitalize;
+}
