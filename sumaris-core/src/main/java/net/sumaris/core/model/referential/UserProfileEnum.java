@@ -36,21 +36,22 @@ public enum UserProfileEnum {
     GUEST(4, "GUEST");
 
     public static UserProfileEnum valueOf(final int id) {
-        return Arrays.stream(values())
-                .filter(enumValue -> enumValue.id == id)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown UserProfileEnum: " + id));
+        return findById(id).orElseThrow(() -> new IllegalArgumentException("Unknown UserProfileEnum: " + id));
     }
 
     public static UserProfileEnum valueOfLabel(String label) {
-        return getByLabel(label).orElseThrow(() -> new IllegalArgumentException("Unknown user profile label: " + label));
+        return findByLabel(label).orElseThrow(() -> new IllegalArgumentException("Unknown user profile label: " + label));
     }
 
-    public static Optional<UserProfileEnum> getById(int id) {
+    public static Optional<UserProfileEnum> findByName(String name) {
+        return Arrays.stream(values()).filter(userProfileEnum -> name.equals(userProfileEnum.name())).findFirst();
+    }
+
+    public static Optional<UserProfileEnum> findById(int id) {
         return Arrays.stream(values()).filter(userProfileEnum -> userProfileEnum.id == id).findFirst();
     }
 
-    public static Optional<UserProfileEnum> getByLabel(String label) {
+    public static Optional<UserProfileEnum> findByLabel(String label) {
         return Arrays.stream(values()).filter(userProfileEnum -> label.equals(userProfileEnum.label)).findFirst();
     }
 

@@ -307,7 +307,7 @@ public class PersonRepositoryImpl
                 target.getUserProfiles().clear();
                 for (String profile : source.getProfiles()) {
                     if (StringUtils.isNotBlank(profile)) {
-                        UserProfileEnum.getByLabel(profile).ifPresent(userProfileEnum -> {
+                        UserProfileEnum.findByName(profile).ifPresent(userProfileEnum -> {
                             UserProfile up = getReference(UserProfile.class, userProfileEnum.getId());
                             target.getUserProfiles().add(up);
                         });
