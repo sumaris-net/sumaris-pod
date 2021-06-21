@@ -68,7 +68,7 @@
     <!-- id (=rankOrder) Column -->
     <ng-container matColumnDef="id">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
+        <ion-label>#</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</td>
     </ng-container>
