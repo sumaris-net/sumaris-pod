@@ -66,7 +66,7 @@ failsafe-build:
         - develop
 
 docker-for-fast-build:
-    <<: *docker-build
+    <<: *docker
     stage: alt_build
     when: on_failure
     allow_failure: true
