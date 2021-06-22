@@ -21,7 +21,7 @@ stages:
 
 fast-build:
     extends: .build
-    image: ${CI_REGISTRY_IMAGE}-build
+    image: $CI_REGISTRY_IMAGE
     only:
         - develop
     when: manual
@@ -161,5 +161,5 @@ docker-for-fast-build:
         - echo 'WORKDIR /build' >> Dockerfile
         - echo "RUN diff /before.txt /after.txt || true" >> Dockerfile
         - docker login -u "gitlab-ci-token" -p "$CI_BUILD_TOKEN" $CI_REGISTRY
-        - docker build --pull -t "${CI_REGISTRY_IMAGE}-build" .
-        - docker push "${CI_REGISTRY_IMAGE}-build"
+        - docker build --pull -t "$CI_REGISTRY_IMAGE" .
+        - docker push "$CI_REGISTRY_IMAGE"
