@@ -101,7 +101,6 @@ release:
         - git config --global user.email "${GITLAB_USER_EMAIL}"
         - git config --global user.name "${GITLAB_USER_NAME}"
         - echo "RELEASE_VERSION=${RELEASE_VERSION}" >> variables.env
-        - test "_" = "_$RELEASE_VERSION" && echo "ERROR: missing Pipeline variable 'RELEASE_VERSION'" && exit 1
     script:
         - echo "Preparing release"
         - mvn -s ./ci_settings.xml -B gitflow:release-start --batch-mode -DreleaseVersion="$RELEASE_VERSION"
