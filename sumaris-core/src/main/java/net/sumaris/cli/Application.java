@@ -74,11 +74,11 @@ public class Application {
 
 	private static String[] ARGS;
 
-	public static void run(String[] args, String configLocation) {
-		run(Application.class, args, configLocation);
+	public static void main(String[] args) {
+		run(Application.class, args);
 	}
 
-	public static void run(Class<? extends Application> clazz, String[] args, String configLocation) {
+	public static void run(Class<? extends Application> clazz, String[] args) {
 		// By default, display help
 		if (args == null || args.length == 0) {
 			ARGS = new String[] { "-h" };
@@ -114,18 +114,6 @@ public class Application {
 		} catch (Exception e) {
 			log.error("Error while executing action", e);
 		}
-	}
-
-	/**
-	 * <p>
-	 * main.
-	 * </p>
-	 *
-	 * @param args
-	 *            an array of {@link String} objects.
-	 */
-	public static void main(String[] args) {
-		run(args, null);
 	}
 
 	@Bean
