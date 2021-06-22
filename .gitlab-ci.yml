@@ -3,7 +3,7 @@ stages:
     - alt_build
     - test
     - docs
-    - snapshot
+    - deploy
     - release
 
 .build:
@@ -15,7 +15,6 @@ stages:
     environment:
         name: test
     artifacts:
-        untracked: true
         paths:
             - sumaris-server/target/*.war
         expire_in: 60 minutes
@@ -35,7 +34,8 @@ failsafe-build:
         - develop
     when: on_failure
 
-snapshot:
+deploy:
+    stage: deploy
     needs:
         - fast-build
     script:
@@ -45,9 +45,6 @@ snapshot:
     only:
         - develop
         - feature/imagine
-    artifacts:
-        paths:
-            - sumaris-server/target/*.war
     when: manual
 
 sonarqube:
