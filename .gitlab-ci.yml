@@ -15,20 +15,32 @@ stages:
     - release
 
 # ---------------------------------------------------------------
+# Global variables
+# ---------------------------------------------------------------
+
+variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_DRIVER: overlay2
+    ANSIBLE_FORCE_COLOR: '1'
+    CONTAINER_BUILD_IMAGE: $CI_REGISTRY_IMAGE:build
+    CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+
+# ---------------------------------------------------------------
 # Jobs templates
 # ---------------------------------------------------------------
 
-.docker-template: &docker
+.docker:
     image: docker:latest
+    before_script:
+        - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY} || true
     services:
         - docker:dind
-    variables:
-        DOCKER_DRIVER: overlay2
-        ANSIBLE_FORCE_COLOR: '1'
     tags: [sih_public_runner]
     allow_failure: false
 
-.build: &build
+.build:
     stage: build
     tags: [sih_public_runner]
     script:
@@ -40,12 +52,6 @@ stages:
         paths:
             - sumaris-server/target/*.war
         expire_in: 60 minutes
-    variables:
-        IMAGE_NAME: sumaris-pod-build
-        IMAGE_VERSION: 0.0.0
-        CI_REGISTRY: gitlab-registry.ifremer.fr
-        CI_PROJECT_PATH: sih-public/sumaris/sumaris-pod
-        CI_REGISTRY_IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}/${IMAGE_NAME}:${IMAGE_VERSION}
 
 # ---------------------------------------------------------------
 # Build jobs
@@ -53,7 +59,7 @@ stages:
 
 fast-build:
     extends: .build
-    image: ${CI_REGISTRY_IMAGE}
+    image: ${CONTAINER_BUILD_IMAGE}
     only:
         - develop
 
@@ -66,7 +72,7 @@ failsafe-build:
         - develop
 
 docker-for-fast-build:
-    <<: *docker
+    extends: .docker
     stage: alt_build
     when: on_failure
     allow_failure: true
@@ -79,17 +85,8 @@ docker-for-fast-build:
         - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"`>/after.txt' >> Dockerfile
         - echo 'WORKDIR /build' >> Dockerfile
         - echo "RUN diff /before.txt /after.txt || true" >> Dockerfile
-        - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY} || true
-        - echo 'Updating docker image ${CI_REGISTRY_IMAGE}...'
-        - docker build -t ${CI_REGISTRY_IMAGE} .
+        - docker build --pull -t ${CI_REGISTRY_IMAGE} .
         - docker push ${CI_REGISTRY_IMAGE}
-    variables:
-        IMAGE_NAME: sumaris-pod-build
-        IMAGE_VERSION: 0.0.0
-        CI_REGISTRY: gitlab-registry.ifremer.fr
-        CI_PROJECT_PATH: sih-public/sumaris/sumaris-pod
-        CI_REGISTRY_IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}/${IMAGE_NAME}:${IMAGE_VERSION}
-
 
 deploy:
     stage: deploy
