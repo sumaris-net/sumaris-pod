@@ -6,6 +6,8 @@ export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 
 export type StrategyEditor = 'legacy' | 'sampling';
 
+export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
+
 export const ProgramProperties = Object.freeze({
   // Trip
   TRIP_SALE_ENABLE: <FormFieldDefinition>{

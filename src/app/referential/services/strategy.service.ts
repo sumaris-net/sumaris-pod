@@ -23,11 +23,13 @@ import {Pmfm} from "./model/pmfm.model";
 import {ProgramRefService} from "./program-ref.service";
 import {StrategyRefService} from "./strategy-ref.service";
 import { StatusIds } from "src/app/core/services/model/model.enum";
+import { SynchronizationStatus } from "src/app/data/services/model/root-data-entity.model";
 
 
 export class StrategyFilter extends ReferentialFilter {
   //ODO Imagine: enable this, and override function asPodObject() and searchFilter()
   //referenceTaxonIds?: number[];
+  synchronizationStatus?: SynchronizationStatus;
   analyticReferences?: string;
   departmentIds?: number[];
   locationIds?: number[];

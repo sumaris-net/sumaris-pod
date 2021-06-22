@@ -1,39 +1,42 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
-import {DefaultStatusList} from "../../../core/services/model/referential.model";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
-import {Program} from "../../services/model/program.model";
-import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from "../../../shared/functions";
-import {ActivatedRoute, Router} from "@angular/router";
-import {ModalController, Platform} from "@ionic/angular";
-import {Location} from "@angular/common";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
-import {LocationLevelIds, TaxonomicLevelIds} from "../../services/model/model.enum";
-import {ReferentialFilter} from "../../services/referential.service";
-import {ReferentialRefService} from "../../services/referential-ref.service";
-import {StatusIds} from "../../../core/services/model/model.enum";
-import {ProgramProperties} from "../../services/config/program.config";
-import {environment} from "../../../../environments/environment";
-import {SamplingStrategy, StrategyEffort} from "../../services/model/sampling-strategy.model";
-import {SamplingStrategyService} from "../../services/sampling-strategy.service";
-import { SharedValidators } from "src/app/shared/validator/validators";
-import { AbstractControl, FormArray, FormBuilder, FormGroup } from "@angular/forms";
-import { personToString } from "src/app/core/services/model/person.model";
-import { PersonService } from "src/app/admin/services/person.service";
+import { Location } from "@angular/common";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input } from "@angular/core";
+import { FormBuilder, FormGroup } from "@angular/forms";
+import { ActivatedRoute, Router } from "@angular/router";
+import { ModalController, Platform } from "@ionic/angular";
+import * as momentImported from "moment";
 import { debounceTime } from "rxjs/internal/operators/debounceTime";
 import { filter } from "rxjs/internal/operators/filter";
 import { tap } from "rxjs/internal/operators/tap";
-import { ObservedLocationsPageSettingsEnum } from "src/app/trip/observedlocation/observed-locations.page";
-import { StrategyFilter, StrategyService } from "../../services/strategy.service";
-import { start } from "repl";
+import { PersonService } from "src/app/admin/services/person.service";
+import { personToString } from "src/app/core/services/model/person.model";
+import { NetworkService } from "src/app/core/services/network.service";
+import { AppRootTableSettingsEnum } from "src/app/data/table/root-table.class";
 import { fromDateISOString } from "src/app/shared/dates";
-import {Moment} from "moment";
-import * as momentImported from "moment";
-import {ParameterLabelGroups} from '../../services/model/model.enum';
+import { SharedValidators } from "src/app/shared/validator/validators";
+import { environment } from "../../../../environments/environment";
+import { LocalSettingsService } from "../../../core/services/local-settings.service";
+import { StatusIds } from "../../../core/services/model/model.enum";
+import { DefaultStatusList } from "../../../core/services/model/referential.model";
+import { EntitiesTableDataSource } from "../../../core/table/entities-table-datasource.class";
+import { AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from "../../../core/table/table.class";
+import { isNil, isNotEmptyArray, isNotNil } from "../../../shared/functions";
+import { ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME } from "../../services/config/program.config";
+import { LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds } from "../../services/model/model.enum";
+import { Program } from "../../services/model/program.model";
+import { SamplingStrategy } from "../../services/model/sampling-strategy.model";
 import { ParameterService } from "../../services/parameter.service";
+import { ReferentialRefService } from "../../services/referential-ref.service";
+import { ReferentialFilter } from "../../services/referential.service";
+import { SamplingStrategyService } from "../../services/sampling-strategy.service";
+import { StrategyFilter, StrategyService } from "../../services/strategy.service";
 
 const moment = momentImported;
 
+export const SamplingStrategiesPageSettingsEnum = {
+  PAGE_ID: "samplingStrategies",
+  FILTER_KEY: "filter",
+  FEATURE_ID: SAMPLING_STRATEGIES_FEATURE_NAME
+};
 
 @Component({
   selector: 'app-sampling-strategies-table',
@@ -48,6 +51,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
 
   private _program: Program;
   errorDetails : any;
+  protected network: NetworkService;
 
   statusList = DefaultStatusList;
   statusById: any;
@@ -55,6 +59,8 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   pmfmIds = {};
 
   filterIsEmpty = true;
+
+  hasOfflineMode = false;
 
   @Input() canEdit = false;
   @Input() canDelete = false;
@@ -82,7 +88,8 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     protected cd: ChangeDetectorRef,
     protected formBuilder: FormBuilder,
     protected personService: PersonService,
-    protected strategyService: StrategyService
+    protected strategyService: StrategyService,
+    protected parameterService: ParameterService
   ) {
     super(route,
       router,
@@ -115,12 +122,14 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       null,
       injector);
 
+    this.network = injector && injector.get(NetworkService);
 
     Object.keys(ParameterLabelGroups).forEach(parameter => {
       if (parameter !== 'ANALYTIC_REFERENCE') this.pmfmIds[parameter] = [null]
     });
 
     this.filterForm = formBuilder.group({
+      synchronizationStatus: [null],
       analyticReference: [null],
       department: [null, SharedValidators.entity],
       location: [null, SharedValidators.entity],
@@ -145,6 +154,8 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     this.inlineEdition = false;
 
     this.debug = !environment.production;
+
+    this.settingsId = SamplingStrategiesPageSettingsEnum.PAGE_ID;
   }
 
   ngOnInit() {
@@ -208,6 +219,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
           filter(() => this.filterForm.valid),
           // Applying the filter
           tap(json => this.setFilter({
+            synchronizationStatus: json.synchronizationStatus || undefined,
             analyticReferences: json.analyticReferences,
             departmentIds: isNotNil(json.department) ? [json.department.id] : undefined,
             locationIds: isNotNil(json.location) ? [json.location.id] : undefined,
@@ -218,12 +230,11 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
           }, {emitEvent: this.mobile || isNil(this.filter)})),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
-          tap(json => this.settings.savePageSetting(this.settingsId, json, ObservedLocationsPageSettingsEnum.FILTER_KEY))
+          tap(json => this.settings.savePageSetting(this.settingsId, json, SamplingStrategiesPageSettingsEnum.FILTER_KEY))
         )
     .subscribe());
 
-    // TODO restore Filters
-    // this.restoreFilterOrLoad();
+    this.restoreFilterOrLoad();
 
     // Load data, if program already set
     if (this._program && !this.autoLoad) {
@@ -236,7 +247,9 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     if (json.pmfmIds) {
       Object.keys(json.pmfmIds).forEach(parameter => {
         if (json.pmfmIds[parameter]) {
-          // TODO : GET ID  OF EACH PARAMETERS
+          this.parameterService.loadByLabel(parameter).then(parameter => {
+            pmfmIds.push(parameter && parameter.id);
+          })
         }
       });
     }
@@ -316,6 +329,49 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     //
 
     this.error = null;
+  }
+
+  protected isFilterEmpty = StrategyFilter.isEmpty;
+
+  async restoreFilterOrLoad() {
+    console.debug("[root-table] Restoring filter from settings...");
+    const jsonFilter = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY);
+
+    const synchronizationStatus = jsonFilter && jsonFilter.synchronizationStatus;
+    const filter = jsonFilter && typeof jsonFilter === 'object' && {...jsonFilter, synchronizationStatus: undefined} || undefined;
+
+    // this.hasOfflineMode = (synchronizationStatus && synchronizationStatus !== 'SYNC') ||
+    //   (await this.dataService.hasOfflineData());
+
+    // No default filter, nor synchronizationStatus
+    if (this.isFilterEmpty(filter) && !synchronizationStatus) {
+      // If offline data, show it (will refresh)
+      if (this.hasOfflineMode) {
+        this.filterForm.patchValue({
+          synchronizationStatus: 'DIRTY'
+        });
+      }
+      // No offline data: default load (online data)
+      else {
+        // To avoid a delay (caused by debounceTime in a previous pipe), to refresh content manually
+        this.onRefresh.emit();
+        // But set a empty filter, to avoid automatic apply of next filter changes (caused by condition '|| isNil()' in a previous pipe)
+        this.filterForm.patchValue({}, {emitEvent: false});
+      }
+    }
+    // Restore the filter (will apply it)
+    else {
+      // Force offline
+      if (this.network.offline && this.hasOfflineMode && synchronizationStatus === 'SYNC') {
+        this.filterForm.patchValue({
+          ...filter,
+          synchronizationStatus: 'DIRTY'
+        });
+      }
+      else {
+        this.filterForm.patchValue({...filter, synchronizationStatus});
+      }
+    }
   }
 
 

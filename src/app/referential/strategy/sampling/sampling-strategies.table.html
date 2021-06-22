@@ -122,7 +122,7 @@
         <ion-row>
           <!-- Efforts / Quarters column -->
           <ion-col formGroupName="periods">
-            <ion-label>{{i18nColumnPrefix + 'EFFORTS' |translate }}</ion-label>
+            <ion-label>{{i18nColumnPrefix + 'QUARTERS' |translate }}</ion-label>
           </ion-col>
           <ng-container *ngFor="let quarter of quarters">
             <ion-col formGroupName="periods">
@@ -133,7 +133,7 @@
         <ion-row>
           <!-- Pmfms -->
           <ion-col formGroupName="periods">
-            <ion-label>{{i18nColumnPrefix + 'PMFMS' |translate }}</ion-label>
+            <ion-label>{{i18nColumnPrefix + 'PARAMETERS'|translate}}</ion-label>
           </ion-col>
           <ng-container *ngFor="let pmfm of pmfmIds | keyvalue">
             <ion-col formGroupName="pmfmIds">
