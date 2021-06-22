@@ -2,13 +2,13 @@ import {Injectable} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {PositionValidatorService} from "./position.validator";
-import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {SharedFormGroupValidators, SharedValidators} from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {
   DataEntityValidatorOptions,
   DataEntityValidatorService
 } from "../../../data/services/validator/data-entity.validator";
-import {toBoolean} from "../../../shared/functions";
+import {toBoolean} from "@sumaris-net/ngx-components";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
 import {Program} from "../../../referential/services/model/program.model";
 import {MeasurementsValidatorService} from "./measurement.validator";

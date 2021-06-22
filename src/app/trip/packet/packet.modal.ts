@@ -3,7 +3,7 @@ import {Packet} from "../services/model/packet.model";
 import {ModalController} from "@ionic/angular";
 import {Subject, Subscription} from "rxjs";
 import {PacketForm} from "./packet.form";
-import {AppFormUtils} from "../../core/form/form.utils";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
 import {TranslateService} from "@ngx-translate/core";
 
 @Component({

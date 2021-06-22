@@ -1,22 +1,22 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {ReferentialFragments} from "./referential.fragments";
-import {GraphqlService} from "../../core/graphql/graphql.service";
+import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {CacheService} from "ionic-cache";
 import {ErrorCodes} from "./errors";
-import {AccountService} from "../../core/services/account.service";
-import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {ReferentialFilter} from "./referential.service";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {NetworkService}  from "@sumaris-net/ngx-components";
+import {EntitiesStorage}  from "@sumaris-net/ngx-components";
+import {ReferentialFilter} from "./filter/referential.filter";
 import {Strategy} from "./model/strategy.model";
 import {BaseEntityGraphqlQueries} from "./base-entity-service.class";
-import {PlatformService} from "../../core/services/platform.service";
+import {PlatformService}  from "@sumaris-net/ngx-components";
 import {StrategyFragments} from "./strategy.fragments";
-import {firstArrayValue, isNil, isNotEmptyArray, isNotNil, toNumber} from "../../shared/functions";
+import {firstArrayValue, isNil, isNotEmptyArray, isNotNil, toNumber} from "@sumaris-net/ngx-components";
 import {defer, Observable, Subject, Subscription} from "rxjs";
 import {filter, finalize, map, tap} from "rxjs/operators";
 import {BaseReferentialService} from "./base-referential-service.class";
-import {firstNotNilPromise} from "../../shared/observables";
+import {firstNotNilPromise} from "@sumaris-net/ngx-components";
 
 
 export class StrategyFilter extends ReferentialFilter {
@@ -141,11 +141,9 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
     protected cache: CacheService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql, platform, Strategy,
+    super(graphql, platform, Strategy, StrategyFilter,
       {
-        queries: StrategyRefQueries,
-        filterAsObjectFn: StrategyFilter.asPodObject,
-        filterFnFactory: StrategyFilter.searchFilter
+        queries: StrategyRefQueries
       });
   }
 

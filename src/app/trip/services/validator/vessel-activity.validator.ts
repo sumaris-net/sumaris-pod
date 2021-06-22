@@ -1,12 +1,12 @@
 import {Injectable} from "@angular/core";
 import {AbstractControlOptions, FormArray, FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
-import {toBoolean} from "../../../shared/functions";
-import {SharedFormArrayValidators, SharedValidators} from "../../../shared/validator/validators";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {toBoolean} from "@sumaris-net/ngx-components";
+import {SharedFormArrayValidators, SharedValidators} from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {VesselActivity} from "../model/aggregated-landing.model";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {DataEntityValidatorOptions} from "../../../data/services/validator/data-entity.validator";
-import {ReferentialRef} from "../../../core/services/model/referential.model";
+import {ReferentialRef}  from "@sumaris-net/ngx-components";
 import {MeasurementsValidatorService} from "./measurement.validator";
 
 export interface VesselActivityValidatorOptions extends DataEntityValidatorOptions {

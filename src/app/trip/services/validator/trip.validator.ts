@@ -4,11 +4,11 @@ import {
   SharedFormArrayValidators,
   SharedFormGroupValidators,
   SharedValidators
-} from "../../../shared/validator/validators";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+} from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {SaleValidatorService} from "./sale.validator";
 import {MeasurementsValidatorService} from "./measurement.validator";
-import {toBoolean} from "../../../shared/functions";
+import {toBoolean} from "@sumaris-net/ngx-components";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
 import {Trip} from "../model/trip.model";
 import {

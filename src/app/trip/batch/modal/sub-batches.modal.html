@@ -65,7 +65,8 @@
                             [onNewParentClick]="onNewParentClick"
                             (onSubmit)="doSubmitForm($event, editedRow)"
                             [isNew]="!editedRow"
-                            [tabindex]="1">
+                            [tabindex]="1"
+                            [maxVisibleButtons]="maxVisibleButtons">
         </app-sub-batch-form>
       </ion-col>
 
@@ -152,9 +153,9 @@
               <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
             </mat-header-cell>
             <mat-cell *matCellDef="let row">
-              <mat-icon class="comment"
+              <mat-icon color="primary" class="comment"
                         *ngIf="row.currentData.comments"
-                        [title]="row.currentData.comments">chat_bubble</mat-icon>
+                        [title]="row.currentData.comments"></mat-icon>
             </mat-cell>
           </ng-container>
 

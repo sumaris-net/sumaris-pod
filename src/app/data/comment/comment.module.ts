@@ -3,7 +3,7 @@ import {TranslateModule} from "@ngx-translate/core";
 import {CommonModule} from "@angular/common";
 import {CommentModal} from "./comment.modal";
 import {CommentForm} from "./comment.form";
-import {CoreModule} from "../../core/core.module";
+import {CoreModule}  from "@sumaris-net/ngx-components";
 
 
 @NgModule({

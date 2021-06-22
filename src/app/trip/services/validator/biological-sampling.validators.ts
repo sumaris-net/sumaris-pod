@@ -1,8 +1,8 @@
 import {FormGroup} from "@angular/forms";
 import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {Subscription} from "rxjs";
-import {isNotNil} from "../../../shared/functions";
-import {ObjectMap} from "../../../shared/types";
+import {isNotNil} from "@sumaris-net/ngx-components";
+import {ObjectMap} from "@sumaris-net/ngx-components";
 
 export class BiologicalSamplingValidators {
 

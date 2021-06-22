@@ -1,0 +1,39 @@
+@import "~@sumaris-net/ngx-components/src/theme/globals";
+
+// --------------------------------------------------
+// Theme Colors
+// --------------------------------------------------
+
+// Ionic colors
+$primary: #144391;
+$primary100: #718dbc;
+$primary900: #0e2e63;
+$secondary: #75C4FD;
+$secondary50: #d2edfe;
+$secondary100: #abdbfe;
+$secondary900: #5086ad;
+$tertiary: #5b5ef4;
+$accent: #ff4081;
+$success: #10dc60;
+$warning: #ffce00;
+$danger: #f53d3d;
+$danger100: #f98989;
+$danger900: #a82a2a;
+$light: #f4f5f8;
+$medium: #989aa2;
+$dark: #222428;
+
+// User defined colors
+$transparent: transparent;
+$lightBorder: rgba(0, 0, 0, .12);
+
+// Main background color
+$background-color: #fff;
+// Text color
+$dark-primary-text: rgba(black, 0.87);
+$dark-secondary-text: rgba(black, 0.54);
+$dark-disabled-text: rgba(black, 0.38);
+$light-primary-text: white;
+$light-secondary-text: rgba(white, 0.7);
+$light-disabled-text: rgba(white, 0.5);
+$text-color: $dark-primary-text;

@@ -2,29 +2,20 @@ import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entit
 import {Moment} from "moment";
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {Landing} from "./landing.model";
-import {
-  NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions,
-  ReferentialRef
-} from "../../../core/services/model/referential.model";
+import {ReferentialAsObjectOptions, ReferentialRef}  from "@sumaris-net/ngx-components";
 import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
 import {IWithObserversEntity} from "../../../data/services/model/model.utils";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {Person} from "../../../core/services/model/person.model";
+import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
+import {Person}  from "@sumaris-net/ngx-components";
+import {EntityClass}  from "@sumaris-net/ngx-components";
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
-
+@EntityClass({typename: "ObservedLocationVO"})
 export class ObservedLocation extends RootDataEntity<ObservedLocation>
   implements IEntityWithMeasurement<ObservedLocation>, IWithObserversEntity<ObservedLocation> {
 
-  static TYPENAME = 'ObservedLocationVO';
+  static fromObject: (source, opts?: any) => ObservedLocation;
 
-  static fromObject(source: any): ObservedLocation {
-    const res = new ObservedLocation();
-    res.fromObject(source);
-    return res;
-  }
-
-  program: ReferentialRef;
   startDateTime: Moment;
   endDateTime: Moment;
   location: ReferentialRef;
@@ -34,19 +25,11 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
   landings: Landing[];
 
   constructor() {
-    super();
-    this.__typename = ObservedLocation.TYPENAME;
-    this.program = null;
+    super(ObservedLocation.TYPENAME);
     this.location = null;
     this.measurementValues = {};
     this.observers = [];
     this.landings = [];
-  }
-
-  clone(): ObservedLocation {
-    const target = new ObservedLocation();
-    target.fromObject(this.asObject());
-    return target;
   }
 
   copy(target: ObservedLocation) {

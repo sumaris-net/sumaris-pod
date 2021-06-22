@@ -5,8 +5,8 @@ import {
   SharedFormArrayValidators,
   SharedFormGroupValidators,
   SharedValidators
-} from "../../../shared/validator/validators";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+} from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {
   DataEntityValidatorOptions,
   DataEntityValidatorService

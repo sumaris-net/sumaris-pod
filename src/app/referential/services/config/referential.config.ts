@@ -1,8 +1,8 @@
 import {TypePolicies} from "@apollo/client/core";
-import {FormFieldDefinition, FormFieldDefinitionMap} from "../../../shared/form/field.model";
-import {changeCaseToUnderscore} from "../../../shared/functions";
+import {FormFieldDefinition, FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
+import {changeCaseToUnderscore} from "@sumaris-net/ngx-components";
 import {LocationLevelIds, ParameterLabelGroups, PmfmIds, TaxonomicLevelIds} from "../model/model.enum";
-import {StatusIds} from "../../../core/services/model/model.enum";
+import {StatusIds}  from "@sumaris-net/ngx-components";
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'MetierVO': {

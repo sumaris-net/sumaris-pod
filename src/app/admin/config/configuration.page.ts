@@ -1,18 +1,19 @@
 import {ChangeDetectionStrategy, Component, Inject, Injector, Optional} from "@angular/core";
-import {firstNotNilPromise} from "../../shared/observables";
+import {firstNotNilPromise} from "@sumaris-net/ngx-components";
 import {SoftwareValidatorService} from "../../referential/services/validator/software.validator";
-import {Configuration} from "../../core/services/model/config.model";
-import {Department} from "../../core/services/model/department.model";
-import {isEmptyArray, isNilOrBlank, isNotEmptyArray} from "../../shared/functions";
+import {Configuration}  from "@sumaris-net/ngx-components";
+import {Department}  from "@sumaris-net/ngx-components";
+import {isEmptyArray, isNilOrBlank, isNotEmptyArray} from "@sumaris-net/ngx-components";
 import {BehaviorSubject} from "rxjs";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {NetworkService} from "../../core/services/network.service";
-import {Alerts} from "../../shared/alerts";
-import {CORE_CONFIG_OPTIONS} from "../../core/services/config/core.config";
-import {APP_CONFIG_OPTIONS, ConfigService} from "../../core/services/config.service";
-import {FormFieldDefinitionMap} from "../../shared/form/field.model";
+import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
+import {NetworkService}  from "@sumaris-net/ngx-components";
+import {Alerts} from "@sumaris-net/ngx-components";
+import {CORE_CONFIG_OPTIONS}  from "@sumaris-net/ngx-components";
+import {APP_CONFIG_OPTIONS, ConfigService}  from "@sumaris-net/ngx-components";
+import {FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
 import {AbstractSoftwarePage} from "../../referential/software/abstract-software.page";
-import {HistoryPageReference} from "../../core/services/model/history.model";
+import {HistoryPageReference}  from "@sumaris-net/ngx-components";
+import {SoftwareService} from '@app/referential/services/software.service';
 
 declare interface CacheStatistic {
   name: string;
@@ -28,7 +29,7 @@ declare interface CacheStatistic {
   styleUrls: ['./configuration.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ConfigurationPage extends AbstractSoftwarePage<Configuration, ConfigService> {
+export class ConfigurationPage extends AbstractSoftwarePage<Configuration, SoftwareService<Configuration>> {
 
   partners = new BehaviorSubject<Department[]>(null);
   cacheStatistics = new BehaviorSubject<CacheStatistic[]>(null);
@@ -40,14 +41,15 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
 
   constructor(
     injector: Injector,
-    dataService: ConfigService,
+    dataService: SoftwareService,
     validatorService: SoftwareValidatorService,
     public network: NetworkService,
+    public configService: ConfigService,
     @Optional() @Inject(APP_CONFIG_OPTIONS) configOptions: FormFieldDefinitionMap,
   ) {
     super(injector,
       Configuration,
-      dataService,
+      dataService as SoftwareService<Configuration>,
       validatorService,
       configOptions,
       {
@@ -62,7 +64,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
 
   async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
 
-    const config = await firstNotNilPromise(this.service.config);
+    const config = await firstNotNilPromise(this.configService.config);
 
     // Force the load of the config
     await super.load(config.id, {...opts, fetchPolicy: "network-only"});
@@ -147,13 +149,13 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
     if (confirm) {
       await this.network.clearCache();
       await this.settings.removeOfflineFeatures();
-      await this.service.clearCache({cacheName: cacheName});
+      await this.configService.clearCache({cacheName: cacheName});
       await this.loadCacheStat();
     }
   }
 
   async loadCacheStat() {
-    const value = await this.service.getCacheStatistics();
+    const value = await this.configService.getCacheStatistics();
     const stats: CacheStatistic[] = Object.keys(value).map(cacheName => {
       const stat = value[cacheName];
       return {

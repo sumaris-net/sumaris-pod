@@ -3,120 +3,20 @@ import {FetchPolicy, gql, MutationUpdaterFn} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
-import {AccountService} from "../../core/services/account.service";
-import {GraphqlService} from "../../core/graphql/graphql.service";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {ReferentialFragments} from "./referential.fragments";
 import {environment} from "../../../environments/environment";
-import {Beans, isNil, isNotEmptyArray, isNotNil, KeysEnum} from "../../shared/functions";
-import {Referential, ReferentialUtils} from "../../core/services/model/referential.model";
-import {StatusIds} from "../../core/services/model/model.enum";
+import {isNil, isNotNil} from "@sumaris-net/ngx-components";
+import {Referential, ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {StatusIds}  from "@sumaris-net/ngx-components";
 import {SortDirection} from "@angular/material/sort";
-import {PlatformService} from "../../core/services/platform.service";
-import {FilterFn, IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {EntityUtils} from "../../core/services/model/entity.model";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {IEntitiesService, LoadResult} from "@sumaris-net/ngx-components";
+import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
+import {ReferentialFilter} from "./filter/referential.filter";
 
-// TODO BLA: move some attributes into ReferentialRefFilter
-export class ReferentialFilter<ID = number> {
-  entityName?: string;
-
-  id?: ID;
-  label?: string;
-  name?: string;
-
-  statusId?: number;
-  statusIds?: number[];
-
-  levelId?: number;
-  levelIds?: number[];
-
-  levelLabel?: string;
-  levelLabels?: string[];
-
-  // TODO BLA replace by 'searchAttributes' (s) ? (that manage 'xxx.yyy')
-  searchJoin?: string; // If search is on a sub entity (e.g. Metier can search on TaxonGroup)
-  searchText?: string;
-  searchAttribute?: string;
-
-  includedIds?: number[];
-  excludedIds?: number[];
-
-  static isEmpty(f: ReferentialFilter|any): boolean {
-    return Beans.isEmpty<ReferentialFilter>(f, ReferentialFilterKeys, {
-      blankStringLikeEmpty: true
-    });
-  }
-
-  /**
-   * Clean a filter, before sending to the pod (e.g remove 'levelId', 'statusId')
-   * @param filter
-   */
-  static asPodObject<T extends ReferentialFilter = ReferentialFilter>(filter: T): any {
-    if (!filter) return filter;
-    return {
-      id: filter.id,
-      label: filter.label,
-      name: filter.name,
-      searchText: filter.searchText,
-      searchAttribute: filter.searchAttribute,
-      searchJoin: filter.searchJoin,
-      levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
-      levelLabels: isNotNil(filter.levelLabel) ? [filter.levelLabel] : filter.levelLabels,
-      statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE]),
-      includedIds: filter.includedIds,
-      excludedIds: filter.excludedIds
-    };
-  }
-
-  static searchFilter<T extends Referential>(f: ReferentialFilter): (T) => boolean {
-    if (ReferentialFilter.isEmpty(f)) return undefined;
-    const filterFns: FilterFn<T>[] = [];
-
-    // Filter by status
-    const statusIds = f.statusIds || (isNotNil(f.statusId) && [f.statusId]) || undefined;
-    if (statusIds) {
-      filterFns.push((entity) => statusIds.includes(entity.statusId));
-    }
-
-    // Filter on levels
-    const levelIds = f.levelIds || (isNotNil(f.levelId) && [f.levelId]) || undefined;
-    if (levelIds) {
-      filterFns.push((entity) => levelIds.includes(entity.levelId));
-    }
-
-    // Filter included/excluded ids
-    if (isNotEmptyArray(f.includedIds)) {
-      filterFns.push((entity) => isNotNil(entity.id) && f.includedIds.includes(entity.id));
-    }
-    if (isNotEmptyArray(f.excludedIds)) {
-      filterFns.push((entity) => isNil(entity.id) || !f.excludedIds.includes(entity.id));
-    }
-
-    const searchTextFilter = EntityUtils.searchTextFilter(f.searchAttribute, f.searchText);
-    if (searchTextFilter) filterFns.push(searchTextFilter);
-
-    if (!filterFns.length) return undefined;
-
-    return (entity) => !filterFns.find(fn => !fn(entity));
-  }
-}
-export const ReferentialFilterKeys: KeysEnum<ReferentialFilter> = {
-  entityName: true,
-  id: true,
-  label: true,
-  name: true,
-  statusId: true,
-  statusIds: true,
-  levelId: true,
-  levelIds: true,
-  levelLabel: true,
-  levelLabels: true,
-  searchJoin: true,
-  searchText: true,
-  searchAttribute: true,
-  includedIds: true,
-  excludedIds: true
-};
 
 export interface ReferentialType {
   id: string;
@@ -184,7 +84,9 @@ export const ReferentialQueries = {
 };
 
 @Injectable({providedIn: 'root'})
-export class ReferentialService extends BaseGraphqlService<Referential> implements IEntitiesService<Referential, ReferentialFilter> {
+export class ReferentialService
+  extends BaseGraphqlService<Referential, ReferentialFilter>
+  implements IEntitiesService<Referential, ReferentialFilter> {
 
   constructor(
     protected graphql: GraphqlService,
@@ -209,7 +111,7 @@ export class ReferentialService extends BaseGraphqlService<Referential> implemen
            size: number,
            sortBy?: string,
            sortDirection?: SortDirection,
-           filter?: ReferentialFilter,
+           filter?: Partial<ReferentialFilter>,
            opts?: {
       fetchPolicy?: FetchPolicy;
       withTotal: boolean;
@@ -220,6 +122,7 @@ export class ReferentialService extends BaseGraphqlService<Referential> implemen
       throw { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" };
     }
 
+    filter = this.asFilter(filter);
     const entityName = filter.entityName;
     const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
 
@@ -229,7 +132,7 @@ export class ReferentialService extends BaseGraphqlService<Referential> implemen
       size: size || 100,
       sortBy: sortBy || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: ReferentialFilter.asPodObject(filter)
+      filter: filter && filter.asPodObject()
     };
 
     let now = this._debug && Date.now();
@@ -249,7 +152,7 @@ export class ReferentialService extends BaseGraphqlService<Referential> implemen
     })
       .pipe(
         map(({data, total}) => {
-          const entities = (data || []).map(ReferentialUtils.fromObject);
+          const entities = (data || []).map(Referential.fromObject);
           entities.forEach(r => r.entityName = uniqueEntityName);
           if (now) {
             console.debug(`[referential-service] ${uniqueEntityName} loaded in ${Date.now() - now}ms`, entities);
@@ -281,6 +184,7 @@ export class ReferentialService extends BaseGraphqlService<Referential> implemen
       throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
     }
 
+    filter = this.asFilter(filter);
     const entityName = filter.entityName;
     const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
     const debug = this._debug && (!opts || opts.debug !== false);
@@ -291,7 +195,7 @@ export class ReferentialService extends BaseGraphqlService<Referential> implemen
       size: size || 100,
       sortBy: sortBy || filter.searchAttribute || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: ReferentialFilter.asPodObject(filter)
+      filter: filter && filter.asPodObject()
     };
 
     const now = Date.now();
@@ -313,7 +217,7 @@ export class ReferentialService extends BaseGraphqlService<Referential> implemen
 
     // Convert to entities
     if (!opts || opts.toEntity !== false) {
-      data = data.map(ReferentialUtils.fromObject);
+      data = data.map(Referential.fromObject);
     }
 
     if (debug) console.debug(`[referential-service] ${uniqueEntityName} items loaded in ${Date.now() - now}ms`);
@@ -379,20 +283,24 @@ export class ReferentialService extends BaseGraphqlService<Referential> implemen
   }
 
   async existsByLabel(label: string,
-                      filter?: ReferentialFilter,
+                      filter?: ReferentialFilter|any,
                       opts?: {
                         fetchPolicy: FetchPolicy;
                       }): Promise<boolean> {
+
     if (!filter || !filter.entityName || !label) {
       console.error("[referential-service] Missing 'filter.entityName' or 'label'");
       throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
     }
+
+    filter = this.asFilter(filter);
     filter.label = label;
+
     const {total} = await this.graphql.query<{ total: number; }>({
       query: CountQuery,
       variables : {
         entityName: filter.entityName,
-        filter: ReferentialFilter.asPodObject(filter)
+        filter: filter.asPodObject()
       },
       error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" },
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'
@@ -531,13 +439,16 @@ export class ReferentialService extends BaseGraphqlService<Referential> implemen
       fetchPolicy: options && options.fetchPolicy || 'cache-first'
     });
 
-    const entities = (data || []).map(ReferentialUtils.fromObject);
+    const entities = (data || []).map(Referential.fromObject);
 
     if (this._debug) console.debug(`[referential-service] Levels for ${entityName} loading in ${Date.now() - now}`, entities);
 
     return entities;
   }
 
+  asFilter(filter: Partial<ReferentialFilter>): ReferentialFilter {
+    return ReferentialFilter.fromObject(filter);
+  }
 
   /* -- protected methods -- */
 

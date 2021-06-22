@@ -9,7 +9,7 @@
              [backHref]="defaultBackHref"
              [canGoBack]="true">
 
-  <ion-title [innerHTML]="title$|async"></ion-title>
+  <ion-title [innerHTML]="$title|async"></ion-title>
 
   <ion-button slot="end"
               *ngIf="!loading"
@@ -98,7 +98,7 @@
       <div slot="end" class="ion-padding-end">
         <!-- Show all button -->
         <ion-button fill="clear"
-                    (click)="appToolbar.doBackClick($event)"
+                    (click)="toolbar.doBackClick($event)"
                     routerDirection="back"
                     translate>TRIP.OPERATION.BTN_SHOW_ALL</ion-button>
 

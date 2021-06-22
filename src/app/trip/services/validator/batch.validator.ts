@@ -1,10 +1,10 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, ValidationErrors, Validators} from "@angular/forms";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {SharedValidators} from "@sumaris-net/ngx-components";
 import {Batch, BatchUtils, BatchWeight} from "../model/batch.model";
 import {debounceTime, filter, map, tap} from "rxjs/operators";
-import {isNil, isNotNilOrNaN, toBoolean, toNumber} from "../../../shared/functions";
+import {isNil, isNotNilOrNaN, toBoolean, toNumber} from "@sumaris-net/ngx-components";
 import {MethodIds} from "../../../referential/services/model/model.enum";
 import {Subject, Subscription} from "rxjs";
 

@@ -1,4 +1,5 @@
-import { Environment } from "./environment.class";
+import {Environment} from "@sumaris-net/ngx-components";
+
 const pkg = require('../../package.json')
 
 /* tslint:disable */

@@ -1,8 +1,8 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Software} from "../../../core/services/model/config.model";
+import {Software}  from "@sumaris-net/ngx-components";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {EntityUtils} from "../../../core/services/model/entity.model";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
 
 @Injectable({providedIn: 'root'})
 export class SoftwareValidatorService<T extends Software<T> = Software<any>> implements ValidatorService{

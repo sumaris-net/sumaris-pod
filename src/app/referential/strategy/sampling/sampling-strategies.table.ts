@@ -1,21 +1,22 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
-import {DefaultStatusList} from "../../../core/services/model/referential.model";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
+import {DefaultStatusList}  from "@sumaris-net/ngx-components";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
 import {Program} from "../../services/model/program.model";
-import {isEmptyArray, isNotEmptyArray, isNotNil} from "../../../shared/functions";
+import {isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
 import {LocationLevelIds, TaxonomicLevelIds} from "../../services/model/model.enum";
-import {ReferentialFilter} from "../../services/referential.service";
+import {ReferentialFilter} from "../../services/filter/referential.filter";
 import {ReferentialRefService} from "../../services/referential-ref.service";
-import {StatusIds} from "../../../core/services/model/model.enum";
+import {StatusIds}  from "@sumaris-net/ngx-components";
 import {ProgramProperties} from "../../services/config/program.config";
 import {environment} from "../../../../environments/environment";
-import {SamplingStrategy, StrategyEffort} from "../../services/model/sampling-strategy.model";
+import {SamplingStrategy} from "../../services/model/sampling-strategy.model";
 import {SamplingStrategyService} from "../../services/sampling-strategy.service";
+import {StrategyFilter} from "../../services/strategy.service";
 
 
 @Component({
@@ -27,10 +28,10 @@ import {SamplingStrategyService} from "../../services/sampling-strategy.service"
 /**
  *
  */
-export class SamplingStrategiesTable extends AppTable<SamplingStrategy, ReferentialFilter> {
+export class SamplingStrategiesTable extends AppTable<SamplingStrategy, StrategyFilter> {
 
   private _program: Program;
-  errorDetails : any;
+  errorDetails: any;
 
   statusList = DefaultStatusList;
   statusById: any;
@@ -153,10 +154,10 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Referent
       const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
       this.i18nColumnPrefix += i18nSuffix !== 'legacy' && i18nSuffix || '';
 
-      this.setFilter( {
+      this.setFilter(StrategyFilter.fromObject({
         ...this.filter,
         levelId: program.id
-      });
+      }));
     }
   }
 

@@ -7,29 +7,29 @@ import {MeasurementsValidatorService} from "../../services/validator/measurement
 import {AbstractControl, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
 import {SubBatchValidatorService} from "../../services/validator/sub-batch.validator";
-import {EntityUtils} from "../../../core/services/model/entity.model";
-import {ReferentialUtils} from "../../../core/services/model/referential.model";
-import {UsageMode} from "../../../core/services/model/settings.model";
+import {EntityUtils, isInstanceOf}  from "@sumaris-net/ngx-components";
+import {ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {UsageMode}  from "@sumaris-net/ngx-components";
 import {debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
 import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../../referential/services/model/model.enum";
 import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {BehaviorSubject, combineLatest} from "rxjs";
-import {getPropertyByPath, isEmptyArray, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, startsWithUpperCase, toBoolean} from "../../../shared/functions";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {getPropertyByPath, isEmptyArray, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, startsWithUpperCase, toBoolean} from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {MeasurementValuesUtils} from "../../services/model/measurement.model";
-import {PlatformService} from "../../../core/services/platform.service";
+import {PlatformService}  from "@sumaris-net/ngx-components";
 import {PmfmFormField} from "../../../referential/pmfm/pmfm.form-field.component";
-import {focusNextInput, focusPreviousInput, GetFocusableInputOptions} from "../../../shared/inputs";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {focusNextInput, focusPreviousInput, GetFocusableInputOptions} from "@sumaris-net/ngx-components";
+import {SharedValidators} from "@sumaris-net/ngx-components";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
 import {SubBatch} from "../../services/model/subbatch.model";
 import {BatchGroup} from "../../services/model/batch-group.model";
 import {TranslateService} from "@ngx-translate/core";
 import {FloatLabelType} from "@angular/material/form-field";
-import {AppFormUtils} from "../../../core/form/form.utils";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
 import {ProgramRefService} from "../../../referential/services/program-ref.service";
-import {LoadResult} from "../../../shared/services/entity-service.class";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {LoadResult} from "@sumaris-net/ngx-components";
+import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
 
 
 @Component({
@@ -62,6 +62,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   @Input() usageMode: UsageMode;
 
   @Input() showParentGroup = true;
+
+  @Input() maxVisibleButtons: number;
 
   @Input() set showTaxonName(show) {
     this._showTaxonName = show;
@@ -364,7 +366,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     if (!this.onNewParentClick) return; // No callback: skip
     const res = await this.onNewParentClick();
 
-    if (res && res instanceof Batch) {
+    if (isInstanceOf(res, Batch)) {
       this.form.get('parent').setValue(res);
     }
   }
@@ -551,7 +553,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     // If there is a parent: filter on parent's taxon group
     const parentTaxonGroupId = this.parentGroup && this.parentGroup.taxonGroup && this.parentGroup.taxonGroup.id;
     if (isNotNil(parentTaxonGroupId)) {
-      pmfms = pmfms.filter(pmfm => !(pmfm instanceof DenormalizedPmfmStrategy)
+      pmfms = pmfms.filter(pmfm => !PmfmUtils.isDenormalizedPmfm(pmfm)
           || isEmptyArray(pmfm.taxonGroupIds)
           || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
     }

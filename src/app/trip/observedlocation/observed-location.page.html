@@ -1,4 +1,4 @@
-<app-toolbar [title]="title$ | async" color="primary"
+<app-toolbar [title]="$title | async" color="primary"
              [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
@@ -68,19 +68,19 @@
           <ion-col class="ion-padding">
 
             <!-- observed location -->
-            <form-observed-location #observedLocationForm
-                                    [programLabel]="$programLabel|async"
-                                    [showError]="false"
-                                    [showEndDateTime]="false"
-                                    [debug]="debug"
-                                    (onSubmit)="save($event)">
-            </form-observed-location>
+            <app-form-observed-location #observedLocationForm
+                                        [programLabel]="$programLabel|async"
+                                        [showError]="false"
+                                        [showEndDateTime]="false"
+                                        [debug]="debug"
+                                        (onSubmit)="save($event)">
+            </app-form-observed-location>
           </ion-col>
 
           <!-- quality data -->
           <ion-col size="12" size-xl="3" class="ion-no-padding">
             <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
-              <app-entity-quality-form [editor]="this">
+              <app-entity-quality-form>
               </app-entity-quality-form>
             </app-entity-metadata>
           </ion-col>
@@ -133,7 +133,7 @@
 
       </div>
 
-      <div class="ion-no-padding" *ngIf="aggregatedLandings === true">
+      <div class="ion-no-padding" *ngIf="aggregatedLandings">
 
         <!-- error -->
         <ion-item *ngIf="aggregatedLandingsTable?.error" visible-xs visible-sm visible-mobile lines="none">

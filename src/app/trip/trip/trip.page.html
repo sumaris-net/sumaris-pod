@@ -1,4 +1,4 @@
-<app-toolbar [title]="title$ | async" color="primary"
+<app-toolbar [title]="$title | async" color="primary"
              [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
@@ -57,7 +57,8 @@
   </button>
 </mat-menu>
 
-<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
+<ion-content
+  (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
   <mat-tab-group #tabGroup
                  class="mat-tab-disabled-hidden"
                  [(selectedIndex)]="selectedTabIndex"
@@ -121,7 +122,7 @@
           <!-- quality data -->
           <ion-col size="12" size-xl="3" class="ion-no-padding">
             <app-entity-metadata [value]="data">
-              <app-entity-quality-form [editor]="this">
+              <app-entity-quality-form>
               </app-entity-quality-form>
             </app-entity-metadata>
           </ion-col>
@@ -170,6 +171,7 @@
                             (onOpenRow)="onOpenOperation($event)"
                             (onNewRow)="onNewOperation($event)"
                             [program]="$programLabel|async"
+                            [paginator]="paginator"
                             [defaultSortBy]="mobile ? 'startDateTime': 'endDateTime'"
                             [defaultSortDirection]="mobile ?'desc': 'asc'">
       </app-operations-table>
@@ -178,7 +180,16 @@
 
 </ion-content>
 
+<ion-footer [class.cdk-visually-hidden]="selectedTabIndex !== 2">
+  <mat-paginator #paginator class="mat-paginator-footer"
+                 [length]="operationsTable.totalRowCount" [pageSize]="operationsTable.pageSize"
+                 [pageSizeOptions]="operationsTable.defaultPageSizeOptions" showFirstLastButtons>
+  </mat-paginator>
+</ion-footer>
+
 <ion-footer hidden-xs hidden-sm hidden-mobile>
+
+
   <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
                     [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">

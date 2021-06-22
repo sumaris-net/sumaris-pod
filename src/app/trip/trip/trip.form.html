@@ -52,11 +52,11 @@
         <ion-label class="ion-float-end" translate>TRIP.DEPARTURE</ion-label>
       </ion-col>
       <ion-col>
-        <mat-autocomplete-field
-          [placeholder]="'TRIP.DEPARTURE_LOCATION'|translate"
-          formControlName="departureLocation"
-          [config]="autocompleteFields.location"
-          [required]="true">
+        <mat-autocomplete-field formControlName="departureLocation"
+                                [placeholder]="'TRIP.DEPARTURE_LOCATION'|translate"
+                                [config]="autocompleteFields.location"
+                                [filter]="locationFilter"
+                                [required]="true">
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
 
@@ -75,10 +75,10 @@
         <ion-label class="ion-float-end" translate>TRIP.RETURN</ion-label>
       </ion-col>
       <ion-col>
-        <mat-autocomplete-field
+        <mat-autocomplete-field formControlName="returnLocation"
           [placeholder]="'TRIP.RETURN_LOCATION'|translate"
-          formControlName="returnLocation"
           [config]="autocompleteFields.location"
+          [filter]="locationFilter"
           [required]="usageMode|isNotOnField">
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
@@ -155,7 +155,7 @@
                   [title]="'TRIP.BTN_FILTER_METIER'|translate"
                   (click)="toggleFilteredMetier()"
                   [color]="enableMetierFilter ? 'primary' : undefined">
-            <mat-icon>filter_list</mat-icon>
+            <mat-icon>filter_list_alt</mat-icon>
           </button>
 
         </mat-autocomplete-field>

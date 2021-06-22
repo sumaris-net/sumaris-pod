@@ -1,7 +1,7 @@
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 
 // LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
-import {ObjectMap} from "../../../shared/types";
+import {ObjectMap} from "@sumaris-net/ngx-components";
 
 export const LocationLevelIds = {
   // Lands

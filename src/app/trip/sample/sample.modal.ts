@@ -1,26 +1,27 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {AlertController, IonContent, ModalController} from "@ionic/angular";
-import {BehaviorSubject, Observable} from "rxjs";
+import {BehaviorSubject, isObservable, Observable, of} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {isNil, isNotEmptyArray, toBoolean} from "../../shared/functions";
-import {PlatformService} from "../../core/services/platform.service";
+import {isNil, isNotEmptyArray, toBoolean} from "@sumaris-net/ngx-components";
+import {PlatformService}  from "@sumaris-net/ngx-components";
 import {SampleForm} from "./sample.form";
 import {Sample} from "../services/model/sample.model";
-import {UsageMode} from "../../core/services/model/settings.model";
-import {Alerts} from "../../shared/alerts";
+import {UsageMode}  from "@sumaris-net/ngx-components";
+import {Alerts} from "@sumaris-net/ngx-components";
 import {TRIP_LOCAL_SETTINGS_OPTIONS} from "../services/config/trip.config";
 import {IDataEntityModalOptions} from "../../data/table/data-modal.class";
 import {debounceTime} from "rxjs/operators";
-import {AppFormUtils} from "../../core/form/form.utils";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {referentialToString} from "../../core/services/model/referential.model";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
+import {referentialToString}  from "@sumaris-net/ngx-components";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
+
   // UI Fields show/hide
   showLabel: boolean;
   showDateTime: boolean;
@@ -34,6 +35,7 @@ export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
 
   // Callback actions
   onSaveAndNew: (data: Sample) => Promise<Sample>;
+  onReady: (modal: SampleModal) => void;
 }
 
 @Component({
@@ -43,16 +45,26 @@ export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
 })
 export class SampleModal implements OnInit, ISampleModalOptions {
 
+  private _$inputPmfms: Observable<IPmfm[]> | IPmfm[];
   debug = false;
   loading = false;
   mobile: boolean;
-  data: Sample;
   $title = new BehaviorSubject<string>(undefined);
 
   @Input() i18nPrefix: string;
   @Input() acquisitionLevel: string;
   @Input() programLabel: string;
-  @Input() pmfms: Observable<DenormalizedPmfmStrategy[]> | DenormalizedPmfmStrategy[]; // Avoid to load PMFM from program
+
+  // Avoid to load PMFM from program
+  @Input() set pmfms(pmfms: Observable<IPmfm[]> | IPmfm[]) {
+    this._$inputPmfms = pmfms;
+  }
+
+  get $pmfms(): Observable<IPmfm[]> {
+    return this.form.$pmfms ||
+      (isObservable(this._$inputPmfms) ? this._$inputPmfms : of(this._$inputPmfms));
+  }
+
   @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[]; // If PMFM are load from program: allow to override the list
 
   @Input() disabled: boolean;
@@ -73,10 +85,7 @@ export class SampleModal implements OnInit, ISampleModalOptions {
   @Input() maxVisibleButtons: number;
   @Input() enableBurstMode: boolean;
 
-  @Input()
-  set value(value: Sample) {
-    this.data = value;
-  }
+  @Input() data: Sample;
 
   @ViewChild('form', { static: true }) form: SampleForm;
   @ViewChild(IonContent) content: IonContent;
@@ -93,9 +102,6 @@ export class SampleModal implements OnInit, ISampleModalOptions {
     return this.form.valid;
   }
 
-  get $pmfms(): Observable<IPmfm[]> {
-    return this.form.$pmfms;
-  }
 
   constructor(
     protected injector: Injector,

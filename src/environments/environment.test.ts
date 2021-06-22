@@ -4,7 +4,7 @@
 
 // Environment to use only with unit tests
 
-import {Environment} from "./environment.class";
+import {Environment} from "@sumaris-net/ngx-components";
 
 const pkg = require('../../package.json');
 

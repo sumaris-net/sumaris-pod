@@ -1,27 +1,14 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Inject,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit
-} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {StrategyValidatorService} from "../services/validator/strategy.validator";
-import {Strategy} from "../services/model/strategy.model";
-import {isNotNil, toBoolean} from "../../shared/functions";
-import {DefaultStatusList} from "../../core/services/model/referential.model";
-import {StrategyFilter, StrategyService} from "../services/strategy.service";
-import {ActivatedRoute, Router} from "@angular/router";
-import {ModalController, Platform} from "@ionic/angular";
-import {Location} from "@angular/common";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {Program} from "../services/model/program.model";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {ENVIRONMENT} from "../../../environments/environment.class";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {StrategyValidatorService} from '../services/validator/strategy.validator';
+import {Strategy} from '../services/model/strategy.model';
+import {AppTable, DefaultStatusList, EntitiesTableDataSource, isNotNil, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, toBoolean} from '@sumaris-net/ngx-components';
+import {StrategyFilter, StrategyService} from '../services/strategy.service';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ModalController, Platform} from '@ionic/angular';
+import {Location} from '@angular/common';
+import {Program} from '../services/model/program.model';
+import {environment} from '@environments/environment';
 
 
 @Component({
@@ -47,10 +34,10 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     if (program && isNotNil(program.id) && this._program !== program) {
       this._program = program;
       console.debug('[strategy-table] Setting program:', program);
-      this.setFilter( {
+      this.setFilter( StrategyFilter.fromObject({
         ...this.filter,
         levelId: program.id
-      });
+      }));
     }
   }
 
@@ -68,8 +55,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     injector: Injector,
     dataService: StrategyService,
     validatorService: ValidatorService,
-    protected cd: ChangeDetectorRef,
-    @Inject(ENVIRONMENT) environment
+    protected cd: ChangeDetectorRef
   ) {
     super(route,
       router,

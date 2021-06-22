@@ -1,6 +1,8 @@
 .mat-expansion-panel {
   margin-bottom: 5px;
 
+  --expansion-panel-padding: 0!important;
+
   .form-container {
     mat-form-field {
       width: 100%;
@@ -11,6 +13,7 @@
   }
 
   mat-action-row {
+    height: 46px;
     ion-label {
       line-height: 36px;
     }
@@ -18,7 +21,7 @@
 }
 
 .table-container {
-  height: calc(100% - 70px);
+  height: calc(100%);
 }
 
 .mat-table {

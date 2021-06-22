@@ -1,18 +1,18 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
-import {AppForm} from "../../core/form/form.class";
+import {AppForm}  from "@sumaris-net/ngx-components";
 import {Packet, PacketComposition, PacketUtils} from "../services/model/packet.model";
-import {IReferentialRef} from "../../core/services/model/referential.model";
-import {UsageMode} from "../../core/services/model/settings.model";
+import {IReferentialRef}  from "@sumaris-net/ngx-components";
+import {UsageMode}  from "@sumaris-net/ngx-components";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {PacketValidatorService} from "../services/validator/packet.validator";
-import {FormArrayHelper} from "../../core/form/form.utils";
+import {FormArrayHelper}  from "@sumaris-net/ngx-components";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {isNil, isNotEmptyArray, isNotNilOrNaN, round} from "../../shared/functions";
+import {isNil, isNotEmptyArray, isNotNilOrNaN, round} from "@sumaris-net/ngx-components";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {PlatformService} from "../../core/services/platform.service";
-import {LoadResult} from "../../shared/services/entity-service.class";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {LoadResult} from "@sumaris-net/ngx-components";
 
 
 @Component({

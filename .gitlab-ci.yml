@@ -17,7 +17,7 @@ stages:
     - npm install
     - npm run build.${BUILD_ENVIRONMENT}
   variables:
-    BUILD_ENVIRONMENT: aot
+    BUILD_ENVIRONMENT: prod
 
 build_auto:
   extends: .build

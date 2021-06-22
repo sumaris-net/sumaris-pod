@@ -1,12 +1,12 @@
 import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import {ModalController} from "@ionic/angular";
 import {Subject, Subscription} from "rxjs";
-import {AppFormUtils} from "../../core/form/form.utils";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
 import {ProductSaleForm} from "./product-sale.form";
 import {Product} from "../services/model/product.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {TranslateService} from "@ngx-translate/core";
-import {referentialToString} from "../../core/services/model/referential.model";
+import {referentialToString}  from "@sumaris-net/ngx-components";
 
 @Component({
   selector: 'app-product-sale-modal',

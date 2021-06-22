@@ -1,10 +1,8 @@
-import {FormFieldDefinition} from "../../../shared/form/field.model";
-import {EntitiesStorageTypePolicies} from "../../../core/services/storage/entities-storage.service";
-import {EntityStoreTypePolicy} from "../../../core/services/storage/entity-store.class";
-import {Operation, Trip} from "../model/trip.model";
-import {TypePolicies} from "@apollo/client/core";
-import {ObservedLocation} from "../model/observed-location.model";
-import {Landing} from "../model/landing.model";
+import {EntitiesStorageTypePolicies, EntityStoreTypePolicy, FormFieldDefinition} from '@sumaris-net/ngx-components';
+import {Operation, Trip} from '../model/trip.model';
+import {TypePolicies} from '@apollo/client/core';
+import {ObservedLocation} from '../model/observed-location.model';
+import {Landing} from '../model/landing.model';
 
 /**
  * Name of the features (e.g. to be used by settings)

@@ -193,6 +193,7 @@
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?",
+      "UPDATE_TECHNICAL_TABLES": "Mise à jour auto des tables techniques ?",
       "ANALYTIC_REFERENCES_ENABLE": "Stratégie > Références analytiques : Activer ?",
       "AUTH_TOKEN_TYPE_PLACEHOLDER": "Securité > Type d'authentification",
       "AUTH_TOKEN_TYPE": {
@@ -201,7 +202,8 @@
         "BASIC_AND_TOKEN": "Basique et cryptographique"
       },
       "DATA_QUALITY_PROCESS_ENABLE": "Activer le processus qualité ?",
-      "DATA_SHOW_OBSERVERS_ENABLE": "Activer les observateurs ?"
+      "DATA_SHOW_RECORDER": "Afficher le saisisseur ?",
+      "DATA_SHOW_OBSERVERS": "Afficher les observateurs ?"
     },
     "CACHE": {
       "NAME": "Nom",
@@ -219,14 +221,14 @@
     "DOWNLOADS": "Téléchargements",
     "DATA_ENTRY_DIVIDER": "Saisie de données",
     "DATA_ACCESS_DIVIDER": "Accès aux données",
-    "OBSERVED_LOCATIONS": "Observations",
+    "OBSERVED_LOCATIONS": "Sorties",
     "AUCTION_OCCASION": "Sorties en criée",
     "OCCASION": "Sorties",
     "ADMINISTRATION_DIVIDER": "Administration",
     "REFERENTIAL_DIVIDER": "Référentiels",
     "USERS": "Utilisateurs",
     "VESSELS": "Navires",
-    "REFERENTIAL": "Listes de références",
+    "REFERENTIAL": "Référentiels",
     "PROGRAMS": "Programmes",
     "EXTRACTIONS": "Extractions",
     "MAP": "Cartes",
@@ -436,6 +438,7 @@
       "RETURN_LOCATION": "Port de retour",
       "QUALITY": "État",
       "OBSERVERS": "Observateurs",
+      "RECORDER_PERSON": "Saisisseur",
       "COMMENTS": "Commentaires",
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les marées <b>non synchronisées</b>)",
       "FILTER": {
@@ -494,6 +497,7 @@
       "LIST": {
         "SELECT_ROW_HELP": "Sélectionnez un engin dans la liste, pour pouvoir l'éditer",
         "GEAR": "Engin",
+        "LAST_USED": "Dernière utilisation",
         "COMMENTS": "Commentaires"
       },
       "SELECT_MODAL": {
@@ -765,7 +769,7 @@
       "START": "Début :",
       "END": "Fin :",
       "START_END": "Début / Fin :",
-      "LOCATION": "Lieu d'observation",
+      "LOCATION": "Lieu de la sortie",
       "LOCATION_AND_DATE": "Lieu / Date :",
       "TAB_GENERAL": "Détails",
       "OBSERVER_PLACEHOLDER": "Observateur #",
@@ -776,8 +780,8 @@
       }
     },
     "SELECT_VESSEL_MODAL": {
-      "TITLE": "Ajout d'un navire",
-      "TAB_VESSELS": "Recherche",
+      "TITLE": "Sélection du navire",
+      "TAB_VESSELS": "Recherche navire",
       "TAB_LANDINGS": "Historique",
       "TAB_NEW_VESSEL": "Nouveau navire"
     },
@@ -785,13 +789,13 @@
       "PROGRAM": "Programme",
       "START_DATE_TIME": "Date/heure",
       "QUALITY": "État",
-      "LOCATION": "Criée",
+      "LOCATION": "Lieu de la sortie",
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaires",
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les sorties <b>non envoyées</b>)",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
-        "LOCATION": "Criée",
+        "LOCATION": "Lieu de la sortie",
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période"
       }
@@ -803,8 +807,8 @@
       "DURATION_PLACEHOLDER": "Période à importer"
     },
     "OPTIONS": {
-      "ENABLE": "Observations > Activer ?",
-      "NAME": "Observations > Titre (menu)"
+      "ENABLE": "Sorties > Activer ?",
+      "NAME": "Sorties > Titre (menu)"
     },
     "ERROR": {
       "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles."
@@ -1025,10 +1029,12 @@
     },
     "ACTION": {
       "EDIT": "Modifier",
-      "EDIT_FEATURES": "Corriger les caractéristiques",
-      "NEW_FEATURES": "Declarer un changement de caratéristiques",
+      "REGISTRATION_DIVIDER": "Immatriculation (code, pavillon)",
+      "FEATURES_DIVIDER": "Caractéristiques (marquage, nom, port, etc.)",
       "EDIT_REGISTRATION": "Corriger l'immatriculation",
-      "NEW_REGISTRATION": "Declarer une nouvelle immatriculation",
+      "NEW_REGISTRATION": "Declarer un changement",
+      "EDIT_FEATURES": "Corriger les caractéristiques",
+      "NEW_FEATURES": "Declarer un changement",
       "EDIT_STATUS": "Modifier l'état de saisie"
     },
     "EDIT": {
@@ -1073,7 +1079,22 @@
     },
     "TAXON_NAME": {
       "LABEL": "Code espèce scientifique",
-      "NAME": "Libellé espèce scientifique"
+      "NAME": "Libellé espèce scientifique",
+      "PARENT": "Espèce scientifique parente",
+      "IS_REFERENT": "Référent ?",
+      "IS_NAMING": "Nommage conventionnel ?",
+      "IS_VIRTUAL": "Virtuel ?",
+      "USE_EXISTING_REFERENCE_TAXON": "Utiliser référence unique de taxon existante ?",
+      "REFERENCE_TAXON":"Référence unique de taxon",
+      "TAXONOMIC_LEVEL": "Niveau taxonomique",
+      "START_DATE": "Date de début",
+      "END_DATE": "Date de fin",
+      "NEW": {
+        "TITLE": "Nouvelle espèce scientifique"
+      },
+      "EDIT": {
+        "TITLE": "Espèce scientifique {{label}} - {{name}}"
+      }
     },
     "GEAR": {
       "LABEL": "Code engin",
@@ -1136,9 +1157,9 @@
       "DESCRIPTION": "description"
     },
     "LIST": {
-      "TITLE": "Listes",
+      "TITLE": "Référentiels",
       "FILTER": {
-        "ENTITY": "Type de liste",
+        "ENTITY": "Type de référentiel",
         "SEARCH_TEXT": "Recherche : code, libellé"
       }
     },
@@ -1165,7 +1186,7 @@
       "TAXON_GROUP_TYPE": "Types de groupe d'espèce",
       "TAXON_GROUP": "Espèces commerciales (FAO)",
       "TAXON_NAME": "Espèces scientifique",
-      "TAXONOMIC_LEVEL": "Niveaux taxinomique",
+      "TAXONOMIC_LEVEL": "Niveaux taxinomiques",
       "REFERENCE_TAXON": "Références uniques de taxon",
       "PROGRAM": "Programmes de collecte",
       "STRATEGY": "Stratégies de collecte",
@@ -1215,9 +1236,11 @@
       "I18N_SUFFIX" : "Dictionnaire thématique",
       "I18N_SUFFIX_LEGACY" : "Par défaut",
       "I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
+      "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
+      "TRIP_METIERS_HISTORY_NB_DAYS": "Marée: Prédoc métiers > Nb. de jours",
       "TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL": "Marée: Caractéritiques optionelles si saisie terrain ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
       "TRIP_MAP_ENABLE": "Marée > Carte: Activer ?",
@@ -1236,28 +1259,28 @@
       "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Capture > Test de survie : Espèces commerciales ?",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Position > Longitude: Direction par défaut :",
-      "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation sur site > Date de fin ?",
-      "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Observation sur site > Débarquements: Ajout de navire ?",
-      "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Observation sur site > Afficher l'historique pour ajouter un débarquement ?",
-      "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Observation sur site > Niveau(x) de lieu",
-      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Observation sur site > Calendrier d'activité hebdomadaire ?",
-      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Observation sur site > Calendrier d'activité hebdomadaire > Programme cible",
-      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Observation sur site > Calendrier d'activité hebdomadaire > Jour de début de semaine",
-      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Observation sur site > Calendrier d'activité hebdomadaire > Nombre de jour de semaine",
-      "LANDING_EDITOR": "Observation sur site > Débarquement: éditeur",
+      "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie > Date de fin ?",
+      "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Sortie > Débarquements: Ajout de navire ?",
+      "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Sortie > Afficher l'historique pour ajouter un débarquement ?",
+      "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Sortie > Niveau(x) de lieu",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Sortie > Calendrier d'activité hebdomadaire ?",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Sortie > Calendrier d'activité hebdomadaire > Programme cible",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Sortie > Calendrier d'activité hebdomadaire > Jour de début de semaine",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Sortie > Calendrier d'activité hebdomadaire > Nombre de jour de semaine",
+      "LANDING_EDITOR": "Sortie > Débarquement: éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",
       "LANDING_EDITOR_CONTROL": "Contrôle",
       "LANDING_EDITOR_TRIP": "Marée",
       "LANDING_EDITOR_SAMPLING": "Echantillonnage biologique",
-      "LANDING_CREATION_DATE_ENABLE": "Observation sur site > Débarquements : Afficher la date de création ?",
-      "LANDING_RECORDER_PERSON_ENABLE": "Observation sur site > Débarquements : Afficher le saisisseur ?",
-      "LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE": "Observation sur site > Débarquements : Afficher le port d'attache ?",
-      "LANDING_STRATEGY_ENABLE": "Observation sur site > Débarquement : Saisir la stratégie ?",
-      "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Saisir la date ?",
-      "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
-      "LANDING_LOCATION_ENABLE": "Observation sur site > Débarquements : Afficher le port ?",
-      "LANDING_SAMPLES_COUNT_ENABLE": "Observation sur site > Débarquements : Afficher le nombre d'échantillonnages ?",
-      "LANDING_ONE_TAB_ENABLE": "Observation sur site > Débarquement : un seul onglet ?",
+      "LANDING_CREATION_DATE_ENABLE": "Sortie > Débarquements : Afficher la date de création ?",
+      "LANDING_RECORDER_PERSON_ENABLE": "Sortie > Débarquements : Afficher le saisisseur ?",
+      "LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE": "Sortie > Débarquements : Afficher le port d'attache ?",
+      "LANDING_STRATEGY_ENABLE": "Sortie > Débarquement : Saisir la stratégie ?",
+      "LANDING_DATE_TIME_ENABLE": "Sortie > Débarquement : Saisir la date ?",
+      "LANDING_OBSERVERS_ENABLE": "Sortie > Débarquement : Saisir les observateurs ?",
+      "LANDING_LOCATION_ENABLE": "Sortie > Débarquements : Afficher le port ?",
+      "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre d'échantillonnages ?",
+      "LANDING_ONE_TAB_ENABLE": "Sortie > Débarquement : un seul onglet ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
       "PROGRAM_STRATEGY_EDITOR" : "Stratégie > éditeur",
       "PROGRAM_STRATEGY_EDITOR_LEGACY": "Par défaut",
@@ -1796,7 +1819,8 @@
     "SYNCHRONIZE_ENTITY_ERROR": "Synchronisation impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_ERROR": "Erreur de chargement",
     "SAVE_ERROR": "Erreur de sauvegarde",
-    "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications"
+    "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications",
+    "FIELD_NOT_EXISTS": "Cette valeur n'existe pas"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

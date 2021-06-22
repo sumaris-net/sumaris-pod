@@ -1,30 +1,25 @@
-import {ChangeDetectorRef, Component, Inject, Injector, OnInit} from '@angular/core';
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {VesselValidatorService} from "../services/validator/vessel.validator";
-import {AppTable} from "../../core/table/table.class";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from '@angular/core';
+import {AppTable}  from "@sumaris-net/ngx-components";
 
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {AccountService} from "../../core/services/account.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {VesselFilter} from "../services/vessel-service";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
 import {VesselRegistrationService} from "../services/vessel-registration.service";
-import {VesselRegistrationValidatorService} from "../services/validator/vessel-registration.validator";
 import {VesselRegistration} from "../services/model/vessel.model";
-import {referentialToString} from "../../core/services/model/referential.model";
+import {referentialToString}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
+import {VesselRegistrationFilter} from "../services/filter/vessel.filter";
 
 @Component({
   selector: 'app-vessel-registration-history-table',
   templateUrl: './vessel-registration-history.component.html',
   styleUrls: ['./vessel-registration-history.component.scss'],
-  providers: [
-    {provide: ValidatorService, useClass: VesselValidatorService}
-  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistration, VesselFilter> implements OnInit {
+export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistration, VesselRegistrationFilter> implements OnInit {
 
   referentialToString = referentialToString;
   isAdmin: boolean;
@@ -38,8 +33,7 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
-    protected vesselRegistrationValidator: VesselRegistrationValidatorService,
-    protected vesselRegistrationService: VesselRegistrationService,
+    dataService: VesselRegistrationService,
     protected cd: ChangeDetectorRef
   ) {
 
@@ -51,7 +45,7 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
         'registrationCode',
         'registrationLocation']
       ,
-      new EntitiesTableDataSource<VesselRegistration, VesselFilter>(VesselRegistration, vesselRegistrationService, vesselRegistrationValidator, {
+      new EntitiesTableDataSource<VesselRegistration>(VesselRegistration, dataService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
@@ -76,4 +70,7 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
     this.isAdmin = this.accountService.isAdmin();
   }
 
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 }

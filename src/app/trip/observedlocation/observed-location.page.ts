@@ -1,35 +1,41 @@
 import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
-import * as momentImported from "moment";
-import {ObservedLocationForm} from "./observed-location.form";
-import {ObservedLocationService} from "../services/observed-location.service";
-import {LandingsTable} from "../landing/landings.table";
-import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
-import {FormGroup} from "@angular/forms";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {ModalController} from "@ionic/angular";
-import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
-import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {SelectVesselsModal} from "./vessels/select-vessel.modal";
-import {ObservedLocation} from "../services/model/observed-location.model";
-import {Landing} from "../services/model/landing.model";
-import {LandingFilter} from "../services/landing.service";
-import {LandingEditor, ProgramProperties} from "../../referential/services/config/program.config";
-import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
-import {BehaviorSubject} from "rxjs";
-import {firstNotNilPromise, firstTruePromise} from "../../shared/observables";
-import {filter, first} from "rxjs/operators";
-import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings.table";
-import {showError} from "../../shared/alerts";
-import {Program} from "../../referential/services/model/program.model";
-import {PlatformService} from "../../core/services/platform.service";
-import {ObservedLocationsPageSettingsEnum} from "./observed-locations.page";
-import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {isNil, isNotNil, toBoolean} from "../../shared/functions";
-import {environment} from "../../../environments/environment";
-import {TRIP_CONFIG_OPTIONS} from "../services/config/trip.config";
-import {ConfigService} from "../../core/services/config.service";
+import * as momentImported from 'moment';
+import {ObservedLocationForm} from './observed-location.form';
+import {ObservedLocationService} from '../services/observed-location.service';
+import {LandingsTable} from '../landing/landings.table';
+import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
+import {FormGroup} from '@angular/forms';
+import {
+  Alerts,
+  ConfigService,
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  firstNotNilPromise,
+  firstTruePromise,
+  HistoryPageReference, isInstanceOf,
+  isNil,
+  isNotNil,
+  PlatformService,
+  ReferentialRef,
+  ReferentialUtils,
+  toBoolean,
+  UsageMode
+} from '@sumaris-net/ngx-components';
+import {ModalController} from '@ionic/angular';
+import {SelectVesselsModal} from './vessels/select-vessel.modal';
+import {ObservedLocation} from '../services/model/observed-location.model';
+import {Landing} from '../services/model/landing.model';
+import {LandingEditor, ProgramProperties} from '../../referential/services/config/program.config';
+import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
+import {BehaviorSubject} from 'rxjs';
+import {filter, first, tap} from 'rxjs/operators';
+import {AggregatedLandingsTable} from '../aggregated-landing/aggregated-landings.table';
+import {Program} from '../../referential/services/model/program.model';
+import {ObservedLocationsPageSettingsEnum} from './observed-locations.page';
+import {environment} from '../../../environments/environment';
+import {TRIP_CONFIG_OPTIONS} from '../services/config/trip.config';
 import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
-import {EditableLandingsTable} from "../landing/editable-landings.table";
+import {LandingFilter} from '../services/filter/landing.filter';
 
 const moment = momentImported;
 
@@ -45,7 +51,10 @@ const ObservedLocationPageTabs = {
   selector: 'app-observed-location-page',
   templateUrl: './observed-location.page.html',
   animations: [fadeInOutAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    {provide: AppRootDataEditor, useExisting: ObservedLocationPage}
+  ],
 })
 export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, ObservedLocationService> {
 
@@ -109,7 +118,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.registerSubscription(
       this.configService.config.subscribe(config => {
         this.observedLocationNewName = config && config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NEW_NAME);
-        this.showRecorder = config && config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.DATA_SHOW_OBSERVERS_ENABLE);
+        this.showRecorder = config && config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
       })
     );
 
@@ -120,6 +129,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   protected async setProgram(program: Program) {
     await super.setProgram(program);
     if (!program) return; // Skip
+
+    console.debug('[observed-location] Settings editor options, using program:', program);
 
     this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
     this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
@@ -193,9 +204,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         this.tabGroup.selectedTabChange
           .pipe(
             filter(event => event.index === ObservedLocationPageTabs.LANDINGS),
-            first()
+            first(),
+            tap(() => this.save())
           )
-          .subscribe(event => this.save())
+          .subscribe()
         );
     }
   }
@@ -223,6 +235,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.tabGroup.realignInkBar();
     }
   }
+
+
 
   protected async setValue(data: ObservedLocation) {
     // Set data to form
@@ -352,7 +366,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     const excludeVesselIds = (toBoolean(excludeExistingVessels, false) && this.aggregatedLandingsTable
       && await this.aggregatedLandingsTable.vesselIdsAlreadyPresent()) || [];
 
-    const landingFilter = <LandingFilter>{
+    const landingFilter = LandingFilter.fromObject({
       programLabel,
       startDate,
       endDate,
@@ -360,7 +374,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       groupByVessel: (this.landingsTable && this.landingsTable.isTripDetailEditor) || (isNotNil(this.aggregatedLandingsTable)),
       excludeVesselIds,
       synchronizationStatus: 'SYNC' // only remote entities. This is required to read 'Remote#LandingVO' local storage
-    };
+    });
 
     const modal = await this.modalCtrl.create({
       component: SelectVesselsModal,
@@ -381,15 +395,15 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     const {data} = await modal.onDidDismiss();
 
     // If modal return a landing, use it
-    if (data && data[0] instanceof Landing) {
+    if (data && isInstanceOf(data[0], Landing)) {
       console.debug("[observed-location] Vessel selection modal result:", data);
       return (data[0] as Landing).vesselSnapshot;
     }
-    if (data && data[0] instanceof VesselSnapshot) {
+    if (data && isInstanceOf(data[0], VesselSnapshot)) {
       console.debug("[observed-location] Vessel selection modal result:", data);
       const vessel = data[0] as VesselSnapshot;
       if (excludeVesselIds.includes(data.id)) {
-        await showError('AGGREGATED_LANDING.VESSEL_ALREADY_PRESENT', this.alertCtrl, this.translate);
+        await Alerts.showError('AGGREGATED_LANDING.VESSEL_ALREADY_PRESENT', this.alertCtrl, this.translate);
         return;
       }
       return vessel;

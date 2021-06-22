@@ -26,10 +26,10 @@ import {AggregatedLandingsTable} from "./aggregated-landing/aggregated-landings.
 import {VesselActivityForm} from "./aggregated-landing/vessel-activity.form";
 import {AggregatedLandingModal} from "./aggregated-landing/aggregated-landing.modal";
 import {TripModule} from "./trip.module";
-import {CoreModule} from "../core/core.module";
-import {ReferentialModule} from "../referential/referential.module";
+import {CoreModule}  from "@sumaris-net/ngx-components";
+import {AppReferentialModule} from "../referential/app-referential.module";
 import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal";
-import {DataModule} from "../data/data.module";
+import {AppDataModule} from "../data/app-data.module";
 import {TranslateModule} from "@ngx-translate/core";
 import {SamplesModal} from "./sample/samples.modal";
 import {SamplingLandingPage} from "./landing/sampling/sampling-landing.page";
@@ -41,9 +41,9 @@ import {EditableLandingsTable} from "./landing/editable-landings.table";
 @NgModule({
   imports: [
     CoreModule,
-    DataModule,
+    AppDataModule,
     TripModule,
-    ReferentialModule,
+    AppReferentialModule,
     VesselModule,
     TranslateModule.forChild()
   ],

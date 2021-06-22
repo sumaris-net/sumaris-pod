@@ -1,16 +1,21 @@
-import {NOT_MINIFY_OPTIONS} from "../../../core/services/model/referential.model";
+
 import {RootDataEntity} from "./root-data-entity.model";
 import {DataEntityAsObjectOptions} from "./data-entity.model";
 import {IWithVesselSnapshotEntity, VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 
-export abstract class DataRootVesselEntity<T extends DataRootVesselEntity<any>, O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
-  extends RootDataEntity<T, O, F> implements IWithVesselSnapshotEntity<T> {
+export abstract class DataRootVesselEntity<
+  T extends DataRootVesselEntity<any, ID>,
+  ID = number,
+  O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
+  extends RootDataEntity<T, ID, O, F>
+  implements IWithVesselSnapshotEntity<T, ID> {
 
   vesselSnapshot: VesselSnapshot;
 
-  protected constructor() {
-    super();
+  protected constructor(__typename?: string) {
+    super(__typename);
     this.vesselSnapshot = null;
   }
 

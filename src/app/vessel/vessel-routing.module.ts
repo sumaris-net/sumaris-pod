@@ -2,7 +2,7 @@ import {RouterModule, Routes} from "@angular/router";
 import {NgModule} from "@angular/core";
 import {VesselsPage} from "./list/vessels.page";
 import {VesselPage} from "./page/vessel.page";
-import {SharedRoutingModule} from "../shared/shared-routing.module";
+import {SharedRoutingModule} from "@sumaris-net/ngx-components";
 import {VesselModule} from "./vessel.module";
 
 const routes: Routes = [

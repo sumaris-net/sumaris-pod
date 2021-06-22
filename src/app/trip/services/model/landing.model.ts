@@ -1,65 +1,34 @@
-import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
-import {Moment} from "moment";
-import {MeasurementModelValues, MeasurementValuesUtils} from "./measurement.model";
-import {Sample} from "./sample.model";
-import {
-  NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions,
-  ReferentialRef,
-  ReferentialUtils
-} from "../../../core/services/model/referential.model";
-import {DataRootVesselEntity} from "../../../data/services/model/root-vessel-entity.model";
-import {IWithObserversEntity} from "../../../data/services/model/model.utils";
-import {Person} from "../../../core/services/model/person.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {toNumber} from "../../../shared/functions";
+import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
+import {Moment} from 'moment';
+import {MeasurementModelValues, MeasurementValuesUtils} from './measurement.model';
+import {Sample} from './sample.model';
+import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
+import {IWithObserversEntity} from '@app/data/services/model/model.utils';
+import {EntityClass, fromDateISOString, Person, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils, toDateISOString} from '@sumaris-net/ngx-components';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 /**
  * Landing entity
  */
+@EntityClass({typename: 'LandingVO'})
 export class Landing extends DataRootVesselEntity<Landing> implements IWithObserversEntity<Landing> {
 
-  static TYPENAME = 'LandingVO';
+  static fromObject: (source: any, opts?: any) => Landing;
 
-  static fromObject(source: any): Landing {
-    if (!source || source instanceof Landing) return source;
-    const res = new Landing();
-    res.fromObject(source);
-    return res;
-  }
+  dateTime: Moment = null;
+  location: ReferentialRef = null;
+  rankOrder?: number = null;
+  rankOrderOnVessel?: number = null;
+  measurementValues: MeasurementModelValues = null;
 
-  dateTime: Moment;
-  location: ReferentialRef;
-  rankOrder?: number;
-  rankOrderOnVessel?: number;
-  measurementValues: MeasurementModelValues;
-
-  tripId: number;
-  observedLocationId: number;
-
-  observers: Person[];
-
-  samples: Sample[];
-  samplesCount?: number;
+  tripId: number = null;
+  observedLocationId: number = null;
+  observers: Person[] = null;
+  samples: Sample[] = null;
+  samplesCount?: number = null;
 
   constructor() {
-    super();
-    this.__typename = Landing.TYPENAME;
-    this.program = new ReferentialRef();
-    this.location = new ReferentialRef();
-    this.observers = [];
-    this.measurementValues = {};
-    this.samples = [];
-  }
-
-  clone(): Landing {
-    const target = new Landing();
-    target.fromObject(this.asObject());
-    return target;
-  }
-
-  copy(target: Landing) {
-    target.fromObject(this);
+    super(Landing.TYPENAME);
   }
 
   asObject(options?: DataEntityAsObjectOptions): any {
@@ -75,7 +44,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     return target;
   }
 
-  fromObject(source: any): Landing {
+  fromObject(source: any) {
     super.fromObject(source);
     this.dateTime = fromDateISOString(source.dateTime);
     this.location = source.location && ReferentialRef.fromObject(source.location);
@@ -94,8 +63,6 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
     this.samplesCount = toNumber(source.samplesCount, this.samples?.length);
-
-    return this;
   }
 
   equals(other: Landing): boolean {

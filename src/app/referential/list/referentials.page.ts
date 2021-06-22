@@ -1,22 +1,36 @@
-import {Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {BehaviorSubject, Observable, of, Subject} from "rxjs";
-import {debounceTime, filter, first, map} from "rxjs/operators";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {ReferentialValidatorService} from "../services/validator/referential.validator";
-import {ReferentialFilter, ReferentialService} from "../services/referential.service";
-import {DefaultStatusList, Referential} from "../../core/services/model/referential.model";
-import {ModalController, Platform} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
-import {AccountService} from '../../core/services/account.service';
+import {Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {BehaviorSubject, Observable, of} from 'rxjs';
+import {debounceTime, filter, map, tap} from 'rxjs/operators';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {ReferentialValidatorService} from '../services/validator/referential.validator';
+import {ReferentialService} from '../services/referential.service';
+import {
+  AccountService,
+  AppTable,
+  DefaultStatusList,
+  EntitiesTableDataSource,
+  firstNotNilPromise,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  LocalSettingsService,
+  Referential,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+  slideUpDownAnimation,
+  sort
+} from '@sumaris-net/ngx-components';
+import {ModalController, Platform} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
-import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
-import {TranslateService} from "@ngx-translate/core";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, sort} from "../../shared/functions";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {environment} from "../../../environments/environment";
-import {firstNotNilPromise} from "../../shared/observables";
+import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
+import {TranslateService} from '@ngx-translate/core';
+import {environment} from '../../../environments/environment';
+import {ReferentialFilter} from '../services/filter/referential.filter';
+import {MatExpansionPanel} from '@angular/material/expansion';
+import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
+
 
 
 @Component({
@@ -26,6 +40,7 @@ import {firstNotNilPromise} from "../../shared/observables";
   providers: [
     {provide: ValidatorService, useExisting: ReferentialValidatorService}
   ],
+  animations: [slideUpDownAnimation]
 })
 export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {
 
@@ -35,19 +50,21 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
   canEdit = false;
   filterForm: FormGroup;
-  $selectedEntity = new BehaviorSubject<{ id: string, label: string, level?: string, levelLabel?: string }>(undefined);
-  $entities = new BehaviorSubject<{ id: string, label: string, level?: string, levelLabel?: string }[]>(undefined);
+  $selectedEntity = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }>(undefined);
+  $entities = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }[]>(undefined);
   levels: Observable<Referential[]>;
   statusList = DefaultStatusList;
   statusById: any;
-  filterIsEmpty = true;
+  filterCriteriaCount = 0;
 
   canOpenDetail = false;
   detailsPath = {
     'Program': '/referential/programs/:id',
-    'Software': '/referential/list/software/:id?label=:label',
+    'Software': '/referential/software/:id?label=:label',
     'Pmfm': '/referential/pmfm/:id?label=:label',
-    'Parameter': '/referential/parameter/:id?label=:label'
+    'Parameter': '/referential/parameter/:id?label=:label',
+    'ExtractionProduct': '/extraction/product/:id?label=:label',
+    'TaxonName': '/referential/taxonName/:id?label=:label'
   };
 
   @Input() set showLevelColumn(value: boolean) {
@@ -67,13 +84,14 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       if (!this.loadingSubject.getValue()) {
         this.applyEntityName(value, { skipLocationChange: true });
       }
-
     }
   }
 
   get entityName(): string {
     return this._entityName;
   }
+
+  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
     protected injector: Injector,
@@ -100,7 +118,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
           'updateDate',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, validatorService, {
+      new EntitiesTableDataSource(Referential, referentialService, validatorService, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
@@ -122,10 +140,10 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.setShowColumn('updateDate', !this.mobile); // Hide by default, if mobile
 
     this.filterForm = formBuilder.group({
-      'entityName': [null],
-      'searchText': [null],
-      'levelId': [null],
-      'statusId': [null]
+      entityName: [null],
+      searchText: [null],
+      levelId: [null],
+      statusId: [null]
     });
 
     // Fill statusById
@@ -135,43 +153,21 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     // FOR DEV ONLY
     this.debug = true;
-  };
+  }
 
   ngOnInit() {
     super.ngOnInit();
-
-    // Listen route parameters
-    if (this.canSelectEntity) {
-      this.registerSubscription(
-        this.route.queryParams
-          .pipe(first()) // Do not refresh after the first page load (e.g. when location query path changed)
-          .subscribe(({entity, q, level, status}) => {
-            if (!entity) {
-              this.applyEntityName(ReferentialsPage.DEFAULT_ENTITY_NAME);
-            } else {
-              this.filterForm.patchValue({
-                entityName: entity,
-                searchText: q || null,
-                levelId: isNotNil(level) ? +level : null,
-                statusId: isNotNil(status) ? +status : null
-              }, {emitEvent: false});
-              this.applyEntityName(entity, {skipLocationChange: true});
-            }
-          }));
-    }
 
     // Load entities
     this.registerSubscription(
       this.referentialService.loadTypes()
         .pipe(
-          map(types => types.map(type => {
-            return {
+          map(types => types.map(type => ({
               id: type.id,
               label: this.getI18nEntityName(type.id),
               level: type.level,
               levelLabel: this.getI18nEntityName(type.level)
-            };
-          })),
+            }))),
           map(types => sort(types, 'label'))
         )
         .subscribe(types => this.$entities.next(types))
@@ -182,24 +178,63 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       this.filterForm.valueChanges
         .pipe(
           debounceTime(250),
-          filter(() => this.filterForm.valid)
+          filter(() => this.filterForm.valid),
+          tap(value => {
+            const filter = this.asFilter(value);
+            this.filterCriteriaCount = filter.countNotEmptyCriteria();
+            this.markForCheck();
+            // Applying the filter
+            this.setFilter(filter, {emitEvent: false});
+          }),
+          // Save filter in settings (after a debounce time)
+          debounceTime(500),
+          tap(json => this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY))
         )
-        // Applying the filter
-        .subscribe((json) => this.setFilter(json, {emitEvent: this.mobile}))
+        .subscribe()
       );
 
     this.registerSubscription(
       this.onRefresh.subscribe(() => {
-        this.filterIsEmpty = ReferentialFilter.isEmpty({...this.filter, entityName: null /*Ignore*/});
         this.filterForm.markAsUntouched();
         this.filterForm.markAsPristine();
-        this.markForCheck();
       }));
 
-    // Force auto Load, when entity name set, and u cannot change
-    if (!this.canSelectEntity && this._entityName) {
+    if (this.canSelectEntity) {
+      this.restoreFilterOrLoad();
+    }
+    else if (this._entityName) {
       this.applyEntityName(this._entityName);
     }
+  }
+
+  protected async restoreFilterOrLoad() {
+    this.markAsLoading();
+
+    const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY);
+    console.debug("[referentials] Restoring filter from settings...", json);
+
+    if (json && json.entityName) {
+      const filter = this.asFilter(json);
+      this.filterForm.patchValue(json, {emitEvent: false});
+      this.filterCriteriaCount = filter.countNotEmptyCriteria();
+      this.markForCheck();
+      return this.applyEntityName(filter.entityName);
+    }
+
+    // Check route parameters
+    const {entity, q, level, status} = this.route.snapshot.queryParams;
+    if (entity) {
+      this.filterForm.patchValue({
+        entityName: entity,
+        searchText: q || null,
+        levelId: isNotNil(level) ? +level : null,
+        statusId: isNotNil(status) ? +status : null
+      }, {emitEvent: false});
+      return this.applyEntityName(entity, {skipLocationChange: true});
+    }
+
+    // Load default entity
+    await this.applyEntityName(ReferentialsPage.DEFAULT_ENTITY_NAME);
   }
 
   async applyEntityName(entityName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {
@@ -227,11 +262,12 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.inlineEdition = !this.canOpenDetail;
 
     // Applying the filter (will reload if emitEvent = true)
-    this.filterForm.patchValue({entityName}, {emitEvent: false});
-    this.applyFilter({
+    const filter = ReferentialFilter.fromObject({
       ...this.filterForm.value,
       entityName
-    }, {emitEvent: opts.emitEvent});
+    });
+    this.filterForm.patchValue({entityName}, {emitEvent: false});
+    this.setFilter(filter, {emitEvent: opts.emitEvent});
 
     // Update route location
     if (opts.skipLocationChange !== true && this.canSelectEntity) {
@@ -319,6 +355,17 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     return false;
   }
 
+  applyFilterAndClosePanel(event?: UIEvent) {
+    this.onRefresh.emit(event);
+    this.filterExpansionPanel.close();
+  }
+
+  resetFilter(event?: UIEvent) {
+    this.filterForm.reset({entityName: this._entityName}, {emitEvent: true});
+    this.setFilter(ReferentialFilter.fromObject({entityName: this._entityName}), {emitEvent: true});
+    this.filterExpansionPanel.close();
+  }
+
   protected async openNewRowDetail(): Promise<boolean> {
     const path = this.detailsPath[this._entityName];
 
@@ -330,6 +377,16 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     }
 
     return super.openNewRowDetail();
+  }
+
+  protected asFilter(source?: any): ReferentialFilter {
+    source = source || this.filterForm.value;
+
+    if (this._dataSource && this._dataSource.dataService) {
+      return this._dataSource.dataService.asFilter(source);
+    }
+
+    return source as ReferentialFilter;
   }
 }
 

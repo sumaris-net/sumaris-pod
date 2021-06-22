@@ -1,27 +1,27 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, Inject, Input, OnInit, Optional, ViewChild} from "@angular/core";
+import {Directive, Input, OnInit, Optional, ViewChild} from "@angular/core";
 import {ModalController} from "@ionic/angular";
-import {changeCaseToUnderscore, isNotNil, toBoolean} from "../../shared/functions";
-import {ReferentialFilter} from "../services/referential.service";
+import {isNotNil, toBoolean} from "@sumaris-net/ngx-components";
 import {Subject} from "rxjs";
-import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
-import {AppTableDataSourceOptions, EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {ReferentialRefTable} from "./referential-ref.table";
-import {Referential, ReferentialAsObjectOptions, ReferentialRef} from "../../core/services/model/referential.model";
+import {AppTableDataSourceOptions, EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
+import {ReferentialRef}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
-import {Entity} from "../../core/services/model/entity.model";
-import {EntitiesServiceWatchOptions, IEntitiesService} from "../../shared/services/entity-service.class";
-import {BaseEntityService} from "../services/base-entity-service.class";
-import {AppTable} from "../../core/table/table.class";
+import {IEntity}  from "@sumaris-net/ngx-components";
+import {IEntitiesService} from "@sumaris-net/ngx-components";
+import {AppTable}  from "@sumaris-net/ngx-components";
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class BaseSelectEntityModal<T extends Entity<T>, F = any> implements OnInit {
+export abstract class BaseSelectEntityModal<
+  T extends IEntity<T, ID>,
+  F = any,
+  ID = number
+  > implements OnInit {
 
   selectedTabIndex = 0;
   $title = new Subject<string>();
-  datasource: EntitiesTableDataSource<any, any>;
+  datasource: EntitiesTableDataSource<T, F, ID>;
 
-  @ViewChild('table', { static: true }) table: AppTable<T, F>;
+  @ViewChild('table', { static: true }) table: AppTable<T, F, ID>;
 
   @Input() filter: F;
   @Input() entityName: string;
@@ -35,7 +35,7 @@ export abstract class BaseSelectEntityModal<T extends Entity<T>, F = any> implem
     protected viewCtrl: ModalController,
     protected dataType: new() => T,
     protected dataService: IEntitiesService<T, F>,
-    @Optional() protected options?: Partial<AppTableDataSourceOptions<T>>
+    @Optional() protected options?: Partial<AppTableDataSourceOptions<T, ID>>
   ) {
   }
 
@@ -48,7 +48,7 @@ export abstract class BaseSelectEntityModal<T extends Entity<T>, F = any> implem
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);
 
-    this.datasource = new EntitiesTableDataSource<T, F>(this.dataType,
+    this.datasource = new EntitiesTableDataSource<T, F, ID>(this.dataType,
       this.dataService,
       null,
       {

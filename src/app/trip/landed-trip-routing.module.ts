@@ -1,7 +1,7 @@
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {LandingPage} from "./landing/landing.page";
-import {SharedRoutingModule} from "../shared/shared-routing.module";
+import {SharedRoutingModule} from "@sumaris-net/ngx-components";
 import {ObservedLocationsPage} from "./observedlocation/observed-locations.page";
 import {ObservedLocationPage} from "./observedlocation/observed-location.page";
 import {AuctionControlPage} from "./landing/auctioncontrol/auction-control.page";

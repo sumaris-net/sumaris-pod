@@ -1,37 +1,40 @@
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {
-  NOT_MINIFY_OPTIONS,
+  EntityClass,
+  fromDateISOString,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  ITreeItemEntity,
   ReferentialAsObjectOptions,
-  ReferentialRef, referentialToString,
-  ReferentialUtils
-} from "../../../core/services/model/referential.model";
-import {Moment} from "moment";
-import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
-import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
-import {ITreeItemEntity} from "../../../core/services/model/entity.model";
-import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
-import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
-import {isNil, isNotEmptyArray, isNotNil} from "../../../shared/functions";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+  ReferentialRef,
+  referentialToString,
+  ReferentialUtils,
+  toDateISOString
+} from '@sumaris-net/ngx-components';
+import {Moment} from 'moment';
+import {DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
+import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
+import {TaxonGroupRef, TaxonNameRef} from '../../../referential/services/model/taxon.model';
+import {RootDataEntity} from '../../../data/services/model/root-data-entity.model';
+import {IPmfm} from '../../../referential/services/model/pmfm.model';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
-
-export class Sample extends RootDataEntity<Sample>
+export interface SampleAsObjectOptions extends DataEntityAsObjectOptions {
+  withChildren?: boolean;
+}
+export interface SampleFromObjectOptions {
+  withChildren?: boolean;
+}
+@EntityClass({typename: 'SampleVO'})
+export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions, SampleFromObjectOptions>
   implements IEntityWithMeasurement<Sample>, ITreeItemEntity<Sample>{
 
-  static TYPENAME = 'SampleVO';
-
-  static fromObject(source: any, opts?: { withChildren?: boolean; }): Sample {
-    if (!source || source instanceof Sample) return source;
-    const res = new Sample();
-    res.fromObject(source, opts);
-    return res;
-  }
+  static fromObject: (source, opts?: SampleFromObjectOptions) => Sample;
 
   /**
    * Transform a samples tree, into a array of object.
    * Parent & children links are removed, to keep only a parentId
-   * @param source
+   * @param sources
    * @param opts
    * @throw Error if a sample has no id
    */
@@ -74,42 +77,30 @@ export class Sample extends RootDataEntity<Sample>
       );
   }
 
+  label: string = null;
+  rankOrder: number = null;
+  sampleDate: Moment = null;
+  individualCount: number = null;
+  taxonGroup: TaxonGroupRef  = null;
+  taxonName: ReferentialRef = null;
+  measurementValues: { [key: string]: any } = {};
+  matrixId: number = null;
+  batchId: number = null;
+  size: number = null;
+  sizeUnit: string = null;
 
-  label: string;
-  rankOrder: number;
-  sampleDate: Moment;
-  individualCount: number;
-  taxonGroup: ReferentialRef;
-  taxonName: ReferentialRef;
-  measurementValues: { [key: string]: any };
-  matrixId: number;
-  batchId: number;
-  size: number;
-  sizeUnit: string;
+  operationId: number = null;
+  landingId: number = null;
 
-  operationId: number;
-  parentId: number;
-  parent: Sample;
-  children: Sample[];
+  parentId: number = null;
+  parent: Sample = null;
+  children: Sample[] = null;
 
   constructor() {
-    super();
-    this.__typename = Sample.TYPENAME;
-    this.label = null;
-    this.rankOrder = null;
-    this.taxonGroup = null;
-    this.measurementValues = {};
-    this.children = [];
-    this.individualCount = null;
+    super(Sample.TYPENAME);
   }
 
-  clone(opts?: { withChildren?: boolean; }): Sample {
-    const target = new Sample();
-    target.fromObject(this.asObject(opts), opts);
-    return target;
-  }
-
-  asObject(opts?: DataEntityAsObjectOptions & {withChildren?: boolean}): any {
+  asObject(opts?: SampleAsObjectOptions): any {
     const target = super.asObject(opts);
     target.sampleDate = toDateISOString(this.sampleDate);
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
@@ -128,13 +119,13 @@ export class Sample extends RootDataEntity<Sample>
     return target;
   }
 
-  fromObject(source: any, opts?: {withChildren?: boolean}): Sample {
+  fromObject(source: any, opts?: SampleFromObjectOptions): Sample {
     super.fromObject(source);
     this.label = source.label;
     this.rankOrder = source.rankOrder;
     this.sampleDate = fromDateISOString(source.sampleDate);
     this.individualCount = isNotNil(source.individualCount) && source.individualCount !== "" ? source.individualCount : null;
-    this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
+    this.taxonGroup = source.taxonGroup && TaxonGroupRef.fromObject(source.taxonGroup) || undefined;
     this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName) || undefined;
     this.size = source.size;
     this.sizeUnit = source.sizeUnit;
@@ -143,6 +134,7 @@ export class Sample extends RootDataEntity<Sample>
     this.parent = source.parent;
     this.batchId = source.batchId;
     this.operationId = source.operationId;
+    this.landingId = source.landingId;
     this.measurementValues = source.measurementValues && { ...source.measurementValues } || MeasurementUtils.toMeasurementValues(source.measurements);
 
     if (source.children && (!opts || opts.withChildren !== false)) {

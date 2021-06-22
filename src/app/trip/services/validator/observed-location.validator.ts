@@ -1,15 +1,15 @@
 import {Injectable} from "@angular/core";
 import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
+import {SharedFormGroupValidators, SharedValidators} from "@sumaris-net/ngx-components";
 import {ObservedLocation} from "../model/observed-location.model";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {
   DataRootEntityValidatorOptions,
   DataRootEntityValidatorService
 } from "../../../data/services/validator/root-data-entity.validator";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
 import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
-import {toBoolean} from "../../../shared/functions";
+import {toBoolean} from "@sumaris-net/ngx-components";
 import {ProgramProperties} from "../../../referential/services/config/program.config";
 
 export interface ObservedLocationValidatorOptions extends DataRootEntityValidatorOptions {

@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {BatchValidatorService} from "./batch.validator";
 import {BatchGroup} from "../model/batch-group.model";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {SharedValidators} from "@sumaris-net/ngx-components";
 
 @Injectable({providedIn: 'root'})
 export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup> {

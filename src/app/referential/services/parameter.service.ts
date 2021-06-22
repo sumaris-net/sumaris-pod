@@ -1,18 +1,18 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
-import {AccountService} from "../../core/services/account.service";
-import {GraphqlService} from "../../core/graphql/graphql.service";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {ReferentialService} from "./referential.service";
 import {Observable, of} from "rxjs";
 import {Parameter} from "./model/parameter.model";
 import {ReferentialFragments} from "./referential.fragments";
-import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
-import {isNil, isNotNil} from "../../shared/functions";
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
+import {EntityServiceLoadOptions, IEntityService} from "@sumaris-net/ngx-components";
+import {isNil, isNotNil} from "@sumaris-net/ngx-components";
+import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {EntityUtils} from "../../core/services/model/entity.model";
+import {StatusIds}  from "@sumaris-net/ngx-components";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
 
 const SaveQuery: any = gql`
   mutation SaveParameter($parameter:ParameterVOInput){

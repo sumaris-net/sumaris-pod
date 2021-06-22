@@ -1054,7 +1054,22 @@
     },
     "TAXON_NAME": {
       "LABEL": "Scientific species code",
-      "NAME": "Scientific species name"
+      "NAME": "Scientific species name",
+      "PARENT": "Parent scientific specie",
+      "IS_REFERENT": "Referent ?",
+      "IS_NAMING": "Conventional naming ?",
+      "IS_VIRTUAL": "Virtual ?",
+      "USE_EXISTING_REFERENCE_TAXON": "Use an existing scientific specie identifier ?",
+      "REFERENCE_TAXON": "Scientific specie identifier",
+      "TAXONOMIC_LEVEL": "Taxonomic level",
+      "START_DATE": "Start date",
+      "END_DATE": "End date",
+      "NEW": {
+        "TITLE": "New scientific specie"
+      },
+      "EDIT": {
+        "TITLE": "scientific specie {{label}} - {{name}}"
+      }
     },
     "GEAR": {
       "LABEL": "Gear code",
@@ -1746,7 +1761,8 @@
     "SYNCHRONIZE_ENTITY_ERROR": "Cannot synchronize. <small><br/>If the problem persists, please contact your administrator.</small>",
     "LOAD_ERROR": "Error while loading",
     "SAVE_ERROR": "Error while saving",
-    "SUBSCRIBE_ERROR": "Error while subscribe to changes"
+    "SUBSCRIBE_ERROR": "Error while subscribe to changes",
+    "FIELD_NOT_EXISTS": "Value doesn't exist"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

@@ -1,22 +1,24 @@
 import {ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {Batch, BatchUtils} from "../../services/model/batch.model";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {SubBatchForm} from "../form/sub-batch.form";
 import {SubBatchValidatorService} from "../../services/validator/sub-batch.validator";
 import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from "../table/sub-batches.table";
 import {AppMeasurementsTableOptions} from "../../measurement/measurements.table.class";
 import {Animation, IonContent, ModalController} from "@ionic/angular";
-import {isEmptyArray, isNil, isNotNilOrBlank, toBoolean} from "../../../shared/functions";
-import {AudioProvider} from "../../../shared/audio/audio";
-import {Alerts} from "../../../shared/alerts";
+import {isEmptyArray, isNil, isNotNilOrBlank, toBoolean} from "@sumaris-net/ngx-components";
+import {AudioProvider} from "@sumaris-net/ngx-components";
+import {Alerts} from "@sumaris-net/ngx-components";
 import {isObservable, Observable, of, Subject} from "rxjs";
 import {createAnimation} from "@ionic/core";
 import {SubBatch} from "../../services/model/subbatch.model";
 import {BatchGroup} from "../../services/model/batch-group.model";
 import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {AppFormUtils} from "../../../core/form/form.utils";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
+import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
+import {isInstanceOf}  from "@sumaris-net/ngx-components";
+import {PmfmIds} from '@app/referential/services/model/model.enum';
 
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
@@ -62,6 +64,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
   @Input()
   parentGroup: BatchGroup;
+
+  @Input() maxVisibleButtons: number;
 
   @Input() set disabled(value: boolean) {
     if (value) {
@@ -184,7 +188,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     if (isNil(parentTaxonGroupId)) return pmfms;
 
     // Filter using parent's taxon group
-    return pmfms.filter(pmfm => !(pmfm instanceof DenormalizedPmfmStrategy)
+    return pmfms.filter(pmfm => !PmfmUtils.isDenormalizedPmfm(pmfm)
       || isEmptyArray(pmfm.taxonGroupIds)
       || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
   }

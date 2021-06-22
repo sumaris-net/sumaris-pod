@@ -1,6 +1,10 @@
 :host {
   --ion-tab-min-height: calc(100%);
+
+  --table-container-offset: calc(320px - var(--form-button-bar-height, 0));
 }
+
+
 app-toolbar ion-spinner {
   width: 20px;
   height: 20px;

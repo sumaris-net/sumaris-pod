@@ -6,8 +6,8 @@ import {MeasurementsValidatorService} from '../services/validator/measurement.va
 import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
 import {Subject} from 'rxjs';
 import {BatchValidatorService} from '../services/validator/batch.validator';
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {firstNotNilPromise} from "../../shared/observables";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {firstNotNilPromise} from "@sumaris-net/ngx-components";
 import {Batch} from "../services/model/batch.model";
 import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramRefService} from "../../referential/services/program-ref.service";

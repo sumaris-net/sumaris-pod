@@ -4,19 +4,19 @@ import {BehaviorSubject, Subscription} from "rxjs";
 import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {ParameterLabelGroups, PmfmIds} from "../../../referential/services/model/model.enum";
 import {PmfmService} from "../../../referential/services/pmfm.service";
-import {ObjectMap} from "../../../shared/types";
+import {isInstanceOf, ObjectMap} from '@sumaris-net/ngx-components';
 import {BiologicalSamplingValidators} from "../../services/validator/biological-sampling.validators";
 import {LandingPage} from "../landing.page";
 import {Landing} from "../../services/model/landing.model";
-import {firstNotNilPromise} from "../../../shared/observables";
-import {HistoryPageReference} from "../../../core/services/model/settings.model";
-import {fadeInOutAnimation} from "../../../shared/material/material.animations";
+import {firstNotNilPromise} from "@sumaris-net/ngx-components";
+import {HistoryPageReference}  from "@sumaris-net/ngx-components";
+import {fadeInOutAnimation} from "@sumaris-net/ngx-components";
 import {filter, tap, throttleTime} from "rxjs/operators";
-import {isNotNil} from "../../../shared/functions";
+import {isNotNil} from "@sumaris-net/ngx-components";
 import {SamplingSamplesTable} from "../../sample/sampling/sampling-samples.table";
-import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
+import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
 import {ObservedLocation} from "../../services/model/observed-location.model";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {SharedValidators} from "@sumaris-net/ngx-components";
 import {SamplingStrategyService} from "../../../referential/services/sampling-strategy.service";
 import {Strategy} from "../../../referential/services/model/strategy.model";
 
@@ -122,7 +122,7 @@ export class SamplingLandingPage extends LandingPage {
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onNewEntity(data, options);
     // By default, set location to parent location
-    if (this.parent && this.parent instanceof ObservedLocation) {
+    if (this.parent && isInstanceOf(this.parent, ObservedLocation)) {
       this.landingForm.form.get('location').patchValue(data.location);
     }
   }

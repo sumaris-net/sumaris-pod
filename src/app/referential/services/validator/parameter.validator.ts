@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ReferentialValidatorService} from "./referential.validator";
 import {Parameter} from "../model/parameter.model";
-import {Referential} from "../../../core/services/model/referential.model";
+import {Referential}  from "@sumaris-net/ngx-components";
 
 @Injectable({providedIn: 'root'})
 export class ParameterValidatorService extends ReferentialValidatorService<Parameter> {

@@ -3,8 +3,8 @@ import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {Program} from "../model/program.model";
 
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {SharedFormArrayValidators, SharedValidators} from "../../../shared/validator/validators";
-import {EntityUtils} from "../../../core/services/model/entity.model";
+import {SharedFormArrayValidators, SharedValidators} from "@sumaris-net/ngx-components";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
 
 @Injectable({providedIn: 'root'})
 export class ProgramValidatorService implements ValidatorService {

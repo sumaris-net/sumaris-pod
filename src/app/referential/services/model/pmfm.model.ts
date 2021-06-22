@@ -1,18 +1,20 @@
-import {Entity, EntityAsObjectOptions, IEntity} from "../../../core/services/model/entity.model";
-import {Referential, ReferentialRef} from "../../../core/services/model/referential.model";
-import {isNotNil} from "../../../shared/functions";
-import {MethodIds, PmfmIds} from "./model.enum";
-import {Parameter, ParameterType} from "./parameter.model";
-import {PmfmValue} from "./pmfm-value.model";
+import {BaseReferential, Entity, EntityAsObjectOptions, EntityClass, IEntity, isInstanceOf, isNotNil, ReferentialRef} from '@sumaris-net/ngx-components';
+import {MethodIds, PmfmIds} from './model.enum';
+import {Parameter, ParameterType} from './parameter.model';
+import {PmfmValue} from './pmfm-value.model';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 
 export declare type PmfmType = ParameterType | 'integer';
 
 export const PMFM_ID_REGEXP = /\d+/;
 
-export const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/]+)[/]\s*(.*)$/);
+export const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/(]+)[/(]\s*(.*)$/);
 
-export interface IPmfm<T extends Entity<T> = Entity<any>> extends IEntity<IPmfm<T>> {
-  id: number;
+export interface IPmfm<
+  T extends Entity<T, ID> = Entity<any, any>,
+  ID = number
+  > extends IEntity<IPmfm<T, ID>, ID> {
+  id: ID;
   label: string;
 
   type: string | PmfmType;
@@ -34,18 +36,40 @@ export interface IPmfm<T extends Entity<T> = Entity<any>> extends IEntity<IPmfm<
   isComputed: boolean;
   hidden?: boolean;
   rankOrder?: number;
+
 }
 
-export class Pmfm extends Referential<Pmfm> implements IPmfm<Pmfm> {
+export interface IDenormalizedPmfm<
+  T extends Entity<T, ID> = Entity<any, any>,
+  ID = number
+  > extends IPmfm<T, ID> {
 
-  static TYPENAME = 'Pmfm';
+  completeName?: string;
+  name?: string;
 
-  static fromObject(source: any): Pmfm {
-    if (!source || source instanceof Pmfm) return source;
-    const res = new Pmfm();
-    res.fromObject(source);
-    return res;
-  }
+  gearIds: number[];
+  taxonGroupIds: number[];
+  referenceTaxonIds: number[];
+}
+
+
+export interface IFullPmfm<
+  T extends Entity<T, ID> = Entity<any, any>,
+  ID = number
+  > extends IPmfm<T, ID> {
+
+  parameter: Parameter;
+  matrix: ReferentialRef;
+  fraction: ReferentialRef;
+  method: ReferentialRef;
+  unit: ReferentialRef;
+}
+
+@EntityClass({typename: 'PmfmVO'})
+export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
+
+  static ENTITY_NAME = 'Pmfm';
+  static fromObject: (source: any, opts?: any) => Pmfm;
 
   type: string | PmfmType;
   minValue: number;
@@ -65,20 +89,8 @@ export class Pmfm extends Referential<Pmfm> implements IPmfm<Pmfm> {
   completeName: string; // Computed attributes
 
   constructor() {
-    super();
-    this.entityName = Pmfm.TYPENAME;
-  }
-
-  clone(): Pmfm {
-    const target = new Pmfm();
-    this.copy(target);
-    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.clone()) || undefined;
-    return target;
-  }
-
-  copy(target: Pmfm): Pmfm {
-    target.fromObject(this);
-    return target;
+    super(Pmfm.TYPENAME);
+    this.entityName = Pmfm.ENTITY_NAME;
   }
 
   asObject(options?: EntityAsObjectOptions): any {
@@ -114,7 +126,7 @@ export class Pmfm extends Referential<Pmfm> implements IPmfm<Pmfm> {
   fromObject(source: any): Pmfm {
     super.fromObject(source);
 
-    this.entityName = source.entityName || Pmfm.TYPENAME;
+    this.entityName = source.entityName || Pmfm.ENTITY_NAME;
     this.type = source.type;
     this.minValue = source.minValue;
     this.maxValue = source.maxValue;
@@ -159,8 +171,6 @@ export class Pmfm extends Referential<Pmfm> implements IPmfm<Pmfm> {
   }
 }
 
-
-
 export abstract class PmfmUtils {
 
   static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[]): P {
@@ -199,5 +209,56 @@ export abstract class PmfmUtils {
   static isComputed(pmfm: IPmfm) {
     return pmfm.methodId === MethodIds.CALCULATED;
   }
+
+  static isDenormalizedPmfm(pmfm: IPmfm): pmfm is IDenormalizedPmfm {
+    return (pmfm['completeName'] || pmfm['name']) && true;
+  }
+
+  static isFullPmfm(pmfm: IPmfm): pmfm is IFullPmfm {
+    return pmfm['parameter'] && true;
+  }
+
+  /**
+   * Compute a PMFM.NAME, with the last part of the name
+   * @param pmfm
+   * @param opts
+   */
+  static getPmfmName(pmfm: IPmfm, opts?: {
+    withUnit?: boolean;
+    html?: boolean;
+    withDetails?: boolean;
+  }): string {
+    if (!pmfm) return undefined;
+
+    let name;
+    if (PmfmUtils.isDenormalizedPmfm(pmfm)) {
+      // Is complete name exists, use it
+      if (opts && opts.withDetails && pmfm.completeName) return pmfm.completeName;
+
+      // Remove parenthesis content, if any
+      const matches = PMFM_NAME_REGEXP.exec(pmfm.name || '');
+      name = matches && matches[1] || pmfm.name;
+    } else if (PmfmUtils.isFullPmfm(pmfm)) {
+      name = pmfm.parameter && pmfm.parameter.name;
+      if (opts && opts.withDetails) {
+        name += [
+          pmfm.matrix && pmfm.matrix.name,
+          pmfm.fraction && pmfm.fraction.name,
+          pmfm.method && pmfm.method.name
+        ].filter(isNotNil).join(' - ');
+      }
+    }
+
+    // Append unit
+    if ((!opts || opts.withUnit !== false) && (pmfm.type === 'integer' || pmfm.type === 'double') && pmfm.unitLabel) {
+      if (opts && opts.html) {
+        name += `<small><br/>(${pmfm.unitLabel})</small>`;
+      } else {
+        name += ` (${pmfm.unitLabel})`;
+      }
+    }
+    return name;
+  }
 }
+
 
