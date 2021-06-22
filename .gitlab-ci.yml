@@ -4,32 +4,26 @@ stages:
     - build
     - test
     - docs
+    - snapshot
     - release
 
 .build:
     stage: build
-    tags:
-        - sih_public_runner
+    tags: [sih_public_runner]
     script:
         - echo "Test dev build in progress"
         - mvn -s ./ci_settings.xml -q clean install -DskipTests
     environment:
         name: test
 
-build_auto:
+build:
     extends: .build
     only:
         - develop
         - feature/imagine
-    except:
-        - schedules
+    when: manual
 
-schedule_build:
-    extends: .build
-    only:
-        - schedules
-
-build_registry:
+snapshot:
     extends: .build
     after_script:
         - RELEASE_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
@@ -102,6 +96,7 @@ release:
         - echo "RELEASE_VERSION=${RELEASE_VERSION}" >> variables.env
     script:
         - echo "Preparing release"
+        - git branch -D release/$RELEASE_VERSION || exit 0
         - mvn -s ./ci_settings.xml -B gitflow:release-start --batch-mode -DreleaseVersion="$RELEASE_VERSION"
         - echo "Performing release"
         - mvn -s ./ci_settings.xml clean deploy --batch-mode -DperformRelease -DskipTests -Drelease.server=job-maven -Phsqldb
