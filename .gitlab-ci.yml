@@ -1,3 +1,11 @@
+# ---------------------------------------------------------------
+# Global
+# ---------------------------------------------------------------
+
+# default image
+image: jlrigau/maven-git
+
+# stages (main steps of pipeline)
 stages:
     - build
     - alt_build
@@ -6,7 +14,21 @@ stages:
     - deploy
     - release
 
-.build:
+# ---------------------------------------------------------------
+# Jobs templates
+# ---------------------------------------------------------------
+
+.docker-template: &docker
+    image: docker:latest
+    services:
+        - docker:dind
+    variables:
+        DOCKER_DRIVER: overlay2
+        ANSIBLE_FORCE_COLOR: '1'
+    tags: [sih_public_runner]
+    allow_failure: false
+
+.build: &build
     stage: build
     tags: [sih_public_runner]
     script:
@@ -18,21 +40,56 @@ stages:
         paths:
             - sumaris-server/target/*.war
         expire_in: 60 minutes
+    variables:
+        IMAGE_NAME: sumaris-pod-build
+        IMAGE_VERSION: 0.0.0
+        CI_REGISTRY: gitlab-registry.ifremer.fr
+        CI_PROJECT_PATH: sih-public/sumaris/sumaris-pod
+        CI_REGISTRY_IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}/${IMAGE_NAME}:${IMAGE_VERSION}
+
+# ---------------------------------------------------------------
+# Build jobs
+# ---------------------------------------------------------------
 
 fast-build:
     extends: .build
-    image: $CI_REGISTRY_IMAGE
+    image: ${CI_REGISTRY_IMAGE}
     only:
         - develop
-    when: manual
 
 failsafe-build:
     extends: .build
     stage: alt_build
-    image: jlrigau/maven-git
+#    when: on_failure
+    when: manual
     only:
         - develop
+
+docker-for-fast-build:
+    <<: *docker-build
+    stage: alt_build
     when: on_failure
+    allow_failure: true
+    script:
+        - echo 'FROM jlrigau/maven-git' > Dockerfile
+        - echo 'WORKDIR /customCache' >> Dockerfile
+        - echo 'COPY ./ ./' >> Dockerfile
+        - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"`>/before.txt' >> Dockerfile
+        - echo 'RUN mvn -s ./ci_settings.xml -q -U dependency:purge-local-repository' >> Dockerfile
+        - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"`>/after.txt' >> Dockerfile
+        - echo 'WORKDIR /build' >> Dockerfile
+        - echo "RUN diff /before.txt /after.txt || true" >> Dockerfile
+        - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY} || true
+        - echo 'Updating docker image ${CI_REGISTRY_IMAGE}...'
+        - docker build -t ${CI_REGISTRY_IMAGE} .
+        - docker push ${CI_REGISTRY_IMAGE}
+    variables:
+        IMAGE_NAME: sumaris-pod-build
+        IMAGE_VERSION: 0.0.0
+        CI_REGISTRY: gitlab-registry.ifremer.fr
+        CI_PROJECT_PATH: sih-public/sumaris/sumaris-pod
+        CI_REGISTRY_IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}/${IMAGE_NAME}:${IMAGE_VERSION}
+
 
 deploy:
     stage: deploy
@@ -143,24 +200,3 @@ gitlab-release:
     only:
         - tags
 
-docker-for-fast-build:
-    stage: alt_build
-    when: manual
-    allow_failure: true
-    tags: [sih_public_runner]
-    image: docker:latest
-    services:
-        - docker:dind
-    script:
-        - echo 'FROM jlrigau/maven-git' > Dockerfile
-        - echo 'WORKDIR /customCache' >> Dockerfile
-        - echo 'COPY ./ ./' >> Dockerfile
-        - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"`>/before.txt' >> Dockerfile
-        - echo 'RUN mvn -s ./ci_settings.xml -q -U dependency:purge-local-repository' >> Dockerfile
-        - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"`>/after.txt' >> Dockerfile
-        - echo 'WORKDIR /build' >> Dockerfile
-        - echo "RUN diff /before.txt /after.txt || true" >> Dockerfile
-        - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY} || true
-        - echo 'Updating docker image ${CI_REGISTRY_IMAGE}'
-        - docker build --pull -t "$CI_REGISTRY_IMAGE" .
-        - docker push "$CI_REGISTRY_IMAGE"
