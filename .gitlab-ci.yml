@@ -1,7 +1,6 @@
-image: jlrigau/maven-git
-
 stages:
     - build
+    - alt_build
     - test
     - docs
     - snapshot
@@ -15,20 +14,34 @@ stages:
         - mvn -s ./ci_settings.xml -q clean install -DskipTests
     environment:
         name: test
+    artifacts:
+        untracked: true
+        paths:
+            - sumaris-server/target/*.war
+        expire_in: 60 minutes
 
-build:
+fast-build:
     extends: .build
+    image: ${CI_REGISTRY_IMAGE}-build
     only:
         - develop
-        - feature/imagine
     when: manual
 
-snapshot:
+failsafe-build:
     extends: .build
-    after_script:
+    stage: alt_build
+    image: jlrigau/maven-git
+    only:
+        - develop
+    when: on_failure
+
+snapshot:
+    needs:
+        - fast-build
+    script:
         - RELEASE_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
         - echo "Deploy $RELEASE_VERSION in progress"
-        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$RELEASE_VERSION -Dfile=sumaris-server/target/sumaris-server-$RELEASE_VERSION.war -DrepositoryId=job-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
+        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=net.sumaris -DartifactId=sumaris-server -Dversion=$RELEASE_VERSION -Dfile=sumaris-server/target/sumaris-server-$RELEASE_VERSION.war -DrepositoryId=job-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
     only:
         - develop
         - feature/imagine
@@ -133,3 +146,23 @@ gitlab-release:
     only:
         - tags
 
+docker-for-fast-build:
+    stage: alt_build
+    when: manual
+    allow_failure: true
+    tags: [sih_public_runner]
+    image: docker:latest
+    services:
+        - docker:dind
+    script:
+        - echo 'FROM jlrigau/maven-git' > Dockerfile
+        - echo 'WORKDIR /customCache' >> Dockerfile
+        - echo 'COPY ./ ./' >> Dockerfile
+        - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"`>/before.txt' >> Dockerfile
+        - echo 'RUN mvn -s ./ci_settings.xml -q -U dependency:purge-local-repository' >> Dockerfile
+        - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"`>/after.txt' >> Dockerfile
+        - echo 'WORKDIR /build' >> Dockerfile
+        - echo "RUN diff /before.txt /after.txt || true" >> Dockerfile
+        - docker login -u "gitlab-ci-token" -p "$CI_BUILD_TOKEN" $CI_REGISTRY
+        - docker build --pull -t "${CI_REGISTRY_IMAGE}-build" .
+        - docker push "${CI_REGISTRY_IMAGE}-build"
