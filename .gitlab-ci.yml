@@ -160,6 +160,7 @@ docker-for-fast-build:
         - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"`>/after.txt' >> Dockerfile
         - echo 'WORKDIR /build' >> Dockerfile
         - echo "RUN diff /before.txt /after.txt || true" >> Dockerfile
-        - docker login -u "gitlab-ci-token" -p "$CI_BUILD_TOKEN" $CI_REGISTRY
+        - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY} || true
+        - echo 'Updating docker image ${CI_REGISTRY_IMAGE}'
         - docker build --pull -t "$CI_REGISTRY_IMAGE" .
         - docker push "$CI_REGISTRY_IMAGE"
