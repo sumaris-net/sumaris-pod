@@ -104,7 +104,7 @@ release:
         - echo "Preparing release"
         - mvn -s ./ci_settings.xml -B gitflow:release-start --batch-mode -DreleaseVersion="$RELEASE_VERSION"
         - echo "Performing release"
-        - mvn -s ./ci_settings.xml clean deploy --batch-mode -DperformRelease -DskipTests -Dspring.datasource.platform=hsqldb
+        - mvn -s ./ci_settings.xml clean deploy --batch-mode -DperformRelease -DskipTests -Drelease.server=job-maven -Phsqldb
         - echo "Creating test DB"
         - mvn -pl sumaris-core -Prun,hsqldb -DskipTests --batch-mode
         - cd sumaris-core/target && zip -q -r "sumaris-db-$RELEASE_VERSION.zip" db && cd ../..
