@@ -29,15 +29,6 @@ variables:
 # Jobs templates
 # ---------------------------------------------------------------
 
-.docker:
-    image: docker:latest
-    tags: [sih_public_runner]
-    services:
-        - docker:dind
-    before_script:
-        - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY} || true
-    allow_failure: false
-
 .build:
     stage: build
     tags: [sih_public_runner]
@@ -51,7 +42,16 @@ variables:
             - sumaris-server/target/*.war
         expire_in: 60 minutes
 
-.deploy:
+.docker:
+    image: docker:latest
+    tags: [sih_public_runner]
+    services:
+        - docker:dind
+    before_script:
+        - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY} || true
+    allow_failure: false
+
+.deploy-file:
     stage: deploy
     tags: [sih_public_runner]
     script:
@@ -81,7 +81,7 @@ docker-for-fast-build:
     stage: alt_build
     when: on_failure
     allow_failure: true
-    script:
+    before_script:
         - echo 'FROM jlrigau/maven-git' > Dockerfile
         - echo 'WORKDIR /customCache' >> Dockerfile
         - echo 'COPY ./ ./' >> Dockerfile
@@ -90,6 +90,7 @@ docker-for-fast-build:
         - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"`>/after.txt' >> Dockerfile
         - echo 'WORKDIR /build' >> Dockerfile
         - echo "RUN diff /before.txt /after.txt || true" >> Dockerfile
+    script:
         - docker build --pull -t ${CI_REGISTRY_IMAGE} .
         - docker push ${CI_REGISTRY_IMAGE}
 
@@ -126,15 +127,15 @@ sonarqube:
 # Deploy jobs
 # ---------------------------------------------------------------
 
-fast-deploy:
-    extends: .deploy
+fast-deploy-file:
+    extends: .deploy-file
     needs:
         - fast-build
     only:
         - develop
 
-failsafe-deploy:
-    extends: .deploy
+failsafe-deploy-file:
+    extends: .deploy-file
     needs:
         - failsafe-build
     only:
@@ -142,22 +143,21 @@ failsafe-deploy:
 
 release:
     stage: deploy
-    tags:
-        - sih_public_runner
+    tags: [ sih_public_runner ]
     before_script:
         - git checkout -B "$CI_BUILD_REF_NAME"
         - git config --global user.email "${GITLAB_USER_EMAIL}"
         - git config --global user.name "${GITLAB_USER_NAME}"
         - echo "RELEASE_VERSION=${RELEASE_VERSION}" >> variables.env
     script:
-        - echo "Preparing release"
-        - git branch -D release/$RELEASE_VERSION || exit 0
+        - echo "Preparing release..."
+        - git branch -D release/$RELEASE_VERSION || true
         - mvn -s ./ci_settings.xml -B gitflow:release-start --batch-mode -DreleaseVersion="$RELEASE_VERSION"
-        - echo "Performing release"
+        - echo "Performing release..."
         - mvn -s ./ci_settings.xml clean deploy --batch-mode -DperformRelease -DskipTests -Drelease.server=job-maven -Phsqldb
         - echo "Creating test DB"
         - mvn -pl sumaris-core -Prun,hsqldb -DskipTests --batch-mode
-        - cd sumaris-core/target && zip -q -r "sumaris-db-$RELEASE_VERSION.zip" db && cd ../..
+        #- cd sumaris-core/target && zip -q -r "sumaris-db-$RELEASE_VERSION.zip" db && cd ../..
         - echo "Pushing changes to upstream"
         - git commit -a -m "Release $RELEASE_VERSION"
         - git status
@@ -171,7 +171,6 @@ release:
             dotenv: variables.env
     only:
         - develop
-    allow_failure: false
     when: manual
 
 gitlab-release:
