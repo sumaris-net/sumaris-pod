@@ -75,7 +75,7 @@ pages:
         - sih_public_runner
     image: python:3.7-alpine
     script:
-        - mvn -s ./ci_settings.xml -q site
+        - mvn -s ./ci_settings.xml site -q -Prun,hsqldb -DperformRelease
     after_script:
         - mv target/site public
     artifacts:
