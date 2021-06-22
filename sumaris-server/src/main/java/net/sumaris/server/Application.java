@@ -29,6 +29,7 @@ import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.ApplicationUtils;
 import net.sumaris.core.util.I18nUtil;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
@@ -75,6 +76,10 @@ import java.io.IOException;
 public class Application extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
+        // If not set yet, define custom config location
+        if (StringUtils.isBlank(System.getProperty("spring.config.location"))) {
+            System.getProperty("spring.config.location", "optional:file:./config/,classpath:/");
+        }
         SumarisServerConfiguration.setArgs(ApplicationUtils.toApplicationConfigArgs(args));
         SpringApplication.run(Application.class, args);
     }
