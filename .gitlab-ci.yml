@@ -31,11 +31,11 @@ variables:
 
 .docker:
     image: docker:latest
-    before_script:
-        - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY} || true
+    tags: [sih_public_runner]
     services:
         - docker:dind
-    tags: [sih_public_runner]
+    before_script:
+        - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY} || true
     allow_failure: false
 
 .build:
@@ -53,6 +53,7 @@ variables:
 
 .deploy:
     stage: deploy
+    tags: [sih_public_runner]
     script:
         - version=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
         - echo "Deploying $version"
