@@ -12,7 +12,8 @@ import {
   fadeInOutAnimation,
   firstNotNilPromise,
   firstTruePromise,
-  HistoryPageReference, isInstanceOf,
+  HistoryPageReference,
+  isInstanceOf,
   isNil,
   isNotNil,
   PlatformService,
@@ -29,6 +30,7 @@ import {LandingEditor, ProgramProperties} from '../../referential/services/confi
 import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
 import {BehaviorSubject} from 'rxjs';
 import {filter, first, tap} from 'rxjs/operators';
+import {EditableLandingsTable} from '../landing/editable-landings.table';
 import {AggregatedLandingsTable} from '../aggregated-landing/aggregated-landings.table';
 import {Program} from '../../referential/services/model/program.model';
 import {ObservedLocationsPageSettingsEnum} from './observed-locations.page';
@@ -74,6 +76,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   @ViewChild('editableLandingsTable') editableLandingsTable: EditableLandingsTable;
   @ViewChild('aggregatedLandingsTable') aggregatedLandingsTable: AggregatedLandingsTable;
 
+  get landingsTable(): LandingsTable {
+    return this.landingEditor === 'trip' ? this.editableLandingsTable : this.notEditableLandingsTable;
+  }
+
   /*get landingEditor(): LandingEditor {
     return this.landingsTable ? this.landingsTable.detailEditor : undefined;
   }
@@ -85,10 +91,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   get isEditableLandingTable(): boolean {
     return this.landingsTable ? this.landingsTable.isEditable : false;
   }*/
-
-  get landingsTable(): LandingsTable {
-    return this.landingEditor === 'trip' ? this.editableLandingsTable : this.notEditableLandingsTable;
-  }
 
   constructor(
     injector: Injector,

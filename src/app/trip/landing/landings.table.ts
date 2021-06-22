@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 
 import {isInstanceOf, isNotNil, referentialToString, StatusIds} from '@sumaris-net/ngx-components';
@@ -7,7 +7,6 @@ import {AppMeasurementsTable} from '../measurement/measurements.table.class';
 import {AcquisitionLevelCodes, LocationLevelIds} from '../../referential/services/model/model.enum';
 import {VesselSnapshotService} from '../../referential/services/vessel-snapshot.service';
 import {Moment} from 'moment';
-import {LandingValidatorService} from '../services/validator/landing.validator';
 import {Trip} from '../services/model/trip.model';
 import {ObservedLocation} from '../services/model/observed-location.model';
 import {Landing} from '../services/model/landing.model';
