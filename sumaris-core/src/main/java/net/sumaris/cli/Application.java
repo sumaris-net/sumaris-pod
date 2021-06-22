@@ -75,10 +75,14 @@ public class Application {
 	private static String[] ARGS;
 
 	public static void main(String[] args) {
-		run(Application.class, args);
+		run(args, null);
 	}
 
-	public static void run(Class<? extends Application> clazz, String[] args) {
+	public static void run(String[] args, String configLocation) {
+		run(Application.class, args, configLocation);
+	}
+
+	public static void run(Class<? extends Application> clazz, String[] args, String configLocation) {
 		// By default, display help
 		if (args == null || args.length == 0) {
 			ARGS = new String[] { "-h" };
@@ -91,7 +95,10 @@ public class Application {
 		SumarisConfiguration.setArgs(ApplicationUtils.toApplicationConfigArgs(ARGS));
 
 		// If not set yet, define custom config location
-		if (StringUtils.isBlank(System.getProperty("spring.config.location"))) {
+		if (StringUtils.isNotBlank(configLocation)) {
+			System.getProperty("spring.config.location", configLocation);
+		}
+		else if (StringUtils.isBlank(System.getProperty("spring.config.location"))) {
 			System.getProperty("spring.config.location", "optional:file:./config/,classpath:/");
 		}
 

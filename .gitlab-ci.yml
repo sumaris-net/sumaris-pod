@@ -89,59 +89,50 @@ pages:
     when: manual
 
 
-package:
-    stage: prepare
-    tags:
-        - sih_public_runner
-    before_script:
-        - git checkout -B "$CI_BUILD_REF_NAME"
-        - git config --global user.email "lbruvryl@ifremer.fr"
-        - git config --global user.name "Leo BRUVRY-LAGADEC"
-        - echo "TAG=$RELEASE_VERSION" >> variables.env
-    script:
-        - echo "Release in progress"
-        - mvn release:clean -Dslf4jJclScope=provided
-        - mvn -s ./ci_settings.xml release:prepare --batch-mode -Dtag=sumaris-pod-$RELEASE_VERSION -DreleaseVersion=$RELEASE_VERSION -DdevelopmentVersion=$NEW_DEV_VERSION -DscmCommentPrefix="[ci skip] to "
-        - mvn -s ./ci_settings.xml release:perform -Dslf4jJclScope=provided -X -DscmCommentPrefix="[ci skip] to "
-    artifacts:
-        paths:
-            - web-services/target/*.war
-        reports:
-            dotenv: variables.env
-    only:
-        - develop
-        - feature/imagine
-    allow_failure: false
-    when: manual
-
 release:
     stage: release
     tags:
         - sih_public_runner
-    image: registry.gitlab.com/gitlab-org/release-cli:latest
-    needs:
-        - job: package
-          artifacts: true
+    before_script:
+        - git checkout -B "$CI_BUILD_REF_NAME"
+        - git config --global user.email "${GITLAB_USER_EMAIL}"
+        - git config --global user.name "${GITLAB_USER_NAME}"
+        - echo "RELEASE_VERSION=${RELEASE_VERSION}" >> variables.env
+        - test "_" = "_$RELEASE_VERSION" && echo "ERROR: missing Pipeline variable 'RELEASE_VERSION'" && exit 1
     script:
-        - echo "running release for sumaris-pod-$TAG"
+        - echo "Preparing release"
+        - mvn -s ./ci_settings.xml -B gitflow:release-start --batch-mode -DreleaseVersion="$RELEASE_VERSION"
+        - echo "Performing release"
+        - mvn -s ./ci_settings.xml clean deploy --batch-mode -DperformRelease -DskipTests -Dspring.datasource.platform=hsqldb
+        - echo "Creating test DB"
+        - mvn -pl sumaris-core -Prun,hsqldb -DskipTests --batch-mode
+        - cd sumaris-core/target && zip -q -r "sumaris-db-$RELEASE_VERSION.zip" db && cd ../..
+        - echo "Pushing changes to upstream"
+        - git commit -a -m "Release $RELEASE_VERSION"
+        - git status
+        - mvn gitflow:release-finish
+    artifacts:
+        paths:
+            - sumaris-core/target/*.zip
+            - sumaris-server/target/*.war
+        reports:
+            dotenv: variables.env
+    only:
+        - develop
+    allow_failure: false
+    when: manual
+
+gitlab-release:
+    stage: release
+    tags: [sih_public_runner]
+    image: registry.gitlab.com/gitlab-org/release-cli:latest
+    script:
+        - echo "running release for ${CI_COMMIT_TAG}"
     release:
         name: "Release sumaris-pod-$TAG"
         description: "Created using the release-cli $EXTRA_DESCRIPTION"
-        tag_name: "sumaris-pod-$TAG"
-        ref: "$CI_COMMIT_SHA"
+        tag_name: "${CI_COMMIT_TAG}"
+        ref: "${CI_COMMIT_TAG}"
     only:
-        - develop
-        - feature/imagine
-    when: manual
+        - tags
 
-deploy:
-    stage: deploy
-    tags:
-        - sih_public_runner
-    script:
-        - echo "Deploy in progress"
-        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=sumaris-pod -Dversion=$TAG -Dfile=web-services/target/ROOT.war -DrepositoryId=internal-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven
-    only:
-        - develop
-        - feature/imagine
-    when: manual

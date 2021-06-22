@@ -57,7 +57,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class Application extends net.sumaris.cli.Application {
 
     public static void main(String[] args) {
-        net.sumaris.cli.Application.run(Application.class, args);
+        net.sumaris.cli.Application.main(args);
     }
 
     /**
