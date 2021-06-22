@@ -32,10 +32,9 @@ schedule_build:
 build_registry:
     extends: .build
     after_script:
-        - echo "Deploy Snapshot in progress"
-        - SNAPSHOT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
-        - echo $SNAPSHOT_VERSION
-        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$SNAPSHOT_VERSION -Dfile=sumaris-server/target/sumaris-server-$SNAPSHOT_VERSION.war -DrepositoryId=job-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
+        - RELEASE_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
+        - echo "Deploy $RELEASE_VERSION in progress"
+        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$RELEASE_VERSION -Dfile=sumaris-server/target/sumaris-server-$RELEASE_VERSION.war -DrepositoryId=job-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
     only:
         - develop
         - feature/imagine
@@ -117,6 +116,7 @@ release:
         paths:
             - sumaris-core/target/*.zip
             - sumaris-server/target/*.war
+            - sumaris-server/target/*.zip
         reports:
             dotenv: variables.env
     only:

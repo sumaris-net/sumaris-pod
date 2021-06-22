@@ -49,7 +49,7 @@ WAR_FILE="${SUMARIS_HOME}/lib/${WAR_FILENAME}"
 JAVA_EXEC=${JAVA_HOME}/bin/java
 
 JAVA_OPTS="$JAVA_OPTS -Xms512m -Xmx1024m"
-JAVA_OPTS="$JAVA_OPTS -Dspring.config.additional-location=${SUMARIS_HOME}/config/"
+JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${SUMARIS_HOME}/config/"
 JAVA_OPTS="$JAVA_OPTS -Dsumaris.basedir=${SUMARIS_HOME}"
 JAVA_OPTS="$JAVA_OPTS -Dsumaris.log.file=${SUMARIS_LOG}"
 [[ "_${PROFILE}" != "_" ]]  && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILE}"

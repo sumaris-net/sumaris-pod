@@ -182,9 +182,9 @@
     <!-- release config -->
     <autoVersionSubmodules>true</autoVersionSubmodules>
     <goals>deploy</goals>
-    <arguments>-DperformFullRelease -Dspring.datasource.platform=hsqldb</arguments>
+    <arguments>-Phsqldb</arguments>
     <preparationGoals>verify</preparationGoals>
-	<gitflowPluginVersion>1.14.0</gitflowPluginVersion>
+    <gitflowPluginVersion>1.14.0</gitflowPluginVersion>
 
     <!-- Last JRE version to use -->
     <jreVersion>1.8.77</jreVersion>
