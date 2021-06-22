@@ -74,7 +74,12 @@ pages:
     tags:
         - sih_public_runner
     image: python:3.7-alpine
+    before_script:
+        - git submodule foreach git fetch origin
+        - git submodule foreach git pull
     script:
+        - Echo "Generate SVG images"
+        - git submodule foreach ./generate.sh
         - mvn -s ./ci_settings.xml site -q -Prun,hsqldb -DperformRelease
     after_script:
         - mv target/site public
