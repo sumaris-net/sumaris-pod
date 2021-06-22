@@ -4,9 +4,7 @@ stages:
     - build
     - test
     - docs
-    - prepare
     - release
-    - deploy
 
 .build:
     stage: build
