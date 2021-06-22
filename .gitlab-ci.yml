@@ -10,9 +10,8 @@ stages:
     - build
     - alt_build
     - test
-    - docs
     - deploy
-    - release
+    - docs
 
 # ---------------------------------------------------------------
 # Global variables
@@ -24,6 +23,7 @@ variables:
     CONTAINER_BUILD_IMAGE: $CI_REGISTRY_IMAGE:build
     CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
     CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+    MAVEN_REPO_URL: https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
 
 # ---------------------------------------------------------------
 # Jobs templates
@@ -51,6 +51,13 @@ variables:
             - sumaris-server/target/*.war
         expire_in: 60 minutes
 
+.deploy:
+    stage: deploy
+    script:
+        - version=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
+        - echo "Deploying $version"
+        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=net.sumaris -DartifactId=sumaris-server -Dversion=$version -Dfile=sumaris-server/target/sumaris-server-$version.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+
 # ---------------------------------------------------------------
 # Build jobs
 # ---------------------------------------------------------------
@@ -64,8 +71,7 @@ fast-build:
 failsafe-build:
     extends: .build
     stage: alt_build
-#    when: on_failure
-    when: manual
+    when: on_failure
     only:
         - develop
 
@@ -86,18 +92,9 @@ docker-for-fast-build:
         - docker build --pull -t ${CI_REGISTRY_IMAGE} .
         - docker push ${CI_REGISTRY_IMAGE}
 
-deploy:
-    stage: deploy
-    needs:
-        - fast-build
-    script:
-        - RELEASE_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
-        - echo "Deploy $RELEASE_VERSION in progress"
-        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=net.sumaris -DartifactId=sumaris-server -Dversion=$RELEASE_VERSION -Dfile=sumaris-server/target/sumaris-server-$RELEASE_VERSION.war -DrepositoryId=job-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
-    only:
-        - develop
-        - feature/imagine
-    when: manual
+# ---------------------------------------------------------------
+# Test jobs
+# ---------------------------------------------------------------
 
 sonarqube:
     stage: test
@@ -105,7 +102,7 @@ sonarqube:
         - sih_public_runner
     variables:
         SONAR_TOKEN: "e6f816eee72d3d5c03319ec74b468157b9164d12"
-        SONAR_HOST_URL: "http://visi-common-sonar.ifremer.fr:9000"
+        SONAR_HOST_URL: http://visi-common-sonar.ifremer.fr:9000
     image:
         name: sonarsource/sonar-scanner-cli:latest
         entrypoint: [""]
@@ -124,31 +121,26 @@ sonarqube:
     when: manual
 
 
-pages:
-    stage: docs
-    tags:
-        - sih_public_runner
-    image: python:3.7-alpine
-    before_script:
-        - git submodule foreach git fetch origin
-        - git submodule foreach git pull
-    script:
-        - Echo "Generate SVG images"
-        - git submodule foreach ./generate.sh
-        - mvn -s ./ci_settings.xml site -q -Prun,hsqldb -DperformRelease
-    after_script:
-        - mv target/site public
-    artifacts:
-        paths:
-            - public
+# ---------------------------------------------------------------
+# Deploy jobs
+# ---------------------------------------------------------------
+
+fast-deploy:
+    extends: .deploy
+    needs:
+        - fast-build
     only:
         - develop
-        - feature/imagine
-    when: manual
 
+failsafe-deploy:
+    extends: .deploy
+    needs:
+        - failsafe-build
+    only:
+        - develop
 
 release:
-    stage: release
+    stage: deploy
     tags:
         - sih_public_runner
     before_script:
@@ -182,7 +174,7 @@ release:
     when: manual
 
 gitlab-release:
-    stage: release
+    stage: deploy
     tags: [sih_public_runner]
     image: registry.gitlab.com/gitlab-org/release-cli:latest
     script:
@@ -194,4 +186,31 @@ gitlab-release:
         ref: "${CI_COMMIT_TAG}"
     only:
         - tags
+
+# ---------------------------------------------------------------
+# Docs jobs
+# ---------------------------------------------------------------
+
+pages:
+    stage: docs
+    tags:
+        - sih_public_runner
+    image: python:3.7-alpine
+    before_script:
+        - git submodule foreach git fetch origin
+        - git submodule foreach git pull
+    script:
+        - Echo "Generate SVG images"
+        - git submodule foreach ./generate.sh
+        - mvn -s ./ci_settings.xml site -q -Prun,hsqldb -DperformRelease
+    after_script:
+        - mv target/site public
+    artifacts:
+        paths:
+            - public
+    only:
+        - develop
+        - feature/imagine
+    when: manual
+
 
