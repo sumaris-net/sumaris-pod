@@ -21,7 +21,7 @@ stages:
 variables:
     DOCKER_DRIVER: overlay2
     ANSIBLE_FORCE_COLOR: '1'
-    CONTAINER_BUILD_IMAGE: $CI_REGISTRY_IMAGE:build
+    CONTAINER_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
     #CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
     CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:develop
     MAVEN_LOCAL_REPO: /root/.m2/repository/
@@ -222,14 +222,14 @@ gitlab-release:
         ARTIFACT_BIN_FILE: ${APP_WAR_MODULE}/target/classes/*.properties
         APP_BASEDIR: /home/${APP_WAR_MODULE}
     before_script:
+        - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
         # Create the starter script
         - echo '#!/bin/bash' > start.sh
         - echo 'cd ${APP_BASEDIR}' >> start.sh
-        - echo 'JAVA_OPTS="-Doracle.net.tns_admin=/home/tnsnames -Doracle.jdbc.timezoneAsRegion=false -Dspring.config.location=${APP_BASEDIR}/config/"' >> start.sh
+        - echo 'JAVA_OPTS="-Doracle.net.tns_admin=/home/tnsnames -Doracle.jdbc.timezoneAsRegion=false -Dspring.config.location=${APP_BASEDIR}/config/ -Duser.home=${APP_BASEDIR}"' >> start.sh
         - echo 'APP_ARGS=${@:2}' >> start.sh
-        - echo 'java $JAVA_OPTS -server -jar ${APP_WAR_MODULE}.war ${APP_ARGS}' >> start.sh
+        - echo 'java $JAVA_OPTS -server -jar lib/${APP_WAR_MODULE}.war ${APP_ARGS}' >> start.sh
         # Create the Dockerfile
-        - echo 'RUN apt-get update && apt-get -y install libsodium-dev' >> Dockerfile
         - echo 'FROM openjdk:8-jdk-stretch' > Dockerfile
         - echo 'RUN apt-get update && apt-get -y install libsodium-dev' >> Dockerfile
         - echo 'COPY ${ARTIFACT_WAR_FILE} ${APP_BASEDIR}/${APP_WAR_MODULE}.war' >> Dockerfile
