@@ -202,7 +202,7 @@ release:
     extends: .release
     image: ${CONTAINER_BUILD_IMAGE}
     needs:
-        - fast-build
+        - build
 
 failsafe-release:
     extends: .release
