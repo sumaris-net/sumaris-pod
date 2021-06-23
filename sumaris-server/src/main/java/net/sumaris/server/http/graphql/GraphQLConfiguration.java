@@ -10,12 +10,12 @@ package net.sumaris.server.http.graphql;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -26,8 +26,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.GraphQLSchema;
 import io.leangen.graphql.GraphQLSchemaGenerator;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
-import io.leangen.graphql.metadata.strategy.query.OperationInfoGenerator;
-import io.leangen.graphql.metadata.strategy.query.OperationInfoGeneratorParams;
 import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFactory;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -40,18 +38,14 @@ import net.sumaris.server.http.graphql.data.DataGraphQLService;
 import net.sumaris.server.http.graphql.referential.PmfmGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialExternalGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialGraphQLService;
+import net.sumaris.server.http.graphql.referential.TaxonNameGraphQLService;
 import net.sumaris.server.http.graphql.security.AuthGraphQLService;
 import net.sumaris.server.http.graphql.social.SocialGraphQLService;
 import net.sumaris.server.http.graphql.technical.*;
-import net.sumaris.server.http.ontology.RestPaths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -99,6 +93,9 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     @Autowired
     private ReferentialExternalGraphQLService referentialExternalService;
 
+    @Autowired
+    private TaxonNameGraphQLService taxonNameGraphQLService;
+
     @Autowired(required = false)
     private ExtractionGraphQLService extractionGraphQLService;
 
@@ -122,10 +119,10 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
                 // Enable Global CORS support for the application
                 //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
                 registry.addMapping(GraphQLPaths.BASE_PATH)
-                    .allowedOriginPatterns("*")
-                    .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
-                    .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
-                    .allowCredentials(true);
+                        .allowedOriginPatterns("*")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
+                        .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
+                        .allowCredentials(true);
             }
         };
     }
@@ -137,40 +134,44 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
         log.info("Generating GraphQL schema (using SPQR)...");
 
         GraphQLSchemaGenerator generator = new GraphQLSchemaGenerator()
-            .withResolverBuilders(new AnnotatedResolverBuilder())
+                .withResolverBuilders(new AnnotatedResolverBuilder())
 
-            // Auth and technical
-            .withOperationsFromSingleton(authGraphQLService, AuthGraphQLService.class)
-            .withOperationsFromSingleton(accountGraphQLService, AccountGraphQLService.class)
-            .withOperationsFromSingleton(softwareService, SoftwareGraphQLService.class)
-            .withOperationsFromSingleton(configurationService, ConfigurationGraphQLService.class)
-            .withOperationsFromSingleton(trashService, TrashGraphQLService.class)
+                // Auth and technical
+                .withOperationsFromSingleton(authGraphQLService, AuthGraphQLService.class)
+                .withOperationsFromSingleton(accountGraphQLService, AccountGraphQLService.class)
+                .withOperationsFromSingleton(softwareService, SoftwareGraphQLService.class)
+                .withOperationsFromSingleton(configurationService, ConfigurationGraphQLService.class)
+                .withOperationsFromSingleton(trashService, TrashGraphQLService.class)
 
-            // Administration & Referential
-            .withOperationsFromSingleton(administrationService, AdministrationGraphQLService.class)
-            .withOperationsFromSingleton(programService, ProgramGraphQLService.class)
-            .withOperationsFromSingleton(referentialService, ReferentialGraphQLService.class)
-            .withOperationsFromSingleton(pmfmService, PmfmGraphQLService.class)
-            .withOperationsFromSingleton(referentialExternalService, ReferentialExternalGraphQLService.class)
+                // Administration & Referential
+                .withOperationsFromSingleton(administrationService, AdministrationGraphQLService.class)
+                .withOperationsFromSingleton(programService, ProgramGraphQLService.class)
+                .withOperationsFromSingleton(referentialService, ReferentialGraphQLService.class)
+                .withOperationsFromSingleton(pmfmService, PmfmGraphQLService.class)
+                .withOperationsFromSingleton(referentialExternalService, ReferentialExternalGraphQLService.class)
+                .withOperationsFromSingleton(taxonNameGraphQLService, TaxonNameGraphQLService.class)
 
-            // Data
-            .withOperationsFromSingleton(dataService, DataGraphQLService.class)
+                // Data
+                .withOperationsFromSingleton(dataService, DataGraphQLService.class)
 
-            // Social
-            .withOperationsFromSingleton(socialService, SocialGraphQLService.class)
+                // Social
+                .withOperationsFromSingleton(socialService, SocialGraphQLService.class)
 
-            .withTypeTransformer(new DefaultTypeTransformer(false, true)
-                // Replace unbounded IEntity<ID> with IEntity<Serializable>
-                .addUnboundedReplacement(IEntity.class, Serializable.class))
+                .withTypeTransformer(new DefaultTypeTransformer(false, true)
+                        // Replace unbounded IEntity<ID> with IEntity<Serializable>
+                        .addUnboundedReplacement(IEntity.class, Serializable.class))
 
-            .withValueMapperFactory(new JacksonValueMapperFactory.Builder()
-                .withPrototype(objectMapper)
-                .build());
+                .withValueMapperFactory(new JacksonValueMapperFactory.Builder()
+                        .withPrototype(objectMapper)
+                        .build());
 
         // Add optional services
-        if (cacheGraphQLService != null) generator.withOperationsFromSingleton(cacheGraphQLService, CacheGraphQLService.class);
-        if (extractionGraphQLService != null) generator.withOperationsFromSingleton(extractionGraphQLService, ExtractionGraphQLService.class);
-        if (aggregationGraphQLService != null) generator.withOperationsFromSingleton(aggregationGraphQLService, AggregationGraphQLService.class);
+        if (cacheGraphQLService != null)
+            generator.withOperationsFromSingleton(cacheGraphQLService, CacheGraphQLService.class);
+        if (extractionGraphQLService != null)
+            generator.withOperationsFromSingleton(extractionGraphQLService, ExtractionGraphQLService.class);
+        if (aggregationGraphQLService != null)
+            generator.withOperationsFromSingleton(aggregationGraphQLService, AggregationGraphQLService.class);
 
         return generator.generate();
     }

@@ -44,7 +44,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.core.annotation.Order;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
@@ -60,9 +60,7 @@ import org.springframework.stereotype.Component;
 	exclude = {
 		LiquibaseAutoConfiguration.class,
 		FreeMarkerAutoConfiguration.class,
-		JndiConnectionFactoryAutoConfiguration.class,
-		//JmsAutoConfiguration.class,
-		//ActiveMQAutoConfiguration.class
+		JndiConnectionFactoryAutoConfiguration.class
 	},
 	scanBasePackages = {
 		"net.sumaris.core"
@@ -74,15 +72,17 @@ import org.springframework.stereotype.Component;
 @Profile("!test")
 public class Application {
 
-	private static String CONFIG_FILE;
-
 	private static String[] ARGS;
 
-	public static void run(String[] args, String configFile) {
-		run(Application.class, args, configFile);
+	public static void main(String[] args) {
+		run(args, null);
 	}
 
-	public static void run(Class<? extends Application> clazz, String[] args, String configFile) {
+	public static void run(String[] args, String configLocation) {
+		run(Application.class, args, configLocation);
+	}
+
+	public static void run(Class<? extends Application> clazz, String[] args, String configLocation) {
 		// By default, display help
 		if (args == null || args.length == 0) {
 			ARGS = new String[] { "-h" };
@@ -91,20 +91,16 @@ public class Application {
 			ARGS = args;
 		}
 
-		// Could override config file id (useful for dev)
-		configFile = StringUtils.isNotBlank(configFile) ? configFile : "application.properties";
-		if (System.getProperty(configFile) != null) {
-			configFile = System.getProperty(CONFIG_FILE);
-			CONFIG_FILE = configFile.replaceAll("\\\\", "/");
-			// Override spring location file
-			System.setProperty("spring.config.location", CONFIG_FILE);
-		}
-		else {
-			CONFIG_FILE = configFile;
-		}
-
 		SumarisConfiguration.setInstance(null); // Reset existing config
 		SumarisConfiguration.setArgs(ApplicationUtils.toApplicationConfigArgs(ARGS));
+
+		// If not set yet, define custom config location
+		if (StringUtils.isNotBlank(configLocation)) {
+			System.getProperty("spring.config.location", configLocation);
+		}
+		else if (StringUtils.isBlank(System.getProperty("spring.config.location"))) {
+			System.getProperty("spring.config.location", "optional:file:./config/,classpath:/");
+		}
 
 		try {
 			// Start Spring boot
@@ -127,24 +123,12 @@ public class Application {
 		}
 	}
 
-	/**
-	 * <p>
-	 * main.
-	 * </p>
-	 *
-	 * @param args
-	 *            an array of {@link String} objects.
-	 */
-	public static void main(String[] args) {
-		run(args, null);
-	}
-
 	@Bean
-	public SumarisConfiguration configuration() {
+	public SumarisConfiguration configuration(ConfigurableEnvironment env) {
 
 		SumarisConfiguration config = SumarisConfiguration.getInstance();
 		if (config == null) {
-			SumarisConfiguration.initDefault(CONFIG_FILE);
+			SumarisConfiguration.initDefault(env);
 			config = SumarisConfiguration.getInstance();
 		}
 
@@ -178,30 +162,28 @@ public class Application {
 			}
 		}
 
-		waitConfigurationReady(appContext);
 
 		try {
+			waitConfigurationReady(appContext);
+
 			SumarisConfiguration.getInstance().getApplicationConfig().doAllAction();
 			System.exit(0);
 		} catch(Exception e) {
-			log.error("Error while executing action", e);
+			if (!(e instanceof InterruptedException)) {
+				log.error("Error while executing action", e);
+			}
 			System.exit(1);
 		}
 	}
 
-	protected static void waitConfigurationReady(ApplicationContext appContext) {
+	protected static void waitConfigurationReady(ApplicationContext appContext) throws InterruptedException {
 		try {
 			// Get the configuration service bean
 			ConfigurationService service = appContext.getBean(ConfigurationService.class);
 
 			// Make sure configuration has been loaded
 			while(!service.isReady()) {
-				try {
-					Thread.sleep(1000);
-				}
-				catch (InterruptedException e) {
-					// End
-				}
+				Thread.sleep(1000);
 			}
 		} catch (NoSuchBeanDefinitionException e) {
 			// continue

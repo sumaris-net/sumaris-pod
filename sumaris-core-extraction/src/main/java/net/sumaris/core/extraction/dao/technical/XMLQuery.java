@@ -37,10 +37,7 @@ import org.jdom2.filter.Filters;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -52,9 +49,18 @@ public class XMLQuery extends HSQLDBSingleXMLQuery {
 
     private String xslFileName;
 
+    private boolean lowercaseAliases;
+
     public XMLQuery() {
         super();
         xslFileName = super.getXSLFileName();
+        this.lowercaseAliases = false;
+    }
+
+    public XMLQuery(boolean lowercaseAliases) {
+        super();
+        xslFileName = super.getXSLFileName();
+        this.lowercaseAliases = lowercaseAliases;
     }
 
     @Override
@@ -67,6 +73,14 @@ public class XMLQuery extends HSQLDBSingleXMLQuery {
     }
 
     // let default values here for HSQLDB
+
+    public boolean isLowercaseAliases() {
+        return lowercaseAliases;
+    }
+
+    public void setLowercaseAliases(boolean lowercaseAliases) {
+        this.lowercaseAliases = lowercaseAliases;
+    }
 
     /**
      * Get column names, with type="hidden"
@@ -138,4 +152,13 @@ public class XMLQuery extends HSQLDBSingleXMLQuery {
         Attribute optionAtr = getFirstQueryTag().getAttribute("option");
         return optionAtr != null && "distinct".equalsIgnoreCase(optionAtr.getValue());
     }
+
+    public String getSQLQueryAsString(){
+        String query = super.getSQLQueryAsString();
+        if (this.lowercaseAliases){
+            query = query.toLowerCase();
+        }
+        return query;
+    }
+
 }

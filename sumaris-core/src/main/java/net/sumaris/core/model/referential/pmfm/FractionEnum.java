@@ -41,10 +41,10 @@ public enum FractionEnum implements Serializable  {
                 .orElseThrow(() -> new IllegalArgumentException("Unknown MethodEnum: " + id));
     }
 
-    private int id;
+    private Integer id;
     private String label;
 
-    FractionEnum(int id, String label) {
+    FractionEnum(Integer id, String label) {
         this.id = id;
         this.label = label;
     }
@@ -54,12 +54,12 @@ public enum FractionEnum implements Serializable  {
      *
      * @return int the id
      */
-    public int getId()
+    public Integer getId()
     {
         return this.id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

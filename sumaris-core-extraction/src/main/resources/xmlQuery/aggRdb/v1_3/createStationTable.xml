@@ -37,7 +37,7 @@
           WHEN (T.VESSEL_LENGTH < 24) THEN '15-24'
           WHEN (T.VESSEL_LENGTH < 40) THEN '24-40'
           WHEN (T.VESSEL_LENGTH >= 40) THEN '>=40'
-        END CASE]]></subselect>
+        END]]></subselect>
 
         <subselect alias="NUMBER_OF_SETS" type="number">T.NUMBER_OF_SETS</subselect>
         <subselect alias="FISHING_TIME" type="number">(SELECT SUM(FISHING_TIME) FROM &amp;rawStationTableName WHERE TRIP_CODE=T.TRIP_CODE)</subselect>

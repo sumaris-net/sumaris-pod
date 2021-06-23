@@ -29,9 +29,9 @@ import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.ApplicationUtils;
 import net.sumaris.core.util.I18nUtil;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -42,12 +42,10 @@ import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfigurati
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jms.annotation.EnableJms;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import java.io.File;
 import java.io.IOException;
 
@@ -77,18 +75,18 @@ import java.io.IOException;
 @Slf4j
 public class Application extends SpringBootServletInitializer {
 
-    public static final String CONFIG_FILE_NAME = "application.properties";
-    private static final String CONFIG_FILE_ENV_PROPERTY = "spring.config.location";
-    private static final String CONFIG_FILE_JNDI_NAME = "java:comp/env/" + CONFIG_FILE_NAME;
-
     public static void main(String[] args) {
+        // If not set yet, define custom config location
+        if (StringUtils.isBlank(System.getProperty("spring.config.location"))) {
+            System.getProperty("spring.config.location", "optional:file:./config/,classpath:/");
+        }
         SumarisServerConfiguration.setArgs(ApplicationUtils.toApplicationConfigArgs(args));
         SpringApplication.run(Application.class, args);
     }
 
     @Bean
-    public static SumarisServerConfiguration configuration() {
-        SumarisServerConfiguration.initDefault(getConfigFile());
+    public static SumarisServerConfiguration configuration(ConfigurableEnvironment env) {
+        SumarisServerConfiguration.initDefault(env);
         SumarisServerConfiguration config = SumarisServerConfiguration.getInstance();
 
         // Init I18n
@@ -112,34 +110,6 @@ public class Application extends SpringBootServletInitializer {
     }
 
     /* -- Internal method -- */
-
-    /**
-     * <p>getWebConfigFile.</p>
-     *
-     * @return a {@link String} object.
-     */
-    protected static String getConfigFile() {
-        // Could override config file id (useful for dev)
-        String configFile = CONFIG_FILE_NAME;
-        if (System.getProperty(CONFIG_FILE_ENV_PROPERTY) != null) {
-            configFile = System.getProperty(CONFIG_FILE_ENV_PROPERTY);
-            configFile = configFile.replaceAll("\\\\", "/");
-        }
-        else {
-            try {
-                InitialContext ic = new InitialContext();
-                String jndiPathToConfFile = (String) ic.lookup(CONFIG_FILE_JNDI_NAME);
-                if (StringUtils.isNotBlank(jndiPathToConfFile)) {
-                    configFile = jndiPathToConfFile;
-                }
-            } catch (NamingException e) {
-                log.debug(String.format("Error while reading JNDI initial context. Skip configuration path override, from context [%s]", CONFIG_FILE_JNDI_NAME));
-            }
-        }
-
-        return configFile;
-    }
-
 
     /**
      * <p>initDirectories.</p>

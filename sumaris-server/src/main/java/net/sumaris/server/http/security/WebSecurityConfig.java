@@ -23,13 +23,12 @@ package net.sumaris.server.http.security;
  */
 
 import net.sumaris.server.config.SumarisServerConfiguration;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -85,7 +84,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) {
-        auth.authenticationProvider(authenticationProvider());
+        Collection<AuthenticationProvider> delegates = applicationContext.getBeansOfType(AuthenticationProvider.class).values();
+
+        // No provider: error
+        if (CollectionUtils.isEmpty(delegates)) {
+            throw new BeanInitializationException("No authentication provider found! Please set 'spring.security.token.enabled' or 'spring.security.ldap.enabled'");
+        }
+
+        delegates.forEach(auth::authenticationProvider);
     }
 
     @Override
@@ -103,12 +109,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             // authenticated
             .defaultAuthenticationEntryPointFor(forbiddenEntryPoint(), PROTECTED_URLS)
             .and()
-            .authenticationProvider(authenticationProvider())
             .addFilterBefore(restAuthenticationFilter(), AnonymousAuthenticationFilter.class)
-
-            // TODO BLA enable the version checked when App will manage the error (code: 553)
-            //.addFilterBefore(headerVersionFilter(), TokenAuthenticationFilter.class)
-
             .authorizeRequests()
             .requestMatchers(PROTECTED_URLS)
             .authenticated()
@@ -127,25 +128,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         filter.setEnableAuthToken(configuration.enableAuthToken());
         filter.setEnableAuthBasic(configuration.enableAuthBasic());
         return filter;
-    }
-
-    @Bean
-    @Primary
-    AuthenticationProvider authenticationProvider() {
-        Collection<AuthenticationProvider> delegates = applicationContext.getBeansOfType(AuthenticationProvider.class).values();
-
-        // No provider: error
-        if (delegates.size() == 0) {
-            throw new BeanInitializationException("No authentication provider found! Please set 'spring.security.token.enabled' or 'spring.security.ldap.enabled'");
-        }
-
-        // If only one provider, use it
-        if (delegates.size() == 1) {
-            return delegates.iterator().next();
-        }
-
-        // Create a multiple provider delegator
-        return new MultiAuthenticationProviderDelegator(delegates);
     }
 
     @Bean

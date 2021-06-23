@@ -56,12 +56,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Component("rdf-application")
 public class Application extends net.sumaris.cli.Application {
 
-    public static void run(String[] args, String configFile) {
-        net.sumaris.cli.Application.run(Application.class, args, configFile);
-    }
-
     public static void main(String[] args) {
-        run(args, null);
+        net.sumaris.cli.Application.main(args);
     }
 
     /**

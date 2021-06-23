@@ -28,24 +28,23 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 @EntityEnum(entity = Unit.class)
-public enum UnitEnum implements Serializable  {
+public enum UnitEnum implements Serializable {
 
     NONE(0, "None"),
     MM(1, "mm"),
-    CM(12, "cm")
-    ;
+    CM(12, "cm");
 
     public static UnitEnum valueOf(final int id) {
         return Arrays.stream(values())
-                .filter(enumValue -> enumValue.id == id)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown UnitEnum: " + id));
+            .filter(enumValue -> enumValue.id == id)
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown UnitEnum: " + id));
     }
 
-    private int id;
+    private Integer id;
     private String label;
 
-    UnitEnum(int id, String label) {
+    UnitEnum(Integer id, String label) {
         this.id = id;
         this.label = label;
     }
@@ -55,17 +54,15 @@ public enum UnitEnum implements Serializable  {
      *
      * @return int the id
      */
-    public int getId()
-    {
+    public Integer getId() {
         return this.id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public String getLabel()
-    {
+    public String getLabel() {
         return this.label;
     }
 

@@ -33,7 +33,7 @@ import net.sumaris.rdf.service.RdfModelService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.rdf.util.RdfFormat;
 import net.sumaris.rdf.util.RdfMediaType;
-import net.sumaris.server.http.RestPaths;
+import net.sumaris.server.http.RdfRestPaths;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -57,7 +57,7 @@ import java.util.Optional;
 @RestController
 @ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
 @Slf4j
-public class WebvowlRestController implements RestPaths {
+public class WebvowlRdfRestController implements RdfRestPaths {
 
     public static final String SERVER_TIMESTAMP_PATH = WEBVOWL_BASE_PATH +"/serverTimeStamp";
     public static final String CONVERT_PATH = WEBVOWL_BASE_PATH + "/convert";

@@ -176,8 +176,12 @@ public class AggregationGraphQLService {
             }
         }
 
+        // Make sure strata has been filled
+        if (strata == null || strata.getSpatialColumnName() == null) throw new SumarisTechnicalException(String.format("No strata or spatial column found, in type '%s'", type.getLabel()));
+
         // Get data
         AggregationResultVO data = aggregationService.getAggBySpace(type, filter, strata, offset, size, sort, SortDirection.fromString(direction));
+
 
         // Convert to GeoJSON
         return geoJsonConverter.toFeatureCollection(data, strata.getSpatialColumnName());

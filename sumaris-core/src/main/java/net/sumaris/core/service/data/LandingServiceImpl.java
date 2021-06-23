@@ -90,12 +90,12 @@ public class LandingServiceImpl implements LandingService {
 
         if (page != null) {
 
-            // Sorting by 'vessel' must sort by registration code
-            if (Landing.Fields.VESSEL.equals(page.getSortBy())) {
+            // FIXME LP: Sorting by 'vessel' must sort by registration code
+            /*if (Landing.Fields.VESSEL.equals(page.getSortBy())) {
                 page.setSortBy(
                     StringUtils.doting(Landing.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
                 );
-            }
+            }*/
 
             return landingRepository.findAll(filter, page, fetchOptions);
 

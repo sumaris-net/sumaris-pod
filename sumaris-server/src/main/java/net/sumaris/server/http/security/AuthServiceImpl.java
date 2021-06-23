@@ -361,8 +361,8 @@ public class AuthServiceImpl implements AuthService {
     private Collection<? extends GrantedAuthority> getAuthorities(PersonVO person) {
         return authoritiesMapper.getGrantedAuthorities(
             Beans.getStream(person.getProfiles())
-            .map(UserProfileEnum::valueOfLabel)
-            .map(Enum::toString)
+            .map(UserProfileEnum::valueOf)
+            .map(Enum::name)
             .collect(Collectors.toSet()));
     }
 }

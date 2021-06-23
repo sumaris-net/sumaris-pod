@@ -31,7 +31,6 @@ import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import net.sumaris.server.http.security.IsAdmin;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

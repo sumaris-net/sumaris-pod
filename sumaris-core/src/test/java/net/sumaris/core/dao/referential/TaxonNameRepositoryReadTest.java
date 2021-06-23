@@ -26,13 +26,11 @@ import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.referential.taxon.ReferenceTaxonRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
-import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.core.model.referential.taxon.TaxonomicLevelEnum;
+import net.sumaris.core.model.referential.taxon.*;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.junit.*;
@@ -88,7 +86,7 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
         List<TaxonName> taxonNames = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(ImmutableList.of(1004));
         Assert.assertNotNull(taxonNames);
         Assert.assertEquals(15, taxonNames.size());
-        taxonNames = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(ImmutableList.of(1030,1031,1032));
+        taxonNames = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(ImmutableList.of(1030, 1031, 1032));
         Assert.assertNotNull(taxonNames);
         Assert.assertEquals(4, taxonNames.size());
         taxonNames = taxonNameRepository.getAllTaxonNameByParentIdInAndIsReferentTrue(ImmutableList.of(1014));
@@ -139,7 +137,7 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
         assertFilterResult(TaxonNameFilterVO.builder().taxonGroupIds(new Integer[]{1160, 1161}).build(), 2);
         // with taxonomic level (species and subspecies)
         assertFilterResult(TaxonNameFilterVO.builder()
-            .levelIds(new Integer[]{TaxonomicLevelEnum.SPECIES.getId(), TaxonomicLevelEnum.SUBSPECIES.getId()}).build(), 23);
+                .levelIds(new Integer[]{TaxonomicLevelEnum.SPECIES.getId(), TaxonomicLevelEnum.SUBSPECIES.getId()}).build(), 23);
         // with label search
         assertFilterResult(TaxonNameFilterVO.builder().searchText("raja").build(), 13);
         // with exact label
@@ -151,5 +149,41 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
         List<TaxonNameVO> tn = taxonNameRepository.findByFilter(filter, 0, 100, "id", SortDirection.ASC);
         Assert.assertNotNull(tn);
         Assert.assertEquals(expectedSize, tn.size());
+    }
+
+    @Test
+    public void getById() {
+        TaxonNameVO tn = taxonNameRepository.get(1001);
+        Assert.assertNotNull(tn);
+        Assert.assertEquals(1001, tn.getId().intValue());
+        Assert.assertEquals("SRX", tn.getLabel());
+        Assert.assertEquals(1001, tn.getReferenceTaxonId().intValue());
+        Assert.assertEquals(13, tn.getTaxonomicLevelId().intValue());
+        Assert.assertEquals(13, tn.getTaxonomicLevel().getId().intValue());
+        Assert.assertNull(tn.getParentTaxonName());
+
+        tn = taxonNameRepository.get(1002);
+        Assert.assertNotNull(tn);
+        Assert.assertNotNull(tn.getParentTaxonName());
+        Assert.assertEquals(1001, tn.getParentTaxonName().getId().intValue());
+        Assert.assertEquals(1001, tn.getParentId().intValue());
+    }
+
+    @Test
+    public void getByLabel() {
+        TaxonNameVO tn = taxonNameRepository.getByLabel("SRX");
+        Assert.assertNotNull(tn);
+        Assert.assertEquals(1001, tn.getId().intValue());
+        Assert.assertEquals("SRX", tn.getLabel());
+        Assert.assertEquals(1001, tn.getReferenceTaxonId().intValue());
+        Assert.assertEquals(13, tn.getTaxonomicLevelId().intValue());
+        Assert.assertEquals(13, tn.getTaxonomicLevel().getId().intValue());
+        Assert.assertNull(tn.getParentTaxonName());
+
+        tn = taxonNameRepository.getByLabel("STT");
+        Assert.assertNotNull(tn);
+        Assert.assertNotNull(tn.getParentTaxonName());
+        Assert.assertEquals(1001, tn.getParentTaxonName().getId().intValue());
+        Assert.assertEquals(1001, tn.getParentId().intValue());
     }
 }

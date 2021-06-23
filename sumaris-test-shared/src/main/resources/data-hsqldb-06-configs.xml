@@ -14,9 +14,7 @@
     <SOFTWARE_PROPERTY ID="8"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="image:50"/>
     <SOFTWARE_PROPERTY ID="9"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.partner.departments" NAME="department:2,department:3,department:4,department:5,department:6,department:7"/>
     <SOFTWARE_PROPERTY ID="10" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="image:40,image:41,image:42,image:43,image:44,image:45,image:46,image:47,image:48,image:49"/>
-    <!--<SOFTWARE_PROPERTY ID="11" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.color.primary" NAME="#144391"/>-->
-    <!--<SOFTWARE_PROPERTY ID="12" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.color.secondary" NAME="#0CD1E8"/>-->
-    <!--<SOFTWARE_PROPERTY ID="13" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.color.tertiary" NAME="#EC7207"/>-->
+    <SOFTWARE_PROPERTY ID="11" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
     <SOFTWARE_PROPERTY ID="14" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:55"/>
     <SOFTWARE_PROPERTY ID="15" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="false"/>
     <SOFTWARE_PROPERTY ID="16" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.android.install.url" NAME="./download/android/sumaris-app-latest.apk"/>
@@ -25,6 +23,7 @@
     <SOFTWARE_PROPERTY ID="19" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="20" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="21" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
+
 
     <!-- ****** ADAP properties ****** -->
 
@@ -35,10 +34,8 @@
 
     <SOFTWARE_PROPERTY ID="27" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLocale" NAME="fr"/>
     <SOFTWARE_PROPERTY ID="28" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLatLongFormat" NAME="DDMM"/>
+    <SOFTWARE_PROPERTY ID="29" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
 
-    <!--<SOFTWARE_PROPERTY ID="29" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.color.primary" NAME="#004178"/>
-    <SOFTWARE_PROPERTY ID="30" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.color.secondary" NAME="#C3CD07"/>
-    <SOFTWARE_PROPERTY ID="31" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.color.tertiary" NAME="#009EAC"/>-->
     <SOFTWARE_PROPERTY ID="32" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:54"/>
     <SOFTWARE_PROPERTY ID="33" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="34" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.name" NAME="MENU.AUCTION_OCCASION"/>
@@ -62,6 +59,7 @@
     <SOFTWARE_PROPERTY ID="59" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enable" NAME="false"/>
     <SOFTWARE_PROPERTY ID="60" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="false"/>
     <SOFTWARE_PROPERTY ID="61" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="false"/>
+    <SOFTWARE_PROPERTY ID="62" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
 
 
     <!-- ****** OBSDEB properties ****** -->
@@ -78,6 +76,7 @@
     <SOFTWARE_PROPERTY ID="82" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="83" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="84" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="85" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
 
 
     <!-- ****** IMAGINE properties ****** -->
@@ -94,6 +93,7 @@
     <SOFTWARE_PROPERTY ID="110" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="false"/>
     <SOFTWARE_PROPERTY ID="111" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.analyticReferences.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="112" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.new.name" NAME="OBSERVED_LOCATION.NEW.SAMPLING.TITLE"/>
+    <SOFTWARE_PROPERTY ID="113" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="false"/>
 
 
 </dataset>

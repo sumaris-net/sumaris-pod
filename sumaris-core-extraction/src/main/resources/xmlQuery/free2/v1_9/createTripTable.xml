@@ -14,7 +14,7 @@
     <select alias="PROJECT" type="hidden">P.LABEL</select>
 
     <!-- other fields -->
-    <select alias="ID_NAVIRE" type="text">COALESCE(VRP.REGISTRATION_CODE, TO_CHAR(T.VESSEL_FK))</select>
+    <select alias="ID_NAVIRE" type="text">COALESCE(VRP.REGISTRATION_CODE, TO_CHAR(T.VESSEL_FK, '9999'))</select>
     <select alias="NOM_NAVIRE" type="text">VF.NAME</select>
     <select alias="LONGUEUR" type="number">VF.LENGTH_OVER_ALL / 100</select>
     <select alias="PUISSANCE" type="number">VF.ADMINISTRATIVE_POWER</select>
@@ -62,12 +62,12 @@
     <!-- vessel -->
     <from join="true">INNER JOIN VESSEL_FEATURES VF ON VF.VESSEL_FK = T.VESSEL_FK
       AND VF.START_DATE &lt;= T.DEPARTURE_DATE_TIME
-      AND NVL(VF.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) &gt;= T.DEPARTURE_DATE_TIME
+      AND COALESCE(VF.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) &gt;= T.DEPARTURE_DATE_TIME
     </from>
     <!-- vessel registration -->
     <from join="true">LEFT OUTER JOIN VESSEL_REGISTRATION_PERIOD VRP ON VRP.VESSEL_FK = T.VESSEL_FK
       AND VRP.START_DATE &lt;= T.DEPARTURE_DATE_TIME
-      AND NVL(VRP.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) &gt;= T.DEPARTURE_DATE_TIME
+      AND COALESCE(VRP.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) &gt;= T.DEPARTURE_DATE_TIME
     </from>
 
     <!-- recorder department -->

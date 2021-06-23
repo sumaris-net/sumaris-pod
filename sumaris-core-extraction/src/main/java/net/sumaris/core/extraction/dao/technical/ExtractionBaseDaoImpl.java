@@ -183,6 +183,9 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
         if (this.databaseType == DatabaseType.oracle) {
             xmlQuery.setXSLFileName(XSL_ORACLE_FILENAME);
         }
+        else if (this.databaseType == DatabaseType.postgresql){
+            xmlQuery.setLowercaseAliases(true);
+        }
         return xmlQuery;
     }
 

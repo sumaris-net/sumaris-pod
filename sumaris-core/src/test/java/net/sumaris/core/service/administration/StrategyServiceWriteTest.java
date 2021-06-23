@@ -60,7 +60,7 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
 
     @Test
     public void saveExisting() {
-        StrategyVO strategy = service.getByLabel("2020_BIO_0001");
+        StrategyVO strategy = service.getByLabel("2020-BIO-0001");
         Assert.assertNotNull(strategy);
         Assert.assertNotNull(strategy.getId());
         Assert.assertEquals(30, strategy.getId().intValue());

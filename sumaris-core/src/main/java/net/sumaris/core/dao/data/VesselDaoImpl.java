@@ -333,34 +333,37 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             ParameterExpression<Boolean> hasStatusIdsParam = builder.parameter(Boolean.class);
             ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
 
-            query.where(builder.and(
-                // Filter: date
-                builder.or(
+            //Filter: date (outside the where clause because pgsql doesn't accept cb.isNull and cb.isNotNull on date)
+            Predicate datePredicate;
+            if (filter.getDate() != null){
+                datePredicate =  builder.and(
+//                  builder.isNotNull(dateParam),
                     builder.and(
-                        // if no date in filter, will return only active period
-                        builder.isNull(dateParam),
-                        builder.isNull(featuresJoin.get(VesselFeatures.Fields.END_DATE)),
-                        builder.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE))
-                    ),
-                    builder.and(
-                        builder.isNotNull(dateParam),
-                        builder.and(
                             builder.or(
-                                builder.isNull(featuresJoin.get(VesselFeatures.Fields.END_DATE)),
-                                builder.greaterThan(featuresJoin.get(VesselFeatures.Fields.END_DATE), dateParam)
+                                    builder.isNull(featuresJoin.get(VesselFeatures.Fields.END_DATE)),
+                                    builder.greaterThan(featuresJoin.get(VesselFeatures.Fields.END_DATE), dateParam)
                             ),
                             builder.lessThan(featuresJoin.get(VesselFeatures.Fields.START_DATE), dateParam)
-                        ),
-                        builder.and(
+                    ),
+                    builder.and(
                             builder.or(
-                                builder.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE)),
-                                builder.greaterThan(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE), dateParam)
+                                    builder.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE)),
+                                    builder.greaterThan(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE), dateParam)
                             ),
                             builder.lessThan(vrpJoin.get(VesselRegistrationPeriod.Fields.START_DATE), dateParam)
-                        )
                     )
-                ),
+                );
+            }
+            else {
+                datePredicate =  builder.and(
+                    // if no date in filter, will return only active period
+//                  builder.isNull(dateParam),
+                    builder.isNull(featuresJoin.get(VesselFeatures.Fields.END_DATE)),
+                    builder.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE))
+                );
+            }
 
+            query.where(datePredicate, builder.and(
                 // Filter: vessel features id
                 builder.or(
                     builder.isNull(vesselFeaturesIdParam),
@@ -375,7 +378,8 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
 
                 // Filter: search text (on exterior marking OR id)
                 builder.or(
-                    builder.isNull(searchNameParam),
+//                    builder.isNull(searchNameParam),
+                    builder.like(searchNameParam, ""),
                     builder.like(builder.lower(featuresJoin.get(VesselFeatures.Fields.NAME)), builder.lower(searchNameParam)),
                     builder.like(builder.lower(featuresJoin.get(VesselFeatures.Fields.EXTERIOR_MARKING)), builder.lower(searchExteriorMarkingParam)),
                     builder.like(builder.lower(vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)), builder.lower(searchRegistrationCodeParam))
@@ -389,15 +393,19 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             );
 
             String searchTextAsPrefix = Daos.getEscapedSearchText(filter.getSearchText());
-            String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%" + searchTextAsPrefix) : null;
+            String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%" + searchTextAsPrefix) : "";
 
             List<Integer> statusIds = CollectionUtils.isEmpty(filter.getStatusIds())
                 ? null
                 : filter.getStatusIds();
 
-            return getEntityManager().createQuery(query)
-                .setParameter(dateParam, filter.getDate())
-                .setParameter(vesselFeaturesIdParam, filter.getVesselFeaturesId())
+            TypedQuery<R> q = getEntityManager().createQuery(query);
+
+            if (filter.getDate() != null) {
+                q.setParameter(dateParam, filter.getDate());
+            }
+
+            return q.setParameter(vesselFeaturesIdParam, filter.getVesselFeaturesId())
                 .setParameter(vesselIdParam, filter.getVesselId())
                 .setParameter(searchExteriorMarkingParam, searchTextAsPrefix)
                 .setParameter(searchRegistrationCodeParam, searchTextAsPrefix)
@@ -574,7 +582,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
         }
         else if (copyIfNull) {
             // Set default
-            target.setQualityFlag(getReference(QualityFlag.class, QualityFlagEnum.NOT_QUALIFED.getId()));
+            target.setQualityFlag(getReference(QualityFlag.class, QualityFlagEnum.NOT_QUALIFIED.getId()));
         }
     }
 

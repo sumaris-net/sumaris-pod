@@ -71,6 +71,7 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.PostConstruct;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
 import java.io.File;
 import java.io.FileWriter;
@@ -289,13 +290,12 @@ public class DatabaseSchemaDaoImpl
             if (em == null) {
                 throw new VersionNotFoundException("Could not find the schema version. No entityManager found");
             }
-            systemVersion = getEntityManager().createNamedQuery("SystemVersion.last", String.class)
-                    .getSingleResult();
+            systemVersion = em.createNamedQuery("SystemVersion.last", String.class).getSingleResult();
             if (StringUtils.isBlank(systemVersion)) {
                 throw new VersionNotFoundException("Could not find the schema version. No version found in SYSTEM_VERSION table.");
             }
-        } catch (HibernateException he) {
-            throw new VersionNotFoundException(String.format("Could not find the schema version: %s", he.getMessage()));
+        } catch (HibernateException | NoResultException e) {
+            throw new VersionNotFoundException(String.format("Could not find the schema version: %s", e.getMessage()));
         }
         try {
             return VersionBuilder.create(systemVersion).build();
@@ -676,7 +676,6 @@ public class DatabaseSchemaDaoImpl
             sessionSettings = session.getProperties();
         }
 
-
         MetadataSources metadata = new MetadataSources(
                 new StandardServiceRegistryBuilder()
                         .applySettings(sessionSettings)
@@ -721,6 +720,9 @@ public class DatabaseSchemaDaoImpl
         }
         if (Daos.isOracleDatabase(connection)) {
             return "SELECT DBTIMEZONE FROM DUAL";
+        }
+        if (Daos.isPostgresqlDatabase(connection)){
+            return "SELECT TO_CHAR(age(now() at time zone 'UTC', now()), 'HH24:MI');";
         }
         throw new SumarisTechnicalException("Could not determine database type");
     }

@@ -51,9 +51,9 @@ public enum SumarisCliConfigurationAction implements ConfigActionDef {
     //DENORMALIZE_SALES(DenormalizeSalesAction.class.getName() + "#run", "Execute the denormalize Job, on sales", "--denormalize-sales"),
     ;
 
-    public final String action;
-    public final String description;
-    public final String[] aliases;
+    private final String action;
+    private final String description;
+    private final String[] aliases;
 
     SumarisCliConfigurationAction(String action, String description, String... aliases) {
         this.action = action;

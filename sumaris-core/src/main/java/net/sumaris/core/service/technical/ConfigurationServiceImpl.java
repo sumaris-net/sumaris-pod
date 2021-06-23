@@ -188,9 +188,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         }
     }
 
-    /* -- protected methods -- */
-
-    protected void updateConfigFromSoftwareProperties() {
+    @Override
+    public void updateConfigFromSoftwareProperties() {
 
         boolean newDatabase = false;
 
@@ -214,6 +213,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         updateModelEnumerations();
     }
 
+    /* -- protected methods -- */
 
     protected void applySoftwareProperties(ApplicationConfig appConfig, SoftwareVO software) {
         if (software == null) {
@@ -312,12 +312,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                     String configOptionKey = configPrefix + StringUtils.doting(entityClassName, enumValue.toString(), joinAttribute);
                     boolean hasConfigOption = appConfig.hasOption(configOptionKey);
                     if (hasConfigOption) {
-                        if (joinValue != null) {
-                            joinValue = appConfig.getOption(joinValue.getClass(), configOptionKey);
-                        }
-                        else {
-                            joinValue = appConfig.getOption(configOptionKey);
-                        }
+                        joinValue = appConfig.getOption(joinValue.getClass(), configOptionKey);
                     }
 
                     // Find entities that match the attribute

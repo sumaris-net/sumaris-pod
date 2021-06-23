@@ -28,8 +28,13 @@
     </select>
 
     <!-- boolean -->
+<!--    <select alias="&amp;pmfmLabel%pmfmAlias%" group="boolean%pmfmAlias%" type="text">-->
+<!--     (SELECT DECODE(VUM.NUMERICAL_VALUE, 1, 'Y', 0, 'N')-->
+<!--     FROM VESSEL_USE_MEASUREMENT VUM-->
+<!--     WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&amp;pmfmId%pmfmAlias%)-->
+<!--    </select>    -->
     <select alias="&amp;pmfmLabel%pmfmAlias%" group="boolean%pmfmAlias%" type="text">
-     (SELECT DECODE(VUM.NUMERICAL_VALUE, 1, 'Y', 0, 'N')
+     (SELECT CASE VUM.NUMERICAL_VALUE WHEN 1 THEN 'Y' WHEN 0 THEN 'N' END
      FROM VESSEL_USE_MEASUREMENT VUM
      WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&amp;pmfmId%pmfmAlias%)
     </select>

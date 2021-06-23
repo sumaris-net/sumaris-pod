@@ -1,4 +1,4 @@
-package net.sumaris.server.http.ontology;
+package net.sumaris.server.http.rest;
 
 /*-
  * #%L
@@ -23,45 +23,32 @@ package net.sumaris.server.http.ontology;
  */
 
 
-import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.service.technical.ConfigurationService;
-import net.sumaris.core.vo.technical.SoftwareVO;
-import net.sumaris.server.config.SumarisServerConfiguration;
-import net.sumaris.server.util.node.NodeSummaryVO;
+import net.sumaris.server.service.administration.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+
 @RestController
-@Slf4j
-public class NodeInfoRestController {
+public class AccountRestController {
+
+    /* Logger */
+    //private static final Logger log = LoggerFactory.getLogger(AccountRestController.class);
 
     @Autowired
-    private SumarisServerConfiguration config;
+    private AccountService accountService;
 
-    @Autowired
-    private ConfigurationService configurationService;
-
-    @ResponseBody
-    @GetMapping(value = RestPaths.NODE_INFO_PATH,
+    @GetMapping(value = RestPaths.REGISTER_CONFIRM_PATH,
             produces = {
                 MediaType.APPLICATION_JSON_VALUE,
                 MediaType.APPLICATION_JSON_UTF8_VALUE
-        })
-    public NodeSummaryVO getNodeSummary() {
-        NodeSummaryVO result = new NodeSummaryVO();
-
-        // Set software info
-        result.setSoftwareName("sumaris-pod");
-        result.setSoftwareVersion(config.getVersionAsString());
-
-        // Set node info
-        SoftwareVO software = configurationService.getCurrentSoftware();
-        if (software != null) {
-            result.setNodeLabel(software.getLabel());
-            result.setNodeName(software.getName());
-        }
-
-        return result;
+    })
+    public boolean confirmRegistration(HttpServletResponse httpServletResponse,
+                                                      @RequestParam("email") String email,
+                                                      @RequestParam("code") String signatureHash) {
+        accountService.confirmEmail(email, signatureHash);
+        return true;
     }
+
 }

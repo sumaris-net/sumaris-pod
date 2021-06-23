@@ -25,14 +25,14 @@ package net.sumaris.core.dao.administration.programStrategy;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.administration.programStrategy.denormalized.DenormalizedPmfmStrategyRepository;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
-import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
-import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
+import net.sumaris.core.dao.referential.taxon.TaxonNameRepositoryImpl;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.exception.NotUniqueException;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -125,7 +125,6 @@ public class StrategyRepositoryImpl
     public StrategyVO save(StrategyVO vo) {
         Preconditions.checkNotNull(vo);
         Preconditions.checkNotNull(vo.getProgramId(), "Missing 'programId'");
-        Preconditions.checkNotNull(vo.getLabel(), "Missing 'label'");
         Preconditions.checkNotNull(vo.getName(), "Missing 'name'");
         Preconditions.checkNotNull(vo.getStatusId(), "Missing 'statusId'");
 
@@ -347,12 +346,13 @@ public class StrategyRepositoryImpl
         Specification<Strategy> spec = super.toSpecification(filter, fetchOptions);
         if (filter.getId() != null) return spec;
         return spec
-
-            // Not need, has already defined using levelIds, in the super function
-            //.and(hasProgramIds(filter))
-
-            .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
-            .and(betweenDate(filter.getStartDate(), filter.getEndDate()));
+                .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+                .and(hasAnalyticReferences(filter.getAnalyticReferences()))
+                .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
+                .and(hasDepartmentIds(filter.getDepartmentIds()))
+                .and(hasLocationIds(filter.getLocationIds()))
+                .and(hasParameterIds(filter.getParameterIds()))
+                .and(hasPeriods(filter.getPeriods()));
     }
 
     @Override
@@ -494,10 +494,16 @@ public class StrategyRepositoryImpl
         Map<Integer, ReferenceTaxonStrategy> sourcesToRemove = Beans.splitByProperty(parent.getReferenceTaxons(),
             ReferenceTaxonStrategy.Fields.REFERENCE_TAXON + "." + ReferenceTaxon.Fields.ID);
 
+        TaxonNameRepositoryImpl tnr = new TaxonNameRepositoryImpl(em);
+
         // Save each reference taxon strategy
         Beans.getStream(sources).forEach(source -> {
             Integer referenceTaxonId = source.getReferenceTaxonId() != null ? source.getReferenceTaxonId() :
                 (source.getTaxonName() != null ? source.getTaxonName().getReferenceTaxonId() : null);
+
+            if (referenceTaxonId == null) {
+                referenceTaxonId = tnr.getReferenceTaxonIdById(source.getTaxonName().getId());
+            }
             if (referenceTaxonId == null) throw new DataIntegrityViolationException("Missing referenceTaxon.id in a ReferenceTaxonStrategyVO");
             ReferenceTaxonStrategy target = sourcesToRemove.remove(referenceTaxonId);
             boolean isNew = target == null;

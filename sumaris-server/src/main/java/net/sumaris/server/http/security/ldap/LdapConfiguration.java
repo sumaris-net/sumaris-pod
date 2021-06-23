@@ -22,8 +22,7 @@
 
 package net.sumaris.server.http.security.ldap;
 
-import net.sumaris.server.config.SumarisServerConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
+import net.sumaris.server.http.security.AuthService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -32,12 +31,17 @@ import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
 
 @Configuration
-@ConditionalOnProperty(name="spring.security.ldap.enabled", matchIfMissing = false, havingValue = "true")
+@ConditionalOnProperty(name = "spring.security.ldap.enabled", havingValue = "true")
 @EnableConfigurationProperties({LdapProperties.class})
 public class LdapConfiguration {
 
-    @Autowired
-    private LdapProperties ldapProperties;
+    private final LdapProperties ldapProperties;
+    private final AuthService authService;
+
+    public LdapConfiguration(LdapProperties ldapProperties, AuthService authService) {
+        this.ldapProperties = ldapProperties;
+        this.authService = authService;
+    }
 
     @Bean
     public DefaultSpringSecurityContextSource contextSource() {
@@ -45,10 +49,9 @@ public class LdapConfiguration {
     }
 
     @Bean
-    public LdapAuthenticationProvider ldapAuthenticationProvider(SumarisServerConfiguration config) {
+    public LdapAuthenticationProvider ldapAuthenticationProvider() {
         BindAuthenticator authenticator = new BindAuthenticator(contextSource());
         authenticator.setUserDnPatterns(ldapProperties.getUserDnPatterns());
-        return new LdapAuthenticationProvider(authenticator, ldapProperties);
+        return new LdapAuthenticationProvider(authenticator, ldapProperties, authService);
     }
-
 }

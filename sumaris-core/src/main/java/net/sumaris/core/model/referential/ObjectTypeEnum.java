@@ -10,12 +10,12 @@ package net.sumaris.core.model.referential;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -31,37 +31,36 @@ import java.util.Arrays;
 @EntityEnum(entity = ObjectType.class, joinAttributes = ObjectType.Fields.LABEL)
 public enum ObjectTypeEnum implements Serializable {
 
-    VESSEL(1, "VESSEL")
-    ;
+    VESSEL(1, "VESSEL");
 
     public static ObjectTypeEnum valueOf(final int id) {
         return Arrays.stream(values())
-                .filter(enumValue -> enumValue.id == id)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown ObjectTypeEnum: " + id));
+            .filter(enumValue -> enumValue.id == id)
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown ObjectTypeEnum: " + id));
     }
 
     public static ObjectTypeEnum byLabel(final String label) {
         Preconditions.checkNotNull(label);
         return Arrays.stream(values())
-                .filter(level -> label.equals(level.label))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown ObjectTypeEnum: " + label));
+            .filter(level -> label.equals(level.label))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown ObjectTypeEnum: " + label));
     }
 
-    private int id;
+    private Integer id;
     private String label;
 
-    ObjectTypeEnum(int id, String label) {
+    ObjectTypeEnum(Integer id, String label) {
         this.id = id;
         this.label = label;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

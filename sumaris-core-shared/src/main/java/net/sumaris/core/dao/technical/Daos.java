@@ -394,6 +394,17 @@ public class Daos {
         return jdbcUrl.startsWith(JDBC_URL_PREFIX_POSTGRESQL);
     }
 
+    public static boolean isPostgresqlDatabase(Connection conn) {
+        Preconditions.checkNotNull(conn);
+        try {
+            String jdbcUrl = conn.getMetaData().getURL();
+            return isPostgresqlDatabase(jdbcUrl);
+        }
+        catch(SQLException e) {
+            throw new SumarisTechnicalException(e);
+        }
+    }
+
     /**
      * <p>isFileDatabase.</p>
      *
@@ -1613,7 +1624,7 @@ public class Daos {
 
     public static String getEscapedSearchText(String searchText, boolean searchAny) {
         searchText = StringUtils.trimToNull(searchText);
-        if (searchText == null) return null;
+        if (searchText == null) return "";
         return  ((searchAny ? "*" : "") + searchText + "*") // add leading wildcard (if searchAny specified) and trailing wildcard
             .replaceAll("[*]+", "*") // group escape chars
             .replaceAll("[%]", "\\%") // protected '%' chars

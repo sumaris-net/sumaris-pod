@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -39,10 +40,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Metadata on a database table. Useful to request a table:
@@ -346,7 +344,14 @@ public class SumarisTableMetadata {
 	protected Map<String, SumarisColumnMetadata> initColumns(QualifiedTableName tableName, DatabaseMetaData jdbcDbMeta) throws SQLException {
 
 		Map<String, SumarisColumnMetadata> result = Maps.newLinkedHashMap();
-		ResultSet rs = jdbcDbMeta.getColumns(getCatalog(), getSchema(), getName().toUpperCase(), "%");
+
+		ResultSet rs;
+		if (Daos.isPostgresqlDatabase(jdbcDbMeta.getConnection())){
+			rs = jdbcDbMeta.getColumns(getCatalog().toLowerCase(), getSchema().toLowerCase(), getName().toLowerCase(), "%");
+		}
+		else {
+			rs = jdbcDbMeta.getColumns(getCatalog(), getSchema(), getName().toUpperCase(), "%");
+		}
 
 		try {
 			while(rs.next()) {
