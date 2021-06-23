@@ -30,8 +30,8 @@ variables:
     APP_DB_MODULE: sumaris-db
     APP_WAR_MODULE: sumaris-server
     APP_BASEDIR: /home/${APP_WAR_MODULE}
+    ARTIFACT_WAR_FILES: ${APP_WAR_MODULE}/target/*.war
     ARTIFACT_CONFIG_FILES: ${APP_WAR_MODULE}/target/classes/*.properties
-    ARTIFACT_BIN_FILE: ${APP_WAR_MODULE}/target/classes/*.properties
 
 # Must be defined into pipelines variables :
     # CI_REGISTRY_USER:
@@ -70,8 +70,10 @@ variables:
         name: test
     artifacts:
         paths:
-            - ${APP_WAR_MODULE}/target/*.war
-            - ${APP_WAR_MODULE}/target/classes/*.properties
+            - ${ARTIFACT_WAR_FILES}
+            - ${ARTIFACT_CONFIG_FILES}
+        reports:
+            dotenv: variables.env
         expire_in: 60 minutes
     only:
         - develop
@@ -183,10 +185,10 @@ sonarqube:
         - mvn gitflow:release-finish
     artifacts:
         paths:
+            - ${ARTIFACT_WAR_FILES}
+            - ${ARTIFACT_CONFIG_FILES}
             - ${APP_WAR_MODULE}/target/*.tar.gz
-            - ${APP_WAR_MODULE}/target/*.war
             - ${APP_WAR_MODULE}/target/*.zip
-            - ${APP_WAR_MODULE}/target/classes/*.properties
         reports:
             dotenv: variables.env
     only:
@@ -231,7 +233,7 @@ gitlab-release:
         # Create the starter script
         - echo '#!/bin/bash' > entrypoint.sh
         - echo "BASEDIR=${APP_BASEDIR}" >> entrypoint.sh
-        - echo "WAR_FILE=${APP_BASEDIR}/${APP_WAR_MODULE}.war" >> entrypoint.sh
+        - echo "WAR_FILENAME=${APP_WAR_MODULE}-${APP_VERSION}.war" >> entrypoint.sh
         - echo 'JAVA_OPTS="-Dsumaris.basedir=${BASEDIR}"' >> entrypoint.sh
         - echo 'JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${BASEDIR}/config/"' >> entrypoint.sh
         - echo 'JAVA_OPTS="$JAVA_OPTS -Doracle.net.tns_admin=/home/tnsnames' >> entrypoint.sh
@@ -240,18 +242,21 @@ gitlab-release:
         - echo '[[ "_${TIMEZONE}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Duser.timezone=${TIMEZONE}"' >> entrypoint.sh
         - echo 'ARGS=${@:2}' >> entrypoint.sh
         - echo 'cd ${BASEDIR}' >> entrypoint.sh
-        - echo 'java ${JAVA_OPTS} -server -jar ${WAR_FILE} ${ARGS}' >> entrypoint.sh
+        - echo 'java ${JAVA_OPTS} -server -jar lib/${WAR_FILENAME} ${ARGS}' >> entrypoint.sh
         # Create the Dockerfile
         - echo 'FROM openjdk:8-jdk-stretch' > Dockerfile
         - echo 'RUN apt-get update && apt-get -y install libsodium-dev' >> Dockerfile
         - echo "WORKDIR ${APP_BASEDIR}" >> Dockerfile
-        - echo "COPY ${ARTIFACT_WAR_FILE} ./${APP_WAR_MODULE}.war" >> Dockerfile
+        - echo "COPY ${ARTIFACT_WAR_FILES} ./lib/" >> Dockerfile
         - echo "COPY ${ARTIFACT_CONFIG_FILES} ./config/" >> Dockerfile
         - echo 'COPY entrypoint.sh ./entrypoint.sh' >> Dockerfile
         - echo 'ENV PROFILES=default \' >> Dockerfile
         - echo '    TIMEZONE=UTC' >> Dockerfile
         - echo "EXPOSE 8080" >> Dockerfile
         - echo 'ENTRYPOINT ["entrypoint.sh"]' >> DockerFile
+    artifacts:
+        paths:
+            - DockerFile
 
 .docker-build:
     extends: .docker-file
