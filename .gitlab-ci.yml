@@ -11,6 +11,7 @@ stages:
     - alt_build
     - test
     - deploy
+    - release
     - docs
 
 # ---------------------------------------------------------------
@@ -24,6 +25,9 @@ variables:
     CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
     CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
     MAVEN_REPO_URL: https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
+    APP_CORE_MODULE: sumaris-core
+    APP_DB_MODULE: sumaris-db
+    APP_WAR_MODULE: sumaris-server
 
 # ---------------------------------------------------------------
 # Jobs templates
@@ -49,15 +53,17 @@ variables:
         - docker:dind
     before_script:
         - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY} || true
+    after_script:
+        - docker logout ${CI_REGISTRY}
     allow_failure: false
 
 .deploy-file:
     stage: deploy
     tags: [sih_public_runner]
     script:
-        - version=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
-        - echo "Deploying $version"
-        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=net.sumaris -DartifactId=sumaris-server -Dversion=$version -Dfile=sumaris-server/target/sumaris-server-$version.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+        - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
+        - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout)
+        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
 
 # ---------------------------------------------------------------
 # Build jobs
@@ -141,8 +147,13 @@ failsafe-deploy-file:
     only:
         - develop
 
+# ---------------------------------------------------------------
+# Release jobs
+# ---------------------------------------------------------------
+
+
 release:
-    stage: deploy
+    stage: release
     tags: [ sih_public_runner ]
     before_script:
         - git checkout -B "$CI_BUILD_REF_NAME"
@@ -154,17 +165,18 @@ release:
         - git branch -D release/$RELEASE_VERSION || true
         - mvn -s ./ci_settings.xml -B gitflow:release-start --batch-mode -DreleaseVersion="$RELEASE_VERSION"
         - echo "Performing release..."
-        - mvn -s ./ci_settings.xml clean deploy --batch-mode -DperformRelease -DskipTests -Drelease.server=job-maven -Phsqldb
-        - echo "Creating test DB"
-        - mvn -pl sumaris-core -Prun,hsqldb -DskipTests --batch-mode
-        #- cd sumaris-core/target && zip -q -r "sumaris-db-$RELEASE_VERSION.zip" db && cd ../..
+#        - mvn -s ./ci_settings.xml clean deploy --batch-mode -DperformRelease -DskipTests -Drelease.server=job-maven -Phsqldb,gitlab-profile
+        - mvn -s ./ci_settings.xml clean deploy --batch-mode -DperformRelease -DskipTests -Phsqldb,gitlab-profile
+        - echo "Creating test DB..."
+        - mvn -pl ${APP_CORE_MODULE} -q -Prun,hsqldb -DskipTests --batch-mode
+        - cd ${APP_CORE_MODULE}/target && tar -cf "${APP_DB_MODULE}-${RELEASE_VERSION}.tar.gz" db && cd ../..
         - echo "Pushing changes to upstream"
         - git commit -a -m "Release $RELEASE_VERSION"
         - git status
         - mvn gitflow:release-finish
     artifacts:
         paths:
-            - sumaris-core/target/*.zip
+            - sumaris-core/target/*.tar.gz
             - sumaris-server/target/*.war
             - sumaris-server/target/*.zip
         reports:
@@ -174,8 +186,8 @@ release:
     when: manual
 
 gitlab-release:
-    stage: deploy
-    tags: [sih_public_runner]
+    stage: release
+    tags: [ sih_public_runner ]
     image: registry.gitlab.com/gitlab-org/release-cli:latest
     script:
         - echo "running release for ${CI_COMMIT_TAG}"
