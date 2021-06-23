@@ -26,10 +26,10 @@ variables:
     CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:develop
     MAVEN_LOCAL_REPO: /root/.m2/repository/
     MAVEN_REPO_URL: https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
-    APP_CORE_MODULE: sumaris-core
-    APP_DB_MODULE: sumaris-db
-    APP_WAR_MODULE: sumaris-server
-    DOCKER_BASEDIR: /app
+    APP_NAME: sumaris
+    APP_CORE_MODULE: ${APP_NAME}-core
+    APP_DB_MODULE: ${APP_NAME}-db
+    APP_WAR_MODULE: ${APP_NAME}-server
     ARTIFACT_WAR_FILE: ${APP_WAR_MODULE}/target/*.war
     ARTIFACT_CONFIG_FILES: ${APP_WAR_MODULE}/target/classes/*.properties
 
@@ -167,6 +167,8 @@ sonarqube:
         - git config --global user.email "${GITLAB_USER_EMAIL}"
         - git config --global user.name "${GITLAB_USER_NAME}"
         - git reset --hard develop
+        - git fecth origin
+        - git pull
         - echo "RELEASE_VERSION=${RELEASE_VERSION}" >> variables.env
     script:
         - echo "Preparing release..."
@@ -213,7 +215,7 @@ gitlab-release:
     script:
         - echo "running release for ${CI_COMMIT_TAG}"
     release:
-        name: "Release sumaris-pod-$TAG"
+        name: "Release ${APP_NAME}-${CI_COMMIT_TAG}"
         description: "Created using the release-cli $EXTRA_DESCRIPTION"
         tag_name: "${CI_COMMIT_TAG}"
         ref: "${CI_COMMIT_TAG}"
@@ -232,7 +234,7 @@ gitlab-release:
         - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY} || true
         # Create the starter script
         - echo '#!/bin/bash' > run.sh
-        - echo 'BASEDIR=$(dirname $0)' >> run.sh
+        - echo 'BASEDIR=/app' >> run.sh
         - echo 'JAVA_OPTS="-Dsumaris.basedir=${BASEDIR}"' >> run.sh
         - echo 'JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${BASEDIR}/config/"' >> run.sh
         - echo 'JAVA_OPTS="$JAVA_OPTS -Doracle.net.tns_admin=/home/tnsnames' >> run.sh
@@ -240,25 +242,26 @@ gitlab-release:
         - echo '[[ "_${PROFILES}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILES}"' >> run.sh
         - echo '[[ "_${TIMEZONE}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Duser.timezone=${TIMEZONE}"' >> run.sh
         - echo 'ARGS=${@:2}' >> run.sh
-        - echo 'java ${JAVA_OPTS} -server -jar app.war ${ARGS}' >> run.sh
+        - echo 'java ${JAVA_OPTS} -server -jar /app/app.war ${ARGS}' >> run.sh
         # Create the Dockerfile
         - echo 'FROM openjdk:8-jdk-stretch' > Dockerfile
+        - echo "ARG CONFIG_FILE=${ARTIFACT_CONFIG_FILES}" >> Dockerfile
         - echo 'RUN apt-get update && apt-get -y install libsodium-dev' >> Dockerfile
         - echo 'RUN addgroup -S spring && adduser -S spring -G spring' >> Dockerfile
         - echo 'USER spring:spring' >> Dockerfile
-        - echo "ARG WAR_FILE=${ARTIFACT_WAR_FILE}" >> Dockerfile
-        - echo "ARG CONFIG_FILES=${ARTIFACT_CONFIG_FILES}" >> Dockerfile
-        - echo "WORKDIR ${DOCKER_BASEDIR}" >> Dockerfile
-        - echo "COPY ${WAR_FILE} app.war" >> Dockerfile
-        - echo "COPY ${CONFIG_FILES} ./config/" >> Dockerfile
-        - echo 'COPY run.sh run.sh' >> Dockerfile
+        - echo 'RUN mkdir /app' >> Dockerfile
+        - echo "COPY ${ARTIFACT_WAR_FILE} /app/app.war" >> Dockerfile
+        - echo "COPY ${CONFIG_FILE} /app/config/" >> Dockerfile
+        - echo 'ADD run.sh /app/run.sh' >> Dockerfile
+        - echo 'RUN chmod +x /app/run.sh' >> Dockerfile
         - echo 'ENV PROFILES=default \' >> Dockerfile
         - echo '    TIMEZONE=UTC' >> Dockerfile
-        - echo "EXPOSE 8080" >> Dockerfile
+        - echo 'WORKDIR /app' >> Dockerfile
+        - echo 'EXPOSE 8080' >> Dockerfile
         - echo 'ENTRYPOINT ["run.sh"]' >> DockerFile
         # Build docker image
         - docker pull ${CONTAINER_SNAPSHOT_IMAGE} || true
-        - docker build --cache-from ${CONTAINER_SNAPSHOT_IMAGE} --pull -t ${CONTAINER_SNAPSHOT_IMAGE} .
+        - docker build --cache-from ${CONTAINER_SNAPSHOT_IMAGE} --pull -t ${CONTAINER_SNAPSHOT_IMAGE} . || true
     artifacts:
         paths:
             - DockerFile
