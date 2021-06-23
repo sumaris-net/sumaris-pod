@@ -34,6 +34,22 @@ variables:
 # Jobs templates
 # ---------------------------------------------------------------
 
+.docker:
+    image: docker:latest
+    tags: [sih_public_runner]
+    services:
+        - docker:dind
+    before_script:
+        - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY} || true
+    after_script:
+        - docker logout ${CI_REGISTRY}
+    allow_failure: false
+
+
+# ---------------------------------------------------------------
+# Build jobs
+# ---------------------------------------------------------------
+
 .build:
     stage: build
     tags: [sih_public_runner]
@@ -46,52 +62,17 @@ variables:
         paths:
             - sumaris-server/target/*.war
         expire_in: 60 minutes
-
-.docker:
-    image: docker:latest
-    tags: [sih_public_runner]
-    services:
-        - docker:dind
-    before_script:
-        - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY} || true
-    after_script:
-        - docker logout ${CI_REGISTRY}
-    allow_failure: false
-
-.deploy-file:
-    stage: deploy
-    tags: [sih_public_runner]
-    script:
-        - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
-        - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout)
-        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
-
-.release-setup:
-    stage: release
-    tags: [sih_public_runner]
-    before_script:
-        - git remote set-url origin ${CI_REPOSITORY_URL}
-        - git config --global user.email "${GITLAB_USER_EMAIL}"
-        - git config --global user.name "${GITLAB_USER_NAME}"
-        - git fetch origin
-        - echo "RELEASE_VERSION=${RELEASE_VERSION}" >> variables.env
-
-# ---------------------------------------------------------------
-# Build jobs
-# ---------------------------------------------------------------
+    only:
+        - develop
 
 fast-build:
     extends: .build
     image: ${CONTAINER_BUILD_IMAGE}
-    only:
-        - develop
 
 failsafe-build:
     extends: .build
     stage: alt_build
     when: on_failure
-    only:
-        - develop
 
 docker-for-fast-build:
     extends: .docker
@@ -143,33 +124,43 @@ sonarqube:
 # Deploy jobs
 # ---------------------------------------------------------------
 
-fast-deploy-file:
-    extends: .deploy-file
-    needs:
-        - fast-build
+.deploy-file:
+    stage: deploy
+    tags: [sih_public_runner]
+    script:
+        - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
+        - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout)
+        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     only:
         - develop
 
+fast-deploy-file:
+    extends: .deploy-file
+    needs: [fast-build]
+
 failsafe-deploy-file:
     extends: .deploy-file
-    needs:
-        - failsafe-build
-    only:
-        - develop
+    needs: [failsafe-build]
 
 # ---------------------------------------------------------------
 # Release jobs
 # ---------------------------------------------------------------
 
-
-release:
-    extends: .release-setup
+.release:
+    stage: release
+    tags: [sih_public_runner]
+    before_script:
+        - git remote set-url origin ${CI_REPOSITORY_URL}
+        - git config --global user.email "${GITLAB_USER_EMAIL}"
+        - git config --global user.name "${GITLAB_USER_NAME}"
+        #- git fetch origin
+        - echo "RELEASE_VERSION=${RELEASE_VERSION}" >> variables.env
     script:
         - echo "Preparing release..."
         - git branch -D release/$RELEASE_VERSION || true
         - mvn -s ./ci_settings.xml -B gitflow:release-start --batch-mode -DreleaseVersion="$RELEASE_VERSION"
         - echo "Performing release..."
-#        - mvn -s ./ci_settings.xml clean deploy --batch-mode -DperformRelease -DskipTests -Drelease.server=job-maven -Phsqldb,gitlab-profile
+        #        - mvn -s ./ci_settings.xml clean deploy --batch-mode -DperformRelease -DskipTests -Drelease.server=job-maven -Phsqldb,gitlab-profile
         - mvn -s ./ci_settings.xml clean deploy --batch-mode -DperformRelease -DskipTests -Phsqldb,gitlab-profile
         - echo "Creating test DB..."
         - mvn -pl ${APP_CORE_MODULE} -q -Prun,hsqldb -DskipTests --batch-mode
@@ -189,14 +180,20 @@ release:
         - develop
     when: manual
 
+fast-release:
+    extends: .release
+    image: ${CONTAINER_BUILD_IMAGE}
+    needs:
+        - fast-build
+
 failsafe-release:
-    extends: release
+    extends: .release
     needs:
         - failsafe-build
 
 gitlab-release:
     stage: release
-    tags: [ sih_public_runner ]
+    tags: [sih_public_runner]
     image: registry.gitlab.com/gitlab-org/release-cli:latest
     script:
         - echo "running release for ${CI_COMMIT_TAG}"
