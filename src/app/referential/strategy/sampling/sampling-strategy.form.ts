@@ -302,6 +302,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     // register year field changes
     this.registerSubscription(this.form.get('year').valueChanges.subscribe(date => this.onDateChange(date)));
+    this.registerSubscription(this.taxonNamesFormArray.valueChanges.subscribe(() => this.onTaxonChange()));
     this.taxonNamesFormArray.valueChanges.subscribe(res => this.loadFilteredPmfm());
 
     const idControl = this.form.get('id');
@@ -554,6 +555,15 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    */
   selectMask(input: HTMLInputElement) {
     if (!this.labelMask) input.select();
+/*
+    let labelMaskArray: Array<any>;
+    labelMaskArray = this.labelMask.slice(0, 3);
+    const taxonNameArray = this.labelMask[3].split('');
+    labelMaskArray.concat(taxonNameArray);
+    // this.labelMask[3].split('');
+    // Array.from(this.labelMask[3], x => labelMaskArray.concat(x));
+    labelMaskArray.concat(this.labelMask.slice(-4));
+*/
     const startIndex = this.labelMask.findIndex(c => c instanceof RegExp);
     let endIndex = this.labelMask.slice(startIndex).findIndex(c => !(c instanceof RegExp), startIndex);
     endIndex = (endIndex === -1)
@@ -879,29 +889,56 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     if (!date || !this.program) return; // Skip if date or program are missing
 
-    const labelControl = this.form.get('label');
+    const finalMaskYear = date.format('YY');
 
-    //update mask
-    const year = date.year().toString();
-    this.labelMask = [...year.split(''), '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
+    let finalMaskTaxonName;
+    const taxonNameControl = this.taxonNamesFormArray.value[0];
+    if (taxonNameControl && taxonNameControl.taxonName?.name) {
+      finalMaskTaxonName = [...TaxonUtils.rubinCode(taxonNameControl.taxonName.name)];
+    } else {
+      finalMaskTaxonName = ["X", "X", "X", "X", "X", "X", "X"];
+    }
 
-    // get new label sample row code
-    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${year}-BIO-`, 4));
+    let labelMaskArray = finalMaskYear.split("");
+    labelMaskArray = labelMaskArray.concat(['-']);
+    labelMaskArray = labelMaskArray.concat(finalMaskTaxonName);
+    // @ts-ignore
+    labelMaskArray = labelMaskArray.concat(['-', /\d/, /\d/, /\d/]);
+    this.labelMask = labelMaskArray;
+
+    const finalMaskTaxonNameString = finalMaskTaxonName.join("");
+    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear}-${finalMaskTaxonNameString}-`, 3));
     console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
 
-    const label = labelControl.value;
-    if (isNil(label)) {
-      labelControl.setValue(computedLabel);
+    const labelControl = this.form.get('label');
+
+    labelControl.setValue(computedLabel);
+    this.markAsDirty();
+  }
+
+  protected async onTaxonChange() {
+
+    if (!this.program) return;
+
+    let finalMaskTaxonName;
+    const taxon = this.taxonNamesFormArray.value[0].taxonName;
+    if (taxon) {
+      finalMaskTaxonName = TaxonUtils.rubinCode(taxon.name);
     } else {
-      const oldYear = label.split('-').shift();
-      // Update the label, if year change
-      if (year && oldYear && year !== oldYear) {
-        labelControl.setValue(computedLabel);
-        this.markAsDirty();
-      } else {
-        labelControl.setValue(label);
-      }
+      finalMaskTaxonName = "XXXXXXX";
     }
+
+    const finalMaskYear = this.form.get('year').value.format('YY');
+
+    this.labelMask = [...finalMaskYear, '-', finalMaskTaxonName, '-', /\d/, /\d/, /\d/];
+
+    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear}-${finalMaskTaxonName}-`, 3));
+    console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
+
+    const labelControl = this.form.get('label');
+
+    labelControl.setValue(computedLabel);
+    this.markAsDirty();
   }
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------
