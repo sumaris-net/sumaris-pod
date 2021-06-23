@@ -10,8 +10,8 @@ stages:
     - build
     - alt_build
     - test
-    - deploy
     - release
+    - docker
     - docs
 
 # ---------------------------------------------------------------
@@ -130,23 +130,23 @@ sonarqube:
 # Deploy jobs
 # ---------------------------------------------------------------
 
-.deploy-file:
-    stage: deploy
-    tags: [sih_public_runner]
-    script:
-        - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
-        - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout)
-        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
-    only:
-        - develop
-
-fast-deploy-file:
-    extends: .deploy-file
-    needs: [fast-build]
-
-failsafe-deploy-file:
-    extends: .deploy-file
-    needs: [failsafe-build]
+#.deploy-file:
+#    stage: deploy
+#    tags: [sih_public_runner]
+#    script:
+#        - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
+#        - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout)
+#        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+#    only:
+#        - develop
+#
+#fast-deploy-file:
+#    extends: .deploy-file
+#    needs: [fast-build]
+#
+#failsafe-deploy-file:
+#    extends: .deploy-file
+#    needs: [failsafe-build]
 
 # ---------------------------------------------------------------
 # Release jobs
@@ -167,7 +167,7 @@ failsafe-deploy-file:
         - mvn -s ./ci_settings.xml -B gitflow:release-start --batch-mode -DreleaseVersion="$RELEASE_VERSION"
         - echo "Performing release..."
         #        - mvn -s ./ci_settings.xml clean deploy --batch-mode -DperformRelease -DskipTests -Drelease.server=job-maven -Phsqldb,gitlab-profile
-        - mvn -s ./ci_settings.xml clean deploy --batch-mode -DperformRelease -DskipTests -Phsqldb,gitlab-profile
+        - mvn -s ./ci_settings.xml clean install --batch-mode -DperformRelease -DskipTests -Phsqldb,gitlab-profile
         - echo "Creating test DB..."
         - mvn -pl ${APP_CORE_MODULE} -q -Prun,hsqldb -DskipTests --batch-mode
         - cd ${APP_CORE_MODULE}/target && tar -cf "${APP_DB_MODULE}-${RELEASE_VERSION}.tar.gz" db && cd ../..
@@ -239,26 +239,26 @@ gitlab-release:
         - docker tag ${CONTAINER_SNAPSHOT_IMAGE} ${CI_REGISTRY_IMAGE}:${APP_VERSION} .
         - docker push ${CI_REGISTRY_IMAGE}:${APP_VERSION}
 
-docker-dev:
+docker:dev:
     extends: .docker-build
     only:
         - develop
     when: manual
 
-docker-release:
+docker:release:
     extends: .docker-build
     only:
         - tags
 
-docker-prod:
-    extends: .docker-file
-    script:
-        - docker build --cache-from ${CONTAINER_SNAPSHOT_IMAGE} --pull -t ${CONTAINER_SNAPSHOT_IMAGE} .
-        - docker tag ${CONTAINER_SNAPSHOT_IMAGE} ${CI_REGISTRY_IMAGE}:${APP_VERSION}:prod .
-        - docker push ${CI_REGISTRY_IMAGE}:${APP_VERSION}:prod
-    only:
-        - tags
-    when: manual
+#docker:prod-ifremer:
+#    extends: .docker-file
+#    script:
+#        - docker build --cache-from ${CONTAINER_SNAPSHOT_IMAGE} --pull -t ${CONTAINER_SNAPSHOT_IMAGE} .
+#        - docker tag ${CONTAINER_SNAPSHOT_IMAGE} ${CI_REGISTRY_IMAGE}:${APP_VERSION}:ifremer .
+#        - docker push ${CI_REGISTRY_IMAGE}:${APP_VERSION}:ifremer
+#    only:
+#        - tags
+#    when: manual
 
 # ---------------------------------------------------------------
 # Docs jobs
