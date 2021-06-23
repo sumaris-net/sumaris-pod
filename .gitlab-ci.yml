@@ -157,10 +157,12 @@ sonarqube:
         - git remote set-url origin ${CI_REPOSITORY_URL}
         - git config --global user.email "${GITLAB_USER_EMAIL}"
         - git config --global user.name "${GITLAB_USER_NAME}"
+        - git reset --hard develop
         - echo "RELEASE_VERSION=${RELEASE_VERSION}" >> variables.env
     script:
         - echo "Preparing release..."
         - git branch -D release/$RELEASE_VERSION || true
+        - git status
         - mvn -s ./ci_settings.xml -B gitflow:release-start --batch-mode -DreleaseVersion="$RELEASE_VERSION"
         - echo "Performing release..."
         #        - mvn -s ./ci_settings.xml clean deploy --batch-mode -DperformRelease -DskipTests -Drelease.server=job-maven -Phsqldb,gitlab-profile
