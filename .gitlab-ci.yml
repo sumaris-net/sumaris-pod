@@ -167,7 +167,7 @@ sonarqube:
         - git config --global user.email "${GITLAB_USER_EMAIL}"
         - git config --global user.name "${GITLAB_USER_NAME}"
         - git reset --hard develop
-        - git fecth origin
+        - git fetch origin
         - git pull
         - echo "RELEASE_VERSION=${RELEASE_VERSION}" >> variables.env
     script:
@@ -244,7 +244,7 @@ gitlab-release:
         - echo 'ARGS=${@:2}' >> run.sh
         - echo 'java ${JAVA_OPTS} -server -jar /app/app.war ${ARGS}' >> run.sh
         # Create the Dockerfile
-        - echo 'FROM openjdk:8-jdk-stretch' > Dockerfile
+        - echo 'FROM openjdk:8-jdk-alpine' > Dockerfile
         - echo "ARG CONFIG_FILE=${ARTIFACT_CONFIG_FILES}" >> Dockerfile
         - echo 'RUN apt-get update && apt-get -y install libsodium-dev' >> Dockerfile
         - echo 'RUN addgroup -S spring && adduser -S spring -G spring' >> Dockerfile
