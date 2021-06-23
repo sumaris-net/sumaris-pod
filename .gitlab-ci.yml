@@ -89,8 +89,7 @@ docker-for-fast-build:
         - echo 'WORKDIR /customCache' >> Dockerfile
         - echo 'COPY ./ ./' >> Dockerfile
         - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 1 | egrep -v "^\.$"`>/before.txt' >> Dockerfile
-        - echo 'RUN mvn install -s ./ci_settings.xml -q -pl sumaris-core-shared,sumaris-test-shared' >> Dockerfile
-        - echo 'RUN mvn dependency:resolve dependency:resolve-plugins -s ./ci_settings.xml -q -U' >> Dockerfile
+        - echo 'RUN mvn install -s ./ci_settings.xml -q -DskipTests' >> Dockerfile
         - echo 'RUN mvn clean -s ./ci_settings.xml -q ' >> Dockerfile
         - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 1 | egrep -v "^\.$"`>/after.txt' >> Dockerfile
         - echo 'WORKDIR /build' >> Dockerfile
