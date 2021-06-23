@@ -29,6 +29,9 @@ variables:
     APP_CORE_MODULE: sumaris-core
     APP_DB_MODULE: sumaris-db
     APP_WAR_MODULE: sumaris-server
+    APP_BASEDIR: /home/${APP_WAR_MODULE}
+    ARTIFACT_CONFIG_FILES: ${APP_WAR_MODULE}/target/classes/*.properties
+    ARTIFACT_BIN_FILE: ${APP_WAR_MODULE}/target/classes/*.properties
 
 # Must be defined into pipelines variables :
     # CI_REGISTRY_USER:
@@ -60,6 +63,9 @@ variables:
     script:
         - echo "Test dev build in progress"
         - mvn -s ./ci_settings.xml -q clean install -DskipTests
+        # Get project version
+        - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
+        - echo "APP_VERSION=$APP_VERSION" >> variables.env
     environment:
         name: test
     artifacts:
@@ -219,54 +225,51 @@ gitlab-release:
 .docker-file:
     extends: .docker
     stage: docker
-    variables:
-        ARTIFACT_WAR_FILE: ${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${CI_COMMIT_TAG}
-        ARTIFACT_CONFIG_FILES: ${APP_WAR_MODULE}/target/classes/*.properties
-        ARTIFACT_BIN_FILE: ${APP_WAR_MODULE}/target/classes/*.properties
-        APP_BASEDIR: /home/${APP_WAR_MODULE}
     before_script:
         # Login to registry
         - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY} || true
-        # Get project version
-        - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
         # Create the starter script
         - echo '#!/bin/bash' > entrypoint.sh
-        - echo "APP_BASEDIR=${APP_BASEDIR}" >> entrypoint.sh
-        - echo "APP_WAR_FILE=${APP_BASEDIR}/${APP_WAR_MODULE}.war" >> entrypoint.sh
-        - echo 'cd ${APP_BASEDIR}' >> entrypoint.sh
-        - echo 'JAVA_OPTS="-Dsumaris.basedir=${APP_BASEDIR}"' >> entrypoint.sh
-        - echo 'JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${APP_BASEDIR}/config/"' >> entrypoint.sh
+        - echo "BASEDIR=${APP_BASEDIR}" >> entrypoint.sh
+        - echo "WAR_FILE=${APP_BASEDIR}/${APP_WAR_MODULE}.war" >> entrypoint.sh
+        - echo 'JAVA_OPTS="-Dsumaris.basedir=${BASEDIR}"' >> entrypoint.sh
+        - echo 'JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${BASEDIR}/config/"' >> entrypoint.sh
         - echo 'JAVA_OPTS="$JAVA_OPTS -Doracle.net.tns_admin=/home/tnsnames' >> entrypoint.sh
         - echo 'JAVA_OPTS="$JAVA_OPTS -Doracle.jdbc.timezoneAsRegion=false"' >> entrypoint.sh
         - echo '[[ "_${PROFILE}" != "_" ]]  && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILE}"' >> entrypoint.sh
         - echo '[[ "_${TIMEZONE}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Duser.timezone=${TIMEZONE}"' >> entrypoint.sh
-        - echo 'APP_ARGS=${@:2}' >> entrypoint.sh
-        - echo 'java ${JAVA_OPTS} -server -jar ${APP_WAR_FILE} ${APP_ARGS}' >> entrypoint.sh
+        - echo 'ARGS=${@:2}' >> entrypoint.sh
+        - echo 'cd ${BASEDIR}' >> entrypoint.sh
+        - echo 'java ${JAVA_OPTS} -server -jar ${WAR_FILE} ${ARGS}' >> entrypoint.sh
         # Create the Dockerfile
         - echo 'FROM openjdk:8-jdk-stretch' > Dockerfile
         - echo 'RUN apt-get update && apt-get -y install libsodium-dev' >> Dockerfile
-        - echo "COPY ${ARTIFACT_WAR_FILE} ${APP_BASEDIR}/${APP_WAR_MODULE}.war" >> Dockerfile
-        - echo "COPY ${ARTIFACT_CONFIG_FILES} ${APP_BASEDIR}/config" >> Dockerfile
-        - echo "COPY entrypoint.sh ${APP_BASEDIR}/entrypoint.sh" >> Dockerfile
-        - echo "ENV PROFILE" >> Dockerfile
         - echo "WORKDIR ${APP_BASEDIR}" >> Dockerfile
+        - echo "COPY ${ARTIFACT_WAR_FILE} ./${APP_WAR_MODULE}.war" >> Dockerfile
+        - echo "COPY ${ARTIFACT_CONFIG_FILES} ./config/" >> Dockerfile
+        - echo "COPY entrypoint.sh ./entrypoint.sh" >> Dockerfile
+        - echo "ENV PROFILE" >> Dockerfile
         - echo 'ENTRYPOINT ["entrypoint.sh"]' >> DockerFile
 
 .docker-build:
     extends: .docker-file
     script:
         - docker build --cache-from ${CONTAINER_SNAPSHOT_IMAGE} --pull -t ${CONTAINER_SNAPSHOT_IMAGE} .
-        - docker tag ${CONTAINER_SNAPSHOT_IMAGE} ${CI_REGISTRY_IMAGE}:${APP_VERSION} .
-        - docker push ${CI_REGISTRY_IMAGE}:${APP_VERSION}
+        - docker tag ${CONTAINER_SNAPSHOT_IMAGE} ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} .
+        - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
 
 docker:dev:
     extends: .docker-build
+    variables:
+      IMAGE_TAG: $CI_COMMIT_TAG
     only:
         - develop
     when: manual
 
 docker:release:
     extends: .docker-build
+    variables:
+        IMAGE_TAG: develop
     only:
         - tags
 
