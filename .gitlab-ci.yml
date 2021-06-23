@@ -29,8 +29,8 @@ variables:
     APP_CORE_MODULE: sumaris-core
     APP_DB_MODULE: sumaris-db
     APP_WAR_MODULE: sumaris-server
-    APP_BASEDIR: /home/${APP_WAR_MODULE}
-    ARTIFACT_WAR_FILES: ${APP_WAR_MODULE}/target/*.war
+    DOCKER_BASEDIR: /app
+    ARTIFACT_WAR_FILE: ${APP_WAR_MODULE}/target/*.war
     ARTIFACT_CONFIG_FILES: ${APP_WAR_MODULE}/target/classes/*.properties
 
 # Must be defined into pipelines variables :
@@ -70,7 +70,7 @@ variables:
         name: test
     artifacts:
         paths:
-            - ${ARTIFACT_WAR_FILES}
+            - ${ARTIFACT_WAR_FILE}
             - ${ARTIFACT_CONFIG_FILES}
         reports:
             dotenv: variables.env
@@ -185,7 +185,7 @@ sonarqube:
         - mvn gitflow:release-finish
     artifacts:
         paths:
-            - ${ARTIFACT_WAR_FILES}
+            - ${ARTIFACT_WAR_FILE}
             - ${ARTIFACT_CONFIG_FILES}
             - ${APP_WAR_MODULE}/target/*.tar.gz
             - ${APP_WAR_MODULE}/target/*.zip
@@ -224,51 +224,47 @@ gitlab-release:
 # Docker jobs
 # ---------------------------------------------------------------
 
-.docker-file:
+.docker-build:
     extends: .docker
     stage: docker
     before_script:
         # Login to registry
         - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY} || true
         # Create the starter script
-        - echo '#!/bin/bash' > entrypoint.sh
-        - echo "BASEDIR=${APP_BASEDIR}" >> entrypoint.sh
-        - echo "WAR_FILENAME=${APP_WAR_MODULE}-${APP_VERSION}.war" >> entrypoint.sh
-        - echo 'JAVA_OPTS="-Dsumaris.basedir=${BASEDIR}"' >> entrypoint.sh
-        - echo 'JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${BASEDIR}/config/"' >> entrypoint.sh
-        - echo 'JAVA_OPTS="$JAVA_OPTS -Doracle.net.tns_admin=/home/tnsnames' >> entrypoint.sh
-        - echo 'JAVA_OPTS="$JAVA_OPTS -Doracle.jdbc.timezoneAsRegion=false"' >> entrypoint.sh
-        - echo '[[ "_${PROFILES}" != "_" ]]  && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILES}"' >> entrypoint.sh
-        - echo '[[ "_${TIMEZONE}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Duser.timezone=${TIMEZONE}"' >> entrypoint.sh
-        - echo 'ARGS=${@:2}' >> entrypoint.sh
-        - echo 'cd ${BASEDIR}' >> entrypoint.sh
-        - echo 'java ${JAVA_OPTS} -server -jar lib/${WAR_FILENAME} ${ARGS}' >> entrypoint.sh
+        - echo '#!/bin/bash' > run.sh
+        - echo 'BASEDIR=$(dirname $0)' >> run.sh
+        - echo 'JAVA_OPTS="-Dsumaris.basedir=${BASEDIR}"' >> run.sh
+        - echo 'JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${BASEDIR}/config/"' >> run.sh
+        - echo 'JAVA_OPTS="$JAVA_OPTS -Doracle.net.tns_admin=/home/tnsnames' >> run.sh
+        - echo 'JAVA_OPTS="$JAVA_OPTS -Doracle.jdbc.timezoneAsRegion=false"' >> run.sh
+        - echo '[[ "_${PROFILES}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILES}"' >> run.sh
+        - echo '[[ "_${TIMEZONE}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Duser.timezone=${TIMEZONE}"' >> run.sh
+        - echo 'ARGS=${@:2}' >> run.sh
+        - echo 'java ${JAVA_OPTS} -server -jar app.war ${ARGS}' >> run.sh
         # Create the Dockerfile
         - echo 'FROM openjdk:8-jdk-stretch' > Dockerfile
         - echo 'RUN apt-get update && apt-get -y install libsodium-dev' >> Dockerfile
-        - echo "WORKDIR ${APP_BASEDIR}" >> Dockerfile
-        - echo "COPY ${ARTIFACT_WAR_FILES} ./lib/" >> Dockerfile
-        - echo "COPY ${ARTIFACT_CONFIG_FILES} ./config/" >> Dockerfile
-        - echo 'COPY entrypoint.sh ./entrypoint.sh' >> Dockerfile
+        - echo 'RUN addgroup -S spring && adduser -S spring -G spring' >> Dockerfile
+        - echo 'USER spring:spring' >> Dockerfile
+        - echo "ARG WAR_FILE=${ARTIFACT_WAR_FILE}" >> Dockerfile
+        - echo "ARG CONFIG_FILES=${ARTIFACT_CONFIG_FILES}" >> Dockerfile
+        - echo "WORKDIR ${DOCKER_BASEDIR}" >> Dockerfile
+        - echo "COPY ${WAR_FILE} app.war" >> Dockerfile
+        - echo "COPY ${CONFIG_FILES} ./config/" >> Dockerfile
+        - echo 'COPY run.sh run.sh' >> Dockerfile
         - echo 'ENV PROFILES=default \' >> Dockerfile
         - echo '    TIMEZONE=UTC' >> Dockerfile
         - echo "EXPOSE 8080" >> Dockerfile
-        - echo 'ENTRYPOINT ["entrypoint.sh"]' >> DockerFile
+        - echo 'ENTRYPOINT ["run.sh"]' >> DockerFile
     artifacts:
         paths:
             - DockerFile
 
-.docker-build:
-    extends: .docker-file
-    script:
-        - docker build --cache-from ${CONTAINER_SNAPSHOT_IMAGE} --pull -t ${CONTAINER_SNAPSHOT_IMAGE} .
-        - docker tag ${CONTAINER_SNAPSHOT_IMAGE} ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} .
-        - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
-
 docker:dev:
     extends: .docker-build
-    variables:
-        IMAGE_TAG: develop
+    script:
+        - docker build --cache-from ${CONTAINER_SNAPSHOT_IMAGE} --pull -t ${CONTAINER_SNAPSHOT_IMAGE} .
+        - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
     only:
         - develop
     when: manual
@@ -277,6 +273,12 @@ docker:release:
     extends: .docker-build
     variables:
         IMAGE_TAG: $CI_COMMIT_TAG
+    script:
+        - docker build --cache-from ${CONTAINER_SNAPSHOT_IMAGE} --pull -t ${CONTAINER_SNAPSHOT_IMAGE} .
+        - docker tag ${CONTAINER_SNAPSHOT_IMAGE} ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
+        - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
+        #- docker tag ${CONTAINER_SNAPSHOT_IMAGE} ${CI_REGISTRY_IMAGE}:latest
+        #- docker push ${CI_REGISTRY_IMAGE}:latest
     only:
         - tags
 
