@@ -61,7 +61,7 @@ variables:
 .build:
     stage: build
     tags: [sih_public_runner]
-    before_script:
+    script:
         - echo "Building from sources..."
         - mvn clean install -s ./ci_settings.xml -q -DskipTests
         # Get project version
