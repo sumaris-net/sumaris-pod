@@ -85,11 +85,14 @@ docker-for-fast-build:
     allow_failure: true
     before_script:
         - echo 'FROM jlrigau/maven-git' > Dockerfile
-        - echo 'WORKDIR /build' >> Dockerfile
+        - echo 'WORKDIR /customCache' >> Dockerfile
         - echo 'COPY ./ ./' >> Dockerfile
         - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 1 | egrep -v "^\.$"`>/before.txt' >> Dockerfile
-        - echo 'RUN mvn -s ./ci_settings.xml -q -U dependency:purge-local-repository' >> Dockerfile
+        - echo 'RUN mvn -s ./ci_settings.xml -q install sumaris-core-shared,sumaris-test-shared' >> Dockerfile
+        - echo 'RUN mvn -s ./ci_settings.xml -q -U dependency:resolve dependency:resolve-plugins' >> Dockerfile
+        - echo 'RUN mvn -s ./ci_settings.xml -q clean' >> Dockerfile
         - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 1 | egrep -v "^\.$"`>/after.txt' >> Dockerfile
+        - echo 'WORKDIR /build' >> Dockerfile
         - echo "RUN diff /before.txt /after.txt || true" >> Dockerfile
     script:
         - docker build --pull -t ${CONTAINER_BUILD_IMAGE} .
