@@ -22,8 +22,8 @@ variables:
     DOCKER_DRIVER: overlay2
     ANSIBLE_FORCE_COLOR: '1'
     CONTAINER_BUILD_IMAGE: $CI_REGISTRY_IMAGE:build
-    CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-    CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+    #CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:develop
     MAVEN_LOCAL_REPO: /root/.m2/repository/
     MAVEN_REPO_URL: https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
     APP_CORE_MODULE: sumaris-core
@@ -64,7 +64,8 @@ variables:
         name: test
     artifacts:
         paths:
-            - sumaris-server/target/*.war
+            - ${APP_WAR_MODULE}/target/*.war
+            - ${APP_WAR_MODULE}/target/classes/*.properties
         expire_in: 60 minutes
     only:
         - develop
@@ -123,9 +124,7 @@ sonarqube:
             -Dsonar.java.libraries=.
     only:
         - develop
-        - feature/imagine
     when: manual
-
 
 # ---------------------------------------------------------------
 # Deploy jobs
@@ -178,9 +177,10 @@ failsafe-deploy-file:
         - mvn gitflow:release-finish
     artifacts:
         paths:
-            - sumaris-core/target/*.tar.gz
-            - sumaris-server/target/*.war
-            - sumaris-server/target/*.zip
+            - ${APP_WAR_MODULE}/target/*.tar.gz
+            - ${APP_WAR_MODULE}/target/*.war
+            - ${APP_WAR_MODULE}/target/*.zip
+            - ${APP_WAR_MODULE}/target/classes/*.properties
         reports:
             dotenv: variables.env
     only:
@@ -211,6 +211,54 @@ gitlab-release:
         ref: "${CI_COMMIT_TAG}"
     only:
         - tags
+
+# ---------------------------------------------------------------
+# Docker jobs
+# ---------------------------------------------------------------
+
+.docker-file:
+    extends: .docker
+    stage: docker
+    variables:
+        ARTIFACT_CONFIG_FILES: ${APP_WAR_MODULE}/target/classes/*.properties
+        APP_BASEDIR: /home/${APP_WAR_MODULE}
+    before_script:
+        - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
+        - ARTIFACT_WAR_FILE=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war
+        - echo 'FROM openjdk:8-jdk-stretch' > Dockerfile
+        - echo 'RUN apt-get update && apt-get -y install libsodium-dev' >> Dockerfile
+        - echo 'COPY ${ARTIFACT_WAR_FILE} ${APP_BASEDIR}/${APP_WAR_MODULE}.war' >> Dockerfile
+        - echo 'COPY ${ARTIFACT_CONFIG_FILES} ${APP_BASEDIR}/config' >> Dockerfile
+        - echo 'WORKDIR ${APP_BASEDIR}' >> Dockerfile
+        - echo 'ENTRYPOINT ["java","-jar","-Doracle.net.tns_admin=/home/tnsnames","-Doracle.jdbc.timezoneAsRegion=false","-Dspring.config.location=${APP_BASEDIR}/config/","${APP_WAR_MODULE}.war"]' >> DockerFile
+
+.docker-build:
+    extends: .docker-file
+    script:
+        - docker build --cache-from ${CONTAINER_SNAPSHOT_IMAGE} --pull -t ${CONTAINER_SNAPSHOT_IMAGE} .
+        - docker tag ${CONTAINER_SNAPSHOT_IMAGE} ${CI_REGISTRY_IMAGE}:${APP_VERSION} .
+        - docker push ${CI_REGISTRY_IMAGE}:${APP_VERSION}
+
+docker-dev:
+    extends: .docker-build
+    only:
+        - develop
+    when: manual
+
+docker-release:
+    extends: .docker-build
+    only:
+        - tags
+
+docker-prod:
+    extends: .docker-file
+    script:
+        - docker build --cache-from ${CONTAINER_SNAPSHOT_IMAGE} --pull -t ${CONTAINER_SNAPSHOT_IMAGE} .
+        - docker tag ${CONTAINER_SNAPSHOT_IMAGE} ${CI_REGISTRY_IMAGE}:${APP_VERSION}:prod .
+        - docker push ${CI_REGISTRY_IMAGE}:${APP_VERSION}:prod
+    only:
+        - tags
+    when: manual
 
 # ---------------------------------------------------------------
 # Docs jobs
