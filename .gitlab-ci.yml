@@ -232,6 +232,7 @@ gitlab-release:
         # Create the starter script
         - echo '#!/bin/bash' > entrypoint.sh
         - echo "APP_BASEDIR=${APP_BASEDIR}" >> entrypoint.sh
+        - echo "APP_WAR_FILE=${APP_BASEDIR}/${APP_WAR_MODULE}.war" >> entrypoint.sh
         - echo 'cd ${APP_BASEDIR}' >> entrypoint.sh
         - echo 'JAVA_OPTS="-Dsumaris.basedir=${APP_BASEDIR}"' >> entrypoint.sh
         - echo 'JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${APP_BASEDIR}/config/"' >> entrypoint.sh
@@ -240,7 +241,7 @@ gitlab-release:
         - echo '[[ "_${PROFILE}" != "_" ]]  && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILE}"' >> entrypoint.sh
         - echo '[[ "_${TIMEZONE}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Duser.timezone=${TIMEZONE}"' >> entrypoint.sh
         - echo 'APP_ARGS=${@:2}' >> entrypoint.sh
-        - echo 'java $JAVA_OPTS -server -jar ${APP_WAR_MODULE}.war ${APP_ARGS}' >> entrypoint.sh
+        - echo 'java ${JAVA_OPTS} -server -jar ${APP_WAR_FILE} ${APP_ARGS}' >> entrypoint.sh
         # Create the Dockerfile
         - echo 'FROM openjdk:8-jdk-stretch' > Dockerfile
         - echo 'RUN apt-get update && apt-get -y install libsodium-dev' >> Dockerfile
