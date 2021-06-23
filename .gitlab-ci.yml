@@ -170,11 +170,10 @@ sonarqube:
         - git config --global user.name "${GITLAB_USER_NAME}"
         - git reset --hard develop
         - git fetch origin
-        - git checkout develop
     script:
         - echo "Preparing release..."
         - git branch -D release/$RELEASE_VERSION || true
-        - git status
+        - git checkout develop && git status
         - mvn -s ./ci_settings.xml -B gitflow:release-start --batch-mode -DreleaseVersion="$RELEASE_VERSION"
         - echo "Performing release..."
         - mvn clean install -s ./ci_settings.xml --batch-mode -DperformRelease -DskipTests
