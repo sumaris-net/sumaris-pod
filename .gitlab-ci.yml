@@ -84,7 +84,7 @@ docker-for-fast-build:
     stage: alt_build
     when: on_failure
     allow_failure: true
-    before_script:
+    script:
         - echo 'FROM jlrigau/maven-git' > Dockerfile
         - echo 'WORKDIR /.build-cache' >> Dockerfile
         - echo 'COPY ./ ./' >> Dockerfile
@@ -94,7 +94,6 @@ docker-for-fast-build:
         - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 1 | egrep -v "^\.$"`>/after.txt' >> Dockerfile
         - echo "RUN diff /before.txt /after.txt || true" >> Dockerfile
         - echo 'WORKDIR /build' >> Dockerfile
-    script:
         - docker build --pull -t ${CONTAINER_BUILD_IMAGE} .
         - docker push ${CONTAINER_BUILD_IMAGE}
 
@@ -158,7 +157,6 @@ sonarqube:
         - git remote set-url origin ${CI_REPOSITORY_URL}
         - git config --global user.email "${GITLAB_USER_EMAIL}"
         - git config --global user.name "${GITLAB_USER_NAME}"
-        #- git fetch origin
         - echo "RELEASE_VERSION=${RELEASE_VERSION}" >> variables.env
     script:
         - echo "Preparing release..."
@@ -219,17 +217,28 @@ gitlab-release:
     extends: .docker
     stage: docker
     variables:
+        ARTIFACT_WAR_FILE: ${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${CI_COMMIT_TAG}
         ARTIFACT_CONFIG_FILES: ${APP_WAR_MODULE}/target/classes/*.properties
+        ARTIFACT_BIN_FILE: ${APP_WAR_MODULE}/target/classes/*.properties
         APP_BASEDIR: /home/${APP_WAR_MODULE}
     before_script:
-        - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
-        - ARTIFACT_WAR_FILE=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war
+        # Create the starter script
+        - echo '#!/bin/bash' > start.sh
+        - echo 'cd ${APP_BASEDIR}' >> start.sh
+        - echo 'JAVA_OPTS="-Doracle.net.tns_admin=/home/tnsnames -Doracle.jdbc.timezoneAsRegion=false -Dspring.config.location=${APP_BASEDIR}/config/"' >> start.sh
+        - echo 'APP_ARGS=${@:2}' >> start.sh
+        - echo 'java $JAVA_OPTS -server -jar ${APP_WAR_MODULE}.war ${APP_ARGS}' >> start.sh
+        # Create the Dockerfile
+        - echo 'RUN apt-get update && apt-get -y install libsodium-dev' >> Dockerfile
         - echo 'FROM openjdk:8-jdk-stretch' > Dockerfile
         - echo 'RUN apt-get update && apt-get -y install libsodium-dev' >> Dockerfile
         - echo 'COPY ${ARTIFACT_WAR_FILE} ${APP_BASEDIR}/${APP_WAR_MODULE}.war' >> Dockerfile
         - echo 'COPY ${ARTIFACT_CONFIG_FILES} ${APP_BASEDIR}/config' >> Dockerfile
+        - echo 'COPY start.sh ${APP_BASEDIR}/bin/start.sh' >> Dockerfile
         - echo 'WORKDIR ${APP_BASEDIR}' >> Dockerfile
-        - echo 'ENTRYPOINT ["java","-jar","-Doracle.net.tns_admin=/home/tnsnames","-Doracle.jdbc.timezoneAsRegion=false","-Dspring.config.location=${APP_BASEDIR}/config/","${APP_WAR_MODULE}.war"]' >> DockerFile
+        - echo 'ENTRYPOINT ["${APP_BASEDIR}/bin/start.sh"]' >> DockerFile
+        # Login to registry
+        - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY} || true
 
 .docker-build:
     extends: .docker-file
