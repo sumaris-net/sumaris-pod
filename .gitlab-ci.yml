@@ -247,9 +247,9 @@ gitlab-release:
         - echo "WORKDIR ${APP_BASEDIR}" >> Dockerfile
         - echo "COPY ${ARTIFACT_WAR_FILE} ./${APP_WAR_MODULE}.war" >> Dockerfile
         - echo "COPY ${ARTIFACT_CONFIG_FILES} ./config/" >> Dockerfile
-        - echo "COPY entrypoint.sh ./entrypoint.sh" >> Dockerfile
-        - echo "ENV PROFILES=default \" >> Dockerfile
-        - echo "    TIMEZONE=UTC" >> Dockerfile
+        - echo 'COPY entrypoint.sh ./entrypoint.sh' >> Dockerfile
+        - echo 'ENV PROFILES=default \' >> Dockerfile
+        - echo '    TIMEZONE=UTC' >> Dockerfile
         - echo "EXPOSE 8080" >> Dockerfile
         - echo 'ENTRYPOINT ["entrypoint.sh"]' >> DockerFile
 
