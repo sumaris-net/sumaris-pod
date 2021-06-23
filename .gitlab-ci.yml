@@ -236,7 +236,7 @@ gitlab-release:
         - echo 'JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${BASEDIR}/config/"' >> entrypoint.sh
         - echo 'JAVA_OPTS="$JAVA_OPTS -Doracle.net.tns_admin=/home/tnsnames' >> entrypoint.sh
         - echo 'JAVA_OPTS="$JAVA_OPTS -Doracle.jdbc.timezoneAsRegion=false"' >> entrypoint.sh
-        - echo '[[ "_${PROFILE}" != "_" ]]  && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILE}"' >> entrypoint.sh
+        - echo '[[ "_${PROFILES}" != "_" ]]  && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILES}"' >> entrypoint.sh
         - echo '[[ "_${TIMEZONE}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Duser.timezone=${TIMEZONE}"' >> entrypoint.sh
         - echo 'ARGS=${@:2}' >> entrypoint.sh
         - echo 'cd ${BASEDIR}' >> entrypoint.sh
@@ -248,7 +248,9 @@ gitlab-release:
         - echo "COPY ${ARTIFACT_WAR_FILE} ./${APP_WAR_MODULE}.war" >> Dockerfile
         - echo "COPY ${ARTIFACT_CONFIG_FILES} ./config/" >> Dockerfile
         - echo "COPY entrypoint.sh ./entrypoint.sh" >> Dockerfile
-        - echo "ENV PROFILE" >> Dockerfile
+        - echo "ENV PROFILES=default \" >> Dockerfile
+        - echo "    TIMEZONE=UTC" >> Dockerfile
+        - echo "EXPOSE 8080" >> Dockerfile
         - echo 'ENTRYPOINT ["entrypoint.sh"]' >> DockerFile
 
 .docker-build:
