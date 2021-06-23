@@ -224,23 +224,27 @@ gitlab-release:
         ARTIFACT_BIN_FILE: ${APP_WAR_MODULE}/target/classes/*.properties
         APP_BASEDIR: /home/${APP_WAR_MODULE}
     before_script:
+        # Login to registry
+        - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY} || true
+        # Get project version
         - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
         # Create the starter script
-        - echo '#!/bin/bash' > start.sh
-        - echo 'cd ${APP_BASEDIR}' >> start.sh
-        - echo 'JAVA_OPTS="-Doracle.net.tns_admin=/home/tnsnames -Doracle.jdbc.timezoneAsRegion=false -Dspring.config.location=${APP_BASEDIR}/config/ -Duser.home=${APP_BASEDIR}"' >> start.sh
-        - echo 'APP_ARGS=${@:2}' >> start.sh
-        - echo 'java $JAVA_OPTS -server -jar lib/${APP_WAR_MODULE}.war ${APP_ARGS}' >> start.sh
+        - echo '#!/bin/bash' > entrypoint.sh
+        - echo 'cd ${APP_BASEDIR}' >> entrypoint.sh
+        - echo 'JAVA_OPTS="-Doracle.net.tns_admin=/home/tnsnames -Doracle.jdbc.timezoneAsRegion=false -Dspring.config.location=${APP_BASEDIR}/config/ -Duser.home=${APP_BASEDIR}"' >> entrypoint.sh
+        - echo '[[ "_${PROFILE}" != "_" ] ] && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILE}"' >> entrypoint.sh
+        - echo '[[ "_${TIMEZONE}" != "_" ] ] && JAVA_OPTS="$JAVA_OPTS -Duser.timezone=${TIMEZONE}"' >> entrypoint.sh
+        - echo 'APP_ARGS=${@:2}' >> entrypoint.sh
+        - echo 'java $JAVA_OPTS -server -jar ${APP_WAR_MODULE}.war ${APP_ARGS}' >> entrypoint.sh
         # Create the Dockerfile
         - echo 'FROM openjdk:8-jdk-stretch' > Dockerfile
         - echo 'RUN apt-get update && apt-get -y install libsodium-dev' >> Dockerfile
         - echo 'COPY ${ARTIFACT_WAR_FILE} ${APP_BASEDIR}/${APP_WAR_MODULE}.war' >> Dockerfile
         - echo 'COPY ${ARTIFACT_CONFIG_FILES} ${APP_BASEDIR}/config' >> Dockerfile
-        - echo 'COPY start.sh ${APP_BASEDIR}/bin/start.sh' >> Dockerfile
+        - echo 'COPY entrypoint.sh ${APP_BASEDIR}/entrypoint.sh' >> Dockerfile
+        - echo 'ENV PROFILES=default,hsqldb' >> Dockerfile
         - echo 'WORKDIR ${APP_BASEDIR}' >> Dockerfile
-        - echo 'ENTRYPOINT ["${APP_BASEDIR}/bin/start.sh"]' >> DockerFile
-        # Login to registry
-        - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY} || true
+        - echo 'ENTRYPOINT ["${APP_BASEDIR}/entrypoint.sh"]' >> DockerFile
 
 .docker-build:
     extends: .docker-file
