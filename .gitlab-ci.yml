@@ -168,9 +168,9 @@ sonarqube:
         - git remote set-url origin ${CI_REPOSITORY_URL}
         - git config --global user.email "${GITLAB_USER_EMAIL}"
         - git config --global user.name "${GITLAB_USER_NAME}"
-#        - git reset --hard develop
-#        - git fetch origin
-#        - git pull origin develop
+        - git reset --hard develop
+        - git fetch origin
+        - git checkout develop
     script:
         - echo "Preparing release..."
         - git branch -D release/$RELEASE_VERSION || true
