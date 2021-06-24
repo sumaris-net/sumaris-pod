@@ -267,7 +267,7 @@ gitlab-release:
         - echo '    PORT=8080' >> Dockerfile
         - echo 'WORKDIR /app' >> Dockerfile
         - echo 'EXPOSE ${PORT}' >> Dockerfile
-        - echo 'ENTRYPOINT ["app.sh"]' >> DockerFile
+        - echo 'ENTRYPOINT ["app.sh"]' >> Dockerfile
         # Build docker image
         - docker pull ${CONTAINER_SNAPSHOT_IMAGE} || true
         - docker build --no-cache -t ${CONTAINER_SNAPSHOT_IMAGE} . || true
@@ -276,7 +276,7 @@ gitlab-release:
             - target/docker/app.war
             - target/docker/config/*.properties
             - target/docker/app.sh
-            - target/docker/DockerFile
+            - target/docker/Dockerfile
 
 docker:
     extends: .docker-build
