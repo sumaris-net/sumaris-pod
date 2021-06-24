@@ -8,5 +8,8 @@ JAVA_OPTS="$JAVA_OPTS -Doracle.jdbc.timezoneAsRegion=false"
 [[ "_${TZ}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Duser.timezone=${TZ}"
 [[ "_${PORT}" -ne "_" ]] && JAVA_OPTS="$JAVA_OPTS -Dserver.port=${PORT}"
 ARGS=${@:2}
+JAVA_CMD="java ${JAVA_OPTS} -server -jar ${BASEDIR}/app.war ${ARGS}"
+
 echo "Starting, with arguments: ${ARGS} - profiles: ${PROFILES}"
-java ${JAVA_OPTS} -server -jar /app/app.war ${ARGS}
+echo " > ${CMD}"
+${JAVA_CMD}

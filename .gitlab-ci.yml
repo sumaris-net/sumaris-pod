@@ -234,20 +234,22 @@ gitlab-release:
     stage: docker
     before_script:
         # Create the target directory
-        - mkdir -p target/docker && cp -rf ${APP_WAR_MODULE}/src/main/docker/* target/docker/
+        - mkdir -p target/docker/config
+        - cp -rf ${APP_WAR_MODULE}/src/main/docker/* target/docker/
         - cp -f ${ARTIFACT_WAR_FILE} target/docker/app.war
-        - mkdir -p target/docker/config && cp -f ${ARTIFACT_CONFIG_FILES} target/docker/config/
+        - cp -f ${ARTIFACT_CONFIG_FILES} target/docker/config/
         - ls -l target/docker/config
-        - cd target/docker
         # Login to registry
         - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
         # Build docker image
+        - cd target/docker
         - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
         - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} .
         - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
     artifacts:
         paths:
             - target/docker
+        expire_in: 60 minutes
 
 docker:develop:
     extends: .docker-build
