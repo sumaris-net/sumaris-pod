@@ -96,6 +96,8 @@ public class SampleRepositoryImpl
         return super.toSpecification(filter, fetchOptions)
             .and(hasOperationId(filter.getOperationId()))
             .and(hasLandingId(filter.getLandingId()))
+            .and(hasObservedLocationId(filter.getObservedLocationId()))
+            .and(inObservedLocationIds(filter.getObservedLocationIds()))
             .and(addJoinFetch(fetchOptions, true));
     }
 

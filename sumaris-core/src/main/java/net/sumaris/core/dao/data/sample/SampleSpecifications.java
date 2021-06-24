@@ -25,21 +25,26 @@ package net.sumaris.core.dao.data.sample;
 import net.sumaris.core.dao.data.RootDataSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.model.data.Batch;
+import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.Sample;
-import net.sumaris.core.vo.data.batch.BatchFetchOptions;
+import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * @author peck7 on 01/09/2020.
  */
 public interface SampleSpecifications extends RootDataSpecifications<Sample> {
+
+    String OBSERVED_LOCATION_IDS = "observedLocationIds";
 
     default Specification<Sample> hasOperationId(Integer operationId) {
         if (operationId == null) return null;
@@ -63,6 +68,28 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
             return criteriaBuilder.equal(root.get(Sample.Fields.LANDING).get(IEntity.Fields.ID), param);
         });
         specification.addBind(SampleVO.Fields.LANDING_ID, landingId);
+        return specification;
+    }
+
+    default Specification<Sample> hasObservedLocationId(Integer observedLocationId) {
+        if (observedLocationId == null) return null;
+        BindableSpecification<Sample> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            query.orderBy(criteriaBuilder.asc(root.get(Sample.Fields.RANK_ORDER)));
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, LandingVO.Fields.OBSERVED_LOCATION_ID);
+            return criteriaBuilder.equal(root.get(Sample.Fields.LANDING).get(Landing.Fields.OBSERVED_LOCATION).get(IEntity.Fields.ID), param);
+        });
+        specification.addBind(LandingVO.Fields.OBSERVED_LOCATION_ID, observedLocationId);
+        return specification;
+    }
+
+    default Specification<Sample> inObservedLocationIds(Integer... observedLocationIds) {
+        if (ArrayUtils.isEmpty(observedLocationIds)) return null;
+        BindableSpecification<Sample> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            query.orderBy(criteriaBuilder.asc(root.get(Sample.Fields.RANK_ORDER)));
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, OBSERVED_LOCATION_IDS);
+            return criteriaBuilder.in(root.get(Sample.Fields.LANDING).get(Landing.Fields.OBSERVED_LOCATION).get(IEntity.Fields.ID)).value(param);
+        });
+        specification.addBind(OBSERVED_LOCATION_IDS, Arrays.asList(observedLocationIds));
         return specification;
     }
 

@@ -56,6 +56,10 @@ public class SampleFilterVO implements IRootDataFilter {
 
     private Integer landingId;
 
+    private Integer observedLocationId;
+
+    private Integer[] observedLocationIds;
+
     private Integer parentId;
 
 }
