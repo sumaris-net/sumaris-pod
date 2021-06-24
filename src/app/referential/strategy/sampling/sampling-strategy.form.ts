@@ -886,11 +886,20 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   protected async onDateChange(date?: Moment) {
     date = fromDateISOString(date || this.form.get('year').value);
-
     if (!date || !this.program) return; // Skip if date or program are missing
 
     const finalMaskYear = date.format('YY');
+    return await this.onDateOrTaxonChange(finalMaskYear);
+  }
 
+  protected async onTaxonChange() {
+    if (!this.program) return; // Skip if program is missing
+
+    const finalMaskYear = this.form.get('year').value.format('YY');
+    return await this.onDateOrTaxonChange(finalMaskYear);
+  }
+
+  protected async onDateOrTaxonChange(finalMaskYear: any) {
     let finalMaskTaxonName;
     const taxonNameControl = this.taxonNamesFormArray.value[0];
     if (taxonNameControl && taxonNameControl.taxonName?.name) {
@@ -908,31 +917,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     const finalMaskTaxonNameString = finalMaskTaxonName.join("");
     const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear}-${finalMaskTaxonNameString}-`, 3));
-    console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
-
-    const labelControl = this.form.get('label');
-
-    labelControl.setValue(computedLabel);
-    this.markAsDirty();
-  }
-
-  protected async onTaxonChange() {
-
-    if (!this.program) return;
-
-    let finalMaskTaxonName;
-    const taxon = this.taxonNamesFormArray.value[0].taxonName;
-    if (taxon) {
-      finalMaskTaxonName = TaxonUtils.rubinCode(taxon.name);
-    } else {
-      finalMaskTaxonName = "XXXXXXX";
-    }
-
-    const finalMaskYear = this.form.get('year').value.format('YY');
-
-    this.labelMask = [...finalMaskYear, '-', finalMaskTaxonName, '-', /\d/, /\d/, /\d/];
-
-    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear}-${finalMaskTaxonName}-`, 3));
     console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
 
     const labelControl = this.form.get('label');
