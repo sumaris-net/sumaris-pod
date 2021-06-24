@@ -234,12 +234,10 @@ gitlab-release:
         # Login to registry
         - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY} || true
         # Creat the target directory
-        - mkdir -p target/docker
+        - mkdir -p target/docker && cp -f ${ARTIFACT_WAR_FILE} target/docker/app.war
+        - mkdir -p target/docker/config && cp -f ${ARTIFACT_CONFIG_FILES} target/docker/config/
+        - ls -l target/docker/config
         - cd target/docker
-        #- cp -f src/main/docker/* .
-        - cp -f ${ARTIFACT_WAR_FILE} app.war
-        - mkdir -p config && cp -f ${ARTIFACT_CONFIG_FILES} config/
-        - ls -l config
         # Create the starter script
         - echo '#!/bin/bash' > app.sh
         - echo 'BASEDIR=/app' >> app.sh
