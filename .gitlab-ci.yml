@@ -91,16 +91,16 @@ docker:ci:
     - echo 'WORKDIR /tmp/.build-cache' >> Dockerfile
     - echo 'COPY ./ ./' >> Dockerfile
     # Store disk usage (before install)
-    - echo 'RUN du -s `find /tmp/.cache/yarn -maxdepth 1 | egrep -v "^\.$"` > before.txt' >> Dockerfile
-    - echo 'RUN du -s `find node_modules -maxdepth 1 | egrep -v "^\.$"` >> before.txt' >> Dockerfile
+    - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"` > /tmp/before.txt' >> Dockerfile
+    - echo 'RUN du -s `find /tmp/.cache/yarn -maxdepth 1 | egrep -v "^\.$"` >> /tmp/before.txt' >> Dockerfile
     # Install dependencies
-    - echo 'RUN npm install -g yarn @ionic/cli' >> Dockerfile
+    - echo 'RUN yarn global add @ionic/cli @angular/cli' >> Dockerfile
     - echo 'RUN yarn install' >> Dockerfile
     # Store disk usage (after install)
-    - echo 'RUN du -s `find /tmp/.cache/yarn -maxdepth 1 | egrep -v "^\.$"` > after.txt' >> Dockerfile
-    - echo 'RUN du -s `find node_modules -maxdepth 1 | egrep -v "^\.$"` >> after.txt' >> Dockerfile
+    - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"` > /tmp/after.txt' >> Dockerfile
+    - echo 'RUN du -s `find /tmp/.cache/yarn -maxdepth 1 | egrep -v "^\.$"` >> /tmp/after.txt' >> Dockerfile
     # Force docker to detect any changes
-    - echo "RUN diff before.txt after.txt || true" >> Dockerfile
+    - echo "RUN diff /tmp/before.txt /tmp/after.txt || true" >> Dockerfile
     - echo 'WORKDIR /build' >> Dockerfile
     # Build image
     - docker build --no-cache -t ${CI_BUILD_IMAGE} .
