@@ -788,7 +788,12 @@
       "NAME": "Observations > Title (menu)"
     },
     "ERROR": {
-      "UPDATE_CHILDREN_DATE_ERROR": "Error in copying the occasion date on children data."
+      "UPDATE_CHILDREN_DATE_ERROR": "Error in copying the occasion date on children data.",
+      "COUNT_SAMPLES_ERROR": "Error in counting observation samples."
+    },
+    "CONFIRM": {
+      "OBSERVATION_HAS_SAMPLE": "Selected observation has sampling.<br/><br/><b>Are you sure</b> you want to delete it?",
+      "OBSERVATIONS_HAS_SAMPLE": "Selected observations have sampling.<br/><br/><b>Are you sure</b> you want to delete them?"
     }
   },
   "LANDING": {

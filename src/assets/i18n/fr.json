@@ -811,7 +811,12 @@
       "NAME": "Sorties > Titre (menu)"
     },
     "ERROR": {
-      "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles."
+      "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles.",
+      "COUNT_SAMPLES_ERROR": "Erreur de comptage des échantillonnages de l'observation."
+    },
+    "CONFIRM": {
+      "OBSERVATION_HAS_SAMPLE": "La sortie sélectionnée est liée à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
+      "OBSERVATIONS_HAS_SAMPLE": "Les sorties sélectionnées sont liées à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
     }
   },
   "LANDING": {

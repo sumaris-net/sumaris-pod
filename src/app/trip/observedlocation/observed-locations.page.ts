@@ -5,7 +5,7 @@ import {ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {FormBuilder} from "@angular/forms";
-import {EntitiesTableDataSource, PersonService, PersonUtils} from '@sumaris-net/ngx-components';
+import {Alerts, EntitiesTableDataSource, isNotEmptyArray, PersonService, PersonUtils} from '@sumaris-net/ngx-components';
 import {ObservedLocationService} from "../services/observed-location.service";
 import {LocationLevelIds} from '@app/referential/services/model/model.enum';
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
@@ -24,7 +24,6 @@ import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {DATA_CONFIG_OPTIONS} from "src/app/data/services/config/data.config";
 import {HammerSwipeEvent} from "@sumaris-net/ngx-components";
 import {ObservedLocationFilter, ObservedLocationOfflineFilter} from "../services/filter/observed-location.filter";
-import {MatExpansionPanel} from "@angular/material/expansion";
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -240,9 +239,35 @@ export class ObservedLocationsPage extends
     return super.prepareOfflineMode(event, opts);
   }
 
+  async deleteSelection(event: UIEvent): Promise<number> {
+    let oldConfirmBeforeDelete = this.confirmBeforeDelete;
+    const rowsToDelete = this.selection.selected;
+
+    const observations = (rowsToDelete || [])
+      .map(row => row.currentData as ObservedLocation)
+      .map(ObservedLocation.fromObject)
+      .map(o => o.id);
+
+    // ask confirmation if one observation has samples
+    if (isNotEmptyArray(observations)) {
+      const samplesCount = await this.dataService.countSamples(observations);
+      if (samplesCount > 0) {
+        const messageKey = observations.length === 1
+          ? 'OBSERVED_LOCATION.CONFIRM.OBSERVATION_HAS_SAMPLE'
+          : 'OBSERVED_LOCATION.CONFIRM.OBSERVATIONS_HAS_SAMPLE';
+        let confirm = await Alerts.askConfirmation(messageKey, this.alertCtrl, this.translate, event);
+        if (!confirm) return; // skip
+        this.confirmBeforeDelete = false;
+      }
+    }
+
+    // delete if observation have no sample
+    await super.deleteSelection(event);
+    this.confirmBeforeDelete = oldConfirmBeforeDelete;
+  }
+
+
   /* -- protected methods -- */
-
-
 
   protected markForCheck() {
     this.cd.markForCheck();
