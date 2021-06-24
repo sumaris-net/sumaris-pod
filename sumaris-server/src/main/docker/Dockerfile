@@ -1,7 +1,7 @@
 FROM openjdk:8-jdk-alpine
 ARG WAR_FILE=app.war
 ARG CONFIG_FILES=config/*.properties
-RUN get update && apt -y install libsodium-dev
+RUN apt update && apt -y install libsodium-dev
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 WORKDIR /app
