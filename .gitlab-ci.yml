@@ -102,9 +102,6 @@ docker:ci:
     # Force docker to detect any changes
     - echo "RUN diff /tmp/before.txt /tmp/after.txt || true" >> Dockerfile
     - echo 'WORKDIR /build' >> Dockerfile
-    # Build image
-    - docker build --no-cache -t ${CI_BUILD_IMAGE} .
-    - docker push ${CI_BUILD_IMAGE}
     # Build and push the CI image
     - docker build --no-cache -t ${CI_BUILD_IMAGE} .
     - docker push ${CI_BUILD_IMAGE}
