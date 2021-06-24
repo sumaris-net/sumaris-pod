@@ -21,7 +21,7 @@ stages:
 variables:
     DOCKER_DRIVER: overlay2
     ANSIBLE_FORCE_COLOR: '1'
-    CONTAINER_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
+    CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
     #CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
     CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:develop
     MAVEN_LOCAL_REPO: /root/.m2/repository/
@@ -49,7 +49,7 @@ variables:
     services:
         - docker:dind
     before_script:
-        - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY} || true
+        - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
     after_script:
         - docker logout ${CI_REGISTRY}
     allow_failure: false
@@ -82,19 +82,22 @@ variables:
 
 build:
     extends: .build
-    image: ${CONTAINER_BUILD_IMAGE}
+    image: ${CI_BUILD_IMAGE}
 
 failsafe-build:
     extends: .build
     stage: alt_build
     when: on_failure
 
-docker-for-fast-build:
+docker:ci:
     extends: .docker
     stage: alt_build
     when: on_failure
     allow_failure: true
     script:
+        # Create the target directory
+        - mkdir -p target/ci && cd target/ci
+        # Create the Dockerfile
         - echo 'FROM jlrigau/maven-git' > Dockerfile
         - echo 'WORKDIR /.build-cache' >> Dockerfile
         - echo 'COPY ./ ./' >> Dockerfile
@@ -105,8 +108,13 @@ docker-for-fast-build:
         - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 1 | egrep -v "^\.$"`>/after.txt' >> Dockerfile
         - echo "RUN diff /before.txt /after.txt || true" >> Dockerfile
         - echo 'WORKDIR /build' >> Dockerfile
-        - docker build --pull -t ${CONTAINER_BUILD_IMAGE} .
-        - docker push ${CONTAINER_BUILD_IMAGE}
+        # Build and push the CI image
+        - docker build --pull -t ${CI_BUILD_IMAGE} .
+        - docker push ${CI_BUILD_IMAGE}
+    artifacts:
+        paths:
+            - target/ci/Dockerfile
+        expire_in: 60 minutes
 
 # ---------------------------------------------------------------
 # Test jobs
@@ -200,7 +208,7 @@ sonarqube:
 
 release:
     extends: .release
-    image: ${CONTAINER_BUILD_IMAGE}
+    image: ${CI_BUILD_IMAGE}
     needs:
         - build
 
@@ -231,9 +239,7 @@ gitlab-release:
     extends: .docker
     stage: docker
     before_script:
-        # Login to registry
-        - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY} || true
-        # Creat the target directory
+        # Create the target directory
         - mkdir -p target/docker && cp -f ${ARTIFACT_WAR_FILE} target/docker/app.war
         - mkdir -p target/docker/config && cp -f ${ARTIFACT_CONFIG_FILES} target/docker/config/
         - ls -l target/docker/config
@@ -268,9 +274,12 @@ gitlab-release:
         - echo 'WORKDIR /app' >> Dockerfile
         - echo 'EXPOSE ${PORT}' >> Dockerfile
         - echo 'ENTRYPOINT ["app.sh"]' >> Dockerfile
+        # Login to registry
+        - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
         # Build docker image
-        - docker pull ${CONTAINER_SNAPSHOT_IMAGE} || true
-        - docker build --no-cache -t ${CONTAINER_SNAPSHOT_IMAGE} . || true
+        - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
+        - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} .
+        - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
     artifacts:
         paths:
             - target/docker/app.war
@@ -278,11 +287,12 @@ gitlab-release:
             - target/docker/app.sh
             - target/docker/Dockerfile
 
-docker:
+docker:develop:
     extends: .docker-build
+    variables:
+        IMAGE_TAG: develop
     script:
-        - docker tag ${CONTAINER_SNAPSHOT_IMAGE} ${CI_REGISTRY_IMAGE}:${APP_VERSION}
-        - docker push ${CI_REGISTRY_IMAGE}:${APP_VERSION}
+        - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
     only:
         - develop
     when: manual
@@ -292,20 +302,9 @@ docker:release:
     variables:
         IMAGE_TAG: $CI_COMMIT_TAG
     script:
-        - docker tag ${CONTAINER_SNAPSHOT_IMAGE} ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
         - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
     only:
         - tags
-
-#docker:prod-ifremer:
-#    extends: .docker-file
-#    script:
-#        - docker build --cache-from ${CONTAINER_SNAPSHOT_IMAGE} --pull -t ${CONTAINER_SNAPSHOT_IMAGE} .
-#        - docker tag ${CONTAINER_SNAPSHOT_IMAGE} ${CI_REGISTRY_IMAGE}:${APP_VERSION}:ifremer .
-#        - docker push ${CI_REGISTRY_IMAGE}:${APP_VERSION}:ifremer
-#    only:
-#        - tags
-#    when: manual
 
 # ---------------------------------------------------------------
 # Docs jobs
