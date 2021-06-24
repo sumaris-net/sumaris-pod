@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------
 
 # default image
-image: trion/ng-cli
+image: node:12
 
 stages:
   - build
