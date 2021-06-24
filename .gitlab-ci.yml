@@ -232,15 +232,13 @@ gitlab-release:
 .docker-build:
     extends: .docker
     stage: docker
-    before_script:
+    script:
         # Create the target directory
         - mkdir -p target/docker/config
         - cp -rf ${APP_WAR_MODULE}/src/main/docker/* target/docker/
         - cp -f ${ARTIFACT_WAR_FILE} target/docker/app.war
         - cp -f ${ARTIFACT_CONFIG_FILES} target/docker/config/
         - ls -l target/docker/config
-        # Login to registry
-        - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
         # Build docker image
         - cd target/docker
         - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
