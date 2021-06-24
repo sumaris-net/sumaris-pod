@@ -23,7 +23,7 @@ variables:
   CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
   #ARTIFACT_FILES: "${APP_WAR_MODULE}/target/*.war"
   BUILD_ENVIRONMENT: prod
-  ENV_FILE: target/variables.env
+  ENV_FILE: variables.env
   ARTIFACT_ZIP_FILES: ${OUTPUT_DIR}/${CI_PROJECT_NAME}-*.zip
 
 # ---------------------------------------------------------------
@@ -49,14 +49,10 @@ variables:
   stage: build
   tags: [sih_public_runner]
   script:
-    # Get version
-    - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
     # Compile
     - yarn run build.${BUILD_ENVIRONMENT}
-    # Zip into archive
-    #- cd ${OUTPUT_DIR} && zip -q -r ${CI_PROJECT_NAME}-${APP_VERSION}.zip .
-    # Store version
-    - mkdir -p target
+    # Remember version
+    - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
     - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
   artifacts:
     paths:
@@ -92,10 +88,10 @@ docker:ci:
     - echo 'FROM trion/ng-cli' > Dockerfile
     - echo 'WORKDIR /.build-cache' >> Dockerfile
     - echo 'COPY ./ ./' >> Dockerfile
-    - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 1 | egrep -v "^\.$"`>/before.txt' >> Dockerfile
+    - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"`>/before.txt' >> Dockerfile
     - echo 'RUN npm install -g yarn @ionic/cli' >> Dockerfile
     - echo 'RUN yarn' >> Dockerfile
-    - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 1 | egrep -v "^\.$"`>/after.txt' >> Dockerfile
+    - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"`>/after.txt' >> Dockerfile
     - echo "RUN diff /before.txt /after.txt || true" >> Dockerfile
     - echo 'WORKDIR /build' >> Dockerfile
     # Build and push the CI image
