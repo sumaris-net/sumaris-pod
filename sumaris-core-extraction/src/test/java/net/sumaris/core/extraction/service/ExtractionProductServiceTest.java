@@ -123,6 +123,8 @@ public class ExtractionProductServiceTest extends AbstractServiceTest {
         target.setVersion(format.getVersion());
         target.setName(String.format("Product on %s (%s) data", format.getLabel(), category.name()));
         target.setStatusId(StatusEnum.TEMPORARY.getId());
+        target.setIsSpatial(false);
+        target.setProcessingFrequencyId(0);
 
         DepartmentVO recDep = new DepartmentVO();
         recDep.setId(fixtures.getDepartmentId(0));
