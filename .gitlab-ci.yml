@@ -234,46 +234,57 @@ gitlab-release:
         # Login to registry
         - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY} || true
         # Creat the target directory
-        - mkdir -p target/docker && cd target/docker
+        - mkdir -p target/docker
+        - cd target/docker
+        #- cp -f src/main/docker/* .
+        - cp -f ${ARTIFACT_WAR_FILE} app.war
+        - mkdir -p config && cp -f ${ARTIFACT_CONFIG_FILES} config/
+        - ls -l config
         # Create the starter script
-        - echo '#!/bin/bash' > run.sh
-        - echo 'BASEDIR=/app' >> run.sh
-        - echo 'JAVA_OPTS="-Dsumaris.basedir=${BASEDIR}"' >> run.sh
-        - echo 'JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${BASEDIR}/config/"' >> run.sh
-        - echo 'JAVA_OPTS="$JAVA_OPTS -Doracle.net.tns_admin=/home/tnsnames' >> run.sh
-        - echo 'JAVA_OPTS="$JAVA_OPTS -Doracle.jdbc.timezoneAsRegion=false"' >> run.sh
-        - echo '[[ "_${PROFILES}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILES}"' >> run.sh
-        - echo '[[ "_${TIMEZONE}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Duser.timezone=${TIMEZONE}"' >> run.sh
-        - echo 'ARGS=${@:2}' >> run.sh
-        - echo 'java ${JAVA_OPTS} -server -jar /app/app.war ${ARGS}' >> run.sh
+        - echo '#!/bin/bash' > app.sh
+        - echo 'BASEDIR=/app' >> app.sh
+        - echo 'JAVA_OPTS="-Dsumaris.basedir=${BASEDIR}"' >> app.sh
+        - echo 'JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${BASEDIR}/config/"' >> app.sh
+        - echo 'JAVA_OPTS="$JAVA_OPTS -Doracle.net.tns_admin=/home/tnsnames' >> app.sh
+        - echo 'JAVA_OPTS="$JAVA_OPTS -Doracle.jdbc.timezoneAsRegion=false"' >> app.sh
+        - echo '[[ "_${PROFILES}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILES}"' >> app.sh
+        - echo '[[ "_${TZ}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Duser.timezone=${TZ}"' >> app.sh
+        - echo '[[ "_${PORT}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Dserver.port=${PORT}"' >> app.sh
+        - echo 'ARGS=${@:2}' >> app.sh
+        - echo 'java ${JAVA_OPTS} -server -jar /app/app.war ${ARGS}' >> app.sh
         # Create the Dockerfile
         - echo 'FROM openjdk:8-jdk-alpine' > Dockerfile
-        - echo "ARG CONFIG_FILE=${ARTIFACT_CONFIG_FILES}" >> Dockerfile
+        - echo "ARG WAR_FILE=app.war" >> Dockerfile
+        - echo "ARG CONFIG_FILES=config/*.properties" >> Dockerfile
         - echo 'RUN apt-get update && apt-get -y install libsodium-dev' >> Dockerfile
         - echo 'RUN addgroup -S spring && adduser -S spring -G spring' >> Dockerfile
         - echo 'USER spring:spring' >> Dockerfile
         - echo 'RUN mkdir /app' >> Dockerfile
-        - echo "COPY ${ARTIFACT_WAR_FILE} /app/app.war" >> Dockerfile
-        - echo "COPY ${CONFIG_FILE} /app/config/" >> Dockerfile
-        - echo 'ADD run.sh /app/run.sh' >> Dockerfile
-        - echo 'RUN chmod +x /app/run.sh' >> Dockerfile
+        - echo 'COPY app.sh /app/app.sh' >> Dockerfile
+        - echo 'RUN chmod +x /app/app.sh' >> Dockerfile
+        - echo "COPY ${WAR_FILE} /app/app.war" >> Dockerfile
+        - echo "COPY ${CONFIG_FILES} /app/config/" >> Dockerfile
         - echo 'ENV PROFILES=default \' >> Dockerfile
-        - echo '    TIMEZONE=UTC' >> Dockerfile
+        - echo '    TZ=UTC \' >> Dockerfile
+        - echo '    PORT=8080' >> Dockerfile
         - echo 'WORKDIR /app' >> Dockerfile
-        - echo 'EXPOSE 8080' >> Dockerfile
-        - echo 'ENTRYPOINT ["run.sh"]' >> DockerFile
+        - echo 'EXPOSE ${PORT}' >> Dockerfile
+        - echo 'ENTRYPOINT ["app.sh"]' >> DockerFile
         # Build docker image
         - docker pull ${CONTAINER_SNAPSHOT_IMAGE} || true
-        - docker build --cache-from ${CONTAINER_SNAPSHOT_IMAGE} -t ${CONTAINER_SNAPSHOT_IMAGE} . || true
+        - docker build --no-cache -t ${CONTAINER_SNAPSHOT_IMAGE} . || true
     artifacts:
         paths:
-            - target/docker/run.sh
+            - target/docker/app.war
+            - target/docker/config/*.properties
+            - target/docker/app.sh
             - target/docker/DockerFile
 
 docker:
     extends: .docker-build
     script:
-        - docker push ${CONTAINER_SNAPSHOT_IMAGE}
+        - docker tag ${CONTAINER_SNAPSHOT_IMAGE} ${CI_REGISTRY_IMAGE}:${APP_VERSION}
+        - docker push ${CI_REGISTRY_IMAGE}:${APP_VERSION}
     only:
         - develop
     when: manual
