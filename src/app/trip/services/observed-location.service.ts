@@ -33,6 +33,7 @@ import {StatusIds}  from "@sumaris-net/ngx-components";
 import {VESSEL_FEATURE_NAME} from "../../vessel/services/config/vessel.config";
 import {LandingFilter} from "./filter/landing.filter";
 import {ObservedLocationFilter, ObservedLocationOfflineFilter} from "./filter/observed-location.filter";
+import {SampleFilter} from '@app/trip/services/filter/sample.filter';
 
 
 export interface ObservedLocationSaveOptions extends EntitySaveOptions {
@@ -216,6 +217,12 @@ const ObservedLocationSubscriptions = {
   }
   ${ObservedLocationFragments.observedLocation}`
 };
+
+const CountSamples: any = gql`
+  query SamplesCountQuery($filter: SampleFilterVOInput!){
+    samplesCount(filter: $filter)
+  }
+`;
 
 @Injectable({providedIn: "root"})
 export class ObservedLocationService
@@ -695,6 +702,25 @@ export class ObservedLocationService
     }
 
     return entity;
+  }
+
+  async countSamples(observedLocationIds: number[]): Promise<number> {
+    if (this._debug) console.debug(`[observed-location-service] Count samples...`);
+
+    const filter: Partial<SampleFilter> = {
+      observedLocationIds: observedLocationIds
+    };
+
+    const res = await this.graphql.query<{ samplesCount: number }>({
+      query: CountSamples,
+      variables: {
+        filter
+      },
+      error: {code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "OBSERVED_LOCATION.ERROR.COUNT_SAMPLES_ERROR"},
+      fetchPolicy: 'network-only'
+    });
+
+    return res && res.samplesCount;
   }
 
   /* -- protected methods -- */
