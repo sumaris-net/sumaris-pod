@@ -234,40 +234,11 @@ gitlab-release:
     stage: docker
     before_script:
         # Create the target directory
-        - mkdir -p target/docker && cp -f ${ARTIFACT_WAR_FILE} target/docker/app.war
+        - mkdir -p target/docker && cp -rf ${APP_WAR_MODULE}/src/main/docker/* target/docker/
+        - cp -f ${ARTIFACT_WAR_FILE} target/docker/app.war
         - mkdir -p target/docker/config && cp -f ${ARTIFACT_CONFIG_FILES} target/docker/config/
         - ls -l target/docker/config
         - cd target/docker
-        # Create the starter script
-        - echo '#!/bin/bash' > app.sh
-        - echo 'BASEDIR=/app' >> app.sh
-        - echo 'JAVA_OPTS="-Dsumaris.basedir=${BASEDIR}"' >> app.sh
-        - echo 'JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${BASEDIR}/config/"' >> app.sh
-        - echo 'JAVA_OPTS="$JAVA_OPTS -Doracle.net.tns_admin=/home/tnsnames' >> app.sh
-        - echo 'JAVA_OPTS="$JAVA_OPTS -Doracle.jdbc.timezoneAsRegion=false"' >> app.sh
-        - echo '[[ "_${PROFILES}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILES}"' >> app.sh
-        - echo '[[ "_${TZ}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Duser.timezone=${TZ}"' >> app.sh
-        - echo '[[ "_${PORT}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Dserver.port=${PORT}"' >> app.sh
-        - echo 'ARGS=${@:2}' >> app.sh
-        - echo 'java ${JAVA_OPTS} -server -jar /app/app.war ${ARGS}' >> app.sh
-        # Create the Dockerfile
-        - echo 'FROM openjdk:8-jdk-alpine' > Dockerfile
-        - echo "ARG WAR_FILE=app.war" >> Dockerfile
-        - echo "ARG CONFIG_FILES=config/*.properties" >> Dockerfile
-        - echo 'RUN apt-get update && apt-get -y install libsodium-dev' >> Dockerfile
-        - echo 'RUN addgroup -S spring && adduser -S spring -G spring' >> Dockerfile
-        - echo 'USER spring:spring' >> Dockerfile
-        - echo 'RUN mkdir /app' >> Dockerfile
-        - echo 'COPY app.sh /app/app.sh' >> Dockerfile
-        - echo 'RUN chmod +x /app/app.sh' >> Dockerfile
-        - echo "COPY ${WAR_FILE} /app/app.war" >> Dockerfile
-        - echo "COPY ${CONFIG_FILES} /app/config/" >> Dockerfile
-        - echo 'ENV PROFILES=default \' >> Dockerfile
-        - echo '    TZ=UTC \' >> Dockerfile
-        - echo '    PORT=8080' >> Dockerfile
-        - echo 'WORKDIR /app' >> Dockerfile
-        - echo 'EXPOSE ${PORT}' >> Dockerfile
-        - echo 'ENTRYPOINT ["app.sh"]' >> Dockerfile
         # Login to registry
         - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
         # Build docker image
@@ -276,10 +247,7 @@ gitlab-release:
         - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
     artifacts:
         paths:
-            - target/docker/app.war
-            - target/docker/config/*.properties
-            - target/docker/app.sh
-            - target/docker/Dockerfile
+            - target/docker
 
 docker:develop:
     extends: .docker-build
