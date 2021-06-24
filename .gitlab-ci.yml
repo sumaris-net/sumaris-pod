@@ -122,7 +122,7 @@ docker:ci:
   script:
     # Build docker image
     - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
-    - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} -f script/docker/Dockerfile
+    - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="HTDOCS=www"-f scripts/docker/Dockerfile
     - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
 
 docker:develop:
