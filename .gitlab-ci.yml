@@ -68,7 +68,7 @@ build:
   image: ${CI_BUILD_IMAGE}
   before_script:
     # Get project dependencies
-    - mv /.build-cache/node_modules ./
+    - mv /app/.cache/node_modules ./
 
 failsafe-build:
   extends: .build
@@ -84,17 +84,20 @@ docker:ci:
   allow_failure: true
   script:
     # Create the target directory
-    - mkdir -p target/ci && cd target/ci
+    - mkdir -p target/ci
+    - cd target/ci
     # Create the Dockerfile
     - echo 'FROM trion/ng-cli' > Dockerfile
-    - echo 'WORKDIR /.build-cache' >> Dockerfile
+    - echo 'WORKDIR /app/.cache' >> Dockerfile
     - echo 'COPY ./ ./' >> Dockerfile
-    - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"` > install-before.txt' >> Dockerfile
-    - echo 'RUN npm install -g yarn @ionic/cli' >> Dockerfile
-    - echo 'RUN yarn' >> Dockerfile
-    - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"` > install-after.txt' >> Dockerfile
-    - echo "RUN diff install-before.txt install-after.txt || true" >> Dockerfile
-    - echo 'WORKDIR /build' >> Dockerfile
+    - echo 'RUN du -s `find /tmp/.cache/yarn -maxdepth 1 | egrep -v "^\.$"` > /tmp/before.txt' >> Dockerfile
+    - echo 'RUN du -s `find node_modules -maxdepth 1 | egrep -v "^\.$"` >> /tmp/before.txt' >> Dockerfile
+    - echo 'RUN npm install -g @ionic/cli' >> Dockerfile
+    - echo 'RUN yarn install' >> Dockerfile
+    - echo 'RUN du -s `find /tmp/.cache/yarn -maxdepth 1 | egrep -v "^\.$"` > /tmp/after.txt' >> Dockerfile
+    - echo 'RUN du -s `find node_modules -maxdepth 1 | egrep -v "^\.$"` >> /tmp/after.txt' >> Dockerfile
+    - echo "RUN diff /tmp/before.txt /tmp/after.txt || true" >> Dockerfile
+    - echo 'WORKDIR /app' >> Dockerfile
     # Build and push the CI image
     - docker build --no-cache -t ${CI_BUILD_IMAGE} .
     - docker push ${CI_BUILD_IMAGE}
