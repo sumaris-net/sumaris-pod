@@ -94,14 +94,14 @@ docker:ci:
         - mkdir -p target/ci && cd target/ci
         # Create the Dockerfile
         - echo 'FROM jlrigau/maven-git' > Dockerfile
-        - echo 'WORKDIR /.build-cache' >> Dockerfile
+        - echo 'WORKDIR /tmp/.build-cache' >> Dockerfile
         - echo 'COPY ./ ./' >> Dockerfile
         - echo "ENV MAVEN_LOCAL_REPO=${MAVEN_LOCAL_REPO}" >> Dockerfile
-        - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 1 | egrep -v "^\.$"`>/before.txt' >> Dockerfile
+        - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 1 | egrep -v "^\.$"` > /tmp/before.txt' >> Dockerfile
         - echo 'RUN mvn install -s ./ci_settings.xml -q -DskipTests' >> Dockerfile
-        - echo 'RUN mvn clean -s ./ci_settings.xml -q ' >> Dockerfile
-        - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 1 | egrep -v "^\.$"`>/after.txt' >> Dockerfile
-        - echo "RUN diff /before.txt /after.txt || true" >> Dockerfile
+        - echo 'RUN mvn clean -s ./ci_settings.xml -q' >> Dockerfile
+        - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 1 | egrep -v "^\.$"` > /tmp/after.txt' >> Dockerfile
+        - echo "RUN diff /tmp/before.txt /tmp/after.txt || true" >> Dockerfile
         - echo 'WORKDIR /build' >> Dockerfile
         # Build and push the CI image
         - docker build --pull -t ${CI_BUILD_IMAGE} .
