@@ -255,8 +255,6 @@ docker:develop:
     extends: .docker-build
     variables:
         IMAGE_TAG: develop
-    script:
-        - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
     only:
         - develop
     when: manual
@@ -265,8 +263,6 @@ docker:release:
     extends: .docker-build
     variables:
         IMAGE_TAG: $CI_COMMIT_TAG
-    script:
-        - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
     only:
         - tags
 
@@ -276,8 +272,7 @@ docker:release:
 
 pages:
     stage: docs
-    tags:
-        - sih_public_runner
+    tags: [sih_public_runner]
     image: python:3.7-alpine
     before_script:
         - git submodule foreach git fetch origin
@@ -293,7 +288,6 @@ pages:
             - public
     only:
         - develop
-        - feature/imagine
     when: manual
 
 
