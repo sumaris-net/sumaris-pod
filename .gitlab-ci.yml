@@ -119,9 +119,7 @@ docker:ci:
 .docker-build:
   extends: .docker
   stage: docker
-  before_script:
-    # Login to registry
-    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+  script:
     # Build docker image
     - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
     - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} -f script/docker/Dockerfile
