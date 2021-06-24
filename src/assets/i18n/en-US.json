@@ -1364,6 +1364,7 @@
       },
       "ERROR": {
         "LOAD_STRATEGY_LABEL_ERROR": "Error while loading stategy's label",
+        "LOAD_STRATEGY_SAMPLE_LABEL_ERROR": "Error while loading stategy's sample label",
         "LOAD_STRATEGY_REFERENCES_ERROR": "Error while loading strategy's analytic references",
         "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
         "PARAMETERS.WEIGHT_OR_LENGTH": "Weight or length is mandatory",
