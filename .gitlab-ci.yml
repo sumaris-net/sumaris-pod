@@ -49,8 +49,10 @@ variables:
   stage: build
   tags: [sih_public_runner]
   script:
-    # Compile
+    # Update dependencies, then compile
+    - yarn
     - yarn run build.${BUILD_ENVIRONMENT}
+  after_script:
     # Remember version
     - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
     - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
