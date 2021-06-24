@@ -19,26 +19,6 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
     label: 'TRIP.OPTIONS.ENABLE',
     type: 'boolean'
   },
-  OBSERVED_LOCATION_NEW_NAME: <FormFieldDefinition>{
-    key: 'sumaris.observedLocation.new.name',
-    label: 'OBSERVED_LOCATION.OPTIONS.NEW_NAME',
-    type: 'enum',
-    values: [
-      {
-        key: 'OBSERVED_LOCATION.NEW.TITLE',
-        value: 'OBSERVED_LOCATION.NEW.TITLE'
-      },
-      {
-        key: 'OBSERVED_LOCATION.NEW.SAMPLING.TITLE',
-        value: 'OBSERVED_LOCATION.NEW.SAMPLING.TITLE'
-      },
-      {
-        key: 'AUCTION_CONTROL.NEW.TITLE',
-        value: 'AUCTION_CONTROL.NEW.TITLE'
-      }
-    ],
-    defaultValue: "OBSERVED_LOCATION.NEW.TITLE"
-  },
   OBSERVED_LOCATION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.enable',
     label: 'OBSERVED_LOCATION.OPTIONS.ENABLE',
@@ -50,16 +30,12 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
     type: 'enum',
     values: [
       {
-        key: 'MENU.OBSERVED_LOCATIONS',
-        value: 'MENU.OBSERVED_LOCATIONS'
+        key: 'MENU.OCCASIONS',
+        value: 'MENU.OCCASIONS'
       },
       {
-        key: 'MENU.OCCASION',
-        value: 'MENU.OCCASION'
-      },
-      {
-        key: 'MENU.AUCTION_OCCASION',
-        value: 'MENU.AUCTION_OCCASION'
+        key: 'MENU.AUCTION_OCCASIONS',
+        value: 'MENU.AUCTION_OCCASIONS'
       }
     ],
     defaultValue: 'MENU.OBSERVED_LOCATIONS'

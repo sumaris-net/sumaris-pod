@@ -154,6 +154,9 @@
         "PARTNER_DEPARTMENTS": "Accueil > Logo des partenaires",
         "BACKGROUND_IMAGES": "Accueil > Images de fond"
       },
+      "MENU": {
+        "ITEMS": "Menu > Entrées supplémentaire (JSON Array)"
+      },
       "COLORS": {
         "PRIMARY": "Thème > Couleur principale",
         "SECONDARY": "Thème > Couleur secondaire",
@@ -221,9 +224,8 @@
     "DOWNLOADS": "Téléchargements",
     "DATA_ENTRY_DIVIDER": "Saisie de données",
     "DATA_ACCESS_DIVIDER": "Accès aux données",
-    "OBSERVED_LOCATIONS": "Sorties",
-    "AUCTION_OCCASION": "Sorties en criée",
-    "OCCASION": "Sorties",
+    "AUCTION_OCCASIONS": "Sorties en criée",
+    "OCCASIONS": "Sorties",
     "ADMINISTRATION_DIVIDER": "Administration",
     "REFERENTIAL_DIVIDER": "Référentiels",
     "USERS": "Utilisateurs",
