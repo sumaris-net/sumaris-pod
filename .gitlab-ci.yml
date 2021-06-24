@@ -233,6 +233,8 @@ gitlab-release:
     before_script:
         # Login to registry
         - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY} || true
+        # Creat the target directory
+        - mkdir -p target/docker && cd target/docker
         # Create the starter script
         - echo '#!/bin/bash' > run.sh
         - echo 'BASEDIR=/app' >> run.sh
@@ -262,10 +264,11 @@ gitlab-release:
         - echo 'ENTRYPOINT ["run.sh"]' >> DockerFile
         # Build docker image
         - docker pull ${CONTAINER_SNAPSHOT_IMAGE} || true
-        - docker build --cache-from ${CONTAINER_SNAPSHOT_IMAGE} --pull -t ${CONTAINER_SNAPSHOT_IMAGE} . || true
+        - docker build --cache-from ${CONTAINER_SNAPSHOT_IMAGE} -t ${CONTAINER_SNAPSHOT_IMAGE} . || true
     artifacts:
         paths:
-            - DockerFile
+            - target/docker/run.sh
+            - target/docker/DockerFile
 
 docker:
     extends: .docker-build
