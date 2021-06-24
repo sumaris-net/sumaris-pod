@@ -32,7 +32,7 @@ import {
 import {PmfmStrategy} from '../../services/model/pmfm-strategy.model';
 import {Program} from '../../services/model/program.model';
 import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from '../../services/model/strategy.model';
-import {TaxonNameRef} from '../../services/model/taxon.model';
+import {TaxonNameRef, TaxonUtils} from '../../services/model/taxon.model';
 import {ReferentialRefService} from '../../services/referential-ref.service';
 import {StrategyService} from '../../services/strategy.service';
 import {StrategyValidatorService} from '../../services/validator/strategy.validator';
