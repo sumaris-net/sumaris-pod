@@ -67,6 +67,7 @@ build:
   extends: .build
   image: ${CI_BUILD_IMAGE}
   before_script:
+    # Get project dependencies
     - mv /.build-cache/node_modules ./
 
 failsafe-build:
@@ -88,14 +89,14 @@ docker:ci:
     - echo 'FROM trion/ng-cli' > Dockerfile
     - echo 'WORKDIR /.build-cache' >> Dockerfile
     - echo 'COPY ./ ./' >> Dockerfile
-    - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"`>/before.txt' >> Dockerfile
+    - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"` > install-before.txt' >> Dockerfile
     - echo 'RUN npm install -g yarn @ionic/cli' >> Dockerfile
     - echo 'RUN yarn' >> Dockerfile
-    - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"`>/after.txt' >> Dockerfile
-    - echo "RUN diff /before.txt /after.txt || true" >> Dockerfile
+    - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"` > install-after.txt' >> Dockerfile
+    - echo "RUN diff install-before.txt install-after.txt || true" >> Dockerfile
     - echo 'WORKDIR /build' >> Dockerfile
     # Build and push the CI image
-    - docker build --pull -t ${CI_BUILD_IMAGE} .
+    - docker build --no-cache -t ${CI_BUILD_IMAGE} .
     - docker push ${CI_BUILD_IMAGE}
   artifacts:
     paths:
