@@ -12,7 +12,8 @@ import {
   fadeInOutAnimation,
   firstNotNilPromise,
   firstTruePromise,
-  HistoryPageReference, isInstanceOf,
+  HistoryPageReference,
+  isInstanceOf,
   isNil,
   isNotNil,
   PlatformService,
@@ -33,7 +34,6 @@ import {AggregatedLandingsTable} from '../aggregated-landing/aggregated-landings
 import {Program} from '../../referential/services/model/program.model';
 import {ObservedLocationsPageSettingsEnum} from './observed-locations.page';
 import {environment} from '../../../environments/environment';
-import {TRIP_CONFIG_OPTIONS} from '../services/config/trip.config';
 import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
 import {LandingFilter} from '../services/filter/landing.filter';
 
@@ -63,7 +63,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   allowAddNewVessel: boolean;
   addLandingUsingHistoryModal: boolean;
   $ready = new BehaviorSubject<boolean>(false);
-  observedLocationNewName = '';
   showQualityForm = false;
   showRecorder = true;
 
@@ -106,8 +105,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     this.registerSubscription(
       this.configService.config.subscribe(config => {
-        this.observedLocationNewName = config && config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NEW_NAME);
-        this.showRecorder = config && config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
+        if (!config) return;
+        this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
+        this.markForCheck();
       })
     );
 
@@ -439,7 +439,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     // new data
     if (this.isNewData) {
-      return this.translate.get(`${this.observedLocationNewName}`).toPromise();
+      return this.translate.get('OBSERVED_LOCATION.NEW.TITLE').toPromise();
     }
 
     // Existing data

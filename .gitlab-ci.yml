@@ -75,7 +75,8 @@ failsafe-build:
   stage: alt_build
   when: on_failure
   before_script:
-    - npm install -g yarn @ionic/cli
+    - yarn global add @ionic/cli @angular/cli
+    - yarn install
 
 docker:ci:
   extends: .docker
