@@ -26,18 +26,12 @@ variables:
     CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:develop
     MAVEN_LOCAL_REPO: /root/.m2/repository/
     MAVEN_REPO_URL: https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
-    APP_NAME: sumaris
     APP_CORE_MODULE: sumaris-core
     APP_DB_MODULE: sumaris-db
     APP_WAR_MODULE: sumaris-server
     ARTIFACT_WAR_FILE: "${APP_WAR_MODULE}/target/*.war"
     ARTIFACT_CONFIG_FILES: "${APP_WAR_MODULE}/target/classes/*.properties"
     ENV_FILE: target/variables.env
-
-# Must be defined into pipelines variables :
-    # CI_REGISTRY_USER:
-    # CI_REGISTRY_PASSWORD:
-
 
 # ---------------------------------------------------------------
 # Jobs templates
@@ -224,7 +218,7 @@ gitlab-release:
     script:
         - echo "running release for ${CI_COMMIT_TAG}"
     release:
-        name: "Release ${APP_NAME}-${CI_COMMIT_TAG}"
+        name: "Release ${CI_PROJECT_NAME}-${CI_COMMIT_TAG}"
         description: "Created using the release-cli $EXTRA_DESCRIPTION"
         tag_name: "${CI_COMMIT_TAG}"
         ref: "${CI_COMMIT_TAG}"
