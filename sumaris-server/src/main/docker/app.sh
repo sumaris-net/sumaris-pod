@@ -2,7 +2,7 @@
 
 BASEDIR=/app
 JAVA_OPTS="-Dsumaris.basedir=${BASEDIR}"
-JAVA_OPTS="${JAVA_OPTS} -Dspring.config.location=${BASEDIR}/config/"
+JAVA_OPTS="${JAVA_OPTS} -Dspring.config.location=file:${BASEDIR}/config/"
 JAVA_OPTS="${JAVA_OPTS} -Doracle.net.tns_admin=/home/tnsnames"
 JAVA_OPTS="${JAVA_OPTS} -Doracle.jdbc.timezoneAsRegion=false"
 [[ "_${PROFILES}" != "_" ]] && JAVA_OPTS="${JAVA_OPTS} -Dspring.profiles.active=${PROFILES}"

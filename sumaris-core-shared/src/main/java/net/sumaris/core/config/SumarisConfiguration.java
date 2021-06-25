@@ -122,7 +122,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     public SumarisConfiguration(ConfigurableEnvironment env,
                                 String... args) {
-        this(env, "application.properties", args);
+        this(env, "application.fake.properties", args);
     }
 
     public SumarisConfiguration(String file,
