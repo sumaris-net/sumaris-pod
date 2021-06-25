@@ -149,7 +149,7 @@ export class SamplingSamplesTable extends SamplesTable {
     }
 
     if (strategyLabel) {
-      data.label = await this.strategyService.computeNextSampleLabel(strategyLabel, 4);
+      data.label = await this.strategyService.computeNextSampleLabel(strategyLabel, "-", 4);
       console.debug("[sample-table] Generated label: ", data.label);
     }
   }
