@@ -182,7 +182,6 @@
         "TAXONOMIC_LEVEL_GENUS_ID": "Referential > Taxonomic level > Genus",
         "TAXONOMIC_LEVEL_SPECIES_ID": "Referential > Taxonomic level > Species",
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Referential > Taxonomic level > Subspecies",
-        "PMFM_MORSE_CODE_ID": "Référentiel > PSFM > Morse code",
         "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Strategy label",
         "PMFM_AGE_ID": "Referential > PMFM > Age",
         "PMFM_SEX_ID": "Referential > PMFM > Sex",
@@ -220,9 +219,8 @@
     "DOWNLOADS": "Downloads",
     "DATA_ENTRY_DIVIDER": "Data entry",
     "DATA_ACCESS_DIVIDER": "Data access",
-    "OBSERVED_LOCATIONS": "Observations",
-    "AUCTION_OCCASION": "Occasions in auction",
-    "OCCASION": "Occasions",
+    "AUCTION_OCCASIONS": "Occasions in auction",
+    "OCCASIONS": "Occasions",
     "ADMINISTRATION_DIVIDER": "Administration",
     "REFERENTIAL_DIVIDER": "Referential",
     "USERS": "Users",
@@ -341,6 +339,7 @@
       "TAXON_GROUP": "Dropdown list > Commercial species",
       "TAXON_NAME": "Dropdown list > Scientific species",
       "GEAR": "Dropdown list > Fishing gears",
+      "CALCIFIED_TYPE": "Dropdown list > Calcified types",
       "ATTRIBUTES": {
         "LABEL": "Code",
         "NAME": "Name",
@@ -788,7 +787,12 @@
       "NAME": "Observations > Title (menu)"
     },
     "ERROR": {
-      "UPDATE_CHILDREN_DATE_ERROR": "Error in copying the occasion date on children data."
+      "UPDATE_CHILDREN_DATE_ERROR": "Error in copying the occasion date on children data.",
+      "COUNT_SAMPLES_ERROR": "Error in counting observation samples."
+    },
+    "CONFIRM": {
+      "OBSERVATION_HAS_SAMPLE": "Selected observation has sampling.<br/><br/><b>Are you sure</b> you want to delete it?",
+      "OBSERVATIONS_HAS_SAMPLE": "Selected observations have sampling.<br/><br/><b>Are you sure</b> you want to delete them?"
     }
   },
   "LANDING": {
@@ -822,7 +826,8 @@
         "LANDING": "Landing:",
         "DATE": "Landing date",
         "TAB_SAMPLES": "Individual measures",
-        "LOCATION": "Landing location"
+        "LOCATION": "Landing location",
+        "CALCIFIED_TYPE": "Calcified parts:"
       }
     },
     "TABLE": {
@@ -836,9 +841,9 @@
       "STRATEGY": "Strategy",
       "CREATION_DATE": "Creation date",
       "RECORDER_PERSON" : "Recorder",
+      "SAMPLES_COUNT": "Samples count",
       "SAMPLING": {
-        "STRATEGY_LABEL": "Sample row",
-        "MORSE_CODE" : "Morse code"
+        "STRATEGY_LABEL": "Sample row"
       }
     },
     "SELECT_MODAL": {
@@ -1053,7 +1058,22 @@
     },
     "TAXON_NAME": {
       "LABEL": "Scientific species code",
-      "NAME": "Scientific species name"
+      "NAME": "Scientific species name",
+      "PARENT": "Parent scientific specie",
+      "IS_REFERENT": "Referent ?",
+      "IS_NAMING": "Conventional naming ?",
+      "IS_VIRTUAL": "Virtual ?",
+      "USE_EXISTING_REFERENCE_TAXON": "Use an existing scientific specie identifier ?",
+      "REFERENCE_TAXON": "Scientific specie identifier",
+      "TAXONOMIC_LEVEL": "Taxonomic level",
+      "START_DATE": "Start date",
+      "END_DATE": "End date",
+      "NEW": {
+        "TITLE": "New scientific specie"
+      },
+      "EDIT": {
+        "TITLE": "scientific specie {{label}} - {{name}}"
+      }
     },
     "GEAR": {
       "LABEL": "Gear code",
@@ -1235,7 +1255,8 @@
       "LANDING_STRATEGY_ENABLE": "Observation > Landing : Enter strategy?",
       "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Enter date?",
       "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
-      "LANDING_LOCATION_ENABLE": "Observation > Landings : Voir le Port ?",
+      "LANDING_LOCATION_ENABLE": "Observation > Landings: Show harbour?",
+      "LANDING_SAMPLES_COUNT_ENABLE": "Observation > Landings: Show samples count?",
       "LANDING_ONE_TAB_ENABLE": "Observation > Landing: single tab?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
       "PROGRAM_STRATEGY_EDITOR" : "Strategy > editor",
@@ -1358,6 +1379,7 @@
       },
       "ERROR": {
         "LOAD_STRATEGY_LABEL_ERROR": "Error while loading stategy's label",
+        "LOAD_STRATEGY_SAMPLE_LABEL_ERROR": "Error while loading stategy's sample label",
         "LOAD_STRATEGY_REFERENCES_ERROR": "Error while loading strategy's analytic references",
         "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
         "PARAMETERS.WEIGHT_OR_LENGTH": "Weight or length is mandatory",
@@ -1745,7 +1767,8 @@
     "SYNCHRONIZE_ENTITY_ERROR": "Cannot synchronize. <small><br/>If the problem persists, please contact your administrator.</small>",
     "LOAD_ERROR": "Error while loading",
     "SAVE_ERROR": "Error while saving",
-    "SUBSCRIBE_ERROR": "Error while subscribe to changes"
+    "SUBSCRIBE_ERROR": "Error while subscribe to changes",
+    "FIELD_NOT_EXISTS": "Value doesn't exist"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

@@ -1,30 +1,45 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild} from "@angular/core";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {FormGroup, Validators} from "@angular/forms";
-import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from "./batches.table";
-import {isNil, isNotEmptyArray, isNotNil, isNotNilOrNaN, propertiesPathComparator, toFloat, toInt, toNumber} from "../../../shared/functions";
-import {AcquisitionLevelCodes, MethodIds} from "../../../referential/services/model/model.enum";
-import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
-import {MeasurementFormValues, MeasurementValuesUtils} from "../../services/model/measurement.model";
-import {ModalController} from "@ionic/angular";
-import {Batch, BatchUtils, BatchWeight} from "../../services/model/batch.model";
-import {ColumnItem, TableSelectColumnsComponent} from "../../../core/table/table-select-columns.component";
-import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, SETTINGS_DISPLAY_COLUMNS} from "../../../core/table/table.class";
-import {BatchGroupModal} from "../modal/batch-group.modal";
-import {FormFieldDefinition} from "../../../shared/form/field.model";
-import {firstFalsePromise} from "../../../shared/observables";
-import {BatchGroup} from "../../services/model/batch-group.model";
-import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {PlatformService} from "../../../core/services/platform.service";
-import {SubBatch} from "../../services/model/subbatch.model";
-import {defer, Observable, Subject} from "rxjs";
-import {map, takeUntil} from "rxjs/operators";
-import {SubBatchesModal} from "../modal/sub-batches.modal";
-import {TaxonGroupRef} from "../../../referential/services/model/taxon.model";
-import {MatMenuTrigger} from "@angular/material/menu";
-import {BatchGroupValidatorService} from "../../services/validator/batch-group.validator";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {FormGroup, Validators} from '@angular/forms';
+import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from './batches.table';
+import {
+  ColumnItem,
+  firstFalsePromise,
+  FormFieldDefinition,
+  InMemoryEntitiesService,
+  IReferentialRef,
+  isInstanceOf,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrNaN,
+  PlatformService,
+  propertiesPathComparator,
+  ReferentialUtils,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+  SETTINGS_DISPLAY_COLUMNS,
+  TableSelectColumnsComponent,
+  toFloat,
+  toInt,
+  toNumber
+} from '@sumaris-net/ngx-components';
+import {AcquisitionLevelCodes, MethodIds} from '../../../referential/services/model/model.enum';
+import {DenormalizedPmfmStrategy} from '../../../referential/services/model/pmfm-strategy.model';
+import {MeasurementFormValues, MeasurementValuesUtils} from '../../services/model/measurement.model';
+import {ModalController} from '@ionic/angular';
+import {Batch, BatchUtils, BatchWeight} from '../../services/model/batch.model';
+import {BatchGroupModal} from '../modal/batch-group.modal';
+import {BatchGroup} from '../../services/model/batch-group.model';
+import {SubBatch} from '../../services/model/subbatch.model';
+import {defer, Observable, Subject} from 'rxjs';
+import {map, takeUntil} from 'rxjs/operators';
+import {SubBatchesModal} from '../modal/sub-batches.modal';
+import {TaxonGroupRef} from '../../../referential/services/model/taxon.model';
+import {MatMenuTrigger} from '@angular/material/menu';
+import {BatchGroupValidatorService} from '../../services/validator/batch-group.validator';
+import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
+import {ISampleModalOptions} from '../../sample/sample.modal';
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
 
@@ -118,6 +133,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   @Input() taxonGroupsNoWeight: string[];
   @Input() mobile: boolean;
+  @Input() modalOptions: Partial<ISampleModalOptions>;
 
   @Output() onSubBatchesChanges = new EventEmitter<SubBatch[]>();
 
@@ -155,7 +171,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     super(injector,
       // Force no validator (readonly mode, if mobile)
       platform.mobile ? null : injector.get(ValidatorService),
-      new InMemoryEntitiesService<BatchGroup, BatchFilter>(BatchGroup, {
+      new InMemoryEntitiesService<BatchGroup, BatchFilter>(BatchGroup, BatchFilter, {
         onLoad: (data) => this.onLoad(data),
         onSave: (data) => this.onSave(data),
         equals: Batch.equals
@@ -473,9 +489,10 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     else {
       if (this.debug) console.debug('[batch-group-table] First qualitative PMFM found: ' + qvPmfm.label);
 
-      if (isNil(this.defaultWeightPmfm) || (this.defaultWeightPmfm instanceof DenormalizedPmfmStrategy
-        && qvPmfm instanceof DenormalizedPmfmStrategy
-        && qvPmfm.rankOrder < qvPmfm.rankOrder)) {
+      if (isNil(this.defaultWeightPmfm)
+        || (PmfmUtils.isDenormalizedPmfm(this.defaultWeightPmfm)
+          && PmfmUtils.isDenormalizedPmfm(qvPmfm)
+          && qvPmfm.rankOrder > this.defaultWeightPmfm.rankOrder)) {
         throw new Error(`[batch-group-table] Unable to construct the table. First qualitative value PMFM must be define BEFORE any weight PMFM (by rankOrder in PMFM strategy - acquisition level ${this.acquisitionLevel})`);
       }
 
@@ -704,7 +721,9 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         showIndividualCount: !this.settings.isOnFieldMode(this.usageMode),
         availableParents,
         availableSubBatches: this.availableSubBatches,
-        onNewParentClick
+        onNewParentClick,
+        // Override using given options
+        ...this.modalOptions
       },
       keyboardClose: true,
       cssClass: 'modal-large'
@@ -769,7 +788,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     this.markAsLoaded();
 
     // Exit if empty
-    if (!(data instanceof BatchGroup)) {
+    if (! isInstanceOf(data, BatchGroup)) {
       return undefined; // Exit if empty
     }
 

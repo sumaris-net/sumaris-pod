@@ -201,6 +201,9 @@ export const StrategyFragments = {
       taxonNames {
         ...TaxonNameStrategyFragment
       }
+    pmfms {
+      ...LightPmfmStrategyFragment
+    }
       denormalizedPmfms {
         ...DenormalizedPmfmStrategyFragment
       }

@@ -5,9 +5,9 @@ import {
 } from "../../../data/services/validator/data-entity.validator";
 import {FishingArea} from "../model/fishing-area.model";
 import {AbstractControlOptions, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
-import {toBoolean} from "../../../shared/functions";
-import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {toBoolean} from "@sumaris-net/ngx-components";
+import {SharedFormGroupValidators, SharedValidators} from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 
 export interface FishingAreaValidatorOptions extends DataEntityValidatorOptions {
   required?: boolean;

@@ -1,9 +1,9 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
+import {SharedFormGroupValidators, SharedValidators} from "@sumaris-net/ngx-components";
 import {Sample} from "../model/sample.model";
-import {isNotNil, toNumber} from "../../../shared/functions";
+import {isNotNil, toNumber} from "@sumaris-net/ngx-components";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {Subscription} from "rxjs";
 import {PmfmUtils} from "../../../referential/services/model/pmfm.model";

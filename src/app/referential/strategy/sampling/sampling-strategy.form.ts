@@ -1,59 +1,48 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn } from "@angular/forms";
-import { DateAdapter } from "@angular/material/core";
-import * as momentImported from "moment";
-import { Moment } from 'moment';
-import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
-import { SharedValidators } from 'src/app/shared/validator/validators';
-import { LocalSettingsService } from "../../../core/services/local-settings.service";
-import { IReferentialRef, ReferentialRef, ReferentialUtils } from "../../../core/services/model/referential.model";
-import { fromDateISOString } from "../../../shared/dates";
-import { PmfmStrategy } from "../../services/model/pmfm-strategy.model";
-import { Program } from '../../services/model/program.model';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
+import {FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn} from '@angular/forms';
+import {DateAdapter} from '@angular/material/core';
+import * as momentImported from 'moment';
+import {Moment} from 'moment';
 import {
-  AppliedPeriod,
-  AppliedStrategy,
-  Strategy,
-  StrategyDepartment,
-  TaxonNameStrategy
-} from "../../services/model/strategy.model";
-import { TaxonNameRef } from "../../services/model/taxon.model";
-import { ReferentialRefService } from "../../services/referential-ref.service";
-import { StrategyService } from "../../services/strategy.service";
-import { StrategyValidatorService } from '../../services/validator/strategy.validator';
-import { PmfmStrategiesTable, PmfmStrategyFilter } from "../pmfm-strategies.table";
-import {
-  AcquisitionLevelCodes,
-  LocationLevelIds,
-  ParameterLabelGroups, PmfmIds,
-  ProgramPrivilegeIds, TaxonomicLevelIds
-} from '../../services/model/model.enum';
-import { AppForm } from "../../../core/form/form.class";
-import { AppFormUtils, FormArrayHelper } from "../../../core/form/form.utils";
-import { EntityUtils } from "../../../core/services/model/entity.model";
-import { Pmfm, PmfmUtils } from "../../services/model/pmfm.model";
-import {
+  AppForm,
+  AppFormUtils,
+  DEFAULT_PLACEHOLDER_CHAR,
+  EntityUtils,
   firstArrayValue,
+  firstNotNilPromise,
+  FormArrayHelper,
+  fromDateISOString,
+  IReferentialRef,
   isEmptyArray,
-  isNil,
+  isNil, isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  removeDuplicatesFromArray,
+  LoadResult,
+  LocalSettingsService,
+  MatAutocompleteField,
+  ObjectMap,
+  ReferentialRef,
+  ReferentialUtils,
+  removeDuplicatesFromArray, SharedValidators,
+  StatusIds,
   suggestFromArray,
   toNumber
-} from "../../../shared/functions";
-import { StatusIds } from "../../../core/services/model/model.enum";
-import { ProgramProperties } from "../../services/config/program.config";
-import { BehaviorSubject, merge } from "rxjs";
-import { SamplingStrategyService } from '../../services/sampling-strategy.service';
-import { PmfmFilter, PmfmService } from "../../services/pmfm.service";
-import { firstNotNilPromise } from "../../../shared/observables";
-import { MatAutocompleteField } from "../../../shared/material/autocomplete/material.autocomplete";
-import { ObjectMap } from 'src/app/shared/types';
-import { SamplingStrategy, StrategyEffort } from '../../services/model/sampling-strategy.model';
-import { LoadResult } from "../../../shared/services/entity-service.class";
-import { EntitiesTableDataSource } from 'src/app/core/table/entities-table-datasource.class';
+} from '@sumaris-net/ngx-components';
+import {PmfmStrategy} from '../../services/model/pmfm-strategy.model';
+import {Program} from '../../services/model/program.model';
+import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from '../../services/model/strategy.model';
+import {TaxonNameRef, TaxonUtils} from '../../services/model/taxon.model';
+import {ReferentialRefService} from '../../services/referential-ref.service';
+import {StrategyService} from '../../services/strategy.service';
+import {StrategyValidatorService} from '../../services/validator/strategy.validator';
+import {PmfmStrategiesTable} from '../pmfm-strategies.table';
+import {AcquisitionLevelCodes, autoCompleteFractions, LocationLevelIds, ParameterLabelGroups, PmfmIds, ProgramPrivilegeIds, TaxonomicLevelIds} from '../../services/model/model.enum';
+import {ProgramProperties} from '../../services/config/program.config';
+import {BehaviorSubject, merge} from 'rxjs';
+import {SamplingStrategyService} from '../../services/sampling-strategy.service';
+import {PmfmFilter, PmfmService} from '../../services/pmfm.service';
+import {SamplingStrategy, StrategyEffort} from '@app/referential/services/model/sampling-strategy.model';
 
 const moment = momentImported;
 
@@ -314,6 +303,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     // register year field changes
     this.registerSubscription(this.form.get('year').valueChanges.subscribe(date => this.onDateChange(date)));
+    this.registerSubscription(this.taxonNamesFormArray.valueChanges.subscribe(() => this.onTaxonChange()));
     this.taxonNamesFormArray.valueChanges.subscribe(res => this.loadFilteredPmfm());
 
     const idControl = this.form.get('id');
@@ -413,16 +403,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   loadFraction(): void {
-    const map = {
-      1362: 'Otholite', 1452: 'Otholite', 1644: 'Ecaille', 1956: 'Otholite', 2049: 'Illicium', 2050: 'Illicium', 1960: 'Otholite', 1693: 'Ecaille',
-      1549: 'Otholite', 1990: 'Otholite', 1921: 'Otholite', 1912: 'Otholite', 1349: 'Otholite', 1555: 'Otholite', 1556: 'Otholite', 1986: 'Otholite',
-      1988: 'Otholite', 1567: 'Otholite', 1566: 'Otholite', 1681: 'Otholite', 1772: 'Otholite', 1551: 'Otholite', 1540: 'Otholite', 1543: 'Otholite',
-      1573: 'Otholite', 1980: 'Otholite', 1978: 'Otholite', 1690: 'Otholite', 1689: 'Otholite', 1351: 'Otholite', 1996: 'Otholite', 1356: 'Otholite',
-      1560: 'Otholite', 1559: 'Otholite'
-    }
     if (this.ifAge() && this.taxonNamesFormArray.value && this.taxonNamesFormArray.value[0]) {
       const taxon = this.taxonNamesFormArray.value[0];
-      const fractionName = map[taxon.taxonName.id];
+      const fractionName = autoCompleteFractions[taxon.taxonName.id];
       if (fractionName) {
         const fraction = this.allFractionItems.value.find(f => f.label.toUpperCase() === fractionName.toUpperCase());
         this.pmfmsFractionForm.patchValue([fraction]);
@@ -440,7 +423,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         // searchAttribute: 'id',
         // searchText: taxon.id
       });
-      strategies;
     }
   }
 
@@ -497,7 +479,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     const fractions = (
       await Promise.all(
-        fractionIds.map(id => this.referentialRefService.loadAll(0, 1, null, null, { id, entityName: 'Fraction' })
+        fractionIds.map(id => this.referentialRefService.loadAll(0, 1, null, null, { includedIds: [id], entityName: 'Fraction' })
           .then(res => res && firstArrayValue(res.data)))
       ))
       .filter(isNotNil)
@@ -525,10 +507,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
 
-  async getAnalyticReferenceName(analyticReference): Promise<string> {
+  async getAnalyticReferenceByLabel(label: string): Promise<ReferentialRef> {
+    if (isNilOrBlank(label)) return undefined;
     try {
-      return await this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label: analyticReference })
-        .then(res => firstArrayValue(res.data).name)
+      const res = await this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label });
+      return firstArrayValue(res && res.data || []);
     } catch (err) {
       console.debug('Error on load AnalyticReference');
     }
@@ -566,6 +549,15 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    */
   selectMask(input: HTMLInputElement) {
     if (!this.labelMask) input.select();
+/*
+    let labelMaskArray: Array<any>;
+    labelMaskArray = this.labelMask.slice(0, 3);
+    const taxonNameArray = this.labelMask[3].split('');
+    labelMaskArray.concat(taxonNameArray);
+    // this.labelMask[3].split('');
+    // Array.from(this.labelMask[3], x => labelMaskArray.concat(x));
+    labelMaskArray.concat(this.labelMask.slice(-4));
+*/
     const startIndex = this.labelMask.findIndex(c => c instanceof RegExp);
     let endIndex = this.labelMask.slice(startIndex).findIndex(c => !(c instanceof RegExp), startIndex);
     endIndex = (endIndex === -1)
@@ -715,18 +707,15 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Get fisrt period
     const firstAppliedPeriod = firstArrayValue(appliedStrategyWithPeriods.appliedPeriods);
 
-
-    this.getAnalyticReferenceName(data.analyticReference).then(name => {
+    this.getAnalyticReferenceByLabel(data.analyticReference).then(data => {
       this.form.patchValue({
         year: firstAppliedPeriod ? firstAppliedPeriod.startDate : moment(),
-        analyticReference: data.analyticReference && { label: data.analyticReference, name } || null
+        analyticReference: data && { label: data.label, name: data.name } || null
       });
-    })
-
-
+    });
 
     // If new
-    if (!data.id) {
+    if (isNil(data.id)) {
       // pmfms = [null, null];
       this.form.get('sex').patchValue(null);
       this.form.get('age').patchValue(null);
@@ -869,8 +858,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         .forEach(pmfm => pmfmStrategies.push(pmfm));
     }
 
-    // Add analytic reference Pmfm
-    pmfmStrategies.push(<PmfmStrategy>{ pmfm: { id: PmfmIds.MORSE_CODE } });
 
     // Fill PmfmStrategy defaults
     let rankOrder = 1;
@@ -893,32 +880,43 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   protected async onDateChange(date?: Moment) {
     date = fromDateISOString(date || this.form.get('year').value);
-
     if (!date || !this.program) return; // Skip if date or program are missing
+
+    const finalMaskYear = date.format('YY');
+    return await this.onDateOrTaxonChange(finalMaskYear);
+  }
+
+  protected async onTaxonChange() {
+    if (!this.program) return; // Skip if program is missing
+
+    const finalMaskYear = this.form.get('year').value.format('YY');
+    return await this.onDateOrTaxonChange(finalMaskYear);
+  }
+
+  protected async onDateOrTaxonChange(finalMaskYear: any) {
+    let finalMaskTaxonName;
+    const taxonNameControl = this.taxonNamesFormArray.value[0];
+    if (taxonNameControl && taxonNameControl.taxonName?.name) {
+      finalMaskTaxonName = [...TaxonUtils.rubinCode(taxonNameControl.taxonName.name)];
+    } else {
+      finalMaskTaxonName = ["X", "X", "X", "X", "X", "X", "X"];
+    }
+
+    let labelMaskArray = finalMaskYear.split("");
+    labelMaskArray = labelMaskArray.concat(['-']);
+    labelMaskArray = labelMaskArray.concat(finalMaskTaxonName);
+    // @ts-ignore
+    labelMaskArray = labelMaskArray.concat(['-', /\d/, /\d/, /\d/]);
+    this.labelMask = labelMaskArray;
+
+    const finalMaskTaxonNameString = finalMaskTaxonName.join("");
+    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear}-${finalMaskTaxonNameString}-`, 3));
+    console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
 
     const labelControl = this.form.get('label');
 
-    //update mask
-    const year = date.year().toString();
-    this.labelMask = [...year.split(''), '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
-
-    // get new label sample row code
-    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${year}-BIO-`, 4));
-    console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
-
-    const label = labelControl.value;
-    if (isNil(label)) {
-      labelControl.setValue(computedLabel);
-    } else {
-      const oldYear = label.split('-').shift();
-      // Update the label, if year change
-      if (year && oldYear && year !== oldYear) {
-        labelControl.setValue(computedLabel);
-        this.markAsDirty();
-      } else {
-        labelControl.setValue(label);
-      }
-    }
+    labelControl.setValue(computedLabel);
+    this.markAsDirty();
   }
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------

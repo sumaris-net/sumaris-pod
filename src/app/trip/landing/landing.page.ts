@@ -1,39 +1,46 @@
 import {ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, Optional, QueryList, ViewChild, ViewChildren} from '@angular/core';
 
-import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from '../../shared/functions';
-import {LandingForm} from "./landing.form";
-import {SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable} from "../sample/samples.table";
-import {UsageMode} from "../../core/services/model/settings.model";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
-import {LandingService} from "../services/landing.service";
-import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
-import {FormGroup} from "@angular/forms";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {ObservedLocationService} from "../services/observed-location.service";
-import {TripService} from "../services/trip.service";
-import {debounceTime, filter, tap, throttleTime} from "rxjs/operators";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {PlatformService} from "../../core/services/platform.service";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {Landing} from "../services/model/landing.model";
-import {Trip} from "../services/model/trip.model";
-import {ObservedLocation} from "../services/model/observed-location.model";
-import {ProgramProperties} from "../../referential/services/config/program.config";
-import {AppEditorOptions} from "../../core/form/editor.class";
-import {Program} from "../../referential/services/model/program.model";
-import {fromDateISOString} from "../../shared/dates";
-import {environment} from "../../../environments/environment";
-import {STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent} from "../../data/strategy/strategy-summary-card.component";
-import {merge, Subscription} from "rxjs";
-import {Strategy} from "../../referential/services/model/strategy.model";
-import {firstNotNilPromise} from "../../shared/observables";
-import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import * as momentImported from "moment";
-import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {PmfmService} from "../../referential/services/pmfm.service";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
-import {PmfmIds} from "../../referential/services/model/model.enum";
-import {EntityUtils} from "../../core/services/model/entity.model";
+import {
+  AppEditorOptions,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  fadeInOutAnimation,
+  firstArrayValue,
+  firstNotNilPromise,
+  fromDateISOString,
+  isEmptyArray,
+  isInstanceOf,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  PlatformService,
+  ReferentialUtils,
+  UsageMode
+} from '@sumaris-net/ngx-components';
+import {LandingForm} from './landing.form';
+import {SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable} from '../sample/samples.table';
+import {LandingService} from '../services/landing.service';
+import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
+import {FormGroup} from '@angular/forms';
+import {ObservedLocationService} from '../services/observed-location.service';
+import {TripService} from '../services/trip.service';
+import {debounceTime, filter, tap, throttleTime} from 'rxjs/operators';
+import {ReferentialRefService} from '../../referential/services/referential-ref.service';
+import {VesselSnapshotService} from '../../referential/services/vessel-snapshot.service';
+import {Landing} from '../services/model/landing.model';
+import {Trip} from '../services/model/trip.model';
+import {ObservedLocation} from '../services/model/observed-location.model';
+import {ProgramProperties} from '../../referential/services/config/program.config';
+import {Program} from '../../referential/services/model/program.model';
+import {environment} from '../../../environments/environment';
+import {STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent} from '../../data/strategy/strategy-summary-card.component';
+import {merge, Subscription} from 'rxjs';
+import {Strategy} from '../../referential/services/model/strategy.model';
+import * as momentImported from 'moment';
+import {PmfmService} from '../../referential/services/pmfm.service';
+import {IPmfm} from '../../referential/services/model/pmfm.model';
+import {PmfmIds} from '../../referential/services/model/model.enum';
 
 const moment = momentImported;
 
@@ -166,7 +173,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       const queryParams = this.route.snapshot.queryParams;
       data.program = this.parent.program;
       data.observers = this.parent.observers;
-      if (this.parent instanceof ObservedLocation) {
+      if ( isInstanceOf(this.parent, ObservedLocation)) {
         data.location = this.parent.location;
         data.dateTime = this.parent.startDateTime || this.parent.endDateTime;
         data.tripId = undefined;
@@ -181,7 +188,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         // Define back link
         this.defaultBackHref = `/observations/${this.parent.id}?tab=1`;
       }
-      else if (this.parent instanceof Trip) {
+      else if (isInstanceOf(this.parent, Trip)) {
         data.vesselSnapshot = this.parent.vesselSnapshot;
         data.location = this.parent.returnLocation || this.parent.departureLocation;
         data.dateTime = this.parent.returnDateTime || this.parent.departureDateTime;
@@ -220,7 +227,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       data.program = ReferentialUtils.isNotEmpty(data.program) ? data.program : this.parent.program;
       data.observers = isNotEmptyArray(data.observers) && data.observers || this.parent.observers;
 
-      if (this.parent instanceof ObservedLocation) {
+      if (isInstanceOf(this.parent, ObservedLocation)) {
         data.location = data.location || this.parent.location;
         data.dateTime = data.dateTime || this.parent.startDateTime || this.parent.endDateTime;
         data.tripId = undefined;
@@ -228,7 +235,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         // Define back link
         this.defaultBackHref = `/observations/${this.parent.id}?tab=1`;
       }
-      else if (this.parent instanceof Trip) {
+      else if (isInstanceOf(this.parent, Trip)) {
         data.vesselSnapshot = this.parent.vesselSnapshot;
         data.location = data.location || this.parent.returnLocation || this.parent.departureLocation;
         data.dateTime = data.dateTime || this.parent.returnDateTime || this.parent.departureDateTime;
@@ -267,11 +274,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     super.updateView(data, opts);
 
     if (this.parent) {
-      if (this.parent instanceof ObservedLocation) {
+      if (isInstanceOf(this.parent, ObservedLocation)) {
         this.landingForm.showProgram = false;
         this.landingForm.showVessel = true;
 
-      } else if (this.parent instanceof Trip) {
+      } else if (isInstanceOf(this.parent, Trip)) {
 
         // Hide some fields
         this.landingForm.showProgram = false;
@@ -426,7 +433,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
-    const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
+    const titlePrefix = this.parent && isInstanceOf(this.parent, ObservedLocation) &&
       await this.translate.get('LANDING.EDIT.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''

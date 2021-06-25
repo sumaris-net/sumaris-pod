@@ -86,7 +86,7 @@
       <!-- Options menu -->
       <button mat-icon-button
               hidden-xs hidden-sm hidden-mobile
-              [title]="'COMMON.OPTIONS'|translate"
+              [title]="'COMMON.DISPLAYED_COLUMNS_DOTS'|translate"
               (click)="openSelectColumnsModal($event)">
         <mat-icon>more_vert</mat-icon>
       </button>
@@ -362,7 +362,7 @@
       <mat-cell *matCellDef="let row" >
         <mat-icon class="comment" [class.disabled]="!row.editing"
                   *ngIf="row.currentData.comments"
-                  [title]="row.currentData.comments">chat_bubble</mat-icon>
+                  [title]="row.currentData.comments"></mat-icon>
       </mat-cell>
     </ng-container>
 

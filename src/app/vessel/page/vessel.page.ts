@@ -2,18 +2,22 @@ import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, Vie
 import {VesselService} from '../services/vessel-service';
 import {VesselForm} from '../form/form-vessel';
 import {Vessel} from '../services/model/vessel.model';
-import {AccountService} from "../../core/services/account.service";
-import {AppEntityEditor} from "../../core/form/editor.class";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {AppEntityEditor}  from "@sumaris-net/ngx-components";
 import {FormGroup, Validators} from "@angular/forms";
 import * as momentImported from "moment";
-const moment = momentImported;
 import {VesselFeaturesHistoryComponent} from "./vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./vessel-registration-history.component";
-import {SharedValidators} from "../../shared/validator/validators";
-import {HistoryPageReference} from "../../core/services/model/history.model";
-import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {isNotNil} from "../../shared/functions";
+import {SharedValidators} from "@sumaris-net/ngx-components";
+import {HistoryPageReference}  from "@sumaris-net/ngx-components";
+import {DateFormatPipe} from "@sumaris-net/ngx-components";
+import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
+import {isNil} from "@sumaris-net/ngx-components";
+import {VesselFeaturesFilter, VesselRegistrationFilter} from "../services/filter/vessel.filter";
+import {VesselFeaturesService} from "../services/vessel-features.service";
+import {VesselRegistrationService} from "../services/vessel-registration.service";
+
+const moment = momentImported;
 
 @Component({
   selector: 'app-vessel-page',
@@ -52,10 +56,12 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     private injector: Injector,
     private accountService: AccountService,
     private vesselService: VesselService,
+    private vesselFeaturesService: VesselFeaturesService,
+    private vesselRegistrationService: VesselRegistrationService,
     private dateAdapter: DateFormatPipe
   ) {
     super(injector, Vessel, vesselService);
-    this.defaultBackHref = '/referential/vessels';
+    this.defaultBackHref = '/vessels';
   }
 
   ngOnInit() {
@@ -69,13 +75,10 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
-    this.registerSubscription(
-      this.onUpdateView.subscribe(() => {
-          this.featuresHistoryTable.setFilter({vesselId: this.data.id});
-          this.registrationHistoryTable.setFilter({vesselId: this.data.id});
-        }
-      )
-    );
+    this.registerSubscription(this.onUpdateView.subscribe(() => {
+      this.featuresHistoryTable.setFilter(VesselFeaturesFilter.fromObject({vesselId: this.data.id}));
+      this.registrationHistoryTable.setFilter(VesselRegistrationFilter.fromObject({vesselId: this.data.id}));
+    }));
 
   }
 
@@ -138,14 +141,19 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     await this.load(this.data && this.data.id);
   }
 
-  editFeatures() {
+  async editFeatures() {
 
     this.editing = true;
     this.previousVessel = undefined;
     this.form.enable();
 
-    // disable start date
-    this.form.get("features.startDate").disable();
+    // Start date
+    const featureStartDate = this.form.get("features.startDate").value;
+    const canEditStartDate = isNil(featureStartDate)
+      || await this.vesselFeaturesService.count({vesselId: this.data.id}, {fetchPolicy: "cache-first"});
+    if (!canEditStartDate) {
+      this.form.get("features.startDate").disable();
+    }
 
     // disable registration controls
     this.form.get("registration").disable();
@@ -172,15 +180,17 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     this.form.get("statusId").disable();
   }
 
-  editRegistration() {
+  async editRegistration() {
 
     this.editing = true;
     this.previousVessel = undefined;
     this.form.enable();
 
-    // disable registration start date, if already exists (must not change it)
+    // Start date
     const registrationStartDate = this.form.get("registration.startDate").value;
-    if (isNotNil(registrationStartDate)) {
+    const canEditStartDate = isNil(registrationStartDate)
+      || await this.vesselRegistrationService.count({vesselId: this.data.id}, {fetchPolicy: "cache-first"}) <= 1;
+    if (!canEditStartDate) {
       this.form.get("registration.startDate").disable();
     }
 
@@ -236,12 +246,11 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
   }
 
   async save(event, options?: any): Promise<boolean> {
-    const res = await super.save(event, {
+    return super.save(event, {
       previousVessel: this.previousVessel,
       isNewFeatures: this.isNewFeatures,
       isNewRegistration: this.isNewRegistration
     });
-    return res;
   }
 
   protected getJsonValueToSave(): Promise<any> {

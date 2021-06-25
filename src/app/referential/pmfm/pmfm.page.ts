@@ -1,25 +1,29 @@
-import {ChangeDetectionStrategy, Component, Inject, Injector, OnInit, ViewChild} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {AbstractControl, FormGroup} from "@angular/forms";
-import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
-import {ReferentialForm} from "../form/referential.form";
-import {PmfmValidatorService} from "../services/validator/pmfm.validator";
-import {AccountService} from "../../core/services/account.service";
-import {Pmfm} from "../services/model/pmfm.model";
-import {Parameter} from "../services/model/parameter.model";
-import {PmfmService} from "../services/pmfm.service";
-import {FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {ReferentialRefService} from "../services/referential-ref.service";
-import {ParameterService} from "../services/parameter.service";
-import {filter, mergeMap} from "rxjs/operators";
-import {Observable} from "rxjs";
-import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {isNil, joinPropertiesPath} from "../../shared/functions";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {AppEntityEditor} from "../../core/form/editor.class";
-import {MatAutocompleteFieldConfig} from "../../shared/material/autocomplete/material.autocomplete";
-import {ENVIRONMENT} from "../../../environments/environment.class";
-import {HistoryPageReference} from "../../core/services/model/history.model";
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {AbstractControl, FormGroup} from '@angular/forms';
+import {
+  AccountService,
+  AppEntityEditor,
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  FormFieldDefinitionMap,
+  HistoryPageReference,
+  isNil,
+  joinPropertiesPath,
+  MatAutocompleteFieldConfig,
+  referentialToString,
+  ReferentialUtils
+} from '@sumaris-net/ngx-components';
+import {ReferentialForm} from '../form/referential.form';
+import {PmfmValidatorService} from '../services/validator/pmfm.validator';
+import {Pmfm} from '../services/model/pmfm.model';
+import {Parameter} from '../services/model/parameter.model';
+import {PmfmService} from '../services/pmfm.service';
+import {ReferentialRefService} from '../services/referential-ref.service';
+import {ParameterService} from '../services/parameter.service';
+import {filter, mergeMap} from 'rxjs/operators';
+import {Observable} from 'rxjs';
+import {environment} from '@environments/environment';
 
 @Component({
   selector: 'app-pmfm',
@@ -53,8 +57,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
     protected validatorService: PmfmValidatorService,
     protected pmfmService: PmfmService,
     protected parameterService: ParameterService,
-    protected referentialRefService: ReferentialRefService,
-    @Inject(ENVIRONMENT) protected environment
+    protected referentialRefService: ReferentialRefService
   ) {
     super(injector,
       Pmfm,
@@ -62,7 +65,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
     this.form = validatorService.getFormGroup();
 
     // default values
-    this.defaultBackHref = "/referential/list?entity=Pmfm";
+    this.defaultBackHref = "/referential/pmfm";
     this.canEdit = this.accountService.isAdmin();
 
     this.debug = !environment.production;
@@ -209,7 +212,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
     if (!data) return; // Skip
 
     const json = data.asObject();
-    json.entityName = Pmfm.TYPENAME;
+    json.entityName = Pmfm.ENTITY_NAME;
 
     this.form.patchValue(json, {emitEvent: false});
 

@@ -1,20 +1,17 @@
-import {Injectable} from "@angular/core";
-import {gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {Observable} from "rxjs";
-import {map} from "rxjs/operators";
-import {ErrorCodes} from "./trip.errors";
-import {DataFragments, Fragments} from "./trip.queries";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {AccountService} from "../../core/services/account.service";
-import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
-import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
-import {Sale} from "./model/sale.model";
-import {Sample} from "./model/sample.model";
-import {SortDirection} from "@angular/material/sort";
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {environment} from "../../../environments/environment";
+import {Injectable} from '@angular/core';
+import {gql, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
+import {ErrorCodes} from './trip.errors';
+import {DataFragments, Fragments} from './trip.queries';
+import {AccountService, BaseGraphqlService, EntityUtils, GraphqlService, IEntitiesService, LoadResult} from '@sumaris-net/ngx-components';
+import {SAVE_AS_OBJECT_OPTIONS} from '../../data/services/model/data-entity.model';
+import {VesselSnapshotFragments} from '../../referential/services/vessel-snapshot.service';
+import {Sale} from './model/sale.model';
+import {Sample} from './model/sample.model';
+import {SortDirection} from '@angular/material/sort';
+import {environment} from '../../../environments/environment';
+import {SaleFilter} from '@app/trip/services/filter/sale.filter';
 
 export const SaleFragments = {
   lightSale: gql`fragment LightSaleFragment_PENDING on SaleVO {
@@ -78,11 +75,6 @@ export const SaleFragments = {
   `
 };
 
-
-export declare class SaleFilter {
-  observedLocationId?: number;
-  tripId?: number;
-}
 const LoadAllQuery: any = gql`
   query Sales($filter: SaleFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     sales(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -380,6 +372,11 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
         if (this._debug) console.debug(`[sale-service] Sale deleted in ${Date.now() - now}ms`);
       }
     });
+  }
+
+
+  asFilter(filter: Partial<SaleFilter>): SaleFilter {
+    return SaleFilter.fromObject(filter);
   }
 
   /* -- protected methods -- */

@@ -2,7 +2,7 @@ import {MeasurementsValidatorOptions, MeasurementsValidatorService} from "./meas
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {Measurement} from "../model/measurement.model";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 
 @Injectable({providedIn: 'root'})
 export class ExpenseValidatorService extends MeasurementsValidatorService {

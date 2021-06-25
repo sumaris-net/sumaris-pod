@@ -1,13 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 // import fade in animation
 import {merge, Subscription} from "rxjs";
 import {Router} from "@angular/router";
 import {environment} from "../../../environments/environment";
 import {AppRootDataEditor} from "../form/root-data-editor.class";
-import {isNil, isNotNil} from "../../shared/functions";
-import {fadeInAnimation} from "../../shared/material/material.animations";
+import {isNil, isNotNil} from "@sumaris-net/ngx-components";
+import {fadeInAnimation} from "@sumaris-net/ngx-components";
 import {Strategy} from "../../referential/services/model/strategy.model";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {StrategyService} from "../../referential/services/strategy.service";
 import {ProgramProperties} from "../../referential/services/config/program.config";
@@ -32,10 +32,12 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
     location: undefined,
     taxonName: undefined,
     taxonGroup: undefined,
+    caclcifiedType: undefined,
   };
 
   @Input() i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX;
   @Input() title: string;
+  @Input() calcifiedTypesDisplayed = false;
   @Input() showOpenLink = false;
 
   @Input("value")

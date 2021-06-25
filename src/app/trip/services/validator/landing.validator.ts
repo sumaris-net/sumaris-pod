@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedValidators} from "../../../shared/validator/validators";
-import {toBoolean, toNumber} from "../../../shared/functions";
+import {SharedValidators} from "@sumaris-net/ngx-components";
+import {toBoolean, toNumber} from "@sumaris-net/ngx-components";
 import {ProgramProperties} from "../../../referential/services/config/program.config";
 import {MeasurementsValidatorService} from "./measurement.validator";
 import {Landing} from "../model/landing.model";

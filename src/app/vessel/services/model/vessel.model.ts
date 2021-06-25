@@ -1,35 +1,34 @@
-import {Moment} from "moment";
-import {isNil, isNilOrBlank, isNotNil} from "../../../shared/functions";
-import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {Department} from "../../../core/services/model/department.model";
-import {Person} from "../../../core/services/model/person.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {RootDataEntity, SynchronizationStatus} from "../../../data/services/model/root-data-entity.model";
+import {Moment} from 'moment';
+import {
+  Department,
+  Entity,
+  EntityAsObjectOptions,
+  EntityClass,
+  fromDateISOString,
+  isNil,
+  isNilOrBlank,
+  isNotNil,
+  Person,
+  ReferentialAsObjectOptions,
+  ReferentialRef,
+  ReferentialUtils,
+  toDateISOString
+} from '@sumaris-net/ngx-components';
+import {RootDataEntity} from '../../../data/services/model/root-data-entity.model';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
+@EntityClass({typename: 'VesselVO'})
 export class Vessel extends RootDataEntity<Vessel> {
 
-  static TYPENAME = 'VesselVO';
+  static fromObject: (source: any, opts?: any) => Vessel;
 
-  static fromObject(source: any): Vessel {
-    if (!source || source instanceof Vessel) return source;
-    const res = new Vessel();
-    res.fromObject(source);
-    return res;
-  }
-
-  vesselType: ReferentialRef;
-  statusId: number;
-  features: VesselFeatures;
-  registration: VesselRegistration;
+  vesselType: ReferentialRef = null;
+  statusId: number = null;
+  features: VesselFeatures = null;
+  registration: VesselRegistration = null;
 
   constructor() {
-    super();
-    this.__typename = Vessel.TYPENAME;
-    this.vesselType = null;
-    this.features = null;
-    this.registration = null;
-    this.recorderDepartment = null;
+    super(Vessel.TYPENAME);
   }
 
   clone(): Vessel {
@@ -75,16 +74,10 @@ export class Vessel extends RootDataEntity<Vessel> {
   }
 }
 
+@EntityClass({typename: 'VesselFeaturesVO'})
 export class VesselFeatures extends Entity<VesselFeatures> {
 
-  static TYPENAME = 'VesselFeaturesVO';
-
-  static fromObject(source: any): VesselFeatures {
-    if (!source || source instanceof VesselFeatures) return source;
-    const res = new VesselFeatures();
-    res.fromObject(source);
-    return res;
-  }
+  static fromObject: (source: any, opts?: any) => VesselFeatures;
 
   name: string;
   startDate: Moment;
@@ -105,8 +98,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   vesselId: number;
 
   constructor() {
-    super();
-    this.__typename = VesselFeatures.TYPENAME;
+    super(VesselFeatures.TYPENAME);
     this.basePortLocation = null;
     this.recorderDepartment = null;
     this.recorderPerson = null;
@@ -165,28 +157,20 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   }
 }
 
+@EntityClass({typename: 'VesselRegistrationVO'})
 export class VesselRegistration extends Entity<VesselRegistration> {
 
-  static TYPENAME = 'VesselRegistrationVO';
+  static fromObject: (source: any, opts?: any) => VesselRegistration;
 
-  static fromObject(source: any): VesselRegistration {
-    if (!source || source instanceof VesselRegistration) return source;
-    const res = new VesselRegistration();
-    res.fromObject(source);
-    return res;
-  }
-
-  vesselId: number;
-  startDate: Moment;
-  endDate: Moment;
-  registrationCode: string;
-  intRegistrationCode: string;
-  registrationLocation: ReferentialRef;
+  vesselId: number = null;
+  startDate: Moment = null;
+  endDate: Moment = null;
+  registrationCode: string = null;
+  intRegistrationCode: string = null;
+  registrationLocation: ReferentialRef = null;
 
   constructor() {
-    super();
-    this.__typename = VesselRegistration.TYPENAME;
-    this.registrationLocation = null;
+    super(VesselRegistration.TYPENAME);
   }
 
   clone(): VesselRegistration {

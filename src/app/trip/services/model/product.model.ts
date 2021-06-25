@@ -1,40 +1,49 @@
 import {
-  NOT_MINIFY_OPTIONS,
   ReferentialAsObjectOptions,
   ReferentialRef,
   ReferentialUtils
-} from "../../../core/services/model/referential.model";
+}  from "@sumaris-net/ngx-components";
 import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {IEntityWithMeasurement, MeasurementFormValues, MeasurementValuesUtils} from "./measurement.model";
-import {equalsOrNil, isNil, isNotNil, isNotNilOrBlank} from "../../../shared/functions";
-import {IEntity} from "../../../core/services/model/entity.model";
+import {equalsOrNil, isNil, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
+import {IEntity}  from "@sumaris-net/ngx-components";
 import {Sample} from "./sample.model";
+import {IWithPacketsEntity, Packet} from "./packet.model";
+import {FilterFn} from "@sumaris-net/ngx-components";
+import {DataEntityFilter} from "../../../data/services/model/data-filter.model";
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
-export interface IWithProductsEntity<T> extends IEntity<T> {
+export interface IWithProductsEntity<T, ID = number>
+  extends IEntity<T, ID> {
   products: Product[];
 }
 
-export class ProductFilter {
+export class ProductFilter extends DataEntityFilter<ProductFilter, Product> {
 
-  constructor(parent: IWithProductsEntity<any>) {
-    this.parent = parent;
+  static fromParent(parent: IWithProductsEntity<any, any>): ProductFilter {
+    return ProductFilter.fromObject({parent});
   }
 
-  static searchFilter<P extends Product>(f: ProductFilter): (T) => boolean {
-    if (ProductFilter.isEmpty(f)) return undefined;
-    return (p: P) => {
-      if (isNil(p.parent) || !f.parent.equals(p.parent)) {
-        return false;
-      }
-      return true;
-    }
+  static fromObject(source: Partial<ProductFilter>): ProductFilter {
+    if (!source || source instanceof ProductFilter) return source as ProductFilter;
+    const target = new ProductFilter();
+    target.fromObject(source);
+    return target;
   }
 
-  static isEmpty(f: ProductFilter) {
-    return !f || isNil(f.parent);
+  parent?: IWithProductsEntity<any, any>;
+
+  fromObject(source: any, opts?: any) {
+    super.fromObject(source, opts);
+    this.parent = source.parent;
   }
 
-  parent?: IWithProductsEntity<any>;
+  buildFilter(): FilterFn<Product>[] {
+    return [
+      (p) => p.parent && this.parent.equals(p.parent)
+    ];
+  }
+
 }
 
 export class Product extends DataEntity<Product> implements IEntityWithMeasurement<Product> {
@@ -174,6 +183,7 @@ export class ProductUtils {
   static isSampleOfProduct(product: Product, sample: Sample): boolean {
     return product && sample
       && product.operationId === sample.operationId
-      && product.taxonGroup && sample.taxonGroup && product.taxonGroup.equals(sample.taxonGroup)
+      && product.taxonGroup && sample.taxonGroup
+      && ReferentialUtils.equals(product.taxonGroup, sample.taxonGroup);
   }
 }

@@ -1,33 +1,35 @@
-import {Directive, EventEmitter, OnInit, ViewChild} from '@angular/core';
+import {Directive, EventEmitter, ViewChild} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {capitalizeFirstLetter, isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
 import {
-  ExtractionCategories,
-  ExtractionColumn,
-  ExtractionFilter,
-  ExtractionType
-} from "../services/model/extraction.model";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {first, mergeMap} from "rxjs/operators";
-import {firstNotNilPromise} from "../../shared/observables";
-import {ExtractionCriteriaForm} from "./extraction-criteria.form";
-import {TranslateService} from "@ngx-translate/core";
-import {ActivatedRoute, Router} from "@angular/router";
-import {ExtractionService} from "../services/extraction.service";
-import {AlertController, ModalController, ToastController} from "@ionic/angular";
-import {AccountService} from "../../core/services/account.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {PlatformService} from "../../core/services/platform.service";
-import {AppTabEditor} from "../../core/form/tab-editor.class";
-import {AggregationType} from "../services/model/aggregation-type.model";
-import {ExtractionUtils} from "../services/extraction.utils";
-import {ExtractionHelpModal} from "../help/help.modal";
+  AccountService,
+  AppTabEditor,
+  capitalizeFirstLetter,
+  firstNotNilPromise,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  LocalSettingsService,
+  PlatformService
+} from '@sumaris-net/ngx-components';
+import {ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType} from '../services/model/extraction-type.model';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {first, mergeMap} from 'rxjs/operators';
+import {ExtractionCriteriaForm} from './extraction-criteria.form';
+import {TranslateService} from '@ngx-translate/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ExtractionService} from '../services/extraction.service';
+import {AlertController, ModalController, ToastController} from '@ionic/angular';
+import {ExtractionProduct} from '../services/model/extraction-product.model';
+import {ExtractionUtils} from '../services/extraction.utils';
+import {ExtractionHelpModal} from '../help/help.modal';
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Directive()
-export abstract class ExtractionAbstractPage<T extends ExtractionType | AggregationType> extends AppTabEditor {
+// tslint:disable-next-line:directive-class-suffix
+export abstract class ExtractionAbstractPage<T extends ExtractionType | ExtractionProduct> extends AppTabEditor {
 
   type: T;
   form: FormGroup;
@@ -282,7 +284,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     return undefined;
   }
 
-  abstract async loadGeoData();
+  abstract loadGeoData(): Promise<void>;
 
   async reload(): Promise<any> {
     return this.load(this.type && this.type.id);

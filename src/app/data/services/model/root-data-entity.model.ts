@@ -1,13 +1,14 @@
-import {ReferentialRef} from "../../../core/services/model/referential.model";
-import {Person} from "../../../core/services/model/person.model";
+import {ReferentialRef}  from "@sumaris-net/ngx-components";
+import {Person}  from "@sumaris-net/ngx-components";
 import {Moment} from "moment";
 
-import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model/referential.model";
+import {ReferentialAsObjectOptions}  from "@sumaris-net/ngx-components";
 import {DataEntity, DataEntityAsObjectOptions} from "./data-entity.model";
 import {IWithProgramEntity, IWithRecorderPersonEntity} from "./model.utils";
-import {EntityUtils} from "../../../core/services/model/entity.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {isNil} from "../../../shared/functions";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
+import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
+import {isNil} from "@sumaris-net/ngx-components";
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export type SynchronizationStatus = 'DIRTY' | 'READY_TO_SYNC' | 'SYNC' | 'DELETED';
 export const SynchronizationStatusEnum = {
@@ -17,24 +18,24 @@ export const SynchronizationStatusEnum = {
   DELETED: <SynchronizationStatus>'DELETED'
 };
 
-export abstract class RootDataEntity<T extends RootDataEntity<any>, O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
-  extends DataEntity<T, O, F>
-  implements IWithRecorderPersonEntity<T>, IWithProgramEntity<T> {
+export abstract class RootDataEntity<
+  T extends RootDataEntity<any, ID, O>,
+  ID = number,
+  O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions,
+  FO = any>
+  extends DataEntity<T, ID, O, FO>
+  implements IWithRecorderPersonEntity<T, ID>,
+    IWithProgramEntity<T, ID> {
 
-  creationDate: Moment;
-  validationDate: Moment;
+  creationDate: Moment = null;
+  validationDate: Moment = null;
   comments: string = null;
-  recorderPerson: Person;
-  program: ReferentialRef;
-  synchronizationStatus?: SynchronizationStatus;
+  recorderPerson: Person = null;
+  program: ReferentialRef = null;
+  synchronizationStatus?: SynchronizationStatus = null;
 
-  protected constructor() {
-    super();
-    this.creationDate = null;
-    this.validationDate = null;
-    this.comments = null;
-    this.recorderPerson = null;
-    this.program = null;
+  protected constructor(__typename?: string) {
+    super(__typename);
   }
 
   asObject(options?: O): any {
@@ -53,7 +54,7 @@ export abstract class RootDataEntity<T extends RootDataEntity<any>, O extends Da
   }
 
 
-  fromObject(source: any, opts?: F) {
+  fromObject(source: any, opts?: FO) {
     super.fromObject(source, opts);
     this.comments = source.comments;
     this.creationDate = fromDateISOString(source.creationDate);
@@ -66,23 +67,31 @@ export abstract class RootDataEntity<T extends RootDataEntity<any>, O extends Da
 
 export abstract class DataRootEntityUtils {
 
-  static copyControlAndValidationDate(source: RootDataEntity<any> | undefined, target: RootDataEntity<any>) {
+  static copyControlAndValidationDate(source: RootDataEntity<any, any> | undefined, target: RootDataEntity<any, any>) {
     if (!source) return;
-
-    // Update (id and updateDate)
     target.controlDate = fromDateISOString(source.controlDate);
     target.validationDate = fromDateISOString(source.validationDate);
-
   }
 
-  static copyQualificationDateAndFlag = EntityUtils.copyQualificationDateAndFlag;
+  static copyQualificationDateAndFlag(source: RootDataEntity<any, any> | undefined, target: RootDataEntity<any, any>) {
+    if (!source) return;
+    target.qualificationDate = fromDateISOString(source.qualificationDate);
+    target.qualityFlagId = source.qualityFlagId;
+  }
 
-  static isLocal(entity: RootDataEntity<any>): boolean {
+  static isLocal(entity: RootDataEntity<any, any>): boolean {
     return entity && (isNil(entity.id) ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0);
   }
 
-  static isRemote(entity: RootDataEntity<any>): boolean {
+  static isRemote(entity: RootDataEntity<any, any>): boolean {
     return entity && !DataRootEntityUtils.isLocal(entity);
   }
 
+  static isLocalAndDirty(entity: RootDataEntity<any, any>): boolean {
+    return entity && entity.id < 0 && entity.synchronizationStatus === 'DIRTY' || false;
+  }
+
+  static isReadyToSync(entity: RootDataEntity<any, any>): boolean {
+    return entity && entity.id < 0 && entity.synchronizationStatus === 'READY_TO_SYNC' || false;
+  }
 }

@@ -3,7 +3,7 @@ import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {QualityFlagIds} from "../../../referential/services/model/model.enum";
 import {VesselFeatures} from "../model/vessel.model";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {SharedValidators} from "@sumaris-net/ngx-components";
 
 @Injectable({providedIn: 'root'})
 export class VesselFeaturesValidatorService implements ValidatorService {

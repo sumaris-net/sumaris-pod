@@ -1,10 +1,9 @@
 import {RouterModule, Routes} from "@angular/router";
-import {UsersPage} from "./users/list/users";
-import {AuthGuardService} from "../core/services/auth-guard.service";
+import {AuthGuardService, UsersPage} from '@sumaris-net/ngx-components';
 import {NgModule} from "@angular/core";
 import {ConfigurationPage} from "./config/configuration.page";
-import {SharedRoutingModule} from "../shared/shared-routing.module";
-import {AdminModule} from "./admin.module";
+import {SharedRoutingModule} from "@sumaris-net/ngx-components";
+import {AppAdminModule} from "./admin.module";
 
 const routes: Routes = [
   {
@@ -30,9 +29,9 @@ const routes: Routes = [
 @NgModule({
   imports: [
     SharedRoutingModule,
-    AdminModule,
+    AppAdminModule,
     RouterModule.forChild(routes)
   ],
   exports: [RouterModule]
 })
-export class AdminRoutingModule { }
+export class AppAdminRoutingModule { }

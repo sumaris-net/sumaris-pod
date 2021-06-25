@@ -1,25 +1,25 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql} from "@apollo/client/core";
 import {ReferentialFragments} from "./referential.fragments";
-import {GraphqlService} from "../../core/graphql/graphql.service";
+import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {CacheService} from "ionic-cache";
-import {AccountService} from "../../core/services/account.service";
-import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {PlatformService} from "../../core/services/platform.service";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {NetworkService}  from "@sumaris-net/ngx-components";
+import {EntitiesStorage}  from "@sumaris-net/ngx-components";
+import {PlatformService}  from "@sumaris-net/ngx-components";
 import {SortDirection} from "@angular/material/sort";
 import {StrategyFragments} from "./strategy.fragments";
-import {LoadResult} from "../../shared/services/entity-service.class";
+import {LoadResult} from "@sumaris-net/ngx-components";
 import {StrategyFilter, StrategyService} from "./strategy.service";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {firstArrayValue, isEmptyArray, isNotNil} from "../../shared/functions";
+import {firstArrayValue, isEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
 import {ParameterLabelGroups} from "./model/model.enum";
-import {ConfigService} from "../../core/services/config.service";
+import {ConfigService}  from "@sumaris-net/ngx-components";
 import {PmfmService} from "./pmfm.service";
 import {ReferentialRefService} from "./referential-ref.service";
 import {mergeMap} from "rxjs/operators";
-import {DateUtils} from "../../shared/dates";
+import {DateUtils} from "@sumaris-net/ngx-components";
 import {SamplingStrategy, StrategyEffort} from "./model/sampling-strategy.model";
 import {BaseReferentialService} from "./base-referential-service.class";
 import {Moment} from "moment";
@@ -94,11 +94,9 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     protected pmfmService: PmfmService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(graphql, platform, SamplingStrategy,
+    super(graphql, platform, SamplingStrategy, StrategyFilter,
       {
-        queries: SamplingStrategyQueries,
-        filterAsObjectFn: StrategyFilter.asPodObject,
-        filterFnFactory: StrategyFilter.searchFilter
+        queries: SamplingStrategyQueries
       });
   }
 
@@ -118,7 +116,8 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
       ));
   }
 
-  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: StrategyFilter,
+  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
+                filter?: Partial<StrategyFilter>,
            opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean; withEffort?: boolean; withParameterGroups?: boolean; toEntity?: boolean; }
   ): Promise<LoadResult<SamplingStrategy>> {
     const res = await super.loadAll(offset, size, sortBy, sortDirection, filter, opts);

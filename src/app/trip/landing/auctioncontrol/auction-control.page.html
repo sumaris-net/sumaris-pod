@@ -1,4 +1,4 @@
-<app-toolbar [title]="title$ | async"
+<app-toolbar [title]="$title | async"
              color="primary"
              [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
@@ -86,7 +86,7 @@
           <!-- data quality -->
           <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="showEntityMetadata">
             <app-entity-metadata [value]="data">
-              <app-entity-quality-form [editor]="this" *ngIf="showQualityForm">
+              <app-entity-quality-form *ngIf="showQualityForm">
               </app-entity-quality-form>
             </app-entity-metadata>
           </ion-col>

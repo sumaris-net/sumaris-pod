@@ -1,23 +1,23 @@
-import {IEntity} from "../../../core/services/model/entity.model";
-import {Department} from "../../../core/services/model/department.model";
-import {Referential, ReferentialRef} from "../../../core/services/model/referential.model";
-import {Person} from "../../../core/services/model/person.model";
+import {IEntity}  from "@sumaris-net/ngx-components";
+import {Department}  from "@sumaris-net/ngx-components";
+import {Referential, ReferentialRef}  from "@sumaris-net/ngx-components";
+import {Person}  from "@sumaris-net/ngx-components";
 import {PredefinedColors} from "@ionic/core";
 import {QualityFlagIds} from "../../../referential/services/model/model.enum";
-import {StatusIds} from "../../../core/services/model/model.enum";
+import {StatusIds}  from "@sumaris-net/ngx-components";
 
 /* -- Interface -- */
 
-export interface IWithRecorderDepartmentEntity<T> extends IEntity<T> {
+export interface IWithRecorderDepartmentEntity<T, ID = number> extends IEntity<T, ID> {
   recorderDepartment: Department|ReferentialRef|Referential;
 }
-export interface IWithRecorderPersonEntity<T> extends IEntity<T> {
+export interface IWithRecorderPersonEntity<T, ID = number> extends IEntity<T, ID> {
   recorderPerson: Person;
 }
-export interface IWithObserversEntity<T> extends IEntity<T> {
+export interface IWithObserversEntity<T, ID = number> extends IEntity<T, ID> {
   observers: Person[];
 }
-export interface IWithProgramEntity<T> extends IEntity<T> {
+export interface IWithProgramEntity<T, ID = number> extends IEntity<T, ID> {
   program: Referential | any;
   recorderPerson?: Person;
   recorderDepartment: Referential | any;

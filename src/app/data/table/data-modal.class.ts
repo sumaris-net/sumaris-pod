@@ -1,8 +1,8 @@
-import {IModalDetailOptions} from "../../core/table/table.class";
+import {IModalDetailOptions}  from "@sumaris-net/ngx-components";
 import {Observable} from "rxjs";
 import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {Entity} from "../../core/services/model/entity.model";
-import {UsageMode} from "../../core/services/model/settings.model";
+import {Entity}  from "@sumaris-net/ngx-components";
+import {UsageMode}  from "@sumaris-net/ngx-components";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 export interface IDataEntityModalOptions<T extends Entity<T>> extends IModalDetailOptions<T> {

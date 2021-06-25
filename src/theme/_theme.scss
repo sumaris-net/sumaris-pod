@@ -1,34 +1,10 @@
 // --------------------------------------------------
-// Import globals (variables, functions and mixins)
+// Import SAR style
 // --------------------------------------------------
-@import "globals";
+@import "theme.globals";
+
 // --------------------------------------------------
-// Import Ionic style
+// Import SUMARiS theme
 // --------------------------------------------------
-@import "ionic";
-// --------------------------------------------------
-// Import Ion Icons
-// --------------------------------------------------
-$ionicons-font-path: '~ionicons/dist/fonts';
-@import "icons";
-// --------------------------------------------------
-// Import Fonts
-// --------------------------------------------------
-$roboto-font-path: '~roboto-fontface/fonts/roboto';
-@import "roboto";
-// --------------------------------------------------
-// Import responsive style
-// --------------------------------------------------
-@import "responsive";
-// --------------------------------------------------
-// Import material style
-// --------------------------------------------------
-@import "material";
-// --------------------------------------------------
-// Import markdown style
-// --------------------------------------------------
-@import "markdown";
-// --------------------------------------------------
-// Import Leaflet style
-// --------------------------------------------------
-@import "leaflet";
+@import "~@sumaris-net/ngx-components/src/theme/theme";
+

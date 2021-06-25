@@ -1,34 +1,22 @@
-import { Location } from "@angular/common";
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input } from "@angular/core";
-import { FormBuilder, FormGroup } from "@angular/forms";
-import { ActivatedRoute, Router } from "@angular/router";
-import { ModalController, Platform } from "@ionic/angular";
-import * as momentImported from "moment";
-import { debounceTime } from "rxjs/internal/operators/debounceTime";
-import { filter } from "rxjs/internal/operators/filter";
-import { tap } from "rxjs/internal/operators/tap";
-import { PersonService } from "src/app/admin/services/person.service";
-import { personToString } from "src/app/core/services/model/person.model";
-import { NetworkService } from "src/app/core/services/network.service";
-import { AppRootTableSettingsEnum } from "src/app/data/table/root-table.class";
-import { fromDateISOString } from "src/app/shared/dates";
-import { SharedValidators } from "src/app/shared/validator/validators";
-import { environment } from "../../../../environments/environment";
-import { LocalSettingsService } from "../../../core/services/local-settings.service";
-import { StatusIds } from "../../../core/services/model/model.enum";
-import { DefaultStatusList } from "../../../core/services/model/referential.model";
-import { EntitiesTableDataSource } from "../../../core/table/entities-table-datasource.class";
-import { AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from "../../../core/table/table.class";
-import { isNil, isNotEmptyArray, isNotNil } from "../../../shared/functions";
-import { ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME } from "../../services/config/program.config";
-import { LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds } from "../../services/model/model.enum";
-import { Program } from "../../services/model/program.model";
-import { SamplingStrategy } from "../../services/model/sampling-strategy.model";
-import { ParameterService } from "../../services/parameter.service";
-import { ReferentialRefService } from "../../services/referential-ref.service";
-import { ReferentialFilter } from "../../services/referential.service";
-import { SamplingStrategyService } from "../../services/sampling-strategy.service";
-import { StrategyFilter, StrategyService } from "../../services/strategy.service";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
+import {DefaultStatusList}  from "@sumaris-net/ngx-components";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
+import {Program} from "../../services/model/program.model";
+import {isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
+import {ActivatedRoute, Router} from "@angular/router";
+import {ModalController, Platform} from "@ionic/angular";
+import {Location} from "@angular/common";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
+import {LocationLevelIds, TaxonomicLevelIds} from "../../services/model/model.enum";
+import {ReferentialFilter} from "../../services/filter/referential.filter";
+import {ReferentialRefService} from "../../services/referential-ref.service";
+import {StatusIds}  from "@sumaris-net/ngx-components";
+import {ProgramProperties} from "../../services/config/program.config";
+import {environment} from "../../../../environments/environment";
+import {SamplingStrategy} from "../../services/model/sampling-strategy.model";
+import {SamplingStrategyService} from "../../services/sampling-strategy.service";
+import {StrategyFilter} from "../../services/strategy.service";
 
 const moment = momentImported;
 
@@ -50,7 +38,7 @@ export const SamplingStrategiesPageSettingsEnum = {
 export class SamplingStrategiesTable extends AppTable<SamplingStrategy, StrategyFilter> {
 
   private _program: Program;
-  errorDetails : any;
+  errorDetails: any;
   protected network: NetworkService;
 
   statusList = DefaultStatusList;
@@ -145,7 +133,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         }),
       pmfmIds : formBuilder.group(this.pmfmIds)
     });
-    
+
 
     this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.'; // Can be overwrite by a program property - see setProgram()
     this.autoLoad = false; // waiting parent to load
@@ -292,10 +280,10 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
       this.i18nColumnPrefix += i18nSuffix !== 'legacy' && i18nSuffix || '';
 
-      this.setFilter( {
+      this.setFilter(StrategyFilter.fromObject({
         ...this.filter,
         levelId: program.id
-      });
+      }));
     }
   }
 

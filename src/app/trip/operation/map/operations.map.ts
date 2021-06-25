@@ -1,27 +1,30 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnInit} from "@angular/core";
-import {BehaviorSubject, Subject} from "rxjs";
-import {Operation} from "../../services/model/trip.model";
-import * as L from "leaflet";
-import {CRS, LayerGroup, MapOptions, PathOptions} from "leaflet";
-import {PlatformService} from "../../../core/services/platform.service";
-import {Feature, LineString} from "geojson";
-import {AlertController, ModalController} from "@ionic/angular";
-import {TranslateService} from "@ngx-translate/core";
-import {isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../../shared/functions";
-import {distinctUntilChanged, filter, switchMap, tap, throttleTime} from "rxjs/operators";
-import {AppTabEditor} from "../../../core/form/tab-editor.class";
-import {fadeInOutAnimation} from "../../../shared/material/material.animations";
-import {ActivatedRoute, Router} from "@angular/router";
-import {DateFormatPipe} from "../../../shared/pipes/date-format.pipe";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {EntityUtils} from "../../../core/services/model/entity.model";
-import {ProgramProperties} from "../../../referential/services/config/program.config";
-import {LeafletControlLayersConfig} from "@asymmetrik/ngx-leaflet/src/leaflet/layers/control/leaflet-control-layers-config.model";
-import {LatLongPattern} from "../../../shared/material/latlong/latlong.utils";
-import {DateDiffDurationPipe} from "../../../shared/pipes/date-diff-duration.pipe";
-import {ProgramRefService} from "../../../referential/services/program-ref.service";
-import {mergeMap} from "rxjs/operators";
-import {Program} from "../../../referential/services/model/program.model";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnInit} from '@angular/core';
+import {BehaviorSubject, Subject} from 'rxjs';
+import * as L from 'leaflet';
+import {CRS, LayerGroup, MapOptions, PathOptions} from 'leaflet';
+import {
+  AppTabEditor,
+  DateDiffDurationPipe,
+  DateFormatPipe,
+  EntityUtils,
+  fadeInOutAnimation,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  LatLongPattern,
+  LocalSettingsService,
+  PlatformService
+} from '@sumaris-net/ngx-components';
+import {Feature, LineString} from 'geojson';
+import {AlertController, ModalController} from '@ionic/angular';
+import {TranslateService} from '@ngx-translate/core';
+import {distinctUntilChanged, filter, switchMap, tap, throttleTime} from 'rxjs/operators';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ProgramProperties} from '../../../referential/services/config/program.config';
+import {LeafletControlLayersConfig} from '@asymmetrik/ngx-leaflet/src/leaflet/layers/control/leaflet-control-layers-config.model';
+import {ProgramRefService} from '../../../referential/services/program-ref.service';
+import {Program} from '../../../referential/services/model/program.model';
+import {Operation} from '../../services/model/trip.model';
 
 @Component({
   selector: 'app-operations-map',
@@ -289,7 +292,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
   }
 
   protected getOperationFromFeature(feature: Feature): Operation|undefined {
-    return feature && (this.operations||[]).find(ope => ope.id === feature.id) || undefined;
+    return feature && (this.operations || []).find(ope => ope.id === feature.id) || undefined;
   }
 
   protected markForCheck() {

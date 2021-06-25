@@ -1,8 +1,8 @@
 import {TypePolicies} from "@apollo/client/core";
-import {FormFieldDefinition, FormFieldDefinitionMap} from "../../../shared/form/field.model";
-import {changeCaseToUnderscore} from "../../../shared/functions";
+import {FormFieldDefinition, FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
+import {changeCaseToUnderscore} from "@sumaris-net/ngx-components";
 import {LocationLevelIds, ParameterLabelGroups, PmfmIds, TaxonomicLevelIds} from "../model/model.enum";
-import {StatusIds} from "../../../core/services/model/model.enum";
+import {StatusIds}  from "@sumaris-net/ngx-components";
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'MetierVO': {
@@ -155,18 +155,6 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     },
     defaultValue: TaxonomicLevelIds.SUBSPECIES
   },
-  PMFM_MORSE_CODE_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.pmfm.MORSE_CODE.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_MORSE_CODE_ID',
-    type: 'entity',
-    autocomplete: {
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
-    defaultValue: PmfmIds.MORSE_CODE
-  },
   PMFM_STRATEGY_LABEL_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.pmfm.STRATEGY_LABEL.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_STRATEGY_LABEL_ID',
@@ -248,7 +236,7 @@ export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS: FormFieldDefinitionMap = {
     ]
   },
   // Display attributes for referential useful entities
-  ... ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear']
+  ... ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear', 'caclcifiedType']
     // Allow user to choose how to display field (by code+label, code, etc)
     .reduce((res, fieldName) => {
       res[`FIELD_${changeCaseToUnderscore(fieldName).toUpperCase()}_ATTRIBUTES`] = {

@@ -15,6 +15,9 @@ fi;
 if [[ -d "${ANDROID_OUTPUT_APK_RELEASE}" ]]; then
   rm ${ANDROID_OUTPUT_APK_RELEASE}/*.apk
 fi
+if [[ -d "${ANDROID_OUTPUT_APK_DEBUG}" ]]; then
+  rm ${ANDROID_OUTPUT_APK_DEBUG}/*.apk
+fi
 
 # Run the build
 echo "Building Android application..."
@@ -24,6 +27,8 @@ node ${NODE_OPTIONS} ./node_modules/@ionic/cli/bin/ionic cordova build android -
 echo "Running Android application..."
 if [[ -f "${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release.apk" ]]; then
   native-run android --app ${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release.apk
+elif [[ -f "${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release-unsigned.apk" ]]; then
+  native-run android --app ${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release-unsigned.apk
 else
   native-run android --app ${ANDROID_OUTPUT_APK_DEBUG}/${ANDROID_OUTPUT_APK_PREFIX}-debug.apk
 fi

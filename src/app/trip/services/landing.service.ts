@@ -1,170 +1,49 @@
-import {Inject, Injectable, Injector} from "@angular/core";
+import {Injectable, Injector} from '@angular/core';
 import {
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlSubscriptions,
+  chainPromises,
   EntitiesServiceWatchOptions,
-  EntityServiceLoadOptions, FilterFn,
+  EntitiesStorage,
+  EntitySaveOptions,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  firstNotNilPromise,
+  FormErrors,
+  fromDateISOString,
   IEntitiesService,
   IEntityService,
-  LoadResult
-} from "../../shared/services/entity-service.class";
-import {BehaviorSubject, EMPTY, Observable} from "rxjs";
-import {Landing} from "./model/landing.model";
-import {gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {DataFragments, Fragments} from "./trip.queries";
-import {ErrorCodes} from "./trip.errors";
-import {filter, map} from "rxjs/operators";
-import {
   isEmptyArray,
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
-} from "../../shared/functions";
-import {BaseRootDataService} from "../../data/services/root-data-service.class";
-import {Sample} from "./model/sample.model";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {
-  DataEntityAsObjectOptions,
-  SAVE_AS_OBJECT_OPTIONS,
-  SAVE_LOCALLY_AS_OBJECT_OPTIONS,
-  SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
-} from "../../data/services/model/data-entity.model";
-import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
-import {FormErrors} from "../../core/form/form.utils";
-import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import * as momentImported from "moment";
+  JobUtils,
+  LoadResult, MINIFY_ENTITY_FOR_POD,
+  NetworkService,
+  Person
+} from '@sumaris-net/ngx-components';
+import {BehaviorSubject, EMPTY, Observable} from 'rxjs';
+import {Landing} from './model/landing.model';
+import {gql} from '@apollo/client/core';
+import {DataFragments, Fragments} from './trip.queries';
+import {ErrorCodes} from './trip.errors';
+import {filter, map} from 'rxjs/operators';
+import {BaseRootDataService} from '@app/data/services/root-data-service.class';
+import {Sample} from './model/sample.model';
+import {VesselSnapshotFragments} from '@app/referential/services/vessel-snapshot.service';
+import * as momentImported from 'moment';
+import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
+
+import {SortDirection} from '@angular/material/sort';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {ReferentialFragments} from '@app/referential/services/referential.fragments';
+import {LandingFilter} from './filter/landing.filter';
+import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
+
 const moment = momentImported;
-import {Moment} from "moment";
-import {DataRootEntityUtils, SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
-import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
-import {SortDirection} from "@angular/material/sort";
-import {chainPromises, firstNotNilPromise} from "../../shared/observables";
-import {JobUtils} from "../../shared/services/job.utils";
-import {environment} from "../../../environments/environment";
-import {fromDateISOString, toDateISOString} from "../../shared/dates";
-import {Person} from "../../core/services/model/person.model";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {
-  BaseEntityGraphqlMutations, BaseEntityGraphqlQueries,
-  BaseEntityGraphqlSubscriptions, EntitySaveOptions
-} from "../../referential/services/base-entity-service.class";
-import {ReferentialFragments} from "../../referential/services/referential.fragments";
 
-
-export class LandingFilter {
-
-  programLabel?: string;
-  vesselId?: number;
-  locationId?: number;
-  locationIds?: number[];
-  startDate?: Date | Moment;
-  endDate?: Date | Moment;
-  recorderDepartmentId?: number;
-  recorderPersonId?: number;
-  synchronizationStatus?: SynchronizationStatus;
-  groupByVessel?: boolean;
-  excludeVesselIds?: number[];
-
-  // Linked entities
-  observedLocationId?: number;
-  tripId?: number;
-
-  static isEmpty(landingFilter: LandingFilter|any): boolean {
-    return !landingFilter || (
-      isNil(landingFilter.observedLocationId) && isNil(landingFilter.tripId)
-      && isNilOrBlank(landingFilter.programLabel) && isNilOrBlank(landingFilter.vesselId)
-      && isNilOrBlank(landingFilter.locationId) && isEmptyArray(landingFilter.locationIds)
-      && !landingFilter.startDate && !landingFilter.endDate
-      && isNil(landingFilter.recorderDepartmentId)
-      && isNil(landingFilter.recorderPersonId)
-      && isEmptyArray(landingFilter.excludeVesselIds)
-
-    );
-  }
-
-  static searchFilter<T extends Landing>(f: LandingFilter): (T) => boolean {
-
-    if (LandingFilter.isEmpty(f)) return undefined;
-    const filterFns: FilterFn<T>[] = [];
-
-    // observedLocationId
-    if (isNotNil(f.observedLocationId)) {
-      filterFns.push((entity) => entity.observedLocationId === f.observedLocationId);
-    }
-
-    // tripId
-    if (isNotNil(f.tripId)) {
-      filterFns.push((entity) => entity.tripId === f.tripId);
-    }
-
-    // Vessel
-    if (isNotNil(f.vesselId)) {
-      filterFns.push((entity) => entity.vesselSnapshot && entity.vesselSnapshot.id === f.vesselId);
-    }
-
-    // Vessel exclude
-    if (isNotEmptyArray(f.excludeVesselIds)) {
-      filterFns.push((entity) => entity.vesselSnapshot && !f.excludeVesselIds.includes(entity.vesselSnapshot.id));
-    }
-
-    // Location
-    if (isNotNil(f.locationId)) {
-      filterFns.push((entity) => entity.location && entity.location.id === f.locationId);
-    }
-    if (isNotEmptyArray(f.locationIds)) {
-      filterFns.push((entity) => entity.location && f.locationIds.includes(entity.location.id));
-    }
-
-    // Start/end period
-    const startDate = fromDateISOString(f.startDate);
-    let endDate = fromDateISOString(f.endDate);
-    if (startDate) {
-      filterFns.push(t => t.dateTime && startDate.isSameOrBefore(t.dateTime));
-    }
-    if (endDate) {
-      endDate = endDate.add(1, 'day').startOf('day');
-      filterFns.push(t => t.dateTime && endDate.isAfter(t.dateTime));
-    }
-
-    // Recorder department
-    if (isNotNil(f.recorderDepartmentId)) {
-      filterFns.push(t => (t.recorderDepartment && t.recorderDepartment.id === f.recorderDepartmentId));
-    }
-
-    // Recorder person
-    if (isNotNil(f.recorderPersonId)) {
-      filterFns.push(t => (t.recorderPerson && t.recorderPerson.id === f.recorderPersonId));
-    }
-
-    // Synchronization status
-    if (f.synchronizationStatus) {
-      if (f.synchronizationStatus === 'SYNC') {
-        filterFns.push(t => t.synchronizationStatus === 'SYNC' || (!t.synchronizationStatus && t.id >= 0));
-      }
-      else {
-        filterFns.push(t => t.synchronizationStatus && t.synchronizationStatus !== 'SYNC' || t.id < 0);
-      }
-    }
-
-    if (!filterFns.length) return undefined;
-
-    return (entity) => !filterFns.find(fn => !fn(entity));
-  }
-
-  static toPodObject(dataFilter: LandingFilter) {
-    return {
-      ...dataFilter,
-
-      // Serialize all dates
-      startDate: dataFilter && toDateISOString(dataFilter.startDate),
-      endDate: dataFilter && toDateISOString(dataFilter.endDate),
-
-      // Remove fields that not exists in pod
-      synchronizationStatus: undefined,
-      groupByVessel: undefined
-    };
-  }
-}
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
@@ -216,6 +95,7 @@ export const LandingFragments = {
       ...LightPersonFragment
     }
     measurementValues
+    samplesCount
   }
   ${Fragments.location}
   ${Fragments.lightDepartment}
@@ -259,6 +139,7 @@ export const LandingFragments = {
     samples {
       ...SampleFragment
     }
+    samplesCount
   }`
 };
 
@@ -355,6 +236,16 @@ const sortByDateFn = (n1: Landing, n2: Landing) => {
     : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1);
 };
 
+const sortByAscRankOrder = (n1: Landing, n2: Landing) => {
+  return n1.rankOrder === n2.rankOrder ? 0 :
+    (n1.rankOrder > n2.rankOrder ? 1 : -1);
+};
+
+const sortByDescRankOrder = (n1: Landing, n2: Landing) => {
+  return n1.rankOrder === n2.rankOrder ? 0 :
+    (n1.rankOrder > n2.rankOrder ? -1 : 1);
+};
+
 @Injectable({providedIn: 'root'})
 export class LandingService extends BaseRootDataService<Landing, LandingFilter>
   implements
@@ -370,29 +261,29 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     protected programRefService: ProgramRefService
   ) {
     super(injector,
-      Landing,
+      Landing, LandingFilter,
       {
         queries: LandingQueries,
         mutations: LandingMutations,
-        subscriptions: LandingSubscriptions,
-        filterAsObjectFn: LandingFilter.toPodObject,
-        filterFnFactory: LandingFilter.searchFilter
+        subscriptions: LandingSubscriptions
       }
     );
   }
 
-  async loadAllByObservedLocation(filter?: LandingFilter & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
+  async loadAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
     return firstNotNilPromise(this.watchAllByObservedLocation(filter, opts));
   }
 
-  watchAllByObservedLocation(filter?: LandingFilter & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
+  watchAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
     return this.watchAll(0, -1, null, null, filter, opts);
   }
 
   watchAll(offset: number, size: number,
            sortBy?: string, sortDirection?: SortDirection,
-           dataFilter?: LandingFilter,
+           dataFilter?: LandingFilter|any,
            opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
+
+    dataFilter = LandingFilter.fromObject(dataFilter);
 
     // Load offline
     const offline = this.network.offline
@@ -415,7 +306,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       size: size || 20,
       sortBy: (sortBy !== 'id' && sortBy) || 'dateTime',
       sortDirection: sortDirection || 'asc',
-      filter: this.filterAsObjectFn(dataFilter)
+      filter: dataFilter && dataFilter.asPodObject()
     };
 
     let now = this._debug && Date.now();
@@ -424,14 +315,14 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     const fullLoad = (opts && opts.fullLoad === true);
     const withTotal = (!opts || opts.withTotal !== false);
     const query = fullLoad ? LandingQueries.loadAllFullWithTotal :
-      (withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll);
+      (withTotal ? LandingQueries.loadAllWithTotal : LandingQueries.loadAll);
 
-    return this.mutableWatchQuery<{ data: any[]; total: number; }>({
+    return this.mutableWatchQuery<LoadResult<any>>({
         queryName: 'LoadAll',
         query,
         arrayFieldName: "data",
         totalFieldName: withTotal ? "total" : undefined,
-        insertFilterFn: this.filterFnFactory(dataFilter),
+        insertFilterFn: dataFilter && dataFilter.asFilterFn(),
         variables,
         error: {code: ErrorCodes.LOAD_LANDINGS_ERROR, message: "LANDING.ERROR.LOAD_ALL_ERROR"},
         fetchPolicy: opts && opts.fetchPolicy || undefined
@@ -477,7 +368,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
                 size: number,
                 sortBy?: string,
                 sortDirection?: SortDirection,
-                dataFilter?: LandingFilter,
+                dataFilter?: LandingFilter|any,
                 opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
     return firstNotNilPromise(this.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts));
   }
@@ -536,13 +427,13 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         this.fillDefaultProperties(entity, opts);
         // Reset quality properties
         this.resetQualityProperties(entity);
-        return this.asObject(entity);
+        return this.asObject(entity, MINIFY_ENTITY_FOR_POD);
       });
 
     const now = Date.now();
     if (this._debug) console.debug("[landing-service] Saving landings...", json);
 
-    await this.graphql.mutate<{data: any[]}>({
+    await this.graphql.mutate<LoadResult<any>>({
       mutation: this.mutations.saveAll,
       variables: {
         data: json
@@ -612,11 +503,11 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
         if (isNotNil(entity.id)) context.serializationKey = `${Landing.TYPENAME}:${entity.id}`;
 
-        return { data: [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)] };
+        return { data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)] };
       } : undefined;
 
     // Transform into json
-    const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
+    const json = this.asObject(entity, MINIFY_ENTITY_FOR_POD);
     if (this._debug) console.debug("[landing-service] Using minify object, to send:", json);
 
     await this.graphql.mutate<{ data: any }>({
@@ -669,14 +560,17 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
    * Delete landing locally (from the entity storage)
    * @param filter (required observedLocationId)
    */
-  async deleteLocally(filter: LandingFilter & { observedLocationId: number; }): Promise<Landing[]> {
+  async deleteLocally(filter: Partial<LandingFilter> & { observedLocationId: number; }): Promise<Landing[]> {
     if (!filter || isNil(filter.observedLocationId)) throw new Error("Missing arguments 'filter.observedLocationId'");
+
+    const dataFilter = this.asFilter(filter);
+    const variables = {
+      filter: dataFilter && dataFilter.asFilterFn()
+    };
 
     try {
       // Find landing to delete
-      const res = await this.entities.loadAll<Landing>(Landing.TYPENAME, {
-        filter: LandingFilter.searchFilter<Landing>(filter)
-      });
+      const res = await this.entities.loadAll<Landing>(Landing.TYPENAME, variables, {fullLoad: false});
       const ids = (res && res.data || []).map(o => o.id);
       if (isEmptyArray(ids)) return undefined; // Skip
 
@@ -697,22 +591,25 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
                   size: number,
                   sortBy?: string,
                   sortDirection?: SortDirection,
-                  dataFilter?: LandingFilter,
+                  dataFilter?: LandingFilter|any,
                   opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
 
-    if (LandingFilter.isEmpty(dataFilter)) {
+    dataFilter = LandingFilter.fromObject(dataFilter);
+
+    if (!dataFilter || dataFilter.isEmpty()) {
       console.warn("[landing-service] Trying to watch landings without 'filter': skipping.");
       return EMPTY;
     }
     if (isNotNil(dataFilter.observedLocationId) && dataFilter.observedLocationId >= 0) throw new Error("Invalid 'filter.observedLocationId': must be a local ID (id<0)!");
+    if (isNotNil(dataFilter.tripId) && dataFilter.tripId >= 0) throw new Error("Invalid 'filter.tripId': must be a local ID (id<0)!");
 
     const variables = {
       offset: offset || 0,
-      size: size || 20,
+      size: size >= 0 ? size : 20,
       sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'dateTime'),
       sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
-      filter: LandingFilter.searchFilter<Landing>(dataFilter)
+      filter: dataFilter.asFilterFn()
     };
 
     const entityName = (!dataFilter.synchronizationStatus || dataFilter.synchronizationStatus !== 'SYNC')
@@ -726,8 +623,6 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
           ? (data || []).map(Landing.fromObject)
           : (data || []) as Landing[];
         total = total || entities.length;
-
-
 
         // Compute rankOrder, by tripId or observedLocationId
         if (!opts || opts.computeRankOrder !== false) {
@@ -822,12 +717,12 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
   async executeImport(progression: BehaviorSubject<number>,
                 opts?: {
                   maxProgression?: number;
-                  filter?: LandingFilter
+                  filter?: LandingFilter|any
                 }) {
     const now = this._debug && Date.now();
     const maxProgression = opts && opts.maxProgression || 100;
 
-    const filter: LandingFilter = {
+    const filter: any = {
       startDate: moment().startOf('day').add(-15, 'day'),
       ...opts?.filter
     };
@@ -884,7 +779,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     // Make sure to fill id, with local ids
     await this.fillOfflineDefaultProperties(entity);
 
-    const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+    const json = this.asObject(entity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE);
     if (this._debug) console.debug('[landing-service] [offline] Saving landing locally...', json);
 
     // Save response locally
@@ -984,19 +879,14 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     // Compute rankOrder, by tripId or observedLocationId
     if (filter && (isNotNil(filter.tripId) || isNotNil(filter.observedLocationId))) {
       const asc = (!sortDirection || sortDirection === 'asc');
-      const after = asc ? 1 : -1;
-      let rankOrder = asc ? 1 + offset : total - offset; // TODO Question BLA: A quoi ca sert cette ligne ?
+      let rankOrder = asc ? 1 + offset : total - offset;
       // apply a sorted copy (do NOT change original order), then compute rankOrder
       data.slice().sort(sortByDateFn)
         .forEach(o => o.rankOrder = asc ? rankOrder++ : rankOrder--);
 
-      // sort by rankOrderOnPeriod (aka id)
+      // Sort by rankOrder
       if (!sortBy || sortBy === 'rankOrder') {
-        data.sort((a, b) => {
-          const valueA = a.rankOrder;
-          const valueB = b.rankOrder;
-          return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
-        });
+        data.sort(asc ? sortByAscRankOrder : sortByDescRankOrder);
       }
     }
   }

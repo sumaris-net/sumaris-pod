@@ -4,7 +4,7 @@ import {
   ReferentialRef,
   referentialsToString,
   referentialToString
-} from "../../../core/services/model/referential.model";
+}  from "@sumaris-net/ngx-components";
 
 @Pipe({
   name: 'referentialToString'

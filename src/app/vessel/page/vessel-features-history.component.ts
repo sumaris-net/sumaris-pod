@@ -1,29 +1,24 @@
-import {ChangeDetectorRef, Component, Inject, Injector, OnInit} from '@angular/core';
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {VesselValidatorService} from "../services/validator/vessel.validator";
-import {AppTable} from "../../core/table/table.class";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from '@angular/core';
+import {AppTable}  from "@sumaris-net/ngx-components";
 import {VesselFeatures} from "../services/model/vessel.model";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {AccountService} from "../../core/services/account.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {VesselFilter} from "../services/vessel-service";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
 import {VesselFeaturesService} from "../services/vessel-features.service";
-import {VesselFeaturesValidatorService} from "../services/validator/vessel-features.validator";
-import {referentialToString} from "../../core/services/model/referential.model";
+import {referentialToString}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
+import {VesselFeaturesFilter} from "../services/filter/vessel.filter";
 
 @Component({
   selector: 'app-vessel-features-history-table',
   templateUrl: './vessel-features-history.component.html',
   styleUrls: ['./vessel-features-history.component.scss'],
-  providers: [
-    {provide: ValidatorService, useClass: VesselValidatorService}
-  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, VesselFilter> implements OnInit {
+export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, VesselFeaturesFilter> implements OnInit {
 
   referentialToString = referentialToString;
   isAdmin: boolean;
@@ -37,8 +32,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
-    protected vesselFeaturesValidator: VesselFeaturesValidatorService,
-    protected vesselFeaturesService: VesselFeaturesService,
+    dataService: VesselFeaturesService,
     protected cd: ChangeDetectorRef
   ) {
 
@@ -54,7 +48,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
         'grossTonnageGt',
         'basePortLocation',
         'comments'],
-      new EntitiesTableDataSource<VesselFeatures, VesselFilter>(VesselFeatures, vesselFeaturesService, vesselFeaturesValidator, {
+      new EntitiesTableDataSource<VesselFeatures>(VesselFeatures, dataService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
@@ -78,6 +72,10 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
     super.ngOnInit();
 
     this.isAdmin = this.accountService.isAdmin();
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 
 }

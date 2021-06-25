@@ -1,11 +1,14 @@
 import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from "./batch.model";
 import {BatchGroup} from "./batch-group.model";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {ReferentialRef} from "../../../core/services/model/referential.model";
+import {ReferentialRef, ReferentialUtils} from '@sumaris-net/ngx-components';
 import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 
+@EntityClass({typename: 'SubBatchVO', fromObjectReuseStrategy: "clone"})
 export class SubBatch extends Batch<SubBatch> {
+
+  static fromObject: (source: any, opts?: BatchFromObjectOptions) => SubBatch;
 
   // The parent group (can be != parent)
   parentGroup: BatchGroup;
@@ -20,20 +23,8 @@ export class SubBatch extends Batch<SubBatch> {
     return target;
   }
 
-  static fromObject(source: any, opts?: BatchFromObjectOptions): BatchGroup {
-    const target = new BatchGroup();
-    target.fromObject(source, opts);
-    return target;
-  }
-
   constructor() {
-    super();
-  }
-
-  clone(): SubBatch {
-    const target = new SubBatch();
-    target.fromObject(this.asObject());
-    return target;
+    super(SubBatch.TYPENAME);
   }
 
   asObject(opts?: BatchAsObjectOptions): any {
@@ -139,7 +130,7 @@ export class SubBatchUtils {
           // Find sub batches for this QV pmfm's value
           const children = groupSubBatches.filter(sb => {
             let qvValue = sb.measurementValues[qvPmfmId];
-            if (qvValue instanceof ReferentialRef) qvValue = qvValue.id;
+            if (ReferentialUtils.isNotEmpty(qvValue)) qvValue = qvValue.id;
             // WARN: use '==' and NOT '===', because measurementValues can use string, for values
             return qvValue == parent.measurementValues[qvPmfmId];
           });

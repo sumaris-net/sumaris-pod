@@ -5,15 +5,15 @@ import * as momentImported from "moment";
 import {AcquisitionLevelCodes, SaleTypeIds} from "../../referential/services/model/model.enum";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {NetworkService} from "../../core/services/network.service";
+import {NetworkService}  from "@sumaris-net/ngx-components";
 import {TripForm} from "../trip/trip.form";
 import {BehaviorSubject} from "rxjs";
 import {TripSaveOptions, TripService} from "../services/trip.service";
-import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
+import {HistoryPageReference, UsageMode}  from "@sumaris-net/ngx-components";
+import {EntitiesStorage}  from "@sumaris-net/ngx-components";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
 import {OperationGroupTable} from "../operationgroup/operation-groups.table";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {ProductsTable} from "../product/products.table";
@@ -31,9 +31,9 @@ import {FishingAreaForm} from "../fishing-area/fishing-area.form";
 import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {Landing} from "../services/model/landing.model";
-import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {ReferentialRef} from "../../core/services/model/referential.model";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {fadeInOutAnimation} from "@sumaris-net/ngx-components";
+import {ReferentialRef}  from "@sumaris-net/ngx-components";
+import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
 import {Program} from "../../referential/services/model/program.model";
 import {environment} from "../../../environments/environment";
 import {Sample} from "../services/model/sample.model";
@@ -45,6 +45,7 @@ const moment = momentImported;
   templateUrl: './landed-trip.page.html',
   styleUrls: ['./landed-trip.page.scss'],
   animations: [fadeInOutAnimation],
+  providers: [{provide: AppRootDataEditor, useExisting: LandedTripPage}],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LandedTripPage extends AppRootDataEditor<Trip, TripService> implements OnInit {
@@ -110,8 +111,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       operationGroup: [null]
     });
     this.registerSubscription(this.catchFilterForm.valueChanges.subscribe(() => {
-      this.$productFilter.next(new ProductFilter(this.catchFilterForm.value.operationGroup));
-      this.$packetFilter.next(new PacketFilter(this.catchFilterForm.value.operationGroup));
+      this.$productFilter.next(ProductFilter.fromParent(this.catchFilterForm.value.operationGroup));
+      this.$packetFilter.next(PacketFilter.fromParent(this.catchFilterForm.value.operationGroup));
     }));
 
     // Init operationGroupFilter combobox
@@ -160,6 +161,14 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
         this.expenseForm.realignInkBar();
       }
     }));
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.$metiers.unsubscribe();
+    this.$operationGroups.unsubscribe();
+    this.$productFilter.unsubscribe();
+    this.$packetFilter.unsubscribe();
   }
 
   onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {

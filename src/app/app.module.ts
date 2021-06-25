@@ -1,55 +1,66 @@
-import "./vendor";
+import './vendor';
 
-import {APP_BASE_HREF} from "@angular/common";
-import {BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule} from "@angular/platform-browser";
-import {CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext} from "@angular/core";
-import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
+import {APP_BASE_HREF} from '@angular/common';
+import {BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule} from '@angular/platform-browser';
+import {CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext} from '@angular/core';
+import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
 import {MomentDateAdapter} from '@angular/material-moment-adapter';
 import {SplashScreen} from '@ionic-native/splash-screen/ngx';
 import {StatusBar} from '@ionic-native/status-bar/ngx';
 import {Keyboard} from '@ionic-native/keyboard/ngx';
-import {NativeAudio} from "@ionic-native/native-audio/ngx";
+import {NativeAudio} from '@ionic-native/native-audio/ngx';
 import {Vibration} from '@ionic-native/vibration/ngx';
 // App modules
-import {AppComponent} from "./app.component";
-import {AppRoutingModule} from "./app-routing.module";
-import {CoreModule} from "./core/core.module";
-import {environment} from "../environments/environment";
-import {HttpClient, HttpClientModule} from "@angular/common/http";
-import {Camera} from "@ionic-native/camera/ngx";
-import {Network} from "@ionic-native/network/ngx";
-import {AudioManagement} from "@ionic-native/audio-management/ngx";
-import {APP_LOCAL_SETTINGS, APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/local-settings.service";
-import {APP_LOCALES, LocalSettings} from "./core/services/model/settings.model";
-import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
-import {APP_CONFIG_OPTIONS} from "./core/services/config.service";
-import {TRIP_CONFIG_OPTIONS, TRIP_GRAPHQL_TYPE_POLICIES, TRIP_LOCAL_SETTINGS_OPTIONS, TRIP_STORAGE_TYPE_POLICIES} from "./trip/services/config/trip.config";
-import {IonicStorageModule} from "@ionic/storage";
-import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
-import {APP_MENU_ITEMS} from "./core/menu/menu.component";
-import {APP_HOME_BUTTONS} from "./core/home/home";
-import {CORE_CONFIG_OPTIONS, CORE_LOCAL_SETTINGS_OPTIONS} from "./core/services/config/core.config";
-import {APP_TESTING_PAGES, TestingPage} from "./shared/material/testing/material.testing.page";
-import {IonicModule} from "@ionic/angular";
-import {CacheModule} from "ionic-cache";
-import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
-import {SharedModule} from "./shared/shared.module";
-import {HttpTranslateLoaderFactory} from "./shared/translate/http-translate-loader-factory";
-import {MarkdownModule, MarkedOptions} from "ngx-markdown";
-import {APP_LOCAL_STORAGE_TYPE_POLICIES, EntitiesStorageTypePolicies} from "./core/services/storage/entities-storage.service";
-import {AppGestureConfig} from "./shared/gesture/gesture-config";
-import {TypePolicies} from "@apollo/client/core";
-import {APP_GRAPHQL_TYPE_POLICIES} from "./core/graphql/graphql.service";
-import {SocialModule} from "./social/social.module";
-import {TRIP_TESTING_PAGES} from "./trip/trip.testing.module";
-import {EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES} from "./extraction/services/config/extraction.config";
-import {REFERENTIAL_CONFIG_OPTIONS, REFERENTIAL_GRAPHQL_TYPE_POLICIES, REFERENTIAL_LOCAL_SETTINGS_OPTIONS} from "./referential/services/config/referential.config";
-import {FormFieldDefinitionMap} from "./shared/form/field.model";
-import {DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES} from "./data/services/config/data.config";
-import {DATE_ISO_PATTERN} from "./shared/constants";
-import {VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS} from "./vessel/services/config/vessel.config";
-import {JDENTICON_CONFIG} from "ngx-jdenticon";
-import { REFERENTIAL_TESTING_PAGES } from "./referential/referential.testing.module";
+import {AppComponent} from './app.component';
+import {AppRoutingModule} from './app-routing.module';
+import {
+  APP_ABOUT_DEVELOPERS,
+  APP_ABOUT_PARTNERS,
+  APP_CONFIG_OPTIONS,
+  APP_GRAPHQL_TYPE_POLICIES,
+  APP_HOME_BUTTONS,
+  APP_LOCAL_SETTINGS,
+  APP_LOCAL_SETTINGS_OPTIONS,
+  APP_LOCAL_STORAGE_TYPE_POLICIES,
+  APP_LOCALES,
+  APP_MENU_ITEMS,
+  APP_TESTING_PAGES,
+  AppGestureConfig,
+  CORE_CONFIG_OPTIONS,
+  DATE_ISO_PATTERN,
+  Department,
+  EntitiesStorageTypePolicies,
+  FormFieldDefinitionMap,
+  LocalSettings,
+  SharedModule,
+  SocialModule,
+  TestingPage
+} from '@sumaris-net/ngx-components';
+import {environment} from '@environments/environment';
+import {HttpClient, HttpClientModule} from '@angular/common/http';
+import {Camera} from '@ionic-native/camera/ngx';
+import {Network} from '@ionic-native/network/ngx';
+import {AudioManagement} from '@ionic-native/audio-management/ngx';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {TRIP_CONFIG_OPTIONS, TRIP_GRAPHQL_TYPE_POLICIES, TRIP_LOCAL_SETTINGS_OPTIONS, TRIP_STORAGE_TYPE_POLICIES} from './trip/services/config/trip.config';
+import {IonicStorageModule} from '@ionic/storage';
+import {InAppBrowser} from '@ionic-native/in-app-browser/ngx';
+import {IonicModule} from '@ionic/angular';
+import {CacheModule} from 'ionic-cache';
+import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import {MarkdownModule, MarkedOptions} from 'ngx-markdown';
+import {TypePolicies} from '@apollo/client/core';
+import {TRIP_TESTING_PAGES} from './trip/trip.testing.module';
+import {EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES} from './extraction/services/config/extraction.config';
+import {REFERENTIAL_CONFIG_OPTIONS, REFERENTIAL_GRAPHQL_TYPE_POLICIES, REFERENTIAL_LOCAL_SETTINGS_OPTIONS} from './referential/services/config/referential.config';
+import {DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES} from './data/services/config/data.config';
+import {VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS} from './vessel/services/config/vessel.config';
+import {JDENTICON_CONFIG} from 'ngx-jdenticon';
+import {REFERENTIAL_TESTING_PAGES} from './referential/referential.testing.module';
+import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {AppSharedModule} from '@app/shared/shared.module';
+import {APP_CORE_CONFIG_OPTIONS} from '@app/core/services/config/core.config';
+import {AppCoreModule} from '@app/core/core.module';
 
 
 @NgModule({
@@ -69,7 +80,13 @@ import { REFERENTIAL_TESTING_PAGES } from "./referential/referential.testing.mod
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
-        useFactory: HttpTranslateLoaderFactory.build,
+        useFactory: (httpClient) => {
+          if (environment.production) {
+            // This is need to force a reload, after an app update
+            return new TranslateHttpLoader(httpClient, './assets/i18n/', `-${environment.version}.json`);
+          }
+          return new TranslateHttpLoader(httpClient, './assets/i18n/', `.json`);
+        },
         deps: [HttpClient]
       }
     }),
@@ -89,7 +106,8 @@ import { REFERENTIAL_TESTING_PAGES } from "./referential/referential.testing.mod
     }),
 
     // functional modules
-    CoreModule.forRoot(),
+    AppCoreModule.forRoot(),
+    AppSharedModule,
     SharedModule.forRoot(environment),
     SocialModule.forRoot(),
     HammerModule,
@@ -106,7 +124,16 @@ import { REFERENTIAL_TESTING_PAGES } from "./referential/referential.testing.mod
     InAppBrowser,
     AudioManagement,
 
-    {provide: APP_BASE_HREF, useValue: (environment.baseUrl || '/')},
+    {provide: APP_BASE_HREF, useFactory: function () {
+        try {
+          return document.getElementsByTagName('base')[0].href;
+        }
+        catch (err) {
+          console.error(err);
+          return environment.baseUrl || '/';
+        }
+      }
+    },
     //{ provide: ErrorHandler, useClass: IonicErrorHandler },
 
     {provide: APP_LOCALES, useValue:
@@ -143,7 +170,8 @@ import { REFERENTIAL_TESTING_PAGES } from "./referential/referential.testing.mod
         }
       }
     },
-    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_DATE_FORMATS]},
+    {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_DATE_FORMATS]},
+    {provide: DateAdapter, useExisting: MomentDateAdapter},
 
     // Configure hammer gesture
     {provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig},
@@ -156,7 +184,6 @@ import { REFERENTIAL_TESTING_PAGES } from "./referential/referential.testing.mod
 
     // Settings options definition
     { provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: <FormFieldDefinitionMap>{
-        ...CORE_LOCAL_SETTINGS_OPTIONS,
         ...REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
         ...VESSEL_LOCAL_SETTINGS_OPTIONS,
         ...TRIP_LOCAL_SETTINGS_OPTIONS
@@ -166,6 +193,7 @@ import { REFERENTIAL_TESTING_PAGES } from "./referential/referential.testing.mod
     // Config options definition (Core + trip)
     { provide: APP_CONFIG_OPTIONS, useValue: <FormFieldDefinitionMap>{
       ...CORE_CONFIG_OPTIONS,
+      ...APP_CORE_CONFIG_OPTIONS,
       ...REFERENTIAL_CONFIG_OPTIONS,
       ...VESSEL_CONFIG_OPTIONS,
       ...DATA_CONFIG_OPTIONS,
@@ -186,8 +214,8 @@ import { REFERENTIAL_TESTING_PAGES } from "./referential/referential.testing.mod
           titleProperty: 'sumaris.trip.name'
         },
         {
-          title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
-          matIcon: 'verified_user',
+          title: 'MENU.OCCASIONS', path: '/observations',
+          matIcon: 'verified',
           profile: 'USER',
           ifProperty: 'sumaris.observedLocation.enable',
           titleProperty: 'sumaris.observedLocation.name'
@@ -229,13 +257,46 @@ import { REFERENTIAL_TESTING_PAGES } from "./referential/referential.testing.mod
           ifProperty: 'sumaris.trip.enable',
           titleProperty: 'sumaris.trip.name'
         },
-        { title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
-          matIcon: 'verified_user',
+        { title: 'MENU.OCCASIONS', path: '/observations',
+          matIcon: 'verified',
           profile: 'USER',
           ifProperty: 'sumaris.observedLocation.enable',
           titleProperty: 'sumaris.observedLocation.name'
         },
         { title: '' /*empty divider*/, cssClass: 'visible-mobile'}
+      ]
+    },
+
+    // About developers
+    {
+      provide: APP_ABOUT_DEVELOPERS, useValue: <Partial<Department>[]>[
+        {siteUrl: 'https://www.e-is.pro', logo: 'assets/img/logo/logo-eis_50px.png', label: 'Environmental Information Systems'}
+      ]
+    },
+
+    // About partners
+    { provide: APP_ABOUT_PARTNERS, useValue: <Partial<Department>[]>[
+        {
+          siteUrl: 'https://www.interreg2seas.eu', logo: 'assets/img/logo/logo-interreg2seas.png'
+        },
+        {
+          siteUrl: 'https://www.fromnord.fr', logo: 'assets/img/logo/logo-fromnord_50px.png'
+        },
+        {
+          siteUrl: 'https://www.rederscentrale.be', logo: 'assets/img/logo/logo-redercentrale.png'
+        },
+        {
+          siteUrl: 'https://www.ifremer.fr', logo: 'assets/img/logo/logo-ifremer.png'
+        },
+        {
+          siteUrl: 'https://www.ilvo.vlaanderen.be/', logo: 'assets/img/logo/logo-ilvo-text.png'
+        },
+        {
+          siteUrl: 'https://www.nausicaa.fr', logo: 'assets/img/logo/logo-nausicaa.png'
+        },
+        {
+          siteUrl: 'https://www.pecheursdebretagne.eu', logo: 'assets/img/logo/logo-lpdb.png'
+        }
       ]
     },
 

@@ -2,28 +2,24 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input} from "@ang
 import {ModalController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
 import {FormBuilder, Validators} from "@angular/forms";
-import {AppFormUtils} from "../../../core/form/form.utils";
-import {AppForm} from "../../../core/form/form.class";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
+import {AppForm}  from "@sumaris-net/ngx-components";
 import {DateAdapter} from "@angular/material/core";
 import * as momentImported from "moment";
 import {Moment} from "moment";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
-import {PlatformService} from "../../../core/services/platform.service";
-import {SharedValidators} from "../../../shared/validator/validators";
-import {ObservedLocationOfflineFilter} from "../../services/observed-location.service";
-import {LocationLevelIds} from "../../../referential/services/model/model.enum";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {SharedValidators} from "@sumaris-net/ngx-components";
 import {ProgramRefQueries, ProgramRefService} from "../../../referential/services/program-ref.service";
-import DurationConstructor = moment.unitOfTime.DurationConstructor;
-import {referentialsToString, referentialToString, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {isEmptyArray, isNotEmptyArray} from "../../../shared/functions";
-import {filter, map, merge, tap} from "rxjs/operators";
-import {EntityUtils} from "../../../core/services/model/entity.model";
+import {referentialsToString, referentialToString}  from "@sumaris-net/ngx-components";
+import {isEmptyArray, isNotEmptyArray} from "@sumaris-net/ngx-components";
+import {map} from "rxjs/operators";
 import {mergeMap} from "rxjs/internal/operators";
 import {ProgramProperties} from "../../../referential/services/config/program.config";
-import {of} from "rxjs";
 import {Program} from "../../../referential/services/model/program.model";
-import {LoadResult} from "../../../shared/services/entity-service.class";
+import DurationConstructor = moment.unitOfTime.DurationConstructor;
+import {ObservedLocationOfflineFilter} from "../../services/filter/observed-location.filter";
 
 const moment = momentImported;
 

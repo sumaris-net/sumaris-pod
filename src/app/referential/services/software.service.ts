@@ -1,13 +1,9 @@
-import {Inject, Injectable} from "@angular/core";
-import {gql} from "@apollo/client/core";
-import {Observable, Subject} from "rxjs";
-import {ErrorCodes} from "./errors";
-import {isNotNil} from "../../shared/functions";
-import {Software} from "../../core/services/model/config.model";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
-import {Environment} from "../../../environments/environment.class";
+import {Injectable} from '@angular/core';
+import {gql} from '@apollo/client/core';
+import {Observable, Subject} from 'rxjs';
+import {ErrorCodes} from './errors';
+import {BaseGraphqlService, EntityServiceLoadOptions, GraphqlService, IEntityService, isNotNil, Software} from '@sumaris-net/ngx-components';
+import {environment} from '@environments/environment';
 
 /* ------------------------------------
  * GraphQL queries
@@ -50,14 +46,13 @@ const SaveMutation: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class SoftwareService<T extends Software = Software>
-  extends BaseGraphqlService<T>
-  implements IEntityService<T> {
+  extends BaseGraphqlService<T, any, number>
+  implements IEntityService<Software> {
 
   constructor(
-    protected graphql: GraphqlService,
-    protected environment: Environment
-) {
-    super(graphql, environment);
+    protected graphql: GraphqlService
+  ) {
+    super(graphql, {production: environment.production});
 
     if (this._debug) console.debug("[software-service] Creating service");
   }

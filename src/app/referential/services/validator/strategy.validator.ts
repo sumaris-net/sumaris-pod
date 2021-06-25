@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
-import { toNumber } from "../../../shared/functions";
-import { SharedValidators } from "../../../shared/validator/validators";
+import { toNumber } from "@sumaris-net/ngx-components";
+import { SharedValidators } from "@sumaris-net/ngx-components";
 import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonGroupStrategy, TaxonNameStrategy } from "../model/strategy.model";
 import { PmfmStrategyValidatorService } from "./pmfm-strategy.validator";
 import { ReferentialValidatorService } from "./referential.validator";

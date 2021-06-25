@@ -1,12 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Optional, Output} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {SampleValidatorService} from "../services/validator/sample.validator";
-import {isEmptyArray, isNil, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
-import {UsageMode} from "../../core/services/model/settings.model";
+import {isEmptyArray, isNil, isNilOrBlank, isNotNil, toNumber} from "@sumaris-net/ngx-components";
+import {UsageMode}  from "@sumaris-net/ngx-components";
 import * as momentImported from "moment";
 import {Moment} from "moment";
 import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
-import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
+import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
 import {ISampleModalOptions, SampleModal} from "./sample.modal";
 import {FormGroup} from "@angular/forms";
 import {TaxonGroupRef, TaxonNameRef} from "../../referential/services/model/taxon.model";
@@ -14,21 +14,19 @@ import {Sample} from "../services/model/sample.model";
 import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {PlatformService} from "../../core/services/platform.service";
-import {IReferentialRef, ReferentialRef} from "../../core/services/model/referential.model";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {IReferentialRef, ReferentialRef}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
-import {AppFormUtils} from "../../core/form/form.utils";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
 import {filter, map, tap} from "rxjs/operators";
-import {LoadResult} from "../../shared/services/entity-service.class";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
-import {filterNotNil} from "../../shared/observables";
+import {LoadResult} from "@sumaris-net/ngx-components";
+import {IPmfm, PmfmUtils} from '../../referential/services/model/pmfm.model';
+import {firstNotNilPromise} from "@sumaris-net/ngx-components";
+import {SampleFilter} from "../services/filter/sample.filter";
+import {isInstanceOf}  from "@sumaris-net/ngx-components";
 
 const moment = momentImported;
 
-export interface SampleFilter {
-  operationId?: number;
-  landingId?: number;
-}
 
 export class SamplesTableOptions extends AppMeasurementsTableOptions<Sample> {
 
@@ -101,7 +99,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   ) {
     super(injector,
       Sample,
-      new InMemoryEntitiesService<Sample, SampleFilter>(Sample, {
+      new InMemoryEntitiesService(Sample, SampleFilter, {
         equals: Sample.equals
       }),
       injector.get(PlatformService).mobile ? null : injector.get(ValidatorService),
@@ -158,6 +156,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
       showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/
     });
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+
+    this.onPrepareRowForm.complete();
+    this.onPrepareRowForm.unsubscribe();
   }
 
   async getMaxRankOrder(): Promise<number> {
@@ -262,40 +267,51 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     this.markAsLoading();
 
+    const options: Partial<ISampleModalOptions> = {
+      // Default options:
+      programLabel: undefined, // Prefer to pass PMFMs directly, to avoid a reloading
+      pmfms: this.$pmfms.asObservable(),
+      acquisitionLevel: this.acquisitionLevel,
+      disabled: this.disabled,
+      i18nPrefix: SAMPLE_TABLE_DEFAULT_I18N_PREFIX,
+      usageMode: this.usageMode,
+      showLabel: this.showLabelColumn,
+      showDateTime: this.showDateTimeColumn,
+      showTaxonGroup: this.showTaxonGroupColumn,
+      showTaxonName: this.showTaxonNameColumn,
+
+      onReady: async (modal) => {
+        const form = modal.form.form;
+        const pmfms = await firstNotNilPromise(modal.$pmfms);
+        this.onPrepareRowForm.emit({form, pmfms});
+      },
+      onSaveAndNew: async (data) => {
+        if (isNil(data.id)) {
+          await this.addEntityToTable(data);
+        }
+        else {
+          this.updateEntityToTable(data, row);
+          row = null; // Avoid to update twice (should never occur, because validateAndContinue always create a new entity)
+        }
+        const newData = new Sample();
+        await this.onNewEntity(newData);
+        return newData;
+      },
+      onDelete: (event, data) => this.delete(event, data),
+
+      // Override using given options
+      ...this.modalOptions,
+
+      // Give data
+      data: sample,
+      isNew,
+    };
+
     const modal = await this.modalCtrl.create({
       component: SampleModal,
-      componentProps: <ISampleModalOptions>{
-        programLabel: undefined, // Prefer to pass PMFMs directly, to avoid a reloading
-        pmfms: this.$pmfms.asObservable(),
-        acquisitionLevel: this.acquisitionLevel,
-        disabled: this.disabled,
-        value: sample,
-        isNew,
-        i18nPrefix: SAMPLE_TABLE_DEFAULT_I18N_PREFIX,
-        usageMode: this.usageMode,
-        showLabel: this.showLabelColumn,
-        showDateTime: this.showDateTimeColumn,
-        showTaxonGroup: this.showTaxonGroupColumn,
-        showTaxonName: this.showTaxonNameColumn,
-        onReady: (obj) => this.onPrepareRowForm.emit({form: obj.form.form, pmfms: obj.$pmfms.getValue()}),
-        onSaveAndNew: async (data) => {
-          if (isNil(data.id)) {
-            await this.addEntityToTable(data);
-          }
-          else {
-            this.updateEntityToTable(data, row);
-            row = null; // Avoid to update twice (should never occur, because validateAndContinue always create a new entity)
-          }
-          const newData = new Sample();
-          await this.onNewEntity(newData);
-          return newData;
-        },
-        onDelete: (event, data) => this.delete(event, data),
-
-        // Override using given options
-        ...this.modalOptions,
-      },
-      keyboardClose: true
+      componentProps: options,
+      keyboardClose: true,
+      backdropDismiss: false
     });
 
     // Open the modal
@@ -306,12 +322,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     if (data && this.debug) console.debug("[samples-table] Modal result: ", data);
     this.markAsLoaded();
 
-    // Exit if empty
-    if (!(data instanceof Sample)) {
-      return undefined;
-    }
-
-    return data;
+    return isInstanceOf(data, Sample) ? data : undefined;
   }
 
   filterColumnsByTaxonGroup(taxonGroup: TaxonGroupRef) {
@@ -323,7 +334,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       (this.$pmfms.getValue() || []).forEach(pmfm => {
 
         const show = isNil(taxonGroupId)
-          || !(pmfm instanceof DenormalizedPmfmStrategy)
+          || !PmfmUtils.isDenormalizedPmfm(pmfm)
           || (isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(taxonGroupId));
         this.setShowColumn(pmfm.id.toString(), show);
       });

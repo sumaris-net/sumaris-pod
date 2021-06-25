@@ -1,6 +1,6 @@
-import {FormFieldDefinition, FormFieldDefinitionMap} from "../../../shared/form/field.model";
+import {FormFieldDefinition, FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
 import {LocationLevelIds} from "../model/model.enum";
-import {StatusIds} from "../../../core/services/model/model.enum";
+import {StatusIds}  from "@sumaris-net/ngx-components";
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 
@@ -10,6 +10,12 @@ export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
 
 export const ProgramProperties = Object.freeze({
   // Trip
+  TRIP_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.trip.location.level.ids',
+    label: "PROGRAM.OPTIONS.TRIP_LOCATION_LEVEL_IDS",
+    type: 'string',
+    defaultValue: LocationLevelIds.PORT.toString()
+  },
   TRIP_SALE_ENABLE: <FormFieldDefinition>{
     key: "sumaris.trip.sale.enable",
     label: "PROGRAM.OPTIONS.TRIP_SALE_ENABLE",
@@ -27,6 +33,12 @@ export const ProgramProperties = Object.freeze({
     label: "PROGRAM.OPTIONS.TRIP_METIERS_ENABLE",
     defaultValue: "false",
     type: 'boolean'
+  },
+  TRIP_METIERS_HISTORY_NB_DAYS: <FormFieldDefinition>{
+    key: "sumaris.trip.metiers.history.days",
+    label: "PROGRAM.OPTIONS.TRIP_METIERS_HISTORY_NB_DAYS",
+    defaultValue: "30",
+    type: 'integer'
   },
   TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL: <FormFieldDefinition>{
     key: 'sumaris.trip.onboard.measurements.optional',
@@ -280,6 +292,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: "false",
     type: 'boolean'
   },
+  LANDING_SAMPLES_COUNT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.samplesCount.enable',
+    label: "PROGRAM.OPTIONS.LANDING_SAMPLES_COUNT_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
   LANDING_ONE_TAB_ENABLE: <FormFieldDefinition>{
     key: "sumaris.landing.oneTab.enable",
     label: "PROGRAM.OPTIONS.LANDING_ONE_TAB_ENABLE",
@@ -344,7 +362,7 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.measurements.maxVisibleButtons',
     label: 'PROGRAM.OPTIONS.MEASUREMENTS_MAX_VISIBLE_BUTTONS',
     type: 'integer',
-    defaultValue: 10 // Use -1 for all
+    defaultValue: 4 // Use -1 for all
   },
 });
 

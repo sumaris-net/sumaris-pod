@@ -3,7 +3,7 @@ import {ModalController, PopoverController} from "@ionic/angular";
 import {Observable, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {CommentForm} from "./comment.form";
-import {AppFormUtils} from "../../core/form/form.utils";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
 
 @Component({
   selector: 'app-comment-modal',

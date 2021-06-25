@@ -1,26 +1,33 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment';
-import {DateAdapter} from "@angular/material/core";
-import {debounceTime, filter, map} from 'rxjs/operators';
-import {ObservedLocationValidatorService} from "../services/validator/observed-location.validator";
-import {PersonService} from "../../admin/services/person.service";
-import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
-import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {Person, personToString, UserProfileLabels} from "../../core/services/model/person.model";
-import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {isNil, isNotNil, toBoolean} from "../../shared/functions";
-import {ObservedLocation} from "../services/model/observed-location.model";
-import {AcquisitionLevelCodes, LocationLevelIds} from "../../referential/services/model/model.enum";
-import {ReferentialRefFilter, ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {FormArrayHelper} from "../../core/form/form.utils";
-import {fromDateISOString} from "../../shared/dates";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {DateAdapter} from '@angular/material/core';
+import {debounceTime, filter, map, tap} from 'rxjs/operators';
+import {ObservedLocationValidatorService} from '../services/validator/observed-location.validator';
+import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
+import {
+  FormArrayHelper,
+  fromDateISOString,
+  isEmptyArray,
+  isNil,
+  isNotNil,
+  LoadResult,
+  LocalSettingsService,
+  Person, PersonService, PersonUtils,
+  referentialToString,
+  ReferentialUtils,
+  StatusIds,
+  toBoolean, UserProfileLabel
+} from '@sumaris-net/ngx-components';
+import {ObservedLocation} from '../services/model/observed-location.model';
+import {AcquisitionLevelCodes, LocationLevelIds} from '@app/referential/services/model/model.enum';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
 
 @Component({
-  selector: 'form-observed-location',
+  selector: 'app-form-observed-location',
   templateUrl: './observed-location.form.html',
   styleUrls: ['./observed-location.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -28,9 +35,11 @@ import {ProgramRefService} from "../../referential/services/program-ref.service"
 export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation> implements OnInit {
 
   _showObservers: boolean;
-  _locationLevelIds: number[];
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
+  locationFilter: Partial<ReferentialRefFilter> = {
+    entityName: 'Location'
+  };
   mobile: boolean;
 
   @Input() required = true;
@@ -40,19 +49,19 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   @Input() showButtons = true;
 
   @Input() set locationLevelIds(value: number[]) {
-    this._locationLevelIds = value;
+    if (this.locationFilter.levelIds !== value) {
 
-    // Update location complete field
-    if (this.autocompleteFields.location) {
-      this.autocompleteFields.location.filter = {
-        ...this.autocompleteFields.location.filter,
+      console.debug("[observed-location-form] Location level ids:", value);
+      this.locationFilter = {
+        ...this.locationFilter,
         levelIds: value
       };
+      this.markForCheck();
     }
   }
 
   get locationLevelIds(): number[] {
-    return this._locationLevelIds;
+    return this.locationFilter && this.locationFilter.levelIds;
   }
 
   @Input()
@@ -116,10 +125,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     // Default values
     this.showObservers = toBoolean(this.showObservers, true); // Will init the observers helper
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
-    if (isNil(this.locationLevelIds)) {
-      this.locationLevelIds = [LocationLevelIds.PORT];
-    }
-    console.debug("[observed-location-form] Location level ids:", this.locationLevelIds);
+    if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
 
     // Combo: programs
     const programAttributes = this.settings.getFieldDisplayAttributes('program');
@@ -137,10 +143,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     // Combo location
     this.registerAutocompleteField('location', {
       service: this.referentialRefService,
-      filter: {
-        entityName: 'Location',
-        levelIds: this.locationLevelIds
-      }
+      filter: this.locationFilter
     });
 
     // Combo: observers
@@ -151,10 +154,10 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
       // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: [UserProfileLabels.SUPERVISOR, UserProfileLabels.USER]
+        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER']
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: personToString
+      displayWith: PersonUtils.personToString
     });
 
     // Propagate program
@@ -172,12 +175,12 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         .pipe(
           debounceTime(150),
           filter(v => isNotNil(v) && !this.showEndDateTime),
-          map(fromDateISOString)
+          map(fromDateISOString),
+          tap(startDateTime => this.form.patchValue({
+            endDateTime: startDateTime.add(1, 'millisecond')
+          }, {emitEvent: false}))
         )
-        .subscribe(startDateTime => {
-          this.form.patchValue({endDateTime: startDateTime.add(1, 'millisecond')}, {emitEvent: false})
-        }
-      )
+        .subscribe()
     );
   }
 
@@ -255,7 +258,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     }
   }
 
-  protected suggestObservers(value: any, filter?: any): Promise<any[]> {
+  protected suggestObservers(value: any, filter?: any): Promise<LoadResult<Person>> {
     const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
     const newValue = currentControlValue ? '*' : value;
 

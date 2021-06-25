@@ -1,9 +1,9 @@
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControlOptions, FormBuilder, FormGroup} from "@angular/forms";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {SharedValidators} from "@sumaris-net/ngx-components";
 import {DataEntity} from "../model/data-entity.model";
-import {toBoolean, toNumber} from "../../../shared/functions";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {toBoolean, toNumber} from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {Optional} from "@angular/core";
 
 export interface DataEntityValidatorOptions {

@@ -1,7 +1,7 @@
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 
 // LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
-import {ObjectMap} from "../../../shared/types";
+import {ObjectMap} from "@sumaris-net/ngx-components";
 
 export const LocationLevelIds = {
   // Lands
@@ -62,7 +62,6 @@ export const PmfmIds = {
   VIVACITY: 144,
 
   /* PARAMBIO pmfms */
-  MORSE_CODE: 358,
   STRATEGY_LABEL: 359,
   AGE: 350,
   SEX: 80,
@@ -105,8 +104,16 @@ export const MethodIds = {
   CALCULATED: 4
 };
 
+export const autoCompleteFractions = {
+  1362: 'Otholite', 1452: 'Otholite', 1644: 'Ecaille', 1956: 'Otholite', 2049: 'Illicium', 2050: 'Illicium', 1960: 'Otholite', 1693: 'Ecaille',
+  1549: 'Otholite', 1990: 'Otholite', 1921: 'Otholite', 1912: 'Otholite', 1349: 'Otholite', 1555: 'Otholite', 1556: 'Otholite', 1986: 'Otholite',
+  1988: 'Otholite', 1567: 'Otholite', 1566: 'Otholite', 1681: 'Otholite', 1772: 'Otholite', 1551: 'Otholite', 1540: 'Otholite', 1543: 'Otholite',
+  1573: 'Otholite', 1980: 'Otholite', 1978: 'Otholite', 1690: 'Otholite', 1689: 'Otholite', 1351: 'Otholite', 1996: 'Otholite', 1356: 'Otholite',
+  1560: 'Otholite', 1559: 'Otholite'
+}
+
 export const ParameterLabelGroups: ObjectMap<string[]> = {
-  ANALYTIC_REFERENCE: ['MORSE_CODE'],
+  ANALYTIC_REFERENCE: [''],
   WEIGHT: ['WEIGHT'],
   LENGTH: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'],
   SEX: ['SEX'],

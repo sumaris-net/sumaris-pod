@@ -1,6 +1,6 @@
 import {ValidatorFn, Validators} from "@angular/forms";
-import {isNil, isNotNil} from "../../../shared/functions";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {isNil, isNotNil} from "@sumaris-net/ngx-components";
+import {SharedValidators} from "@sumaris-net/ngx-components";
 import {IPmfm} from "../model/pmfm.model";
 
 const REGEXP_INTEGER = /^[0-9]+$/;

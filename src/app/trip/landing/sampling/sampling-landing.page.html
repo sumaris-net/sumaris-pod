@@ -1,4 +1,4 @@
-<app-toolbar [title]="title$ | async"
+<app-toolbar [title]="$title | async"
              color="primary"
              [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
@@ -102,8 +102,21 @@
                 <ion-col class="ion-no-padding">
                   <app-strategy-summary-card #strategyCard
                                              [editor]="this"
-                                             [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate">
-
+                                             [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate"
+                                             [calcifiedTypesDisplayed]="true">
+                    <!-- calcified types-->
+                        <ng-container *ngIf="strategyCard.data &&  (strategyCard.data.pmfms | isNotEmptyArray)">
+                          <ion-label color="primary">{{i18nPrefix + 'CALCIFIED_TYPE'|translate}}</ion-label>
+                          <ion-label class="status">
+                            <ul>
+                              <ng-container *ngFor="let caclcifiedType of strategyCard.data.pmfms; let i=index">
+                              <li *ngIf="caclcifiedType.fraction && !caclcifiedType.pmfm">
+                                <span>{{caclcifiedType.fraction | referentialToString:strategyCard.displayAttributes.caclcifiedType }}</span>
+                              </li>
+                              </ng-container>
+                            </ul>
+                          </ion-label>
+                        </ng-container>
                   </app-strategy-summary-card>
                 </ion-col>
 

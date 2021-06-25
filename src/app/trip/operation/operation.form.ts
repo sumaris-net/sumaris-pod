@@ -1,28 +1,34 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Optional} from '@angular/core';
-import {OperationValidatorService} from "../services/validator/operation.validator";
+import {OperationValidatorService} from '../services/validator/operation.validator';
+import * as momentImported from 'moment';
 import {Moment} from 'moment';
-import {DateAdapter} from "@angular/material/core";
-import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {UsageMode} from "../../core/services/model/settings.model";
-import {FormGroup, ValidationErrors} from "@angular/forms";
-import * as momentImported from "moment";
+import {DateAdapter} from '@angular/material/core';
+import {
+  AccountService,
+  AppForm,
+  EntityUtils,
+  fromDateISOString,
+  IReferentialRef,
+  isNotEmptyArray,
+  isNotNil,
+  LocalSettingsService,
+  PlatformService,
+  ReferentialRef,
+  ReferentialUtils,
+  SharedValidators,
+  UsageMode
+} from '@sumaris-net/ngx-components';
+import {FormGroup, ValidationErrors} from '@angular/forms';
+import {TranslateService} from '@ngx-translate/core';
+import {Operation, PhysicalGear, Trip} from '../services/model/trip.model';
+import {BehaviorSubject} from 'rxjs';
+import {distinctUntilChanged} from 'rxjs/operators';
+import {METIER_DEFAULT_FILTER} from '../../referential/services/metier.service';
+import {ReferentialRefService} from '../../referential/services/referential-ref.service';
+import {Geolocation} from '@ionic-native/geolocation/ngx';
+import {GeolocationOptions} from '@ionic-native/geolocation';
+
 const moment = momentImported;
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {TranslateService} from "@ngx-translate/core";
-import {isNotEmptyArray, isNotNil} from "../../shared/functions";
-import {AccountService} from "../../core/services/account.service";
-import {PlatformService} from "../../core/services/platform.service";
-import {SharedValidators} from "../../shared/validator/validators";
-import {Operation, PhysicalGear, Trip} from "../services/model/trip.model";
-import {BehaviorSubject} from "rxjs";
-import {distinctUntilChanged} from "rxjs/operators";
-import {METIER_DEFAULT_FILTER} from "../../referential/services/metier.service";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {Geolocation} from "@ionic-native/geolocation/ngx";
-import {GeolocationOptions} from "@ionic-native/geolocation";
-import {AppForm} from "../../core/form/form.class";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {fromDateISOString} from "../../shared/dates";
 
 @Component({
   selector: 'app-form-operation',
@@ -49,16 +55,75 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   @Input() defaultLatitudeSign: '+'|'-';
   @Input() defaultLongitudeSign: '+'|'-';
 
-  get trip() {
+  get trip(): Trip {
     return this._trip;
   }
 
-  set trip(trip: Trip) {
+  set trip(value: Trip) {
+    this.setTrip(value);
+  }
+
+  constructor(
+    protected dateAdapter: DateAdapter<Moment>,
+    protected validatorService: OperationValidatorService,
+    protected referentialRefService: ReferentialRefService,
+    protected accountService: AccountService,
+    protected settings: LocalSettingsService,
+    protected translate: TranslateService,
+    protected platform: PlatformService,
+    protected cd: ChangeDetectorRef,
+    @Optional() protected geolocation: Geolocation
+  ) {
+    super(dateAdapter, validatorService.getFormGroup(), settings);
+    this.mobile = this.settings.mobile;
+  }
+
+  ngOnInit() {
+    this.usageMode = this.settings.isOnFieldMode(this.usageMode) ? 'FIELD' : 'DESK';
+    this.latLongFormat = this.settings.latLongFormat;
+
+    this.enableGeolocation = (this.usageMode === 'FIELD') && this.settings.mobile;
+
+    // Combo: physicalGears
+    const physicalGearAttributes = ['rankOrder'].concat(this.settings.getFieldDisplayAttributes('gear').map(key => 'gear.' + key));
+    this.registerAutocompleteField('physicalGear', {
+      items: this._physicalGearsSubject,
+      attributes: physicalGearAttributes,
+      mobile: this.mobile
+    });
+
+    // Taxon group combo
+    this.registerAutocompleteField('taxonGroup', {
+      items: this._metiersSubject,
+      mobile: this.mobile
+    });
+
+    // Listen physical gear, to enable/disable metier
+    this.registerSubscription(
+      this.form.get('physicalGear').valueChanges
+        .pipe(
+          distinctUntilChanged((o1, o2) => EntityUtils.equals(o1, o2, 'id'))
+        )
+        .subscribe((physicalGear) => this.onPhysicalGearChanged(physicalGear))
+    );
+  }
+
+  setValue(data: Operation, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+    // Use label and name from metier.taxonGroup
+    if (data && data.metier) {
+      data.metier = data.metier.clone(); // Leave original object unchanged
+      data.metier.label = data.metier.taxonGroup && data.metier.taxonGroup.label || data.metier.label;
+      data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
+    }
+    super.setValue(data, opts);
+  }
+
+  setTrip(trip: Trip) {
     this._trip = trip;
 
     if (trip) {
       // Propagate physical gears
-      this._physicalGearsSubject.next(trip.gears || []);
+      this._physicalGearsSubject.next((trip.gears || []).map(ps => ps.clone()));
 
       // Use trip physical gear Object (if possible)
       const physicalGearControl = this.form.get("physicalGear");
@@ -89,60 +154,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         return null;
       });
     }
-  }
-
-  constructor(
-    protected dateAdapter: DateAdapter<Moment>,
-    protected validatorService: OperationValidatorService,
-    protected referentialRefService: ReferentialRefService,
-    protected accountService: AccountService,
-    protected settings: LocalSettingsService,
-    protected translate: TranslateService,
-    protected platform: PlatformService,
-    protected cd: ChangeDetectorRef,
-    @Optional() protected geolocation: Geolocation
-  ) {
-    super(dateAdapter, validatorService.getFormGroup(), settings);
-    this.mobile = this.settings.mobile;
-  }
-
-  ngOnInit() {
-    this.usageMode = this.settings.isOnFieldMode(this.usageMode) ? 'FIELD' : 'DESK';
-    this.latLongFormat = this.settings.latLongFormat;
-
-    this.enableGeolocation = (this.usageMode === 'FIELD') && this.settings.mobile;
-
-    // Combo: physicalGears
-    this.registerAutocompleteField('physicalGear', {
-      items: this._physicalGearsSubject,
-      attributes: ['rankOrder'].concat(this.settings.getFieldDisplayAttributes('gear').map(key => 'gear.' + key)),
-      mobile: this.mobile
-    });
-
-    // Taxon group combo
-    this.registerAutocompleteField('taxonGroup', {
-      items: this._metiersSubject,
-      mobile: this.mobile
-    });
-
-    // Listen physical gear, to enable/disable metier
-    this.registerSubscription(
-      this.form.get('physicalGear').valueChanges
-        .pipe(
-          distinctUntilChanged((o1, o2) => EntityUtils.equals(o1, o2, 'id'))
-        )
-        .subscribe((physicalGear) => this.onPhysicalGearChanged(physicalGear))
-    );
-  }
-
-  setValue(data: Operation, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
-    // Use label and name from metier.taxonGroup
-    if (data && data.metier) {
-      data.metier = data.metier.clone(); // Leave original object unchanged
-      data.metier.label = data.metier.taxonGroup && data.metier.taxonGroup.label || data.metier.label;
-      data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
-    }
-    super.setValue(data, opts);
   }
 
   /**
@@ -189,7 +200,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
           longitude: res.coords.longitude
         };
       }
-      catch(err) {
+      catch (err) {
         console.error(err);
         throw err;
       }
@@ -197,8 +208,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     // Or fallback to navigator
     return new Promise<{ latitude: number; longitude: number; }>((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(
-        (res: Position) => {
+      navigator.geolocation.getCurrentPosition((res) => {
           resolve({
             latitude: res.coords.latitude,
             longitude: res.coords.longitude
@@ -280,7 +290,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     const gear = physicalGear && physicalGear.gear;
     console.debug('[operation-form] Loading Metier ref items for the gear: ' + (gear && gear.label));
 
-    const res = await this.referentialRefService.loadAll(0, 100, null,null,
+    const res = await this.referentialRefService.loadAll(0, 100, null, null,
       {
         entityName: "Metier",
         ...METIER_DEFAULT_FILTER,

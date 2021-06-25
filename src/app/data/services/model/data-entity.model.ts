@@ -1,10 +1,10 @@
 import {Moment} from "moment";
-import {ReferentialAsObjectOptions} from "../../../core/services/model/referential.model";
+import {ReferentialAsObjectOptions}  from "@sumaris-net/ngx-components";
 import {IWithRecorderDepartmentEntity} from "./model.utils";
-import {Entity} from "../../../core/services/model/entity.model";
-import {Department} from "../../../core/services/model/department.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
-import {isNotNil} from "../../../shared/functions";
+import {Entity}  from "@sumaris-net/ngx-components";
+import {Department}  from "@sumaris-net/ngx-components";
+import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
+import {isNotNil} from "@sumaris-net/ngx-components";
 
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
@@ -14,14 +14,14 @@ export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
   keepUpdateDate?: boolean; // Allow to clean updateDate (e.g. when restoring entities from trash)
 }
 
-export const SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS = Object.freeze(<DataEntityAsObjectOptions>{
+export const SERIALIZE_FOR_OPTIMISTIC_RESPONSE = Object.freeze(<DataEntityAsObjectOptions>{
   minify: false,
   keepTypename: true,
   keepEntityName: true,
   keepLocalId: true,
   keepSynchronizationStatus: true
 });
-export const SAVE_LOCALLY_AS_OBJECT_OPTIONS = Object.freeze(<DataEntityAsObjectOptions>{
+export const MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE = Object.freeze(<DataEntityAsObjectOptions>{
   minify: true,
   keepTypename: true,
   keepEntityName: true,
@@ -37,19 +37,23 @@ export const SAVE_AS_OBJECT_OPTIONS = Object.freeze(<DataEntityAsObjectOptions>{
   keepSynchronizationStatus: false
 });
 export const COPY_LOCALLY_AS_OBJECT_OPTIONS = Object.freeze(<DataEntityAsObjectOptions>{
-  ...SAVE_LOCALLY_AS_OBJECT_OPTIONS,
+  ...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
   keepLocalId: false,
   keepRemoteId: false,
   keepUpdateDate: false
 });
 export const CLONE_AS_OBJECT_OPTIONS = Object.freeze(<DataEntityAsObjectOptions>{
-  ...SAVE_LOCALLY_AS_OBJECT_OPTIONS,
+  ...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
   minify: false
 });
 
-export abstract class DataEntity<T extends DataEntity<any>, O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
-  extends Entity<T, O>
-  implements IWithRecorderDepartmentEntity<T> {
+export abstract class DataEntity<
+  T extends DataEntity<T, ID, O>,
+  ID = number,
+  O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions,
+  FO = any>
+  extends Entity<T, ID, O>
+  implements IWithRecorderDepartmentEntity<T, ID> {
 
   recorderDepartment: Department;
   controlDate: Moment;
@@ -57,8 +61,8 @@ export abstract class DataEntity<T extends DataEntity<any>, O extends DataEntity
   qualificationComments: string;
   qualityFlagId: number;
 
-  protected constructor() {
-    super();
+  protected constructor(__typename?: string) {
+    super(__typename);
     this.recorderDepartment = null;
   }
 
@@ -74,7 +78,7 @@ export abstract class DataEntity<T extends DataEntity<any>, O extends DataEntity
     return target;
   }
 
-  fromObject(source: any, opts?: F) {
+  fromObject(source: any, opts?: FO) {
     super.fromObject(source);
     this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
     this.controlDate = fromDateISOString(source.controlDate);
