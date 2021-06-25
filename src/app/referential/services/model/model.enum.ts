@@ -104,6 +104,14 @@ export const MethodIds = {
   CALCULATED: 4
 };
 
+export const autoCompleteFractions = {
+  1362: 'Otholite', 1452: 'Otholite', 1644: 'Ecaille', 1956: 'Otholite', 2049: 'Illicium', 2050: 'Illicium', 1960: 'Otholite', 1693: 'Ecaille',
+  1549: 'Otholite', 1990: 'Otholite', 1921: 'Otholite', 1912: 'Otholite', 1349: 'Otholite', 1555: 'Otholite', 1556: 'Otholite', 1986: 'Otholite',
+  1988: 'Otholite', 1567: 'Otholite', 1566: 'Otholite', 1681: 'Otholite', 1772: 'Otholite', 1551: 'Otholite', 1540: 'Otholite', 1543: 'Otholite',
+  1573: 'Otholite', 1980: 'Otholite', 1978: 'Otholite', 1690: 'Otholite', 1689: 'Otholite', 1351: 'Otholite', 1996: 'Otholite', 1356: 'Otholite',
+  1560: 'Otholite', 1559: 'Otholite'
+}
+
 export const ParameterLabelGroups: ObjectMap<string[]> = {
   ANALYTIC_REFERENCE: [''],
   WEIGHT: ['WEIGHT'],
