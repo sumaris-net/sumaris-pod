@@ -10,6 +10,5 @@ COPY ${CONFIG_FILES} /app/config/
 ENV PORT=8080 \
     TZ=UTC \
     PROFILES=default
-WORKDIR /app
 EXPOSE ${PORT}
 ENTRYPOINT ["app.sh"]
