@@ -1,16 +1,15 @@
 FROM openjdk:8-jdk
+ARG ENTRYPOINT=app.sh
 ARG WAR_FILE=app.war
 ARG CONFIG_FILES=config/*.properties
 RUN apt update && apt -y install libsodium-dev
-#RUN addgroup -S spring && adduser -S spring -G spring
-#USER spring:spring
-WORKDIR /app
-COPY app.sh app.sh
-RUN chmod +x app.sh
-COPY ${WAR_FILE} app.war
-COPY ${CONFIG_FILES} config/
+COPY ${ENTRYPOINT} /app/app.sh
+RUN chmod +x /app/app.sh
+COPY ${WAR_FILE} /app/app.war
+COPY ${CONFIG_FILES} /app/config/
 ENV PORT=8080 \
     TZ=UTC \
     PROFILES=default
+WORKDIR /app
 EXPOSE ${PORT}
 ENTRYPOINT ["app.sh"]
