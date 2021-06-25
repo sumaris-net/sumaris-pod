@@ -72,17 +72,20 @@ variables:
         reports:
             dotenv: ${ENV_FILE}
         expire_in: 60 minutes
-    only:
-        - develop
 
 build:
     extends: .build
     image: ${CI_BUILD_IMAGE}
+    only:
+        - develop
+        - feature/imagine
 
 failsafe-build:
     extends: .build
     stage: alt_build
     when: on_failure
+    only:
+        - develop
 
 docker:ci:
     extends: .docker
@@ -106,6 +109,8 @@ docker:ci:
         # Build and push the CI image
         - docker build --pull -t ${CI_BUILD_IMAGE} .
         - docker push ${CI_BUILD_IMAGE}
+    only:
+        - develop
     artifacts:
         paths:
             - target/ci/Dockerfile
@@ -257,8 +262,13 @@ docker:develop:
         IMAGE_TAG: develop
     only:
         - develop
-    # TODO: uncomment
-    #when: manual
+
+docker:imagine:
+    extends: .docker-build
+    variables:
+        IMAGE_TAG: imagine
+    only:
+        - feature/imagine
 
 docker:release:
     extends: .docker-build
