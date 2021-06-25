@@ -236,11 +236,11 @@ gitlab-release:
     script:
         # Create the target directory
         - mkdir -p target/docker/config
+        - cp -rf ${APP_WAR_MODULE}/src/main/docker/* target/docker/
+        - cp -f ${ARTIFACT_WAR_FILE} target/docker/app.war
+        - cp -f ${ARTIFACT_CONFIG_FILES} target/docker/config/
+        - ls -l target/docker/config
         - cd target/docker
-        - cp -rf ${APP_WAR_MODULE}/src/main/docker/* .
-        - cp -f ${ARTIFACT_WAR_FILE} app.war
-        - cp -f ${ARTIFACT_CONFIG_FILES} ./config/
-        - ls -l ./config
         # Build docker image
         - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
         - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} .

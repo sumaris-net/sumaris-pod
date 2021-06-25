@@ -11,4 +11,4 @@ ENV PORT=8080 \
     TZ=UTC \
     PROFILES=default
 EXPOSE ${PORT}
-ENTRYPOINT ["app.sh"]
+ENTRYPOINT ["/app/app.sh"]
