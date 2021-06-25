@@ -1,5 +1,8 @@
 #!/bin/bash
-BASEDIR=/app
+
+SCRIPT_DIR=$(dirname $0)
+BASEDIR=$(cd "${SCRIPT_DIR}" && pwd -P)
+
 JAVA_OPTS="-Dsumaris.basedir=${BASEDIR}"
 JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${BASEDIR}/config/"
 JAVA_OPTS="$JAVA_OPTS -Doracle.net.tns_admin=/home/tnsnames"

@@ -287,7 +287,8 @@ docker:develop:
         IMAGE_TAG: develop
     only:
         - develop
-    when: manual
+    # TODO: uncomment
+    #when: manual
 
 docker:release:
     extends: .docker-build
