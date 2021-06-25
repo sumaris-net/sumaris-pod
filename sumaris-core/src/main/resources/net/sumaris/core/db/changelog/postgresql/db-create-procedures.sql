@@ -159,9 +159,9 @@ BEGIN
     decLatitude := FLOOR((absLat - intLatitude) * 60 / square_size);
     --SET resultLatitude = LPAD(intLatitude, 2, '0');
     IF(square_size >= 10) THEN
-        resultLatitude := CONCAT(LPAD(intLatitude, 2, '0'), decLatitude);
+        resultLatitude := CONCAT(LPAD(intLatitude::VARCHAR, 2, '0'), decLatitude);
     ELSE
-        resultLatitude := CONCAT(LPAD(intLatitude, 2, '0'), LPAD(decLatitude, 2, '0'));
+        resultLatitude := CONCAT(LPAD(intLatitude::VARCHAR, 2, '0'), LPAD(decLatitude::VARCHAR, 2, '0'));
     END IF;
 
     -- Longitude
@@ -169,9 +169,9 @@ BEGIN
     intLongitude := FLOOR(absLon);
     decLongitude := FLOOR((absLon - intLongitude) * 60 / square_size);
     IF(square_size >= 10) THEN
-        resultLongitude := CONCAT(LPAD(intLongitude, 3, '0'), decLongitude);
+        resultLongitude := CONCAT(LPAD(intLongitude::VARCHAR, 3, '0'), decLongitude);
     ELSE
-        resultLongitude := CONCAT(LPAD(intLongitude, 3, '0'), LPAD(decLongitude, 2, '0'));
+        resultLongitude := CONCAT(LPAD(intLongitude::VARCHAR, 3, '0'), LPAD(decLongitude::VARCHAR, 2, '0'));
     END IF;
 
     RETURN CONCAT(quadrant, resultLatitude, resultLongitude);

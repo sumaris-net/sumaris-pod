@@ -1757,6 +1757,7 @@ public class Daos {
             case oracle:
                 return String.format("ORA_HASH(%s)", expr);
             case hsqldb:
+            case postgresql:
                 return String.format("F_HASH_CODE(%s)", expr);
             default:
                     throw new SumarisTechnicalException("Daos.getSelectHashCodeString() not implemented for DBMS: " + databaseType.name());

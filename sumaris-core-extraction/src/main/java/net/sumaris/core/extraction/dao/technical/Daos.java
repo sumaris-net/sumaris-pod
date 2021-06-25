@@ -146,7 +146,7 @@ public class Daos extends net.sumaris.core.dao.technical.Daos {
      * @param columnNamesMapping
      * @return
      */
-    public static String sqlReplaceColumnNames(String sqlQuery, Map<String, String> columnNamesMapping) {
+    public static String sqlReplaceColumnNames(String sqlQuery, Map<String, String> columnNamesMapping, Boolean lowercase) {
         if (MapUtils.isEmpty(columnNamesMapping)) return sqlQuery; // Skip
 
         sqlQuery = sqlQuery.toUpperCase();
@@ -161,6 +161,20 @@ public class Daos extends net.sumaris.core.dao.technical.Daos {
                     "$1" + targetColumnName + "$2");
         }
 
+        // for postgresql, lowercase queries are needed.
+        if (lowercase){
+            sqlQuery = sqlQuery.toLowerCase();
+        }
         return sqlQuery;
+    }
+
+    /**
+     * Do column names replacement, but escape sql keyword (e.g. 'DATE' replacement will keep TO_DATE(...) unchanged)
+     * @param sqlQuery
+     * @param columnNamesMapping
+     * @return
+     */
+    public static String sqlReplaceColumnNames(String sqlQuery, Map<String, String> columnNamesMapping) {
+        return sqlReplaceColumnNames(sqlQuery, columnNamesMapping, false);
     }
 }

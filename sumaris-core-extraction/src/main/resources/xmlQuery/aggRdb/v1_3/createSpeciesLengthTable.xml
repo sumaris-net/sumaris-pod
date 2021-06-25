@@ -24,7 +24,7 @@
 
   <query type="create" temp="false" table="&amp;speciesLengthTableName">
 
-    <select alias="RECORD_TYPE" type="text">'HL'</select>
+    <select alias="RECORD_TYPE" type="text">UPPER('HL')</select>
 
     <!-- PK inherited from HH -->
     <select alias="SAMPLING_TYPE" type="text">SL.SAMPLING_TYPE</select>
@@ -63,13 +63,13 @@
 
     <from alias="SL" >&amp;speciesListTableName</from>
 
-    <from group="hsqldb-hasId"><![CDATA[
+    <from group="hsqldb-hasId,pgsql-hasId"><![CDATA[
       UNNEST(SL.IDS) WITH ORDINALITY COORDS(SL_ID, POS)
         INNER JOIN &speciesLengthMapTableName SL2HL on SL2HL.SL_ID = SL_ID
         INNER JOIN &rawSpeciesLengthTableName HL on HL.ID = SL2HL.HL_ID
     ]]></from>
 
-    <from group="hsqldb-hasSampleIds"><![CDATA[
+    <from group="hsqldb-hasSampleIds,pgsql-hasSampleIds"><![CDATA[
       UNNEST(SL.SAMPLE_IDS) WITH ORDINALITY COORDS(SAMPLE_ID, POS)
         INNER JOIN &rawSpeciesLengthTableName HL on HL.SAMPLE_ID = SAMPLE_ID
     ]]></from>

@@ -198,6 +198,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         xmlQuery.setGroup("gearType", stationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
 
         xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
+        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
         xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
 
         return xmlQuery;
@@ -264,6 +265,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         xmlQuery.setGroup("gearType", stationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
 
         xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
+        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
         xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
 
         return xmlQuery;
