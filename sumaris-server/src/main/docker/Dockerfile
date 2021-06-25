@@ -1,4 +1,4 @@
-FROM openjdk:8-jdk-alpine
+FROM openjdk:8-jdk
 ARG WAR_FILE=app.war
 ARG CONFIG_FILES=config/*.properties
 RUN apt update && apt -y install libsodium-dev
