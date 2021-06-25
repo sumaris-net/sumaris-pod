@@ -107,15 +107,30 @@
           <ion-label color="danger" class="error" [innerHTML]="landingsTable?.error|translate"></ion-label>
         </ion-item>
 
-        <app-landings-table #landingsTable
-                            [debug]="debug"
-                            [programLabel]="$programLabel|async"
-                            [showObserversColumn]="false"
-                            [showDateTimeColumn]="false"
-                            (onOpenRow)="onOpenLanding($event)"
-                            (onNewRow)="onNewLanding($event)"
-                            (onNewTrip)="onNewTrip($event)">
-        </app-landings-table>
+        <ng-container [ngSwitch]="landingEditor">
+
+          <app-editable-landings-table #editableLandingsTable *ngSwitchCase="'trip'"
+                                       [debug]="debug"
+                                       [programLabel]="$programLabel|async"
+                                       [showObserversColumn]="false"
+                                       [showDateTimeColumn]="false"
+                                       (onOpenRow)="onOpenLanding($event)"
+                                       (onNewRow)="onNewLanding($event)"
+                                       (onNewTrip)="onNewTrip($event)">
+          </app-editable-landings-table>
+
+          <app-landings-table #notEditableLandingsTable *ngSwitchDefault
+                              [debug]="debug"
+                              [programLabel]="$programLabel|async"
+                              [showObserversColumn]="false"
+                              [showDateTimeColumn]="false"
+                              (onOpenRow)="onOpenLanding($event)"
+                              (onNewRow)="onNewLanding($event)"
+                              (onNewTrip)="onNewTrip($event)">
+          </app-landings-table>
+
+        </ng-container>
+
       </div>
 
       <div class="ion-no-padding" *ngIf="aggregatedLandings">

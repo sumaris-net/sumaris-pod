@@ -8,12 +8,16 @@ import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
 export class SampleFilter extends DataEntityFilter<SampleFilter, Sample> {
   operationId?: number;
   landingId?: number;
+  observedLocationId?: number;
+  observedLocationIds?: number[];
   parent?: Sample;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.operationId = source.operationId;
     this.landingId = source.landingId;
+    this.observedLocationId = source.observedLocationId;
+    this.observedLocationIds = source.observedLocationIds;
     this.parent = source.parent;
   }
 

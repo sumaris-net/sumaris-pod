@@ -4,7 +4,7 @@ import {MeasurementModelValues, MeasurementValuesUtils} from './measurement.mode
 import {Sample} from './sample.model';
 import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
 import {IWithObserversEntity} from '@app/data/services/model/model.utils';
-import {EntityClass, fromDateISOString, Person, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils, toDateISOString} from '@sumaris-net/ngx-components';
+import {EntityClass, fromDateISOString, Person, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils, toDateISOString, toNumber} from '@sumaris-net/ngx-components';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 /**
@@ -25,6 +25,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
   observedLocationId: number = null;
   observers: Person[] = null;
   samples: Sample[] = null;
+  samplesCount?: number = null;
 
   constructor() {
     super(Landing.TYPENAME);
@@ -61,6 +62,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
 
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
+    this.samplesCount = toNumber(source.samplesCount, this.samples?.length);
   }
 
   equals(other: Landing): boolean {

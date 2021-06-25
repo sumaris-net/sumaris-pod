@@ -95,6 +95,7 @@ export const LandingFragments = {
       ...LightPersonFragment
     }
     measurementValues
+    samplesCount
   }
   ${Fragments.location}
   ${Fragments.lightDepartment}
@@ -138,6 +139,7 @@ export const LandingFragments = {
     samples {
       ...SampleFragment
     }
+    samplesCount
   }`
 };
 

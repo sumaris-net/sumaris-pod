@@ -12,7 +12,8 @@ import {
   fadeInOutAnimation,
   firstNotNilPromise,
   firstTruePromise,
-  HistoryPageReference, isInstanceOf,
+  HistoryPageReference,
+  isInstanceOf,
   isNil,
   isNotNil,
   PlatformService,
@@ -29,6 +30,7 @@ import {LandingEditor, ProgramProperties} from '../../referential/services/confi
 import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
 import {BehaviorSubject} from 'rxjs';
 import {filter, first, tap} from 'rxjs/operators';
+import {EditableLandingsTable} from '../landing/editable-landings.table';
 import {AggregatedLandingsTable} from '../aggregated-landing/aggregated-landings.table';
 import {Program} from '../../referential/services/model/program.model';
 import {ObservedLocationsPageSettingsEnum} from './observed-locations.page';
@@ -66,18 +68,29 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   observedLocationNewName = '';
   showQualityForm = false;
   showRecorder = true;
+  landingEditor: LandingEditor = undefined;
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
-  @ViewChild('landingsTable') landingsTable: LandingsTable;
+  // TODO BLA landingsTable must be an EditableLandingsTable for ObsDeb
+  @ViewChild('notEditableLandingsTable') notEditableLandingsTable: LandingsTable;
+  @ViewChild('editableLandingsTable') editableLandingsTable: EditableLandingsTable;
   @ViewChild('aggregatedLandingsTable') aggregatedLandingsTable: AggregatedLandingsTable;
 
-  get landingEditor(): LandingEditor {
+  get landingsTable(): LandingsTable {
+    return this.landingEditor === 'trip' ? this.editableLandingsTable : this.notEditableLandingsTable;
+  }
+
+  /*get landingEditor(): LandingEditor {
     return this.landingsTable ? this.landingsTable.detailEditor : undefined;
   }
 
   set landingEditor(value: LandingEditor) {
     if (this.landingsTable) this.landingsTable.detailEditor = value;
   }
+
+  get isEditableLandingTable(): boolean {
+    return this.landingsTable ? this.landingsTable.isEditable : false;
+  }*/
 
   constructor(
     injector: Injector,
@@ -133,19 +146,21 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nContext.suffix = i18nSuffix;
 
+    this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
+
     if (this.landingsTable) {
+      this.landingsTable.i18nColumnSuffix = i18nSuffix;
+      this.landingsTable.detailEditor = this.landingEditor;
+
       this.landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
       this.landingsTable.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
       this.landingsTable.showObserversColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
       this.landingsTable.showCreationDateColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE);
       this.landingsTable.showRecorderPersonColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
       this.landingsTable.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
-      this.landingsTable.showLocationColumn =  program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
-      this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
-
-      this.landingsTable.i18nColumnSuffix = i18nSuffix;
+      this.landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
+      this.landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
     } else if (this.aggregatedLandingsTable) {
-
       this.aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
       this.aggregatedLandingsTable.program = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
     }

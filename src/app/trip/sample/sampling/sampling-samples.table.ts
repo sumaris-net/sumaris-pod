@@ -17,6 +17,7 @@ import {TaxonUtils} from "../../../referential/services/model/taxon.model";
 import {SamplingStrategyService} from "../../../referential/services/sampling-strategy.service";
 import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
 import {isInstanceOf}  from "@sumaris-net/ngx-components";
+import {StrategyService} from '@app/referential/services/strategy.service';
 
 const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label'];
 const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -68,6 +69,7 @@ export class SamplingSamplesTable extends SamplesTable {
     protected injector: Injector,
     protected programRefService: ProgramRefService,
     protected pmfmService: PmfmService,
+    protected strategyService: StrategyService,
     protected samplingStrategyService: SamplingStrategyService
   ) {
     super(injector,
@@ -135,17 +137,19 @@ export class SamplingSamplesTable extends SamplesTable {
 
   /* -- protected methods -- */
 
-  private computeSampleLabel(data: Sample) {
+  private async computeSampleLabel(data: Sample) {
 
-    // Generate label if age in pmfm strategies and rubinCode computable (locationDDMMYYrubinXXXX)
-    const groupAge = this.$pmfmGroupColumns.getValue().find(c => c.label === 'AGE');
-    const locationPart = this.defaultLocation && this.defaultLocation.label;
-    const datePart = this.defaultSampleDate && this.defaultSampleDate.format("DDMMYY");
-    const rubinCodePart = this.defaultTaxonName && TaxonUtils.rubinCode(this.defaultTaxonName.name);
+    // Generate label with strategyLabel and computed increment
+    const strategyLabel = this.$strategyLabel.getValue();
     const rankPart = data.rankOrder && data.rankOrder.toString().padStart(4, "0");
 
-    if (groupAge && locationPart && datePart && rubinCodePart && rankPart) {
-      data.label = `${locationPart}${datePart}${rubinCodePart}${rankPart}`;
+    if (strategyLabel && rankPart) {
+      data.label = `${strategyLabel}-${rankPart}`;
+      console.debug("[sample-table] Generated label: ", data.label);
+    }
+
+    if (strategyLabel) {
+      data.label = await this.strategyService.computeNextSampleLabel(strategyLabel, 4);
       console.debug("[sample-table] Generated label: ", data.label);
     }
   }

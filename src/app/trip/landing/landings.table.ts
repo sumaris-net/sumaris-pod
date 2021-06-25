@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 
 import {isInstanceOf, isNotNil, referentialToString, StatusIds} from '@sumaris-net/ngx-components';
@@ -7,7 +7,6 @@ import {AppMeasurementsTable} from '../measurement/measurements.table.class';
 import {AcquisitionLevelCodes, LocationLevelIds} from '../../referential/services/model/model.enum';
 import {VesselSnapshotService} from '../../referential/services/vessel-snapshot.service';
 import {Moment} from 'moment';
-import {LandingValidatorService} from '../services/validator/landing.validator';
 import {Trip} from '../services/model/trip.model';
 import {ObservedLocation} from '../services/model/observed-location.model';
 import {Landing} from '../services/model/landing.model';
@@ -17,7 +16,7 @@ import {ReferentialRefService} from '../../referential/services/referential-ref.
 import {environment} from '../../../environments/environment';
 import {LandingFilter} from '../services/filter/landing.filter';
 
-export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson'];
+export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson', 'samplesCount'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
@@ -27,7 +26,7 @@ const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
   templateUrl: 'landings.table.html',
   styleUrls: ['landings.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: LandingValidatorService}
+    {provide: ValidatorService, useValue: null}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -74,6 +73,10 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   get isTripDetailEditor(): boolean {
     return this._detailEditor === 'trip';
+  }
+
+  get isEditable(): boolean {
+    return this.inlineEdition;
   }
 
   @Input()
@@ -154,6 +157,15 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   get showVesselBasePortLocationColumn(): boolean {
     return this.getShowColumn('vesselBasePortLocation');
+  }
+
+  @Input()
+  set showSamplesCountColumn(value: boolean) {
+    this.setShowColumn('samplesCount', value);
+  }
+
+  get showSamplesCountColumn(): boolean {
+    return this.getShowColumn('samplesCount');
   }
 
   constructor(

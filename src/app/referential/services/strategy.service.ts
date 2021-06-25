@@ -84,6 +84,12 @@ const FindStrategyNextLabel: any = gql`
   }
 `;
 
+const FindStrategyNextSampleLabel: any = gql`
+  query StrategyNextSampleLabelQuery($strategyLabel: String, $nbDigit: Int){
+    strategyNextSampleLabel(strategyLabel: $strategyLabel, nbDigit: $nbDigit)
+  }
+`;
+
 const LoadAllAnalyticReferencesQuery: any = gql`
   query AnalyticReferencesQuery($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     data: analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -240,6 +246,21 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       fetchPolicy: 'network-only'
     });
     return res && res.strategyNextLabel;
+  }
+
+  async computeNextSampleLabel(strategyLabel: string, nbDigit?: number): Promise<string> {
+    if (this._debug) console.debug(`[strategy-service] Loading strategy next sample label...`);
+
+    const res = await this.graphql.query<{ strategyNextSampleLabel: string }>({
+      query: FindStrategyNextSampleLabel,
+      variables: {
+        strategyLabel: strategyLabel,
+        nbDigit: nbDigit
+      },
+      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR"},
+      fetchPolicy: 'network-only'
+    });
+    return res && res.strategyNextSampleLabel;
   }
 
   async loadAllAnalyticReferences(

@@ -32,7 +32,7 @@ import {
 import {PmfmStrategy} from '../../services/model/pmfm-strategy.model';
 import {Program} from '../../services/model/program.model';
 import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from '../../services/model/strategy.model';
-import {TaxonNameRef} from '../../services/model/taxon.model';
+import {TaxonNameRef, TaxonUtils} from '../../services/model/taxon.model';
 import {ReferentialRefService} from '../../services/referential-ref.service';
 import {StrategyService} from '../../services/strategy.service';
 import {StrategyValidatorService} from '../../services/validator/strategy.validator';
@@ -302,6 +302,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     // register year field changes
     this.registerSubscription(this.form.get('year').valueChanges.subscribe(date => this.onDateChange(date)));
+    this.registerSubscription(this.taxonNamesFormArray.valueChanges.subscribe(() => this.onTaxonChange()));
     this.taxonNamesFormArray.valueChanges.subscribe(res => this.loadFilteredPmfm());
 
     const idControl = this.form.get('id');
@@ -547,6 +548,15 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    */
   selectMask(input: HTMLInputElement) {
     if (!this.labelMask) input.select();
+/*
+    let labelMaskArray: Array<any>;
+    labelMaskArray = this.labelMask.slice(0, 3);
+    const taxonNameArray = this.labelMask[3].split('');
+    labelMaskArray.concat(taxonNameArray);
+    // this.labelMask[3].split('');
+    // Array.from(this.labelMask[3], x => labelMaskArray.concat(x));
+    labelMaskArray.concat(this.labelMask.slice(-4));
+*/
     const startIndex = this.labelMask.findIndex(c => c instanceof RegExp);
     let endIndex = this.labelMask.slice(startIndex).findIndex(c => !(c instanceof RegExp), startIndex);
     endIndex = (endIndex === -1)
@@ -869,32 +879,43 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   protected async onDateChange(date?: Moment) {
     date = fromDateISOString(date || this.form.get('year').value);
-
     if (!date || !this.program) return; // Skip if date or program are missing
+
+    const finalMaskYear = date.format('YY');
+    return await this.onDateOrTaxonChange(finalMaskYear);
+  }
+
+  protected async onTaxonChange() {
+    if (!this.program) return; // Skip if program is missing
+
+    const finalMaskYear = this.form.get('year').value.format('YY');
+    return await this.onDateOrTaxonChange(finalMaskYear);
+  }
+
+  protected async onDateOrTaxonChange(finalMaskYear: any) {
+    let finalMaskTaxonName;
+    const taxonNameControl = this.taxonNamesFormArray.value[0];
+    if (taxonNameControl && taxonNameControl.taxonName?.name) {
+      finalMaskTaxonName = [...TaxonUtils.rubinCode(taxonNameControl.taxonName.name)];
+    } else {
+      finalMaskTaxonName = ["X", "X", "X", "X", "X", "X", "X"];
+    }
+
+    let labelMaskArray = finalMaskYear.split("");
+    labelMaskArray = labelMaskArray.concat(['-']);
+    labelMaskArray = labelMaskArray.concat(finalMaskTaxonName);
+    // @ts-ignore
+    labelMaskArray = labelMaskArray.concat(['-', /\d/, /\d/, /\d/]);
+    this.labelMask = labelMaskArray;
+
+    const finalMaskTaxonNameString = finalMaskTaxonName.join("");
+    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear}-${finalMaskTaxonNameString}-`, 3));
+    console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
 
     const labelControl = this.form.get('label');
 
-    //update mask
-    const year = date.year().toString();
-    this.labelMask = [...year.split(''), '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
-
-    // get new label sample row code
-    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${year}-BIO-`, 4));
-    console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
-
-    const label = labelControl.value;
-    if (isNil(label)) {
-      labelControl.setValue(computedLabel);
-    } else {
-      const oldYear = label.split('-').shift();
-      // Update the label, if year change
-      if (year && oldYear && year !== oldYear) {
-        labelControl.setValue(computedLabel);
-        this.markAsDirty();
-      } else {
-        labelControl.setValue(label);
-      }
-    }
+    labelControl.setValue(computedLabel);
+    this.markAsDirty();
   }
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------

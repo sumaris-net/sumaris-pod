@@ -52,7 +52,7 @@ export abstract class BaseReferentialFilter<
     this.levelIds = source.levelIds;
     this.levelLabel = source.levelLabel;
     this.levelLabels = source.levelLabels;
-    this.searchJoin = source.searchAttribute;
+    this.searchJoin = source.searchJoin;
     this.searchText = source.searchText;
     this.searchAttribute = source.searchAttribute;
     this.includedIds = source.includedIds;
