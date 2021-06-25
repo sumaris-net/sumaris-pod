@@ -31,7 +31,8 @@ import {
   Department,
   EntitiesStorageTypePolicies,
   FormFieldDefinitionMap,
-  LocalSettings, SharedModule,
+  LocalSettings,
+  SharedModule,
   SocialModule,
   TestingPage
 } from '@sumaris-net/ngx-components';
@@ -69,7 +70,6 @@ import {AppCoreModule} from '@app/core/core.module';
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
-    //NoopAnimationsModule,
     HttpClientModule,
     IonicModule.forRoot(),
     CacheModule.forRoot(),
@@ -214,7 +214,7 @@ import {AppCoreModule} from '@app/core/core.module';
           titleProperty: 'sumaris.trip.name'
         },
         {
-          title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
+          title: 'MENU.OCCASIONS', path: '/observations',
           matIcon: 'verified',
           profile: 'USER',
           ifProperty: 'sumaris.observedLocation.enable',
@@ -257,7 +257,7 @@ import {AppCoreModule} from '@app/core/core.module';
           ifProperty: 'sumaris.trip.enable',
           titleProperty: 'sumaris.trip.name'
         },
-        { title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
+        { title: 'MENU.OCCASIONS', path: '/observations',
           matIcon: 'verified',
           profile: 'USER',
           ifProperty: 'sumaris.observedLocation.enable',
