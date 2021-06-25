@@ -257,9 +257,10 @@ gitlab-release:
         - echo 'FROM openjdk:8-jdk-alpine' > Dockerfile
         - echo "ARG WAR_FILE=app.war" >> Dockerfile
         - echo "ARG CONFIG_FILES=config/*.properties" >> Dockerfile
+        - echo 'USER root:root' >> Dockerfile
         - echo 'RUN apt-get update && apt-get -y install libsodium-dev' >> Dockerfile
-        #- echo 'RUN addgroup -S spring && adduser -S spring -G spring' >> Dockerfile
-        #- echo 'USER spring:spring' >> Dockerfile
+        - echo 'RUN addgroup -S spring && adduser -S spring -G spring' >> Dockerfile
+        - echo 'USER spring:spring' >> Dockerfile
         - echo 'WORKDIR /app' >> Dockerfile
         - echo 'COPY app.sh app.sh' >> Dockerfile
         - echo 'RUN chmod +x app.sh' >> Dockerfile
@@ -272,8 +273,9 @@ gitlab-release:
         - echo 'EXPOSE ${PORT}' >> Dockerfile
         - echo 'ENTRYPOINT ["app.sh"]' >> Dockerfile
         # Build docker image
-        - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
-        - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} .
+        #- docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
+        #- docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} .
+        - docker build --no-cache -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} .
         - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
     artifacts:
         paths:
