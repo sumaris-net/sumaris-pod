@@ -254,10 +254,9 @@ gitlab-release:
         - echo 'ARGS=${@:2}' >> app.sh
         - echo 'java ${JAVA_OPTS} -server -jar ${BASEDIR}/app.war ${ARGS}' >> app.sh
         # Create the Dockerfile
-        - echo 'FROM openjdk:8-jdk-alpine' > Dockerfile
+        - echo 'FROM openjdk:11-jre' > Dockerfile
         - echo "ARG WAR_FILE=app.war" >> Dockerfile
         - echo "ARG CONFIG_FILES=config/*.properties" >> Dockerfile
-        - echo 'USER root:root' >> Dockerfile
         - echo 'RUN apt-get update && apt-get -y install libsodium-dev' >> Dockerfile
         - echo 'RUN addgroup -S spring && adduser -S spring -G spring' >> Dockerfile
         - echo 'USER spring:spring' >> Dockerfile
