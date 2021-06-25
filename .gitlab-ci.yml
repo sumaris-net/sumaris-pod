@@ -1,48 +1,124 @@
+# ---------------------------------------------------------------
+# Global
+# ---------------------------------------------------------------
+
+# default image
 image: jlrigau/maven-git
 
+# stages (main steps of pipeline)
 stages:
     - build
+    - alt_build
     - test
-    - docs
     - release
+    - docker
+    - docs
+
+# ---------------------------------------------------------------
+# Global variables
+# ---------------------------------------------------------------
+
+variables:
+    DOCKER_DRIVER: overlay2
+    ANSIBLE_FORCE_COLOR: '1'
+    CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
+    #CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:develop
+    MAVEN_LOCAL_REPO: /root/.m2/repository/
+    MAVEN_REPO_URL: https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
+    APP_CORE_MODULE: sumaris-core
+    APP_DB_MODULE: sumaris-db
+    APP_WAR_MODULE: sumaris-server
+    ARTIFACT_WAR_FILE: "${APP_WAR_MODULE}/target/*.war"
+    ARTIFACT_CONFIG_FILES: "${APP_WAR_MODULE}/target/classes/*.properties"
+    ENV_FILE: target/variables.env
+
+# ---------------------------------------------------------------
+# Jobs templates
+# ---------------------------------------------------------------
+
+.docker:
+    image: docker:latest
+    tags: [sih_public_runner]
+    services:
+        - docker:dind
+    before_script:
+        - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+    after_script:
+        - docker logout ${CI_REGISTRY}
+    allow_failure: false
+
+# ---------------------------------------------------------------
+# Build jobs
+# ---------------------------------------------------------------
 
 .build:
     stage: build
-    tags:
-        - sih_public_runner
+    tags: [sih_public_runner]
     script:
-        - echo "Test dev build in progress"
-        - mvn -s ./ci_settings.xml -q clean install -DskipTests
+        - echo "Building from sources..."
+        - mvn clean install -s ./ci_settings.xml -q -DskipTests
+    after_script:
+        # Get project version
+        - mkdir -p target
+        - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout --non-recursive)
+        - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
     environment:
         name: test
-
-build_auto:
-    extends: .build
-    only:
-        - develop
-        - feature/imagine
-    except:
-        - schedules
-
-schedule_build:
-    extends: .build
-    only:
-        - schedules
-
-build_registry:
-    extends: .build
-    after_script:
-        - echo "Deploy Snapshot in progress"
-        - SNAPSHOT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
-        - echo $SNAPSHOT_VERSION
-        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$SNAPSHOT_VERSION -Dfile=sumaris-server/target/sumaris-server-$SNAPSHOT_VERSION.war -DrepositoryId=job-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
-    only:
-        - develop
-        - feature/imagine
     artifacts:
         paths:
-            - sumaris-server/target/*.war
-    when: manual
+            - ${ARTIFACT_WAR_FILE}
+            - ${ARTIFACT_CONFIG_FILES}
+        reports:
+            dotenv: ${ENV_FILE}
+        expire_in: 60 minutes
+
+build:
+    extends: .build
+    image: ${CI_BUILD_IMAGE}
+    only:
+        - develop
+        - feature/imagine
+
+failsafe-build:
+    extends: .build
+    stage: alt_build
+    when: on_failure
+    only:
+        - develop
+
+docker:ci:
+    extends: .docker
+    stage: alt_build
+    when: on_failure
+    allow_failure: true
+    script:
+        # Create the target directory
+        - mkdir -p target/ci && cd target/ci
+        # Create the Dockerfile
+        - echo 'FROM jlrigau/maven-git' > Dockerfile
+        - echo 'WORKDIR /tmp/.build-cache' >> Dockerfile
+        - echo 'COPY ./ ./' >> Dockerfile
+        - echo "ENV MAVEN_LOCAL_REPO=${MAVEN_LOCAL_REPO}" >> Dockerfile
+        - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 1 | egrep -v "^\.$"` > /tmp/before.txt' >> Dockerfile
+        - echo 'RUN mvn install -s ./ci_settings.xml -q -DskipTests' >> Dockerfile
+        - echo 'RUN mvn clean -s ./ci_settings.xml -q' >> Dockerfile
+        - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 1 | egrep -v "^\.$"` > /tmp/after.txt' >> Dockerfile
+        - echo "RUN diff /tmp/before.txt /tmp/after.txt || true" >> Dockerfile
+        - echo 'WORKDIR /build' >> Dockerfile
+        # Build and push the CI image
+        - docker build --pull -t ${CI_BUILD_IMAGE} .
+        - docker push ${CI_BUILD_IMAGE}
+    only:
+        - develop
+    artifacts:
+        paths:
+            - target/ci/Dockerfile
+        expire_in: 60 minutes
+
+# ---------------------------------------------------------------
+# Test jobs
+# ---------------------------------------------------------------
 
 sonarqube:
     stage: test
@@ -50,7 +126,7 @@ sonarqube:
         - sih_public_runner
     variables:
         SONAR_TOKEN: "e6f816eee72d3d5c03319ec74b468157b9164d12"
-        SONAR_HOST_URL: "http://visi-common-sonar.ifremer.fr:9000"
+        SONAR_HOST_URL: http://visi-common-sonar.ifremer.fr:9000
     image:
         name: sonarsource/sonar-scanner-cli:latest
         entrypoint: [""]
@@ -65,60 +141,81 @@ sonarqube:
             -Dsonar.java.libraries=.
     only:
         - develop
-        - feature/imagine
     when: manual
 
+# ---------------------------------------------------------------
+# Deploy jobs
+# ---------------------------------------------------------------
 
-pages:
-    stage: docs
-    tags:
-        - sih_public_runner
-    image: python:3.7-alpine
-    script:
-        - mvn -s ./ci_settings.xml -q site
-    after_script:
-        - mv target/site public
-    artifacts:
-        paths:
-            - public
-    only:
-        - develop
-        - feature/imagine
-    when: manual
+#.deploy-file:
+#    stage: deploy
+#    tags: [sih_public_runner]
+#    script:
+#        - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
+#        - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout)
+#        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+#    only:
+#        - develop
+#
+#fast-deploy-file:
+#    extends: .deploy-file
+#    needs: [fast-build]
+#
+#failsafe-deploy-file:
+#    extends: .deploy-file
+#    needs: [failsafe-build]
 
+# ---------------------------------------------------------------
+# Release jobs
+# ---------------------------------------------------------------
 
-release:
+.release:
     stage: release
-    tags:
-        - sih_public_runner
+    tags: [sih_public_runner]
     before_script:
-        - git checkout -B "$CI_BUILD_REF_NAME"
+        - git remote set-url origin ${CI_REPOSITORY_URL}
         - git config --global user.email "${GITLAB_USER_EMAIL}"
         - git config --global user.name "${GITLAB_USER_NAME}"
-        - echo "RELEASE_VERSION=${RELEASE_VERSION}" >> variables.env
-        - test "_" = "_$RELEASE_VERSION" && echo "ERROR: missing Pipeline variable 'RELEASE_VERSION'" && exit 1
+        - git reset --hard develop
+        - git fetch origin
     script:
-        - echo "Preparing release"
+        - echo "Preparing release..."
+        - git branch -D release/$RELEASE_VERSION || true
+        - git pull origin develop && git checkout develop && git status
         - mvn -s ./ci_settings.xml -B gitflow:release-start --batch-mode -DreleaseVersion="$RELEASE_VERSION"
-        - echo "Performing release"
-        - mvn -s ./ci_settings.xml clean deploy --batch-mode -DperformRelease -DskipTests -Dspring.datasource.platform=hsqldb
-        - echo "Creating test DB"
-        - mvn -pl sumaris-core -Prun,hsqldb -DskipTests --batch-mode
-        - cd sumaris-core/target && zip -q -r "sumaris-db-$RELEASE_VERSION.zip" db && cd ../..
+        - echo "Performing release..."
+        - mvn clean install -s ./ci_settings.xml --batch-mode -DperformRelease -DskipTests
+        - echo "Creating test DB..."
+        - mvn -pl ${APP_CORE_MODULE} -q -Prun,hsqldb -DskipTests --batch-mode
+        - cd ${APP_CORE_MODULE}/target && tar -cf "${APP_DB_MODULE}-${RELEASE_VERSION}.tar.gz" db && cd ../..
         - echo "Pushing changes to upstream"
         - git commit -a -m "Release $RELEASE_VERSION"
         - git status
         - mvn gitflow:release-finish
+    after_script:
+        - echo "APP_VERSION=${RELEASE_VERSION}" > ${ENV_FILE}
     artifacts:
         paths:
-            - sumaris-core/target/*.zip
-            - sumaris-server/target/*.war
+            - ${ARTIFACT_WAR_FILE}
+            - ${ARTIFACT_CONFIG_FILES}
+            - ${APP_WAR_MODULE}/target/*.tar.gz
+            - ${APP_WAR_MODULE}/target/*.zip
         reports:
-            dotenv: variables.env
+            dotenv: ${ENV_FILE}
     only:
         - develop
-    allow_failure: false
     when: manual
+
+release:
+    extends: .release
+    image: ${CI_BUILD_IMAGE}
+    needs:
+        - build
+
+failsafe-release:
+    extends: .release
+    needs:
+        - failsafe-build
 
 gitlab-release:
     stage: release
@@ -127,10 +224,81 @@ gitlab-release:
     script:
         - echo "running release for ${CI_COMMIT_TAG}"
     release:
-        name: "Release sumaris-pod-$TAG"
+        name: "Release ${CI_PROJECT_NAME}-${CI_COMMIT_TAG}"
         description: "Created using the release-cli $EXTRA_DESCRIPTION"
         tag_name: "${CI_COMMIT_TAG}"
         ref: "${CI_COMMIT_TAG}"
     only:
         - tags
+
+# ---------------------------------------------------------------
+# Docker jobs
+# ---------------------------------------------------------------
+
+.docker-build:
+    extends: .docker
+    stage: docker
+    script:
+        # Create the target directory
+        - mkdir -p target/docker/config
+        - cp -rf ${APP_WAR_MODULE}/src/main/docker/* target/docker/
+        - cp -f ${ARTIFACT_WAR_FILE} target/docker/app.war
+        - cp -f ${ARTIFACT_CONFIG_FILES} target/docker/config/
+        - ls -l target/docker/config
+        - cd target/docker
+        # Build docker image
+        - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
+        - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} .
+        #- docker build --no-cache -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} .
+        - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
+    artifacts:
+        paths:
+            - target/docker
+        expire_in: 60 minutes
+
+docker:develop:
+    extends: .docker-build
+    variables:
+        IMAGE_TAG: develop
+    only:
+        - develop
+
+docker:imagine:
+    extends: .docker-build
+    variables:
+        IMAGE_TAG: imagine
+    only:
+        - feature/imagine
+
+docker:release:
+    extends: .docker-build
+    variables:
+        IMAGE_TAG: $CI_COMMIT_TAG
+    only:
+        - tags
+
+# ---------------------------------------------------------------
+# Docs jobs
+# ---------------------------------------------------------------
+
+pages:
+    stage: docs
+    tags: [sih_public_runner]
+    image: python:3.7-alpine
+    before_script:
+        - git submodule foreach git fetch origin
+        - git submodule foreach git pull
+    script:
+        - Echo "Generate SVG images"
+        - git submodule foreach ./generate.sh
+        - mvn -s ./ci_settings.xml site -q -Prun,hsqldb -DperformRelease
+    after_script:
+        - mv target/site public
+    artifacts:
+        paths:
+            - public
+    only:
+        - develop
+    when: manual
+
 

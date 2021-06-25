@@ -199,6 +199,10 @@ public class PersonRepositoryImpl
         if (CollectionUtils.isNotEmpty(source.getUserProfiles())) {
             List<String> profiles = source.getUserProfiles().stream()
                 .map(UserProfile::getLabel)
+                // Convert DB label into name of UserProfileEnum
+                .map(label -> UserProfileEnum.findByLabel(label).orElse(null))
+                .filter(Objects::nonNull)
+                .map(Enum::name)
                 .collect(Collectors.toList());
             target.setProfiles(profiles);
         }

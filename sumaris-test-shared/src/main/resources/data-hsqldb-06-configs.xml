@@ -38,7 +38,7 @@
 
     <SOFTWARE_PROPERTY ID="32" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:54"/>
     <SOFTWARE_PROPERTY ID="33" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="34" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.name" NAME="MENU.AUCTION_OCCASION"/>
+    <SOFTWARE_PROPERTY ID="34" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.name" NAME="MENU.AUCTION_OCCASIONS"/>
     <SOFTWARE_PROPERTY ID="35" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="36" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.testing.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="37" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enable" NAME="true"/>
@@ -83,7 +83,7 @@
     <SOFTWARE_PROPERTY ID="100" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="https://image.ifremer.fr/html/tmp/logo4_110.jpg"/>
     <SOFTWARE_PROPERTY ID="101" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="https://image.ifremer.fr/html/tmp/logo4.jpg"/>
     <SOFTWARE_PROPERTY ID="102" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="103" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.name" NAME="MENU.OCCASION"/>
+    <SOFTWARE_PROPERTY ID="103" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.name" NAME="MENU.OCCASIONS"/>
     <SOFTWARE_PROPERTY ID="104" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="https://image.ifremer.fr/data/00665/77740/md/31271.jpg"/>
     <SOFTWARE_PROPERTY ID="105" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="https://image.ifremer.fr/html/tmp/logo4_110.jpg"/>
     <SOFTWARE_PROPERTY ID="106" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enable" NAME="true"/>
@@ -94,6 +94,6 @@
     <SOFTWARE_PROPERTY ID="111" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.analyticReferences.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="112" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.new.name" NAME="OBSERVED_LOCATION.NEW.SAMPLING.TITLE"/>
     <SOFTWARE_PROPERTY ID="113" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="false"/>
-
+    <SOFTWARE_PROPERTY ID="114" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.menu.items" NAME="[{&#34;title&#34;: &#34;Lignes de plan&#34;, &#34;path&#34;: &#34;/referential/programs/40/strategies&#34;,&#34;after&#34;:&#34;MENU.OCCASIONS&#34;, &#34;icon&#34;: &#34;contract&#34;}]"/>
 
 </dataset>
