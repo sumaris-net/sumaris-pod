@@ -94,6 +94,9 @@ public interface StrategyService {
 	@Transactional(readOnly = true)
 	String computeNextLabelByProgramId(int programId, String labelPrefix, int nbDigit);
 
+	@Transactional(readOnly = true)
+	String computeNextSampleLabelByStrategy(String strategyLabel, String labelSeparator, int nbDigit);
+
 	StrategyVO save(StrategyVO source);
 
 	List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);

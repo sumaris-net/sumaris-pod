@@ -139,10 +139,14 @@ public class StrategyServiceImpl implements StrategyService {
 		return denormalizedPmfmStrategyRepository.findByFilter(filter, fetchOptions);
 	}
 
-
 	@Override
 	public String computeNextLabelByProgramId(int programId, String labelPrefix, int nbDigit) {
 		return strategyRepository.computeNextLabelByProgramId(programId, labelPrefix, nbDigit);
+	}
+
+	@Override
+	public String computeNextSampleLabelByStrategy(String strategyLabel, String labelSeparator, int nbDigit) {
+		return strategyRepository.computeNextSampleLabelByStrategy(strategyLabel, labelSeparator, nbDigit);
 	}
 
 	@Override

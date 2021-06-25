@@ -147,12 +147,21 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
 
 
     @Test
-    public void computeNextLabelByProgramId() {
+    public void computeNextLabel() {
+
+        // By programId
         String label = service.computeNextLabelByProgramId(40, "BIO", 0);
         Assert.assertEquals("BIO1", label);
 
-        label = service.computeNextLabelByProgramId(40, "2020-BIO-", 4);
-        Assert.assertEquals("2020-BIO-0003", label);
+        label = service.computeNextLabelByProgramId(40, "20-LEUCCIR-", 3);
+        Assert.assertEquals("20-LEUCCIR-003", label);
+
+        // By strategyLabel
+        label = service.computeNextSampleLabelByStrategy("BIO1", null, 0);
+        Assert.assertEquals("BIO11", label);
+
+        label = service.computeNextSampleLabelByStrategy("20-LEUCCIR-001", "-", 4);
+        Assert.assertEquals("20-LEUCCIR-001-0005", label);
     }
 
 
@@ -177,7 +186,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(1, strategies.size());
-            Assert.assertEquals("2020-BIO-0001", strategies.get(0).getLabel());
+            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
         }
 
         // Filter by reference taxon
@@ -187,8 +196,8 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
                 .build();
             List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
-            Assert.assertEquals(1, strategies.size());
-            Assert.assertEquals("2020-BIO-0001", strategies.get(0).getLabel());
+            Assert.assertEquals(2, strategies.size());
+            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
         }
 
         // Filter by department
@@ -199,7 +208,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(1, strategies.size());
-            Assert.assertEquals("2020-BIO-0001", strategies.get(0).getLabel());
+            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
         }
 
         // Filter by location
@@ -210,7 +219,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(1, strategies.size());
-            Assert.assertEquals("2020-BIO-0001", strategies.get(0).getLabel());
+            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
         }
 
         // Filter by pmfm
@@ -221,8 +230,8 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(2, strategies.size());
-            Assert.assertEquals("2020-BIO-0001", strategies.get(0).getLabel());
-            Assert.assertEquals("2020-BIO-0002", strategies.get(1).getLabel());
+            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
+            Assert.assertEquals("20-LEUCCIR-002", strategies.get(1).getLabel());
         }
 
         // Filter by periods
@@ -237,7 +246,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(1, strategies.size());
-            Assert.assertEquals("2020-BIO-0001", strategies.get(0).getLabel());
+            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
         }
     }
 }
