@@ -301,6 +301,17 @@ public class ProgramGraphQLService {
                 nbDigit == null ? 0 : nbDigit);
     }
 
+    @GraphQLQuery(name = "strategyNextSampleLabel", description = "Get next sample label for strategy")
+    @IsUser
+    public String findNextSampleLabelByStrategy(
+            @GraphQLNonNull @GraphQLArgument(name = "strategyLabel") @NonNull String strategyLabel,
+            @GraphQLArgument(name = "labelSeparator", defaultValue = "") String labelSeparator,
+            @GraphQLArgument(name = "nbDigit", defaultValue = "0") Integer nbDigit) {
+        return strategyService.computeNextSampleLabelByStrategy(strategyLabel,
+                labelSeparator == null ? "" : labelSeparator,
+                nbDigit == null ? 0 : nbDigit);
+    }
+
     @GraphQLSubscription(name = "updateProgram", description = "Subscribe to changes on a program")
     @IsUser
     public Publisher<ProgramVO> updateProgram(@GraphQLArgument(name = "id") final Integer id,

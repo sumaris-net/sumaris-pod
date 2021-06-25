@@ -246,6 +246,8 @@ public interface StrategySpecifications extends ReferentialSpecifications<Strate
 
     String computeNextLabelByProgramId(int programId, String labelPrefix, int nbDigit);
 
+    String computeNextSampleLabelByStrategy(String strategyLabel, String labelSeparator, int nbDigit);
+
     List<StrategyVO> findNewerByProgramId(final int programId, final Date updateDate, final StrategyFetchOptions fetchOptions);
 
     void saveProgramLocationsByStrategyId(int strategyId);
