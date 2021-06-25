@@ -1,18 +1,18 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Output, ViewChild} from '@angular/core';
 import {
   AppTable,
   DefaultStatusList,
   EntitiesTableDataSource,
-  fromDateISOString, isNil,
+  fromDateISOString, isEmptyArray,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
-  NetworkService,
-  PersonService, PersonUtils,
+  PersonService,
+  PersonUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SharedValidators,
-  StatusIds
+  StatusIds, toBoolean
 } from '@sumaris-net/ngx-components';
 import {Program} from '../../services/model/program.model';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -27,10 +27,13 @@ import {SamplingStrategy} from '../../services/model/sampling-strategy.model';
 import {SamplingStrategyService} from '../../services/sampling-strategy.service';
 import {StrategyFilter, StrategyService} from '../../services/strategy.service';
 import * as momentImported from 'moment';
-import {FormBuilder, FormGroup} from '@angular/forms';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {ParameterService} from '@app/referential/services/parameter.service';
 import {debounceTime, filter, tap} from 'rxjs/operators';
 import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
+import {MatExpansionPanel} from '@angular/material/expansion';
+import {TableElement} from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
+import {Subject} from 'rxjs';
 
 const moment = momentImported;
 
@@ -46,9 +49,6 @@ export const SamplingStrategiesPageSettingsEnum = {
   styleUrls: ['sampling-strategies.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-/**
- *
- */
 export class SamplingStrategiesTable extends AppTable<SamplingStrategy, StrategyFilter> {
 
   private _program: Program;
@@ -57,13 +57,16 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   statusList = DefaultStatusList;
   statusById: any;
   quarters = [1, 2, 3, 4];
-  pmfmIds = {};
+  readonly parameterGroupLabels: string[];
 
   filterForm: FormGroup;
   filterCriteriaCount = 0;
 
+  @Input() showToolbar = true;
   @Input() canEdit = false;
   @Input() canDelete = false;
+  @Input() showError = true;
+  @Input() showPaginator = true;
 
   @Input() set program(program: Program) {
    this.setProgram(program);
@@ -72,6 +75,10 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   get program(): Program {
     return this._program;
   }
+
+  @Output() onNewDataFromRow = new Subject<TableElement<SamplingStrategy>>()
+
+  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
     route: ActivatedRoute,
@@ -86,7 +93,6 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     protected personService: PersonService,
     protected strategyService: StrategyService,
     protected parameterService: ParameterService,
-    protected network: NetworkService,
     protected formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
   ) {
@@ -121,12 +127,11 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       null,
       injector);
 
-    Object.keys(ParameterLabelGroups).forEach(parameter => {
-      if (parameter !== 'ANALYTIC_REFERENCE') this.pmfmIds[parameter] = [null]
-    });
+    this.parameterGroupLabels = Object.keys(ParameterLabelGroups)
+      .filter(label => label !== 'ANALYTIC_REFERENCE');
 
     this.filterForm = formBuilder.group({
-      synchronizationStatus: [null],
+      levelId: [null, Validators.required], // the program id
       analyticReference: [null],
       department: [null, SharedValidators.entity],
       location: [null, SharedValidators.entity],
@@ -140,13 +145,18 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         effortQ3: [null],
         effortQ4: [null]
       }),
-      pmfmIds : formBuilder.group(this.pmfmIds)
+      parameterGroups : formBuilder.group(
+        this.parameterGroupLabels.reduce((controlConfig, label) => {
+          controlConfig[label] = [null];
+          return controlConfig;
+        }, {})
+      )
     });
 
     this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.'; // Can be overwrite by a program property - see setProgram()
     this.autoLoad = false; // waiting program to be loaded - see setProgram()
-    this.defaultSortBy = 'departureDateTime';
-    this.defaultSortDirection = 'desc';
+    this.defaultSortBy = 'label';
+    this.defaultSortDirection = 'asc';
     this.confirmBeforeDelete = true;
     this.inlineEdition = false;
 
@@ -215,9 +225,9 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         .pipe(
           debounceTime(250),
           filter((_) => this.filterForm.valid),
-          tap(value => {
-            const filter = this.asFilter(value);
-            this.filterCriteriaCount = filter.countNotEmptyCriteria();
+          tap(async (value) => {
+            const filter = await this.asFilter(value);
+            this.filterCriteriaCount = filter.countNotEmptyCriteria() - 1 /*levelId*/;
             this.markForCheck();
             // Update the filter, without reloading the content
             this.setFilter(filter, {emitEvent: false});
@@ -228,40 +238,36 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         )
         .subscribe());
 
-    // Load data, if program already set
-    if (this._program) {
-      console.error('[sampling-strategies] TODO: check if need to load filter');
-      //this.restoreFilterOrLoad(this._program.id);
-    }
   }
 
-  setPmfmIds(json) {
-    const pmfmIds = [];
-    if (json.pmfmIds) {
-      Object.keys(json.pmfmIds).forEach(parameter => {
-        if (json.pmfmIds[parameter]) {
-          this.parameterService.loadByLabel(parameter).then(parameter => {
-            pmfmIds.push(parameter && parameter.id);
-          })
-        }
-      });
-    }
-    return isNotEmptyArray(pmfmIds) ? pmfmIds : undefined;
+  async getParameterIds(parameterGroups: Map<string, boolean>): Promise<number[]> {
+
+    const parameters = await Promise.all(
+      Object.keys(parameterGroups || {})
+        // Keep only checked parameter group
+        .filter(label => parameterGroups[label])
+        // Then load corresponding parameter
+        .map(label => this.parameterService.loadByLabel(label)));
+
+    if (isEmptyArray(parameters)) return undefined
+
+    // Keep only parameter's ids
+    return parameters.map(p => p.id);
   }
 
-  setPeriods(json): any[] {
+  getPeriods(jsonFilter: any): any[] {
     const periods = [];
-    if (json.startDate && json.endDate && json.periods) {
-      const startYear = moment(new Date(json.startDate)).year();
-      const endYear = moment(json.endDate).year();
+    if (jsonFilter.startDate && jsonFilter.endDate && jsonFilter.periods) {
+      const startYear = moment(new Date(jsonFilter.startDate)).year();
+      const endYear = moment(jsonFilter.endDate).year();
       for (let i = startYear; i <= endYear; i++) {
         let y = 1;
-        Object.keys(json.periods).forEach(period => {
-          if (json.periods[period]) {
+        Object.keys(jsonFilter.periods).forEach(period => {
+          if (jsonFilter.periods[period]) {
             const startMonth = (y - 1) * 3 + 1;
             const startDate = fromDateISOString(`${i}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`).utc();
             const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
-            if ((startDate >= moment(json.startDate) && moment(json.endDate) >= startDate) && (endDate >= moment(json.startDate) && endDate <= moment(json.endDate))) {
+            if ((startDate >= moment(jsonFilter.startDate) && moment(jsonFilter.endDate) >= startDate) && (endDate >= moment(jsonFilter.startDate) && endDate <= moment(jsonFilter.endDate))) {
               periods.push({startDate, endDate});
             }
           }
@@ -270,7 +276,6 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       }
     }
     return isNotEmptyArray(periods) ? periods : undefined;
-
   }
 
   protected setProgram(program: Program) {
@@ -323,27 +328,46 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     this.error = null;
   }
 
-  async restoreFilterOrLoad(programId: number) {
-    this.markAsLoading();
+  applyFilterAndClosePanel(event?: UIEvent) {
+    this.onRefresh.emit(event);
+    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+  }
 
-    console.debug("[root-table] Restoring filter from settings...");
+  resetFilter(event?: UIEvent) {
+    this.filterForm.reset();
+    this.setFilter(null, {emitEvent: true});
+    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+  }
 
-    const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY);
+  onNewData(event: UIEvent, row: TableElement<SamplingStrategy>) {
 
-    const filter = this.asFilter({
-      ...json,
-      levelId: programId
-    });
-
-    this.filterForm.patchValue(filter.asObject());
-    this.setFilter(filter, {emitEvent: true});
   }
 
   /* -- protected methods -- */
 
-  protected asFilter(source?: any): StrategyFilter {
+  protected async restoreFilterOrLoad(programId: number) {
+    this.markAsLoading();
+
+    console.debug("[root-table] Restoring filter from settings...");
+
+    const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
+    json.levelId = programId;
+
+    const filter = await this.asFilter(json);
+
+    this.filterForm.patchValue(json);
+    this.setFilter(filter, {emitEvent: true});
+  }
+
+  protected async asFilter(source?: any): Promise<StrategyFilter> {
     source = source || this.filterForm.value;
-    return StrategyFilter.fromObject(source);
+
+    const filter = StrategyFilter.fromObject(source);
+
+    filter.periods = this.getPeriods(source);
+    filter.parameterIds = await this.getParameterIds(source.pmfmIds);
+
+    return filter;
   }
 }
 

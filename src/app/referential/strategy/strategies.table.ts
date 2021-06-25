@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ValidatorService} from '@e-is/ngx-material-table';
 import {StrategyValidatorService} from '../services/validator/strategy.validator';
 import {Strategy} from '../services/model/strategy.model';
@@ -9,6 +9,7 @@ import {ModalController, Platform} from '@ionic/angular';
 import {Location} from '@angular/common';
 import {Program} from '../services/model/program.model';
 import {environment} from '@environments/environment';
+import {MatExpansionPanel} from '@angular/material/expansion';
 
 
 @Component({
@@ -29,6 +30,8 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
 
   @Input() canEdit = false;
   @Input() canDelete = false;
+  @Input() showError = true;
+  @Input() showPaginator = true;
 
   @Input() set program(program: Program) {
     if (program && isNotNil(program.id) && this._program !== program) {
@@ -82,9 +85,9 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
       null,
       injector);
 
+    this.inlineEdition = false
     this.i18nColumnPrefix = 'REFERENTIAL.';
     this.autoLoad = false; // waiting parent to load
-
     this.confirmBeforeDelete = true;
 
     // Fill statusById
@@ -93,12 +96,6 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
 
     this.debug = !environment.production;
   }
-
-  ngOnInit() {
-    this.inlineEdition = toBoolean(this.inlineEdition, false);
-    super.ngOnInit();
-  }
-
 
   protected markForCheck() {
     this.cd.markForCheck();

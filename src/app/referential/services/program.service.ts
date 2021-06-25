@@ -16,7 +16,7 @@ import {
   LoadResult,
   NetworkService,
   PlatformService,
-  ReferentialAsObjectOptions,
+  ReferentialAsObjectOptions, ReferentialUtils,
   StatusIds
 } from '@sumaris-net/ngx-components';
 import {CacheService} from 'ionic-cache';
@@ -252,6 +252,12 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
   async deleteAll(entities: Program[], options?: any): Promise<any> {
     // Avoid any deletion (need more control, to check if there is linked data, etc.)
     throw new Error('Not implemented yet!');
+  }
+
+  canUserWrite(entity: Program) {
+    // TODO : check user is in program managers
+    return this.accountService.isAdmin()
+      || (ReferentialUtils.isNotEmpty(entity) && this.accountService.isSupervisor());
   }
 
   copyIdAndUpdateDate(source: Program, target: Program) {

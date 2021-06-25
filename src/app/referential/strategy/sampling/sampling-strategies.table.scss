@@ -1,19 +1,42 @@
+.table-container {
+
+  height: calc(100%);
+}
+
 .mat-table {
+  min-width: 100%;
+  --mat-cell-vertical-padding: 4px;
+
+  .mat-column-label {
+    min-width: 110px;
+  }
 
   .mat-column-effortQ1,
   .mat-column-effortQ2,
   .mat-column-effortQ3,
   .mat-column-effortQ4,
   .mat-column-comment {
-    max-width: 80px;
+    min-width: 80px;
+  }
+
+  .mat-column-recorderDepartments,
+  .mat-column-locations,
+  .mat-column-taxonNames {
+    min-width: 80px;
+    max-width: 100px;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
   }
 
   .mat-column-analyticReference {
-    max-width: 140px;
+    min-width: 140px;
   }
 
-  .mat-column-label {
-    max-width: 100px;
+  .mat-column-actions {
+    min-width: 40px;
+    width: 40px;
+    padding-inline-start: 0;
+    padding-inline-end: 0;
   }
 
   mat-header-cell.hidden,
