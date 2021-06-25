@@ -257,7 +257,7 @@ import {AppCoreModule} from '@app/core/core.module';
           ifProperty: 'sumaris.trip.enable',
           titleProperty: 'sumaris.trip.name'
         },
-        { title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
+        { title: 'MENU.OCCASIONS', path: '/observations',
           matIcon: 'verified',
           profile: 'USER',
           ifProperty: 'sumaris.observedLocation.enable',
