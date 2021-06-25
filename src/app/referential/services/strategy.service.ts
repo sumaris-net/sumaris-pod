@@ -20,7 +20,7 @@ import {
   PlatformService,
   Referential,
   ReferentialRef,
-  ReferentialUtils,
+  ReferentialUtils, StatusIds,
   toNumber
 } from '@sumaris-net/ngx-components';
 import {CacheService} from 'ionic-cache';
@@ -36,6 +36,7 @@ import {ProgramRefService} from './program-ref.service';
 import {StrategyRefService} from './strategy-ref.service';
 import {BaseReferentialFilter} from './filter/referential.filter';
 import {ReferentialRefFilter} from './filter/referential-ref.filter';
+import {SynchronizationStatus} from '@app/data/services/model/root-data-entity.model';
 
 
 @EntityClass()
@@ -43,17 +44,7 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
 
   static fromObject: (source: any, opts?: any) => StrategyFilter;
 
-  static asPodObject(source: any): any {
-    return source && StrategyFilter.fromObject(source).asPodObject();
-  }
-
-  static searchFilter(source: any): FilterFn<Strategy> {
-    return source && StrategyFilter.fromObject(source).asFilterFn();
-  }
-
-  //ODO Imagine: enable this, and override function asPodObject() and searchFilter()
   referenceTaxonIds?: number[];
-
   synchronizationStatus?: SynchronizationStatus;
   analyticReferences?: string;
   departmentIds?: number[];
@@ -65,37 +56,29 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
   fromObject(source: any) {
     super.fromObject(source);
     this.referenceTaxonIds = source.referenceTaxonIds;
+    this.synchronizationStatus = source.synchronizationStatus as SynchronizationStatus;
+    this.analyticReferences = source.analyticReferences;
+    this.departmentIds = source.departmentIds;
+    this.locationIds = source.locationIds;
+    this.parameterIds = source.parameterIds;
+    this.taxonIds = source.taxonIds;
+    this.periods = source.periods;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
-    target.referenceTaxonIds = this.referenceTaxonIds;
-    return target;
-  }
+    // TODO: check conversion is OK, when minify (for POD)
+    /*{
+      analyticReferences: json.analyticReferences,
+      departmentIds: isNotNil(json.department) ? [json.department.id] : undefined,
+      locationIds: isNotNil(json.location) ? [json.location.id] : undefined,
+      taxonIds: isNotNil(json.taxonName) ? [json.taxonName.id] : undefined,
+      periods : this.setPeriods(json),
+      parameterIds: this.setPmfmIds(json),
+      levelId: this.program.id,
+    }*/
 
-  /**
-   * TODO BLA: à reprendrefussioner dans asObject({minify: true})
-   */
-  static asPodObject<T extends ReferentialFilter = ReferentialFilter>(filter: StrategyFilter): any {
-    if (!filter) return filter;
-    return {
-      id: filter.id,
-      label: filter.label,
-      name: filter.name,
-      searchText: filter.searchText,
-      searchAttribute: filter.searchAttribute,
-      searchJoin: filter.searchJoin,
-      levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
-      levelLabels: isNotNil(filter.levelLabel) ? [filter.levelLabel] : filter.levelLabels,
-      statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE]),
-      includedIds: filter.includedIds,
-      excludedIds: filter.excludedIds,
-      analyticReferences: filter.analyticReferences,
-      departmentIds: filter.departmentIds,
-      locationIds: filter.locationIds,
-      parameterIds: filter.parameterIds,
-      periods: filter.periods
-    };
+    return target;
   }
 
   buildFilter(): FilterFn<Strategy>[] {
@@ -106,6 +89,8 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
       console.warn("TODO: filter local strategy by reference taxon IDs: ", this.referenceTaxonIds);
       //filterFns.push(t => (t.appliedStrategies...includes(entity.statusId));
     }
+
+    // TODO: any other attributes
 
     return filterFns;
   }

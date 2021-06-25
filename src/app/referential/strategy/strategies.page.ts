@@ -2,9 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ViewChild } from
 import { ActivatedRoute, Router } from "@angular/router";
 import { TableElement } from "@e-is/ngx-material-table/src/app/ngx-material-table/table-element";
 import { Subject } from "rxjs";
-import { AppTable } from "src/app/core/table/table.class";
-import { isNotNil } from "src/app/shared/functions";
-import { EntityServiceLoadOptions } from "src/app/shared/services/entity-service.class";
+import { AppTable, isNotNil, EntityServiceLoadOptions } from "@sumaris-net/ngx-components";
 import { ProgramProperties, StrategyEditor } from "../services/config/program.config";
 import { Program } from "../services/model/program.model";
 import { Strategy } from "../services/model/strategy.model";
@@ -19,9 +17,6 @@ import { StrategiesTable } from "./strategies.table";
   templateUrl: 'strategies.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-/**
- *
- */
 export class StrategiesPage {
 
   data: Program;
@@ -106,5 +101,4 @@ export class StrategiesPage {
   get loading(): boolean {
     return this.strategiesTable && this.strategiesTable.loading;
   }
-
 }

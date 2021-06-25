@@ -1,22 +1,36 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
-import {DefaultStatusList}  from "@sumaris-net/ngx-components";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
-import {Program} from "../../services/model/program.model";
-import {isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
-import {ActivatedRoute, Router} from "@angular/router";
-import {ModalController, Platform} from "@ionic/angular";
-import {Location} from "@angular/common";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
-import {LocationLevelIds, TaxonomicLevelIds} from "../../services/model/model.enum";
-import {ReferentialFilter} from "../../services/filter/referential.filter";
-import {ReferentialRefService} from "../../services/referential-ref.service";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {ProgramProperties} from "../../services/config/program.config";
-import {environment} from "../../../../environments/environment";
-import {SamplingStrategy} from "../../services/model/sampling-strategy.model";
-import {SamplingStrategyService} from "../../services/sampling-strategy.service";
-import {StrategyFilter} from "../../services/strategy.service";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from '@angular/core';
+import {
+  AppTable,
+  DefaultStatusList,
+  EntitiesTableDataSource,
+  fromDateISOString, isNil,
+  isNotEmptyArray,
+  isNotNil,
+  LocalSettingsService,
+  NetworkService,
+  PersonService, PersonUtils,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+  SharedValidators,
+  StatusIds
+} from '@sumaris-net/ngx-components';
+import {Program} from '../../services/model/program.model';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ModalController, Platform} from '@ionic/angular';
+import {Location} from '@angular/common';
+import {LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds} from '../../services/model/model.enum';
+import {ReferentialFilter} from '../../services/filter/referential.filter';
+import {ReferentialRefService} from '../../services/referential-ref.service';
+import {ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME} from '../../services/config/program.config';
+import {environment} from '@environments/environment';
+import {SamplingStrategy} from '../../services/model/sampling-strategy.model';
+import {SamplingStrategyService} from '../../services/sampling-strategy.service';
+import {StrategyFilter, StrategyService} from '../../services/strategy.service';
+import * as momentImported from 'moment';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {ParameterService} from '@app/referential/services/parameter.service';
+import {debounceTime, filter, tap} from 'rxjs/operators';
+import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
 
 const moment = momentImported;
 
@@ -39,16 +53,14 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
 
   private _program: Program;
   errorDetails: any;
-  protected network: NetworkService;
 
   statusList = DefaultStatusList;
   statusById: any;
   quarters = [1, 2, 3, 4];
   pmfmIds = {};
 
-  filterIsEmpty = true;
-
-  hasOfflineMode = false;
+  filterForm: FormGroup;
+  filterCriteriaCount = 0;
 
   @Input() canEdit = false;
   @Input() canDelete = false;
@@ -61,8 +73,6 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     return this._program;
   }
 
-  filterForm: FormGroup;
-
   constructor(
     route: ActivatedRoute,
     router: Router,
@@ -73,11 +83,12 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     injector: Injector,
     dataService: SamplingStrategyService,
     protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef,
-    protected formBuilder: FormBuilder,
     protected personService: PersonService,
     protected strategyService: StrategyService,
-    protected parameterService: ParameterService
+    protected parameterService: ParameterService,
+    protected network: NetworkService,
+    protected formBuilder: FormBuilder,
+    protected cd: ChangeDetectorRef
   ) {
     super(route,
       router,
@@ -110,8 +121,6 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       null,
       injector);
 
-    this.network = injector && injector.get(NetworkService);
-
     Object.keys(ParameterLabelGroups).forEach(parameter => {
       if (parameter !== 'ANALYTIC_REFERENCE') this.pmfmIds[parameter] = [null]
     });
@@ -126,24 +135,26 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       endDate: [null, SharedValidators.validDate],
       recorderPerson: [null, SharedValidators.entity],
       periods : formBuilder.group({
-          effortQ1: [null],
-          effortQ2: [null],
-          effortQ3: [null],
-          effortQ4: [null]
-        }),
+        effortQ1: [null],
+        effortQ2: [null],
+        effortQ3: [null],
+        effortQ4: [null]
+      }),
       pmfmIds : formBuilder.group(this.pmfmIds)
     });
 
-
     this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.'; // Can be overwrite by a program property - see setProgram()
-    this.autoLoad = false; // waiting parent to load
-
+    this.autoLoad = false; // waiting program to be loaded - see setProgram()
+    this.defaultSortBy = 'departureDateTime';
+    this.defaultSortDirection = 'desc';
     this.confirmBeforeDelete = true;
     this.inlineEdition = false;
 
-    this.debug = !environment.production;
+    // Will be override when getting program - see setProgram()
+    this.settingsId = SamplingStrategiesPageSettingsEnum.PAGE_ID + '#?';
 
-    this.settingsId = SamplingStrategiesPageSettingsEnum.PAGE_ID;
+    // FOR DEV ONLY ----
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -153,7 +164,6 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     this.selection.changed.subscribe(() => {
       this.error = null;
     });
-
 
     // Analytic reference autocomplete
     this.registerAutocompleteField('analyticReference', {
@@ -195,7 +205,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: personToString,
+      displayWith: PersonUtils.personToString,
       mobile: this.mobile
     });
 
@@ -204,29 +214,24 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       this.filterForm.valueChanges
         .pipe(
           debounceTime(250),
-          filter(() => this.filterForm.valid),
-          // Applying the filter
-          tap(json => this.setFilter({
-            synchronizationStatus: json.synchronizationStatus || undefined,
-            analyticReferences: json.analyticReferences,
-            departmentIds: isNotNil(json.department) ? [json.department.id] : undefined,
-            locationIds: isNotNil(json.location) ? [json.location.id] : undefined,
-            taxonIds: isNotNil(json.taxonName) ? [json.taxonName.id] : undefined,
-            periods : this.setPeriods(json),
-            parameterIds: this.setPmfmIds(json),
-            levelId: this.program.id,
-          }, {emitEvent: this.mobile || isNil(this.filter)})),
+          filter((_) => this.filterForm.valid),
+          tap(value => {
+            const filter = this.asFilter(value);
+            this.filterCriteriaCount = filter.countNotEmptyCriteria();
+            this.markForCheck();
+            // Update the filter, without reloading the content
+            this.setFilter(filter, {emitEvent: false});
+          }),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
           tap(json => this.settings.savePageSetting(this.settingsId, json, SamplingStrategiesPageSettingsEnum.FILTER_KEY))
         )
-    .subscribe());
-
-    this.restoreFilterOrLoad();
+        .subscribe());
 
     // Load data, if program already set
-    if (this._program && !this.autoLoad) {
-      this.onRefresh.emit();
+    if (this._program) {
+      console.error('[sampling-strategies] TODO: check if need to load filter');
+      //this.restoreFilterOrLoad(this._program.id);
     }
   }
 
@@ -248,7 +253,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     const periods = [];
     if (json.startDate && json.endDate && json.periods) {
       const startYear = moment(new Date(json.startDate)).year();
-      const endYear= moment(json.endDate).year();
+      const endYear = moment(json.endDate).year();
       for (let i = startYear; i <= endYear; i++) {
         let y = 1;
         Object.keys(json.periods).forEach(period => {
@@ -273,6 +278,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       console.debug('[strategy-table] Setting program:', program);
 
       this._program = program;
+      this.settingsId = SamplingStrategiesPageSettingsEnum.PAGE_ID + '#' + program.id;
 
       this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.';
 
@@ -280,10 +286,8 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
       this.i18nColumnPrefix += i18nSuffix !== 'legacy' && i18nSuffix || '';
 
-      this.setFilter(StrategyFilter.fromObject({
-        ...this.filter,
-        levelId: program.id
-      }));
+      // Restore filter from settings, or load all
+      this.restoreFilterOrLoad(program.id);
     }
   }
 
@@ -319,49 +323,27 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     this.error = null;
   }
 
-  protected isFilterEmpty = StrategyFilter.isEmpty;
+  async restoreFilterOrLoad(programId: number) {
+    this.markAsLoading();
 
-  async restoreFilterOrLoad() {
     console.debug("[root-table] Restoring filter from settings...");
-    const jsonFilter = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY);
 
-    const synchronizationStatus = jsonFilter && jsonFilter.synchronizationStatus;
-    const filter = jsonFilter && typeof jsonFilter === 'object' && {...jsonFilter, synchronizationStatus: undefined} || undefined;
+    const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY);
 
-    // this.hasOfflineMode = (synchronizationStatus && synchronizationStatus !== 'SYNC') ||
-    //   (await this.dataService.hasOfflineData());
+    const filter = this.asFilter({
+      ...json,
+      levelId: programId
+    });
 
-    // No default filter, nor synchronizationStatus
-    if (this.isFilterEmpty(filter) && !synchronizationStatus) {
-      // If offline data, show it (will refresh)
-      if (this.hasOfflineMode) {
-        this.filterForm.patchValue({
-          synchronizationStatus: 'DIRTY'
-        });
-      }
-      // No offline data: default load (online data)
-      else {
-        // To avoid a delay (caused by debounceTime in a previous pipe), to refresh content manually
-        this.onRefresh.emit();
-        // But set a empty filter, to avoid automatic apply of next filter changes (caused by condition '|| isNil()' in a previous pipe)
-        this.filterForm.patchValue({}, {emitEvent: false});
-      }
-    }
-    // Restore the filter (will apply it)
-    else {
-      // Force offline
-      if (this.network.offline && this.hasOfflineMode && synchronizationStatus === 'SYNC') {
-        this.filterForm.patchValue({
-          ...filter,
-          synchronizationStatus: 'DIRTY'
-        });
-      }
-      else {
-        this.filterForm.patchValue({...filter, synchronizationStatus});
-      }
-    }
+    this.filterForm.patchValue(filter.asObject());
+    this.setFilter(filter, {emitEvent: true});
   }
 
+  /* -- protected methods -- */
 
+  protected asFilter(source?: any): StrategyFilter {
+    source = source || this.filterForm.value;
+    return StrategyFilter.fromObject(source);
+  }
 }
 
