@@ -112,7 +112,6 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
       // Then fill content, using additional queries (effort, parameter groups, etc)
       .pipe(
         mergeMap(res => this.fillEntities(res, opts)
-          .then(() => res)
       ));
   }
 
