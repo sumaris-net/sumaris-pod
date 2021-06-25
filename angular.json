@@ -62,7 +62,7 @@
               },
               {
                 "glob": "**/*.*",
-                "input": "node_modules/material-design-icons-iconfont/dist",
+                "input": "node_modules/material-design-icons-iconfont/dist/fonts",
                 "output": "/"
               },
               {
