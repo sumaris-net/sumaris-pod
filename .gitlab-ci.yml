@@ -29,6 +29,8 @@ variables:
     MAVEN_REPO_URL: https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
     APP_CORE_MODULE: sumaris-core
     APP_DB_MODULE: sumaris-db
+    APP_SHARED_MODULE: sumaris-core-shared
+    APP_CORE_MODULE: sumaris-core
     APP_WAR_MODULE: sumaris-server
     ARTIFACT_WAR_FILE: "${APP_WAR_MODULE}/target/*.war"
     ARTIFACT_CONFIG_FILES: "${APP_WAR_MODULE}/target/classes/*.properties"
@@ -121,6 +123,34 @@ docker:ci:
 # ---------------------------------------------------------------
 # Test jobs
 # ---------------------------------------------------------------
+
+# ---------------------------------------------------------------
+# Build jobs
+# ---------------------------------------------------------------
+
+.test:
+    stage: test
+    tags: [sih_public_runner]
+    script:
+        - mvn verify surefire-report:report -s ./ci_settings.xml -q
+    environment:
+        name: test
+    artifacts:
+        paths:
+          - ${APP_SHARED_MODULE}/site/surefire-report.html
+          - ${APP_SHARED_MODULE}/target/surefire-reports/*
+          - ${ARTIFACT_CORE_MODULE}/site/surefire-report.html
+          - ${ARTIFACT_CORE_MODULE}/target/surefire-reports/*
+          - ${ARTIFACT_WAR_MODULE}/target/surefire-reports/*
+          - ${ARTIFACT_WAR_MODULE}/site/surefire-report.html
+        expire_in: 1 days
+
+test:
+    extends: .test
+    image: ${CI_BUILD_IMAGE}
+    only:
+        - develop
+    when: manual
 
 sonarqube:
     stage: test
