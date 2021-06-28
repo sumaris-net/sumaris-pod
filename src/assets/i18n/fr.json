@@ -868,7 +868,7 @@
       "STRATEGY": "Stratégie",
       "CREATION_DATE": "Date de création",
       "RECORDER_PERSON" : "Saisisseur",
-      "SAMPLES_COUNT": "Échantillonnages",
+      "SAMPLES_COUNT": "Nb. individus",
       "SAMPLING": {
         "STRATEGY_LABEL": "Ligne de plan"
       }
