@@ -49,8 +49,8 @@ variables:
   stage: build
   tags: [sih_public_runner]
   script:
-    # Update dependencies, then compile
-    - yarn
+    # Update dependencies
+    - . scripts/ci/check-same-deps.sh
     - yarn run build.${BUILD_ENVIRONMENT}
   after_script:
     # Remember version
@@ -78,7 +78,9 @@ failsafe-build:
   stage: alt_build
   when: on_failure
   before_script:
+    # Install global dependencies
     - yarn global add @ionic/cli @angular/cli
+    # Update project dependencies
     - yarn install
   only:
     - develop
@@ -107,6 +109,8 @@ docker:ci:
     - echo 'RUN du -s `find /tmp/.cache/yarn -maxdepth 1 | egrep -v "^\.$"` >> /tmp/after.txt' >> Dockerfile
     # Force docker to detect any changes
     - echo "RUN diff /tmp/before.txt /tmp/after.txt || true" >> Dockerfile
+    # Remember package.json (to be able to compare)
+    - echo "RUN cp ./package.json /tmp/.cache/package.json || true" >> Dockerfile
     - echo 'WORKDIR /build' >> Dockerfile
     # Build and push the CI image
     - docker build --no-cache -t ${CI_BUILD_IMAGE} .

@@ -3,7 +3,7 @@ import {AbstractControl, FormArray, FormGroup} from '@angular/forms';
 import {
   AccountService,
   AppEditorOptions,
-  AppEntityEditor,
+  AppEntityEditor, AppPropertiesForm,
   CORE_CONFIG_OPTIONS,
   EntityServiceLoadOptions,
   EntityUtils,
@@ -19,6 +19,7 @@ import {ReferentialForm} from '../form/referential.form';
 import {SoftwareService} from '../services/software.service';
 import {SoftwareValidatorService} from '../services/validator/software.validator';
 import {ReferentialRefService} from '../services/referential-ref.service';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -34,18 +35,11 @@ export abstract class AbstractSoftwarePage<
   protected referentialRefService: ReferentialRefService;
 
   propertyDefinitions: FormFieldDefinition[];
-  propertyDefinitionsByKey: FormFieldDefinitionMap = {};
-  propertyDefinitionsByIndex: { [index: number]: FormFieldDefinition } = {};
-  propertiesFormHelper: FormArrayHelper<ObjectMapEntry>;
-
   form: FormGroup;
-
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
 
-  get propertiesForm(): FormArray {
-    return this.form.get('properties') as FormArray;
-  }
+  @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
 
   protected constructor(
     injector: Injector,
@@ -65,28 +59,16 @@ export abstract class AbstractSoftwarePage<
     this.referentialRefService = injector.get(ReferentialRefService);
 
     // Convert map to list of options
-    this.propertyDefinitions = Object.values({...CORE_CONFIG_OPTIONS, ...configOptions})
-      .map(o => o.type !== 'entity' ? o : <FormFieldDefinition>{
-        ...o,
-        autocomplete: {
-          ...o.autocomplete,
-          suggestFn: (value, options) => this.referentialRefService.suggest(value, options)
-        }
-      })
-    ;
-    // Fill property definitions map
-    this.propertyDefinitions.forEach(o => this.propertyDefinitionsByKey[o.key] = o);
+    this.propertyDefinitions = Object.values({...CORE_CONFIG_OPTIONS, ...configOptions}).map(def => {
+      if (def.type === 'entity') {
+        def = Object.assign({}, def); // Copy
+        def.autocomplete = def.autocomplete || {};
+        def.autocomplete.suggestFn = (value, filter) => this.referentialRefService.suggest(value, filter);
+      }
+      return def;
+    });
 
     this.form = validatorService.getFormGroup();
-    this.propertiesFormHelper = new FormArrayHelper<ObjectMapEntry>(
-      this.form.get('properties') as FormArray,
-      (value) => validatorService.getPropertyFormGroup(value),
-      (v1, v2) => (!v1 && !v2) || v1.key === v2.key,
-      (value) => isNil(value) || (isNil(value.key) && isNil(value.value)),
-      {
-        allowEmptyArray: true
-      }
-    );
 
   }
 
@@ -104,29 +86,6 @@ export abstract class AbstractSoftwarePage<
       });
   }
 
-  getPropertyDefinition(index: number): FormFieldDefinition {
-    let definition = this.propertyDefinitionsByIndex[index];
-    if (!definition) {
-      definition = this.updatePropertyDefinition(index);
-      this.propertyDefinitionsByIndex[index] = definition;
-    }
-    return definition;
-  }
-
-  updatePropertyDefinition(index: number): FormFieldDefinition {
-    const key = (this.propertiesForm.at(index) as FormGroup).controls.key.value;
-    const definition = key && this.propertyDefinitionsByKey[key] || null;
-    this.propertyDefinitionsByIndex[index] = definition; // update map by index
-    this.markForCheck();
-    return definition;
-  }
-
-  removePropertyAt(index: number) {
-    this.propertiesFormHelper.removeAt(index);
-    this.propertyDefinitionsByIndex = {}; // clear map by index
-    this.markForCheck();
-  }
-
   /* -- protected methods -- */
 
   protected canUserWrite(data: T): boolean {
@@ -142,7 +101,7 @@ export abstract class AbstractSoftwarePage<
   }
 
   protected registerForms() {
-    this.addChildForm(this.referentialForm);
+    this.addChildForms([this.referentialForm, this.propertiesForm]);
   }
 
   protected async loadFromRoute(): Promise<void> {
@@ -154,74 +113,32 @@ export abstract class AbstractSoftwarePage<
     return super.loadFromRoute();
   }
 
-  protected async onEntityLoaded(data: T, options?: EntityServiceLoadOptions): Promise<void> {
-    await this.prepareDataPropertiesToForm(data);
-    await super.onEntityLoaded(data, options);
-  }
-
-  protected async onEntitySaved(data: T): Promise<void> {
-    await this.prepareDataPropertiesToForm(data);
-    await super.onEntitySaved(data);
-  }
-
-  async prepareDataPropertiesToForm(data: T | null) {
-
-    return Promise.all(Object.keys(data.properties)
-      .map(key => this.propertyDefinitionsByKey[key])
-      .filter(option => option && option.type === 'entity')
-      .map(option => {
-        let value = data.properties[option.key];
-        const filter = {...option.autocomplete.filter};
-        const joinAttribute = option.autocomplete.filter.joinAttribute || 'id';
-        if (joinAttribute === 'id') {
-          filter.id = parseInt(value);
-          value = '*';
-        }
-        else {
-          filter.searchAttribute = joinAttribute;
-        }
-        // Fetch entity, as a referential
-        return this.referentialRefService.suggest(value, filter)
-          .then(matches => {
-            data.properties[option.key] = (matches && matches.data && matches.data[0] || {id: value,  label: '??'}) as any;
-          })
-          // Cannot ch: display an error
-          .catch(err => {
-            console.error('Cannot fetch entity, from option: ' + option.key + '=' + value, err);
-            data.properties[option.key] = ({id: value,  label: '??'}) as any;
-          });
-    }));
-  }
-
   protected setValue(data: T) {
     if (!data) return; // Skip
 
     const json = data.asObject();
 
-    // Transform properties map into array
-    json.properties = EntityUtils.getMapAsArray(data.properties || {});
-    this.propertiesFormHelper.resize(Math.max(json.properties.length, 1));
+    // Program properties
+    this.propertiesForm.value = EntityUtils.getMapAsArray(data.properties || {});
 
-    this.form.patchValue(json, {emitEvent: false});
+    this.form.patchValue({
+      ...json,
+      properties: []
+    }, {emitEvent: false});
 
     this.markAsPristine();
   }
 
   protected async getJsonValueToSave(): Promise<any> {
-    const json = await super.getJsonValueToSave();
+    const data = await super.getJsonValueToSave();
 
     // Re add label, because missing when field disable
-    json.label = this.form.get('label').value;
+    data.label = this.form.get('label').value;
 
     // Convert entities to id
-    json.properties.forEach(property => {
-      const option = this.propertyDefinitionsByKey[property.key];
-      if (option && option.type === 'entity' && EntityUtils.isNotEmpty(property.value, 'id')) {
-        property.value = property.value.id;
-      }
-    });
+    data.properties = this.propertiesForm.value;
 
-    return json;
+    return data;
   }
 
   protected computeTitle(data: T): Promise<string> {
@@ -235,6 +152,7 @@ export abstract class AbstractSoftwarePage<
 
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
+    if (this.propertiesForm.invalid) return 1;
     return 0;
   }
 

@@ -1,18 +1,23 @@
-import {ChangeDetectionStrategy, Component, Inject, Injector, Optional} from "@angular/core";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {SoftwareValidatorService} from "../../referential/services/validator/software.validator";
-import {Configuration}  from "@sumaris-net/ngx-components";
-import {Department}  from "@sumaris-net/ngx-components";
-import {isEmptyArray, isNilOrBlank, isNotEmptyArray} from "@sumaris-net/ngx-components";
-import {BehaviorSubject} from "rxjs";
-import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {Alerts} from "@sumaris-net/ngx-components";
-import {CORE_CONFIG_OPTIONS}  from "@sumaris-net/ngx-components";
-import {APP_CONFIG_OPTIONS, ConfigService}  from "@sumaris-net/ngx-components";
-import {FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
-import {AbstractSoftwarePage} from "../../referential/software/abstract-software.page";
-import {HistoryPageReference}  from "@sumaris-net/ngx-components";
+import {ChangeDetectionStrategy, Component, Inject, Injector, Optional} from '@angular/core';
+import {
+  Alerts,
+  APP_CONFIG_OPTIONS,
+  ConfigService,
+  Configuration,
+  CORE_CONFIG_OPTIONS,
+  Department,
+  EntityServiceLoadOptions,
+  firstNotNilPromise,
+  FormFieldDefinitionMap,
+  HistoryPageReference,
+  isEmptyArray,
+  isNilOrBlank,
+  isNotEmptyArray,
+  NetworkService
+} from '@sumaris-net/ngx-components';
+import {SoftwareValidatorService} from '../../referential/services/validator/software.validator';
+import {BehaviorSubject} from 'rxjs';
+import {AbstractSoftwarePage} from '../../referential/software/abstract-software.page';
 import {SoftwareService} from '@app/referential/services/software.service';
 
 declare interface CacheStatistic {
@@ -107,7 +112,9 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Softw
     const propertyIndex = propertiesAsArray.findIndex(p => p.key === CORE_CONFIG_OPTIONS.HOME_PARTNERS_DEPARTMENTS.key);
     if (propertyIndex === -1) return;
 
-    const propertyControl = this.propertiesFormHelper.at(propertyIndex);
+    // TODO: fix this
+
+    /*const propertyControl = this.propertiesFormHelper.at(propertyIndex);
     let propertyValue = propertyControl.get('value').value;
     if (isNilOrBlank(propertyValue)) return;
 
@@ -140,7 +147,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Softw
     propertyValue = isNotEmptyArray(arrayValue) ? JSON.stringify(arrayValue) : null;
     propertyControl.get("value").setValue(propertyValue);
     this.partners.next(partners);
-    this.markAsTouched();
+    this.markAsTouched();*/
 
   }
 

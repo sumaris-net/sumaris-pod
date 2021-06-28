@@ -90,6 +90,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.propertyDefinitions = Object.values(ProgramProperties).map(def => {
       if (def.type === 'entity') {
         def = Object.assign({}, def); // Copy
+        def.autocomplete = def.autocomplete || {};
         def.autocomplete.suggestFn = (value, filter) => this.referentialRefService.suggest(value, filter);
       }
       return def;

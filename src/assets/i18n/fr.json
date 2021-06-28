@@ -119,10 +119,10 @@
   },
   "CONFIGURATION": {
     "TAB_GENERAL": "Détails",
+    "TAB_PROPERTIES": "Options",
     "TAB_CACHE": "Données en cache",
     "TAB_NOTIFICATIONS": "Notifications",
     "APP_NAME": "Nom de l'application",
-    "DESCRIPTION": "Description (page d'accueil)",
     "STATUS": "Etat",
     "PREVIEW_DIVIDER": "Prévisualisation",
     "LOGOS": "Logos de l'application",
@@ -242,6 +242,7 @@
   },
   "ABOUT": {
     "TITLE": "À propos",
+    "POWERED_BY": "Propulsé par",
     "VERSION": "<b>v{{version}}</b>",
     "LICENSE": "Application <b>libre</b> (Licence GNU AGPL v3).",
     "REPORT_ISSUE": "N'hésitez pas à nous remonter les anomalies rencontrés !",
