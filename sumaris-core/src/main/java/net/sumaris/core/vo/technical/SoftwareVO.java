@@ -36,6 +36,8 @@ public class SoftwareVO implements IReferentialVO {
     private Integer id;
     private String label;
     private String name;
+    private String description;
+    private String comments;
     private Date updateDate;
     private Date creationDate;
     private Integer statusId;
