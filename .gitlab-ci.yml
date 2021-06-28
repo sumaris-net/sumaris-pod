@@ -301,9 +301,9 @@ docker:release:
         - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout)
         - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
 
-deploy-file:develop:
+deploy-file:
     extends: .deploy-file
-    needs: [fast-build]
+    needs: [build]
     only:
         - develop
     when: manual
@@ -318,7 +318,7 @@ failsafe-deploy-file:develop:
 deploy-file:release:
     extends: .deploy-file
     image: ${CI_BUILD_IMAGE}
-    needs: [fast-build]
+    needs: [build]
     allow_failure: true
     only:
         - tags
