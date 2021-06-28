@@ -9,7 +9,7 @@ import {
   EntityUtils,
   FormArrayHelper,
   FormFieldDefinition,
-  FormFieldDefinitionMap,
+  FormFieldDefinitionMap, IEntityService,
   isNil,
   ObjectMapEntry,
   PlatformService,
@@ -25,7 +25,7 @@ import {ProgramProperties} from '@app/referential/services/config/program.config
 // tslint:disable-next-line:directive-class-suffix
 export abstract class AbstractSoftwarePage<
   T extends Software<T>,
-  S extends SoftwareService<T>>
+  S extends IEntityService<T>>
   extends AppEntityEditor<T, S>
   implements OnInit {
 
@@ -79,11 +79,14 @@ export abstract class AbstractSoftwarePage<
     this.referentialForm.entityName = 'Software';
 
     // Check label is unique
-    this.form.get('label')
-      .setAsyncValidators(async (control: AbstractControl) => {
-        const label = control.enabled && control.value;
-        return label && (await this.service.existsByLabel(label)) ? {unique: true} : null;
-      });
+    if (this.service instanceof SoftwareService) {
+      const softwareService = this.service as SoftwareService;
+      this.form.get('label')
+        .setAsyncValidators(async (control: AbstractControl) => {
+          const label = control.enabled && control.value;
+          return label && (await softwareService.existsByLabel(label)) ? {unique: true} : null;
+        });
+    }
   }
 
   /* -- protected methods -- */
@@ -116,15 +119,14 @@ export abstract class AbstractSoftwarePage<
   protected setValue(data: T) {
     if (!data) return; // Skip
 
-    const json = data.asObject();
+    this.form.patchValue({
+      ...data.asObject(),
+      properties: []
+    }, {emitEvent: false});
 
     // Program properties
     this.propertiesForm.value = EntityUtils.getMapAsArray(data.properties || {});
 
-    this.form.patchValue({
-      ...json,
-      properties: []
-    }, {emitEvent: false});
 
     this.markAsPristine();
   }
