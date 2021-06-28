@@ -103,8 +103,8 @@ const FindStrategyNextLabel: any = gql`
 `;
 
 const FindStrategyNextSampleLabel: any = gql`
-  query StrategyNextSampleLabelQuery($strategyLabel: String, $nbDigit: Int){
-    strategyNextSampleLabel(strategyLabel: $strategyLabel, nbDigit: $nbDigit)
+  query StrategyNextSampleLabelQuery($strategyLabel: String!, $labelSeparator: String, $nbDigit: Int){
+    strategyNextSampleLabel(strategyLabel: $strategyLabel, labelSeparator: $labelSeparator, nbDigit: $nbDigit)
   }
 `;
 
@@ -266,13 +266,14 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     return res && res.strategyNextLabel;
   }
 
-  async computeNextSampleLabel(strategyLabel: string, nbDigit?: number): Promise<string> {
+  async computeNextSampleLabel(strategyLabel: string, labelSeparator?: string, nbDigit?: number): Promise<string> {
     if (this._debug) console.debug(`[strategy-service] Loading strategy next sample label...`);
 
     const res = await this.graphql.query<{ strategyNextSampleLabel: string }>({
       query: FindStrategyNextSampleLabel,
       variables: {
         strategyLabel: strategyLabel,
+        labelSeparator: labelSeparator,
         nbDigit: nbDigit
       },
       error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR"},

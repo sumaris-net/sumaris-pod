@@ -999,7 +999,7 @@ type Query {
   "Get next label for strategy"
   strategyNextLabel(labelPrefix: String = "", nbDigit: Int = 0, programId: Int!): String
   "Get next sample label for strategy"
-  strategyNextSampleLabel(strategyLabel: String = "", nbDigit: Int = 0): String
+  strategyNextSampleLabel(strategyLabel: String!, labelSeparator: String = "", nbDigit: Int = 0): String
   "Search in taxon names"
   taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonNameVO]
   "Get trash content"

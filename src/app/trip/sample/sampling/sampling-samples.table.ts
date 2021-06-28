@@ -93,7 +93,7 @@ export class SamplingSamplesTable extends SamplesTable {
 
   protected async onNewEntity(data: Sample): Promise<void> {
     await super.onNewEntity(data);
-    this.computeSampleLabel(data);
+    await this.computeSampleLabel(data);
   }
 
   /**
@@ -141,15 +141,9 @@ export class SamplingSamplesTable extends SamplesTable {
 
     // Generate label with strategyLabel and computed increment
     const strategyLabel = this.$strategyLabel.getValue();
-    const rankPart = data.rankOrder && data.rankOrder.toString().padStart(4, "0");
-
-    if (strategyLabel && rankPart) {
-      data.label = `${strategyLabel}-${rankPart}`;
-      console.debug("[sample-table] Generated label: ", data.label);
-    }
 
     if (strategyLabel) {
-      data.label = await this.strategyService.computeNextSampleLabel(strategyLabel, 4);
+      data.label = await this.strategyService.computeNextSampleLabel(strategyLabel, "-", 4);
       console.debug("[sample-table] Generated label: ", data.label);
     }
   }
