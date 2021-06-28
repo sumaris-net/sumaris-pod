@@ -1,8 +1,13 @@
 #!/bin/bash
 
-task=$1
-version=$2
-release_description=$3
+# Get to the root project
+if [[ "_" == "_${PROJECT_DIR}" ]]; then
+  SCRIPT_DIR=$(dirname $0)
+  PROJECT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
+  export PROJECT_DIR
+fi;
+cd ${PROJECT_DIR}
+
 ### Control that the script is run on `dev` branch
 branch=`git rev-parse --abbrev-ref HEAD`
 if [[ ! "$branch" = "release/$version" ]];
@@ -10,6 +15,15 @@ then
   echo ">> This script must be run under a release branch (release/$version)"
   exit 1
 fi
+
+### Variables
+task=$1
+version=$2
+release_description=$3
+PROJECT_NAME=sumaris-pod
+REPO="sumaris-net/sumaris-pod"
+REPO_API_URL=https://api.github.com/repos/$REPO
+REPO_PUBLIC_URL=https://github.com/$REPO
 
 ### Get version to release
 current=`grep -m1 -P "\<version>[0-9A−Z.]+(-\w*)?</version>" pom.xml | grep -oP "\d+.\d+.\d+(-\w*)?"`
@@ -20,22 +34,19 @@ if [[ "_$current" == "_" ]]; then
 fi
 echo "Current version: $current"
 
-### Get repo URL
-PROJECT_NAME=sumaris-pod
-REMOTE_URL=`git remote -v | grep -P "push" | grep -oP "(https:\/\/github.com\/|git@github.com:)[^ ]+"`
-REPO="sumaris-net/sumaris-pod"
-REPO_API_URL=https://api.github.com/repos/$REPO
-REPO_PUBLIC_URL=https://github.com/$REPO
-
 ###  get auth token
-GITHUB_TOKEN=`cat ~/.config/${PROJECT_NAME}/.github`
-if [[ "_$GITHUB_TOKEN" != "_" ]]; then
-    GITHUT_AUTH="Authorization: token $GITHUB_TOKEN"
-else
-    echo "ERROR: Unable to find github authentication token file: "
-    echo " - You can create such a token at https://github.com/settings/tokens > 'Generate a new token'."
-    echo " - Then copy the token and paste it in the file '~/.config/${PROJECT_NAME}/.github' using a valid token."
-    exit 1
+if [[ "_${GITHUB_TOKEN}" == "_" ]]; then
+    # Get it from user config dir
+    GITHUB_TOKEN=`cat ~/.config/${PROJECT_NAME}/.github`
+    if [[ "_$GITHUB_TOKEN" != "_" ]]; then
+        GITHUT_AUTH="Authorization: token $GITHUB_TOKEN"
+    else
+        echo "ERROR: Unable to find github authentication token file: "
+        echo " - You can create such a token at https://github.com/settings/tokens > 'Generate a new token'."
+        echo " - [if CI] Add a pipeline variable named 'GITHUB_TOKEN';"
+        echo " - [else] Or copy/paste the token into the file '~/.config/${PROJECT_NAME}/.github'."
+        exit 1
+    fi
 fi
 
 case "$task" in
@@ -90,9 +101,8 @@ case "$task" in
 
     ###  Sending files
     echo "Uploading files to $upload_url ..."
-    DIRNAME=$(pwd)
 
-    WAR_FILE="${DIRNAME}/sumaris-server/target/sumaris-server-$current.war"
+    WAR_FILE="${PROJECT_DIR}/sumaris-server/target/sumaris-server-$current.war"
     if [[ ! -f "${WAR_FILE}" ]]; then
       echo "ERROR: Missing WAR artifact: ${WAR_FILE}. Skipping upload"
       missing_file=true
@@ -107,7 +117,7 @@ case "$task" in
       result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: text/plain' -T "${WAR_FILE}.sha256" "${upload_url}?name=${artifact_name}.sha256")
     fi
 
-    ZIP_FILE="${DIRNAME}/sumaris-server/target/sumaris-server-$current-standalone.zip"
+    ZIP_FILE="${PROJECT_DIR}/sumaris-server/target/sumaris-server-$current-standalone.zip"
     if [[ ! -f "${ZIP_FILE}" ]]; then
       echo "ERROR: Missing ZIP artifact: ${ZIP_FILE}. Skipping upload"
       missing_file=true
@@ -122,7 +132,7 @@ case "$task" in
       result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: text/plain' -T "${ZIP_FILE}.sha256" "${upload_url}?name=${artifact_name}.sha256")
     fi
 
-    DB_FILE="${DIRNAME}/sumaris-core/target/sumaris-db-$current.zip"
+    DB_FILE="${PROJECT_DIR}/sumaris-core/target/sumaris-db-$current.zip"
     if [[ ! -f "${DB_FILE}" ]]; then
       echo "ERROR: Missing DB ZIP artifact: ${DB_FILE}. Skipping uppload"
       missing_file=true
@@ -142,7 +152,7 @@ case "$task" in
       echo "ERROR: missing some artifacts (see logs)"
       echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/${current}"
       # Continue if error
-      #exit 1
+      exit 1
     else
       echo "-----------------------------------------"
       echo "Successfully uploading files !"
