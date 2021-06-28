@@ -26,7 +26,7 @@ package net.sumaris.core.extraction.config;
 
 import net.sumaris.core.extraction.action.AgggregationAction;
 import net.sumaris.core.extraction.action.ExtractionAction;
-import net.sumaris.core.extraction.action.ProductAction;
+import net.sumaris.core.extraction.action.ExtractionProductAction;
 import org.nuiton.config.ConfigActionDef;
 
 /**
@@ -36,13 +36,13 @@ import org.nuiton.config.ConfigActionDef;
  */
 public enum ExtractionConfigurationAction implements ConfigActionDef {
 
-    EXTRACTION(ExtractionAction.class.getName() + "#execute", "Execute an extraction", "--extraction"),
-    AGGREGATION(AgggregationAction.class.getName() + "#execute", "Execute an aggregation", "--aggregation"),
-    EXTRACTION_PRODUCT_UPDATE(ProductAction.class.getName() + "#update", "Update extraction products", "--extraction-product-update");
+    EXTRACTION(ExtractionAction.class.getName() + "#run", "Execute an extraction", "--extraction"),
+    AGGREGATION(AgggregationAction.class.getName() + "#run", "Execute an aggregation", "--aggregation"),
+    EXTRACTION_PRODUCT_UPDATE(ExtractionProductAction.class.getName() + "#update", "Update extraction products", "--extraction-product-update");
 
-    public final String action;
-    public final String description;
-    public final String[] aliases;
+    private final String action;
+    private final String description;
+    private final String[] aliases;
 
     ExtractionConfigurationAction(String action, String description, String... aliases) {
         this.action = action;

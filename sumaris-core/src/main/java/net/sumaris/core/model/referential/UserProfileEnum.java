@@ -10,12 +10,12 @@ package net.sumaris.core.model.referential;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -36,29 +36,30 @@ public enum UserProfileEnum {
     GUEST(4, "GUEST");
 
     public static UserProfileEnum valueOf(final int id) {
-        return Arrays.stream(values())
-                .filter(enumValue -> enumValue.id == id)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown UserProfileEnum: " + id));
+        return findById(id).orElseThrow(() -> new IllegalArgumentException("Unknown UserProfileEnum: " + id));
     }
 
     public static UserProfileEnum valueOfLabel(String label) {
-        return getByLabel(label).orElseThrow(() -> new IllegalArgumentException("Unknown user profile label: " + label));
+        return findByLabel(label).orElseThrow(() -> new IllegalArgumentException("Unknown user profile label: " + label));
     }
 
-    public static Optional<UserProfileEnum> getById(int id) {
+    public static Optional<UserProfileEnum> findByName(String name) {
+        return Arrays.stream(values()).filter(userProfileEnum -> name.equals(userProfileEnum.name())).findFirst();
+    }
+
+    public static Optional<UserProfileEnum> findById(int id) {
         return Arrays.stream(values()).filter(userProfileEnum -> userProfileEnum.id == id).findFirst();
     }
 
-    public static Optional<UserProfileEnum> getByLabel(String label) {
+    public static Optional<UserProfileEnum> findByLabel(String label) {
         return Arrays.stream(values()).filter(userProfileEnum -> label.equals(userProfileEnum.label)).findFirst();
     }
 
 
-    public int id;
+    public Integer id;
     public String label;
 
-    UserProfileEnum(int id, String label) {
+    UserProfileEnum(Integer id, String label) {
       this.id = id;
       this.label = label;
     }
@@ -69,12 +70,12 @@ public enum UserProfileEnum {
      *
      * @return int the id
      */
-    public int getId()
+    public Integer getId()
     {
         return this.id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -84,8 +85,7 @@ public enum UserProfileEnum {
      *
      * @return int the id
      */
-    public String getLabel()
-    {
+    public String getLabel() {
         return this.label;
     }
 

@@ -56,12 +56,24 @@ public class MetierRepositoryReadTest extends AbstractDaoTest{
     }
 
     @Test
-    public void findByMetierFilter() throws ParseException {
+    public void findByTextFilter() throws ParseException {
+        MetierFilterVO filter = new MetierFilterVO();
+        filter.setStatusIds(new Integer[]{1});
+        filter.setSearchText("Crustaceans*");
+        //filter.setSearchAttribute("");
+        List<MetierVO> metiers = metierRepository.findByFilter(filter, 0, 100, null, null);
+        Assert.assertNotNull(metiers);
+        Assert.assertTrue(metiers.size() > 0);
+    }
+
+    @Test
+    public void findByMetierPredocFilter() throws ParseException {
         // With vessel and date
         {
             MetierFilterVO filter = new MetierFilterVO();
             filter.setVesselId(1);
-            filter.setDate(Dates.parseDate("2018-05-15", "yyyy-MM-dd"));
+            filter.setStartDate(Dates.parseDate("2010-01-01", "yyyy-MM-dd"));
+            filter.setEndDate(Dates.parseDate("2021-02-20", "yyyy-MM-dd"));
 
             List<MetierVO> metiers = metierRepository.findByFilter(filter, 0, 100, null, null);
             Assert.assertNotNull(metiers);
@@ -73,7 +85,8 @@ public class MetierRepositoryReadTest extends AbstractDaoTest{
             MetierFilterVO filter = new MetierFilterVO();
             filter.setVesselId(1);
             filter.setProgramLabel("SUMARiS");
-            filter.setDate(Dates.parseDate("2018-05-15", "yyyy-MM-dd"));
+            filter.setStartDate(Dates.parseDate("2018-01-01", "yyyy-MM-dd"));
+            filter.setEndDate(Dates.parseDate("2018-02-20", "yyyy-MM-dd"));
 
             List<MetierVO> metiers = metierRepository.findByFilter(filter, 0, 100, null, null);
             Assert.assertNotNull(metiers);

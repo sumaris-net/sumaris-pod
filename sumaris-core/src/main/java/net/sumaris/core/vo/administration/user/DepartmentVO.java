@@ -42,13 +42,14 @@ public class DepartmentVO extends ReferentialVO {
     private Date creationDate;
     private String label;
     private String name;
-    private Integer statusId;
+    private String description;
+    private String comments;
 
+    private Integer statusId;
 
     private String siteUrl;
 
     private Boolean hasLogo;
-
     private String logo;
 
     public DepartmentVO() {

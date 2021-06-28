@@ -1,6 +1,12 @@
 #!/bin/bash
 
-mkdir -p .local
+# Get to the root project
+if [[ "_" == "_${PROJECT_DIR}" ]]; then
+  SCRIPT_DIR=$(dirname $0)
+  PROJECT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
+  export PROJECT_DIR
+fi;
+cd ${PROJECT_DIR}
 
 ### Control that the script is run on `develop` branch
 branch=`git rev-parse --abbrev-ref HEAD`
@@ -27,29 +33,26 @@ if [[ ! $task =~ ^(pre|rel)$ || ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta
   exit 1
 fi
 
-echo "task: $task"
-echo "new build version: $version"
-echo "release description: $release_description"
+echo "---- Starting release $version ($task)"...
+echo ""
 
-echo "**********************************"
-echo "* Preparing release..."
-echo "**********************************"
+# Removing existing release branche
+git branch -D "release/$version" || true
+
+echo "---- Preparing release..."
 mvn -B gitflow:release-start -DreleaseVersion="$version"
 [[ $? -ne 0 ]] && exit 1
-echo "Prepare release [OK]"
+echo "---- Prepare release [OK]"
+echo ""
 
-
-echo "**********************************"
-echo "* Performing release..."
-echo "**********************************"
+echo "---- Performing release..."
 mvn clean deploy -DperformRelease -DskipTests -Dspring.datasource.platform=hsqldb
 [[ $? -ne 0 ]] && exit 1
+echo "---- Perform release [OK]"
+echo ""
 
-echo "**********************************"
-echo "* Generating DB..."
-echo "**********************************"
-dirname=`pwd`
-cd $dirname/sumaris-core
+echo "---- Generating DB..."
+cd ${PROJECT_DIR}/sumaris-core
 version=`grep -m1 -P "\<version>[0-9A−Z.]+(-\w*)?</version>" pom.xml | grep -oP "\d+.\d+.\d+(-\w*)?"`
 
 # Generate the DB (run InitTest class)
@@ -59,21 +62,12 @@ mvn -Prun,hsqldb -DskipTests --quiet
 cd target
 zip -q -r "sumaris-db-$version.zip" db
 [[ $? -ne 0 ]] && exit 1
-echo "Generate DB [OK]"
 
+echo "---- Generate DB [OK]"
+echo ""
 
-cd $dirname
-echo "**********************************"
-echo "* Uploading artifacts to Github..."
-echo "**********************************"
-./release-to-github.sh "$task" "$version" ''"$release_description"''
-[[ $? -ne 0 ]] && exit 1
-echo "Upload artifacts to github [OK]"
-
-
-echo "**********************************"
-echo "* Pushing changes to upstream..."
-echo "**********************************"
+echo "---- Pushing changes to upstream..."
+cd ${PROJECT_DIR}
 git commit -a -m "Release $version\n$release_description"
 git status
 mvn gitflow:release-finish
@@ -82,16 +76,9 @@ mvn gitflow:release-finish
 # Remove release branch
 git branch -d "release/$version"
 
-
-echo "Push changes to upstream [OK]"
+echo "---- Push changes to upstream [OK]"
+echo ""
 
 echo "----------------------------------"
-echo "RELEASE finished !"
+echo "RELEASE finished!"
 echo "----------------------------------"
-
-echo "Rebuild new SNAPSHOT version..."
-mvn clean install -DskipTests --quiet
-[[ $? -ne 0 ]] && exit 1
-echo "Rebuild new SNAPSHOT version [OK]"
-
-

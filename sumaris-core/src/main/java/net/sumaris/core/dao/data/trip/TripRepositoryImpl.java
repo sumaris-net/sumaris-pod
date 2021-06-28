@@ -134,10 +134,8 @@ public class TripRepositoryImpl
             }
 
         }
-
         // Update the given VO (will be returned by the save() function)
         vo.setLandingId(landingId);
         vo.setObservedLocationId(observedLocationId);
     }
-
 }

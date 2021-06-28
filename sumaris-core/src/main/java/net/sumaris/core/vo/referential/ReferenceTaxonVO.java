@@ -20,13 +20,18 @@
  * #L%
  */
 
-package net.sumaris.server.http;
+package net.sumaris.core.vo.referential;
 
-public interface RestPaths {
-    String SPARQL_ENDPOINT = "/sparql";
+import lombok.Data;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IValueObject;
 
-    String ONTOLOGY_BASE_PATH = "/ontology";
+import java.util.Date;
 
-    String WEBVOWL_BASE_PATH = "/webvowl";
+@Data
+public class ReferenceTaxonVO implements IValueObject<Integer>,
+        IUpdateDateEntityBean<Integer, Date> {
 
+    private Integer id;
+    private Date updateDate;
 }

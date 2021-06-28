@@ -83,16 +83,16 @@ public class MetierRepositoryImpl
 
         // Create page (do NOT sort if searchJoin : will be done later)
         boolean sortingOutsideQuery = enableSearchOnJoin && !ReferentialVO.Fields.ID.equals(sortAttribute);
-        Pageable page = Pageables.create(offset, size, !sortingOutsideQuery ? sortAttribute : null, !sortingOutsideQuery ? sortDirection : null);
+        Pageable pageable = Pageables.create(offset, size, !sortingOutsideQuery ? sortAttribute : null, !sortingOutsideQuery ? sortDirection : null);
 
         // Create the query
-        TypedQuery<Metier> query = createQueryByFilter(filter, page);
+        TypedQuery<Metier> query = getQuery(toSpecification(filter), Metier.class, pageable);
 
         return query
             .setFirstResult(offset)
             .setMaxResults(size)
             .getResultStream()
-            .distinct()
+            //.distinct()
             .map(source -> {
                 MetierVO target = this.toVO(source);
 
@@ -137,7 +137,6 @@ public class MetierRepositoryImpl
     @Override
     protected Specification<Metier> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-                .and(inLevelIds(Metier.class, filter.getLevelIds()))
                 .and(alreadyPracticedMetier(filter));
     }
 
@@ -148,32 +147,7 @@ public class MetierRepositoryImpl
         if (!(filter instanceof MetierFilterVO)) return null;
         MetierFilterVO metierFilter = (MetierFilterVO) filter;
 
-        return alreadyPracticedMetier(metierFilter.getVesselId());
-    }
-
-    private TypedQuery<Metier> createQueryByFilter(IReferentialFilter filter, Pageable pageable) {
-        Preconditions.checkNotNull(filter);
-
-        TypedQuery<Metier> query = getQuery(toSpecification(filter), Metier.class, pageable);
-
-        // Bind search text parameter
-        BindableSpecification.setParameterIfExists(query, SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(filter.getSearchText()));
-
-        // Bind metiers parameters
-        if (filter instanceof MetierFilterVO){
-            MetierFilterVO metierFilter = (MetierFilterVO)filter;
-
-            // Calculate dates
-            final Date endDate = metierFilter.getDate() != null ? metierFilter.getDate() : new Date();
-            final Date startDate = Dates.removeMonth(endDate, 12); // TODO: find it from a config option
-
-            BindableSpecification.setParameterIfExists(query, START_DATE_PARAMETER, startDate);
-            BindableSpecification.setParameterIfExists(query, END_DATE_PARAMETER, endDate);
-            BindableSpecification.setParameterIfExists(query, PROGRAM_LABEL_PARAMETER, metierFilter.getProgramLabel());
-            BindableSpecification.setParameterIfExists(query, TRIP_ID_PARAMETER, metierFilter.getTripId());
-        }
-
-        return query;
+        return alreadyPracticedMetier(metierFilter);
     }
 
 }

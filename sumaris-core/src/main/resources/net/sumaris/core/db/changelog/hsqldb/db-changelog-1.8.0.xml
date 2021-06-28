@@ -235,6 +235,7 @@
         - Add tables UNIT_CONVERSION, PROCESSING_FREQUENCY;
         - Add column EXTRACTION_PRODUCT.PROCESSING_FREQUENCY_FK;
         - Add column LOCATION_ASSOCIATION.IS_MAIN_ASSOCIATION;
+        - Add columns PERSON.USERNAME and USERNAME_EXTRANET;
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
@@ -242,6 +243,7 @@
         - Add tables UNIT_CONVERSION, PROCESSING_FREQUENCY;
         - Add column EXTRACTION_PRODUCT.PROCESSING_FREQUENCY_FK;
         - Add column LOCATION_ASSOCIATION.IS_MAIN_ASSOCIATION;
+        - Add columns PERSON.USERNAME and USERNAME_EXTRANET;
       </column>
     </insert>
   </changeSet>

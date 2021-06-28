@@ -39,9 +39,10 @@ public class MetierFilterVO extends ReferentialFilterVO {
     }
 
     // options used for predocumentation
-    private Date date;
+    private Date startDate;
+    private Date endDate;
     private Integer vesselId;
     private String programLabel;
-    private Integer tripId; // optional
+    private Integer excludedTripId; // optional
 
 }

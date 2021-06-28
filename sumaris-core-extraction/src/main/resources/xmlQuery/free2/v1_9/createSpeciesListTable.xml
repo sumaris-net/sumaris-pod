@@ -14,13 +14,14 @@
              ET afficher les nom vernaculaires dans les UI (nécessaire pour ADAP)  -->
         <subselect alias="ESPECE" type="text">TN.COMMENTS</subselect>
         <subselect alias="ESPECE_COM" type="text">TG.NAME</subselect>
-        <subselect alias="PRESENTATION" type="text">DECODE(SL.CATCH_CATEGORY, 'LAN', 'GUT - Eviscéré', null)</subselect>
+<!--        <subselect alias="PRESENTATION" type="text">DECODE(SL.CATCH_CATEGORY, 'LAN', 'GUT - Eviscéré', null)</subselect>-->
+        <subselect alias="PRESENTATION" type="text">CASE SL.CATCH_CATEGORY WHEN 'LAN' THEN 'GUT - Eviscéré' ELSE null END</subselect>
         <subselect alias="TAUX_ECH" type="number">
           CASE
           WHEN SL.SAMPLING_RATIO is not null THEN ROUND(SL.SAMPLING_RATIO, 7)
           WHEN SL.WEIGHT is not null AND SL.WEIGHT != 0 AND SL.SUBSAMPLE_WEIGHT is not null THEN ROUND(SL.SUBSAMPLE_WEIGHT/SL.WEIGHT, 7)
           ELSE 1
-          END CASE
+          END
         </subselect>
         <subselect alias="POIDS_REF" type="number">SL.SUBSAMPLE_WEIGHT</subselect>
         <subselect alias="METHODE_POIDS_REF" type="text">METHOD.NAME</subselect>

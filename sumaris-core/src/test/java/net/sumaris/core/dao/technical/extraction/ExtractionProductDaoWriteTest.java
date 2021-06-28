@@ -28,6 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.technical.history.ProcessingFrequency;
+import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.technical.extraction.*;
 import org.junit.Assert;
@@ -75,6 +77,8 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
         source.setLabel("rdb-" + System.currentTimeMillis());
         source.setName("Test RDB product");
         source.setStatusId(StatusEnum.ENABLE.getId());
+        source.setIsSpatial(false);
+        source.setProcessingFrequencyId(ProcessingFrequencyEnum.DAILY.getId());
 
         DepartmentVO dep = new DepartmentVO();
         dep.setId(fixtures.getDepartmentId(0));

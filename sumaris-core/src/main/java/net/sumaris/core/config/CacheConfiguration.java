@@ -87,6 +87,8 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         String PMFM_STRATEGIES_BY_FILTER = "net.sumaris.core.dao.administration.programStrategy.pmfmStrategiesByFilter";
         String DENORMALIZED_PMFM_BY_FILTER = "net.sumaris.core.dao.administration.programStrategy.denormalizedPmfmByFilter";
 
+        String TAXON_NAME_BY_ID = "net.sumaris.core.dao.referential.taxonNameById";
+        String TAXON_NAME_BY_FILTER = "net.sumaris.core.dao.referential.taxonNameByFilter";
         String TAXON_NAME_BY_TAXON_REFERENCE_ID = "net.sumaris.core.dao.referential.taxonNameByReferenceId";
         String TAXON_NAMES_BY_TAXON_GROUP_ID = "net.sumaris.core.dao.referential.taxonNamesByTaxonGroupId";
         String REFERENCE_TAXON_ID_BY_TAXON_NAME_ID = "net.sumaris.core.dao.referential.referenceTaxonIdByTaxonNameId";
@@ -133,11 +135,13 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_HAS_SUFFIX, Boolean.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_HAS_MATRIX, Boolean.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.TAXON_NAME_BY_TAXON_REFERENCE_ID, Integer.class, TaxonNameVO.class, 600);
+            Caches.createEternalHeapCache(cacheManager, Names.TAXON_NAME_BY_ID, Integer.class, TaxonNameVO.class, 600);
+            Caches.createEternalHeapCache(cacheManager, Names.TAXON_NAME_BY_FILTER, Integer.class, TaxonNameVO.class, 600);
             Caches.createEternalCollectionHeapCache(cacheManager, Names.TAXON_NAMES_BY_TAXON_GROUP_ID, Integer.class, TaxonNameVO.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.REFERENCE_TAXON_ID_BY_TAXON_NAME_ID, Integer.class, Integer.class, 600);
             Caches.createEternalCollectionHeapCache(cacheManager, Names.REFERENTIAL_TYPES, ReferentialTypeVO.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.LOCATION_LEVEL_BY_LABEL, String.class, ReferentialVO.class, 600);
-            Caches.createEternalHeapCache(cacheManager, Names.ANALYTIC_REFERENCES_BY_FILTER, ReferentialVO.class, 100);
+            Caches.createEternalCollectionHeapCache(cacheManager, Names.ANALYTIC_REFERENCES_BY_FILTER, ReferentialVO.class, 100);
             Caches.createEternalHeapCache(cacheManager, Names.PRODUCT_BY_LABEL_AND_OPTIONS, ExtractionProductVO.class, 100);
             Caches.createEternalCollectionHeapCache(cacheManager, Names.PRODUCTS_BY_FILTER, ExtractionProductVO.class, 100);
             Caches.createHeapCache(cacheManager, Names.TABLE_META_BY_NAME, String.class, SumarisTableMetadata.class, CacheDurations.DEFAULT, 500);

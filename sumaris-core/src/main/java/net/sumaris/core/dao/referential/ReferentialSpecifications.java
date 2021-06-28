@@ -49,7 +49,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     String STATUS_PARAMETER = "status";
     String STATUS_SET_PARAMETER = "statusSet";
     String LABEL_PARAMETER = "label";
-    String LEVEL_PARAMETER = "level";
+    String PROPERTY_PARAMETER_PREFIX = "property";
     String LEVEL_LABEL_PARAMETER = "levelLabel";
     String SEARCH_TEXT_PARAMETER = "searchText";
     String INCLUDED_IDS_PARAMETER = "includedIds";
@@ -68,7 +68,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
 
     default Specification<E> inStatusIds(IReferentialFilter filter) {
         Integer[] statusIds = filter.getStatusIds();
-        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
             query.distinct(true); // Set distinct here because inStatusIds is always used (usually ...)
             ParameterExpression<Collection> statusParam = criteriaBuilder.parameter(Collection.class, STATUS_PARAMETER);
             ParameterExpression<Boolean> statusSetParam = criteriaBuilder.parameter(Boolean.class, STATUS_SET_PARAMETER);
@@ -76,39 +76,37 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
                 criteriaBuilder.isFalse(statusSetParam),
                 criteriaBuilder.in(root.get(IReferentialWithStatusEntity.Fields.STATUS).get(Status.Fields.ID)).value(statusParam)
             );
-        });
-        specification.addBind(STATUS_SET_PARAMETER, ArrayUtils.isNotEmpty(statusIds));
-        specification.addBind(STATUS_PARAMETER, ArrayUtils.isEmpty(statusIds) ? null : Arrays.asList(statusIds));
-        return specification;
+        })
+        .addBind(STATUS_SET_PARAMETER, ArrayUtils.isNotEmpty(statusIds))
+        .addBind(STATUS_PARAMETER, ArrayUtils.isEmpty(statusIds) ? null : Arrays.asList(statusIds));
     }
 
     default Specification<E> hasLabel(String label) {
-        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> labelParam = criteriaBuilder.parameter(String.class, LABEL_PARAMETER);
             return criteriaBuilder.or(
-                criteriaBuilder.isNull(labelParam),
+                criteriaBuilder.like(labelParam, ""),
                 criteriaBuilder.equal(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(labelParam))
             );
-        });
-        specification.addBind(LABEL_PARAMETER, label);
-        return specification;
+        }).addBind(LABEL_PARAMETER, label != null ? label : "");
     }
 
-    default Specification<E> inLevelIds(Class<E> entityClass, Integer[] levelIds) {
+    default Specification<E> inLevelIds(Class<E> entityClass, Integer... levelIds) {
+        if (ArrayUtils.isEmpty(levelIds)) return null;
         return ReferentialEntities.getLevelPropertyNameByClass(entityClass).map(p -> inJoinPropertyIds(p, levelIds))
             .orElse(null);
     }
 
-    default Specification<E> inJoinPropertyIds(String joinPropertyName, Integer[] ids) {
+    default Specification<E> inJoinPropertyIds(String joinPropertyName, Integer... ids) {
         // If empty: skip to avoid an unused join
         if (ArrayUtils.isEmpty(ids)) return null;
 
-        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> levelParam = criteriaBuilder.parameter(Collection.class, LEVEL_PARAMETER);
+        final String paramName = PROPERTY_PARAMETER_PREFIX + StringUtils.capitalize(joinPropertyName);
+        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> levelParam = criteriaBuilder.parameter(Collection.class, paramName);
             return criteriaBuilder.in(root.join(joinPropertyName, JoinType.INNER).get(IEntity.Fields.ID)).value(levelParam);
-        });
-        specification.addBind(LEVEL_PARAMETER, Arrays.asList(ids));
-        return specification;
+        })
+        .addBind(paramName, Arrays.asList(ids));
     }
 
     default Specification<E> inLevelLabels(Class<E> entityClass, String[] levelLabels) {
@@ -138,13 +136,13 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     }
 
     default Specification<E> searchText(String[] searchAttributes, String searchText) {
-        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> searchTextParam = criteriaBuilder.parameter(String.class, SEARCH_TEXT_PARAMETER);
             if (ArrayUtils.isNotEmpty(searchAttributes)) {
                 // search on all attributes
                 List<Predicate> predicates = new ArrayList<>();
                 predicates.add(
-                    criteriaBuilder.isNull(searchTextParam)
+                    criteriaBuilder.like(searchTextParam, "")
                 );
                 Arrays.stream(searchAttributes).forEach(searchAttribute ->
                     predicates.add(
@@ -157,18 +155,17 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             }
             // Search on label+name only
             return criteriaBuilder.or(
-                criteriaBuilder.isNull(searchTextParam),
+                criteriaBuilder.like(searchTextParam, ""),
                 criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(searchTextParam)),
                 criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.upper(criteriaBuilder.concat("%", searchTextParam)))
             );
-        });
-        specification.addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText));
-        return specification;
+        })
+            .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText));
     }
 
     default Specification<E> joinSearchText(String joinProperty, String searchAttribute, String searchText) {
         Preconditions.checkArgument(StringUtils.isNotBlank(joinProperty), "'joinProperty' cannot be empty");
-        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> searchTextParam = criteriaBuilder.parameter(String.class, SEARCH_TEXT_PARAMETER);
 
             // Avoid duplication, for 'one to many' join
@@ -184,42 +181,38 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             // Search on given attribute
             if (StringUtils.isNotBlank(searchAttribute)) {
                 return criteriaBuilder.or(
-                    criteriaBuilder.isNull(searchTextParam),
+                    criteriaBuilder.like(searchTextParam, ""),
                     criteriaBuilder.like(criteriaBuilder.upper(join.get(searchAttribute)), criteriaBuilder.upper(searchTextParam)));
             }
 
             // Search on label+name
             return criteriaBuilder.or(
-                criteriaBuilder.isNull(searchTextParam),
+                criteriaBuilder.like(searchTextParam, ""),
                 criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(searchTextParam)),
                 criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.upper(criteriaBuilder.concat("%", searchTextParam)))
             );
-        });
-        specification.addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText));
-        return specification;
+        })
+            .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText));
     }
 
     default Specification<E> includedIds(Integer[] includedIds) {
         if (ArrayUtils.isEmpty(includedIds)) return null;
-        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
             ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, INCLUDED_IDS_PARAMETER);
             return criteriaBuilder.in(root.get(IEntity.Fields.ID)).value(param);
-        });
-        specification.addBind(INCLUDED_IDS_PARAMETER, Arrays.asList(includedIds));
-        return specification;
+        })
+            .addBind(INCLUDED_IDS_PARAMETER, Arrays.asList(includedIds));
     }
 
     default Specification<E> excludedIds(Integer[] excludedIds) {
         if (ArrayUtils.isEmpty(excludedIds)) return null;
-        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
             ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, EXCLUDED_IDS_PARAMETER);
             return criteriaBuilder.not(
                     criteriaBuilder.in(root.get(IEntity.Fields.ID)).value(param)
             );
-        });
-        specification.addBind(EXCLUDED_IDS_PARAMETER, Arrays.asList(excludedIds));
-        return specification;
+        })
+        .addBind(EXCLUDED_IDS_PARAMETER, Arrays.asList(excludedIds));
     }
-
 
 }

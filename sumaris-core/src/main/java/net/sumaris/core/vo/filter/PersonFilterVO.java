@@ -39,10 +39,7 @@ public class PersonFilterVO implements IReferentialFilter {
     private String name;
 
     private Integer[] statusIds;
-
-    private Integer levelId;
     private Integer[] levelIds;
-    private String levelLabel;
     private String[] levelLabels;
 
     private String searchJoin;
@@ -64,4 +61,9 @@ public class PersonFilterVO implements IReferentialFilter {
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
     }
+
+    @Deprecated
+    private Integer levelId;
+    @Deprecated
+    private String levelLabel;
 }

@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
+import net.sumaris.core.config.JmsConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
@@ -217,16 +218,15 @@ public class TrashServiceImpl implements TrashService {
         }
     }
 
-    @JmsListener(destination = "deleteTrip", containerFactory = "jmsListenerContainerFactory")
-    @JmsListener(destination = "deleteOperation", containerFactory = "jmsListenerContainerFactory")
-    @JmsListener(destination = "deleteObservedLocation", containerFactory = "jmsListenerContainerFactory")
-    @JmsListener(destination = "deleteLanding", containerFactory = "jmsListenerContainerFactory")
-    protected void onEntityDeleted(Serializable entity) throws IOException {
-        Preconditions.checkNotNull(entity);
+    @JmsListener(destination = "deleteTrip", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
+    @JmsListener(destination = "deleteOperation", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
+    @JmsListener(destination = "deleteObservedLocation", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
+    @JmsListener(destination = "deleteLanding", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
+    protected void onEntityDeleted(IValueObject data) throws IOException {
+        if (!this.enable) return; // Skip
 
-        if (!this.enable || !(entity instanceof IValueObject)) return; // Skip
+        Preconditions.checkNotNull(data);
 
-        IValueObject data = (IValueObject)entity;
         String entityName = data.getClass().getSimpleName();
         if (entityName.lastIndexOf("VO") == entityName.length() - 2) {
             entityName = entityName.substring(0, entityName.length() - 2);

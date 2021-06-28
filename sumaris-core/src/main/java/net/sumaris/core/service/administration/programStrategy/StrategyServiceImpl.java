@@ -83,6 +83,11 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
+	public Long countByFilter(StrategyFilterVO filter) {
+		return strategyRepository.count(filter);
+	}
+
+	@Override
 	public List<StrategyVO> findByFilter(StrategyFilterVO filter, Pageable pageable, StrategyFetchOptions fetchOptions) {
 		return strategyRepository.findAll(filter, pageable, fetchOptions).getContent();
 	}
@@ -134,10 +139,14 @@ public class StrategyServiceImpl implements StrategyService {
 		return denormalizedPmfmStrategyRepository.findByFilter(filter, fetchOptions);
 	}
 
-
 	@Override
 	public String computeNextLabelByProgramId(int programId, String labelPrefix, int nbDigit) {
 		return strategyRepository.computeNextLabelByProgramId(programId, labelPrefix, nbDigit);
+	}
+
+	@Override
+	public String computeNextSampleLabelByStrategy(String strategyLabel, String labelSeparator, int nbDigit) {
+		return strategyRepository.computeNextSampleLabelByStrategy(strategyLabel, labelSeparator, nbDigit);
 	}
 
 	@Override

@@ -300,7 +300,7 @@ public class DenormalizedBatchRepositoryImpl
 
         // Quality flag (default value)
         if (source.getQualityFlagId() == null) {
-            target.setQualityFlagId(QualityFlagEnum.NOT_QUALIFED.getId());
+            target.setQualityFlagId(QualityFlagEnum.NOT_QUALIFIED.getId());
         }
 
         // Init sorting value rank order (must be high, to let inherited values BEFORE current )

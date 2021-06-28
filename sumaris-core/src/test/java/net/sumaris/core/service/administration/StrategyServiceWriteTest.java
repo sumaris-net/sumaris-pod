@@ -32,10 +32,7 @@ import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
-import net.sumaris.core.vo.administration.programStrategy.AppliedPeriodVO;
-import net.sumaris.core.vo.administration.programStrategy.AppliedStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.StrategyDepartmentVO;
-import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -60,14 +57,15 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
 
     @Test
     public void saveExisting() {
-        StrategyVO strategy = service.getByLabel("2020_BIO_0001");
+        StrategyVO strategy = service.getByLabel("20-LEUCCIR-001",
+                StrategyFetchOptions.builder().withPmfms(true).build());
         Assert.assertNotNull(strategy);
         Assert.assertNotNull(strategy.getId());
         Assert.assertEquals(30, strategy.getId().intValue());
         Assert.assertNotNull(strategy.getTaxonNames());
         Assert.assertEquals(1, strategy.getTaxonNames().size());
         Assert.assertNotNull(strategy.getPmfms());
-        Assert.assertEquals(10, strategy.getPmfms().size());
+        Assert.assertEquals(11, strategy.getPmfms().size());
         Assert.assertNotNull(strategy.getAppliedStrategies());
         Assert.assertEquals(3, strategy.getAppliedStrategies().size());
         Assert.assertNotNull(strategy.getDepartments());
@@ -87,12 +85,12 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
         strategy.setDepartments(Lists.newArrayList(strategyDepartment));
         // Add an applied period
         AppliedPeriodVO appliedPeriod = new AppliedPeriodVO();
-        appliedPeriod.setAppliedStrategyId(30);
+        appliedPeriod.setAppliedStrategyId(11);
         appliedPeriod.setStartDate(Dates.getFirstDayOfYear(2020));
         appliedPeriod.setEndDate(Dates.getFirstDayOfYear(2021));
         appliedPeriod.setAcquisitionNumber(10);
-        AppliedStrategyVO appliedStrategy = strategy.getAppliedStrategies().get(1);
-        appliedStrategy.getAppliedPeriods().add(appliedPeriod);
+        strategy.getAppliedStrategies().get(1).setAppliedPeriods(Lists.newArrayList(appliedPeriod));
+        strategy.getAppliedStrategies().get(2).setAppliedPeriods(Lists.newArrayList());
 
         service.save(strategy);
 

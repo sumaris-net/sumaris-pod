@@ -26,7 +26,9 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.filter.PeriodVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -102,7 +104,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
                 .acquisitionLevelId(AcquisitionLevelEnum.TRIP.getId())
                 .build(), PmfmStrategyFetchOptions.DEFAULT);
         Assert.assertNotNull(pmfmStrategies);
-        Assert.assertEquals(24, pmfmStrategies.size());
+        Assert.assertEquals(5, pmfmStrategies.size());
 
     }
 
@@ -118,13 +120,16 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
                         .build());
         Assert.assertNotNull(pmfms);
         Assert.assertEquals(80, pmfms.size());
-        DenormalizedPmfmStrategyVO denormalizedPmfm = pmfms.get(0);
-        Assert.assertNotNull(denormalizedPmfm);
-        Assert.assertNotNull(denormalizedPmfm.getId());
-        Assert.assertNotNull(denormalizedPmfm.getUnitLabel());
-        Assert.assertNotNull(denormalizedPmfm.getUnitLabel());
-        Assert.assertNotNull(denormalizedPmfm.getCompleteName());
 
+        long count = pmfms.stream().filter(pmfm -> {
+            Assert.assertNotNull(pmfm);
+            Assert.assertNotNull(pmfm.getId());
+            Assert.assertNotNull(pmfm.getType());
+            Assert.assertNotNull(pmfm.getCompleteName());
+            return pmfm.getUnitLabel() != null;
+        }).count();
+
+        Assert.assertTrue(count > 0);
     }
 
 
@@ -142,17 +147,27 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
 
 
     @Test
-    public void computeNextLabelByProgramId() {
+    public void computeNextLabel() {
+
+        // By programId
         String label = service.computeNextLabelByProgramId(40, "BIO", 0);
         Assert.assertEquals("BIO1", label);
 
-        label = service.computeNextLabelByProgramId(40, "2020-BIO-", 4);
-        Assert.assertEquals("2020-BIO-0003", label);
+        label = service.computeNextLabelByProgramId(40, "20-LEUCCIR-", 3);
+        Assert.assertEquals("20-LEUCCIR-003", label);
+
+        // By strategyLabel
+        label = service.computeNextSampleLabelByStrategy("BIO1", null, 0);
+        Assert.assertEquals("BIO11", label);
+
+        label = service.computeNextSampleLabelByStrategy("20-LEUCCIR-001", "-", 4);
+        Assert.assertEquals("20-LEUCCIR-001-0005", label);
     }
 
 
     @Test
     public void findByFilter() {
+
         // Filter by program
         {
             StrategyFilterVO filter = StrategyFilterVO.builder()
@@ -163,15 +178,75 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             Assert.assertEquals(1, strategies.size());
         }
 
+        // Filter by analytic reference
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                    .analyticReferences(new String[]{"P101-0001-01-DF"})
+                    .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(1, strategies.size());
+            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
+        }
+
         // Filter by reference taxon
         {
             StrategyFilterVO filter = StrategyFilterVO.builder()
                 .referenceTaxonIds(new Integer[]{1006})
                 .build();
             List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
-
             Assert.assertNotNull(strategies);
-            Assert.assertEquals(1, strategies.size()); // Should be from the PARAM-BIO program
+            Assert.assertEquals(2, strategies.size());
+            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
+        }
+
+        // Filter by department
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                    .departmentIds(new Integer[]{3})
+                    .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(1, strategies.size());
+            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
+        }
+
+        // Filter by location
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                    .locationIds(new Integer[]{101})
+                    .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(1, strategies.size());
+            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
+        }
+
+        // Filter by pmfm
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                    .parameterIds(new Integer[]{350, 351})
+                    .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(2, strategies.size());
+            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
+            Assert.assertEquals("20-LEUCCIR-002", strategies.get(1).getLabel());
+        }
+
+        // Filter by periods
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                    .periods(new PeriodVO[]{PeriodVO.builder()
+                            .startDate(Dates.safeParseDate("2020-01-01", "yyyy-MM-dd"))
+                            .endDate(Dates.safeParseDate("2020-03-31", "yyyy-MM-dd"))
+                            .build(),
+                    })
+                    .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(1, strategies.size());
+            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
         }
     }
 }

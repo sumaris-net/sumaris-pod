@@ -67,6 +67,7 @@ public class LandingVO implements IRootDataVO<Integer>,
 
     private Set<PersonVO> observers;
     private List<SampleVO> samples;
+    private Integer samplesCount;
 
     private ProgramVO program;
 

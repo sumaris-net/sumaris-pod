@@ -217,6 +217,7 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
 
         xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
         xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
+        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
 
         return xmlQuery;
     }
@@ -303,4 +304,6 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
             throw new SumarisTechnicalException(e);
         }
     }
+
+
 }

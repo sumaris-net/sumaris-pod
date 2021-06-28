@@ -35,10 +35,10 @@ public enum AcquisitionLevelEnum {
     SURVIVAL_TEST(7, "SURVIVAL_TEST"),
     INDIVIDUAL_MONITORING(8, "INDIVIDUAL_MONITORING");
 
-    private int id;
+    private Integer id;
     private String label;
 
-    AcquisitionLevelEnum(int id, String label) {
+    AcquisitionLevelEnum(Integer id, String label) {
       this.id = id;
       this.label = label;
     }
@@ -51,11 +51,11 @@ public enum AcquisitionLevelEnum {
     }
 
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

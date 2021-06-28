@@ -57,9 +57,6 @@ public class SocialGraphQLService {
     final static int MAX_PAGE_SIZE = 1000;
 
     @Autowired
-    private SumarisServerConfiguration config;
-
-    @Autowired
     private UserEventService userEventService;
 
     @Autowired

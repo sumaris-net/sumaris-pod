@@ -43,7 +43,7 @@ public final class ExtractionTableColumnOrder {
         return (format + "-" + sheetName).toUpperCase();
     }
 
-    public static Map<String, String[]> COLUMNS_BY_SHEET = ImmutableMap.<String, String[]>builder()
+    public final static Map<String, String[]> COLUMNS_BY_SHEET = ImmutableMap.<String, String[]>builder()
             .put(key(RdbSpecification.FORMAT, RdbSpecification.TR_SHEET_NAME), new String[]{
                     RdbSpecification.COLUMN_RECORD_TYPE,
                     ProductRdbTrip.COLUMN_SAMPLING_TYPE,
@@ -171,7 +171,7 @@ public final class ExtractionTableColumnOrder {
             })
             .build();
 
-    public static Map<String, String[]> COLUMNS_BY_TABLE = ImmutableMap.<String, String[]>builder()
+    public final static Map<String, String[]> COLUMNS_BY_TABLE = ImmutableMap.<String, String[]>builder()
             .put(ProductRdbTrip.TABLE.name(), COLUMNS_BY_SHEET.get(key(RdbSpecification.FORMAT, RdbSpecification.TR_SHEET_NAME)))
             .put(ProductRdbStation.TABLE.name(), COLUMNS_BY_SHEET.get(key(RdbSpecification.FORMAT, RdbSpecification.HH_SHEET_NAME)))
             .put(ProductRdbSpeciesList.TABLE.name(), COLUMNS_BY_SHEET.get(key(RdbSpecification.FORMAT, RdbSpecification.SL_SHEET_NAME)))
@@ -190,7 +190,7 @@ public final class ExtractionTableColumnOrder {
         
         // Workaround need on SUMARiS DB
         if (fixTableName.startsWith("P01_ICES")) {
-            fixTableName.replaceAll("P01_ICES_", "P01_RDB_");
+            fixTableName = fixTableName.replaceAll("P01_ICES_", "P01_RDB_");
         }
 
         String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(fixTableName);

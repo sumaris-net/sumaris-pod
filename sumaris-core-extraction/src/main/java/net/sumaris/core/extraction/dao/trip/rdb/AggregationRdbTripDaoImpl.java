@@ -143,25 +143,27 @@ public class AggregationRdbTripDaoImpl<
         // -- Execute the aggregation --
 
         try {
-            // Station
-            rowCount = createStationTable(source, context);
-            if (rowCount == 0) return context;
-            if (sheetName != null && context.hasSheet(sheetName)) return context;
-
-            // Species List
-            rowCount = createSpeciesListTable(source, context);
-            if (sheetName != null && context.hasSheet(sheetName)) return context;
-
-            // Species Raw table
-            if (rowCount != 0) {
-                rowCount = createSpeciesLengthMapTable(source, context);
+            // If only CL expected: skip station/species aggregation
+            if (!CL_SHEET_NAME.equals(sheetName)) {
+                // Station
+                rowCount = createStationTable(source, context);
+                if (rowCount == 0) return context;
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
-            }
 
-            // Species Length
-            if (rowCount != 0) {
-                createSpeciesLengthTable(source, context);
+                // Species List
+                rowCount = createSpeciesListTable(source, context);
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
+
+                // Species length map table
+                if (rowCount != 0) {
+                    rowCount = createSpeciesLengthMapTable(source, context);
+                }
+
+                // Species Length
+                if (rowCount != 0) {
+                    createSpeciesLengthTable(source, context);
+                    if (sheetName != null && context.hasSheet(sheetName)) return context;
+                }
             }
 
             // Landing
@@ -563,7 +565,7 @@ public class AggregationRdbTripDaoImpl<
         log.debug(String.format("Aggregation #%s > Creating Species Map table...", context.getId()));
 
         XMLQuery xmlQuery = createSpeciesLengthMapQuery(source, context);
-        if (xmlQuery == null) return -1; // Skip
+        if (xmlQuery == null) return 0; // Skip
 
         // Create the table
         execute(context, xmlQuery);
@@ -631,6 +633,7 @@ public class AggregationRdbTripDaoImpl<
         log.debug(String.format("Aggregation #%s > Creating Species Map table...", context.getId()));
 
         XMLQuery xmlQuery = createSpeciesLengthQuery(source, context);
+        if (xmlQuery == null) return 0; // Skip
 
         // aggregate insertion
         execute(context, xmlQuery);
@@ -668,6 +671,10 @@ public class AggregationRdbTripDaoImpl<
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.SL_SHEET_NAME)));
         String rawSpeciesLengthTableName = source.findTableNameBySheetName(RdbSpecification.HL_SHEET_NAME)
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.HL_SHEET_NAME)));
+
+        // No species length raw data: skip
+        if (rawSpeciesLengthTableName == null) return null;
+
         String stationTableName = context.getStationTableName();
 
         XMLQuery xmlQuery = createXMLQuery(context, "createSpeciesLengthTable");
@@ -715,7 +722,7 @@ public class AggregationRdbTripDaoImpl<
         log.debug(String.format("Aggregation #%s > Creating Landing table...", context.getId()));
 
         XMLQuery xmlQuery = createLandingQuery(source, context);
-        if (xmlQuery == null) return -1; // Skip
+        if (xmlQuery == null) return 0; // Skip
 
         // aggregate insertion
         execute(context, xmlQuery);

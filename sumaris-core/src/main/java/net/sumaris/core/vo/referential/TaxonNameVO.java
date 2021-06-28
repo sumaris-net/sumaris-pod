@@ -31,10 +31,8 @@ import java.util.Date;
 
 @Data
 @FieldNameConstants
-@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(callSuper = true)
 public class TaxonNameVO extends ReferentialVO {
-
-    private Integer referenceTaxonId;
 
     private String completeName;
     private Date startDate;
@@ -45,7 +43,12 @@ public class TaxonNameVO extends ReferentialVO {
     private Boolean isVirtual;
     private Integer upperRank;
 
+    private Integer referenceTaxonId;
     private Integer taxonomicLevelId;
+    private Integer parentId;
+
+    private ReferentialVO taxonomicLevel;
+    private TaxonNameVO parentTaxonName;
 
     public TaxonNameVO() {
         this.setEntityName(TaxonName.class.getSimpleName()); // Need by client (e.f. GraphQL cache)

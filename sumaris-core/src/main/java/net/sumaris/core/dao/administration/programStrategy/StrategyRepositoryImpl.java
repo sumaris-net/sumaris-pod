@@ -25,23 +25,28 @@ package net.sumaris.core.dao.administration.programStrategy;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.administration.programStrategy.denormalized.DenormalizedPmfmStrategyRepository;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
-import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
-import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
+import net.sumaris.core.dao.referential.taxon.TaxonNameRepositoryImpl;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.NotUniqueException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.data.Landing;
+import net.sumaris.core.model.data.LandingMeasurement;
+import net.sumaris.core.model.data.Sample;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
@@ -125,7 +130,6 @@ public class StrategyRepositoryImpl
     public StrategyVO save(StrategyVO vo) {
         Preconditions.checkNotNull(vo);
         Preconditions.checkNotNull(vo.getProgramId(), "Missing 'programId'");
-        Preconditions.checkNotNull(vo.getLabel(), "Missing 'label'");
         Preconditions.checkNotNull(vo.getName(), "Missing 'name'");
         Preconditions.checkNotNull(vo.getStatusId(), "Missing 'statusId'");
 
@@ -225,8 +229,8 @@ public class StrategyRepositoryImpl
 
     /**
      * @param programId program id
-     * @param labelPrefix label prefix (ex: AAAA_BIO_)
-     * @return next strategy label for this prefix (ex: AAAA_BIO_0001)
+     * @param labelPrefix label prefix (ex: 20-LEUCCIR-)
+     * @return next strategy label for this prefix (ex: 20-LEUCCIR-001)
      */
     @Override
     public String computeNextLabelByProgramId(int programId, String labelPrefix, int nbDigit) {
@@ -257,6 +261,51 @@ public class StrategyRepositoryImpl
 
         if (!StringUtils.isNumeric(result)) {
             throw new SumarisTechnicalException(String.format("Unable to increment label '%s' on strategy", prefix.concat(result)));
+        }
+        result = String.valueOf(Integer.parseInt(result) + 1);
+        result = prefix.concat(StringUtils.leftPad(result, nbDigit, '0'));
+        return result;
+    }
+
+    /**
+     * @param strategyLabel strategy label (ex: 20-LEUCCIR-001)
+     * @param labelSeparator label separator (ex: -)
+     * @return next strategy sample label for this strategy (ex: 20-LEUCCIR-001-0001)
+     */
+    @Override
+    public String computeNextSampleLabelByStrategy(String strategyLabel, String labelSeparator, int nbDigit) {
+        Preconditions.checkNotNull(strategyLabel);
+        final String prefix = (labelSeparator == null) ? strategyLabel : strategyLabel + labelSeparator;
+
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<String> query = builder.createQuery(String.class);
+        Root<Sample> root = query.from(Sample.class);
+
+        ParameterExpression<Integer> idParam = builder.parameter(Integer.class);
+        ParameterExpression<String> valueParam = builder.parameter(String.class);
+
+        Join<Sample, Landing> landingInnerJoin = root.join(Sample.Fields.LANDING, JoinType.INNER);
+        Join<Landing, LandingMeasurement> measurementInnerJoin = landingInnerJoin.joinList(Landing.Fields.MEASUREMENTS, JoinType.INNER);
+
+        query.select(root.get(Sample.Fields.LABEL))
+                .distinct(true)
+                .where(
+                        builder.and(
+                                builder.equal(measurementInnerJoin.get(LandingMeasurement.Fields.PMFM).get(IEntity.Fields.ID), idParam),
+                                builder.equal(measurementInnerJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE), valueParam)
+                        ));
+
+        String result = getEntityManager()
+                .createQuery(query)
+                .setParameter(idParam, PmfmEnum.STRATEGY_LABEL.getId())
+                .setParameter(valueParam, strategyLabel)
+                .getResultStream()
+                .max(String::compareTo)
+                .map(source -> StringUtils.removeStart(source, prefix))
+                .orElse("0");
+
+        if (!StringUtils.isNumeric(result)) {
+            throw new SumarisTechnicalException(String.format("Unable to increment label '%s' on sample", prefix.concat(result)));
         }
         result = String.valueOf(Integer.parseInt(result) + 1);
         result = prefix.concat(StringUtils.leftPad(result, nbDigit, '0'));
@@ -347,12 +396,13 @@ public class StrategyRepositoryImpl
         Specification<Strategy> spec = super.toSpecification(filter, fetchOptions);
         if (filter.getId() != null) return spec;
         return spec
-
-            // Not need, has already defined using levelIds, in the super function
-            //.and(hasProgramIds(filter))
-
-            .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
-            .and(betweenDate(filter.getStartDate(), filter.getEndDate()));
+                .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+                .and(hasAnalyticReferences(filter.getAnalyticReferences()))
+                .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
+                .and(hasDepartmentIds(filter.getDepartmentIds()))
+                .and(hasLocationIds(filter.getLocationIds()))
+                .and(hasParameterIds(filter.getParameterIds()))
+                .and(hasPeriods(filter.getPeriods()));
     }
 
     @Override
@@ -494,10 +544,16 @@ public class StrategyRepositoryImpl
         Map<Integer, ReferenceTaxonStrategy> sourcesToRemove = Beans.splitByProperty(parent.getReferenceTaxons(),
             ReferenceTaxonStrategy.Fields.REFERENCE_TAXON + "." + ReferenceTaxon.Fields.ID);
 
+        TaxonNameRepositoryImpl tnr = new TaxonNameRepositoryImpl(em);
+
         // Save each reference taxon strategy
         Beans.getStream(sources).forEach(source -> {
             Integer referenceTaxonId = source.getReferenceTaxonId() != null ? source.getReferenceTaxonId() :
                 (source.getTaxonName() != null ? source.getTaxonName().getReferenceTaxonId() : null);
+
+            if (referenceTaxonId == null) {
+                referenceTaxonId = tnr.getReferenceTaxonIdById(source.getTaxonName().getId());
+            }
             if (referenceTaxonId == null) throw new DataIntegrityViolationException("Missing referenceTaxon.id in a ReferenceTaxonStrategyVO");
             ReferenceTaxonStrategy target = sourcesToRemove.remove(referenceTaxonId);
             boolean isNew = target == null;

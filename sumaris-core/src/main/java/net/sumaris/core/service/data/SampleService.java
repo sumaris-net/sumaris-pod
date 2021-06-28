@@ -25,6 +25,7 @@ package net.sumaris.core.service.data;
 
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
+import net.sumaris.core.vo.filter.SampleFilterVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -36,6 +37,11 @@ import java.util.List;
 @Transactional
 public interface SampleService {
 
+	@Transactional(readOnly = true)
+	Long countByFilter(SampleFilterVO filter);
+
+	@Transactional(readOnly = true)
+	Long countByLandingId(int landingId);
 
 	@Transactional(readOnly = true)
 	List<SampleVO> getAllByOperationId(int operationId);

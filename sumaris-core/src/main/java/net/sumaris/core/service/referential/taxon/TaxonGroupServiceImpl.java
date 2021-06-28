@@ -62,11 +62,17 @@ public class TaxonGroupServiceImpl implements TaxonGroupService {
     @Autowired
     protected DatabaseSchemaDao databaseSchemaDao;
 
+    private boolean enableTechnicalTablesUpdate = false;
+
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
-        if (configuration.enableTechnicalTablesUpdate()) {
-            // Use self, to force transaction creation
-            self.updateTaxonGroupHierarchies();
+
+        // Update technical tables (if option changed)
+        if (enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
+            enableTechnicalTablesUpdate = configuration.enableTechnicalTablesUpdate();
+            if (enableTechnicalTablesUpdate) {
+                self.updateTaxonGroupHierarchies(); // Use self, to force transaction creation
+            }
         }
     }
 

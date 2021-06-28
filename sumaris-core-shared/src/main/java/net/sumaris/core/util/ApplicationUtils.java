@@ -22,7 +22,7 @@ package net.sumaris.core.util;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
+import graphql.com.google.common.collect.ImmutableList;
 
 import java.util.List;
 import java.util.regex.Matcher;

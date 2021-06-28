@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.version.VersionBuilder;
 import org.nuiton.version.Version;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.io.File;
 import java.util.TimeZone;
@@ -48,8 +49,8 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     /**
      * <p>initDefault.</p>
      */
-    public static void initDefault(String configFileName) {
-        instance = new SumarisServerConfiguration(configFileName, args);
+    public static void initDefault(ConfigurableEnvironment env) {
+        instance = new SumarisServerConfiguration(env, args);
         setInstance(instance);
     }
 
@@ -79,6 +80,16 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
      */
     public SumarisServerConfiguration(String file, String... args) {
         super(file, args);
+    }
+
+    /**
+     * <p>Constructor for SumarisServerConfiguration.</p>
+     *
+     * @param env a {@link ConfigurableEnvironment} object.
+     * @param args a {@link String} object.
+     */
+    public SumarisServerConfiguration(ConfigurableEnvironment env, String... args) {
+        super(env, args);
     }
 
     /** {@inheritDoc} */
@@ -278,7 +289,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
      * Initialization default timezone, from configuration (mantis #34754)
      */
     @Override
-    protected void initTimeZone() {
+    protected void initTimeZone(ApplicationConfig applicationConfig) {
 
         String timeZone = applicationConfig.getOption(SumarisConfigurationOption.TIMEZONE.getKey());
         if (StringUtils.isNotBlank(timeZone)) {

@@ -27,6 +27,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.Date;
 
@@ -61,10 +62,14 @@ public class StrategyFilterVO implements IReferentialFilter {
     private Date startDate;
     private Date endDate;
 
+    private String[] analyticReferences;
     private Integer[] referenceTaxonIds;
+    private Integer[] departmentIds;
+    private Integer[] locationIds;
+    private Integer[] parameterIds;
+    private PeriodVO[] periods;
 
     /* -- Synonym properties (need by IReferentialFilter) -- */
-
 
     public Integer[] getLevelIds() {
         return programIds;
@@ -80,5 +85,37 @@ public class StrategyFilterVO implements IReferentialFilter {
 
     public void setLevelLabels(String[] levelLabels) {
         this.programLabels = levelLabels;
+    }
+
+    @Deprecated
+    public Integer getLevelId() {
+        if (ArrayUtils.getLength(programIds) == 1) return programIds[0];
+        return null;
+    }
+
+    @Deprecated
+    public void setLevelId(Integer levelId) {
+        if (ArrayUtils.isEmpty(this.programIds)) {
+            this.programIds = new Integer[]{levelId};
+        }
+        else {
+            this.programIds = ArrayUtils.add(this.programIds, levelId);
+        }
+    }
+
+    @Deprecated
+    public String getLevelLabel() {
+        if (ArrayUtils.getLength(programLabels) == 1) return programLabels[0];
+        return null;
+    }
+
+    @Deprecated
+    public void setLevelLabel(String levelLabel) {
+        if (ArrayUtils.isEmpty(this.programLabels)) {
+            this.programLabels = new String[]{levelLabel};
+        }
+        else {
+            this.programLabels = ArrayUtils.add(this.programLabels, levelLabel);
+        }
     }
 }

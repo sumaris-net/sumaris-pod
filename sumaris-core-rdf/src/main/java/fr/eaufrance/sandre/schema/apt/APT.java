@@ -30,7 +30,7 @@ import org.apache.jena.rdf.model.*;
  * see http://www.sandre.eaufrance.fr/atlas/srv/fre/catalog.search#/metadata/0bea2eb9-a4ee-4a81-b494-bd4fb5338ef8
  */
 public class APT {
-    public static final String NS = "http://id.eaufrance.fr/ddd/APT/";
+    public static final String NS = "http://id.eaufrance.fr/ddd/APT/2.1/";
     public static final String PREFIX = "apt";
     public static String getURI() {
         return NS;

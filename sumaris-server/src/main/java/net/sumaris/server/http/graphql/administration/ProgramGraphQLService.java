@@ -163,7 +163,7 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "strategiesCount", description = "Get strategies count")
     @Transactional(readOnly = true)
     public Long getStrategyCount(@GraphQLArgument(name = "filter") StrategyFilterVO filter) {
-        return referentialService.countByFilter(Strategy.class.getSimpleName(), filter);
+        return strategyService.countByFilter(filter);
     }
 
     @GraphQLQuery(name = "taxonGroupType", description = "Get program's taxon group type")
@@ -298,6 +298,17 @@ public class ProgramGraphQLService {
 
         return strategyService.computeNextLabelByProgramId(programId,
                 labelPrefix == null ? "" : labelPrefix,
+                nbDigit == null ? 0 : nbDigit);
+    }
+
+    @GraphQLQuery(name = "strategyNextSampleLabel", description = "Get next sample label for strategy")
+    @IsUser
+    public String findNextSampleLabelByStrategy(
+            @GraphQLNonNull @GraphQLArgument(name = "strategyLabel") @NonNull String strategyLabel,
+            @GraphQLArgument(name = "labelSeparator", defaultValue = "") String labelSeparator,
+            @GraphQLArgument(name = "nbDigit", defaultValue = "0") Integer nbDigit) {
+        return strategyService.computeNextSampleLabelByStrategy(strategyLabel,
+                labelSeparator == null ? "" : labelSeparator,
                 nbDigit == null ? 0 : nbDigit);
     }
 
