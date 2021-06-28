@@ -12,6 +12,7 @@ stages:
     - test
     - release
     - docker
+    - publish
     - docs
 
 # ---------------------------------------------------------------
@@ -79,6 +80,7 @@ build:
     only:
         - develop
         - feature/imagine
+        - tags
 
 failsafe-build:
     extends: .build
@@ -144,67 +146,47 @@ sonarqube:
     when: manual
 
 # ---------------------------------------------------------------
-# Deploy jobs
-# ---------------------------------------------------------------
-
-#.deploy-file:
-#    stage: deploy
-#    tags: [sih_public_runner]
-#    script:
-#        - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
-#        - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout)
-#        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
-#    only:
-#        - develop
-#
-#fast-deploy-file:
-#    extends: .deploy-file
-#    needs: [fast-build]
-#
-#failsafe-deploy-file:
-#    extends: .deploy-file
-#    needs: [failsafe-build]
-
-# ---------------------------------------------------------------
 # Release jobs
 # ---------------------------------------------------------------
 
 .release:
-    stage: release
-    tags: [sih_public_runner]
-    before_script:
-        - git remote set-url origin ${CI_REPOSITORY_URL}
-        - git config --global user.email "${GITLAB_USER_EMAIL}"
-        - git config --global user.name "${GITLAB_USER_NAME}"
-        - git reset --hard develop
-        - git fetch origin
-    script:
-        - echo "Preparing release..."
-        - git branch -D release/$RELEASE_VERSION || true
-        - git pull origin develop && git checkout develop && git status
-        - mvn -s ./ci_settings.xml -B gitflow:release-start --batch-mode -DreleaseVersion="$RELEASE_VERSION"
-        - echo "Performing release..."
-        - mvn clean install -s ./ci_settings.xml --batch-mode -DperformRelease -DskipTests
-        - echo "Creating test DB..."
-        - mvn -pl ${APP_CORE_MODULE} -q -Prun,hsqldb -DskipTests --batch-mode
-        - cd ${APP_CORE_MODULE}/target && tar -cf "${APP_DB_MODULE}-${RELEASE_VERSION}.tar.gz" db && cd ../..
-        - echo "Pushing changes to upstream"
-        - git commit -a -m "Release $RELEASE_VERSION"
-        - git status
-        - mvn gitflow:release-finish
-    after_script:
-        - echo "APP_VERSION=${RELEASE_VERSION}" > ${ENV_FILE}
-    artifacts:
-        paths:
-            - ${ARTIFACT_WAR_FILE}
-            - ${ARTIFACT_CONFIG_FILES}
-            - ${APP_WAR_MODULE}/target/*.tar.gz
-            - ${APP_WAR_MODULE}/target/*.zip
-        reports:
-            dotenv: ${ENV_FILE}
-    only:
-        - develop
-    when: manual
+  stage: release
+  tags: [sih_public_runner]
+  before_script:
+    - git remote set-url origin ${CI_REPOSITORY_URL}
+    - git config --global user.email "${GITLAB_USER_EMAIL}"
+    - git config --global user.name "${GITLAB_USER_NAME}"
+    - git reset --hard develop
+    - git fetch origin
+  script:
+    - cd src/scripts
+    - ./release.sh pre ${RELEASE_VERSION}
+#        - echo "Preparing release..."
+#        - git branch -D release/$RELEASE_VERSION || true
+#        - git pull origin develop && git checkout develop && git status
+#        - mvn -s ./ci_settings.xml -B gitflow:release-start --batch-mode -DreleaseVersion="$RELEASE_VERSION"
+#        - echo "Performing release..."
+#        - mvn clean install -s ./ci_settings.xml --batch-mode -DperformRelease -DskipTests
+#        - echo "Creating test DB..."
+#        - mvn -pl ${APP_CORE_MODULE} -q -Prun,hsqldb -DskipTests --batch-mode
+#        - cd ${APP_CORE_MODULE}/target && tar -cf "${APP_DB_MODULE}-${RELEASE_VERSION}.tar.gz" db && cd ../..
+#        - echo "Pushing changes to upstream"
+#        - git commit -a -m "Release $RELEASE_VERSION"
+#        - git status
+#        - mvn gitflow:release-finish
+  after_script:
+    - echo "APP_VERSION=${RELEASE_VERSION}" > ${ENV_FILE}
+  artifacts:
+    paths:
+      - ${ARTIFACT_WAR_FILE}
+      - ${ARTIFACT_CONFIG_FILES}
+      - ${APP_WAR_MODULE}/target/*.tar.gz
+      - ${APP_WAR_MODULE}/target/*.zip
+    reports:
+      dotenv: ${ENV_FILE}
+  only:
+    - develop
+  when: manual
 
 release:
     extends: .release
@@ -278,27 +260,69 @@ docker:release:
         - tags
 
 # ---------------------------------------------------------------
-# Docs jobs
+# Publish jobs
 # ---------------------------------------------------------------
 
-pages:
-    stage: docs
+.deploy-file:
+    stage: deploy
     tags: [sih_public_runner]
-    image: python:3.7-alpine
-    before_script:
-        - git submodule foreach git fetch origin
-        - git submodule foreach git pull
     script:
-        - Echo "Generate SVG images"
-        - git submodule foreach ./generate.sh
-        - mvn -s ./ci_settings.xml site -q -Prun,hsqldb -DperformRelease
-    after_script:
-        - mv target/site public
-    artifacts:
-        paths:
-            - public
+        - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
+        - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout)
+        - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+
+deploy-file:develop:
+    extends: .deploy-file
+    needs: [fast-build]
     only:
         - develop
     when: manual
 
+failsafe-deploy-file:develop:
+    extends: .deploy-file
+    needs: [failsafe-build]
+    only:
+        - develop
+    when: manual
 
+deploy-file:release:
+    extends: .deploy-file
+    image: ${CI_BUILD_IMAGE}
+    needs: [fast-build]
+    allow_failure: true
+    only:
+        - tags
+
+# ---------------------------------------------------------------
+# Docs jobs
+# ---------------------------------------------------------------
+
+.pages:
+  stage: docs
+  image: ${CI_BUILD_IMAGE}
+  tags: [sih_public_runner]
+  before_script:
+      - git submodule foreach git fetch origin
+      - git submodule foreach git pull
+  script:
+      - echo "---- Generating SVG, from '*.plantuml' files..."
+      - git submodule foreach ./generate.sh || true
+      - echo "---- Generating Maven site..."
+      - mvn site -s ./ci_settings.xml -q -Phsqldb -DperformRelease
+  after_script:
+      - mv target/site public
+  allow_failure: true
+  artifacts:
+      paths:
+          - public
+
+pages:develop:
+  extends: .pages
+  only:
+      - develop
+  when: manual
+
+pages:release:
+  extends: .pages
+  only:
+      - tags
