@@ -294,7 +294,7 @@ docker:release:
 # ---------------------------------------------------------------
 
 .deploy-file:
-    stage: deploy
+    stage: publish
     tags: [sih_public_runner]
     script:
         - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
