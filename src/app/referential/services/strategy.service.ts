@@ -98,13 +98,13 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
 
 const FindStrategyNextLabel: any = gql`
   query StrategyNextLabelQuery($programId: Int!, $labelPrefix: String, $nbDigit: Int){
-    strategyNextLabel(programId: $programId, labelPrefix: $labelPrefix, nbDigit: $nbDigit)
+    data: strategyNextLabel(programId: $programId, labelPrefix: $labelPrefix, nbDigit: $nbDigit)
   }
 `;
 
 const FindStrategyNextSampleLabel: any = gql`
-  query StrategyNextSampleLabelQuery($strategyLabel: String!, $nbDigit: Int){
-    data: strategyNextSampleLabel(strategyLabel: $strategyLabel, nbDigit: $nbDigit)
+  query StrategyNextSampleLabelQuery($strategyLabel: String!, $labelSeparator: String, $nbDigit: Int){
+    data: strategyNextSampleLabel(strategyLabel: $strategyLabel, labelSeparator: $labelSeparator, nbDigit: $nbDigit)
   }
 `;
 
@@ -253,7 +253,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
   async computeNextLabel(programId: number, labelPrefix?: string, nbDigit?: number): Promise<string> {
     if (this._debug) console.debug(`[strategy-service] Loading strategy next label...`);
 
-    const res = await this.graphql.query<{ strategyNextLabel: string }>({
+    const res = await this.graphql.query<{ data: string }>({
       query: FindStrategyNextLabel,
       variables: {
         programId: programId,
@@ -263,17 +263,18 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_LABEL_ERROR"},
       fetchPolicy: 'network-only'
     });
-    return res && res.strategyNextLabel;
+    return res && res.data;
   }
 
-  async computeNextSampleTagId(strategyLabel: string, nbDigit?: number): Promise<string> {
+  async computeNextSampleLabel(strategyLabel: string, labelSeparator?: string, nbDigit?: number): Promise<string> {
     if (this._debug) console.debug(`[strategy-service] Loading strategy next sample label...`);
 
     const res = await this.graphql.query<{ data: string }>({
       query: FindStrategyNextSampleLabel,
       variables: {
-        strategyLabel,
-        nbDigit
+        strategyLabel: strategyLabel,
+        labelSeparator: labelSeparator,
+        nbDigit: nbDigit
       },
       error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR"},
       fetchPolicy: 'network-only'
