@@ -7,7 +7,7 @@ import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
 import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
 import {EntityClass}  from "@sumaris-net/ngx-components";
 
-@EntityClass()
+@EntityClass({typename: 'LandingFilterVO'})
 export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> {
 
   static fromObject: (source: any, opts?: any) => LandingFilter;

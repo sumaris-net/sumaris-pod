@@ -115,7 +115,7 @@ export class SamplingLandingPage extends LandingPage {
     }
 
     await this.samplesTable.ready();
-    this.showSamplesTable = true;
+    this.showSamplesTable = this.samplesTable.$pmfms.getValue()?.length > 0;
     this.markForCheck();
   }
 

@@ -5,7 +5,7 @@ import {FilterFn} from "@sumaris-net/ngx-components";
 import {isNotEmptyArray} from "@sumaris-net/ngx-components";
 import {EntityClass}  from "@sumaris-net/ngx-components";
 
-@EntityClass()
+@EntityClass({typename: 'ReferentialFilterVO'})
 export class ReferentialRefFilter
     extends BaseReferentialFilter<ReferentialRefFilter, ReferentialRef> {
 

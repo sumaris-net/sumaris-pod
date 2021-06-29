@@ -39,7 +39,7 @@ import {ReferentialRefFilter} from './filter/referential-ref.filter';
 import {SynchronizationStatus} from '@app/data/services/model/root-data-entity.model';
 
 
-@EntityClass()
+@EntityClass({typename: 'StrategyFilterVO'})
 export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strategy> {
 
   static fromObject: (source: any, opts?: any) => StrategyFilter;
@@ -103,8 +103,8 @@ const FindStrategyNextLabel: any = gql`
 `;
 
 const FindStrategyNextSampleLabel: any = gql`
-  query StrategyNextSampleLabelQuery($strategyLabel: String, $nbDigit: Int){
-    strategyNextSampleLabel(strategyLabel: $strategyLabel, nbDigit: $nbDigit)
+  query StrategyNextSampleLabelQuery($strategyLabel: String!, $nbDigit: Int){
+    data: strategyNextSampleLabel(strategyLabel: $strategyLabel, nbDigit: $nbDigit)
   }
 `;
 
@@ -266,19 +266,19 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     return res && res.strategyNextLabel;
   }
 
-  async computeNextSampleLabel(strategyLabel: string, nbDigit?: number): Promise<string> {
+  async computeNextSampleTagId(strategyLabel: string, nbDigit?: number): Promise<string> {
     if (this._debug) console.debug(`[strategy-service] Loading strategy next sample label...`);
 
-    const res = await this.graphql.query<{ strategyNextSampleLabel: string }>({
+    const res = await this.graphql.query<{ data: string }>({
       query: FindStrategyNextSampleLabel,
       variables: {
-        strategyLabel: strategyLabel,
-        nbDigit: nbDigit
+        strategyLabel,
+        nbDigit
       },
       error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR"},
       fetchPolicy: 'network-only'
     });
-    return res && res.strategyNextSampleLabel;
+    return res && res.data;
   }
 
   async loadAllAnalyticReferences(

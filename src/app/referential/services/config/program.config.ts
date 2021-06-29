@@ -298,12 +298,6 @@ export const ProgramProperties = Object.freeze({
     defaultValue: "false",
     type: 'boolean'
   },
-  LANDING_ONE_TAB_ENABLE: <FormFieldDefinition>{
-    key: "sumaris.landing.oneTab.enable",
-    label: "PROGRAM.OPTIONS.LANDING_ONE_TAB_ENABLE",
-    defaultValue: "false",
-    type: 'boolean'
-  },
 
   /* -- Landed trip options -- */
 

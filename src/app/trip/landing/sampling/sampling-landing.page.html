@@ -111,7 +111,7 @@
                             <ul>
                               <ng-container *ngFor="let caclcifiedType of strategyCard.data.pmfms; let i=index">
                               <li *ngIf="caclcifiedType.fraction && !caclcifiedType.pmfm">
-                                <span>{{caclcifiedType.fraction | referentialToString:strategyCard.displayAttributes.caclcifiedType }}</span>
+                                <span>{{caclcifiedType.fraction | referentialToString:strategyCard.displayAttributes.fraction }}</span>
                               </li>
                               </ng-container>
                             </ul>
@@ -138,11 +138,10 @@
     </mat-tab>
 
     <!-- TAB: samples -->
-    <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES'|translate"
-             [disabled]="oneTabMode">
+    <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES'|translate">
       <ng-template mat-tab-label>
-        <mat-icon *ngIf="showSamplesTable && !oneTabMode">center_focus_strong</mat-icon>
-        <ion-label *ngIf="showSamplesTable && !oneTabMode; else skeletonText100">{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
+        <mat-icon *ngIf="program">center_focus_strong</mat-icon>
+        <ion-label *ngIf="program; else skeletonText100">{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
 
@@ -154,19 +153,30 @@
           <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
         </ion-item>
 
-        <app-sampling-samples-table #samplesTable
-                                    [class.cdk-visually-hidden]="!showSamplesTable"
-                                    [disabled]="noEffortError"
-                                    [showLabelColumn]="true"
-                                    [showDateTimeColumn]="false"
-                                    [defaultSampleDate]="data?.dateTime"
-                                    [defaultLocation]="data?.location"
-                                    [pmfmGroups]="$pmfmGroups|async"
-                                    [usageMode]="usageMode"
-                                    [useSticky]="true"
-                                    (onPrepareRowForm)="onPrepareSampleForm($event)"
-                                    [debug]="debug">
-        </app-sampling-samples-table>
+        <app-samples-table  #samplesTable
+                            [class.cdk-visually-hidden]="!showSamplesTable"
+                            [disabled]="noEffortError"
+                            [showLabelColumn]="false"
+                            [showDateTimeColumn]="false"
+                            [showTaxonGroupColumn]="false"
+                            [showTaxonNameColumn]="false"
+                            [showPmfmDetails]="true"
+                            [pmfmGroups]="$pmfmGroups|async"
+                            [canAddPmfm]="true"
+                            [defaultSampleDate]="data?.dateTime"
+                            [defaultLocation]="data?.location"
+                            [usageMode]="usageMode"
+                            [useSticky]="true"
+                            [compactFields]="false"
+                            (onPrepareRowForm)="onPrepareSampleForm($event)"
+                            [debug]="debug"
+                            [rowErrorTemplate]="rowError">
+        </app-samples-table>
+
+        <ng-template #rowError let-row>
+          <mat-icon color="warn" *ngIf="row.validator.hasError('missingWeightOrSize')"
+                [title]="'TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_LENGTH'|translate">error</mat-icon>
+        </ng-template>
 
         <!-- final space-->
         <p visible-xs visible-sm visible-mobile>&nbsp;</p>

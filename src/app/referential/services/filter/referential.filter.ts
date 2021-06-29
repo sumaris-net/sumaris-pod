@@ -1,4 +1,4 @@
-import {EntityFilter}  from "@sumaris-net/ngx-components";
+import {EntityFilter, ReferentialRef} from '@sumaris-net/ngx-components';
 import {IReferentialRef, Referential}  from "@sumaris-net/ngx-components";
 import {EntityAsObjectOptions, EntityUtils}  from "@sumaris-net/ngx-components";
 import {isNil, isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
@@ -110,14 +110,31 @@ export abstract class BaseReferentialFilter<
   }
 }
 
-@EntityClass()
+@EntityClass({typename: 'ReferentialFilterVO'})
 export class ReferentialFilter
   extends BaseReferentialFilter<ReferentialFilter, Referential> {
 
   static TYPENAME = 'ReferentialVO';
   static fromObject: (source: any, opts?: any) => ReferentialFilter;
 
+  level?: ReferentialRef;
+
   constructor() {
     super(ReferentialFilter.TYPENAME);
+  }
+
+  asObject(opts?: EntityAsObjectOptions): any {
+    const target = super.asObject(opts);
+
+    target.levelIds = target.levelIds || this.level && isNotNil(this.level.id) && [this.level.id] || undefined;
+    if (opts && opts.minify) {
+      delete target.level;
+    }
+    return target;
+  }
+
+  fromObject(source: any, opts?: any) {
+    super.fromObject(source, opts);
+    this.level = source.level && ReferentialRef.fromObject(source.level);
   }
 }

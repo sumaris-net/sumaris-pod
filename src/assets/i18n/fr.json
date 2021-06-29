@@ -186,6 +186,7 @@
         "TAXONOMIC_LEVEL_SPECIES_ID": "Référentiel > Niveau taxinomique > Espèce",
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Référentiel > Niveau taxinomique > Sous espèce",
         "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Ligne de plan",
+        "PMFM_TAG_ID": "Référentiel > PSFM > Code prélèvement",
         "PMFM_AGE_ID": "Référentiel > PSFM > Âge",
         "PMFM_SEX_ID": "Référentiel > PSFM > Sexe",
         "STRATEGY_PARAMETER_AGE_LABEL": "Stratégie > Paramètre > Code âge",
@@ -345,7 +346,7 @@
       "TAXON_GROUP": "Liste déroulante > Espèces commerciale",
       "TAXON_NAME": "Liste déroulante > Espèces scientifique",
       "GEAR": "Liste déroulante > Engins de pêche",
-      "CALCIFIED_TYPE": "Liste déroulante > Pièces calcifiées",
+      "FRACTION": "Liste déroulante > Fraction (pièce calcifiée, etc.)",
       "ATTRIBUTES": {
         "LABEL": "Code",
         "NAME": "Libellé",
@@ -696,8 +697,6 @@
         "AGE": "Age",
         "OTHER": "Autre",
         "SAMPLING": {
-          "LABEL": "Code prélèvement",
-          "LABEL_PLACEHOLDER": "Code prélèvement",
           "TAXON_GROUP": "Espèce commerciale (FAO)",
           "TAXON_GROUP_PLACEHOLDER": "Code espèce",
           "TAXON_NAME": "Espèce scientifique (FAO)",
@@ -707,6 +706,7 @@
           "COMMENTS": "Commentaires",
           "COMMENTS_PLACEHOLDER": "Commentaires",
           "BTN_AUTO_FILL": "Remplir automatiquement",
+          "TAG_ID": "Code prélèvement",
           "WEIGHT": "Poids",
           "LENGTH": "Taille",
           "MATURITY": "Maturité",

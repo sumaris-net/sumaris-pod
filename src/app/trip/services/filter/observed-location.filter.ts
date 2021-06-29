@@ -8,7 +8,7 @@ import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
 import {FilterFn} from "@sumaris-net/ngx-components";
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
-@EntityClass()
+@EntityClass({typename: 'ObservedLocationFilterVO'})
 export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocationFilter, ObservedLocation> {
 
     static fromObject: (source: any, opts?: any) => ObservedLocationFilter

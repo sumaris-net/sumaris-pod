@@ -215,7 +215,7 @@ import {AppCoreModule} from '@app/core/core.module';
         },
         {
           title: 'MENU.OCCASIONS', path: '/observations',
-          matIcon: 'verified',
+          icon: 'location',
           profile: 'USER',
           ifProperty: 'sumaris.observedLocation.enable',
           titleProperty: 'sumaris.observedLocation.name'

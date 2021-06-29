@@ -1,35 +1,57 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Optional, Output} from "@angular/core";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {SampleValidatorService} from "../services/validator/sample.validator";
-import {isEmptyArray, isNil, isNilOrBlank, isNotNil, toNumber} from "@sumaris-net/ngx-components";
-import {UsageMode}  from "@sumaris-net/ngx-components";
-import * as momentImported from "moment";
-import {Moment} from "moment";
-import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
-import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
-import {ISampleModalOptions, SampleModal} from "./sample.modal";
-import {FormGroup} from "@angular/forms";
-import {TaxonGroupRef, TaxonNameRef} from "../../referential/services/model/taxon.model";
-import {Sample} from "../services/model/sample.model";
-import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {IReferentialRef, ReferentialRef}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {filter, map, tap} from "rxjs/operators";
-import {LoadResult} from "@sumaris-net/ngx-components";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ContentChild, EventEmitter, Injector, Input, Optional, Output, TemplateRef} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {SampleValidatorService} from '../services/validator/sample.validator';
+import {
+  AppFormUtils,
+  firstNotNilPromise,
+  InMemoryEntitiesService,
+  IReferentialRef,
+  isEmptyArray,
+  isInstanceOf,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  LoadResult,
+  ObjectMap,
+  PlatformService,
+  ReferentialRef,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+  toBoolean,
+  toNumber,
+  UsageMode
+} from '@sumaris-net/ngx-components';
+import * as momentImported from 'moment';
+import {Moment} from 'moment';
+import {AppMeasurementsTable, AppMeasurementsTableOptions} from '../measurement/measurements.table.class';
+import {ISampleModalOptions, SampleModal} from './sample.modal';
+import {FormGroup} from '@angular/forms';
+import {TaxonGroupRef, TaxonNameRef} from '../../referential/services/model/taxon.model';
+import {Sample} from '../services/model/sample.model';
+import {AcquisitionLevelCodes, ParameterGroups} from '../../referential/services/model/model.enum';
+import {ReferentialRefService} from '../../referential/services/referential-ref.service';
+import {environment} from '../../../environments/environment';
+import {filter, map, tap} from 'rxjs/operators';
 import {IPmfm, PmfmUtils} from '../../referential/services/model/pmfm.model';
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {SampleFilter} from "../services/filter/sample.filter";
-import {isInstanceOf}  from "@sumaris-net/ngx-components";
+import {SampleFilter} from '../services/filter/sample.filter';
+import {PmfmFilter, PmfmService} from '@app/referential/services/pmfm.service';
+import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
+import {BehaviorSubject} from 'rxjs';
 
 const moment = momentImported;
 
 
 export class SamplesTableOptions extends AppMeasurementsTableOptions<Sample> {
 
+}
+
+declare interface GroupColumnDefinition {
+  key: string;
+  label?: string;
+  name?: string;
+  colSpan: number;
+  cssClass?: string;
 }
 
 export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
@@ -49,20 +71,43 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
+  protected pmfmService: PmfmService;
 
-  get memoryDataService(): InMemoryEntitiesService<Sample, SampleFilter> {
-    return this.dataService as InMemoryEntitiesService<Sample, SampleFilter>;
-  }
+  // Top group header
+  showGroupHeader = false;
+  groupHeaderStartColSpan: number;
+  groupHeaderEndColSpan: number;
+  $pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
+  $pmfmGroupColumns = new BehaviorSubject<GroupColumnDefinition[]>([]);
+  groupHeaderColumnNames: string[] = [];
 
   @Input() useSticky = false;
+  @Input() canAddPmfm = false;
+  @Input() showError = true;
+  @Input() showToolbar: boolean;
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
   @Input() showDateTimeColumn = true;
+  @Input() showPmfmDetails = false;
   @Input() showFabButton = false;
   @Input() defaultSampleDate: Moment;
   @Input() defaultTaxonGroup: ReferentialRef;
   @Input() defaultTaxonName: ReferentialRef;
+  @Input() defaultLocation: ReferentialRef;
   @Input() modalOptions: Partial<ISampleModalOptions>;
+  @Input() compactFields = true;
+
+  @Input() set pmfmGroups(value: ObjectMap<number[]>) {
+    if (this.$pmfmGroups.getValue() !== value) {
+      this.showGroupHeader = true;
+      this.showToolbar = false;
+      this.$pmfmGroups.next(value);
+    }
+  }
+
+  get pmfmGroups(): ObjectMap<number[]> {
+    return this.$pmfmGroups.getValue();
+  }
 
   @Input()
   set value(data: Sample[]) {
@@ -91,7 +136,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return this.getShowColumn('taxonName');
   }
 
+  get memoryDataService(): InMemoryEntitiesService<Sample, SampleFilter> {
+    return this.dataService as InMemoryEntitiesService<Sample, SampleFilter>;
+  }
+
   @Output() onPrepareRowForm = new EventEmitter<{form: FormGroup, pmfms: IPmfm[]}>();
+
+  @Input() rowErrorTemplate: TemplateRef<any>;
 
   constructor(
     injector: Injector,
@@ -100,7 +151,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     super(injector,
       Sample,
       new InMemoryEntitiesService(Sample, SampleFilter, {
-        equals: Sample.equals
+        equals: Sample.equals,
+        sortByReplacement: {'id': 'rankOrder'}
       }),
       injector.get(PlatformService).mobile ? null : injector.get(ValidatorService),
       {
@@ -110,11 +162,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS,
         requiredStrategy: false,
         debug: !environment.production,
-        ...options
+        ...options,
+        // Cannot override mapPmfms (by options)
+        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       }
     );
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
+    this.pmfmService = injector.get(PmfmService);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
     this.inlineEdition = !this.mobile;
     this.defaultSortBy = 'rankOrder';
@@ -137,6 +192,11 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
           tap(event => this.onPrepareRowForm.emit(event))
         )
         .subscribe());
+  }
+
+  ngOnInit() {
+    super.ngOnInit();
+    this.showToolbar = toBoolean(this.showToolbar, !this.showGroupHeader);
   }
 
   ngAfterViewInit() {
@@ -163,96 +223,20 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     this.onPrepareRowForm.complete();
     this.onPrepareRowForm.unsubscribe();
+    this.$pmfmGroups.complete();
+    this.$pmfmGroups.unsubscribe();
+    this.$pmfmGroupColumns.complete();
+    this.$pmfmGroupColumns.unsubscribe();
   }
 
-  async getMaxRankOrder(): Promise<number> {
-    return super.getMaxRankOrder();
-  }
 
-  /* -- protected methods -- */
-
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
-    //if (isNilOrBlank(value)) return [];
-    return this.programRefService.suggestTaxonGroups(value,
-      {
-        program: this.programLabel,
-        searchAttribute: options && options.searchAttribute
-      });
-  }
-
-  protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
-    const taxonGroup = this.editedRow && this.editedRow.validator.get('taxonGroup').value;
-
-    // IF taxonGroup column exists: taxon group must be filled first
-    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return {data: []};
-
-    return this.programRefService.suggestTaxonNames(value,
-      {
-        programLabel: this.programLabel,
-        searchAttribute: options && options.searchAttribute,
-        taxonGroupId: taxonGroup && taxonGroup.id || undefined
-      });
-  }
-
-  protected async onNewEntity(data: Sample): Promise<void> {
-    console.debug("[sample-table] Initializing new row data...");
-
-    await super.onNewEntity(data);
-
-    // generate label
-    if (!this.showLabelColumn) {
-      data.label = `${this.acquisitionLevel}#${data.rankOrder}`;
-    }
-
-    // Default date
-    if (isNotNil(this.defaultSampleDate)) {
-      data.sampleDate = this.defaultSampleDate;
-    } else if (this.settings.isOnFieldMode(this.usageMode)) {
-      data.sampleDate = moment();
-    }
-
-    // Default taxon name
-    if (isNotNil(this.defaultTaxonName)) {
-      data.taxonName = TaxonNameRef.fromObject(this.defaultTaxonName);
-    }
-
-    // Default taxon group
-    if (isNotNil(this.defaultTaxonGroup)) {
-      data.taxonGroup = TaxonGroupRef.fromObject(this.defaultTaxonGroup);
-    }
-  }
-
-  protected async openNewRowDetail(): Promise<boolean> {
-    if (!this.allowRowDetail) return false;
-
-    const data = await this.openDetailModal();
-    if (data) {
-      await this.addEntityToTable(data);
-    }
-    return true;
-  }
-
-  protected async openRow(id: number, row: TableElement<Sample>): Promise<boolean> {
-    if (!this.allowRowDetail) return false;
-
-    if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit({id, row});
-      return true;
-    }
-
-    const data = this.toEntity(row, true);
-
-    // Prepare entity measurement values
-    this.prepareEntityToSave(data);
-
-    const updatedData = await this.openDetailModal(data, row);
-    if (updatedData) {
-      await this.updateEntityToTable(updatedData, row);
-    }
-    else {
-      this.editedRow = null;
-    }
-    return true;
+  /**
+   * Use in ngFor, for trackBy
+   * @param index
+   * @param column
+   */
+  trackColumnDef(index: number, column: GroupColumnDefinition) {
+    return column.key;
   }
 
 
@@ -346,7 +330,123 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     }
   }
 
+  async openAddPmfmsModal(event?: UIEvent) {
+    const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.id).filter(isNotNil);
+
+    const pmfmIds = await this.openSelectPmfmsModal(event, {
+      excludedIds: existingPmfmIds
+    }, {
+      allowMultiple: false
+    });
+    if (!pmfmIds) return; // USer cancelled
+
+    console.debug('[samples-table] Adding pmfm ids:', pmfmIds);
+    await this.addPmfmColumns(pmfmIds);
+
+  }
+
+  /**
+   * Not used yet. Implementation must manage stored samples values and different pmfms types (number, string, qualitative values...)
+   * @param event
+   */
+  async openChangePmfmsModal(event?: UIEvent) {
+    const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.id).filter(isNotNil);
+
+    const pmfmIds = await this.openSelectPmfmsModal(event, {
+      excludedIds: existingPmfmIds
+    }, {
+      allowMultiple: false
+    });
+    if (!pmfmIds) return; // USer cancelled
+
+  }
+
   /* -- protected methods -- */
+
+
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
+    //if (isNilOrBlank(value)) return [];
+    return this.programRefService.suggestTaxonGroups(value,
+      {
+        program: this.programLabel,
+        searchAttribute: options && options.searchAttribute
+      });
+  }
+
+  protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
+    const taxonGroup = this.editedRow && this.editedRow.validator.get('taxonGroup').value;
+
+    // IF taxonGroup column exists: taxon group must be filled first
+    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return {data: []};
+
+    return this.programRefService.suggestTaxonNames(value,
+      {
+        programLabel: this.programLabel,
+        searchAttribute: options && options.searchAttribute,
+        taxonGroupId: taxonGroup && taxonGroup.id || undefined
+      });
+  }
+
+  protected async onNewEntity(data: Sample): Promise<void> {
+    console.debug("[sample-table] Initializing new row data...");
+
+    await super.onNewEntity(data);
+
+    // generate label
+    if (!this.showLabelColumn) {
+      data.label = `${this.acquisitionLevel}#${data.rankOrder}`;
+    }
+
+    // Default date
+    if (isNotNil(this.defaultSampleDate)) {
+      data.sampleDate = this.defaultSampleDate;
+    } else if (this.settings.isOnFieldMode(this.usageMode)) {
+      data.sampleDate = moment();
+    }
+
+    // Default taxon name
+    if (isNotNil(this.defaultTaxonName)) {
+      data.taxonName = TaxonNameRef.fromObject(this.defaultTaxonName);
+    }
+
+    // Default taxon group
+    if (isNotNil(this.defaultTaxonGroup)) {
+      data.taxonGroup = TaxonGroupRef.fromObject(this.defaultTaxonGroup);
+    }
+  }
+
+  protected async openNewRowDetail(): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    const data = await this.openDetailModal();
+    if (data) {
+      await this.addEntityToTable(data);
+    }
+    return true;
+  }
+
+  protected async openRow(id: number, row: TableElement<Sample>): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    if (this.onOpenRow.observers.length) {
+      this.onOpenRow.emit({id, row});
+      return true;
+    }
+
+    const data = this.toEntity(row, true);
+
+    // Prepare entity measurement values
+    this.prepareEntityToSave(data);
+
+    const updatedData = await this.openDetailModal(data, row);
+    if (updatedData) {
+      await this.updateEntityToTable(updatedData, row);
+    }
+    else {
+      this.editedRow = null;
+    }
+    return true;
+  }
 
   protected prepareEntityToSave(sample: Sample) {
     // Override by subclasses
@@ -369,6 +469,125 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       this.cancelOrDelete(event, row, true /*already confirmed*/);
     }
     return canDeleteRow;
+  }
+
+  protected async addPmfmColumns(pmfmIds: number[]) {
+    if (isEmptyArray(pmfmIds)) return; // Skip if empty
+
+    // Load each pmfms, by id
+    const pmfms = (await Promise.all(pmfmIds.map(id => this.pmfmService.load(id))));
+
+    this.pmfms = [
+      ...this.$pmfms.getValue(),
+      ...pmfms
+    ];
+  }
+
+  protected async openSelectPmfmsModal(event?: UIEvent, filter?: Partial<PmfmFilter>,
+                                       opts?: {
+                                         allowMultiple?: boolean;
+                                       }): Promise<number[]> {
+
+    const modal = await this.modalCtrl.create({
+      component: SelectPmfmModal,
+      componentProps: {
+        filter: PmfmFilter.fromObject(filter),
+        allowMultiple: opts && opts.allowMultiple
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // On dismiss
+    const res = await modal.onDidDismiss();
+    if (!res || isEmptyArray(res.data)) return; // CANCELLED
+
+    // Return pmfm ids
+    return res.data.map(p => p.id);
+  }
+
+  /**
+   * Force to wait PMFM map to be loaded
+   * @param pmfms
+   */
+  protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
+    if (isEmptyArray(pmfms) || !this.showGroupHeader) return pmfms;
+
+    console.debug("[samples-table] Computing Pmfm group header...")
+
+    // Wait until map is loaded
+    const groupedPmfmIdsMap = await firstNotNilPromise(this.$pmfmGroups);
+
+    // Create a list of known pmfm ids
+    const groupedPmfmIds = Object.values(groupedPmfmIdsMap).reduce((res, pmfmIds) => res.concat(...pmfmIds), []);
+
+    // Create pmfms group
+    const orderedPmfmIds: number[] = [];
+    const orderedPmfms: IPmfm[] = [];
+    let groupIndex = 0;
+    const pmfmGroupColumns: GroupColumnDefinition[] = ParameterGroups.concat('OTHER').reduce((pmfmGroups, group) => {
+      let groupPmfms: IPmfm[];
+      if (group === 'OTHER') {
+        groupPmfms = pmfms.filter(p => !groupedPmfmIds.includes(p.id));
+      }
+      else {
+        const groupPmfmIds = groupedPmfmIdsMap[group];
+        if (isNotEmptyArray(groupPmfmIds)) {
+          groupPmfms = pmfms.filter(p => groupPmfmIds.includes(p.id));
+        }
+      }
+
+      if (isEmptyArray(groupPmfms)) return pmfmGroups; // Skip group
+
+      const groupPmfmCount = groupPmfms.length;
+      const cssClass = (++groupIndex) % 2 === 0 ? 'even' : 'odd';
+
+      groupPmfms.forEach(pmfm =>  {
+        pmfm = pmfm.clone(); // Clone, to leave original PMFM unchanged
+
+        // Use rankOrder as a group index (will be used in template, to computed column class)
+        if (PmfmUtils.isDenormalizedPmfm(pmfm)) {
+          pmfm.rankOrder = groupIndex;
+        }
+
+        // Add pmfm into the final list of ordered pmfms
+        orderedPmfms.push(pmfm);
+      });
+
+      return pmfmGroups.concat(
+        ...groupPmfms.reduce((res, pmfm, index) => {
+          if (orderedPmfmIds.includes(pmfm.id)) return res; // Skip if already proceed
+          orderedPmfmIds.push(pmfm.id);
+          const visible = group !== 'TAG_ID'; //  && groupPmfmCount > 1;
+          return index !== 0 ? res : res.concat(<GroupColumnDefinition>{
+            key: 'group-' + pmfm.label,
+            label: group,
+            name: visible && (this.i18nColumnPrefix + group) || '',
+            cssClass: visible && cssClass || '',
+            colSpan: groupPmfmCount
+          });
+        }, []));
+    }, []);
+
+
+    this.$pmfmGroupColumns.next(pmfmGroupColumns);
+    this.groupHeaderColumnNames =
+      ['top-actions']
+        .concat(pmfmGroupColumns.map(g => g.key))
+        .concat(['top-end']);
+    this.groupHeaderStartColSpan = RESERVED_START_COLUMNS.length
+      + (this.showLabelColumn ? 1 : 0)
+      + (this.showTaxonGroupColumn ? 1 : 0)
+      + (this.showTaxonNameColumn ? 1 : 0)
+      + (this.showDateTimeColumn ? 1 : 0)
+    this.groupHeaderEndColSpan = RESERVED_END_COLUMNS.length
+      + (this.showCommentsColumn ? 1 : 0)
+
+    orderedPmfms.forEach(p => this.memoryDataService.addSortByReplacement(p.id.toString(), "measurementValues." + p.id.toString()));
+    return orderedPmfms;
   }
 
   selectInputContent = AppFormUtils.selectInputContent;

@@ -7,8 +7,10 @@
   min-width: 100%;
   --mat-cell-vertical-padding: 4px;
 
-  .mat-column-label {
-    min-width: 110px;
+  .mat-column-label,
+  .mat-column-analyticReference {
+    min-width: 120px;
+    max-width: 120px;
   }
 
   .mat-column-effortQ1,
@@ -16,20 +18,20 @@
   .mat-column-effortQ3,
   .mat-column-effortQ4,
   .mat-column-comment {
-    min-width: 80px;
+    width: 80px;
   }
 
   .mat-column-recorderDepartments,
   .mat-column-locations,
   .mat-column-taxonNames {
     min-width: 80px;
-    max-width: 100px;
     overflow-x: hidden;
     text-overflow: ellipsis;
   }
 
-  .mat-column-analyticReference {
-    min-width: 140px;
+  .mat-column-parameters {
+    min-width: 100px;
+    max-width: 120px;
   }
 
   .mat-column-actions {

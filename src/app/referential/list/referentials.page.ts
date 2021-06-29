@@ -1,21 +1,21 @@
 import {Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {BehaviorSubject, Observable, of} from 'rxjs';
+import {BehaviorSubject, Observable, of, Subject} from 'rxjs';
 import {debounceTime, filter, map, tap} from 'rxjs/operators';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {ReferentialValidatorService} from '../services/validator/referential.validator';
 import {ReferentialService} from '../services/referential.service';
 import {
   AccountService,
-  AppTable,
+  AppTable, changeCaseToUnderscore,
   DefaultStatusList,
-  EntitiesTableDataSource,
+  EntitiesTableDataSource, EntityUtils,
   firstNotNilPromise,
   isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
-  Referential,
+  Referential, ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   slideUpDownAnimation,
@@ -45,6 +45,7 @@ import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
 export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {
 
   static DEFAULT_ENTITY_NAME = "Pmfm";
+  static DEFAULT_I18N_LEVEL_NAME = 'REFERENTIAL.LEVEL';
 
   private _entityName: string;
 
@@ -52,7 +53,8 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   filterForm: FormGroup;
   $selectedEntity = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }>(undefined);
   $entities = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }[]>(undefined);
-  levels: Observable<Referential[]>;
+  $levels = new BehaviorSubject<ReferentialRef[]>(undefined);
+  i18nLevelName: string;
   statusList = DefaultStatusList;
   statusById: any;
   filterCriteriaCount = 0;
@@ -142,7 +144,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.filterForm = formBuilder.group({
       entityName: [null],
       searchText: [null],
-      levelId: [null],
+      level: [null],
       statusId: [null]
     });
 
@@ -199,6 +201,11 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
         this.filterForm.markAsPristine();
       }));
 
+    // Level autocomplete
+    this.registerAutocompleteField('level', {
+      items: this.$levels
+    });
+
     if (this.canSelectEntity) {
       this.restoreFilterOrLoad();
     }
@@ -224,10 +231,16 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     // Check route parameters
     const {entity, q, level, status} = this.route.snapshot.queryParams;
     if (entity) {
+      let levelRef: ReferentialRef;
+      if (level) {
+        const levels = await firstNotNilPromise(this.$levels);
+        levelRef = levels.find(l => l.id === level);
+      }
+
       this.filterForm.patchValue({
         entityName: entity,
         searchText: q || null,
-        levelId: isNotNil(level) ? +level : null,
+        level: levelRef,
         statusId: isNotNil(status) ? +status : null
       }, {emitEvent: false});
       return this.applyEntityName(entity, {skipLocationChange: true});
@@ -264,9 +277,10 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     // Applying the filter (will reload if emitEvent = true)
     const filter = ReferentialFilter.fromObject({
       ...this.filterForm.value,
+      level: null,
       entityName
     });
-    this.filterForm.patchValue({entityName}, {emitEvent: false});
+    this.filterForm.patchValue({entityName, level: null}, {emitEvent: false});
     this.setFilter(filter, {emitEvent: opts.emitEvent});
 
     // Update route location
@@ -297,12 +311,23 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     return true;
   }
 
-  async loadLevels(entityName: string): Promise<Referential[]> {
+  async loadLevels(entityName: string): Promise<ReferentialRef[]> {
     const res = await this.referentialService.loadLevels(entityName, {
       fetchPolicy: 'network-only'
     });
 
-    this.levels = of(res);
+    const levels = (res || []).sort(EntityUtils.sortComparator('label', 'asc'));
+    this.$levels.next(levels);
+
+    if (isNotEmptyArray(levels)) {
+      const typeName = levels[0].entityName;
+      const i18nLevelName = "REFERENTIAL.ENTITY." + changeCaseToUnderscore(typeName).toUpperCase();
+      const levelName = this.translate.instant(i18nLevelName);
+      this.i18nLevelName = (levelName !== i18nLevelName) ? levelName : ReferentialsPage.DEFAULT_I18N_LEVEL_NAME;
+    }
+    else {
+      this.i18nLevelName = ReferentialsPage.DEFAULT_I18N_LEVEL_NAME;
+    }
 
     if (this.canSelectEntity) {
       this.showLevelColumn = isNotEmptyArray(res);
@@ -386,7 +411,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       return this._dataSource.dataService.asFilter(source);
     }
 
-    return source as ReferentialFilter;
+    return ReferentialFilter.fromObject(source);
   }
 }
 

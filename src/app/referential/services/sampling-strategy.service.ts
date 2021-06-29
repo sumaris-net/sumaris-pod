@@ -14,7 +14,7 @@ import {StrategyFilter, StrategyService} from "./strategy.service";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {firstArrayValue, isEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
-import {ParameterLabelGroups} from "./model/model.enum";
+import {ParameterLabelGroups, PmfmLabelPatterns} from './model/model.enum';
 import {ConfigService}  from "@sumaris-net/ngx-components";
 import {PmfmService} from "./pmfm.service";
 import {ReferentialRefService} from "./referential-ref.service";
@@ -129,6 +129,10 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     return this.strategyService.deleteAll(entities, options);
   }
 
+  async computeNextSampleTagId(strategyLabel: string, nbDigit?: number): Promise<string> {
+    return this.strategyService.computeNextSampleTagId(strategyLabel, nbDigit);
+  }
+
   /* -- protected -- */
 
   watchPmfmIdsByParameterLabels(parameterLabels: string[]): Observable<number[]> {
@@ -205,7 +209,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
    */
   protected async fillParameterGroups(entities: SamplingStrategy[]): Promise<void> {
 
-    const parameterListKeys = Object.keys(ParameterLabelGroups).filter(p => p !== 'ANALYTIC_REFERENCE'); // AGE, SEX, MATURITY, etc
+    const parameterListKeys = Object.keys(ParameterLabelGroups).filter(p => p !== 'TAG_ID'); // AGE, SEX, MATURITY, etc
     const pmfmIdsMap = await this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups);
 
     entities.forEach(s => {

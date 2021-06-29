@@ -1,6 +1,6 @@
 # Building from source
 
-Technologies: SUMARiS App is an Ionic 5 + Angular 9 App.
+Technologies: SUMARiS App is an Angular App (Angular with Ionic).
 
 This article will explain how to install your environment, then build the application.
 
@@ -15,7 +15,7 @@ nvm install 12.19.1
 
 3. Install global dependency: 
 ```bash
-npm install -g @ionic/cli cordova cordova-res native-run 
+npm install -g yarn @ionic/cli @angular/cli cordova cordova-res native-run
 ```
 
 4. Get sources (clone the repo) : `git clone ...`
