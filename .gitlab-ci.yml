@@ -153,6 +153,7 @@ test:
         when: never
       - if: '$CI_MERGE_REQUEST_ID || $CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH =~ /^feature/'
       - when: manual
+    allow_failure: true
 
 sonarqube:
     stage: test
