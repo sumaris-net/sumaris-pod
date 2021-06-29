@@ -28,7 +28,6 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
