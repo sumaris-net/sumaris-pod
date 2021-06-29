@@ -1624,7 +1624,7 @@ public class Daos {
 
     public static String getEscapedSearchText(String searchText, boolean searchAny) {
         searchText = StringUtils.trimToNull(searchText);
-        if (searchText == null) return "";
+        if (searchText == null) return null;
         return  ((searchAny ? "*" : "") + searchText + "*") // add leading wildcard (if searchAny specified) and trailing wildcard
             .replaceAll("[*]+", "*") // group escape chars
             .replaceAll("[%]", "\\%") // protected '%' chars

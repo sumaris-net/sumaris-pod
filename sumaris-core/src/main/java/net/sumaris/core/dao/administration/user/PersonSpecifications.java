@@ -105,12 +105,12 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
         BindableSpecification<Person> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, USERNAME_PARAMETER);
             return criteriaBuilder.or(
-                criteriaBuilder.like(parameter, ""),
+                criteriaBuilder.isNull(parameter),
                 criteriaBuilder.equal(root.get(Person.Fields.USERNAME), parameter),
                 criteriaBuilder.equal(root.get(Person.Fields.USERNAME_EXTRANET), parameter)
             );
         });
-        specification.addBind(USERNAME_PARAMETER, username != null ? username : "");
+        specification.addBind(USERNAME_PARAMETER, username);
         return specification;
     }
 
@@ -118,11 +118,11 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
         BindableSpecification<Person> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, EMAIL_PARAMETER);
             return criteriaBuilder.or(
-                criteriaBuilder.like(parameter, ""),
+                criteriaBuilder.isNull(parameter),
                 criteriaBuilder.equal(root.get(Person.Fields.EMAIL), parameter)
             );
         });
-        specification.addBind(EMAIL_PARAMETER, email != null ? email : "");
+        specification.addBind(EMAIL_PARAMETER, email);
         return specification;
     }
 
@@ -130,11 +130,11 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
         BindableSpecification<Person> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, FIRST_NAME_PARAMETER);
             return criteriaBuilder.or(
-                criteriaBuilder.like(parameter, ""),
+                criteriaBuilder.isNull(parameter),
                 criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.FIRST_NAME)), criteriaBuilder.upper(parameter))
             );
         });
-        specification.addBind(FIRST_NAME_PARAMETER, firstName != null ? firstName : "");
+        specification.addBind(FIRST_NAME_PARAMETER, firstName);
         return specification;
     }
 
@@ -142,11 +142,11 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
         BindableSpecification<Person> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, LAST_NAME_PARAMETER);
             return criteriaBuilder.or(
-                criteriaBuilder.like(parameter, ""),
+                criteriaBuilder.isNull(parameter),
                 criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.LAST_NAME)), criteriaBuilder.upper(parameter))
             );
         });
-        specification.addBind(LAST_NAME_PARAMETER, lastName != null ? lastName : "");
+        specification.addBind(LAST_NAME_PARAMETER, lastName);
         return specification;
     }
 
