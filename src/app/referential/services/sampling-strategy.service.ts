@@ -129,8 +129,8 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     return this.strategyService.deleteAll(entities, options);
   }
 
-  async computeNextSampleTagId(strategyLabel: string, nbDigit?: number): Promise<string> {
-    return this.strategyService.computeNextSampleTagId(strategyLabel, nbDigit);
+  async computeNextSampleTagId(strategyLabel: string, separator?: string, nbDigit?: number): Promise<string> {
+    return this.strategyService.computeNextSampleTagId(strategyLabel, separator, nbDigit);
   }
 
   /* -- protected -- */

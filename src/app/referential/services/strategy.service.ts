@@ -266,14 +266,14 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     return res && res.data;
   }
 
-  async computeNextSampleLabel(strategyLabel: string, labelSeparator?: string, nbDigit?: number): Promise<string> {
+  async computeNextSampleTagId(strategyLabel: string, separator?: string, nbDigit?: number): Promise<string> {
     if (this._debug) console.debug(`[strategy-service] Loading strategy next sample label...`);
 
     const res = await this.graphql.query<{ data: string }>({
       query: FindStrategyNextSampleLabel,
       variables: {
         strategyLabel: strategyLabel,
-        labelSeparator: labelSeparator,
+        labelSeparator: separator,
         nbDigit: nbDigit
       },
       error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR"},

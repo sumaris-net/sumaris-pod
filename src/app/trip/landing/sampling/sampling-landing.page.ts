@@ -145,6 +145,10 @@ export class SamplingLandingPage extends LandingPage {
 
   protected computeSampleRowValidator(form: FormGroup, pmfms: DenormalizedPmfmStrategy[]): Subscription {
     console.debug('[sampling-landing-page] Adding row validator');
+
+    // TODO generate new label ?
+    //this.samplingStrategyService.computeNextSampleTagId(this.$strategyLabel.getValue())
+
     return BiologicalSamplingValidators.addSampleValidators(form, pmfms, this.$pmfmGroups.getValue() || {}, {
       markForCheck: () => this.markForCheck()
     });
