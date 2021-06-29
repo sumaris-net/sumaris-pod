@@ -38,9 +38,7 @@ import javax.annotation.Resource;
 @Component
 @ConditionalOnProperty(
     name = "sumaris.persistence.denormalizedBatch.enabled",
-    havingValue = "true",
-    // TODO: change to trus when all errors fixed
-    matchIfMissing = false
+    havingValue = "true"
 )
 @Slf4j
 public class BatchEventListener {

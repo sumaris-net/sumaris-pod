@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.8.7-SNAPSHOT</version>
+  <version>1.8.8-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -182,9 +182,9 @@
     <!-- release config -->
     <autoVersionSubmodules>true</autoVersionSubmodules>
     <goals>deploy</goals>
-    <arguments>-DperformFullRelease -Dspring.datasource.platform=hsqldb</arguments>
+    <arguments>-Phsqldb</arguments>
     <preparationGoals>verify</preparationGoals>
-	<gitflowPluginVersion>1.14.0</gitflowPluginVersion>
+    <gitflowPluginVersion>1.14.0</gitflowPluginVersion>
 
     <!-- Last JRE version to use -->
     <jreVersion>1.8.77</jreVersion>
@@ -1598,12 +1598,6 @@
       <id>jitpack.io</id>
       <url>https://jitpack.io</url>
     </repository>
-
-    <repository>
-      <id>natusoft-repo</id>
-      <name>NS GitHub stuff temp repo</name>
-      <url>https://download.natusoft.se/maven</url>
-    </repository>
   </repositories>
 
   <pluginRepositories>
@@ -1619,16 +1613,6 @@
         <checksumPolicy>fail</checksumPolicy>
       </releases>
     </pluginRepository>
-
-    <pluginRepository>
-      <id>ns-plugin-repo</id>
-      <name>ns-plugin-repository</name>
-      <url>https://download.natusoft.se/maven</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-    </pluginRepository>
-
   </pluginRepositories>
 
   <distributionManagement>
