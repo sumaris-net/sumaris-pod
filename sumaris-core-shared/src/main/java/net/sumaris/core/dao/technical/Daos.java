@@ -28,6 +28,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.jdbc.PostgresqlStatements;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.exception.BadUpdateDateException;
@@ -504,6 +505,9 @@ public class Daos {
             sqlUpdate(connection, sql);
         }
 
+        else if (isPostgresqlDatabase(jdbcUrl)){
+            PostgresqlStatements.setIntegrityConstraints(connection, enableIntegrityConstraints);
+        }
         /*else if (isOracleDatabase(jdbcUrl)) {
             OracleStatements.setIntegrityConstraints(connection, enableIntegrityConstraints);
         }*/

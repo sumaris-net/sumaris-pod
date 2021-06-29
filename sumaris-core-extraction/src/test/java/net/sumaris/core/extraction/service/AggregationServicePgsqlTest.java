@@ -24,21 +24,22 @@ package net.sumaris.core.extraction.service;
 
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.extraction.DatabaseResource;
+import net.sumaris.core.extraction.format.LiveFormatEnum;
+import net.sumaris.core.extraction.specification.data.trip.AggRdbSpecification;
 import net.sumaris.core.extraction.specification.data.trip.AggRjbTripSpecification;
+import net.sumaris.core.extraction.specification.data.trip.AggSurvivalTestSpecification;
 import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
 import net.sumaris.core.extraction.util.ExtractionProducts;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
-import net.sumaris.core.extraction.specification.data.trip.AggRdbSpecification;
-import net.sumaris.core.extraction.specification.data.trip.AggSurvivalTestSpecification;
-import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,10 +47,11 @@ import java.io.IOException;
 /**
  * @author peck7 on 17/12/2018.
  */
-public class AggregationServiceTest extends AbstractServiceTest {
+@ActiveProfiles("pgsql")
+public class AggregationServicePgsqlTest extends AbstractServiceTest {
 
     @ClassRule
-    public static final DatabaseResource dbResource = DatabaseResource.writeDb();
+    public static final DatabaseResource dbResource = DatabaseResource.writeDb("pgsql");
 
     @Autowired
     private AggregationService aggregationService;
