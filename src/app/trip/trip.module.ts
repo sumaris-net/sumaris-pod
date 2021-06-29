@@ -11,7 +11,6 @@ import {PhysicalGearForm} from './physicalgear/physical-gear.form';
 import {PhysicalGearTable} from './physicalgear/physical-gears.table';
 import {OperationsTable} from './operation/operations.table';
 import {SamplesTable} from './sample/samples.table';
-import {SamplingSamplesTable} from './sample/sampling/sampling-samples.table';
 import {SubSamplesTable} from './sample/sub-samples.table';
 import {BatchGroupsTable} from './batch/table/batch-groups.table';
 import {BatchesTable} from './batch/table/batches.table';
@@ -68,7 +67,6 @@ import {AppCoreModule} from '@app/core/core.module';
     MeasurementsForm,
     CatchBatchForm,
     SamplesTable,
-    SamplingSamplesTable,
     SubSamplesTable,
     BatchGroupsTable,
     BatchesTable,
@@ -118,7 +116,6 @@ import {AppCoreModule} from '@app/core/core.module';
     SubBatchModal,
     SampleForm,
     SamplesTable,
-    SamplingSamplesTable,
     SubSamplesTable
   ]
 })
