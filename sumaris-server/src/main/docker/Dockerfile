@@ -8,7 +8,7 @@ ENV USERNAME="sih_web" \
     GROUPNAME="ditiisi" \
     GROUPID="10004"
 RUN groupadd -g $GROUPID $GROUPNAME \
-    && useradd -g $GROUPNAME $USERNAME \
+    && useradd -g $GROUPNAME $USERNAME
 USER $USERNAME
 COPY ${ENTRYPOINT} /app/app.sh
 RUN chmod +x /app/app.sh
