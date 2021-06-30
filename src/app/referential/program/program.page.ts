@@ -90,6 +90,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.propertyDefinitions = Object.values(ProgramProperties).map(def => {
       if (def.type === 'entity') {
         def = Object.assign({}, def); // Copy
+        def.autocomplete = def.autocomplete || {};
         def.autocomplete.suggestFn = (value, filter) => this.referentialRefService.suggest(value, filter);
       }
       return def;
@@ -155,7 +156,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   updateView(data: Program | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
 
     this.strategyEditor = data && data.getProperty<StrategyEditor>(ProgramProperties.PROGRAM_STRATEGY_EDITOR) || 'legacy';
-    this.i18nTabStrategiesSuffix = this.strategyEditor === 'sampling' ? '.TEST' : '';
+    this.i18nTabStrategiesSuffix = this.strategyEditor === 'sampling' ? '.SAMPLING' : '';
 
     super.updateView(data, opts);
   }

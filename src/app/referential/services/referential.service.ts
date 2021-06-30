@@ -3,7 +3,7 @@ import {FetchPolicy, gql, MutationUpdaterFn} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
-import {AccountService}  from "@sumaris-net/ngx-components";
+import {AccountService, ReferentialRef} from '@sumaris-net/ngx-components';
 import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {ReferentialFragments} from "./referential.fragments";
 import {environment} from "../../../environments/environment";
@@ -426,7 +426,7 @@ export class ReferentialService
    */
   async loadLevels(entityName: string, options?: {
     fetchPolicy?: FetchPolicy
-  }): Promise<Referential[]> {
+  }): Promise<ReferentialRef[]> {
     const now = Date.now();
     if (this._debug) console.debug(`[referential-service] Loading levels for ${entityName}...`);
 
@@ -439,7 +439,7 @@ export class ReferentialService
       fetchPolicy: options && options.fetchPolicy || 'cache-first'
     });
 
-    const entities = (data || []).map(Referential.fromObject);
+    const entities = (data || []).map(ReferentialRef.fromObject);
 
     if (this._debug) console.debug(`[referential-service] Levels for ${entityName} loading in ${Date.now() - now}`, entities);
 

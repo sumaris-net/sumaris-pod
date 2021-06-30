@@ -10,7 +10,8 @@ import {FormBuilder} from '@angular/forms';
 import {
   ConfigService,
   EntitiesTableDataSource,
-  HammerSwipeEvent, isNotNil,
+  HammerSwipeEvent,
+  isNotNil,
   LocalSettingsService,
   PersonService,
   PersonUtils,
@@ -31,7 +32,6 @@ import {TRIP_FEATURE_NAME} from '../services/config/trip.config';
 import {AppRootTable, AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
 import {environment} from '@environments/environment';
 import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
-import {first} from 'rxjs/internal/operators';
 import {filter, tap} from 'rxjs/operators';
 
 export const TripsPageSettingsEnum = {

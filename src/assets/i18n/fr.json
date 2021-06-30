@@ -119,10 +119,10 @@
   },
   "CONFIGURATION": {
     "TAB_GENERAL": "Détails",
+    "TAB_PROPERTIES": "Options",
     "TAB_CACHE": "Données en cache",
     "TAB_NOTIFICATIONS": "Notifications",
     "APP_NAME": "Nom de l'application",
-    "DESCRIPTION": "Description (page d'accueil)",
     "STATUS": "Etat",
     "PREVIEW_DIVIDER": "Prévisualisation",
     "LOGOS": "Logos de l'application",
@@ -154,6 +154,9 @@
         "PARTNER_DEPARTMENTS": "Accueil > Logo des partenaires",
         "BACKGROUND_IMAGES": "Accueil > Images de fond"
       },
+      "MENU": {
+        "ITEMS": "Menu > Entrées supplémentaire (JSON Array)"
+      },
       "COLORS": {
         "PRIMARY": "Thème > Couleur principale",
         "SECONDARY": "Thème > Couleur secondaire",
@@ -183,6 +186,7 @@
         "TAXONOMIC_LEVEL_SPECIES_ID": "Référentiel > Niveau taxinomique > Espèce",
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Référentiel > Niveau taxinomique > Sous espèce",
         "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Ligne de plan",
+        "PMFM_TAG_ID": "Référentiel > PSFM > Code prélèvement",
         "PMFM_AGE_ID": "Référentiel > PSFM > Âge",
         "PMFM_SEX_ID": "Référentiel > PSFM > Sexe",
         "STRATEGY_PARAMETER_AGE_LABEL": "Stratégie > Paramètre > Code âge",
@@ -221,9 +225,8 @@
     "DOWNLOADS": "Téléchargements",
     "DATA_ENTRY_DIVIDER": "Saisie de données",
     "DATA_ACCESS_DIVIDER": "Accès aux données",
-    "OBSERVED_LOCATIONS": "Sorties",
-    "AUCTION_OCCASION": "Sorties en criée",
-    "OCCASION": "Sorties",
+    "AUCTION_OCCASIONS": "Sorties en criée",
+    "OCCASIONS": "Sorties",
     "ADMINISTRATION_DIVIDER": "Administration",
     "REFERENTIAL_DIVIDER": "Référentiels",
     "USERS": "Utilisateurs",
@@ -240,6 +243,7 @@
   },
   "ABOUT": {
     "TITLE": "À propos",
+    "POWERED_BY": "Propulsé par",
     "VERSION": "<b>v{{version}}</b>",
     "LICENSE": "Application <b>libre</b> (Licence GNU AGPL v3).",
     "REPORT_ISSUE": "N'hésitez pas à nous remonter les anomalies rencontrés !",
@@ -342,7 +346,7 @@
       "TAXON_GROUP": "Liste déroulante > Espèces commerciale",
       "TAXON_NAME": "Liste déroulante > Espèces scientifique",
       "GEAR": "Liste déroulante > Engins de pêche",
-      "CALCIFIED_TYPE": "Liste déroulante > Pièces calcifiées",
+      "FRACTION": "Liste déroulante > Fraction (pièce calcifiée, etc.)",
       "ATTRIBUTES": {
         "LABEL": "Code",
         "NAME": "Libellé",
@@ -693,8 +697,6 @@
         "AGE": "Age",
         "OTHER": "Autre",
         "SAMPLING": {
-          "LABEL": "Code prélèvement",
-          "LABEL_PLACEHOLDER": "Code prélèvement",
           "TAXON_GROUP": "Espèce commerciale (FAO)",
           "TAXON_GROUP_PLACEHOLDER": "Code espèce",
           "TAXON_NAME": "Espèce scientifique (FAO)",
@@ -704,6 +706,7 @@
           "COMMENTS": "Commentaires",
           "COMMENTS_PLACEHOLDER": "Commentaires",
           "BTN_AUTO_FILL": "Remplir automatiquement",
+          "TAG_ID": "Code prélèvement",
           "WEIGHT": "Poids",
           "LENGTH": "Taille",
           "MATURITY": "Maturité",
@@ -843,7 +846,7 @@
       "OTHER_FEATURES": "Autres caractéristiques :",
       "TAB_SAMPLES": "Echantillons",
       "SAMPLING": {
-        "TITLE": "Navire {{vessel}}",
+        "TITLE": "Ligne de plan {{strategyLabel}} - Navire  {{vessel}}",
         "STRATEGY": "Ligne de plan :",
         "STRATEGY_PLACEHOLDER": "Code ligne de plan",
         "STRATEGY_SUMMARY_TITLE": "Plan d'échantillonnage",
@@ -865,7 +868,7 @@
       "STRATEGY": "Stratégie",
       "CREATION_DATE": "Date de création",
       "RECORDER_PERSON" : "Saisisseur",
-      "SAMPLES_COUNT": "Échantillonnages",
+      "SAMPLES_COUNT": "Nb. individus",
       "SAMPLING": {
         "STRATEGY_LABEL": "Ligne de plan"
       }
@@ -1219,7 +1222,7 @@
   "PROGRAM": {
     "TAB_GENERAL": "Détails",
     "TAB_STRATEGIES": "Stratégies",
-    "TAB_STRATEGIES.TEST": "Lignes de plan",
+    "TAB_STRATEGIES.SAMPLING": "Lignes de plan",
     "TAB_ACCESS_RIGHTS": "Droits d'accès",
     "TAB_PROPERTIES": "Options",
     "TAXON_GROUP_TYPE": "Référentiel des espèces commerciales",
@@ -1383,6 +1386,7 @@
           "ANALYTIC_REFERENCE": "EOTP",
           "RECORDER_DEPARTMENTS": "Laboratoire(s) saisisseur(s)",
           "TAXON_NAMES": "Espèce cible",
+          "QUARTERS": "Trimestres",
           "EFFORT_Q1": "Efforts T1" ,
           "EFFORT_Q2": "Efforts T2" ,
           "EFFORT_Q3": "Efforts T3" ,

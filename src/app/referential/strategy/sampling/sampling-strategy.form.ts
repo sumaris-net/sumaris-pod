@@ -37,7 +37,7 @@ import {ReferentialRefService} from '../../services/referential-ref.service';
 import {StrategyService} from '../../services/strategy.service';
 import {StrategyValidatorService} from '../../services/validator/strategy.validator';
 import {PmfmStrategiesTable} from '../pmfm-strategies.table';
-import {AcquisitionLevelCodes, LocationLevelIds, ParameterLabelGroups, PmfmIds, ProgramPrivilegeIds, TaxonomicLevelIds} from '../../services/model/model.enum';
+import {AcquisitionLevelCodes, autoCompleteFractions, LocationLevelIds, ParameterLabelGroups, PmfmIds, ProgramPrivilegeIds, TaxonomicLevelIds} from '../../services/model/model.enum';
 import {ProgramProperties} from '../../services/config/program.config';
 import {BehaviorSubject, merge} from 'rxjs';
 import {SamplingStrategyService} from '../../services/sampling-strategy.service';
@@ -185,6 +185,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.lengthPmfmStrategiesTable.disable();
       this.maturityPmfmStrategiesTable.disable();
       this.taxonNamesFormArray.disable();
+      this.appliedStrategiesForm.disable();
       this.form.get('analyticReference').disable();
       this.form.get('year').disable();
       this.form.get('label').disable();
@@ -402,16 +403,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   loadFraction(): void {
-    const map = {
-      1362: 'Otholite', 1452: 'Otholite', 1644: 'Ecaille', 1956: 'Otholite', 2049: 'Illicium', 2050: 'Illicium', 1960: 'Otholite', 1693: 'Ecaille',
-      1549: 'Otholite', 1990: 'Otholite', 1921: 'Otholite', 1912: 'Otholite', 1349: 'Otholite', 1555: 'Otholite', 1556: 'Otholite', 1986: 'Otholite',
-      1988: 'Otholite', 1567: 'Otholite', 1566: 'Otholite', 1681: 'Otholite', 1772: 'Otholite', 1551: 'Otholite', 1540: 'Otholite', 1543: 'Otholite',
-      1573: 'Otholite', 1980: 'Otholite', 1978: 'Otholite', 1690: 'Otholite', 1689: 'Otholite', 1351: 'Otholite', 1996: 'Otholite', 1356: 'Otholite',
-      1560: 'Otholite', 1559: 'Otholite'
-    }
     if (this.ifAge() && this.taxonNamesFormArray.value && this.taxonNamesFormArray.value[0]) {
       const taxon = this.taxonNamesFormArray.value[0];
-      const fractionName = map[taxon.taxonName.id];
+      const fractionName = autoCompleteFractions[taxon.taxonName.id];
       if (fractionName) {
         const fraction = this.allFractionItems.value.find(f => f.label.toUpperCase() === fractionName.toUpperCase());
         this.pmfmsFractionForm.patchValue([fraction]);

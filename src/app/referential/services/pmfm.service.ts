@@ -104,7 +104,7 @@ ${ReferentialFragments.fullReferential}
 ${ReferentialFragments.parameter}`;
 
 
-@EntityClass()
+@EntityClass({typename: 'PmfmFilterVO'})
 export class PmfmFilter extends BaseReferentialFilter<PmfmFilter, Pmfm> {
 
   static fromObject: (source: any, opts?: any) => PmfmFilter;

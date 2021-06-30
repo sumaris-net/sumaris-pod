@@ -24,6 +24,7 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
   statusById: { [id: number]: StatusValue; };
 
   @Input() showError = true;
+  @Input() showDescription = true;
   @Input() showComments = true;
   @Input() entityName;
 

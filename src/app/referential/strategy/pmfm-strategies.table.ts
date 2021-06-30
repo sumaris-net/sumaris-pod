@@ -33,7 +33,7 @@ import {PmfmStrategy} from '../services/model/pmfm-strategy.model';
 import {PmfmValueUtils} from '../services/model/pmfm-value.model';
 import {Parameter} from '../services/model/parameter.model';
 
-@EntityClass()
+@EntityClass({typename: 'PmfmStrategyFilterVO'})
 export class PmfmStrategyFilter extends EntityFilter<PmfmStrategyFilter, PmfmStrategy> {
 
   static fromObject: (source: any, opts?: any) => PmfmStrategyFilter;

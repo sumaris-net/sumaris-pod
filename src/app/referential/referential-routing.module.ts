@@ -11,6 +11,7 @@ import {StrategyPage} from "./strategy/strategy.page";
 import {ProgramsPage} from "./program/programs.page";
 import {SamplingStrategyPage} from "./strategy/sampling/sampling-strategy.page";
 import {TaxonNamePage} from "./taxon/taxon-name.page";
+import {StrategiesPage} from "./strategy/strategies.page";
 
 const routes: Routes = [
   {
@@ -41,6 +42,14 @@ const routes: Routes = [
             path: '',
             pathMatch: 'full',
             component: ProgramPage,
+            data: {
+              profile: 'SUPERVISOR',
+              pathIdParam: 'programId'
+            }
+          },
+          {
+            path: 'strategies',
+            component: StrategiesPage,
             data: {
               profile: 'SUPERVISOR',
               pathIdParam: 'programId'

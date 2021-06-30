@@ -6,7 +6,7 @@ import {isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
 import {FilterFn} from "@sumaris-net/ngx-components";
 import {EntityClass}  from "@sumaris-net/ngx-components";
 
-@EntityClass()
+@EntityClass({typename: 'TaxonNameFilterVO'})
 export class TaxonNameRefFilter extends BaseReferentialFilter<TaxonNameRefFilter, TaxonNameRef> {
 
     static fromObject: (source: any, opts?: any) => TaxonNameRefFilter;

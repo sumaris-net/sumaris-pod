@@ -1,8 +1,12 @@
+:root {
+
+}
+
 .table-container {
-  height: calc(100%);
+  height: calc(100vh - var(--table-container-offset, 0));
 
   &.has-offline-nav {
-    height: calc(100% - 49px) !important;
+    --table-container-offset: 49px;
   }
 }
 

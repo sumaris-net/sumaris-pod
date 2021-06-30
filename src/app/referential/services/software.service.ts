@@ -14,6 +14,8 @@ export const Fragments = {
       id
       label
       name
+      description
+      comments
       properties
       updateDate
       creationDate

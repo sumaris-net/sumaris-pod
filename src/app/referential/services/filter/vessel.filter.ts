@@ -4,7 +4,7 @@ import {EntityAsObjectOptions, EntityClass, EntityFilter, EntityUtils, FilterFn,
 import {SynchronizationStatus} from '../../../data/services/model/root-data-entity.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
-@EntityClass()
+@EntityClass({typename: 'VesselFilterVO'})
 export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, VesselSnapshot> {
 
   static fromObject: (source: any, opts?: any) => VesselSnapshotFilter;

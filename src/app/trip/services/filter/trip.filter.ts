@@ -6,7 +6,7 @@ import {VesselSnapshot} from '../../../referential/services/model/vessel-snapsho
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 
-@EntityClass()
+@EntityClass({typename: 'TripFilterVO'})
 export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
 
   static fromObject: (source: any, opts?: any) => TripFilter;

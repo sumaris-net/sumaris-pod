@@ -5,7 +5,7 @@ import {Moment} from "moment";
 import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
 import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
 
-@EntityClass()
+@EntityClass({typename: 'MetierFilterVO'})
 export class MetierFilter extends ReferentialRefFilter {
 
   static fromObject: (source: any, opts?: any) => MetierFilter;

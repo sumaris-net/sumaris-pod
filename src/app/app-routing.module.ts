@@ -1,10 +1,7 @@
 import {NgModule} from '@angular/core';
-import {RouterModule, Routes} from '@angular/router';
-import {AccountPage, HomePage} from '@sumaris-net/ngx-components';
-import {SettingsPage}  from "@sumaris-net/ngx-components";
-import {AuthGuardService}  from "@sumaris-net/ngx-components";
-import {SHARED_ROUTE_OPTIONS, SharedRoutingModule} from "@sumaris-net/ngx-components";
-import {RegisterConfirmPage}  from '@sumaris-net/ngx-components';
+import {ExtraOptions, RouterModule, Routes} from '@angular/router';
+import {AccountPage, AuthGuardService, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule} from '@sumaris-net/ngx-components';
+import {QuicklinkModule, QuicklinkStrategy} from 'ngx-quicklink';
 
 const routes: Routes = [
   // Core path
@@ -118,11 +115,19 @@ const routes: Routes = [
   }
 ];
 
+export const ROUTE_OPTIONS: ExtraOptions = {
+  enableTracing: false,
+  //enableTracing: !environment.production,
+  useHash: false,
+  onSameUrlNavigation: 'reload',
+  preloadingStrategy: QuicklinkStrategy
+};
 
 @NgModule({
   imports: [
+    QuicklinkModule,
     SharedRoutingModule,
-    RouterModule.forRoot(routes, SHARED_ROUTE_OPTIONS)
+    RouterModule.forRoot(routes, ROUTE_OPTIONS)
   ],
   exports: [
     RouterModule

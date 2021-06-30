@@ -5,7 +5,7 @@ import {FilterFn} from "@sumaris-net/ngx-components";
 import {isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
 import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
 
-@EntityClass()
+@EntityClass({typename: 'ExtractionProductFilterVO'})
 export class ExtractionProductFilter extends BaseReferentialFilter<ExtractionProductFilter, ExtractionProduct> {
 
     static fromObject: (source: any, opts?: any) => ExtractionProductFilter;

@@ -34,7 +34,7 @@ export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   },
 };
 
-export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
+export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
   REFERENTIAL_VESSEL_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.referential.vessel.enable',
     label: 'REFERENTIAL.OPTIONS.VESSELS_ENABLE',
@@ -167,6 +167,18 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     },
     defaultValue: PmfmIds.STRATEGY_LABEL
   },
+  PMFM_TAG_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.pmfm.TAG_ID.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TAG_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.AGE
+  },
   PMFM_AGE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.pmfm.AGE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AGE_ID',
@@ -221,9 +233,9 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     type: 'string',
     defaultValue: ParameterLabelGroups.MATURITY.join(',')
   },
-};
+});
 
-export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS: FormFieldDefinitionMap = {
+export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = Object.freeze({
 
   // Display attributes for vessel
   FIELD_VESSEL_SNAPSHOT_ATTRIBUTES: <FormFieldDefinition>{
@@ -236,7 +248,7 @@ export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS: FormFieldDefinitionMap = {
     ]
   },
   // Display attributes for referential useful entities
-  ... ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear', 'caclcifiedType']
+  ... ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear', 'fraction']
     // Allow user to choose how to display field (by code+label, code, etc)
     .reduce((res, fieldName) => {
       res[`FIELD_${changeCaseToUnderscore(fieldName).toUpperCase()}_ATTRIBUTES`] = {
@@ -252,4 +264,4 @@ export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS: FormFieldDefinitionMap = {
       };
       return res;
     }, {})
-};
+});

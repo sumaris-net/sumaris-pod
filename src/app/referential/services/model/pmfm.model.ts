@@ -233,7 +233,13 @@ export abstract class PmfmUtils {
     let name;
     if (PmfmUtils.isDenormalizedPmfm(pmfm)) {
       // Is complete name exists, use it
-      if (opts && opts.withDetails && pmfm.completeName) return pmfm.completeName;
+      if (opts && opts.withDetails && pmfm.completeName) {
+        if (opts.html) {
+          const parts = pmfm.completeName.split(' - ')
+          return parts.length === 1 ? pmfm.completeName : `<b>${parts[0]}</b><br/><span style="font-size: smaller;">` + parts.slice(1).join(' - ') + '</span>';
+        }
+        return pmfm.completeName;
+      }
 
       // Remove parenthesis content, if any
       const matches = PMFM_NAME_REGEXP.exec(pmfm.name || '');

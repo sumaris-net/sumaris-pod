@@ -108,21 +108,15 @@
         </ion-row>
 
         <ion-row>
-          <ion-col size="12" size-lg="6">
+          <ion-col size="12" size-lg="6" [class.cdk-visually-hidden]="!showLevelColumn">
             <!-- level -->
-            <mat-form-field>
-              <mat-select formControlName="levelId" [placeholder]="'REFERENTIAL.LEVEL'|translate" >
-                <mat-option [value]="null"><i><span translate>COMMON.EMPTY_OPTION</span></i></mat-option>
-                <mat-option *ngFor="let level of levels | async" [value]="level.id">{{level.label}} - {{level.name}}</mat-option>
-              </mat-select>
-
-              <button mat-icon-button matSuffix tabindex="-1"
-                      type="button"
-                      (click)="clearControlValue($event, filterForm.controls.levelId)"
-                      [hidden]="filterForm.controls.levelId.disabled || !filterForm.controls.levelId.value">
-                <mat-icon>close</mat-icon>
-              </button>
-            </mat-form-field>
+            <mat-autocomplete-field formControlName="level"
+                                    [placeholder]="(i18nLevelName || 'REFERENTIAL.LEVEL')|translate"
+                                    [config]="autocompleteFields.level"
+                                    [clearable]="true"
+                                    [mobile]="mobile">
+              <ion-icon matPrefix name="speedometer-outline"></ion-icon>
+            </mat-autocomplete-field>
           </ion-col>
 
           <ion-col size="12" size-lg="6">
@@ -239,8 +233,8 @@
         </th>
         <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing" [class.cdk-visually-hidden]="!showLevelColumn">
           <mat-form-field floatLabel="never">
-            <mat-select [formControl]="row.validator.controls['levelId']" [placeholder]="'REFERENTIAL.LEVEL'|translate">
-              <mat-option *ngFor="let level of levels | async" [value]="level.id">{{ level.label }} - {{ level.name
+            <mat-select [formControl]="row.validator.controls['levelId']" [placeholder]="i18nLevelName|translate">
+              <mat-option *ngFor="let level of $levels | async" [value]="level.id">{{ level.label }} - {{ level.name
                 }}</mat-option>
             </mat-select>
             <mat-error *ngIf="row.validator.controls['levelId'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>

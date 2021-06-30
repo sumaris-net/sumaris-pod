@@ -20,7 +20,7 @@ import {
   PlatformService,
   Referential,
   ReferentialRef,
-  ReferentialUtils,
+  ReferentialUtils, StatusIds,
   toNumber
 } from '@sumaris-net/ngx-components';
 import {CacheService} from 'ionic-cache';
@@ -36,32 +36,48 @@ import {ProgramRefService} from './program-ref.service';
 import {StrategyRefService} from './strategy-ref.service';
 import {BaseReferentialFilter} from './filter/referential.filter';
 import {ReferentialRefFilter} from './filter/referential-ref.filter';
+import {SynchronizationStatus} from '@app/data/services/model/root-data-entity.model';
 
 
-@EntityClass()
+@EntityClass({typename: 'StrategyFilterVO'})
 export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strategy> {
 
   static fromObject: (source: any, opts?: any) => StrategyFilter;
 
-  static asPodObject(source: any): any {
-    return source && StrategyFilter.fromObject(source).asPodObject();
-  }
-
-  static searchFilter(source: any): FilterFn<Strategy> {
-    return source && StrategyFilter.fromObject(source).asFilterFn();
-  }
-
-  //TODO Imagine: enable this, and override function asPodObject() and searchFilter()
   referenceTaxonIds?: number[];
+  synchronizationStatus?: SynchronizationStatus;
+  analyticReferences?: string;
+  departmentIds?: number[];
+  locationIds?: number[];
+  parameterIds?: number[];
+  taxonIds?: number[];
+  periods?: any[];
 
   fromObject(source: any) {
     super.fromObject(source);
     this.referenceTaxonIds = source.referenceTaxonIds;
+    this.synchronizationStatus = source.synchronizationStatus as SynchronizationStatus;
+    this.analyticReferences = source.analyticReferences;
+    this.departmentIds = source.departmentIds;
+    this.locationIds = source.locationIds;
+    this.parameterIds = source.parameterIds;
+    this.taxonIds = source.taxonIds;
+    this.periods = source.periods;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
-    target.referenceTaxonIds = this.referenceTaxonIds;
+    // TODO: check conversion is OK, when minify (for POD)
+    /*{
+      analyticReferences: json.analyticReferences,
+      departmentIds: isNotNil(json.department) ? [json.department.id] : undefined,
+      locationIds: isNotNil(json.location) ? [json.location.id] : undefined,
+      taxonIds: isNotNil(json.taxonName) ? [json.taxonName.id] : undefined,
+      periods : this.setPeriods(json),
+      parameterIds: this.setPmfmIds(json),
+      levelId: this.program.id,
+    }*/
+
     return target;
   }
 
@@ -74,19 +90,21 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
       //filterFns.push(t => (t.appliedStrategies...includes(entity.statusId));
     }
 
+    // TODO: any other attributes
+
     return filterFns;
   }
 }
 
 const FindStrategyNextLabel: any = gql`
   query StrategyNextLabelQuery($programId: Int!, $labelPrefix: String, $nbDigit: Int){
-    strategyNextLabel(programId: $programId, labelPrefix: $labelPrefix, nbDigit: $nbDigit)
+    data: strategyNextLabel(programId: $programId, labelPrefix: $labelPrefix, nbDigit: $nbDigit)
   }
 `;
 
 const FindStrategyNextSampleLabel: any = gql`
   query StrategyNextSampleLabelQuery($strategyLabel: String!, $labelSeparator: String, $nbDigit: Int){
-    strategyNextSampleLabel(strategyLabel: $strategyLabel, labelSeparator: $labelSeparator, nbDigit: $nbDigit)
+    data: strategyNextSampleLabel(strategyLabel: $strategyLabel, labelSeparator: $labelSeparator, nbDigit: $nbDigit)
   }
 `;
 
@@ -235,7 +253,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
   async computeNextLabel(programId: number, labelPrefix?: string, nbDigit?: number): Promise<string> {
     if (this._debug) console.debug(`[strategy-service] Loading strategy next label...`);
 
-    const res = await this.graphql.query<{ strategyNextLabel: string }>({
+    const res = await this.graphql.query<{ data: string }>({
       query: FindStrategyNextLabel,
       variables: {
         programId: programId,
@@ -245,23 +263,23 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_LABEL_ERROR"},
       fetchPolicy: 'network-only'
     });
-    return res && res.strategyNextLabel;
+    return res && res.data;
   }
 
-  async computeNextSampleLabel(strategyLabel: string, labelSeparator?: string, nbDigit?: number): Promise<string> {
+  async computeNextSampleTagId(strategyLabel: string, separator?: string, nbDigit?: number): Promise<string> {
     if (this._debug) console.debug(`[strategy-service] Loading strategy next sample label...`);
 
-    const res = await this.graphql.query<{ strategyNextSampleLabel: string }>({
+    const res = await this.graphql.query<{ data: string }>({
       query: FindStrategyNextSampleLabel,
       variables: {
         strategyLabel: strategyLabel,
-        labelSeparator: labelSeparator,
+        labelSeparator: separator,
         nbDigit: nbDigit
       },
       error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR"},
       fetchPolicy: 'network-only'
     });
-    return res && res.strategyNextSampleLabel;
+    return res && res.data;
   }
 
   async loadAllAnalyticReferences(

@@ -3,7 +3,7 @@ import {DataEntityFilter} from "@app/data/services/model/data-filter.model";
 import {Operation} from "@app/trip/services/model/trip.model";
 import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 
-@EntityClass()
+@EntityClass({typename: 'OperationFilterVO'})
 export class OperationFilter extends DataEntityFilter<OperationFilter, Operation> {
 
     tripId?: number;
