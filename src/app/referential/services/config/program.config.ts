@@ -6,6 +6,8 @@ export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 
 export type StrategyEditor = 'legacy' | 'sampling';
 
+export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
+
 export const ProgramProperties = Object.freeze({
   // Trip
   TRIP_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
@@ -293,12 +295,6 @@ export const ProgramProperties = Object.freeze({
   LANDING_SAMPLES_COUNT_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.samplesCount.enable',
     label: "PROGRAM.OPTIONS.LANDING_SAMPLES_COUNT_ENABLE",
-    defaultValue: "false",
-    type: 'boolean'
-  },
-  LANDING_ONE_TAB_ENABLE: <FormFieldDefinition>{
-    key: "sumaris.landing.oneTab.enable",
-    label: "PROGRAM.OPTIONS.LANDING_ONE_TAB_ENABLE",
     defaultValue: "false",
     type: 'boolean'
   },

@@ -1,128 +1,188 @@
-image: trion/ng-cli
+# ---------------------------------------------------------------
+# Global
+# ---------------------------------------------------------------
+
+# default image
+image: node:12
 
 stages:
   - build
-  - test
+  - alt_build
+#  - test
+#  - release
+  - docker
   - docs
-  - prepare
-  - release
-  - deploy
+
+# ---------------------------------------------------------------
+# Global variables
+# ---------------------------------------------------------------
+
+variables:
+  DOCKER_DRIVER: overlay2
+  ANSIBLE_FORCE_COLOR: '1'
+  CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
+  #ARTIFACT_FILES: "${APP_WAR_MODULE}/target/*.war"
+  BUILD_ENVIRONMENT: prod
+  ENV_FILE: variables.env
+  ARTIFACT_ZIP_FILES: ${OUTPUT_DIR}/${CI_PROJECT_NAME}-*.zip
+
+# ---------------------------------------------------------------
+# Jobs templates
+# ---------------------------------------------------------------
+
+.docker:
+  image: docker:latest
+  tags: [sih_public_runner]
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+  after_script:
+    - docker logout ${CI_REGISTRY}
+  allow_failure: false
+
+# ---------------------------------------------------------------
+# Build jobs
+# ---------------------------------------------------------------
 
 .build:
   stage: build
-  tags:
-    - sih_public_runner
+  tags: [sih_public_runner]
   script:
-    - echo "installation and build in progress"
-    - npm install
-    - npm run build.${BUILD_ENVIRONMENT}
-  variables:
-    BUILD_ENVIRONMENT: prod
+    # Update dependencies
+    - . scripts/ci/check-same-deps.sh
+    - yarn run build.${BUILD_ENVIRONMENT}
+  after_script:
+    # Remember version
+    - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
+    - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
+  artifacts:
+    paths:
+      - www
+    reports:
+      dotenv: ${ENV_FILE}
+    expire_in: 60 minutes
 
-build_auto:
+build:
   extends: .build
+  image: ${CI_BUILD_IMAGE}
+  before_script:
+    # Get project dependencies
+    - mv /tmp/.build-cache/node_modules ./
   only:
     - develop
     - feature/imagine
-  except:
-    - schedules
 
-schedule_build:
+failsafe-build:
   extends: .build
+  stage: alt_build
+  when: on_failure
+  before_script:
+    # Install global dependencies
+    - yarn global add @ionic/cli @angular/cli
+    # Update project dependencies
+    - yarn install
   only:
-    - schedules
+    - develop
 
-build_registry:
-    extends: .build
-    after_script:
-      - echo "Deploy artefact in progress"
-      - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
-      - cd ${CI_PROJECT_DIR}/www
-      - zip -q -r ${ZIP_FILE} .
-      - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${ZIP_FILE} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${APP_VERSION}/${CI_PROJECT_NAME}.zip"'
-    variables:
-      ZIP_FILE: ${CI_PROJECT_DIR}/www/${CI_PROJECT_NAME}.zip
-      BUILD_ENVIRONMENT: prod
-    artifacts:
-      paths:
-        - www/*.zip
-    only:
-        - develop
-        - feature/imagine
-    when: manual
+docker:ci:
+  extends: .docker
+  stage: alt_build
+  when: on_failure
+  allow_failure: true
+  script:
+    # Create the target directory
+    - mkdir -p target/ci
+    - cd target/ci
+    # Create the Dockerfile
+    - echo 'FROM node:12' > Dockerfile
+    - echo 'WORKDIR /tmp/.build-cache' >> Dockerfile
+    - echo 'COPY ./ ./' >> Dockerfile
+    # Store disk usage (before install)
+    - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"` > /tmp/before.txt' >> Dockerfile
+    - echo 'RUN du -s `find /tmp/.cache/yarn -maxdepth 1 | egrep -v "^\.$"` >> /tmp/before.txt' >> Dockerfile
+    # Install dependencies
+    - echo 'RUN yarn global add @ionic/cli @angular/cli' >> Dockerfile
+    - echo 'RUN yarn install' >> Dockerfile
+    # Store disk usage (after install)
+    - echo 'RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"` > /tmp/after.txt' >> Dockerfile
+    - echo 'RUN du -s `find /tmp/.cache/yarn -maxdepth 1 | egrep -v "^\.$"` >> /tmp/after.txt' >> Dockerfile
+    # Force docker to detect any changes
+    - echo "RUN diff /tmp/before.txt /tmp/after.txt || true" >> Dockerfile
+    # Remember package.json (to be able to compare)
+    - echo "RUN cp ./package.json /tmp/.cache/package.json || true" >> Dockerfile
+    - echo 'WORKDIR /build' >> Dockerfile
+    # Build and push the CI image
+    - docker build --no-cache -t ${CI_BUILD_IMAGE} .
+    - docker push ${CI_BUILD_IMAGE}
+  only:
+    - develop
+  artifacts:
+    paths:
+      - target/ci/Dockerfile
+    expire_in: 60 minutes
+
+# ---------------------------------------------------------------
+# Release jobs
+# ---------------------------------------------------------------
+
+# TODO
+
+# ---------------------------------------------------------------
+# Docker jobs
+# ---------------------------------------------------------------
+
+.docker-build:
+  extends: .docker
+  stage: docker
+  script:
+    # Build docker image
+    - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
+    - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="HTDOCS=www" -f scripts/docker/Dockerfile .
+    - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
+
+docker:develop:
+  extends: .docker-build
+  variables:
+    IMAGE_TAG: develop
+  only:
+    - develop
+
+docker:imagine:
+  extends: .docker-build
+  variables:
+    IMAGE_TAG: imagine
+  only:
+    - feature/imagine
+
+docker:release:
+  extends: .docker-build
+  variables:
+    IMAGE_TAG: $CI_COMMIT_TAG
+  only:
+    - tags
+
+# ---------------------------------------------------------------
+# Docs jobs
+# ---------------------------------------------------------------
 
 pages:
-    stage: docs
-    tags:
-        - sih_public_runner
-    image: python:3.7-alpine
-    before_script:
-        - apk --update --upgrade add gcc musl-dev jpeg-dev zlib-dev libffi-dev cairo-dev pango-dev gdk-pixbuf-dev
-        - pip install --upgrade pip
-        - pip install --upgrade mkdocs
-        - pip install --upgrade mkdocs-pdf-export-plugin==0.5.5
-    script:
-        - mkdocs -v build
-        - mv site public
-    artifacts:
-        paths:
-            - public
-    only:
-        - develop
-        - feature/imagine
-    when: manual
+  stage: docs
+  tags: [sih_public_runner]
+  image: python:3.7-alpine
+  before_script:
+    - apk --update --upgrade add gcc musl-dev jpeg-dev zlib-dev libffi-dev cairo-dev pango-dev gdk-pixbuf-dev
+    - pip install --upgrade pip
+    - pip install --upgrade mkdocs
+    - pip install --upgrade mkdocs-pdf-export-plugin==0.5.5
+  script:
+    - mkdocs -v build
+    - mv site public
+  artifacts:
+    paths:
+      - public
+  only:
+    - develop
+    - feature/imagine
+  when: manual
 
-package:
-    stage: prepare
-    tags:
-        - sih_public_runner
-    before_script:
-        - git checkout -B "$CI_BUILD_REF_NAME"
-        - git config --global user.email "lbruvryl@ifremer.fr"
-        - git config --global user.name "Leo BRUVRY-LAGADEC"
-        - echo "TAG=$RELEASE_VERSION" >> variables.env
-    script:
-        - echo "Release in progress"
-        - mvn -P prod release:clean -Dslf4jJclScope=provided
-        - mvn -P prod -s ./settings.xml release:prepare --batch-mode -Dtag=emso-charts-$RELEASE_VERSION -DreleaseVersion=$RELEASE_VERSION -DdevelopmentVersion=$NEW_DEV_VERSION -DscmCommentPrefix="[ci skip] to "
-        - mvn -P prod -s ./settings.xml release:perform -Dslf4jJclScope=provided -X -DscmCommentPrefix="[ci skip] to "
-    artifacts:
-        paths:
-            - web-services/target/*.war
-        reports:
-            dotenv: variables.env
-    only:
-        - develop
-        - feature/imagine
-    allow_failure: false
-    when: manual
-
-release:
-    stage: release
-    tags:
-        - sih_public_runner
-    image: registry.gitlab.com/gitlab-org/release-cli:latest
-    needs:
-        - job: package
-          artifacts: true
-    script:
-        - echo "running release for emso-charts-$TAG"
-    release:
-        name: "Release emso-charts-$TAG"
-        description: "Created using the release-cli $EXTRA_DESCRIPTION"
-        tag_name: "emso-charts-$TAG"
-        ref: "$CI_COMMIT_SHA"
-    only:
-        - develop
-        - feature/imagine
-deploy:
-    stage: deploy
-    tags:
-        - sih_public_runner
-    script:
-        - echo "Deploy in progress"
-        - mvn -s ./settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=emso-charts -Dversion=$TAG -Dfile=web-services/target/ROOT.war -DrepositoryId=gitlab-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven
-    only:
-        - develop
-        - feature/imagine
-    when: manual

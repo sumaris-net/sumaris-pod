@@ -3,7 +3,7 @@ import {Vessel, VesselFeatures, VesselRegistration} from '../model/vessel.model'
 import {RootDataEntityFilter} from '../../../data/services/model/root-data-filter.model';
 import {Moment} from 'moment';
 
-@EntityClass()
+@EntityClass({typename: 'VesselFilterVO'})
 export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
 
   static fromObject: (source: any, opts?: any) => VesselFilter;
@@ -54,7 +54,7 @@ export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
   }
 }
 
-@EntityClass()
+@EntityClass({typename: 'VesselFeaturesFilterVO'})
 export class VesselFeaturesFilter extends EntityFilter<VesselFeaturesFilter, VesselFeatures> {
 
   static fromObject: (source: any, opts?: any) => VesselFeaturesFilter;
@@ -77,7 +77,7 @@ export class VesselFeaturesFilter extends EntityFilter<VesselFeaturesFilter, Ves
 
 }
 
-@EntityClass()
+@EntityClass({typename: 'VesselRegistrationFilterVO'})
 export class VesselRegistrationFilter extends EntityFilter<VesselRegistrationFilter, VesselRegistration> {
 
   static fromObject: (source: any, opts?: any) => VesselRegistrationFilter;

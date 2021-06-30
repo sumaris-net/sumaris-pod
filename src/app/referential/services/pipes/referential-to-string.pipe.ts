@@ -1,10 +1,11 @@
 import {Injectable, Pipe, PipeTransform} from '@angular/core';
 import {
+  isArray,
   Referential,
   ReferentialRef,
   referentialsToString,
   referentialToString
-}  from "@sumaris-net/ngx-components";
+} from '@sumaris-net/ngx-components';
 
 @Pipe({
   name: 'referentialToString'
@@ -16,8 +17,9 @@ export class ReferentialToStringPipe implements PipeTransform {
   ) {
   }
 
-  transform(value: Referential | ReferentialRef | any, properties?: string[]): string {
-    if (value instanceof Array) return referentialsToString(value, properties);
+  transform(value: Referential | ReferentialRef | any, opts?: string[] | {properties?: string[]; separator?: string}): string {
+    const properties = isArray(opts) ? opts : opts && opts.properties;
+    if (value instanceof Array) return referentialsToString(value, properties, opts && opts['separator']);
     return referentialToString(value, properties);
   }
 }

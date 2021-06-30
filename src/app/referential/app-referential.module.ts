@@ -30,6 +30,7 @@ import {SelectPmfmModal} from "./pmfm/select-pmfm.modal";
 import {TaxonNamePage} from "./taxon/taxon-name.page";
 import {ReferentialsPage} from '@app/referential/list/referentials.page';
 import {AppCoreModule} from '@app/core/core.module';
+import {StrategiesPage} from './strategy/strategies.page';
 
 @NgModule({
   imports: [
@@ -54,6 +55,7 @@ import {AppCoreModule} from '@app/core/core.module';
     ProgramsPage,
     ProgramPage,
     SamplingStrategyPage,
+    StrategiesPage,
     StrategyPage,
     StrategyForm,
     StrategiesTable,
@@ -86,6 +88,7 @@ import {AppCoreModule} from '@app/core/core.module';
     ReferentialForm,
     SamplingStrategyForm,
     SamplingStrategyPage,
+    StrategiesPage,
     StrategyPage,
     StrategyForm,
     SoftwarePage,

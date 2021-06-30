@@ -97,7 +97,6 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
       if (!selectedData) return;
 
       // Create a copy
-      console.log("TODO check copy ");
       const data = PhysicalGear.fromObject({
         gear: selectedData.gear,
         rankOrder: selectedData.rankOrder,

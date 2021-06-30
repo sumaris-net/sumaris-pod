@@ -28,7 +28,7 @@ import {DataEntityAsObjectOptions} from '../../data/services/model/data-entity.m
 import {environment} from '../../../environments/environment';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
-@EntityClass()
+@EntityClass({typename: 'AggregatedLandingFilterVO'})
 export class AggregatedLandingFilter extends EntityFilter<AggregatedLandingFilter, AggregatedLanding> {
 
   static fromObject: (source: any, opts?: any) => AggregatedLandingFilter;

@@ -199,13 +199,12 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
     super.enable();
 
     if (!this.isNewData) {
-      this.form.get('label').disable();
+      //this.form.get('label').disable();
     }
   }
 
   protected registerForms() {
-    this // TODO QV .registerTable(this.strategiesTable)
-      .addChildForm(this.referentialForm);
+    this.addChildForm(this.referentialForm);
   }
 
   protected setValue(data: Pmfm) {

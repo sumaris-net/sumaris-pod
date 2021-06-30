@@ -11,7 +11,7 @@ import {
   AppTable,
   AppTableDataSourceOptions,
   EntitiesTableDataSource,
-  Entity, EntityUtils,
+  Entity,
   filterNotNil,
   firstNotNilPromise,
   IEntitiesService,
@@ -58,7 +58,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   measurementValuesFormGroupConfig: { [key: string]: any };
   readonly hasRankOrder: boolean;
 
-  set requiredStrategy(value: boolean) {
+  @Input() set requiredStrategy(value: boolean) {
     this.options.requiredStrategy = value;
     if (this.measurementsDataService) {
       this.measurementsDataService.requiredStrategy = value;
@@ -190,7 +190,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     const encapsulatedValidator = this.validatorService ? this : null;
     this.setDatasource(new EntitiesTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, {
       ...this.options,
-      // IMPORTANT: Always use this custom onRowCreated, that will call options.onRowCreated is need
+      // IMPORTANT: Always use this custom onRowCreated, that will call options.onRowCreated if need
       onRowCreated: (row) => this.onRowCreated(row)
     }));
 

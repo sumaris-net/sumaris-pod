@@ -22,7 +22,7 @@ import * as momentImported from 'moment';
 import {Moment} from 'moment';
 import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from './model/data-entity.model';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions, BaseEntityServiceOptions} from '../../referential/services/base-entity-service.class';
+import {BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions, BaseEntityServiceOptions} from '@app/referential/services/base-entity-service.class';
 import {Vessel} from '@app/vessel/services/model/vessel.model';
 import {ErrorCodes} from './errors';
 import {FetchPolicy} from '@apollo/client/core';
@@ -245,7 +245,7 @@ export abstract class RootDataSynchroService<
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
     const now = Date.now();
-    if (this._debug) console.debug(`${this._logPrefix}Loading ${this._entityName} #${id}...`);
+    if (this._debug) console.debug(`${this._logPrefix}Loading ${this._logTypeName} #${id}...`);
     this.loading = true;
 
     try {
@@ -270,7 +270,7 @@ export abstract class RootDataSynchroService<
         ? this.fromObject(data)
         : (data as T);
 
-      if (entity && this._debug) console.debug(`${this._logPrefix}${this._entityName} #${id} loaded in ${Date.now() - now}ms`, entity);
+      if (entity && this._debug) console.debug(`${this._logPrefix}${this._logTypeName} #${id} loaded in ${Date.now() - now}ms`, entity);
 
       return entity;
     }
@@ -346,7 +346,7 @@ export abstract class RootDataSynchroService<
     const trash = !opts || opts.trash !== false;
     const trashUpdateDate = trash && momentImported();
 
-    if (this._debug) console.debug(`${this._logPrefix}Deleting ${this._entityName} locally... {trash: ${trash}`);
+    if (this._debug) console.debug(`${this._logPrefix}Deleting ${this._logTypeName} locally... {trash: ${trash}`);
 
     await chainPromises(localEntities.map(entity => async () => {
 

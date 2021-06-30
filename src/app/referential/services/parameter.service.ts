@@ -68,6 +68,24 @@ export class ParameterService extends BaseGraphqlService implements IEntityServi
     return entity;
   }
 
+  async loadByLabel(label: string, options?: EntityServiceLoadOptions): Promise<Parameter> {
+
+    if (this._debug) console.debug(`[parameter-service] Loading parameter {${label}}...`);
+
+    const res = await this.graphql.query<{ parameter: any }>({
+      query: LoadQuery,
+      variables: {
+        label: label
+      },
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"}
+    });
+    const entity = res && Parameter.fromObject(res.parameter);
+
+    if (this._debug) console.debug(`[pmfm-service] Parameter {${label}} loaded`, entity);
+
+    return entity;
+  }
+
   /**
    * Save a parameter entity
    * @param entity

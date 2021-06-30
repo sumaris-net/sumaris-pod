@@ -1,17 +1,16 @@
 import {ChangeDetectorRef, Directive, Injector, OnInit, ViewChild} from '@angular/core';
-import {AbstractControl, FormArray, FormGroup} from '@angular/forms';
+import {AbstractControl, FormGroup} from '@angular/forms';
 import {
   AccountService,
   AppEditorOptions,
   AppEntityEditor,
-  CORE_CONFIG_OPTIONS,
-  EntityServiceLoadOptions,
+  AppPropertiesForm,
+  CORE_CONFIG_OPTIONS, EntityServiceLoadOptions,
   EntityUtils,
-  FormArrayHelper,
   FormFieldDefinition,
   FormFieldDefinitionMap,
-  isNil,
-  ObjectMapEntry,
+  IEntityService,
+  isNil, isNotNil,
   PlatformService,
   Software
 } from '@sumaris-net/ngx-components';
@@ -24,7 +23,7 @@ import {ReferentialRefService} from '../services/referential-ref.service';
 // tslint:disable-next-line:directive-class-suffix
 export abstract class AbstractSoftwarePage<
   T extends Software<T>,
-  S extends SoftwareService<T>>
+  S extends IEntityService<T>>
   extends AppEntityEditor<T, S>
   implements OnInit {
 
@@ -34,18 +33,11 @@ export abstract class AbstractSoftwarePage<
   protected referentialRefService: ReferentialRefService;
 
   propertyDefinitions: FormFieldDefinition[];
-  propertyDefinitionsByKey: FormFieldDefinitionMap = {};
-  propertyDefinitionsByIndex: { [index: number]: FormFieldDefinition } = {};
-  propertiesFormHelper: FormArrayHelper<ObjectMapEntry>;
-
   form: FormGroup;
-
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
 
-  get propertiesForm(): FormArray {
-    return this.form.get('properties') as FormArray;
-  }
+  @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
 
   protected constructor(
     injector: Injector,
@@ -66,27 +58,16 @@ export abstract class AbstractSoftwarePage<
 
     // Convert map to list of options
     this.propertyDefinitions = Object.values({...CORE_CONFIG_OPTIONS, ...configOptions})
-      .map(o => o.type !== 'entity' ? o : <FormFieldDefinition>{
-        ...o,
-        autocomplete: {
-          ...o.autocomplete,
-          suggestFn: (value, options) => this.referentialRefService.suggest(value, options)
+      .map(def => {
+        if (def.type === 'entity') {
+          def = Object.assign({}, def); // Copy
+          def.autocomplete = def.autocomplete || {};
+          def.autocomplete.suggestFn = (value, filter) => this.referentialRefService.suggest(value, filter);
         }
-      })
-    ;
-    // Fill property definitions map
-    this.propertyDefinitions.forEach(o => this.propertyDefinitionsByKey[o.key] = o);
+        return def;
+      });
 
     this.form = validatorService.getFormGroup();
-    this.propertiesFormHelper = new FormArrayHelper<ObjectMapEntry>(
-      this.form.get('properties') as FormArray,
-      (value) => validatorService.getPropertyFormGroup(value),
-      (v1, v2) => (!v1 && !v2) || v1.key === v2.key,
-      (value) => isNil(value) || (isNil(value.key) && isNil(value.value)),
-      {
-        allowEmptyArray: true
-      }
-    );
 
   }
 
@@ -97,34 +78,14 @@ export abstract class AbstractSoftwarePage<
     this.referentialForm.entityName = 'Software';
 
     // Check label is unique
-    this.form.get('label')
-      .setAsyncValidators(async (control: AbstractControl) => {
-        const label = control.enabled && control.value;
-        return label && (await this.service.existsByLabel(label)) ? {unique: true} : null;
-      });
-  }
-
-  getPropertyDefinition(index: number): FormFieldDefinition {
-    let definition = this.propertyDefinitionsByIndex[index];
-    if (!definition) {
-      definition = this.updatePropertyDefinition(index);
-      this.propertyDefinitionsByIndex[index] = definition;
+    if (this.service instanceof SoftwareService) {
+      const softwareService = this.service as SoftwareService;
+      this.form.get('label')
+        .setAsyncValidators(async (control: AbstractControl) => {
+          const label = control.enabled && control.value;
+          return label && (await softwareService.existsByLabel(label)) ? {unique: true} : null;
+        });
     }
-    return definition;
-  }
-
-  updatePropertyDefinition(index: number): FormFieldDefinition {
-    const key = (this.propertiesForm.at(index) as FormGroup).controls.key.value;
-    const definition = key && this.propertyDefinitionsByKey[key] || null;
-    this.propertyDefinitionsByIndex[index] = definition; // update map by index
-    this.markForCheck();
-    return definition;
-  }
-
-  removePropertyAt(index: number) {
-    this.propertiesFormHelper.removeAt(index);
-    this.propertyDefinitionsByIndex = {}; // clear map by index
-    this.markForCheck();
   }
 
   /* -- protected methods -- */
@@ -142,7 +103,7 @@ export abstract class AbstractSoftwarePage<
   }
 
   protected registerForms() {
-    this.addChildForm(this.referentialForm);
+    this.addChildForms([this.referentialForm, this.propertiesForm]);
   }
 
   protected async loadFromRoute(): Promise<void> {
@@ -154,74 +115,33 @@ export abstract class AbstractSoftwarePage<
     return super.loadFromRoute();
   }
 
-  protected async onEntityLoaded(data: T, options?: EntityServiceLoadOptions): Promise<void> {
-    await this.prepareDataPropertiesToForm(data);
-    await super.onEntityLoaded(data, options);
-  }
-
-  protected async onEntitySaved(data: T): Promise<void> {
-    await this.prepareDataPropertiesToForm(data);
-    await super.onEntitySaved(data);
-  }
-
-  async prepareDataPropertiesToForm(data: T | null) {
-
-    return Promise.all(Object.keys(data.properties)
-      .map(key => this.propertyDefinitionsByKey[key])
-      .filter(option => option && option.type === 'entity')
-      .map(option => {
-        let value = data.properties[option.key];
-        const filter = {...option.autocomplete.filter};
-        const joinAttribute = option.autocomplete.filter.joinAttribute || 'id';
-        if (joinAttribute === 'id') {
-          filter.id = parseInt(value);
-          value = '*';
-        }
-        else {
-          filter.searchAttribute = joinAttribute;
-        }
-        // Fetch entity, as a referential
-        return this.referentialRefService.suggest(value, filter)
-          .then(matches => {
-            data.properties[option.key] = (matches && matches.data && matches.data[0] || {id: value,  label: '??'}) as any;
-          })
-          // Cannot ch: display an error
-          .catch(err => {
-            console.error('Cannot fetch entity, from option: ' + option.key + '=' + value, err);
-            data.properties[option.key] = ({id: value,  label: '??'}) as any;
-          });
-    }));
-  }
-
   protected setValue(data: T) {
     if (!data) return; // Skip
 
-    const json = data.asObject();
+    this.form.patchValue({
+      ...data.asObject(),
+      properties: []
+    }, {emitEvent: false});
 
-    // Transform properties map into array
-    json.properties = EntityUtils.getMapAsArray(data.properties || {});
-    this.propertiesFormHelper.resize(Math.max(json.properties.length, 1));
 
-    this.form.patchValue(json, {emitEvent: false});
+    // Program properties
+    this.propertiesForm.value = EntityUtils.getMapAsArray(data.properties || {});
+
 
     this.markAsPristine();
   }
 
+
   protected async getJsonValueToSave(): Promise<any> {
-    const json = await super.getJsonValueToSave();
+    const data = await super.getJsonValueToSave();
 
     // Re add label, because missing when field disable
-    json.label = this.form.get('label').value;
+    data.label = this.form.get('label').value;
 
     // Convert entities to id
-    json.properties.forEach(property => {
-      const option = this.propertyDefinitionsByKey[property.key];
-      if (option && option.type === 'entity' && EntityUtils.isNotEmpty(property.value, 'id')) {
-        property.value = property.value.id;
-      }
-    });
+    data.properties = this.propertiesForm.value;
 
-    return json;
+    return data;
   }
 
   protected computeTitle(data: T): Promise<string> {
@@ -235,9 +155,48 @@ export abstract class AbstractSoftwarePage<
 
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
+    if (this.propertiesForm.invalid) return 1;
     return 0;
   }
 
+  protected async onEntityLoaded(data: T, options?: EntityServiceLoadOptions): Promise<void> {
+    await this.loadEntityProperties(data);
+    await super.onEntityLoaded(data, options);
+  }
+
+  protected async onEntitySaved(data: T): Promise<void> {
+    await this.loadEntityProperties(data);
+    await super.onEntitySaved(data);
+  }
+
+  async loadEntityProperties(data: T | null) {
+
+    return Promise.all(Object.keys(data.properties)
+      .map(key => this.propertyDefinitions.find(def => def.key === key && def.type === 'entity'))
+      .filter(isNotNil)
+      .map(def => {
+        let value = data.properties[def.key];
+        const filter = {...def.autocomplete.filter};
+        const joinAttribute = def.autocomplete.filter.joinAttribute || 'id';
+        if (joinAttribute === 'id') {
+          filter.id = parseInt(value);
+          value = '*';
+        }
+        else {
+          filter.searchAttribute = joinAttribute;
+        }
+        // Fetch entity, as a referential
+        return this.referentialRefService.suggest(value, filter)
+          .then(matches => {
+            data.properties[def.key] = (matches && matches.data && matches.data[0] || {id: value,  label: '??'}) as any;
+          })
+          // Cannot ch: display an error
+          .catch(err => {
+            console.error('Cannot fetch entity, from option: ' + def.key + '=' + value, err);
+            data.properties[def.key] = ({id: value,  label: '??'}) as any;
+          });
+      }));
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

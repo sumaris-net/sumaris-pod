@@ -5,7 +5,7 @@ import {EntityClass}  from "@sumaris-net/ngx-components";
 
 export declare type ParameterType = 'double' | 'string' | 'qualitative_value' | 'date' | 'boolean' ;
 
-@EntityClass()
+@EntityClass({typename: 'ParameterVO'})
 export class Parameter extends BaseReferential<Parameter> {
 
   static ENTITY_NAME = 'Parameter';

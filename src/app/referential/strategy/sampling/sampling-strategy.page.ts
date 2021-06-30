@@ -20,6 +20,7 @@ import {Program} from "../../services/model/program.model";
 import {ProgramService} from "../../services/program.service";
 import {AcquisitionLevelCodes, PmfmIds} from "../../services/model/model.enum";
 import {StatusIds}  from "@sumaris-net/ngx-components";
+import {MatExpansionPanel} from '@angular/material/expansion';
 
 const moment = momentImported;
 

@@ -21,14 +21,14 @@
         <mat-icon>refresh</mat-icon>
       </button>
 
-      <!-- reset filter -->
+      <!-- Reset filter -->
       <button mat-icon-button (click)="resetFilter()"
               *ngIf="filterCriteriaCount">
         <mat-icon color="accent">filter_list_alt</mat-icon>
         <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
       </button>
 
-      <!-- show filter -->
+      <!-- Show filter -->
       <button mat-icon-button (click)="filterExpansionPanel.toggle()">
         <mat-icon *ngIf="filterCriteriaCount; else emptyFilter"
                   [matBadge]="filterCriteriaCount"

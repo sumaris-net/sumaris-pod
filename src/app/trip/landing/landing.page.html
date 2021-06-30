@@ -2,8 +2,12 @@
              color="primary"
              [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
+             (onValidateAndClose)="saveAndClose($event)"
+             [hasClose]="!loading && !dirty"
+             (onClose)="close($event)"
              [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
+
   <ion-buttons slot="end">
     <ion-spinner *ngIf="loading"></ion-spinner>
 
@@ -100,11 +104,10 @@
     </mat-tab>
 
     <!-- TAB: samples -->
-    <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES'|translate"
-             [disabled]="oneTabMode">
+    <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES'|translate">
       <ng-template mat-tab-label>
-        <mat-icon *ngIf="!oneTabMode">center_focus_strong</mat-icon>
-        <ion-label *ngIf="!oneTabMode; else skeletonText100">{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
+        <mat-icon>center_focus_strong</mat-icon>
+        <ion-label>{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
 
