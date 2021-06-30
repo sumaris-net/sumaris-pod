@@ -18,8 +18,6 @@ stages:
 # ---------------------------------------------------------------
 
 variables:
-  DOCKER_DRIVER: overlay2
-  ANSIBLE_FORCE_COLOR: '1'
   CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
   #ARTIFACT_FILES: "${APP_WAR_MODULE}/target/*.war"
   BUILD_ENVIRONMENT: prod
@@ -50,7 +48,7 @@ variables:
   tags: [sih_public_runner]
   script:
     # Update dependencies
-    - . scripts/ci/check-same-deps.sh
+    - . scripts/ci/dependencies.sh
     - yarn run build.${BUILD_ENVIRONMENT}
   after_script:
     # Remember version
