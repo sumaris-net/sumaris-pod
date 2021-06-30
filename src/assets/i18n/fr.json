@@ -1835,8 +1835,8 @@
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
-    "SAVE": "Des mofifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de continuer ?",
-    "SAVE_BEFORE_CLOSE": "Des mofifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de fermer ?",
+    "SAVE": "Des modifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de continuer ?",
+    "SAVE_BEFORE_CLOSE": "Des modifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de fermer ?",
     "CANCEL_CHANGES": "Vos dernières modifications seront annulées.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE": "<b>Êtes-vous sûr</b> de vouloir supprimer ?",
     "ACTION": "<b>Êtes-vous sûr</b> de vouloir continuer ?",
