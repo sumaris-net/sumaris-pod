@@ -1390,7 +1390,7 @@
         "STRATEGY_HAS_REALIZED_EFFORT": "Sampling scheme {{label}} used by observed locations",
         "STRATEGIES_HAS_REALIZED_EFFORT": "Sampling schemes {{label}} used by observed locations",
         "PMFM.PMFM_OR_PARAMETER": "Please select a PMFM or Parameter",
-        "UNDEFIENEDTAXON": "Taxon name is unvalid"
+        "UNDEFIENEDTAXON": "Taxon name is invalid"
       }
     },
     "ERROR": {
