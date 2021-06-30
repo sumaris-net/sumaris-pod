@@ -11,9 +11,12 @@ COPY ${CONFIG_FILES} /app/config/
 ENV USERNAME="sih_web" \
     GROUPNAME="ditiisi" \
     GROUPID="10004"
+# TODO : remove when logfile will be overwrite
+RUN touch sumaris.log.file_IS_UNDEFINED
 RUN groupadd -g $GROUPID $GROUPNAME \
     && useradd -g $GROUPNAME $USERNAME \
-    && chown -R $USERNAME:$GROUPNAME /app
+    && chown -R $USERNAME:$GROUPNAME /app \
+    && chown -R $USERNAME:$GROUPNAME sumaris.log.file_IS_UNDEFINED
 USER $USERNAME
 ENV PORT=8080 \
     TZ=UTC \
