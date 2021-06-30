@@ -9,7 +9,6 @@ ENV USERNAME="sih_web" \
     GROUPID="10004"
 RUN groupadd -g $GROUPID $GROUPNAME \
     && useradd -g $GROUPNAME $USERNAME \
-    && chown -R $USERNAME:$GROUPNAME /usr/local/apache2/
 USER $USERNAME
 COPY ${ENTRYPOINT} /app/app.sh
 RUN chmod +x /app/app.sh
