@@ -846,7 +846,7 @@
       "OTHER_FEATURES": "Autres caractéristiques :",
       "TAB_SAMPLES": "Echantillons",
       "SAMPLING": {
-        "TITLE": "Navire {{vessel}}",
+        "TITLE": "Ligne de plan {{strategyLabel}} - Navire  {{vessel}}",
         "STRATEGY": "Ligne de plan :",
         "STRATEGY_PLACEHOLDER": "Code ligne de plan",
         "STRATEGY_SUMMARY_TITLE": "Plan d'échantillonnage",

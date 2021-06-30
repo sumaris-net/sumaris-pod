@@ -819,7 +819,7 @@
       "OTHER_FEATURES": "Other features:",
       "TAB_SAMPLES": "Samples",
       "SAMPLING": {
-        "TITLE": "Vessel {{vessel}}",
+        "TITLE": "Strategy {{strategyLabel}} - Vessel  {{vessel}}",
         "STRATEGY": "Sample row:",
         "STRATEGY_PLACEHOLDER": "Sample row code",
         "STRATEGY_SUMMARY_TITLE": "Sampling scheme",
