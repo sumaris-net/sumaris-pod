@@ -167,6 +167,8 @@
                   [color]="autocompleteFilters.taxonName ? 'primary' : undefined">
             <mat-icon>filter_list_alt</mat-icon>
           </button>
+          <mat-error *ngIf="form.controls.label.hasError('undefinedTaxon')"
+                     translate>PROGRAM.STRATEGY.ERROR.UNDEFIENEDTAXON</mat-error>
         </mat-autocomplete-field>
       </ion-col>
 

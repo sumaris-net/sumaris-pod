@@ -1438,10 +1438,11 @@
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
         "EFFORT.REALIZED_EFFORT": "Effort obligatoire pour les trimestres ayant des mesures individuelles : {{quarters}}",
         "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà",
-        "LABEL.ZERO": "L'incrément minimal est 0001",
+        "LABEL.ZERO": "L'incrément minimal est 001",
         "STRATEGY_HAS_REALIZED_EFFORT": "La ligne de plan {{label}} est liée à une ou plusieurs observations individuelles",
         "STRATEGIES_HAS_REALIZED_EFFORT": "Les lignes de plan {{label}} sont liées à une ou plusieurs observations individuelles",
-        "PMFM.PMFM_OR_PARAMETER": "Veuillez sélectionner un PSFM ou un paramètre"
+        "PMFM.PMFM_OR_PARAMETER": "Veuillez sélectionner un PSFM ou un paramètre",
+        "UNDEFIENEDTAXON": "L'espèce est invalide"
       }
     },
     "ERROR": {

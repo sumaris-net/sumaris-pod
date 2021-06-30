@@ -318,7 +318,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
           console.warn('[sampling-strategy-form] Label not unique!');
           return <ValidationErrors>{ unique: true };
         }
-        if (control.value.includes('0000')) {
+        if (control.value.includes('000')) {
           return <ValidationErrors>{ zero: true };
         }
 
@@ -555,15 +555,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    */
   selectMask(input: HTMLInputElement) {
     if (!this.labelMask) input.select();
-/*
-    let labelMaskArray: Array<any>;
-    labelMaskArray = this.labelMask.slice(0, 3);
-    const taxonNameArray = this.labelMask[3].split('');
-    labelMaskArray.concat(taxonNameArray);
-    // this.labelMask[3].split('');
-    // Array.from(this.labelMask[3], x => labelMaskArray.concat(x));
-    labelMaskArray.concat(this.labelMask.slice(-4));
-*/
     const startIndex = this.labelMask.findIndex(c => c instanceof RegExp);
     let endIndex = this.labelMask.slice(startIndex).findIndex(c => !(c instanceof RegExp), startIndex);
     endIndex = (endIndex === -1)
@@ -903,20 +894,24 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     let finalMaskTaxonName;
     const taxonNameControl = this.taxonNamesFormArray.value[0];
     if (taxonNameControl && taxonNameControl.taxonName?.name) {
-      finalMaskTaxonName = [...TaxonUtils.rubinCode(taxonNameControl.taxonName.name)];
+      if (TaxonUtils.rubinCode(taxonNameControl.taxonName.name)) {
+        finalMaskTaxonName = [...TaxonUtils.rubinCode(taxonNameControl.taxonName.name)];
+      } else {
+        return <ValidationErrors>{ undefinedTaxon: true }; // display error undefinedTaxon
+      }
     } else {
       finalMaskTaxonName = ["X", "X", "X", "X", "X", "X", "X"];
     }
 
     let labelMaskArray = finalMaskYear.split("");
-    labelMaskArray = labelMaskArray.concat(['-']);
+    labelMaskArray = labelMaskArray.concat([' ']);
     labelMaskArray = labelMaskArray.concat(finalMaskTaxonName);
     // @ts-ignore
-    labelMaskArray = labelMaskArray.concat(['-', /\d/, /\d/, /\d/]);
+    labelMaskArray = labelMaskArray.concat([' ', /\d/, /\d/, /\d/]);
     this.labelMask = labelMaskArray;
 
     const finalMaskTaxonNameString = finalMaskTaxonName.join("");
-    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear}-${finalMaskTaxonNameString}-`, 3));
+    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear} ${finalMaskTaxonNameString}`, 3));
     console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
 
     const labelControl = this.form.get('label');
