@@ -13,7 +13,7 @@ ENV USERNAME="sih_web" \
     GROUPID="10004"
 RUN groupadd -g $GROUPID $GROUPNAME \
     && useradd -g $GROUPNAME $USERNAME \
-    && chown -R $USERNAME:$GROUPNAME /app \
+    && chown -R $USERNAME:$GROUPNAME /app
 USER $USERNAME
 ENV PORT=8080 \
     TZ=UTC \
