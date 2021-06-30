@@ -3,6 +3,14 @@ ARG ENTRYPOINT=app.sh
 ARG WAR_FILE=app.war
 ARG CONFIG_FILES=config/*.properties
 RUN apt update && apt -y install libsodium-dev
+# container user managment
+ENV USERNAME="sih_web" \
+    GROUPNAME="ditiisi" \
+    GROUPID="10004"
+RUN groupadd -g $GROUPID $GROUPNAME \
+    && useradd -g $USERNAME $GROUPNAME \
+    && chown -R $USERNAME:$GROUPNAME /usr/local/apache2/
+USER $USERNAME
 COPY ${ENTRYPOINT} /app/app.sh
 RUN chmod +x /app/app.sh
 COPY ${WAR_FILE} /app/app.war
