@@ -8,7 +8,7 @@ ENV USERNAME="sih_web" \
     GROUPNAME="ditiisi" \
     GROUPID="10004"
 RUN groupadd -g $GROUPID $GROUPNAME \
-    && useradd -g $USERNAME $GROUPNAME \
+    && useradd -g $GROUPNAME $USERNAME \
     && chown -R $USERNAME:$GROUPNAME /usr/local/apache2/
 USER $USERNAME
 COPY ${ENTRYPOINT} /app/app.sh
