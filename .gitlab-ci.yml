@@ -48,7 +48,7 @@ variables:
   tags: [sih_public_runner]
   script:
     # Update dependencies
-    - . scripts/ci/dependencies.sh store
+#    - . scripts/ci/dependencies.sh store
     - yarn run build.${BUILD_ENVIRONMENT}
   after_script:
     # Remember version
