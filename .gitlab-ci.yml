@@ -255,8 +255,8 @@ gitlab-release:
     stage: docker
     script:
         # Build variables: set default values
-        - export DOCKER_RUN_USERID=${DOCKER_RUN_USERID:20001}
-        - export DOCKER_RUN_USERID=${DOCKER_RUN_GROUPID:20001}
+        - export IMAGE_USERID=${IMAGE_USERID:20001}
+        - export IMAGINE_GROUPID=${IMAGINE_GROUPID:20001}
         # Create the target directory, to build the image
         - mkdir -p target/docker/config
         - cp -rf ${APP_WAR_MODULE}/src/main/docker/* target/docker/
@@ -266,7 +266,7 @@ gitlab-release:
         - cd target/docker
         # Build docker image
         - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
-        - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="USERID=$DOCKER_RUN_USERID" --build-arg="GROUPID=$DOCKER_RUN_GROUPID" .
+        - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="USERID=${IMAGE_USERID}" --build-arg="GROUPID=${IMAGINE_GROUPID}" .
         - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
     artifacts:
         paths:
@@ -299,8 +299,8 @@ docker:ifremer-isi-val:
     extends: .docker-build
     variables:
         IMAGE_TAG: $CI_COMMIT_TAG
-        DOCKER_RUN_USERID: '25484'
-        DOCKER_RUN_GROUPID: '10004'
+        IMAGE_USERID: 25484
+        IMAGINE_GROUPID: 10004
     only:
         - tags
         - feature/imagine

@@ -13,11 +13,11 @@ ARG GROUPID="20001"
 RUN apt update && apt -y install libsodium-dev
 
 # Create execution user/group
-RUN groupadd -g $GROUPID $GROUPNAME \
-    && useradd -g $GROUPNAME -u $USERID $USERNAME
-RUN mkdir -p /app
-RUN chown -R $USERNAME:$GROUPNAME /app
-USER $USERNAME:$GROUPNAME
+RUN echo "Creatin group ${GROUPNAME}:${GROUPID}"
+RUN groupadd -g ${GROUPID} ${GROUPNAME}
+RUN echo "Creatin user ${USERNAME}:${USERID}"
+RUN useradd -g ${GROUPNAME} -d /app -u ${USERID} ${USERNAME}
+USER ${USERNAME}:${GROUPNAME}
 
 # Copy files
 COPY ${ENTRYPOINT} /app/app.sh
