@@ -1,6 +1,7 @@
-FROM httpd:2.4.41
+FROM nginx:alpine
 
 # Build arg
+ARG HTML=www
 ARG HTDOCS=www
 ARG USERNAME="apache"
 ARG USERID="20001"
@@ -11,12 +12,10 @@ ARG GROUPID="20001"
 RUN echo "Creatin group ${GROUPNAME}:${GROUPID}"
 RUN groupadd -g ${GROUPID} ${GROUPNAME}
 RUN echo "Creatin user ${USERNAME}:${USERID}"
-RUN useradd -g ${GROUPNAME} -d /usr/local/apache2 -u ${USERID} ${USERNAME}
+RUN useradd -g ${GROUPNAME} -d /usr/share/nginx -u ${USERID} ${USERNAME}
 USER ${USERNAME}:${GROUPNAME}
 
 # Copy files
-COPY --chown=${USERNAME}:${GROUPNAME} ${HTDOCS} /usr/local/apache2/htdocs/
+COPY --chown=${USERNAME}:${GROUPNAME} ${HTML} /usr/share/nginx/html
 
-# Run
 EXPOSE 80
-CMD ["/usr/local/apache2/bin/apachectl","-DFOREGROUND"]

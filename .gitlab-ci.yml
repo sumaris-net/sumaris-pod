@@ -19,9 +19,7 @@ stages:
 
 variables:
   CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
-  #ARTIFACT_FILES: "${APP_WAR_MODULE}/target/*.war"
   BUILD_ENVIRONMENT: prod
-  ENV_FILE: variables.env
   ARTIFACT_ZIP_FILES: ${OUTPUT_DIR}/${CI_PROJECT_NAME}-*.zip
 
 # ---------------------------------------------------------------
@@ -48,19 +46,19 @@ variables:
   tags: [sih_public_runner]
   script:
     # Update dependencies
-#    - . scripts/ci/dependencies.sh store
-    - yarn
+    #- . scripts/ci/dependencies.sh check
+    - yarn install
     - yarn run build.${BUILD_ENVIRONMENT}
   after_script:
     # Remember version
     - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
-    - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
+    - echo "APP_VERSION=${APP_VERSION}" > variables.env
   artifacts:
     paths:
       - www
     reports:
-      dotenv: ${ENV_FILE}
-    expire_in: 60 minutes
+      dotenv: variables.env
+    expire_in: 72 hours
 
 build:
   extends: .build
@@ -119,7 +117,7 @@ docker:ci:
   artifacts:
     paths:
       - target/ci/Dockerfile
-    expire_in: 60 minutes
+    expire_in: 72 hours
 
 # ---------------------------------------------------------------
 # Release jobs
@@ -138,10 +136,9 @@ docker:ci:
     # Build variables: set default values
     - export IMAGE_USERID=${IMAGE_USERID:-20001}
     - export IMAGE_GROUPID=${IMAGE_GROUPID:-20001}
-    - echo "Creating image - userid=${IMAGE_USERID} groupid=${IMAGE_GROUPID}"
     # Build docker image
     - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
-    - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="HTDOCS=www" --build-arg="USERID=${IMAGE_USERID}" --build-arg="GROUPID=${IMAGE_GROUPID}" -f scripts/docker/Dockerfile .
+    - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="WWW=www" --build-arg="USERID=${IMAGE_USERID}" --build-arg="GROUPID=${IMAGE_GROUPID}" -f scripts/docker/Dockerfile .
     - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
 
 docker:develop:
@@ -154,9 +151,7 @@ docker:develop:
 docker:imagine:
   extends: .docker-build
   variables:
-    IMAGE_TAG: 'imagine'
-    IMAGE_USERID: 25484
-    IMAGE_GROUPID: 10004
+    IMAGE_TAG: imagine
   only:
     - feature/imagine
 
@@ -166,6 +161,17 @@ docker:release:
     IMAGE_TAG: $CI_COMMIT_TAG
   only:
     - tags
+
+docker:production:
+  extends: .docker-build
+  variables:
+    IMAGE_TAG: $CI_COMMIT_TAG
+    IMAGE_USERID: ${PRODUCTION_IMAGE_USERID}
+    IMAGE_GROUPID: ${PRODUCTION_IMAGE_GROUPID}
+  only:
+    - tags
+    - feature/imagine
+  when: manual
 
 # ---------------------------------------------------------------
 # Docs jobs
