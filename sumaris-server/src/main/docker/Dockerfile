@@ -20,7 +20,9 @@ RUN useradd -g ${GROUPNAME} -d /app -u ${USERID} ${USERNAME}
 USER ${USERNAME}:${GROUPNAME}
 
 # Copy files
+RUN ls -artl
 COPY ${ENTRYPOINT} /app/app.sh
+RUN ls -artl /app
 RUN chmod +x /app/app.sh
 RUN mkdir -p /app/logs
 RUN mkdir -p /app/data
