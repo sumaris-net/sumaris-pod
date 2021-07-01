@@ -257,7 +257,6 @@ gitlab-release:
         # Build variables: set default values
         - export IMAGE_USERID=${IMAGE_USERID:-20001}
         - export IMAGE_GROUPID=${IMAGE_GROUPID:-20001}
-        - echo "Creating image - userid=${IMAGE_USERID} groupid=${IMAGE_GROUPID}"
         # Create the target directory, to build the image
         - mkdir -p target/docker/config
         - cp -rf ${APP_WAR_MODULE}/src/main/docker/* target/docker/
