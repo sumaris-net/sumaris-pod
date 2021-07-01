@@ -20,12 +20,12 @@ RUN useradd -g ${GROUPNAME} -d /app -u ${USERID} ${USERNAME}
 USER ${USERNAME}:${GROUPNAME}
 
 # Copy files
-COPY ${ENTRYPOINT} /app/app.sh
+COPY --chown=${USERNAME}:${GROUPNAME} ${ENTRYPOINT} /app/app.sh
 RUN chmod +x /app/app.sh
 RUN mkdir -p /app/logs
 RUN mkdir -p /app/data
-COPY ${WAR_FILE} /app/app.war
-COPY ${CONFIG_FILES} /app/config/
+COPY --chown=${USERNAME}:${GROUPNAME} ${WAR_FILE} /app/app.war
+COPY --chown=${USERNAME}:${GROUPNAME} ${CONFIG_FILES} /app/config/
 
 # Run
 ENV PORT=8080 \
