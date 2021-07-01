@@ -1,19 +1,22 @@
 FROM httpd:2.4.41
+
+# Build arg
 ARG HTDOCS=www
+ARG USERNAME="apache"
+ARG USERID="20001"
+ARG GROUPNAME="apache"
+ARG GROUPID="20001"
 
-# copy statics in apache tree view
-COPY ${HTDOCS} /usr/local/apache2/htdocs/
+# Create execution user/group
+RUN echo "Creatin group ${GROUPNAME}:${GROUPID}"
+RUN groupadd -g ${GROUPID} ${GROUPNAME}
+RUN echo "Creatin user ${USERNAME}:${USERID}"
+RUN useradd -g ${GROUPNAME} -d /usr/local/apache2 -u ${USERID} ${USERNAME}
+USER ${USERNAME}:${GROUPNAME}
 
-# container user managment
-ENV USERNAME="sumaris_user" \
-    USERID="20001" \
-    GROUPNAME="sumaris" \
-    GROUPID="20001"
+# Copy files
+COPY --chown=${USERNAME}:${GROUPNAME} ${HTDOCS} /usr/local/apache2/htdocs/
 
-RUN groupadd -g $GROUPID $GROUPNAME \
-    && useradd -g $GROUPNAME -u $USERID $USERNAME \
-    && chown -R $USERNAME:$GROUPNAME /usr/local/apache2
-# TODO : do we have to force user ?? (USER $USERNAME)
-
+# Run
 EXPOSE 80
 CMD ["/usr/local/apache2/bin/apachectl","-DFOREGROUND"]

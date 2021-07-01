@@ -135,9 +135,13 @@ docker:ci:
   extends: .docker
   stage: docker
   script:
+    # Build variables: set default values
+    - export IMAGE_USERID=${IMAGE_USERID:-20001}
+    - export IMAGE_GROUPID=${IMAGE_GROUPID:-20001}
+    - echo "Creating image - userid=${IMAGE_USERID} groupid=${IMAGE_GROUPID}"
     # Build docker image
     - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
-    - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="HTDOCS=www" -f scripts/docker/Dockerfile .
+    - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="HTDOCS=www" --build-arg="USERID=${IMAGE_USERID}" --build-arg="GROUPID=${IMAGE_GROUPID}" -f scripts/docker/Dockerfile .
     - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
 
 docker:develop:
@@ -150,7 +154,9 @@ docker:develop:
 docker:imagine:
   extends: .docker-build
   variables:
-    IMAGE_TAG: imagine
+    IMAGE_TAG: 'imagine'
+    IMAGE_USERID: 25484
+    IMAGE_GROUPID: 10004
   only:
     - feature/imagine
 
