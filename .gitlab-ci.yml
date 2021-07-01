@@ -296,13 +296,12 @@ docker:release:
     only:
         - tags
 
-# /!\ For Ifremer deployment, to isi-val (build using user tomcat:ditiisi)
-docker:ifremer-isi-val:
+docker:production:
     extends: .docker-build
     variables:
-        IMAGE_TAG: 'isi-val'
-        IMAGE_USERID: 25484
-        IMAGE_GROUPID: 10004
+        IMAGE_TAG: 'production'
+        IMAGE_USERID: ${PRODUCTION_IMAGE_USERID}
+        IMAGE_GROUPID: ${PRODUCTION_IMAGE_USERID}
     only:
         - tags
         - feature/imagine
