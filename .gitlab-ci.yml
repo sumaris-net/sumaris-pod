@@ -301,7 +301,7 @@ docker:production:
     variables:
         IMAGE_TAG: 'production'
         IMAGE_USERID: ${PRODUCTION_IMAGE_USERID}
-        IMAGE_GROUPID: ${PRODUCTION_IMAGE_USERID}
+        IMAGE_GROUPID: ${PRODUCTION_IMAGE_GROUPID}
     only:
         - tags
         - feature/imagine
