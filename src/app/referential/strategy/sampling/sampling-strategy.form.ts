@@ -886,12 +886,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   protected async onDateOrTaxonChange(finalMaskYear: any) {
     let finalMaskTaxonName;
+    let taxonError = false;
     const taxonNameControl = this.taxonNamesFormArray.value[0];
     if (taxonNameControl && taxonNameControl.taxonName?.name) {
       if (TaxonUtils.rubinCode(taxonNameControl.taxonName.name)) {
         finalMaskTaxonName = [...TaxonUtils.rubinCode(taxonNameControl.taxonName.name)];
       } else {
-        return <ValidationErrors>{ undefinedTaxon: true }; // display error undefinedTaxon
+        taxonError = true;
+        finalMaskTaxonName = ["X", "X", "X", "X", "X", "X", "X"];
       }
     } else {
       finalMaskTaxonName = ["X", "X", "X", "X", "X", "X", "X"];
@@ -905,12 +907,26 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.labelMask = labelMaskArray;
 
     const finalMaskTaxonNameString = finalMaskTaxonName.join("");
-    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear} ${finalMaskTaxonNameString}`, 3));
+
+
+    let computedLabel = undefined;
+    if (!taxonError) {
+      computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear} ${finalMaskTaxonNameString}`, 3));
+    }
     console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
 
     const labelControl = this.form.get('label');
 
     labelControl.setValue(computedLabel);
+
+    this.markAsDirty();
+    // display error undefinedTaxon
+    if (taxonError) {
+      this.form.get('label').setErrors(<ValidationErrors>{undefinedTaxon: true});
+      this.form.setErrors(<ValidationErrors>{undefinedTaxon: true});
+      return <ValidationErrors>{undefinedTaxon: true};
+    }
+
     this.markAsDirty();
   }
 
