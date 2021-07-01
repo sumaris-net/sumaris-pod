@@ -9,11 +9,13 @@ COPY ${WAR_FILE} /app/app.war
 COPY ${CONFIG_FILES} /app/config/
 # container user managment
 ENV USERNAME="sumaris_user" \
-    GROUPNAME="sumaris"
-# TODO : remove touch when logfile location will be overwrite
+    USERID="20001" \
+    GROUPNAME="sumaris" \
+    GROUPID="20001"
+# TODO : remove when logfile will be overwrite
 RUN touch sumaris.log.file_IS_UNDEFINED
-RUN groupadd $GROUPNAME \
-    && useradd -g $GROUPNAME $USERNAME \
+RUN groupadd -g $GROUPID $GROUPNAME \
+    && useradd -g $GROUPNAME -u $USERID $USERNAME \
     && chown -R $USERNAME:$GROUPNAME /app \
     && chown -R $USERNAME:$GROUPNAME sumaris.log.file_IS_UNDEFINED
 # TODO : do we have to force user ?? (USER $USERNAME)
