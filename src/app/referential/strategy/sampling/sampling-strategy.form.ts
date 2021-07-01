@@ -849,6 +849,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         .forEach(pmfm => pmfmStrategies.push(pmfm));
     }
 
+    // Add analytic reference Pmfm
+    pmfmStrategies.push(<PmfmStrategy>{ pmfm: { id: PmfmIds.SAMPLE_ID } });
+
 
     // Fill PmfmStrategy defaults
     let rankOrder = 1;
