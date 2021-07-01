@@ -74,7 +74,7 @@ variables:
             - ${ARTIFACT_CONFIG_FILES}
         reports:
             dotenv: ${ENV_FILE}
-        expire_in: 60 minutes
+        expire_in: 72 hours
 
 build:
     extends: .build
@@ -118,7 +118,7 @@ docker:ci:
     artifacts:
         paths:
             - target/ci/Dockerfile
-        expire_in: 60 minutes
+        expire_in: 72 hours
 
 # ---------------------------------------------------------------
 # Test jobs
@@ -254,7 +254,10 @@ gitlab-release:
     extends: .docker
     stage: docker
     script:
-        # Create the target directory
+        # Build variables: set default values
+        - export DOCKER_RUN_USERID=${DOCKER_RUN_USERID:20001}
+        - export DOCKER_RUN_USERID=${DOCKER_RUN_GROUPID:20001}
+        # Create the target directory, to build the image
         - mkdir -p target/docker/config
         - cp -rf ${APP_WAR_MODULE}/src/main/docker/* target/docker/
         - cp -f ${ARTIFACT_WAR_FILE} target/docker/app.war
@@ -263,13 +266,12 @@ gitlab-release:
         - cd target/docker
         # Build docker image
         - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
-        - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} .
-        #- docker build --no-cache -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} .
+        - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="USERID=$DOCKER_RUN_USERID" --build-arg="GROUPID=$DOCKER_RUN_GROUPID" .
         - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
     artifacts:
         paths:
             - target/docker
-        expire_in: 60 minutes
+        expire_in: 72 hours
 
 docker:develop:
     extends: .docker-build
@@ -291,6 +293,18 @@ docker:release:
         IMAGE_TAG: $CI_COMMIT_TAG
     only:
         - tags
+
+# /!\ For Ifremer deployment, to isi-val (build using user tomcat:ditiisi)
+docker:ifremer-isi-val:
+    extends: .docker-build
+    variables:
+        IMAGE_TAG: $CI_COMMIT_TAG
+        DOCKER_RUN_USERID: '25484'
+        DOCKER_RUN_GROUPID: '10004'
+    only:
+        - tags
+        - feature/imagine
+    when: manual
 
 # ---------------------------------------------------------------
 # Publish jobs
