@@ -49,6 +49,7 @@ variables:
   script:
     # Update dependencies
 #    - . scripts/ci/dependencies.sh store
+    - yarn
     - yarn run build.${BUILD_ENVIRONMENT}
   after_script:
     # Remember version
