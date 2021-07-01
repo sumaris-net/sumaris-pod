@@ -266,8 +266,9 @@ gitlab-release:
         - ls -l target/docker/config
         - cd target/docker
         # Build docker image
-        - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
-        - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="USERID=${IMAGE_USERID}" --build-arg="GROUPID=${IMAGE_GROUPID}" .
+        #- docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
+        #- docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="USERID=${IMAGE_USERID}" --build-arg="GROUPID=${IMAGE_GROUPID}" .
+        - docker build --no-cache -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="USERID=${IMAGE_USERID}" --build-arg="GROUPID=${IMAGE_GROUPID}" .
         - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
     artifacts:
         paths:
@@ -285,6 +286,8 @@ docker:imagine:
     extends: .docker-build
     variables:
         IMAGE_TAG: 'imagine'
+        IMAGE_USERID: 25484
+        IMAGE_GROUPID: 10004
     only:
         - feature/imagine
 
