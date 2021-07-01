@@ -14,8 +14,6 @@ CACHE_DIR=/tmp/.cache/dependencies
 DEPS_FILENAME=dependencies.json
 DEV_DEPS_FILENAME=devDependencies.json
 
-echo "Checking project dependencies..."
-
 PROJECT_DEPENDENCIES=$(node -e "console.log(require('./package.json').dependencies)")
 PROJECT_DEV_DEPENDENCIES=$(node -e "console.log(require('./package.json').devDependencies)")
 
@@ -28,6 +26,10 @@ case "$task" in
   ;;
 
   check)
+    echo "Checking project dependencies..."
+    echo " Project dir: ${CI_PROJECT_DIR}"
+    echo "   Cache dir: ${CACHE_DIR}"
+
     PROJECT_CACHE_DIR=${CI_PROJECT_DIR}/.cache
     mkdir -p ${PROJECT_CACHE_DIR}
     if [[ ! -f ${CACHE_DIR}/${DEPS_FILENAME} ]]; then
@@ -36,8 +38,15 @@ case "$task" in
     if [[ ! -f ${CACHE_DIR}/${DEV_DEPS_FILENAME} ]]; then
       echo "ERROR: missing file ${DEV_DEPS_FILENAME} in directory ${CACHE_DIR}"
     fi
-    DEPS_FILENAME=dependencies.json
-    DEV_DEPS_FILENAME=devDependencies.json
+    echo "${PROJECT_DEPENDENCIES}" > ${PROJECT_CACHE_DIR}/${DEPS_FILENAME}
+    echo "${PROJECT_DEV_DEPENDENCIES}" > ${PROJECT_CACHE_DIR}/${DEV_DEPS_FILENAME}
+
+    echo "--- Checking dependencies changes:"
+    diff ${CACHE_DIR}/${DEPS_FILENAME} ${PROJECT_CACHE_DIR}/${DEPS_FILENAME}
+    [[ $? -ne 0 ]] && exit 1
+    echo "--- Checking dev dependencies changes:"
+    diff ${CACHE_DIR}/${DEV_DEPS_FILENAME} ${PROJECT_CACHE_DIR}/${DEV_DEPS_FILENAME}
+    [[ $? -ne 0 ]] && exit 1
   ;;
 
   *)
