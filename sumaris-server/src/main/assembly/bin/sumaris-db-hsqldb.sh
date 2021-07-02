@@ -90,7 +90,7 @@ download() {
 
 # Make sure jar exists
 checkJarExists() {
-  if [[ ! -f "${$TOOL_JAR_FILE}" ]]; then
+  if [[ ! -f "${TOOL_JAR_FILE}" ]]; then
     echo "Downloading Hsqldb Tools JAR...  ${TOOL_JAR_URL}"
     download "${TOOL_JAR_URL}" -o "${TOOL_JAR_FILE}"
     if [[ $? -ne 0 ]]; then
