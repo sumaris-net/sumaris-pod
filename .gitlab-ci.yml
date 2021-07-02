@@ -132,12 +132,9 @@ docker:ci:
   extends: .docker
   stage: docker
   script:
-    # Build variables: set default values
-    - export IMAGE_USERID=${IMAGE_USERID:-20001}
-    - export IMAGE_GROUPID=${IMAGE_GROUPID:-20001}
     # Build docker image
     - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
-    - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="WWW=www" --build-arg="USERID=${IMAGE_USERID}" --build-arg="GROUPID=${IMAGE_GROUPID}" -f scripts/docker/Dockerfile .
+    - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="WWW=www" -f scripts/docker/Dockerfile .
     - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
 
 docker:develop:
@@ -166,8 +163,6 @@ docker:production:
   variables:
     # IMAGE_TAG: $CI_COMMIT_TAG
     IMAGE_TAG: 'production'
-    IMAGE_USERID: ${PRODUCTION_IMAGE_USERID}
-    IMAGE_GROUPID: ${PRODUCTION_IMAGE_GROUPID}
   only:
     - tags
     - feature/imagine
