@@ -22,8 +22,8 @@ USER ${USERNAME}:${GROUPNAME}
 # Copy files
 COPY --chown=${USERNAME}:${GROUPNAME} ${ENTRYPOINT} /app/app.sh
 RUN chmod +x /app/app.sh
-RUN mkdir -p /app/logs
-RUN mkdir -p /app/data
+RUN mkdir -p /app/logs && chown ${USERNAME}:${GROUPNAME} /app/logs
+RUN mkdir -p /app/data && chown ${USERNAME}:${GROUPNAME} /app/data
 COPY --chown=${USERNAME}:${GROUPNAME} ${WAR_FILE} /app/app.war
 COPY --chown=${USERNAME}:${GROUPNAME} ${CONFIG_FILES} /app/config/
 
