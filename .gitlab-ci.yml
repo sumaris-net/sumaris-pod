@@ -80,6 +80,7 @@ failsafe-build:
     - yarn install
   only:
     - develop
+    - feature/imagine
 
 docker:ci:
   extends: .docker
@@ -113,6 +114,7 @@ docker:ci:
     - docker push ${CI_BUILD_IMAGE}
   only:
     - develop
+    - feature/imagine
   artifacts:
     paths:
       - target/ci/Dockerfile
@@ -136,7 +138,6 @@ docker:ci:
     - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
     - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="WWW=www" -f scripts/docker/Dockerfile .
     - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
-
 docker:develop:
   extends: .docker-build
   variables:
