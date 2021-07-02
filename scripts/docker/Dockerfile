@@ -1,10 +1,21 @@
-FROM httpd:2.4.41
+FROM nginx:alpine
+
+# Build arg
+ARG HTML=www
 ARG HTDOCS=www
+ARG USERNAME="nginx_user"
+ARG USERID="20001"
+ARG GROUPNAME="nginx_group"
+ARG GROUPID="20001"
 
-RUN apt-get update && apt-get -y install unzip
+# Create execution user/group
+RUN echo "Creatin group ${GROUPNAME}:${GROUPID}"
+RUN addgroup -g ${GROUPID} ${GROUPNAME}
+RUN echo "Creatin user ${USERNAME}:${USERID}"
+RUN adduser -D -G ${GROUPNAME} -h /usr/share/nginx -u ${USERID} ${USERNAME}
+USER ${USERNAME}:${GROUPNAME}
 
-# copy statics and unzip in apache tree view
-COPY ${HTDOCS} /usr/local/apache2/htdocs/
+# Copy files
+COPY --chown=${USERNAME}:${GROUPNAME} ${HTML} /usr/share/nginx/html
 
 EXPOSE 80
-CMD ["/usr/local/apache2/bin/apachectl","-DFOREGROUND"]
