@@ -1,10 +1,12 @@
 FROM nginx:alpine
 
 # Build arg
-ARG NGINX_CONF=nginx/site.conf
+ARG NGINX_CONF=site.conf
 ARG HTML=www
 ARG USERNAME="nginx"
 ARG GROUPNAME="nginx"
+
+RUN ls -artl
 
 # nginx conf
 COPY ${NGINX_CONF} /etc/nginx/conf.d/default.conf
