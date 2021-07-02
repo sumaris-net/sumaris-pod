@@ -40,9 +40,9 @@ The SUMARiS Pod has several features:
 - Copy the file [sumaris-db-hsqldb.sh](https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-server/src/main/assembly/bin/sumaris-db-hsqldb.sh) locally
 
 ```bash
-wget -kL https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-server/src/main/assembly/bin/sumaris-db-hsqldb.sh
+wget -kL https://raw.githubusercontent.com/sumaris-net/sumaris-pod/master/sumaris-server/src/main/assembly/bin/sumaris-db-hsqldb.sh
 # Or using curl: 
-# curl https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-server/src/main/assembly/bin/sumaris-db-hsqldb.sh > sumaris-db-hsqldb.sh  
+# curl https://raw.githubusercontent.com/sumaris-net/sumaris-pod/master/sumaris-server/src/main/assembly/bin/sumaris-db-hsqldb.sh > sumaris-db-hsqldb.sh  
 
 # Give execution rights
 chmod u+x sumaris-db-hsqldb.sh
