@@ -877,23 +877,25 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     if (!date || !this.program) return; // Skip if date or program are missing
 
     const finalMaskYear = date.format('YY');
-    return await this.onDateOrTaxonChange(finalMaskYear);
+    return await this.generateLabel(finalMaskYear);
   }
 
   protected async onTaxonChange() {
     if (!this.program) return; // Skip if program is missing
 
     const finalMaskYear = this.form.get('year').value.format('YY');
-    return await this.onDateOrTaxonChange(finalMaskYear);
+    return await this.generateLabel(finalMaskYear);
   }
 
-  protected async onDateOrTaxonChange(finalMaskYear: any) {
+  protected async generateLabel(finalMaskYear: any) {
     let finalMaskTaxonName;
     let taxonError = false;
-    const taxonNameControl = this.taxonNamesFormArray.value[0];
-    if (taxonNameControl && taxonNameControl.taxonName?.name) {
-      if (TaxonUtils.rubinCode(taxonNameControl.taxonName.name)) {
-        finalMaskTaxonName = [...TaxonUtils.rubinCode(taxonNameControl.taxonName.name)];
+    const taxonNameControl = this.taxonNamesHelper.at(0);
+    const taxonName = taxonNameControl?.value?.taxonName?.name;
+
+    if (taxonName) {
+      if (TaxonUtils.generateLabel(taxonName)) {
+        finalMaskTaxonName = [...TaxonUtils.generateLabel(taxonName)];
       } else {
         taxonError = true;
         finalMaskTaxonName = ["X", "X", "X", "X", "X", "X", "X"];
@@ -910,27 +912,25 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.labelMask = labelMaskArray;
 
     const finalMaskTaxonNameString = finalMaskTaxonName.join("");
-
-
-    let computedLabel = undefined;
-    if (!taxonError) {
-      computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear} ${finalMaskTaxonNameString}`, 3));
-    }
-    console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
+    const labelPrefix = `${finalMaskYear} ${finalMaskTaxonNameString}`;
 
     const labelControl = this.form.get('label');
-
-    labelControl.setValue(computedLabel);
-
-    this.markAsDirty();
+    const existingLabel = labelControl.value as string;
     // display error undefinedTaxon
-    if (taxonError) {
-      this.form.get('label').setErrors(<ValidationErrors>{undefinedTaxon: true});
-      this.form.setErrors(<ValidationErrors>{undefinedTaxon: true});
-      return <ValidationErrors>{undefinedTaxon: true};
+    if (taxonError && taxonNameControl) {
+      taxonNameControl.setErrors(<ValidationErrors>{ cannotComputeTaxonCode: true });
+      labelControl.setValue(labelPrefix + ' ');
+      return;
     }
+    if (existingLabel?.startsWith(labelPrefix)) {
+      SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
+    } else {
+      const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear} ${finalMaskTaxonNameString}`, 3));
 
-    this.markAsDirty();
+      console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
+
+      labelControl.setValue(computedLabel);
+    }
   }
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------
