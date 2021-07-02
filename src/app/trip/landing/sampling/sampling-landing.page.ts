@@ -4,7 +4,7 @@ import {BehaviorSubject, Subscription} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '../../../referential/services/model/pmfm-strategy.model';
 import {ParameterLabelGroups, PmfmIds} from '../../../referential/services/model/model.enum';
 import {PmfmService} from '../../../referential/services/pmfm.service';
-import {EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isInstanceOf, isNotNil, ObjectMap, SharedValidators} from '@sumaris-net/ngx-components';
+import {EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isInstanceOf, isNil, isNotNil, ObjectMap, SharedValidators} from '@sumaris-net/ngx-components';
 import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
 import {LandingPage} from '../landing.page';
 import {Landing} from '../../services/model/landing.model';
@@ -12,6 +12,7 @@ import {filter, tap, throttleTime} from 'rxjs/operators';
 import {ObservedLocation} from '../../services/model/observed-location.model';
 import {SamplingStrategyService} from '../../../referential/services/sampling-strategy.service';
 import {Strategy} from '../../../referential/services/model/strategy.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
 
 
 @Component({
@@ -152,6 +153,32 @@ export class SamplingLandingPage extends LandingPage {
     return BiologicalSamplingValidators.addSampleValidators(form, pmfms, this.$pmfmGroups.getValue() || {}, {
       markForCheck: () => this.markForCheck()
     });
+  }
+
+
+  protected async computeTitle(data: Landing): Promise<string> {
+
+    const program = await firstNotNilPromise(this.$program);
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
+
+    const titlePrefix = this.parent && isInstanceOf(this.parent, ObservedLocation) &&
+      await this.translate.get('LANDING.EDIT.TITLE_PREFIX', {
+        location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
+        date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
+      }).toPromise() || '';
+
+    // new data
+    if (!data || isNil(data.id)) {
+      return titlePrefix + (await this.translate.get(`LANDING.NEW.${i18nSuffix}TITLE`).toPromise());
+    }
+    // Existing data
+    const strategy = await firstNotNilPromise(this.$strategy);
+
+    return titlePrefix + (await this.translate.get(`LANDING.EDIT.${i18nSuffix}TITLE`, {
+      vessel: data.vesselSnapshot && (data.vesselSnapshot.registrationCode || data.vesselSnapshot.name),
+      strategyLabel: strategy && strategy.label
+    }).toPromise());
   }
 
 }

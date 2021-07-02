@@ -819,7 +819,7 @@
       "OTHER_FEATURES": "Other features:",
       "TAB_SAMPLES": "Samples",
       "SAMPLING": {
-        "TITLE": "Vessel {{vessel}}",
+        "TITLE": "Strategy {{strategyLabel}} - Vessel  {{vessel}}",
         "STRATEGY": "Sample row:",
         "STRATEGY_PLACEHOLDER": "Sample row code",
         "STRATEGY_SUMMARY_TITLE": "Sampling scheme",
@@ -1386,10 +1386,11 @@
         "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}",
         "EFFORT.REALIZED_EFFORT": "The number of efforts must be greater than or equal to 1 for quarters with individual measures",
         "LABEL.UNIQUE": "The code of the sampling plan line already exists",
-        "LABEL.ZERO": "The minimum increment is 0001",
+        "LABEL.ZERO": "The minimum increment is 001",
         "STRATEGY_HAS_REALIZED_EFFORT": "Sampling scheme {{label}} used by observed locations",
         "STRATEGIES_HAS_REALIZED_EFFORT": "Sampling schemes {{label}} used by observed locations",
-        "PMFM.PMFM_OR_PARAMETER": "Please select a PMFM or Parameter"
+        "PMFM.PMFM_OR_PARAMETER": "Please select a PMFM or Parameter",
+        "UNDEFIENEDTAXON": "Taxon name is invalid"
       }
     },
     "ERROR": {

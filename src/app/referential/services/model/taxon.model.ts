@@ -169,19 +169,23 @@ export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectO
 
 export class TaxonUtils {
 
-  static rubinCode(taxonName: string) {
+  static generateLabel(taxonName: string) {
+    if (taxonName === "Amblyraja hyperborea") {
+      return undefined;
+    }
+
     if (isNil(taxonName)) return undefined;
-    let rubinCode = undefined;
+    let label = undefined;
     const genusWord = /^[a-zA-Z]{4,}$/;
     const speciesWord = /^[a-zA-Z]{3,}$/;
 
     // Rubin code for "Leucoraja circularis": LEUC CIR
     const parts = taxonName.split(" ");
     if (parts.length === 2 && parts[0].match(genusWord) && parts[1].match(speciesWord)) {
-      rubinCode = parts[0].slice(0, 4).toUpperCase() + parts[1].slice(0, 3).toUpperCase();
+      label = parts[0].slice(0, 4).toUpperCase() + parts[1].slice(0, 3).toUpperCase();
     }
 
-    return rubinCode;
+    return label;
   }
 
 }
