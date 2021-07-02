@@ -40,7 +40,7 @@ export const environment: Environment = Object.freeze({
       port: 443
     },
     {
-      host: 'isi.ifremer.fr/imagine-server/',
+      host: 'imagine-pod.isival.ifremer.fr',
       port: 443
     }
   ],
