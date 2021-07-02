@@ -6,8 +6,6 @@ ARG HTML=www
 ARG USERNAME="nginx"
 ARG GROUPNAME="nginx"
 
-RUN ls -artl
-
 # nginx conf
 COPY ${NGINX_CONF} /etc/nginx/conf.d/default.conf
 RUN touch /var/run/nginx.pid && \

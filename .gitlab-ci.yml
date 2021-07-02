@@ -89,8 +89,7 @@ docker:ci:
   allow_failure: true
   script:
     # Create the target directory
-    - mkdir -p target/ci
-    - cd target/ci
+    - mkdir -p target/ci && cd target/ci
     # Create the Dockerfile
     - echo 'FROM node:12' > Dockerfile
     - echo 'WORKDIR /tmp/.build-cache' >> Dockerfile
@@ -135,8 +134,9 @@ docker:ci:
   stage: docker
   script:
     # Build docker image
+    - cd scripts/docker
     - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
-    - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="WWW=www" -f scripts/docker/Dockerfile .
+    - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="WWW=www" .
     - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
 docker:develop:
   extends: .docker-build
