@@ -33,11 +33,12 @@ import {AcquisitionLevelCodes, ParameterGroups} from '../../referential/services
 import {ReferentialRefService} from '../../referential/services/referential-ref.service';
 import {environment} from '../../../environments/environment';
 import {filter, map, tap} from 'rxjs/operators';
-import {IPmfm, PmfmUtils} from '../../referential/services/model/pmfm.model';
+import {IDenormalizedPmfm, IPmfm, PmfmUtils} from '../../referential/services/model/pmfm.model';
 import {SampleFilter} from '../services/filter/sample.filter';
 import {PmfmFilter, PmfmService} from '@app/referential/services/pmfm.service';
 import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
 import {BehaviorSubject} from 'rxjs';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 
 const moment = momentImported;
 
@@ -563,7 +564,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
           orderedPmfmIds.push(pmfm.id);
           const visible = group !== 'TAG_ID'; //  && groupPmfmCount > 1;
           return index !== 0 ? res : res.concat(<GroupColumnDefinition>{
-            key: 'group-' + pmfm.label,
+            key: 'group-' + isInstanceOf(pmfm, DenormalizedPmfmStrategy) ? (pmfm as IDenormalizedPmfm).completeName : pmfm.label,
             label: group,
             name: visible && (this.i18nColumnPrefix + group) || '',
             cssClass: visible && cssClass || '',
