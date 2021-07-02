@@ -44,7 +44,7 @@ fi
 
 PID_FILE="${DATA_DIRECTORY}/${SERVICE_NAME}.pid"
 JAR_FILE="${SUMARIS_HOME}/lib/hsqldb-${HSQLDB_VERSION}.jar"
-JAR_URL="http://www.hsqldb.org/org/hsqldb/hsqldb/${HSQLDB_VERSION}/hsqldb-${HSQLDB_VERSION}.jar"
+JAR_URL="http://www.hsqldb.org/repos/org/hsqldb/hsqldb/${HSQLDB_VERSION}/hsqldb-${HSQLDB_VERSION}.jar"
 TOOL_JAR_FILE="${SUMARIS_HOME}/lib/sqltool-${HSQLDB_VERSION}.jar"
 TOOL_JAR_URL="http://www.hsqldb.org/repos/org/hsqldb/sqltool/${HSQLDB_VERSION}/sqltool-${HSQLDB_VERSION}.jar"
 DB_DIRECTORY=${DATA_DIRECTORY}/db
