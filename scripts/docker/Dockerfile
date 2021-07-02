@@ -1,7 +1,7 @@
 FROM nginx:alpine
 
 # Build arg
-ARG NGINX_CONF=site.conf
+ARG NGINX_CONF=scripts/docker/site.conf
 ARG HTML=www
 ARG USERNAME="nginx"
 ARG GROUPNAME="nginx"
