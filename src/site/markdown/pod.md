@@ -40,9 +40,9 @@ The SUMARiS Pod has several features:
 - Copy the file [sumaris-db-hsqldb.sh](https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-server/src/main/assembly/bin/sumaris-db-hsqldb.sh) locally
 
 ```bash
-wget -kL https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-server/src/main/assembly/bin/sumaris-db-hsqldb.sh
+wget -kL https://raw.githubusercontent.com/sumaris-net/sumaris-pod/master/sumaris-server/src/main/assembly/bin/sumaris-db-hsqldb.sh
 # Or using curl: 
-# curl https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-server/src/main/assembly/bin/sumaris-db-hsqldb.sh > sumaris-db-hsqldb.sh  
+# curl https://raw.githubusercontent.com/sumaris-net/sumaris-pod/master/sumaris-server/src/main/assembly/bin/sumaris-db-hsqldb.sh > sumaris-db-hsqldb.sh  
 
 # Give execution rights
 chmod u+x sumaris-db-hsqldb.sh
@@ -91,13 +91,13 @@ spring-boot:run -Dspring-boot.run.fork=false -Doracle.net.tns_admin=\\brest\tnsn
     * Install LibSodium (Unix only) : https://download.libsodium.org/doc/installation/
     * Install Java SDK 8
     
- 2. Download the latest JAR file at: https://github.com/sumaris-net/sumaris-pod/releases
+ 2. Download the latest WAR file at: https://github.com/sumaris-net/sumaris-pod/releases
 
- 3. Copy the JAR file anywhere;
+ 3. Copy the WAR file anywhere;
  
  4. In a terminal, start the pod using the command:
     ```bash
-    java -jar sumaris-pod-x.y.z.jar
+    java -jar sumaris-pod-x.y.z.war
     ``` 
 
   5. Congratulations ! 
@@ -140,7 +140,7 @@ To change the Pod's configuration, follow this steps:
 
  4. In a terminal, start the pod with the command:
     ```bash
-    java -server -Xms512m -Xmx1024m -Dspring.config.additional-location=/home/<USER>/.config/sumaris/ -jar sumaris-pod-x.y.z.jar
+    java -server -Xms512m -Xmx1024m -Dspring.config.additional-location=/home/<USER>/.config/sumaris/ -jar sumaris-pod-x.y.z.war
     ``` 
 
  5. That's it !
@@ -174,4 +174,4 @@ To change the Pod's configuration, follow this steps:
     mvn install -DskipTests
     ```
 
- 4. The final JAR file should have been created inside the directory: `<PROJECT_DIR>/sumaris-server/target/`  
+ 4. The final WAR file should have been created inside the directory: `<PROJECT_DIR>/sumaris-server/target/`  
