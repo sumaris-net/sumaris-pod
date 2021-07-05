@@ -87,7 +87,7 @@ export class TaxonGroupRef extends Entity<TaxonGroupRef, number, ReferentialAsOb
   name: string;
   statusId: number;
   rankOrder: number;
-  taxonNames: TaxonNameRef[];had
+  taxonNames: TaxonNameRef[];
 
   constructor() {
     super(TaxonGroupRef.TYPENAME);
