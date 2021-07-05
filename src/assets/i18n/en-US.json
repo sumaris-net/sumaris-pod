@@ -5,6 +5,7 @@
     "BTN_OK": "Ok",
     "BTN_ABORT_CHANGES": "Abort the changes",
     "BTN_ADD": "Add",
+    "BTN_ADD_ROW": "Add a row",
     "BTN_APPLY": "Apply",
     "BTN_BURST_INPUT": "Burst mode",
     "BTN_BURST_INPUT_HELP": "Enable burst mode",
@@ -15,6 +16,7 @@
     "BTN_DELETE": "Delete",
     "BTN_DELETE_FOREVER": "Delete forever",
     "BTN_EDIT": "Edit",
+    "BTN_EXPAND": "Expand",
     "BTN_FREEZE_VALUE": "Freeze",
     "BTN_FREEZE_VALUE_HELP": "Freeze the value",
     "BTN_YES_DELETE": "Oui, delete",
@@ -119,10 +121,10 @@
   },
   "CONFIGURATION": {
     "TAB_GENERAL": "Details",
-    "TAB_CACHE": "Server cache",
+    "TAB_PROPERTIES": "Options",
+    "TAB_CACHE": "Cached data",
     "TAB_NOTIFICATIONS": "Notifications",
     "APP_NAME": "Application Name",
-    "DESCRIPTION": "Description (home page)",
     "STATUS": "Status",
     "PREVIEW_DIVIDER": "Preview",
     "LOGOS": "App logo images",
@@ -155,6 +157,9 @@
         "PARTNER_DEPARTMENTS": "Home > Partners logos",
         "BACKGROUND_IMAGES": "Home > Background images"
       },
+      "MENU": {
+        "ITEMS": "Menu > Additional items (JSON Array)"
+      },
       "COLORS": {
         "PRIMARY": "Theme > Primary color",
         "SECONDARY": "Theme > Secondary color",
@@ -185,6 +190,7 @@
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Referential > Taxonomic level > Subspecies",
         "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Strategy label",
         "PMFM_AGE_ID": "Referential > PMFM > Age",
+        "PMFM_TAG_ID": "Référentiel > PSFM > Sample tag",
         "PMFM_SEX_ID": "Referential > PMFM > Sex",
         "STRATEGY_PARAMETER_AGE_LABEL": "Strategy > Parameter > Age label",
         "STRATEGY_PARAMETER_SEX_LABEL": "Strategy > Parameter > Sex label",
@@ -194,6 +200,7 @@
       },
       "TESTING": "Developer mode ?",
       "ENTITY_TRASH": "Enable trash on pod?",
+      "UPDATE_TECHNICAL_TABLES": "Automatically update technical tables?",
       "ANALYTIC_REFERENCES_ENABLE": "Strategy > Analytic references: Enable?",
       "AUTH_TOKEN_TYPE_PLACEHOLDER": "Security > Authentication type",
       "AUTH_TOKEN_TYPE": {
@@ -202,7 +209,8 @@
         "BASIC_AND_TOKEN": "Basic and crypto"
       },
       "DATA_QUALITY_PROCESS_ENABLE": "Enable quality process ?",
-      "DATA_SHOW_OBSERVERS_ENABLE": "Enable observers ?"
+      "DATA_SHOW_RECORDER": "Show recorder person?",
+      "DATA_SHOW_OBSERVERS": "Show observers?"
     },
     "CACHE": {
       "NAME": "Name",
@@ -238,6 +246,7 @@
   },
   "ABOUT": {
     "TITLE": "About",
+    "POWERED_BY": "Powered by",
     "VERSION": "<b>v{{version}}</b>",
     "LICENSE": "<b>Free/libre software</b> (License GNU AGPL v3).",
     "REPORT_ISSUE": "Please report any issue to us!",
@@ -436,6 +445,7 @@
       "RETURN_LOCATION": "Return harbour",
       "QUALITY": "Status",
       "OBSERVERS": "Observers",
+      "RECORDER_PERSON": "Recorder",
       "COMMENTS": "Comments",
       "NO_LOCAL_RESULT": "No result (in NOT synchronized trips)",
       "FILTER": {
@@ -494,6 +504,7 @@
       "LIST": {
         "SELECT_ROW_HELP": "Select a row to edit it",
         "GEAR": "Gear",
+        "LAST_USED": "Last use",
         "COMMENTS": "Comments"
       },
       "SELECT_MODAL": {
@@ -682,6 +693,7 @@
         "COMMENTS": "Comments",
         "COMMENTS_PLACEHOLDER": "Comments",
         "BTN_AUTO_FILL": "Automatically fill",
+        "BTN_ADD_PMFM": "Add a PMFM",
         "WEIGHT": "Weight",
         "LENGTH": "Length",
         "MATURITY": "Maturity",
@@ -1011,10 +1023,12 @@
     },
     "ACTION": {
       "EDIT": "Edit",
-      "EDIT_FEATURES": "Modify current features",
-      "NEW_FEATURES": "Declare a feature change",
-      "EDIT_REGISTRATION": "Modify current registration",
-      "NEW_REGISTRATION": "Declare new registration",
+      "REGISTRATION_DIVIDER": "Registration (code, country flag)",
+      "FEATURES_DIVIDER": "Features (exterior marking, name, harbour, etc.)",
+      "EDIT_REGISTRATION": "Fix registration",
+      "NEW_REGISTRATION": "Declare a change",
+      "EDIT_FEATURES": "Fix features",
+      "NEW_FEATURES": "Declare a change",
       "EDIT_STATUS": "Modify status"
     },
     "EDIT": {
@@ -1031,8 +1045,8 @@
       }
     },
     "ERROR": {
-      "LOAD_VESSEL_ERROR": "Error while loading vessels.",
-      "SAVE_VESSEL_ERROR": "Error while saving the vessel.",
+      "LOAD_ERROR": "Error while loading vessels.",
+      "SAVE_ERROR": "Error while saving the vessel.",
       "SAVE_VESSELS_ERROR": "Error while saving vessels."
     }
   },
@@ -1059,7 +1073,22 @@
     },
     "TAXON_NAME": {
       "LABEL": "Scientific species code",
-      "NAME": "Scientific species name"
+      "NAME": "Scientific species name",
+      "PARENT": "Parent scientific specie",
+      "IS_REFERENT": "Referent ?",
+      "IS_NAMING": "Conventional naming ?",
+      "IS_VIRTUAL": "Virtual ?",
+      "USE_EXISTING_REFERENCE_TAXON": "Use an existing scientific specie identifier ?",
+      "REFERENCE_TAXON": "Scientific specie identifier",
+      "TAXONOMIC_LEVEL": "Taxonomic level",
+      "START_DATE": "Start date",
+      "END_DATE": "End date",
+      "NEW": {
+        "TITLE": "New scientific specie"
+      },
+      "EDIT": {
+        "TITLE": "scientific specie {{label}} - {{name}}"
+      }
     },
     "GEAR": {
       "LABEL": "Gear code",
@@ -1201,9 +1230,11 @@
       "I18N_SUFFIX" : "Thematic dictionary",
       "I18N_SUFFIX_LEGACY" : "By default",
       "I18N_SUFFIX_SAMPLING" : "Biological parameter",
+      "TRIP_LOCATION_LEVEL_IDS": "Trip: Location level(s)",
       "TRIP_SALE_ENABLE": "Trip: Enter the sale?",
       "TRIP_OBSERVERS_ENABLE": "Trip: Enter observers?",
       "TRIP_METIERS_ENABLE": "Trip: Enter metiers?",
+      "TRIP_METIERS_HISTORY_NB_DAYS": "Trip: Filtered metiers > Nb. days",
       "TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL": "Trip: Are other features optional, when on field?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear: Enter the gear number?",
       "TRIP_MAP_ENABLE": "Trip > Map: Enable?",
@@ -1242,7 +1273,7 @@
       "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Enter date?",
       "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
       "LANDING_LOCATION_ENABLE": "Observation > Landings: Show harbour?",
-      "LANDING_SAMPLES_COUNT_ENABLE": "Observation > Landings: Show sample count?",
+      "LANDING_SAMPLES_COUNT_ENABLE": "Observation > Landings: Show samples count?",
       "LANDING_ONE_TAB_ENABLE": "Observation > Landing: single tab?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
       "PROGRAM_STRATEGY_EDITOR" : "Strategy > editor",
@@ -1316,12 +1347,15 @@
           "ANALYTIC_REFERENCE": "EOTP",
           "RECORDER_DEPARTMENTS": "Recorder laboratory(s)",
           "TAXON_NAMES": "Target species",
-          "QUARTERS": "Quarters",
+          "QUARTERS_DOTS": "Quarters :",
+          "START_YEAR": "Start year",
+          "END_YEAR": "End year",
           "EFFORT_Q1": "QUarter Q1" ,
           "EFFORT_Q2": "QUarter Q2" ,
           "EFFORT_Q3": "QUarter Q3" ,
           "EFFORT_Q4": "QUarter Q4" ,
-          "PARAMETERS": "Collected parameters",
+          "PARAMETERS": "Measured parameters",
+          "PARAMETERS_DOTS": "Measured parameters:",
           "COMMENTS": "Comments",
           "AGE": "Age",
           "SEX": "Sex",
@@ -1435,6 +1469,9 @@
           "WEEKLY": "Weekly",
           "MONTHLY": "Monthly"
         }
+      },
+      "PRODUCT": {
+        "NEW_NAME": "Product {{name}}"
       }
     },
     "FILTER": {
@@ -1552,7 +1589,10 @@
       "TRIP_COUNT_BY_STATION": "Nb of trips, by station",
       "TRIP_COUNT_BY_FISHING_TIME": "Nb of trips, by fishing time",
       "VESSEL_COUNT": "Number of vessels",
-      "FISHING_TIME": "Fishing time (h dec.)",
+      "DATE": "Date",
+      "TIME": "Time",
+      "FISHING_DATE": "Date",
+      "FISHING_DURATION": "Fishing duration (dec. h)",
       "OFFICIAL_LANDINGS_VALUE": "Officiel landings value (€)",
       "OFFICIAL_LANDINGS_WEIGHT": "Officiel landings weight (kg)"
     },
@@ -1754,7 +1794,8 @@
     "SYNCHRONIZE_ENTITY_ERROR": "Cannot synchronize. <small><br/>If the problem persists, please contact your administrator.</small>",
     "LOAD_ERROR": "Error while loading",
     "SAVE_ERROR": "Error while saving",
-    "SUBSCRIBE_ERROR": "Error while subscribe to changes"
+    "SUBSCRIBE_ERROR": "Error while subscribe to changes",
+    "FIELD_NOT_EXISTS": "Value doesn't exist"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
