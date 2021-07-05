@@ -128,11 +128,20 @@
 
     <!-- Measurements -->
     <ng-container *ngIf="showMeasurements">
-      <ion-row *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;"
-               [class.cdk-visually-hidden]="!(pmfms | arrayPluck: {property: 'hidden'} | arrayIncludes: false)">
+      <!-- If mmfms NOT loaded, display skeleton -->
+      <ion-row *ngIf="$pmfms | async | arrayFilter: notHiddenPmfm; let pmfms; else measurementsSkeleton;"
+               [class.cdk-visually-hidden]="!(pmfms | isNotEmptyArray)">
+
         <ion-col size="12" size-md="2" size-lg="3">
-          <ion-label class="ion-float-end" translate>LANDING.EDIT.OTHER_FEATURES</ion-label>
+          <ion-label class="ion-float-end">
+            <!-- "other features" label -->
+            <span *ngIf="pmfms | isArrayLength: {greaterThan: 1}; else firstPmfmLabel" translate>LANDING.EDIT.OTHER_FEATURES</span>
+            <ng-template #firstPmfmLabel>
+              <span [innerHTML]="pmfms[0] | pmfmName: {withUnit: false, withDetails: false} "></span>
+            </ng-template>
+          </ion-label>
         </ion-col>
+
         <ion-col>
           <!-- pmfms -->
           <ng-container *ngFor="let pmfm of pmfms; index as i;">
@@ -147,7 +156,6 @@
             </mat-autocomplete-field>
             <ng-template #pmfmField>
               <app-pmfm-field [pmfm]="pmfm"
-                              [hidden]="pmfm.hidden"
                               [formControl]="form.get('measurementValues.' + pmfm.id)"
                               [compact]="compact"
                               [tabindex]="50 + i*2"

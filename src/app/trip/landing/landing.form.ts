@@ -391,6 +391,10 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return modal.present();
   }
 
+  notHiddenPmfm(pmfm: IPmfm): boolean{
+    return pmfm && pmfm.hidden !== true;
+  }
+
   /* -- protected method -- */
 
   protected suggestObservers(value: any, filter?: any): Promise<LoadResult<Person>> {
@@ -483,6 +487,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       else {
         metierPmfm = DenormalizedPmfmStrategy.fromObject({
           id: PmfmIds.MAIN_METIER,
+          name: this.translate.instant('TRIP.METIERS'),
           type: <PmfmType>'string'
         });
       }
