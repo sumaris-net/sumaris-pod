@@ -79,7 +79,7 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
         Assert.assertNull(program.getLocations());
         Assert.assertNull(program.getLocationIds());
         Assert.assertNull(program.getLocationClassifications());
-        Assert.assertNull(program.getLocationClassificationIds());
+        Assert.assertEquals(1, program.getLocationClassificationIds().size());
     }
 
     @Test

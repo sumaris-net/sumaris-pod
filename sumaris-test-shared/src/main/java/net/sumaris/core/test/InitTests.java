@@ -110,6 +110,13 @@ public class InitTests extends ExternalResource {
         }
     }
 
+    public InitTests() {
+    }
+
+    public InitTests(String datasourcePlatform) {
+        this.datasourcePlatform = datasourcePlatform;
+    }
+
     protected SumarisConfiguration config;
 
     protected String datasourcePlatform = DEFAULT_DATASOURCE_PLATFORM;

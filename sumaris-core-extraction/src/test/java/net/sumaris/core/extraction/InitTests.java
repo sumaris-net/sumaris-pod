@@ -50,10 +50,11 @@ public class InitTests extends net.sumaris.core.test.InitTests {
         }
     }
     public InitTests() {
+        super();
     }
 
     public InitTests(String datasourcePlatform) {
-        this.datasourcePlatform = datasourcePlatform;
+        super(datasourcePlatform);
     }
 
     @Override

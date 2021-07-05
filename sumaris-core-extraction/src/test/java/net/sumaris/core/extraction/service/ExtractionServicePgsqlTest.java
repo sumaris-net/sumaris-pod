@@ -92,23 +92,23 @@ public class ExtractionServicePgsqlTest extends AbstractServiceTest {
         Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
 
         // ENGINS.csv
-        File gearFile = new File(root, Free2Specification.GEAR_SHEET_NAME+".csv");
+        File gearFile = new File(root, Free2Specification.GEAR_SHEET_NAME + ".csv");
         Assert.assertTrue(countLineInCsvFile(gearFile) > 1);
     }
 
     @Test
-    public void exportSurvivalTestFormat() throws IOException  {
+    public void exportSurvivalTestFormat() throws IOException {
 
         // Test Survival test format
         File outputFile = service.executeAndDumpTrips(LiveFormatEnum.SURVIVAL_TEST, null);
         File root = unpack(outputFile, LiveFormatEnum.SURVIVAL_TEST);
 
         // RL (release)
-        File releaseFile = new File(root, SurvivalTestSpecification.RL_SHEET_NAME+".csv");
+        File releaseFile = new File(root, SurvivalTestSpecification.RL_SHEET_NAME + ".csv");
         Assert.assertTrue(countLineInCsvFile(releaseFile) > 1);
 
         // ST (Survival test)
-        File stFile = new File(root, SurvivalTestSpecification.ST_SHEET_NAME+".csv");
+        File stFile = new File(root, SurvivalTestSpecification.ST_SHEET_NAME + ".csv");
         Assert.assertTrue(countLineInCsvFile(stFile) > 1);
     }
 

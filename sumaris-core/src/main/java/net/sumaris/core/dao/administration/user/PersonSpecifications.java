@@ -146,7 +146,7 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
                 criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.LAST_NAME)), parameter)
             );
         });
-        specification.addBind(LAST_NAME_PARAMETER, lastName != null ? lastName.toCharArray() : null);
+        specification.addBind(LAST_NAME_PARAMETER, lastName != null ? lastName.toUpperCase() : null);
         return specification;
     }
 

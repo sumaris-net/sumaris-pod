@@ -125,10 +125,10 @@ public class Daos extends net.sumaris.core.dao.technical.Daos {
     }
 
 
-    public static void commitIfHsqldb(DataSource dataSource) {
+    public static void commitIfHsqldbOrPgsql(DataSource dataSource) {
         Connection conn = DataSourceUtils.getConnection(dataSource);
         try {
-            if (net.sumaris.core.extraction.dao.technical.Daos.isHsqlDatabase(conn) && DataSourceUtils.isConnectionTransactional(conn, dataSource)) {
+            if ((net.sumaris.core.extraction.dao.technical.Daos.isHsqlDatabase(conn) || net.sumaris.core.extraction.dao.technical.Daos.isPostgresqlDatabase(conn)) && DataSourceUtils.isConnectionTransactional(conn, dataSource)) {
                 try {
                     conn.commit();
                 } catch (SQLException e) {

@@ -39,11 +39,11 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("pgsql")
 @Suite.SuiteClasses({
     // DAO
-    DaosPgsqlTest.class,
+    //DaosPgsqlTest.class,
     // Service
     ExtractionServicePgsqlTest.class,
-    ExtractionProductServicePgsqlTest.class,
     AggregationServicePgsqlTest.class
+    //ExtractionProductServicePgsqlTest.class
 
 })
 public class AllPgsqlTests {
