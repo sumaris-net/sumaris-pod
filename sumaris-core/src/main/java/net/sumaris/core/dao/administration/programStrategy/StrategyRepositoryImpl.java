@@ -275,34 +275,40 @@ public class StrategyRepositoryImpl
     @Override
     public String computeNextSampleLabelByStrategy(String strategyLabel, String labelSeparator, int nbDigit) {
         Preconditions.checkNotNull(strategyLabel);
-        final String prefix = (labelSeparator == null) ? strategyLabel : strategyLabel + labelSeparator;
+        final String prefix = StringUtils.isNotBlank(labelSeparator) ? strategyLabel + labelSeparator : strategyLabel;
 
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<String> query = builder.createQuery(String.class);
         Root<Sample> root = query.from(Sample.class);
 
-        ParameterExpression<Integer> idParam = builder.parameter(Integer.class);
-        ParameterExpression<String> valueParam = builder.parameter(String.class);
+        ParameterExpression<Integer> tagIdPmfmIdParam = builder.parameter(Integer.class);
+        ParameterExpression<Integer> strategyPmfmIdParam = builder.parameter(Integer.class);
+        ParameterExpression<String> strategyLabelParam = builder.parameter(String.class);
 
         Join<Sample, Landing> landingInnerJoin = root.join(Sample.Fields.LANDING, JoinType.INNER);
-        Join<Landing, LandingMeasurement> measurementInnerJoin = landingInnerJoin.joinList(Landing.Fields.MEASUREMENTS, JoinType.INNER);
+        Join<Landing, LandingMeasurement> strategyMeasurementInnerJoin = landingInnerJoin.joinList(Landing.Fields.MEASUREMENTS, JoinType.INNER);
+        Join<Landing, LandingMeasurement> tagIdInnerJoin = landingInnerJoin.joinList(Landing.Fields.MEASUREMENTS, JoinType.INNER);
 
-        query.select(root.get(Sample.Fields.LABEL))
+        query.select(tagIdInnerJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE))
                 .distinct(true)
                 .where(
                         builder.and(
-                                builder.equal(measurementInnerJoin.get(LandingMeasurement.Fields.PMFM).get(IEntity.Fields.ID), idParam),
-                                builder.equal(measurementInnerJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE), valueParam)
+                            // Tag id measurement
+                            builder.equal(tagIdInnerJoin.get(LandingMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam),
+                            // Strategy measurement
+                            builder.equal(strategyMeasurementInnerJoin.get(LandingMeasurement.Fields.PMFM).get(IEntity.Fields.ID), strategyPmfmIdParam),
+                            builder.equal(strategyMeasurementInnerJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE), strategyLabelParam)
                         ));
 
         String result = getEntityManager()
-                .createQuery(query)
-                .setParameter(idParam, PmfmEnum.STRATEGY_LABEL.getId())
-                .setParameter(valueParam, strategyLabel)
-                .getResultStream()
-                .max(String::compareTo)
-                .map(source -> StringUtils.removeStart(source, prefix))
-                .orElse("0");
+            .createQuery(query)
+            .setParameter(tagIdPmfmIdParam, PmfmEnum.TAG_ID.getId())
+            .setParameter(strategyPmfmIdParam, PmfmEnum.STRATEGY_LABEL.getId())
+            .setParameter(strategyLabelParam, strategyLabel)
+            .getResultStream()
+            .max(String::compareTo)
+            .map(source -> StringUtils.removeStart(source, prefix))
+            .orElse("0");
 
         if (!StringUtils.isNumeric(result)) {
             throw new SumarisTechnicalException(String.format("Unable to increment label '%s' on sample", prefix.concat(result)));
