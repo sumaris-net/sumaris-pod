@@ -299,6 +299,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("vesselFilter", CollectionUtils.isNotEmpty(context.getVesselIds()));
         xmlQuery.bind("vesselIds", Daos.getSqlInNumbers(context.getVesselIds()));
 
+        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
+        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
+        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
+
         return xmlQuery;
     }
 
@@ -424,6 +428,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("speciesListTableName", context.getSpeciesListTableName());
 
         xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
+        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
         xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
 
         return xmlQuery;

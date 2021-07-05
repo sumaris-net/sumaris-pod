@@ -23,6 +23,7 @@
 package net.sumaris.core.extraction.dao.trip.free;
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
@@ -98,6 +99,10 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
         //        HEADLINE_LENGTH Longueur de la corde de dos (cumulée si jumeaux),   = HEADLINE_CUMULATIVE_LENGTH ?
         //        WIDTH_GEAR Largeur cumulée (drague),              missing in SUMARIS
         //        SEINE_LENGTH Longueur de la bolinche ou senne     missing in SUMARIS
+
+        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
+        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
+        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
 
         return xmlQuery;
     }

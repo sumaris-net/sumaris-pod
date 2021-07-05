@@ -63,10 +63,10 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
     public void getAllSpeciesAndSubSpecies() {
         List<TaxonNameVO> taxonNames = taxonNameRepository.getAll(false);
         Assert.assertNotNull(taxonNames);
-        Assert.assertEquals(23, taxonNames.size());
+        Assert.assertEquals(25, taxonNames.size());
         taxonNames = taxonNameRepository.getAll(false);
         Assert.assertNotNull(taxonNames);
-        Assert.assertEquals(23, taxonNames.size());
+        Assert.assertEquals(25, taxonNames.size());
     }
 
     @Test
@@ -120,11 +120,11 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
     public void findByFilter() {
 
         // no filter
-        assertFilterResult(TaxonNameFilterVO.builder().build(), 37);
+        assertFilterResult(TaxonNameFilterVO.builder().build(), 39);
         // with synonyms
-        assertFilterResult(TaxonNameFilterVO.builder().withSynonyms(true).build(), 38);
+        assertFilterResult(TaxonNameFilterVO.builder().withSynonyms(true).build(), 40);
         // with status 0
-        assertFilterResult(TaxonNameFilterVO.builder().statusIds(new Integer[]{0}).build(), 12);
+        assertFilterResult(TaxonNameFilterVO.builder().statusIds(new Integer[]{0}).build(), 14);
         // with parent taxon group 1014
         assertFilterResult(TaxonNameFilterVO.builder().taxonGroupId(1014).build(), 3);
         // with parent taxon group 1014 with synonyms
@@ -137,7 +137,7 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
         assertFilterResult(TaxonNameFilterVO.builder().taxonGroupIds(new Integer[]{1160, 1161}).build(), 2);
         // with taxonomic level (species and subspecies)
         assertFilterResult(TaxonNameFilterVO.builder()
-                .levelIds(new Integer[]{TaxonomicLevelEnum.SPECIES.getId(), TaxonomicLevelEnum.SUBSPECIES.getId()}).build(), 23);
+                .levelIds(new Integer[]{TaxonomicLevelEnum.SPECIES.getId(), TaxonomicLevelEnum.SUBSPECIES.getId()}).build(), 25);
         // with label search
         assertFilterResult(TaxonNameFilterVO.builder().searchText("raja").build(), 13);
         // with exact label

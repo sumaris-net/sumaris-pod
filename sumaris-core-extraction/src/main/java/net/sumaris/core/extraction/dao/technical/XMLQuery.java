@@ -49,18 +49,18 @@ public class XMLQuery extends HSQLDBSingleXMLQuery {
 
     private String xslFileName;
 
-    private boolean lowercaseAliases;
+    private boolean lowercase;
 
     public XMLQuery() {
         super();
         xslFileName = super.getXSLFileName();
-        this.lowercaseAliases = false;
+        this.lowercase = false;
     }
 
-    public XMLQuery(boolean lowercaseAliases) {
+    public XMLQuery(boolean lowercase) {
         super();
         xslFileName = super.getXSLFileName();
-        this.lowercaseAliases = lowercaseAliases;
+        this.lowercase = lowercase;
     }
 
     @Override
@@ -74,12 +74,12 @@ public class XMLQuery extends HSQLDBSingleXMLQuery {
 
     // let default values here for HSQLDB
 
-    public boolean isLowercaseAliases() {
-        return lowercaseAliases;
+    public boolean isLowercase() {
+        return lowercase;
     }
 
-    public void setLowercaseAliases(boolean lowercaseAliases) {
-        this.lowercaseAliases = lowercaseAliases;
+    public void setLowercase(boolean lowercase) {
+        this.lowercase = lowercase;
     }
 
     /**
@@ -155,7 +155,7 @@ public class XMLQuery extends HSQLDBSingleXMLQuery {
 
     public String getSQLQueryAsString(){
         String query = super.getSQLQueryAsString();
-        if (this.lowercaseAliases){
+        if (this.lowercase){
             query = query.toLowerCase();
         }
         return query;

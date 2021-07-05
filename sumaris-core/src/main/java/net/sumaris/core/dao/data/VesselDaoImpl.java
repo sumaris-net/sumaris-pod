@@ -338,12 +338,12 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
                 builder.or(
                     builder.and(
                         // if no date in filter, will return only active period
-                        builder.isNull(dateParam),
+                        builder.isNull(dateParam.as(String.class)),
                         builder.isNull(featuresJoin.get(VesselFeatures.Fields.END_DATE)),
                         builder.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE))
                     ),
                     builder.and(
-                        builder.isNotNull(dateParam),
+                        builder.isNotNull(dateParam.as(String.class)),
                         builder.and(
                             builder.or(
                                 builder.isNull(featuresJoin.get(VesselFeatures.Fields.END_DATE)),
@@ -376,9 +376,9 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
                 // Filter: search text (on exterior marking OR id)
                 builder.or(
                     builder.isNull(searchNameParam),
-                    builder.like(builder.lower(featuresJoin.get(VesselFeatures.Fields.NAME)), builder.lower(searchNameParam)),
-                    builder.like(builder.lower(featuresJoin.get(VesselFeatures.Fields.EXTERIOR_MARKING)), builder.lower(searchExteriorMarkingParam)),
-                    builder.like(builder.lower(vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)), builder.lower(searchRegistrationCodeParam))
+                    builder.like(builder.lower(featuresJoin.get(VesselFeatures.Fields.NAME)), searchNameParam),
+                    builder.like(builder.lower(featuresJoin.get(VesselFeatures.Fields.EXTERIOR_MARKING)), searchExteriorMarkingParam),
+                    builder.like(builder.lower(vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)), searchRegistrationCodeParam)
                 ),
 
                 // Status
@@ -389,6 +389,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             );
 
             String searchTextAsPrefix = Daos.getEscapedSearchText(filter.getSearchText());
+            searchTextAsPrefix = searchTextAsPrefix != null ? searchTextAsPrefix.toLowerCase() : null;
             String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%" + searchTextAsPrefix) : null;
 
             List<Integer> statusIds = CollectionUtils.isEmpty(filter.getStatusIds())

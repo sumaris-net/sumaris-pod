@@ -280,6 +280,7 @@ public class AggregationServiceImpl implements AggregationService {
                                               int offset, int size, String sort, SortDirection direction) {
         // Execute the aggregation
         AggregationContextVO context = aggregate(type, filter, strata);
+        Daos.commitIfHsqldbOrPgsql(dataSource);
 
         // Prepare the read filter
         ExtractionFilterVO readFilter = null;
@@ -301,7 +302,7 @@ public class AggregationServiceImpl implements AggregationService {
     public File executeAndDump(AggregationTypeVO type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata) {
         // Execute the aggregation
         AggregationContextVO context = aggregate(type, filter, strata);
-        Daos.commitIfHsqldb(dataSource);
+        Daos.commitIfHsqldbOrPgsql(dataSource);
 
         try {
             // Dump to files
@@ -309,7 +310,7 @@ public class AggregationServiceImpl implements AggregationService {
         }
         finally {
             // Delete aggregation tables, after dump
-            clean(context, true);
+            clean(context);
         }
     }
 

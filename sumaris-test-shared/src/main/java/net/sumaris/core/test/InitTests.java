@@ -24,6 +24,7 @@ package net.sumaris.core.test;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
@@ -45,6 +46,7 @@ import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.dbunit.ext.hsqldb.HsqldbDataTypeFactory;
 import org.dbunit.ext.oracle.Oracle10DataTypeFactory;
+import org.dbunit.ext.postgresql.PostgresqlDataTypeFactory;
 import org.dbunit.operation.DatabaseOperation;
 import org.junit.Assume;
 import org.junit.rules.ExternalResource;
@@ -56,6 +58,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -66,6 +69,7 @@ public class InitTests extends ExternalResource {
 
     private static final String DATASET_COMMON_XML_FILE = "sumaris.test.data.common";
     private static final String DATASET_ADDITIONAL_XML_FILES = "sumaris.test.data.additional";
+    private static final String DEFAULT_DATASOURCE_PLATFORM = "hsqldb";
 
     /**
      * Main method is used by clients projects, to generate and deploy a test DB
@@ -106,7 +110,16 @@ public class InitTests extends ExternalResource {
         }
     }
 
+    public InitTests() {
+    }
+
+    public InitTests(String datasourcePlatform) {
+        this.datasourcePlatform = datasourcePlatform;
+    }
+
     protected SumarisConfiguration config;
+
+    protected String datasourcePlatform = DEFAULT_DATASOURCE_PLATFORM;
 
     private String targetDbDirectory = null;
 
@@ -130,6 +143,10 @@ public class InitTests extends ExternalResource {
         return replaceDbIfExists;
     }
 
+    public String getDatasourcePlatform() { return datasourcePlatform; }
+
+    public void setDatasourcePlatform(String datasourcePlatform) { this.datasourcePlatform = datasourcePlatform; }
+
     protected String getDbEnumerationResource() {
         return "classpath*:sumaris-db-enumerations.properties";
     }
@@ -139,11 +156,17 @@ public class InitTests extends ExternalResource {
     }
 
     protected String[] getConfigArgs() {
-        return new String[]{
+
+        List<String> configArgs = Lists.newArrayList();
+        configArgs.addAll(Lists.newArrayList(
                 "--option", SumarisConfigurationOption.DB_DIRECTORY.getKey(), getTargetDbDirectory(),
-                "--option", SumarisConfigurationOption.JDBC_URL.getKey(), SumarisConfigurationOption.JDBC_URL.getDefaultValue(),
-                "--option", SumarisConfigurationOption.SEQUENCE_START_WITH.getKey(), String.valueOf(1000)
-        };
+                "--option", SumarisConfigurationOption.SEQUENCE_START_WITH.getKey(), String.valueOf(1000)));
+
+        if (getDatasourcePlatform().equals(DEFAULT_DATASOURCE_PLATFORM)) {
+            configArgs.addAll(Lists.newArrayList("--option", SumarisConfigurationOption.JDBC_URL.getKey(), SumarisConfigurationOption.JDBC_URL.getDefaultValue()));
+        }
+
+        return configArgs.toArray(new String[configArgs.size()]);
     }
 
     protected void initServiceLocator() {
@@ -382,6 +405,10 @@ public class InitTests extends ExternalResource {
             dbUnitConnection = new DatabaseConnection(jdbcConnection, config.getJdbcSchema());
             dbUnitConnection.getConfig().setProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY, new Oracle10DataTypeFactory());
             dbUnitConnection.getConfig().setProperty(DatabaseConfig.FEATURE_SKIP_ORACLE_RECYCLEBIN_TABLES, Boolean.TRUE);
+        }
+        else if (Daos.isPostgresqlDatabase(config.getJdbcURL())){
+            dbUnitConnection = new DatabaseConnection(jdbcConnection);
+            dbUnitConnection.getConfig().setProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY, new PostgresqlDataTypeFactory());
         }
         else {
             throw new SumarisTechnicalException("Unable to create DBUnit connection: Unknown DB type for URL [" + config.getJdbcURL() + "]");
