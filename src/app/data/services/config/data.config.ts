@@ -17,6 +17,12 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
       value: 'USER.PROFILE_ENUM.' + key
     }))
   },
+  SUPERVISOR_DEPARTMENT: <FormFieldDefinition>{
+    key: "sumaris.supervisor.department",
+    label: "CONFIGURATION.OPTIONS.SUPERVISOR_DEPARTMENT",
+    defaultValue: "",
+    type: 'string'
+  },
   ENTITY_TRASH: <FormFieldDefinition> {
     key: 'sumaris.persistence.trash.enable',
     label: 'CONFIGURATION.OPTIONS.ENTITY_TRASH',

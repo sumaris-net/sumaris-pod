@@ -212,6 +212,39 @@ export const ReferentialFragments = {
     }
     __typename
   }`,
+  pmfmFull: gql`fragment PmfmFullFragment on PmfmVO {
+    id
+    label
+    name
+    completeName
+    unitLabel
+    statusId
+    updateDate
+    creationDate
+    entityName
+    type
+    minValue
+    maxValue
+    defaultValue
+    maximumNumberDecimals
+    signifFiguresNumber
+    parameter {
+      ...ParameterFragment
+    }
+    matrix {
+      ...ReferentialFragment
+    }
+    fraction {
+      ...ReferentialFragment
+    }
+    method {
+      ...ReferentialFragment
+    }
+    unit {
+      ...ReferentialFragment
+    }
+    __typename
+  }`,
   parameter: gql`fragment ParameterFragment on ParameterVO {
     id
     label

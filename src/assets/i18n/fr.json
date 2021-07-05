@@ -149,6 +149,7 @@
       "DEFAULT_LOCALE": "Langue par défaut",
       "DEFAULT_LATLONG_FORMAT": "Format lat/lon par défaut",
       "NOT_SELF_DATA_ACCESS_MIN_ROLE": "Saisie > Role min. pour voir les données des autres",
+      "SUPERVISOR_DEPARTMENT": "Saisie > Département superviseur : peut voir les données des autres départements",
       "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
