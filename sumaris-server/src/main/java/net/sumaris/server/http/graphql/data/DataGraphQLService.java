@@ -1395,16 +1395,19 @@ public class DataGraphQLService {
     protected TripFilterVO fillTripFilterDefaults(TripFilterVO filter) {
         TripFilterVO result = filter != null ? filter : new TripFilterVO();
 
-        // Restrict to self data - issue #199
-        if (!canAccessNotSelfData()) {
-            PersonVO user = authService.getAuthenticatedUser().orElse(null);
-            if (user != null) {
-                result.setRecorderDepartmentId(null);
+        // Restrict to self data and/or department data
+        PersonVO user = authService.getAuthenticatedUser().orElse(null);
+        if (user != null) {
+            if (!canAccessNotSelfData()) {
                 result.setRecorderPersonId(user.getId());
-            } else {
-                result.setRecorderPersonId(-999); // Hide all. Should never occur
             }
+            if (!canAccessNotSelfDepartmentData(user)) {
+                result.setRecorderDepartmentId(user.getDepartment().getId());
+            }
+        } else {
+            result.setRecorderPersonId(-999); // Hide all. Should never occur
         }
+
         return result;
     }
 
