@@ -50,7 +50,8 @@
           formControlName="analyticReference"
           [placeholder]="i18nFieldPrefix + 'ANALYTIC_REFERENCE_PLACEHOLDER'|translate"
           [config]="autocompleteFields.analyticReference"
-          [tabindex]="tabindex+1">
+          [tabindex]="tabindex+1"
+          [required]="true">
 
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
