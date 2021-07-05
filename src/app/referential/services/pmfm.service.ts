@@ -93,6 +93,16 @@ ${ReferentialFragments.referential}
 ${ReferentialFragments.fullReferential}
 ${ReferentialFragments.parameter}`;
 
+const LoadPmfmFullQuery: any = gql`query Pmfm($label: String, $id: Int){
+  data: pmfm(label: $label, id: $id){
+    ...PmfmFullFragment
+  }
+}
+${ReferentialFragments.pmfmFull}
+${ReferentialFragments.referential}
+${ReferentialFragments.fullReferential}
+${ReferentialFragments.parameter}`;
+
 const SaveQuery: any = gql`mutation SavePmfm($data: PmfmVOInput!){
   data: savePmfm(pmfm: $data){
     ...PmfmFragment
@@ -159,6 +169,24 @@ export class PmfmService
     const entity = data && Pmfm.fromObject(data);
 
     if (this._debug) console.debug(`[pmfm-service] Pmfm {${id}} loaded`, entity);
+
+    return entity;
+  }
+
+  async loadPmfmFull(id: number, options?: EntityServiceLoadOptions): Promise<Pmfm> {
+
+    if (this._debug) console.debug(`[pmfm-service] Loading pmfm full {${id}}...`);
+
+    const {data} = await this.graphql.query<{ data: any }>({
+      query: LoadPmfmFullQuery,
+      variables: {
+        id
+      },
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"}
+    });
+    const entity = data && Pmfm.fromObject(data);
+
+    if (this._debug) console.debug(`[pmfm-service] Pmfm full {${id}} loaded`, entity);
 
     return entity;
   }
