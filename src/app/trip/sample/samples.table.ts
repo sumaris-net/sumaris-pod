@@ -476,7 +476,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     if (isEmptyArray(pmfmIds)) return; // Skip if empty
 
     // Load each pmfms, by id
-    const pmfms = (await Promise.all(pmfmIds.map(id => this.pmfmService.load(id))));
+    const pmfms = (await Promise.all(pmfmIds.map(id => this.pmfmService.loadPmfmFull(id))));
 
     this.pmfms = [
       ...this.$pmfms.getValue(),
