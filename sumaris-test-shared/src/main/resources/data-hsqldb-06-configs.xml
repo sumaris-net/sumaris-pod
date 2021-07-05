@@ -94,5 +94,7 @@
     <SOFTWARE_PROPERTY ID="111" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.analyticReferences.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="112" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="false"/>
     <SOFTWARE_PROPERTY ID="113" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.menu.items" NAME="[{&#34;title&#34;: &#34;Lignes de plan&#34;, &#34;path&#34;: &#34;/referential/programs/40/strategies&#34;,&#34;before&#34;:&#34;MENU.OCCASIONS&#34;, &#34;icon&#34;: &#34;contract&#34;, &#34;profile&#34;: &#34;USER&#34;}]"/>
+    <SOFTWARE_PROPERTY ID="114" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.auth.notSelfDataAccess.role" NAME="ROLE_USER"/>
+    <SOFTWARE_PROPERTY ID="115" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.supervisor.department" NAME="3"/>
 
 </dataset>
