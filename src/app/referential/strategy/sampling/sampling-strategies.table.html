@@ -25,7 +25,7 @@
     </button>
 
     <!-- Reset filter -->
-    <button mat-icon-button (click)="resetFilter()"
+    <button mat-icon-button (click)="resetFilterAndClose()"
             *ngIf="filterCriteriaCount">
       <mat-icon color="accent">filter_list_alt</mat-icon>
       <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
@@ -55,24 +55,43 @@
 </mat-toolbar>
 
 <!-- search -->
-<mat-expansion-panel #filterExpansionPanel [class.filter-panel]="!showToolbar">
-  <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
+<mat-expansion-panel #filterExpansionPanel
+                     class="filter-panel"
+                     [class.filter-panel-floating]="filterPanelFloating">
+  <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="applyFilterAndClosePanel($event, true)">
 
     <ion-grid>
-
-      <!-- Recorder criteria -->
       <ion-row>
         <ion-col>
-          <!-- department -->
+          <!-- search text -->
+          <mat-form-field>
+            <ion-icon matPrefix name="search"></ion-icon>
+            <input matInput
+                   formControlName="searchText"
+                   autocomplete="off"
+                   [placeholder]="i18nColumnPrefix + 'LABEL'|translate">
+            <button mat-icon-button matSuffix tabindex="-1"
+                    type="button"
+                    (click)="clearControlValue($event, filterForm.controls.searchText)"
+                    [hidden]="filterForm.controls.searchText.disabled || !filterForm.controls.searchText.value">
+              <mat-icon>close</mat-icon>
+            </button>
+          </mat-form-field>
+        </ion-col>
+
+        <ion-col>
+          <!-- Analytic reference -->
           <mat-autocomplete-field
             [placeholder]="i18nColumnPrefix + 'ANALYTIC_REFERENCE'|translate"
             formControlName="analyticReference"
             [config]="autocompleteFields.analyticReference"
-            [i18nPrefix]="'analyticReference.'"
             [clearable]="true">
             <!-- <ion-icon matPrefix name="analyticReference"></ion-icon> -->
           </mat-autocomplete-field>
         </ion-col>
+      </ion-row>
+
+      <ion-row>
 
         <ion-col>
           <!-- department -->
@@ -80,15 +99,10 @@
             [placeholder]="i18nColumnPrefix + 'RECORDER_DEPARTMENTS'|translate"
             formControlName="department"
             [config]="autocompleteFields.department"
-            [i18nPrefix]="'DEPARTMENT.'"
             [clearable]="true">
-            <!-- <ion-icon matPrefix name="department"></ion-icon> -->
+            <ion-icon matPrefix name="business"></ion-icon>
           </mat-autocomplete-field>
         </ion-col>
-
-
-      </ion-row>
-      <ion-row>
 
         <ion-col>
           <!-- taxonName -->
@@ -96,72 +110,71 @@
             [placeholder]="i18nColumnPrefix + 'TAXON_NAMES'|translate"
             formControlName="taxonName"
             [config]="autocompleteFields.taxonName"
-            [i18nPrefix]="'TAXONNAME.'"
             [clearable]="true">
-            <!-- <ion-icon matPrefix name="location"></ion-icon> -->
+            <mat-icon matPrefix svgIcon="fish"></mat-icon>
           </mat-autocomplete-field>
         </ion-col>
 
+      </ion-row>
+      <ion-row>
+
         <ion-col>
-          <!-- department -->
+          <!-- location -->
           <mat-autocomplete-field
             [placeholder]="i18nColumnPrefix + 'LOCATIONS'|translate"
             formControlName="location"
             [config]="autocompleteFields.location"
-            [i18nPrefix]="'LOCATION.'"
             [clearable]="true">
-            <!-- <ion-icon matPrefix name="location"></ion-icon> -->
+            <mat-icon matPrefix>room</mat-icon>
           </mat-autocomplete-field>
         </ion-col>
+
+        <!-- Parameter groups -->
+        <ion-col formGroupName="parameterGroups">
+          <mat-form-field floatLabel="always">
+            <mat-label>{{'PROGRAM.STRATEGY.TABLE.SAMPLING.PARAMETERS_DOTS' |translate }}</mat-label>
+            <input matInput hidden>
+            <mat-checkbox *ngFor="let parameterGroupLabel of parameterGroupLabels; last as last"
+                          [formControlName]="parameterGroupLabel">
+              {{i18nColumnPrefix + parameterGroupLabel |translate }}
+              <span *ngIf="!last">&nbsp;</span>
+            </mat-checkbox>
+          </mat-form-field>
+        </ion-col>
       </ion-row>
-      <!-- Period criteria -->
+
       <ion-row>
-        <ion-col>
-          <!-- Start date -->
-          <!-- <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE'|translate"
-                          formControlName="startDate"
-                          [clearable]="true">
-          </mat-date-field> -->
-          <mat-date-short-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE'|translate"
-            formControlName="startDate" >
-          </mat-date-short-field>
-            <!-- <ion-icon matPrefix name="calendar-outline"></ion-icon> -->
-        </ion-col>
-
-        <ion-col>
-          <!-- End date -->
-          <!-- <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE'|translate"
-                          formControlName="endDate"
-                          [clearable]="true">
-          </mat-date-field> -->
-          <mat-date-short-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE'|translate"
-            formControlName="endDate" >
+        <!-- Start date -->
+        <ion-col size="3">
+          <mat-date-short-field formControlName="startDate"
+                                [placeholder]="i18nColumnPrefix + 'START_YEAR'|translate"
+                                [clearable]="true">
+            <ion-icon matPrefix name="calendar-outline"></ion-icon>
           </mat-date-short-field>
         </ion-col>
-      </ion-row>
 
-      <!-- Efforts / Quarters column -->
-      <ion-row formGroupName="periods">
-        <ion-col>
-          <ion-label>{{i18nColumnPrefix + 'QUARTERS' |translate }}</ion-label>
+        <!-- End date -->
+        <ion-col size="3">
+          <mat-date-short-field formControlName="endDate"
+                                [placeholder]="i18nColumnPrefix + 'END_YEAR'|translate"
+                                [clearable]="true">
+          </mat-date-short-field>
         </ion-col>
-        <ng-container *ngFor="let quarter of quarters">
-          <ion-col>
-            <mat-checkbox class="example-margin" [formControlName]="'effortQ'+quarter">{{i18nColumnPrefix + 'EFFORT_Q' + quarter |translate }}</mat-checkbox>
-          </ion-col>
-        </ng-container>
-      </ion-row>
 
-      <!-- Parameter groups -->
-      <ion-row  formGroupName="parameterGroups">
-        <ion-col>
-          <ion-label>{{i18nColumnPrefix + 'PARAMETERS'|translate}}</ion-label>
+        <!-- Efforts / Quarters column -->
+        <ion-col formGroupName="effortByQuarter" >
+            <mat-form-field floatLabel="always">
+              <mat-label>{{'PROGRAM.STRATEGY.TABLE.SAMPLING.QUARTERS_DOTS' |translate }}</mat-label>
+              <input matInput hidden>
+              <mat-checkbox *ngFor="let quarter of quarters; last as last"
+                            [formControlName]="quarter.toString()">
+                {{i18nColumnPrefix + 'EFFORT_Q' + quarter | translate }}
+                <span *ngIf="!last">&nbsp;</span>
+              </mat-checkbox>
+            </mat-form-field>
         </ion-col>
-        <ng-container *ngFor="let parameterGroupLabel of parameterGroupLabels">
-          <ion-col>
-            <mat-checkbox class="example-margin" [formControlName]="parameterGroupLabel">{{i18nColumnPrefix + parameterGroupLabel |translate }}</mat-checkbox>
-          </ion-col>
-        </ng-container>
+
+
       </ion-row>
     </ion-grid>
   </form>
@@ -177,9 +190,18 @@
 
     <div class="toolbar-spacer"></div>
 
+    <!-- disable floating -->
+    <button mat-icon-button color="accent"
+            *ngIf="filterPanelFloating"
+            (click)="toggleFilterPanelFloating()"
+            class="hidden-xs hidden-sm hidden-md"
+            [title]="(filterPanelFloating ? 'COMMON.BTN_EXPAND' : 'COMMON.BTN_HIDE') |translate">
+      <mat-icon><span style="transform: rotate(90deg);">{{filterPanelFloating ? '&#xbb;' : '&#xab;'}}</span></mat-icon>
+    </button>
+
     <!-- Close panel -->
     <ion-button mat-button fill="clear" color="dark"
-                (click)="filterExpansionPanel.close()"
+                (click)="closeFilterPanel()"
                 [disabled]="loadingSubject|async">
       <ion-text translate>COMMON.BTN_CLOSE</ion-text>
     </ion-button>
@@ -299,7 +321,7 @@
     </ng-container>
 
     <!-- Parameters column -->
-    <ng-container matColumnDef="parameters">
+    <ng-container matColumnDef="parameterGroups">
       <th mat-header-cell *matHeaderCellDef>
         <span>{{i18nColumnPrefix + 'PARAMETERS'|translate}}</span>
       </th>

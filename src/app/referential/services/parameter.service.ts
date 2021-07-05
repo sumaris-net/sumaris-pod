@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
-import {AccountService}  from "@sumaris-net/ngx-components";
+import {AccountService, isEmptyArray} from '@sumaris-net/ngx-components';
 import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {ReferentialService} from "./referential.service";
 import {Observable, of} from "rxjs";
@@ -68,22 +68,38 @@ export class ParameterService extends BaseGraphqlService implements IEntityServi
     return entity;
   }
 
-  async loadByLabel(label: string, options?: EntityServiceLoadOptions): Promise<Parameter> {
+  async loadByLabel(label: string, opts?: EntityServiceLoadOptions): Promise<Parameter> {
 
     if (this._debug) console.debug(`[parameter-service] Loading parameter {${label}}...`);
 
     const res = await this.graphql.query<{ parameter: any }>({
       query: LoadQuery,
       variables: {
-        label: label
+        label
       },
-      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"}
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+      fetchPolicy: opts && opts.fetchPolicy || undefined
     });
-    const entity = res && Parameter.fromObject(res.parameter);
+    const entity = (!opts || opts.toEntity !== false)
+      ? res && Parameter.fromObject(res.parameter)
+      : res && res.parameter as Parameter;
 
-    if (this._debug) console.debug(`[pmfm-service] Parameter {${label}} loaded`, entity);
+    if (this._debug) console.debug(`[parameter-service] Parameter {${label}} loaded`, entity);
 
     return entity;
+  }
+
+
+  async loadAllByLabels(labels: string[], options?: EntityServiceLoadOptions): Promise<Parameter[]> {
+    if (isEmptyArray(labels)) throw new Error('Missing required argument \'labels\'');
+    const res = await Promise.all(
+      labels.map(label => this.loadByLabel(label, options)
+        .catch(err => {
+          if (err && err.code === ErrorCodes.LOAD_REFERENTIAL_ERROR) return undefined; // Skip if not found
+          throw err;
+        }))
+    );
+    return res.filter(isNotNil);
   }
 
   /**

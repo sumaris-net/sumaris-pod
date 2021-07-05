@@ -187,12 +187,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
     this.measurementsDataService.strategyLabel = this._strategyLabel;
 
-    const encapsulatedValidator = this.validatorService ? this : null;
-    this.setDatasource(new EntitiesTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, {
-      ...this.options,
-      // IMPORTANT: Always use this custom onRowCreated, that will call options.onRowCreated if need
-      onRowCreated: (row) => this.onRowCreated(row)
-    }));
+    this.setValidatorService(this.validatorService);
 
     // For DEV only
     //this.debug = !environment.production;
@@ -258,8 +253,34 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     super.setFilter(filterData, opts);
   }
 
-  public trackByFn(index: number, row: TableElement<T>) {
+  trackByFn(index: number, row: TableElement<T>) {
     return this.hasRankOrder ? row.currentData.rankOrder : row.currentData.id;
+  }
+
+  /**
+   * Allow to change the validator service (will recreate the datasource)
+   * @param validatorService
+   * @protected
+   */
+  setValidatorService(validatorService?: ValidatorService) {
+    if (this.validatorService === validatorService && this._dataSource) return; // Skip if same
+
+    // If already exists: destroy previous database
+    if (this._dataSource) {
+      this._dataSource.ngOnDestroy();
+      this._dataSource = null;
+    }
+
+    console.debug('[landings-table] Settings validator service to: ', validatorService);
+    this.validatorService = validatorService;
+
+    // Create the new datasource, BUT redirect to this
+    const encapsulatedValidator = validatorService ? this : null;
+    this.setDatasource(new EntitiesTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, {
+      ...this.options,
+      // IMPORTANT: Always use this custom onRowCreated, that will call options.onRowCreated if need
+      onRowCreated: (row) => this.onRowCreated(row)
+    }));
   }
 
   protected generateTableId(): string {

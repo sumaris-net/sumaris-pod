@@ -26,6 +26,7 @@ const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
   templateUrl: 'landings.table.html',
   styleUrls: ['landings.table.scss'],
   providers: [
+    // Default value, bu be change using the validatorService setter
     {provide: ValidatorService, useValue: null}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -35,7 +35,6 @@ import {SamplesModal} from "./sample/samples.modal";
 import {SamplingLandingPage} from "./landing/sampling/sampling-landing.page";
 import {ObservedLocationOfflineModal} from "./observedlocation/offline/observed-location-offline.modal";
 import {VesselModule} from "../vessel/vessel.module";
-import {EditableLandingsTable} from "./landing/editable-landings.table";
 
 
 @NgModule({
@@ -52,7 +51,6 @@ import {EditableLandingsTable} from "./landing/editable-landings.table";
     ObservedLocationPage,
     ObservedLocationsPage,
     ObservedLocationOfflineModal,
-    EditableLandingsTable,
     LandingsTable,
     LandingForm,
     LandingPage,

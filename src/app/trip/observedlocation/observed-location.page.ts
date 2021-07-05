@@ -30,13 +30,13 @@ import {LandingEditor, ProgramProperties} from '../../referential/services/confi
 import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
 import {BehaviorSubject} from 'rxjs';
 import {filter, first, tap} from 'rxjs/operators';
-import {EditableLandingsTable} from '../landing/editable-landings.table';
 import {AggregatedLandingsTable} from '../aggregated-landing/aggregated-landings.table';
 import {Program} from '../../referential/services/model/program.model';
 import {ObservedLocationsPageSettingsEnum} from './observed-locations.page';
 import {environment} from '../../../environments/environment';
 import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
 import {LandingFilter} from '../services/filter/landing.filter';
+import {LandingValidatorService} from '@app/trip/services/validator/landing.validator';
 
 const moment = momentImported;
 
@@ -62,40 +62,26 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   showLandingTab = false;
   aggregatedLandings: boolean;
   allowAddNewVessel: boolean;
+  showVesselType: boolean;
   addLandingUsingHistoryModal: boolean;
   $ready = new BehaviorSubject<boolean>(false);
   showQualityForm = false;
   showRecorder = true;
+  canEditLandingsTable: boolean;
   landingEditor: LandingEditor = undefined;
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
-  // TODO BLA landingsTable must be an EditableLandingsTable for ObsDeb
-  @ViewChild('notEditableLandingsTable') notEditableLandingsTable: LandingsTable;
-  @ViewChild('editableLandingsTable') editableLandingsTable: EditableLandingsTable;
+  @ViewChild('landingsTable') landingsTable: LandingsTable;
   @ViewChild('aggregatedLandingsTable') aggregatedLandingsTable: AggregatedLandingsTable;
 
-  get landingsTable(): LandingsTable {
-    return this.landingEditor === 'trip' ? this.editableLandingsTable : this.notEditableLandingsTable;
-  }
-
-  /*get landingEditor(): LandingEditor {
-    return this.landingsTable ? this.landingsTable.detailEditor : undefined;
-  }
-
-  set landingEditor(value: LandingEditor) {
-    if (this.landingsTable) this.landingsTable.detailEditor = value;
-  }
-
-  get isEditableLandingTable(): boolean {
-    return this.landingsTable ? this.landingsTable.isEditable : false;
-  }*/
 
   constructor(
     injector: Injector,
     dataService: ObservedLocationService,
     protected modalCtrl: ModalController,
     protected platform: PlatformService,
-    protected configService: ConfigService
+    protected configService: ConfigService,
+    protected landingValidator: LandingValidatorService
   ) {
     super(injector,
       ObservedLocation,
@@ -146,19 +132,22 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.i18nContext.suffix = i18nSuffix;
 
     this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
+    this.showVesselType = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
 
-    if (this.landingsTable) {
-      this.landingsTable.i18nColumnSuffix = i18nSuffix;
-      this.landingsTable.detailEditor = this.landingEditor;
+    const landingsTable = this.landingsTable;
+    if (landingsTable) {
+      landingsTable.i18nColumnSuffix = i18nSuffix;
+      landingsTable.detailEditor = this.landingEditor;
 
-      this.landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
-      this.landingsTable.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
-      this.landingsTable.showObserversColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
-      this.landingsTable.showCreationDateColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE);
-      this.landingsTable.showRecorderPersonColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
-      this.landingsTable.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
-      this.landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
-      this.landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
+      landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
+      landingsTable.showVesselTypeColumn = this.showVesselType;
+      landingsTable.showObserversColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
+      landingsTable.showCreationDateColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE);
+      landingsTable.showRecorderPersonColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
+      landingsTable.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
+      landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
+      landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
+      landingsTable.setValidatorService(this.landingEditor == 'trip' ? this.landingValidator : null);
     } else if (this.aggregatedLandingsTable) {
       this.aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
       this.aggregatedLandingsTable.program = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
@@ -382,7 +371,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       componentProps: {
         allowMultiple: false,
         allowAddNewVessel: this.allowAddNewVessel,
-        showVesselTypeColumn: this.landingsTable.showVesselTypeColumn,
+        showVesselTypeColumn: this.showVesselType,
         landingFilter
       },
       keyboardClose: true,

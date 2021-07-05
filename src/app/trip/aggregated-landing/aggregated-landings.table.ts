@@ -13,7 +13,7 @@ import {BehaviorSubject} from "rxjs";
 import {filterNotNil} from "@sumaris-net/ngx-components";
 import {isNil, isNotEmptyArray, isNotNil, toBoolean} from "@sumaris-net/ngx-components";
 import {AggregatedLanding, VesselActivity} from "../services/model/aggregated-landing.model";
-import {AggregatedLandingFilter, AggregatedLandingService} from "../services/aggregated-landing.service";
+import {AggregatedLandingService} from "../services/aggregated-landing.service";
 import * as momentImported from "moment";
 import {Moment} from "moment";
 import {ObservedLocation} from "../services/model/observed-location.model";
@@ -30,6 +30,7 @@ import {referentialToString}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {AggregatedLandingFormOption} from "./aggregated-landing.form";
+import {AggregatedLandingFilter} from "@app/trip/services/filter/aggregated-landing.filter";
 
 const moment = momentImported;
 

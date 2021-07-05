@@ -10,7 +10,7 @@ import {PlatformService}  from "@sumaris-net/ngx-components";
 import {SortDirection} from "@angular/material/sort";
 import {StrategyFragments} from "./strategy.fragments";
 import {LoadResult} from "@sumaris-net/ngx-components";
-import {StrategyFilter, StrategyService} from "./strategy.service";
+import {StrategyService} from "./strategy.service";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {firstArrayValue, isEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
@@ -23,6 +23,7 @@ import {DateUtils} from "@sumaris-net/ngx-components";
 import {SamplingStrategy, StrategyEffort} from "./model/sampling-strategy.model";
 import {BaseReferentialService} from "./base-referential-service.class";
 import {Moment} from "moment";
+import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
 
 const SamplingStrategyQueries = {
   loadAll: gql`query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){

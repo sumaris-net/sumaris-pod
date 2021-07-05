@@ -13,11 +13,11 @@
         <mat-icon>add</mat-icon>
       </button>
 
-      <!-- Refresh
+      <!-- Refresh -->
       <button mat-icon-button *ngIf="isAdmin"
               [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
         <mat-icon>refresh</mat-icon>
-      </button>-->
+      </button>
 
       <!-- reset filter -->
       <button mat-icon-button (click)="resetFilter()"
@@ -165,7 +165,9 @@
   </ion-list>
 
   <!-- search -->
-  <mat-expansion-panel #filterExpansionPanel class="filter-panel">
+  <mat-expansion-panel #filterExpansionPanel
+                       class="filter-panel"
+                       [class.filter-panel-floating]="filterPanelFloating">
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
 
       <ion-grid>
@@ -254,9 +256,18 @@
 
       <div class="toolbar-spacer"></div>
 
+      <!-- disable floating -->
+      <button mat-icon-button color="accent"
+              *ngIf="filterPanelFloating"
+              (click)="toggleFilterPanelFloating()"
+              class="hidden-xs hidden-sm hidden-md"
+              [title]="(filterPanelFloating ? 'COMMON.BTN_EXPAND' : 'COMMON.BTN_HIDE') |translate">
+        <mat-icon><span style="transform: rotate(90deg);">{{filterPanelFloating ? '&#xbb;' : '&#xab;'}}</span></mat-icon>
+      </button>
+
       <!-- Close panel -->
       <ion-button mat-button fill="clear" color="dark"
-                  (click)="filterExpansionPanel.close()"
+                  (click)="closeFilterPanel()"
                   [disabled]="loadingSubject|async">
         <ion-text translate>COMMON.BTN_CLOSE</ion-text>
       </ion-button>

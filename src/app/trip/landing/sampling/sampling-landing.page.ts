@@ -24,8 +24,6 @@ import {ProgramProperties} from '@app/referential/services/config/program.config
 })
 export class SamplingLandingPage extends LandingPage {
 
-  protected pmfmService: PmfmService;
-
   $pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
   showSamplesTable = false;
   zeroEffortWarning = false;
@@ -34,14 +32,12 @@ export class SamplingLandingPage extends LandingPage {
   constructor(
     injector: Injector,
     protected samplingStrategyService: SamplingStrategyService,
+    protected pmfmService: PmfmService
   ) {
     super(injector, {
       pathIdAttribute: 'samplingId',
-      autoOpenNextTab: false
+      autoOpenNextTab: true
     });
-    this.pmfmService = injector.get(PmfmService);
-
-
   }
 
   ngAfterViewInit() {
@@ -117,7 +113,7 @@ export class SamplingLandingPage extends LandingPage {
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onNewEntity(data, options);
     // By default, set location to parent location
-    if (this.parent && isInstanceOf(this.parent, ObservedLocation)) {
+    if (this.parent && this.parent instanceof ObservedLocation) {
       this.landingForm.form.get('location').patchValue(data.location);
     }
   }
