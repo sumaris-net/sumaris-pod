@@ -4,7 +4,7 @@ import {BehaviorSubject, Subscription} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '../../../referential/services/model/pmfm-strategy.model';
 import {ParameterLabelGroups, PmfmIds} from '../../../referential/services/model/model.enum';
 import {PmfmService} from '../../../referential/services/pmfm.service';
-import {EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isInstanceOf, isNil, isNotNil, ObjectMap, SharedValidators} from '@sumaris-net/ngx-components';
+import {EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, ObjectMap, SharedValidators} from '@sumaris-net/ngx-components';
 import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
 import {LandingPage} from '../landing.page';
 import {Landing} from '../../services/model/landing.model';
@@ -158,7 +158,7 @@ export class SamplingLandingPage extends LandingPage {
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
-    const titlePrefix = this.parent && isInstanceOf(this.parent, ObservedLocation) &&
+    const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
       await this.translate.get('LANDING.EDIT.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''

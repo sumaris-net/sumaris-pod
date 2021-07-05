@@ -127,25 +127,37 @@
     </ng-container>
 
     <!-- Measurements -->
-    <ion-row *ngIf="showMeasurements">
-      <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label class="ion-float-end" translate>LANDING.EDIT.OTHER_FEATURES</ion-label>
-      </ion-col>
-      <ion-col>
-        <ng-container *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;">
-
+    <ng-container *ngIf="showMeasurements">
+      <ion-row *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;"
+               [class.cdk-visually-hidden]="!(pmfms | arrayPluck: {property: 'hidden'} | arrayIncludes: false)">
+        <ion-col size="12" size-md="2" size-lg="3">
+          <ion-label class="ion-float-end" translate>LANDING.EDIT.OTHER_FEATURES</ion-label>
+        </ion-col>
+        <ion-col>
           <!-- pmfms -->
-          <app-pmfm-field *ngFor="let pmfm of pmfms; index as i;"
-                          [pmfm]="pmfm"
-                          [hidden]="pmfm.hidden"
-                          [formControl]="form.get('measurementValues.'+ pmfm.id)"
-                          [compact]="compact"
-                          [tabindex]="50 + i*2"
-                          [floatLabel]="floatLabel">
-          </app-pmfm-field>
-        </ng-container>
-      </ion-col>
-    </ion-row>
+          <ng-container *ngFor="let pmfm of pmfms; index as i;">
+
+            <mat-autocomplete-field *ngIf="mainMetierPmfmId === pmfm.id; else pmfmField"
+                                    [formControl]="form.get('measurementValues.' + pmfm.id)"
+                                    [placeholder]="'TRIP.MAIN_METIER_PLACEHOLDER'|translate"
+                                    [config]="autocompleteFields.metier"
+                                    [required]="true"
+                                    [panelWidth]="!mobile && '500px'">
+              <ion-icon matPrefix name="locate"></ion-icon>
+            </mat-autocomplete-field>
+            <ng-template #pmfmField>
+              <app-pmfm-field [pmfm]="pmfm"
+                              [hidden]="pmfm.hidden"
+                              [formControl]="form.get('measurementValues.' + pmfm.id)"
+                              [compact]="compact"
+                              [tabindex]="50 + i*2"
+                              [floatLabel]="floatLabel">
+              </app-pmfm-field>
+            </ng-template>
+          </ng-container>
+        </ion-col>
+      </ion-row>
+    </ng-container>
 
     <ng-content select="[beforeComment]"></ng-content>
 
@@ -168,19 +180,18 @@
 </form>
 
 <ng-template #measurementsSkeleton>
-  <ion-grid class="form-container ion-padding">
-    <ion-row class="ion-no-padding" >
-      <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
-      <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
-    </ion-row>
-  </ion-grid>
+  <ion-row class="ion-no-padding" >
+    <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
+    <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
+  </ion-row>
 </ng-template>
 
 <ng-template #measurementSkeleton>
-  <ion-col size="12">
+  <ion-col size="12" size-md="2" size-lg="3">&nbsp;</ion-col>
+  <ion-col size="12" size-md="10" size-lg="9" class="ion-no-padding">
     <mat-form-field>
       <input matInput hidden>
-      <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
     </mat-form-field>
   </ion-col>
 </ng-template>
