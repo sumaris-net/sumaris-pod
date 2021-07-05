@@ -588,14 +588,12 @@ public class ReferentialDaoImpl
             statusIdsClause = builder.in(entityRoot.get(IWithStatusEntity.Fields.STATUS).get(IEntity.Fields.ID)).value(statusIdsParam);
         }
 
-        // Excluded Ids
+        // Included Ids
         Predicate includedClause = null;
         ParameterExpression<Collection> includedIdsParam = null;
         if (ArrayUtils.isNotEmpty(includedIds)) {
             includedIdsParam = builder.parameter(Collection.class);
-            includedClause = builder.not(
-                builder.in(entityRoot.get(IEntity.Fields.ID)).value(includedIdsParam)
-            );
+            includedClause = builder.in(entityRoot.get(IEntity.Fields.ID)).value(includedIdsParam);
         }
 
         // Excluded Ids
