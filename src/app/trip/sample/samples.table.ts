@@ -243,6 +243,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   async openDetailModal(sample?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
     console.debug('[samples-table] Opening detail modal...');
+    //const pmfms = await firstNotNilPromise(this.$pmfms);
 
     const isNew = !sample && true;
     if (isNew) {
@@ -255,7 +256,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     const options: Partial<ISampleModalOptions> = {
       // Default options:
       programLabel: undefined, // Prefer to pass PMFMs directly, to avoid a reloading
-      pmfms: this.$pmfms.asObservable(),
+      pmfms: this.$pmfms,
       acquisitionLevel: this.acquisitionLevel,
       disabled: this.disabled,
       i18nPrefix: SAMPLE_TABLE_DEFAULT_I18N_PREFIX,
@@ -517,7 +518,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
     if (isEmptyArray(pmfms) || !this.showGroupHeader) return pmfms;
 
-    console.debug("[samples-table] Computing Pmfm group header...")
+    console.debug("[samples-table] Computing Pmfm group header...");
 
     // Wait until map is loaded
     const groupedPmfmIdsMap = await firstNotNilPromise(this.$pmfmGroups);
@@ -563,8 +564,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
           if (orderedPmfmIds.includes(pmfm.id)) return res; // Skip if already proceed
           orderedPmfmIds.push(pmfm.id);
           const visible = group !== 'TAG_ID'; //  && groupPmfmCount > 1;
+          const key = 'group-' + ((pmfm instanceof DenormalizedPmfmStrategy) ? (pmfm as IDenormalizedPmfm).completeName : pmfm.label);
           return index !== 0 ? res : res.concat(<GroupColumnDefinition>{
-            key: 'group-' + isInstanceOf(pmfm, DenormalizedPmfmStrategy) ? (pmfm as IDenormalizedPmfm).completeName : pmfm.label,
+            key,
             label: group,
             name: visible && (this.i18nColumnPrefix + group) || '',
             cssClass: visible && cssClass || '',

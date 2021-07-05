@@ -135,7 +135,7 @@
         </ion-col>
         <ion-col>
           <!-- pmfms -->
-          <ng-container *ngFor="let pmfm of pmfms; index as i;" [ngSwitch]="pmfm.id">
+          <ng-container *ngFor="let pmfm of pmfms; index as i;">
 
             <mat-autocomplete-field *ngIf="mainMetierPmfmId === pmfm.id; else pmfmField"
                                     [formControl]="form.get('measurementValues.' + pmfm.id)"
@@ -180,20 +180,18 @@
 </form>
 
 <ng-template #measurementsSkeleton>
-  <ion-grid class="form-container ion-padding">
-    <ion-row class="ion-no-padding" >
-      <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
-      <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
-    </ion-row>
-  </ion-grid>
+  <ion-row class="ion-no-padding" >
+    <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
+    <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
+  </ion-row>
 </ng-template>
 
 <ng-template #measurementSkeleton>
   <ion-col size="12" size-md="2" size-lg="3">&nbsp;</ion-col>
-  <ion-col size="12">
+  <ion-col size="12" size-md="10" size-lg="9" class="ion-no-padding">
     <mat-form-field>
       <input matInput hidden>
-      <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
     </mat-form-field>
   </ion-col>
 </ng-template>

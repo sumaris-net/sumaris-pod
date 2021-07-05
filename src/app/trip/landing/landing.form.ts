@@ -14,7 +14,7 @@ import {
   FormArrayHelper,
   isInstanceOf,
   isNil,
-  isNotNil,
+  isNotNil, isNotNilOrBlank,
   LoadResult,
   LocalSettingsService,
   Person, PersonService,
@@ -35,6 +35,8 @@ import {SamplingStrategyService} from '@app/referential/services/sampling-strate
 import {TranslateService} from '@ngx-translate/core';
 import {IPmfm, PmfmType} from '@app/referential/services/model/pmfm.model';
 import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
+import {Metier} from '@app/referential/services/model/taxon.model';
+import {isNumeric} from 'rxjs/internal/util/isNumeric';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -310,16 +312,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
 
     // Load metier
-    const metierLabel = data.measurementValues[PmfmIds.MAIN_METIER.toString()];
-    if (metierLabel) {
-      (data.measurementValues as any)[PmfmIds.MAIN_METIER.toString()] = {label: metierLabel};
+    const metierId = data.measurementValues && data.measurementValues[PmfmIds.MAIN_METIER.toString()];
+    if (isNotNilOrBlank(metierId) && isNumeric(metierId)) {
+      const metierRef = await this.referentialRefService.loadById(+metierId, Metier.ENTITY_NAME);
+      (data.measurementValues as any)[PmfmIds.MAIN_METIER.toString()] = metierRef.asObject();
     }
 
     // Propagate the strategy
-    const strategyLabel = Object.entries(data.measurementValues || {})
-      .filter(([pmfmId, _]) => +pmfmId === PmfmIds.STRATEGY_LABEL)
-      .map(([_, value]) => value)
-      .find(isNotNil) as string;
+    const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()];
     this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
     this.strategyLabel = strategyLabel;
 
@@ -341,8 +341,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     if (this.showMetier) {
       data.measurementValues = data.measurementValues || {};
       const metier = data.measurementValues[PmfmIds.MAIN_METIER.toString()] as any;
-      if (metier) {
-        data.measurementValues[PmfmIds.MAIN_METIER.toString()] = metier.label;
+      if (ReferentialUtils.isNotEmpty(metier)) {
+        data.measurementValues[PmfmIds.MAIN_METIER.toString()] = metier.id;
       }
     }
 
@@ -379,7 +379,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     const modal = await this.modalCtrl.create({ component: VesselModal });
     modal.onDidDismiss().then(res => {
       // if new vessel added, use it
-      if (res &&  isInstanceOf(res.data, VesselSnapshot)) {
+      if (res &&  res.data instanceof VesselSnapshot) {
         console.debug("[landing-form] New vessel added : updating form...", res.data);
         this.form.get('vesselSnapshot').setValue(res.data);
         this.markForCheck();
@@ -481,10 +481,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         metierPmfm = pmfms.splice(existingIndex, 1)[0].clone();
       }
       else {
-        /*const values = (await this.referentialRefService.loadAll(0,1000, 'label', 'asc', {
-          entityName: 'Metier',
-          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-        }, {toEntity: false, withTotal: false}))?.data;*/
         metierPmfm = DenormalizedPmfmStrategy.fromObject({
           id: PmfmIds.MAIN_METIER,
           type: <PmfmType>'string'

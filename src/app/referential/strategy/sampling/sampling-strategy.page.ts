@@ -182,22 +182,34 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
   fillPmfmStrategyDefaults(target: Strategy) {
     target.pmfms = target.pmfms || [];
 
-    let pmfmStrategyLabelExists = false;
+    const pmfmIds: number[] = [];
     target.pmfms.forEach(pmfmStrategy => {
       // Keep only pmfmId
       pmfmStrategy.pmfmId = toNumber(pmfmStrategy.pmfm && pmfmStrategy.pmfm.id, pmfmStrategy.pmfmId);
       // delete pmfmStrategy.pmfm;
 
-      // Find existing strategy label pmfm
-      pmfmStrategyLabelExists = pmfmStrategyLabelExists || (pmfmStrategy.pmfmId === PmfmIds.STRATEGY_LABEL);
+      // Remember PMFM Ids
+      pmfmIds.push(pmfmStrategy.pmfmId);
     });
 
     // Add a Pmfm for the strategy label, if missing
-    if (!pmfmStrategyLabelExists) {
+    if (!pmfmIds.includes(PmfmIds.STRATEGY_LABEL)) {
       console.debug(`[simple-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.STRATEGY_LABEL}} to hold the strategy label, on ${AcquisitionLevelCodes.LANDING}`);
       target.pmfms.push(PmfmStrategy.fromObject({
         pmfm: {id: PmfmIds.STRATEGY_LABEL},
         acquisitionLevel: AcquisitionLevelCodes.LANDING,
+        isMandatory: true,
+        acquisitionNumber : 1,
+        rankOrder: 1 // Should be the only one PmfmStrategy on Landing
+      }));
+    }
+
+    // Add a TAG_ID Pmfm, if missing
+    if (!pmfmIds.includes(PmfmIds.TAG_ID)) {
+      console.debug(`[simple-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.TAG_ID}} to hold the strategy label, on ${AcquisitionLevelCodes.SAMPLE}`);
+      target.pmfms.push(PmfmStrategy.fromObject({
+        pmfm: {id: PmfmIds.TAG_ID},
+        acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
         isMandatory: true,
         acquisitionNumber : 1,
         rankOrder: 1 // Should be the only one PmfmStrategy on Landing

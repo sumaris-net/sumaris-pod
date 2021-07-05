@@ -1,7 +1,7 @@
 
 .table-container {
   min-width: 100%;
-  height: calc(100vh - 229px);
+  height: calc(100vh - 167px);
   overflow: auto;
 }
 
@@ -28,7 +28,9 @@
       min-width: 150px;
     }
     .mat-column-pmfm {
-      min-width: 60px;
+      //min-width: 60px;
+      min-width: calc(max(80px, 50vw / var(--pmfm-count)));
+      max-width: calc(70vw / var(--pmfm-count));
     }
     .mat-column-comments {
       min-width: 60px;
@@ -112,12 +114,6 @@
         background-color: var(--ion-color-light, whitesmoke) !important;
       }
 
-      &:hover {
-        mat-label,
-        ion-label {
-          color: var(--ion-color-primary);
-        }
-      }
     }
 
     mat-label,
