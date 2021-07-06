@@ -869,7 +869,8 @@
       "SAVE_ALL_ERROR": "Error while saving observed vessels",
       "SUBSCRIBE_ERROR": "Error while subscribe to observed vessel changes.",
       "NO_STRATEGY_EFFORT_ERROR": "For this sample row and date, there is no effort on sample row (no value defined)",
-      "ZERO_STRATEGY_EFFORT_ERROR": "For this sample row and date, effort on sample row is 0"
+      "ZERO_STRATEGY_EFFORT_ERROR": "For this sample row and date, effort on sample row is 0",
+      "NOT_OBSERVER_ERROR": "Sampling recorder is not an observer"
     }
   },
   "AGGREGATED_LANDING": {
