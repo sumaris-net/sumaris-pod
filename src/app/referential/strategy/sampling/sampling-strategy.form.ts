@@ -1075,6 +1075,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     };
   }
 
+  isLocationDisable(index: number): boolean {
+    return this.appliedStrategiesHelper.at(index).status === "DISABLED";
+  }
 
   ifSex(): boolean {
     return this.form.get('sex').value;

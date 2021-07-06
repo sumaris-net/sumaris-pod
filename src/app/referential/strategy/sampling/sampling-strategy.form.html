@@ -132,6 +132,7 @@
 
       <ion-col size="auto" class="ion-align-self-center">
         <button type="button" mat-icon-button
+                [disabled]="isLocationDisable(i)"
                 [tabindex]="tabindex+10++i*3+1"
                 [title]="'COMMON.BTN_ADD'|translate"
                 (click)="addAppliedStrategy()">
@@ -139,6 +140,7 @@
         </button>
 
         <button type="button" mat-icon-button
+                [disabled]="isLocationDisable(i)"
                 [tabindex]="tabindex+10++i*3+2"
                 [title]="'COMMON.BTN_DELETE'|translate"
                 (click)="appliedStrategiesHelper.removeAt(i)">
