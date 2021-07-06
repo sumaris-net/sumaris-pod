@@ -53,6 +53,7 @@ export abstract class AppRootTable<
   isAdmin: boolean;
   filterForm: FormGroup;
   filterCriteriaCount = 0;
+  filterPanelFloating = true;
   showUpdateOfflineFeature = false;
   offline = false;
 
@@ -298,6 +299,16 @@ export abstract class AppRootTable<
     else {
       this.setSynchronizationStatus('SYNC');
     }
+  }
+
+  toggleFilterPanelFloating() {
+    this.filterPanelFloating = !this.filterPanelFloating;
+    this.markForCheck();
+  }
+
+  closeFilterPanel() {
+    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+    this.filterPanelFloating = true;
   }
 
   get hasReadyToSyncSelection(): boolean {

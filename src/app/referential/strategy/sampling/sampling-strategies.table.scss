@@ -1,5 +1,17 @@
-.table-container {
+.filter-panel {
+  margin-bottom: 5px;
+  --expansion-panel-padding: 0!important;
 
+  ion-row.filter-row {
+
+    & > ion-col:first-child {
+      text-align: end;
+      vertical-align: center;
+    }
+  }
+}
+
+.table-container {
   height: calc(100%);
 }
 
@@ -29,7 +41,7 @@
     text-overflow: ellipsis;
   }
 
-  .mat-column-parameters {
+  .mat-column-parameterGroups {
     min-width: 100px;
     max-width: 120px;
   }

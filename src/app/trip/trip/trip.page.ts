@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, ViewChild, ViewEncapsulation} from '@angular/core';
 
 import {TripService} from '../services/trip.service';
 import {TripForm} from './trip.form';
@@ -6,33 +6,39 @@ import {SaleForm} from '../sale/sale.form';
 import {OperationsTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
-import * as momentImported from "moment";
+import * as momentImported from 'moment';
+import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum';
+import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
+import {FormGroup} from '@angular/forms';
+import {
+  Alerts,
+  EntitiesStorage,
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  fromDateISOString,
+  HistoryPageReference,
+  isNil,
+  isNotEmptyArray,
+  NetworkService,
+  PlatformService,
+  PromiseEvent,
+  ReferentialRef,
+  ReferentialUtils,
+  UsageMode
+} from '@sumaris-net/ngx-components';
+import {TripsPageSettingsEnum} from './trips.table';
+import {PhysicalGear, Trip} from '../services/model/trip.model';
+import {SelectPhysicalGearModal} from '../physicalgear/select-physical-gear.modal';
+import {ModalController} from '@ionic/angular';
+import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
+import {ProgramProperties} from '../../referential/services/config/program.config';
+import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
+import {debounceTime, filter, first} from 'rxjs/operators';
+import {TableElement} from '@e-is/ngx-material-table';
+import {Program} from '../../referential/services/model/program.model';
+import {environment} from '../../../environments/environment';
+
 const moment = momentImported;
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
-import {FormGroup} from "@angular/forms";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {TripsPageSettingsEnum} from "./trips.table";
-import {EntitiesStorage}  from "@sumaris-net/ngx-components";
-import {HistoryPageReference, UsageMode}  from "@sumaris-net/ngx-components";
-import {PhysicalGear, Trip} from "../services/model/trip.model";
-import {SelectPhysicalGearModal} from "../physicalgear/select-physical-gear.modal";
-import {ModalController} from "@ionic/angular";
-import {PhysicalGearFilter} from "../services/filter/physical-gear.filter";
-import {PromiseEvent} from "@sumaris-net/ngx-components";
-import {ProgramProperties} from "../../referential/services/config/program.config";
-import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {debounceTime, filter, first} from "rxjs/operators";
-import {ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {TableElement} from "@e-is/ngx-material-table";
-import {Alerts} from "@sumaris-net/ngx-components";
-import {Program} from "../../referential/services/model/program.model";
-import {fadeInOutAnimation} from "@sumaris-net/ngx-components";
-import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {isNil, isNotEmptyArray} from "@sumaris-net/ngx-components";
-import {fromDateISOString} from "@sumaris-net/ngx-components";
 
 const TripPageTabs = {
   GENERAL: 0,

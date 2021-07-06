@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector,
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {PhysicalGearValidatorService} from '../services/validator/physicalgear.validator';
 import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService, isInstanceOf} from '@sumaris-net/ngx-components';
+import {createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService, isInstanceOf, toBoolean} from '@sumaris-net/ngx-components';
 import {PhysicalGearModal} from './physical-gear.modal';
 import {PhysicalGear} from '../services/model/trip.model';
 import {PHYSICAL_GEAR_DATA_SERVICE} from '../services/physicalgear.service';

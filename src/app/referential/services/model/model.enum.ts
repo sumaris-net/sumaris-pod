@@ -66,6 +66,7 @@ export const PmfmIds = {
   AGE: 350,
   SEX: 80,
   SAMPLE_ID: 1435,
+  MAIN_METIER: 25,
 
   /* OBSDEB pmfms */
   PACKAGING: 177,

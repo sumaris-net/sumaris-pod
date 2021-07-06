@@ -34,7 +34,7 @@ export class IndividualMonitoringSubSamplesTable extends SubSamplesTable impleme
         .pipe(
           filter(isNotNil),
           // DEBUG
-          //tap(pmfms => console.log("TODO BLA pmfms:", pmfms))
+          //tap(pmfms => console.debug("[individual-monitoring-samples] Pmfms:", pmfms))
         )
         .subscribe(pmfms => {
 

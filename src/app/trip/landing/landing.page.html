@@ -76,7 +76,6 @@
                               [programLabel]="$programLabel|async"
                               [i18nPrefix]="i18nPrefix"
                               [showError]="false"
-                              [showComment]="!oneTabMode"
                               (onSubmit)="save($event)"
                               [debug]="debug">
             </app-landing-form>
@@ -135,28 +134,6 @@
       </div>
     </mat-tab>
 
-    <!-- TAB: comments -->
-    <mat-tab label="{{'COMMON.COMMENTS'|translate}}"
-             [disabled]="!oneTabMode">
-      <ng-template mat-tab-label>
-        <mat-icon>{{ (form.controls.comments.valueChanges | async | isNotNilOrBlank) ? 'chat_bubble' : 'chat_bubble_outline'}}}</mat-icon>
-        <ion-label translate>COMMON.COMMENTS</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="form.controls.invalid"></ion-icon>
-      </ng-template>
-
-      <div class="ion-padding form-container">
-        <mat-form-field appearance="outline">
-          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4"
-                    maxlength="2000"
-                    tabindex="100"
-                    [placeholder]="'COMMON.COMMENTS'|translate"
-                    [formControl]="form.controls.comments"></textarea>
-          <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
-          <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
-      </div>
-    </mat-tab>
-
   </mat-tab-group>
 
 </ion-content>
@@ -177,14 +154,10 @@
 
 <!-- FAB button -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed"
-         *ngIf="(oneTabMode && selectedTabIndex === 0) || (!oneTabMode && selectedTabIndex === 1)"
+         *ngIf="selectedTabIndex === 1"
          @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
-
-<ng-template #skeletonText100>
-  &nbsp;<ion-skeleton-text style="min-width: 100px"></ion-skeleton-text>
-</ng-template>

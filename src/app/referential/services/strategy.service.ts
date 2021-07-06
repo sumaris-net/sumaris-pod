@@ -8,19 +8,16 @@ import {
   BaseEntityGraphqlSubscriptions,
   EntitiesStorage,
   EntityAsObjectOptions,
-  EntityClass,
   EntityUtils,
-  FilterFn,
   GraphqlService,
   isNilOrBlank,
-  isNotEmptyArray,
   isNotNil,
   LoadResult,
   NetworkService,
   PlatformService,
   Referential,
   ReferentialRef,
-  ReferentialUtils, StatusIds,
+  ReferentialUtils,
   toNumber
 } from '@sumaris-net/ngx-components';
 import {CacheService} from 'ionic-cache';
@@ -34,67 +31,9 @@ import {BaseReferentialService} from './base-referential-service.class';
 import {Pmfm} from './model/pmfm.model';
 import {ProgramRefService} from './program-ref.service';
 import {StrategyRefService} from './strategy-ref.service';
-import {BaseReferentialFilter} from './filter/referential.filter';
 import {ReferentialRefFilter} from './filter/referential-ref.filter';
-import {SynchronizationStatus} from '@app/data/services/model/root-data-entity.model';
+import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
 
-
-@EntityClass({typename: 'StrategyFilterVO'})
-export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strategy> {
-
-  static fromObject: (source: any, opts?: any) => StrategyFilter;
-
-  referenceTaxonIds?: number[];
-  synchronizationStatus?: SynchronizationStatus;
-  analyticReferences?: string;
-  departmentIds?: number[];
-  locationIds?: number[];
-  parameterIds?: number[];
-  taxonIds?: number[];
-  periods?: any[];
-
-  fromObject(source: any) {
-    super.fromObject(source);
-    this.referenceTaxonIds = source.referenceTaxonIds;
-    this.synchronizationStatus = source.synchronizationStatus as SynchronizationStatus;
-    this.analyticReferences = source.analyticReferences;
-    this.departmentIds = source.departmentIds;
-    this.locationIds = source.locationIds;
-    this.parameterIds = source.parameterIds;
-    this.taxonIds = source.taxonIds;
-    this.periods = source.periods;
-  }
-
-  asObject(opts?: EntityAsObjectOptions): any {
-    const target = super.asObject(opts);
-    // TODO: check conversion is OK, when minify (for POD)
-    /*{
-      analyticReferences: json.analyticReferences,
-      departmentIds: isNotNil(json.department) ? [json.department.id] : undefined,
-      locationIds: isNotNil(json.location) ? [json.location.id] : undefined,
-      taxonIds: isNotNil(json.taxonName) ? [json.taxonName.id] : undefined,
-      periods : this.setPeriods(json),
-      parameterIds: this.setPmfmIds(json),
-      levelId: this.program.id,
-    }*/
-
-    return target;
-  }
-
-  buildFilter(): FilterFn<Strategy>[] {
-    const filterFns = super.buildFilter();
-
-    // Filter by reference taxon
-    if (isNotEmptyArray(this.referenceTaxonIds)) {
-      console.warn("TODO: filter local strategy by reference taxon IDs: ", this.referenceTaxonIds);
-      //filterFns.push(t => (t.appliedStrategies...includes(entity.statusId));
-    }
-
-    // TODO: any other attributes
-
-    return filterFns;
-  }
-}
 
 const FindStrategyNextLabel: any = gql`
   query StrategyNextLabelQuery($programId: Int!, $labelPrefix: String, $nbDigit: Int){

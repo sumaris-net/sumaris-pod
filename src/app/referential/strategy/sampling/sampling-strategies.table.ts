@@ -1,17 +1,18 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Output, ViewChild} from '@angular/core';
 import {
+  AppFormUtils,
   AppTable,
   DefaultStatusList,
-  EntitiesTableDataSource,
+  EntitiesTableDataSource, firstArrayValue,
   fromDateISOString, isEmptyArray,
   isNotEmptyArray,
-  isNotNil,
-  LocalSettingsService,
+  isNotNil, isNotNilOrBlank,
+  LocalSettingsService, ObjectMap,
   PersonService,
-  PersonUtils,
+  PersonUtils, ReferentialRef, removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  SharedValidators,
+  SharedValidators, sleep,
   StatusIds, toBoolean
 } from '@sumaris-net/ngx-components';
 import {Program} from '../../services/model/program.model';
@@ -25,15 +26,18 @@ import {ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME} from '../../service
 import {environment} from '@environments/environment';
 import {SamplingStrategy} from '../../services/model/sampling-strategy.model';
 import {SamplingStrategyService} from '../../services/sampling-strategy.service';
-import {StrategyFilter, StrategyService} from '../../services/strategy.service';
+import {StrategyService} from '../../services/strategy.service';
 import * as momentImported from 'moment';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {AbstractControl, FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {ParameterService} from '@app/referential/services/parameter.service';
 import {debounceTime, filter, tap} from 'rxjs/operators';
 import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
 import {MatExpansionPanel} from '@angular/material/expansion';
 import {TableElement} from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
 import {Subject} from 'rxjs';
+import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
+import {Parameter} from '@app/referential/services/model/parameter.model';
+import {TaxonNameService} from '@app/referential/services/taxon-name.service';
 
 const moment = momentImported;
 
@@ -52,21 +56,28 @@ export const SamplingStrategiesPageSettingsEnum = {
 export class SamplingStrategiesTable extends AppTable<SamplingStrategy, StrategyFilter> {
 
   private _program: Program;
-  errorDetails: any;
 
+  readonly quarters = Object.freeze([1, 2, 3, 4]);
+  readonly parameterGroupLabels: string[];
+
+  errorDetails: any;
   statusList = DefaultStatusList;
   statusById: any;
-  quarters = [1, 2, 3, 4];
-  readonly parameterGroupLabels: string[];
+  parameterIdsByGroupLabel: ObjectMap<number[]>;
 
   filterForm: FormGroup;
   filterCriteriaCount = 0;
+  i18nContext: {
+    prefix?: string;
+    suffix?: string;
+  } = {}
 
   @Input() showToolbar = true;
   @Input() canEdit = false;
   @Input() canDelete = false;
   @Input() showError = true;
   @Input() showPaginator = true;
+  @Input() filterPanelFloating = true;
 
   @Input() set program(program: Program) {
    this.setProgram(program);
@@ -91,8 +102,8 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     dataService: SamplingStrategyService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService,
-    protected strategyService: StrategyService,
     protected parameterService: ParameterService,
+    protected strategyService: StrategyService,
     protected formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
   ) {
@@ -111,7 +122,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
           'locations',
           'taxonNames',
           'comments',
-          'parameters',
+          'parameterGroups',
           'effortQ1',
           'effortQ2',
           'effortQ3',
@@ -128,9 +139,10 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       injector);
 
     this.parameterGroupLabels = Object.keys(ParameterLabelGroups)
-      .filter(label => label !== 'ANALYTIC_REFERENCE');
+      .filter(label => label !== 'TAG_ID');
 
     this.filterForm = formBuilder.group({
+      searchText: [null],
       levelId: [null, Validators.required], // the program id
       analyticReference: [null],
       department: [null, SharedValidators.entity],
@@ -138,12 +150,12 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       taxonName: [null, SharedValidators.entity],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
-      recorderPerson: [null, SharedValidators.entity],
-      periods : formBuilder.group({
-        effortQ1: [null],
-        effortQ2: [null],
-        effortQ3: [null],
-        effortQ4: [null]
+      //recorderPerson: [null, SharedValidators.entity],
+      effortByQuarter : formBuilder.group({
+        1: [null],
+        2: [null],
+        3: [null],
+        4: [null]
       }),
       parameterGroups : formBuilder.group(
         this.parameterGroupLabels.reduce((controlConfig, label) => {
@@ -170,14 +182,21 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   ngOnInit() {
     super.ngOnInit();
 
-    // Remove error after changed selection
+    // By default, use floating filter if toolbar not shown
+    this.filterPanelFloating = toBoolean(this.filterPanelFloating, !this.showToolbar)
+
+      // Remove error after changed selection
     this.selection.changed.subscribe(() => {
       this.error = null;
     });
 
     // Analytic reference autocomplete
     this.registerAutocompleteField('analyticReference', {
-      items: []
+      suggestFn: (value, filter) => this.strategyService.suggestAnalyticReferences(value, {
+        ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }),
+      columnSizes: [4, 6],
+      mobile: this.settings.mobile
     });
 
     this.registerAutocompleteField('department', {
@@ -199,9 +218,8 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     });
 
     this.registerAutocompleteField('taxonName', {
-      service: this.referentialRefService,
+      suggestFn: (value, filter) => this.referentialRefService.suggestTaxonNames(value, filter),
       filter: <ReferentialFilter>{
-        entityName: 'TaxonName',
         levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES],
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }
@@ -223,11 +241,11 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     this.registerSubscription(
       this.filterForm.valueChanges
         .pipe(
-          debounceTime(250),
+          //debounceTime(250),
           filter((_) => this.filterForm.valid),
-          tap(async (value) => {
-            const filter = await this.asFilter(value);
-            this.filterCriteriaCount = filter.countNotEmptyCriteria() - 1 /*levelId*/;
+          tap((value) => {
+            const filter = this.asFilter(value);
+            this.filterCriteriaCount = filter.countNotEmptyCriteria() - 1 /* remove the levelId (always exists) */;
             this.markForCheck();
             // Update the filter, without reloading the content
             this.setFilter(filter, {emitEvent: false});
@@ -237,46 +255,8 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
           tap(json => this.settings.savePageSetting(this.settingsId, json, SamplingStrategiesPageSettingsEnum.FILTER_KEY))
         )
         .subscribe());
-
   }
 
-  async getParameterIds(parameterGroups: Map<string, boolean>): Promise<number[]> {
-
-    const parameters = await Promise.all(
-      Object.keys(parameterGroups || {})
-        // Keep only checked parameter group
-        .filter(label => parameterGroups[label])
-        // Then load corresponding parameter
-        .map(label => this.parameterService.loadByLabel(label)));
-
-    if (isEmptyArray(parameters)) return undefined
-
-    // Keep only parameter's ids
-    return parameters.map(p => p.id);
-  }
-
-  getPeriods(jsonFilter: any): any[] {
-    const periods = [];
-    if (jsonFilter.startDate && jsonFilter.endDate && jsonFilter.periods) {
-      const startYear = moment(new Date(jsonFilter.startDate)).year();
-      const endYear = moment(jsonFilter.endDate).year();
-      for (let i = startYear; i <= endYear; i++) {
-        let y = 1;
-        Object.keys(jsonFilter.periods).forEach(period => {
-          if (jsonFilter.periods[period]) {
-            const startMonth = (y - 1) * 3 + 1;
-            const startDate = fromDateISOString(`${i}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`).utc();
-            const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
-            if ((startDate >= moment(jsonFilter.startDate) && moment(jsonFilter.endDate) >= startDate) && (endDate >= moment(jsonFilter.startDate) && endDate <= moment(jsonFilter.endDate))) {
-              periods.push({startDate, endDate});
-            }
-          }
-          y++;
-        });
-      }
-    }
-    return isNotEmptyArray(periods) ? periods : undefined;
-  }
 
   protected setProgram(program: Program) {
     if (program && isNotNil(program.id) && this._program !== program) {
@@ -286,7 +266,6 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       this.settingsId = SamplingStrategiesPageSettingsEnum.PAGE_ID + '#' + program.id;
 
       this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.';
-
       // Add a i18n suffix (e.g. in Biological sampling program)
       const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
       this.i18nColumnPrefix += i18nSuffix !== 'legacy' && i18nSuffix || '';
@@ -323,24 +302,46 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
 
     //TODO FIX : After delete first time, _dirty = false; Cannot delete second times cause try to save
     super.markAsPristine();
-    //
 
     this.error = null;
   }
 
-  applyFilterAndClosePanel(event?: UIEvent) {
-    this.onRefresh.emit(event);
+  closeFilterPanel(event?: UIEvent) {
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+    this.filterPanelFloating = true;
   }
 
-  resetFilter(event?: UIEvent) {
-    this.filterForm.reset();
-    this.setFilter(null, {emitEvent: true});
+  async applyFilterAndClosePanel(event?: UIEvent, waitDebounceTime?: boolean) {
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+    this.filterPanelFloating = true;
+
+    // Wait end of debounce
+    if (waitDebounceTime) await sleep(260);
+    this.onRefresh.emit(event);
+  }
+
+  resetFilter(json?: any) {
+    json = {
+      ...json,
+      levelId: json.levelId || this._program?.id
+    };
+    const filter = this.asFilter(json);
+    AppFormUtils.copyEntity2Form(json, this.filterForm);
+    this.setFilter(filter, {emitEvent: true});
+  }
+
+  resetFilterAndClose() {
+    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+    this.resetFilter();
   }
 
   onNewData(event: UIEvent, row: TableElement<SamplingStrategy>) {
 
+  }
+
+  toggleFilterPanelFloating() {
+    this.filterPanelFloating = !this.filterPanelFloating;
+    this.markForCheck();
   }
 
   /* -- protected methods -- */
@@ -348,26 +349,93 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   protected async restoreFilterOrLoad(programId: number) {
     this.markAsLoading();
 
+    // Load map of parameter ids, by group label
+    if (!this.parameterIdsByGroupLabel) {
+      this.parameterIdsByGroupLabel = await this.loadParameterIdsByGroupLabel();
+    }
+
     console.debug("[root-table] Restoring filter from settings...");
 
     const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
-    json.levelId = programId;
 
-    const filter = await this.asFilter(json);
-
-    this.filterForm.patchValue(json);
-    this.setFilter(filter, {emitEvent: true});
+    this.resetFilter({
+      ...json,
+      levelId: programId
+    });
   }
 
-  protected async asFilter(source?: any): Promise<StrategyFilter> {
+  protected asFilter(source?: any): StrategyFilter {
     source = source || this.filterForm.value;
 
     const filter = StrategyFilter.fromObject(source);
 
-    filter.periods = this.getPeriods(source);
-    filter.parameterIds = await this.getParameterIds(source.pmfmIds);
+    // Start date: should be the first day of the year
+    filter.startDate = filter.startDate && filter.startDate.utc().startOf('year');
+    // End date: should be the last day of the year
+    filter.endDate = filter.endDate && filter.endDate.endOf('year').utc().startOf('day');
+
+    // Convert periods (from quarters)
+    filter.periods = this.asFilterPeriods(source);
+
+    // Convert parameter groups to list of parameter ids
+    filter.parameterIds = this.asFilterParameterIds(source);
 
     return filter;
+  }
+
+
+  protected asFilterParameterIds(source?: any): number[] {
+
+    const checkedParameterGroupLabels = Object.keys(source.parameterGroups || {})
+      // Filter on checked item
+      .filter(label => source.parameterGroups[label] === true);
+
+    const parameterIds = checkedParameterGroupLabels.reduce((res, groupLabel) => {
+      return res.concat(this.parameterIdsByGroupLabel[groupLabel]);
+    }, []);
+
+    if (isEmptyArray(parameterIds)) return undefined
+
+    return removeDuplicatesFromArray(parameterIds);
+  }
+
+  protected asFilterPeriods(source: any): any[] {
+    const selectedQuarters: number[] = source.effortByQuarter && this.quarters.filter(quarter => source.effortByQuarter[quarter] === true);
+    if (isEmptyArray(selectedQuarters)) return undefined; // Skip if no quarters selected
+
+    // Start year (<N - 10> by default)
+    const startYear = source.startDate && fromDateISOString(source.startDate).year() || (moment().year() - 10);
+    // End year (N + 1 by default)
+    const endYear = source.endDate && fromDateISOString(source.endDate).year() || (moment().year() + 1);
+
+    if (startYear > endYear) return undefined; // Invalid years
+
+    const periods = [];
+    for (let year = startYear; year <= endYear; year++) {
+      selectedQuarters.forEach(quarter => {
+        const startMonth = (quarter - 1) * 3 + 1;
+        const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`).utc();
+        const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
+        periods.push({startDate, endDate});
+      });
+    }
+    return isNotEmptyArray(periods) ? periods : undefined;
+  }
+
+  clearControlValue(event: UIEvent, formControl: AbstractControl): boolean {
+    if (event) event.stopPropagation(); // Avoid to enter input the field
+    formControl.setValue(null);
+    return false;
+  }
+
+  protected async loadParameterIdsByGroupLabel(): Promise<ObjectMap<number[]>> {
+    const result: ObjectMap<number[]> = {};
+    await Promise.all(this.parameterGroupLabels.map(groupLabel => {
+      const parameterLabels = ParameterLabelGroups[groupLabel];
+      return this.parameterService.loadAllByLabels(parameterLabels, {toEntity: false, fetchPolicy: 'cache-first'})
+        .then(parameters => result[groupLabel] = parameters.map(p => p.id))
+    }));
+    return result;
   }
 }
 

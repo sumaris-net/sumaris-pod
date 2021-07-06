@@ -77,7 +77,6 @@
                               [i18nPrefix]="i18nPrefix"
                               [showError]="false"
                               [showMeasurements]="false"
-                              [showComment]="!oneTabMode"
                               (onSubmit)="save($event)"
                               [debug]="debug">
             </app-landing-form>
@@ -98,8 +97,7 @@
     </mat-tab>
 
     <!-- TAB: samples -->
-    <mat-tab label="{{'AUCTION_CONTROL.TAB_SAMPLES'|translate}}"
-             [disabled]="oneTabMode">
+    <mat-tab label="{{'AUCTION_CONTROL.TAB_SAMPLES'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="flag"></ion-icon>
@@ -159,7 +157,8 @@
                              [defaultSampleDate]="data?.dateTime"
                              [usageMode]="usageMode"
                              (onPrepareRowForm)="onPrepareSampleForm($event)"
-                             [debug]="debug">
+                             [debug]="debug"
+                             [compactFields]="true">
             <ion-buttons slot="end">
               <!-- Help button -->
               <button mat-icon-button *ngIf="helpContent"
@@ -173,33 +172,11 @@
       </div>
     </mat-tab>
 
-    <!-- TAB: comments -->
-    <mat-tab label="{{'COMMON.COMMENTS'|translate}}"
-             [disabled]="!oneTabMode">
-      <ng-template mat-tab-label>
-        <mat-icon>chat_bubble</mat-icon>
-        <ion-label translate>COMMON.COMMENTS</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="form.controls.invalid"></ion-icon>
-      </ng-template>
-
-      <div class="ion-padding form-container">
-        <mat-form-field appearance="outline">
-          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4"
-                    maxlength="2000"
-                    tabindex="100"
-                    [placeholder]="'COMMON.COMMENTS'|translate"
-                    [formControl]="form.controls.comments"></textarea>
-          <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
-          <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
-      </div>
-    </mat-tab>
-
   </mat-tab-group>
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm hidden-mobile>
+<ion-footer *ngIf="!mobile">
 
   <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
@@ -215,9 +192,8 @@
 
 <!-- FAB button -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed"
-         *ngIf="showSamplesTable && selectedTabIndex === 1"
-         @fadeInOutAnimation
-         visible-xs visible-sm visible-mobile>
+         *ngIf="mobile && showSamplesTable && selectedTabIndex === 1"
+         @fadeInOutAnimation>
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>

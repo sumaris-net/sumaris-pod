@@ -603,8 +603,8 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     TaxonomicLevelIds.SUBSPECIES = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_SUBSPECIES_ID);
 
     // Parameters
-    ParameterLabelGroups.AGE = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_AGE_LABEL);
-    ParameterLabelGroups.SEX = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_SEX_LABEL);
+    ParameterLabelGroups.AGE = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_AGE_LABEL);
+    ParameterLabelGroups.SEX = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_SEX_LABEL);
     ParameterLabelGroups.WEIGHT = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_WEIGHT_LABELS);
     ParameterLabelGroups.LENGTH = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_LENGTH_LABELS);
     ParameterLabelGroups.MATURITY = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_MATURITY_LABELS);

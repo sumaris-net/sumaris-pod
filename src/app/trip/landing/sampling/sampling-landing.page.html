@@ -77,10 +77,11 @@
                               [programLabel]="$programLabel|async"
                               [i18nPrefix]="i18nPrefix"
                               [requiredStrategy]="true"
-                              [showMeasurements]="false"
+                              [showMeasurements]="true"
                               [showError]="false"
-                              [showComment]="!oneTabMode"
+                              [showProgram]="false"
                               [showStrategy]="true"
+                              [showMetier]="true"
                               (onSubmit)="save($event)"
                               [debug]="debug">
 
@@ -183,31 +184,6 @@
       </div>
     </mat-tab>
 
-    <!-- TAB: comments -->
-    <mat-tab label="{{'COMMON.COMMENTS'|translate}}"
-             [disabled]="!oneTabMode">
-      <ng-template mat-tab-label>
-        <mat-icon color="primary" *ngIf="form.controls.comments.valueChanges | async | isNotNilOrBlank; else emptyComment">chat_bubble</mat-icon>
-        <ng-template #emptyComment>
-          <mat-icon>chat_bubble_outline</mat-icon>
-        </ng-template>
-        <ion-label translate>COMMON.COMMENTS</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="form.controls.invalid"></ion-icon>
-      </ng-template>
-
-      <div class="ion-padding form-container">
-        <mat-form-field appearance="outline">
-          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4"
-                    maxlength="2000"
-                    tabindex="100"
-                    [placeholder]="'COMMON.COMMENTS'|translate"
-                    [formControl]="form.controls.comments"></textarea>
-          <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
-          <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
-      </div>
-    </mat-tab>
-
   </mat-tab-group>
 
 </ion-content>
@@ -228,7 +204,7 @@
 
 <!-- FAB button -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed"
-         *ngIf="showSamplesTable && ((oneTabMode && selectedTabIndex === 0) || (!oneTabMode && selectedTabIndex === 1))"
+         *ngIf="showSamplesTable && selectedTabIndex === 1"
          @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">

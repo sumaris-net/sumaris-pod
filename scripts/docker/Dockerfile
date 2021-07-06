@@ -1,21 +1,21 @@
 FROM nginx:alpine
 
 # Build arg
+ARG NGINX_CONF=site.conf
 ARG HTML=www
-ARG HTDOCS=www
-ARG USERNAME="nginx_user"
-ARG USERID="20001"
-ARG GROUPNAME="nginx_group"
-ARG GROUPID="20001"
+ARG USERNAME="nginx"
+ARG GROUPNAME="nginx"
 
-# Create execution user/group
-RUN echo "Creatin group ${GROUPNAME}:${GROUPID}"
-RUN addgroup -g ${GROUPID} ${GROUPNAME}
-RUN echo "Creatin user ${USERNAME}:${USERID}"
-RUN adduser -D -G ${GROUPNAME} -h /usr/share/nginx -u ${USERID} ${USERNAME}
-USER ${USERNAME}:${GROUPNAME}
+# nginx conf
+COPY ${NGINX_CONF} /etc/nginx/conf.d/default.conf
+RUN touch /var/run/nginx.pid && \
+    chown -R ${USERNAME}:${GROUPNAME} /var/run/nginx.pid && \
+    chown -R ${USERNAME}:${GROUPNAME} /var/cache/nginx
 
 # Copy files
 COPY --chown=${USERNAME}:${GROUPNAME} ${HTML} /usr/share/nginx/html
 
-EXPOSE 80
+USER ${USERNAME}
+
+# Port 80 is reserved for root user
+EXPOSE 8080

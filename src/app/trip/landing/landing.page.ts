@@ -24,7 +24,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  PlatformService,
+  PlatformService, ReferentialRef,
   ReferentialUtils,
   UsageMode
 } from '@sumaris-net/ngx-components';
@@ -91,8 +91,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   showEntityMetadata = false;
   showQualityForm = false;
   i18nPrefix = LANDING_DEFAULT_I18N_PREFIX;
-  oneTabMode = false;
-
 
   get form(): FormGroup {
     return this.landingForm.form;
@@ -468,8 +466,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected getFirstInvalidTabIndex(): number {
-    if (this.oneTabMode || this.landingForm.invalid) return 0;
-    if (!this.oneTabMode && this.samplesTable.invalid) return 1;
+    if (this.landingForm.invalid) return 0;
+    if (this.samplesTable.invalid) return 1;
     return -1;
   }
 
@@ -480,10 +478,14 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected async getValue(): Promise<Landing> {
+    console.debug('[landing-page] DEV get value');
     const data = await super.getValue();
 
+    // Re add program, because program control can be disabled
+    data.program = ReferentialRef.fromObject(this.form.controls['program'].value);
+
     // Workaround, because sometime measurementValues is empty (see issue IMAGINE-273)
-    data.measurementValues = this.form.controls.measurementValues && this.form.controls.measurementValues.value;
+    data.measurementValues = this.form.controls.measurementValues?.value || {};
     if (isNotNilOrBlank(this.$strategyLabel.getValue())) {
       data.measurementValues[PmfmIds.STRATEGY_LABEL] = this.$strategyLabel.getValue();
     }
@@ -498,6 +500,10 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     //console.debug('[landing-page] DEV check getValue() result:', data);
 
     return data;
+  }
+
+  protected getJsonValueToSave(): Promise<any> {
+    return this.landingForm.value.asObject();
   }
 
   protected computeSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {

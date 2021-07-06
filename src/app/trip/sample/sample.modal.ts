@@ -45,7 +45,7 @@ export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
 })
 export class SampleModal implements OnInit, ISampleModalOptions {
 
-  private _$inputPmfms: Observable<IPmfm[]> | IPmfm[];
+  private _pmfms$ = new BehaviorSubject<IPmfm[]>(undefined);
   debug = false;
   loading = false;
   mobile: boolean;
@@ -57,12 +57,16 @@ export class SampleModal implements OnInit, ISampleModalOptions {
 
   // Avoid to load PMFM from program
   @Input() set pmfms(pmfms: Observable<IPmfm[]> | IPmfm[]) {
-    this._$inputPmfms = pmfms;
+    if (isObservable(pmfms)) {
+      pmfms.subscribe(pmfms => this._pmfms$.next(pmfms));
+    }
+    else {
+      this._pmfms$.next(pmfms);
+    }
   }
 
   get $pmfms(): Observable<IPmfm[]> {
-    return this.form.$pmfms ||
-      (isObservable(this._$inputPmfms) ? this._$inputPmfms : of(this._$inputPmfms));
+    return this._pmfms$.asObservable();
   }
 
   @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[]; // If PMFM are load from program: allow to override the list

@@ -9,47 +9,53 @@ fi;
 cd ${CI_PROJECT_DIR}
 
 task=$1
+dir=$2
+if [[ "_" == "_${dir}" ]]; then
+  dir=/tmp/.build-cache
+fi;
 
-CACHE_DIR=/tmp/.cache/dependencies
 DEPS_FILENAME=dependencies.json
 DEV_DEPS_FILENAME=devDependencies.json
 
+PROJECT_NAME=$(node -e "console.log(require('./package.json').name)")
 PROJECT_DEPENDENCIES=$(node -e "console.log(require('./package.json').dependencies)")
 PROJECT_DEV_DEPENDENCIES=$(node -e "console.log(require('./package.json').devDependencies)")
 
+BUILD_CACHE_DIR=${dir}/${PROJECT_NAME}/dependencies
+PROJECT_CACHE_DIR=${CI_PROJECT_DIR}/.cache/dependencies
+
 case "$task" in
   store)
-    mkdir -p ${CACHE_DIR}
-    echo "${PROJECT_DEPENDENCIES}" > ${CACHE_DIR}/${DEPS_FILENAME}
-    echo "${PROJECT_DEV_DEPENDENCIES}" > ${CACHE_DIR}/${DEV_DEPS_FILENAME}
-    echo "Project dependencies successfully stored at: ${CACHE_DIR}"
+    mkdir -p ${BUILD_CACHE_DIR}
+    echo "${PROJECT_DEPENDENCIES}" > ${BUILD_CACHE_DIR}/${DEPS_FILENAME}
+    echo "${PROJECT_DEV_DEPENDENCIES}" > ${BUILD_CACHE_DIR}/${DEV_DEPS_FILENAME}
+    echo "Project dependencies successfully stored at: ${BUILD_CACHE_DIR}"
   ;;
 
   check)
     echo "---- Checking project dependencies (from package.json)..."
-    echo " Project dir: ${CI_PROJECT_DIR}"
-    echo "   Cache dir: ${CACHE_DIR}"
+    echo " Project cache dir: ${PROJECT_CACHE_DIR}"
+    echo "   Build cache dir: ${BUILD_CACHE_DIR}"
 
-    PROJECT_CACHE_DIR=${CI_PROJECT_DIR}/.cache
     mkdir -p ${PROJECT_CACHE_DIR}
 
     echo "--- Checking 'dependencies' changes:"
-    if [[ ! -f ${CACHE_DIR}/${DEPS_FILENAME} ]]; then
-      echo "ERROR: Cannot check dependencies: missing file ${CACHE_DIR}/${DEPS_FILENAME} - Please execute '$0 store' then retry."
+    if [[ ! -f ${BUILD_CACHE_DIR}/${DEPS_FILENAME} ]]; then
+      echo "ERROR: Cannot check dependencies: missing file ${BUILD_CACHE_DIR}/${DEPS_FILENAME} - Please execute '$0 store' then retry."
       exit 1
     fi
     echo "${PROJECT_DEPENDENCIES}" > ${PROJECT_CACHE_DIR}/${DEPS_FILENAME}
-    diff ${CACHE_DIR}/${DEPS_FILENAME} ${PROJECT_CACHE_DIR}/${DEPS_FILENAME}
+    diff ${BUILD_CACHE_DIR}/${DEPS_FILENAME} ${PROJECT_CACHE_DIR}/${DEPS_FILENAME}
     [[ $? -ne 0 ]] && exit 1
     echo " (no changes)"
 
     echo "--- Checking 'devDependencies' changes:"
-    if [[ ! -f ${CACHE_DIR}/${DEV_DEPS_FILENAME} ]]; then
-      echo "ERROR: missing file ${CACHE_DIR}/${DEV_DEPS_FILENAME} - Please execute '$0 store' then retry."
+    if [[ ! -f ${BUILD_CACHE_DIR}/${DEV_DEPS_FILENAME} ]]; then
+      echo "ERROR: missing file ${BUILD_CACHE_DIR}/${DEV_DEPS_FILENAME} - Please execute '$0 store' then retry."
       exit 1
     fi
     echo "${PROJECT_DEV_DEPENDENCIES}" > ${PROJECT_CACHE_DIR}/${DEV_DEPS_FILENAME}
-    diff ${CACHE_DIR}/${DEV_DEPS_FILENAME} ${PROJECT_CACHE_DIR}/${DEV_DEPS_FILENAME}
+    diff ${BUILD_CACHE_DIR}/${DEV_DEPS_FILENAME} ${PROJECT_CACHE_DIR}/${DEV_DEPS_FILENAME}
     [[ $? -ne 0 ]] && exit 1
     echo " (no changes)"
   ;;
