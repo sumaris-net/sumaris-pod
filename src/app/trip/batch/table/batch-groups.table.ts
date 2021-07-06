@@ -784,15 +784,10 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug("[batch-group-table] Batch group modal result: ", data);
+    if (data && this.debug) console.debug("[batch-group-table] Batch group modal result: ", JSON.stringify(data));
     this.markAsLoaded();
 
-    // Exit if empty
-    if (! isInstanceOf(data, BatchGroup)) {
-      return undefined; // Exit if empty
-    }
-
-    return data;
+    return data instanceof BatchGroup ? data : undefined;
   }
 
   async deleteBatchGroup(event: UIEvent, data: BatchGroup): Promise<boolean> {

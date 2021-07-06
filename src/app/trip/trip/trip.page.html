@@ -64,7 +64,7 @@
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
                  [animationDuration]="tabGroupAnimationDuration"
-                 dynamicHeight>
+                 dynamicHeight="false">
 
     <!-- TAB: general -->
     <mat-tab label="{{'TRIP.TAB_GENERAL'|translate}}">
@@ -75,7 +75,7 @@
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="error || tripForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="mobile && (error || tripForm.error); let errorMsg" lines="none">
         <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
         <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
       </ion-item>
@@ -143,13 +143,14 @@
       <div class="ion-no-padding">
 
         <!-- error -->
-        <ion-item *ngIf="physicalGearsTable.error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="mobile && physicalGearsTable.error" lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="physicalGearsTable.error|translate"></ion-label>
         </ion-item>
 
         <app-physicalgears-table #physicalGearsTable
                                  [programLabel]="$programLabel|async"
+                                 [showToolbar]="!mobile"
                                  [debug]="debug"
                                  (onSelectPreviousGear)="openSelectPreviousGearsModal($event)">
         </app-physicalgears-table>
@@ -171,6 +172,7 @@
                             (onOpenRow)="onOpenOperation($event)"
                             (onNewRow)="onNewOperation($event)"
                             [program]="$programLabel|async"
+                            [showToolbar]="!mobile"
                             [paginator]="paginator"
                             [defaultSortBy]="mobile ? 'startDateTime': 'endDateTime'"
                             [defaultSortDirection]="mobile ?'desc': 'asc'">
@@ -187,8 +189,7 @@
   </mat-paginator>
 </ion-footer>
 
-<ion-footer hidden-xs hidden-sm hidden-mobile>
-
+<ion-footer *ngIf="!mobile">
 
   <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
                     [disabled]="!dirty || loading"
@@ -203,21 +204,25 @@
   </form-buttons-bar>
 </ion-footer>
 
-<!-- FAB button: add gear -->
-<ion-fab slot="fixed" vertical="bottom" horizontal="end"
-         *ngIf="physicalGearsTable.enabled && selectedTabIndex==1" @fadeInOutAnimation
-         visible-xs visible-sm visible-mobile>
+<ng-container *ngIf="mobile" [ngSwitch]="selectedTabIndex">
+  <!-- FAB button: add gear -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end"
+           *ngSwitchCase="1"
+           [class.cdk-visually-hidden]="physicalGearsTable.disabled"
+           @fadeInOutAnimation>
 
-  <ion-fab-button color="tertiary" (click)="physicalGearsTable.addRow($event)">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+    <ion-fab-button color="tertiary" (click)="physicalGearsTable.addRow($event)">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 
-<!-- FAB button: add operation -->
-<ion-fab slot="fixed" vertical="bottom" horizontal="end"
-         *ngIf="operationsTable.enabled && selectedTabIndex==2" @fadeInOutAnimation
-         visible-xs visible-sm visible-mobile>
-  <ion-fab-button color="tertiary" (click)="!saving && operationsTable.addRow($event)">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+  <!-- FAB button: add operation -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end"
+           *ngSwitchCase="2"
+           [class.cdk-visually-hidden]="operationsTable.disabled"
+           @fadeInOutAnimation>
+    <ion-fab-button color="tertiary" (click)="!saving && operationsTable.addRow($event)">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ng-container>

@@ -39,6 +39,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() tripId: number;
   @Input() showMap: boolean;
   @Input() program: string;
+  @Input() showToolbar = true;
 
 
   get sortActive(): string {

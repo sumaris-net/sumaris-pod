@@ -10,7 +10,7 @@
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
 
     <!-- Add -->
-    <button mat-icon-button *ngIf="enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()" hidden-mobile>
+    <button mat-icon-button *ngIf="!mobile && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
     </button>
 
@@ -136,6 +136,24 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled" (click)="clickRow($event, row)"></tr>
   </table>
 
+  <ng-container *ngIf="loadingSubject|async; else noResult">
+    <ion-item>
+      <ion-skeleton-text animated></ion-skeleton-text>
+    </ion-item>
+  </ng-container>
+
+  <ng-template #noResult>
+    <ion-item *ngIf="totalRowCount === 0">
+      <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+    </ion-item>
+  </ng-template>
+
+  <!--<ion-item lines="none" *ngIf="!showToolbar && !mobile">
+    <ion-button color="tertiary" (click)="addRow($event)">
+      <ion-icon name="add"></ion-icon>
+      <span translate>COMMON.BTN_ADD</span>
+    </ion-button>
+  </ion-item>-->
 </div>
 
 <!-- Add Button
