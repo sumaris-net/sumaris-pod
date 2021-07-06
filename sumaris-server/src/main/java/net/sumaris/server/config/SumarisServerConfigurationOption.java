@@ -162,6 +162,13 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
         null, // NUll == auto detected
         String.class),
 
+    SUPERVISOR_DEPARTMENT(
+            "sumaris.supervisor.department",
+            n("sumaris.config.option.supervisor.department.description"),
+            null,
+            Integer.class,
+            false),
+
     APP_MIN_VERSION(
             "sumaris.app.version.min",
             n("sumaris.config.option.sumaris.app.version.min.description"),

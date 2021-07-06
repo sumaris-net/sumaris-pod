@@ -98,6 +98,10 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         super.overrideExternalModulesDefaultOptions(applicationConfig);
     }
 
+    public int getSupervisorDepartment() {
+        return applicationConfig.getOptionAsInt(SumarisServerConfigurationOption.SUPERVISOR_DEPARTMENT.getKey());
+    }
+
     public String getAuthRoleForNotSelfData() {
         return applicationConfig.getOption(SumarisServerConfigurationOption.AUTH_ROLE_NOT_SELF_DATA_ACCESS.getKey());
     }
