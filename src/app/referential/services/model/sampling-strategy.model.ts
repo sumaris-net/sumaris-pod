@@ -27,6 +27,7 @@ export class SamplingStrategy extends Strategy<SamplingStrategy> {
     this.effortByQuarter = {}; // Init, for easier use in UI
   }
 
+  // TODO : Check if clone is needed
   clone(): SamplingStrategy {
     const target = new SamplingStrategy();
     target.fromObject(this);
@@ -62,6 +63,7 @@ export class StrategyEffort {
   constructor() {
   }
 
+// TODO : Check if clone is needed
   clone(): StrategyEffort {
     const target = new StrategyEffort();
     target.fromObject(this);

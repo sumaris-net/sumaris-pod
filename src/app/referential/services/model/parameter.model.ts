@@ -19,6 +19,7 @@ export class Parameter extends BaseReferential<Parameter> {
     this.entityName = Parameter.ENTITY_NAME;
   }
 
+// TODO : Check if clone is needed
   clone(): Parameter {
     const target = new Parameter();
     target.fromObject(this);
