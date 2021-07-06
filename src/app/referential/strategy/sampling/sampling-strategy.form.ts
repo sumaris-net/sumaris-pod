@@ -550,10 +550,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   selectMask(input: HTMLInputElement) {
     if (!this.labelMask) input.select();
     const startIndex = this.labelMask.findIndex(c => c instanceof RegExp);
-    let endIndex = this.labelMask.slice(startIndex).findIndex(c => !(c instanceof RegExp), startIndex);
-    endIndex = (endIndex === -1)
-      ? this.labelMask.length
-      : startIndex + endIndex;
+    const endIndex = this.labelMask.length;
     input.setSelectionRange(startIndex, endIndex, "backward");
   }
 
@@ -898,7 +895,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         finalMaskTaxonName = [...TaxonUtils.generateLabel(taxonName)];
       } else {
         taxonError = true;
-        finalMaskTaxonName = ["X", "X", "X", "X", "X", "X", "X"];
+        finalMaskTaxonName = [/\S/, /\S/, /\S/, /\S/, /\S/, /\S/, /\S/];
       }
     } else {
       finalMaskTaxonName = ["X", "X", "X", "X", "X", "X", "X"];
@@ -912,25 +909,20 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.labelMask = labelMaskArray;
 
     const finalMaskTaxonNameString = finalMaskTaxonName.join("");
-    const labelPrefix = `${finalMaskYear} ${finalMaskTaxonNameString}`;
 
     const labelControl = this.form.get('label');
-    const existingLabel = labelControl.value as string;
-    // display error undefinedTaxon
+
     if (taxonError && taxonNameControl) {
       taxonNameControl.setErrors(<ValidationErrors>{ cannotComputeTaxonCode: true });
-      labelControl.setValue(labelPrefix + ' ');
+      const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear} XXXXXXX`, 3));
+      labelControl.setValue(computedLabel);
       return;
     }
-    if (existingLabel?.startsWith(labelPrefix)) {
-      SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
-    } else {
-      const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear} ${finalMaskTaxonNameString}`, 3));
 
-      console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
-
-      labelControl.setValue(computedLabel);
-    }
+    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear} ${finalMaskTaxonNameString}`, 3));
+    SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
+    console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
+    labelControl.setValue(computedLabel);
   }
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------
