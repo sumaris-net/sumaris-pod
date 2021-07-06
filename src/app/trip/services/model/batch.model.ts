@@ -135,12 +135,6 @@ export class Batch<
     super(__typename || Batch.TYPENAME);
   }
 
-  clone(opts?: O & FO): T {
-    const target = new Batch();
-    target.fromObject(this.asObject(opts), opts);
-    return target as unknown as T;
-  }
-
   asObject(opts?: O): any {
     const parent = this.parent;
     this.parent = null; // avoid parent conversion
