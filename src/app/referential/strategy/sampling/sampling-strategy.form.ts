@@ -434,6 +434,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       if (a.label > b.label) { return 1; }
       return 0;
     };
+    const sortFnByName = (a: ReferentialRef, b: ReferentialRef) => {
+      if (a.name < b.name) { return -1; }
+      if (a.name > b.name) { return 1; }
+      return 0;
+    };
 
     // Load historical data
     // TODO BLA: check if sort by label works fine
@@ -469,7 +474,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         .reduce((res, taxonName: TaxonNameStrategy): TaxonNameRef[] =>
           res.concat([taxonName.taxonName]), []),
       'id');
-    taxons.sort(sortFn);
+    taxons.sort(sortFnByName);
     this.taxonNameItems.next(taxons);
 
     // Fractions
