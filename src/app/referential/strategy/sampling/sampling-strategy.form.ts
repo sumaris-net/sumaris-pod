@@ -301,7 +301,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }
     ]);
 
-    this.registerSubscription(this.form.get('label').valueChanges.subscribe(() => this.onEditLabel()));
+    this.registerSubscription(this.form.get('label').valueChanges.subscribe(value => this.onEditLabel(value)));
     // register year field changes
     this.registerSubscription(this.form.get('year').valueChanges.subscribe(date => this.onDateChange(date)));
     this.registerSubscription(this.taxonNamesFormArray.valueChanges.subscribe(() => this.onTaxonChange()));
@@ -870,9 +870,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return target;
   }
 
-  protected async onEditLabel() {
+  protected async onEditLabel(value: string) {
     const labelRegex = new RegExp(/\d\d [A-Z][A-Z][A-Z][A-Z][A-Z][A-Z][A-Z] \d\d\d/);
-    if (labelRegex.test(this.form.get("label").value)) {
+    if (labelRegex.test(value)) {
       SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
     }
     return;
