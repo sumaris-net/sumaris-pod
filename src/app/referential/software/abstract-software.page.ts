@@ -140,6 +140,9 @@ export abstract class AbstractSoftwarePage<
 
     // Convert entities to id
     data.properties = this.propertiesForm.value;
+    data.properties
+      .filter(property => this.propertyDefinitions.find(def => def.key === property.key && def.type === 'entity'))
+      .forEach(property => property.value = property.value.id);
 
     return data;
   }
