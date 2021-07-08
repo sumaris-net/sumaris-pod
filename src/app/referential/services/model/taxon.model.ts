@@ -169,19 +169,27 @@ export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectO
 
 export class TaxonUtils {
 
-  static generateLabel(taxonName: string) {
+  static generateLabelFromName(taxonName: string): string {
+    if (taxonName === "Amblyraja hyperborea") return undefined;
+
     if (isNil(taxonName)) return undefined;
-    let label = undefined;
     const genusWord = /^[a-zA-Z]{4,}$/;
     const speciesWord = /^[a-zA-Z]{3,}$/;
 
     // Rubin code for "Leucoraja circularis": LEUC CIR
     const parts = taxonName.split(" ");
     if (parts.length === 2 && parts[0].match(genusWord) && parts[1].match(speciesWord)) {
-      label = parts[0].slice(0, 4).toUpperCase() + parts[1].slice(0, 3).toUpperCase();
+      return parts[0].slice(0, 4).toUpperCase() + parts[1].slice(0, 3).toUpperCase();
     }
 
-    return label;
+    return undefined;
+  }
+
+  static generateNameSearchPatternFromLabel(label: string) {
+    if (!label || label.length !== 7) {
+      throw new Error('Invalid taxon name label (expected 7 characters)');
+    }
+    return label.slice(0, 4) + '* ' + label.slice(4) + '*';
   }
 
 }
