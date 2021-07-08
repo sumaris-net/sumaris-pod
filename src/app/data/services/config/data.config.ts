@@ -8,18 +8,18 @@ export const DATA_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
 };
 
 export const DATA_CONFIG_OPTIONS = Object.freeze({
-  DATA_NOT_SELF_ACCESS_ROLE: <FormFieldDefinition>{
-    key: "sumaris.auth.notSelfDataAccess.role",
-    label: "CONFIGURATION.OPTIONS.NOT_SELF_DATA_ACCESS_MIN_ROLE",
+  DATA_ACCESS_NOT_SELF_ROLE: <FormFieldDefinition>{
+    key: "sumaris.data.accessNotSelfData.role",
+    label: "CONFIGURATION.OPTIONS.DATA_ACCESS_NOT_SELF_ROLE",
     type: 'enum',
     values: PRIORITIZED_AUTHORITIES.map(key => ({
       key: 'ROLE_' + key,
       value: 'USER.PROFILE_ENUM.' + key
     }))
   },
-  SUPERVISOR_DEPARTMENT: <FormFieldDefinition>{
-    key: "sumaris.supervisor.department",
-    label: "CONFIGURATION.OPTIONS.SUPERVISOR_DEPARTMENT",
+  DATA_ACCESS_NOT_SELF_DEPARTMENT_IDS: <FormFieldDefinition>{
+    key: "sumaris.data.accessNotSelfData.department.ids",
+    label: "CONFIGURATION.OPTIONS.DATA_ACCESS_NOT_SELF_DEPARTMENT_IDS",
     defaultValue: "",
     type: 'string'
   },
