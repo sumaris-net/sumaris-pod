@@ -52,6 +52,11 @@ public class XMLQuery extends HSQLDBSingleXMLQuery {
 
     // let default values here for HSQLDB
 
+    @Override
+    protected String getXSLFileName() {
+        return "xsl/queryOracle.xsl";
+    }
+
     /**
      * Get column names, with type="hidden"
      *
