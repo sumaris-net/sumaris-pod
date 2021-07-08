@@ -208,9 +208,14 @@
         "TOKEN": "Crypto",
         "BASIC_AND_TOKEN": "Basic and crypto"
       },
-      "DATA_QUALITY_PROCESS_ENABLE": "Enable quality process ?",
+      "DATA_QUALITY_PROCESS_ENABLE": "Enable quality process?",
       "DATA_SHOW_RECORDER": "Show recorder person?",
-      "DATA_SHOW_OBSERVERS": "Show observers?"
+      "LANDING": {
+        "FILTER_PROGRAM": "Landing > Show program filter?",
+        "FILTER_LOCATION": "Landing > Show locations filter?",
+        "FILTER_PERIOD": "Landing > Show period filter?",
+        "FILTER_OBSERVERS": "Landing > Show observers filter?"
+      }
     },
     "CACHE": {
       "NAME": "Name",

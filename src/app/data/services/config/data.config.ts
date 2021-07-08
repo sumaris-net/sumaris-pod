@@ -41,10 +41,28 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     type: 'boolean',
     defaultValue: true
   },
-  SHOW_OBSERVERS: <FormFieldDefinition>{
-    key: 'sumaris.data.show.observer.enable',
-    label: 'CONFIGURATION.OPTIONS.DATA_SHOW_OBSERVERS',
+  SHOW_FILTER_PROGRAM: <FormFieldDefinition>{
+    key: 'sumaris.data.landing.show.filter.program.enable',
+    label: 'CONFIGURATION.OPTIONS.LANDING.FILTER_PROGRAM',
     type: 'boolean',
     defaultValue: true
-  }
+  },
+  SHOW_FILTER_LOCATION: <FormFieldDefinition>{
+    key: 'sumaris.data.landing.show.filter.location.enable',
+    label: 'CONFIGURATION.OPTIONS.LANDING.FILTER_LOCATION',
+    type: 'boolean',
+    defaultValue: true
+  },
+  SHOW_FILTER_PERIOD: <FormFieldDefinition>{
+    key: 'sumaris.data.landing.show.filter.period.enable',
+    label: 'CONFIGURATION.OPTIONS.LANDING.FILTER_PERIOD',
+    type: 'boolean',
+    defaultValue: true
+  },
+  SHOW_OBSERVERS: <FormFieldDefinition>{
+    key: 'sumaris.data.show.observer.enable',
+    label: 'CONFIGURATION.OPTIONS.LANDING.FILTER_OBSERVERS',
+    type: 'boolean',
+    defaultValue: true
+  },
 });
