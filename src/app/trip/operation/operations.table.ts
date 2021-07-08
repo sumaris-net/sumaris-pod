@@ -183,7 +183,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
     const res = await this.dataService.loadAllByTrip({
         tripId: this.tripId
-      }, {fullLoad: false, withTotal: false});
+      }, {fullLoad: false, withTotal: true});
 
     const modal = await this.modalCtrl.create({
       component: OperationsMap,

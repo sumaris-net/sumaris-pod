@@ -478,7 +478,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
             // Insert into cached queries
             if (isNew) {
               this.insertIntoMutableCachedQuery(proxy, {
-                query: LoadAllLightQuery,
+                query: LoadAllLightWithTotalQuery,
                 data: savedEntity
               });
             }
@@ -530,7 +530,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         update: (proxy) => {
           // Remove from cached queries
           this.removeFromMutableCachedQueryByIds(proxy, {
-            query: LoadAllLightQuery,
+            query: LoadAllLightWithTotalQuery,
             ids: remoteIds
           });
 
