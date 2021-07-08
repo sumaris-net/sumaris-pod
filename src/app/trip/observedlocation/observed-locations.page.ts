@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from '@angular/core';
 import {TableElement} from "@e-is/ngx-material-table";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController} from "@ionic/angular";
@@ -44,6 +44,12 @@ export class ObservedLocationsPage extends
   highlightedRow: TableElement<ObservedLocation>;
   $title = new BehaviorSubject<string>('');
 
+  @Input() showFilterProgram = true;
+  @Input() showFilterLocation = true;
+  @Input() showFilterPeriod = true;
+  @Input() showFilterRecorder = true;
+  @Input() showFilterObservers = true;
+
   constructor(
     protected injector: Injector,
     protected route: ActivatedRoute,
@@ -84,8 +90,7 @@ export class ObservedLocationsPage extends
       synchronizationStatus: [null],
       recorderDepartment: [null, SharedValidators.entity],
       recorderPerson: [null, SharedValidators.entity],
-      // TODO: add observer filter ?
-      //,'observer': [null]
+      observers: [null, SharedValidators.entity]
     });
     this.autoLoad = false;
     this.defaultSortBy = 'startDateTime';
@@ -140,6 +145,17 @@ export class ObservedLocationsPage extends
       mobile: this.mobile
     });
 
+    // Combo: recorder person
+    this.registerAutocompleteField('observers', {
+      service: this.personService,
+      filter: {
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+      },
+      attributes: ['lastName', 'firstName', 'department.name'],
+      displayWith: PersonUtils.personToString,
+      mobile: this.mobile
+    });
+
     this.registerSubscription(
       this.configService.config.subscribe(config => {
         const title = config && config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
@@ -148,8 +164,17 @@ export class ObservedLocationsPage extends
         // Enable/Disable columns
         this.setShowColumn('quality', config && config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE));
         this.setShowColumn('recorderPerson', config && config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER));
+        this.setShowColumn('observers', config && config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS));
+
+        // Manage filters display according to config settings.
+        this.showFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
+        this.showFilterLocation = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_LOCATION);
+        this.showFilterPeriod = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PERIOD);
+        this.showFilterRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
       })
     );
+
+
 
     // Restore filter from settings, or load all
     this.restoreFilterOrLoad();

@@ -171,7 +171,7 @@
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
 
       <ion-grid>
-        <ion-row>
+        <ion-row *ngIf="showFilterProgram">
           <ion-col>
             <!-- Program -->
             <mat-autocomplete-field
@@ -184,7 +184,7 @@
           </ion-col>
         </ion-row>
 
-        <ion-row>
+        <ion-row *ngIf="showFilterLocation">
           <ion-col>
             <!-- Location -->
             <mat-autocomplete-field
@@ -198,7 +198,7 @@
         </ion-row>
 
         <!-- Period criteria -->
-        <ion-row>
+        <ion-row *ngIf="showFilterPeriod">
           <ion-col>
             <!-- Start date -->
             <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE'|translate"
@@ -218,7 +218,7 @@
         </ion-row>
 
         <!-- Recorder criteria -->
-        <ion-row>
+        <ion-row *ngIf="showFilterRecorder">
           <ion-col>
             <!-- Recorder department -->
             <mat-autocomplete-field
@@ -236,6 +236,20 @@
               [placeholder]="'TRIP.TABLE.FILTER.RECORDER_PERSON'|translate"
               formControlName="recorderPerson"
               [config]="autocompleteFields.person"
+              [i18nPrefix]="'USER.'"
+              [clearable]="true">
+              <ion-icon matPrefix name="person"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+        </ion-row>
+
+        <!-- Observers criteria -->
+        <ion-row *ngIf="showFilterObservers">
+          <ion-col>
+            <mat-autocomplete-field
+              [placeholder]="'TRIP.TABLE.FILTER.OBSERVERS'|translate"
+              formControlName="observers"
+              [config]="autocompleteFields.observers"
               [i18nPrefix]="'USER.'"
               [clearable]="true">
               <ion-icon matPrefix name="person"></ion-icon>
