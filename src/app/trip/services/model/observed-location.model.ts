@@ -20,8 +20,8 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
   endDateTime: Moment;
   location: ReferentialRef;
   measurementValues: { [key: string]: any };
+  observerPerson: Person = null;
   observers: Person[];
-
   landings: Landing[];
 
   constructor() {
@@ -72,4 +72,6 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
         && (this.recorderPerson && other.recorderPerson && this.recorderPerson.id === other.recorderPerson.id)
       );
   }
+
+
 }

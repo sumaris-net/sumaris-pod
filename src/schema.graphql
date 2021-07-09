@@ -1927,6 +1927,7 @@ input ObservedLocationFilterVOInput {
   recorderDepartmentId: Int
   recorderPersonId: Int
   startDate: Date
+  observerPersonIds: Int
 }
 
 input ObservedLocationSaveOptionsInput {

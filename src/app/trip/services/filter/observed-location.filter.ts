@@ -2,11 +2,12 @@ import {Moment} from "moment";
 import {LandingFilter} from "./landing.filter";
 import {RootDataEntityFilter} from "../../../data/services/model/root-data-filter.model";
 import {ObservedLocation} from "../model/observed-location.model";
-import {EntityClass, EntityFilter, ReferentialRef, ReferentialUtils} from '@sumaris-net/ngx-components';
+import {EntityClass, EntityFilter, isNotEmptyArray, isNotNil, isNotNilOrBlank, Person, ReferentialRef, ReferentialUtils} from '@sumaris-net/ngx-components';
 import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
 import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
 import {FilterFn} from "@sumaris-net/ngx-components";
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 @EntityClass({typename: 'ObservedLocationFilterVO'})
 export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocationFilter, ObservedLocation> {
@@ -16,12 +17,15 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
     location?: ReferentialRef;
     startDate?: Moment;
     endDate?: Moment;
+    observerPerson?: Person;
 
     fromObject(source: any, opts?: any) {
         super.fromObject(source, opts);
         this.location = ReferentialRef.fromObject(source.location);
         this.startDate = fromDateISOString(source.startDate);
-        this.endDate = fromDateISOString(source.startDate);
+        this.endDate = fromDateISOString(source.endDate);
+        this.observerPerson = Person.fromObject(source.observers)
+        || isNotNil(source.observers) && Person.fromObject({id: source.observers.id}) || undefined;
     }
 
     asObject(opts?: EntityAsObjectOptions): any {
@@ -31,14 +35,24 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
         if (opts && opts.minify) {
             target.locationId = this.location && this.location.id || undefined;
             delete target.location;
+          target.observerPersonIds = this.observerPerson && this.observerPerson.id || undefined;
+          delete target.observerPerson;
         } else {
             target.location = this.location && this.location.asObject(opts) || undefined;
+            target.observerPersonIds = this.observerPerson && this.observerPerson.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
         }
+
         return target;
     }
 
     buildFilter(): FilterFn<ObservedLocation>[] {
         const filterFns = super.buildFilter();
+
+      // Program
+      if (isNotNilOrBlank(this.program?.label)) {
+        const programLabel = this.program?.label;
+        filterFns.push(t => (t.program && t.program.label === programLabel));
+      }
 
         // Location
         if (ReferentialUtils.isNotEmpty(this.location)) {
@@ -57,6 +71,14 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
             filterFns.push(t => t.startDateTime && endDate.isAfter(t.startDateTime));
         }
 
+        // Recorder department and person
+        // Already defined in super classes root-data-filter.model.ts et data-filter.model.ts
+
+        // Observers
+      if (ReferentialUtils.isNotEmpty(this.observerPerson)) {
+        const observerPersonIds = this.observerPerson.id;
+        filterFns.push(t => (t.observerPerson && t.observerPerson.id === observerPersonIds));
+      }
         return filterFns;
     }
 }
