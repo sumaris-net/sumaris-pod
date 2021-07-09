@@ -301,6 +301,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }
     ]);
 
+    this.registerSubscription(this.form.get('label').valueChanges.subscribe(value => this.onEditLabel(value)));
     // register year field changes
     this.registerSubscription(this.form.get('year').valueChanges.subscribe(date => this.onDateChange(date)));
     this.registerSubscription(this.taxonNamesFormArray.valueChanges.subscribe(() => this.onTaxonChange()));
@@ -433,6 +434,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       if (a.label > b.label) { return 1; }
       return 0;
     };
+    const sortFnByName = (a: ReferentialRef, b: ReferentialRef) => {
+      if (a.name < b.name) { return -1; }
+      if (a.name > b.name) { return 1; }
+      return 0;
+    };
 
     // Load historical data
     // TODO BLA: check if sort by label works fine
@@ -468,7 +474,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         .reduce((res, taxonName: TaxonNameStrategy): TaxonNameRef[] =>
           res.concat([taxonName.taxonName]), []),
       'id');
-    taxons.sort(sortFn);
+    taxons.sort(sortFnByName);
     this.taxonNameItems.next(taxons);
 
     // Fractions
@@ -550,10 +556,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   selectMask(input: HTMLInputElement) {
     if (!this.labelMask) input.select();
     const startIndex = this.labelMask.findIndex(c => c instanceof RegExp);
-    let endIndex = this.labelMask.slice(startIndex).findIndex(c => !(c instanceof RegExp), startIndex);
-    endIndex = (endIndex === -1)
-      ? this.labelMask.length
-      : startIndex + endIndex;
+    const endIndex = this.labelMask.length;
     input.setSelectionRange(startIndex, endIndex, "backward");
   }
 
@@ -872,6 +875,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return target;
   }
 
+  protected async onEditLabel(value: string) {
+    const labelRegex = new RegExp(/\d\d [A-Z][A-Z][A-Z][A-Z][A-Z][A-Z][A-Z] \d\d\d/);
+    if (labelRegex.test(value)) {
+      SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
+    }
+    return;
+  }
+
   protected async onDateChange(date?: Moment) {
     date = fromDateISOString(date || this.form.get('year').value);
     if (!date || !this.program) return; // Skip if date or program are missing
@@ -898,7 +909,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         finalMaskTaxonName = [...TaxonUtils.generateLabel(taxonName)];
       } else {
         taxonError = true;
-        finalMaskTaxonName = ["X", "X", "X", "X", "X", "X", "X"];
+        finalMaskTaxonName = [/\S/, /\S/, /\S/, /\S/, /\S/, /\S/, /\S/];
       }
     } else {
       finalMaskTaxonName = ["X", "X", "X", "X", "X", "X", "X"];
@@ -912,25 +923,20 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.labelMask = labelMaskArray;
 
     const finalMaskTaxonNameString = finalMaskTaxonName.join("");
-    const labelPrefix = `${finalMaskYear} ${finalMaskTaxonNameString}`;
 
     const labelControl = this.form.get('label');
-    const existingLabel = labelControl.value as string;
-    // display error undefinedTaxon
+
     if (taxonError && taxonNameControl) {
       taxonNameControl.setErrors(<ValidationErrors>{ cannotComputeTaxonCode: true });
-      labelControl.setValue(labelPrefix + ' ');
+      const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear} XXXXXXX`, 3));
+      labelControl.setValue(computedLabel);
       return;
     }
-    if (existingLabel?.startsWith(labelPrefix)) {
-      SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
-    } else {
-      const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear} ${finalMaskTaxonNameString}`, 3));
 
-      console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
-
-      labelControl.setValue(computedLabel);
-    }
+    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear} ${finalMaskTaxonNameString}`, 3));
+    SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
+    console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
+    labelControl.setValue(computedLabel);
   }
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------
@@ -1075,6 +1081,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     };
   }
 
+  isLocationDisable(index: number): boolean {
+    return this.appliedStrategiesHelper.at(index).status === "DISABLED";
+  }
 
   ifSex(): boolean {
     return this.form.get('sex').value;
