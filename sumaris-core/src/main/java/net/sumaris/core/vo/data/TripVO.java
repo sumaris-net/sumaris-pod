@@ -78,6 +78,11 @@ public class TripVO implements IRootDataVO<Integer>,
     private SaleVO sale; // shortcut when only one sale
 
     @EqualsAndHashCode.Exclude
+    private List<ExpectedSaleVO> expectedSales;
+    @EqualsAndHashCode.Exclude
+    private ExpectedSaleVO expectedSale; // shortcut when only one expected sale
+
+    @EqualsAndHashCode.Exclude
     private List<MetierVO> metiers;
 
     @EqualsAndHashCode.Exclude

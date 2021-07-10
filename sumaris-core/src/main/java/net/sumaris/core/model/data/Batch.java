@@ -69,6 +69,9 @@ public class Batch implements IDataEntity<Integer>,
     @Column(name = "individual_count")
     private Integer individualCount;
 
+    @Column(name = "subgroup_count")
+    private Integer subgroupCount;
+
     @Column(length = IDataEntity.LENGTH_COMMENTS)
     private String comments;
 

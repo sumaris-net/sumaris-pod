@@ -154,6 +154,10 @@ public class Trip implements IRootDataEntity<Integer>,
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Sale> sales = new ArrayList<>();
 
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ExpectedSale.class, mappedBy = ExpectedSale.Fields.TRIP)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<ExpectedSale> expectedSales = new ArrayList<>();
+
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Landing.class, mappedBy = Landing.Fields.TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Landing> landings;

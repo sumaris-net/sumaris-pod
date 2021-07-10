@@ -216,8 +216,8 @@ public class PacketServiceImpl implements PacketService {
 
         List<Double> sampledWeights = source.getSampledWeights().stream().filter(Objects::nonNull).collect(Collectors.toList());
         int sampledPacketCount = sampledWeights.size();
-        // Individual count = number of sampled packets
-        target.setIndividualCount(sampledPacketCount); // in SIH, individual_count is stored in subgroup_count
+        // sub group count = number of sampled packets
+        target.setSubgroupCount(sampledPacketCount);
 
         Double averagePacketWeight = Daos.roundValue(sampledWeights.stream()
             .mapToDouble(Number::doubleValue)

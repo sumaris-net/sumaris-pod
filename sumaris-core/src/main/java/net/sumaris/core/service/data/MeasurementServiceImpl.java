@@ -141,6 +141,16 @@ public class MeasurementServiceImpl implements MeasurementService {
 	}
 
 	@Override
+	public List<MeasurementVO> getExpectedSaleMeasurements(int saleId) {
+		return measurementDao.getExpectedSaleMeasurements(saleId);
+	}
+
+	@Override
+	public Map<Integer, String> getExpectedSaleMeasurementsMap(int saleId) {
+		return measurementDao.getExpectedSaleMeasurementsMap(saleId);
+	}
+
+	@Override
 	public Map<Integer, String> getLandingMeasurementsMap(int landingId) {
 		return measurementDao.getLandingMeasurementsMap(landingId);
 	}

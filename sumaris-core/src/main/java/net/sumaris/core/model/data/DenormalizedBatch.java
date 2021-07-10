@@ -85,6 +85,8 @@ public class DenormalizedBatch  implements IEntity<Integer> {
     @Column(name = "individual_count")
     private Integer individualCount;
 
+    // TODO add subgroup_count ?
+
     @Column(name = "indirect_individual_count")
     private Integer indirectIndividualCount;
 

@@ -69,6 +69,9 @@ public class LandingVO implements IRootDataVO<Integer>,
     private List<SampleVO> samples;
     private Integer samplesCount;
 
+    // TODO ?
+//    private List<ExpectedSaleVO> expectedSales;
+
     private ProgramVO program;
 
     private List<MeasurementVO> measurements;

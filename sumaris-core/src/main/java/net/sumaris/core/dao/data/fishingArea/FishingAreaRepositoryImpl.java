@@ -154,8 +154,8 @@ public class FishingAreaRepositoryImpl
     }
 
     @Override
-    public List<FishingAreaVO> getAllVOByOperationId(int operationId) {
-        return self.getAllByOperationId(operationId).stream()
+    public List<FishingAreaVO> getAllByOperationId(int operationId) {
+        return self.getFishingAreaByOperationId(operationId).stream()
             .map(this::toVO).collect(Collectors.toList());
     }
 

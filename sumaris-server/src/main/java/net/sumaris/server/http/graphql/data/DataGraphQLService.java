@@ -107,6 +107,9 @@ public class DataGraphQLService {
     private SaleService saleService;
 
     @Autowired
+    private ExpectedSaleService expectedSaleService;
+
+    @Autowired
     private VesselPositionService vesselPositionService;
 
     @Autowired
@@ -685,6 +688,19 @@ public class DataGraphQLService {
         return CollectionUtils.isEmpty(sales) ? null : CollectionUtils.extractSingleton(sales);
     }
 
+    /* -- Expected Sales -- */
+
+    @GraphQLQuery(name = "expectedSales", description = "Get trip's expected sales")
+    public List<ExpectedSaleVO> getExpectedSalesByTrip(@GraphQLContext TripVO trip) {
+        return expectedSaleService.getAllByTripId(trip.getId());
+    }
+
+    @GraphQLQuery(name = "expectedSale", description = "Get trip's unique expected sale")
+    public ExpectedSaleVO getUniqueExpectedSaleByTrip(@GraphQLContext TripVO trip) {
+        List<ExpectedSaleVO> expectedSales = expectedSaleService.getAllByTripId(trip.getId());
+        return CollectionUtils.isEmpty(expectedSales) ? null : CollectionUtils.extractSingleton(expectedSales);
+    }
+
     /* -- Operations -- */
 
     @GraphQLQuery(name = "operations", description = "Get trip's operations")
@@ -1141,6 +1157,21 @@ public class DataGraphQLService {
             return sale.getMeasurementValues();
         }
         return measurementService.getSaleMeasurementsMap(sale.getId());
+    }
+
+
+    // ExpectedSale
+    @GraphQLQuery(name = "measurements", description = "Get expected sale measurements")
+    public List<MeasurementVO> getExpectedSaleMeasurements(@GraphQLContext ExpectedSaleVO expectedSale) {
+        return measurementService.getExpectedSaleMeasurements(expectedSale.getId());
+    }
+
+    @GraphQLQuery(name = "measurementValues", description = "Get expected sale measurement values")
+    public Map<Integer, String> getExpectedSaleMeasurementsMap(@GraphQLContext ExpectedSaleVO expectedSale) {
+        if (expectedSale.getMeasurementValues() != null) {
+            return expectedSale.getMeasurementValues();
+        }
+        return measurementService.getExpectedSaleMeasurementsMap(expectedSale.getId());
     }
 
 

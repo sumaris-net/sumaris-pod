@@ -94,7 +94,12 @@ public class SaleMeasurement implements IMeasurementEntity {
     private Pmfm pmfm;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Sale.class)
-    @JoinColumn(name = "sale_fk", nullable = false)
+    @JoinColumn(name = "sale_fk")
     @ToString.Exclude
     private Sale sale;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = ExpectedSale.class)
+    @JoinColumn(name = "expected_sale_fk")
+    @ToString.Exclude
+    private ExpectedSale expectedSale;
 }
