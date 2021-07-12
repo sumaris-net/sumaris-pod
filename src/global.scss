@@ -15,7 +15,16 @@
 // --------------------------------------------------
 :root {
   @include css-variables-to-root();
+
+  ion-app {
+    --form-button-bar-height: 56px;
+  }
+
+  .plt-mobile ion-app {
+    --form-button-bar-height: 0;
+  }
 }
+
 
 ion-button.mat-form-field-button.ion-color.md.button.button-solid {
   text-transform: capitalize;

@@ -1,9 +1,7 @@
 :host {
   --ion-tab-min-height: calc(100%);
-
-  --table-container-offset: calc(313px - var(--form-button-bar-height, 0));
+  --form-button-bar-height: 56px;
 }
-
 
 app-toolbar ion-spinner {
   width: 20px;
@@ -17,6 +15,12 @@ ion-col>ion-label {
 }
 
 .mat-tab-group {
+  --table-container-offset: calc(143px + var(--form-button-bar-height, 0));
+  --form-button-bar-height: 56px;
+
+  &.mobile {
+    --form-button-bar-height: 0px;
+  }
 
   .mat-tab-body .mat-tab-body-content {
     min-height: var(--ion-tab-min-height, 250px);

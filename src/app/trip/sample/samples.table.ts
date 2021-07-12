@@ -468,7 +468,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     const canDeleteRow = await this.canDeleteRows([row]);
     if (canDeleteRow === true) {
-      this.cancelOrDelete(event, row, true /*already confirmed*/);
+      this.deleteRow(event, row, true /*already confirmed*/);
     }
     return canDeleteRow;
   }

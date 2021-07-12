@@ -61,6 +61,7 @@
   (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
   <mat-tab-group #tabGroup
                  class="mat-tab-disabled-hidden"
+                 [class.mobile]="mobile"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
                  [animationDuration]="tabGroupAnimationDuration"

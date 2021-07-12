@@ -1,5 +1,5 @@
 import {Injectable, Injector, Optional} from '@angular/core';
-import {gql} from '@apollo/client/core';
+import {DocumentNode, gql} from '@apollo/client/core';
 import {filter, map} from 'rxjs/operators';
 import * as momentImported from 'moment';
 import {
@@ -62,6 +62,9 @@ import {TripFilter} from './filter/trip.filter';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {TrashRemoteService} from '@app/core/services/trash-remote.service';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
+import {useMutation} from '@apollo/client';
+import {FetchResult} from '@apollo/client/link/core';
+import {RefetchQueryDescription} from '@apollo/client/core/watchQueryOptions';
 
 const moment = momentImported;
 
@@ -877,7 +880,7 @@ export class TripService
       variables: { ids },
       update: (proxy) => {
         // Update the cache
-        this.removeFromMutableCachedQueryByIds(proxy, {
+        this.removeFromMutableCachedQueriesByIds(proxy, {
           queryName: 'LoadAll',
           ids
         });

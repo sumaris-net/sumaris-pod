@@ -1,9 +1,8 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql} from "@apollo/client/core";
 import {VesselRegistration} from "./model/vessel.model";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {ReferentialFragments} from "../../referential/services/referential.fragments";
-import {BaseEntityService} from "../../referential/services/base-entity-service.class";
+import {BaseEntityService, GraphqlService} from '@sumaris-net/ngx-components';
+import {ReferentialFragments} from '@app/referential/services/referential.fragments';
 import {PlatformService}  from "@sumaris-net/ngx-components";
 import {VesselRegistrationFilter} from "./filter/vessel.filter";
 import {isNotNil} from "@sumaris-net/ngx-components";

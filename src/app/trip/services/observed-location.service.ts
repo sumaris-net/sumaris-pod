@@ -446,7 +446,7 @@ export class ObservedLocationService
 
         // Add to cache
         if (isNew) {
-          this.insertIntoMutableCachedQuery(proxy, {
+          this.insertIntoMutableCachedQueries(proxy, {
             queryName: 'LoadAll',
             data: savedEntity
           });
@@ -552,7 +552,7 @@ export class ObservedLocationService
       variables: { ids },
       update: (proxy) => {
         // Update the cache
-        this.removeFromMutableCachedQueryByIds(proxy, {
+        this.removeFromMutableCachedQueriesByIds(proxy, {
           queryName: 'LoadAll',
           ids
         });

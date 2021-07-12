@@ -267,7 +267,7 @@ export class ReferentialService
           });
 
           // Update the cache
-          this.insertIntoMutableCachedQuery(proxy, {
+          this.insertIntoMutableCachedQueries(proxy, {
             query: LoadAllQuery,
             data: data.saveReferentials
           });
@@ -343,7 +343,7 @@ export class ReferentialService
 
         // Update the cache
         if (isNew) {
-          this.insertIntoMutableCachedQuery(cache, {
+          this.insertIntoMutableCachedQueries(cache, {
             query: LoadAllQuery,
             data: savedEntity
           });
@@ -390,7 +390,7 @@ export class ReferentialService
       error: { code: ErrorCodes.DELETE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.DELETE_REFERENTIAL_ERROR" },
       update: (proxy) => {
         // Remove from cache
-        this.removeFromMutableCachedQueryByIds(proxy, {
+        this.removeFromMutableCachedQueriesByIds(proxy, {
           query: LoadAllQuery,
           ids
         });

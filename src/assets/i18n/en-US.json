@@ -149,8 +149,8 @@
       "ENABLE_GRAVATAR": "User > Enable Gravatar ?",
       "DEFAULT_LOCALE": "Default Language",
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
-      "NOT_SELF_DATA_ACCESS_MIN_ROLE": "User profile (min) to access other people data",
-      "SUPERVISOR_DEPARTMENT": "Supervisor department: can access other departments data",
+      "ACCESS_NOT_SELF_DATA_MIN_ROLE": "Data entry > Min. user profile (min) to access other people data",
+      "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Data entry > Department that can access other people data",
       "APP_MIN_VERSION": "App > Minimal compatible version (x.y.z)",
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",

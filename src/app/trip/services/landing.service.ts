@@ -455,7 +455,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
         // Add to cache
         if (isNotEmptyArray(newSavedLandings)) {
-          this.insertIntoMutableCachedQuery(proxy, {
+          this.insertIntoMutableCachedQueries(proxy, {
             queryName: 'LoadAll',
             data: newSavedLandings
           });
@@ -544,7 +544,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
           // Add to cache
           if (isNew) {
             // Cache load by parent
-            this.insertIntoMutableCachedQuery(proxy, {
+            this.insertIntoMutableCachedQueries(proxy, {
               queryName: 'LoadAll',
               data: savedEntity
             });
@@ -663,7 +663,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       update: (proxy) => {
 
         // Remove from cache
-        this.removeFromMutableCachedQueryByIds(proxy, {queryName: 'LoadAll', ids});
+        this.removeFromMutableCachedQueriesByIds(proxy, {queryName: 'LoadAll', ids});
 
         if (this._debug) console.debug(`[landing-service] Landings deleted in ${Date.now() - now}ms`);
       }

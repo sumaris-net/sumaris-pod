@@ -250,7 +250,7 @@ export class VesselService
         // update features history FIXME: marche pas
         if (opts && opts.isNewFeatures) {
           const lastFeatures = entities[entities.length - 1].features;
-          this.vesselFeatureService.insertIntoMutableCachedQuery(proxy, {
+          this.vesselFeatureService.insertIntoMutableCachedQueries(proxy, {
             query: VesselFeatureQueries.loadAll,
             data: lastFeatures
           });
@@ -259,7 +259,7 @@ export class VesselService
         // update registration history FIXME: marche pas
         if (opts && opts.isNewRegistration) {
           const lastRegistration = entities[entities.length - 1].registration;
-          this.vesselRegistrationService.insertIntoMutableCachedQuery(proxy, {
+          this.vesselRegistrationService.insertIntoMutableCachedQueries(proxy, {
             query: VesselRegistrationsQueries.loadAll,
             data: lastRegistration
           });

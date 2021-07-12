@@ -333,7 +333,7 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
 
         // Update the cache
         if (isNew) {
-          this.insertIntoMutableCachedQuery(proxy, {
+          this.insertIntoMutableCachedQueries(proxy, {
             query: LoadAllQuery,
             data: savedEntity
           });
@@ -364,7 +364,7 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
       },
       update: (proxy) => {
         // Remove from cache
-        this.removeFromMutableCachedQueryByIds(proxy,{
+        this.removeFromMutableCachedQueriesByIds(proxy,{
           query: LoadAllQuery,
           ids
         });
