@@ -1,161 +1,201 @@
-<mat-toolbar>
-  <button mat-icon-button
-          hidden-xs hidden-sm hidden-mobile
-          *ngIf="!selection.hasValue() && enabled"
-          [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
-    <mat-icon>add</mat-icon>
-  </button>
-  <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
-    (click)="onRefresh.emit()">
-    <mat-icon>refresh</mat-icon>
-  </button>
-  <button mat-icon-button *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
-    (click)="deleteSelection()">
-    <mat-icon>delete</mat-icon>
-  </button>
+<mat-toolbar *ngIf="showToolbar">
 
-  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+  <ion-item *ngIf="!mobile && error" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <span class="toolbar-spacer"></span>
+  <div class="toolbar-spacer"></div>
 
-  <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
-    <mat-icon>more_vert</mat-icon>
-  </button>
+  <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+    <!-- Add -->
+    <button mat-icon-button
+            hidden-xs hidden-sm hidden-mobile
+            *ngIf="enabled"
+            [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+      <mat-icon>add</mat-icon>
+    </button>
+
+    <!-- Refresh -->
+    <button mat-icon-button *ngIf="!mobile"
+            [title]="'COMMON.BTN_REFRESH'|translate"
+            (click)="onRefresh.emit()">
+      <mat-icon>refresh</mat-icon>
+    </button>
+
+    <button mat-icon-button
+            *ngIf="showMap"
+            [title]="'TRIP.OPERATION.BTN_SHOW_MAP'|translate"
+            (click)="openMapModal($event)">
+      <mat-icon><ion-icon name="earth"></ion-icon></mat-icon>
+    </button>
+  </ng-container>
+
+  <!-- if row selection -->
+  <ng-template #hasSelection>
+
+    <!-- Delete -->
+    <button mat-icon-button *ngIf="enabled"
+            [title]="'COMMON.BTN_DELETE'|translate"
+            (click)="deleteSelection($event)">
+      <mat-icon>delete</mat-icon>
+    </button>
+
+  </ng-template>
 </mat-toolbar>
 
 <!-- error -->
-<ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
-  <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+<ion-item *ngIf="mobile && error" lines="none">
+  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<mat-table [dataSource]="dataSource" class="table-operations" matSort matSortDirection="asc"
-  matSortDisableClear [trackBy]="trackByFn">
+<div class="table-container">
+  <ion-refresher slot="fixed" *ngIf="mobile" (ionRefresh)="doRefresh($event)" >
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
-  <ng-container matColumnDef="select">
-    <mat-header-cell  *matHeaderCellDef>
-      <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-        [indeterminate]="selection.hasValue() && !isAllSelected()">
-      </mat-checkbox>
-    </mat-header-cell>
-    <mat-cell  *matCellDef="let row">
-      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
-      </mat-checkbox>
-    </mat-cell>
+  <table mat-table [dataSource]="dataSource" matSort
+             [matSortActive]="defaultSortBy"
+             [matSortDirection]="defaultSortDirection"
+             matSortDisableClear [trackBy]="trackByFn">
+
+    <ng-container matColumnDef="select">
+      <th mat-header-cell  *matHeaderCellDef>
+        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+          [indeterminate]="selection.hasValue() && !isAllSelected()">
+        </mat-checkbox>
+      </th>
+      <td mat-cell  *matCellDef="let row">
+        <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+        </mat-checkbox>
+      </td>
+    </ng-container>
+
+    <!-- id -->
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label>#</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <ion-text>{{row.currentData.rankOrderOnPeriod}}</ion-text>
+      </td>
+    </ng-container>
+
+    <!-- physical gear -->
+    <ng-container matColumnDef="physicalGear">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.OPERATION.LIST.PHYSICAL_GEAR</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <ion-label *ngIf="row.currentData.physicalGear?.gear else metier">{{row.currentData.physicalGear.gear | referentialToString:displayAttributes.gear }}</ion-label>
+        <ng-template #metier>
+          <ion-label>{{row.currentData.metier?.gear | referentialToString:displayAttributes.gear }}</ion-label>
+        </ng-template>
+      </td>
+    </ng-container>
+
+    <!-- metier -->
+    <ng-container matColumnDef="targetSpecies">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.OPERATION.LIST.TARGET_SPECIES</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <ion-label>{{ row.currentData.metier | referentialToString:displayAttributes.taxonGroup }}</ion-label>
+      </td>
+    </ng-container>
+
+    <!-- start date time  -->
+    <ng-container matColumnDef="startDateTime">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+        <ion-label translate>TRIP.OPERATION.LIST.START_DATE_TIME</ion-label>
+      </th>
+      <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+        <ion-text>{{row.currentData.startDateTime|dateFormat:{time:true} }}</ion-text>
+        <ion-text *ngIf="mobile" class="computed"><br/><small>
+          {{ row.currentData.startDateTime | dateFromNow }}
+          </small>
+        </ion-text>
+      </td>
+    </ng-container>
+
+    <!-- start position -->
+    <ng-container matColumnDef="startPosition">
+      <th mat-header-cell *matHeaderCellDef>
+        <ion-label translate>TRIP.OPERATION.LIST.START_POSITION</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <ion-text class="ion-text-end">
+          {{ row.currentData.startPosition?.latitude  | latitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}<br/>
+          {{ row.currentData.startPosition?.longitude | longitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}
+        </ion-text>
+      </td>
+    </ng-container>
+
+    <!-- end date time -->
+    <ng-container matColumnDef="endDateTime">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+        <ion-label translate>TRIP.OPERATION.LIST.END_DATE_TIME</ion-label>
+      </th>
+      <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+        {{row.currentData.endDateTime|dateFormat:{time:true} }}
+      </td>
+    </ng-container>
+
+    <!-- End position -->
+    <ng-container matColumnDef="endPosition" >
+      <th mat-header-cell *matHeaderCellDef >
+        <ion-label translate>TRIP.OPERATION.LIST.END_POSITION</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <ion-text class="ion-text-end">
+          {{row.currentData.endPosition?.latitude  | latitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}<br/>
+          {{row.currentData.endPosition?.longitude | longitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}
+        </ion-text>
+      </td>
+    </ng-container>
+
+    <!-- Comments column -->
+    <ng-container matColumnDef="comments">
+      <th mat-header-cell *matHeaderCellDef>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <mat-icon class="comment"
+                  *ngIf="row.currentData.comments"
+                  [title]="row.currentData.comments"></mat-icon>
+      </td>
+    </ng-container>
+
+    <!-- Actions buttons column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>
+        <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate"
+                (click)="openSelectColumnsModal($event)">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+      </th>
+      <td mat-cell *matCellDef="let row">
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns" class="mat-row-disabled"
+             [class.mat-row-selected]="highlightedRow === row"
+             (click)="clickRow($event, row)">
+    </tr>
+  </table>
+
+  <ng-container *ngIf="loadingSubject|async; else noResult">
+    <ion-item>
+      <ion-skeleton-text animated></ion-skeleton-text>
+    </ion-item>
   </ng-container>
 
-  <!-- id -->
-  <ng-container matColumnDef="id">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label *ngIf="!($loading|async); else loadingSpinner">#</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-text>{{row.currentData.rankOrderOnPeriod}}</ion-text>
-    </mat-cell>
-  </ng-container>
+  <ng-template #noResult>
+    <ion-item *ngIf="totalRowCount === 0">
+      <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+    </ion-item>
+  </ng-template>
+</div>
 
-  <!-- physical gear -->
-  <ng-container matColumnDef="physicalGear">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.OPERATION.LIST.PHYSICAL_GEAR</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData.physicalGear?.gear || row.currentData.metier?.gear, displayAttributes.gear)}}</ion-label>
-    </mat-cell>
-  </ng-container>
 
-  <!-- metier -->
-  <ng-container matColumnDef="targetSpecies">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.OPERATION.LIST.TARGET_SPECIES</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData.metier, displayAttributes.taxonGroup)}}</ion-label>
-    </mat-cell>
-  </ng-container>
-
-  <!-- start date time  -->
-  <ng-container matColumnDef="startDateTime">
-    <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-      <ion-label translate>TRIP.OPERATION.LIST.START_DATE_TIME</ion-label>
-    </mat-header-cell>
-    <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-      <ion-text>{{row.currentData.startDateTime|dateFormat:{time:true} }}</ion-text>
-    </mat-cell>
-  </ng-container>
-
-  <!-- start position -->
-  <ng-container matColumnDef="startPosition">
-    <mat-header-cell *matHeaderCellDef>
-      <ion-label translate>TRIP.OPERATION.LIST.START_POSITION</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-text>
-        {{ row.currentData.startPosition && row.currentData.startPosition.latitude|latLongFormat: {type: 'latitude', pattern: latLongPattern, placeholderChar: '0'} }}<br/>
-        {{ row.currentData.startPosition && row.currentData.startPosition.longitude|latLongFormat: {type: 'longitude', pattern: latLongPattern, placeholderChar: '0'} }}
-      </ion-text>
-    </mat-cell>
-  </ng-container>
-
-  <!-- end date time -->
-  <ng-container matColumnDef="endDateTime">
-    <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-      <ion-label translate>TRIP.OPERATION.LIST.END_DATE_TIME</ion-label>
-    </mat-header-cell>
-    <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-      {{row.currentData.endDateTime|dateFormat:{time:true} }}
-    </mat-cell>
-  </ng-container>
-
-  <!-- End position -->
-  <ng-container matColumnDef="endPosition">
-    <mat-header-cell *matHeaderCellDef>
-      <ion-label translate>TRIP.OPERATION.LIST.END_POSITION</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-label>
-        {{row.currentData.endPosition && row.currentData.endPosition.latitude|latLongFormat: {type: 'latitude', pattern: latLongPattern, placeholderChar: '0'} }}<br/>
-        {{row.currentData.endPosition && row.currentData.endPosition.longitude|latLongFormat: {type: 'longitude', pattern: latLongPattern, placeholderChar: '0'} }}
-      </ion-label>
-    </mat-cell>
-  </ng-container>
-
-  <!-- Comments column -->
-  <ng-container matColumnDef="comments">
-    <mat-header-cell *matHeaderCellDef>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-icon color="medium" name="chatboxes" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
-    </mat-cell>
-  </ng-container>
-
-  <!-- Actions buttons column -->
-  <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
-      <button mat-icon-button small color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO'|translate" (click)="cancelOrDelete($event, row)">
-        <mat-icon>undo</mat-icon>
-      </button>
-    </mat-cell>
-  </ng-container>
-
-  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled" (click)="clickRow($event, row)"></mat-row>
-</mat-table>
-
-<!-- Paginator: not need
-<ion-row no-padding>
-  <ion-col no-padding col-12>
-    <mat-paginator [length]="resultsLength" [pageSize]="10" [pageSizeOptions]="[10, 50, 100, 200]">
-    </mat-paginator>
-  </ion-col>
-</ion-row>
--->
-
-<ng-template #loadingSpinner>
-  <ion-spinner [ngClass]="{'center':true}" ></ion-spinner>
-</ng-template>

@@ -1,8 +1,0 @@
-
-<ion-grid>
-  <ion-row *ngFor="let row of keymap">
-    <ion-col size="{{12/row.length}}" *ngFor="let keyDef of row">
-      <ion-button mat-raised-button expand="full" size="large" color="dark" fill="outline" [innerHTML]="keyDef[0]" (click)="onClick($event, keyDef[1])"></ion-button>
-    </ion-col>
-  </ion-row>
-</ion-grid>

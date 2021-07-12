@@ -1,23 +1,40 @@
-import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
-import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {
-  AppEditorPage,
-  EntityUtils,
-  environment,
-  FormArrayHelper,
-  isNil,
-  isNotNil
-} from "../../core/core.module";
-import {Program, ProgramProperties, referentialToString} from "../services/model";
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
+import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
+import {FormBuilder, FormGroup, ValidationErrors} from "@angular/forms";
+import {Program} from "../services/model/program.model";
 import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
-import {StrategiesTable} from "./strategies.table";
-import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
-import {EditorDataServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
-import {MatTabChangeEvent} from "@angular/material";
-import {AccountService} from "../../core/services/account.service";
+import {StrategiesTable} from "../strategy/strategies.table";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {ReferentialRef, referentialToString, ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {AppPropertiesForm}  from "@sumaris-net/ngx-components";
+import {ReferentialRefService} from "../services/referential-ref.service";
+import {ModalController} from "@ionic/angular";
+import {FormFieldDefinition, FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
+import {ProgramProperties, StrategyEditor} from "../services/config/program.config";
+import {ActivatedRoute} from "@angular/router";
+import {Subscription} from "rxjs";
+
+import {AppEntityEditor}  from "@sumaris-net/ngx-components";
+import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
+import {changeCaseToUnderscore, isNil, isNotNil} from "@sumaris-net/ngx-components";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
+import {HistoryPageReference}  from "@sumaris-net/ngx-components";
+import {SelectReferentialModal} from "../list/select-referential.modal";
+import {AppListForm}  from "@sumaris-net/ngx-components";
+import {environment} from "../../../environments/environment";
+import {Strategy} from "../services/model/strategy.model";
+import {fadeInOutAnimation} from "@sumaris-net/ngx-components";
+import {AppTable}  from "@sumaris-net/ngx-components";
+import {SamplingStrategiesTable} from "../strategy/sampling/sampling-strategies.table";
+import {SharedValidators} from "@sumaris-net/ngx-components";
+import {ReferentialRefFilter} from "../services/filter/referential-ref.filter";
+
+export enum AnimationState {
+  ENTER = 'enter',
+  LEAVE = 'leave'
+}
 
 @Component({
   selector: 'app-program',
@@ -28,56 +45,58 @@ import {AccountService} from "../../core/services/account.service";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProgramPage extends AppEditorPage<Program> implements OnInit {
+export class ProgramPage extends AppEntityEditor<Program, ProgramService> implements OnInit {
 
-  propertyDefinitions = Object.getOwnPropertyNames(ProgramProperties).map(name => ProgramProperties[name]);
-  propertyDefinitionsByKey: FormFieldDefinitionMap = {};
-  propertyDefinitionsByIndex: { [index: number]: FormFieldDefinition } = {};
-  propertiesFormHelper: FormArrayHelper<{ key: string; value: string }>;
-
-  canEdit: boolean;
+  propertyDefinitions: FormFieldDefinition[];
+  fieldDefinitions: FormFieldDefinitionMap = {};
   form: FormGroup;
+  i18nFieldPrefix = 'PROGRAM.';
+  strategyEditor: StrategyEditor = 'legacy';
+  i18nTabStrategiesSuffix = '';
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
-  @ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
+  @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
+  @ViewChild('locationClassificationList', { static: true }) locationClassificationList: AppListForm;
+  @ViewChild('legacyStrategiesTable', { static: true }) legacyStrategiesTable: StrategiesTable;
+  @ViewChild('samplingStrategiesTable', { static: true }) samplingStrategiesTable: SamplingStrategiesTable;
 
-  get propertiesForm(): FormArray {
-    return this.form.get('properties') as FormArray;
+  get strategiesTable(): AppTable<Strategy> {
+    return this.strategyEditor !== 'sampling' ? this.legacyStrategiesTable : this.samplingStrategiesTable;
   }
 
   constructor(
     protected injector: Injector,
+    protected programService: ProgramService,
+    protected formBuilder: FormBuilder,
     protected accountService: AccountService,
     protected validatorService: ProgramValidatorService,
-    protected programService: ProgramService
+    protected referentialRefService: ReferentialRefService,
+    protected modalCtrl: ModalController,
+    protected activatedRoute: ActivatedRoute
   ) {
     super(injector,
       Program,
-      programService);
+      programService, {
+        pathIdAttribute: 'programId',
+        tabCount: 3
+      });
     this.form = validatorService.getFormGroup();
-    this.propertiesFormHelper = new FormArrayHelper<FormFieldValue>(
-      injector.get(FormBuilder),
-      this.form,
-      'properties',
-      (value) => validatorService.getPropertyFormGroup(value),
-      (v1, v2) => (!v1 && !v2) || v1.key === v2.key,
-      (value) => isNil(value) || (isNil(value.key) && isNil(value.value)),
-      {
-        allowEmptyArray: true
-      }
-    );
 
     // default values
     this.defaultBackHref = "/referential/list?entity=Program";
-    this.canEdit = this.accountService.isAdmin();
+    this._enabled = this.accountService.isAdmin();
+    this.tabCount = 4;
 
-    // Fill options map
-    this.propertyDefinitionsByKey = {};
-    this.propertyDefinitions.forEach(o => {
-      this.propertyDefinitionsByKey[o.key] = o;
+    this.propertyDefinitions = Object.values(ProgramProperties).map(def => {
+      if (def.type === 'entity') {
+        def = Object.assign({}, def); // Copy
+        def.autocomplete = def.autocomplete || {};
+        def.autocomplete.suggestFn = (value, filter) => this.referentialRefService.suggest(value, filter);
+      }
+      return def;
     });
 
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -87,109 +106,221 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     this.referentialForm.entityName = 'Program';
 
     // Check label is unique
-    this.form.get('label')
-      .setAsyncValidators(async (control: AbstractControl) => {
-        const label = control.enabled && control.value;
-        return label && (await this.programService.existsByLabel(label)) ? {unique: true} : null;
-      });
-  }
+    // TODO BLA: FIXME: le control reste en pending !
+    const idControl = this.form.get('id');
+    this.form.get('label').setAsyncValidators([
+      async (control) => {
+        console.debug('[program-page] Checking of label is unique...');
+        const exists = await this.programService.existsByLabel(control.value, {
+          excludedIds: isNotNil(idControl.value) ? [idControl.value] : undefined
+        });
+        if (exists) {
+          console.warn('[program-page] Label not unique!');
+          return <ValidationErrors>{ unique: true };
+        }
 
-  getPropertyDefinition(index: number): FormFieldDefinition {
-    let definition = this.propertyDefinitionsByIndex[index];
-    if (!definition) {
-      definition = this.updatePropertyDefinition(index);
-      this.propertyDefinitionsByIndex[index] = definition;
-    }
-    return definition;
-  }
+        console.debug('[program-page] Checking of label is unique [OK]');
+        SharedValidators.clearError(control, 'unique');
+      }
+    ]);
 
-  updatePropertyDefinition(index: number): FormFieldDefinition {
-    const key = (this.propertiesForm.at(index) as FormGroup).controls.key.value;
-    const definition = key && this.propertyDefinitionsByKey[key] || null;
-    this.propertyDefinitionsByIndex[index] = definition; // update map by index
-    this.markForCheck();
-    return definition;
-  }
+    this.registerFormField('gearClassification', {
+      type: 'entity',
+      autocomplete: {
+        suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
+        filter: {
+          entityName: 'GearClassification'
+        }
+      }
+    });
 
-  removePropertyAt(index: number) {
-    this.propertiesFormHelper.removeAt(index);
-    this.propertyDefinitionsByIndex = {}; // clear map by index
-    this.markForCheck();
+    this.registerFormField('taxonGroupType', {
+      key: 'taxonGroupType',
+      type: 'entity',
+      autocomplete: {
+        suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
+        filter: {
+          entityName: 'TaxonGroupType'
+        }
+      }
+    });
+
   }
 
   /* -- protected methods -- */
 
+  async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
+    // Force the load from network
+    return super.load(id, {...opts, fetchPolicy: "network-only"});
+  }
+  updateView(data: Program | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
+
+    this.strategyEditor = data && data.getProperty<StrategyEditor>(ProgramProperties.PROGRAM_STRATEGY_EDITOR) || 'legacy';
+    this.i18nTabStrategiesSuffix = this.strategyEditor === 'sampling' ? '.SAMPLING' : '';
+
+    super.updateView(data, opts);
+  }
+
+
+  protected registerFormField(fieldName: string, def: Partial<FormFieldDefinition>) {
+    const definition = <FormFieldDefinition>{
+      key: fieldName,
+      label: this.i18nFieldPrefix + changeCaseToUnderscore(fieldName).toUpperCase(),
+      ...def
+    };
+    this.fieldDefinitions[fieldName] = definition;
+  }
+
   protected canUserWrite(data: Program): boolean {
-    // TODO : check user is in porgram managers
+    // TODO : check user is in program managers
     return (this.isNewData && this.accountService.isAdmin())
-      || (EntityUtils.isNotEmpty(data) && this.accountService.isSupervisor());
+      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
 
   }
 
-  enable() {
-    super.enable();
+  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    super.enable(opts);
+
+    // TODO BLA remove this ?
+    this.locationClassificationList.enable(opts);
 
     if (!this.isNewData) {
       this.form.get('label').disable();
     }
   }
 
-  protected registerFormsAndTables() {
-    this.registerTable(this.strategiesTable)
-      .registerForm(this.referentialForm);
+  protected registerForms() {
+    this.addChildForms([
+      this.referentialForm,
+      this.propertiesForm,
+      this.locationClassificationList
+    ]);
   }
 
   protected setValue(data: Program) {
     if (!data) return; // Skip
 
-    const json = data.asObject();
+    this.form.patchValue({...data,
+      properties: [],
+      locationClassifications: [],
+      strategies: []}, {emitEvent: false});
 
-    // Transform properties map into array
-    json.properties = EntityUtils.getObjectAsArray(json.properties);
-    this.propertiesFormHelper.resize(json.properties.length);
+    // Program properties
+    this.propertiesForm.value = EntityUtils.getMapAsArray(data.properties);
 
-    this.form.patchValue(json, {emitEvent: false});
+    // Location classification
+    this.locationClassificationList.setValue(data.locationClassifications);
 
-    // strategies
-    this.strategiesTable.value = data.strategies.slice(); // force update
 
-    this.markAsPristine();
+    this.markForCheck();
   }
 
-  protected async getValue(): Promise<Program> {
-    const data = await super.getValue();
+  // TOD BLA: remove this override
+  async save(event?: Event, options?: any): Promise<boolean> {
+    //console.debug('TODO saving program...');
+    return super.save(event, options);
+  }
+
+  protected async getJsonValueToSave(): Promise<any> {
+    const data = await super.getJsonValueToSave();
 
     // Re add label, because missing when field disable
     data.label = this.form.get('label').value;
-
-    await this.strategiesTable.save();
-    data.strategies = this.strategiesTable.value;
+    data.properties = this.propertiesForm.value;
 
     return data;
   }
 
-  protected async computeTitle(data: Program): Promise<string> {
+  protected computeTitle(data: Program): Promise<string> {
     // new data
     if (!data || isNil(data.id)) {
-      return await this.translate.get('PROGRAM.NEW.TITLE').toPromise();
+      return this.translate.get('PROGRAM.NEW.TITLE').toPromise();
     }
 
     // Existing data
-    return await this.translate.get('PROGRAM.EDIT.TITLE', data).toPromise();
+    return this.translate.get('PROGRAM.EDIT.TITLE', data).toPromise();
+  }
+
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ...(await super.computePageHistory(title)),
+      icon: 'contract',
+      title: `${this.data.label} - ${this.data.name}`,
+      subtitle: 'REFERENTIAL.ENTITY.PROGRAM'
+    };
   }
 
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
+    if (this.strategiesTable && this.strategiesTable.invalid) return 1;
+    if (this.propertiesForm.invalid) return 2;
+    // TODO users rights
     return 0;
   }
 
-  protected async onEntityLoaded(data: Program, options?: EditorDataServiceLoadOptions): Promise<void> {
-    super.onEntityLoaded(data, options);
+  async addLocationClassification() {
+    if (this.disabled) return; // Skip
 
-    this.canEdit = this.canUserWrite(data);
+    const items = await this.openSelectReferentialModal({
+      filter: {
+        entityName: 'LocationClassification'
+      }
+    });
+
+    // Add to list
+    (items || []).forEach(item => this.locationClassificationList.add(item));
+
+    this.markForCheck();
+  }
+
+  async onOpenStrategy({id, row}: { id?: number; row: TableElement<any>; }) {
+    const savedOrContinue = await this.saveIfDirtyAndConfirm();
+    if (savedOrContinue) {
+      this.markAsLoading();
+      setTimeout(async () => {
+        await this.router.navigate(['referential', 'programs',  this.data.id, 'strategy', this.strategyEditor, id], {
+          queryParams: {}
+        });
+        this.markAsLoaded();
+      });
+    }
+  }
+
+  async onNewStrategy(event?: any) {
+    const savedOrContinue = await this.saveIfDirtyAndConfirm();
+    if (savedOrContinue) {
+      this.markAsLoading();
+
+      setTimeout(async () => {
+        await this.router.navigate(['referential', 'programs',  this.data.id, 'strategy', this.strategyEditor, 'new'], {
+          queryParams: {}
+        });
+        this.markAsLoaded();
+      });
+    }
+  }
+
+  protected async openSelectReferentialModal(opts: {
+    filter: Partial<ReferentialRefFilter>
+  }): Promise<ReferentialRef[]> {
+
+    const modal = await this.modalCtrl.create({ component: SelectReferentialModal,
+      componentProps: {
+        filter: ReferentialRefFilter.fromObject(opts.filter)
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+
+    await modal.present();
+
+    const {data} = await modal.onDidDismiss();
+
+    return data;
   }
 
   referentialToString = referentialToString;
+  referentialEquals = ReferentialUtils.equals;
 
   protected markForCheck() {
     this.cd.markForCheck();

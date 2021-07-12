@@ -30,7 +30,7 @@ wget -qO- https://raw.githubusercontent.com/sumaris-net/sumaris-app/master/insta
 
 ## Contribute
 
-See the [developer guide](./doc/Building_from_sources.md)
+See the [developer guide](./doc/build.md)
 
 ## License
 

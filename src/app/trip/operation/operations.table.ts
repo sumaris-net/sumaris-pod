@@ -1,25 +1,26 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
-import {
-  AppTable,
-  AppTableDataSource, environment,
-  isNotNil,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
-} from "../../core/core.module";
-import {OperationValidatorService} from "../services/operation.validator";
-import {Operation, referentialToString, Trip} from "../services/trip.model";
+import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
+import {OperationValidatorService} from "../services/validator/operation.validator";
 import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
-import {ReferentialRefService} from "../../referential/referential.module";
-import {OperationFilter, OperationService} from "../services/operation.service";
+import {OperationService, OperationServiceWatchOptions} from "../services/operation.service";
 import {TranslateService} from "@ngx-translate/core";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {isInstanceOf, LocalSettingsService} from '@sumaris-net/ngx-components';
+import {LatLongPattern} from "@sumaris-net/ngx-components";
+import {isNotNil, toBoolean} from "@sumaris-net/ngx-components";
+import {OperationsMap} from "./map/operations.map";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
+import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
+import {environment} from "../../../environments/environment";
+import {firstNotNilPromise} from "@sumaris-net/ngx-components";
+import {Operation} from "../services/model/trip.model";
+import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 
 
 @Component({
-  selector: 'app-operation-table',
+  selector: 'app-operations-table',
   templateUrl: 'operations.table.html',
   styleUrls: ['operations.table.scss'],
   providers: [
@@ -27,14 +28,43 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
+export class OperationsTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
 
   displayAttributes: {
     [key: string]: string[]
   };
-  @Input() latLongPattern: string;
+  highlightedRow: TableElement<Operation>;
 
+  @Input() latLongPattern: LatLongPattern;
   @Input() tripId: number;
+  @Input() showMap: boolean;
+  @Input() program: string;
+  @Input() showToolbar = true;
+
+
+  get sortActive(): string {
+    const sortActive = super.sortActive;
+    // Local sort
+    if (this.tripId < 0) {
+      switch (sortActive) {
+        case 'physicalGear':
+          return 'physicalGear.gear.' + this.displayAttributes.gear[0];
+        case 'targetSpecies':
+          return 'metier.taxonGroup.' + this.displayAttributes.taxonGroup[0];
+        default:
+          return sortActive;
+      }
+    }
+    // Remote sort
+    else {
+      switch (sortActive) {
+        case 'targetSpecies':
+          return 'metier';
+        default:
+          return sortActive;
+      }
+    }
+  }
 
   constructor(
     protected route: ActivatedRoute,
@@ -45,10 +75,10 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
     protected dataService: OperationService,
-    protected referentialRefService: ReferentialRefService,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
-    protected cd: ChangeDetectorRef
+    protected accountService: AccountService,
+    protected cd: ChangeDetectorRef,
   ) {
     super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
@@ -56,7 +86,8 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
           platform.is('mobile') ?
             ['physicalGear',
               'targetSpecies',
-              'startDateTime']  :
+              'startDateTime',
+              'endDateTime']  :
           ['physicalGear',
             'targetSpecies',
             'startDateTime',
@@ -65,29 +96,50 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
             'endPosition',
             'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Operation, OperationFilter>(Operation, dataService, null,
+      new EntitiesTableDataSource<Operation, OperationFilter, number, OperationServiceWatchOptions>(Operation,
+        dataService,
+        null,
         // DataSource options
         {
           prependNewElements: false,
           suppressErrors: environment.production,
-          serviceOptions: {
-            readOnly: true
+          dataServiceOptions: {
+            readOnly: true,
+            withBatchTree: false,
+            withSamples: false,
+            withTotal: true
           }
         })
     );
     this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
-    this.autoLoad = false; // waiting parent to be loaded
+
+    this.readOnly = false; // Allow deletion
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
-    this.pageSize = 1000; // Do not use paginator
+    this.saveBeforeSort = false;
+    this.saveBeforeFilter = false;
+    this.saveBeforeDelete = false;
+    this.autoLoad = false; // waiting parent to be loaded
+
+    this.defaultPageSize = -1; // Do not use paginator
+    this.defaultSortBy = this.mobile ? 'startDateTime' : 'endDateTime';
+    this.defaultSortDirection = this.mobile ? 'desc' : 'asc';
 
     settings.ready().then(() => {
-      this.latLongPattern = this.settings.latLongFormat;
+      if (this.settings.settings.accountInheritance) {
+        const account = this.accountService.account;
+        this.latLongPattern = account && account.settings && account.settings.latLongFormat || this.settings.latLongFormat;
+      }
+      else {
+        this.latLongPattern = this.settings.latLongFormat;
+      }
     });
   }
 
   ngOnInit() {
     super.ngOnInit();
+
+    this.showMap = toBoolean(this.showMap, false);
 
     this.displayAttributes = {
       gear: this.settings.getFieldDisplayAttributes('gear'),
@@ -98,6 +150,12 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
       this.settings.onChange.subscribe((settings) => {
         if (this.loading) return; // skip
         this.latLongPattern = settings.latLongFormat;
+
+        this.displayAttributes = {
+          gear: this.settings.getFieldDisplayAttributes('gear'),
+          taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
+        };
+
         this.markForCheck();
       }));
 
@@ -107,20 +165,65 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     }
   }
 
-  setTrip(data: Trip) {
-    this.setTripId(data && data.id || undefined);
+  setTripId(id: number, opts?: {emitEvent?: boolean; }) {
+    if (this.tripId !== id) {
+      this.tripId = id;
+      const filter = this.filter || new OperationFilter();
+      filter.tripId = id;
+      this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
+      this.dataSource.serviceOptions.tripId = id;
+      this.setFilter(filter, {emitEvent: (!opts || opts.emitEvent !== false) && isNotNil(id)});
+    }
+    else if ((!opts || opts.emitEvent !== false) && isNotNil(this.filter.tripId)){
+      this.onRefresh.emit();
+    }
   }
 
-  setTripId(id: number) {
-    this.tripId = id;
-    const filter = this.filter || {};
-    filter.tripId = id;
-    this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
-    this.dataSource.serviceOptions.tripId = id;
-    this.setFilter(filter, {emitEvent: isNotNil(id)});
+  async openMapModal(event?: UIEvent) {
+
+    const res = await this.dataService.loadAllByTrip({
+        tripId: this.tripId
+      }, {fetchPolicy: 'cache-first', fullLoad: false, withTotal: true});
+
+    const modal = await this.modalCtrl.create({
+      component: OperationsMap,
+      componentProps: {
+        operations: res.data,
+        latLongPattern: this.latLongPattern,
+        program: this.program
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    const {data} = await modal.onDidDismiss();
+    if (isInstanceOf(data, Operation)) {
+      // Select the row
+      const row = (await this.dataSource.getRows()).find(row => row.currentData.id === data.id);
+      if (row) {
+        this.clickRow(null, row);
+      }
+    }
+
   }
 
-  referentialToString = referentialToString;
+  clickRow(event: MouseEvent|undefined, row: TableElement<Operation>): boolean {
+    this.highlightedRow = row;
+
+    return super.clickRow(event, row);
+  }
+
+  async getUsedPhysicalGearIds(): Promise<number[]> {
+    return (await this.dataSource.getRows())
+      .map(ope => ope.currentData.physicalGear)
+      .filter(isNotNil)
+      .map(gear => gear.id)
+      .reduce( (res, id) => res.includes(id) ? res : res.concat(id), []);
+  }
 
   /* -- protected methods -- */
 

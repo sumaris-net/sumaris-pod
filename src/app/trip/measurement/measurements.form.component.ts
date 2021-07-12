@@ -1,46 +1,42 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output
-} from '@angular/core';
-import {Measurement, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
-import {Moment} from 'moment/moment';
-import {DateAdapter, FloatLabelType} from "@angular/material";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Moment} from 'moment';
+import {DateAdapter} from '@angular/material/core';
+import {FloatLabelType} from '@angular/material/form-field';
 import {BehaviorSubject} from 'rxjs';
-import {filter, throttleTime} from "rxjs/operators";
-import {AppForm} from '../../core/core.module';
-import {ProgramService} from "../../referential/referential.module";
+import {filter, throttleTime} from 'rxjs/operators';
 import {FormBuilder} from '@angular/forms';
-import {MeasurementsValidatorService} from '../services/measurement.validator';
-import {isNil, isNotNil} from '../../shared/shared.module';
-import {MeasurementType, MeasurementValuesUtils} from "../services/model/measurement.model";
-import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {AppForm, filterNotNil, firstFalsePromise, firstNotNilPromise, isNil, isNotNil, LocalSettingsService} from '@sumaris-net/ngx-components';
+import {Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils} from '../services/model/measurement.model';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 
 @Component({
-  selector: 'form-measurements',
+  selector: 'app-form-measurements',
   templateUrl: './measurements.form.component.html',
   styleUrls: ['./measurements.form.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
-  private _onRefreshPmfms = new EventEmitter<any>();
-  private _program: string;
-  private _gear: string;
+  private _programLabel: string;
+  private _gearId: number;
   private _acquisitionLevel: string;
+  private _forceOptional = false;
+  private _loading$ = new BehaviorSubject<boolean>(false); // Important, must be false
+  private _loadingPmfms = true; // Important, must be true
+
   protected data: Measurement[];
 
-  loading = false; // Important, must be false
-  loadingPmfms = true; // Important, must be true
   $loadingControls = new BehaviorSubject<boolean>(true);
-  loadingValue = false;
+  applyingValue = false;
+  keepRankOrder = false;
 
-  $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
+
+  get loading(): boolean {
+    return this._loading$.getValue();
+  }
 
   @Input() showError = false;
 
@@ -52,26 +48,27 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   @Input() entityName: MeasurementType;
 
-  @Output()
-  valueChanges: EventEmitter<any> = new EventEmitter<any>();
+  @Input() animated = false;
+
+  @Output() valueChanges = new EventEmitter<any>();
 
   @Input()
-  set program(value: string) {
-    if (this._program !== value && isNotNil(value)) {
-      this._program = value;
-      if (!this.loading) this._onRefreshPmfms.emit();
+  set programLabel(value: string) {
+    if (this._programLabel !== value && isNotNil(value)) {
+      this._programLabel = value;
+      this.refreshPmfmsIfLoaded('set programLabel');
     }
   }
 
-  get program(): string {
-    return this._program;
+  get programLabel(): string {
+    return this._programLabel;
   }
 
   @Input()
   set acquisitionLevel(value: string) {
     if (this._acquisitionLevel !== value && isNotNil(value)) {
       this._acquisitionLevel = value;
-      if (!this.loading) this._onRefreshPmfms.emit();
+      this.refreshPmfmsIfLoaded('set acquisitionLevel');
     }
   }
 
@@ -80,15 +77,20 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   }
 
   @Input()
-  set gear(value: string) {
-    if (this._gear !== value && isNotNil(value)) {
-      this._gear = value;
-      if (!this.loading || this.requiredGear) this._onRefreshPmfms.emit();
+  set gearId(value: number) {
+    if (this._gearId !== value && isNotNil(value)) {
+      this._gearId = value;
+      if (this.requiredGear) {
+        this.refreshPmfms('set gearId');
+      }
+      else {
+        this.refreshPmfmsIfLoaded('set gearId');
+      }
     }
   }
 
-  get gear(): string {
-    return this._gear;
+  get gearId(): number {
+    return this._gearId;
   }
 
   @Input()
@@ -100,14 +102,26 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     return this.getValue();
   }
 
+  @Input()
+  set forceOptional(value: boolean) {
+    if (this._forceOptional !== value) {
+      this._forceOptional = value;
+      this.refreshPmfmsIfLoaded('set forceOptional');
+    }
+  }
+
+  get forceOptional(): boolean {
+    return this._forceOptional;
+  }
+
   constructor(protected dateAdapter: DateAdapter<Moment>,
               protected measurementValidatorService: MeasurementsValidatorService,
               protected formBuilder: FormBuilder,
-              protected programService: ProgramService,
+              protected programRefService: ProgramRefService,
               protected settings: LocalSettingsService,
               protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, formBuilder.group({}), settings);
+    super(dateAdapter, measurementValidatorService.getFormGroup([]), settings);
 
     // TODO: DEV only
     //this.debug = true;
@@ -115,11 +129,6 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   ngOnInit() {
     super.ngOnInit();
-
-    this.registerSubscription(
-      this._onRefreshPmfms
-        .subscribe(() => this.refreshPmfms('constructor'))
-    );
 
     // Auto update the view, when pmfms are filled
     this.registerSubscription(
@@ -131,7 +140,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     this.registerSubscription(
       this.form.valueChanges
         .pipe(
-          filter(() => !this.loading && !this.loadingPmfms && this.valueChanges.observers.length > 0)
+          filter(() => !this.loading && !this._loadingPmfms && this.valueChanges.observers.length > 0)
         )
         .subscribe((_) => this.valueChanges.emit(this.value))
     );
@@ -143,7 +152,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     }
 
     const pmfms = this.$pmfms.getValue();
-    this.data = MeasurementUtils.initAllMeasurements(data, pmfms, this.entityName);
+    this.data = MeasurementUtils.initAllMeasurements(data, pmfms, this.entityName, this.keepRankOrder);
 
     const json = MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(this.data), pmfms);
 
@@ -155,11 +164,11 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   async ready(): Promise<void> {
     // Wait pmfms load, and controls load
-    if (this.$loadingControls.getValue() !== false || this.loadingPmfms !== false) {
+    if (this.$loadingControls.getValue() !== false || this._loadingPmfms !== false) {
       if (this.debug) console.debug(`${this.logPrefix} waiting form to be ready...`);
       await firstNotNilPromise(this.$loadingControls
         .pipe(
-          filter((loadingControls) => loadingControls === false && this.loadingPmfms === false)
+          filter((loadingControls) => loadingControls === false && this._loadingPmfms === false)
         ));
     }
   }
@@ -174,7 +183,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     if (this.data === data) return; // skip if same
 
     // Will avoid data to be set inside function updateControls()
-    this.loadingValue = true;
+    this.applyingValue = true;
     this.data = data;
 
     // Wait form controls ready
@@ -182,8 +191,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
     this.setValue(this.data, {emitEvent: true});
 
-    this.loadingValue = false;
-    this.loading = false;
+    this.applyingValue = false;
+    this._loading$.next(false);
   }
 
   protected getValue(): Measurement[] {
@@ -191,7 +200,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     if (this.loading) return this.data; // Avoid to return not loading data
 
     // Find dirty pmfms, to avoid full update
-    const dirtyPmfms = (this.$pmfms.getValue() || []).filter(pmfm => this.form.controls[pmfm.pmfmId].dirty);
+    const dirtyPmfms = (this.$pmfms.getValue() || []).filter(pmfm => this.form.controls[pmfm.id].dirty);
     if (dirtyPmfms.length) {
 
       // Update measurements value
@@ -202,43 +211,67 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     return this.data;
   }
 
-  protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
+  protected async refreshPmfms(event?: any) {
     // Skip if missing: program, acquisition (or gear, if required)
-    if (isNil(this._program) || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gear))) {
-      return undefined;
+    if (isNil(this._programLabel) || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gearId))) {
+      return;
     }
 
-    if (this.debug) console.debug(`${this.logPrefix} refreshPmfms(${event})`);
+    //if (this.debug)
+      console.debug(`${this.logPrefix} refreshPmfms(${event})`);
 
-    this.loading = true;
-    this.loadingPmfms = true;
+    this._loading$.next(true);
+    this._loadingPmfms = true;
 
-    this.$pmfms.next(null);
+    try {
+      // Load pmfms
+      let pmfms = (await this.programRefService.loadProgramPmfms(
+        this._programLabel,
+        {
+          acquisitionLevel: this._acquisitionLevel,
+          gearId: this._gearId
+        })) || [];
 
-    // Load pmfms
-    const pmfms = (await this.programService.loadProgramPmfms(
-      this._program,
-      {
-        acquisitionLevel: this._acquisitionLevel,
-        gear: this._gear
-      })) || [];
+      if (!pmfms.length && this.debug) {
+        console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._programLabel}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
+      }
+      else {
 
-    if (!pmfms.length && this.debug) {
-      console.debug(`${this.logPrefix} No pmfm found (program=${this._program}, acquisitionLevel=${this._acquisitionLevel}, gear='${this._gear}'. Please fill program's strategies !`);
+        // If force to optional, create a copy of each pmfms that should be forced
+        if (this._forceOptional) {
+          pmfms = pmfms.map(pmfm => {
+            if (pmfm.required) {
+              pmfm = pmfm.clone(); // Keep original entity
+              pmfm.required = false;
+              return pmfm;
+            }
+            // Return original pmfm, as not need to be overrided
+            return pmfm;
+          });
+        }
+      }
+
+      // Apply
+      this.setPmfms(pmfms);
+    }
+    catch (err) {
+      console.error(`${this.logPrefix} Error while loading pmfms: ${err && err.message || err}`, err);
+      // Reset pmfms
+      this.setPmfms(null);
+    }
+    finally {
+      if (this.enabled) this._loading$.next(false);
+      this.markForCheck();
     }
 
-    // Apply
-    this.loadingPmfms = false;
-    this.$pmfms.next(pmfms);
-
-    if (this.enabled) this.loading = false;
-
-    this.markForCheck();
-
-    return pmfms;
   }
 
-  protected async updateControls(event?: string, pmfms?: PmfmStrategy[]) {
+  protected setPmfms(pmfms: IPmfm[]) {
+    this._loadingPmfms = false;
+    this.$pmfms.next(pmfms);
+  }
+
+  protected async updateControls(event?: string, pmfms?: IPmfm[]) {
     //if (isNil(this.data)) return; // not ready
     pmfms = pmfms || this.$pmfms.getValue();
 
@@ -247,7 +280,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     }
 
     // Waiting end of pmfm load
-    if (!pmfms || this.loadingPmfms || !this.form) {
+    if (!pmfms || this._loadingPmfms || !this.form) {
       if (this.debug) console.debug(`${this.logPrefix} updateControls(${event}): waiting pmfms...`);
       pmfms = await firstNotNilPromise(
         // groups pmfms updates event, if many updates in few duration
@@ -256,33 +289,38 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     }
 
     if (this.$loadingControls.getValue() !== true) this.$loadingControls.next(true);
-    this.loading = true;
+    this._loading$.next(true);
 
     if (event) if (this.debug) console.debug(`${this.logPrefix} updateControls(${event})...`);
 
     // No pmfms (= empty form)
     if (!pmfms.length) {
       // Reset form
-      this.measurementValidatorService.updateFormGroup(this.form, []);
+      this.measurementValidatorService.updateFormGroup(this.form, {
+        pmfms: []
+      });
       this.form.reset({}, {onlySelf: true, emitEvent: false});
-      this.loading = this.loadingValue;
+      this._loading$.next(this.applyingValue); // Keep loading=true, when data not fully applied
       return true;
     }
 
     else {
-      if (this.debug) console.debug(`${this.logPrefix} Updating form controls, using pmfms:`, pmfms);
+
+      if (this.debug) console.debug(`${this.logPrefix} Updating form controls {event: ${event}, force_optional: ${this._forceOptional}}, using pmfms:`, pmfms);
 
       // Update the existing form
-      this.measurementValidatorService.updateFormGroup(this.form, pmfms);
+      this.measurementValidatorService.updateFormGroup(this.form, {
+        pmfms
+      });
     }
 
-    this.loading = this.loadingValue; // Keep loading status if data not apply fully
+    this._loading$.next(this.applyingValue); // Keep loading=true, when data not fully applied
     this.$loadingControls.next(false);
 
     if (this.debug) console.debug(`${this.logPrefix} Form controls updated`);
 
-    // If data has already been set, apply it again
-    if (!this.loadingValue) {
+    // Data already set: apply value again to fill the form
+    if (!this.applyingValue) {
       if (this.data && pmfms.length && this.form) {
         this.setValue(this.data, {onlySelf: true, emitEvent: false});
       }
@@ -297,17 +335,23 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   }
 
   protected restoreFormStatus(opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+    const form = this.form;
     // Restore enable state (because form.setValue() can change it !)
     if (this._enable) {
-      this.form.enable(opts);
-    } else if (this.form.enabled) {
-      this.form.disable(opts);
+      form.enable(opts);
+    } else if (form.enabled) {
+      form.disable(opts);
     }
   }
 
   protected get logPrefix(): string {
     const acquisitionLevel = this._acquisitionLevel && this._acquisitionLevel.toLowerCase().replace(/[_]/g, '-') || '?';
     return `[meas-form-${acquisitionLevel}]`;
+  }
+
+  private async refreshPmfmsIfLoaded(event) {
+    await firstFalsePromise(this._loading$);
+    this.refreshPmfms(event);
   }
 
   protected markForCheck() {

@@ -1,32 +1,31 @@
 import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {CoreModule} from '../core/core.module';
-import {PersonValidatorService} from './services/person.validator';
-import {UsersPage} from './users/list/users';
-import {AdminRoutingModule} from "./admin-routing.module";
-import {SoftwarePage} from "../referential/software/software.page";
-import {ReferentialModule} from "../referential/referential.module";
+import {AppReferentialModule} from '../referential/app-referential.module';
+import {ConfigurationPage} from './config/configuration.page';
+import {SocialModule} from '@sumaris-net/ngx-components';
+import {NgxJdenticonModule} from 'ngx-jdenticon';
+import {AppCoreModule} from '@app/core/core.module';
 
 @NgModule({
   imports: [
     CommonModule,
-    CoreModule,
-    ReferentialModule,
-    AdminRoutingModule
+    SocialModule,
+    NgxJdenticonModule,
+
+    // App modules
+    AppCoreModule,
+    AppReferentialModule
   ],
   declarations: [
-    UsersPage
+    ConfigurationPage
   ],
   exports: [
-    UsersPage
-  ],
-  entryComponents: [
-    SoftwarePage
-  ],
-  providers: [
-    // PersonService,
-    PersonValidatorService
+    ConfigurationPage
   ]
 })
-export class AdminModule {
+export class AppAdminModule {
+
+  constructor() {
+    console.debug('[admin] Creating module');
+  }
 }

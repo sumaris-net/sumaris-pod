@@ -2,11 +2,18 @@
 // `ng build ---prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
-import {Environment} from "./environment.class";
+import {Environment} from '@sumaris-net/ngx-components';
+/*
+ * In development mode, to ignore zone related error stack frames such as
+ * `zone.run`, `zoneDelegate.invokeTask` for easier debugging, you can
+ * import the following file, but please comment it out in production mode
+ * because it will have performance impact when throw error
+ */
+import 'zone.js/dist/zone-error';
 
 const pkg = require('../../package.json');
 
-export const environment: Environment = {
+export const environment: Environment = Object.freeze({
   name: (pkg.name as string),
   version: (pkg.version as string),
   production: false,
@@ -25,26 +32,32 @@ export const environment: Environment = {
   // TODO: make this works
   //offline: true,
 
-  // defaultPeer: {
-  //   host: '192.168.0.28',
-  //   port: 8080
-  // },
+  peerMinVersion: '1.8.0',
+
   defaultPeers: [
-    {
-      host: '192.168.0.45',
-      port: 8080
-    },
-    {
-      host: '192.168.0.28',
-      port: 8080
-    },
     {
       host: 'localhost',
       port: 8080
     },
     {
+      host: 'localhost',
+      port: 8081
+    },
+    {
+      host: '192.168.0.45',
+      port: 8080
+    },
+    {
       host: '192.168.0.24',
       port: 8080
+    },
+    {
+      host: '192.168.0.29',
+      port: 8080
+    },
+    {
+      host: 'server.e-is.pro',
+      port: 443
     },
     {
       host: 'adap.pecheursdebretagne.eu',
@@ -66,16 +79,26 @@ export const environment: Environment = {
     {
       host: 'adap.e-is.pro',
       port: 443
+    },
+    {
+      host: 'visi-common-docker1.ifremer.fr',
+      port: 8080
+    },
+    {
+      host: 'imagine-pod.isival.ifremer.fr',
+      port: 443
     }
   ],
+  defaultAppName: 'SUMARiS',
+  defaultAndroidInstallUrl: 'https://play.google.com/store/apps/details?id=net.sumaris.app',
 
+  // About modal
+  sourceUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app',
+  reportIssueUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app/-/issues/new?issue',
 
-};
+  // Storage
+  storage: {
+    driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage']
+  }
+});
 
-/*
- * In development mode, to ignore zone related error stack frames such as
- * `zone.run`, `zoneDelegate.invokeTask` for easier debugging, you can
- * import the following file, but please comment it out in production mode
- * because it will have performance impact when throw error
- */
-import 'zone.js/dist/zone-error';

@@ -1,17 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from "@angular/core";
-import {ActivatedRoute, Router} from "@angular/router";
-import {BehaviorSubject, Subject} from 'rxjs';
-import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {Configuration, DefaultStatusList, Department, EntityUtils} from '../../core/services/model';
-import {DateAdapter} from "@angular/material";
-import {Moment} from "moment";
-import {AppFormUtils, FormArrayHelper} from "../../core/form/form.utils";
-import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
-import {PlatformService} from "../../core/services/platform.service";
-import {AppForm, ConfigValidatorService, isNil, isNotNil} from "../../core/core.module";
-import {ConfigService} from "../../core/services/config.service";
-import {toInt, trimEmptyToNull} from "../../shared/functions";
-import {TranslateService} from "@ngx-translate/core";
+import {ChangeDetectionStrategy, Component, Inject, Injector, Optional} from "@angular/core";
+import {Software} from "@sumaris-net/ngx-components";
+import {FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
+import {SoftwareService} from "../services/software.service";
+import {SoftwareValidatorService} from "../services/validator/software.validator";
+import {APP_CONFIG_OPTIONS}  from "@sumaris-net/ngx-components";
+import {AbstractSoftwarePage} from "./abstract-software.page";
+import {HistoryPageReference}  from "@sumaris-net/ngx-components";
 
 
 @Component({
@@ -20,198 +14,32 @@ import {TranslateService} from "@ngx-translate/core";
   styleUrls: ['./software.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SoftwarePage extends AppForm<Configuration> implements OnInit {
-
-
-  saving = false;
-  loading = true;
-  partners = new BehaviorSubject<Department[]>(null);
-  data: Configuration;
-  $title = new Subject<string>();
-  statusList = DefaultStatusList;
-  statusById;
-  propertyDefinitions: FormFieldDefinition[];
-  propertyDefinitionsByKey: FormFieldDefinitionMap = {};
-  propertyDefinitionsByIndex: { [index: number]: FormFieldDefinition } = {};
-  propertiesFormHelper: FormArrayHelper<FormFieldValue>;
-
-  get propertiesForm(): FormArray {
-    return this.form.get('properties') as FormArray;
-  }
-
-  get isNewData(): boolean {
-    return !this.data || isNil(this.data.id);
-  }
+export class SoftwarePage extends AbstractSoftwarePage<Software, SoftwareService> {
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected configService: ConfigService,
-    protected validator: ConfigValidatorService,
-    protected formBuilder: FormBuilder,
-    protected platform: PlatformService,
-    protected translate: TranslateService,
-    protected cd: ChangeDetectorRef
-      ) {
-    super(dateAdapter, validator.getFormGroup());
+    injector: Injector,
+    dataService: SoftwareService,
+    validatorService: SoftwareValidatorService,
+    @Optional() @Inject(APP_CONFIG_OPTIONS) configOptions: FormFieldDefinitionMap
+    ) {
+    super(injector,
+      Software,
+      dataService,
+      validatorService,
+      configOptions);
 
-    // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
+    // default values
+    this.defaultBackHref = "/referential/list?entity=Software";
 
-    this._enable = false;
+    //this.debug = !environment.production;
   }
 
-  async ngOnInit() {
-
-    this.propertiesFormHelper = new FormArrayHelper<FormFieldValue>(
-      this.formBuilder,
-      this.form,
-      'properties',
-      (value) => this.validator.getPropertyFormGroup(value),
-      (v1, v2) => (!v1 && !v2) || v1.key === v2.key,
-      (value) => isNil(value) || (isNil(value.key) && isNil(value.value))
-    );
-
-    // Wait platform is ready
-    await this.platform.ready();
-    await this.configService.ready();
-
-    // Fill propertyDefinitionMap
-    this.propertyDefinitions = this.configService.optionDefs;
-    this.propertyDefinitions.forEach(o => this.propertyDefinitionsByKey[o.key] = o);
-
-    // Then, load
-    this.load();
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ...(await super.computePageHistory(title)),
+      subtitle: 'REFERENTIAL.ENTITY.SOFTWARE',
+      icon: 'server'
+    };
   }
-
-  async load() {
-    this.loading = true;
-
-    // Get the id, from the route path
-    const id = toInt(this.route.snapshot.params['id']);
-
-    // Read the label, if given as query param
-    const label = trimEmptyToNull(this.route.snapshot.queryParams['label']);
-
-    // Get data
-    let data;
-    try {
-      data = await this.configService.load(label, {fetchPolicy: "network-only"});
-
-      // Check if load [id + label] are those existing in the URL
-      if (isNotNil(label) && data && data.id !== id) {
-        throw new Error('Invalid configuration load. Expected id=' + id + ' but found ' + data.id);
-      }
-    }
-    catch (err) {
-      this.error = err && err.message || err;
-      console.error(err);
-      this.loading = false;
-      return;
-    }
-
-    // Update the UI
-    this.updateView(data);
-  }
-
-  updateView(data: Configuration) {
-    if (!data) return; //skip
-    this.data = data;
-
-    const json = data.asObject();
-
-    // Transform properties map into array
-    json.properties = EntityUtils.getObjectAsArray(data.properties || {});
-    this.propertiesFormHelper.resize(Math.max(json.properties.length, 1));
-
-    this.setValue(json, {emitEvent: false});
-    this.markAsPristine();
-
-    this.computeTitle();
-
-    this.partners.next(json.partners);
-    this.loading = false;
-    this.markForCheck();
-  }
-
-  async save($event: any, json?: any) {
-    if (this.saving) return; // skip
-    if (this.form.invalid) {
-      AppFormUtils.logFormErrors(this.form);
-      return;
-    }
-    console.debug("[config] Saving local settings...");
-
-    this.saving = true;
-    this.error = undefined;
-
-    json = json || this.form.value;
-    this.data.fromObject(json);
-
-    this.disable();
-
-    try {
-
-      // Call save service
-      const updatedData = await this.configService.save(this.data);
-      // Update the view
-      this.updateView(updatedData);
-      this.form.markAsUntouched();
-
-    }
-    catch (err) {
-      this.error = err && err.message || err;
-    }
-    finally {
-      this.enable();
-      this.saving = false;
-    }
-  }
-
-  getPropertyDefinition(index: number): FormFieldDefinition {
-    let definition = this.propertyDefinitionsByIndex[index];
-    if (!definition) {
-      definition = this.updatePropertyDefinition(index);
-      this.propertyDefinitionsByIndex[index] = definition;
-    }
-    return definition;
-  }
-
-  updatePropertyDefinition(index: number): FormFieldDefinition {
-    const key = (this.propertiesForm.at(index) as FormGroup).controls.key.value;
-    const definition = key && this.propertyDefinitionsByKey[key] || null;
-    this.propertyDefinitionsByIndex[index] = definition; // update map by index
-    return definition;
-  }
-
-  removePropertyAt(index: number) {
-    this.propertiesFormHelper.removeAt(index);
-    this.propertyDefinitionsByIndex = {}; // clear map by index
-    this.markForCheck();
-  }
-
-  removePartner(icon: String){
-    console.log("remove Icon " + icon);
-  }
-
-  async computeTitle() {
-    if (this.isNewData) {
-      this.$title.next(await this.translate.get('CONFIGURATION.NEW.TITLE').toPromise());
-    }
-    else {
-      this.$title.next(await this.translate.get('CONFIGURATION.EDIT.TITLE', this.data).toPromise());
-    }
-  }
-
-  async cancel() {
-    await this.load();
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
 }
 

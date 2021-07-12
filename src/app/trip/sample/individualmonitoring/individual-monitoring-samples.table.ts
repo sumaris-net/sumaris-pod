@@ -1,12 +1,11 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit} from "@angular/core";
-import {TableElement, ValidatorService} from "angular4-material-table";
-import {isNotNil, referentialToString} from "../../../core/core.module";
-import {Sample} from "../../services/trip.model";
-import {SubSampleValidatorService} from "../../services/sub-sample.validator";
+import {ValidatorService} from "@e-is/ngx-material-table";
+import {SubSampleValidatorService} from "../../services/validator/sub-sample.validator";
 import {FormGroup, Validators} from "@angular/forms";
-import {AcquisitionLevelCodes, PmfmIds} from "../../../referential/services/model";
-import {filter} from "rxjs/operators";
+import {AcquisitionLevelCodes, PmfmIds} from "../../../referential/services/model/model.enum";
+import {filter, tap} from "rxjs/operators";
 import {SubSamplesTable} from "../sub-samples.table";
+import {isNotNil} from "@sumaris-net/ngx-components";
 
 
 @Component({
@@ -27,22 +26,26 @@ export class IndividualMonitoringSubSamplesTable extends SubSamplesTable impleme
     this.acquisitionLevel = AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
   }
 
-  ngOnInit() {
-    super.ngOnInit();
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
 
     this.registerSubscription(
       this.$pmfms
-        .pipe(filter(isNotNil))
+        .pipe(
+          filter(isNotNil),
+          // DEBUG
+          //tap(pmfms => console.debug("[individual-monitoring-samples] Pmfms:", pmfms))
+        )
         .subscribe(pmfms => {
 
           // Listening on column 'IS_DEAD' value changes
-          const hasIsDeadPmfm = pmfms.findIndex(p => p.pmfmId === PmfmIds.IS_DEAD) !== -1;
+          const hasIsDeadPmfm = pmfms.findIndex(p => p.id === PmfmIds.IS_DEAD) !== -1;
           if (hasIsDeadPmfm) {
-            this.registerCellValueChanges('isDead', "measurementValues." + PmfmIds.IS_DEAD.toString())
+            this.registerCellValueChanges('isDead', `measurementValues.${PmfmIds.IS_DEAD}`)
               .subscribe((isDeadValue) => {
                 if (!this.editedRow) return; // Should never occur
                 const row = this.editedRow;
-                const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
+                const controls = (row.validator.get('measurementValues') as FormGroup).controls;
                 if (isDeadValue) {
                   if (controls[PmfmIds.DEATH_TIME]) {
                     if (row.validator.enabled) {
@@ -60,11 +63,11 @@ export class IndividualMonitoringSubSamplesTable extends SubSamplesTable impleme
                   if (controls[PmfmIds.DEATH_TIME]) {
                     controls[PmfmIds.DEATH_TIME].disable();
                     controls[PmfmIds.DEATH_TIME].setValue(null);
-                    controls[PmfmIds.DEATH_TIME].setValidators([]);
+                    controls[PmfmIds.DEATH_TIME].setValidators(null);
                   }
                   if (controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS]) {
                     controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValue(null);
-                    controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValidators([]);
+                    controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValidators(null);
                     controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].disable();
                   }
                 }

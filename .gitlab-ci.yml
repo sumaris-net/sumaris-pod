@@ -1,0 +1,172 @@
+# ---------------------------------------------------------------
+# Global
+# ---------------------------------------------------------------
+
+# default image
+image: node:12
+
+stages:
+  - build
+  - alt_build
+#  - test
+#  - release
+  - docker
+  - docs
+
+# ---------------------------------------------------------------
+# Global variables
+# ---------------------------------------------------------------
+
+variables:
+  CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
+  BUILD_ENVIRONMENT: prod
+  ARTIFACT_ZIP_FILES: ${OUTPUT_DIR}/${CI_PROJECT_NAME}-*.zip
+
+# ---------------------------------------------------------------
+# Jobs templates
+# ---------------------------------------------------------------
+
+.docker:
+  image: docker:latest
+  tags: [sih_public_runner]
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+  after_script:
+    - docker logout ${CI_REGISTRY}
+  allow_failure: false
+
+# ---------------------------------------------------------------
+# Build jobs
+# ---------------------------------------------------------------
+
+.build:
+  stage: build
+  tags: [sih_public_runner]
+  script:
+    # Update dependencies
+    - scripts/ci/dependencies.sh check || yarn install
+    - yarn run build.${BUILD_ENVIRONMENT}
+  after_script:
+    # Remember version
+    - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
+    - echo "APP_VERSION=${APP_VERSION}" > variables.env
+  artifacts:
+    paths:
+      - www
+    reports:
+      dotenv: variables.env
+    expire_in: 72 hours
+
+build:
+  extends: .build
+  image: ${CI_BUILD_IMAGE}
+  before_script:
+    # Get project dependencies
+    - mv /tmp/.build-cache/node_modules ./
+  only:
+    - develop
+    - feature/imagine
+
+failsafe-build:
+  extends: .build
+  stage: alt_build
+  when: on_failure
+  before_script:
+    # Install global dependencies
+    - yarn global add @ionic/cli @angular/cli
+    # Update project dependencies
+    - yarn install
+  only:
+    - develop
+    - feature/imagine
+
+docker:ci:
+  extends: .docker
+  stage: alt_build
+  when: on_failure
+  allow_failure: true
+  script:
+    # Build and push the CI image
+    - docker build --from-cache ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} --build-arg="CACHE_DIR=/tmp/build-cache" -f scripts/ci/Dockerfile .
+    #- docker build --no-cache -t ${CI_BUILD_IMAGE} -f target/ci/DockerFile .
+    - docker push ${CI_BUILD_IMAGE}
+  only:
+    - develop
+    - feature/imagine
+
+# ---------------------------------------------------------------
+# Release jobs
+# ---------------------------------------------------------------
+
+# TODO
+
+# ---------------------------------------------------------------
+# Docker jobs
+# ---------------------------------------------------------------
+
+.docker-build:
+  extends: .docker
+  stage: docker
+  script:
+    # Build docker image
+    - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
+    - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="HTML=www" --build-arg="NGINX_CONF=scripts/docker/site.conf" -f scripts/docker/Dockerfile .
+    - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
+
+docker:develop:
+  extends: .docker-build
+  variables:
+    IMAGE_TAG: develop
+  only:
+    - develop
+
+docker:imagine:
+  extends: .docker-build
+  variables:
+    IMAGE_TAG: imagine
+  only:
+    - feature/imagine
+
+docker:release:
+  extends: .docker-build
+  variables:
+    IMAGE_TAG: $CI_COMMIT_TAG
+  only:
+    - tags
+
+docker:production:
+  extends: .docker-build
+  variables:
+    # IMAGE_TAG: $CI_COMMIT_TAG
+    IMAGE_TAG: 'production'
+  only:
+    - tags
+    - feature/imagine
+  when: manual
+
+# ---------------------------------------------------------------
+# Docs jobs
+# ---------------------------------------------------------------
+
+pages:
+  stage: docs
+  tags: [sih_public_runner]
+  image: python:3.7-alpine
+  before_script:
+    - apk --update --upgrade add gcc musl-dev jpeg-dev zlib-dev libffi-dev cairo-dev pango-dev gdk-pixbuf-dev
+    - pip install --upgrade pip
+    - pip install --upgrade mkdocs
+    - pip install --upgrade mkdocs-pdf-export-plugin==0.5.5
+  script:
+    - mkdocs -v build
+    - mv site public
+  artifacts:
+    paths:
+      - public
+  only:
+    - develop
+    - feature/imagine
+  when: manual
+

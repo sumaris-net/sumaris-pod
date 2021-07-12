@@ -1,64 +1,89 @@
-import {Injector, Input, OnDestroy, OnInit} from "@angular/core";
+import {Directive, Injector, Input, OnDestroy, OnInit, Optional} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {TableElement, ValidatorService} from "angular4-material-table";
-import {
-  AppTable,
-  AppTableDataSource, environment,
-  isNil,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-  TableDataService
-} from "../../core/core.module";
-import {getPmfmName, PmfmStrategy} from "../services/trip.model";
-import {ModalController, Platform} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {ModalController, Platform} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
-import {ProgramService} from "../../referential/referential.module";
-import {FormBuilder, FormGroup} from "@angular/forms";
+import {FormBuilder, FormGroup} from '@angular/forms';
 import {TranslateService} from '@ngx-translate/core';
-import {MeasurementsValidatorService} from "../services/trip.validators";
-import {isNotNil} from "../../shared/shared.module";
-import {IEntityWithMeasurement, MeasurementValuesUtils, PMFM_ID_REGEXP} from "../services/model/measurement.model";
-import {MeasurementsDataService} from "./measurements.service";
-import {AppTableDataSourceOptions} from "../../core/table/table-datasource.class";
-import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
-import {AcquisitionLevelType} from "../../referential/services/model";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {
+  Alerts,
+  AppTable,
+  AppTableDataSourceOptions,
+  EntitiesTableDataSource,
+  Entity,
+  filterNotNil,
+  firstNotNilPromise,
+  IEntitiesService,
+  isNil,
+  isNotNil,
+  LocalSettingsService,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS
+} from '@sumaris-net/ngx-components';
+import {IEntityWithMeasurement, MeasurementValuesUtils} from '../services/model/measurement.model';
+import {MeasurementsDataService} from './measurements.service';
+import {AcquisitionLevelType} from '../../referential/services/model/model.enum';
+import {IPmfm, PMFM_ID_REGEXP, PmfmUtils} from '../../referential/services/model/pmfm.model';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {ProgramRefService} from '../../referential/services/program-ref.service';
 
 
-export interface AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T> {
+export class AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T>{
   reservedStartColumns?: string[];
   reservedEndColumns?: string[];
-  mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
+  mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
+  requiredStrategy?: boolean;
 }
 
+@Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, F> extends AppTable<T, F>
   implements OnInit, OnDestroy, ValidatorService {
 
-  private _program: string;
+  private _programLabel: string;
+  private _autoLoadAfterPmfm = true;
 
   protected _acquisitionLevel: AcquisitionLevelType;
+  protected _strategyLabel: string;
 
   protected measurementsDataService: MeasurementsDataService<T, F>;
   protected measurementsValidatorService: MeasurementsValidatorService;
 
-  protected programService: ProgramService;
+  protected programRefService: ProgramRefService;
   protected translate: TranslateService;
   protected formBuilder: FormBuilder;
+  protected readonly options: AppMeasurementsTableOptions<T>;
 
   measurementValuesFormGroupConfig: { [key: string]: any };
   readonly hasRankOrder: boolean;
 
-  @Input()
-  set program(value: string) {
-    this._program = value;
+  @Input() set requiredStrategy(value: boolean) {
+    this.options.requiredStrategy = value;
     if (this.measurementsDataService) {
-      this.measurementsDataService.program = value;
+      this.measurementsDataService.requiredStrategy = value;
     }
   }
 
-  get program(): string {
-    return this._program;
+  get requiredStrategy(): boolean {
+    return this.options.requiredStrategy;
+  }
+
+  /**
+   * Allow to override the rankOrder. See physical-gear, on ADAP program
+   */
+  @Input() canEditRankOrder = false;
+
+  @Input()
+  set programLabel(value: string) {
+    this._programLabel = value;
+    if (this.measurementsDataService) {
+      this.measurementsDataService.programLabel = value;
+    }
+  }
+
+  get programLabel(): string {
+    return this._programLabel;
   }
 
   @Input()
@@ -74,6 +99,18 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   }
 
   @Input()
+  set strategyLabel(value: string) {
+    this._strategyLabel = value;
+    if (this.measurementsDataService) {
+      this.measurementsDataService.strategyLabel = value;
+    }
+  }
+
+  get strategyLabel(): string {
+    return this._strategyLabel;
+  }
+
+  @Input()
   set showCommentsColumn(value: boolean) {
     this.setShowColumn('comments', value);
   }
@@ -82,21 +119,32 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return this.getShowColumn('comments');
   }
 
-  get $pmfms(): BehaviorSubject<PmfmStrategy[]> {
+  get $pmfms(): BehaviorSubject<IPmfm[]> {
     return this.measurementsDataService.$pmfms;
   }
 
-  @Input() set pmfms(pmfms: Observable<PmfmStrategy[]> | PmfmStrategy[]) {
+  @Input() set pmfms(pmfms: Observable<IPmfm[]> | IPmfm[]) {
     this.markAsLoading();
     this.measurementsDataService.pmfms = pmfms;
+  }
+
+  @Input() set dataService(value: IEntitiesService<T, F>) {
+    this.measurementsDataService.delegate = value;
+    if (!this.loading) {
+      this.onRefresh.emit("new dataService");
+    }
+  }
+
+  get dataService(): IEntitiesService<T, F> {
+    return this.measurementsDataService.delegate;
   }
 
   protected constructor(
     protected injector: Injector,
     protected dataType: new() => T,
-    protected dataService: TableDataService<T, F>,
+    dataService?: IEntitiesService<T, F>,
     protected validatorService?: ValidatorService,
-    protected options?: AppMeasurementsTableOptions<T>
+    @Optional() options?: AppMeasurementsTableOptions<T>
   ) {
     super(injector.get(ActivatedRoute),
       injector.get(Router),
@@ -113,43 +161,52 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
       null,
       injector
     );
+    // Default options
+    this.options = {
+      prependNewElements: false,
+      suppressErrors: true,
+      requiredStrategy: false,
+      debug: false,
+      ...options
+    };
 
     this.measurementsValidatorService = injector.get(MeasurementsValidatorService);
-    this.programService = injector.get(ProgramService);
+    this.programRefService = injector.get(ProgramRefService);
     this.translate = injector.get(TranslateService);
     this.formBuilder = injector.get(FormBuilder);
-    this.pageSize = 10000; // Do not use paginator
+    this.defaultPageSize = -1; // Do not use paginator
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
-    this.autoLoad = false; // must wait pmfms to be load
-    this.loading = false;
+    this.setLoading(false, {emitEvent: false});
 
-    this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService, options && {
-      mapPmfms: options.mapPmfms
+    this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService, {
+      mapPmfms: options.mapPmfms || undefined,
+      requiredStrategy: this.options.requiredStrategy,
+      debug: options.debug || false
     });
-    this.measurementsDataService.program = this._program;
+    this.measurementsDataService.programLabel = this._programLabel;
     this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
+    this.measurementsDataService.strategyLabel = this._strategyLabel;
 
-    // Default options
-    this.options = this.options || {prependNewElements: false, suppressErrors: environment.production};
-    if (!this.options.onRowCreated) {
-      this.options.onRowCreated = (row) => this.onRowCreated(row);
-    }
-
-    const encapsulatedValidator = this.validatorService ? this : null;
-    this.setDatasource(new AppTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, options));
+    this.setValidatorService(this.validatorService);
 
     // For DEV only
     //this.debug = !environment.production;
   }
 
   ngOnInit() {
+    // Remember the value of autoLoad, but force to false, to make sure pmfm will be loaded before
+    this._autoLoadAfterPmfm = this.autoLoad;
+    this.autoLoad = false;
+
     super.ngOnInit();
 
     this.registerSubscription(
       filterNotNil(this.$pmfms)
         .subscribe(pmfms => {
-          this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
+          // DEBUG
+          console.debug("[measurement-table] Received PMFMs to applied: ", pmfms);
 
+          this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(null, {pmfms});
 
           // Update the settings id, as program could have changed
           this.settingsId = this.generateTableId();
@@ -157,14 +214,27 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
           // Add pmfm columns
           this.updateColumns();
 
-          // Load the table
-          this.onRefresh.emit();
+          // Load the table, if already loaded or if autoLoad was set to true
+          if (this._autoLoadAfterPmfm || this.dataSource.loaded/*already load*/) {
+            this.onRefresh.emit();
+          }
         }));
 
     // Make sure to copy acquisition level to the data service
     if (this._acquisitionLevel && !this.measurementsDataService.acquisitionLevel) {
       this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
     }
+    // Make sure to copy strategyLabel to the data service
+    if (this._strategyLabel && !this.measurementsDataService.strategyLabel) {
+      this.measurementsDataService.strategyLabel = this._strategyLabel;
+    }
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+
+    this.measurementsDataService.ngOnDestroy();
+    this.measurementsDataService = null;
   }
 
   getRowValidator(): FormGroup {
@@ -183,13 +253,39 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     super.setFilter(filterData, opts);
   }
 
-  public trackByFn(index: number, row: TableElement<T>) {
+  trackByFn(index: number, row: TableElement<T>) {
     return this.hasRankOrder ? row.currentData.rankOrder : row.currentData.id;
+  }
+
+  /**
+   * Allow to change the validator service (will recreate the datasource)
+   * @param validatorService
+   * @protected
+   */
+  setValidatorService(validatorService?: ValidatorService) {
+    if (this.validatorService === validatorService && this._dataSource) return; // Skip if same
+
+    // If already exists: destroy previous database
+    if (this._dataSource) {
+      this._dataSource.ngOnDestroy();
+      this._dataSource = null;
+    }
+
+    console.debug('[landings-table] Settings validator service to: ', validatorService);
+    this.validatorService = validatorService;
+
+    // Create the new datasource, BUT redirect to this
+    const encapsulatedValidator = validatorService ? this : null;
+    this.setDatasource(new EntitiesTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, {
+      ...this.options,
+      // IMPORTANT: Always use this custom onRowCreated, that will call options.onRowCreated if need
+      onRowCreated: (row) => this.onRowCreated(row)
+    }));
   }
 
   protected generateTableId(): string {
     // Append the program, if any
-    return super.generateTableId() + (isNotNil(this._program) ? ('-' + this._program) : '');
+    return super.generateTableId() + (isNotNil(this._programLabel) ? ('-' + this._programLabel) : '');
   }
 
   protected getDisplayColumns(): string[] {
@@ -200,11 +296,12 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     const userColumns = this.getUserColumns();
 
     const pmfmColumnNames = pmfms
-      //.filter(p => p.isMandatory || !userColumns || userColumns.includes(p.pmfmId.toString()))
-      .map(p => p.pmfmId.toString());
+      //.filter(p => p.isMandatory || !userColumns || userColumns.includes(p.pmfmId.toString()))
+      .filter(p => !p.hidden)
+      .map(p => p.id.toString());
 
-    const startColumns = (this.options && this.options.reservedStartColumns || []).filter(c => !userColumns || userColumns.includes(c));
-    const endColumns = (this.options && this.options.reservedEndColumns || []).filter(c => !userColumns || userColumns.includes(c));
+    const startColumns = (this.options && this.options.reservedStartColumns || []).filter(c => !userColumns || userColumns.includes(c));
+    const endColumns = (this.options && this.options.reservedEndColumns || []).filter(c => !userColumns || userColumns.includes(c));
 
     return RESERVED_START_COLUMNS
       .concat(startColumns)
@@ -220,14 +317,14 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
 
   setShowColumn(columnName: string, show: boolean) {
-    super.setShowColumn(columnName, show);
+    super.setShowColumn(columnName, show, {emitEvent: false});
 
     if (!this.loading) {
       this.updateColumns();
     }
   }
 
-  public async onReady() {
+  async ready() {
     // Wait pmfms load, and controls load
     if (isNil(this.$pmfms.getValue())) {
       await firstNotNilPromise(this.$pmfms);
@@ -239,18 +336,16 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
    * @param index
    * @param pmfm
    */
-  trackPmfm(index: number, pmfm: PmfmStrategy) {
-    return pmfm && pmfm.pmfmId || null;
+  trackPmfm(index: number, pmfm: IPmfm) {
+    return pmfm && pmfm.id || null;
   }
 
   /* -- protected methods -- */
 
   protected updateColumns() {
     if (!this.$pmfms.getValue()) return; // skip
-    this.displayedColumns = this.getDisplayColumns();
-    if (!this.loading) this.markForCheck();
+    super.updateColumns();
   }
-
 
   // Can be override by subclass
   protected async onNewEntity(data: T): Promise<void> {
@@ -264,7 +359,35 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
   }
 
-  protected async onRowCreated(row: TableElement<T>): Promise<void> {
+  protected async existsRankOrder(rankOrder: number): Promise<boolean> {
+    const rows = await this.dataSource.getRows();
+    return rows.findIndex(row => row.currentData.rankOrder === rankOrder) !== -1;
+  }
+
+
+  /**
+   * Convert (or clone) a row currentData, into <T> instance (that extends Entity)
+   * @param row
+   * @param clone
+   */
+  toEntity(row: TableElement<T>, clone?: boolean): T {
+    // If no validator, use currentData
+    const currentData = row.currentData;
+
+    // Already an entity (e.g. when no validator used): use it
+    if (currentData instanceof Entity) {
+      return (currentData && clone === true ? currentData.clone() : currentData) as T;
+    }
+
+    // If JSON object (e.g. when using validator): create a new entity
+    else {
+      const target = new this.dataType();
+      target.fromObject(currentData);
+      return target;
+    }
+  }
+
+  private async onRowCreated(row: TableElement<T>): Promise<void> {
     const data = row.currentData; // if validator enable, this will call a getter function
 
     await this.onNewEntity(data);
@@ -275,7 +398,112 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     // Set row data
     row.currentData = data; // if validator enable, this will call a setter function
 
+    // Execute function from constructor's options (is any)
+    if (this.options.onRowCreated) {
+      const res = this.options.onRowCreated(row);
+      if (res instanceof Promise) await res;
+    }
+
     this.markForCheck();
+  }
+
+  /**
+   * Insert an entity into the table. This can be usefull when entity is created by a modal (e.g. BatchGroupTable).
+   *
+   * If hasRankOrder=true, then rankOrder is computed only once.
+   * Will call method normalizeEntityToRow().
+   * The new row will be the edited row.
+   *
+   * @param data the entity to insert.
+   * @param opts
+   */
+  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; }): Promise<TableElement<T>> {
+    if (!data) throw new Error("Missing data to add");
+    if (this.debug) console.debug("[measurement-table] Adding new entity", data);
+
+    // Before using the given rankOrder, check if not already exists
+    if (this.canEditRankOrder && isNotNil(data.rankOrder)) {
+      if (await this.existsRankOrder(data.rankOrder)) {
+        const message = this.translate.instant('TRIP.MEASUREMENT.ERROR.DUPLICATE_RANK_ORDER', data);
+        await Alerts.showError(message, this.alertCtrl, this.translate);
+        throw new Error('DUPLICATE_RANK_ORDER');
+      }
+    }
+
+    const row = await this.addRowToTable();
+    if (!row) throw new Error("Could not add row to table");
+
+    // Override rankOrder (with a computed value)
+    if (this.hasRankOrder
+      // Do NOT override if can edit it and set
+      && (!this.canEditRankOrder || isNil(data.rankOrder))) {
+      data.rankOrder = row.currentData.rankOrder;
+    }
+
+    await this.onNewEntity(data);
+
+    // Adapt measurement values to row
+    this.normalizeEntityToRow(data, row);
+
+    // Affect new row
+    if (row.validator) {
+      row.validator.patchValue(data);
+      row.validator.markAsDirty();
+    } else {
+      row.currentData = data;
+    }
+
+    // Confirm the created row
+    if (!opts || opts.confirmCreate !== false) {
+      this.confirmEditCreate(null, row);
+      this.editedRow = null;
+    }
+    else {
+      this.editedRow = row;
+    }
+
+    this.markAsDirty();
+
+    return row;
+  }
+
+  /**
+   * Update an row, using the given entity. Useful when entity is updated using a modal (e.g. BatchGroupModal)
+   *
+   * The updated row will be the edited row.
+   * Will call method normalizeEntityToRow()
+   *
+   * @param data the input entity
+   * @param row the row to update
+   * @param opts
+   */
+  protected async updateEntityToTable(data: T, row: TableElement<T>, opts?: { confirmCreate?: boolean; }): Promise<TableElement<T>> {
+    if (!data || !row) throw new Error("Missing data, or table row to update");
+    if (this.debug) console.debug("[measurement-table] Updating entity to an existing row", data);
+
+    // Adapt measurement values to row
+    this.normalizeEntityToRow(data, row);
+
+    // Affect new row
+    if (row.validator) {
+      row.validator.patchValue(data);
+      row.validator.markAsDirty();
+    } else {
+      row.currentData = data;
+    }
+
+    // Confirm the created row
+    if (!opts || opts.confirmCreate !== false) {
+      this.confirmEditCreate(null, row);
+      this.editedRow = null;
+    }
+    else {
+      this.editedRow = row;
+    }
+
+    this.markAsDirty();
+
+    return row;
   }
 
   protected getI18nColumnName(columnName: string): string {
@@ -283,8 +511,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     // Try to resolve PMFM column, using the cached pmfm list
     if (PMFM_ID_REGEXP.test(columnName)) {
       const pmfmId = parseInt(columnName);
-      const pmfm = (this.$pmfms.getValue() || []).find(p => p.pmfmId === pmfmId);
-      if (pmfm) return pmfm.name;
+      const pmfm = (this.$pmfms.getValue() || []).find(p => p.id === pmfmId);
+      if (pmfm) return PmfmUtils.getPmfmName(pmfm);
     }
 
     return super.getI18nColumnName(columnName);
@@ -298,8 +526,5 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     // Adapt entity measurement values to reactive form
     MeasurementValuesUtils.normalizeEntityToForm(data, pmfms, row.validator);
   }
-
-  getPmfmColumnHeader = getPmfmName;
-
 }
 

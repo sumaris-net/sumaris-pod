@@ -2,7 +2,7 @@
 
   <!-- error -->
   <ion-item *ngIf="error" lines="none">
-    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
@@ -22,9 +22,9 @@
       <!-- Status-->
       <ion-col>
         <mat-form-field>
-          <mat-select [formControl]="form.controls.statusId" [placeholder]="'REFERENTIAL.STATUS'|translate">
+          <mat-select [formControl]="form.controls.statusId" [placeholder]="'REFERENTIAL.STATUS'|translate" required>
             <mat-select-trigger>
-          <span *ngIf="form.controls.statusId.value &gt;=0">
+          <span *ngIf="form.controls.statusId.value &gt;= 0">
             {{ statusById[form.controls.statusId.value]?.label | translate}}</span>
             </mat-select-trigger>
             <mat-option *ngFor="let item of statusList" [value]="item.id">
@@ -48,9 +48,9 @@
       </ion-col>
     </ion-row>
 
-    <ion-row>
+    <!-- Description -->
+    <ion-row *ngIf="form.controls.description && showDescription">
 
-      <!-- Description -->
       <ion-col size="12">
         <mat-form-field>
           <textarea matInput #description
@@ -70,7 +70,7 @@
     <!-- children -->
     <ng-content></ng-content>
 
-    <ion-row>
+    <ion-row *ngIf="form.controls.comments && showComments">
       <!-- Comments -->
       <ion-col class="ion-no-padding" size="12">
         <mat-form-field appearance="outline">

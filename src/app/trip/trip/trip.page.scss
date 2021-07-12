@@ -1,6 +1,10 @@
 :host {
   --ion-tab-min-height: calc(100%);
+
+  --table-container-offset: calc(313px - var(--form-button-bar-height, 0));
 }
+
+
 app-toolbar ion-spinner {
   width: 20px;
   height: 20px;
@@ -10,10 +14,6 @@ app-toolbar ion-spinner {
 ion-col>ion-label {
   word-wrap: break-word;
   white-space: normal;
-}
-
-table-operations.hidden {
-  visibility: hidden !important;
 }
 
 .mat-tab-group {

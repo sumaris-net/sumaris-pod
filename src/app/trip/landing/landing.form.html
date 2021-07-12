@@ -2,7 +2,7 @@
 
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
@@ -10,12 +10,12 @@
 
     <!-- PROGRAM -->
     <ion-row *ngIf="showProgram">
-      <ion-col size="12" size-md="2" size-lg="3" hidden-xs hidden-sm>
+      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
       <ion-col>
         <mat-autocomplete-field formControlName="program"
-                                [placeholder]="'LANDING.PROGRAM'|translate"
+                                [placeholder]="i18nPrefix + 'PROGRAM'|translate"
                                 [config]="autocompleteFields.program"
                                 [tabindex]="tabindex"
                                 required>
@@ -24,9 +24,33 @@
       </ion-col>
     </ion-row>
 
-    <!-- VESSEL -->
+    <!-- Strategy -->
+    <ion-row *ngIf="showStrategy">
+      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
+        <ion-label class="ion-float-end hidden-xs hidden-sm">{{i18nPrefix + 'STRATEGY'|translate}}</ion-label>
+      </ion-col>
+      <ion-col>
+        <mat-autocomplete-field
+          [formControl]="strategyControl"
+          [placeholder]="i18nPrefix + 'STRATEGY_PLACEHOLDER'|translate"
+          [config]="autocompleteFields.strategy"
+          [readonly]="!canEditStrategy"
+          required>
+        </mat-autocomplete-field>
+      </ion-col>
+    </ion-row>
+    <ion-row *ngIf="strategyControl.touched">
+      <ion-col size="12" size-md="10" offset-md="2" size-lg="9" offset-lg="3"
+               class="mat-form-field-errors">
+        <ng-content select="[afterStrategy]"></ng-content>
+        <!--<mat-error *ngIf="strategyControl.hasError('noEffort')" translate>LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR</mat-error>
+        <mat-error *ngIf="strategyControl.hasError('zeroEffort')" translate>LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR</mat-error>-->
+      </ion-col>
+    </ion-row>
+
+    <!-- Vessel -->
     <ion-row *ngIf="showVessel">
-      <ion-col size="12" size-md="2" size-lg="3" hidden-xs hidden-sm>
+      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
       <ion-col>
@@ -38,7 +62,7 @@
           <ion-icon matPrefix name="boat"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
-      <ion-col size="auto" class="ion-align-self-center">
+      <ion-col size="auto" class="ion-align-self-center" *ngIf="allowAddNewVessel">
         <button mat-icon-button tabindex="-1" [title]="'COMMON.BTN_ADD'|translate" (click)="addVesselModal()"
                 type="button">
           <mat-icon>add</mat-icon>
@@ -49,22 +73,24 @@
     <!-- LOCATION + date/time-->
     <ion-row *ngIf="showLocation || showDateTime">
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label class="ion-float-end" translate>LANDING.LANDING</ion-label>
+        <ion-label class="ion-float-end">{{i18nPrefix+'LANDING'|translate}}</ion-label>
       </ion-col>
       <!-- location -->
       <ion-col *ngIf="showLocation">
         <mat-autocomplete-field formControlName="location"
-                                [placeholder]="'OBSERVED_LOCATION.LOCATION'|translate"
+                                [placeholder]="i18nPrefix + 'LOCATION'|translate"
                                 [config]="autocompleteFields.location"
                                 [tabindex]="tabindex+1"
                                 required>
-          <ion-icon matPrefix name="pin"></ion-icon>
+          <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
-      <ion-col size="12" size-sm="auto" *ngIf="showDateTime">
-        <mat-date-time [placeholder]="'LANDING.DATE_TIME'|translate" formControlName="dateTime"
-                       [displayTime]="true" [required]="true">
-        </mat-date-time>
+      <ion-col size="12" size-sm="" offset-lg="3" *ngIf="showDateTime">
+        <mat-date-time-field [placeholder]="i18nPrefix + 'DATE'|translate"
+                             formControlName="dateTime"
+                             [required]="true">
+          <mat-icon *ngIf="!showLocation && !mobile" matPrefix>event</mat-icon>
+        </mat-date-time-field>
       </ion-col>
     </ion-row>
 
@@ -72,11 +98,11 @@
     <ng-container *ngIf="showObservers">
       <ion-row *ngFor="let observerForm of observersForm?.controls; let i=index">
         <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-          <ion-label class="ion-float-end" *ngIf="!i" translate>OBSERVED_LOCATION.OBSERVERS</ion-label>
+          <ion-label class="ion-float-end" *ngIf="!i" translate>OBSERVED_LOCATION.EDIT.OBSERVERS</ion-label>
         </ion-col>
         <ion-col >
           <mat-autocomplete-field [formControl]="observersHelper.at(i)"
-                                  [placeholder]="('OBSERVED_LOCATION.OBSERVER_PLACEHOLDER'|translate) + (i+1)"
+                                  [placeholder]="('OBSERVED_LOCATION.EDIT.OBSERVER_PLACEHOLDER'|translate) + (i+1)"
                                   [appAutofocus]="observerFocusIndex === i"
                                   [config]="autocompleteFields.person"
                                   [tabindex]="tabindex+10+i*3"
@@ -101,26 +127,47 @@
     </ng-container>
 
     <!-- Measurements -->
-    <ion-row *ngIf="showMeasurements">
-      <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label class="ion-float-end" translate>LANDING.EDIT.OTHER_FEATURES</ion-label>
-      </ion-col>
-      <ion-col>
+    <ng-container *ngIf="showMeasurements">
+      <!-- If mmfms NOT loaded, display skeleton -->
+      <ion-row *ngIf="$pmfms | async | arrayFilter: notHiddenPmfm; let pmfms; else measurementsSkeleton;"
+               [class.cdk-visually-hidden]="!(pmfms | isNotEmptyArray)">
 
-        <ion-spinner *ngIf="loading"></ion-spinner>
+        <ion-col size="12" size-md="2" size-lg="3">
+          <ion-label class="ion-float-end">
+            <!-- "other features" label -->
+            <span *ngIf="pmfms | isArrayLength: {greaterThan: 1}; else firstPmfmLabel" translate>LANDING.EDIT.OTHER_FEATURES</span>
+            <ng-template #firstPmfmLabel>
+              <span [innerHTML]="pmfms[0] | pmfmName: {withUnit: false, withDetails: false} "></span>
+            </ng-template>
+          </ion-label>
+        </ion-col>
 
-        <!-- pmfms -->
-        <mat-form-field-measurement *ngFor="let pmfm of $pmfms | async; index as i;"
-                                    [pmfm]="pmfm"
-                                    [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
-                                    [compact]="compact"
-                                    [tabindex]="50 + i*2"
-                                    [floatLabel]="floatLabel">
-        </mat-form-field-measurement>
-      </ion-col>
-    </ion-row>
+        <ion-col>
+          <!-- pmfms -->
+          <ng-container *ngFor="let pmfm of pmfms; index as i;">
 
-    <ng-content></ng-content>
+            <mat-autocomplete-field *ngIf="mainMetierPmfmId === pmfm.id; else pmfmField"
+                                    [formControl]="form.get('measurementValues.' + pmfm.id)"
+                                    [placeholder]="'TRIP.MAIN_METIER_PLACEHOLDER'|translate"
+                                    [config]="autocompleteFields.metier"
+                                    [required]="true"
+                                    [panelWidth]="!mobile && '500px'">
+              <ion-icon matPrefix name="locate"></ion-icon>
+            </mat-autocomplete-field>
+            <ng-template #pmfmField>
+              <app-pmfm-field [pmfm]="pmfm"
+                              [formControl]="form.get('measurementValues.' + pmfm.id)"
+                              [compact]="compact"
+                              [tabindex]="50 + i*2"
+                              [floatLabel]="floatLabel">
+              </app-pmfm-field>
+            </ng-template>
+          </ng-container>
+        </ion-col>
+      </ion-row>
+    </ng-container>
+
+    <ng-content select="[beforeComment]"></ng-content>
 
     <!-- Comments -->
     <ion-row *ngIf="showComment">
@@ -139,3 +186,20 @@
   </ion-grid>
 
 </form>
+
+<ng-template #measurementsSkeleton>
+  <ion-row class="ion-no-padding" >
+    <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
+    <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
+  </ion-row>
+</ng-template>
+
+<ng-template #measurementSkeleton>
+  <ion-col size="12" size-md="2" size-lg="3">&nbsp;</ion-col>
+  <ion-col size="12" size-md="10" size-lg="9" class="ion-no-padding">
+    <mat-form-field>
+      <input matInput hidden>
+      <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+    </mat-form-field>
+  </ion-col>
+</ng-template>

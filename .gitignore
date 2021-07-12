@@ -30,13 +30,12 @@ plugins/
 www/
 src/app/**/*.js
 $RECYCLE.BIN/
+scripts/gradle*.zip
 
 .DS_Store
 .directory
 Thumbs.db
 UserInterfaceState.xcuserstate
-
 yarn.lock
-package-lock.json
-
 resources/android/build/local
+package-lock.json

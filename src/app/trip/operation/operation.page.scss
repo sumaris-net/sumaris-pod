@@ -1,8 +1,12 @@
+:host {
+
+  ion-title {
+    --color: var(--ion-color-primary-contrast);
+  }
+
+}
 ion-col>ion-label {
   word-wrap: break-word;
   white-space: normal;
 }
 
-mat-tab-group[hidden] {
-  display: none
-}

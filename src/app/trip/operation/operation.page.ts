@@ -1,28 +1,34 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {OperationFilter, OperationService} from '../services/operation.service';
+import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {OperationSaveOptions, OperationService} from '../services/operation.service';
 import {OperationForm} from './operation.form';
-import {Batch, EntityUtils, Operation, Trip} from '../services/trip.model';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AppEditorPage, AppTableUtils, environment} from '../../core/core.module';
-import {CatchBatchForm} from '../catch/catch.form';
-import {HistoryPageReference, UsageMode} from '../../core/services/model';
-import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
-import {AcquisitionLevelCodes, PmfmIds, ProgramService, QualitativeLabels} from '../../referential/referential.module';
-import {BehaviorSubject, Subject} from 'rxjs';
-import {MatTabChangeEvent, MatTabGroup} from "@angular/material";
-import {debounceTime, distinctUntilChanged, filter, first, map, startWith, switchMap} from "rxjs/operators";
+import {HistoryPageReference, ReferentialUtils, UsageMode} from '@sumaris-net/ngx-components';
+import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
+import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap} from "rxjs/operators";
 import {FormGroup, Validators} from "@angular/forms";
-import * as moment from "moment";
+import * as momentImported from "moment";
 import {IndividualMonitoringSubSamplesTable} from "../sample/individualmonitoring/individual-monitoring-samples.table";
-import {Program, ProgramProperties} from "../../referential/services/model";
-import {SubBatchesTable} from "../batch/sub-batches.table";
+import {Program} from '@app/referential/services/model/program.model';
 import {SubSamplesTable} from "../sample/sub-samples.table";
 import {SamplesTable} from "../sample/samples.table";
-import {BatchGroupsTable} from "../batch/batch-groups.table";
-import {BatchUtils} from "../services/model/batch.model";
-import {isNotNilOrBlank} from "../../shared/functions";
-import {filterNotNil, firstNotNil} from "../../shared/observables";
+import {Batch} from "../services/model/batch.model";
+import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
+import {firstNotNil, firstNotNilPromise} from "@sumaris-net/ngx-components";
+import {Operation, Trip} from "../services/model/trip.model";
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels} from '@app/referential/services/model/model.enum';
+import {EntityUtils, IEntity}  from "@sumaris-net/ngx-components";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {BatchTreeComponent} from "../batch/batch-tree.component";
+import {fadeInOutAnimation} from "@sumaris-net/ngx-components";
+import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
+import {AppEntityEditor}  from "@sumaris-net/ngx-components";
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {BehaviorSubject, Subject} from 'rxjs';
+
+const moment = momentImported;
 
 @Component({
   selector: 'app-operation-page',
@@ -31,11 +37,19 @@ import {filterNotNil, firstNotNil} from "../../shared/observables";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationPage extends AppEditorPage<Operation, OperationFilter> implements OnInit, AfterViewInit {
+export class OperationPage extends AppEntityEditor<Operation, OperationService> implements OnInit, AfterViewInit, OnDestroy {
+
+  private _lastOperationsTripId: number;
+  readonly acquisitionLevel = AcquisitionLevelCodes.OPERATION;
 
   trip: Trip;
-  programSubject = new BehaviorSubject<string>(null);
-  onProgramChanged = new Subject<Program>();
+  $programLabel = new BehaviorSubject<string>(null);
+  $program = new Subject<Program>();
+  saveOptions: OperationSaveOptions = {};
+  readonly dateTimePattern: string;
+
+  $tripId = new BehaviorSubject<number>(null);
+  $lastOperations = new BehaviorSubject<Operation[]>(null);
 
   rankOrder: number;
   selectedBatchTabIndex = 0;
@@ -46,24 +60,20 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   enableSubBatchesTable = false;
 
   mobile: boolean;
+  tempSubBatches: Batch[];
+  sampleAcquisitionLevel: AcquisitionLevelType = AcquisitionLevelCodes.SURVIVAL_TEST;
 
-  @ViewChild('batchTabGroup', { static: true }) batchTabGroup: MatTabGroup;
-  @ViewChild('sampleTabGroup', { static: true }) sampleTabGroup: MatTabGroup;
   @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
-  @ViewChild('catchBatchForm', { static: true }) catchBatchForm: CatchBatchForm;
+
+  // Catch batch, sorting batches, individual measure
+  @ViewChild('batchTree', { static: true }) batchTree: BatchTreeComponent;
 
   // Sample tables
+  @ViewChild('sampleTabGroup', { static: true }) sampleTabGroup: MatTabGroup;
   @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
   @ViewChild('individualMonitoringTable', { static: true }) individualMonitoringTable: IndividualMonitoringSubSamplesTable;
   @ViewChild('individualReleaseTable', { static: true }) individualReleaseTable: SubSamplesTable;
-
-  @ViewChild('batchGroupsTable', { static: true }) batchGroupsTable: BatchGroupsTable;
-  @ViewChild('subBatchesTable', { static: true }) subBatchesTable: SubBatchesTable;
-
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
 
   get form(): FormGroup {
     return this.opeForm.form;
@@ -71,14 +81,22 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
 
   constructor(
     injector: Injector,
-    protected dataService: OperationService,
+    dataService: OperationService,
     protected tripService: TripService,
-    protected programService: ProgramService
+    protected programRefService: ProgramRefService,
+    protected platform: PlatformService
   ) {
-    super(injector, Operation, dataService);
-    this.idAttribute = 'operationId';
+    super(injector, Operation, dataService, {
+      pathIdAttribute: 'operationId',
+      tabCount: 3,
+      autoUpdateRoute: !platform.mobile,
+      autoOpenNextTab: !platform.mobile
+      //autoLoadDelay: platform.mobile ? 400 /*  */ : undefined /*default*/
+    });
 
-    // Init mobile (WARN
+    this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
+
+    // Init mobile
     this.mobile = this.settings.mobile;
 
     // FOR DEV ONLY ----
@@ -90,24 +108,58 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.programSubject.asObservable()
+      this.$programLabel
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
-          switchMap(programLabel => this.programService.watchByLabel(programLabel, true))
+          switchMap(programLabel => this.programRefService.watchByLabel(programLabel))
         )
-        .subscribe(program => this.onProgramChanged.next(program)));
+        .subscribe(program => this.$program.next(program)));
+
+    // Watch trip, to load last operations
+    this.registerSubscription(
+      this.$tripId
+        .pipe(
+          // Filter on tripId changes
+          filter(tripId => isNotNil(tripId) && this._lastOperationsTripId !== tripId),
+          // Load last operations
+          switchMap(tripId => {
+            this._lastOperationsTripId = tripId; // Remember new trip id
+
+            // Update back href
+            this.defaultBackHref = `/trips/${tripId}?tab=2`;
+            this.markForCheck();
+
+            return this.dataService.watchAll(
+              0, 5,
+              'startDateTime', 'desc',
+              { tripId }, {
+                withBatchTree: false,
+                withSamples: false,
+                computeRankOrder: false,
+                fetchPolicy: 'cache-and-network',
+                withTotal: true
+              });
+          }),
+          map(res => res && res.data || [])
+      )
+      .subscribe(data => this.$lastOperations.next(data))
+    );
   }
 
-  async ngAfterViewInit(): Promise<void> {
+  ngAfterViewInit() {
+     super.ngAfterViewInit();
 
     this.registerSubscription(
-      this.opeForm.form.controls['physicalGear'].valueChanges
+      this.form.get('physicalGear').valueChanges
+        .pipe(
+          // skip if loading
+          filter(() => !this.loading)
+        )
         .subscribe((res) => {
-          if (this.loading) return; // SKip during loading
-          const gearLabel = res && res.gear && res.gear.label || null;
-          this.measurementsForm.gear = gearLabel;
-          this.catchBatchForm.gear = gearLabel;
+          const gearId = res && res.gear && res.gear.id || null;
+          this.measurementsForm.gearId = gearId;
+          this.batchTree.gearId = gearId;
         })
     );
 
@@ -115,7 +167,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     this.registerSubscription(
       this.samplesTable.dataSource.datasourceSubject
         .pipe(
-          debounceTime(400),
+          debounceTime(500),
           // skip if loading
           filter(() => !this.loading)
         )
@@ -130,44 +182,19 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
           this.individualReleaseTable.availableParents = availableParents;
         }));
 
-    // Update available parent on individual batch table, when batch group changes
-    this.registerSubscription(
-      this.batchGroupsTable.dataSource.datasourceSubject
-        .pipe(
-          debounceTime(400),
-          // skip if loading
-          filter(() => !this.loading && this.enableSubBatchesTable)
-        )
-        // Will refresh the tables (inside the setter):
-        .subscribe(rootBatches => this.subBatchesTable.availableParents = (rootBatches || []))
-    );
-
-
-    // Enable sub batches when table pmfms ready
-    this.registerSubscription(
-      filterNotNil(this.subBatchesTable.$pmfms)
-        .subscribe(pmfms => {
-          if (!this.enableSubBatchesTable && pmfms.length > 0) {
-            this.enableSubBatchesTable = true;
-            this.markForCheck();
-          }
-        }));
-
-    // Link group table to individual
-    this.batchGroupsTable.availableSubBatchesFn = async () => {
-      if (this.subBatchesTable.dirty) await this.subBatchesTable.save();
-      return this.subBatchesTable.value;
-    };
-
-
     this.ngAfterViewInitExtension();
+
+    // Configure page, from Program's properties
+    this.registerSubscription(
+      this.$program.subscribe(program => this.setProgram(program))
+    );
 
     // Manage tab group
     const queryParams = this.route.snapshot.queryParams;
     const subTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]) || 0;
     this.selectedBatchTabIndex = subTabIndex > 1 ? 1 : subTabIndex;
     this.selectedSampleTabIndex = subTabIndex;
-    if (this.batchTabGroup) this.batchTabGroup.realignInkBar();
+    //if (this.batchTree) this.batchTree.setSelectedTabIndex(subTabIndex);
     if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
   }
 
@@ -192,15 +219,12 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
               samplingTypeControl.valueChanges
                 .pipe(
                   debounceTime(400),
-                  startWith(samplingTypeControl.value),
-                  filter(EntityUtils.isNotEmpty),
+                  startWith<any, any>(samplingTypeControl.value),
+                  filter(ReferentialUtils.isNotEmpty),
                   map(qv => qv.label),
                   distinctUntilChanged()
                 )
                 .subscribe(qvLabel => {
-                  // Force first tab index
-                  this.selectedBatchTabIndex = 0;
-                  this.selectedSampleTabIndex = 0;
 
                   switch (qvLabel as string) {
                     case QualitativeLabels.SURVIVAL_SAMPLING_TYPE.SURVIVAL:
@@ -218,8 +242,12 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
                       this.showSampleTables = false;
                       this.showBatchTables = false;
                   }
-                  if (this.batchTabGroup) this.batchTabGroup.realignInkBar();
+
+                  // Force first tab index
+                  this.batchTree.setSelectedTabIndex(0);
+                  this.selectedSampleTabIndex = 0;
                   if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
+
                   this.markForCheck();
                 })
             );
@@ -232,14 +260,12 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
               isSamplingControl.valueChanges
                 .pipe(
                   debounceTime(400),
-                  startWith(isSamplingControl.value),
+                  startWith<any, any>(isSamplingControl.value),
                   filter(isNotNil),
                   distinctUntilChanged()
                 )
                 .subscribe(isSampling => {
-                  // Force first tab index
-                  this.selectedBatchTabIndex = 0;
-                  this.selectedSampleTabIndex = 0;
+
                   if (this.debug) console.debug("[operation] Detected PMFM changes value for IS_SAMPLING: ", isSampling);
 
                   if (isSampling) {
@@ -251,7 +277,10 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
                     this.showSampleTables = false;
                     this.showBatchTables = false;
                   }
-                  if (this.batchTabGroup) this.batchTabGroup.realignInkBar();
+
+                  // Force first tab index
+                  this.batchTree.setSelectedTabIndex(0);
+                  this.selectedSampleTabIndex = 0;
                   if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
                   this.markForCheck();
                 })
@@ -263,7 +292,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
             if (this.debug) console.debug("[operation] Enable default tables (Nor SUMARiS nor ADAP pmfms were found)");
             this.showSampleTables = false;
             this.showBatchTables = true;
-            if (this.batchTabGroup) this.batchTabGroup.realignInkBar();
+            if (this.batchTree) this.batchTree.realignInkBar();
             if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
             this.markForCheck();
           }
@@ -275,8 +304,8 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
               tripProgressControl.valueChanges
                 .pipe(
                   debounceTime(400),
-                  startWith(tripProgressControl.value),
-                  filter(isNotNil),
+                  startWith<any, any>(tripProgressControl.value),
+                  filter(isNotNilOrBlank),
                   distinctUntilChanged()
                 )
                 .subscribe(value => {
@@ -285,80 +314,110 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
                     commentControl.setValidators(Validators.required);
                     commentControl.markAsTouched({onlySelf: true});
                   } else {
-                    commentControl.setValidators([]);
+                    commentControl.setValidators(null);
                   }
                   commentControl.updateValueAndValidity({emitEvent: false, onlySelf: true});
                 })
             );
           }
-
         });
     }
-
-    // Configure somes tables from program properties
-    this.registerSubscription(
-      this.onProgramChanged
-        .subscribe(program => {
-          if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
-          this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
-          this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
-          // Force taxon name in sub batches, if not filled in root batch
-          if (this.subBatchesTable) {
-            this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn;
-            this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
-          }
-        })
-    );
   }
 
-  async onNewEntity(data: Operation, options?: EditorDataServiceLoadOptions): Promise<void> {
-    const tripId = options && isNotNil(options.tripId) ? options.tripId :
+  ngOnDestroy() {
+    super.ngOnDestroy();
+
+    this.$lastOperations.complete();
+    this.$program.complete();
+    this.$programLabel.complete();
+    this.$tripId.complete();
+    this.$tripId.complete();
+  }
+
+  protected async setProgram(program: Program) {
+    if (!program) return; // Skip
+    if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
+    this.opeForm.defaultLatitudeSign = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
+    this.opeForm.defaultLongitudeSign = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
+
+    this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
+    this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
+
+    this.batchTree.batchGroupsTable.modalOptions = {
+      maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
+    };
+    // Autofill batch group table (e.g. with taxon groups found in strategies)
+    const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
+    await this.setDefaultTaxonGroups(autoFillBatch);
+  }
+
+  async onNewEntity(data: Operation, options?: EntityServiceLoadOptions): Promise<void> {
+    const tripId = options && isNotNil(options.tripId) ? +(options.tripId) :
       isNotNil(this.trip && this.trip.id) ? this.trip.id : (data && data.tripId);
     if (isNil(tripId)) throw new Error("Missing argument 'options.tripId'!");
     data.tripId = tripId;
 
+    // Update trip id
+    this.$tripId.next(+tripId);
+
+    // Load parent trip
     const trip = await this.tripService.load(tripId);
     data.trip = trip;
-
-    // If is on field mode, fill default values
-    if (this.isOnFieldMode) {
-      data.startDateTime = moment();
-    }
 
     // Use the default gear, if only one
     if (trip && trip.gears && trip.gears.length === 1) {
       data.physicalGear = trip.gears[0];
     }
 
-    this.defaultBackHref = trip ? '/trips/' + trip.id  + '?tab=2': undefined;
+    // If is on field mode, fill default values
+    if (this.isOnFieldMode) {
+      data.startDateTime = moment();
+
+      // Wait last operations to be loaded
+      const previousOperations = await firstNotNilPromise(this.$lastOperations);
+
+      // Copy from previous operation
+      if (isNotEmptyArray(previousOperations)) {
+        const previousOperation = previousOperations
+          .find(ope => ope && ope !== data && ReferentialUtils.isNotEmpty(ope.metier));
+        if (previousOperation) {
+          data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, previousOperation.physicalGear, 'id')) || data.physicalGear;
+          data.metier = previousOperation.metier;
+          data.rankOrderOnPeriod = previousOperation.rankOrderOnPeriod + 1;
+        }
+      }
+    }
+
   }
 
-  async onEntityLoaded(data: Operation, options?: EditorDataServiceLoadOptions): Promise<void> {
-    const tripId = options && isNotNil(options.tripId) ? options.tripId :
+  async onEntityLoaded(data: Operation, options?: EntityServiceLoadOptions): Promise<void> {
+    const tripId = options && isNotNil(options.tripId) ? +(options.tripId) :
       isNotNil(this.trip && this.trip.id) ? this.trip.id : (data && data.tripId);
     if (isNil(tripId)) throw new Error("Missing argument 'options.tripId'!");
     data.tripId = tripId;
+
+    // Update trip id (will cause last operations to be watched, if need)
+    this.$tripId.next(+tripId);
 
     const trip = await this.tripService.load(tripId);
     data.trip = trip;
 
     // Replace physical gear by the real entity
-    data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear)) || data.physicalGear;
+    data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear, 'id')) || data.physicalGear;
 
-    this.defaultBackHref = trip ? '/trips/' + trip.id  + '?tab=2' : undefined;
   }
 
+  updateView(data: Operation | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
+    super.updateView(data, opts);
 
-  addTableRow(event: UIEvent) {
+    if (this.isNewData && this.showBatchTables && isNotEmptyArray(this.batchTree.defaultTaxonGroups)) {
+      this.batchTree.autoFill();
+    }
+  }
+
+  onNewFabButtonClick(event: UIEvent) {
     if (this.showBatchTables) {
-      switch (this.selectedBatchTabIndex) {
-        case 0:
-          this.batchGroupsTable.addRow(event);
-          break;
-        case 1:
-          this.subBatchesTable.addRow(event);
-          break;
-      }
+      this.batchTree.addRow(event);
     }
     else if (this.showSampleTables) {
       switch (this.selectedSampleTabIndex) {
@@ -378,62 +437,55 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   /**
    * Compute the title
    * @param data
+   * @param opts
    */
-  protected async computeTitle(data: Operation): Promise<string> {
+  protected async computeTitle(data: Operation, opts?: {
+    withPrefix?: boolean;
+  }): Promise<string> {
+
+    // Trip exists
+    const titlePrefix = (!opts || opts.withPrefix !== false) && this.trip && (await this.translate.get('TRIP.OPERATION.TITLE_PREFIX', {
+      vessel: this.trip && this.trip.vesselSnapshot && (this.trip.vesselSnapshot.exteriorMarking || this.trip.vesselSnapshot.name) || '',
+      departureDateTime: this.trip && this.trip.departureDateTime && this.dateFormat.transform(this.trip.departureDateTime) as string || ''
+    }).toPromise()) || '';
 
     // new ope
     if (!data || isNil(data.id)) {
-      return await this.translate.get('TRIP.OPERATION.NEW.TITLE').toPromise();
+      return titlePrefix + (await this.translate.get('TRIP.OPERATION.NEW.TITLE').toPromise());
     }
 
-    // Existing ope
-    const title = (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {
-      vessel: this.trip && this.trip.vesselSnapshot && (this.trip.vesselSnapshot.exteriorMarking || this.trip.vesselSnapshot.name) || '',
-      departureDateTime: this.trip && this.trip.departureDateTime && this.dateFormat.transform(this.trip.departureDateTime) as string || '',
-      startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, {time: true}) as string
-    }).toPromise()) as string;
-
-    return title;
+    // Existing operation
+    if (this.platform.mobile) {
+      return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', {
+        startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, {time: true}) as string
+      }).toPromise()) as string;
+    }
+    else {
+      return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {
+        startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, {time: true}) as string,
+        rankOrder: await this.service.computeRankOrder(data, {fetchPolicy: 'cache-first'})
+      }).toPromise()) as string;
+    }
   }
 
-  async onSubBatchesChanges(subbatches: Batch[]) {
-    if (isNil(subbatches)) return; // user cancelled
-
-    // TODO: for mobile, hide sub-batches tables, and store data else where ?
-    this.subBatchesTable.value = subbatches;
-    await AppTableUtils.waitLoaded(this.subBatchesTable);
-
-    this.subBatchesTable.markAsDirty();
-  }
-
-
-  protected getBatchChildrenByLevel(batch: Batch, acquisitionLevel: string): Batch[] {
-    return (batch.children || []).reduce((res, child) => {
-      if (child.label && child.label.startsWith(acquisitionLevel + "#")) return res.concat(child);
-      return res.concat(this.getBatchChildrenByLevel(child, acquisitionLevel)); // recursive call
-    }, []);
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ... (await super.computePageHistory(title)),
+      icon: 'navigate'
+    };
   }
 
   onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {
     const changed = super.onTabChange(event, queryParamName);
     if (changed && this.selectedTabIndex === 1) {
-      if (this.batchTabGroup) this.batchTabGroup.realignInkBar();
-      if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
+      if (this.showBatchTables && this.batchTree) this.batchTree.realignInkBar();
+      if (this.showSampleTables && this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
       this.markForCheck();
     }
     return changed;
   }
 
-  public onBatchTabChange(event: MatTabChangeEvent) {
-    super.onSubTabChange(event);
-    if (!this.loading) {
-      // On each tables, confirm editing row
-      this.batchGroupsTable.confirmEditCreate();
-      this.subBatchesTable.confirmEditCreate();
-    }
-  }
-
-  public onSampleTabChange(event: MatTabChangeEvent) {
+  onSampleTabChange(event: MatTabChangeEvent) {
     super.onSubTabChange(event);
     if (!this.loading) {
       // On each tables, confirm editing row
@@ -443,58 +495,46 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     }
   }
 
-  /**
-   * Open the first tab that is invalid
-   */
-  protected getFirstInvalidTabIndex(): number {
-    // tab 0
-    const tab0Invalid = this.opeForm.invalid || this.measurementsForm.invalid;
-    // tab 1
-    const subTab0Invalid = (this.showBatchTables && this.batchGroupsTable.invalid) || (this.showSampleTables && this.samplesTable.invalid);
-    const subTab1Invalid = (this.showBatchTables && this.subBatchesTable.invalid) || (this.showSampleTables && this.individualMonitoringTable.invalid);
-    const subTab2Invalid = this.showBatchTables && this.individualReleaseTable.invalid || false;
-    const tab1Invalid = this.catchBatchForm.invalid || subTab0Invalid || subTab1Invalid || subTab2Invalid;
+  async onLastOperationClick(event: UIEvent, id: number): Promise<any> {
+    if (event && event.defaultPrevented) return; // Skip
 
-    // Open the first invalid tab
-    const invalidTabIndex = tab0Invalid ? 0 : (tab1Invalid ? 1 : -1);
+    if (isNil(id) || this.data.id === id) return; // skip
 
-    // If tab 1, open the invalid sub tab
-    if (invalidTabIndex === 1) {
-      if (this.showBatchTables) {
-        const invalidSubTabIndex = subTab0Invalid ? 0 : (subTab1Invalid ? 1 : (subTab2Invalid ? 2 : this.selectedBatchTabIndex));
-        if (this.selectedBatchTabIndex === 0 && !subTab0Invalid) {
-          this.selectedBatchTabIndex = invalidSubTabIndex;
-        } else if (this.selectedBatchTabIndex === 1 && !subTab1Invalid) {
-          this.selectedBatchTabIndex = invalidSubTabIndex;
-        } else if (this.selectedBatchTabIndex === 2 && !subTab2Invalid) {
-          this.selectedBatchTabIndex = invalidSubTabIndex;
-        }
-      } else if (this.showSampleTables) {
-        const invalidSubTabIndex = subTab0Invalid ? 0 : (subTab1Invalid ? 1 : (subTab2Invalid ? 2 : this.selectedSampleTabIndex));
-        if (this.selectedSampleTabIndex === 0 && !subTab0Invalid) {
-          this.selectedSampleTabIndex = invalidSubTabIndex;
-        } else if (this.selectedSampleTabIndex === 1 && !subTab1Invalid) {
-          this.selectedSampleTabIndex = invalidSubTabIndex;
-        } else if (this.selectedSampleTabIndex === 2 && !subTab2Invalid) {
-          this.selectedSampleTabIndex = invalidSubTabIndex;
-        }
-      }
+    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty && this.valid
+      // If on field mode: try to save silently
+      ? this.save(event)
+      // If desktop mode: ask before save
+      : this.saveIfDirtyAndConfirm(null, {
+        emitEvent: false /*do not update view*/
+      });
+    const canContinue = await savePromise;
+
+    if (canContinue) {
+      return this.load(+id, {tripId: this.data.tripId, updateTabAndRoute: true});
     }
-    return invalidTabIndex;
   }
 
-  protected computeUsageMode(operation: Operation): UsageMode {
-    return this.settings.isUsageMode('FIELD') && (
-      isNil(this.trip) || (
-        isNotNil(this.trip.departureDateTime)
-        && this.trip.departureDateTime.diff(moment(), "day") < 15))
-    ? 'FIELD' : 'DESK';
+  async onNewOperationClick(event: UIEvent): Promise<any> {
+    if (event && event.defaultPrevented) return Promise.resolve(); // Skip
+    if (event) event.preventDefault(); // Avoid propagation to <ion-item>
+
+    const savePromise: Promise<boolean> = (this.isOnFieldMode && this.dirty && this.valid)
+      // If on field mode AND valid: save silently
+      ? this.save(event)
+      // Else If desktop mode: ask before save
+      : this.saveIfDirtyAndConfirm(null, {
+        emitEvent: false /*do not update view*/
+      });
+    const canContinue = await savePromise;
+    if (canContinue) {
+      return this.load(undefined, {tripId: this.data.tripId, updateTabAndRoute: true});
+    }
   }
 
   setValue(data: Operation) {
 
     // set parent trip
-    const trip = data.trip;
+    const trip = data.trip as Trip;
     delete data.trip;
     this.trip = trip || this.trip;
 
@@ -505,73 +545,121 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
 
     const program = trip && trip.program && trip.program.label;
 
-    // Get gear
-    const gearLabel = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.label || null;
+    // Get gear, from the physical gear
+    const gearId = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.id || null;
 
     // Set measurements form
-    this.measurementsForm.gear = gearLabel;
-    this.measurementsForm.program = program;
+    this.measurementsForm.gearId = gearId;
+    this.measurementsForm.programLabel = program;
     this.measurementsForm.value = data && data.measurements || [];
 
-    // Get all batches (and children), and samples
-    const batches = (data && data.catchBatch && data.catchBatch.children) || [];
+    // Set batch tree
+    this.batchTree.gearId = gearId;
+    this.batchTree.value = data && data.catchBatch || null;
+
+    // Get all samples
     const samples = (data && data.samples || []).reduce((res, sample) => !sample.children ? res.concat(sample) : res.concat(sample).concat(sample.children), []);
 
-    // Set catch batch
-    this.catchBatchForm.gear = gearLabel;
-    this.catchBatchForm.value = data && data.catchBatch || Batch.fromObject({
-      rankOrder: 1,
-      label: AcquisitionLevelCodes.CATCH_BATCH
-    });
-
-    // Set samples
+    // Set root samples
     this.samplesTable.value = samples.filter(s => s.label && s.label.startsWith(this.samplesTable.acquisitionLevel + "#"));
 
-    // Set individual monitoring
+    // Set sub-samples (individual monitoring)
     this.individualMonitoringTable.availableParents = this.samplesTable.value.filter(s => s.measurementValues && isNotNil(s.measurementValues[PmfmIds.TAG_ID]));
     this.individualMonitoringTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualMonitoringTable.acquisitionLevel + "#"));
 
-    // Set individual release tables
+    // Set sub-samples (individual release)
     this.individualReleaseTable.availableParents = this.individualMonitoringTable.availableParents;
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
 
-    // Set batches table (with root batches)
-    this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));
-
-    // make sure PMFMs are loaded (need the QV pmfm)
-    this.batchGroupsTable.$pmfms
-      .pipe(filter(isNotNil), first())
-      .subscribe((_) => {
-        this.subBatchesTable.setValueFromParent(this.batchGroupsTable.value, this.batchGroupsTable.qvPmfm);
-      });
-
     // Applying program to tables (async)
-    if (program) {
-      setTimeout(() => {
-        this.programSubject.next(program);
-      }, 250);
+    if (program) this.$programLabel.next(program);
+  }
+
+  isCurrentData(other: IEntity<any>): boolean {
+    return (this.isNewData && isNil(other.id))
+      || (this.data && this.data.id === other.id);
+  }
+
+  /* -- protected method -- */
+
+
+  /**
+   * Open the first tab that is invalid
+   */
+  protected getFirstInvalidTabIndex(): number {
+    // tab 0
+    const tab0Invalid = this.opeForm.invalid || this.measurementsForm.invalid;
+    // tab 1
+    const batchTreeInvalidSubTab = this.batchTree.getFirstInvalidTabIndex();
+    const subTab0Invalid = (batchTreeInvalidSubTab === 0) || (this.showSampleTables && this.samplesTable.invalid);
+    const subTab1Invalid = (batchTreeInvalidSubTab === 1) || (this.showSampleTables && this.individualMonitoringTable.invalid);
+    const subTab2Invalid = (batchTreeInvalidSubTab === 2) || (this.showSampleTables && this.individualReleaseTable.invalid);
+    const tab1Invalid = subTab0Invalid || subTab1Invalid || subTab2Invalid;
+
+    // Open the first invalid tab
+    const invalidTabIndex = tab0Invalid ? 0 : (tab1Invalid ? 1 : -1);
+
+    // If tab 1, open the invalid sub tab
+    if (invalidTabIndex === 1) {
+      if (this.showBatchTables) {
+        this.batchTree.setSelectedTabIndex(batchTreeInvalidSubTab);
+      } else if (this.showSampleTables) {
+        const invalidSubTabIndex = subTab0Invalid ? 0 : (subTab1Invalid ? 1 : (subTab2Invalid ? 2 : this.selectedSampleTabIndex));
+        if (this.selectedSampleTabIndex === 0 && !subTab0Invalid) {
+          this.selectedSampleTabIndex = invalidSubTabIndex;
+        } else if (this.selectedSampleTabIndex === 1 && !subTab1Invalid) {
+          this.selectedSampleTabIndex = invalidSubTabIndex;
+        } else if (this.selectedSampleTabIndex === 2 && !subTab2Invalid) {
+          this.selectedSampleTabIndex = invalidSubTabIndex;
+        }
+        this.sampleTabGroup.realignInkBar();
+      }
+    }
+    return invalidTabIndex;
+  }
+
+  protected computeUsageMode(operation: Operation): UsageMode {
+    return this.settings.isUsageMode('FIELD') && (
+      isNil(this.trip) || (
+      isNotNil(this.trip.departureDateTime)
+      && this.trip.departureDateTime.diff(moment(), "day") < 15))
+      ? 'FIELD' : 'DESK';
+  }
+
+  protected registerForms() {
+    // Register sub forms & table
+    this.addChildForms([
+      this.opeForm,
+      this.measurementsForm,
+      this.samplesTable,
+      this.individualMonitoringTable,
+      this.individualReleaseTable,
+      this.batchTree,
+      //this.catchBatchForm,
+      //this.batchGroupsTable
+    ]);
+    if (!this.mobile) {
+      //this.addChildForm(() => this.subBatchesTable);
     }
   }
 
-  protected registerFormsAndTables() {
-    // Register sub forms & table
-    this.registerForms([this.opeForm, this.measurementsForm, this.catchBatchForm])
-      .registerTables([
-        this.samplesTable,
-        this.individualMonitoringTable,
-        this.individualReleaseTable,
-        this.batchGroupsTable,
-        this.subBatchesTable
-      ]);
+  protected async waitWhilePending(): Promise<void> {
+    this.form.updateValueAndValidity();
+    return super.waitWhilePending();
   }
 
   protected async getValue(): Promise<Operation> {
-    const json = await this.getJsonValueToSave();
+    const data = await super.getValue();
 
-    const data = new Operation();
-    data.fromObject(json);
+    await this.batchTree.save();
 
-    data.catchBatch = this.catchBatchForm.value;
+    // Get batch tree,rom the batch tree component
+    data.catchBatch = this.batchTree.value;
+
+    // Make sure to clean species groups, if not batch enable
+    if (!this.showBatchTables) {
+      data.catchBatch.children = undefined;
+    }
 
     // save survival tables
     if (this.showSampleTables) {
@@ -592,18 +680,6 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
       data.samples = undefined;
     }
 
-    // Save batch sampling tables
-    if (this.showBatchTables) {
-      await this.batchGroupsTable.save();
-      await this.subBatchesTable.save();
-
-      // get batches
-      const batches = BatchUtils.prepareRootBatchesForSaving(this.batchGroupsTable.value, this.subBatchesTable.value, this.batchGroupsTable.qvPmfm);
-      data.catchBatch.children = batches;
-    } else {
-      data.catchBatch.children = undefined;
-    }
-
     return data;
   }
 
@@ -614,20 +690,75 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     return json;
   }
 
+  async save(event, opts?: OperationSaveOptions): Promise<boolean> {
+    // Force to pass specific saved options to dataService.save()
+    return await super.save(event, {...this.saveOptions, ...opts});
+  }
+
+  async saveIfDirtyAndConfirm(event?: UIEvent, opts?: { emitEvent: boolean }): Promise<boolean> {
+    return super.saveIfDirtyAndConfirm(event, {...this.saveOptions, ...opts});
+  }
+
   protected canUserWrite(data: Operation): boolean {
     return !!data && this.trip && isNil(this.trip.validationDate)
       && this.tripService.canUserWrite(this.trip);
   }
 
-  protected addToPageHistory(page: HistoryPageReference) {
-    this.settings.addToPageHistory({ ...page, icon: 'locate'},
-      {
-        removePathQueryParams: true,
-        removeTitleSmallTag: true
-      });
+
+  protected async setDefaultTaxonGroups(enable: boolean) {
+    if (!enable) {
+      // Reset table's default taxon groups
+      this.batchTree.defaultTaxonGroups = null;
+      return; // Skip
+    }
+
+    if (this.debug) console.debug("[operation] Check if can auto fill species...");
+    let defaultTaxonGroups: string[];
+
+    // Retrieve the trip measurements on SELF_SAMPLING_PROGRAM, if any
+    const qvMeasurement = (this.trip.measurements || []).find(m => m.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
+    if (qvMeasurement && ReferentialUtils.isNotEmpty(qvMeasurement.qualitativeValue)) {
+
+      // Retrieve QV from the program pmfm (because measurement's QV has only the 'id' attribute)
+      const tripPmfms = await this.programRefService.loadProgramPmfms(this.$programLabel.getValue(), {acquisitionLevel: AcquisitionLevelCodes.TRIP});
+      const pmfm = (tripPmfms || []).find(pmfm => pmfm.id === PmfmIds.SELF_SAMPLING_PROGRAM);
+      const qualitativeValue = (pmfm && pmfm.qualitativeValues || []).find(qv => qv.id === qvMeasurement.qualitativeValue.id);
+
+      // Transform QV.label has a list of TaxonGroup.label
+      if (qualitativeValue && qualitativeValue.label) {
+        defaultTaxonGroups = qualitativeValue.label
+          .split(/[^\w]+/) // Split by separator (= not a word)
+          .filter(isNotNilOrBlank)
+          .map(label => label.trim().toUpperCase());
+      }
+    } else {
+      const taxonGroupRefs = await this.programRefService.loadTaxonGroups(this.$programLabel.getValue());
+      defaultTaxonGroups = taxonGroupRefs.map(taxonGroup => taxonGroup.label);
+    }
+
+    // Set table's default taxon groups
+    this.batchTree.defaultTaxonGroups = defaultTaxonGroups;
+
+    // If new data, auto fill the table
+    if (this.isNewData && !this.loading) {
+      await this.batchTree.autoFill({defaultTaxonGroups});
+    }
+  }
+
+  protected computePageUrl(id: number | "new"): string | any[] {
+    const parentUrl = this.getParentPageUrl();
+    return parentUrl && `${parentUrl}/operation/${id}`;
   }
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  memoryHide = false;
+  startMemoryTimer() {
+    setInterval(() => {
+      this.memoryHide = !this.memoryHide;
+      this.markForCheck();
+    }, 50);
   }
 }

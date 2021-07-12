@@ -1,23 +1,33 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
-import {environment, isNotNil} from "../../core/core.module";
-import {PmfmStrategy, referentialToString, Trip} from "../services/trip.model";
 import {Platform} from "@ionic/angular";
-import {AcquisitionLevelCodes} from "../../referential/services/model";
-import {OperationFilter} from "../services/operation.service";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {OperationGroup} from "../services/model/trip.model";
-import {OperationGroupService} from "../services/operation-group.service";
-import {OperationGroupValidatorService} from "../services/operation-group.validator";
-import {measurementValueToString} from "../services/model/measurement.model";
-import {MetierRef} from "../../referential/services/model/taxon.model";
+import {OperationGroupValidatorService} from "../services/validator/operation-group.validator";
 import {BehaviorSubject} from "rxjs";
+import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
+import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
+import {MetierService} from "../../referential/services/metier.service";
+import {OperationGroup, PhysicalGear} from "../services/model/trip.model";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {ReferentialRef, referentialToString}  from "@sumaris-net/ngx-components";
+import {environment} from "../../../environments/environment";
+import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {OperationFilter} from "@app/trip/services/filter/operation.filter";
 
+export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier', 'physicalGear', 'targetSpecies'];
+export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
   selector: 'app-operation-group-table',
   templateUrl: 'operation-groups.table.html',
   styleUrls: ['operation-groups.table.scss'],
+  providers: [
+    {provide: ValidatorService, useExisting: OperationGroupValidatorService},
+    {
+      provide: InMemoryEntitiesService,
+      useFactory: () => new InMemoryEntitiesService<OperationGroup, OperationFilter>(OperationGroup, OperationFilter)
+    }
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, OperationFilter> implements OnInit, OnDestroy {
@@ -26,33 +36,45 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     [key: string]: string[]
   };
 
-  @Input() tripId: number;
+  @Input()
+  set value(data: OperationGroup[]) {
+    this.memoryDataService.value = data;
+  }
 
-  @Input() metiersSubject: BehaviorSubject<MetierRef[]>;
+  get value(): OperationGroup[] {
+    return this.memoryDataService.value;
+  }
+
+  get dirty(): boolean {
+    return this._dirty || this.memoryDataService.dirty;
+  }
+
+  @Input() $metiers: BehaviorSubject<ReferentialRef[]>;
 
   constructor(
     injector: Injector,
     protected platform: Platform,
-    protected validatorService: OperationGroupValidatorService,
-    protected dataService: OperationGroupService,
-    protected cd: ChangeDetectorRef
+    protected validatorService: ValidatorService,
+    protected memoryDataService: InMemoryEntitiesService<OperationGroup, OperationFilter>,
+    protected metierService: MetierService,
+    protected cd: ChangeDetectorRef,
   ) {
     super(injector,
       OperationGroup,
-      dataService,
+      memoryDataService,
       validatorService,
       {
         prependNewElements: false,
         suppressErrors: environment.production,
-        reservedStartColumns: ['metier', 'physicalGear', 'targetSpecies'],
-        reservedEndColumns: platform.is('mobile') ? [] : ['comments'],
+        reservedStartColumns: OPERATION_GROUP_RESERVED_START_COLUMNS,
+        reservedEndColumns: platform.is('mobile') ? [] : OPERATION_GROUP_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
       });
     this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
     this.autoLoad = false; // waiting parent to be loaded
     this.inlineEdition = true;
     this.confirmBeforeDelete = true;
-    this.pageSize = 1000; // Do not use paginator
+    this.defaultPageSize = -1; // Do not use paginator
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;
@@ -70,32 +92,17 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     };
 
     // Metier combo
+    const metierAttributes = this.settings.getFieldDisplayAttributes('metier');
     this.registerAutocompleteField('metier', {
       showAllOnFocus: true,
-      items: this.metiersSubject
+      items: this.$metiers,
+      attributes: metierAttributes,
+      columnSizes: metierAttributes.map(attr => attr === 'label' ? 3 : undefined)
     });
 
-    // Apply trip id, if already set
-    if (isNotNil(this.tripId)) {
-      this.setTripId(this.tripId);
-    }
-  }
-
-  // setTrip(data: Trip) {
-  //   this.setTripId(data && data.id || undefined);
-  // }
-
-  setTripId(id: number) {
-    this.tripId = id;
-    const filter = this.filter || {};
-    filter.tripId = id;
-    this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
-    this.dataSource.serviceOptions.tripId = id;
-    this.setFilter(filter, {emitEvent: isNotNil(id)});
   }
 
   referentialToString = referentialToString;
-  measurementValueToString = measurementValueToString;
 
   /* -- protected methods -- */
 
@@ -103,7 +110,7 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     this.cd.markForCheck();
   }
 
-  private mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
+  private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
 
     if (this.platform.is('mobile')) {
       // hide pmfms on mobile
@@ -111,6 +118,48 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     }
 
     return pmfms;
+  }
+
+  protected async addRowToTable(): Promise<TableElement<OperationGroup>> {
+    const row = await super.addRowToTable();
+
+    // TODO BLA: a mettre dans onNewEntity() ?
+    row.validator.controls['rankOrderOnPeriod'].setValue(this.getNextRankOrderOnPeriod());
+    // row.validator.controls['rankOrderOnPeriod'].updateValueAndValidity();
+
+    return row;
+  }
+
+  getNextRankOrderOnPeriod(): number {
+    let next = 0;
+    (this.value || []).forEach(v => {
+      if (v.rankOrderOnPeriod && v.rankOrderOnPeriod > next) next = v.rankOrderOnPeriod;
+    });
+    return next + 1;
+  }
+
+  async onMetierChange($event: FocusEvent, row: TableElement<OperationGroup>) {
+    if (row && row.currentData && row.currentData.metier) {
+      console.debug('[operation-group.table] onMetierChange', $event, row.currentData.metier);
+      const operationGroup: OperationGroup = row.currentData;
+
+      if (!operationGroup.physicalGear || operationGroup.physicalGear.gear.id !== operationGroup.metier.gear.id) {
+
+        // First, load the Metier (with children)
+        const metier = await this.metierService.load(operationGroup.metier.id);
+
+        // create new physical gear if missing
+        const physicalGear = new PhysicalGear();
+        physicalGear.gear = metier.gear;
+        // affect same rank order than operation group
+        physicalGear.rankOrder = operationGroup.rankOrderOnPeriod;
+
+        // affect to current row
+        row.validator.controls['metier'].setValue(metier);
+        row.validator.controls['physicalGear'].setValue(physicalGear);
+      }
+
+    }
   }
 }
 

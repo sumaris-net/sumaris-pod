@@ -1,207 +1,127 @@
 import {NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {CoreModule} from '../core/core.module';
-import {TripsPage} from './trip/trips.page';
+import {TripTable} from './trip/trips.table';
 import {TripPage} from './trip/trip.page';
 import {TripForm} from './trip/trip.form';
 import {SaleForm} from './sale/sale.form';
 import {OperationForm} from './operation/operation.form';
 import {OperationPage} from './operation/operation.page';
 import {MeasurementsForm} from './measurement/measurements.form.component';
-import {MeasurementQVFormField} from './measurement/measurement-qv.form-field.component';
-import {MeasurementFormField} from './measurement/measurement.form-field.component';
 import {CatchBatchForm} from './catch/catch.form';
-import {PhysicalGearForm} from './physicalgear/physicalgear.form';
-import {PhysicalGearTable} from './physicalgear/physicalgears.table';
-import {OperationTable} from './operation/operations.table';
+import {PhysicalGearForm} from './physicalgear/physical-gear.form';
+import {PhysicalGearTable} from './physicalgear/physical-gears.table';
+import {OperationsTable} from './operation/operations.table';
 import {SamplesTable} from './sample/samples.table';
 import {SubSamplesTable} from './sample/sub-samples.table';
-import {BatchGroupsTable} from './batch/batch-groups.table';
-import {BatchesTable} from './batch/batches.table';
-import {SubBatchesTable} from './batch/sub-batches.table';
+import {BatchGroupsTable} from './batch/table/batch-groups.table';
+import {BatchesTable} from './batch/table/batches.table';
+import {SubBatchesTable} from './batch/table/sub-batches.table';
 import {IndividualMonitoringSubSamplesTable} from './sample/individualmonitoring/individual-monitoring-samples.table';
-import {MeasurementValuesForm} from './measurement/measurement-values.form.class';
-import {EntityQualityFormComponent} from "./quality/entity-quality-form.component";
-
-import {LandingService, OperationService, TripService} from './services/trip.services';
-
-import {
-  BatchGroupValidatorService,
-  BatchValidatorService,
-  MeasurementsValidatorService,
-  OperationValidatorService,
-  PhysicalGearValidatorService,
-  PositionValidatorService,
-  SaleValidatorService,
-  SampleValidatorService,
-  SubBatchValidatorService,
-  SubSampleValidatorService,
-  TripValidatorService
-} from './services/trip.validators';
-import {ObservedLocationForm} from "./observedlocation/observed-location.form";
-import {ObservedLocationPage} from "./observedlocation/observed-location.page";
-import {ObservedLocationsPage} from "./observedlocation/observed-locations.page";
-import {ObservedLocationService} from "./services/observed-location.service";
-import {ObservedLocationValidatorService} from "./services/observed-location.validator";
-import {LandingsTable} from "./landing/landings.table";
-import {SaleService} from "./services/sale.service";
-import {LeafletModule} from "@asymmetrik/ngx-leaflet";
-import {LandingValidatorService} from "./services/landing.validator";
-import {LandingPage} from "./landing/landing.page";
-import {LandingForm} from "./landing/landing.form";
-import {LandingsTablesModal} from "./landing/landings-table.modal";
-import {AuctionControlPage} from "./auctioncontrol/auction-control.page";
-import {SubBatchesModal} from "./batch/sub-batches.modal";
-import {SubBatchForm} from "./batch/sub-batch.form";
-import {PhysicalGearModal} from "./physicalgear/physicalgear.modal";
-import {BatchModal} from "./batch/batch.modal";
-import {BatchForm} from "./batch/batch.form";
-import {SpeciesBatchValidatorService} from "./services/validator/species-batch.validator";
-import {BatchGroupPage} from "./batch/batch-group.page";
-import {BatchGroupForm} from "./batch/batch-group.form";
-import {BatchGroupModal} from "./batch/batch-group.modal";
-import {SubBatchModal} from "./batch/sub-batch.modal";
-import {FullscreenOverlayContainer, OverlayContainer} from "@angular/cdk/overlay";
-import {AggregationTypeValidatorService} from "./services/validator/aggregation-type.validator";
-import {ReferentialModule} from "../referential/referential.module";
-import {SampleForm} from "./sample/sample.form";
-import {SampleModal} from "./sample/sample.modal";
-import {APP_CONFIG_OPTIONS} from "../core/services/config.service";
-import {SynchroService} from "./services/synchro-service";
-import {LandedTripPage} from "./landedtrip/landed-trip.page";
-import {OperationGroupForm} from "./operationgroup/operation-group.form";
-import {OperationGroupPage} from "./operationgroup/operation-group.page";
-import {OperationGroupTable} from "./operationgroup/operation-groups.table";
-import {OperationGroupValidatorService} from "./services/operation-group.validator";
-
-export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
+import {LeafletModule} from '@asymmetrik/ngx-leaflet';
+import {SubBatchesModal} from './batch/modal/sub-batches.modal';
+import {SubBatchForm} from './batch/form/sub-batch.form';
+import {PhysicalGearModal} from './physicalgear/physical-gear.modal';
+import {BatchForm} from './batch/form/batch.form';
+import {BatchTreeComponent} from './batch/batch-tree.component';
+import {BatchGroupForm} from './batch/form/batch-group.form';
+import {BatchGroupModal} from './batch/modal/batch-group.modal';
+import {SubBatchModal} from './batch/modal/sub-batch.modal';
+import {AppReferentialModule} from '../referential/app-referential.module';
+import {SampleForm} from './sample/sample.form';
+import {SampleModal} from './sample/sample.modal';
+import {SelectPhysicalGearModal} from './physicalgear/select-physical-gear.modal';
+import {AppDataModule} from '../data/app-data.module';
+import {OperationsMap} from './operation/map/operations.map';
+import {SocialModule} from '@sumaris-net/ngx-components';
+import {BatchModal} from './batch/modal/batch.modal';
+import {TranslateModule} from '@ngx-translate/core';
+import {CommonModule} from '@angular/common';
+import {TripTrashModal} from './trip/trash/trip-trash.modal';
+import {AppCoreModule} from '@app/core/core.module';
 
 @NgModule({
   imports: [
     CommonModule,
-    CoreModule,
     LeafletModule,
-    ReferentialModule
+    TranslateModule.forChild(),
+
+    // App module
+    AppCoreModule,
+    AppReferentialModule,
+    AppDataModule,
+    SocialModule
   ],
-    declarations: [
-      TripsPage,
-      TripPage,
-      TripForm,
-      LandedTripPage,
-      PhysicalGearModal,
-      SaleForm,
-      PhysicalGearForm,
-      PhysicalGearTable,
-      OperationForm,
-      OperationPage,
-      OperationTable,
-      OperationGroupForm,
-      OperationGroupPage,
-      OperationGroupTable,
-      ObservedLocationForm,
-      ObservedLocationPage,
-      ObservedLocationsPage,
-      MeasurementsForm,
-      MeasurementQVFormField,
-      MeasurementFormField,
-      CatchBatchForm,
-      LandingsTable,
-      LandingPage,
-      LandingForm,
-      LandingsTablesModal,
-      SamplesTable,
-      SubSamplesTable,
-      BatchGroupsTable,
-      BatchesTable,
-      SubBatchesTable,
-      SubBatchForm,
-      SubBatchesModal,
-      BatchForm,
-      BatchModal,
-      BatchGroupModal,
-      BatchGroupPage,
-      BatchGroupForm,
-      SubBatchModal,
-      SampleForm,
-      SampleModal,
-      IndividualMonitoringSubSamplesTable,
-      AuctionControlPage,
-      EntityQualityFormComponent
-    ],
-    exports: [
-      TripsPage,
-      TripPage,
-      TripForm,
-      LandedTripPage,
-      PhysicalGearModal,
-      SaleForm,
-      PhysicalGearForm,
-      PhysicalGearTable,
-      OperationForm,
-      OperationPage,
-      OperationTable,
-      OperationGroupForm,
-      OperationGroupPage,
-      OperationGroupTable,
-      MeasurementsForm,
-      MeasurementQVFormField,
-      EntityQualityFormComponent,
-      LandingsTable,
-      LandingForm,
-      LandingPage,
-      LandingsTablesModal,
-      AuctionControlPage,
-      BatchForm,
-      BatchGroupPage,
-      SubBatchForm,
-      SubBatchModal,
-      SampleForm
-    ],
-    entryComponents: [
-      TripsPage,
-      TripPage,
-      PhysicalGearModal,
-      PhysicalGearTable,
-      OperationTable,
-      OperationPage,
-      ObservedLocationPage,
-      ObservedLocationsPage,
-      LandingPage,
-      LandingsTablesModal,
-      AuctionControlPage,
-      SubBatchesModal,
-      BatchModal,
-      BatchGroupModal,
-      BatchGroupPage,
-      SubBatchModal,
-      SampleModal
-    ],
-    providers: [
-      TripService,
-      TripValidatorService,
-      PhysicalGearValidatorService,
-      OperationService,
-      OperationValidatorService,
-      OperationGroupValidatorService,
-      ObservedLocationService,
-      ObservedLocationValidatorService,
-      LandingService,
-      LandingValidatorService,
-      SaleService,
-      SaleValidatorService,
-      PositionValidatorService,
-      MeasurementsValidatorService,
-      BatchValidatorService,
-      SubBatchValidatorService,
-      BatchGroupValidatorService,
-      SpeciesBatchValidatorService,
-      SampleValidatorService,
-      SubSampleValidatorService,
-      {provide: OverlayContainer, useClass: FullscreenOverlayContainer},
-      AggregationTypeValidatorService,
-      SynchroService
-    ]
+  declarations: [
+    TripTable,
+    TripForm,
+    TripPage,
+    TripTrashModal,
+    PhysicalGearTable,
+    PhysicalGearForm,
+    PhysicalGearModal,
+    SelectPhysicalGearModal,
+    SaleForm,
+    OperationsTable,
+    OperationForm,
+    OperationPage,
+    OperationsMap,
+    MeasurementsForm,
+    CatchBatchForm,
+    SamplesTable,
+    SubSamplesTable,
+    BatchGroupsTable,
+    BatchesTable,
+    BatchForm,
+    BatchModal,
+    SubBatchesTable,
+    SubBatchForm,
+    SubBatchModal,
+    SubBatchesModal,
+    BatchGroupsTable,
+    BatchGroupForm,
+    BatchGroupModal,
+    BatchTreeComponent,
+    SamplesTable,
+    SampleForm,
+    SampleModal,
+    SubSamplesTable,
+    IndividualMonitoringSubSamplesTable
+  ],
+  exports: [
+    // Modules
+    TranslateModule,
+    SocialModule,
+
+    // App modules
+    AppCoreModule,
+    AppDataModule,
+    AppReferentialModule,
+
+    // Pipes
+
+    // Components
+    TripTable,
+    TripPage,
+    TripForm,
+    PhysicalGearModal,
+    SaleForm,
+    PhysicalGearForm,
+    PhysicalGearTable,
+    OperationForm,
+    OperationPage,
+    OperationsTable,
+    MeasurementsForm,
+    BatchForm,
+    BatchTreeComponent,
+    SubBatchForm,
+    SubBatchModal,
+    SampleForm,
+    SamplesTable,
+    SubSamplesTable
+  ]
 })
 export class TripModule {
 
+  constructor() {
+    console.debug('[trip] Creating module...');
+  }
 }

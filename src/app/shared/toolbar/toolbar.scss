@@ -1,9 +1,0 @@
-// Default behavior: hide back button
-ion-button.back-button {
-  display: none;
-}
-
-ion-button.back-button.can-go-back {
-  display: inline-block !important;
-}
-

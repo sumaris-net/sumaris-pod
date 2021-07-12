@@ -8,13 +8,10 @@ fi;
 
 # Preparing Android environment
 . ${PROJECT_DIR}/scripts/env-android.sh
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 
 cd ${PROJECT_DIR}
 
 # Run the build
 echo "Running cordova build..."
-ionic cordova build android --warning-mode=none --color
-#ionic cordova build android --warning-mode=none --color --verbose
+ionic cordova build android --warning-mode=none --color $*

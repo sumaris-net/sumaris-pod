@@ -1,59 +1,34 @@
-import {
-  DataEntityAsObjectOptions,
-  DataRootVesselEntity,
-  EntityUtils,
-  fromDateISOString,
-  IWithObserversEntity,
-  Person,
-  ReferentialRef,
-  toDateISOString,
-  NOT_MINIFY_OPTIONS
-} from "./base.model";
-import {Moment} from "moment";
-import {MeasurementUtils} from "./measurement.model";
-import {Sample} from "./sample.model";
-import {ReferentialAsObjectOptions} from "../../../core/services/model";
+import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
+import {Moment} from 'moment';
+import {MeasurementModelValues, MeasurementValuesUtils} from './measurement.model';
+import {Sample} from './sample.model';
+import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
+import {IWithObserversEntity} from '@app/data/services/model/model.utils';
+import {EntityClass, fromDateISOString, Person, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils, toDateISOString, toNumber} from '@sumaris-net/ngx-components';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 /**
  * Landing entity
  */
+@EntityClass({typename: 'LandingVO'})
 export class Landing extends DataRootVesselEntity<Landing> implements IWithObserversEntity<Landing> {
 
-  static fromObject(source: any): Landing {
-    const res = new Landing();
-    res.fromObject(source);
-    return res;
-  }
+  static fromObject: (source: any, opts?: any) => Landing;
 
-  dateTime: Moment;
-  location: ReferentialRef;
-  rankOrder?: number;
-  measurementValues: { [key: string]: any };
+  dateTime: Moment = null;
+  location: ReferentialRef = null;
+  rankOrder?: number = null;
+  rankOrderOnVessel?: number = null;
+  measurementValues: MeasurementModelValues = null;
 
-  tripId: number;
-  observedLocationId: number;
-
-  observers: Person[];
-
-  samples: Sample[];
+  tripId: number = null;
+  observedLocationId: number = null;
+  observers: Person[] = null;
+  samples: Sample[] = null;
+  samplesCount?: number = null;
 
   constructor() {
-    super();
-    this.program = new ReferentialRef();
-    this.location = new ReferentialRef();
-    this.observers = [];
-    this.measurementValues = {};
-    this.samples = [];
-  }
-
-  clone(): Landing {
-    const target = new Landing();
-    target.fromObject(this.asObject());
-    return target;
-  }
-
-  copy(target: Landing) {
-    target.fromObject(this);
+    super(Landing.TYPENAME);
   }
 
   asObject(options?: DataEntityAsObjectOptions): any {
@@ -61,7 +36,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     target.dateTime = toDateISOString(this.dateTime);
     target.location = this.location && this.location.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions) || undefined;
     target.observers = this.observers && this.observers.map(p => p && p.asObject(options)) || undefined;
-    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, options);
+    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, options);
 
     // Samples
     target.samples = this.samples && this.samples.map(s => s.asObject(options)) || undefined;
@@ -69,13 +44,14 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     return target;
   }
 
-  fromObject(source: any): Landing {
+  fromObject(source: any) {
     super.fromObject(source);
     this.dateTime = fromDateISOString(source.dateTime);
-    source.location && this.location.fromObject(source.location);
+    this.location = source.location && ReferentialRef.fromObject(source.location);
     this.rankOrder = source.rankOrder;
+    this.rankOrderOnVessel = source.rankOrderOnVessel;
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
-    this.measurementValues = source.measurementValues;
+    this.measurementValues = source.measurementValues && {...source.measurementValues};
     if (this.measurementValues === undefined) {
       console.warn("Source as no measurementValues. Should never occur ! ", source);
     }
@@ -86,8 +62,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
 
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
-
-    return this;
+    this.samplesCount = toNumber(source.samplesCount, this.samples?.length);
   }
 
   equals(other: Landing): boolean {
@@ -95,10 +70,12 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
       || (
         // Same vessel
         (this.vesselSnapshot && other.vesselSnapshot && this.vesselSnapshot.id === other.vesselSnapshot.id)
+        // Same rank order on vessel
+        && (this.rankOrderOnVessel && other.rankOrderOnVessel && this.rankOrderOnVessel === other.rankOrderOnVessel)
         // Same date
         && (this.dateTime === other.dateTime)
         // Same location
-        && EntityUtils.equals(this.location, other.location)
+        && ReferentialUtils.equals(this.location, other.location)
       );
   }
 }

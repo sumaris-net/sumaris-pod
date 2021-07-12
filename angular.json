@@ -1,15 +1,18 @@
 {
-  "$schema": "./node_modules/@angular-devkit/core/src/workspace/workspace-schema.json",
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
-  "defaultProject": "app",
   "newProjectRoot": "projects",
   "projects": {
     "app": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
       "root": "",
       "sourceRoot": "src",
-      "projectType": "application",
       "prefix": "app",
-      "schematics": {},
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
@@ -18,7 +21,24 @@
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
-            "tsConfig": "src/tsconfig.app.json",
+            "tsConfig": "tsconfig.app.json",
+            "allowedCommonJsDependencies": [
+              "hammerjs",
+              "angular2-text-mask",
+              "uuid",
+              "hash.js",
+              "zone.js",
+              "scrypt-async",
+              "tweetnacl",
+              "graphql-tag",
+              "apollo-link-serialize",
+              "apollo-link-queue",
+              "apollo-link-logger",
+              "zen-observable",
+              "subscriptions-transport-ws",
+              "chart.js",
+              "react"
+            ],
             "assets": [
               {
                 "glob": "**/*",
@@ -42,7 +62,7 @@
               },
               {
                 "glob": "**/*.*",
-                "input": "node_modules/material-design-icons/iconfont",
+                "input": "node_modules/material-design-icons-iconfont/dist/fonts",
                 "output": "/"
               },
               {
@@ -67,65 +87,76 @@
               }
             ],
             "styles": [
-              {
-                "input": "node_modules/@angular/material/prebuilt-themes/indigo-pink.css"
-              },
-              {
-                "input": "src/global.scss"
-              },
-              {
-                "input":  "node_modules/leaflet/dist/leaflet.css"
-              }
+              "node_modules/leaflet/dist/leaflet.css",
+              "src/global.scss"
             ],
-            "scripts": [],
-            "es5BrowserSupport": true,
+            "scripts": [
+              "node_modules/marked/lib/marked.js",
+              "node_modules/emoji-toolkit/lib/js/joypixels.min.js",
+              "node_modules/prismjs/prism.js"
+            ],
             "stylePreprocessorOptions": {
               "includePaths": [
-                "node_modules/ionicons/dist/scss",
                 "src/theme"
               ]
             }
           },
           "configurations": {
             "production": {
+              "aot": true,
+              "buildOptimizer": true,
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": true,
+              "namedChunks": false,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "serviceWorker": false,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "6mb",
+                  "maximumError": "8mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb",
+                  "maximumError": "10kb"
+                }
+              ],
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.prod.ts"
                 }
-              ],
-              "optimization": true,
-              "outputHashing": "all",
-              "sourceMap": false,
-              "extractCss": true,
-              "namedChunks": false,
-              "aot": true,
-              "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true,
+              ]
+            },
+            "development": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "outputHashing": "none",
+              "sourceMap": true,
+              "namedChunks": true,
+              "extractLicenses": false,
+              "vendorChunk": true,
               "budgets": [
                 {
-                  "type": "initial",
-                  "maximumWarning": "4mb",
-                  "maximumError": "7mb"
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb"
                 }
               ]
             },
-            "dev": {
-              "optimization": true,
-              "buildOptimizer": true,
-              "aot": true,
-              "outputHashing": "all",
-              "sourceMap": false,
-              "extractCss": true,
-              "namedChunks": true,
-              "extractLicenses": true,
-              "vendorChunk": false
-            },
             "ci": {
+              "budgets": [
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb"
+                }
+              ],
               "progress": false
             }
-          }
+          },
+          "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
@@ -136,7 +167,11 @@
             "production": {
               "browserTarget": "app:build:production"
             },
+            "development": {
+              "browserTarget": "app:build:development"
+            },
             "ci": {
+              "browserTarget": "app:build:production",
               "progress": false
             }
           }
@@ -152,10 +187,8 @@
           "options": {
             "main": "src/test.ts",
             "polyfills": "src/polyfills.ts",
-            "tsConfig": "src/tsconfig.spec.json",
-            "karmaConfig": "src/karma.conf.js",
-            "styles": [],
-            "scripts": [],
+            "tsConfig": "tsconfig.spec.json",
+            "karmaConfig": "karma.conf.js",
             "assets": [
               {
                 "glob": "favicon.ico",
@@ -166,6 +199,21 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "/assets"
+              }
+            ],
+            "styles": [
+              "./src/global.scss"
+            ],
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "src/theme"
+              ]
+            },
+            "scripts": [],
+            "fileReplacements": [
+              {
+                "replace": "src/environments/environment.ts",
+                "with": "src/environments/environment.test.ts"
               }
             ]
           },
@@ -179,8 +227,13 @@
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": ["src/tsconfig.app.json", "src/tsconfig.spec.json"],
-            "exclude": ["**/node_modules/**"]
+            "tsConfig": [
+              "tsconfig.app.json",
+              "tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
           }
         },
         "ionic-cordova-build": {
@@ -208,42 +261,10 @@
           }
         }
       }
-    },
-    "app-e2e": {
-      "root": "e2e/",
-      "projectType": "application",
-      "architect": {
-        "e2e": {
-          "builder": "@angular-devkit/build-angular:protractor",
-          "options": {
-            "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "app:serve"
-          },
-          "configurations": {
-            "ci": {
-              "devServerTarget": "app:serve:ci"
-            }
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": "e2e/tsconfig.e2e.json",
-            "exclude": ["**/node_modules/**"]
-          }
-        }
-      }
     }
   },
+  "defaultProject": "app",
   "cli": {
-    "defaultCollection": "@ionic/angular-toolkit"
-  },
-  "schematics": {
-    "@ionic/angular-toolkit:component": {
-      "styleext": "scss"
-    },
-    "@ionic/angular-toolkit:page": {
-      "styleext": "scss"
-    }
+    "analytics": false
   }
 }

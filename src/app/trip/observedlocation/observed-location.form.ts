@@ -1,32 +1,33 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {Moment} from 'moment';
+import {DateAdapter} from '@angular/material/core';
+import {debounceTime, filter, map, tap} from 'rxjs/operators';
+import {ObservedLocationValidatorService} from '../services/validator/observed-location.validator';
+import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
 import {
-  entityToString,
-  EntityUtils,
+  FormArrayHelper,
+  fromDateISOString,
+  isEmptyArray,
   isNil,
   isNotNil,
-  LocationLevelIds,
-  ObservedLocation,
-  Person,
-  personToString,
+  LoadResult,
+  LocalSettingsService,
+  Person, PersonService, PersonUtils,
   referentialToString,
-  StatusIds
-} from "../services/trip.model";
-import {Moment} from 'moment/moment';
-import {FormArrayHelper} from '../../core/core.module';
-import {DateAdapter} from "@angular/material";
-import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
-import {AcquisitionLevelCodes, ProgramService, ReferentialRefService} from '../../referential/referential.module';
-import {ObservedLocationValidatorService} from "../services/observed-location.validator";
-import {PersonService} from "../../admin/services/person.service";
-import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
-import {MeasurementsValidatorService} from "../services/measurement.validator";
-import {FormArray, FormBuilder} from "@angular/forms";
-import {UserProfileLabel} from "../../core/services/model";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {toBoolean} from "../../shared/functions";
+  ReferentialUtils,
+  StatusIds,
+  toBoolean, UserProfileLabel
+} from '@sumaris-net/ngx-components';
+import {ObservedLocation} from '../services/model/observed-location.model';
+import {AcquisitionLevelCodes, LocationLevelIds} from '@app/referential/services/model/model.enum';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
 
 @Component({
-  selector: 'form-observed-location',
+  selector: 'app-form-observed-location',
   templateUrl: './observed-location.form.html',
   styleUrls: ['./observed-location.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -36,6 +37,9 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   _showObservers: boolean;
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
+  locationFilter: Partial<ReferentialRefFilter> = {
+    entityName: 'Location'
+  };
   mobile: boolean;
 
   @Input() required = true;
@@ -43,7 +47,22 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   @Input() showEndDateTime = true;
   @Input() showComment = true;
   @Input() showButtons = true;
-  @Input() locationLevelIds: number[];
+
+  @Input() set locationLevelIds(value: number[]) {
+    if (this.locationFilter.levelIds !== value) {
+
+      console.debug("[observed-location-form] Location level ids:", value);
+      this.locationFilter = {
+        ...this.locationFilter,
+        levelIds: value
+      };
+      this.markForCheck();
+    }
+  }
+
+  get locationLevelIds(): number[] {
+    return this.locationFilter && this.locationFilter.levelIds;
+  }
 
   @Input()
   set showObservers(value: boolean) {
@@ -70,21 +89,26 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   }
 
   get observersForm(): FormArray {
-    return this.form.get('observers') as FormArray;
+    return this.form.controls.observers as FormArray;
+  }
+
+  get measurementValuesForm(): FormGroup {
+    return this.form.controls.measurementValues as FormGroup;
   }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected validatorService: ObservedLocationValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd, validatorService.getFormGroup());
+    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
+      validatorService.getFormGroup());
     this._enable = false;
     this.mobile = this.settings.mobile;
 
@@ -101,16 +125,39 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     // Default values
     this.showObservers = toBoolean(this.showObservers, true); // Will init the observers helper
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
-    if (isNil(this.locationLevelIds)) {
-      this.locationLevelIds = [LocationLevelIds.PORT];
-    }
+    if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
 
     // Combo: programs
+    const programAttributes = this.settings.getFieldDisplayAttributes('program');
     this.registerAutocompleteField('program', {
       service: this.referentialRefService,
-      filter: {
+      attributes: programAttributes,
+      // Increase default column size, for 'label'
+      columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
+      filter: <ReferentialRefFilter>{
         entityName: 'Program'
-      }
+      },
+      mobile: this.mobile
+    });
+
+    // Combo location
+    this.registerAutocompleteField('location', {
+      service: this.referentialRefService,
+      filter: this.locationFilter
+    });
+
+    // Combo: observers
+    this.registerAutocompleteField('person', {
+      // Important, to get the current (focused) control value, in suggestObservers() function (otherwise it will received '*').
+      showAllOnFocus: false,
+      suggestFn: (value, filter) => this.suggestObservers(value, filter),
+      // Default filter. An excludedIds will be add dynamically
+      filter: {
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER']
+      },
+      attributes: ['lastName', 'firstName', 'department.name'],
+      displayWith: PersonUtils.personToString
     });
 
     // Propagate program
@@ -118,59 +165,49 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
       this.form.get('program').valueChanges
         .pipe(
           debounceTime(250),
-          filter(EntityUtils.isNotEmpty),
-          pluck('label'),
-          distinctUntilChanged()
+          map(value => (value && typeof value === 'string') ? value : (value && value.label || undefined))
         )
-        .subscribe(programLabel => this.program = programLabel));
+        .subscribe(programLabel => this.programLabel = programLabel));
 
-    // Combo location
-    this.registerAutocompleteField('location', {
-      service: this.referentialRefService,
-      filter: {
-        entityName: 'Location',
-        levelIds: this.locationLevelIds
-      }
-    });
-
-    // Combo: observers
-    const profileLabels: UserProfileLabel[] = ['SUPERVISOR', 'USER', 'GUEST'];
-    this.registerAutocompleteField('person', {
-      service: this.personService,
-      filter: {
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: profileLabels
-      },
-      attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: personToString
-    });
+    // Copy startDateTime to endDateTime, when endDate is hidden
+    this.registerSubscription(
+      this.form.get('startDateTime').valueChanges
+        .pipe(
+          debounceTime(150),
+          filter(v => isNotNil(v) && !this.showEndDateTime),
+          map(fromDateISOString),
+          tap(startDateTime => this.form.patchValue({
+            endDateTime: startDateTime.add(1, 'millisecond')
+          }, {emitEvent: false}))
+        )
+        .subscribe()
+    );
   }
 
-  setValue(value: ObservedLocation) {
-    if (!value) return;
+  async setValue(data: ObservedLocation, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }) {
+    if (!data) return;
 
     // Make sure to have (at least) one observer
-    value.observers = value.observers && value.observers.length ? value.observers : [null];
+    data.observers = data.observers && data.observers.length ? data.observers : [null];
 
     // Resize observers array
     if (this._showObservers) {
-      this.observersHelper.resize(Math.max(1, value.observers.length));
-    }
-    else {
+      this.observersHelper.resize(Math.max(1, data.observers.length));
+    } else {
       this.observersHelper.removeAllEmpty();
     }
 
-    // Propagate the program
-    if (value.program && value.program.label) {
-      this.program = value.program.label;
-    }
-    // New data: copy the program into json value
-    else if (isNil(value.id)){
-      value.program = this.form.get('program').value;
+    // Force to show end date
+    if (!this.showEndDateTime && isNotNil(data.endDateTime) && isNotNil(data.startDateTime)) {
+      const diffInSeconds = fromDateISOString(data.endDateTime)
+        .diff(fromDateISOString(data.startDateTime), 'second');
+      if (diffInSeconds !== 0) {
+        this.showEndDateTime = true;
+        this.markForCheck();
+      }
     }
 
-    // Send value for form
-    super.setValue(value);
+    await super.setValue(data, opts);
   }
 
   addObserver() {
@@ -201,12 +238,10 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     if (isNil(this._showObservers)) return; // skip if not loading yet
 
     this.observersHelper = new FormArrayHelper<Person>(
-      this.formBuilder,
-      this.form,
-      'observers',
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'observers'),
       (person) => this.validatorService.getObserverControl(person),
-      EntityUtils.equals,
-      EntityUtils.isEmpty,
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
       {
         allowEmptyArray: !this._showObservers
       }
@@ -221,6 +256,22 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     else if (this.observersHelper.size() > 0) {
       this.observersHelper.resize(0);
     }
+  }
+
+  protected suggestObservers(value: any, filter?: any): Promise<LoadResult<Person>> {
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+    const newValue = currentControlValue ? '*' : value;
+
+    // Excluded existing observers, BUT keep the current control value
+    const excludedIds = (this.observersForm.value || [])
+    .filter(ReferentialUtils.isNotEmpty)
+    .filter(person => !currentControlValue || currentControlValue !== person)
+    .map(person => parseInt(person.id));
+
+    return this.personService.suggest(newValue, {
+      ...filter,
+      excludedIds
+    });
   }
 
   protected markForCheck() {

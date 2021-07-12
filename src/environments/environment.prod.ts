@@ -1,8 +1,9 @@
-import { Environment } from "./environment.class";
+import {Environment} from "@sumaris-net/ngx-components";
+
 const pkg = require('../../package.json')
 
 /* tslint:disable */
-export const environment: Environment = {
+export const environment: Environment = Object.freeze({
   name: (pkg.name as string),
   version: (pkg.version as string),
   production: true,
@@ -11,6 +12,9 @@ export const environment: Environment = {
   defaultLatLongFormat: "DDMM",
   apolloFetchPolicy: "cache-first",
   mock: false,
+
+  // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
+  peerMinVersion: '1.8.0',
 
   // FIXME: GraphQL subscription never unsubscribe...
   listenRemoteChanges: false,
@@ -34,7 +38,23 @@ export const environment: Environment = {
     {
       host: 'test.sumaris.net',
       port: 443
+    },
+    {
+      host: 'imagine-pod.isival.ifremer.fr',
+      port: 443
     }
-  ]
-};
+  ],
+
+  defaultAppName: 'SUMARiS',
+  defaultAndroidInstallUrl: 'https://play.google.com/store/apps/details?id=net.sumaris.app',
+
+  // About modal
+  sourceUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app',
+  reportIssueUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app/-/issues/new?issue',
+
+  // Storage
+  storage: {
+    driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage']
+  }
+});
 /* tslint:enable */

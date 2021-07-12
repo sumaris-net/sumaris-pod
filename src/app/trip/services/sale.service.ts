@@ -1,20 +1,20 @@
-import {Injectable} from "@angular/core";
-import gql from "graphql-tag";
-import {Observable} from "rxjs";
-import {Department, EntityUtils, Person, Sale, Sample} from "./trip.model";
-import {map} from "rxjs/operators";
-import {LoadResult, TableDataService} from "../../shared/shared.module";
-import {BaseDataService} from "../../core/core.module";
-import {ErrorCodes} from "./trip.errors";
-import {DataFragments, Fragments} from "./trip.queries";
-import {GraphqlService} from "../../core/services/graphql.service";
-import {WatchQueryFetchPolicy} from "apollo-client";
-import {AccountService} from "../../core/services/account.service";
-import {SAVE_AS_OBJECT_OPTIONS} from "./model/base.model";
-import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
+import {Injectable} from '@angular/core';
+import {gql, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
+import {ErrorCodes} from './trip.errors';
+import {DataFragments, Fragments} from './trip.queries';
+import {AccountService, BaseGraphqlService, EntityUtils, GraphqlService, IEntitiesService, LoadResult} from '@sumaris-net/ngx-components';
+import {SAVE_AS_OBJECT_OPTIONS} from '../../data/services/model/data-entity.model';
+import {VesselSnapshotFragments} from '../../referential/services/vessel-snapshot.service';
+import {Sale} from './model/sale.model';
+import {Sample} from './model/sample.model';
+import {SortDirection} from '@angular/material/sort';
+import {environment} from '../../../environments/environment';
+import {SaleFilter} from '@app/trip/services/filter/sale.filter';
 
 export const SaleFragments = {
-  lightSale: gql`fragment LightSaleFragment on SaleVO {
+  lightSale: gql`fragment LightSaleFragment_PENDING on SaleVO {
     id
     startDateTime
     endDateTime
@@ -34,8 +34,9 @@ export const SaleFragments = {
   ${Fragments.location}
   ${Fragments.lightDepartment}
   ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${Fragments.referential}
   `,
-  sale: gql`fragment SaleFragment on SaleVO {
+  sale: gql`fragment SaleFragment_PENDING on SaleVO {
     id
     startDateTime
     endDateTime
@@ -70,14 +71,10 @@ export const SaleFragments = {
   ${Fragments.location}
   ${DataFragments.sample}
   ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${Fragments.referential}
   `
 };
 
-
-export declare class SaleFilter {
-  observedLocationId?: number;
-  tripId?: number;
-}
 const LoadAllQuery: any = gql`
   query Sales($filter: SaleFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     sales(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -126,13 +123,13 @@ const sortByEndDateOrStartDateFn = (n1: Sale, n2: Sale) => {
 };
 
 @Injectable({providedIn: 'root'})
-export class SaleService extends BaseDataService implements TableDataService<Sale, SaleFilter>{
+export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements IEntitiesService<Sale, SaleFilter>{
 
   constructor(
     protected graphql: GraphqlService,
     protected accountService: AccountService
   ) {
-    super(graphql);
+    super(graphql, environment);
 
     // -- For DEV only
     //this._debug = !environment.production;
@@ -149,7 +146,7 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
   watchAll(offset: number,
            size: number,
            sortBy?: string,
-           sortDirection?: string,
+           sortDirection?: SortDirection,
            filter?: SaleFilter,
            options?: {
              fetchPolicy?: WatchQueryFetchPolicy
@@ -157,15 +154,18 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
 
     const variables: any = {
       offset: offset || 0,
-      size: size || 1000,
-      sortBy: (sortBy != 'id' && sortBy) || 'startDateTime',
+      size: size >= 0 ? size : 1000,
+      sortBy: (sortBy !== 'id' && sortBy) || 'startDateTime',
       sortDirection: sortDirection || 'asc',
       filter: filter
     };
-    this._lastVariables.loadAll = variables;
 
     if (this._debug) console.debug("[sale-service] Loading sales... using options:", variables);
-    return this.graphql.watchQuery<{ sales?: Sale[] }>({
+    return this.mutableWatchQuery<{ sales: Sale[] }>({
+      queryName: 'LoadAll',
+      arrayFieldName: 'sales',
+      //TODO implement SaleFilter.searchFilter()
+      // mutationFilterFn: SaleFilter.searchFilter(filter),
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_SALES_ERROR, message: "TRIP.SALE.ERROR.LOAD_SALES_ERROR" },
@@ -176,21 +176,23 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
           const data = (res && res.sales || []).map(Sale.fromObject);
           if (this._debug) console.debug(`[sale-service] Loaded ${data.length} sales`);
 
-          // Compute rankOrderOnPeriod, by parent entity
-          if (filter && filter.observedLocationId) {
-            let rankOrder = 1;
-            // apply a sorted copy (do NOT change original order), then compute rankOrder
-            data.slice().sort(sortByEndDateOrStartDateFn)
-              .forEach(o => o.rankOrder = rankOrder++);
+          // Compute rankOrderOnPeriod, when loading by parent entity
+          if (offset === 0 && (size === -1) && filter && filter.observedLocationId) {
+            if (offset === 0 && (size === -1)) {
+              let rankOrder = 1;
+              // apply a sorted copy (do NOT change original order), then compute rankOrder
+              data.slice().sort(sortByEndDateOrStartDateFn)
+                .forEach(o => o.rankOrder = rankOrder++);
 
-            // sort by rankOrder (aka id)
-            if (!sortBy || sortBy == 'id') {
-              const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
-              data.sort((a, b) => {
-                const valueA = a.rankOrder;
-                const valueB = b.rankOrder;
-                return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
-              });
+              // sort by rankOrder (aka id)
+              if (!sortBy || sortBy == 'id') {
+                const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
+                data.sort((a, b) => {
+                  const valueA = a.rankOrder;
+                  const valueB = b.rankOrder;
+                  return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+                });
+              }
             }
           }
 
@@ -330,11 +332,11 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
         }
 
         // Update the cache
-        if (isNew && this._lastVariables.loadAll) {
-          this.graphql.addToQueryCache(proxy, {
+        if (isNew) {
+          this.insertIntoMutableCachedQuery(proxy, {
             query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'sales', entity.asObject());
+            data: savedEntity
+          });
         }
       }
     });
@@ -358,20 +360,23 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
     await this.graphql.mutate<any>({
       mutation: DeleteSales,
       variables: {
-        ids: ids
+        ids
       },
       update: (proxy) => {
         // Remove from cache
-        if (this._lastVariables.loadAll) {
-          this.graphql.removeToQueryCacheByIds(proxy,{
-            query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'sales', ids);
-        }
+        this.removeFromMutableCachedQueryByIds(proxy,{
+          query: LoadAllQuery,
+          ids
+        });
 
         if (this._debug) console.debug(`[sale-service] Sale deleted in ${Date.now() - now}ms`);
       }
     });
+  }
+
+
+  asFilter(filter: Partial<SaleFilter>): SaleFilter {
+    return SaleFilter.fromObject(filter);
   }
 
   /* -- protected methods -- */
@@ -393,16 +398,16 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
   }
 
   fillRecorderPersonAndDepartment(entity: Sale) {
-    const person: Person = this.accountService.account;
+    const person = this.accountService.person;
 
     // Recorder department
     if (person && person.department && !entity.recorderDepartment) {
-      entity.recorderDepartment = Department.fromObject({id: person.department.id});
+      entity.recorderDepartment = person.department;
     }
 
     // Recorder person
     if (person && person.id && !entity.recorderPerson) {
-      entity.recorderPerson = Person.fromObject({id: person.id});
+      entity.recorderPerson = person;
     }
   }
 

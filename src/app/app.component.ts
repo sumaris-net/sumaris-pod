@@ -1,19 +1,17 @@
 import {Component, Inject} from '@angular/core';
-import {MenuItem} from './core/menu/menu.component';
-import {isNotNil, joinPropertiesPath} from './core/core.module';
-import {ReferentialRefService} from './referential/referential.module';
-import {ConfigService} from './core/services/config.service';
+import {ConfigService} from "@sumaris-net/ngx-components";
 import {DOCUMENT} from "@angular/common";
-import {Configuration} from "./core/services/model";
-import {PlatformService} from "./core/services/platform.service";
+import {Configuration}  from "@sumaris-net/ngx-components";
+import {PlatformService}  from "@sumaris-net/ngx-components";
 import {throttleTime} from "rxjs/operators";
-import {changeCaseToUnderscore} from "./shared/shared.module";
-import {FormFieldDefinition} from "./shared/form/field.model";
-import {getColorContrast, getColorShade, getColorTint, hexToRgbArray, mixHex} from "./shared/graph/colors.utils";
-import {AccountService} from "./core/services/account.service";
-import {LocalSettingsService} from "./core/services/local-settings.service";
-import {TripConfigOptions} from "./trip/services/config/trip.config";
-
+import {FormFieldDefinition} from "@sumaris-net/ngx-components";
+import {getColorContrast, getColorShade, getColorTint, hexToRgbArray, mixHex} from "@sumaris-net/ngx-components";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {ReferentialRefService} from "./referential/services/referential-ref.service";
+import {MatIconRegistry} from "@angular/material/icon";
+import {DomSanitizer} from "@angular/platform-browser";
+import {isNotNil, joinPropertiesPath} from "@sumaris-net/ngx-components";
 
 @Component({
   selector: 'app-root',
@@ -24,39 +22,6 @@ export class AppComponent {
 
   logo: String;
   appName: String;
-  menuItems: MenuItem[] = [
-    {title: 'MENU.HOME', path: '/', icon: 'home'},
-
-    // Data entry
-    {title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER'},
-    {title: 'MENU.TRIPS', path: '/trips', icon: 'pin', profile: 'USER'},
-    {
-      title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
-      matIcon: 'verified_user',
-      profile: 'USER',
-      ifProperty: 'sumaris.observedLocation.enable',
-      titleProperty: 'sumaris.observedLocation.name'
-    },
-
-    // Data extraction
-    {title: 'MENU.EXTRACTION_DIVIDER', profile: 'SUPERVISOR'},
-    {title: 'MENU.TRIPS', path: '/extraction/table', icon: 'download', profile: 'SUPERVISOR'},
-    {title: 'MENU.MAP', path: '/extraction/map', icon: 'globe', profile: 'SUPERVISOR'},
-
-    // Referential
-    {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
-    {title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', profile: 'USER'},
-    {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
-    {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
-    {title: 'MENU.SERVER_SETTINGS', path: '/admin/config', matIcon: 'build', profile: 'ADMIN'},
-
-    // Settings
-    {title: '' /*empty divider*/},
-    {title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings'},
-    {title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', cssClass: 'visible xs visible-sm'},
-    {title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', cssClass: 'ion-color-danger'}
-
-  ];
 
   constructor(
     @Inject(DOCUMENT) private _document: HTMLDocument,
@@ -64,22 +29,31 @@ export class AppComponent {
     private accountService: AccountService,
     private referentialRefService: ReferentialRefService,
     private configService: ConfigService,
-    private settings: LocalSettingsService
+    private settings: LocalSettingsService,
+    private matIconRegistry: MatIconRegistry,
+    private domSanitizer: DomSanitizer
   ) {
 
-    this.platform.ready().then(() => {
-
-      // Listen for config changed
-      this.configService.config.subscribe(config => this.onConfigChanged(config));
-
-      // Add additional account fields
-      this.addAccountFields();
-
-      this.addSettingsFields();
-    });
+    this.start();
   }
 
-  public onActivate(event) {
+  async start() {
+    console.info('[app] Starting...');
+
+    await this.platform.start();
+
+    // Listen for config changed
+    this.configService.config.subscribe(config => this.onConfigChanged(config));
+
+    // Add additional account fields
+    this.addAccountFields();
+
+    this.addCustomSVGIcons();
+
+    console.info('[app] Starting [OK]');
+  }
+
+  onActivate(event) {
     // Make sure to scroll on top before changing state
     // See https://stackoverflow.com/questions/48048299/angular-5-scroll-to-top-on-every-route-click
     const scrollToTop = window.setInterval(() => {
@@ -176,15 +150,16 @@ export class AppComponent {
     console.debug("[app] Add additional account fields...");
 
     const attributes = this.settings.getFieldDisplayAttributes('department');
-    const departmentDefinition = {
+    const departmentDefinition = <FormFieldDefinition>{
       key: 'department',
       label: 'USER.DEPARTMENT.TITLE',
       type: 'entity',
       autocomplete: {
         service: this.referentialRefService,
         filter: {entityName: 'Department'},
-        displayWith: (value) => joinPropertiesPath(value, attributes),
-        attributes: attributes
+        displayWith: (value) => value && joinPropertiesPath(value, attributes),
+        attributes: attributes,
+        columnSizes: attributes.map(attr => attr === 'label' ? 3 : undefined)
       },
       extra: {
         registration: {
@@ -195,7 +170,7 @@ export class AppComponent {
           disable: true
         }
       }
-    } as FormFieldDefinition;
+    };
 
     // Add account field: department
     this.accountService.registerAdditionalField(departmentDefinition);
@@ -211,37 +186,11 @@ export class AppComponent {
       });
   }
 
-  protected addSettingsFields() {
-
-    console.debug("[app] Add additional settings fields...");
-
-    this.settings.registerAdditionalFields(
-      // Configurable fields, with label and name
-      ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear']
-        // Map into option definition
-        .map(fieldName => {
-        return {
-          key: `sumaris.field.${fieldName}.attributes`,
-          label: `SETTINGS.FIELDS.${changeCaseToUnderscore(fieldName).toUpperCase()}`,
-          type: 'enum',
-          values: [
-            {key: 'label,name',   value: 'SETTINGS.FIELDS.ATTRIBUTES.LABEL_NAME'},
-            {key: 'name',         value: 'SETTINGS.FIELDS.ATTRIBUTES.NAME'},
-            {key: 'name,label',   value: 'SETTINGS.FIELDS.ATTRIBUTES.NAME_LABEL'},
-            {key: 'label',        value: 'SETTINGS.FIELDS.ATTRIBUTES.LABEL'}
-          ]
-        } as FormFieldDefinition;
-      }));
-
-    this.settings.registerAdditionalField({
-      key: 'sumaris.field.vesselSnapshot.attributes',
-      label: 'SETTINGS.FIELDS.VESSEL.NAME',
-      type: 'enum',
-      values: [
-        {key: 'exteriorMarking,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.EXTERIOR_MARKING_NAME'},
-        {key: 'registrationCode,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.REGISTRATION_CODE_NAME'}
-      ]});
+  protected addCustomSVGIcons() {
+    this.matIconRegistry.addSvgIcon(
+      "fish",
+      this.domSanitizer.bypassSecurityTrustResourceUrl("../assets/icons/fish.svg")
+    );
   }
-
 }
 

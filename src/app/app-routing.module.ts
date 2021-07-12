@@ -1,32 +1,7 @@
 import {NgModule} from '@angular/core';
-import {ActivatedRouteSnapshot, ExtraOptions, RouteReuseStrategy, RouterModule, Routes} from '@angular/router';
-import {HomePage} from './core/home/home';
-import {RegisterConfirmPage} from './core/register/confirm/confirm';
-import {AccountPage} from './core/account/account';
-import {VesselsPage} from './referential/vessel/list/vessels';
-import {VesselPage} from './referential/vessel/page/page-vessel';
-import {ReferentialsPage} from './referential/list/referentials';
-import {OperationPage} from './trip/operation/operation.page';
-import {SoftwarePage} from './referential/software/software.page';
-import {ObservedLocationPage} from "./trip/observedlocation/observed-location.page";
-import {ObservedLocationsPage} from "./trip/observedlocation/observed-locations.page";
-import {SettingsPage} from "./core/settings/settings.page";
-import {LandingPage} from "./trip/landing/landing.page";
-import {AuctionControlPage} from "./trip/auctioncontrol/auction-control.page";
-import {SubBatchesModal} from "./trip/batch/sub-batches.modal";
-import {IonicRouteStrategy} from "@ionic/angular";
-import {ProgramPage} from "./referential/program/program.page";
-import {BatchGroupPage} from "./trip/batch/batch-group.page";
-import {AuthGuardService} from "./core/services/auth-guard.service";
-import {TripsPage} from "./trip/trip/trips.page";
-import {TripPage} from "./trip/trip/trip.page";
-import {LandedTripPage} from "./trip/landedtrip/landed-trip.page";
-
-const routeOptions: ExtraOptions = {
-  enableTracing: false,
-  //enableTracing: !environment.production,
-  useHash: false
-};
+import {ExtraOptions, RouterModule, Routes} from '@angular/router';
+import {AccountPage, AuthGuardService, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule} from '@sumaris-net/ngx-components';
+import {QuicklinkModule, QuicklinkStrategy} from 'ngx-quicklink';
 
 const routes: Routes = [
   // Core path
@@ -59,265 +34,103 @@ const routes: Routes = [
   {
     path: 'admin',
     canActivate: [AuthGuardService],
-    loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)
+    loadChildren: () => import('./admin/admin-routing.module').then(m => m.AppAdminRoutingModule)
   },
 
-  // Referential path
+  // Referential
   {
     path: 'referential',
     canActivate: [AuthGuardService],
-    children: [
-      {
-        path: 'list',
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            component: ReferentialsPage,
-            data: {
-              profile: 'ADMIN'
-            }
-          }
-        ]
-      },
-      {
-        path: 'vessels',
-        children: [
-          {
-            path: '',
-            component: VesselsPage,
-            data: {
-              profile: 'USER'
-            }
-          },
-          {
-            path: ':id',
-            component: VesselPage,
-            data: {
-              profile: 'USER'
-            }
-          }
-        ]
-      },
-      {
-        path: 'program/:id',
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            component: ProgramPage,
-            data: {
-              profile: 'ADMIN'
-            }
-          }
-        ]
-      },
-      {
-        path: 'software/:id',
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            component: SoftwarePage,
-            data: {
-              profile: 'ADMIN'
-            }
-          }
-        ]
-      }
-    ]
+    loadChildren: () => import('./referential/referential-routing.module').then(m => m.ReferentialRoutingModule)
   },
 
-  // Trip path
+  // Vessel
+  {
+    path: 'vessels',
+    canActivate: [AuthGuardService],
+    loadChildren: () => import('./vessel/vessel-routing.module').then(m => m.VesselRoutingModule)
+  },
+
+  // Trips
   {
     path: 'trips',
     canActivate: [AuthGuardService],
     data: {
       profile: 'USER'
     },
-    children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        component: TripsPage
-      },
-      {
-        path: ':tripId',
-        runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          pathIdParam: 'tripId'
-        },
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            component: TripPage,
-            runGuardsAndResolvers: 'pathParamsChange'
-          },
-          {
-            path: 'operations/:operationId',
-            runGuardsAndResolvers: 'pathParamsChange',
-            data: {
-              pathIdParam: 'operationId'
-            },
-            children: [
-              {
-                path: '',
-                pathMatch: 'full',
-                component: OperationPage,
-                runGuardsAndResolvers: 'pathParamsChange'
-              },
-              {
-                path: 'batches',
-                component: SubBatchesModal,
-                runGuardsAndResolvers: 'pathParamsChange'
-              },
-              {
-                path: 'batch/:batchId',
-                component: BatchGroupPage,
-                runGuardsAndResolvers: 'pathParamsChange',
-                data: {
-                  pathIdParam: 'batchId'
-                },
-              }
-            ]
-          }
-        ]
-      },
-
-      {
-        path: ':tripId/landing/:landingId',
-        component: LandingPage,
-        runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          profile: 'USER',
-          pathIdParam: 'landingId'
-        }
-      }
-    ]
+    loadChildren: () => import('./trip/trip-routing.module').then(m => m.TripRoutingModule)
   },
 
-  // Observations path
+  // Observations
   {
     path: 'observations',
     canActivate: [AuthGuardService],
     data: {
       profile: 'USER'
     },
-    children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        component: ObservedLocationsPage
-      },
-      {
-        path: ':observedLocationId',
-        runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          pathIdParam: 'observedLocationId'
-        },
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            component: ObservedLocationPage,
-            runGuardsAndResolvers: 'pathParamsChange'
-          },
-          // {
-          //   path: 'batches',
-          //   component: SubBatchesModal,
-          //   runGuardsAndResolvers: 'pathParamsChange'
-          // },
-          {
-            path: 'landing/:landingId',
-            runGuardsAndResolvers: 'pathParamsChange',
-            data: {
-              pathIdParam: 'landingId'
-            },
-            children: [
-              {
-                path: '',
-                pathMatch: 'full',
-                component: LandingPage,
-                runGuardsAndResolvers: 'pathParamsChange'
-              }
-            ]
-          },
-          {
-            path: 'control/:controlId',
-            runGuardsAndResolvers: 'pathParamsChange',
-            data: {
-              pathIdParam: 'controlId'
-            },
-            children: [
-              {
-                path: '',
-                pathMatch: 'full',
-                component: AuctionControlPage,
-                runGuardsAndResolvers: 'pathParamsChange'
-              }
-            ]
-          },
-          {
-            path: 'landed_trip/:landingId/:tripId',
-            runGuardsAndResolvers: 'pathParamsChange',
-            data: {
-              pathIdParam: 'tripId'
-            },
-            children: [
-              {
-                path: '',
-                pathMatch: 'full',
-                component: LandedTripPage,
-                runGuardsAndResolvers: 'pathParamsChange'
-              }
-            ]
-          }
-        ]
-      }
-    ]
+    loadChildren: () => import('./trip/landed-trip-routing.module').then(m => m.LandedTripRoutingModule)
   },
 
   // Extraction path
   {
     path: 'extraction',
     canActivate: [AuthGuardService],
-    loadChildren: () => import('./trip/extraction/extraction.module').then(m => m.ExtractionModule)
+    data: {
+      profile: 'GUEST'
+    },
+    loadChildren: () => import('./extraction/extraction-routing.module').then(m => m.AppExtractionRoutingModule)
   },
 
+  // Test module (disable in menu, by default - can be enable by the Pod configuration page)
+  {
+    path: 'testing',
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'shared',
+      },
+      // Shared module
+      {
+        path: 'shared',
+        loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.SharedTestingModule)
+      },
+      // Trip module
+      {
+        path: 'trip',
+        loadChildren: () => import('./trip/trip.testing.module').then(m => m.TripTestingModule)
+      },
+      // Referential module
+      {
+        path: 'referential',
+        loadChildren: () => import('./referential/referential.testing.module').then(m => m.ReferentialTestingModule)
+      }
+    ]
+  },
+
+  // Other route redirection (should at the end of the array)
   {
     path: "**",
     redirectTo: '/'
-  },
+  }
 ];
 
-export class CustomReuseStrategy extends IonicRouteStrategy {
-
-  shouldReuseRoute(future: ActivatedRouteSnapshot, curr: ActivatedRouteSnapshot): boolean {
-    const res = super.shouldReuseRoute(future, curr);
-
-    // Reuse the route if path change from [/new] -> [/:id]
-    if (!res && future.routeConfig && future.routeConfig === curr.routeConfig) {
-      const pathIdParam = future.routeConfig.data && future.routeConfig.data.pathIdParam || 'id';
-      const futureId = future.params[pathIdParam] === 'new' ?
-        (future.queryParams[pathIdParam] || future.queryParams['id']) : future.params[pathIdParam];
-      const currId = curr.params[pathIdParam] === 'new' ?
-        (curr.queryParams[pathIdParam] || curr.queryParams['id']) : curr.params[pathIdParam];
-      return futureId === currId;
-    }
-    return res;
-  }
-}
+export const ROUTE_OPTIONS: ExtraOptions = {
+  enableTracing: false,
+  //enableTracing: !environment.production,
+  useHash: false,
+  onSameUrlNavigation: 'reload',
+  preloadingStrategy: QuicklinkStrategy
+};
 
 @NgModule({
   imports: [
-    RouterModule.forRoot(routes, routeOptions)
+    QuicklinkModule,
+    SharedRoutingModule,
+    RouterModule.forRoot(routes, ROUTE_OPTIONS)
   ],
   exports: [
     RouterModule
-  ],
-  providers: [
-    { provide: RouteReuseStrategy, useClass: CustomReuseStrategy }
   ]
 })
 export class AppRoutingModule {

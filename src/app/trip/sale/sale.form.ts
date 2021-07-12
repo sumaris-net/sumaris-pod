@@ -1,28 +1,21 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {SaleValidatorService} from "../services/sale.validator";
-import {
-  entityToString,
-  EntityUtils,
-  LocationLevelIds,
-  ReferentialRef,
-  referentialToString,
-  Sale, StatusIds,
-  VesselSnapshot,
-  vesselSnapshotToString
-} from "../services/trip.model";
-import {Moment} from 'moment/moment';
-import {AppForm} from '../../core/core.module';
-import {DateAdapter} from "@angular/material";
-import {Observable, of} from 'rxjs';
-import {debounceTime, map, mergeMap, switchMap} from 'rxjs/operators';
-import {ReferentialRefService, VesselService} from '../../referential/referential.module';
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {SaleValidatorService} from "../services/validator/sale.validator";
+import {Moment} from 'moment';
+import {DateAdapter} from "@angular/material/core";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
+import {Sale} from "../services/model/sale.model";
+import {LocationLevelIds} from "../../referential/services/model/model.enum";
+import {AppForm}  from "@sumaris-net/ngx-components";
+import {referentialToString}  from "@sumaris-net/ngx-components";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {StatusIds}  from "@sumaris-net/ngx-components";
 
 @Component({
   selector: 'form-sale',
   templateUrl: './sale.form.html',
-  styleUrls: ['./sale.form.scss']
+  styleUrls: ['./sale.form.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SaleForm extends AppForm<Sale> implements OnInit {
 
@@ -51,7 +44,8 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
     protected saleValidatorService: SaleValidatorService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService
+    protected settings: LocalSettingsService,
+    protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, saleValidatorService.getFormGroup(), settings);
   }
@@ -60,7 +54,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
     super.ngOnInit();
 
     // Set if required or not
-    this.saleValidatorService.setRequired(this.form, this.required);
+    this.saleValidatorService.updateFormGroup(this.form, {required: this.required});
 
     // Combo: vessels (if need)
     if (this.showVessel) {
@@ -96,6 +90,10 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
         entityName: 'SaleType'
       }
     });
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 
   referentialToString = referentialToString;

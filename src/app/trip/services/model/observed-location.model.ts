@@ -1,24 +1,21 @@
-import {fromDateISOString, isNotNil, Person, ReferentialRef, toDateISOString} from "../../../core/core.module";
-
-import {DataEntityAsObjectOptions, DataRootEntity, DataRootVesselEntity, IWithObserversEntity, NOT_MINIFY_OPTIONS} from "./base.model";
-
-
-import {Moment} from "moment/moment";
+import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
+import {Moment} from "moment";
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {Landing} from "./landing.model";
-import {ReferentialAsObjectOptions} from "../../../core/services/model";
+import {ReferentialAsObjectOptions, ReferentialRef}  from "@sumaris-net/ngx-components";
+import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
+import {IWithObserversEntity} from "../../../data/services/model/model.utils";
+import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
+import {Person}  from "@sumaris-net/ngx-components";
+import {EntityClass}  from "@sumaris-net/ngx-components";
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
-
-export class ObservedLocation extends DataRootEntity<ObservedLocation>
+@EntityClass({typename: "ObservedLocationVO"})
+export class ObservedLocation extends RootDataEntity<ObservedLocation>
   implements IEntityWithMeasurement<ObservedLocation>, IWithObserversEntity<ObservedLocation> {
 
-  static fromObject(source: any): ObservedLocation {
-    const res = new ObservedLocation();
-    res.fromObject(source);
-    return res;
-  }
+  static fromObject: (source, opts?: any) => ObservedLocation;
 
-  program: ReferentialRef;
   startDateTime: Moment;
   endDateTime: Moment;
   location: ReferentialRef;
@@ -28,18 +25,11 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation>
   landings: Landing[];
 
   constructor() {
-    super();
-    this.program = null;
+    super(ObservedLocation.TYPENAME);
     this.location = null;
     this.measurementValues = {};
     this.observers = [];
     this.landings = [];
-  }
-
-  clone(): ObservedLocation {
-    const target = new ObservedLocation();
-    target.fromObject(this.asObject());
-    return target;
   }
 
   copy(target: ObservedLocation) {
@@ -48,11 +38,10 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation>
 
   asObject(options?: DataEntityAsObjectOptions): any {
     const target = super.asObject(options);
-    target.program = this.program && this.program.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions) || undefined;
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
     target.location = this.location && this.location.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions) || undefined;
-    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, options);
+    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, options);
     target.landings = this.landings && this.landings.map(s => s.asObject(options)) || undefined;
     target.observers = this.observers && this.observers.map(o => o.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions)) || undefined;
 
@@ -61,12 +50,11 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation>
 
   fromObject(source: any): ObservedLocation {
     super.fromObject(source);
-    this.program = source.program && ReferentialRef.fromObject(source.program);
     this.startDateTime = fromDateISOString(source.startDateTime);
     this.endDateTime = fromDateISOString(source.endDateTime);
     this.location = source.location && ReferentialRef.fromObject(source.location);
 
-    this.measurementValues = source.measurementValues || MeasurementUtils.toMeasurementValues(source.measurements);
+    this.measurementValues = source.measurementValues && {...source.measurementValues} || MeasurementUtils.toMeasurementValues(source.measurements);
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
     this.landings = source.landings && source.landings.map(Landing.fromObject) || [];
 
@@ -85,73 +73,3 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation>
       );
   }
 }
-
-
-export class ObservedVessel extends DataRootVesselEntity<ObservedVessel> {
-
-  static fromObject(source: any): ObservedVessel {
-    const res = new ObservedVessel();
-    res.fromObject(source);
-    return res;
-  }
-
-  dateTime: Moment;
-  observedLocationId: number;
-  landingCount: number;
-  rankOrder: number;
-  observers: Person[];
-  measurementValues: { [key: string]: any };
-
-  constructor() {
-    super();
-    this.observers = [];
-    this.measurementValues = {};
-  }
-
-  clone(): ObservedVessel {
-    const target = new ObservedVessel();
-    target.fromObject(this.asObject());
-    return target;
-  }
-
-  copy(target: ObservedVessel) {
-    target.fromObject(this);
-  }
-
-
-  fromObject(source: any): ObservedVessel {
-    super.fromObject(source);
-    this.dateTime = fromDateISOString(source.dateTime);
-    this.observedLocationId = source.observedLocationId;
-    this.rankOrder = source.rankOrder;
-    this.landingCount = source.landingCount;
-    this.observers = source.observers && source.observers.map(Person.fromObject) || [];
-    if (source.measurementValues) {
-      this.measurementValues = source.measurementValues;
-    }
-    // Convert measurement to map
-    else if (source.measurements) {
-      this.measurementValues = source.measurements && source.measurements.reduce((map, m) => {
-        const value = m && m.pmfmId && (m.alphanumericalValue || m.numericalValue || (m.qualitativeValue && m.qualitativeValue.id));
-        if (value) map[m.pmfmId] = value;
-        return map;
-      }, {}) || undefined;
-    }
-
-
-    return this;
-  }
-
-  asObject(options?: DataEntityAsObjectOptions): any {
-    const target = super.asObject(options);
-    target.dateTime = toDateISOString(this.dateTime);
-    target.observers = this.observers && this.observers.map(o => o.asObject(options)) || undefined;
-
-    // Measurement: keep only the map
-    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, options);
-
-    return target;
-  }
-
-}
-
