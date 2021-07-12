@@ -131,10 +131,10 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, FIRST_NAME_PARAMETER);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(parameter),
-                criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.FIRST_NAME)), criteriaBuilder.upper(parameter))
+                criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.FIRST_NAME)), parameter)
             );
         });
-        specification.addBind(FIRST_NAME_PARAMETER, firstName);
+        specification.addBind(FIRST_NAME_PARAMETER, firstName != null ? firstName.toUpperCase() : null);
         return specification;
     }
 
@@ -143,10 +143,10 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, LAST_NAME_PARAMETER);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(parameter),
-                criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.LAST_NAME)), criteriaBuilder.upper(parameter))
+                criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.LAST_NAME)), parameter)
             );
         });
-        specification.addBind(LAST_NAME_PARAMETER, lastName);
+        specification.addBind(LAST_NAME_PARAMETER, lastName != null ? lastName.toUpperCase() : null);
         return specification;
     }
 

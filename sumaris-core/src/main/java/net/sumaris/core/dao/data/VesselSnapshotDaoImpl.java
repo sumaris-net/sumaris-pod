@@ -133,12 +133,12 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
             cb.or(
                 cb.and(
                     // if no date in filter, will return only active period
-                    cb.isNull(dateParam),
+                    cb.isNull(dateParam.as(String.class)),
                     cb.isNull(root.get(VesselFeatures.Fields.END_DATE)),
                     cb.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE))
                 ),
                 cb.and(
-                    cb.isNotNull(dateParam),
+                    cb.isNotNull(dateParam.as(String.class)),
                     cb.and(
                         cb.or(
                             cb.isNull(root.get(VesselFeatures.Fields.END_DATE)),
@@ -171,9 +171,9 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
             // Filter: search text (on exterior marking OR id)
             cb.or(
                 cb.isNull(searchNameParam),
-                cb.like(cb.lower(root.get(VesselFeatures.Fields.NAME)), cb.lower(searchNameParam)),
-                cb.like(cb.lower(root.get(VesselFeatures.Fields.EXTERIOR_MARKING)), cb.lower(searchExteriorMarkingParam)),
-                cb.like(cb.lower(vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)), cb.lower(searchRegistrationCodeParam))
+                cb.like(cb.lower(root.get(VesselFeatures.Fields.NAME)), searchNameParam),
+                cb.like(cb.lower(root.get(VesselFeatures.Fields.EXTERIOR_MARKING)), searchExteriorMarkingParam),
+                cb.like(cb.lower(vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)), searchRegistrationCodeParam)
             ),
 
             // Status
@@ -185,6 +185,7 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
 
 
         String searchTextAsPrefix = Daos.getEscapedSearchText(filter.getSearchText());
+        searchTextAsPrefix = searchTextAsPrefix != null ? searchTextAsPrefix.toLowerCase() : null;
         String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%"+searchTextAsPrefix) : null;
 
         TypedQuery<VesselSnapshotResult> q = getEntityManager().createQuery(query)

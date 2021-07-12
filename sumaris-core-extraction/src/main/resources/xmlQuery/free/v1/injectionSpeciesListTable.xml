@@ -31,7 +31,7 @@
       FROM BATCH BL
       WHERE
         BL.PARENT_BATCH_FK=SL.SAMPLE_ID
-        AND BL.LABEL like 'SORTING_BATCH_INDIVIDUAL#%'
+        AND BL.LABEL like UPPER('SORTING_BATCH_INDIVIDUAL#%')
     ) END)</select>
 
   <groupby>NUMBER_INDIVIDUAL</groupby>

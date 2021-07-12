@@ -375,6 +375,7 @@ public class AggregationRdbTripDaoImpl<
         xmlQuery.setGroup("gearType", rawStationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
 
         xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
+        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
         xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
 
         return xmlQuery;
@@ -532,6 +533,7 @@ public class AggregationRdbTripDaoImpl<
 
         // Enable/Disable group, on DBMS
         xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
+        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
         xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
 
         // Enable/Disable group, on optional columns
@@ -708,9 +710,11 @@ public class AggregationRdbTripDaoImpl<
         // Enable/Disable group, on DBMS
         xmlQuery.setGroup("hasId", hasId);
         xmlQuery.setGroup("hsqldb-hasId", hasId && this.databaseType == DatabaseType.hsqldb);
+        xmlQuery.setGroup("pgsql-hasId", hasId && this.databaseType == DatabaseType.postgresql);
         xmlQuery.setGroup("oracle-hasId", hasId && this.databaseType == DatabaseType.oracle);
         xmlQuery.setGroup("hasSampleIds", hasSampleIds);
         xmlQuery.setGroup("hsqldb-hasSampleIds", hasSampleIds && this.databaseType == DatabaseType.hsqldb);
+        xmlQuery.setGroup("pgsql-hasSampleIds", hasSampleIds && this.databaseType == DatabaseType.postgresql);
         xmlQuery.setGroup("oracle-hasSampleIds", hasSampleIds && this.databaseType == DatabaseType.oracle);
 
         return xmlQuery;
@@ -789,7 +793,7 @@ public class AggregationRdbTripDaoImpl<
         String sqlQuery = xmlQuery.getSQLQueryAsString();
 
         // Do column nanes replacement (e.g. see FREE extraction)
-        sqlQuery = Daos.sqlReplaceColumnNames(sqlQuery, context.getColumnNamesMapping());
+        sqlQuery = Daos.sqlReplaceColumnNames(sqlQuery, context.getColumnNamesMapping(), xmlQuery.isLowercase());
 
         return queryUpdate(sqlQuery);
     }
@@ -868,7 +872,8 @@ public class AggregationRdbTripDaoImpl<
                         c -> query(
                             Daos.sqlReplaceColumnNames(
                                 String.format("SELECT DISTINCT %s FROM %s where %s IS NOT NULL", c, tableName, c),
-                                context.getColumnNamesMapping()),
+                                context.getColumnNamesMapping(),
+                                xmlQuery.isLowercase()),
                             Object.class)
                                 .stream()
                                 .map(String::valueOf)

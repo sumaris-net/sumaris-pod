@@ -49,6 +49,13 @@ public class InitTests extends net.sumaris.core.test.InitTests {
             log.error(ex.getLocalizedMessage(), ex);
         }
     }
+    public InitTests() {
+        super();
+    }
+
+    public InitTests(String datasourcePlatform) {
+        super(datasourcePlatform);
+    }
 
     @Override
     public String getTargetDbDirectory() {
@@ -58,6 +65,11 @@ public class InitTests extends net.sumaris.core.test.InitTests {
     @Override
     protected String getModuleName() {
         return TestConfiguration.MODULE_NAME;
+    }
+
+    @Override
+    protected  String getConfigFileName(){
+        return TestConfiguration.CONFIG_FILE_PREFIX + "-" + this.datasourcePlatform + ".properties";
     }
 
     @Override

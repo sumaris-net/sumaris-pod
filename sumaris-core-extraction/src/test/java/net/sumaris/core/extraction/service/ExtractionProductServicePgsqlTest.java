@@ -24,12 +24,12 @@ package net.sumaris.core.extraction.service;
 
 import net.sumaris.core.extraction.DatabaseResource;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
-import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.extraction.util.ExtractionProducts;
+import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
@@ -42,6 +42,7 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Arrays;
 import java.util.List;
@@ -49,10 +50,11 @@ import java.util.List;
 /**
  * @author benoit.lavenier@e-is.pro
  */
-public class ExtractionProductServiceTest extends AbstractServiceTest {
+@ActiveProfiles("pgsql")
+public class ExtractionProductServicePgsqlTest extends AbstractServiceTest {
 
     @ClassRule
-    public static final DatabaseResource dbResource = DatabaseResource.writeDb();
+    public static final DatabaseResource dbResource = DatabaseResource.writeDb("pgsql");
 
     @Autowired
     private ExtractionProductService service;

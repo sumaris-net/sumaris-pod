@@ -55,7 +55,7 @@ import java.util.Properties;
 @ActiveProfiles("test")
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {ServiceTestConfiguration.class})
-@TestPropertySource(locations="classpath:sumaris-core-test.properties")
+//@TestPropertySource(locations="classpath:sumaris-core-test.properties")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
 public class AbstractServiceTest {

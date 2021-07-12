@@ -10,8 +10,7 @@
     <select alias="ID_VRAC" type="number">SL.ID_VRAC</select>
     <select alias="NUM_VRAC" type="number">SL.NUM_VRAC</select>
     <select alias="VRAC_HV" type="text">'Vrac'</select>
-<!--    <select alias="PR_PNR" type="text">DECODE(SL.CATCH_CATEGORY, 'DIS', 'PNR', 'LAN', 'PR', null)</select>-->
-    <select alias="PR_PNR" type="text">CASE SL.CATCH_CATEGORY WHEN 'DIS' THEN 'PNR' WHEN 'LAN' THEN 'PR' ELSE null END</select>
+    <select alias="PR_PNR" type="text">CASE SL.CATCH_CATEGORY WHEN UPPER('DIS') THEN UPPER('PNR') WHEN UPPER('LAN') THEN UPPER('PR') ELSE null END</select>
     <select alias="EXHAUSTIF" type="text">'Oui'</select><!-- Non saisissable dans SUMARiS -->
     <select alias="TAUX_ECH" type="number">1.0</select><!-- Toujours à 1 dans ADAP -->
     <select alias="POIDS_REF_VRAC" type="number">null</select>

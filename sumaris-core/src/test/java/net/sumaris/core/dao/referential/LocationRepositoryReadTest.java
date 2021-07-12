@@ -98,7 +98,7 @@ public class LocationRepositoryReadTest extends AbstractDaoTest {
         // All countries by search
         assertFilterResult(ReferentialFilterVO.builder().searchJoin(Location.Fields.LOCATION_LEVEL).searchAttribute(LocationLevel.Fields.NAME).searchText("Country").build(), 4);
         // All countries by level
-        assertFilterResult(ReferentialFilterVO.builder().levelId(1).build(), 36);
+        assertFilterResult(ReferentialFilterVO.builder().levelId(1).build(), 4);
         // All countries and port by level
         assertFilterResult(ReferentialFilterVO.builder().levelIds(new Integer[]{1,2}).build(), 19);
     }

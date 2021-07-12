@@ -86,9 +86,9 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             ParameterExpression<String> labelParam = criteriaBuilder.parameter(String.class, LABEL_PARAMETER);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(labelParam),
-                criteriaBuilder.equal(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(labelParam))
+                criteriaBuilder.equal(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), labelParam)
             );
-        }).addBind(LABEL_PARAMETER, label);
+        }).addBind(LABEL_PARAMETER, label != null ? label.toUpperCase() : label);
     }
 
     default Specification<E> inLevelIds(Class<E> entityClass, Integer... levelIds) {
@@ -146,7 +146,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
                 );
                 Arrays.stream(searchAttributes).forEach(searchAttribute ->
                     predicates.add(
-                        criteriaBuilder.like(criteriaBuilder.upper(Daos.composePath(root, searchAttribute)), criteriaBuilder.upper(searchTextParam))
+                        criteriaBuilder.like(criteriaBuilder.upper(Daos.composePath(root, searchAttribute)),searchTextParam)
                     ));
                 return criteriaBuilder.or(
                     // all predicates
@@ -156,11 +156,11 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             // Search on label+name only
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(searchTextParam),
-                criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(searchTextParam)),
-                criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.upper(criteriaBuilder.concat("%", searchTextParam)))
+                criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), searchTextParam),
+                criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.concat("%", searchTextParam))
             );
         })
-            .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText));
+            .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText != null ? searchText.toUpperCase() : null));
     }
 
     default Specification<E> joinSearchText(String joinProperty, String searchAttribute, String searchText) {
@@ -182,17 +182,17 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             if (StringUtils.isNotBlank(searchAttribute)) {
                 return criteriaBuilder.or(
                     criteriaBuilder.isNull(searchTextParam),
-                    criteriaBuilder.like(criteriaBuilder.upper(join.get(searchAttribute)), criteriaBuilder.upper(searchTextParam)));
+                    criteriaBuilder.like(criteriaBuilder.upper(join.get(searchAttribute)),searchTextParam));
             }
 
             // Search on label+name
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(searchTextParam),
-                criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(searchTextParam)),
-                criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.upper(criteriaBuilder.concat("%", searchTextParam)))
+                criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.LABEL)),searchTextParam),
+                criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.concat("%", searchTextParam))
             );
         })
-            .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText));
+            .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText != null ? searchText.toUpperCase() : null));
     }
 
     default Specification<E> includedIds(Integer[] includedIds) {

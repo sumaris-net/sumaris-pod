@@ -52,7 +52,7 @@
     </with>
 
     <!-- PK -->
-    <select alias="RECORD_TYPE" type="text">'HH'</select>
+    <select alias="RECORD_TYPE" type="text">UPPER('HH')</select>
     <select alias="SAMPLING_TYPE" type="text">S.SAMPLING_TYPE</select>
     <select alias="LANDING_COUNTRY" type="text">S.LANDING_COUNTRY</select>
     <select alias="VESSEL_FLAG_COUNTRY" type="text">S.VESSEL_FLAG_COUNTRY</select>
@@ -82,8 +82,8 @@
     <select alias="FISHING_TIME" type="number">SUM(S.FISHING_TIME)</select>
     <select alias="STATION_COUNT" type="number">COUNT(DISTINCT S.STATION_NUMBER)</select>
 
-    <select alias="TRIP_COUNT_BY_STATION" type="number">CAST(COUNT(DISTINCT S.TRIP_CODE) AS DOUBLE) * COUNT(DISTINCT S.STATION_NUMBER) / AVG(T.NUMBER_OF_SETS)</select>
-    <select alias="TRIP_COUNT_BY_FISHING_TIME" type="number">CAST(COUNT(DISTINCT T.TRIP_CODE) AS DOUBLE) * SUM(S.FISHING_TIME) / AVG(T.FISHING_TIME)</select>
+    <select alias="TRIP_COUNT_BY_STATION" type="number">CASE AVG(T.NUMBER_OF_SETS) WHEN 0 THEN AVG(T.NUMBER_OF_SETS) ELSE CAST(COUNT(DISTINCT S.TRIP_CODE) AS DECIMAL) * COUNT(DISTINCT S.STATION_NUMBER) / AVG(T.NUMBER_OF_SETS) END</select>
+    <select alias="TRIP_COUNT_BY_FISHING_TIME" type="number">CASE AVG(T.FISHING_TIME) WHEN 0 THEN AVG(T.FISHING_TIME) ELSE CAST(COUNT(DISTINCT T.TRIP_CODE) AS DECIMAL) * SUM(S.FISHING_TIME) / AVG(T.FISHING_TIME) END</select>
 
     <!-- for debug on TRIP_COUNT_* computation
     <select alias="TRIP_COUNT_RAW" type="number">COUNT(DISTINCT S.TRIP_CODE)</select>
@@ -92,9 +92,9 @@
 
 
     <!-- Hidden field (use min trip/station as identifier) -->
-    <select alias="TRIP_CODES" group="hsqldb" type="hidden">ARRAY_AGG(S.TRIP_CODE)</select>
+    <select alias="TRIP_CODES" group="hsqldb,pgsql" type="hidden">ARRAY_AGG(S.TRIP_CODE)</select>
     <select alias="TRIP_CODES" group="oracle" type="hidden">LISTAGG(S.TRIP_CODE, ',')</select>
-    <select alias="STATION_NUMBERS" group="hsqldb" type="hidden">ARRAY_AGG(S.STATION_NUMBER)</select>
+    <select alias="STATION_NUMBERS" group="hsqldb,pgsql" type="hidden">ARRAY_AGG(S.STATION_NUMBER)</select>
     <select alias="STATION_NUMBERS" group="oracle" type="hidden">LISTAGG(S.STATION_NUMBER, ',')</select>
 
     <from alias="S">&amp;rawStationTableName</from>
@@ -102,7 +102,7 @@
 
     <where>1=1</where>
 
-    <where operator="AND" group="excludeInvalidStation"><![CDATA[S.FISHING_VALIDITY != 'I' OR S.FISHING_VALIDITY IS NULL]]></where>
+    <where operator="AND" group="excludeInvalidStation"><![CDATA[S.FISHING_VALIDITY != UPPER('I') OR S.FISHING_VALIDITY IS NULL]]></where>
 
     <where operator="AND" group="programFilter">
       <in field="S.PROJECT">&amp;progLabels</in>

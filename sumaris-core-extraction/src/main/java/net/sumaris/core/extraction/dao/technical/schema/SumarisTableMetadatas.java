@@ -196,7 +196,7 @@ public class SumarisTableMetadatas {
         StringBuilder sb = new StringBuilder();
         sb.append("SELECT COUNT(*) FROM (")
             .append(getSelectGroupByQuery(tableName, columnNames, whereClause, groupByColumnNames, null, null))
-            .append(")");
+            .append(") \"select_group\"");
 
         return sb.toString();
     }

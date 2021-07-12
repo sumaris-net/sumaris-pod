@@ -551,7 +551,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     @Override
     public CompletableFuture<Boolean> asyncClean(ExtractionContextVO context) {
         try {
-            clean(context);
+            clean(context, true);
             return CompletableFuture.completedFuture(Boolean.TRUE);
         } catch (Exception e) {
             log.warn(String.format("Error while cleaning extraction #%s: %s", context.getId(), e.getMessage()), e);
@@ -622,7 +622,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         // Execute live extraction to temp tables
         ExtractionContextVO context = executeLiveDao(format, filter);
-        Daos.commitIfHsqldb(dataSource);
+        Daos.commitIfHsqldbOrPgsql(dataSource);
 
         try {
             log.info(String.format("Dumping tables of extraction #%s to files...", context.getId()));
@@ -631,7 +631,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             return dumpTablesToFile(context, null /*no filter, because already applied*/);
         }
         finally {
-            clean(context, true);
+            clean(context);
         }
     }
 

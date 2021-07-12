@@ -41,12 +41,9 @@ import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.dialect.Dialect;
-import org.hibernate.query.internal.NativeQueryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataRetrievalFailureException;
-import org.springframework.orm.hibernate5.SessionHolder;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.Query;
@@ -184,7 +181,7 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
             xmlQuery.setXSLFileName(XSL_ORACLE_FILENAME);
         }
         else if (this.databaseType == DatabaseType.postgresql){
-            xmlQuery.setLowercaseAliases(true);
+            xmlQuery.setLowercase(true);
         }
         return xmlQuery;
     }

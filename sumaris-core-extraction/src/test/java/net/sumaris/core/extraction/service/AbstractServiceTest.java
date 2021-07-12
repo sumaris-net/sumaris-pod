@@ -51,7 +51,7 @@ import java.util.List;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {ServiceTestConfiguration.class})
-@TestPropertySource(locations="classpath:sumaris-core-extraction-test.properties")
+//@TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-pgsql.properties"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class AbstractServiceTest {
 
