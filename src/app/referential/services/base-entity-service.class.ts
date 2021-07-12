@@ -247,7 +247,7 @@ export abstract class BaseEntityService<
     const withTotal = (!opts || opts.withTotal !== false) && this.queries.loadAllWithTotal && true;
     const query = (opts && opts.query) // use given query
       // Or get loadAll or loadAllWithTotal query
-      || withTotal ? this.queries.loadAllWithTotal  : this.queries.loadAll;
+      || (withTotal ? this.queries.loadAllWithTotal  : this.queries.loadAll);
     const {data, total} = await this.graphql.query<LoadResult<any>>({
       query,
       variables,
