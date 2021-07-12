@@ -2,6 +2,7 @@ import {concat, defer, Observable, of, timer} from 'rxjs';
 import {catchError, map, switchMap, tap} from 'rxjs/operators';
 import {DataRootEntityUtils, RootDataEntity, SynchronizationStatusEnum} from './model/root-data-entity.model';
 import {
+  BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions, BaseEntityServiceOptions,
   chainPromises, EntitiesServiceWatchOptions,
   EntitiesStorage,
   EntityServiceLoadOptions,
@@ -22,7 +23,6 @@ import * as momentImported from 'moment';
 import {Moment} from 'moment';
 import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from './model/data-entity.model';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions, BaseEntityServiceOptions} from '@app/referential/services/base-entity-service.class';
 import {Vessel} from '@app/vessel/services/model/vessel.model';
 import {ErrorCodes} from './errors';
 import {FetchPolicy} from '@apollo/client/core';

@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {ReferentialFragments} from "./referential.fragments";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
+import {BaseEntityGraphqlQueries, GraphqlService} from '@sumaris-net/ngx-components';
 import {CacheService} from "ionic-cache";
 import {ErrorCodes} from "./errors";
 import {AccountService}  from "@sumaris-net/ngx-components";
@@ -9,7 +9,6 @@ import {NetworkService}  from "@sumaris-net/ngx-components";
 import {EntitiesStorage}  from "@sumaris-net/ngx-components";
 import {ReferentialFilter} from "./filter/referential.filter";
 import {Strategy} from "./model/strategy.model";
-import {BaseEntityGraphqlQueries} from "./base-entity-service.class";
 import {PlatformService}  from "@sumaris-net/ngx-components";
 import {StrategyFragments} from "./strategy.fragments";
 import {firstArrayValue, isNil, isNotEmptyArray, isNotNil, toNumber} from "@sumaris-net/ngx-components";

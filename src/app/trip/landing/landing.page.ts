@@ -108,10 +108,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     @Optional() options: LandingEditorOptions
   ) {
     super(injector, Landing, injector.get(LandingService), {
-        tabCount: 2,
-        pathIdAttribute: 'landingId',
-        ...options
-      });
+      tabCount: 2,
+      pathIdAttribute: 'landingId',
+      autoOpenNextTab: true,
+      ...options
+    });
     this.observedLocationService = injector.get(ObservedLocationService);
     this.tripService = injector.get(TripService);
     this.referentialRefService = injector.get(ReferentialRefService);

@@ -119,7 +119,7 @@
              (swiperight)="onSwipeTab($event)"
              (swipeleft)="onSwipeTab($event)">
 
-  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)" *ngIf="mobile">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
@@ -138,24 +138,6 @@
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
-
-  <!-- Tab nav - synchro status-->
-  <nav mat-tab-nav-bar
-       *ngIf="hasOfflineMode && synchronizationStatus as syncStatus">
-    <a mat-tab-link
-       [active]="syncStatus==='DIRTY'"
-       (click)="setSynchronizationStatus('DIRTY')">
-      <mat-icon>cloud_off</mat-icon>&nbsp;
-      <mat-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</mat-label>
-    </a>
-    <a mat-tab-link [active]="syncStatus==='SYNC'"
-       [disabled]="offline"
-       (click)="setSynchronizationStatus('SYNC')">
-      <mat-icon>cloud_done</mat-icon>&nbsp;
-      <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
-    </a>
-  </nav>
-
   <!-- progress bar -->
   <ion-list *ngIf="importing" lines="none">
     <ion-list-header>
@@ -282,6 +264,25 @@
       </ion-button>
     </mat-action-row>
   </mat-expansion-panel>
+
+
+
+  <!-- Tab nav - synchro status-->
+  <nav mat-tab-nav-bar
+       *ngIf="hasOfflineMode">
+    <a mat-tab-link
+       [active]="synchronizationStatus==='DIRTY'"
+       (click)="setSynchronizationStatus('DIRTY')">
+      <mat-icon>cloud_off</mat-icon>&nbsp;
+      <mat-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</mat-label>
+    </a>
+    <a mat-tab-link [active]="synchronizationStatus==='SYNC'"
+       [disabled]="offline"
+       (click)="setSynchronizationStatus('SYNC')">
+      <mat-icon>cloud_done</mat-icon>&nbsp;
+      <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
+    </a>
+  </nav>
 
   <!-- table -->
   <div class="table-container"

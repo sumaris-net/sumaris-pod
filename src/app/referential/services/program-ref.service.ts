@@ -4,7 +4,7 @@ import {BehaviorSubject, defer, Observable, Subject, Subscription} from "rxjs";
 import {filter, finalize, map, tap} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
+import {BaseEntityGraphqlSubscriptions, GraphqlService} from '@sumaris-net/ngx-components';
 import {IEntitiesService, IEntityService, LoadResult} from "@sumaris-net/ngx-components";
 import {TaxonGroupRef, TaxonGroupTypeIds, TaxonNameRef} from "./model/taxon.model";
 import {firstArrayValue, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, propertiesPathComparator, suggestFromArray} from "@sumaris-net/ngx-components";
@@ -19,7 +19,7 @@ import {StatusIds}  from "@sumaris-net/ngx-components";
 import {Program} from "./model/program.model";
 
 import {DenormalizedPmfmStrategy} from "./model/pmfm-strategy.model";
-import {IWithProgramEntity} from "../../data/services/model/model.utils";
+import {IWithProgramEntity} from '@app/data/services/model/model.utils';
 
 import {StrategyFragments} from "./strategy.fragments";
 import {AcquisitionLevelCodes} from "./model/model.enum";
@@ -29,7 +29,6 @@ import {PlatformService}  from "@sumaris-net/ngx-components";
 import {ConfigService}  from "@sumaris-net/ngx-components";
 import {PmfmService} from "./pmfm.service";
 import {BaseReferentialService} from "./base-referential-service.class";
-import {BaseEntityGraphqlSubscriptions} from "./base-entity-service.class";
 import {ProgramFilter} from "./filter/program.filter";
 import {ReferentialRefFilter} from "./filter/referential-ref.filter";
 
