@@ -8,3 +8,10 @@
 // --------------------------------------------------
 @import "~@sumaris-net/ngx-components/src/theme/theme";
 
+.mat-tab-body-content {
+  height: var(--mat-tab-body-content-height, 100%) !important;
+  overflow: auto;
+  & > .ng-star-inserted {
+    height: 100%;
+  }
+}

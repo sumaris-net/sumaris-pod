@@ -183,7 +183,7 @@
         <!-- add -->
         <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1"
                 [title]="'COMMON.BTN_ADD'|translate"
-                (click)="confirmAndAddRow($event, row)">
+                (click)="confirmAndAdd($event, row)">
           <mat-icon>add</mat-icon>
         </button>
       </ng-container>

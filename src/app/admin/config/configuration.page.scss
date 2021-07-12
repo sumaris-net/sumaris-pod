@@ -1,5 +1,3 @@
-@import 'theme.globals';
-
 .partner-logo {
   position: relative;
   display: inline-block;
@@ -37,7 +35,7 @@ ion-grid.cache {
       font-style: italic !important;
     }
     &.odd {
-      background-color: $light;
+      background-color: var(--ion-color-light);
     }
 
     ion-col {

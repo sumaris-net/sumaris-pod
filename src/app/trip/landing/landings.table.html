@@ -56,6 +56,10 @@
 
 <div class="table-container">
 
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)" *ngIf="mobile">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <table mat-table [dataSource]="dataSource"
              matSort
              matSortDisableClear
@@ -253,13 +257,22 @@
 
   </table>
 
+  <ng-container *ngIf="loadingSubject|async; else noResult">
+    <ion-item>
+      <ion-skeleton-text animated></ion-skeleton-text>
+    </ion-item>
+  </ng-container>
+
+  <ng-template #noResult>
+    <ion-item *ngIf="totalRowCount === 0">
+      <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+    </ion-item>
+  </ng-template>
+
 </div>
 
-<ion-item *ngIf="!(loadingSubject| async) && totalRowCount === 0">
-  <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
-</ion-item>
-
-<ion-row class="ion-no-padding" [class.cdk-visually-hidden]="totalRowCount === 0">
+<ion-row class="ion-no-padding" *ngIf="showPaginator"
+         [class.cdk-visually-hidden]="totalRowCount === 0">
   <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>
   <ion-col class="ion-no-padding" size="auto">
     <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>

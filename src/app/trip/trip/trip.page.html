@@ -64,7 +64,7 @@
                  [class.mobile]="mobile"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="tabGroupAnimationDuration"
+                 [animationDuration]="mobile ? tabGroupAnimationDuration: '0s'"
                  dynamicHeight="false">
 
     <!-- TAB: general -->
@@ -192,7 +192,7 @@
 
 <ion-footer *ngIf="!mobile">
 
-  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
+  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
                     [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 
@@ -202,7 +202,7 @@
       <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 
-  </form-buttons-bar>
+  </app-form-buttons-bar>
 </ion-footer>
 
 <ng-container *ngIf="mobile" [ngSwitch]="selectedTabIndex">

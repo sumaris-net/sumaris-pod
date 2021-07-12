@@ -14,8 +14,9 @@
       </button>
 
       <!-- Refresh -->
-      <button mat-icon-button *ngIf="isAdmin"
-              [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
+      <button mat-icon-button *ngIf="!mobile"
+              [title]="'COMMON.BTN_REFRESH'|translate"
+              (click)="onRefresh.emit()">
         <mat-icon>refresh</mat-icon>
       </button>
 
@@ -123,7 +124,7 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- Network status (+ Install and upgrade link) -->
+  <!-- Network status (+ Install and upgrade link)  -->
   <app-install-upgrade-card
     [isLogin]="isLogin"
     showInstallButton="false"
@@ -138,13 +139,6 @@
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
-  <!-- progress bar -->
-  <ion-list *ngIf="importing" lines="none">
-    <ion-list-header>
-      <ion-label>{{'NETWORK.INFO.IMPORTATION_PCT_DOTS'|translate: {pct: $importProgression | async} }}</ion-label>
-    </ion-list-header>
-    <ion-progress-bar [value]="($importProgression | async) / 100"></ion-progress-bar>
-  </ion-list>
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel
@@ -266,7 +260,6 @@
   </mat-expansion-panel>
 
 
-
   <!-- Tab nav - synchro status-->
   <nav mat-tab-nav-bar
        *ngIf="hasOfflineMode">
@@ -283,6 +276,14 @@
       <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
     </a>
   </nav>
+
+  <!-- progress bar -->
+  <ion-list *ngIf="importing" lines="none">
+    <ion-list-header>
+      <ion-label>{{'NETWORK.INFO.IMPORTATION_PCT_DOTS'|translate: {pct: $importProgression | async} }}</ion-label>
+    </ion-list-header>
+    <ion-progress-bar [value]="($importProgression | async) / 100"></ion-progress-bar>
+  </ion-list>
 
   <!-- table -->
   <div class="table-container"

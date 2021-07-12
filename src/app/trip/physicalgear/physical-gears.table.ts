@@ -45,6 +45,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   @Input() canSelect = true;
   @Input() copyPreviousGears: (event: UIEvent) => Promise<PhysicalGear>;
   @Input() showToolbar = true;
+  @Input() useSticky = false;
 
   @Input() set showSelectColumn(show: boolean) {
     this.setShowColumn('select', show);

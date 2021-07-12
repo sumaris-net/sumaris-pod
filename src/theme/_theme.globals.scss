@@ -1,4 +1,3 @@
-@import "~@sumaris-net/ngx-components/src/theme/globals";
 
 // --------------------------------------------------
 // Theme Colors
@@ -25,7 +24,6 @@ $dark: #222428;
 
 // User defined colors
 $transparent: transparent;
-$lightBorder: rgba(0, 0, 0, .12);
 
 // Main background color
 $background-color: #fff;
@@ -38,6 +36,12 @@ $light-secondary-text: rgba(white, 0.7);
 $light-disabled-text: rgba(white, 0.5);
 $text-color: $dark-primary-text;
 
-
 // From material
-$mat-tab-link-height: 48px !default;
+$mat-tab-link-height: 48px;
+$app-paginator-height: 34px;
+
+$app-select-option-border-color: rgba(0, 0, 0, 0.12);
+$app-table-border-color: rgba(0, 0, 0, 0.08);
+
+// Load defaults
+@import "~@sumaris-net/ngx-components/src/theme/globals";

@@ -15,18 +15,25 @@
 // --------------------------------------------------
 :root {
   @include css-variables-to-root();
+  --mat-tab-link-height: #{$mat-tab-link-height};
 
   ion-app {
-    --app-paginator-height: 34px;
-    --form-button-bar-height: 56px;
-    --mat-tab-link-height: 48px;
+    @include css-variables-to-root();
+    --mat-tab-link-height: #{$mat-tab-link-height};
   }
 
-  .plt-mobile ion-app {
-    --form-button-bar-height: 0;
+  &.plt-mobile {
+    @include css-variables-to-root-mobile();
+    ion-app {
+      @include css-variables-to-root-mobile();
+    }
+  }
+
+  // Extra small device
+  @media screen and (max-width: $screen-xs-max) {
+    --mat-toolbar-height: #{$mat-toolbar-height-mobile};
   }
 }
-
 
 ion-button.mat-form-field-button.ion-color.md.button.button-solid {
   text-transform: capitalize;

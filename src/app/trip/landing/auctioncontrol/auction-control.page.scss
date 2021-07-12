@@ -1,11 +1,24 @@
+
 :host {
   ion-col.pmfm-145 ion-button {
     color: #8a4182;
     font-size: 10px;
   }
+
+  --table-container-top: 81px; // Height <form>
 }
 
-app-samples-table.hidden {
-  display: none;
-  visibility: hidden;
+.mat-tab-group {
+  --mat-tab-body-content-height: calc(100vh - var(--app-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - var(--app-form-buttons-bar-height, 0px) - 1px);
+}
+
+.ion-no-padding-bottom {
+  padding-bottom: 0 !important;
+}
+
+app-samples-table {
+  &.hidden {
+    display: none;
+    visibility: hidden;
+  }
 }

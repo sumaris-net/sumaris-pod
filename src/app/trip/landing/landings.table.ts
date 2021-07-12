@@ -48,6 +48,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   @Input() showFabButton = false;
   @Input() showError = true;
   @Input() showToolbar = true;
+  @Input() showPaginator = true;
 
   @Input() set strategyPmfmId(value: number) {
     if (this._strategyPmfmId !== value) {

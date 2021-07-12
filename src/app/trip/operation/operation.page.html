@@ -241,6 +241,7 @@
                              [acquisitionLevel]="sampleAcquisitionLevel"
                              [programLabel]="$programLabel|async"
                              [usageMode]="usageMode"
+                             [showToolbar]="!mobile"
                              [showLabelColumn]="false"
                              [showDateTimeColumn]="true"
                              [showTaxonNameColumn]="true"
@@ -296,7 +297,7 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
+  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 
     <!-- error -->
@@ -305,7 +306,7 @@
       <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 
-  </form-buttons-bar>
+  </app-form-buttons-bar>
 </ion-footer>
 
 <!-- FAB button -->

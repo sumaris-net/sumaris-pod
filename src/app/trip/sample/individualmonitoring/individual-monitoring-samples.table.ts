@@ -11,7 +11,7 @@ import {isNotNil} from "@sumaris-net/ngx-components";
 @Component({
   selector: 'app-individual-monitoring-table',
   templateUrl: '../sub-samples.table.html',
-  styleUrls: ['../sub-samples.table.scss'],
+  styleUrls: ['../sub-samples.table.scss', 'individual-monitoring-samples.table.scss'],
   providers: [
     {provide: ValidatorService, useExisting: SubSampleValidatorService}
   ],
