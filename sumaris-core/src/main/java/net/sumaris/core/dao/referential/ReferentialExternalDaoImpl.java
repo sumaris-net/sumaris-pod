@@ -181,7 +181,29 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
                 && (filter.getLevelId() == null || filter.getLevelId().equals(s.getLevelId()))
                 && (filter.getLevelIds() == null || Arrays.asList(filter.getLevelIds()).contains(s.getLevelId()))
                 && (filter.getStatusIds() == null || Arrays.asList(filter.getStatusIds()).contains(s.getStatusId()))
-                && (filter.getSearchText() == null || s.getLabel().toUpperCase().contains(filter.getSearchText().toUpperCase()) || s.getName().toUpperCase().contains(filter.getSearchText().toUpperCase()));
+                && (filter.getSearchText() == null || likeIgnoreCase(s.getLabel(), filter.getSearchText(),false) || likeIgnoreCase(s.getName(), filter.getSearchText(),true));
+    }
+
+    private static boolean likeIgnoreCase(String text, String searchText, boolean searchAny) {
+        if (StringUtils.isEmpty(text) || StringUtils.isEmpty(searchText)) return false;
+        return like(text.toLowerCase(), searchText.toLowerCase(), searchAny);
+    }
+
+    private static boolean like(String text, String searchText, boolean searchAny) {
+        if (StringUtils.isEmpty(text) || StringUtils.isEmpty(searchText)) return false;
+
+        // add leading wildcard (if searchAny specified) and trailing wildcard
+        searchText = ((searchAny ? "*" : "") + searchText + "*");
+
+        if (searchText.startsWith("*") && searchText.endsWith("*")) {
+            return text.contains(searchText.replace("*", ""));
+        } else if (searchText.startsWith("*")) {
+            return text.endsWith(searchText.replace("*", ""));
+        } else if (searchText.endsWith("*")) {
+            return text.startsWith(searchText.replace("*", ""));
+        } else {
+            return text.equals(searchText.replace("*", ""));
+        }
     }
 
 }

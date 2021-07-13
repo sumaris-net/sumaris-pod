@@ -65,7 +65,8 @@ public class ObservedLocationRepositoryImpl
         return super.toSpecification(filter, fetchOptions)
             .and(hasLocationId(filter.getLocationId()))
             .and(withStartDate(filter.getStartDate()))
-            .and(withEndDate(filter.getEndDate()));
+            .and(withEndDate(filter.getEndDate()))
+            .and(hasObserverPersonIds(filter.getObserverPersonIds()));
     }
 
     @Override

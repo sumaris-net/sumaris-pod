@@ -28,7 +28,6 @@ import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.PersonService;
-import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
@@ -53,7 +52,7 @@ public class ConfigurationServiceOracleTest extends AbstractServiceTest {
     @Before
     public void setup() {
         // force apply software configuration
-        configurationService.updateConfigFromSoftwareProperties();
+        configurationService.applySoftwareProperties();
     }
 
     @Test
