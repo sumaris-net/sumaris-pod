@@ -88,7 +88,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         // No provider: error
         if (CollectionUtils.isEmpty(delegates)) {
-            throw new BeanInitializationException("No authentication provider found! Please set 'spring.security.token.enabled' or 'spring.security.ldap.enabled'");
+            throw new BeanInitializationException("No authentication provider found! Please set 'spring.security.token.enabled' or/and 'spring.security.ldap.enabled' or/and 'spring.security.ad.enabled'");
         }
 
         delegates.forEach(auth::authenticationProvider);

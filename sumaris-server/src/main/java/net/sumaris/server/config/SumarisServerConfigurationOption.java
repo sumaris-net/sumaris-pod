@@ -138,22 +138,22 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
 
     AUTH_ROLE_NOT_SELF_EXTRACTION_ACCESS(ExtractionWebConfigurationOption.AUTH_ROLE_NOT_SELF_EXTRACTION_ACCESS),
 
-    SECURITY_LDAP_ENABLED(
-        "spring.security.ldap.enabled",
-        n("sumaris.config.option.spring.security.ldap.enabled.description"),
-        "false",
-        Boolean.class),
-
-    SECURITY_AUTHENTICATION_TOKEN_ENABLE(
+    SECURITY_AUTHENTICATION_TOKEN_ENABLED(
         "spring.security.token.enabled",
         n("sumaris.config.option.spring.security.token.enabled.description"),
         "true",
         Boolean.class),
 
-    SECURITY_AUTHENTICATION_BASIC_ENABLE(
-        "spring.security.basic.enabled",
-        n("sumaris.config.option.spring.security.basic.enabled.description"),
-        "${spring.security.ldap.enabled}",
+    SECURITY_AUTHENTICATION_LDAP_ENABLED(
+        "spring.security.ldap.enabled",
+        n("sumaris.config.option.spring.security.ldap.enabled.description"),
+        "false",
+        Boolean.class),
+
+    SECURITY_AUTHENTICATION_AD_ENABLED(
+        "spring.security.ad.enabled",
+        n("sumaris.config.option.spring.security.ad.enabled.description"),
+        "false",
         Boolean.class),
 
     AUTH_TOKEN_TYPE(

@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
     prefix = "spring.security.ldap"
 )
 @Data
-public class LdapProperties {
+public class LdapAuthenticationProperties {
     /**
      * Main property for LDAP authentication: the LDAP server url
      * ex: ldap://localhost:389/dc=ifremer,dc=fr
