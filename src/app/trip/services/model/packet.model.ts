@@ -140,10 +140,6 @@ export class Packet extends DataEntity<Packet> {
       );
   }
 
-  clone(): Packet {
-    return Packet.fromObject(this.asObject());
-  }
-
 }
 
 export class PacketComposition extends DataEntity<PacketComposition> {
@@ -202,10 +198,6 @@ export class PacketComposition extends DataEntity<PacketComposition> {
       || (
         this.taxonGroup.equals(other.taxonGroup) && this.rankOrder === other.rankOrder
       );
-  }
-
-  clone(): PacketComposition {
-    return PacketComposition.fromObject(this.asObject());
   }
 
   static fromObject(source: any) {

@@ -70,11 +70,6 @@ export class Measurement extends DataEntity<Measurement> {
     this.rankOrder = null;
   }
 
-  clone(): Measurement {
-    const target = new Measurement();
-    target.fromObject(this.asObject());
-    return target;
-  }
 
   copy(target: Measurement) {
     target.fromObject(this);

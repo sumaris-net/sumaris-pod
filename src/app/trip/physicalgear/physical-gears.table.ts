@@ -2,13 +2,14 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector,
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {PhysicalGearValidatorService} from '../services/validator/physicalgear.validator';
 import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService, isInstanceOf, toBoolean} from '@sumaris-net/ngx-components';
+import {createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService, isInstanceOf, isNil, toBoolean} from '@sumaris-net/ngx-components';
 import {PhysicalGearModal} from './physical-gear.modal';
 import {PhysicalGear} from '../services/model/trip.model';
 import {PHYSICAL_GEAR_DATA_SERVICE} from '../services/physicalgear.service';
 import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum';
 import {environment} from '../../../environments/environment';
 import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
+import {BatchGroup} from '@app/trip/services/model/batch-group.model';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
@@ -158,7 +159,8 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
         onInit: (inst: PhysicalGearModal) => {
           // Subscribe to click on copy button, then redirect the event
           inst.onCopyPreviousGearClick.subscribe((event) => this.onSelectPreviousGear.emit(event));
-        }
+        },
+        onDelete: (event, PhysicalGear) => this.deletePhysicalGear(event, PhysicalGear)
       },
       keyboardClose: true,
       backdropDismiss: false
@@ -174,11 +176,29 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     return isInstanceOf(data, PhysicalGear) ? data : undefined;
   }
 
+  async deletePhysicalGear(event: UIEvent, data: PhysicalGear): Promise<boolean> {
+    const row = await this.findRowByPhysicalGear(data);
+
+    // Row not exists: OK
+    if (!row) return true;
+
+    const canDeleteRow = await this.canDeleteRows([row]);
+    if (canDeleteRow === true) {
+      this.cancelOrDelete(event, row, true /*already confirmed*/);
+    }
+    return canDeleteRow;
+  }
+
   /* -- protected methods -- */
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  protected async findRowByPhysicalGear(physicalGear: PhysicalGear): Promise<TableElement<PhysicalGear>> {
+    return PhysicalGear && (await this.dataSource.getRows()).find(r => r.currentData.equals(physicalGear));
+  }
+
 }
 
 

@@ -648,7 +648,10 @@ export class TripService
        mutation,
        variables,
        offlineResponse,
-       refetchQueries: isNew && this.findMutableWatchQueries({queries: [TripQueries.loadAll, TripQueries.loadAllWithTotal]}),
+      // TODO BLA: review this
+       refetchQueries: isNew && this.findMutableWatchQueries({queries: [TripQueries.loadAll, TripQueries.loadAllWithTotal]}).map(def => {
+         return {query: def.query, variables: def.variables};
+       }),
        error: { code: ErrorCodes.SAVE_ENTITY_ERROR, message: "ERROR.SAVE_ENTITY_ERROR" },
        update: async (cache, {data}) => {
          const savedEntity = data && data.data;
@@ -876,7 +879,7 @@ export class TripService
       update: (proxy) => {
         // Update the cache
         this.removeFromMutableCachedQueriesByIds(proxy, {
-          queryName: 'LoadAll',
+          queryNames: ["loadAll", "loadAllWithTotal"],
           ids
         });
 

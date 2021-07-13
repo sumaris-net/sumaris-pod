@@ -31,6 +31,7 @@ export class Vessel extends RootDataEntity<Vessel> {
     super(Vessel.TYPENAME);
   }
 
+// TODO : Check if clone is needed
   clone(): Vessel {
     const target = new Vessel();
     this.copy(target);
@@ -104,6 +105,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     this.recorderPerson = null;
   }
 
+// TODO : Check if clone is needed
   clone(): VesselFeatures {
     const target = new VesselFeatures();
     this.copy(target);
@@ -173,6 +175,7 @@ export class VesselRegistration extends Entity<VesselRegistration> {
     super(VesselRegistration.TYPENAME);
   }
 
+  // TODO : Check if clone is needed
   clone(): VesselRegistration {
     const target = new VesselRegistration();
     this.copy(target);

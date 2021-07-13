@@ -11,6 +11,7 @@ import {ReferentialRefService} from '@app/referential/services/referential-ref.s
 import {BatchModal} from '../modal/batch.modal';
 import {environment} from '@environments/environment';
 import {Operation} from '../../services/model/trip.model';
+import {BatchGroup} from '@app/trip/services/model/batch-group.model';
 
 export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
   operationId?: number;

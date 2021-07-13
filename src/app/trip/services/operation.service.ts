@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {FetchPolicy, gql} from '@apollo/client/core';
+import {FetchPolicy, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
 import {EMPTY, Observable} from 'rxjs';
 import {filter, first, map} from 'rxjs/operators';
 import {ErrorCodes} from './trip.errors';
@@ -215,7 +215,7 @@ export declare interface OperationServiceWatchOptions extends
 
   computeRankOrder?: boolean;
   fullLoad?: boolean;
-  fetchPolicy?: FetchPolicy; // Avoid the use cache-and-network, that exists in WatchFetchPolicy
+  fetchPolicy?: WatchQueryFetchPolicy; // Avoid the use cache-and-network, that exists in WatchFetchPolicy
 }
 
 
@@ -294,14 +294,15 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const query = (!opts || opts.fullLoad !== true) ? (
       withTotal ? LoadAllLightWithTotalQuery : LoadAllLightQuery) : LoadAllFullQuery;
     return this.mutableWatchQuery<LoadResult<any>>({
-      queryName: 'LoadAll',
+      queryName: (!opts || opts.fullLoad !== true) ? (
+        withTotal ? 'LoadAllLightWithTotalQuery' : 'LoadAllLightQuery') : 'LoadAllFullQuery',
       query: query,
       arrayFieldName: 'data',
       totalFieldName: withTotal ? 'total' : undefined,
       insertFilterFn: dataFilter.asFilterFn(),
       variables: variables,
       error: {code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR"},
-      fetchPolicy: opts && opts.fetchPolicy || undefined
+      fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
     })
     .pipe(
       // Skip update during load()
@@ -448,6 +449,10 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
           return { saveOperations: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)] };
         },
+      // TODO BLA: review this
+        refetchQueries: isNew && this.findMutableWatchQueries({queryNames: ['LoadAllLightQuery', 'LoadAllLightWithTotalQuery']}).map(def => {
+          return {query: def.query, variables: def.variables};
+        }),
         update: (proxy, {data}) => {
           const savedEntity = data && data.saveOperations && data.saveOperations[0];
 
@@ -473,14 +478,6 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
             // Copy gear
             if (savedEntity.metier) {
               savedEntity.metier.gear = savedEntity.metier.gear || (entity.physicalGear && entity.physicalGear.gear && entity.physicalGear.gear.asObject());
-            }
-
-            // Insert into cached queries
-            if (isNew) {
-              this.insertIntoMutableCachedQueries(proxy, {
-                query: LoadAllLightQuery,
-                data: savedEntity
-              });
             }
 
             if (this._debug) console.debug(`[operation-service] Operation saved in ${Date.now() - now}ms`, entity);
@@ -530,7 +527,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         update: (proxy) => {
           // Remove from cached queries
           this.removeFromMutableCachedQueriesByIds(proxy, {
-            query: LoadAllLightQuery,
+            queryNames: ['LoadAllLightQuery', 'LoadAllLightWithTotalQuery'],
             ids: remoteIds
           });
 

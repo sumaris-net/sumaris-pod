@@ -23,6 +23,7 @@ export class TaxonName extends BaseReferential<TaxonName> {
     this.entityName = TaxonName.ENTITY_NAME;
   }
 
+// TODO : Check if clone is needed
   clone(): TaxonName {
     const target = new TaxonName();
     target.fromObject(this);

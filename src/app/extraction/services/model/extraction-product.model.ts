@@ -131,6 +131,7 @@ export class AggregationStrata extends Entity<AggregationStrata> implements IAgg
     return target;
   }
 
+// TODO : Check if clone is needed
   clone(): AggregationStrata {
     return this.copy(new AggregationStrata());
   }
