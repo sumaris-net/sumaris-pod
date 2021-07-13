@@ -928,12 +928,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     if (taxonError && taxonNameControl) {
       taxonNameControl.setErrors(<ValidationErrors>{ cannotComputeTaxonCode: true });
-      const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear} XXXXXXX`, 3));
+      const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear}XXXXXXX`, 3));
       labelControl.setValue(computedLabel);
       return;
     }
 
-    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear} ${finalMaskTaxonNameString}`, 3));
+    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear}${finalMaskTaxonNameString}`, 3));
     SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
     console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
     labelControl.setValue(computedLabel);
