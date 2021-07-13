@@ -1,16 +1,19 @@
 import {Injectable} from '@angular/core';
-import {FetchPolicy, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {FetchPolicy, FetchResult, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
 import {EMPTY, Observable} from 'rxjs';
 import {filter, first, map} from 'rxjs/operators';
 import {ErrorCodes} from './trip.errors';
 import {DataFragments, Fragments} from './trip.queries';
 import {
   AccountService,
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlSubscriptions,
   BaseGraphqlService,
   chainPromises,
   Department,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
+  EntitySaveOptions,
   EntityServiceLoadOptions,
   EntityUtils,
   firstNotNilPromise,
@@ -23,6 +26,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
+  MutableWatchQueriesUpdatePolicy,
   NetworkService,
   QueryVariables
 } from '@sumaris-net/ngx-components';
@@ -37,6 +41,7 @@ import {SortDirection} from '@angular/material/sort';
 import {environment} from '../../../environments/environment';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
+import {RefetchQueryDescription} from '@apollo/client/core/watchQueryOptions';
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -128,61 +133,56 @@ export const OperationFragments = {
   `
 };
 
-const LoadAllLightWithTotalQuery: any = gql`
-  query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+const OperationQueries = {
+  // Load many operations (with total)
+  loadAllWithTotal: gql`query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightOperationFragment
     }
     total: operationsCount(filter: $filter)
   }
-  ${OperationFragments.lightOperation}
-`;
-const LoadAllLightQuery: any = gql`
-  query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  ${OperationFragments.lightOperation}`,
+
+  // Load many operations
+  loadAll: gql`query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightOperationFragment
     }
   }
-  ${OperationFragments.lightOperation}
-`;
-const LoadAllFullQuery: any = gql`
-  query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    data: operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...OperationFragment
-    }
-  }
-  ${OperationFragments.operation}
-`;
-const LoadQuery: any = gql`
-  query Operation($id: Int!) {
-    operation(id: $id) {
-      ...OperationFragment
-    }
-  }
-  ${OperationFragments.operation}
-`;
-const SaveOperations: any = gql`
-  mutation saveOperations($operations:[OperationVOInput]!){
-    saveOperations(operations: $operations){
-      ...OperationFragment
-    }
-  }
-  ${OperationFragments.operation}
-`;
-const DeleteOperations: any = gql`
-  mutation deleteOperations($ids:[Int]!){
-    deleteOperations(ids: $ids)
-  }
-`;
+  ${OperationFragments.lightOperation}`,
 
-const UpdateSubscription = gql`
-  subscription updateOperation($id: Int!, $interval: Int){
-    updateOperation(id: $id, interval: $interval) {
+  // Load one
+  load: gql`query Operation($id: Int!) {
+    data: operation(id: $id) {
       ...OperationFragment
     }
   }
-  ${OperationFragments.operation}
-`;
+  ${OperationFragments.operation}`
+}
+
+const OperationMutations: BaseEntityGraphqlMutations = {
+  // Save many operations
+  saveAll: gql`mutation saveOperations($data:[OperationVOInput]!){
+    data: saveOperations(operations: $data){
+      ...OperationFragment
+    }
+  }
+  ${OperationFragments.operation}`,
+
+  // Delete many operations
+  deleteAll: gql`mutation deleteOperations($ids:[Int]!){
+    deleteOperations(ids: $ids)
+  }`
+};
+
+const OperationSubscriptions: BaseEntityGraphqlSubscriptions = {
+  listenChanges: gql`subscription updateOperation($id: Int!, $interval: Int){
+    data: updateOperation(id: $id, interval: $interval) {
+      ...OperationFragment
+    }
+  }
+  ${OperationFragments.operation}`
+};
 
 const sortByStartDateFn = (n1: Operation, n2: Operation) => {
   return n1.startDateTime.isSame(n2.startDateTime) ? 0 : (n1.startDateTime.isAfter(n2.startDateTime) ? 1 : -1);
@@ -204,7 +204,7 @@ const sortByDescRankOrderOnPeriod = (n1: Operation, n2: Operation) => {
     (n1.rankOrderOnPeriod > n2.rankOrderOnPeriod ? -1 : 1);
 };
 
-export declare interface OperationSaveOptions {
+export declare interface OperationSaveOptions extends EntitySaveOptions {
   tripId?: number;
   computeBatchRankOrder?: boolean;
   computeBatchIndividualCount?: boolean;
@@ -225,6 +225,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
              IEntityService<Operation>{
 
   protected loading = false;
+  protected readonly watchQueriesUpdatePolicy: MutableWatchQueriesUpdatePolicy = 'refetch-queries';
 
   constructor(
     protected graphql: GraphqlService,
@@ -275,6 +276,9 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       console.warn("[operation-service] Trying to load operations without 'filter.tripId'. Skipping.");
       return EMPTY;
     }
+    if (opts && opts.fullLoad) {
+      throw new Error('Loading full operation (opts.fullLoad) is only available for local trips');
+    }
 
     dataFilter = this.asFilter(dataFilter);
 
@@ -291,11 +295,9 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     if (this._debug) console.debug("[operation-service] Loading operations... using options:", variables);
 
     const withTotal = opts && opts.withTotal === true;
-    const query = (!opts || opts.fullLoad !== true) ? (
-      withTotal ? LoadAllLightWithTotalQuery : LoadAllLightQuery) : LoadAllFullQuery;
+    const query = withTotal ? OperationQueries.loadAllWithTotal : OperationQueries.loadAll;
     return this.mutableWatchQuery<LoadResult<any>>({
-      queryName: (!opts || opts.fullLoad !== true) ? (
-        withTotal ? 'LoadAllLightWithTotalQuery' : 'LoadAllLightQuery') : 'LoadAllFullQuery',
+      queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
       query: query,
       arrayFieldName: 'data',
       totalFieldName: withTotal ? 'total' : undefined,
@@ -344,15 +346,13 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
       // Load from pod
       else {
-        const res = await this.graphql.query<{ operation: Operation }>({
-          query: LoadQuery,
-          variables: {
-            id: id
-          },
+        const res = await this.graphql.query<{ data: Operation }>({
+          query: OperationQueries.load,
+          variables: { id },
           error: {code: ErrorCodes.LOAD_OPERATION_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR"},
           fetchPolicy: options && options.fetchPolicy || undefined
         });
-        json = res && res.operation;
+        json = res && res.data;
       }
 
       // Transform to entity
@@ -374,8 +374,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     if (this._debug) console.debug(`[operation-service] [WS] Listening changes for operation {${id}}...`);
 
-    return this.graphql.subscribe<{ updateOperation: Operation }, { id: number, interval: number }>({
-      query: UpdateSubscription,
+    return this.graphql.subscribe<{ data: Operation }, { id: number, interval: number }>({
+      query: OperationSubscriptions.listenChanges,
       variables: {
         id: id,
         interval: 10
@@ -387,8 +387,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     })
       .pipe(
         map(data => {
-          if (data && data.updateOperation) {
-            const res = Operation.fromObject(data.updateOperation);
+          if (data && data.data) {
+            const res = Operation.fromObject(data.data);
             if (this._debug) console.debug(`[operation-service] Operation {${id}} updated on server !`, res);
             return res;
           }
@@ -433,10 +433,10 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
     if (this._debug) console.debug("[operation-service] Saving operation remotely...", json);
 
-    await this.graphql.mutate<{ saveOperations: Operation[] }>({
-        mutation: SaveOperations,
+    await this.graphql.mutate<{ data: Operation[] }>({
+        mutation: OperationMutations.saveAll,
         variables: {
-          operations: [json]
+          data: [json]
         },
         error: {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATION_ERROR"},
         offlineResponse: async (context) => {
@@ -447,14 +447,12 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           context.tracked = (entity.tripId >= 0);
           if (isNotNil(entity.id)) context.serializationKey = `${Operation.TYPENAME}:${entity.id}`;
 
-          return { saveOperations: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)] };
+          return { data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)] };
         },
-      // TODO BLA: review this
-        refetchQueries: isNew && this.findMutableWatchQueries({queryNames: ['LoadAllLightQuery', 'LoadAllLightWithTotalQuery']}).map(def => {
-          return {query: def.query, variables: def.variables};
-        }),
+        refetchQueries: this.getRefetchQueriesForMutation(opts),
+        awaitRefetchQueries: opts && opts.awaitRefetchQueries,
         update: (proxy, {data}) => {
-          const savedEntity = data && data.saveOperations && data.saveOperations[0];
+          const savedEntity = data && data.data && data.data[0];
 
           // Local entity: save it
           if (savedEntity.id < 0) {
@@ -480,6 +478,13 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
               savedEntity.metier.gear = savedEntity.metier.gear || (entity.physicalGear && entity.physicalGear.gear && entity.physicalGear.gear.asObject());
             }
 
+            if (isNew) {
+              this.insertIntoMutableCachedQueries(proxy, {
+                queryNames: this.getLoadQueryNames(),
+                data: savedEntity
+              });
+            }
+
             if (this._debug) console.debug(`[operation-service] Operation saved in ${Date.now() - now}ms`, entity);
           }
         }
@@ -493,7 +498,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
    * @param entities
    * @param opts
    */
-  async deleteAll(entities: Operation[], opts?: {
+  async deleteAll(entities: Operation[], opts?: OperationSaveOptions & {
     trash?: boolean; // True by default
   }): Promise<any> {
 
@@ -520,16 +525,21 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       if (this._debug) console.debug("[operation-service] Deleting operations... ids:", remoteIds);
 
       await this.graphql.mutate({
-        mutation: DeleteOperations,
+        mutation: OperationMutations.deleteAll,
         variables: {
           ids: remoteIds
         },
+        refetchQueries: this.getRefetchQueriesForMutation(opts),
+        awaitRefetchQueries: opts && opts.awaitRefetchQueries,
         update: (proxy) => {
-          // Remove from cached queries
-          this.removeFromMutableCachedQueriesByIds(proxy, {
-            queryNames: ['LoadAllLightQuery', 'LoadAllLightWithTotalQuery'],
-            ids: remoteIds
-          });
+
+          if (this.watchQueriesUpdatePolicy === 'update-cache') {
+            // Remove from cached queries
+            this.removeFromMutableCachedQueriesByIds(proxy, {
+              queryNames: this.getLoadQueryNames(),
+              ids: remoteIds
+            });
+          }
 
           if (this._debug) console.debug(`[operation-service] Operations deleted in ${Date.now() - now}ms`);
         }
@@ -853,5 +863,19 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         data.sort(asc ? sortByAscRankOrderOnPeriod : sortByDescRankOrderOnPeriod);
       }
     }
+  }
+
+  protected getRefetchQueriesForMutation(opts?: EntitySaveOptions): ((result: FetchResult<{data: any}>) => RefetchQueryDescription) | RefetchQueryDescription {
+    if (opts && opts.refetchQueries) return opts.refetchQueries;
+
+    // Skip if update policy not used refecth queries
+    if (this.watchQueriesUpdatePolicy !== 'refetch-queries') return undefined;
+
+    // Find the refetch queries definition
+    return this.findRefetchQueries({queryNames: this.getLoadQueryNames()});
+  }
+
+  protected getLoadQueryNames(): string[] {
+    return ['LoadAllWithTotal', 'LoadAll'];
   }
 }
