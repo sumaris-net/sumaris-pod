@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {FetchPolicy, FetchResult, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
 import {EMPTY, Observable} from 'rxjs';
-import {filter, first, map} from 'rxjs/operators';
+import {filter, first, map, tap} from 'rxjs/operators';
 import {ErrorCodes} from './trip.errors';
 import {DataFragments, Fragments} from './trip.queries';
 import {
@@ -225,7 +225,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
              IEntityService<Operation>{
 
   protected loading = false;
-  protected readonly watchQueriesUpdatePolicy: MutableWatchQueriesUpdatePolicy = 'refetch-queries';
+  protected _watchQueriesUpdatePolicy: MutableWatchQueriesUpdatePolicy;
 
   constructor(
     protected graphql: GraphqlService,
@@ -236,6 +236,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     super(graphql, environment);
 
     this._mutableWatchQueriesMaxCount = 2;
+    this._watchQueriesUpdatePolicy = 'refetch-queries';
 
     // -- For DEV only
     this._debug = !environment.production;
@@ -308,6 +309,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     })
     .pipe(
       // Skip update during load()
+      tap(() => this.loading && console.debug('SKIP loading OP')),
       filter(() => !this.loading),
 
       map(({data, total}) => {
@@ -451,7 +453,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         },
         refetchQueries: this.getRefetchQueriesForMutation(opts),
         awaitRefetchQueries: opts && opts.awaitRefetchQueries,
-        update: (proxy, {data}) => {
+        update: (cache, {data}) => {
           const savedEntity = data && data.data && data.data[0];
 
           // Local entity: save it
@@ -478,11 +480,15 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
               savedEntity.metier.gear = savedEntity.metier.gear || (entity.physicalGear && entity.physicalGear.gear && entity.physicalGear.gear.asObject());
             }
 
-            if (isNew) {
-              this.insertIntoMutableCachedQueries(proxy, {
+            if (isNew && this._watchQueriesUpdatePolicy === 'update-cache') {
+              this.insertIntoMutableCachedQueries(cache, {
                 queryNames: this.getLoadQueryNames(),
                 data: savedEntity
               });
+            }
+
+            if (opts && opts.update) {
+              opts.update(cache, {data});
             }
 
             if (this._debug) console.debug(`[operation-service] Operation saved in ${Date.now() - now}ms`, entity);
@@ -503,42 +509,36 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   }): Promise<any> {
 
     // Delete local entities
-    const localEntities = (entities || []).filter(EntityUtils.isLocal);
+    const localEntities = entities?.filter(EntityUtils.isLocal);
     if (isNotEmptyArray(localEntities)) {
-      const trash = !opts || opts.trash !== false;
-      const localIds = localEntities.map(e => e.id);
-      if (this._debug) console.debug(`[operation-service] Deleting local operations... {trash: ${trash}}`);
-      if (trash) {
-        await this.entities.moveManyToTrash<Operation>(localIds, {entityName: Operation.TYPENAME});
-      }
-      else {
-        await this.entities.deleteMany<Operation>(localIds, {entityName: Operation.TYPENAME});
-      }
+      return this.deleteAllLocally(localEntities, opts);
     }
 
     // Get remote ids, then delete remotely
     const remoteEntities = (entities || []).filter(EntityUtils.isRemote);
     if (isNotEmptyArray(remoteEntities)) {
 
-      const remoteIds = remoteEntities.map(e => e.id);
+      const ids = remoteEntities.map(e => e.id);
       const now = Date.now();
-      if (this._debug) console.debug("[operation-service] Deleting operations... ids:", remoteIds);
+      if (this._debug) console.debug("[operation-service] Deleting operations... ids:", ids);
 
       await this.graphql.mutate({
         mutation: OperationMutations.deleteAll,
-        variables: {
-          ids: remoteIds
-        },
+        variables: { ids },
         refetchQueries: this.getRefetchQueriesForMutation(opts),
         awaitRefetchQueries: opts && opts.awaitRefetchQueries,
-        update: (proxy) => {
+        update: (cache, res) => {
 
-          if (this.watchQueriesUpdatePolicy === 'update-cache') {
-            // Remove from cached queries
-            this.removeFromMutableCachedQueriesByIds(proxy, {
+          // Remove from cached queries
+          if (this._watchQueriesUpdatePolicy === 'update-cache') {
+            this.removeFromMutableCachedQueriesByIds(cache, {
               queryNames: this.getLoadQueryNames(),
-              ids: remoteIds
+              ids: ids
             });
+          }
+
+          if (opts && opts.update) {
+            opts.update(cache, res);
           }
 
           if (this._debug) console.debug(`[operation-service] Operations deleted in ${Date.now() - now}ms`);
@@ -547,10 +547,28 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
   }
 
+  async deleteAllLocally(entities: Operation[], opts?: OperationSaveOptions & {
+    trash?: boolean; // True by default
+  }): Promise<any> {
+
+    // Get local ids
+    const localIds = entities.map(e => e.id).filter(id => id < 0);
+    if (isEmptyArray(localIds)) return; // Skip if empty
+
+    const trash = !opts || opts.trash !== false;
+    if (this._debug) console.debug(`[operation-service] Deleting local operations... {trash: ${trash}}`);
+
+    if (trash) {
+      await this.entities.moveManyToTrash<Operation>(localIds, {entityName: Operation.TYPENAME});
+    }
+    else {
+      await this.entities.deleteMany<Operation>(localIds, {entityName: Operation.TYPENAME});
+    }
+  }
+
   /**
    * Delete operation locally (from the entity storage)
-   * @param tripId
-   * @param opts
+   * @param filter
    */
   async deleteLocally(filter: Partial<OperationFilter> & { tripId: number; }): Promise<Operation[]> {
     if (!filter || isNil(filter.tripId)) throw new Error("Missing arguments 'filter.tripId'");
@@ -869,7 +887,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     if (opts && opts.refetchQueries) return opts.refetchQueries;
 
     // Skip if update policy not used refecth queries
-    if (this.watchQueriesUpdatePolicy !== 'refetch-queries') return undefined;
+    if (this._watchQueriesUpdatePolicy !== 'refetch-queries') return undefined;
 
     // Find the refetch queries definition
     return this.findRefetchQueries({queryNames: this.getLoadQueryNames()});

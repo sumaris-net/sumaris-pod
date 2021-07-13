@@ -9,14 +9,21 @@
     --table-toolbar-height: var(--mat-toolbar-height);
   }
 
+  &.has-group-header .mat-header-row.second-header-row {
+    th {
+      top: 0 !important;
+    }
+  }
+
   .mat-table {
 
     .mat-header-row,
     .mat-row {
 
       .mat-column-id {
-        min-width: 50px;
-        max-width: 50px;
+        min-width: 30px;
+        max-width: 30px;
+        left: 50px !important;
       }
       .mat-column-label {
         min-width: 80px;
@@ -77,6 +84,12 @@
       min-height: 58px;
       --mat-cell-vertical-padding: 0;
 
+      &.cdk-visually-hidden {
+        visibility: hidden;
+        display: none;
+        height: 0!important;
+      }
+
       .mat-header-cell {
         background-color: whitesmoke;
       }
@@ -98,10 +111,6 @@
     .mat-header-row.second-header-row {
       height: 90px;
       max-height: 90px;
-
-      th {
-        top: 56px !important;
-      }
 
       .mat-column-pmfm {
         max-height: 100%;

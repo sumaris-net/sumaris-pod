@@ -115,8 +115,6 @@
                             [showObserversColumn]="false"
                             [showDateTimeColumn]="false"
                             [showToolbar]="!mobile"
-                            [showPaginator]="false"
-                            [paginator]="paginator"
                             (onOpenRow)="onOpenLanding($event)"
                             (onNewRow)="onNewLanding($event)"
                             (onNewTrip)="onNewTrip($event)">
@@ -143,14 +141,6 @@
   </mat-tab-group>
 
 </ion-content>
-
-
-<ion-footer [class.cdk-visually-hidden]="selectedTabIndex !== 1">
-  <mat-paginator #paginator class="mat-paginator-footer"
-                 [length]="table?.totalRowCount" [pageSize]="table?.pageSize"
-                 [pageSizeOptions]="table?.defaultPageSizeOptions" showFirstLastButtons>
-  </mat-paginator>
-</ion-footer>
 
 <ion-footer *ngIf="!mobile">
   <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"

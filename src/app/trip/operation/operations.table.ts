@@ -34,6 +34,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() showMap: boolean;
   @Input() program: string;
   @Input() showToolbar = true;
+  @Input() showPaginator = true;
   @Input() useSticky = true;
 
   get sortActive(): string {

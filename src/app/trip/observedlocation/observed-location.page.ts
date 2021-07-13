@@ -6,14 +6,14 @@ import {LandingsTable} from '../landing/landings.table';
 import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
 import {FormGroup} from '@angular/forms';
 import {
-  Alerts, AppTable,
+  Alerts,
+  AppTable,
   ConfigService,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
   firstNotNilPromise,
   firstTruePromise,
   HistoryPageReference,
-  isInstanceOf,
   isNil,
   isNotNil,
   PlatformService,
@@ -69,7 +69,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   $ready = new BehaviorSubject<boolean>(false);
   showQualityForm = false;
   showRecorder = true;
-  canEditLandingsTable: boolean;
   landingEditor: LandingEditor = undefined;
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
@@ -85,8 +84,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     dataService: ObservedLocationService,
     protected modalCtrl: ModalController,
     protected platform: PlatformService,
-    protected configService: ConfigService,
-    protected landingValidator: LandingValidatorService
+    protected configService: ConfigService
   ) {
     super(injector,
       ObservedLocation,
@@ -153,7 +151,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       landingsTable.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
       landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
       landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
-      landingsTable.setValidatorService(this.landingEditor == 'trip' ? this.landingValidator : null);
     } else if (this.aggregatedLandingsTable) {
       this.aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
       this.aggregatedLandingsTable.program = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
@@ -162,9 +159,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.$ready.next(true);
 
     // Listen program change (will reload program if need)
-    this.startListenProgramRemoteChanges(program);
+    //this.startListenProgramRemoteChanges(program);
   }
-
 
   protected async onNewEntity(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
     // If is on field mode, fill default values
@@ -391,11 +387,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     const {data} = await modal.onDidDismiss();
 
     // If modal return a landing, use it
-    if (data && isInstanceOf(data[0], Landing)) {
+    if (data && data[0] instanceof Landing) {
       console.debug("[observed-location] Vessel selection modal result:", data);
       return (data[0] as Landing).vesselSnapshot;
     }
-    if (data && isInstanceOf(data[0], VesselSnapshot)) {
+    if (data && data[0] instanceof VesselSnapshot) {
       console.debug("[observed-location] Vessel selection modal result:", data);
       const vessel = data[0] as VesselSnapshot;
       if (excludeVesselIds.includes(data.id)) {

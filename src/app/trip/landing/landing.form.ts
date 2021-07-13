@@ -12,17 +12,19 @@ import {
   ConfigService,
   EntityUtils,
   FormArrayHelper,
-  isInstanceOf,
   isNil,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
   LoadResult,
   LocalSettingsService,
-  Person, PersonService,
+  Person,
+  PersonService,
   PersonUtils,
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
-  toBoolean, UserProfileLabel
+  toBoolean,
+  UserProfileLabel
 } from '@sumaris-net/ngx-components';
 import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
 import {Landing} from '../services/model/landing.model';

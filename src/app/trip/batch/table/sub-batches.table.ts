@@ -10,7 +10,6 @@ import {
   InMemoryEntitiesService,
   IReferentialRef,
   isEmptyArray,
-  isInstanceOf,
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
@@ -614,7 +613,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
-    return  isInstanceOf(data, SubBatch) ? data : undefined;
+    return  (data instanceof SubBatch) ? data : undefined;
   }
 
   protected async addEntityToTable(newBatch: SubBatch): Promise<TableElement<SubBatch>> {

@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ContentChild, EventEmitter, Injector, Input, Optional, Output, TemplateRef, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Optional, Output, TemplateRef, ViewChild} from '@angular/core';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {SampleValidatorService} from '../services/validator/sample.validator';
 import {
@@ -7,7 +7,6 @@ import {
   InMemoryEntitiesService,
   IReferentialRef,
   isEmptyArray,
-  isInstanceOf,
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
@@ -547,8 +546,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         }
       }
 
-      if (isEmptyArray(groupPmfms)) return pmfmGroups; // Skip group
-
       const groupPmfmCount = groupPmfms.length;
       const cssClass = (++groupIndex) % 2 === 0 ? 'even' : 'odd';
 
@@ -579,8 +576,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
           });
         }, []));
     }, []);
-
-
     this.$pmfmGroupColumns.next(pmfmGroupColumns);
     this.groupHeaderColumnNames =
       ['top-actions']
@@ -596,6 +591,10 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     orderedPmfms.forEach(p => this.memoryDataService.addSortByReplacement(p.id.toString(), "measurementValues." + p.id.toString()));
     return orderedPmfms;
+  }
+
+  openSelectColumnsModal(event?: UIEvent): Promise<any> {
+    return super.openSelectColumnsModal(event);
   }
 
   selectInputContent = AppFormUtils.selectInputContent;

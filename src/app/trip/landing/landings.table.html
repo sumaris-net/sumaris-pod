@@ -63,20 +63,20 @@
   <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div class="table-container" [class.has-toolbar]="showToolbar">
+<div class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="showPaginator">
 
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)" *ngIf="mobile">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
   <table mat-table [dataSource]="dataSource"
-             matSort
-             matSortDisableClear
-             [matSortActive]="defaultSortBy"
-             [matSortDirection]="defaultSortDirection"
-             [trackBy]="trackByFn">
+         matSort
+         matSortDisableClear
+         [matSortActive]="defaultSortBy"
+         [matSortDirection]="defaultSortDirection"
+         [trackBy]="trackByFn">
 
-    <ng-container matColumnDef="select">
+    <ng-container matColumnDef="select" [sticky]="useSticky">
       <th mat-header-cell *matHeaderCellDef
                        [class.cdk-visually-hidden]="!canEdit">
         <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
@@ -91,7 +91,7 @@
     </ng-container>
 
     <!-- rankOrder Column = id -->
-    <ng-container matColumnDef="id">
+    <ng-container matColumnDef="id" [sticky]="useSticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
@@ -134,7 +134,7 @@
         <span translate>LANDING.TABLE.LOCATION</span>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-label>{{referentialToString(row.currentData?.location)}}</ion-label>
+        <ion-label>{{row.currentData?.location | referentialToString: autocompleteFields.location.attributes }}</ion-label>
       </td>
     </ng-container>
 
@@ -280,14 +280,12 @@
 
 </div>
 
-<ion-row class="ion-no-padding" *ngIf="showPaginator"
-         [class.cdk-visually-hidden]="totalRowCount === 0">
-  <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>
-  <ion-col class="ion-no-padding" size="auto">
-    <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
-    </mat-paginator>
-  </ion-col>
-</ion-row>
+<ion-footer *ngIf="showPaginator">
+  <mat-paginator #paginator class="mat-paginator-footer"
+                 [length]="totalRowCount" [pageSize]="pageSize"
+                 [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
+  </mat-paginator>
+</ion-footer>
 
 <!-- Add Button  -->
 <ion-fab slot="fixed"

@@ -8,7 +8,6 @@ import {
   FormFieldDefinition,
   InMemoryEntitiesService,
   IReferentialRef,
-  isInstanceOf,
   isNil,
   isNotEmptyArray,
   isNotNil,
