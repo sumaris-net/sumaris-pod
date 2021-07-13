@@ -170,8 +170,6 @@ export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectO
 export class TaxonUtils {
 
   static generateLabelFromName(taxonName: string): string {
-    if (taxonName === "Amblyraja hyperborea") return undefined;
-
     if (isNil(taxonName)) return undefined;
     const genusWord = /^[a-zA-Z]{4,}$/;
     const speciesWord = /^[a-zA-Z]{3,}$/;
