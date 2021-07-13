@@ -1,12 +1,8 @@
-mat-table {
+.table-container {
+  height: calc(100% - var(--table-toolbar-height) - var(--app-paginator-height, 0px) - var(--table-container-top, 0px));
 
-  .mat-row {
-
-    //.mat-column-actions {
-    //  max-width: 90px;
-    //  padding-left: 0;
-    //}
-
+  --table-toolbar-height: 0px;
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
   }
-
 }

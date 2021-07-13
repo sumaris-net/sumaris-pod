@@ -103,6 +103,43 @@
            [dataSource]="dataSource" matSort matSortActive="rankOrder" matSortDirection="asc" matSortDisableClear
            [trackBy]="trackByFn">
 
+  <!-- TODO Group header: start
+  <ng-container matColumnDef="top-actions" [sticky]="useSticky">
+    <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupHeaderStartColSpan">
+
+    </th>
+  </ng-container>-->
+
+  <!-- TODO Group header: QV pmfm columns
+  <ng-container *ngFor="let qv of qvPmfm?.qualitativeValues; index as index">
+    <ng-container [matColumnDef]="'group-' + qv.id">
+      <th mat-header-cell *matHeaderCellDef
+          class="mat-column-pmfm-group mat-cell-content-start-padding"
+          [class.odd]="index % 2 === 0"
+          [attr.colspan]="5">
+        <ion-label>{{qv.name}}</ion-label>
+      </th>
+    </ng-container>
+  </ng-container> -->
+
+  <!-- Group header: end spacer
+  <ng-container matColumnDef="top-end">
+    <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupHeaderEndColSpan">
+      <button mat-icon-button
+              *ngIf="!mobile && !selection.hasValue()"
+              [disabled]="disabled"
+              [title]="'COMMON.BTN_ADD_ROW'|translate"
+              (click)="addRow()">
+        <mat-icon>add</mat-icon>
+      </button>
+      <button mat-icon-button color="light" *ngIf="selection.hasValue() && enabled"
+              [title]="'COMMON.BTN_DELETE'|translate"
+              (click)="deleteSelection($event)">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </th>
+  </ng-container> -->
+
   <ng-container matColumnDef="select">
     <mat-header-cell  *matHeaderCellDef>
       <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
@@ -170,7 +207,7 @@
                      [class.even]="isQvEven(col)"
                      [class.hidden-xs]="col.rankOrder % 5 !== 0"
                      [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3"
-                     class="content-padding-left">
+                     class="mat-cell-content-start-padding">
       <mat-label>
         <span>{{col.label|translate}}</span>
         <small *ngIf="col.unitLabel"><br />({{col.unitLabel}})</small>
@@ -183,7 +220,7 @@
               [class.even]="isQvEven(col)"
               [class.hidden-xs]="col.rankOrder % 5 !== 0"
               [class.mat-cell-computed]="col.computed"
-              class="content-padding-left">
+              class="mat-cell-content-start-padding">
 
       <app-form-field floatLabel="never"
                       [definition]="col"
@@ -306,7 +343,7 @@
                        [class.even]="isQvEven(col)"
                        [class.hidden-xs]="col.rankOrder % 5 !== 0"
                        [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3"
-                       class="content-padding-left">
+                       class="mat-cell-content-start-padding">
         <mat-label>
           <span>{{col.label|translate}}</span>
           <small *ngIf="col.unitLabel"><br />({{col.unitLabel}})</small>
@@ -320,7 +357,7 @@
                 [class.hidden-xs]="col.rankOrder % 5 !== 0"
                 [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3"
                 [class.mat-cell-computed]="col.computed"
-                class="content-padding-left">
+                class="mat-cell-content-start-padding">
 
         <ng-container *ngIf="row.currentData.measurementValues; let measurementValues">
           <ion-label *ngIf="!mobile; else mobileCellContent">

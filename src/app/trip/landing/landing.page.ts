@@ -65,6 +65,7 @@ export class LandingEditorOptions extends AppEditorOptions {
 @Component({
   selector: 'app-landing-page',
   templateUrl: './landing.page.html',
+  styleUrls: ['./landing.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [fadeInOutAnimation],
   providers: [

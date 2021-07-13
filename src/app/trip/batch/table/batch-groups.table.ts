@@ -113,8 +113,13 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   estimatedWeightPmfm: IPmfm;
   dynamicColumns: ColumnDefinition[];
 
-  @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
+  // TODO Top group header
+  //showGroupHeader = false;
+  //groupHeaderStartColSpan: number;
+  //groupHeaderEndColSpan: number;
 
+  @Input() useSticky = false;
+  @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
 
   @Input() set defaultTaxonGroups(value: string[]) {

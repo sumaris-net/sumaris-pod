@@ -49,9 +49,9 @@
   <mat-tab-group #tabGroup
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="tabGroupAnimationDuration"
-                 class="mat-tab-disabled-hidden"
-                 dynamicHeight>
+                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+                 [dynamicHeight]="false"
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content">
 
     <!-- TAB: general -->
     <mat-tab label="{{'LANDING.EDIT.TAB_GENERAL'|translate}}">

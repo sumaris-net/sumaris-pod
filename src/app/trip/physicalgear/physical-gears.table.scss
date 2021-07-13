@@ -1,5 +1,5 @@
 .table-container {
-  height: calc(100vh - var(--table-toolbar-height) - var(--table-container-top, 0px) - var(--table-container-bottom, 0px) - 1px);
+  height: calc(100% - var(--table-toolbar-height) - 1px);
 
   --table-toolbar-height: 0px;
   &.has-toolbar {
@@ -10,8 +10,6 @@
   .mat-column-gear {
     min-width: 100px;
   }
-
-
   .mat-row-selected {
     background-color: var(--ion-color-light100);
   }

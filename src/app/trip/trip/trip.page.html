@@ -60,7 +60,7 @@
 <ion-content
   (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
   <mat-tab-group #tabGroup
-                 class="mat-tab-disabled-hidden"
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content"
                  [class.mobile]="mobile"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
@@ -174,6 +174,7 @@
                             (onNewRow)="onNewOperation($event)"
                             [program]="$programLabel|async"
                             [showToolbar]="!mobile"
+                            [useSticky]="!mobile"
                             [paginator]="paginator"
                             [defaultSortBy]="mobile ? 'startDateTime': 'endDateTime'"
                             [defaultSortDirection]="mobile ?'desc': 'asc'">

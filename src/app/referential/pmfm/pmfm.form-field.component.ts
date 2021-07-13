@@ -31,24 +31,16 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   numberInputStep: string;
 
   @Input() pmfm: IPmfm;
-
   @Input() required: boolean;
-
   @Input() readonly = false;
-
   @Input() hidden = false;
-
   @Input() formControl: FormControl;
-
   @Input() formControlName: string;
-
   @Input() placeholder: string;
-
   @Input() compact = false;
-
   @Input() floatLabel: FloatLabelType = "auto";
-
   @Input() tabindex: number;
+  @Input() appAutofocus: boolean;
 
   // When async validator (e.g. BatchForm), force update when error detected
   @Input() listenStatusChanges: boolean;
