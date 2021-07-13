@@ -17,6 +17,7 @@
     "BTN_DELETE_FOREVER": "Supprimer définitivement",
     "BTN_EDIT": "Modifier",
     "BTN_EXPAND": "Déplier",
+    "BTN_UNDO": "Annuler les modifications",
     "BTN_FREEZE_VALUE": "Figer",
     "BTN_FREEZE_VALUE_HELP": "Figer la valeur",
     "BTN_YES_DELETE": "Oui, supprimer",
@@ -149,8 +150,8 @@
       "ENABLE_GRAVATAR": "Utilisateur > Utiliser Gravatar ?",
       "DEFAULT_LOCALE": "Langue par défaut",
       "DEFAULT_LATLONG_FORMAT": "Format lat/lon par défaut",
-      "NOT_SELF_DATA_ACCESS_MIN_ROLE": "Saisie > Role min. pour voir les données des autres",
-      "SUPERVISOR_DEPARTMENT": "Saisie > Département superviseur : peut voir les données des autres départements",
+      "ACCESS_NOT_SELF_DATA_MIN_ROLE": "Saisie > Role min. pour voir les données des autres",
+      "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Saisie > Services permettant de voir les données des autres (ID)",
       "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",

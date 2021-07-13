@@ -82,7 +82,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   @ViewChild(IonContent) content: IonContent;
 
   get dirty(): boolean {
-    return this._dirty || (this.form && this.form.dirty);
+    return super.dirty || (this.form && this.form.dirty);
   }
 
   get valid(): boolean {
@@ -242,7 +242,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return row.currentData.rankOrder > this._initialMaxRankOrder;
   }
 
-  onEditRow(event: MouseEvent, row?: TableElement<SubBatch>): boolean {
+  editRow(event: MouseEvent, row?: TableElement<SubBatch>): boolean {
 
     row = row || (!this.selection.isEmpty() && this.selection.selected[0]);
     if (!row) throw new Error ("Missing row argument, or a row selection.");
@@ -263,7 +263,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   }
 
   selectRow(event: MouseEvent|null, row: TableElement<SubBatch>) {
-    if (event && event.defaultPrevented || !row) return;
+    if (event?.defaultPrevented || !row) return;
     if (event) event.preventDefault();
 
     this.selection.clear();
@@ -293,7 +293,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     this.parentGroup = isNotNilOrBlank(parent) ? parent : undefined;
 
     // If pending changes, save new rows
-    if (this._dirty) {
+    if (this.dirty) {
       const saved = await this.save();
       if (!saved) {
         console.error('Could not save the table');

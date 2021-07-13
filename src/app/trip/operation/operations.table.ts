@@ -1,21 +1,15 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {OperationValidatorService} from "../services/validator/operation.validator";
-import {AlertController, ModalController, Platform} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {OperationValidatorService} from '../services/validator/operation.validator';
+import {AlertController, ModalController, Platform} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
-import {OperationService, OperationServiceWatchOptions} from "../services/operation.service";
-import {TranslateService} from "@ngx-translate/core";
-import {isInstanceOf, LocalSettingsService} from '@sumaris-net/ngx-components';
-import {LatLongPattern} from "@sumaris-net/ngx-components";
-import {isNotNil, toBoolean} from "@sumaris-net/ngx-components";
-import {OperationsMap} from "./map/operations.map";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
-import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {Operation} from "../services/model/trip.model";
+import {OperationService, OperationServiceWatchOptions} from '../services/operation.service';
+import {TranslateService} from '@ngx-translate/core';
+import {AccountService, AppTable, EntitiesTableDataSource, isNotNil, LatLongPattern, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, toBoolean} from '@sumaris-net/ngx-components';
+import {OperationsMap} from './map/operations.map';
+import {environment} from '@environments/environment';
+import {Operation} from '../services/model/trip.model';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 
 
@@ -40,7 +34,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() showMap: boolean;
   @Input() program: string;
   @Input() showToolbar = true;
-
+  @Input() useSticky = true;
 
   get sortActive(): string {
     const sortActive = super.sortActive;
@@ -201,7 +195,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
-    if (isInstanceOf(data, Operation)) {
+    if (data instanceof Operation) {
       // Select the row
       const row = (await this.dataSource.getRows()).find(row => row.currentData.id === data.id);
       if (row) {

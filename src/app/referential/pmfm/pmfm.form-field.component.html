@@ -16,6 +16,7 @@
            [max]="pmfm.maxValue"
            pattern="[0-9]*"
            step="1"
+           [appAutofocus]="appAutofocus"
            [placeholder]="placeholder"
            (keydown.enter)="onPressEnter.emit($event)"
            (keypress)="filterNumberInput($event, false)"
@@ -45,6 +46,7 @@
            type="number"
            autocomplete="off" [min]="pmfm.minValue" [max]="pmfm.maxValue"
            decimal="true"
+           [appAutofocus]="appAutofocus"
            [placeholder]="placeholder"
            [step]="numberInputStep"
            (keyup.enter)="onPressEnter.emit($event)"
@@ -122,15 +124,15 @@
 
   <!-- qualitative value -->
   <app-pmfm-qv-field *ngSwitchCase="'qualitative_value'" #matInput
-                                 [pmfm]="pmfm"
-                                 [formControl]="formControl"
-                                 [floatLabel]="floatLabel"
-                                 [placeholder]="placeholder"
-                                 [required]="required"
-                                 [readonly]="readonly"
-                                 [compact]="compact"
-                                 [tabindex]="tabindex"
-                                 (keyup.enter)="onPressEnter.emit($event)">
+                     [pmfm]="pmfm"
+                     [formControl]="formControl"
+                     [floatLabel]="floatLabel"
+                     [placeholder]="placeholder"
+                     [required]="required"
+                     [readonly]="readonly"
+                     [compact]="compact"
+                     [tabindex]="tabindex"
+                     (keyup.enter)="onPressEnter.emit($event)">
     <div matAfter>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
@@ -140,6 +142,7 @@
   <mat-form-field *ngSwitchCase="'string'" [floatLabel]="floatLabel">
     <input matInput #matInput
            autocomplete="off"
+           [appAutofocus]="appAutofocus"
            [formControl]="formControl"
            [placeholder]="placeholder"
            [required]="required"

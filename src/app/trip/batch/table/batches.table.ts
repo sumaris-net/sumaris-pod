@@ -2,14 +2,14 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injection
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {EntityFilter, FilterFn, InMemoryEntitiesService, IReferentialRef, isInstanceOf, isNil, isNilOrBlank, isNotNil, LoadResult, UsageMode} from '@sumaris-net/ngx-components';
 import {AppMeasurementsTable} from '../../measurement/measurements.table.class';
-import {TaxonGroupRef, TaxonNameRef} from '../../../referential/services/model/taxon.model';
+import {TaxonGroupRef, TaxonNameRef} from '@app/referential/services/model/taxon.model';
 import {Batch} from '../../services/model/batch.model';
 import {Landing} from '../../services/model/landing.model';
-import {AcquisitionLevelCodes, PmfmLabelPatterns} from '../../../referential/services/model/model.enum';
-import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
-import {ReferentialRefService} from '../../../referential/services/referential-ref.service';
+import {AcquisitionLevelCodes, PmfmLabelPatterns} from '@app/referential/services/model/model.enum';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {BatchModal} from '../modal/batch.modal';
-import {environment} from '../../../../environments/environment';
+import {environment} from '@environments/environment';
 import {Operation} from '../../services/model/trip.model';
 import {BatchGroup} from '@app/trip/services/model/batch-group.model';
 
@@ -93,7 +93,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
   }
 
   get dirty(): boolean {
-    return this._dirty || this.memoryDataService.dirty;
+    return super.dirty || this.memoryDataService.dirty;
   }
 
   @Input() defaultTaxonGroup: TaxonGroupRef;

@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ContentChild, EventEmitter, Injector, Input, Optional, Output, TemplateRef} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ContentChild, EventEmitter, Injector, Input, Optional, Output, TemplateRef, ViewChild} from '@angular/core';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {SampleValidatorService} from '../services/validator/sample.validator';
 import {
@@ -39,6 +39,7 @@ import {PmfmFilter, PmfmService} from '@app/referential/services/pmfm.service';
 import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
 import {BehaviorSubject} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {MatMenu} from '@angular/material/menu';
 
 const moment = momentImported;
 
@@ -75,13 +76,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   protected pmfmService: PmfmService;
 
   // Top group header
-  showGroupHeader = false;
   groupHeaderStartColSpan: number;
   groupHeaderEndColSpan: number;
   $pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
   $pmfmGroupColumns = new BehaviorSubject<GroupColumnDefinition[]>([]);
   groupHeaderColumnNames: string[] = [];
 
+  @Input() showGroupHeader = false;
   @Input() useSticky = false;
   @Input() canAddPmfm = false;
   @Input() showError = true;
@@ -144,6 +145,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Output() onPrepareRowForm = new EventEmitter<{form: FormGroup, pmfms: IPmfm[]}>();
 
   @Input() rowErrorTemplate: TemplateRef<any>;
+
+  @ViewChild('optionsMenu') optionMenu: MatMenu;
 
   constructor(
     injector: Injector,
@@ -230,6 +233,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     this.$pmfmGroupColumns.unsubscribe();
   }
 
+  openMenu() {
+  }
 
   /**
    * Use in ngFor, for trackBy
@@ -468,7 +473,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     const canDeleteRow = await this.canDeleteRows([row]);
     if (canDeleteRow === true) {
-      this.cancelOrDelete(event, row, true /*already confirmed*/);
+      this.deleteRow(event, row, {interactive: false /*already confirmed*/});
     }
     return canDeleteRow;
   }

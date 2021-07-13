@@ -449,6 +449,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
           return { saveOperations: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)] };
         },
+      // TODO BLA: review this
         refetchQueries: isNew && this.findMutableWatchQueries({queryNames: ['LoadAllLightQuery', 'LoadAllLightWithTotalQuery']}).map(def => {
           return {query: def.query, variables: def.variables};
         }),
@@ -525,7 +526,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         },
         update: (proxy) => {
           // Remove from cached queries
-          this.removeFromMutableCachedQueryByIds(proxy, {
+          this.removeFromMutableCachedQueriesByIds(proxy, {
             queryNames: ['LoadAllLightQuery', 'LoadAllLightWithTotalQuery'],
             ids: remoteIds
           });

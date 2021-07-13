@@ -1,16 +1,21 @@
-import {Observable} from "rxjs";
+import {Observable} from 'rxjs';
 
-import {FetchPolicy, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {SortDirection} from "@angular/material/sort";
+import {FetchPolicy, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {SortDirection} from '@angular/material/sort';
 
-import {BaseReferential, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {EntityServiceLoadOptions, LoadResult} from "@sumaris-net/ngx-components";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {isNotNil} from "@sumaris-net/ngx-components";
-import {Directive} from "@angular/core";
-import {BaseEntityService, BaseEntityServiceOptions} from "./base-entity-service.class";
-import {BaseReferentialFilter} from "./filter/referential.filter";
+import {
+  BaseEntityService,
+  BaseEntityServiceOptions,
+  BaseReferential,
+  EntityServiceLoadOptions,
+  GraphqlService,
+  isNotNil,
+  LoadResult,
+  PlatformService,
+  ReferentialUtils
+} from '@sumaris-net/ngx-components';
+import {Directive} from '@angular/core';
+import {BaseReferentialFilter} from './filter/referential.filter';
 
 
 @Directive()

@@ -359,7 +359,7 @@ export class ExtractionProductService extends BaseGraphqlService {
         // Insert into cached queries
         if (isNew) {
           // Aggregation types
-          this.insertIntoMutableCachedQuery(cache, {
+          this.insertIntoMutableCachedQueries(cache, {
             query: LoadTypesQuery,
             data: savedEntity
           });

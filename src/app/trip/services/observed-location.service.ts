@@ -1,5 +1,5 @@
 import {Injectable, Injector} from "@angular/core";
-import {EntitiesServiceWatchOptions, EntityServiceLoadOptions, IEntitiesService, IEntityService, LoadResult} from "@sumaris-net/ngx-components";
+import {EntitiesServiceWatchOptions, EntitySaveOptions, EntityServiceLoadOptions, IEntitiesService, IEntityService, LoadResult} from '@sumaris-net/ngx-components';
 import {AccountService}  from "@sumaris-net/ngx-components";
 import {Observable} from "rxjs";
 import * as momentImported from "moment";
@@ -28,7 +28,6 @@ import {JobUtils} from "@sumaris-net/ngx-components";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {OBSERVED_LOCATION_FEATURE_NAME} from "./config/trip.config";
 import {ProgramProperties} from "../../referential/services/config/program.config";
-import {EntitySaveOptions} from "../../referential/services/base-entity-service.class";
 import {StatusIds}  from "@sumaris-net/ngx-components";
 import {VESSEL_FEATURE_NAME} from "../../vessel/services/config/vessel.config";
 import {LandingFilter} from "./filter/landing.filter";
@@ -446,7 +445,7 @@ export class ObservedLocationService
 
         // Add to cache
         if (isNew) {
-          this.insertIntoMutableCachedQuery(proxy, {
+          this.insertIntoMutableCachedQueries(proxy, {
             queryName: 'LoadAll',
             data: savedEntity
           });
@@ -552,7 +551,7 @@ export class ObservedLocationService
       variables: { ids },
       update: (proxy) => {
         // Update the cache
-        this.removeFromMutableCachedQueryByIds(proxy, {
+        this.removeFromMutableCachedQueriesByIds(proxy, {
           queryName: 'LoadAll',
           ids
         });

@@ -114,61 +114,60 @@
           <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
         </ion-item>
 
-        <div  class="ion-no-padding">
+        <form *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;"
+              [formGroup]="landingForm.measurementValuesForm"
+              class="form-container ion-padding ion-no-padding-bottom">
 
-          <form *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;"
-                [formGroup]="landingForm.measurementValuesForm"
-                class="form-container ion-padding">
+          <ion-grid class="ion-no-padding">
+            <ion-row class="ion-no-padding" >
+              <!-- pmfms -->
+              <ng-container *ngFor="let pmfm of pmfms; index as i;">
+                <ion-col size="12" size-md="6">
+                  <app-pmfm-field [formControlName]="pmfm.id.toString()"
+                                  [pmfm]="pmfm">
+                  </app-pmfm-field>
+                </ion-col>
+                <ion-col *ngIf="pmfm.id === controlledSpeciesPmfmId && showOtherTaxonGroup"
+                         size="12" size-md="6">
 
-            <ion-grid class="ion-no-padding">
-              <ion-row class="ion-no-padding" >
-                <!-- pmfms -->
-                <ng-container *ngFor="let pmfm of pmfms; index as i;">
-                  <ion-col size="12" size-md="6">
-                    <app-pmfm-field [formControlName]="pmfm.id.toString()"
-                                    [pmfm]="pmfm">
-                    </app-pmfm-field>
-                  </ion-col>
-                  <ion-col *ngIf="pmfm.id === controlledSpeciesPmfmId && showOtherTaxonGroup"
-                           size="12" size-md="6">
+                  <!-- Special case for controlled species: add a combo, for 'MZZ' species -->
+                  <mat-autocomplete-field [formControl]="taxonGroupControl"
+                                          [tabindex]="60"
+                                          [required]="false"
+                                          [config]="autocompleteFields.taxonGroup"
+                                          [placeholder]="'AUCTION_CONTROL.EDIT.OTHER_TAXON_GROUP'|translate">
+                  </mat-autocomplete-field>
 
-                    <!-- Special case for controlled species: add a combo, for 'MZZ' species -->
-                    <mat-autocomplete-field [formControl]="taxonGroupControl"
-                                            [tabindex]="60"
-                                            [required]="false"
-                                            [config]="autocompleteFields.taxonGroup"
-                                            [placeholder]="'AUCTION_CONTROL.EDIT.OTHER_TAXON_GROUP'|translate">
-                    </mat-autocomplete-field>
+                </ion-col>
+              </ng-container>
+            </ion-row>
 
-                  </ion-col>
-                </ng-container>
-              </ion-row>
+          </ion-grid>
+        </form>
 
-            </ion-grid>
-          </form>
-
-          <app-samples-table #samplesTable
-                             [class.cdk-visually-hidden]="!showSamplesTable"
-                             [showLabelColumn]="true"
-                             [showDateTimeColumn]="false"
-                             [showTaxonNameColumn]="false"
-                             [showTaxonGroupColumn]="false"
-                             [tabIndex]="61"
-                             [defaultSampleDate]="data?.dateTime"
-                             [usageMode]="usageMode"
-                             (onPrepareRowForm)="onPrepareSampleForm($event)"
-                             [debug]="debug"
-                             [compactFields]="true">
-            <ion-buttons slot="end">
-              <!-- Help button -->
-              <button mat-icon-button *ngIf="helpContent"
-                      [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
-                      (click)="openHelpModal($event)">
-                <mat-icon>help_outline</mat-icon>
-              </button>
-            </ion-buttons>
-          </app-samples-table>
-        </div>
+        <app-samples-table #samplesTable
+                           [class.cdk-visually-hidden]="!showSamplesTable"
+                           [showLabelColumn]="true"
+                           [showDateTimeColumn]="false"
+                           [showTaxonNameColumn]="false"
+                           [showTaxonGroupColumn]="false"
+                           [showToolbar]="!mobile"
+                           [showGroupHeader]="false"
+                           [tabIndex]="61"
+                           [defaultSampleDate]="data?.dateTime"
+                           [usageMode]="usageMode"
+                           (onPrepareRowForm)="onPrepareSampleForm($event)"
+                           [debug]="debug"
+                           [compactFields]="true">
+          <ion-buttons slot="end">
+            <!-- Help button -->
+            <button mat-icon-button *ngIf="helpContent"
+                    [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
+                    (click)="openHelpModal($event)">
+              <mat-icon>help_outline</mat-icon>
+            </button>
+          </ion-buttons>
+        </app-samples-table>
       </div>
     </mat-tab>
 
@@ -178,7 +177,7 @@
 
 <ion-footer *ngIf="!mobile">
 
-  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading"
+  <app-form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 
     <!-- error -->
@@ -187,7 +186,7 @@
       <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 
-  </form-buttons-bar>
+  </app-form-buttons-bar>
 </ion-footer>
 
 <!-- FAB button -->

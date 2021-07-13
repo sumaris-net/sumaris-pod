@@ -9,7 +9,7 @@ import {
   chainPromises,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
-  Entity,
+  Entity, EntitySaveOptions,
   EntityServiceLoadOptions,
   EntityUtils,
   FormErrors,
@@ -55,13 +55,11 @@ import {IDataSynchroService, RootDataSynchroService} from '@app/data/services/ro
 import {environment} from '@environments/environment';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {Sample} from './model/sample.model';
-import {EntitySaveOptions} from '@app/referential/services/base-entity-service.class';
 import {ErrorCodes} from '@app/data/services/errors';
 import {VESSEL_FEATURE_NAME} from '@app/vessel/services/config/vessel.config';
 import {TripFilter} from './filter/trip.filter';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {TrashRemoteService} from '@app/core/services/trash-remote.service';
-import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 
 const moment = momentImported;
 
@@ -650,6 +648,7 @@ export class TripService
        mutation,
        variables,
        offlineResponse,
+      // TODO BLA: review this
        refetchQueries: isNew && this.findMutableWatchQueries({queries: [TripQueries.loadAll, TripQueries.loadAllWithTotal]}).map(def => {
          return {query: def.query, variables: def.variables};
        }),
@@ -879,7 +878,7 @@ export class TripService
       variables: { ids },
       update: (proxy) => {
         // Update the cache
-        this.removeFromMutableCachedQueryByIds(proxy, {
+        this.removeFromMutableCachedQueriesByIds(proxy, {
           queryNames: ["loadAll", "loadAllWithTotal"],
           ids
         });

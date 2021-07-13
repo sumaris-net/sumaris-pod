@@ -14,8 +14,9 @@
       </button>
 
       <!-- Refresh -->
-      <button mat-icon-button *ngIf="isAdmin"
-              [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
+      <button mat-icon-button *ngIf="!mobile"
+              [title]="'COMMON.BTN_REFRESH'|translate"
+              (click)="onRefresh.emit()">
         <mat-icon>refresh</mat-icon>
       </button>
 
@@ -119,11 +120,11 @@
              (swiperight)="onSwipeTab($event)"
              (swipeleft)="onSwipeTab($event)">
 
-  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)" *ngIf="mobile">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- Network status (+ Install and upgrade link) -->
+  <!-- Network status (+ Install and upgrade link)  -->
   <app-install-upgrade-card
     [isLogin]="isLogin"
     showInstallButton="false"
@@ -138,31 +139,6 @@
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
-
-  <!-- Tab nav - synchro status-->
-  <nav mat-tab-nav-bar
-       *ngIf="hasOfflineMode && synchronizationStatus as syncStatus">
-    <a mat-tab-link
-       [active]="syncStatus==='DIRTY'"
-       (click)="setSynchronizationStatus('DIRTY')">
-      <mat-icon>cloud_off</mat-icon>&nbsp;
-      <mat-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</mat-label>
-    </a>
-    <a mat-tab-link [active]="syncStatus==='SYNC'"
-       [disabled]="offline"
-       (click)="setSynchronizationStatus('SYNC')">
-      <mat-icon>cloud_done</mat-icon>&nbsp;
-      <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
-    </a>
-  </nav>
-
-  <!-- progress bar -->
-  <ion-list *ngIf="importing" lines="none">
-    <ion-list-header>
-      <ion-label>{{'NETWORK.INFO.IMPORTATION_PCT_DOTS'|translate: {pct: $importProgression | async} }}</ion-label>
-    </ion-list-header>
-    <ion-progress-bar [value]="($importProgression | async) / 100"></ion-progress-bar>
-  </ion-list>
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel
@@ -282,6 +258,32 @@
       </ion-button>
     </mat-action-row>
   </mat-expansion-panel>
+
+
+  <!-- Tab nav - synchro status-->
+  <nav mat-tab-nav-bar
+       *ngIf="hasOfflineMode">
+    <a mat-tab-link
+       [active]="synchronizationStatus==='DIRTY'"
+       (click)="setSynchronizationStatus('DIRTY')">
+      <mat-icon>cloud_off</mat-icon>&nbsp;
+      <mat-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</mat-label>
+    </a>
+    <a mat-tab-link [active]="synchronizationStatus==='SYNC'"
+       [disabled]="offline"
+       (click)="setSynchronizationStatus('SYNC')">
+      <mat-icon>cloud_done</mat-icon>&nbsp;
+      <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
+    </a>
+  </nav>
+
+  <!-- progress bar -->
+  <ion-list *ngIf="importing" lines="none">
+    <ion-list-header>
+      <ion-label>{{'NETWORK.INFO.IMPORTATION_PCT_DOTS'|translate: {pct: $importProgression | async} }}</ion-label>
+    </ion-list-header>
+    <ion-progress-bar [value]="($importProgression | async) / 100"></ion-progress-bar>
+  </ion-list>
 
   <!-- table -->
   <div class="table-container"

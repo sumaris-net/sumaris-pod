@@ -3,8 +3,9 @@ import {gql} from '@apollo/client/core';
 import {Observable} from 'rxjs';
 import {QualityFlagIds} from '../../referential/services/model/model.enum';
 import {
+  BaseEntityGraphqlQueries,
   Department,
-  EntityAsObjectOptions,
+  EntityAsObjectOptions, EntitySaveOptions,
   EntityUtils,
   FormErrors,
   IEntitiesService,
@@ -26,7 +27,6 @@ import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.m
 import {SortDirection} from '@angular/material/sort';
 import {DataRootEntityUtils} from '../../data/services/model/root-data-entity.model';
 import {IDataSynchroService, RootDataSynchroService} from '../../data/services/root-data-synchro-service.class';
-import {BaseEntityGraphqlQueries, EntitySaveOptions} from '../../referential/services/base-entity-service.class';
 import {BaseRootEntityGraphqlMutations} from '../../data/services/root-data-service.class';
 import {VESSEL_FEATURE_NAME} from './config/vessel.config';
 import {VesselFilter} from './filter/vessel.filter';
@@ -250,7 +250,7 @@ export class VesselService
         // update features history FIXME: marche pas
         if (opts && opts.isNewFeatures) {
           const lastFeatures = entities[entities.length - 1].features;
-          this.vesselFeatureService.insertIntoMutableCachedQuery(proxy, {
+          this.vesselFeatureService.insertIntoMutableCachedQueries(proxy, {
             query: VesselFeatureQueries.loadAll,
             data: lastFeatures
           });
@@ -259,7 +259,7 @@ export class VesselService
         // update registration history FIXME: marche pas
         if (opts && opts.isNewRegistration) {
           const lastRegistration = entities[entities.length - 1].registration;
-          this.vesselRegistrationService.insertIntoMutableCachedQuery(proxy, {
+          this.vesselRegistrationService.insertIntoMutableCachedQueries(proxy, {
             query: VesselRegistrationsQueries.loadAll,
             data: lastRegistration
           });

@@ -6,7 +6,7 @@ import {LandingsTable} from '../landing/landings.table';
 import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
 import {FormGroup} from '@angular/forms';
 import {
-  Alerts,
+  Alerts, AppTable,
   ConfigService,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
@@ -51,6 +51,7 @@ const ObservedLocationPageTabs = {
 @Component({
   selector: 'app-observed-location-page',
   templateUrl: './observed-location.page.html',
+  styleUrls: ['./observed-location.page.scss'],
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
@@ -59,6 +60,7 @@ const ObservedLocationPageTabs = {
 })
 export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, ObservedLocationService> {
 
+  mobile: boolean;
   showLandingTab = false;
   aggregatedLandings: boolean;
   allowAddNewVessel: boolean;
@@ -74,6 +76,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   @ViewChild('landingsTable') landingsTable: LandingsTable;
   @ViewChild('aggregatedLandingsTable') aggregatedLandingsTable: AggregatedLandingsTable;
 
+  get table(): AppTable<any> {
+    return this.landingsTable || this.aggregatedLandingsTable;
+  }
 
   constructor(
     injector: Injector,
@@ -93,6 +98,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         i18nPrefix: OBSERVED_LOCATION_DEFAULT_I18N_PREFIX
       });
     this.defaultBackHref = "/observations";
+    this.mobile = this.platform.mobile;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;

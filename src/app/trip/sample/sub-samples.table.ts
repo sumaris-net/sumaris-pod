@@ -70,6 +70,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   @Input() showLabelColumn = false;
 
   @Input() usageMode: UsageMode;
+  @Input() useSticky: true;
 
   constructor(
     protected injector: Injector
