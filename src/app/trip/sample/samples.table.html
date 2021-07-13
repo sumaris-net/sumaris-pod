@@ -265,7 +265,7 @@
       </button>
     </app-actions-column>
 
-    <tr mat-header-row *matHeaderRowDef="groupHeaderColumnNames;"
+    <tr mat-header-row *matHeaderRowDef="groupHeaderColumnNames; sticky: true"
         class="first-header-row"
         [class.cdk-visually-hidden]="!showGroupHeader"></tr>
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true" class="second-header-row"></tr>
