@@ -29,9 +29,9 @@ export const EXTRACTION_CONFIG_OPTIONS = Object.freeze({
     type: 'boolean',
     defaultValue: 'false'
   },
-  EXTRACTION_NOT_SELF_ACCESS_ROLE: <FormFieldDefinition>{
-    key: "sumaris.auth.notSelfExtractionAccess.role",
-    label: "EXTRACTION.OPTIONS.NOT_SELF_ACCESS_MIN_ROLE",
+  EXTRACTION_ACCESS_NOT_SELF_ROLE: <FormFieldDefinition>{
+    key: "sumaris.extraction.accessNotSelfExtraction.role",
+    label: "EXTRACTION.OPTIONS.ACCESS_NOT_SELF_ROLE",
     type: 'enum',
     values: PRIORITIZED_AUTHORITIES.map(label => ({
       key: 'ROLE_' + label,

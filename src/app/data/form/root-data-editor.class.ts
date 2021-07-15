@@ -254,9 +254,7 @@ export abstract class AppRootDataEditor<
     if (!program || isNil(program.id)) return; // Skip
 
     // Remove previous listener (e.g. on a previous program id)
-    if (this.remoteProgramSubscription) {
-      this.remoteProgramSubscription.unsubscribe();
-    }
+    this.remoteProgramSubscription?.unsubscribe();
 
     this.remoteProgramSubscription = this.programRefService.listenChanges(program.id)
       .pipe(

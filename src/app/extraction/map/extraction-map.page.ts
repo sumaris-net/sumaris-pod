@@ -9,7 +9,7 @@ import {
   DurationPipe,
   fadeInAnimation,
   fadeInOutAnimation,
-  isEmptyArray, isInstanceOf,
+  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -1029,7 +1029,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     const res = await modal.onDidDismiss();
 
     // If selected a product, use it
-    if (res && isInstanceOf(res.data, ExtractionProduct)) {
+    if (res?.data instanceof ExtractionProduct) {
       const type = res.data;
       await this.setType(type, {emitEvent: false});
 

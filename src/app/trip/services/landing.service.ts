@@ -626,7 +626,9 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
         // Compute rankOrder, by tripId or observedLocationId
         if (!opts || opts.computeRankOrder !== false) {
-          this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter);
+          this.computeRankOrderAndSort(entities, offset, total,
+            sortBy !== 'id' ? sortBy : 'rankOrder',
+            sortDirection, dataFilter);
         }
 
         return {

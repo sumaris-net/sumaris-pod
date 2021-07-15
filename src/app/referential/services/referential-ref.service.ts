@@ -62,6 +62,15 @@ const LoadAllTaxonNamesQuery: any = gql`
   }
   ${ReferentialFragments.fullTaxonName}
 `;
+const LoadAllWithTotalTaxonNamesQuery: any = gql`
+  query TaxonNames($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TaxonNameFilterVOInput){
+    data: taxonNames(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
+      ...FullTaxonNameFragment
+    }
+    total: taxonNameCount(filter: $filter)
+  }
+  ${ReferentialFragments.fullTaxonName}
+`;
 
 export const ReferentialRefQueries: BaseEntityGraphqlQueries = {
   loadAll: LoadAllQuery,
@@ -161,7 +170,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
           }
           return {
             data: entities,
-            total
+            total: total || entities.length
           };
         })
       );
@@ -228,11 +237,20 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       entities.forEach(item => item.entityName = uniqueEntityName);
     }
 
-    if (debug) console.debug(`[referential-ref-service] Loading ${uniqueEntityName} items (ref) [OK] ${entities.length} items, in ${Date.now() - now}ms`);
-    return {
+    const end = offset + entities.length;
+
+    const res: any = {
       data: entities,
       total
-    };
+    }
+
+    if (end < total) {
+      offset = end;
+      res.fetchMore = () => this.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+    }
+
+    if (debug) console.debug(`[referential-ref-service] Loading ${uniqueEntityName} items (ref) [OK] ${entities.length} items, in ${Date.now() - now}ms`);
+    return res;
   }
 
   protected async loadAllLocally(offset: number,
@@ -314,6 +332,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                             fetchPolicy?: FetchPolicy;
                             debug?: boolean;
                             toEntity?: boolean;
+                            withTotal?: boolean;
                           }): Promise<LoadResult<TaxonNameRef>> {
 
     filter = TaxonNameRefFilter.fromObject(filter);
@@ -347,7 +366,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     // Online mode
     else {
       res = await this.graphql.query<LoadResult<any>>({
-        query: LoadAllTaxonNamesQuery,
+        query: opts && opts.withTotal ? LoadAllWithTotalTaxonNamesQuery : LoadAllTaxonNamesQuery,
         variables: {
           ...variables,
           filter: filter.asPodObject()
@@ -361,20 +380,35 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       (res && res.data || []).map(TaxonNameRef.fromObject) :
       (res && res.data || []) as TaxonNameRef[];
     if (debug) console.debug(`[referential-ref-service] TaxonName items loaded in ${Date.now() - now}ms`, entities);
-    return {
+
+    const total = res.total || entities.length;
+    const end = offset + entities.length;
+
+    const result: any = {
       data: entities,
-      total: res.total || entities.length
+      total
     };
+
+    if (end < result.total) {
+      offset = end;
+      result.fetchMore = () => this.loadAllTaxonNames(offset, size, sortBy, sortDirection, filter, opts);
+    }
+    return result;
+
+
   }
 
   suggestTaxonNames(value: any, filter?: Partial<TaxonNameRefFilter>): Promise<LoadResult<TaxonNameRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return Promise.resolve({data: [value]});
     value = (typeof value === "string" && value !== '*') && value || undefined;
-    return this.loadAllTaxonNames(0, !value ? 30 : 10, undefined, undefined,
+    return this.loadAllTaxonNames(0, !value ? 20 : 10, undefined, undefined,
       {
         entityName: 'TaxonName',
         ...filter,
         searchText: value as string
+      },
+      {
+        withTotal: true
       });
   }
 

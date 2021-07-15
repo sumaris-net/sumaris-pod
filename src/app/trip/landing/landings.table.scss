@@ -1,8 +1,30 @@
 .table-container {
-  height: calc(100% - var(--table-toolbar-height) - var(--app-paginator-height, 0px) - var(--table-container-top, 0px));
+  height: calc(100% - var(--table-toolbar-height) - var(--table-paginator-height, 0px) - var(--table-container-top, 0px));
 
   --table-toolbar-height: 0px;
+  --table-paginator-height: 0px;
+
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);
+  }
+  &.has-paginator {
+    --table-paginator-height: var(--app-paginator-height);
+  }
+}
+
+.mat-table {
+  .mat-column-id {
+    min-width: 30px;
+    max-width: 30px;
+    left: 40px !important;
+  }
+
+  .mat-column-vessel {
+    min-width: 150px;
+    max-width: 250px;
+  }
+  .mat-column-pmfm {
+    min-width: 120px;
+    max-width: 250px;
   }
 }

@@ -2,14 +2,13 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector,
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {PhysicalGearValidatorService} from '../services/validator/physicalgear.validator';
 import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService, isInstanceOf, isNil, toBoolean} from '@sumaris-net/ngx-components';
+import {createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService} from '@sumaris-net/ngx-components';
 import {PhysicalGearModal} from './physical-gear.modal';
 import {PhysicalGear} from '../services/model/trip.model';
 import {PHYSICAL_GEAR_DATA_SERVICE} from '../services/physicalgear.service';
 import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum';
 import {environment} from '../../../environments/environment';
 import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
-import {BatchGroup} from '@app/trip/services/model/batch-group.model';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
@@ -173,7 +172,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[physical-gear-table] Modal result: ", data);
 
-    return isInstanceOf(data, PhysicalGear) ? data : undefined;
+    return (data instanceof PhysicalGear) ? data : undefined;
   }
 
   async deletePhysicalGear(event: UIEvent, data: PhysicalGear): Promise<boolean> {

@@ -26,7 +26,7 @@ import {
   AppFormUtils,
   focusInput,
   InputElement,
-  isEmptyArray, isInstanceOf,
+  isEmptyArray,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
@@ -170,7 +170,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     this.sortAttribute =  isNotNil(this.sortAttribute) ? this.sortAttribute : (attributes[0]);
 
     // Sort values
-    this._sortedQualitativeValues = (isInstanceOf(this.pmfm, PmfmStrategy) && this.pmfm.pmfmId !== PmfmIds.DISCARD_OR_LANDING) ?
+    this._sortedQualitativeValues = (this.pmfm instanceof PmfmStrategy && this.pmfm.pmfmId !== PmfmIds.DISCARD_OR_LANDING) ?
       sort(this._qualitativeValues, this.sortAttribute) :
       this._qualitativeValues;
 

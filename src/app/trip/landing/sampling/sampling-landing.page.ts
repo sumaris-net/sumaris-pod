@@ -28,6 +28,7 @@ export class SamplingLandingPage extends LandingPage {
   showSamplesTable = false;
   zeroEffortWarning = false;
   noEffortError = false;
+  notObserverWarning = false;
 
   constructor(
     injector: Injector,
@@ -125,6 +126,11 @@ export class SamplingLandingPage extends LandingPage {
     if (strategyLabel) {
       this.samplesTable.strategyLabel = strategyLabel;
     }
+
+    if (this.parent && this.parent instanceof ObservedLocation) {
+      this.notObserverWarning = !(this.parent.observers && this.parent.observers.find(p => p.equals(data.recorderPerson)));
+    }
+
     await super.setValue(data);
   }
 

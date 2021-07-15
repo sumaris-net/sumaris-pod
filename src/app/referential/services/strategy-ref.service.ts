@@ -234,64 +234,62 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
   }
 
   private _subscriptionCache: {[key: string]: {
-      counter: number;
       subject: Subject<Strategy[]>;
       subscription: Subscription;
     }} = {};
 
   listenChangesByProgram(programId: number, opts?: {
-    interval?: number
+    interval?: number;
   }): Observable<Strategy[]> {
     if (isNil(programId)) throw Error("Missing argument 'programId' ");
 
     const cacheKey = [StrategyRefCacheKeys.STRATEGIES_BY_PROGRAM_ID, programId].join('|');
     let cache = this._subscriptionCache[cacheKey];
     if (!cache) {
+      const variables = {
+        programId,
+        interval: opts && opts.interval || 10 // seconds
+      };
+      const subject = new Subject<Strategy[]>();
+      if (this._debug) console.debug(`[strategy-ref-service] [WS] Listening for changes on strategies, from program {${programId}}...`);
       cache = {
-        counter: 0,
-        subject: new Subject<Strategy[]>(),
-        subscription: undefined
+        subject,
+        subscription: this.graphql.subscribe<{data: any}>({
+          query: StrategySubscriptions.listenChangesByProgram,
+          fetchPolicy: 'network-only',
+          variables,
+          error: {
+            code: ErrorCodes.SUBSCRIBE_REFERENTIAL_ERROR,
+            message: 'REFERENTIAL.ERROR.SUBSCRIBE_REFERENTIAL_ERROR'
+          }
+        })
+          .pipe(
+            map(({data}) => {
+              const entities = (data || []).map(s => this.fromObject(s));
+              if (isNotEmptyArray(entities) && this._debug) console.debug(`[strategy-ref-service] [WS] Received changes on strategies, from program {${programId}}`, entities);
+              return entities;
+            }))
+          .subscribe(subject)
       };
       this._subscriptionCache[cacheKey] = cache;
     }
 
-    cache.counter++;
-
-    const variables = {
-      programId,
-      interval: opts && opts.interval || 10 // seconds
-    };
-    if (this._debug) console.debug(`[strategy-ref-service] [WS] Listening for changes on strategies, from program {${programId}}...`);
-
-    cache.subscription = cache.subscription || this.graphql.subscribe<{data: any}>({
-      query: StrategySubscriptions.listenChangesByProgram,
-      variables,
-      error: {
-        code: ErrorCodes.SUBSCRIBE_REFERENTIAL_ERROR,
-        message: 'REFERENTIAL.ERROR.SUBSCRIBE_REFERENTIAL_ERROR'
-      }
-    })
-      .pipe(
-        map(({data}) => {
-          const entities = (data || []).map(s => this.fromObject(s));
-          if (isNotEmptyArray(entities) && this._debug) console.debug(`[strategy-ref-service] [WS] Received changes on strategies, from program {${programId}}`, entities);
-          return entities;
-        }),
-        // DEBUG
-        //tap(program => console.debug('[program-ref-service] Received program changes')),
-        tap(program => cache.subject.next(program))
-      ).subscribe();
-
-    return cache.subject
+    return cache.subject.asObservable()
       .pipe(
         finalize(() => {
-          cache.counter--;
-          if (cache.counter === 0) {
+          // DEBUG
+          //console.debug(`[strategy-ref-service] Finalize strategies changes for program {${id}}(${cache.subject.observers.length} observers)`);
+
+          // Wait 100ms (to avoid to recreate if new subscription comes less than 100ms after)
+          setTimeout(() => {
+            if (cache.subject.observers.length > 0) return; // Skip if has observers
             // DEBUG
-            //console.debug('[program-ref-service] Closing program changes listener'));
+            //console.debug(`[strategy-ref-service] Closing strategies changes for program {${id}}(${cache.subject.observers.length} observers)`);
+            this._subscriptionCache[cacheKey] = undefined;
+            cache.subject.complete();
+            cache.subject.unsubscribe();
             cache.subscription.unsubscribe();
-            cache.subscription = null;
-          }
+          }, 100);
         })
       );
   }

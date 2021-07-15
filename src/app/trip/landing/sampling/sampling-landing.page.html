@@ -86,7 +86,7 @@
                               [debug]="debug">
 
               <!-- zero effort (warning) -->
-              <mat-hint  afterStrategy *ngIf="landingForm.strategyControl.valid && zeroEffortWarning">
+              <mat-hint afterStrategy *ngIf="landingForm.strategyControl.valid && zeroEffortWarning">
                 <ion-icon color="tertiary" name="warning"></ion-icon>&nbsp;
                 <ion-text color="tertiary" translate>LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR</ion-text>
               </mat-hint>
@@ -197,6 +197,12 @@
     <ion-item *ngIf="error" lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
       <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
+    <!-- not observer (warning) -->
+    <ion-item *ngIf="notObserverWarning" lines="none">
+      <ion-icon color="tertiary" name="warning"></ion-icon>&nbsp;
+      <ion-label color="tertiary" translate>LANDING.ERROR.NOT_OBSERVER_ERROR</ion-label>
     </ion-item>
 
   </app-form-buttons-bar>

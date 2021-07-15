@@ -58,6 +58,35 @@ const LoadAllWithPartsQuery = gql`query PmfmsWithParts($offset: Int, $size: Int,
 ${ReferentialFragments.lightPmfm}
 ${ReferentialFragments.referential}
 `;
+const LoadAllWithPartsQueryWithTotal = gql`query PmfmsWithParts($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput) {
+  data: pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+    ...LightPmfmFragment
+    parameter {
+      id
+      label
+      name
+      entityName
+      __typename
+    }
+    matrix {
+      ...ReferentialFragment
+    }
+    fraction {
+      ...ReferentialFragment
+    }
+    method {
+      ...ReferentialFragment
+    }
+    unit {
+      ...ReferentialFragment
+    }
+  }
+  total: referentialsCount(entityName: "Pmfm", filter: $filter)
+}
+${ReferentialFragments.lightPmfm}
+${ReferentialFragments.referential}
+`;
+
 const LoadAllWithDetailsQuery: any = gql`query PmfmsWithDetails($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
   data: pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
     ...PmfmFragment
@@ -340,10 +369,18 @@ export class PmfmService
       (data || []).map(Pmfm.fromObject) :
       (data || []) as Pmfm[];
     if (debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`);
-    return {
+
+    const end = offset + entities.length;
+    const res: any = {
       data: entities,
       total
     };
+
+    if (end < total) {
+      offset = end;
+      res.fetchMore = () => this.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+    }
+    return res;
 
   }
 
@@ -362,7 +399,7 @@ export class PmfmService
     return this.loadAll(0, !value ? 30 : 10, filter && filter.searchAttribute || null, null,
       { ...filter, searchText: value},
       {
-        query: LoadAllWithPartsQuery
+        query: LoadAllWithPartsQueryWithTotal
       }
     );
   }

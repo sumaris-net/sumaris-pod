@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit} from '@angular/core';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {EntityFilter, FilterFn, InMemoryEntitiesService, IReferentialRef, isInstanceOf, isNil, isNilOrBlank, isNotNil, LoadResult, UsageMode} from '@sumaris-net/ngx-components';
+import {EntityFilter, FilterFn, InMemoryEntitiesService, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, UsageMode} from '@sumaris-net/ngx-components';
 import {AppMeasurementsTable} from '../../measurement/measurements.table.class';
 import {TaxonGroupRef, TaxonNameRef} from '@app/referential/services/model/taxon.model';
 import {Batch} from '../../services/model/batch.model';
@@ -11,7 +11,6 @@ import {ReferentialRefService} from '@app/referential/services/referential-ref.s
 import {BatchModal} from '../modal/batch.modal';
 import {environment} from '@environments/environment';
 import {Operation} from '../../services/model/trip.model';
-import {BatchGroup} from '@app/trip/services/model/batch-group.model';
 
 export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
   operationId?: number;
@@ -148,9 +147,9 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
   setParent(data: Operation | Landing) {
     if (!data) {
       this.setFilter({} as F);
-    } else if ( isInstanceOf(data, Operation)) {
+    } else if (data instanceof Operation) {
       this.setFilter({operationId: data.id} as F);
-    } else if ( isInstanceOf(data, Landing)) {
+    } else if (data instanceof Landing) {
       this.setFilter({landingId: data.id} as F);
     }
   }
@@ -223,12 +222,12 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
     this.markAsLoaded();
 
-    // Exit if empty
-    if (!isInstanceOf(data, Batch)) {
-      return undefined;
+    if (data instanceof Batch) {
+      return data as T;
     }
 
-    return data as T;
+    // Exit if empty
+    return undefined;
   }
 
 

@@ -1,19 +1,19 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 
-import {isInstanceOf, isNotNil, referentialToString, StatusIds} from '@sumaris-net/ngx-components';
+import {isNotNil, referentialToString, StatusIds} from '@sumaris-net/ngx-components';
 import {LandingService} from '../services/landing.service';
 import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {AcquisitionLevelCodes, LocationLevelIds} from '@app/referential/services/model/model.enum';
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {AcquisitionLevelCodes, LocationLevelIds} from '../../referential/services/model/model.enum';
+import {VesselSnapshotService} from '../../referential/services/vessel-snapshot.service';
 import {Moment} from 'moment';
 import {Trip} from '../services/model/trip.model';
 import {ObservedLocation} from '../services/model/observed-location.model';
 import {Landing} from '../services/model/landing.model';
-import {LandingEditor} from '@app/referential/services/config/program.config';
-import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {environment} from '@environments/environment';
+import {LandingEditor} from '../../referential/services/config/program.config';
+import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
+import {ReferentialRefService} from '../../referential/services/referential-ref.service';
+import {environment} from '../../../environments/environment';
 import {LandingFilter} from '../services/filter/landing.filter';
 import {LandingValidatorService} from '@app/trip/services/validator/landing.validator';
 
@@ -27,10 +27,9 @@ const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
   templateUrl: 'landings.table.html',
   styleUrls: ['landings.table.scss'],
   providers: [
-    // Default value, but be change using the validatorService setter
-    // {provide: ValidatorService, useValue: null}
+    {provide: ValidatorService, useValue: LandingValidatorService}
     // FIXME: LP restore useValue: null
-    {provide: ValidatorService, useExisting: LandingValidatorService}
+    // {provide: ValidatorService, useExisting: LandingValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -52,6 +51,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   @Input() showError = true;
   @Input() showToolbar = true;
   @Input() showPaginator = true;
+  @Input() useSticky = true;
 
   @Input() set strategyPmfmId(value: number) {
     if (this._strategyPmfmId !== value) {
@@ -179,7 +179,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     super(injector,
       Landing,
       injector.get(LandingService),
-      injector.get(ValidatorService),
+      injector.get(LandingValidatorService),
       {
         prependNewElements: false,
         suppressErrors: environment.production,
@@ -238,10 +238,10 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     if (!data) {
       this._parentDateTime = undefined;
       this.setFilter(LandingFilter.fromObject({}));
-    } else if (isInstanceOf(data, ObservedLocation)) {
+    } else if (data instanceof ObservedLocation) {
       this._parentDateTime = data.startDateTime;
       this.setFilter(LandingFilter.fromObject({observedLocationId: data.id}), {emitEvent: true/*refresh*/});
-    } else if (isInstanceOf(data, Trip)) {
+    } else if (data instanceof Trip) {
       this._parentDateTime = data.departureDateTime;
       this.setFilter(LandingFilter.fromObject({tripId: data.id}), {emitEvent: true/*refresh*/});
     }
@@ -255,10 +255,9 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   }
 
   async getMaxRankOrder(): Promise<number> {
+    // Expose as public (was protected)
     return super.getMaxRankOrder();
   }
-
-  referentialToString = referentialToString;
 
   getLandingDate(landing?: Landing): Moment {
     if (!landing || !landing.dateTime) return undefined;

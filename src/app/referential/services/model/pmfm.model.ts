@@ -1,8 +1,7 @@
-import {BaseReferential, Entity, EntityAsObjectOptions, EntityClass, IEntity, isInstanceOf, isNotNil, ReferentialRef} from '@sumaris-net/ngx-components';
+import {BaseReferential, Entity, EntityAsObjectOptions, EntityClass, IEntity, isNotNil, ReferentialRef} from '@sumaris-net/ngx-components';
 import {MethodIds, PmfmIds} from './model.enum';
 import {Parameter, ParameterType} from './parameter.model';
 import {PmfmValue} from './pmfm-value.model';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 
 export declare type PmfmType = ParameterType | 'integer';
 

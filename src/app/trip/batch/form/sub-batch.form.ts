@@ -1,34 +1,45 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, QueryList, ViewChildren} from "@angular/core";
-import {Batch} from "../../services/model/batch.model";
-import {MeasurementValuesForm} from "../../measurement/measurement-values.form.class";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {MeasurementsValidatorService} from "../../services/validator/measurement.validator";
-import {AbstractControl, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
-import {SubBatchValidatorService} from "../../services/validator/sub-batch.validator";
-import {EntityUtils, isInstanceOf}  from "@sumaris-net/ngx-components";
-import {ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {UsageMode}  from "@sumaris-net/ngx-components";
-import {debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
-import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../../referential/services/model/model.enum";
-import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {BehaviorSubject, combineLatest} from "rxjs";
-import {getPropertyByPath, isEmptyArray, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, startsWithUpperCase, toBoolean} from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {MeasurementValuesUtils} from "../../services/model/measurement.model";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {PmfmFormField} from "../../../referential/pmfm/pmfm.form-field.component";
-import {focusNextInput, focusPreviousInput, GetFocusableInputOptions} from "@sumaris-net/ngx-components";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
-import {SubBatch} from "../../services/model/subbatch.model";
-import {BatchGroup} from "../../services/model/batch-group.model";
-import {TranslateService} from "@ngx-translate/core";
-import {FloatLabelType} from "@angular/material/form-field";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {ProgramRefService} from "../../../referential/services/program-ref.service";
-import {LoadResult} from "@sumaris-net/ngx-components";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
+import {Batch} from '../../services/model/batch.model';
+import {MeasurementValuesForm} from '../../measurement/measurement-values.form.class';
+import {DateAdapter} from '@angular/material/core';
+import {Moment} from 'moment';
+import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
+import {AbstractControl, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {ReferentialRefService} from '../../../referential/services/referential-ref.service';
+import {SubBatchValidatorService} from '../../services/validator/sub-batch.validator';
+import {
+  AppFormUtils,
+  EntityUtils,
+  focusNextInput,
+  focusPreviousInput,
+  GetFocusableInputOptions,
+  getPropertyByPath,
+  isEmptyArray,
+  isNil,
+  isNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
+  LoadResult,
+  LocalSettingsService,
+  PlatformService,
+  ReferentialUtils,
+  SharedValidators,
+  startsWithUpperCase,
+  toBoolean,
+  UsageMode
+} from '@sumaris-net/ngx-components';
+import {debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap} from 'rxjs/operators';
+import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from '../../../referential/services/model/model.enum';
+import {DenormalizedPmfmStrategy, PmfmStrategy} from '../../../referential/services/model/pmfm-strategy.model';
+import {BehaviorSubject, combineLatest} from 'rxjs';
+import {MeasurementValuesUtils} from '../../services/model/measurement.model';
+import {PmfmFormField} from '../../../referential/pmfm/pmfm.form-field.component';
+import {TaxonNameRef} from '../../../referential/services/model/taxon.model';
+import {SubBatch} from '../../services/model/subbatch.model';
+import {BatchGroup} from '../../services/model/batch-group.model';
+import {TranslateService} from '@ngx-translate/core';
+import {FloatLabelType} from '@angular/material/form-field';
+import {ProgramRefService} from '../../../referential/services/program-ref.service';
 import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
 
 
@@ -366,7 +377,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     if (!this.onNewParentClick) return; // No callback: skip
     const res = await this.onNewParentClick();
 
-    if (isInstanceOf(res, Batch)) {
+    if (res instanceof Batch) {
       this.form.get('parent').setValue(res);
     }
   }

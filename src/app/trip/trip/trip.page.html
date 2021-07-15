@@ -174,8 +174,6 @@
                             (onNewRow)="onNewOperation($event)"
                             [program]="$programLabel|async"
                             [showToolbar]="!mobile"
-                            [useSticky]="!mobile"
-                            [paginator]="paginator"
                             [defaultSortBy]="mobile ? 'startDateTime': 'endDateTime'"
                             [defaultSortDirection]="mobile ?'desc': 'asc'">
       </app-operations-table>
@@ -183,13 +181,6 @@
   </mat-tab-group>
 
 </ion-content>
-
-<ion-footer [class.cdk-visually-hidden]="selectedTabIndex !== 2">
-  <mat-paginator #paginator class="mat-paginator-footer"
-                 [length]="operationsTable.totalRowCount" [pageSize]="operationsTable.pageSize"
-                 [pageSizeOptions]="operationsTable.defaultPageSizeOptions" showFirstLastButtons>
-  </mat-paginator>
-</ion-footer>
 
 <ion-footer *ngIf="!mobile">
 

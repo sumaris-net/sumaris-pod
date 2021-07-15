@@ -63,6 +63,7 @@
 <div class="table-container"
      [class.mobile]="mobile"
      [class.has-toolbar]="showToolbar"
+     [class.has-group-header]="showGroupHeader"
      *ngIf="$pmfms | async; let pmfms" [style.--pmfm-count]="pmfms?.length">
 
   <!-- writable table -->
@@ -265,9 +266,10 @@
       </button>
     </app-actions-column>
 
-    <tr mat-header-row *matHeaderRowDef="groupHeaderColumnNames;"
-        class="first-header-row"
-        [class.cdk-visually-hidden]="!showGroupHeader"></tr>
+    <ng-container *ngIf="showGroupHeader">
+      <tr mat-header-row *matHeaderRowDef="groupHeaderColumnNames; sticky: true"
+          class="first-header-row"></tr>
+    </ng-container>
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true" class="second-header-row"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"
         [class.mat-row-error]="row.validator?.invalid"
@@ -384,7 +386,7 @@
       </ng-container>
 
       <!-- Pmfms columns -->
-      <ng-container *ngFor="let pmfm of pmfms; index as index" [matColumnDef]="''+(pmfm.id||index)">
+      <ng-container *ngFor="let pmfm of pmfms; index as index" [matColumnDef]="pmfm.id||index">
         <th mat-header-cell *matHeaderCellDef mat-sort-header
             class="mat-column-pmfm"
             [class.mat-cell-date-time]="pmfm|isDatePmfm"

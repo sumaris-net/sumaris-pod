@@ -211,7 +211,13 @@
       },
       "DATA_QUALITY_PROCESS_ENABLE": "Activer le processus qualité ?",
       "DATA_SHOW_RECORDER": "Afficher le saisisseur ?",
-      "DATA_SHOW_OBSERVERS": "Afficher les observateurs ?"
+      "DATA_SHOW_OBSERVERS": "Afficher les observateurs ?",
+      "LANDING": {
+        "FILTER_PROGRAM": "Sorties > Afficher le filtre sur le programme ?",
+        "FILTER_LOCATION": "Sorties > Afficher le filtre sur les lieux ?",
+        "FILTER_PERIOD": "Sorties > Afficher le filtre sur la période ?",
+        "FILTER_OBSERVERS": "Sorties > Afficher le filtre sur les observateurs ?"
+      }
     },
     "CACHE": {
       "NAME": "Nom",
@@ -457,7 +463,8 @@
         "VESSEL": "Navire",
         "SYNCHRONIZATION_STATUS": "Etat de la données",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
-        "RECORDER_PERSON": "Saisisseur"
+        "RECORDER_PERSON": "Saisisseur",
+        "OBSERVERS": "Observateurs"
       },
       "SYNCHRONIZATION_STATUS": {
         "DIRTY_HELP": "Marées hors-ligne",
@@ -888,7 +895,8 @@
       "SAVE_ALL_ERROR": "Erreur de sauvegarde des navires observés",
       "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du navire observé.",
       "NO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, il n'y a pas d'effort défini sur la ligne de plan (aucune valeur définie)",
-      "ZERO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, l'effort défini sur la ligne de plan est de 0"
+      "ZERO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, l'effort défini sur la ligne de plan est de 0",
+      "NOT_OBSERVER_ERROR": "Le saisisseur de l'échantillonnage n'est pas un observateur de la sortie"
     }
   },
   "AGGREGATED_LANDING": {
@@ -1454,7 +1462,7 @@
         "STRATEGY_HAS_REALIZED_EFFORT": "La ligne de plan {{label}} est liée à une ou plusieurs observations individuelles",
         "STRATEGIES_HAS_REALIZED_EFFORT": "Les lignes de plan {{label}} sont liées à une ou plusieurs observations individuelles",
         "PMFM.PMFM_OR_PARAMETER": "Veuillez sélectionner un PSFM ou un paramètre",
-        "UNDEFIENEDTAXON": "L'espèce est invalide"
+        "CANNOT_COMPUTE_TAXON_CODE": "Veuillez saisir manuellement le code espèce du code de la ligne de plan"
       }
     },
     "ERROR": {
@@ -1655,7 +1663,7 @@
       "ENABLE": "Extraction > Activer ?",
       "MAP_ENABLE": "Extraction > Cartes : Activer ?",
       "PRODUCT_ENABLE": "Extraction > Produits : Activer ?",
-      "NOT_SELF_ACCESS_MIN_ROLE": "Extraction > Role min. pour voir les extractions des autres"
+      "ACCESS_NOT_SELF_ROLE": "Extraction > Role min. pour voir les extractions des autres"
     },
     "PRODUCT": {
       "P01_RDB": {
