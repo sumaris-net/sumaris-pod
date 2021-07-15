@@ -123,7 +123,7 @@ public class Application {
 		}
 	}
 
-	@Bean
+	@Bean("configuration")
 	public SumarisConfiguration configuration(ConfigurableEnvironment env) {
 
 		SumarisConfiguration config = SumarisConfiguration.getInstance();

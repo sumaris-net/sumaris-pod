@@ -52,7 +52,7 @@ public interface StrategySpecifications extends ReferentialSpecifications<Strate
     String REFERENCE_TAXON_IDS = "referenceTaxonIds";
     String DEPARTMENT_IDS = "departmentIds";
     String LOCATION_IDS = "locationIds";
-    String PARAMETER_IDS = "pmfmIds";
+    String PARAMETER_IDS = "parameterIds";
     String UPDATE_DATE_GREATER_THAN_PARAM = "updateDateGreaterThan";
 
     default Specification<Strategy> hasProgramIds(Integer... programIds) {
@@ -168,13 +168,22 @@ public interface StrategySpecifications extends ReferentialSpecifications<Strate
             // Avoid duplicated entries (because of inner join)
             query.distinct(true);
 
+            Join<Strategy, PmfmStrategy> pmfmsInnerJoin = root.joinList(Strategy.Fields.PMFMS, JoinType.INNER);
+
             ParameterExpression<Collection> parameter = criteriaBuilder.parameter(Collection.class, PARAMETER_IDS);
-            return criteriaBuilder.in(
-                    root.join(Strategy.Fields.PMFMS, JoinType.INNER)
-                            .join(PmfmStrategy.Fields.PMFM, JoinType.INNER)
-                            .join(Pmfm.Fields.PARAMETER, JoinType.INNER)
-                            .get(Parameter.Fields.ID))
-                    .value(parameter);
+            return criteriaBuilder.or(
+                    criteriaBuilder.in(
+                            pmfmsInnerJoin
+                                    .join(PmfmStrategy.Fields.PMFM, JoinType.LEFT)
+                                    .join(Pmfm.Fields.PARAMETER, JoinType.LEFT)
+                                    .get(Parameter.Fields.ID))
+                            .value(parameter),
+                    criteriaBuilder.in(
+                            pmfmsInnerJoin
+                                    .join(PmfmStrategy.Fields.PARAMETER, JoinType.LEFT)
+                                    .get(Parameter.Fields.ID))
+                            .value(parameter)
+            );
         });
         specification.addBind(PARAMETER_IDS, Arrays.asList(parameterIds));
         return specification;
