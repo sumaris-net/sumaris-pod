@@ -8,6 +8,7 @@ import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.ExpectedSaleVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -15,7 +16,6 @@ import org.springframework.context.annotation.Lazy;
 import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ExpectedSaleRepositoryImpl
@@ -110,7 +110,8 @@ public class ExpectedSaleRepositoryImpl
         sales = sales.stream().filter(Objects::nonNull).collect(Collectors.toList());
 
         // Get existing fishing areas
-        Set<Integer> existingIds = self.getAllIdsByTripId(tripId);
+        Trip parent = getById(Trip.class, tripId);
+        final List<Integer> existingIds = Beans.collectIds(parent.getExpectedSales());
 
         // Save
         sales.forEach(sale -> {

@@ -51,5 +51,6 @@ public class ProductFilterVO implements IRootDataFilter {
     private Integer landingId;
     private Integer operationId;
     private Integer saleId;
+    private Integer expectedSaleId;
 
 }

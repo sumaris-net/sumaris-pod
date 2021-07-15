@@ -38,7 +38,6 @@ import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.model.referential.SaleType;
@@ -175,13 +174,13 @@ public class TripServiceImpl implements TripService {
     public void fillTripLandingLinks(TripVO target) {
         Preconditions.checkNotNull(target);
         Preconditions.checkNotNull(target.getId());
-        Landing landing = landingRepository.getByTripId(target.getId());
-        if (landing != null) {
+
+        landingRepository.findByTripId(target.getId()).ifPresent(landing -> {
             target.setLanding(landingRepository.toVO(landing, DataFetchOptions.builder().withRecorderDepartment(false).withObservers(false).build()));
             if (landing.getObservedLocation() != null) {
                 target.setObservedLocationId(landing.getObservedLocation().getId());
             }
-        }
+        });
     }
 
     @Override
@@ -336,11 +335,10 @@ public class TripServiceImpl implements TripService {
             null;
 
         // Remove link LANDING->TRIP
-        Landing landing = landingRepository.getByTripId(id);
-        if (landing != null) {
+        landingRepository.findByTripId(id).ifPresent(landing -> {
             landing.setTrip(null);
             landingRepository.save(landing);
-        }
+        });
 
         // Apply deletion
         tripRepository.deleteById(id);
@@ -621,6 +619,13 @@ public class TripServiceImpl implements TripService {
         }
 
         expectedSale.setTripId(parent.getId());
+
+        // Also set trip recorder department to expected sale's products, because expected sale don't have it
+        if (CollectionUtils.isNotEmpty(expectedSale.getProducts())) {
+            expectedSale.getProducts().stream()
+                .filter(productVO -> productVO.getRecorderDepartment() == null)
+                .forEach(productVO -> productVO.setRecorderDepartment(parent.getRecorderDepartment()));
+        }
     }
 
     protected void fillDefaultProperties(TripVO parent, PhysicalGearVO gear) {

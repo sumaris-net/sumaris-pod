@@ -31,7 +31,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
 import java.util.List;
-import java.util.Set;
 
 public interface FishingAreaRepository
     extends SumarisJpaRepository<FishingArea, Integer, FishingAreaVO>, FishingAreaSpecifications
@@ -54,8 +53,6 @@ public interface FishingAreaRepository
 
 
     List<FishingArea> getFishingAreaByOperationId(int operationId);
-
-    Set<Integer> getAllIdsByOperationId(int operationId);
 
     void deleteAllByOperationId(int operationId);
 }

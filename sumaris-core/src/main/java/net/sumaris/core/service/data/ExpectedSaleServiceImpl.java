@@ -64,7 +64,7 @@ public class ExpectedSaleServiceImpl implements ExpectedSaleService {
 	@Override
 	public List<ExpectedSaleVO> saveAllByTripId(int tripId, List<ExpectedSaleVO> sources) {
 		Preconditions.checkNotNull(sources);
-		sources.forEach(this::checkSale);
+		sources.forEach(this::checkExpectedSale);
 
 		List<ExpectedSaleVO> saved = expectedSaleRepository.saveAllByTripId(tripId, sources);
 
@@ -108,7 +108,7 @@ public class ExpectedSaleServiceImpl implements ExpectedSaleService {
 
 	/* -- protected methods -- */
 
-	protected void checkSale(final ExpectedSaleVO source) {
+	protected void checkExpectedSale(final ExpectedSaleVO source) {
 		Preconditions.checkNotNull(source);
 		Preconditions.checkNotNull(source.getSaleLocation(), "Missing saleLocation");
 		Preconditions.checkNotNull(source.getSaleLocation().getId(), "Missing saleLocation.id");
@@ -120,18 +120,20 @@ public class ExpectedSaleServiceImpl implements ExpectedSaleService {
 
 		// Save measurements
 		if (source.getMeasurementValues() != null) {
-			measurementDao.saveSaleMeasurementsMap(source.getId(), source.getMeasurementValues());
+			measurementDao.saveExpectedSaleMeasurementsMap(source.getId(), source.getMeasurementValues());
 		}
 		else {
 			List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
 			measurements.forEach(m -> fillDefaultProperties(source, m, SaleMeasurement.class));
-			measurements = measurementDao.saveSaleMeasurements(source.getId(), measurements);
+			measurements = measurementDao.saveExpectedSaleMeasurements(source.getId(), measurements);
 			source.setMeasurements(measurements);
 		}
 
 		// Save produces
 		if (source.getProducts() != null) source.getProducts().forEach(product -> fillDefaultProperties(source, product));
-		productService.saveBySaleId(source.getId(), source.getProducts());
+		source.setProducts(
+			productService.saveByExpectedSaleId(source.getId(), source.getProducts())
+		);
 	}
 
 	protected void fillDefaultProperties(ExpectedSaleVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
@@ -143,6 +145,6 @@ public class ExpectedSaleServiceImpl implements ExpectedSaleService {
 	protected void fillDefaultProperties(ExpectedSaleVO parent, ProductVO product) {
 		if (product == null) return;
 
-		product.setSaleId(parent.getId());
+		product.setExpectedSaleId(parent.getId());
 	}
 }

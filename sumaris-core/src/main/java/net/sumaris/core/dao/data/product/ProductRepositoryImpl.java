@@ -44,10 +44,8 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.ProductVO;
-import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.filter.ProductFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
@@ -97,7 +95,8 @@ public class ProductRepositoryImpl
         return super.toSpecification(filter, fetchOptions)
             .and(hasLandingId(filter.getLandingId()))
             .and(hasOperationId(filter.getOperationId()))
-            .and(hasSaleId(filter.getSaleId()));
+            .and(hasSaleId(filter.getSaleId()))
+            .and(hasExpectedSaleId(filter.getExpectedSaleId()));
     }
 
     @Override
@@ -135,6 +134,9 @@ public class ProductRepositoryImpl
         }
         if (source.getSale() != null) {
             target.setSaleId(source.getSale().getId());
+        }
+        if (source.getExpectedSale() != null) {
+            target.setExpectedSaleId(source.getExpectedSale().getId());
         }
         if (source.getBatch() != null) {
             target.setBatchId(source.getBatch().getId());
@@ -213,10 +215,16 @@ public class ProductRepositoryImpl
             target.setOperation(operationId == null ? null : getReference(Operation.class, operationId));
         }
 
-        // Sale (in SIH, Sale is ExpectedSale and is linked also with Landing)
+        // Sale
         Integer saleId = source.getSaleId() != null ? source.getSaleId() : (source.getSale() != null ? source.getSale().getId() : null);
         if (copyIfNull || (saleId != null)) {
             target.setSale(saleId == null ? null : getReference(Sale.class, saleId));
+        }
+
+        // ExpectedSale
+        Integer expectedSaleId = source.getExpectedSaleId() != null ? source.getExpectedSaleId() : (source.getExpectedSale() != null ? source.getExpectedSale().getId() : null);
+        if (copyIfNull || (expectedSaleId != null)) {
+            target.setExpectedSale(expectedSaleId == null ? null : getReference(ExpectedSale.class, expectedSaleId));
         }
 
         // Batch (link for sale on batch)
@@ -239,6 +247,8 @@ public class ProductRepositoryImpl
             source.setLanding(null);
             source.setSaleId(null);
             source.setSale(null);
+            source.setExpectedSaleId(null);
+            source.setExpectedSale(null);
             // set default weight method
             source.setWeightCalculated(false);
         });
@@ -259,6 +269,8 @@ public class ProductRepositoryImpl
             source.setOperation(null);
             source.setSaleId(null);
             source.setSale(null);
+            source.setExpectedSaleId(null);
+            source.setExpectedSale(null);
         });
 
         // Save all by parent
@@ -273,14 +285,39 @@ public class ProductRepositoryImpl
 
         // Get landing Id (to optimize linked data for SIH)
         Integer landingId = Optional.ofNullable(parent.getTrip())
-            .map(trip -> landingRepository.findAll(LandingFilterVO.builder().tripId(trip.getId()).build()))
-            .filter(landings -> CollectionUtils.size(landings) == 1)
-            .map(landings -> landings.get(0).getId())
+            .flatMap(trip -> landingRepository.findByTripId(trip.getId()))
+            .map(Landing::getId)
             .orElse(null);
 
         products.forEach(source -> {
             source.setSaleId(saleId);
             source.setLandingId(landingId);
+            source.setExpectedSaleId(null);
+            source.setExpectedSale(null);
+            source.setOperationId(null);
+            source.setOperation(null);
+        });
+
+        // Save all by parent
+        return saveByParent(parent, products);
+    }
+
+    @Override
+    public List<ProductVO> saveByExpectedSaleId(int expectedSaleId, @Nonnull List<ProductVO> products) {
+        // Load parent entity
+        ExpectedSale parent = getById(ExpectedSale.class, expectedSaleId);
+
+        // Get landing Id (to optimize linked data for SIH)
+        Integer landingId = Optional.ofNullable(parent.getTrip())
+            .flatMap(trip -> landingRepository.findByTripId(trip.getId()))
+            .map(Landing::getId)
+            .orElse(null);
+
+        products.forEach(source -> {
+            source.setExpectedSaleId(expectedSaleId);
+            source.setLandingId(landingId);
+            source.setSaleId(null);
+            source.setSale(null);
             source.setOperationId(null);
             source.setOperation(null);
         });
@@ -312,7 +349,7 @@ public class ProductRepositoryImpl
         product.getMeasurementValues().putAll(measurementDao.getProductQuantificationMeasurementsMap(product.getId()));
 
         // Sale specific :
-        if (product.getSaleId() != null) {
+        if (product.getSaleId() != null || product.getExpectedSaleId() != null) {
             // Get average price per packaging and set it to generic average price pmfm
             String packagingId = product.getMeasurementValues().get(PmfmEnum.PACKAGING.getId());
             if (StringUtils.isNotBlank(packagingId)) {
@@ -358,7 +395,7 @@ public class ProductRepositoryImpl
             if (product.getMeasurementValues() != null) {
 
                 // Sale specific :
-                if (product.getSaleId() != null) {
+                if (product.getSaleId() != null || product.getExpectedSaleId() != null) {
 
                     // Replace average price per packaging by packaging depending average price
                     String packagingId = product.getMeasurementValues().get(PmfmEnum.PACKAGING.getId());

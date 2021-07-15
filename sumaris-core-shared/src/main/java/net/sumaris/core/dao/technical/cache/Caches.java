@@ -37,7 +37,6 @@ import org.ehcache.core.statistics.DefaultStatisticsService;
 import org.ehcache.core.statistics.TierStatistics;
 import org.ehcache.jsr107.Eh107Configuration;
 import org.springframework.cache.interceptor.SimpleKey;
-import org.springframework.cache.jcache.JCacheCacheManager;
 import org.springframework.data.util.CastUtils;
 
 import javax.cache.Cache;
@@ -219,7 +218,7 @@ public class Caches {
         TierStatistics onHeapStatistics = tierStatistics.get("OnHeap");
         if (onHeapStatistics != null) {
             result.put("size", onHeapStatistics.getHits());
-            result.put("heapSize", onHeapStatistics.getAllocatedByteSize());
+            result.put("heapSize", Math.max(0, onHeapStatistics.getAllocatedByteSize()));
         }
         TierStatistics offHeapStatistics = tierStatistics.get("OffHeap");
         if (offHeapStatistics != null) {

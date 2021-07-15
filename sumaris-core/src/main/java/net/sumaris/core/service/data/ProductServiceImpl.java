@@ -68,6 +68,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<ProductVO> getByExpectedSaleId(int expectedSaleId) {
+        return productRepository.findAll(ProductFilterVO.builder().expectedSaleId(expectedSaleId).build());
+    }
+
+    @Override
     public ProductVO save(ProductVO product) {
         checkProduct(product);
 
@@ -99,6 +104,12 @@ public class ProductServiceImpl implements ProductService {
     public List<ProductVO> saveBySaleId(int saleId, List<ProductVO> products) {
         checkProducts(products);
         return productRepository.saveBySaleId(saleId, products);
+    }
+
+    @Override
+    public List<ProductVO> saveByExpectedSaleId(int expectedSaleId, List<ProductVO> products) {
+        checkProducts(products);
+        return productRepository.saveByExpectedSaleId(expectedSaleId, products);
     }
 
     @Override

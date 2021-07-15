@@ -821,6 +821,16 @@ public class DataGraphQLService {
         return productService.getBySaleId(sale.getId());
     }
 
+    @GraphQLQuery(name = "products", description = "Get expected sale's products")
+    public List<ProductVO> getProductsByExpectedSale(@GraphQLContext ExpectedSaleVO expectedSale) {
+
+        if (CollectionUtils.isNotEmpty(expectedSale.getProducts())) {
+            return expectedSale.getProducts();
+        }
+
+        return productService.getByExpectedSaleId(expectedSale.getId());
+    }
+
     @GraphQLQuery(name = "products", description = "Get landing's products")
     public List<ProductVO> getProductsByLanding(@GraphQLContext LandingVO landing) {
         return productService.getByLandingId(landing.getId());

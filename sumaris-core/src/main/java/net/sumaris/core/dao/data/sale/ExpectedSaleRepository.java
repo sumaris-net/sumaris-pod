@@ -27,7 +27,6 @@ import net.sumaris.core.model.data.ExpectedSale;
 import net.sumaris.core.vo.data.ExpectedSaleVO;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author peck7 on 01/09/2020.
@@ -36,7 +35,5 @@ public interface ExpectedSaleRepository
     extends SumarisJpaRepository<ExpectedSale, Integer, ExpectedSaleVO>, ExpectedSaleSpecifications {
 
     List<ExpectedSale> getExpectedSaleByTripId(int tripId);
-
-    Set<Integer> getAllIdsByTripId(int tripId);
 
 }

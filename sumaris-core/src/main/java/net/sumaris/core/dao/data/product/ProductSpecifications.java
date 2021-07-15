@@ -41,6 +41,7 @@ public interface ProductSpecifications extends DataSpecifications<Product> {
     String LANDING_ID_PARAM = "landingId";
     String OPERATION_ID_PARAM = "operationId";
     String SALE_ID_PARAM = "saleId";
+    String EXPECTED_SALE_ID_PARAM = "expectedSaleId";
 
     default Specification<Product> hasLandingId(Integer landingId) {
         BindableSpecification<Product> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
@@ -78,11 +79,25 @@ public interface ProductSpecifications extends DataSpecifications<Product> {
         return specification;
     }
 
+    default Specification<Product> hasExpectedSaleId(Integer expectedSaleId) {
+        BindableSpecification<Product> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, EXPECTED_SALE_ID_PARAM);
+            return criteriaBuilder.or(
+                criteriaBuilder.isNull(param),
+                criteriaBuilder.equal(root.get(Product.Fields.EXPECTED_SALE).get(IEntity.Fields.ID), param)
+            );
+        });
+        specification.addBind(EXPECTED_SALE_ID_PARAM, expectedSaleId);
+        return specification;
+    }
+
     List<ProductVO> saveByOperationId(int operationId, @Nonnull List<ProductVO> products);
 
     List<ProductVO> saveByLandingId(int landingId, @Nonnull List<ProductVO> products);
 
     List<ProductVO> saveBySaleId(int saleId, @Nonnull List<ProductVO> products);
+
+    List<ProductVO> saveByExpectedSaleId(int expectedSaleId, @Nonnull List<ProductVO> products);
 
     void fillMeasurementsMap(ProductVO product);
 }

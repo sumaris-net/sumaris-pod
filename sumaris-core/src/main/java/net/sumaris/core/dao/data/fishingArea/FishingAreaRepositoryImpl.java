@@ -35,6 +35,7 @@ import net.sumaris.core.model.referential.DistanceToCoastGradient;
 import net.sumaris.core.model.referential.NearbySpecificArea;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.FishingAreaVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -44,7 +45,6 @@ import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -169,7 +169,8 @@ public class FishingAreaRepositoryImpl
         sources.forEach(fa -> fa.setOperationId(operationId));
 
         // Get existing fishing areas
-        Set<Integer> existingIds = self.getAllIdsByOperationId(operationId);
+        Operation operation = getById(Operation.class, operationId);
+        List<Integer> existingIds = Beans.collectIds(operation.getFishingAreas());
 
         // Save
         sources.forEach(fishingArea -> {
