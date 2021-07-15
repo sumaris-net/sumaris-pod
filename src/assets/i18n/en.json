@@ -151,6 +151,7 @@
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
       "DATA_ACCESS_NOT_SELF_ROLE": "User profile (min) to access other people data",
       "DATA_ACCESS_NOT_SELF_DEPARTMENT_IDS": "Supervisor department: can access other departments data",
+      "CHECK_SAMPLE_UNIQUE_TAG": "Check if TAG_ID is unique",
       "APP_MIN_VERSION": "App > Minimal compatible version (x.y.z)",
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",

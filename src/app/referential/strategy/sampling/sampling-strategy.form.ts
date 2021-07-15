@@ -853,7 +853,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     }
 
     // Add analytic reference Pmfm
-    pmfmStrategies.push(<PmfmStrategy>{ pmfm: { id: PmfmIds.SAMPLE_ID } });
+    pmfmStrategies.push(<PmfmStrategy>{ pmfm: { id: PmfmIds.TAG_ID } });
 
 
     // Fill PmfmStrategy defaults

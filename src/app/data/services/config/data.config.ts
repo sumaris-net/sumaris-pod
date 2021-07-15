@@ -20,8 +20,14 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
   DATA_ACCESS_NOT_SELF_DEPARTMENT_IDS: <FormFieldDefinition>{
     key: "sumaris.data.accessNotSelfData.department.ids",
     label: "CONFIGURATION.OPTIONS.DATA_ACCESS_NOT_SELF_DEPARTMENT_IDS",
-    defaultValue: "",
-    type: 'string'
+    type: 'string',
+    defaultValue: ""
+  },
+  CHECK_SAMPLE_UNIQUE_TAG: <FormFieldDefinition>{
+    key: "sumaris.persistence.sample.uniqueTag",
+    label: "CONFIGURATION.OPTIONS.CHECK_SAMPLE_UNIQUE_TAG",
+    type: 'boolean',
+    defaultValue: false
   },
   ENTITY_TRASH: <FormFieldDefinition> {
     key: 'sumaris.persistence.trash.enable',
