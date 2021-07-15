@@ -115,7 +115,7 @@
       <!-- composition always visible -->
       <button mat-icon-button color="light"
               [title]="getComposition(row)"
-              (click)="onCompositionClick($event, row)">
+              (click)="openComposition($event, row)">
         <mat-icon [matBadge]="row.currentData.composition && row.currentData.composition.length"
                   [matBadgeHidden]="!row.currentData.composition || !row.currentData.composition.length"
                   matBadgeColor="accent"

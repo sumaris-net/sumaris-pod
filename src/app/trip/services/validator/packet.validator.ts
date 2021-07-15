@@ -1,18 +1,10 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormArray, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
-import {
-  SharedFormArrayValidators,
-  SharedFormGroupValidators,
-  SharedValidators
-} from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {
-  DataEntityValidatorOptions,
-  DataEntityValidatorService
-} from "../../../data/services/validator/data-entity.validator";
-import {Packet, PacketComposition} from "../model/packet.model";
-import {PacketCompositionValidatorService} from "./packet-composition.validator";
+import {Injectable} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {FormArray, FormBuilder, FormGroup, ValidatorFn, Validators} from '@angular/forms';
+import {LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators} from '@sumaris-net/ngx-components';
+import {DataEntityValidatorOptions, DataEntityValidatorService} from '@app/data/services/validator/data-entity.validator';
+import {Packet, PacketComposition, PacketIndexes} from '../model/packet.model';
+import {PacketCompositionValidatorService} from './packet-composition.validator';
 
 export interface PacketValidatorOptions extends DataEntityValidatorOptions {
   withComposition?: boolean;
@@ -37,34 +29,33 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
       super.getFormGroupConfig(data, opts),
       {
         __typename: [Packet.TYPENAME],
-        parent: [data && data.parent || null, Validators.required],
-        rankOrder: [data && data.rankOrder || null],
-        number: [data && data.number || null, Validators.compose([Validators.required, SharedValidators.integer])],
-        weight: [data && data.weight || null, Validators.compose([Validators.required, SharedValidators.double({maxDecimals: 2})])],
-        sampledWeight1: [data && data.sampledWeight1, Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
-        sampledWeight2: [data && data.sampledWeight2, Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
-        sampledWeight3: [data && data.sampledWeight3, Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
-        sampledWeight4: [data && data.sampledWeight4, Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
-        sampledWeight5: [data && data.sampledWeight5, Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
-        sampledWeight6: [data && data.sampledWeight6, Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])]
+        parent: [data?.parent || null, Validators.required],
+        rankOrder: [data?.rankOrder || null],
+        number: [data?.number || null, Validators.compose([Validators.required, SharedValidators.integer])],
+        weight: [data?.weight || null, Validators.compose([Validators.required, SharedValidators.double({maxDecimals: 2})])]
       });
+
+    // add sampledWeights
+    PacketIndexes.forEach(index => {
+      formConfig['sampledWeight'+index] = [data?.['sampledWeight'+index] || null, Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])];
+    })
 
     if (opts.withComposition) {
       formConfig.composition = this.getCompositionFormArray(data);
-      formConfig.sampledRatio1 = [data && data.sampledRatio1 || null, Validators.max(100)];
-      formConfig.sampledRatio2 = [data && data.sampledRatio2 || null, Validators.max(100)];
-      formConfig.sampledRatio3 = [data && data.sampledRatio3 || null, Validators.max(100)];
-      formConfig.sampledRatio4 = [data && data.sampledRatio4 || null, Validators.max(100)];
-      formConfig.sampledRatio5 = [data && data.sampledRatio5 || null, Validators.max(100)];
-      formConfig.sampledRatio6 = [data && data.sampledRatio6 || null, Validators.max(100)];
+
+      // add sampledRatios
+      PacketIndexes.forEach(index => {
+        formConfig['sampledRatio'+index] = [data?.['sampledRatio'+index] || null, Validators.max(100)];
+      })
+
     } else {
-      formConfig.composition = [data && data.composition || null, Validators.required];
+      formConfig.composition = [data?.composition || null, Validators.required];
     }
 
     if (opts.withSaleProducts) {
       formConfig.saleProducts = this.getSaleProductsFormArray(data);
     } else {
-      formConfig.saleProducts = [data && data.saleProducts || null];
+      formConfig.saleProducts = [data?.saleProducts || null];
     }
 
     return formConfig;

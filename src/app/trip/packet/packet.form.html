@@ -41,7 +41,6 @@
 
     </ion-row>
 
-
   </ion-grid>
 
   <ion-grid class="composition">
@@ -51,69 +50,14 @@
       <ion-col size="4">
         <ion-label class="ion-float-end" translate>PACKET.SAMPLED_WEIGHTS</ion-label>
       </ion-col>
-      <ion-col size="1">
+      <ion-col size="1" *ngFor="let index of packetIndexes">
         <mat-form-field>
-          <input matInput #sampledWeight1
+          <input matInput
                  autocomplete="off" type="number"
                  decimal="true"
                  step="0.1"
-                 [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate: {rankOrder: 1}"
-                 [formControl]="form.controls.sampledWeight1"
-          >
-        </mat-form-field>
-      </ion-col>
-      <ion-col size="1">
-        <mat-form-field>
-          <input matInput #sampledWeight2
-                 autocomplete="off" type="number"
-                 decimal="true"
-                 step="0.1"
-                 [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate: {rankOrder: 2}"
-                 [formControl]="form.controls.sampledWeight2"
-          >
-        </mat-form-field>
-      </ion-col>
-      <ion-col size="1">
-        <mat-form-field>
-          <input matInput #sampledWeight3
-                 autocomplete="off" type="number"
-                 decimal="true"
-                 step="0.1"
-                 [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate: {rankOrder: 3}"
-                 [formControl]="form.controls.sampledWeight3"
-          >
-        </mat-form-field>
-      </ion-col>
-      <ion-col size="1">
-        <mat-form-field>
-          <input matInput #sampledWeight4
-                 autocomplete="off" type="number"
-                 decimal="true"
-                 step="0.1"
-                 [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate: {rankOrder: 4}"
-                 [formControl]="form.controls.sampledWeight4"
-          >
-        </mat-form-field>
-      </ion-col>
-      <ion-col size="1">
-        <mat-form-field>
-          <input matInput #sampledWeight5
-                 autocomplete="off" type="number"
-                 decimal="true"
-                 step="0.1"
-                 [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate: {rankOrder: 5}"
-                 [formControl]="form.controls.sampledWeight5"
-          >
-        </mat-form-field>
-      </ion-col>
-      <ion-col size="1">
-        <mat-form-field>
-          <input matInput #sampledWeight6
-                 autocomplete="off" type="number"
-                 decimal="true"
-                 step="0.1"
-                 [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate: {rankOrder: 6}"
-                 [formControl]="form.controls.sampledWeight6"
+                 [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate: {rankOrder: index + 1}"
+                 [formControl]="form.controls['sampledWeight'+index]"
           >
         </mat-form-field>
       </ion-col>
@@ -126,51 +70,11 @@
       <ion-col size="4">
         <ion-label class="ion-float-end" translate>PACKET.SAMPLED_RATIO</ion-label>
       </ion-col>
-      <ion-col size="1">
+      <ion-col size="1" *ngFor="let index of packetIndexes">
         <mat-form-field class="computed">
           <input matInput
                  autocomplete="off" type="number" readonly
-                 [formControl]="form.controls.sampledRatio1"
-          >
-        </mat-form-field>
-      </ion-col>
-      <ion-col size="1">
-        <mat-form-field class="computed">
-          <input matInput
-                 autocomplete="off" type="number" readonly
-                 [formControl]="form.controls.sampledRatio2"
-          >
-        </mat-form-field>
-      </ion-col>
-      <ion-col size="1">
-        <mat-form-field class="computed">
-          <input matInput
-                 autocomplete="off" type="number" readonly
-                 [formControl]="form.controls.sampledRatio3"
-          >
-        </mat-form-field>
-      </ion-col>
-      <ion-col size="1">
-        <mat-form-field class="computed">
-          <input matInput
-                 autocomplete="off" type="number" readonly
-                 [formControl]="form.controls.sampledRatio4"
-          >
-        </mat-form-field>
-      </ion-col>
-      <ion-col size="1">
-        <mat-form-field class="computed">
-          <input matInput
-                 autocomplete="off" type="number" readonly
-                 [formControl]="form.controls.sampledRatio5"
-          >
-        </mat-form-field>
-      </ion-col>
-      <ion-col size="1">
-        <mat-form-field class="computed">
-          <input matInput
-                 autocomplete="off" type="number" readonly
-                 [formControl]="form.controls.sampledRatio6"
+                 [formControl]="form.controls['sampledRatio'+index]"
           >
         </mat-form-field>
       </ion-col>
@@ -181,6 +85,7 @@
     <!--  composition row  -->
     <ion-row *ngFor="let compositionForm of compositionsFormArray?.controls; index as i; first as first">
 
+      <!-- taxon group -->
       <ion-col size="4">
         <mat-autocomplete-field [formControl]="asFormGroup(compositionForm).controls.taxonGroup"
                                 [placeholder]="'PACKET.COMPOSITION.TAXON_GROUP'|translate"
@@ -193,42 +98,14 @@
         </mat-autocomplete-field>
       </ion-col>
 
-      <ion-col size="1">
+      <!-- ratios -->
+      <ion-col size="1" *ngFor="let index of packetIndexes">
         <mat-form-field>
-          <input matInput autocomplete="off" type="number" pattern="[0-9]*" step="1" max="100" [tabIndex]="tabindex+10+i*9+1"
-                 [formControl]="asFormGroup(compositionForm).controls.ratio1">
+          <input matInput autocomplete="off" type="number" pattern="[0-9]*" step="1" max="100" [tabIndex]="tabindex+10+i*9+index+1"
+                 [formControl]="asFormGroup(compositionForm).controls['ratio'+index]">
         </mat-form-field>
       </ion-col>
-      <ion-col size="1">
-        <mat-form-field>
-          <input matInput autocomplete="off" type="number" pattern="[0-9]*" step="1" max="100" [tabindex]="tabindex+10+i*9+2"
-                 [formControl]="asFormGroup(compositionForm).controls.ratio2">
-        </mat-form-field>
-      </ion-col>
-      <ion-col size="1">
-        <mat-form-field>
-          <input matInput autocomplete="off" type="number" pattern="[0-9]*" step="1" max="100" [tabindex]="tabindex+10+i*9+3"
-                 [formControl]="asFormGroup(compositionForm).controls.ratio3">
-        </mat-form-field>
-      </ion-col>
-      <ion-col size="1">
-        <mat-form-field>
-          <input matInput autocomplete="off" type="number" pattern="[0-9]*" step="1" max="100" [tabindex]="tabindex+10+i*9+4"
-                 [formControl]="asFormGroup(compositionForm).controls.ratio4">
-        </mat-form-field>
-      </ion-col>
-      <ion-col size="1">
-        <mat-form-field>
-          <input matInput autocomplete="off" type="number" pattern="[0-9]*" step="1" max="100" [tabindex]="tabindex+10+i*9+5"
-                 [formControl]="asFormGroup(compositionForm).controls.ratio5">
-        </mat-form-field>
-      </ion-col>
-      <ion-col size="1">
-        <mat-form-field>
-          <input matInput autocomplete="off" type="number" pattern="[0-9]*" step="1" max="100" [tabindex]="tabindex+10+i*9+6"
-                 [formControl]="asFormGroup(compositionForm).controls.ratio6">
-        </mat-form-field>
-      </ion-col>
+
       <!-- computed weight -->
       <ion-col size="1">
         <mat-form-field class="computed" [floatLabel]="first ? 'always' : 'never'">
@@ -256,12 +133,6 @@
 
 
   </ion-grid>
-
-  <!--  <app-packet-composition-table #compositionTable-->
-  <!--                                [program]="program"-->
-  <!--  >-->
-
-  <!--  </app-packet-composition-table>-->
 
 
 </form>
