@@ -197,6 +197,12 @@ public class TaxonNameRepositoryImpl
                 .getSingleResult();
     }
 
+    public Long countByFilter(TaxonNameFilterVO filter) {
+        Preconditions.checkNotNull(filter);
+
+        return getCountQuery(toSpecification(filter), TaxonName.class).getSingleResult();
+    }
+
     @Override
     protected void toVO(TaxonName source, TaxonNameVO target, ReferentialFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);

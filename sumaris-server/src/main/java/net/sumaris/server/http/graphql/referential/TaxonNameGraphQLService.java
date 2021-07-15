@@ -103,7 +103,7 @@ public class TaxonNameGraphQLService {
     @GraphQLQuery(name = "taxonNameCount", description = "Get taxon name count")
     @Transactional(readOnly = true)
     public Long getTaxonNameCount(@GraphQLArgument(name = "filter") TaxonNameFilterVO filter) {
-        return referentialService.countByFilter(Program.class.getSimpleName(), filter);
+        return taxonNameService.countByFilter(filter);
     }
 
     /* -- Mutations -- */
