@@ -76,7 +76,11 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
         BindableSpecification<Sample> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             query.orderBy(criteriaBuilder.asc(root.get(Sample.Fields.RANK_ORDER)));
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, LandingVO.Fields.OBSERVED_LOCATION_ID);
-            return criteriaBuilder.equal(root.get(Sample.Fields.LANDING).get(Landing.Fields.OBSERVED_LOCATION).get(IEntity.Fields.ID), param);
+            return criteriaBuilder.equal(
+                    root.join(Sample.Fields.LANDING, JoinType.INNER)
+                            .join(Landing.Fields.OBSERVED_LOCATION, JoinType.INNER)
+                            .get(IEntity.Fields.ID),
+                    param);
         });
         specification.addBind(LandingVO.Fields.OBSERVED_LOCATION_ID, observedLocationId);
         return specification;
@@ -87,7 +91,11 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
         BindableSpecification<Sample> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             query.orderBy(criteriaBuilder.asc(root.get(Sample.Fields.RANK_ORDER)));
             ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, OBSERVED_LOCATION_IDS);
-            return criteriaBuilder.in(root.get(Sample.Fields.LANDING).get(Landing.Fields.OBSERVED_LOCATION).get(IEntity.Fields.ID)).value(param);
+            return criteriaBuilder.in(
+                    root.join(Sample.Fields.LANDING, JoinType.INNER)
+                            .join(Landing.Fields.OBSERVED_LOCATION, JoinType.INNER)
+                            .get(IEntity.Fields.ID))
+                    .value(param);
         });
         specification.addBind(OBSERVED_LOCATION_IDS, Arrays.asList(observedLocationIds));
         return specification;
