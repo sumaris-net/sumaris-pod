@@ -27,12 +27,15 @@ import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.Sample;
+import net.sumaris.core.model.data.SampleMeasurement;
+import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
 import java.util.Arrays;
@@ -45,6 +48,8 @@ import java.util.List;
 public interface SampleSpecifications extends RootDataSpecifications<Sample> {
 
     String OBSERVED_LOCATION_IDS = "observedLocationIds";
+    String TAG_ID_PMFM_ID = "tagIdPmfmId";
+    String TAG_ID = "tagId";
 
     default Specification<Sample> hasOperationId(Integer operationId) {
         if (operationId == null) return null;
@@ -98,6 +103,23 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
                     .value(param);
         });
         specification.addBind(OBSERVED_LOCATION_IDS, Arrays.asList(observedLocationIds));
+        return specification;
+    }
+
+    default Specification<Sample> hasTagId(String tagId) {
+        if (tagId == null) return null;
+        BindableSpecification<Sample> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            query.orderBy(criteriaBuilder.asc(root.get(Sample.Fields.RANK_ORDER)));
+            ParameterExpression<Integer> tagIdPmfmIdParam = criteriaBuilder.parameter(Integer.class, TAG_ID_PMFM_ID);
+            ParameterExpression<String> tagIdParam = criteriaBuilder.parameter(String.class, TAG_ID);
+            Join<Sample, SampleMeasurement> tagIdInnerJoin = root.joinList(Sample.Fields.MEASUREMENTS, JoinType.INNER);
+            return criteriaBuilder.and(
+                    criteriaBuilder.equal(tagIdInnerJoin.get(SampleMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam),
+                    criteriaBuilder.equal(tagIdInnerJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE), tagIdParam)
+            );
+        });
+        specification.addBind(TAG_ID_PMFM_ID, PmfmEnum.TAG_ID.getId());
+        specification.addBind(TAG_ID, tagId);
         return specification;
     }
 

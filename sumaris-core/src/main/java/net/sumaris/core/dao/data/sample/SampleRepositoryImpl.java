@@ -32,9 +32,11 @@ import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.exception.NotUniqueException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.Matrix;
+import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.Unit;
 import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
@@ -77,6 +79,7 @@ public class SampleRepositoryImpl
     private TaxonNameRepository taxonNameRepository;
 
     private boolean enableSaveUsingHash;
+    private boolean enableCheckUniqueTag;
 
     @Autowired
     public SampleRepositoryImpl(EntityManager entityManager) {
@@ -89,6 +92,7 @@ public class SampleRepositoryImpl
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
         this.enableSaveUsingHash = getConfig().enableSampleHashOptimization();
+        this.enableCheckUniqueTag = getConfig().enableSampleUniqueTag();
     }
 
     @Override
@@ -98,6 +102,7 @@ public class SampleRepositoryImpl
             .and(hasLandingId(filter.getLandingId()))
             .and(hasObservedLocationId(filter.getObservedLocationId()))
             .and(inObservedLocationIds(filter.getObservedLocationIds()))
+            .and(hasTagId(filter.getTagId()))
             .and(addJoinFetch(fetchOptions, true));
     }
 
@@ -304,6 +309,18 @@ public class SampleRepositoryImpl
             log.warn(String.format("Updating a sample {id: %s, label: '%s'} without creation_date!", entity.getId(), entity.getLabel()));
         }
         super.onBeforeSaveEntity(vo, entity, isNew);
+
+        // Check if tag_id is unique by program
+        if (enableCheckUniqueTag) {
+            long count = this.findAll(SampleFilterVO.builder()
+                    .programLabel(vo.getProgram().getLabel()).tagId(vo.getMeasurementValues().get(PmfmEnum.TAG_ID)).build())
+                    .stream()
+                    .filter(s -> isNew || !Objects.equals(s.getId(), vo.getId()))
+                    .count();
+            if (count > 0) {
+                throw new NotUniqueException(String.format("Sample tag '%s' already exists", vo.getLabel()));
+            }
+        }
     }
 
     @Override

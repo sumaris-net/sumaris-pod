@@ -62,4 +62,6 @@ public class SampleFilterVO implements IRootDataFilter {
 
     private Integer parentId;
 
+    private String tagId;
+
 }
