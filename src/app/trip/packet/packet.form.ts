@@ -1,18 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
-import {AppForm}  from "@sumaris-net/ngx-components";
-import {Packet, PacketComposition, PacketUtils} from "../services/model/packet.model";
-import {IReferentialRef}  from "@sumaris-net/ngx-components";
-import {UsageMode}  from "@sumaris-net/ngx-components";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {PacketValidatorService} from "../services/validator/packet.validator";
-import {FormArrayHelper}  from "@sumaris-net/ngx-components";
-import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {isNil, isNotEmptyArray, isNotNilOrNaN, round} from "@sumaris-net/ngx-components";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {LoadResult} from "@sumaris-net/ngx-components";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {AppForm, FormArrayHelper, IReferentialRef, isNil, isNotEmptyArray, isNotNilOrNaN, LoadResult, LocalSettingsService, PlatformService, round, UsageMode} from '@sumaris-net/ngx-components';
+import {Packet, PacketComposition, PacketUtils} from '../services/model/packet.model';
+import {DateAdapter} from '@angular/material/core';
+import {Moment} from 'moment';
+import {PacketValidatorService} from '../services/validator/packet.validator';
+import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
 
 
 @Component({

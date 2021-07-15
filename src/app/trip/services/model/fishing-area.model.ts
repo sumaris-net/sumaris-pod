@@ -1,16 +1,11 @@
 import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
-import {ReferentialRef} from '@sumaris-net/ngx-components';
+import {EntityClass, ReferentialRef} from '@sumaris-net/ngx-components';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
+@EntityClass({typename: 'FishingAreaVO'})
 export class FishingArea extends DataEntity<FishingArea> {
 
-  static TYPENAME = 'FishingAreaVO';
-
-  static fromObject(source: any): FishingArea {
-    const res = new FishingArea();
-    res.fromObject(source);
-    return res;
-  }
+  static fromObject: (source: any, opts?: any) => FishingArea;
 
   location: ReferentialRef;
 
@@ -21,8 +16,7 @@ export class FishingArea extends DataEntity<FishingArea> {
   // operationId: number;
 
   constructor() {
-    super();
-    this.__typename = FishingArea.TYPENAME;
+    super(FishingArea.TYPENAME);
     this.location = null;
     this.distanceToCoastGradient = null;
     this.depthGradient = null;

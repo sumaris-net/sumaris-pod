@@ -1,7 +1,7 @@
-import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
-import {equalsOrNil, FilterFn, IEntity, isNil, isNotNilOrNaN, ReferentialAsObjectOptions, ReferentialRef, referentialToString, ReferentialUtils} from '@sumaris-net/ngx-components';
+import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
+import {EntityClass, equalsOrNil, FilterFn, IEntity, isNil, isNotNilOrNaN, ReferentialAsObjectOptions, ReferentialRef, referentialToString, ReferentialUtils} from '@sumaris-net/ngx-components';
 import {Product} from './product.model';
-import {DataEntityFilter} from '../../../data/services/model/data-filter.model';
+import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export interface IWithPacketsEntity<T, ID = number>
@@ -40,15 +40,10 @@ export class PacketFilter extends DataEntityFilter<PacketFilter, Packet> {
 
 }
 
+@EntityClass({typename: 'PacketVO'})
 export class Packet extends DataEntity<Packet> {
 
-  static fromObject(source: any): Packet {
-    const target = new Packet();
-    target.fromObject(source);
-    return target;
-  }
-
-  static TYPENAME = 'PacketVO';
+  static fromObject: (source: any, opts?: any) => Packet;
 
   rankOrder: number;
   number: number;
@@ -76,7 +71,7 @@ export class Packet extends DataEntity<Packet> {
   saleProducts: Product[];
 
   constructor() {
-    super();
+    super(Packet.TYPENAME);
     this.rankOrder = null;
     this.number = null;
     this.weight = null;
@@ -142,9 +137,11 @@ export class Packet extends DataEntity<Packet> {
 
 }
 
+@EntityClass({typename: 'PacketCompositionVO'})
 export class PacketComposition extends DataEntity<PacketComposition> {
 
-  static TYPENAME = 'PacketCompositionVO';
+  static fromObject: (source: any, opts?: any) => PacketComposition;
+
   static indexes = [1, 2, 3, 4, 5, 6];
 
   rankOrder: number;
@@ -158,7 +155,7 @@ export class PacketComposition extends DataEntity<PacketComposition> {
   weight: number;
 
   constructor() {
-    super();
+    super(PacketComposition.TYPENAME);
     this.rankOrder = null;
     this.taxonGroup = null;
     this.weight = null;
@@ -198,13 +195,6 @@ export class PacketComposition extends DataEntity<PacketComposition> {
       || (
         this.taxonGroup.equals(other.taxonGroup) && this.rankOrder === other.rankOrder
       );
-  }
-
-  static fromObject(source: any) {
-    if (isNil(source)) return null;
-    const res = new PacketComposition();
-    res.fromObject(source);
-    return res;
   }
 
 }

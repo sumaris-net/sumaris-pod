@@ -29,7 +29,7 @@ import {
   toNumber,
   UserEventService,
 } from '@sumaris-net/ngx-components';
-import {DataFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from './trip.queries';
+import {DataFragments, ExpectedSaleFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from './trip.queries';
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
@@ -210,8 +210,8 @@ export const TripFragments = {
     operationGroups {
       ...OperationGroupFragment
     }
-    sale {
-      ...SaleFragment
+    expectedSale {
+      ...ExpectedSaleFragment
     }
     fishingArea {
       ...FishingAreaFragment
@@ -225,7 +225,7 @@ export const TripFragments = {
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${Fragments.metier}
   ${OperationGroupFragment.operationGroup}
-  ${SaleFragments.sale}
+  ${ExpectedSaleFragments.expectedSale}
   ${DataFragments.fishingArea}`
 };
 

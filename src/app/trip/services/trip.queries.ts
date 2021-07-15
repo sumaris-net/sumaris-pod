@@ -306,3 +306,40 @@ export const SaleFragments = {
   `
 };
 
+export const ExpectedSaleFragments = {
+  lightExpectedSale: gql`fragment LightExpectedSaleFragment on ExpectedSaleVO {
+    id
+    saleDate
+    saleType {
+      ...ReferentialFragment
+    }
+    saleLocation {
+      ...LocationFragment
+    }
+  }
+  ${Fragments.referential}
+  ${Fragments.location}
+  `,
+  expectedSale: gql`fragment ExpectedSaleFragment on ExpectedSaleVO {
+    id
+    saleDate
+    saleType {
+      ...ReferentialFragment
+    }
+    saleLocation {
+      ...LocationFragment
+    }
+    measurements {
+      ...MeasurementFragment
+    }
+    products {
+      ...ProductFragment
+    }
+  }
+  ${Fragments.referential}
+  ${Fragments.location}
+  ${Fragments.measurement}
+  ${DataFragments.product}
+  `
+};
+

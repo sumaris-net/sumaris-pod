@@ -1,16 +1,16 @@
 import {
+  EntityClass,
   ReferentialAsObjectOptions,
   ReferentialRef,
   ReferentialUtils
-}  from "@sumaris-net/ngx-components";
-import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
+} from '@sumaris-net/ngx-components';
+import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {IEntityWithMeasurement, MeasurementFormValues, MeasurementValuesUtils} from "./measurement.model";
-import {equalsOrNil, isNil, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
+import {equalsOrNil, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
 import {IEntity}  from "@sumaris-net/ngx-components";
 import {Sample} from "./sample.model";
-import {IWithPacketsEntity, Packet} from "./packet.model";
 import {FilterFn} from "@sumaris-net/ngx-components";
-import {DataEntityFilter} from "../../../data/services/model/data-filter.model";
+import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export interface IWithProductsEntity<T, ID = number>
@@ -46,15 +46,10 @@ export class ProductFilter extends DataEntityFilter<ProductFilter, Product> {
 
 }
 
+@EntityClass({typename: 'ProductVO'})
 export class Product extends DataEntity<Product> implements IEntityWithMeasurement<Product> {
 
-  static TYPENAME = 'ProductVO';
-
-  static fromObject(source: any): Product {
-    const target = new Product();
-    target.fromObject(source);
-    return target;
-  }
+  static fromObject: (source: any, opts?: any) => Product;
 
   public static equals(p1: Product | any, p2: Product | any): boolean {
     return p1 && p2 && ((isNotNil(p1.id) && p1.id === p2.id)
@@ -81,6 +76,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
 
   operationId: number;
   saleId: number;
+  expectedSaleId: number;
   landingId: number;
   batchId: number;
 
@@ -92,8 +88,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
   samples: Sample[];
 
   constructor() {
-    super();
-    this.__typename = Product.TYPENAME;
+    super(Product.TYPENAME);
     this.label = null;
     this.comments = null;
     this.rankOrder = null;
@@ -108,13 +103,10 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.samples = [];
     this.operationId = null;
     this.saleId = null;
+    this.expectedSaleId = null;
     this.landingId = null;
     this.batchId = null;
 
-  }
-
-  clone(): Product {
-    return Product.fromObject(this.asObject());
   }
 
   asObject(opts?: DataEntityAsObjectOptions): any {
@@ -152,6 +144,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.parent = source.parent;
     this.operationId = source.operationId;
     this.saleId = source.saleId;
+    this.expectedSaleId = source.expectedSaleId;
     this.landingId = source.landingId;
     this.batchId = source.batchId;
 

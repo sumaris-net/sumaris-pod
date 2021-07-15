@@ -72,7 +72,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: LocationLevelIds.PORT
   },
   LOCATION_LEVEL_AUCTION_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.locationLevel.AUCTION.id',
+    key: 'sumaris.enumeration.LocationLevel.AUCTION.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_AUCTION_ID',
     type: 'entity',
     autocomplete: {
@@ -84,7 +84,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: LocationLevelIds.AUCTION
   },
   LOCATION_LEVEL_ICES_RECTANGLE_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.locationLevel.RECTANGLE_ICES.id',
+    key: 'sumaris.enumeration.LocationLevel.RECTANGLE_ICES.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_RECTANGLE_ID',
     type: 'entity',
     autocomplete: {
@@ -96,7 +96,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: LocationLevelIds.ICES_RECTANGLE
   },
   LOCATION_LEVEL_ICES_DIVISION_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.locationLevel.ICES_DIVISION.id',
+    key: 'sumaris.enumeration.LocationLevel.ICES_DIVISION.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_DIVISION_ID',
     type: 'entity',
     autocomplete: {

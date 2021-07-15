@@ -1,11 +1,11 @@
-import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
-import {ModalController} from "@ionic/angular";
-import {Subject, Subscription} from "rxjs";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {Packet} from "../services/model/packet.model";
-import {PacketSaleForm} from "./packet-sale.form";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {TranslateService} from "@ngx-translate/core";
+import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ModalController} from '@ionic/angular';
+import {Subject, Subscription} from 'rxjs';
+import {AppFormUtils} from '@sumaris-net/ngx-components';
+import {Packet} from '../services/model/packet.model';
+import {PacketSaleForm} from './packet-sale.form';
+import {PmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {TranslateService} from '@ngx-translate/core';
 
 @Component({
   selector: 'app-packet-sale-modal',
@@ -44,8 +44,8 @@ export class PacketSaleModal implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.enable();
-    this.packetSaleForm.setValue(Packet.fromObject(this.packet));
     this.updateTitle();
+    setTimeout(() => this.packetSaleForm.setValue(Packet.fromObject(this.packet)));
   }
 
   protected async updateTitle() {

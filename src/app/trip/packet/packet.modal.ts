@@ -1,10 +1,10 @@
-import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
-import {Packet} from "../services/model/packet.model";
-import {ModalController} from "@ionic/angular";
-import {Subject, Subscription} from "rxjs";
-import {PacketForm} from "./packet.form";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {TranslateService} from "@ngx-translate/core";
+import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Packet} from '../services/model/packet.model';
+import {ModalController} from '@ionic/angular';
+import {Subject, Subscription} from 'rxjs';
+import {PacketForm} from './packet.form';
+import {AppFormUtils} from '@sumaris-net/ngx-components';
+import {TranslateService} from '@ngx-translate/core';
 
 @Component({
   selector: 'app-packet-modal',
@@ -42,8 +42,8 @@ export class PacketModal implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.enable();
-    this.packetForm.setValue(this.packet);
     this.updateTitle();
+    setTimeout(() => this.packetForm.setValue(this.packet))
   }
 
   protected async updateTitle() {
