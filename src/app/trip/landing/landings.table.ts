@@ -4,17 +4,18 @@ import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {isInstanceOf, isNotNil, referentialToString, StatusIds} from '@sumaris-net/ngx-components';
 import {LandingService} from '../services/landing.service';
 import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {AcquisitionLevelCodes, LocationLevelIds} from '../../referential/services/model/model.enum';
-import {VesselSnapshotService} from '../../referential/services/vessel-snapshot.service';
+import {AcquisitionLevelCodes, LocationLevelIds} from '@app/referential/services/model/model.enum';
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
 import {Moment} from 'moment';
 import {Trip} from '../services/model/trip.model';
 import {ObservedLocation} from '../services/model/observed-location.model';
 import {Landing} from '../services/model/landing.model';
-import {LandingEditor} from '../../referential/services/config/program.config';
-import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
-import {ReferentialRefService} from '../../referential/services/referential-ref.service';
-import {environment} from '../../../environments/environment';
+import {LandingEditor} from '@app/referential/services/config/program.config';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {environment} from '@environments/environment';
 import {LandingFilter} from '../services/filter/landing.filter';
+import {LandingValidatorService} from '@app/trip/services/validator/landing.validator';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson', 'samplesCount'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -26,8 +27,10 @@ const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
   templateUrl: 'landings.table.html',
   styleUrls: ['landings.table.scss'],
   providers: [
-    // Default value, bu be change using the validatorService setter
-    {provide: ValidatorService, useValue: null}
+    // Default value, but be change using the validatorService setter
+    // {provide: ValidatorService, useValue: null}
+    // FIXME: LP restore useValue: null
+    {provide: ValidatorService, useExisting: LandingValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

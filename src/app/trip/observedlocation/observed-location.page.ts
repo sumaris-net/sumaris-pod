@@ -6,7 +6,8 @@ import {LandingsTable} from '../landing/landings.table';
 import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
 import {FormGroup} from '@angular/forms';
 import {
-  Alerts, AppTable,
+  Alerts,
+  AppTable,
   ConfigService,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
@@ -153,7 +154,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       landingsTable.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
       landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
       landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
-      landingsTable.setValidatorService(this.landingEditor == 'trip' ? this.landingValidator : null);
+      // FIXME: LP restore this line
+      // landingsTable.setValidatorService(this.landingEditor == 'trip' ? this.landingValidator : null);
     } else if (this.aggregatedLandingsTable) {
       this.aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
       this.aggregatedLandingsTable.program = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
