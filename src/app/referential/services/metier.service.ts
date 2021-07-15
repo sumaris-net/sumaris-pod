@@ -140,10 +140,19 @@ export class MetierService extends BaseGraphqlService
       (res && res.data || []).map(value => Metier.fromObject(value, {useChildAttributes: false})) :
       (res && res.data || []) as Metier[];
     if (debug) console.debug(`[metier-ref-service] Metiers loaded in ${Date.now() - now}ms`);
-    return {
+
+    const end = offset + entities.length;
+    const result: any = {
       data: entities,
-      total: res.total
+      total: res.total || entities.length
     };
+
+    if (end < result.total) {
+      offset = end;
+      result.fetchMore = () => this.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+    }
+
+    return result;
   }
 
   suggest(value: any, filter?: Partial<MetierFilter>): Promise<LoadResult<Metier>> {
