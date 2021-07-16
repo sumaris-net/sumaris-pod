@@ -258,7 +258,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     console.debug('[samples-table] Opening detail modal...');
     //const pmfms = await firstNotNilPromise(this.$pmfms);
 
-    const isNew = !sample && true;
+    let isNew = !sample && true;
     if (isNew) {
       sample = new Sample();
       await this.onNewEntity(sample);
@@ -285,12 +285,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         this.onPrepareRowForm.emit({form, pmfms});
       },
       onSaveAndNew: async (data) => {
-        if (isNil(data.id)) {
+        if (isNew) {
           await this.addEntityToTable(data);
         }
         else {
           this.updateEntityToTable(data, row);
           row = null; // Avoid to update twice (should never occur, because validateAndContinue always create a new entity)
+          isNew = true; // Next row should be new
         }
         const newData = new Sample();
         await this.onNewEntity(newData);
