@@ -1,13 +1,9 @@
 <app-modal-toolbar color="secondary"
                    (cancel)="cancel()"
+                   [title]="$title | async"
                    [showSpinner]="loading"
                    [canValidate]="!loading"
                    (validate)="onSubmit($event)">
-  <ion-title>
-    <span [innerHTML]="$title | async"></span>
-    <mat-icon *ngIf="table.error$|async">error</mat-icon>
-  </ion-title>
-
 </app-modal-toolbar>
 
 <ion-content>
