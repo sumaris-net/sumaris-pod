@@ -149,8 +149,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   @Output() onPrepareRowForm = new EventEmitter<{form: FormGroup, pmfms: IPmfm[]}>();
 
-  @Input() rowErrorTemplate: TemplateRef<any>;
-
   @ViewChild('optionsMenu') optionMenu: MatMenu;
 
   constructor(
@@ -636,6 +634,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       this._focusColumn = this.firstUserColumn;
     }
     return super.addRow(event, insertAt);
+  }
+
+  /**
+   * Publish get row error, as public
+   */
+  getRowError(row?: TableElement<Sample>, opts?: { separator?: string; recursive?: boolean }): string {
+    return super.getRowError(row || this.editedRow, opts);
   }
 
   protected addFooterListener(pmfms: IPmfm[]) {

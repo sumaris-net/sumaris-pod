@@ -1,33 +1,37 @@
 <mat-toolbar *ngIf="showToolbar">
 
-  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
+  <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+    <!-- Add button -->
+    <button mat-icon-button
+            hidden-xs hidden-sm hidden-mobile
+            *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate"
+            (click)="addRow()">
+      <mat-icon>add</mat-icon>
+    </button>
+
+    <!-- Refresh (debug only) -->
+    <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()"
+            [title]="'COMMON.BTN_REFRESH'|translate"
+            (click)="onRefresh.emit()">
+      <mat-icon>refresh</mat-icon>
+  </button>
+  </ng-container>
+
+  <ng-template #hasSelection>
+    <!-- Delete button -->
+    <button mat-icon-button color="light" *ngIf="selection.hasValue() && enabled"
+            [title]="'COMMON.BTN_DELETE'|translate"
+            (click)="deleteSelection($event)">
+      <mat-icon>delete</mat-icon>
+    </button>
+  </ng-template>
+
+  <ion-item *ngIf="!mobile && error; let error" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
   <span class="toolbar-spacer"></span>
-
-  <!-- Add button -->
-  <button mat-icon-button
-          hidden-xs hidden-sm hidden-mobile
-          *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate"
-          (click)="addRow()">
-    <mat-icon>add</mat-icon>
-  </button>
-
-  <!-- Delete button -->
-  <button mat-icon-button color="light" *ngIf="selection.hasValue() && enabled"
-          [title]="'COMMON.BTN_DELETE'|translate"
-          (click)="deleteSelection($event)">
-    <mat-icon>delete</mat-icon>
-  </button>
-
-  <!-- Refresh (debug only) -->
-  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()"
-          [title]="'COMMON.BTN_REFRESH'|translate"
-          (click)="onRefresh.emit()">
-    <mat-icon>refresh</mat-icon>
-  </button>
 
 </mat-toolbar>
 
@@ -79,7 +83,19 @@
     <!-- Group header: start -->
     <ng-container matColumnDef="top-start" [sticky]="useSticky">
       <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupHeaderStartColSpan">
-
+        <button mat-icon-button class="ion-float-start"
+                *ngIf="!mobile && !selection.hasValue()"
+                [disabled]="disabled"
+                [title]="'COMMON.BTN_ADD_ROW'|translate"
+                (click)="addRow()">
+          <mat-icon>add</mat-icon>
+        </button>
+        <button mat-icon-button class="ion-float-start"
+                color="light" *ngIf="selection.hasValue() && enabled"
+                [title]="'COMMON.BTN_DELETE'|translate"
+                (click)="deleteSelection($event)">
+          <mat-icon>delete</mat-icon>
+        </button>
       </th>
     </ng-container>
 
@@ -98,19 +114,7 @@
     <!-- Group header: end spacer -->
     <ng-container matColumnDef="top-end">
       <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupHeaderEndColSpan">
-        <button mat-icon-button class="ion-float-end"
-                *ngIf="!mobile && !selection.hasValue()"
-                [disabled]="disabled"
-                [title]="'COMMON.BTN_ADD_ROW'|translate"
-                (click)="addRow()">
-          <mat-icon>add</mat-icon>
-        </button>
-        <button mat-icon-button class="ion-float-end"
-                color="light" *ngIf="selection.hasValue() && enabled"
-                [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="deleteSelection($event)">
-          <mat-icon>delete</mat-icon>
-        </button>
+
       </th>
     </ng-container>
 
@@ -127,7 +131,7 @@
                       [checked]="selection.isSelected(row)">
         </mat-checkbox>
       </td>
-      <td mat-footer-cell *matFooterCellDef></td>
+
     </ng-container>
 
     <!-- rankOrder Column = id -->
@@ -136,12 +140,15 @@
         <ion-label>#</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <span>{{ row.currentData?.rankOrder }}</span>
-        <ng-container *ngIf="row.validator.invalid && getRowError(row, {recursive: false}); let error">
-          <mat-icon color="warn" [title]="error|translate">error</mat-icon>
-        </ng-container>
+        <mat-text>
+          {{ row.currentData?.rankOrder }}
+          <!-- Show row errors (not from controls, but only from the form itself) -->
+          <mat-icon *ngIf="row.validator.touched && row.validator.invalid && getRowError(row, {recursive: false}); let error"
+                    color="warn" [title]="error|translate">error</mat-icon>
+        </mat-text>
+
       </td>
-      <td mat-footer-cell *matFooterCellDef></td>
+
     </ng-container>
 
     <!-- Label column -->
@@ -163,7 +170,7 @@
           </mat-error>
         </mat-form-field>
       </td>
-      <td mat-footer-cell *matFooterCellDef></td>
+
     </ng-container>
 
     <!-- Taxon group  -->
@@ -180,7 +187,7 @@
                                 [config]="autocompleteFields.taxonGroup">
         </mat-autocomplete-field>
       </td>
-      <td mat-footer-cell *matFooterCellDef></td>
+
     </ng-container>
 
     <!-- Taxon name -->
@@ -197,7 +204,7 @@
                                 [config]="autocompleteFields.taxonName">
         </mat-autocomplete-field>
       </td>
-      <td mat-footer-cell *matFooterCellDef></td>
+
     </ng-container>
 
     <!-- Date -->
@@ -212,7 +219,7 @@
                              [placeholder]="i18nColumnPrefix + 'SAMPLE_DATE_PLACEHOLDER'|translate"
                              [compact]="compactFields" [readonly]="!row.editing" [required]="true"></mat-date-time-field>
       </td>
-      <td mat-footer-cell *matFooterCellDef></td>
+
     </ng-container>
 
     <!-- Pmfms columns -->
@@ -246,7 +253,7 @@
             [compact]="compactFields" floatLabel="never"></app-pmfm-field>
         </ng-template>
       </td>
-      <td mat-footer-cell *matFooterCellDef></td>
+
     </ng-container>
 
     <!-- Comment column -->
@@ -270,7 +277,7 @@
                     class="comment"></mat-icon>
         </ng-template>
       </td>
-      <td mat-footer-cell *matFooterCellDef></td>
+
     </ng-container>
 
 
@@ -306,7 +313,8 @@
       <td mat-footer-cell *matFooterCellDef [attr.colspan]="displayedColumns.length - 2"
           class="mat-cell-content-start-padding">
         <ion-text color="primary" class="text-italic"
-                  [innerHTML]="'TRIP.SAMPLE.TABLE.TAG_COUNT'|translate: {tagCount: (tagCount$|async)}"></ion-text>
+                  [innerHTML]="'TRIP.SAMPLE.TABLE.TAG_COUNT'|translate: {tagCount: (tagCount$|async)}">
+        </ion-text>
       </td>
     </ng-container>
 
@@ -329,7 +337,7 @@
     <!-- footer -->
     <ng-container *ngIf="showFooter">
       <tr mat-footer-row *matFooterRowDef="footerColumns;"
-          [class.cdk-visibility-hidden]="!totalRowCount"></tr>
+          [class.cdk-visually-hidden]="!totalRowCount"></tr>
     </ng-container>
   </table>
 
@@ -490,6 +498,19 @@
     </table>
   </ng-template>
 
+  <ng-container *ngIf="loadingSubject|async; else noResult">
+    <ion-item>
+      <ion-skeleton-text animated></ion-skeleton-text>
+    </ion-item>
+  </ng-container>
+
+  <ng-template #noResult>
+    <ion-item *ngIf="totalRowCount === 0">
+      <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+      <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
+    </ion-item>
+  </ng-template>
+
 </div>
 
 <ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="enabled && showFabButton"
@@ -499,6 +520,12 @@
   </ion-fab-button>
 </ion-fab>
 
-<ng-template #rowError let-row="row">
-  <ng-content select="[rowError]"></ng-content>
+<ng-template #addRowButton>
+  <span *ngIf="!mobile && enabled">&nbsp;
+    <ion-button color="medium"
+                (click)="addRow()">
+      <ion-icon name="add" slot="start"></ion-icon>
+      <span translate>COMMON.BTN_ADD</span>
+    </ion-button>
+  </span>
 </ng-template>
