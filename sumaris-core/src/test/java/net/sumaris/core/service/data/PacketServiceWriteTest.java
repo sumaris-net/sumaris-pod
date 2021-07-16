@@ -31,7 +31,7 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
@@ -40,8 +40,8 @@ import static org.junit.Assert.*;
 /**
  * @author peck7 on 09/04/2020.
  */
-@TestPropertySource(locations = "classpath:sumaris-core-test-oracle.properties")
 @Ignore("Use only SFA Oracle database")
+@ActiveProfiles("oracle")
 public class PacketServiceWriteTest extends AbstractServiceTest {
 
     @ClassRule

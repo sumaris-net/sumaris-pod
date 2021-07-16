@@ -32,10 +32,10 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 
-//@Ignore("Use only SFA Oracle database")
-@TestPropertySource(locations = "classpath:sumaris-core-test-oracle.properties")
+@Ignore("Use only SFA Oracle database")
+@ActiveProfiles("oracle")
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @Slf4j
 public class ConfigurationServiceOracleTest extends AbstractServiceTest {

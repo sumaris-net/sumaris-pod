@@ -959,13 +959,14 @@ public class DataGraphQLService {
         Set<String> fields = GraphQLUtils.fields(env);
 
         final List<LandingVO> result = landingService.findAll(
-                filter,
-                Page.builder().offset(offset)
+            filter,
+            Page.builder()
+                .offset(offset)
                 .size(size)
                 .sortBy(sort)
                 .sortDirection(SortDirection.fromString(direction))
                 .build(),
-                getFetchOptions(fields));
+            getFetchOptions(fields));
 
         // Add additional properties if needed
         fillLandingsFields(result, fields);

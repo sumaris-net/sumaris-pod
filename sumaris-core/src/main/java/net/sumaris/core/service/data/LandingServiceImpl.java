@@ -35,11 +35,12 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
-import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.Landing;
+import net.sumaris.core.model.data.LandingMeasurement;
+import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
@@ -90,12 +91,10 @@ public class LandingServiceImpl implements LandingService {
 
         if (page != null) {
 
-            // FIXME LP: Sorting by 'vessel' must sort by registration code
-            /*if (Landing.Fields.VESSEL.equals(page.getSortBy())) {
-                page.setSortBy(
-                    StringUtils.doting(Landing.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
-                );
-            }*/
+            // Use specific query to get landings by observed location (consider only observedLocationId is the only filter attribute)
+            if (Beans.beanIsEmpty(filter, LandingFilterVO.Fields.OBSERVED_LOCATION_ID)) {
+                return landingRepository.findAllByObservedLocationId(filter.getObservedLocationId(), page, fetchOptions);
+            }
 
             return landingRepository.findAll(filter, page, fetchOptions);
 

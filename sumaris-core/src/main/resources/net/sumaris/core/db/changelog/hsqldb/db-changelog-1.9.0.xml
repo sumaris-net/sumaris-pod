@@ -99,6 +99,16 @@
 		</addColumn>
 	</changeSet>
 
+	<!-- table LANDING: remove RANK_ORDER_ON_VESSEL if empty -->
+	<changeSet author="ludovic.pecquot@e-is.pro" id="1625816880596-5">
+		<preConditions onFail="MARK_RAN">
+			<sqlCheck expectedResult="0">select count(*) from LANDING where RANK_ORDER_ON_VESSEL is not null</sqlCheck>
+		</preConditions>
+		<dropColumn tableName="LANDING">
+			<column name="RANK_ORDER_ON_VESSEL"/>
+		</dropColumn>
+	</changeSet>
+
 
 	<!-- update SYSTEM_VERSION -->
 	<changeSet author="benoit.lavenier@e-is.pro" id="1625816880596-200" runOnChange="true">
@@ -111,6 +121,7 @@
 			<column name="DESCRIPTION">
 				- BATCH: Add column SUBGROUP_COUNT
         - Add table EXPECTED_SALE and add relations on SALE_MEASUREMENT and PRODUCT
+				- Drop column LANDING.RANK_ORDER_ON_VESSEL
 			</column>
 			<column name="CREATION_DATE" valueComputed="sysdate"/>
 			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>

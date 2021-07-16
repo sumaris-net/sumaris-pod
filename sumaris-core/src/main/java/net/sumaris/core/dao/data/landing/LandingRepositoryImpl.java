@@ -25,6 +25,7 @@ package net.sumaris.core.dao.data.landing;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.data.Trip;
@@ -39,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -72,6 +74,54 @@ public class LandingRepositoryImpl
             .and(inLocationIds(filter.getLocationIds()))
             .and(hasVesselId(filter.getVesselId()))
             .and(hasExcludeVesselIds(filter.getExcludeVesselIds()));
+    }
+
+    @Override
+    public List<LandingVO> findAllByObservedLocationId(int observedLocationId, Page page, DataFetchOptions fetchOptions) {
+
+        boolean sortByVesselRegistrationCode = Landing.Fields.VESSEL.equalsIgnoreCase(page.getSortBy());
+
+        StringBuilder queryBuilder = new StringBuilder();
+
+        queryBuilder.append("select l from Landing l ");
+
+        if (sortByVesselRegistrationCode) {
+            // add joins
+            queryBuilder.append("left outer join l.vessel v left outer join v.vesselRegistrationPeriods vrp ");
+        }
+
+        // single filter
+        queryBuilder.append("where l.observedLocation.id = :observedLocationId ");
+
+        if (sortByVesselRegistrationCode) {
+            // add natural order on vessel registration code
+            queryBuilder.append(
+                String.format(
+                    "order by regexp_substr(vrp.registrationCode, '[^0-9]*') %1$s, to_number(regexp_substr(vrp.registrationCode, '[0-9]+')) %1$s nulls first",
+                    page.getSortDirection()
+                )
+            );
+
+        } else {
+            // other sort
+            queryBuilder.append(
+              String.format(
+                  "order by l.%s %s",
+                  page.getSortBy(),
+                  page.getSortDirection()
+              )
+            );
+        }
+
+        TypedQuery<Landing> query = getEntityManager().createQuery(queryBuilder.toString(), Landing.class);
+        query.setParameter("observedLocationId", observedLocationId);
+
+        return readPage(query, Landing.class, page.asPageable(), null)
+            .stream()
+            .map(landing -> toVO(landing, fetchOptions))
+            .collect(Collectors.toList())
+        ;
+
     }
 
     @Override
@@ -153,15 +203,22 @@ public class LandingRepositoryImpl
             }
         }
 
-        // RankOrderOnVessel
-        if (source.getRankOrderOnVessel() == null) {
+        // RankOrder
+        if (source.getRankOrder() == null) {
             // must compute next rank order
-            target.setRankOrderOnVessel(getNextRankOrderOnVessel(target));
+            target.setRankOrder(getNextRankOrder(target));
         }
 
     }
 
-    private Integer getNextRankOrderOnVessel(Landing landing) {
+    /**
+     * Compute rank order for this landing
+     * Default value = 1 and incremented if another landing with same vessel found
+     *
+     * @param landing landing to save
+     * @return next rank order
+     */
+    private Integer getNextRankOrder(Landing landing) {
 
         // Default value
         int result = 1;
@@ -179,9 +236,9 @@ public class LandingRepositoryImpl
         Optional<Integer> currentRankOrder = findAll(filter).stream()
             // exclude itself
             .filter(landingVO -> !landingVO.getId().equals(landing.getId()))
-            .map(LandingVO::getRankOrderOnVessel)
+            .map(LandingVO::getRankOrder)
             .filter(Objects::nonNull)
-            // find max rankOrderOnVessel
+            // find max rankOrder
             .max(Integer::compareTo);
         if (currentRankOrder.isPresent()) {
             result = Math.max(result, currentRankOrder.get());

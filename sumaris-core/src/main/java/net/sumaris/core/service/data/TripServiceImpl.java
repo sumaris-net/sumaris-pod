@@ -533,7 +533,7 @@ public class TripServiceImpl implements TripService {
                     landing.setProgram(observedLocation.getProgram());
                     landing.setLocation(observedLocation.getLocation());
                     landing.setVesselSnapshot(trip.getVesselSnapshot());
-                    landing.setRankOrderOnVessel(trip.getLanding().getRankOrderOnVessel());
+                    landing.setRankOrder(trip.getLanding().getRankOrder());
                     landing.setDateTime(trip.getReturnDateTime());
                     landing.setObservers(Beans.getSet(trip.getObservers()));
                     landing.setRecorderDepartment(observedLocation.getRecorderDepartment());
