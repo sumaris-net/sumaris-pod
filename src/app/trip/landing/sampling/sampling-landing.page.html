@@ -60,7 +60,10 @@
         <ion-label translate>LANDING.EDIT.TAB_GENERAL</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && landingForm.invalid; else warningIcon"></ion-icon>
         <ng-template #warningIcon>
-          <ion-icon slot="end" color="tertiary" *ngIf="warning" name="warning"></ion-icon>&nbsp;
+          <span slot="end" *ngIf="warning" style="color: var(--ion-color-tertiary);"
+                [title]="warning|translate">
+            <mat-icon>warning</mat-icon>
+          </span>
         </ng-template>
       </ng-template>
 
@@ -133,7 +136,7 @@
                     <ion-text color="tertiary" *ngIf="warning">
                       <br/>
                       <ion-icon name="warning"></ion-icon>&nbsp;
-                      <span>{{warning|translate}}</span>
+                        {{warning|translate}}
                     </ion-text>
 
                   </app-entity-metadata>

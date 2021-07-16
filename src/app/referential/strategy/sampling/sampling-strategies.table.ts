@@ -81,6 +81,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   @Input() showError = true;
   @Input() showPaginator = true;
   @Input() filterPanelFloating = true;
+  @Input() useSticky = true;
 
   @Input() set program(program: Program) {
    this.setProgram(program);

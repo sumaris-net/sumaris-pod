@@ -127,7 +127,7 @@ export class SamplingLandingPage extends LandingPage {
       this.samplesTable.strategyLabel = strategyLabel;
     }
 
-    if (this.parent && this.parent instanceof ObservedLocation) {
+    if (this.parent && this.parent instanceof ObservedLocation && isNotNil(data.id)) {
       const recorderIsNotObserver = !(this.parent.observers && this.parent.observers.find(p => p.equals(data.recorderPerson)));
       this.warning = recorderIsNotObserver ? 'LANDING.ERROR.NOT_OBSERVER_ERROR' : null;
     }
