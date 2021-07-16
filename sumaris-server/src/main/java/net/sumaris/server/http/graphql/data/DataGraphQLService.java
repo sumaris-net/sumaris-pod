@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
+import lombok.NonNull;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
@@ -262,7 +263,6 @@ public class DataGraphQLService {
     ) {
 
 
-        filter = fillTripFilterDefaults(filter);
         SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
 
         // Read from trash
@@ -278,6 +278,8 @@ public class DataGraphQLService {
                     Pageables.create(offset, size, sort, sortDirection),
                     TripVO.class).getContent();
         }
+
+        filter = fillRootDataFilter(filter, TripFilterVO.class);
 
         // Set default sort
         sort = sort != null ? sort : TripVO.Fields.DEPARTURE_DATE_TIME;
@@ -297,8 +299,8 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "tripsCount", description = "Get trips count")
     @Transactional(readOnly = true)
     @IsUser
-    public long getTripsCount(@GraphQLArgument(name = "filter") TripFilterVO filter,
-                              @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash) {
+    public long countTrips(@GraphQLArgument(name = "filter") TripFilterVO filter,
+                           @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash) {
         if (trash) {
             // Check user is admin
             checkIsAdmin("Cannot access to trash");
@@ -307,7 +309,9 @@ public class DataGraphQLService {
             return trashService.count(Trip.class.getSimpleName());
         }
 
-        return tripService.countByFilter(fillTripFilterDefaults(filter));
+        filter = fillRootDataFilter(filter, TripFilterVO.class);
+
+        return tripService.countByFilter(filter);
     }
 
     @GraphQLQuery(name = "trip", description = "Get a trip, by id")
@@ -520,7 +524,6 @@ public class DataGraphQLService {
                                                                   @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
                                                                   @GraphQLEnvironment ResolutionEnvironment env
     ) {
-        filter = fillObserveLocationFilterDefaults(filter);
         SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
 
         // Read from trash
@@ -536,6 +539,8 @@ public class DataGraphQLService {
                     Pageables.create(offset, size, sort, sortDirection),
                     ObservedLocationVO.class).getContent();
         }
+
+        filter = fillRootDataFilter(filter, ObservedLocationFilterVO.class);
 
         Set<String> fields = GraphQLUtils.fields(env);
         final List<ObservedLocationVO> result = observedLocationService.findAll(
@@ -553,11 +558,8 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "observedLocationsCount", description = "Get total number of observed locations")
     @Transactional(readOnly = true)
     @IsUser
-    public long getObservedLocationsCount(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter,
-                                          @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash) {
-
-        filter = fillObserveLocationFilterDefaults(filter);
-
+    public long countObservedLocations(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter,
+                                       @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash) {
         if (trash) {
             // Check user is admin
             checkIsAdmin("Cannot access to trash");
@@ -565,6 +567,8 @@ public class DataGraphQLService {
             // Call the trash service
             return trashService.count(ObservedLocation.class.getSimpleName());
         }
+
+        filter = fillRootDataFilter(filter, ObservedLocationFilterVO.class);
 
         return observedLocationService.count(filter);
     }
@@ -1433,52 +1437,47 @@ public class DataGraphQLService {
                 .build();
     }
 
-    protected TripFilterVO fillTripFilterDefaults(TripFilterVO filter) {
-        TripFilterVO result = filter != null ? filter : new TripFilterVO();
+    /**
+     * Restrict to self data and/or department data
+     * @param filter
+     */
+    protected <F extends IRootDataFilter> F fillRootDataFilter(F filter, Class<F> filterClass) {
+        try {
+            filter = filter != null ? filter : filterClass.newInstance();
+        }
+        catch (InstantiationException | IllegalAccessException e) {
+            log.error("Cannot create filter instance: {}", e.getMessage(), e);
+        }
 
         // Restrict to self data and/or department data
         PersonVO user = authService.getAuthenticatedUser().orElse(null);
         if (user != null) {
-            if (!canAccessNotSelfData()) {
-                result.setRecorderPersonId(user.getId());
+            if (!canUserAccessNotSelfData()) {
+                // Limit data access to self data
+                filter.setRecorderPersonId(user.getId());
             }
-            if (!canAccessNotSelfDepartmentData(user)) {
-                result.setRecorderDepartmentId(user.getDepartment().getId());
-            }
-        } else {
-            result.setRecorderPersonId(-999); // Hide all. Should never occur
-        }
-
-        return result;
-    }
-
-    protected ObservedLocationFilterVO fillObserveLocationFilterDefaults(ObservedLocationFilterVO filter) {
-        ObservedLocationFilterVO result = filter != null ? filter : new ObservedLocationFilterVO();
-
-        // Restrict to self data and/or department data
-        PersonVO user = authService.getAuthenticatedUser().orElse(null);
-        if (user != null) {
-            if (!canAccessNotSelfData()) {
-                result.setRecorderPersonId(user.getId());
-            }
-            if (!canAccessNotSelfDepartmentData(user)) {
-                result.setRecorderDepartmentId(user.getDepartment().getId());
+            else {
+                Integer depId = user.getDepartment().getId();
+                if (!canDepartmentAccessNotSelfData(depId)) {
+                    // Limit data access to user's department
+                    filter.setRecorderDepartmentId(depId);
+                }
             }
         } else {
-            result.setRecorderPersonId(-999); // Hide all. Should never occur
+            filter.setRecorderPersonId(-999); // Hide all. Should never occur
         }
 
-        return result;
+        return filter;
     }
 
-    protected boolean canAccessNotSelfData() {
-        String minRole = config.getAuthRoleForNotSelfData();
+    protected boolean canUserAccessNotSelfData() {
+        String minRole = config.getAccessNotSelfDataMinRole();
         return StringUtils.isBlank(minRole) || authService.hasAuthority(minRole);
     }
 
-    protected boolean canAccessNotSelfDepartmentData(PersonVO user) {
-        int supervisorDepartment = config.getSupervisorDepartment();
-        return supervisorDepartment == 0 || supervisorDepartment == user.getDepartment().getId();
+    protected boolean canDepartmentAccessNotSelfData(@NonNull Integer actualDepartmentId) {
+        List<Integer> expectedDepartmentIds = config.getAccessNotSelfDataDepartmentIds();
+        return CollectionUtils.isEmpty(expectedDepartmentIds) || expectedDepartmentIds.contains(actualDepartmentId);
     }
 
     /**

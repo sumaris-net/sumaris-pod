@@ -67,17 +67,17 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
     @Autowired
     protected IAuthService<PersonVO> authService;
 
-    private String minRoleForNotSelfDataAccess;
+    private String accessNotSelfExtractionMinRole;
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
-        this.minRoleForNotSelfDataAccess = configuration.getApplicationConfig().getOption(ExtractionWebConfigurationOption.AUTH_ROLE_NOT_SELF_EXTRACTION_ACCESS.getKey());
+        this.accessNotSelfExtractionMinRole = configuration.getApplicationConfig().getOption(ExtractionWebConfigurationOption.ACCESS_NOT_SELF_EXTRACTION_MIN_ROLE.getKey());
     }
 
     @Override
     public boolean canReadAll() {
-        return (StringUtils.isNotBlank(minRoleForNotSelfDataAccess)
-                && authService.hasAuthority(minRoleForNotSelfDataAccess))
+        return (StringUtils.isNotBlank(accessNotSelfExtractionMinRole)
+                && authService.hasAuthority(accessNotSelfExtractionMinRole))
                 || authService.isAdmin();
     }
 

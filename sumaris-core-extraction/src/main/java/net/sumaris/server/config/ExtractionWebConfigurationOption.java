@@ -36,9 +36,9 @@ public enum ExtractionWebConfigurationOption implements ConfigOptionDef {
             String.class,
             false),
 
-    AUTH_ROLE_NOT_SELF_EXTRACTION_ACCESS(
-            "sumaris.auth.notSelfExtractionAccess.role",
-            n("sumaris.config.option.auth.allExtractionTypeAccess.role.description"),
+    ACCESS_NOT_SELF_EXTRACTION_MIN_ROLE(
+            "sumaris.extraction.accessNotSelfExtraction.role",
+            n("sumaris.config.option.extraction.accessNotSelfExtraction.role.description"),
             "ROLE_ADMIN", // Possible values: ROLE_GUEST, ROLE_USER, ROLE_SUPERVISOR, ROLE_ADMIN
             String.class,
             false),

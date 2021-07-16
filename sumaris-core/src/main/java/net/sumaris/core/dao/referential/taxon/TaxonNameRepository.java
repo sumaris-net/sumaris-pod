@@ -40,4 +40,6 @@ public interface TaxonNameRepository extends
 
     List<TaxonName> getAllTaxonNameByParentIdInAndIsReferentTrue(Collection<Integer> parentIds);
 
+    Long countByFilter(TaxonNameFilterVO filter);
+
 }

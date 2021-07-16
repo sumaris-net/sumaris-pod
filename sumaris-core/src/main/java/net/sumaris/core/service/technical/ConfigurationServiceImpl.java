@@ -126,7 +126,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
             else {
                 // Update the config, from the software properties
-                updateConfigFromSoftwareProperties();
+                applySoftwareProperties();
 
                 // Publish ready event
                 if (event instanceof SchemaReadyEvent) {
@@ -161,7 +161,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             ready = false;
 
             // Update the config, from the software properties
-            updateConfigFromSoftwareProperties();
+            applySoftwareProperties();
+
+            // Clean config cache
+            configuration.cleanCache();
 
             // Publish update event
             publisher.publishEvent(new ConfigurationUpdatedEvent(configuration));
@@ -189,7 +192,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
-    public void updateConfigFromSoftwareProperties() {
+    public void applySoftwareProperties() {
 
         boolean newDatabase = false;
 
