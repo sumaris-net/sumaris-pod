@@ -1417,7 +1417,8 @@
         "STRATEGY_HAS_REALIZED_EFFORT": "Sampling scheme {{label}} used by observed locations",
         "STRATEGIES_HAS_REALIZED_EFFORT": "Sampling schemes {{label}} used by observed locations",
         "PMFM.PMFM_OR_PARAMETER": "Please select a PMFM or Parameter",
-        "CANNOT_COMPUTE_TAXON_CODE": "Taxon name is invalid"
+        "CANNOT_COMPUTE_TAXON_CODE": "Taxon name is invalid",
+        "NOT_UNIQUE_TAXON_CODE": "Generate taxon code is not unique"
       }
     },
     "ERROR": {

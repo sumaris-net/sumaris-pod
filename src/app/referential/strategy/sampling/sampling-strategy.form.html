@@ -175,8 +175,10 @@
       <ion-col *ngIf="taxonNameForm.touched && taxonNameForm.invalid"
                size="12" size-md="10" offset-md="2" size-lg="9" offset-lg="3"
                class="mat-form-field-errors">
-        <mat-error *ngIf="taxonNameForm.hasError('cannotComputeTaxonCode')"
-                   translate>PROGRAM.STRATEGY.ERROR.CANNOT_COMPUTE_TAXON_CODE</mat-error>
+        <mat-hint *ngIf="taxonNameForm.hasError('cannotComputeTaxonCode')"
+                   translate>PROGRAM.STRATEGY.ERROR.CANNOT_COMPUTE_TAXON_CODE</mat-hint>
+        <mat-hint *ngIf="taxonNameForm.hasError('uniqueTaxonCode')"
+                   translate>PROGRAM.STRATEGY.ERROR.NOT_UNIQUE_TAXON_CODE</mat-hint>
       </ion-col>
 
     </ion-row>
