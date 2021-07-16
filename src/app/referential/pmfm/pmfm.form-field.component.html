@@ -152,10 +152,10 @@
            (keypress)="filterAlphanumericalInput($event)"
            (keyup.enter)="onPressEnter.emit($event)">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-    <mat-error *ngIf="formControl.errors['maxlength']; let errorContent">
-      {{ (compact ? 'ERROR.FIELD_MAX_LENGTH_COMPACT' : 'ERROR.FIELD_MAX_LENGTH') |translate:errorContent }}</mat-error>
-    <mat-error *ngIf="formControl.errors['minlength']; let errorContent">
-      {{ (compact ? 'ERROR.FIELD_MIN_LENGTH_COMPACT' : 'ERROR.FIELD_MIN_LENGTH') |translate:errorContent }}</mat-error>
+    <mat-error *ngIf="formControl.hasError('maxlength')">
+      {{ (compact ? 'ERROR.FIELD_MAX_LENGTH_COMPACT' : 'ERROR.FIELD_MAX_LENGTH') |translate:formControl.errors['maxlength'] }}</mat-error>
+    <mat-error *ngIf="formControl.hasError('minlength')">
+      {{ (compact ? 'ERROR.FIELD_MIN_LENGTH_COMPACT' : 'ERROR.FIELD_MIN_LENGTH') |translate:formControl.errors['minlength'] }}</mat-error>
 
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
