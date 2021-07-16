@@ -10,7 +10,7 @@ import {
   EntityUtils,
   firstArrayValue,
   firstNotNilPromise,
-  FormArrayHelper,
+  FormArrayHelper, FormErrors,
   fromDateISOString,
   IReferentialRef,
   isEmptyArray,
@@ -43,6 +43,7 @@ import {BehaviorSubject, merge} from 'rxjs';
 import {SamplingStrategyService} from '../../services/sampling-strategy.service';
 import {PmfmFilter, PmfmService} from '../../services/pmfm.service';
 import {SamplingStrategy, StrategyEffort} from '@app/referential/services/model/sampling-strategy.model';
+import {TaxonName} from '@app/referential/services/model/taxon-name.model';
 
 const moment = momentImported;
 
@@ -309,9 +310,28 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     const idControl = this.form.get('id');
     this.form.get('label').setAsyncValidators([
-      async (control) => {
-        console.debug('[sampling-strategy-form] Checking of label is unique...');
-        const exists = await this.strategyService.existsByLabel(control.value, {
+    async (control) => {
+      const label = control.value;
+      const parts = label.split(" ");
+      if (parts.some(str => str.indexOf("_") !== -1)) {
+        return <ValidationErrors>{ required: true };
+      }
+      if (label.includes('000')) {
+        return <ValidationErrors>{ zero: true };
+      }
+      /*
+      if (control.hasError('cannotComputeTaxonCode') || control.hasError('uniqueTaxonCode')) {
+        const labelRegex = new RegExp(/\d\d [A-Z][A-Z][A-Z][A-Z][A-Z][A-Z][A-Z]/);
+        if (labelRegex.test(label)) {
+          SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
+          SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
+          const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, label.slice(10), 3));
+          control.setValue(computedLabel);
+        }
+      }
+       */
+      console.debug('[sampling-strategy-form] Checking of label is unique...');
+        const exists = await this.strategyService.existsByLabel(label, {
           programId: this.program && this.program.id,
           excludedIds: isNotNil(idControl.value) ? [idControl.value] : undefined,
           fetchPolicy: 'network-only' // Force to check remotely
@@ -319,9 +339,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         if (exists) {
           console.warn('[sampling-strategy-form] Label not unique!');
           return <ValidationErrors>{ unique: true };
-        }
-        if (control.value.includes('000')) {
-          return <ValidationErrors>{ zero: true };
         }
 
         console.debug('[sampling-strategy-form] Checking of label is unique [OK]');
@@ -876,11 +893,28 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   protected async onEditLabel(value: string) {
-    const labelRegex = new RegExp(/\d\d [A-Z][A-Z][A-Z][A-Z][A-Z][A-Z][A-Z] \d\d\d/);
-    if (labelRegex.test(value)) {
-      SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
+    const labelControl = this.form.get('label');
+    const taxonNameControl = this.taxonNamesHelper.at(0);
+    if (taxonNameControl.hasError('cannotComputeTaxonCode') || taxonNameControl.hasError('uniqueTaxonCode')) {
+      const labelRegex = new RegExp(/^\d\d [A-Z][A-Z][A-Z][A-Z][A-Z][A-Z][A-Z]/);
+      if (value.match(labelRegex)) {
+        const isUnique = (await this.referentialRefService.countAll({
+          entityName: TaxonName.ENTITY_NAME,
+          searchText: TaxonUtils.generateNameSearchPatternFromLabel(value.substring(3, 10)),
+          searchAttribute: 'name',
+          statusIds: [StatusIds.ENABLE],
+          levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
+        })) === 0;
+        if (!isUnique) {
+          taxonNameControl.setErrors({ uniqueTaxonCode: true });
+        } else {
+          SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
+          SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
+          const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10), 3));
+          labelControl.setValue(computedLabel);
+        }
+      }
     }
-    return;
   }
 
   protected async onDateChange(date?: Moment) {
@@ -900,19 +934,29 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   protected async generateLabel(finalMaskYear: any) {
     let finalMaskTaxonName;
-    let taxonError = false;
+    let errors: ValidationErrors;
     const taxonNameControl = this.taxonNamesHelper.at(0);
-    const taxonName = taxonNameControl?.value?.taxonName?.name;
+    const taxonName = taxonNameControl?.value?.taxonName;
 
-    if (taxonName) {
-      if (TaxonUtils.generateLabel(taxonName)) {
-        finalMaskTaxonName = [...TaxonUtils.generateLabel(taxonName)];
-      } else {
-        taxonError = true;
-        finalMaskTaxonName = [/\S/, /\S/, /\S/, /\S/, /\S/, /\S/, /\S/];
-      }
+    const label = taxonName && TaxonUtils.generateLabelFromName(taxonName.name);
+    const isUnique = label && (await this.referentialRefService.countAll({
+      entityName: TaxonName.ENTITY_NAME,
+      searchText: TaxonUtils.generateNameSearchPatternFromLabel(label),
+      searchAttribute: 'name',
+      excludedIds: [taxonName.id],
+      statusIds: [StatusIds.ENABLE],
+      levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
+    })) === 0;
+    if (!label) {
+      errors = { cannotComputeTaxonCode: true };
+    } else if (!isUnique) {
+      errors = { uniqueTaxonCode: true };
     } else {
-      finalMaskTaxonName = ["X", "X", "X", "X", "X", "X", "X"];
+      finalMaskTaxonName = [...label];
+    }
+
+    if (errors) {
+      finalMaskTaxonName = [/^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/];
     }
 
     let labelMaskArray = finalMaskYear.split("");
@@ -926,17 +970,18 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     const labelControl = this.form.get('label');
 
-    if (taxonError && taxonNameControl) {
-      taxonNameControl.setErrors(<ValidationErrors>{ cannotComputeTaxonCode: true });
-      const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear} XXXXXXX`, 3));
+    if (errors && taxonNameControl) {
+      // Lorsque l'on saisi une espece valide, puis une espece non valide le code ligne de plan garde la valeur de l'espece precedente valide
+      // Il faut saisir une deuxieme fois une espece invalide pour que le code ligne de plan prenne la valeur attendue
+      const computedLabel = `${finalMaskYear} _______`;
       labelControl.setValue(computedLabel);
-      return;
+      taxonNameControl.setErrors(errors);
+    } else {
+      const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear} ${finalMaskTaxonNameString}`, 3));
+      SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
+      console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
+      labelControl.setValue(computedLabel);
     }
-
-    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear} ${finalMaskTaxonNameString}`, 3));
-    SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
-    console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
-    labelControl.setValue(computedLabel);
   }
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------
