@@ -17,7 +17,6 @@
     "BTN_DELETE_FOREVER": "Supprimer définitivement",
     "BTN_EDIT": "Modifier",
     "BTN_EXPAND": "Déplier",
-    "BTN_UNDO": "Annuler les modifications",
     "BTN_FREEZE_VALUE": "Figer",
     "BTN_FREEZE_VALUE_HELP": "Figer la valeur",
     "BTN_YES_DELETE": "Oui, supprimer",
@@ -710,7 +709,7 @@
         "SEX": "Sexe",
         "AGE": "Age",
         "OTHER": "Autre",
-        "TOTAL_DOTS": "Total : ",
+        "TOTAL_DOTS": "Total :",
         "TAG_COUNT": "<b>{{tagCount}}</b> prélèvement(s)",
         "SAMPLING": {
           "TAXON_GROUP": "Espèce commerciale (FAO)",

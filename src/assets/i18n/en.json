@@ -101,6 +101,7 @@
     "RECORDER": "Recorder",
     "RESULT_COUNT": "{{count}} results",
     "NO_RESULT": "No result",
+    "NO_DATA": "No data",
     "MISSING": "Missing",
 
     "DISPLAYED_COLUMNS": "Displayed columns",
@@ -190,8 +191,8 @@
         "TAXONOMIC_LEVEL_SPECIES_ID": "Referential > Taxonomic level > Species",
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Referential > Taxonomic level > Subspecies",
         "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Strategy label",
-        "PMFM_AGE_ID": "Referential > PMFM > Age",
         "PMFM_TAG_ID": "Référentiel > PSFM > Sample tag",
+        "PMFM_AGE_ID": "Referential > PMFM > Age",
         "PMFM_SEX_ID": "Referential > PMFM > Sex",
         "STRATEGY_PARAMETER_AGE_LABEL": "Strategy > Parameter > Age label",
         "STRATEGY_PARAMETER_SEX_LABEL": "Strategy > Parameter > Sex label",
@@ -463,7 +464,8 @@
         "VESSEL": "Vessel",
         "SYNCHRONIZATION_STATUS": "Status",
         "RECORDER_DEPARTMENT": "Recorder department",
-        "RECORDER_PERSON": "Recorder user"
+        "RECORDER_PERSON": "Recorder user",
+        "OBSERVERS": "Observers"
       },
       "SYNCHRONIZATION_STATUS": {
         "DIRTY_HELP": "Not-synchronized trips",
@@ -706,7 +708,9 @@
         "MATURITY": "Maturity",
         "SEX": "Sex",
         "AGE": "Age",
-        "OTHER": "Other"
+        "OTHER": "Other",
+        "TOTAL_DOTS": "Total:",
+        "TAG_COUNT": "<b>{{tagCount}}</b> sample(s)"
       },
       "ERROR" : {
         "PARAMETERS.WEIGHT_OR_LENGTH": "Weight or length mandatory"
