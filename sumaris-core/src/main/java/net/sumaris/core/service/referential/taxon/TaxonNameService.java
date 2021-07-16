@@ -47,5 +47,8 @@ public interface TaxonNameService {
     @Transactional(readOnly = true)
     List<TaxonNameVO> getAllByTaxonGroupId(Integer taxonGroupId);
 
+    @Transactional(readOnly = true)
+    Long countByFilter(TaxonNameFilterVO filter);
+
     TaxonNameVO save(TaxonNameVO taxonName);
 }

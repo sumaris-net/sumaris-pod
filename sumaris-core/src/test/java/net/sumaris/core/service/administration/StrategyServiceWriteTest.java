@@ -130,7 +130,7 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
 
     @Test
     public void z_delete() {
-        service.delete(30);
+        service.delete(32);
     }
 
 }

@@ -35,6 +35,7 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,10 +43,11 @@ import java.io.IOException;
 /**
  * @author peck7 on 17/12/2018.
  */
-public class ExtractionServiceTest extends AbstractServiceTest {
+@ActiveProfiles("pgsql")
+public class ExtractionServicePgsqlTest extends AbstractServiceTest {
 
     @ClassRule
-    public static final DatabaseResource dbResource = DatabaseResource.writeDb();
+    public static final DatabaseResource dbResource = DatabaseResource.writeDb("pgsql");
 
     @Autowired
     private ExtractionService service;
@@ -90,23 +92,23 @@ public class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
 
         // ENGINS.csv
-        File gearFile = new File(root, Free2Specification.GEAR_SHEET_NAME+".csv");
+        File gearFile = new File(root, Free2Specification.GEAR_SHEET_NAME + ".csv");
         Assert.assertTrue(countLineInCsvFile(gearFile) > 1);
     }
 
     @Test
-    public void exportSurvivalTestFormat() throws IOException  {
+    public void exportSurvivalTestFormat() throws IOException {
 
         // Test Survival test format
         File outputFile = service.executeAndDumpTrips(LiveFormatEnum.SURVIVAL_TEST, null);
         File root = unpack(outputFile, LiveFormatEnum.SURVIVAL_TEST);
 
         // RL (release)
-        File releaseFile = new File(root, SurvivalTestSpecification.RL_SHEET_NAME+".csv");
+        File releaseFile = new File(root, SurvivalTestSpecification.RL_SHEET_NAME + ".csv");
         Assert.assertTrue(countLineInCsvFile(releaseFile) > 1);
 
         // ST (Survival test)
-        File stFile = new File(root, SurvivalTestSpecification.ST_SHEET_NAME+".csv");
+        File stFile = new File(root, SurvivalTestSpecification.ST_SHEET_NAME + ".csv");
         Assert.assertTrue(countLineInCsvFile(stFile) > 1);
     }
 
