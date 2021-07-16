@@ -506,6 +506,14 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return row;
   }
 
+  duplicateRow(event?: Event, row?: TableElement<T>, opts?: {
+    skipProperties?: string[];
+  }): Promise<boolean> {
+    const skipProperties = opts && opts.skipProperties
+      || ['id', 'rankOrder', 'updateDate', 'creationDate', 'label'].concat(this.hasRankOrder ? ['rankOrder'] : []);
+    return super.duplicateRow(event, row, {...opts, skipProperties});
+  }
+
   protected getI18nColumnName(columnName: string): string {
 
     // Try to resolve PMFM column, using the cached pmfm list

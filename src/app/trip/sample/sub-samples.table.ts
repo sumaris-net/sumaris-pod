@@ -80,7 +80,8 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       new InMemoryEntitiesService(Sample, SampleFilter, {
         onSort: (data, sortBy, sortDirection) => this.sortData(data, sortBy, sortDirection),
         onLoad: (data) => this.onLoadData(data),
-        equals: Sample.equals
+        equals: Sample.equals,
+        sortByReplacement: {'id': 'rankOrder'}
       }),
       injector.get(ValidatorService),
       {
@@ -223,6 +224,9 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   protected linkDataToParent(data: Sample[]) {
     if (!this._availableParents || !data) return;
+
+    // DEBUG
+    //console.debug("[sub-samples-table] Calling linkDataToParent()");
 
     data.forEach(s => {
       s.parent = this._availableParents.find(p => Sample.equals(p, {

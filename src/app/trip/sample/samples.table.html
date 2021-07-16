@@ -14,15 +14,23 @@
             [title]="'COMMON.BTN_REFRESH'|translate"
             (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
-  </button>
+    </button>
+
   </ng-container>
 
   <ng-template #hasSelection>
     <!-- Delete button -->
-    <button mat-icon-button color="light" *ngIf="selection.hasValue() && enabled"
+    <button mat-icon-button color="light" *ngIf="enabled"
             [title]="'COMMON.BTN_DELETE'|translate"
             (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>
+    </button>
+
+    <!-- Duplicate (debug only) -->
+    <button mat-icon-button color="light" *ngIf="debug && selection.selected | isArrayLength: {equals: 1}"
+            [title]="'COMMON.BTN_DUPLICATE'|translate"
+            (click)="duplicateRow($event, selection.selected[0])">
+      <mat-icon>file_copy</mat-icon>
     </button>
   </ng-template>
 
