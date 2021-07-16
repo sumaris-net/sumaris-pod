@@ -64,6 +64,7 @@
      [class.mobile]="mobile"
      [class.has-toolbar]="showToolbar"
      [class.has-group-header]="showGroupHeader"
+     [class.has-pmfm-header-details]="showPmfmDetails"
      *ngIf="$pmfms | async; let pmfms" [style.--pmfm-count]="pmfms?.length">
 
   <!-- writable table -->
@@ -76,14 +77,14 @@
          [trackBy]="trackByFn">
 
     <!-- Group header: start -->
-    <ng-container matColumnDef="top-actions" [sticky]="useSticky">
+    <ng-container matColumnDef="top-start" [sticky]="useSticky">
       <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupHeaderStartColSpan">
 
       </th>
     </ng-container>
 
     <!-- Group header: pmfm group columns -->
-    <ng-container *ngFor="let item of $pmfmGroupColumns | async">
+    <ng-container *ngFor="let item of pmfmGroupColumns$ | async">
       <ng-container [matColumnDef]="item.key">
         <th mat-header-cell *matHeaderCellDef
             class="mat-column-pmfm-group mat-cell-content-start-padding"
@@ -97,14 +98,15 @@
     <!-- Group header: end spacer -->
     <ng-container matColumnDef="top-end">
       <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupHeaderEndColSpan">
-        <button mat-icon-button
+        <button mat-icon-button class="ion-float-end"
                 *ngIf="!mobile && !selection.hasValue()"
                 [disabled]="disabled"
                 [title]="'COMMON.BTN_ADD_ROW'|translate"
                 (click)="addRow()">
           <mat-icon>add</mat-icon>
         </button>
-        <button mat-icon-button color="light" *ngIf="selection.hasValue() && enabled"
+        <button mat-icon-button class="ion-float-end"
+                color="light" *ngIf="selection.hasValue() && enabled"
                 [title]="'COMMON.BTN_DELETE'|translate"
                 (click)="deleteSelection($event)">
           <mat-icon>delete</mat-icon>
@@ -125,6 +127,7 @@
                       [checked]="selection.isSelected(row)">
         </mat-checkbox>
       </td>
+      <td mat-footer-cell *matFooterCellDef></td>
     </ng-container>
 
     <!-- rankOrder Column = id -->
@@ -133,10 +136,12 @@
         <ion-label>#</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        {{ row.currentData?.rankOrder }}
-        <ng-container *ngTemplateOutlet="rowErrorTemplate; context: { $implicit: row  }">
+        <span>{{ row.currentData?.rankOrder }}</span>
+        <ng-container *ngIf="row.validator.invalid && getRowError(row, {recursive: false}); let error">
+          <mat-icon color="warn" [title]="error|translate">error</mat-icon>
         </ng-container>
       </td>
+      <td mat-footer-cell *matFooterCellDef></td>
     </ng-container>
 
     <!-- Label column -->
@@ -144,7 +149,7 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>{{i18nColumnPrefix + 'LABEL' | translate}}</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row">
+      <td mat-cell *matCellDef="let row" (click)="focusColumn='label'">
         <mat-form-field floatLabel="never">
           <input matInput autocomplete="off"
                  [appAutofocus]="row.editing && focusColumn === 'label'"
@@ -158,6 +163,7 @@
           </mat-error>
         </mat-form-field>
       </td>
+      <td mat-footer-cell *matFooterCellDef></td>
     </ng-container>
 
     <!-- Taxon group  -->
@@ -165,7 +171,7 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label translate>TRIP.SAMPLE.TABLE.TAXON_GROUP</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row">
+      <td mat-cell *matCellDef="let row" (click)="focusColumn='taxonGroup'">
         <mat-autocomplete-field floatLabel="never" class="min-width-medium"
                                 [appAutofocus]="row.editing && focusColumn === 'taxonGroup'"
                                 [formControl]="row.validator.controls.taxonGroup"
@@ -174,6 +180,7 @@
                                 [config]="autocompleteFields.taxonGroup">
         </mat-autocomplete-field>
       </td>
+      <td mat-footer-cell *matFooterCellDef></td>
     </ng-container>
 
     <!-- Taxon name -->
@@ -181,7 +188,7 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label translate>TRIP.SAMPLE.TABLE.TAXON_NAME</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row">
+      <td mat-cell *matCellDef="let row" (click)="focusColumn='taxonName'">
         <mat-autocomplete-field floatLabel="never" class="min-width-medium"
                                 [appAutofocus]="row.editing && focusColumn === 'taxonName'"
                                 [formControl]="row.validator.controls.taxonName"
@@ -190,6 +197,7 @@
                                 [config]="autocompleteFields.taxonName">
         </mat-autocomplete-field>
       </td>
+      <td mat-footer-cell *matFooterCellDef></td>
     </ng-container>
 
     <!-- Date -->
@@ -200,36 +208,45 @@
       <td mat-cell *matCellDef="let row" class="mat-cell-date-time">
         <mat-date-time-field floatLabel="never"
                              [formControl]="row.validator.controls.sampleDate"
-                             [appAutofocus]="row.editing && focusColumn === 'sampleDate'"
+                             [autofocus]="row.editing && focusColumn === 'sampleDate'"
                              [placeholder]="i18nColumnPrefix + 'SAMPLE_DATE_PLACEHOLDER'|translate"
                              [compact]="compactFields" [readonly]="!row.editing" [required]="true"></mat-date-time-field>
       </td>
+      <td mat-footer-cell *matFooterCellDef></td>
     </ng-container>
 
     <!-- Pmfms columns -->
-    <ng-container *ngFor="let pmfm of pmfms; index as index" [matColumnDef]="''+(pmfm.id || index)">
+    <ng-container *ngFor="let pmfm of pmfms; index as index;" [matColumnDef]="(pmfm.id || index)|toString">
       <th mat-header-cell *matHeaderCellDef
           mat-sort-header
-          class="mat-column-pmfm"
+          class="mat-column-pmfm mat-column-{{pmfm.label}}"
           [class.mat-cell-date-time]="pmfm|isDatePmfm"
           [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
           [class.mat-cell-content-start-padding]="showGroupHeader">
         <ion-label
           [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails, i18nPrefix: i18nColumnPrefix, i18nContext: i18nColumnSuffix}"></ion-label>
       </th>
-      <td mat-cell *matCellDef="let row"
-          class="mat-column-pmfm"
+      <td mat-cell *matCellDef="let row" (click)="focusColumn=(pmfm.id || index)"
+          class="mat-column-pmfm mat-column-{{pmfm.label}}"
           [class.mat-cell-date-time]="pmfm|isDatePmfm"
           [class.mat-cell-computed]="pmfm|isComputedPmfm"
           [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
           [class.mat-cell-content-start-padding]="showGroupHeader">
-        <app-pmfm-field
-          [readonly]="!row.editing"
-          [pmfm]="pmfm"
-          [formControl]="row.validator.controls.measurementValues.controls[pmfm.id]"
-          [appAutofocus]="row.editing && focusColumn === pmfm.id?.toString()"
-          [compact]="compactFields" floatLabel="never"></app-pmfm-field>
+
+        <!-- readonly value-->
+        <ion-label *ngIf="!row.editing; else writablePmfmField"
+        [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></ion-label>
+
+        <ng-template #writablePmfmField>
+          <app-pmfm-field
+            [readonly]="!row.editing"
+            [pmfm]="pmfm"
+            [formControl]="row.validator.controls.measurementValues.controls[pmfm.id]"
+            [autofocus]="row.editing && focusColumn == (pmfm.id || index)"
+            [compact]="compactFields" floatLabel="never"></app-pmfm-field>
+        </ng-template>
       </td>
+      <td mat-footer-cell *matFooterCellDef></td>
     </ng-container>
 
     <!-- Comment column -->
@@ -237,10 +254,13 @@
       <th mat-header-cell *matHeaderCellDef>
         &nbsp;
       </th>
-      <td mat-cell *matCellDef="let row">
+      <td mat-cell *matCellDef="let row"
+          class="mat-cell-content-start-padding"
+          (click)="focusColumn='comments'">
         <mat-form-field *ngIf="row.editing; else readonlyComment"
                         floatLabel="never">
-          <input matInput [formControl]="row.validator.controls.comments"
+          <input matInput
+                 [formControl]="row.validator.controls.comments"
                  [placeholder]="i18nColumnPrefix + 'COMMENTS_PLACEHOLDER'|translate"
                  [appAutofocus]="focusColumn === 'comments'">
         </mat-form-field>
@@ -250,33 +270,67 @@
                     class="comment"></mat-icon>
         </ng-template>
       </td>
+      <td mat-footer-cell *matFooterCellDef></td>
     </ng-container>
 
+
     <!-- Row actions buttons -->
-    <app-actions-column [stickyEnd]="useSticky" [canCancel]="false"
+    <app-actions-column [stickyEnd]="useSticky"
                         (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
                         (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
                         (backward)="confirmAndBackward($event.event, $event.row)"
-                        (forward)="confirmAndForward($event.event, $event.row)">
+                        (forward)="confirmAndForward($event.event, $event.row)"
+                        [canCancel]="false">
       <!-- display columns -->
       <button mat-icon-button matHeader
               [title]="'COMMON.DISPLAYED_COLUMNS_DOTS'|translate"
               [matMenuTriggerFor]="optionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
+
     </app-actions-column>
 
+
+    <!-- *** FOOTER *** -->
+
+    <!-- footer start -->
+    <ng-container matColumnDef="footer-start" [sticky]="useSticky">
+      <td mat-footer-cell *matFooterCellDef [attr.colspan]="2"
+        class="ion-text-end">
+        <ion-text color="primary"><b translate>TRIP.SAMPLE.TABLE.TOTAL_DOTS</b>&nbsp;</ion-text>
+      </td>
+    </ng-container>
+
+    <!-- Tag count footer -->
+    <ng-container matColumnDef="footer-tagCount">
+      <td mat-footer-cell *matFooterCellDef [attr.colspan]="displayedColumns.length - 2"
+          class="mat-cell-content-start-padding">
+        <ion-text color="primary" class="text-italic"
+                  [innerHTML]="'TRIP.SAMPLE.TABLE.TAG_COUNT'|translate: {tagCount: (tagCount$|async)}"></ion-text>
+      </td>
+    </ng-container>
+
+    <!-- first header -->
     <ng-container *ngIf="showGroupHeader">
       <tr mat-header-row *matHeaderRowDef="groupHeaderColumnNames; sticky: true"
           class="first-header-row"></tr>
     </ng-container>
+    <!-- second header -->
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true" class="second-header-row"></tr>
+    <!-- data rows -->
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"
         [class.mat-row-error]="row.validator?.invalid"
         [class.mat-row-dirty]="row.validator?.dirty"
         [class.mat-row-disabled]="!row.editing"
-        (click)="clickRow($event, row)">
+        (click)="clickRow($event, row)"
+        (keydown.escape)="escapeEditingRow($event)"
+        [cdkTrapFocus]="row.editing && row.validator.invalid">
     </tr>
+    <!-- footer -->
+    <ng-container *ngIf="showFooter">
+      <tr mat-footer-row *matFooterRowDef="footerColumns;"
+          [class.cdk-visibility-hidden]="!totalRowCount"></tr>
+    </ng-container>
   </table>
 
   <!-- readonly table (e.g. for mobile) -->
@@ -295,7 +349,7 @@
       </ng-container>
 
       <!-- Group header: pmfm group columns -->
-      <ng-container *ngFor="let item of $pmfmGroupColumns | async">
+      <ng-container *ngFor="let item of pmfmGroupColumns$ | async">
         <ng-container [matColumnDef]="item.key">
           <th mat-header-cell *matHeaderCellDef
               class="mat-column-pmfm-group"
@@ -386,7 +440,7 @@
       </ng-container>
 
       <!-- Pmfms columns -->
-      <ng-container *ngFor="let pmfm of pmfms; index as index" [matColumnDef]="pmfm.id||index">
+      <ng-container *ngFor="let pmfm of pmfms; index as index" [matColumnDef]="(pmfm.id || index)|toString">
         <th mat-header-cell *matHeaderCellDef mat-sort-header
             class="mat-column-pmfm"
             [class.mat-cell-date-time]="pmfm|isDatePmfm"
@@ -394,12 +448,13 @@
           <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails}"></ion-label>
         </th>
         <td mat-cell *matCellDef="let row"
-            class="mat-column-pmfm"
+            class="mat-column-pmfm mat-cell-content-start-padding"
             [class.mat-cell-date-time]="pmfm|isDatePmfm"
             [class.mat-cell-computed]="pmfm|isComputedPmfm"
-            [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0">
-          <!-- TODO BLA: manage color [style.mat-cell-danger]="pmfm.id === "-->
-          <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, html: true, propertyNames: ['label'] }"></ion-text>
+            [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
+            [style.background-color]="getPmfmValueColor(row.currentData.measurementValues[pmfm.id], pmfm)">
+          <!-- TODO BLA: manage color -->
+          <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></ion-text>
         </td>
       </ng-container>
 
@@ -427,7 +482,7 @@
           class="first-header-row"
           [class.cdk-visually-hidden]="!showGroupHeader"></tr>
       <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true;"
-                      class="second-header-row"></tr>
+          class="second-header-row"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"
                class="mat-row-disabled"
                [class.mat-row-dirty]="!row.currentData.id"

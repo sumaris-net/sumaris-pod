@@ -84,30 +84,19 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   displayWith: (obj: ReferentialRef | any) => string;
 
   @Input() pmfm: IPmfm;
-
   @Input() formControl: FormControl;
-
   @Input() formControlName: string;
-
   @Input() placeholder: string;
-
   @Input() floatLabel: FloatLabelType = "auto";
-
   @Input() required: boolean;
-
   @Input() readonly = false;
-
   @Input() compact = false;
-
   @Input() clearable = false;
-
   @Input() style: 'autocomplete' | 'select' | 'button';
-
   @Input() searchAttributes: string[];
-
   @Input() sortAttribute: string;
-
   @Input() maxVisibleButtons: number;
+  @Input() autofocus: boolean;
 
   @Input() set tabindex(value: number) {
     this._tabindex = value;

@@ -826,7 +826,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     await this.lengthPmfmStrategiesTable.save();
 
     let pmfmStrategies: any[] = [
+      // Add tag id Pmfm
+      <PmfmStrategy>{ pmfm: { id: PmfmIds.TAG_ID } },
+      // Add weights Pmfm
       ...this.weightPmfmStrategiesTable.value,
+      // Add length Pmfm
       ...this.lengthPmfmStrategiesTable.value
     ];
 
@@ -851,10 +855,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         .filter(isNotNil)
         .forEach(pmfm => pmfmStrategies.push(pmfm));
     }
-
-    // Add analytic reference Pmfm
-    pmfmStrategies.push(<PmfmStrategy>{ pmfm: { id: PmfmIds.SAMPLE_ID } });
-
 
     // Fill PmfmStrategy defaults
     let rankOrder = 1;
@@ -891,10 +891,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return await this.generateLabel(finalMaskYear);
   }
 
-  protected async onTaxonChange() {
-    if (!this.program) return; // Skip if program is missing
+  protected async onTaxonChange(date?: Moment) {
+    date = fromDateISOString(date || this.form.get('year').value);
+    if (!date || !this.program) return; // Skip if program is missing
 
-    const finalMaskYear = this.form.get('year').value.format('YY');
+    const finalMaskYear = date.format('YY');
     return await this.generateLabel(finalMaskYear);
   }
 

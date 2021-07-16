@@ -518,6 +518,16 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return super.getI18nColumnName(columnName);
   }
 
+  protected getI18nFieldName(fieldName: string): string {
+    if (fieldName.startsWith('measurementValues.')) {
+      const pmfmId = parseInt(fieldName.split('.')[1]);
+      const pmfm = (this.$pmfms.getValue() || []).find(p => p.id === pmfmId);
+      if (pmfm) return PmfmUtils.getPmfmName(pmfm);
+    }
+    return super.getI18nFieldName(fieldName);
+  }
+
+
   protected normalizeEntityToRow(data: T, row: TableElement<T>) {
     if (!data) return; // skip
 
