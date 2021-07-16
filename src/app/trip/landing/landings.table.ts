@@ -1,19 +1,19 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 
-import {isNotNil, referentialToString, StatusIds} from '@sumaris-net/ngx-components';
+import {isNotNil, StatusIds} from '@sumaris-net/ngx-components';
 import {LandingService} from '../services/landing.service';
 import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {AcquisitionLevelCodes, LocationLevelIds} from '../../referential/services/model/model.enum';
-import {VesselSnapshotService} from '../../referential/services/vessel-snapshot.service';
+import {AcquisitionLevelCodes, LocationLevelIds} from '@app/referential/services/model/model.enum';
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
 import {Moment} from 'moment';
 import {Trip} from '../services/model/trip.model';
 import {ObservedLocation} from '../services/model/observed-location.model';
 import {Landing} from '../services/model/landing.model';
-import {LandingEditor} from '../../referential/services/config/program.config';
-import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
-import {ReferentialRefService} from '../../referential/services/referential-ref.service';
-import {environment} from '../../../environments/environment';
+import {LandingEditor} from '@app/referential/services/config/program.config';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {environment} from '@environments/environment';
 import {LandingFilter} from '../services/filter/landing.filter';
 import {LandingValidatorService} from '@app/trip/services/validator/landing.validator';
 
@@ -27,9 +27,7 @@ const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
   templateUrl: 'landings.table.html',
   styleUrls: ['landings.table.scss'],
   providers: [
-    {provide: ValidatorService, useValue: LandingValidatorService}
-    // FIXME: LP restore useValue: null
-    // {provide: ValidatorService, useExisting: LandingValidatorService}
+    {provide: ValidatorService, useExisting: LandingValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -42,6 +40,8 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   protected cd: ChangeDetectorRef;
   protected vesselSnapshotService: VesselSnapshotService;
   protected referentialRefService: ReferentialRefService;
+
+  qualitativeValueAttributes: string[];
 
   @Output() onNewTrip = new EventEmitter<{ id?: number; row: TableElement<Landing> }>();
 
@@ -227,6 +227,10 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
       },
       mobile: this.mobile
     });
+
+    // Get attributes for qualitative values from settings
+    this.qualitativeValueAttributes = this.settings.getFieldDisplayAttributes('qualitativeValue', ['label', 'name']);
+
   }
 
   ngOnDestroy() {

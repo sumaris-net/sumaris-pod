@@ -217,6 +217,7 @@ type ExpectedSaleVO {
   measurementValues: Map_Integer_StringScalar
   "Get expected sale measurements"
   measurements: [MeasurementVO]
+  "Get expected sale's products"
   products: [ProductVO]
   saleDate: Date
   saleLocation: LocationVO
@@ -346,7 +347,6 @@ type LandingVO {
   qualificationDate: Date
   qualityFlagId: Int
   rankOrder: Int
-  rankOrderOnVessel: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
   "Get landing's samples"
@@ -1036,7 +1036,7 @@ type Query {
   "Get taxon name count"
   taxonNameCount(filter: TaxonNameFilterVOInput): Long
   "Search in taxon names"
-  taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonNameVO]
+  taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [TaxonNameVO]
   "Get trash content"
   trashEntities(entityName: String, offset: Int = 0, size: Int = 1000, sortBy: String = "updateDate", sortDirection: String = "desc"): [String]
   "Get trash file content"
@@ -1880,7 +1880,6 @@ input LandingVOInput {
   qualificationDate: Date
   qualityFlagId: Int
   rankOrder: Int
-  rankOrderOnVessel: Int
   recorderDepartment: DepartmentVOInput
   recorderPerson: PersonVOInput
   samples: [SampleVOInput]
@@ -1988,11 +1987,11 @@ input ObservedLocationFilterVOInput {
   endDate: Date
   locationId: Int
   locationIds: [Int]
+  observerPersonIds: [Int]
   programLabel: String
   recorderDepartmentId: Int
   recorderPersonId: Int
   startDate: Date
-  observerPersonIds: Int
 }
 
 input ObservedLocationSaveOptionsInput {

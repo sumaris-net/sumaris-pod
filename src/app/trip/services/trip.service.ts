@@ -1,5 +1,5 @@
 import {Injectable, Injector, Optional} from '@angular/core';
-import {FetchResult, gql} from '@apollo/client/core';
+import {gql} from '@apollo/client/core';
 import {filter, map} from 'rxjs/operators';
 import * as momentImported from 'moment';
 import {
@@ -9,7 +9,8 @@ import {
   chainPromises,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
-  Entity, EntitySaveOptions,
+  Entity,
+  EntitySaveOptions,
   EntityServiceLoadOptions,
   EntityUtils,
   FormErrors,
@@ -60,7 +61,6 @@ import {VESSEL_FEATURE_NAME} from '@app/vessel/services/config/vessel.config';
 import {TripFilter} from './filter/trip.filter';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {TrashRemoteService} from '@app/core/services/trash-remote.service';
-import {RefetchQueryDescription} from '@apollo/client/core/watchQueryOptions';
 
 const moment = momentImported;
 
@@ -178,7 +178,7 @@ export const TripFragments = {
     comments
     landing {
       id
-      rankOrderOnVessel
+      rankOrder
     }
     observedLocationId
     departureLocation {

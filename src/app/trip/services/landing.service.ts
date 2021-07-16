@@ -19,7 +19,8 @@ import {
   isNotEmptyArray,
   isNotNil,
   JobUtils,
-  LoadResult, MINIFY_ENTITY_FOR_POD,
+  LoadResult,
+  MINIFY_ENTITY_FOR_POD,
   NetworkService,
   Person
 } from '@sumaris-net/ngx-components';
@@ -81,7 +82,6 @@ export const LandingFragments = {
     rankOrder
     observedLocationId
     tripId
-    rankOrderOnVessel
     vesselSnapshot {
       ...VesselSnapshotFragment
     }
@@ -122,7 +122,6 @@ export const LandingFragments = {
     rankOrder
     observedLocationId
     tripId
-    rankOrderOnVessel
     vesselSnapshot {
       ...VesselSnapshotFragment
     }
@@ -230,7 +229,7 @@ const LandingSubscriptions: BaseEntityGraphqlSubscriptions = {
 };
 
 
-const sortByDateFn = (n1: Landing, n2: Landing) => {
+const sortByDateOrIdFn = (n1: Landing, n2: Landing) => {
   return n1.dateTime.isSame(n2.dateTime)
     ? (n1.id === n2.id ? 0 : n1.id > n2.id ? 1 : -1)
     : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1);
@@ -883,7 +882,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       const asc = (!sortDirection || sortDirection === 'asc');
       let rankOrder = asc ? 1 + offset : total - offset;
       // apply a sorted copy (do NOT change original order), then compute rankOrder
-      data.slice().sort(sortByDateFn)
+      data.slice().sort(sortByDateOrIdFn)
         .forEach(o => o.rankOrder = asc ? rankOrder++ : rankOrder--);
 
       // Sort by rankOrder

@@ -193,7 +193,7 @@
           floatLabel="never">
         </app-pmfm-field>
         <ng-template #readOnly>
-          <ion-text>{{ row.currentData.measurementValues[pmfm.id] | pmfmValue:{pmfm:pmfm} }}</ion-text>
+          <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue:{pmfm:pmfm, html: true, propertyNames: qualitativeValueAttributes}"></ion-text>
         </ng-template>
       </td>
     </ng-container>
