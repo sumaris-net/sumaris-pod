@@ -346,6 +346,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
   async openAddPmfmsModal(event?: UIEvent) {
+
+    // If pending rows, save first
+    if (this.dirty) {
+      const saved = await this.save();
+      if (!saved) return;
+    }
+
     const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.id).filter(isNotNil);
 
     const pmfmIds = await this.openSelectPmfmsModal(event, {
@@ -630,9 +637,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
   addRow(event?: Event, insertAt?: number): boolean {
-    if (isNil(insertAt) && !this._focusColumn) {
-      this._focusColumn = this.firstUserColumn;
-    }
+    this._focusColumn = this.firstUserColumn;
     return super.addRow(event, insertAt);
   }
 

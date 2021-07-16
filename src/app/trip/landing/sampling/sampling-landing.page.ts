@@ -28,7 +28,7 @@ export class SamplingLandingPage extends LandingPage {
   showSamplesTable = false;
   zeroEffortWarning = false;
   noEffortError = false;
-  notObserverWarning = false;
+  warning: string = null;
 
   constructor(
     injector: Injector,
@@ -128,7 +128,8 @@ export class SamplingLandingPage extends LandingPage {
     }
 
     if (this.parent && this.parent instanceof ObservedLocation) {
-      this.notObserverWarning = !(this.parent.observers && this.parent.observers.find(p => p.equals(data.recorderPerson)));
+      const recorderIsNotObserver = !(this.parent.observers && this.parent.observers.find(p => p.equals(data.recorderPerson)));
+      this.warning = recorderIsNotObserver ? 'LANDING.ERROR.NOT_OBSERVER_ERROR' : null;
     }
 
     await super.setValue(data);
