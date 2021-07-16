@@ -99,6 +99,7 @@ public class SampleRepositoryImpl
             .and(hasObservedLocationId(filter.getObservedLocationId()))
             .and(inObservedLocationIds(filter.getObservedLocationIds()))
             .and(hasTagId(filter.getTagId()))
+            .and(withTagId(filter.getWithTagId()))
             .and(addJoinFetch(fetchOptions, true));
     }
 

@@ -123,6 +123,18 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
         return specification;
     }
 
+    default Specification<Sample> withTagId(Boolean withTagId) {
+        if (!Boolean.TRUE.equals(withTagId)) return null;
+        BindableSpecification<Sample> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            query.orderBy(criteriaBuilder.asc(root.get(Sample.Fields.RANK_ORDER)));
+            ParameterExpression<Integer> tagIdPmfmIdParam = criteriaBuilder.parameter(Integer.class, TAG_ID_PMFM_ID);
+            Join<Sample, SampleMeasurement> tagIdInnerJoin = root.joinList(Sample.Fields.MEASUREMENTS, JoinType.INNER);
+            return criteriaBuilder.equal(tagIdInnerJoin.get(SampleMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam);
+        });
+        specification.addBind(TAG_ID_PMFM_ID, PmfmEnum.TAG_ID.getId());
+        return specification;
+    }
+
     default Specification<Sample> addJoinFetch(SampleFetchOptions fetchOptions, boolean addQueryDistinct) {
         if (fetchOptions == null || !fetchOptions.isWithMeasurementValues()) return null;
 
