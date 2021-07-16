@@ -137,7 +137,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
                 withBatchTree: false,
                 withSamples: false,
                 computeRankOrder: false,
-                fetchPolicy: 'cache-first'
+                fetchPolicy: 'cache-and-network',
+                withTotal: true
               });
           }),
           map(res => res && res.data || [])

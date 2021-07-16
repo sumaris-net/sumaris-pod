@@ -3,7 +3,7 @@ import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/mode
 import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
 import {
   EntityClass,
-  EntityUtils, isInstanceOf,
+  EntityUtils,
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
@@ -133,12 +133,6 @@ export class Batch<
 
   constructor(__typename?: string) {
     super(__typename || Batch.TYPENAME);
-  }
-
-  clone(opts?: O & FO): T {
-    const target = new Batch();
-    target.fromObject(this.asObject(opts), opts);
-    return target as unknown as T;
   }
 
   asObject(opts?: O): any {
@@ -457,7 +451,7 @@ export class BatchUtils {
         .forEach(key => {
           let value = batch[key];
           if (value instanceof Object) {
-            if (!isInstanceOf(value, Batch)) {
+            if (!(value instanceof Batch)) {
               value = JSON.stringify(value);
             }
           }

@@ -9,7 +9,7 @@ import {
   DurationPipe,
   fadeInAnimation,
   fadeInOutAnimation,
-  isEmptyArray, isInstanceOf,
+  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -101,8 +101,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     attribution: '<a href=\'https://www.openstreetmap.org\'>Open Street Map</a>'
   });
   sextantBaseLayer = L.tileLayer(
-    'https://sextant.ifremer.fr/geowebcache/service/wmts' +
-      '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
+    'https://sextant.ifremer.fr/geowebcache/service/wmts'
+      + '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
     {
       maxZoom: 18,
       attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"
@@ -1029,7 +1029,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     const res = await modal.onDidDismiss();
 
     // If selected a product, use it
-    if (res && isInstanceOf(res.data, ExtractionProduct)) {
+    if (res?.data instanceof ExtractionProduct) {
       const type = res.data;
       await this.setType(type, {emitEvent: false});
 

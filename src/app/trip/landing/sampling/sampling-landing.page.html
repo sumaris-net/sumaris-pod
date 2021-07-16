@@ -49,9 +49,9 @@
   <mat-tab-group #tabGroup
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="tabGroupAnimationDuration"
-                 class="mat-tab-disabled-hidden"
-                 dynamicHeight>
+                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+                 [dynamicHeight]="false"
+                 class="mat-tab-fixed-content">
 
     <!-- TAB: general -->
     <mat-tab label="{{'LANDING.EDIT.TAB_GENERAL'|translate}}">
@@ -139,10 +139,10 @@
     </mat-tab>
 
     <!-- TAB: samples -->
-    <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES'|translate">
+    <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES'|translate" [disabled]="!showSamplesTable">
       <ng-template mat-tab-label>
-        <mat-icon *ngIf="program">center_focus_strong</mat-icon>
-        <ion-label *ngIf="program; else skeletonText100">{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
+        <mat-icon >center_focus_strong</mat-icon>
+        <ion-label>{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
 
@@ -155,7 +155,6 @@
         </ion-item>
 
         <app-samples-table  #samplesTable
-                            [class.cdk-visually-hidden]="!showSamplesTable"
                             [disabled]="noEffortError"
                             [showLabelColumn]="false"
                             [showDateTimeColumn]="false"
@@ -170,14 +169,8 @@
                             [useSticky]="true"
                             [compactFields]="false"
                             (onPrepareRowForm)="onPrepareSampleForm($event)"
-                            [debug]="debug"
-                            [rowErrorTemplate]="rowError">
+                            [debug]="debug">
         </app-samples-table>
-
-        <ng-template #rowError let-row>
-          <mat-icon color="warn" *ngIf="row.validator.hasError('missingWeightOrSize')"
-                [title]="'TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_LENGTH'|translate">error</mat-icon>
-        </ng-template>
 
         <!-- final space-->
         <p visible-xs visible-sm visible-mobile>&nbsp;</p>
@@ -190,7 +183,7 @@
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
 
-  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading"
+  <app-form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 
     <!-- error -->
@@ -205,7 +198,7 @@
       <ion-label color="tertiary" translate>LANDING.ERROR.NOT_OBSERVER_ERROR</ion-label>
     </ion-item>
 
-  </form-buttons-bar>
+  </app-form-buttons-bar>
 </ion-footer>
 
 <!-- FAB button -->
@@ -217,7 +210,3 @@
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
-
-<ng-template #skeletonText100>
-  &nbsp;<ion-skeleton-text style="min-width: 100px"></ion-skeleton-text>
-</ng-template>

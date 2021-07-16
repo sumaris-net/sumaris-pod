@@ -66,6 +66,7 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
     this.program = null;
   }
 
+ // TODO: Check if clone is needed
   clone(): VesselSnapshot {
     const target = new VesselSnapshot();
     target.fromObject(this);

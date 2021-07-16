@@ -4,7 +4,7 @@ import {BehaviorSubject, defer, Observable, Subject, Subscription} from "rxjs";
 import {filter, finalize, map, tap} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
+import {BaseEntityGraphqlSubscriptions, GraphqlService} from '@sumaris-net/ngx-components';
 import {IEntitiesService, IEntityService, LoadResult} from "@sumaris-net/ngx-components";
 import {TaxonGroupRef, TaxonGroupTypeIds, TaxonNameRef} from "./model/taxon.model";
 import {firstArrayValue, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, propertiesPathComparator, suggestFromArray} from "@sumaris-net/ngx-components";
@@ -19,7 +19,7 @@ import {StatusIds}  from "@sumaris-net/ngx-components";
 import {Program} from "./model/program.model";
 
 import {DenormalizedPmfmStrategy} from "./model/pmfm-strategy.model";
-import {IWithProgramEntity} from "../../data/services/model/model.utils";
+import {IWithProgramEntity} from '@app/data/services/model/model.utils';
 
 import {StrategyFragments} from "./strategy.fragments";
 import {AcquisitionLevelCodes} from "./model/model.enum";
@@ -29,9 +29,9 @@ import {PlatformService}  from "@sumaris-net/ngx-components";
 import {ConfigService}  from "@sumaris-net/ngx-components";
 import {PmfmService} from "./pmfm.service";
 import {BaseReferentialService} from "./base-referential-service.class";
-import {BaseEntityGraphqlSubscriptions} from "./base-entity-service.class";
 import {ProgramFilter} from "./filter/program.filter";
 import {ReferentialRefFilter} from "./filter/referential-ref.filter";
+import {environment} from '@environments/environment';
 
 
 export const ProgramRefQueries = {
@@ -130,7 +130,6 @@ export class ProgramRefService
 
 
   private _subscriptionCache: {[key: string]: {
-      counter: number;
       subject: Subject<Program>;
       subscription: Subscription;
     }} = {};
@@ -151,6 +150,9 @@ export class ProgramRefService
         queries: ProgramRefQueries,
         subscriptions: ProgramRefSubscriptions
       });
+
+    this._debug = !environment.production;
+    this._logPrefix = '[program-ref-service] ';
   }
 
   canUserWrite(data: IWithProgramEntity<any, any>): boolean {
@@ -643,32 +645,33 @@ export class ProgramRefService
     const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_ID, id].join('|');
     let cache = this._subscriptionCache[cacheKey];
     if (!cache) {
+      // DEBUG
+      //console.debug(`[program-ref-service] Starting program {${id}} changes`);
+
+      const subject = new Subject<Program>();
       cache = {
-        counter: 0,
-        subject: new Subject<Program>(),
-        subscription: undefined
+        subject,
+        subscription: super.listenChanges(id, opts).subscribe(subject)
       };
       this._subscriptionCache[cacheKey] = cache;
     }
 
-    cache.counter++;
-    cache.subscription = cache.subscription || super.listenChanges(id, opts)
-      .pipe(
-        // DEBUG
-        //tap(program => console.debug('[program-ref-service] Received program changes')),
-        tap(program => cache.subject.next(program))
-      ).subscribe();
-
-    return cache.subject
+    return cache.subject.asObservable()
       .pipe(
         finalize(() => {
-          cache.counter--;
-          if (cache.counter === 0) {
+          // DEBUG
+          //console.debug(`[program-ref-service] Finalize program {${id}} changes (${cache.subject.observers.length} observers)`);
+
+          // Wait 100ms (to avoid to recreate if new subscription comes less than 100ms after)
+          setTimeout(() => {
+            if (cache.subject.observers.length > 0) return; // Skip if has observers
             // DEBUG
-            //console.debug('[program-ref-service] Closing program changes listener'));
+            //console.debug(`[program-ref-service] Closing program {${id}} changes listener`);
+            this._subscriptionCache[cacheKey] = undefined;
+            cache.subject.complete();
+            cache.subject.unsubscribe();
             cache.subscription.unsubscribe();
-            cache.subscription = null;
-          }
+          }, 100);
         })
       );
   }

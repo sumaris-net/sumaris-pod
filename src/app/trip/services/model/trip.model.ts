@@ -263,12 +263,6 @@ export class OperationGroup extends DataEntity<OperationGroup>
     this.fishingAreas = [];
   }
 
-  clone(): OperationGroup {
-    const target = new OperationGroup();
-    target.fromObject(this.asObject());
-    return target;
-  }
-
   asObject(opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
     const target = super.asObject(opts);
 
@@ -501,12 +495,6 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
     super(PhysicalGear.TYPENAME);
   }
 
-  clone(): PhysicalGear {
-    const target = new PhysicalGear();
-    target.fromObject(this.asObject());
-    return target;
-  }
-
   copy(target: PhysicalGear) {
     target.fromObject(this);
   }
@@ -570,12 +558,6 @@ export class VesselPosition extends DataEntity<VesselPosition> {
   constructor() {
     super();
     this.__typename = VesselPosition.TYPENAME;
-  }
-
-  clone(): VesselPosition {
-    const target = new VesselPosition();
-    target.fromObject(this.asObject());
-    return target;
   }
 
   asObject(options?: DataEntityAsObjectOptions): any {

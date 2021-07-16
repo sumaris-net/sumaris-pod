@@ -50,17 +50,18 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div class="table-container">
+<div class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="paginator && true">
   <ion-refresher slot="fixed" *ngIf="mobile" (ionRefresh)="doRefresh($event)" >
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <table mat-table [dataSource]="dataSource" matSort
-             [matSortActive]="defaultSortBy"
-             [matSortDirection]="defaultSortDirection"
-             matSortDisableClear [trackBy]="trackByFn">
+  <table mat-table matSort matSortDisableClear
+         [dataSource]="dataSource"
+         [matSortActive]="defaultSortBy"
+         [matSortDirection]="defaultSortDirection"
+         [trackBy]="trackByFn">
 
-    <ng-container matColumnDef="select">
+    <ng-container matColumnDef="select" [sticky]="useSticky" [class.mat-column-sticky]="useSticky">
       <th mat-header-cell  *matHeaderCellDef>
         <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
           [indeterminate]="selection.hasValue() && !isAllSelected()">
@@ -73,7 +74,7 @@
     </ng-container>
 
     <!-- id -->
-    <ng-container matColumnDef="id">
+    <ng-container matColumnDef="id" [sticky]="useSticky" [class.mat-column-sticky]="useSticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
@@ -167,7 +168,8 @@
     </ng-container>
 
     <!-- Actions buttons column -->
-    <ng-container matColumnDef="actions">
+    <ng-container matColumnDef="actions" [stickyEnd]="useSticky"
+                  [class.mat-column-sticky]="useSticky">
       <th mat-header-cell *matHeaderCellDef>
         <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate"
                 (click)="openSelectColumnsModal($event)">
@@ -198,4 +200,10 @@
   </ng-template>
 </div>
 
+<ion-footer *ngIf="showPaginator">
+  <mat-paginator #paginator class="mat-paginator-footer"
+                 [length]="totalRowCount" [pageSize]="pageSize"
+                 [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
+  </mat-paginator>
+</ion-footer>
 

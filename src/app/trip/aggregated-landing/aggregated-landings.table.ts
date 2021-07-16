@@ -249,9 +249,9 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     if (!this.mobile) return false;
 
     const today = moment().startOf("day");
-    this.setLoading(true);
+    this.markAsLoading();
     this.openModal(event, row, today)
-      .then(() => this.setLoading(false));
+      .then(() => this.markAsLoaded());
 
   }
 
@@ -260,13 +260,13 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     if (this.debug)
       console.debug('clickCell', $event, row.currentData.vesselSnapshot.exteriorMarking + "|" + row.currentData.vesselActivities.length, date.toISOString());
 
-    this.setLoading(true);
+    this.markAsLoading();
     this.openModal($event, row, date)
-      .then(() => this.setLoading(false));
+      .then(() => this.markAsLoaded());
   }
 
   async openModal(event: MouseEvent|undefined, row: TableElement<AggregatedLanding>, date?: Moment) {
-    this.onEditRow(event, row);
+    this.editRow(event, row);
     const modal = await this.modalCtrl.create({
       component: AggregatedLandingModal,
       componentProps: {
@@ -303,13 +303,13 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
 
       if (res.data.tripToOpen) {
         // navigate to trip
-        this.setLoading(true);
+        this.markAsLoading();
         this.markForCheck();
 
         try {
           await this.router.navigateByUrl(`/observations/${res.data.tripToOpen.observedLocationId}/trip/${res.data.tripToOpen.tripId}`);
         } finally {
-          this.setLoading(false);
+          this.markAsLoaded();
           this.markForCheck();
         }
       }

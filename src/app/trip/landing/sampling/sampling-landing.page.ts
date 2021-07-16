@@ -182,5 +182,4 @@ export class SamplingLandingPage extends LandingPage {
       strategyLabel: strategy && strategy.label
     }).toPromise());
   }
-
 }

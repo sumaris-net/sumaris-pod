@@ -30,10 +30,6 @@ export class FishingArea extends DataEntity<FishingArea> {
     // this.operationId = null;
   }
 
-  clone(): FishingArea {
-    return FishingArea.fromObject(this.asObject());
-  }
-
   asObject(options?: DataEntityAsObjectOptions): any {
     const target = super.asObject(options);
     target.location = this.location && this.location.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;

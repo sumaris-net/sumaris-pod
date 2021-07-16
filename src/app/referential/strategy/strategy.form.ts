@@ -363,6 +363,9 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
       if (typeof item.acquisitionLevel === "string" && res[item.acquisitionLevel] === undefined) {
         res[item.acquisitionLevel] = allAcquisitionLevels.find(al => al.label === item.acquisitionLevel) || null;
       }
+      else if (item.acquisitionLevel instanceof ReferentialRef && res[item.acquisitionLevel.label] === undefined){
+        res[item.acquisitionLevel.label] = item.acquisitionLevel;
+      }
       return res;
     }, <{[key: string]: ReferentialRef|null}>{});
     this.acquisitionLevelList.value = Object.values(collectedAcquisitionLevels).filter(isNotNil) as ReferentialRef[];

@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 
-import {isInstanceOf, isNotNil, referentialToString, StatusIds} from '@sumaris-net/ngx-components';
+import {isNotNil, referentialToString, StatusIds} from '@sumaris-net/ngx-components';
 import {LandingService} from '../services/landing.service';
 import {AppMeasurementsTable} from '../measurement/measurements.table.class';
 import {AcquisitionLevelCodes, LocationLevelIds} from '../../referential/services/model/model.enum';
@@ -15,6 +15,7 @@ import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.m
 import {ReferentialRefService} from '../../referential/services/referential-ref.service';
 import {environment} from '../../../environments/environment';
 import {LandingFilter} from '../services/filter/landing.filter';
+import {LandingValidatorService} from '@app/trip/services/validator/landing.validator';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson', 'samplesCount'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -26,8 +27,7 @@ const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
   templateUrl: 'landings.table.html',
   styleUrls: ['landings.table.scss'],
   providers: [
-    // Default value, bu be change using the validatorService setter
-    {provide: ValidatorService, useValue: null}
+    {provide: ValidatorService, useValue: LandingValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -48,6 +48,8 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   @Input() showFabButton = false;
   @Input() showError = true;
   @Input() showToolbar = true;
+  @Input() showPaginator = true;
+  @Input() useSticky = true;
 
   @Input() set strategyPmfmId(value: number) {
     if (this._strategyPmfmId !== value) {
@@ -175,7 +177,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     super(injector,
       Landing,
       injector.get(LandingService),
-      injector.get(ValidatorService),
+      injector.get(LandingValidatorService),
       {
         prependNewElements: false,
         suppressErrors: environment.production,
@@ -234,10 +236,10 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     if (!data) {
       this._parentDateTime = undefined;
       this.setFilter(LandingFilter.fromObject({}));
-    } else if (isInstanceOf(data, ObservedLocation)) {
+    } else if (data instanceof ObservedLocation) {
       this._parentDateTime = data.startDateTime;
       this.setFilter(LandingFilter.fromObject({observedLocationId: data.id}), {emitEvent: true/*refresh*/});
-    } else if (isInstanceOf(data, Trip)) {
+    } else if (data instanceof Trip) {
       this._parentDateTime = data.departureDateTime;
       this.setFilter(LandingFilter.fromObject({tripId: data.id}), {emitEvent: true/*refresh*/});
     }
@@ -251,10 +253,9 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   }
 
   async getMaxRankOrder(): Promise<number> {
+    // Expose as public (was protected)
     return super.getMaxRankOrder();
   }
-
-  referentialToString = referentialToString;
 
   getLandingDate(landing?: Landing): Moment {
     if (!landing || !landing.dateTime) return undefined;

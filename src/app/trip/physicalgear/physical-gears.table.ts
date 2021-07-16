@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector,
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {PhysicalGearValidatorService} from '../services/validator/physicalgear.validator';
 import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService, isInstanceOf, toBoolean} from '@sumaris-net/ngx-components';
+import {createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService} from '@sumaris-net/ngx-components';
 import {PhysicalGearModal} from './physical-gear.modal';
 import {PhysicalGear} from '../services/model/trip.model';
 import {PHYSICAL_GEAR_DATA_SERVICE} from '../services/physicalgear.service';
@@ -45,6 +45,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   @Input() canSelect = true;
   @Input() copyPreviousGears: (event: UIEvent) => Promise<PhysicalGear>;
   @Input() showToolbar = true;
+  @Input() useSticky = false;
 
   @Input() set showSelectColumn(show: boolean) {
     this.setShowColumn('select', show);
@@ -157,7 +158,8 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
         onInit: (inst: PhysicalGearModal) => {
           // Subscribe to click on copy button, then redirect the event
           inst.onCopyPreviousGearClick.subscribe((event) => this.onSelectPreviousGear.emit(event));
-        }
+        },
+        onDelete: (event, PhysicalGear) => this.deletePhysicalGear(event, PhysicalGear)
       },
       keyboardClose: true,
       backdropDismiss: false
@@ -170,7 +172,20 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[physical-gear-table] Modal result: ", data);
 
-    return isInstanceOf(data, PhysicalGear) ? data : undefined;
+    return (data instanceof PhysicalGear) ? data : undefined;
+  }
+
+  async deletePhysicalGear(event: UIEvent, data: PhysicalGear): Promise<boolean> {
+    const row = await this.findRowByPhysicalGear(data);
+
+    // Row not exists: OK
+    if (!row) return true;
+
+    const canDeleteRow = await this.canDeleteRows([row]);
+    if (canDeleteRow === true) {
+      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
+    }
+    return canDeleteRow;
   }
 
   /* -- protected methods -- */
@@ -178,6 +193,11 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  protected async findRowByPhysicalGear(physicalGear: PhysicalGear): Promise<TableElement<PhysicalGear>> {
+    return PhysicalGear && (await this.dataSource.getRows()).find(r => r.currentData.equals(physicalGear));
+  }
+
 }
 
 

@@ -53,7 +53,7 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
     super(injector, Strategy, strategyService,
       {
         pathIdAttribute: 'strategyId',
-        tabCount: 1,
+        tabCount: 2,
         autoUpdateRoute: !platform.mobile,
         autoOpenNextTab: false
       });
@@ -116,7 +116,7 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
 
   protected setProgram(program: Program) {
     if (program && isNotNil(program.id)) {
-      this.defaultBackHref = `/referential/programs/${program.id}?tab=1`;
+      this.defaultBackHref = `/referential/programs/${program.id}/strategies`;
       this.markForCheck();
     }
   }

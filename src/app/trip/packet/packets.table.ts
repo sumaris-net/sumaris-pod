@@ -64,7 +64,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   }
 
   get dirty(): boolean {
-    return this._dirty || this.memoryDataService.dirty;
+    return super.dirty || this.memoryDataService.dirty;
   }
 
   private packetSalePmfms: DenormalizedPmfmStrategy[];

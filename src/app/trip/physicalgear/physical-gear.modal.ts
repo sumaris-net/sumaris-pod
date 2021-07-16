@@ -9,7 +9,7 @@ import {Alerts} from "@sumaris-net/ngx-components";
 import {PhysicalGear} from "../services/model/trip.model";
 import {createPromiseEventEmitter, emitPromiseEvent} from "@sumaris-net/ngx-components";
 import {isNil} from "@sumaris-net/ngx-components";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
+import {BatchGroup} from '@app/trip/services/model/batch-group.model';
 
 @Component({
   selector: 'app-physical-gear-modal',
@@ -39,6 +39,8 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
   @Input() canEditRankOrder = false;
 
   @Input() onInit: (instance: PhysicalGearModal) => void;
+
+  @Input() onDelete: (event: UIEvent, data: PhysicalGear) => Promise<boolean>;
 
   @Output() onCopyPreviousGearClick = createPromiseEventEmitter<PhysicalGear>();
 
@@ -125,6 +127,15 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
     }
   }
 
+  // async close(event?: UIEvent, opts?: {allowInvalid?: boolean; }): Promise<PhysicalGear | undefined> {
+  //
+  //   const physicalGear = await this.save();
+  //   if (!physicalGear) return;
+  //   await this.vieCtrl.dismiss(physicalGear);
+  //
+  //   return physicalGear;
+  // }
+
 
   async cancel(event: UIEvent) {
     await this.saveIfDirtyAndConfirm(event);
@@ -157,6 +168,16 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
       this.form.error = err && err.message || err;
       this.scrollToTop();
       return false;
+    }
+  }
+
+  async delete(event?: UIEvent) {
+    if (!this.onDelete) return; // Skip
+    const result = await this.onDelete(event, this.originalData);
+    if (isNil(result) || (event && event.defaultPrevented)) return; // User cancelled
+
+    if (result) {
+      await this.viewCtrl.dismiss(this.originalData);
     }
   }
 

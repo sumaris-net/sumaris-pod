@@ -319,7 +319,7 @@ export class ExtractionService extends BaseGraphqlService {
     if (!type || !type.label) throw new Error('Invalid type for cache: ' + type);
 
     console.info('[extraction-service] Inserting into cache:', type);
-    this.insertIntoMutableCachedQuery(cache, {
+    this.insertIntoMutableCachedQueries(cache, {
       queryName: "LoadExtractionTypes",
       query: LoadTypesQuery,
       data: type
@@ -330,13 +330,13 @@ export class ExtractionService extends BaseGraphqlService {
     if (!type || !type.label) throw new Error('Invalid type for cache: ' + type);
     console.info('[extraction-service] Updating cache:', type);
     // Remove, then insert, from extraction types
-    const exists = this.removeFromMutableCachedQueryByIds(cache, {
+    const exists = this.removeFromMutableCachedQueriesByIds(cache, {
       queryName: "LoadExtractionTypes",
       query: LoadTypesQuery,
       ids: type.id
     }) > 0;
     if (exists) {
-      this.insertIntoMutableCachedQuery(cache, {
+      this.insertIntoMutableCachedQueries(cache, {
         queryName: "LoadExtractionTypes",
         query: LoadTypesQuery,
         data: type

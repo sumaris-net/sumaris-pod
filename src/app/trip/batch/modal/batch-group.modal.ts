@@ -242,7 +242,6 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
     const savedBatch = await this.save({allowInvalid: true, ...opts});
     if (!savedBatch) return;
-
     await this.modalCtrl.dismiss(savedBatch);
 
     return savedBatch;

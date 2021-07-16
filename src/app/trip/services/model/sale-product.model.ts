@@ -37,10 +37,6 @@ export class SaleProduct extends Product {
     this.productIdByTaxonGroup = {};
   }
 
-  clone(): SaleProduct {
-    return SaleProduct.fromObject(this.asObject());
-  }
-
   asObject(opts?: DataEntityAsObjectOptions): any {
     const target = super.asObject(opts);
     delete target.saleProducts;

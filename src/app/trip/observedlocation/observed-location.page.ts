@@ -7,13 +7,13 @@ import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
 import {FormGroup} from '@angular/forms';
 import {
   Alerts,
+  AppTable,
   ConfigService,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
   firstNotNilPromise,
   firstTruePromise,
   HistoryPageReference,
-  isInstanceOf,
   isNil,
   isNotNil,
   PlatformService,
@@ -36,7 +36,7 @@ import {ObservedLocationsPageSettingsEnum} from './observed-locations.page';
 import {environment} from '../../../environments/environment';
 import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
 import {LandingFilter} from '../services/filter/landing.filter';
-import {LandingValidatorService} from '@app/trip/services/validator/landing.validator';
+import {Browser} from 'leaflet';
 
 const moment = momentImported;
 
@@ -51,6 +51,7 @@ const ObservedLocationPageTabs = {
 @Component({
   selector: 'app-observed-location-page',
   templateUrl: './observed-location.page.html',
+  styleUrls: ['./observed-location.page.scss'],
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
@@ -59,6 +60,7 @@ const ObservedLocationPageTabs = {
 })
 export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, ObservedLocationService> {
 
+  mobile: boolean;
   showLandingTab = false;
   aggregatedLandings: boolean;
   allowAddNewVessel: boolean;
@@ -67,21 +69,22 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   $ready = new BehaviorSubject<boolean>(false);
   showQualityForm = false;
   showRecorder = true;
-  canEditLandingsTable: boolean;
   landingEditor: LandingEditor = undefined;
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
   @ViewChild('landingsTable') landingsTable: LandingsTable;
   @ViewChild('aggregatedLandingsTable') aggregatedLandingsTable: AggregatedLandingsTable;
 
+  get table(): AppTable<any> {
+    return this.landingsTable || this.aggregatedLandingsTable;
+  }
 
   constructor(
     injector: Injector,
     dataService: ObservedLocationService,
     protected modalCtrl: ModalController,
     protected platform: PlatformService,
-    protected configService: ConfigService,
-    protected landingValidator: LandingValidatorService
+    protected configService: ConfigService
   ) {
     super(injector,
       ObservedLocation,
@@ -93,6 +96,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         i18nPrefix: OBSERVED_LOCATION_DEFAULT_I18N_PREFIX
       });
     this.defaultBackHref = "/observations";
+    this.mobile = this.platform.mobile;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -147,7 +151,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       landingsTable.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
       landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
       landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
-      landingsTable.setValidatorService(this.landingEditor == 'trip' ? this.landingValidator : null);
     } else if (this.aggregatedLandingsTable) {
       this.aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
       this.aggregatedLandingsTable.program = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
@@ -155,10 +158,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     this.$ready.next(true);
 
-    // Listen program change (will reload program if need)
+    // Listen program, to reload if changes
     this.startListenProgramRemoteChanges(program);
   }
-
 
   protected async onNewEntity(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
     // If is on field mode, fill default values
@@ -385,11 +387,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     const {data} = await modal.onDidDismiss();
 
     // If modal return a landing, use it
-    if (data && isInstanceOf(data[0], Landing)) {
+    if (data && data[0] instanceof Landing) {
       console.debug("[observed-location] Vessel selection modal result:", data);
       return (data[0] as Landing).vesselSnapshot;
     }
-    if (data && isInstanceOf(data[0], VesselSnapshot)) {
+    if (data && data[0] instanceof VesselSnapshot) {
       console.debug("[observed-location] Vessel selection modal result:", data);
       const vessel = data[0] as VesselSnapshot;
       if (excludeVesselIds.includes(data.id)) {

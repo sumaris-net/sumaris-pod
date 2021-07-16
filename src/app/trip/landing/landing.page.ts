@@ -1,14 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  Injector,
-  OnInit,
-  Optional,
-  QueryList,
-  ViewChild,
-  ViewChildren
-} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, Optional, QueryList, ViewChild, ViewChildren} from '@angular/core';
 
 import {
   AppEditorOptions,
@@ -17,14 +7,15 @@ import {
   fadeInOutAnimation,
   firstArrayValue,
   firstNotNilPromise,
-  fromDateISOString, HistoryPageReference,
+  fromDateISOString,
+  HistoryPageReference,
   isEmptyArray,
-  isInstanceOf,
   isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  PlatformService, ReferentialRef,
+  PlatformService,
+  ReferentialRef,
   ReferentialUtils,
   UsageMode
 } from '@sumaris-net/ngx-components';
@@ -44,10 +35,7 @@ import {ObservedLocation} from '../services/model/observed-location.model';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
 import {Program} from '@app/referential/services/model/program.model';
 import {environment} from '@environments/environment';
-import {
-  STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX,
-  StrategySummaryCardComponent
-} from '@app/data/strategy/strategy-summary-card.component';
+import {STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent} from '@app/data/strategy/strategy-summary-card.component';
 import {merge, Subscription} from 'rxjs';
 import {Strategy} from '@app/referential/services/model/strategy.model';
 import * as momentImported from 'moment';
@@ -65,6 +53,7 @@ export class LandingEditorOptions extends AppEditorOptions {
 @Component({
   selector: 'app-landing-page',
   templateUrl: './landing.page.html',
+  styleUrls: ['./landing.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [fadeInOutAnimation],
   providers: [
@@ -108,10 +97,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     @Optional() options: LandingEditorOptions
   ) {
     super(injector, Landing, injector.get(LandingService), {
-        tabCount: 2,
-        pathIdAttribute: 'landingId',
-        ...options
-      });
+      tabCount: 2,
+      pathIdAttribute: 'landingId',
+      autoOpenNextTab: true,
+      ...options
+    });
     this.observedLocationService = injector.get(ObservedLocationService);
     this.tripService = injector.get(TripService);
     this.referentialRefService = injector.get(ReferentialRefService);
@@ -184,7 +174,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       const queryParams = this.route.snapshot.queryParams;
       data.program = this.parent.program;
       data.observers = this.parent.observers;
-      if ( isInstanceOf(this.parent, ObservedLocation)) {
+      if (this.parent instanceof ObservedLocation) {
         data.location = this.parent.location;
         data.dateTime = this.parent.startDateTime || this.parent.endDateTime;
         data.tripId = undefined;
@@ -199,7 +189,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         // Define back link
         this.defaultBackHref = `/observations/${this.parent.id}?tab=1`;
       }
-      else if (isInstanceOf(this.parent, Trip)) {
+      else if (this.parent instanceof Trip) {
         data.vesselSnapshot = this.parent.vesselSnapshot;
         data.location = this.parent.returnLocation || this.parent.departureLocation;
         data.dateTime = this.parent.returnDateTime || this.parent.departureDateTime;
@@ -238,7 +228,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       data.program = ReferentialUtils.isNotEmpty(data.program) ? data.program : this.parent.program;
       data.observers = isNotEmptyArray(data.observers) && data.observers || this.parent.observers;
 
-      if (isInstanceOf(this.parent, ObservedLocation)) {
+      if (this.parent instanceof ObservedLocation) {
         data.location = data.location || this.parent.location;
         data.dateTime = data.dateTime || this.parent.startDateTime || this.parent.endDateTime;
         data.tripId = undefined;
@@ -246,7 +236,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         // Define back link
         this.defaultBackHref = `/observations/${this.parent.id}?tab=1`;
       }
-      else if (isInstanceOf(this.parent, Trip)) {
+      else if (this.parent instanceof Trip) {
         data.vesselSnapshot = this.parent.vesselSnapshot;
         data.location = data.location || this.parent.returnLocation || this.parent.departureLocation;
         data.dateTime = data.dateTime || this.parent.returnDateTime || this.parent.departureDateTime;
@@ -285,11 +275,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     super.updateView(data, opts);
 
     if (this.parent) {
-      if (isInstanceOf(this.parent, ObservedLocation)) {
+      if (this.parent instanceof ObservedLocation) {
         this.landingForm.showProgram = false;
         this.landingForm.showVessel = true;
 
-      } else if (isInstanceOf(this.parent, Trip)) {
+      } else if (this.parent instanceof Trip) {
 
         // Hide some fields
         this.landingForm.showProgram = false;
@@ -443,7 +433,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
-    const titlePrefix = this.parent && isInstanceOf(this.parent, ObservedLocation) &&
+    const titlePrefix = this.parent && (this.parent instanceof ObservedLocation) &&
       await this.translate.get('LANDING.EDIT.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
