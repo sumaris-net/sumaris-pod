@@ -23,8 +23,10 @@ package net.sumaris.core.dao.data.landing;
  */
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.ObservedLocation;
@@ -39,6 +41,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.List;
@@ -52,11 +55,20 @@ public class LandingRepositoryImpl
     implements LandingSpecifications {
 
     private final LocationRepository locationRepository;
+    private final SumarisConfiguration configuration;
+
+    private boolean isOracle;
 
     @Autowired
-    public LandingRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository) {
+    public LandingRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository, SumarisConfiguration configuration) {
         super(Landing.class, LandingVO.class, entityManager);
         this.locationRepository = locationRepository;
+        this.configuration = configuration;
+    }
+
+    @PostConstruct
+    private void setup() {
+        isOracle = Daos.isOracleDatabase(configuration.getJdbcURL());
     }
 
     @Override
@@ -79,7 +91,8 @@ public class LandingRepositoryImpl
     @Override
     public List<LandingVO> findAllByObservedLocationId(int observedLocationId, Page page, DataFetchOptions fetchOptions) {
 
-        boolean sortByVesselRegistrationCode = Landing.Fields.VESSEL.equalsIgnoreCase(page.getSortBy());
+        // Following natural sort works only for Oracle
+        boolean sortByVesselRegistrationCode = isOracle && Landing.Fields.VESSEL.equalsIgnoreCase(page.getSortBy());
 
         StringBuilder queryBuilder = new StringBuilder();
 
