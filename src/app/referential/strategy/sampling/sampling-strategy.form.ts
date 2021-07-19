@@ -278,8 +278,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     ]);
 
     this.form.setAsyncValidators([
-      //Check number of selected pmfms
       async (control) => {
+        // allow user to save without valid pmfm table
+        await this.weightPmfmStrategiesTable.save();
+        await this.lengthPmfmStrategiesTable.save();
+        await this.maturityPmfmStrategiesTable.save();
+        //Check number of selected pmfms
         const minLength = 2;
         const pmfms = control.get('pmfms').value.flat();
         const sex = control.get('sex').value;
