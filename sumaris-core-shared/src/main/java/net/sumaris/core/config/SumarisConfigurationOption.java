@@ -571,6 +571,13 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         Boolean.class,
         false),
 
+    ENABLE_SAMPLE_UNIQUE_TAG(
+            "sumaris.persistence.sample.uniqueTag",
+            n("sumaris.config.option.persistence.sample.uniqueTag.description"),
+            Boolean.FALSE.toString(),
+            Boolean.class,
+            false),
+
     VESSEL_DEFAULT_PROGRAM_LABEL(
         "sumaris.persistence.vessel.defaultProgram.label",
         n("sumaris.config.option.persistence.vessel.defaultProgram.label.description"),

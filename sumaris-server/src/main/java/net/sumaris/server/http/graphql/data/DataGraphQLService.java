@@ -910,11 +910,9 @@ public class DataGraphQLService {
         if (landing.getSamplesCount() != null) {
             return landing.getSamplesCount();
         }
-        if (landing.getSamples() != null) {
-            return landing.getSamples().size();
-        }
 
-        return sampleService.countByLandingId(landing.getId());
+        SampleFilterVO filter = SampleFilterVO.builder().landingId(landing.getId()).withTagId(true).build();
+        return sampleService.countByFilter(filter);
     }
 
     @GraphQLQuery(name = "samplesCount", description = "Get total number of samples")
