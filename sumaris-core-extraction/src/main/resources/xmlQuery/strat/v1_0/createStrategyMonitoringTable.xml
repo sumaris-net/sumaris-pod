@@ -25,15 +25,19 @@
   <query type="create" temp="false" table="&amp;strategyMonitoringTableName" option="DISTINCT">
 
     <!-- PK -->
-    <select alias="RECORD_TYPE" type="text">'SM'</select>
+    <select alias="RECORD_TYPE" type="text">UPPER('SM')</select>
     <select alias="PROJECT" type="text">ST.PROJECT</select>
     <select alias="STRATEGY" type="text">ST.STRATEGY</select>
 
     <!-- other fields -->
     <select alias="START_DATE" type="date">APP.START_DATE</select>
     <select alias="END_DATE" type="date">APP.END_DATE</select>
+
+    <!-- TODO: EFFORT à renommer en ??? -->
     <select alias="EXPECTED_EFFORT" type="number">APP.ACQUISITION_NUMBER</select>
-    <select alias="REALIZED_EFFORT" type="number">count(distinct S.ID)</select>
+    <select alias="REALIZED_EFFORT" type="number">count(distinct SM.ID)</select>
+
+    <!--<select alias="SAMPLE_COUNT" type="number">count(distinct S.ID)</select>-->
     <select alias="LANDING_COUNT" type="number">count(distinct L.ID)</select>
 
     <!-- hidden columns -->
@@ -57,6 +61,7 @@
         )
     </from>
     <from join="true">LEFT OUTER JOIN SAMPLE S ON S.LANDING_FK = L.ID</from>
+    <from join="true">LEFT OUTER JOIN SAMPLE_MEASUREMENT SM ON SM.SAMPLE_FK = S.ID AND SM.PMFM_FK = &amp;tagIdPmfmId</from>
 
     <groupby>
       ST.PROJECT, ST.STRATEGY,

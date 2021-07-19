@@ -24,10 +24,12 @@ package net.sumaris.core.service.referential.taxon;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.ReferenceTaxonRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
+import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,9 @@ public class TaxonNameServiceImpl implements TaxonNameService {
 
     @Autowired
     protected ReferenceTaxonRepository referenceTaxonRepository;
+
+    @Autowired
+    protected ReferentialDao referentialDao;
 
     @Override
     public TaxonNameVO get(int id) {
@@ -69,6 +74,14 @@ public class TaxonNameServiceImpl implements TaxonNameService {
     @Override
     public List<TaxonNameVO> getAllByTaxonGroupId(Integer taxonGroupId) {
         return taxonNameRepository.getAllByTaxonGroupId(taxonGroupId);
+    }
+
+    @Override
+    public Long countByFilter(TaxonNameFilterVO filter) {
+        if (filter == null) {
+            return referentialDao.count(TaxonName.class.getSimpleName());
+        }
+        return taxonNameRepository.countByFilter(filter);
     }
 
     @Override

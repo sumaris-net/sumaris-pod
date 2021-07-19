@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.dao.trip.free2;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
@@ -194,6 +195,10 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         // Vessel tripFilter
         xmlQuery.setGroup("vesselFilter", CollectionUtils.isNotEmpty(context.getVesselIds()));
         xmlQuery.bind("vesselIds", Daos.getSqlInNumbers(context.getVesselIds()));
+
+        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
+        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
+        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
 
         return xmlQuery;
     }

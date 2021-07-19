@@ -48,6 +48,10 @@ public interface AuthService extends IAuthService<PersonVO> {
      */
     boolean hasAuthority(String authority);
 
+    default boolean isLogin() {
+        return getAuthenticatedUser().isPresent();
+    }
+
     default boolean isGuest() {
         return hasAuthority(AUTHORITY_PREFIX + UserProfileEnum.GUEST.label);
     }

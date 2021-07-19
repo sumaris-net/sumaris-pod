@@ -99,10 +99,10 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
                                 .orElse(null);
                         if (newUpdateDate != null && lastUpdateDate.getTime().before(newUpdateDate)) {
                             lastUpdateDate.setTime(newUpdateDate);
-                            return Observable.just(entities);
+                            return Observable.<L>just(entities);
                         }
                     }
-                    return Observable.empty();
+                    return Observable.<L>empty();
                 });
 
         // Sending the initial value when starting
@@ -153,9 +153,9 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
                     // Update the date used for comparision
                     if (entity != null && lastUpdateDate.getTime().before(entity.getUpdateDate())) {
                         lastUpdateDate.setTime(entity.getUpdateDate());
-                        return Observable.just(entity);
+                        return Observable.<V>just(entity);
                     }
-                    return Observable.empty();
+                    return Observable.<V>empty();
                 });
 
         // Sending the initial value when starting

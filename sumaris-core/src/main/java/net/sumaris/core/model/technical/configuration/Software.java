@@ -54,6 +54,11 @@ public class Software implements IItemReferentialEntity {
     @Column(nullable = false, length = LENGTH_NAME)
     private String name;
 
+    private String description;
+
+    @Column(length = LENGTH_COMMENTS)
+    private String comments;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_fk", nullable = false)
     private Status status;

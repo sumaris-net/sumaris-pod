@@ -25,11 +25,14 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.sample.SampleRepository;
+import net.sumaris.core.exception.NotUniqueException;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.SampleMeasurement;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
+import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
@@ -47,6 +50,9 @@ import java.util.stream.Collectors;
 @Service("sampleService")
 @Slf4j
 public class SampleServiceImpl implements SampleService {
+
+	@Autowired
+	private SumarisConfiguration configuration;
 
 	@Autowired
 	protected SampleRepository sampleRepository;
@@ -168,6 +174,7 @@ public class SampleServiceImpl implements SampleService {
 
 	protected void saveMeasurements(List<SampleVO> result) {
 		result.forEach(savedSample -> {
+			checkUniqueTag(savedSample);
 			if (savedSample.getMeasurementValues() != null) {
 				measurementDao.saveSampleMeasurementsMap(savedSample.getId(), savedSample.getMeasurementValues());
 			}
@@ -178,6 +185,33 @@ public class SampleServiceImpl implements SampleService {
 				savedSample.setMeasurements(measurements);
 			}
 		});
+	}
+
+	private void checkUniqueTag(SampleVO savedSample) {
+		if (!configuration.enableSampleUniqueTag()) return;
+		String savedSampleTagId = null;
+
+		// Get tag_id measurement
+		if (savedSample.getMeasurementValues() != null) {
+			savedSampleTagId = savedSample.getMeasurementValues().get(PmfmEnum.TAG_ID.getId());
+		} else if (savedSample.getMeasurements() != null) {
+			savedSampleTagId = savedSample.getMeasurements().stream()
+					.filter(m -> m.getId() == PmfmEnum.TAG_ID.getId())
+					.map(m -> m.getAlphanumericalValue())
+					.findFirst().orElse(null);
+		}
+
+		// Check if tag_id is unique by program
+		if (savedSampleTagId != null) {
+			long count = sampleRepository.findAll(SampleFilterVO.builder()
+					.programLabel(savedSample.getProgram().getLabel()).tagId(savedSampleTagId).build())
+					.stream()
+					.filter(s -> savedSample.getId() == null || !Objects.equals(s.getId(), savedSample.getId()))
+					.count();
+			if (count > 0) {
+				throw new NotUniqueException(String.format("Sample tag measurement '%s' already exists", savedSampleTagId));
+			}
+		}
 	}
 
 	protected void fillDefaultProperties(SampleVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {

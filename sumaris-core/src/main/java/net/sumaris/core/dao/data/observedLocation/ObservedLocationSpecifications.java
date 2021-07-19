@@ -26,9 +26,13 @@ import net.sumaris.core.dao.data.RootDataSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.ObservedLocation;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 
 /**
@@ -39,6 +43,7 @@ public interface ObservedLocationSpecifications extends RootDataSpecifications<O
     String LOCATION_ID_PARAM = "locationId";
     String START_DATE_PARAM = "startDate";
     String END_DATE_PARAM = "endDate";
+    String OBSERVER_PERSON_IDS_PARAM = "observerPersonIds";
 
     default Specification<ObservedLocation> hasLocationId(Integer locationId) {
         BindableSpecification<ObservedLocation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
@@ -73,6 +78,23 @@ public interface ObservedLocationSpecifications extends RootDataSpecifications<O
             );
         });
         specification.addBind(END_DATE_PARAM, endDate);
+        return specification;
+    }
+
+    default Specification<ObservedLocation> hasObserverPersonIds(Integer... observerPersonIds) {
+        if (ArrayUtils.isEmpty(observerPersonIds)) return null;
+        BindableSpecification<ObservedLocation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+
+            // Avoid duplicated entries (because of inner join)
+            query.distinct(true);
+
+            ParameterExpression<Collection> parameter = criteriaBuilder.parameter(Collection.class, OBSERVER_PERSON_IDS_PARAM);
+            return criteriaBuilder.in(
+                    root.join(ObservedLocation.Fields.OBSERVERS, JoinType.INNER)
+                            .get(IEntity.Fields.ID))
+                    .value(parameter);
+        });
+        specification.addBind(OBSERVER_PERSON_IDS_PARAM, Arrays.asList(observerPersonIds));
         return specification;
     }
 

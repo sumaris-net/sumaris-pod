@@ -255,6 +255,7 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
 
         // Bind some referential ids
         xmlQuery.bind("strategyLabelPmfmId", String.valueOf(PmfmEnum.STRATEGY_LABEL.getId()));
+        xmlQuery.bind("tagIdPmfmId", String.valueOf(PmfmEnum.TAG_ID.getId()));
 
         return xmlQuery;
     }

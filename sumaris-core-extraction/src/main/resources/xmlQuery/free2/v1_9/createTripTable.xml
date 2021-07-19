@@ -4,7 +4,7 @@
   <query type="create" temp="false" table="&amp;tripTableName" option="DISTINCT">
 
     <!-- PK -->
-    <select alias="TYPE" type="text">'TR'</select>
+    <select alias="TYPE" type="text">UPPER('TR')</select>
     <select alias="PROJET" type="text">P.LABEL</select>
     <select alias="ANNEE" type="number">EXTRACT(YEAR FROM T.RETURN_DATE_TIME)</select>
     <select alias="ID_MAREE" type="number">T.ID</select>
@@ -14,7 +14,8 @@
     <select alias="PROJECT" type="hidden">P.LABEL</select>
 
     <!-- other fields -->
-    <select alias="ID_NAVIRE" type="text">COALESCE(VRP.REGISTRATION_CODE, TO_CHAR(T.VESSEL_FK, '9999'))</select>
+    <select alias="ID_NAVIRE" type="text" group="oracle,hsqldb">COALESCE(VRP.REGISTRATION_CODE, TO_CHAR(T.VESSEL_FK))</select>
+    <select alias="ID_NAVIRE" type="text" group="pgsql">COALESCE(VRP.REGISTRATION_CODE, TO_CHAR(T.VESSEL_FK, '9999'))</select>
     <select alias="NOM_NAVIRE" type="text">VF.NAME</select>
     <select alias="LONGUEUR" type="number">VF.LENGTH_OVER_ALL / 100</select>
     <select alias="PUISSANCE" type="number">VF.ADMINISTRATIVE_POWER</select>

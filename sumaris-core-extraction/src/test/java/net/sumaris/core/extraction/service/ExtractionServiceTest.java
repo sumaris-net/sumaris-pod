@@ -116,6 +116,7 @@ public class ExtractionServiceTest extends AbstractServiceTest {
         ExtractionTypeVO type = new ExtractionTypeVO();
         type.setCategory(ExtractionCategoryEnum.LIVE);
         type.setLabel(LiveFormatEnum.RDB.name() + "-ext");
+        type.setName("Product - " + LiveFormatEnum.RDB.name());
         type.setStatusId(StatusEnum.TEMPORARY.getId());
 
         DepartmentVO recDep = new DepartmentVO();

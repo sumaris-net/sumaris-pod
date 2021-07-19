@@ -27,6 +27,8 @@ package net.sumaris.core.config;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -73,6 +75,11 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      * Delegate application config.
      */
     protected final ApplicationConfig applicationConfig;
+
+    /**
+     * Cache for complexe options (e.g. for list of values, to avoid many call of split())
+     */
+    protected final Cache<String, Object> complexOptionsCache = CacheBuilder.newBuilder().build();
 
     private static SumarisConfiguration instance;
 
@@ -190,6 +197,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         if (log.isTraceEnabled())
             log.trace(applicationConfig.getPrintableConfig(null, 4));
 
+    }
+
+    public void cleanCache() {
+        complexOptionsCache.invalidateAll();
     }
 
     /**
@@ -887,6 +898,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     public boolean enableSampleHashOptimization() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_SAMPLE_HASH_OPTIMIZATION.getKey());
+    }
+
+    public boolean enableSampleUniqueTag() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_SAMPLE_UNIQUE_TAG.getKey());
     }
 
     public String getVesselDefaultProgramLabel() {

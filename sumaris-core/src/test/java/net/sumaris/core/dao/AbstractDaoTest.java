@@ -52,7 +52,7 @@ import java.util.Properties;
 @ActiveProfiles("test")
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {DaoTestConfiguration.class})
-@TestPropertySource(locations="classpath:sumaris-core-test.properties")
+//@TestPropertySource(locations="classpath:sumaris-core-test.properties")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
 public class AbstractDaoTest extends net.sumaris.core.test.AbstractDaoTest {

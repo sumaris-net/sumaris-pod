@@ -67,6 +67,11 @@ public class InitTests extends net.sumaris.core.test.InitTests {
     }
 
     @Override
+    protected  String getConfigFileName(){
+        return TestConfiguration.CONFIG_FILE_PREFIX + "-" + this.datasourcePlatform + ".properties";
+    }
+
+    @Override
     protected void afterInsert(Connection conn) throws SQLException {
         super.afterInsert(conn);
     }

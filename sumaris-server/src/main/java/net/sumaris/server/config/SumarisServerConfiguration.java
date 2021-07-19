@@ -24,10 +24,14 @@ package net.sumaris.server.config;
  * #L%
  */
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.server.http.security.AuthTokenTypeEnum;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.version.VersionBuilder;
@@ -35,7 +39,8 @@ import org.nuiton.version.Version;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.io.File;
-import java.util.TimeZone;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>SumarisServerConfiguration class.</p>
@@ -98,12 +103,50 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         super.overrideExternalModulesDefaultOptions(applicationConfig);
     }
 
-    public String getAuthRoleForNotSelfData() {
-        return applicationConfig.getOption(SumarisServerConfigurationOption.AUTH_ROLE_NOT_SELF_DATA_ACCESS.getKey());
+    public List<Integer> getAccessNotSelfDataDepartmentIds() {
+        final String optionKey = SumarisServerConfigurationOption.ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS.getKey();
+        List<Integer> result = (List<Integer>) complexOptionsCache.getIfPresent(optionKey);
+
+        // Not exists in cache
+        if (result == null) {
+            String depIds = applicationConfig.getOption(optionKey);
+            if (StringUtils.isBlank(depIds)) {
+                result = ImmutableList.of();
+            }
+            else {
+                final List<String> invalidIds = Lists.newArrayList();
+                result = Splitter.on(",").omitEmptyStrings().trimResults()
+                    .splitToList(depIds)
+                    .stream()
+                    .map(depId -> {
+                        try {
+                            return Integer.parseInt(depId);
+                        }
+                        catch (Exception e) {
+                            invalidIds.add(depId);
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+                if (CollectionUtils.isNotEmpty(invalidIds)) {
+                    log.error("Skipping invalid values found in configuration option '{}': {}", optionKey, invalidIds);
+                }
+            }
+
+            // Add to options cache
+            complexOptionsCache.put(optionKey, result);
+        }
+        return result;
     }
 
-    public String getAuthRoleForNotSelfExtraction() {
-        return applicationConfig.getOption(SumarisServerConfigurationOption.AUTH_ROLE_NOT_SELF_EXTRACTION_ACCESS.getKey());
+    public String getAccessNotSelfDataMinRole() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.ACCESS_NOT_SELF_DATA_MIN_ROLE.getKey());
+    }
+
+    public String getAccessNotSelfExtractionMinRole() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.ACCESS_NOT_SELF_EXTRACTION_MIN_ROLE.getKey());
     }
 
     public boolean enableAuthToken() {

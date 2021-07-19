@@ -129,14 +129,21 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             Integer.class,
             false),
 
-    AUTH_ROLE_NOT_SELF_DATA_ACCESS(
-            "sumaris.auth.notSelfDataAccess.role",
-            n("sumaris.config.option.auth.notSelfDataAccess.role.description"),
+    ACCESS_NOT_SELF_DATA_MIN_ROLE(
+            "sumaris.data.accessNotSelfData.role",
+            n("sumaris.config.option.data.accessNotSelfData.role.description"),
             "ROLE_ADMIN", // Possible values: ROLE_GUEST, ROLE_USER, ROLE_SUPERVISOR, ROLE_ADMIN
             String.class,
             false),
 
-    AUTH_ROLE_NOT_SELF_EXTRACTION_ACCESS(ExtractionWebConfigurationOption.AUTH_ROLE_NOT_SELF_EXTRACTION_ACCESS),
+    ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS(
+        "sumaris.data.accessNotSelfData.department.ids",
+        n("sumaris.config.option.data.accessNotSelfData.department.ids.description"),
+        null,
+        Integer.class,
+        false),
+
+    ACCESS_NOT_SELF_EXTRACTION_MIN_ROLE(ExtractionWebConfigurationOption.ACCESS_NOT_SELF_EXTRACTION_MIN_ROLE),
 
     SECURITY_LDAP_ENABLED(
         "spring.security.ldap.enabled",
