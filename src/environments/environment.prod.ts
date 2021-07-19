@@ -14,7 +14,7 @@ export const environment: Environment = Object.freeze({
   mock: false,
 
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
-  peerMinVersion: '1.8.0',
+  peerMinVersion: '1.9.1',
 
   // FIXME: GraphQL subscription never unsubscribe...
   listenRemoteChanges: false,
@@ -29,6 +29,10 @@ export const environment: Environment = Object.freeze({
   defaultPeers: [
     {
       host: 'www.sumaris.net',
+      port: 443
+    },
+    {
+      host: 'open.sumaris.net',
       port: 443
     },
     {
