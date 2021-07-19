@@ -71,8 +71,8 @@ else
 fi
 
 echo
-echo "Check Requirements"
-cordova requirements android --verbose
+echo "Checking Cordova requirements..."
+ionic cordova requirements android --verbose
 [[ $? -ne 0 ]] && exit 1
 
 echo "Android environment is ready!"

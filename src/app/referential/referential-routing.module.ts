@@ -5,11 +5,13 @@ import {ProgramPage} from "./program/program.page";
 import {SoftwarePage} from "./software/software.page";
 import {ParameterPage} from "./pmfm/parameter.page";
 import {PmfmPage} from "./pmfm/pmfm.page";
-import {SharedRoutingModule} from "../shared/shared-routing.module";
-import {ReferentialModule} from "./referential.module";
+import {SharedRoutingModule} from "@sumaris-net/ngx-components";
+import {AppReferentialModule} from "./app-referential.module";
 import {StrategyPage} from "./strategy/strategy.page";
 import {ProgramsPage} from "./program/programs.page";
 import {SamplingStrategyPage} from "./strategy/sampling/sampling-strategy.page";
+import {TaxonNamePage} from "./taxon/taxon-name.page";
+import {StrategiesPage} from "./strategy/strategies.page";
 
 const routes: Routes = [
   {
@@ -40,6 +42,14 @@ const routes: Routes = [
             path: '',
             pathMatch: 'full',
             component: ProgramPage,
+            data: {
+              profile: 'SUPERVISOR',
+              pathIdParam: 'programId'
+            }
+          },
+          {
+            path: 'strategies',
+            component: StrategiesPage,
             data: {
               profile: 'SUPERVISOR',
               pathIdParam: 'programId'
@@ -118,12 +128,25 @@ const routes: Routes = [
       }
     ]
   },
+  {
+    path: 'taxonName/:id',
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        component: TaxonNamePage,
+        data: {
+          profile: 'ADMIN'
+        }
+      }
+    ]
+  }
 ];
 
 @NgModule({
   imports: [
     SharedRoutingModule,
-    ReferentialModule,
+    AppReferentialModule,
     RouterModule.forChild(routes)
   ],
   exports: [RouterModule]

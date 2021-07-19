@@ -1,19 +1,28 @@
-import {DataEntityAsObjectOptions} from "./model/data-entity.model";
-import {Directive, Injector} from "@angular/core";
-import {AccountService} from "../../core/services/account.service";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {IDataEntityQualityService} from "./data-quality-service.class";
-import {FormErrors} from "../../core/form/form.utils";
-import {DataRootEntityUtils, RootDataEntity} from "./model/root-data-entity.model";
-import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
-import {ErrorCodes} from "./errors";
-import {IWithRecorderDepartmentEntity} from "./model/model.utils";
-import {Department} from "../../core/services/model/department.model";
-import {isNil, isNotNil} from "../../shared/functions";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {Person} from "../../core/services/model/person.model";
-import {BaseEntityGraphqlMutations, BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions, BaseEntityService, BaseEntityServiceOptions} from "../../referential/services/base-entity-service.class";
-import {PlatformService} from "../../core/services/platform.service";
+import {DataEntityAsObjectOptions} from './model/data-entity.model';
+import {Directive, Injector} from '@angular/core';
+import {
+  AccountService,
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlQueries,
+  BaseEntityGraphqlSubscriptions,
+  BaseEntityService,
+  BaseEntityServiceOptions,
+  Department, EntitiesServiceWatchOptions, EntityServiceLoadOptions,
+  EntityUtils,
+  FormErrors,
+  GraphqlService,
+  isNil,
+  isNotNil,
+  Person,
+  PlatformService,
+  ReferentialUtils
+} from '@sumaris-net/ngx-components';
+import {IDataEntityQualityService} from './data-quality-service.class';
+import {DataRootEntityUtils, RootDataEntity} from './model/root-data-entity.model';
+import {ErrorCodes} from './errors';
+import {IWithRecorderDepartmentEntity} from './model/model.utils';
+import {RootDataEntityFilter} from './model/root-data-filter.model';
+import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 
 export interface BaseRootEntityGraphqlMutations extends BaseEntityGraphqlMutations {
@@ -25,25 +34,31 @@ export interface BaseRootEntityGraphqlMutations extends BaseEntityGraphqlMutatio
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class BaseRootDataService<T extends RootDataEntity<T>,
-  F = any,
+export abstract class BaseRootDataService<
+  T extends RootDataEntity<T, ID>,
+  F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
+  ID = number,
+  WO extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions,
+  LO extends EntityServiceLoadOptions = EntityServiceLoadOptions,
   Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
   M extends BaseRootEntityGraphqlMutations = BaseRootEntityGraphqlMutations,
   S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions>
-  extends BaseEntityService<T, F, Q, M, S>
-  implements IDataEntityQualityService<T> {
+  extends BaseEntityService<T, F, ID, WO, LO, Q, M, S>
+  implements IDataEntityQualityService<T, ID> {
 
   protected accountService: AccountService;
 
   protected constructor(
     injector: Injector,
     dataType: new() => T,
-    options: BaseEntityServiceOptions<T, F, Q, M, S>
+    filterType: new() => F,
+    options: BaseEntityServiceOptions<T, ID, Q, M, S>
   ) {
     super(
       injector.get(GraphqlService),
       injector.get(PlatformService),
       dataType,
+      filterType,
       options);
 
     this.accountService = this.accountService || injector && injector.get(AccountService) || undefined;
@@ -53,7 +68,7 @@ export abstract class BaseRootDataService<T extends RootDataEntity<T>,
     if (!entity) return false;
 
     // If the user is the recorder: can write
-    if (entity.recorderPerson && this.accountService.account.asPerson().equals(entity.recorderPerson)) {
+    if (entity.recorderPerson && ReferentialUtils.equals(this.accountService.person, entity.recorderPerson)) {
       return true;
     }
 
@@ -65,7 +80,7 @@ export abstract class BaseRootDataService<T extends RootDataEntity<T>,
 
   async terminate(entity: T): Promise<T> {
     if (!this.mutations.terminate) throw Error('Not implemented');
-    if (isNil(entity.id) || entity.id < 0) {
+    if (isNil(entity.id) || +entity.id < 0) {
       throw new Error("Entity must be saved before terminate!");
     }
 
@@ -100,7 +115,7 @@ export abstract class BaseRootDataService<T extends RootDataEntity<T>,
    */
   async validate(entity: T): Promise<T> {
     if (!this.mutations.validate) throw Error('Not implemented');
-    if (isNil(entity.id) || entity.id < 0) {
+    if (isNil(entity.id) || +entity.id < 0) {
       throw new Error("Entity must be saved once before validate !");
     }
     if (isNil(entity.controlDate)) {

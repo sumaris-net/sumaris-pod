@@ -1,16 +1,16 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {ModalController} from "@ionic/angular";
 import {BehaviorSubject, Observable} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {AcquisitionLevelCodes, AcquisitionLevelType} from "../../referential/services/model/model.enum";
-import {toBoolean} from "../../shared/functions";
-import {PlatformService} from "../../core/services/platform.service";
+import {toBoolean} from "@sumaris-net/ngx-components";
+import {PlatformService}  from "@sumaris-net/ngx-components";
 import {Sample} from "../services/model/sample.model";
 import {SamplesTable} from "./samples.table";
 import {Moment} from "moment";
-import {ReferentialRef} from "../../core/services/model/referential.model";
+import {ReferentialRef}  from "@sumaris-net/ngx-components";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
 
 @Component({

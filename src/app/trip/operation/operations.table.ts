@@ -1,20 +1,16 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit} from "@angular/core";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {OperationValidatorService} from "../services/validator/operation.validator";
-import {AlertController, ModalController, Platform} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {OperationValidatorService} from '../services/validator/operation.validator';
+import {AlertController, ModalController, Platform} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
-import {OperationFilter, OperationService, OperationServiceWatchOptions} from "../services/operation.service";
-import {TranslateService} from "@ngx-translate/core";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {Operation} from "../services/model/trip.model";
-import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
-import {isNotNil, toBoolean} from "../../shared/functions";
-import {OperationsMap} from "./map/operations.map";
-import {AccountService} from "../../core/services/account.service";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {environment} from "../../../environments/environment";
+import {OperationService, OperationServiceWatchOptions} from '../services/operation.service';
+import {TranslateService} from '@ngx-translate/core';
+import {AccountService, AppTable, EntitiesTableDataSource, isNotNil, LatLongPattern, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, toBoolean} from '@sumaris-net/ngx-components';
+import {OperationsMap} from './map/operations.map';
+import {environment} from '@environments/environment';
+import {Operation} from '../services/model/trip.model';
+import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 
 
 @Component({
@@ -37,7 +33,9 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() tripId: number;
   @Input() showMap: boolean;
   @Input() program: string;
-
+  @Input() showToolbar = true;
+  @Input() showPaginator = true;
+  @Input() useSticky = true;
 
   get sortActive(): string {
     const sortActive = super.sortActive;
@@ -93,7 +91,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
             'endPosition',
             'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Operation, OperationFilter, OperationServiceWatchOptions>(Operation, dataService,
+      new EntitiesTableDataSource<Operation, OperationFilter, number, OperationServiceWatchOptions>(Operation,
+        dataService,
         null,
         // DataSource options
         {
@@ -102,7 +101,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
           dataServiceOptions: {
             readOnly: true,
             withBatchTree: false,
-            withSamples: false
+            withSamples: false,
+            withTotal: true
           }
         })
     );
@@ -160,14 +160,10 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     }
   }
 
-  ngAfterViewInit() {
-    super.ngAfterViewInit();
-  }
-
   setTripId(id: number, opts?: {emitEvent?: boolean; }) {
     if (this.tripId !== id) {
       this.tripId = id;
-      const filter = this.filter || {};
+      const filter = this.filter || new OperationFilter();
       filter.tripId = id;
       this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
       this.dataSource.serviceOptions.tripId = id;
@@ -178,17 +174,16 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     }
   }
 
-
-
   async openMapModal(event?: UIEvent) {
 
-    const operations = (await this.dataSource.getRows())
-      .map(row => row.currentData);
+    const res = await this.dataService.loadAllByTrip({
+        tripId: this.tripId
+      }, {fetchPolicy: 'cache-first', fullLoad: false, withTotal: true});
 
     const modal = await this.modalCtrl.create({
       component: OperationsMap,
       componentProps: {
-        operations,
+        operations: res.data,
         latLongPattern: this.latLongPattern,
         program: this.program
       },
@@ -201,7 +196,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
-    if (data && data instanceof Operation) {
+    if (data instanceof Operation) {
       // Select the row
       const row = (await this.dataSource.getRows()).find(row => row.currentData.id === data.id);
       if (row) {

@@ -1,8 +1,8 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Software} from "../../../core/services/model/config.model";
+import {Software}  from "@sumaris-net/ngx-components";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {EntityUtils} from "../../../core/services/model/entity.model";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
 
 @Injectable({providedIn: 'root'})
 export class SoftwareValidatorService<T extends Software<T> = Software<any>> implements ValidatorService{
@@ -21,6 +21,8 @@ export class SoftwareValidatorService<T extends Software<T> = Software<any>> imp
       id: [data && data.id || null],
       label: [data && data.label || null, Validators.compose([Validators.required, Validators.max(50)])],
       name: [data && data.name || null, Validators.compose([Validators.required, Validators.max(100)])],
+      description: [data && data.description || null, Validators.maxLength(255)],
+      comments: [data && data.comments || null, Validators.maxLength(2000)],
       updateDate: [data && data.updateDate || null],
       creationDate: [data && data.creationDate || null],
       statusId: [data && data.statusId || null, Validators.required],

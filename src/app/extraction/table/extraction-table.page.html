@@ -33,7 +33,7 @@
     <!-- reset filter -->
     <button mat-icon-button (click)="resetFilter()"
             *ngIf="criteriaCount$|async">
-      <mat-icon color="accent">filter_list</mat-icon>
+      <mat-icon color="accent">filter_list_alt</mat-icon>
       <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
     </button>
 
@@ -43,9 +43,9 @@
                 [matBadge]="criteriaCount"
                 matBadgeColor="accent"
                 matBadgeSize="small"
-                matBadgePosition="above after">filter_list</mat-icon>
+                matBadgePosition="above after">filter_list_alt</mat-icon>
       <ng-template #noCriteriaIcon>
-        <mat-icon>filter_list</mat-icon>
+        <mat-icon>filter_list_alt</mat-icon>
       </ng-template>
     </button>
 
@@ -145,7 +145,7 @@
 
   <button mat-menu-item
           *ngIf="canEdit"
-          (click)="openAggregationType(type)">
+          (click)="openProduct(type)">
     <mat-icon>edit</mat-icon>
     <ion-label translate>COMMON.BTN_EDIT</ion-label>
   </button>
@@ -161,12 +161,12 @@
 
 <ion-content class="ion-no-padding" scroll-y="false">
   <ng-container *ngIf="type?.sheetNames as sheetNames">
-    <nav mat-tab-nav-bar *ngIf="sheetNames.length > 1">
+    <nav mat-tab-nav-bar *ngIf="sheetNames | isArrayLength:{greaterThan: 1} ">
       <a mat-tab-link *ngFor="let item of sheetNames"
          (click)="setSheetName(item)"
          [active]="item === sheetName">
         <ion-text>{{getI18nSheetName(item)}}</ion-text>
-        <mat-icon *ngIf="hasFilterCriteria(item)">filter_list</mat-icon>
+        <mat-icon *ngIf="hasFilterCriteria(item)">filter_list_alt</mat-icon>
       </a>
     </nav>
   </ng-container>

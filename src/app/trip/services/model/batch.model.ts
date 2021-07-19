@@ -1,17 +1,24 @@
-import {AcquisitionLevelCodes, PmfmIds, QualitativeValueIds, QualityFlagIds} from "../../../referential/services/model/model.enum";
-import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
-import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
-import {isNil, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank, toNumber} from "../../../shared/functions";
-import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
-import {EntityUtils, ITreeItemEntity} from "../../../core/services/model/entity.model";
+import {AcquisitionLevelCodes, PmfmIds, QualitativeValueIds, QualityFlagIds} from '../../../referential/services/model/model.enum';
+import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
+import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
 import {
-  NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions, ReferentialRef, referentialToString,
-  ReferentialUtils
-} from "../../../core/services/model/referential.model";
-import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {PmfmValueUtils} from "../../../referential/services/model/pmfm-value.model";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+  EntityClass,
+  EntityUtils,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  ITreeItemEntity,
+  ReferentialAsObjectOptions,
+  referentialToString,
+  ReferentialUtils,
+  toNumber
+} from '@sumaris-net/ngx-components';
+import {TaxonGroupRef, TaxonNameRef} from '../../../referential/services/model/taxon.model';
+import {PmfmValueUtils} from '../../../referential/services/model/pmfm-value.model';
+import {IPmfm} from '../../../referential/services/model/pmfm.model';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';
@@ -25,22 +32,21 @@ export interface BatchFromObjectOptions {
   withChildren?: boolean;
 }
 
-export class Batch<T extends Batch<any> = Batch<any>,
+// WARN: always recreate en entity, even if source is a Batch
+// because options can have changed
+@EntityClass({typename: 'BatchVO', fromObjectReuseStrategy: 'clone'})
+export class Batch<
+  T extends Batch<T, ID> = Batch<any, any>,
+  ID = number,
   O extends BatchAsObjectOptions = BatchAsObjectOptions,
-  F extends BatchFromObjectOptions = BatchFromObjectOptions>
-  extends DataEntity<T, O, F>
-  implements IEntityWithMeasurement<T>, ITreeItemEntity<Batch<any>> {
+  FO extends BatchFromObjectOptions = BatchFromObjectOptions>
+  extends DataEntity<T, ID, O, FO>
+  implements
+    IEntityWithMeasurement<T, ID>,
+    ITreeItemEntity<Batch> {
 
-  static TYPENAME = 'BatchVO';
   static SAMPLING_BATCH_SUFFIX = '.%';
-
-  static fromObject(source: any, opts?: { withChildren?: boolean; }): Batch {
-    // WARN: always recreate en entity, even if source is a Batch
-    // because options can have changed
-    const target = new Batch();
-    target.fromObject(source, opts);
-    return target;
-  }
+  static fromObject: (source: any, opts?: { withChildren?: boolean; }) => Batch;
 
   static fromObjectArrayAsTree(source: any[]): Batch {
     if (!source) return null;
@@ -108,49 +114,25 @@ export class Batch<T extends Batch<any> = Batch<any>,
       ));
   }
 
-  label: string;
-  rankOrder: number;
-  exhaustiveInventory: boolean;
-  samplingRatio: number;
-  samplingRatioText: string;
-  individualCount: number;
-  taxonGroup: ReferentialRef;
-  taxonName: TaxonNameRef;
-  comments: string;
-  measurementValues: { [key: number]: any };
-  weight: BatchWeight;
+  label: string = null;
+  rankOrder: number = null;
+  exhaustiveInventory: boolean = null;
+  samplingRatio: number = null;
+  samplingRatioText: string = null;
+  individualCount: number = null;
+  taxonGroup: TaxonGroupRef = null;
+  taxonName: TaxonNameRef = null;
+  comments: string = null;
+  measurementValues: { [key: number]: any } = {};
+  weight: BatchWeight = null;
 
-  operationId: number;
-  parentId: number;
-  parent: Batch<any>;
-  children: Batch<any>[];
+  operationId: number = null;
+  parentId: number = null;
+  parent: Batch = null;
+  children: Batch[] = null;
 
-  constructor() {
-    super();
-    this.__typename = Batch.TYPENAME;
-    this.label = null;
-    this.rankOrder = null;
-    this.exhaustiveInventory = null;
-    this.samplingRatio = null;
-    this.samplingRatioText = null;
-    this.individualCount = null;
-    this.taxonGroup = null;
-    this.taxonName = null;
-    this.comments = null;
-
-    this.operationId = null;
-    this.parentId = null;
-    this.parent = null;
-    this.measurementValues = {};
-    this.children = [];
-
-    this.weight = null;
-  }
-
-  clone(opts?: O & F): T {
-    const target = new Batch();
-    target.fromObject(this.asObject(opts), opts);
-    return target as T;
+  constructor(__typename?: string) {
+    super(__typename || Batch.TYPENAME);
   }
 
   asObject(opts?: O): any {
@@ -179,7 +161,7 @@ export class Batch<T extends Batch<any> = Batch<any>,
     return target;
   }
 
-  fromObject(source: any, opts?: F) {
+  fromObject(source: any, opts?: FO) {
     super.fromObject(source);
     this.label = source.label;
     this.rankOrder = +source.rankOrder;
@@ -187,7 +169,7 @@ export class Batch<T extends Batch<any> = Batch<any>,
     this.samplingRatio = isNotNilOrBlank(source.samplingRatio) ? parseFloat(source.samplingRatio) : null;
     this.samplingRatioText = source.samplingRatioText;
     this.individualCount = isNotNilOrBlank(source.individualCount) ? parseInt(source.individualCount) : null;
-    this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
+    this.taxonGroup = source.taxonGroup && TaxonGroupRef.fromObject(source.taxonGroup) || undefined;
     this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName) || undefined;
     this.comments = source.comments;
     this.operationId = source.operationId;
@@ -376,7 +358,7 @@ export class BatchUtils {
       this.computeIndividualCount(b); // Recursive call
 
       // Update sum of individual count
-      if (b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
+      if (b.label && b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
         sumChildrenIndividualCount = toNumber(sumChildrenIndividualCount, 0) + toNumber(b.individualCount, 1);
       }
     });

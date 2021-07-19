@@ -1,11 +1,12 @@
-<app-toolbar [title]="title$ | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
+<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
              [defaultBackHref]="defaultBackHref" [canGoBack]="true">
   <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
 <ion-content>
 
-  <mat-tab-group  class="mat-tab-disabled-hidden" #tabGroup [(selectedIndex)]="selectedTabIndex"
+  <mat-tab-group  class="mat-tab-disabled-hidden" #tabGroup
+                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
                  [animationDuration]="tabGroupAnimationDuration"
                  dynamicHeight>
@@ -71,7 +72,7 @@
     <mat-tab label="{{'PROGRAM.TAB_STRATEGIES'|translate}}" [disabled]="isNewData">
       <ng-template mat-tab-label>
         <mat-icon>date_range</mat-icon>
-        <ion-label translate>PROGRAM.TAB_STRATEGIES</ion-label>
+        <ion-label>{{'PROGRAM.TAB_STRATEGIES' + i18nTabStrategiesSuffix | translate}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="strategiesTable?.invalid"></ion-icon>
       </ng-template>
 
@@ -147,7 +148,7 @@
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
 
-  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
+  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 
     <!-- error -->
@@ -156,7 +157,7 @@
       <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 
-  </form-buttons-bar>
+  </app-form-buttons-bar>
 </ion-footer>
 
 <!-- FAB Button: add strategy -->

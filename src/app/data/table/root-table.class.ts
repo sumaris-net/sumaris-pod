@@ -1,27 +1,34 @@
-import {Directive, Injector} from "@angular/core";
-import {ModalController, Platform} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
+import {Directive, Injector, Input, ViewChild} from '@angular/core';
+import {ModalController, Platform} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
-import {FormGroup} from "@angular/forms";
-import {catchError, distinctUntilChanged, filter, map, throttleTime} from "rxjs/operators";
-import {PlatformService} from "../../core/services/platform.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AccountService} from "../../core/services/account.service";
-import {ConnectionType, NetworkService} from "../../core/services/network.service";
-import {BehaviorSubject} from "rxjs";
-import {personsToString} from "../../core/services/model/person.model";
-import {chainPromises, firstFalsePromise, firstTruePromise} from "../../shared/observables";
-import {isEmptyArray, isNotNil, sleep} from "../../shared/functions";
-import {RootDataEntity, SynchronizationStatus} from "../services/model/root-data-entity.model";
-import {qualityFlagToColor} from "../services/model/model.utils";
-import {UserEventService} from "../../social/services/user-event.service";
-import {IDataSynchroService} from "../services/root-data-synchro-service.class";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {referentialToString} from "../../core/services/model/referential.model";
-import {AppTable} from "../../core/table/table.class";
-import {toDateISOString} from "../../shared/dates";
-import * as momentImported from "moment";
-import {TableElement} from "@e-is/ngx-material-table";
+import {FormGroup} from '@angular/forms';
+import {catchError, debounceTime, distinctUntilChanged, filter, map, tap, throttleTime} from 'rxjs/operators';
+import {
+  AccountService,
+  AppTable,
+  chainPromises,
+  ConnectionType,
+  EntitiesTableDataSource,
+  isEmptyArray,
+  isNotNil,
+  LocalSettingsService,
+  NetworkService,
+  PlatformService,
+  referentialToString,
+  toBoolean,
+  toDateISOString,
+  UserEventService
+} from '@sumaris-net/ngx-components';
+import {BehaviorSubject} from 'rxjs';
+import {DataRootEntityUtils, RootDataEntity, SynchronizationStatus} from '../services/model/root-data-entity.model';
+import {qualityFlagToColor} from '../services/model/model.utils';
+import {IDataSynchroService} from '../services/root-data-synchro-service.class';
+import * as momentImported from 'moment';
+import {TableElement} from '@e-is/ngx-material-table';
+import {RootDataEntityFilter} from '../services/model/root-data-filter.model';
+import {MatExpansionPanel} from '@angular/material/expansion';
+
 const moment = momentImported;
 
 export const AppRootTableSettingsEnum = {
@@ -29,8 +36,13 @@ export const AppRootTableSettingsEnum = {
 };
 
 @Directive()
-export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
-  extends AppTable<T, F> {
+// tslint:disable-next-line:directive-class-suffix
+export abstract class AppRootTable<
+  T extends RootDataEntity<T, ID>,
+  F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
+  ID = number
+  >
+  extends AppTable<T, F, ID> {
 
   protected network: NetworkService;
   protected userEventService: UserEventService;
@@ -40,7 +52,8 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
   canDelete: boolean;
   isAdmin: boolean;
   filterForm: FormGroup;
-  filterIsEmpty = true;
+  filterCriteriaCount = 0;
+  filterPanelFloating = true;
   showUpdateOfflineFeature = false;
   offline = false;
 
@@ -51,10 +64,15 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
 
   synchronizationStatusList: SynchronizationStatus[] = ['DIRTY', 'SYNC'];
 
+  get filterIsEmpty(): boolean {
+    return this.filterCriteriaCount === 0;
+  }
+
   get synchronizationStatus(): SynchronizationStatus {
     return this.filterForm.controls.synchronizationStatus.value || 'SYNC' /*= the default status*/;
   }
 
+  @Input()
   set synchronizationStatus(value: SynchronizationStatus) {
     this.setSynchronizationStatus(value);
   }
@@ -62,6 +80,8 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
   get isLogin(): boolean {
     return this.accountService.isLogin();
   }
+
+  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   protected constructor(
     route: ActivatedRoute,
@@ -71,8 +91,8 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
     modalCtrl: ModalController,
     settings: LocalSettingsService,
     columns: string[],
-    protected dataService: IDataSynchroService<T>,
-    _dataSource?: EntitiesTableDataSource<T, F>,
+    protected dataService: IDataSynchroService<T, ID>,
+    _dataSource?: EntitiesTableDataSource<T, F, ID>,
     _filter?: F,
     injector?: Injector
   ) {
@@ -98,8 +118,9 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
     super.ngOnInit();
 
     this.isAdmin = this.accountService.isAdmin();
-    this.canEdit = this.isAdmin || this.accountService.isUser();
-    this.canDelete = this.isAdmin;
+    this.canEdit = toBoolean(this.canEdit, this.isAdmin || this.accountService.isUser());
+    this.canDelete = toBoolean(this.canDelete, this.isAdmin);
+    if (this.debug) console.debug("[root-table] Can user edit table ? " + this.canEdit);
 
     if (!this.filterForm) throw new Error(`Missing 'filterForm' in ${this.constructor.name}`);
     if (!this.featureId) throw new Error(`Missing 'featureId' in ${this.constructor.name}`);
@@ -117,14 +138,38 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
 
     this.registerSubscription(
       this.onRefresh.subscribe(() => {
-        this.filterIsEmpty = this.isFilterEmpty(this.filter);
         this.filterForm.markAsUntouched();
         this.filterForm.markAsPristine();
-        this.markForCheck();
 
         // Check if update offline mode is need
         this.checkUpdateOfflineNeed();
       }));
+
+    // Update filter when changes
+    this.registerSubscription(
+      this.filterForm.valueChanges
+        .pipe(
+          debounceTime(250),
+          filter((_) => this.filterForm.valid),
+          tap(value => {
+            const filter = this.asFilter(value);
+            this.filterCriteriaCount = filter.countNotEmptyCriteria();
+            this.markForCheck();
+            // Update the filter, without reloading the content
+            this.setFilter(filter, {emitEvent: false});
+          }),
+          // Save filter in settings (after a debounce time)
+          debounceTime(500),
+          tap(json => this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY))
+        )
+        .subscribe());
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+
+    this.$importProgression.unsubscribe();
+
   }
 
   onNetworkStatusChanged(type: ConnectionType) {
@@ -247,16 +292,37 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
     await this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY);
   }
 
+  toggleSynchronizationStatus() {
+    if (this.offline || this.synchronizationStatus === 'SYNC') {
+      this.setSynchronizationStatus('DIRTY');
+    }
+    else {
+      this.setSynchronizationStatus('SYNC');
+    }
+  }
+
+  toggleFilterPanelFloating() {
+    this.filterPanelFloating = !this.filterPanelFloating;
+    this.markForCheck();
+  }
+
+  closeFilterPanel() {
+    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+    this.filterPanelFloating = true;
+  }
+
   get hasReadyToSyncSelection(): boolean {
     if (!this._enabled || this.loading || this.selection.isEmpty()) return false;
     return this.selection.selected
-      .findIndex(row => row.currentData.id < 0 && row.currentData.synchronizationStatus === 'READY_TO_SYNC') !== -1;
+      .map(row => row.currentData)
+      .findIndex(DataRootEntityUtils.isReadyToSync) !== -1;
   }
 
   get hasDirtySelection(): boolean {
     if (!this._enabled || this.loading || this.selection.isEmpty()) return false;
     return this.selection.selected
-      .findIndex(row => row.currentData.id < 0 && row.currentData.synchronizationStatus === 'DIRTY') !== -1;
+      .map(row => row.currentData)
+      .findIndex(DataRootEntityUtils.isLocalAndDirty) !== -1;
   }
 
   async terminateAndSynchronizeSelection() {
@@ -309,8 +375,9 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
     if (this.debug) console.debug("[root-table] Starting to terminate data...");
 
     const ids = rows
-      .filter(row => row.currentData.id < 0 && row.currentData.synchronizationStatus === 'DIRTY')
-      .map(row => row.currentData.id);
+      .map(row => row.currentData)
+      .filter(DataRootEntityUtils.isLocalAndDirty)
+      .map(entity => entity.id);
 
     if (isEmptyArray(ids)) return; // Nothing to terminate
 
@@ -367,8 +434,9 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
     if (this.debug) console.debug("[root-table] Starting to synchronize data...");
 
     const ids = rows
-      .filter(row => row.currentData.id < 0 && row.currentData.synchronizationStatus === 'READY_TO_SYNC')
-      .map(row => row.currentData.id);
+      .map(row => row.currentData)
+      .filter(DataRootEntityUtils.isReadyToSync)
+      .map(entity => entity.id);
 
     if (isEmptyArray(ids)) return; // Nothing to sync
 
@@ -410,54 +478,50 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
     }
   }
 
+  applyFilterAndClosePanel(event?: UIEvent) {
+    this.onRefresh.emit(event);
+    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+  }
+
+  resetFilter(event?: UIEvent) {
+    this.filterForm.reset();
+    this.setFilter(null, {emitEvent: true});
+    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+  }
 
   referentialToString = referentialToString;
-  personsToString = personsToString;
   qualityFlagToColor = qualityFlagToColor;
 
   /* -- protected methods -- */
 
-  protected abstract isFilterEmpty(filter: F): boolean;
+  protected asFilter(source?: any): F {
+    source = source || this.filterForm.value;
+
+    if (this._dataSource && this._dataSource.dataService) {
+      return this._dataSource.dataService.asFilter(source);
+    }
+
+    return source as F;
+  }
 
   protected async restoreFilterOrLoad() {
+    this.markAsLoading();
+
     console.debug("[root-table] Restoring filter from settings...");
-    const jsonFilter = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY);
 
-    const synchronizationStatus = jsonFilter && jsonFilter.synchronizationStatus;
-    const filter = jsonFilter && typeof jsonFilter === 'object' && {...jsonFilter, synchronizationStatus: undefined} || undefined;
+    const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
 
-    this.hasOfflineMode = (synchronizationStatus && synchronizationStatus !== 'SYNC') ||
-      (await this.dataService.hasOfflineData());
+    const filter = this.asFilter(json);
 
-    // No default filter, nor synchronizationStatus
-    if (this.isFilterEmpty(filter) && !synchronizationStatus) {
-      // If offline data, show it (will refresh)
-      if (this.hasOfflineMode) {
-        this.filterForm.patchValue({
-          synchronizationStatus: 'DIRTY'
-        });
-      }
-      // No offline data: default load (online data)
-      else {
-        // To avoid a delay (caused by debounceTime in a previous pipe), to refresh content manually
-        this.onRefresh.emit();
-        // But set a empty filter, to avoid automatic apply of next filter changes (caused by condition '|| isNil()' in a previous pipe)
-        this.filterForm.patchValue({}, {emitEvent: false});
-      }
+    this.hasOfflineMode = (filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || (await this.dataService.hasOfflineData());
+
+    // Force offline, if no network AND has offline feature
+    if (this.network.offline && this.hasOfflineMode) {
+      filter.synchronizationStatus = 'DIRTY';
     }
-    // Restore the filter (will apply it)
-    else {
-      // Force offline
-      if (this.network.offline && this.hasOfflineMode && synchronizationStatus === 'SYNC') {
-        this.filterForm.patchValue({
-          ...filter,
-          synchronizationStatus: 'DIRTY'
-        });
-      }
-      else {
-        this.filterForm.patchValue({...filter, synchronizationStatus});
-      }
-    }
+
+    this.filterForm.patchValue(filter.asObject());
+    this.setFilter(filter, {emitEvent: true});
   }
 
   protected async checkUpdateOfflineNeed() {

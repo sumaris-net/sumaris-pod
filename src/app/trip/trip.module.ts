@@ -11,43 +11,44 @@ import {PhysicalGearForm} from './physicalgear/physical-gear.form';
 import {PhysicalGearTable} from './physicalgear/physical-gears.table';
 import {OperationsTable} from './operation/operations.table';
 import {SamplesTable} from './sample/samples.table';
-import {SamplingSamplesTable} from './sample/sampling/sampling-samples.table';
 import {SubSamplesTable} from './sample/sub-samples.table';
 import {BatchGroupsTable} from './batch/table/batch-groups.table';
 import {BatchesTable} from './batch/table/batches.table';
 import {SubBatchesTable} from './batch/table/sub-batches.table';
 import {IndividualMonitoringSubSamplesTable} from './sample/individualmonitoring/individual-monitoring-samples.table';
-import {LeafletModule} from "@asymmetrik/ngx-leaflet";
-import {SubBatchesModal} from "./batch/modal/sub-batches.modal";
-import {SubBatchForm} from "./batch/form/sub-batch.form";
-import {PhysicalGearModal} from "./physicalgear/physical-gear.modal";
-import {BatchForm} from "./batch/form/batch.form";
-import {BatchTreeComponent} from "./batch/batch-tree.component";
-import {BatchGroupForm} from "./batch/form/batch-group.form";
-import {BatchGroupModal} from "./batch/modal/batch-group.modal";
-import {SubBatchModal} from "./batch/modal/sub-batch.modal";
-import {ReferentialModule} from "../referential/referential.module";
-import {SampleForm} from "./sample/sample.form";
-import {SampleModal} from "./sample/sample.modal";
-import {SelectPhysicalGearModal} from "./physicalgear/select-physical-gear.modal";
-import {DataModule} from "../data/data.module";
-import {OperationsMap} from "./operation/map/operations.map";
-import {SocialModule} from "../social/social.module";
-import {BatchModal} from "./batch/modal/batch.modal";
-import {CoreModule} from "../core/core.module";
-import {TranslateModule} from "@ngx-translate/core";
-import {CommonModule} from "@angular/common";
-import {TripTrashModal} from "./trip/trash/trip-trash.modal";
+import {LeafletModule} from '@asymmetrik/ngx-leaflet';
+import {SubBatchesModal} from './batch/modal/sub-batches.modal';
+import {SubBatchForm} from './batch/form/sub-batch.form';
+import {PhysicalGearModal} from './physicalgear/physical-gear.modal';
+import {BatchForm} from './batch/form/batch.form';
+import {BatchTreeComponent} from './batch/batch-tree.component';
+import {BatchGroupForm} from './batch/form/batch-group.form';
+import {BatchGroupModal} from './batch/modal/batch-group.modal';
+import {SubBatchModal} from './batch/modal/sub-batch.modal';
+import {AppReferentialModule} from '../referential/app-referential.module';
+import {SampleForm} from './sample/sample.form';
+import {SampleModal} from './sample/sample.modal';
+import {SelectPhysicalGearModal} from './physicalgear/select-physical-gear.modal';
+import {AppDataModule} from '../data/app-data.module';
+import {OperationsMap} from './operation/map/operations.map';
+import {SocialModule} from '@sumaris-net/ngx-components';
+import {BatchModal} from './batch/modal/batch.modal';
+import {TranslateModule} from '@ngx-translate/core';
+import {CommonModule} from '@angular/common';
+import {TripTrashModal} from './trip/trash/trip-trash.modal';
+import {AppCoreModule} from '@app/core/core.module';
 
 @NgModule({
   imports: [
     CommonModule,
-    CoreModule,
-    ReferentialModule,
-    DataModule,
-    SocialModule,
     LeafletModule,
-    TranslateModule.forChild()
+    TranslateModule.forChild(),
+
+    // App module
+    AppCoreModule,
+    AppReferentialModule,
+    AppDataModule,
+    SocialModule
   ],
   declarations: [
     TripTable,
@@ -66,7 +67,6 @@ import {TripTrashModal} from "./trip/trash/trip-trash.modal";
     MeasurementsForm,
     CatchBatchForm,
     SamplesTable,
-    SamplingSamplesTable,
     SubSamplesTable,
     BatchGroupsTable,
     BatchesTable,
@@ -89,10 +89,12 @@ import {TripTrashModal} from "./trip/trash/trip-trash.modal";
   exports: [
     // Modules
     TranslateModule,
-    CoreModule,
-    DataModule,
     SocialModule,
-    ReferentialModule,
+
+    // App modules
+    AppCoreModule,
+    AppDataModule,
+    AppReferentialModule,
 
     // Pipes
 
@@ -114,7 +116,6 @@ import {TripTrashModal} from "./trip/trash/trip-trash.modal";
     SubBatchModal,
     SampleForm,
     SamplesTable,
-    SamplingSamplesTable,
     SubSamplesTable
   ]
 })

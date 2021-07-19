@@ -5,6 +5,7 @@
     "BTN_OK": "Ok",
     "BTN_ABORT_CHANGES": "Abandonner les modifications",
     "BTN_ADD": "Ajouter",
+    "BTN_ADD_ROW": "Ajouter une ligne",
     "BTN_APPLY": "Appliquer",
     "BTN_BURST_INPUT": "Mode rafale",
     "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",
@@ -15,6 +16,7 @@
     "BTN_DELETE": "Supprimer",
     "BTN_DELETE_FOREVER": "Supprimer définitivement",
     "BTN_EDIT": "Modifier",
+    "BTN_EXPAND": "Déplier",
     "BTN_FREEZE_VALUE": "Figer",
     "BTN_FREEZE_VALUE_HELP": "Figer la valeur",
     "BTN_YES_DELETE": "Oui, supprimer",
@@ -62,7 +64,7 @@
     "DATE_SHORT_PATTERN": "DD/MM/YY",
     "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
     "DATE_YEAR_PATTERN": "YYYY",
-    "DATE_YEAR_PLACEHOLDER": "yyyy",
+    "DATE_YEAR_PLACEHOLDER": "aaaa",
     "DATE_PLACEHOLDER": "jj/mm/aaaa",
     "DATE_TIME_PLACEHOLDER": "jj/mm/aaaa hh:mm",
 
@@ -99,6 +101,7 @@
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",
     "NO_RESULT": "Aucun résultat",
+    "NO_DATA": "Aucune donnée",
     "MISSING": "Manquant",
 
     "DISPLAYED_COLUMNS": "Paramétrage des colonnes",
@@ -119,10 +122,10 @@
   },
   "CONFIGURATION": {
     "TAB_GENERAL": "Détails",
+    "TAB_PROPERTIES": "Options",
     "TAB_CACHE": "Données en cache",
     "TAB_NOTIFICATIONS": "Notifications",
     "APP_NAME": "Nom de l'application",
-    "DESCRIPTION": "Description (page d'accueil)",
     "STATUS": "Etat",
     "PREVIEW_DIVIDER": "Prévisualisation",
     "LOGOS": "Logos de l'application",
@@ -147,12 +150,17 @@
       "ENABLE_GRAVATAR": "Utilisateur > Utiliser Gravatar ?",
       "DEFAULT_LOCALE": "Langue par défaut",
       "DEFAULT_LATLONG_FORMAT": "Format lat/lon par défaut",
-      "NOT_SELF_DATA_ACCESS_MIN_ROLE": "Saisie > Role min. pour voir les données des autres",
+      "ACCESS_NOT_SELF_DATA_MIN_ROLE": "Saisie > Role min. pour voir les données des autres",
+      "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Saisie > Services permettant de voir les données des autres (ID)",
+      "CHECK_SAMPLE_UNIQUE_TAG": "Saisie > Vérifier l'unicité du code de prélèvement",
       "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
         "PARTNER_DEPARTMENTS": "Accueil > Logo des partenaires",
         "BACKGROUND_IMAGES": "Accueil > Images de fond"
+      },
+      "MENU": {
+        "ITEMS": "Menu > Entrées supplémentaire (JSON Array)"
       },
       "COLORS": {
         "PRIMARY": "Thème > Couleur principale",
@@ -182,8 +190,8 @@
         "TAXONOMIC_LEVEL_GENUS_ID": "Référentiel > Niveau taxinomique > Genre",
         "TAXONOMIC_LEVEL_SPECIES_ID": "Référentiel > Niveau taxinomique > Espèce",
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Référentiel > Niveau taxinomique > Sous espèce",
-        "PMFM_MORSE_CODE_ID": "Référentiel > PSFM > Code Morse",
         "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Ligne de plan",
+        "PMFM_TAG_ID": "Référentiel > PSFM > Code prélèvement",
         "PMFM_AGE_ID": "Référentiel > PSFM > Âge",
         "PMFM_SEX_ID": "Référentiel > PSFM > Sexe",
         "STRATEGY_PARAMETER_AGE_LABEL": "Stratégie > Paramètre > Code âge",
@@ -194,12 +202,22 @@
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?",
+      "UPDATE_TECHNICAL_TABLES": "Mise à jour auto des tables techniques ?",
       "ANALYTIC_REFERENCES_ENABLE": "Stratégie > Références analytiques : Activer ?",
       "AUTH_TOKEN_TYPE_PLACEHOLDER": "Securité > Type d'authentification",
       "AUTH_TOKEN_TYPE": {
         "BASIC": "Basique",
         "TOKEN": "Cryptographique",
         "BASIC_AND_TOKEN": "Basique et cryptographique"
+      },
+      "DATA_QUALITY_PROCESS_ENABLE": "Activer le processus qualité ?",
+      "DATA_SHOW_RECORDER": "Afficher le saisisseur ?",
+      "DATA_SHOW_OBSERVERS": "Afficher les observateurs ?",
+      "LANDING": {
+        "FILTER_PROGRAM": "Sorties > Afficher le filtre sur le programme ?",
+        "FILTER_LOCATION": "Sorties > Afficher le filtre sur les lieux ?",
+        "FILTER_PERIOD": "Sorties > Afficher le filtre sur la période ?",
+        "FILTER_OBSERVERS": "Sorties > Afficher le filtre sur les observateurs ?"
       }
     },
     "CACHE": {
@@ -218,14 +236,13 @@
     "DOWNLOADS": "Téléchargements",
     "DATA_ENTRY_DIVIDER": "Saisie de données",
     "DATA_ACCESS_DIVIDER": "Accès aux données",
-    "OBSERVED_LOCATIONS": "Observations",
-    "AUCTION_OCCASION": "Sorties en criée",
-    "OCCASION": "Sorties",
+    "AUCTION_OCCASIONS": "Sorties en criée",
+    "OCCASIONS": "Sorties",
     "ADMINISTRATION_DIVIDER": "Administration",
     "REFERENTIAL_DIVIDER": "Référentiels",
     "USERS": "Utilisateurs",
     "VESSELS": "Navires",
-    "REFERENTIAL": "Listes de références",
+    "REFERENTIAL": "Référentiels",
     "PROGRAMS": "Programmes",
     "EXTRACTIONS": "Extractions",
     "MAP": "Cartes",
@@ -237,6 +254,7 @@
   },
   "ABOUT": {
     "TITLE": "À propos",
+    "POWERED_BY": "Propulsé par",
     "VERSION": "<b>v{{version}}</b>",
     "LICENSE": "Application <b>libre</b> (Licence GNU AGPL v3).",
     "REPORT_ISSUE": "N'hésitez pas à nous remonter les anomalies rencontrés !",
@@ -339,6 +357,7 @@
       "TAXON_GROUP": "Liste déroulante > Espèces commerciale",
       "TAXON_NAME": "Liste déroulante > Espèces scientifique",
       "GEAR": "Liste déroulante > Engins de pêche",
+      "FRACTION": "Liste déroulante > Fraction (pièce calcifiée, etc.)",
       "ATTRIBUTES": {
         "LABEL": "Code",
         "NAME": "Libellé",
@@ -401,7 +420,7 @@
     "OBSERVERS": "Observateurs :",
     "MAIN_METIER_PLACEHOLDER": "Métier principal",
     "SECONDARY_METIER_PLACEHOLDER": "Métier secondaire #{{rank}}",
-    "METIERS": "Métiers:",
+    "METIERS": "Métiers :",
     "BTN_FILTER_METIER": "Restreindre aux métiers déjà pratiqués",
     "COMMENTS": "Commentaires",
     "QUALITY": "État de saisie",
@@ -434,6 +453,7 @@
       "RETURN_LOCATION": "Port de retour",
       "QUALITY": "État",
       "OBSERVERS": "Observateurs",
+      "RECORDER_PERSON": "Saisisseur",
       "COMMENTS": "Commentaires",
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les marées <b>non synchronisées</b>)",
       "FILTER": {
@@ -444,7 +464,8 @@
         "VESSEL": "Navire",
         "SYNCHRONIZATION_STATUS": "Etat de la données",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
-        "RECORDER_PERSON": "Saisisseur"
+        "RECORDER_PERSON": "Saisisseur",
+        "OBSERVERS": "Observateurs"
       },
       "SYNCHRONIZATION_STATUS": {
         "DIRTY_HELP": "Marées hors-ligne",
@@ -492,6 +513,7 @@
       "LIST": {
         "SELECT_ROW_HELP": "Sélectionnez un engin dans la liste, pour pouvoir l'éditer",
         "GEAR": "Engin",
+        "LAST_USED": "Dernière utilisation",
         "COMMENTS": "Commentaires"
       },
       "SELECT_MODAL": {
@@ -680,26 +702,26 @@
         "COMMENTS": "Commentaires",
         "COMMENTS_PLACEHOLDER": "Commentaires",
         "BTN_AUTO_FILL": "Remplir automatiquement",
+        "BTN_ADD_PMFM": "Ajouter un PSFM",
         "WEIGHT": "Poids",
         "LENGTH": "Taille",
         "MATURITY": "Maturité",
         "SEX": "Sexe",
         "AGE": "Age",
         "OTHER": "Autre",
+        "TOTAL_DOTS": "Total :",
+        "TAG_COUNT": "<b>{{tagCount}}</b> prélèvement(s)",
         "SAMPLING": {
-          "LABEL": "Code prélèvement",
-          "LABEL_PLACEHOLDER": "Code prélèvement",
           "TAXON_GROUP": "Espèce commerciale (FAO)",
           "TAXON_GROUP_PLACEHOLDER": "Code espèce",
           "TAXON_NAME": "Espèce scientifique (FAO)",
           "TAXON_NAME_PLACEHOLDER": "Code espèce",
           "SAMPLE_DATE": "Date/Heure de la mesure",
           "PARENT": "Echantillon parent",
-          "MORSE_CODE": "Code Morse",
-          "MORSE_CODE_PLACEHOLDER": "Code Morse",
           "COMMENTS": "Commentaires",
           "COMMENTS_PLACEHOLDER": "Commentaires",
           "BTN_AUTO_FILL": "Remplir automatiquement",
+          "TAG_ID": "Code prélèvement",
           "WEIGHT": "Poids",
           "LENGTH": "Taille",
           "MATURITY": "Maturité",
@@ -765,7 +787,7 @@
       "START": "Début :",
       "END": "Fin :",
       "START_END": "Début / Fin :",
-      "LOCATION": "Lieu d'observation",
+      "LOCATION": "Lieu de la sortie",
       "LOCATION_AND_DATE": "Lieu / Date :",
       "TAB_GENERAL": "Détails",
       "OBSERVER_PLACEHOLDER": "Observateur #",
@@ -776,8 +798,8 @@
       }
     },
     "SELECT_VESSEL_MODAL": {
-      "TITLE": "Ajout d'un navire",
-      "TAB_VESSELS": "Recherche",
+      "TITLE": "Sélection du navire",
+      "TAB_VESSELS": "Recherche navire",
       "TAB_LANDINGS": "Historique",
       "TAB_NEW_VESSEL": "Nouveau navire"
     },
@@ -785,13 +807,13 @@
       "PROGRAM": "Programme",
       "START_DATE_TIME": "Date/heure",
       "QUALITY": "État",
-      "LOCATION": "Criée",
+      "LOCATION": "Lieu de la sortie",
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaires",
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les sorties <b>non envoyées</b>)",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
-        "LOCATION": "Criée",
+        "LOCATION": "Lieu de la sortie",
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période"
       }
@@ -803,11 +825,16 @@
       "DURATION_PLACEHOLDER": "Période à importer"
     },
     "OPTIONS": {
-      "ENABLE": "Observations > Activer ?",
-      "NAME": "Observations > Titre (menu)"
+      "ENABLE": "Sorties > Activer ?",
+      "NAME": "Sorties > Titre (menu)"
     },
     "ERROR": {
-      "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles."
+      "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles.",
+      "COUNT_SAMPLES_ERROR": "Erreur de comptage des échantillonnages de l'observation."
+    },
+    "CONFIRM": {
+      "OBSERVATION_HAS_SAMPLE": "La sortie sélectionnée est liée à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
+      "OBSERVATIONS_HAS_SAMPLE": "Les sorties sélectionnées sont liées à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
     }
   },
   "LANDING": {
@@ -834,14 +861,15 @@
       "OTHER_FEATURES": "Autres caractéristiques :",
       "TAB_SAMPLES": "Echantillons",
       "SAMPLING": {
-        "TITLE": "Navire {{vessel}}",
+        "TITLE": "<span class=\"hidden-xs hidden-sm\">Ligne de plan </span>{{strategyLabel}} - <ion-icon name=\"boat\"></ion-icon> {{vessel}}",
         "STRATEGY": "Ligne de plan :",
         "STRATEGY_PLACEHOLDER": "Code ligne de plan",
         "STRATEGY_SUMMARY_TITLE": "Plan d'échantillonnage",
         "LANDING": "Débarquement :",
         "DATE": "Date de débarquement",
         "TAB_SAMPLES": "Mesures individuelles",
-        "LOCATION": "Port de débarquement"
+        "LOCATION": "Port de débarquement",
+        "CALCIFIED_TYPE": "Pièces calcifiées :"
       }
     },
     "TABLE": {
@@ -855,9 +883,9 @@
       "STRATEGY": "Stratégie",
       "CREATION_DATE": "Date de création",
       "RECORDER_PERSON" : "Saisisseur",
+      "SAMPLES_COUNT": "Nb. prélèvements",
       "SAMPLING": {
-        "STRATEGY_LABEL": "Ligne de plan",
-        "MORSE_CODE" : "Code Morse"
+        "STRATEGY_LABEL": "Ligne de plan"
       }
     },
     "SELECT_MODAL": {
@@ -870,7 +898,8 @@
       "SAVE_ALL_ERROR": "Erreur de sauvegarde des navires observés",
       "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du navire observé.",
       "NO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, il n'y a pas d'effort défini sur la ligne de plan (aucune valeur définie)",
-      "ZERO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, l'effort défini sur la ligne de plan est de 0"
+      "ZERO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, l'effort défini sur la ligne de plan est de 0",
+      "NOT_OBSERVER_ERROR": "Le saisisseur de l'échantillonnage n'est pas un observateur de la sortie"
     }
   },
   "AGGREGATED_LANDING": {
@@ -1024,10 +1053,12 @@
     },
     "ACTION": {
       "EDIT": "Modifier",
-      "EDIT_FEATURES": "Corriger les caractéristiques",
-      "NEW_FEATURES": "Declarer un changement de caratéristiques",
+      "REGISTRATION_DIVIDER": "Immatriculation (code, pavillon)",
+      "FEATURES_DIVIDER": "Caractéristiques (marquage, nom, port, etc.)",
       "EDIT_REGISTRATION": "Corriger l'immatriculation",
-      "NEW_REGISTRATION": "Declarer une nouvelle immatriculation",
+      "NEW_REGISTRATION": "Declarer un changement",
+      "EDIT_FEATURES": "Corriger les caractéristiques",
+      "NEW_FEATURES": "Declarer un changement",
       "EDIT_STATUS": "Modifier l'état de saisie"
     },
     "EDIT": {
@@ -1072,7 +1103,22 @@
     },
     "TAXON_NAME": {
       "LABEL": "Code espèce scientifique",
-      "NAME": "Libellé espèce scientifique"
+      "NAME": "Libellé espèce scientifique",
+      "PARENT": "Espèce scientifique parente",
+      "IS_REFERENT": "Référent ?",
+      "IS_NAMING": "Nommage conventionnel ?",
+      "IS_VIRTUAL": "Virtuel ?",
+      "USE_EXISTING_REFERENCE_TAXON": "Utiliser référence unique de taxon existante ?",
+      "REFERENCE_TAXON":"Référence unique de taxon",
+      "TAXONOMIC_LEVEL": "Niveau taxonomique",
+      "START_DATE": "Date de début",
+      "END_DATE": "Date de fin",
+      "NEW": {
+        "TITLE": "Nouvelle espèce scientifique"
+      },
+      "EDIT": {
+        "TITLE": "Espèce scientifique {{label}} - {{name}}"
+      }
     },
     "GEAR": {
       "LABEL": "Code engin",
@@ -1135,9 +1181,9 @@
       "DESCRIPTION": "description"
     },
     "LIST": {
-      "TITLE": "Listes",
+      "TITLE": "Référentiels",
       "FILTER": {
-        "ENTITY": "Type de liste",
+        "ENTITY": "Type de référentiel",
         "SEARCH_TEXT": "Recherche : code, libellé"
       }
     },
@@ -1164,7 +1210,7 @@
       "TAXON_GROUP_TYPE": "Types de groupe d'espèce",
       "TAXON_GROUP": "Espèces commerciales (FAO)",
       "TAXON_NAME": "Espèces scientifique",
-      "TAXONOMIC_LEVEL": "Niveaux taxinomique",
+      "TAXONOMIC_LEVEL": "Niveaux taxinomiques",
       "REFERENCE_TAXON": "Références uniques de taxon",
       "PROGRAM": "Programmes de collecte",
       "STRATEGY": "Stratégies de collecte",
@@ -1192,6 +1238,7 @@
   "PROGRAM": {
     "TAB_GENERAL": "Détails",
     "TAB_STRATEGIES": "Stratégies",
+    "TAB_STRATEGIES.SAMPLING": "Lignes de plan",
     "TAB_ACCESS_RIGHTS": "Droits d'accès",
     "TAB_PROPERTIES": "Options",
     "TAXON_GROUP_TYPE": "Référentiel des espèces commerciales",
@@ -1213,9 +1260,11 @@
       "I18N_SUFFIX" : "Dictionnaire thématique",
       "I18N_SUFFIX_LEGACY" : "Par défaut",
       "I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
+      "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
+      "TRIP_METIERS_HISTORY_NB_DAYS": "Marée: Prédoc métiers > Nb. de jours",
       "TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL": "Marée: Caractéritiques optionelles si saisie terrain ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
       "TRIP_MAP_ENABLE": "Marée > Carte: Activer ?",
@@ -1234,27 +1283,28 @@
       "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Capture > Test de survie : Espèces commerciales ?",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Position > Longitude: Direction par défaut :",
-      "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation sur site > Date de fin ?",
-      "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Observation sur site > Débarquements: Ajout de navire ?",
-      "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Observation sur site > Afficher l'historique pour ajouter un débarquement ?",
-      "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Observation sur site > Niveau(x) de lieu",
-      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Observation sur site > Calendrier d'activité hebdomadaire ?",
-      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Observation sur site > Calendrier d'activité hebdomadaire > Programme cible",
-      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Observation sur site > Calendrier d'activité hebdomadaire > Jour de début de semaine",
-      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Observation sur site > Calendrier d'activité hebdomadaire > Nombre de jour de semaine",
-      "LANDING_EDITOR": "Observation sur site > Débarquement: éditeur",
+      "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie > Date de fin ?",
+      "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Sortie > Débarquements: Ajout de navire ?",
+      "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Sortie > Afficher l'historique pour ajouter un débarquement ?",
+      "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Sortie > Niveau(x) de lieu",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Sortie > Calendrier d'activité hebdomadaire ?",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Sortie > Calendrier d'activité hebdomadaire > Programme cible",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Sortie > Calendrier d'activité hebdomadaire > Jour de début de semaine",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Sortie > Calendrier d'activité hebdomadaire > Nombre de jour de semaine",
+      "LANDING_EDITOR": "Sortie > Débarquement: éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",
       "LANDING_EDITOR_CONTROL": "Contrôle",
       "LANDING_EDITOR_TRIP": "Marée",
       "LANDING_EDITOR_SAMPLING": "Echantillonnage biologique",
-      "LANDING_CREATION_DATE_ENABLE": "Observation sur site > Débarquements : Afficher la date de création ?",
-      "LANDING_RECORDER_PERSON_ENABLE": "Observation sur site > Débarquements : Afficher le saisisseur ?",
-      "LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE": "Observation sur site > Débarquements : Afficher le port d'attache ?",
-      "LANDING_STRATEGY_ENABLE": "Observation sur site > Débarquement : Saisir la stratégie ?",
-      "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Saisir la date ?",
-      "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?",
-      "LANDING_LOCATION_ENABLE": "Observation sur site > Débarquements : Voir le Port ?",
-      "LANDING_ONE_TAB_ENABLE": "Observation sur site > Débarquement : un seul onglet ?",
+      "LANDING_CREATION_DATE_ENABLE": "Sortie > Débarquements : Afficher la date de création ?",
+      "LANDING_RECORDER_PERSON_ENABLE": "Sortie > Débarquements : Afficher le saisisseur ?",
+      "LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE": "Sortie > Débarquements : Afficher le port d'attache ?",
+      "LANDING_STRATEGY_ENABLE": "Sortie > Débarquement : Saisir la stratégie ?",
+      "LANDING_DATE_TIME_ENABLE": "Sortie > Débarquement : Saisir la date ?",
+      "LANDING_OBSERVERS_ENABLE": "Sortie > Débarquement : Saisir les observateurs ?",
+      "LANDING_LOCATION_ENABLE": "Sortie > Débarquements : Afficher le port ?",
+      "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre d'échantillonnages ?",
+      "LANDING_ONE_TAB_ENABLE": "Sortie > Débarquement : un seul onglet ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
       "PROGRAM_STRATEGY_EDITOR" : "Stratégie > éditeur",
       "PROGRAM_STRATEGY_EDITOR_LEGACY": "Par défaut",
@@ -1352,11 +1402,15 @@
           "ANALYTIC_REFERENCE": "EOTP",
           "RECORDER_DEPARTMENTS": "Laboratoire(s) saisisseur(s)",
           "TAXON_NAMES": "Espèce cible",
+          "QUARTERS_DOTS": "Efforts :",
+          "START_YEAR": "Année début",
+          "END_YEAR": "Année fin",
           "EFFORT_Q1": "Efforts T1" ,
           "EFFORT_Q2": "Efforts T2" ,
           "EFFORT_Q3": "Efforts T3" ,
           "EFFORT_Q4": "Efforts T4" ,
           "PARAMETERS": "Paramètres à mesurer",
+          "PARAMETERS_DOTS": "Paramètres à mesurer :",
           "COMMENTS": "Commentaires",
           "AGE": "Age",
           "SEX": "Sexe",
@@ -1400,16 +1454,19 @@
       },
       "ERROR": {
         "LOAD_STRATEGY_LABEL_ERROR": "Erreur lors de chargement du label de la stratégie",
+        "LOAD_STRATEGY_SAMPLE_LABEL_ERROR": "Erreur lors de chargement du label de l'échantillon de la stratégie",
         "LOAD_STRATEGY_REFERENCES_ERROR": "Erreur lors de chargement des références analytiques pour la stratégie",
         "PARAMETERS.MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}",
         "PARAMETERS.WEIGHT_OR_LENGTH": "Le poids ou la taille est obligatoire",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
         "EFFORT.REALIZED_EFFORT": "Effort obligatoire pour les trimestres ayant des mesures individuelles : {{quarters}}",
         "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà",
-        "LABEL.ZERO": "L'incrément minimal est 0001",
+        "LABEL.ZERO": "L'incrément minimal est 001",
         "STRATEGY_HAS_REALIZED_EFFORT": "La ligne de plan {{label}} est liée à une ou plusieurs observations individuelles",
         "STRATEGIES_HAS_REALIZED_EFFORT": "Les lignes de plan {{label}} sont liées à une ou plusieurs observations individuelles",
-        "PMFM.PMFM_OR_PARAMETER": "Veuillez sélectionner un PSFM ou un paramètre"
+        "PMFM.PMFM_OR_PARAMETER": "Veuillez sélectionner un PSFM ou un paramètre",
+        "CANNOT_COMPUTE_TAXON_CODE": "Veuillez saisir manuellement le code espèce du code de la ligne de plan",
+        "NOT_UNIQUE_TAXON_CODE": "Le code espèce généré n'est pas unique, veuillez le saisir manuellement"
       }
     },
     "ERROR": {
@@ -1610,7 +1667,7 @@
       "ENABLE": "Extraction > Activer ?",
       "MAP_ENABLE": "Extraction > Cartes : Activer ?",
       "PRODUCT_ENABLE": "Extraction > Produits : Activer ?",
-      "NOT_SELF_ACCESS_MIN_ROLE": "Extraction > Role min. pour voir les extractions des autres"
+      "ACCESS_NOT_SELF_ROLE": "Extraction > Role min. pour voir les extractions des autres"
     },
     "PRODUCT": {
       "P01_RDB": {
@@ -1723,7 +1780,9 @@
     "FIELD_REQUIRED": "Champ obligatoire",
     "FIELD_TOO_SHORT": "Valeur trop courte",
     "FIELD_MIN_LENGTH": "Valeur trop courte {{minLength && (' (' + minLength + ' caractères min)') }}",
+    "FIELD_MIN_LENGTH_COMPACT": "Valeur trop courte",
     "FIELD_MAX_LENGTH": "Valeur trop longue {{maxLength && (' (' + maxLength + ' caractères max)') }}",
+    "FIELD_MAX_LENGTH_COMPACT": "Valeur trop longue",
     "FIELD_MIN": "La valeur minimale autorisée est {{min}}",
     "FIELD_MIN_COMPACT": "Min autorisée={{min}}",
     "FIELD_MAX": "Valeur maximale autorisée: {{max}}",
@@ -1793,12 +1852,13 @@
     "SYNCHRONIZE_ENTITY_ERROR": "Synchronisation impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_ERROR": "Erreur de chargement",
     "SAVE_ERROR": "Erreur de sauvegarde",
-    "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications"
+    "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications",
+    "FIELD_NOT_EXISTS": "Cette valeur n'existe pas"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
-    "SAVE": "Des mofifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de continuer ?",
-    "SAVE_BEFORE_CLOSE": "Des mofifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de fermer ?",
+    "SAVE": "Des modifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de continuer ?",
+    "SAVE_BEFORE_CLOSE": "Des modifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de fermer ?",
     "CANCEL_CHANGES": "Vos dernières modifications seront annulées.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE": "<b>Êtes-vous sûr</b> de vouloir supprimer ?",
     "ACTION": "<b>Êtes-vous sûr</b> de vouloir continuer ?",

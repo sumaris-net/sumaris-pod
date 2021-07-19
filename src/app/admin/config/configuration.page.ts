@@ -1,18 +1,19 @@
-import {ChangeDetectionStrategy, Component, Inject, Injector, Optional} from "@angular/core";
-import {firstNotNilPromise} from "../../shared/observables";
-import {SoftwareValidatorService} from "../../referential/services/validator/software.validator";
-import {Configuration} from "../../core/services/model/config.model";
-import {Department} from "../../core/services/model/department.model";
-import {isEmptyArray, isNilOrBlank, isNotEmptyArray} from "../../shared/functions";
-import {BehaviorSubject} from "rxjs";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {NetworkService} from "../../core/services/network.service";
-import {Alerts} from "../../shared/alerts";
-import {CORE_CONFIG_OPTIONS} from "../../core/services/config/core.config";
-import {APP_CONFIG_OPTIONS, ConfigService} from "../../core/services/config.service";
-import {FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {AbstractSoftwarePage} from "../../referential/software/abstract-software.page";
-import {HistoryPageReference} from "../../core/services/model/history.model";
+import {ChangeDetectionStrategy, Component, Inject, Injector, Optional} from '@angular/core';
+import {
+  Alerts,
+  APP_CONFIG_OPTIONS,
+  ConfigService,
+  Configuration,
+  Department,
+  EntityServiceLoadOptions,
+  firstNotNilPromise,
+  FormFieldDefinitionMap,
+  HistoryPageReference,
+  NetworkService
+} from '@sumaris-net/ngx-components';
+import {SoftwareValidatorService} from '@app/referential/services/validator/software.validator';
+import {BehaviorSubject} from 'rxjs';
+import {AbstractSoftwarePage} from '@app/referential/software/abstract-software.page';
 
 declare interface CacheStatistic {
   name: string;
@@ -40,8 +41,8 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
 
   constructor(
     injector: Injector,
-    dataService: ConfigService,
     validatorService: SoftwareValidatorService,
+    public dataService: ConfigService,
     public network: NetworkService,
     @Optional() @Inject(APP_CONFIG_OPTIONS) configOptions: FormFieldDefinitionMap,
   ) {
@@ -62,7 +63,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
 
   async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
 
-    const config = await firstNotNilPromise(this.service.config);
+    const config = await firstNotNilPromise(this.dataService.config);
 
     // Force the load of the config
     await super.load(config.id, {...opts, fetchPolicy: "network-only"});
@@ -91,69 +92,19 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
     return json;
   }
 
-  async removePartnerAt(index: number) {
-
-    const partners = this.partners.getValue();
-    const partner = partners && index < partners.length && partners[index];
-    if (!partner) return;
-
-    console.debug(`Removing partner department {${partner && partner.label || index}}`);
-
-    partners.splice(index, 1);
-
-    const propertiesAsArray = (this.form.get('properties').value || []);
-    const propertyIndex = propertiesAsArray.findIndex(p => p.key === CORE_CONFIG_OPTIONS.HOME_PARTNERS_DEPARTMENTS.key);
-    if (propertyIndex === -1) return;
-
-    const propertyControl = this.propertiesFormHelper.at(propertyIndex);
-    let propertyValue = propertyControl.get('value').value;
-    if (isNilOrBlank(propertyValue)) return;
-
-    let arrayValue = (typeof propertyValue === 'string' ? JSON.parse(propertyValue) : propertyValue) as any[];
-    if (isEmptyArray(arrayValue)) return;
-
-    let found = false;
-    arrayValue = arrayValue.filter(dep => {
-      if (dep && typeof dep === 'string') {
-        if (dep.startsWith('department:')) {
-          found = found || (dep === ('department:' + partner.id));
-          return dep !== ('department:' + partner.id);
-        }
-        try {
-          dep = JSON.parse(dep);
-        } catch (err) {
-          // Unknown format: keep it
-          return true;
-        }
-      }
-      found = found || (dep.id === partner.id);
-      return dep.id !== partner.id;
-    });
-    if (!found) {
-      console.warn("Unable to find partner inside the property value: ", propertyValue);
-      return;
-    }
-
-    // Update view
-    propertyValue = isNotEmptyArray(arrayValue) ? JSON.stringify(arrayValue) : null;
-    propertyControl.get("value").setValue(propertyValue);
-    this.partners.next(partners);
-    this.markAsTouched();
-
-  }
 
   async clearCache(event?: UIEvent, cacheName?: string) {
     const confirm = await Alerts.askActionConfirmation(this.alertCtrl, this.translate, true, event);
     if (confirm) {
       await this.network.clearCache();
       await this.settings.removeOfflineFeatures();
-      await this.service.clearCache({cacheName: cacheName});
+      await this.dataService.clearCache({cacheName: cacheName});
       await this.loadCacheStat();
     }
   }
 
   async loadCacheStat() {
-    const value = await this.service.getCacheStatistics();
+    const value = await this.dataService.getCacheStatistics();
     const stats: CacheStatistic[] = Object.keys(value).map(cacheName => {
       const stat = value[cacheName];
       return {

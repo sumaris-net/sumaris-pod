@@ -1,34 +1,37 @@
 // --------------------------------------------------
-// Import globals (variables, functions and mixins)
+// Import SAR style
 // --------------------------------------------------
-@import "globals";
+@import "theme.globals";
+
 // --------------------------------------------------
-// Import Ionic style
+// Import SUMARiS theme
 // --------------------------------------------------
-@import "ionic";
-// --------------------------------------------------
-// Import Ion Icons
-// --------------------------------------------------
-$ionicons-font-path: '~ionicons/dist/fonts';
-@import "icons";
-// --------------------------------------------------
-// Import Fonts
-// --------------------------------------------------
-$roboto-font-path: '~roboto-fontface/fonts/roboto';
-@import "roboto";
-// --------------------------------------------------
-// Import responsive style
-// --------------------------------------------------
-@import "responsive";
-// --------------------------------------------------
-// Import material style
-// --------------------------------------------------
-@import "material";
-// --------------------------------------------------
-// Import markdown style
-// --------------------------------------------------
-@import "markdown";
-// --------------------------------------------------
-// Import Leaflet style
-// --------------------------------------------------
-@import "leaflet";
+@import "~@sumaris-net/ngx-components/src/theme/theme";
+
+.mat-tab-fixed-content {
+  .mat-tab-body-content {
+    height: var(--mat-tab-body-content-height, 100%) !important;
+    overflow: auto;
+    & > .ng-star-inserted {
+      height: var(--mat-tab-body-content-height, 100%);
+    }
+  }
+}
+
+.mat-table {
+
+  .mat-header-row,
+  .mat-row,
+  .mat-footer-row {
+
+    .mat-header-cell,
+    .mat-cell,
+    .mat-footer-cell {
+
+      // Remove right border, of sticky columns
+      &.mat-table-sticky-border-elem-left {
+        border-right: 0 !important; // 1px solid #{$app-table-border-color};
+      }
+    }
+  }
+}

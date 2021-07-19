@@ -1,15 +1,15 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
+import {ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
 import {ModalController} from "@ionic/angular";
-import {PlatformService} from "../../core/services/platform.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {TranslateService} from "@ngx-translate/core";
-import {ExtractionType} from "../services/model/extraction.model";
-import {isNotNilOrBlank} from "../../shared/functions";
-import {AppHelpModal} from "../../shared/help/help.modal";
+import {ExtractionType} from "../services/model/extraction-type.model";
+import {isNotNilOrBlank} from "@sumaris-net/ngx-components";
+import {AppHelpModal} from "@sumaris-net/ngx-components";
 
 @Component({
     selector: 'app-extraction-help-modal',
-    templateUrl: '../../shared/help/help.modal.html'
+    templateUrl: 'help.modal.html'
 })
 export class ExtractionHelpModal extends AppHelpModal implements OnInit {
 

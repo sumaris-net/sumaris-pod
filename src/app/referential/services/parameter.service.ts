@@ -1,18 +1,18 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
-import {AccountService} from "../../core/services/account.service";
-import {GraphqlService} from "../../core/graphql/graphql.service";
+import {AccountService, isEmptyArray} from '@sumaris-net/ngx-components';
+import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {ReferentialService} from "./referential.service";
 import {Observable, of} from "rxjs";
 import {Parameter} from "./model/parameter.model";
 import {ReferentialFragments} from "./referential.fragments";
-import {EntityServiceLoadOptions, IEntityService} from "../../shared/services/entity-service.class";
-import {isNil, isNotNil} from "../../shared/functions";
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
+import {EntityServiceLoadOptions, IEntityService} from "@sumaris-net/ngx-components";
+import {isNil, isNotNil} from "@sumaris-net/ngx-components";
+import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {EntityUtils} from "../../core/services/model/entity.model";
+import {StatusIds}  from "@sumaris-net/ngx-components";
+import {EntityUtils}  from "@sumaris-net/ngx-components";
 
 const SaveQuery: any = gql`
   mutation SaveParameter($parameter:ParameterVOInput){
@@ -66,6 +66,40 @@ export class ParameterService extends BaseGraphqlService implements IEntityServi
     if (this._debug) console.debug(`[pmfm-service] Parameter {${id}} loaded`, entity);
 
     return entity;
+  }
+
+  async loadByLabel(label: string, opts?: EntityServiceLoadOptions): Promise<Parameter> {
+
+    if (this._debug) console.debug(`[parameter-service] Loading parameter {${label}}...`);
+
+    const res = await this.graphql.query<{ parameter: any }>({
+      query: LoadQuery,
+      variables: {
+        label
+      },
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+      fetchPolicy: opts && opts.fetchPolicy || undefined
+    });
+    const entity = (!opts || opts.toEntity !== false)
+      ? res && Parameter.fromObject(res.parameter)
+      : res && res.parameter as Parameter;
+
+    if (this._debug) console.debug(`[parameter-service] Parameter {${label}} loaded`, entity);
+
+    return entity;
+  }
+
+
+  async loadAllByLabels(labels: string[], options?: EntityServiceLoadOptions): Promise<Parameter[]> {
+    if (isEmptyArray(labels)) throw new Error('Missing required argument \'labels\'');
+    const res = await Promise.all(
+      labels.map(label => this.loadByLabel(label, options)
+        .catch(err => {
+          if (err && err.code === ErrorCodes.LOAD_REFERENTIAL_ERROR) return undefined; // Skip if not found
+          throw err;
+        }))
+    );
+    return res.filter(isNotNil);
   }
 
   /**

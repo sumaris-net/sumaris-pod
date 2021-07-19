@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedValidators} from "../../../shared/validator/validators";
-import {toBoolean, toNumber} from "../../../shared/functions";
+import {SharedValidators} from "@sumaris-net/ngx-components";
+import {toBoolean, toNumber} from "@sumaris-net/ngx-components";
 import {ProgramProperties} from "../../../referential/services/config/program.config";
 import {MeasurementsValidatorService} from "./measurement.validator";
 import {Landing} from "../model/landing.model";
@@ -67,7 +67,10 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
       measurementValues: this.formBuilder.group({}),
       observedLocationId: [toNumber(data && data.observedLocationId, null)],
       tripId: [toNumber(data && data.tripId, null)],
-      comments: [data && data.comments || null]
+      comments: [data && data.comments || null],
+
+      // Computed values (e.g. for BIO-PARAM program)
+      samplesCount: [data && data.samplesCount, null]
     });
 
     // Add observers

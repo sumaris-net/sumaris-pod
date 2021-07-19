@@ -1,4 +1,4 @@
-<app-toolbar [title]="title$ | async" color="primary"
+<app-toolbar [title]="$title | async" color="primary"
              [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
@@ -57,13 +57,15 @@
   </button>
 </mat-menu>
 
-<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
+<ion-content
+  (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
   <mat-tab-group #tabGroup
-                 class="mat-tab-disabled-hidden"
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content"
+                 [class.mobile]="mobile"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="tabGroupAnimationDuration"
-                 dynamicHeight>
+                 [animationDuration]="mobile ? tabGroupAnimationDuration: '0s'"
+                 dynamicHeight="false">
 
     <!-- TAB: general -->
     <mat-tab label="{{'TRIP.TAB_GENERAL'|translate}}">
@@ -74,7 +76,7 @@
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="error || tripForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="mobile && (error || tripForm.error); let errorMsg" lines="none">
         <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
         <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
       </ion-item>
@@ -121,7 +123,7 @@
           <!-- quality data -->
           <ion-col size="12" size-xl="3" class="ion-no-padding">
             <app-entity-metadata [value]="data">
-              <app-entity-quality-form [editor]="this">
+              <app-entity-quality-form>
               </app-entity-quality-form>
             </app-entity-metadata>
           </ion-col>
@@ -142,13 +144,14 @@
       <div class="ion-no-padding">
 
         <!-- error -->
-        <ion-item *ngIf="physicalGearsTable.error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="mobile && physicalGearsTable.error" lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="physicalGearsTable.error|translate"></ion-label>
         </ion-item>
 
         <app-physicalgears-table #physicalGearsTable
                                  [programLabel]="$programLabel|async"
+                                 [showToolbar]="!mobile"
                                  [debug]="debug"
                                  (onSelectPreviousGear)="openSelectPreviousGearsModal($event)">
         </app-physicalgears-table>
@@ -170,6 +173,7 @@
                             (onOpenRow)="onOpenOperation($event)"
                             (onNewRow)="onNewOperation($event)"
                             [program]="$programLabel|async"
+                            [showToolbar]="!mobile"
                             [defaultSortBy]="mobile ? 'startDateTime': 'endDateTime'"
                             [defaultSortDirection]="mobile ?'desc': 'asc'">
       </app-operations-table>
@@ -178,8 +182,9 @@
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm hidden-mobile>
-  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
+<ion-footer *ngIf="!mobile">
+
+  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
                     [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 
@@ -189,24 +194,28 @@
       <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 
-  </form-buttons-bar>
+  </app-form-buttons-bar>
 </ion-footer>
 
-<!-- FAB button: add gear -->
-<ion-fab slot="fixed" vertical="bottom" horizontal="end"
-         *ngIf="physicalGearsTable.enabled && selectedTabIndex==1" @fadeInOutAnimation
-         visible-xs visible-sm visible-mobile>
+<ng-container *ngIf="mobile" [ngSwitch]="selectedTabIndex">
+  <!-- FAB button: add gear -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end"
+           *ngSwitchCase="1"
+           [class.cdk-visually-hidden]="physicalGearsTable.disabled"
+           @fadeInOutAnimation>
 
-  <ion-fab-button color="tertiary" (click)="physicalGearsTable.addRow($event)">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+    <ion-fab-button color="tertiary" (click)="physicalGearsTable.addRow($event)">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 
-<!-- FAB button: add operation -->
-<ion-fab slot="fixed" vertical="bottom" horizontal="end"
-         *ngIf="operationsTable.enabled && selectedTabIndex==2" @fadeInOutAnimation
-         visible-xs visible-sm visible-mobile>
-  <ion-fab-button color="tertiary" (click)="!saving && operationsTable.addRow($event)">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+  <!-- FAB button: add operation -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end"
+           *ngSwitchCase="2"
+           [class.cdk-visually-hidden]="operationsTable.disabled"
+           @fadeInOutAnimation>
+    <ion-fab-button color="tertiary" (click)="!saving && operationsTable.addRow($event)">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ng-container>

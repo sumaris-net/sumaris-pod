@@ -1,29 +1,38 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit} from '@angular/core';
-import {DataEntity, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from '../services/model/data-entity.model';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Optional} from '@angular/core';
+import {DataEntity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from '../services/model/data-entity.model';
 // import fade in animation
-import {AccountService} from "../../core/services/account.service";
-import {IDataEntityQualityService, isDataQualityService} from "../services/data-quality-service.class";
-import {QualityFlags} from "../../referential/services/model/model.enum";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {merge, Subscription} from "rxjs";
-import {NetworkService} from "../../core/services/network.service";
-import {Router} from "@angular/router";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ShowToastOptions, Toasts} from "../../shared/toasts";
-import {ToastController} from "@ionic/angular";
-import {TranslateService} from "@ngx-translate/core";
-import {environment} from "../../../environments/environment";
-import {AppRootDataEditor} from "../form/root-data-editor.class";
-import {RootDataEntity} from "../services/model/root-data-entity.model";
-import {ReferentialRef} from "../../core/services/model/referential.model";
-import {qualityFlagToColor} from "../services/model/model.utils";
-import {UserEventService} from "../../social/services/user-event.service";
-import {OverlayEventDetail} from "@ionic/core";
-import {RootDataSynchroService} from "../services/root-data-synchro-service.class";
-import {isDataSynchroService} from "../services/root-data-synchro-service.class";
-import {isNil, isNotNil} from "../../shared/functions";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {fadeInAnimation} from "../../shared/material/material.animations";
+import {
+  AccountService,
+  ConfigService,
+  EntityUtils,
+  fadeInAnimation,
+  IEntityService,
+  isNil,
+  isNotNil,
+  LocalSettingsService,
+  NetworkService,
+  PlatformService,
+  ReferentialRef,
+  ShowToastOptions,
+  StatusIds,
+  Toasts
+} from '@sumaris-net/ngx-components';
+import {IDataEntityQualityService, isDataQualityService} from '../services/data-quality-service.class';
+import {QualityFlags} from '../../referential/services/model/model.enum';
+import {ReferentialRefService} from '../../referential/services/referential-ref.service';
+import {merge, Subscription} from 'rxjs';
+import {Router} from '@angular/router';
+import {ToastController} from '@ionic/angular';
+import {TranslateService} from '@ngx-translate/core';
+import {environment} from '@environments/environment';
+import {AppRootDataEditor} from '../form/root-data-editor.class';
+import {RootDataEntity} from '../services/model/root-data-entity.model';
+import {qualityFlagToColor} from '../services/model/model.utils';
+import {UserEventService} from '@sumaris-net/ngx-components';
+import {OverlayEventDetail} from '@ionic/core';
+import {isDataSynchroService, RootDataSynchroService} from '../services/root-data-synchro-service.class';
+import {debounceTime} from 'rxjs/operators';
+import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
 
 @Component({
   selector: 'app-entity-quality-form',
@@ -32,12 +41,18 @@ import {fadeInAnimation} from "../../shared/material/material.animations";
   animations: [fadeInAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEntity<any>> implements OnInit, OnDestroy {
+export class EntityQualityFormComponent<
+  T extends RootDataEntity<T, ID> = RootDataEntity<any, any>,
+  S extends IEntityService<T, ID> = IEntityService<any, any>,
+  ID = number>
+  implements OnInit, OnDestroy {
 
   private _debug = false;
+  private _mobile: boolean;
   private _subscription = new Subscription();
   private _controlling = false;
   private _isSynchroService: boolean;
+  private _enableQualityProcess = true;
 
   data: T;
   loading = true;
@@ -60,9 +75,9 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
     return this.data;
   }
 
-  @Input() editor: AppRootDataEditor<T, any>;
+  @Input() editor: AppRootDataEditor<T, S, ID>;
 
-  @Input() service: IDataEntityQualityService<T>;
+  @Input() service: IDataEntityQualityService<T, ID>;
 
   constructor(
     protected router: Router,
@@ -73,13 +88,20 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
     protected translate: TranslateService,
     public network: NetworkService,
     protected userEventService: UserEventService,
-    protected cd: ChangeDetectorRef
+    protected configService: ConfigService,
+    protected cd: ChangeDetectorRef,
+    platform: PlatformService,
+    @Optional() editor: AppRootDataEditor<T, S, ID>
   ) {
+    this.editor = editor;
+    this.service = editor && isDataQualityService(editor.service) ? editor.service : undefined;
+
+    this._mobile = platform.mobile;
 
     this._debug = !environment.production;
   }
 
-  ngOnInit(): void {
+  ngOnInit() {
 
     // Check editor exists
     if (!this.editor) throw new Error("Missing mandatory 'editor' input!");
@@ -89,20 +111,34 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
     if (!this.service) throw new Error("Missing mandatory 'dataService' input!");
     this._isSynchroService = isDataSynchroService(this.service);
 
+    // Subscribe to config
+    this._subscription.add(
+      this.configService.config.subscribe(config => {
+        this._enableQualityProcess = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
+      })
+    );
+
     // Subscribe to refresh events
-    this._subscription
-        .add(
-            merge(
-                this.editor.onUpdateView,
-                this.accountService.onLogin,
-                this.network.onNetworkStatusChanges
-            )
-            .subscribe(() => this.updateView(this.editor.data))
-        );
+    let updateEvent$ = merge(
+      this.editor.onUpdateView,
+      this.accountService.onLogin,
+      this.network.onNetworkStatusChanges
+    );
+
+    // Mobile: add a debounce time
+    if (this._mobile) updateEvent$ = updateEvent$.pipe(debounceTime(500));
+
+    this._subscription.add(
+      updateEvent$.subscribe(() => this.updateView(this.editor.data))
+    );
   }
 
   ngOnDestroy(): void {
     this._subscription.unsubscribe();
+    this.data = null;
+    this.qualityFlags = null;
+    this.editor = null;
+    this.service = null;
   }
 
   async control(event?: Event, opts?: {emitEvent?: boolean}): Promise<boolean> {
@@ -178,7 +214,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
 
   async synchronize(event?: Event): Promise<boolean> {
 
-    if (!this.data || this.data.id >= 0) throw new Error('Need a local trip');
+    if (!this.data || +this.data.id >= 0) throw new Error('Need a local trip');
 
     if (this.network.offline) {
       this.network.showOfflineToast({
@@ -200,7 +236,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
     try {
       console.debug("[quality] Synchronizing entity...");
       // tslint:disable-next-line:no-unused-expression
-      const synchroService = this.service as RootDataSynchroService<T>;
+      const synchroService = this.service as RootDataSynchroService<T, any, ID>;
       const remoteData = await synchroService.synchronize(this.editor.data);
 
       // Success message
@@ -218,7 +254,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
     }
     catch (error) {
       this.editor.setError(error);
-      const context = error && error.context || (() => this.data.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS));
+      const context = error && error.context || (() => this.data.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE));
       this.userEventService.showToastErrorWithContext({
         error,
         context
@@ -283,17 +319,27 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
       this.canUnqualify = false;
     }
     else if (data instanceof DataEntity) {
-      const canWrite = this.service.canUserWrite(data);
-      const isSupervisor = this.accountService.isSupervisor();
-      const isLocalData = data.id < 0;
+
+      // If local, avoid to check too many properties (for performance in mobile devices)
+      const isLocalData = EntityUtils.isLocal(data);
+      const canWrite = isLocalData || this.service.canUserWrite(data);
+      const isSupervisor = !isLocalData && this.accountService.isSupervisor();
 
       // Quality service
       this.canControl = canWrite && (isLocalData && data.synchronizationStatus === 'DIRTY' || isNil(data.controlDate));
       this.canTerminate = this.canControl && (!isLocalData || data.synchronizationStatus === 'DIRTY');
-      this.canValidate = canWrite && isSupervisor && !isLocalData && isNotNil(data.controlDate) && isNil(data.validationDate);
-      this.canUnvalidate = canWrite && isSupervisor && isNotNil(data.controlDate) && isNotNil(data.validationDate);
-      this.canQualify = canWrite && isSupervisor /*TODO && isQualifier */ && isNotNil(data.validationDate) && isNil(data.qualificationDate);
-      this.canUnqualify = canWrite && isSupervisor && isNotNil(data.validationDate) && isNotNil(data.qualificationDate);
+
+      if (this._enableQualityProcess) {
+        this.canValidate = canWrite && isSupervisor && !isLocalData && isNotNil(data.controlDate) && isNil(data.validationDate);
+        this.canUnvalidate = canWrite && isSupervisor && isNotNil(data.controlDate) && isNotNil(data.validationDate);
+        this.canQualify = canWrite && isSupervisor /*TODO && isQualifier */ && isNotNil(data.validationDate) && isNil(data.qualificationDate);
+        this.canUnqualify = canWrite && isSupervisor && isNotNil(data.validationDate) && isNotNil(data.qualificationDate);
+      } else {
+        this.canValidate = false;
+        this.canUnvalidate = false;
+        this.canQualify = false;
+        this.canUnqualify = false;
+      }
 
       // Synchro service
       this.canSynchronize = this._isSynchroService && canWrite && isLocalData && data.synchronizationStatus === 'READY_TO_SYNC';
@@ -336,8 +382,6 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
     }) {
     this.editor.updateView(data, opts);
   }
-
-
 
   protected markForCheck() {
     this.cd.markForCheck();

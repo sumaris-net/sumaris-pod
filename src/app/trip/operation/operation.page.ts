@@ -3,31 +3,30 @@ import {OperationSaveOptions, OperationService} from '../services/operation.serv
 import {OperationForm} from './operation.form';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {ReferentialUtils} from '../../core/services/model/referential.model';
-import {HistoryPageReference, UsageMode} from '../../core/services/model/settings.model';
-import {BehaviorSubject, Subject} from 'rxjs';
+import {HistoryPageReference, ReferentialUtils, UsageMode} from '@sumaris-net/ngx-components';
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap} from "rxjs/operators";
 import {FormGroup, Validators} from "@angular/forms";
 import * as momentImported from "moment";
 import {IndividualMonitoringSubSamplesTable} from "../sample/individualmonitoring/individual-monitoring-samples.table";
-import {Program} from "../../referential/services/model/program.model";
+import {Program} from '@app/referential/services/model/program.model';
 import {SubSamplesTable} from "../sample/sub-samples.table";
 import {SamplesTable} from "../sample/samples.table";
 import {Batch} from "../services/model/batch.model";
-import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
-import {firstNotNil, firstNotNilPromise} from "../../shared/observables";
+import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
+import {firstNotNil, firstNotNilPromise} from "@sumaris-net/ngx-components";
 import {Operation, Trip} from "../services/model/trip.model";
-import {ProgramProperties} from "../../referential/services/config/program.config";
-import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
-import {EntityUtils, IEntity} from "../../core/services/model/entity.model";
-import {PlatformService} from "../../core/services/platform.service";
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels} from '@app/referential/services/model/model.enum';
+import {EntityUtils, IEntity}  from "@sumaris-net/ngx-components";
+import {PlatformService}  from "@sumaris-net/ngx-components";
 import {BatchTreeComponent} from "../batch/batch-tree.component";
-import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {AppEntityEditor} from "../../core/form/editor.class";
-import {environment} from "../../../environments/environment";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {fadeInOutAnimation} from "@sumaris-net/ngx-components";
+import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
+import {AppEntityEditor}  from "@sumaris-net/ngx-components";
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {BehaviorSubject, Subject} from 'rxjs';
 
 const moment = momentImported;
 
@@ -138,7 +137,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
                 withBatchTree: false,
                 withSamples: false,
                 computeRankOrder: false,
-                fetchPolicy: 'cache-first'
+                fetchPolicy: 'cache-and-network',
+                withTotal: true
               });
           }),
           map(res => res && res.data || [])
@@ -324,6 +324,16 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
   }
 
+  ngOnDestroy() {
+    super.ngOnDestroy();
+
+    this.$lastOperations.complete();
+    this.$program.complete();
+    this.$programLabel.complete();
+    this.$tripId.complete();
+    this.$tripId.complete();
+  }
+
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
     if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
@@ -333,6 +343,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
 
+    this.batchTree.batchGroupsTable.modalOptions = {
+      maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
+    };
     // Autofill batch group table (e.g. with taxon groups found in strategies)
     const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
     await this.setDefaultTaxonGroups(autoFillBatch);
@@ -521,7 +534,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   setValue(data: Operation) {
 
     // set parent trip
-    const trip = data.trip;
+    const trip = data.trip as Trip;
     delete data.trip;
     this.trip = trip || this.trip;
 
@@ -718,6 +731,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           .filter(isNotNilOrBlank)
           .map(label => label.trim().toUpperCase());
       }
+    } else {
+      const taxonGroupRefs = await this.programRefService.loadTaxonGroups(this.$programLabel.getValue());
+      defaultTaxonGroups = taxonGroupRefs.map(taxonGroup => taxonGroup.label);
     }
 
     // Set table's default taxon groups
@@ -736,5 +752,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  memoryHide = false;
+  startMemoryTimer() {
+    setInterval(() => {
+      this.memoryHide = !this.memoryHide;
+      this.markForCheck();
+    }, 50);
   }
 }

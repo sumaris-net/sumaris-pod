@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {Moment} from "moment";
-import {toNumber} from "../../../shared/functions";
+import {toNumber} from "@sumaris-net/ngx-components";
 import {VesselPosition} from "../model/trip.model";
 
 @Injectable({providedIn: 'root'})

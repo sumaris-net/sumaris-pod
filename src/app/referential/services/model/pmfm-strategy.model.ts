@@ -1,72 +1,14 @@
-import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {IPmfm, Pmfm, PMFM_NAME_REGEXP, PmfmType, PmfmUtils} from "./pmfm.model";
-import {NOT_MINIFY_OPTIONS, ReferentialRef} from "../../../core/services/model/referential.model";
-import {isNotNil, toNumber} from "../../../shared/functions";
-import {PmfmValue, PmfmValueUtils} from "./pmfm-value.model";
-import {MethodIds} from "./model.enum";
-import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
+import {Entity, EntityAsObjectOptions, EntityClass, ReferentialRef, toNumber} from '@sumaris-net/ngx-components';
+import {IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils} from './pmfm.model';
+import {PmfmValue, PmfmValueUtils} from './pmfm-value.model';
+import {MethodIds} from './model.enum';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 
-/**
- * Compute a PMFM.NAME, with the last part of the name
- * @param pmfm
- * @param opts
- */
-export function getPmfmName(pmfm: IPmfm, opts?: {
-  withUnit?: boolean;
-  html?: boolean;
-  withDetails?: boolean;
-}): string {
-  if (!pmfm) return undefined;
+@EntityClass({typename: "PmfmStrategyVO"})
+export class PmfmStrategy extends Entity<PmfmStrategy> {
 
-  let name;
-  if (pmfm instanceof DenormalizedPmfmStrategy) {
-    // Is complete name exists, use it
-    if (opts && opts.withDetails && pmfm.completeName) return pmfm.completeName;
-
-    // Remove parenthesis content, if any
-    const matches = PMFM_NAME_REGEXP.exec(pmfm.name || '');
-    name = matches && matches[1] || pmfm.name;
-  }
-  else if (pmfm instanceof Pmfm) {
-    name = pmfm.parameter && pmfm.parameter.name;
-    if (opts && opts.withDetails) {
-      name += [
-        pmfm.matrix && pmfm.matrix.name,
-        pmfm.fraction && pmfm.fraction.name,
-        pmfm.method && pmfm.method.name
-      ].filter(isNotNil).join(' - ');
-    }
-  }
-
-  // Append unit
-  if ((!opts || opts.withUnit !== false) && (pmfm.type === 'integer' || pmfm.type === 'double') && pmfm.unitLabel) {
-    if (opts && opts.html) {
-      name += `<small><br/>(${pmfm.unitLabel})</small>`;
-    }
-    else {
-      name += ` (${pmfm.unitLabel})`;
-    }
-  }
-  return name;
-}
-
-export interface PmfmStrategyAsObjectOptions extends DataEntityAsObjectOptions {
-  batchAsTree?: boolean;
-}
-export interface PmfmStrategyFromObjectOptions {
-}
-
-export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectOptions, PmfmStrategyFromObjectOptions> {
-
-  static TYPENAME = 'PmfmStrategyVO';
-
-  static fromObject(source: any, opts?: PmfmStrategyFromObjectOptions): PmfmStrategy {
-    if (!source || source instanceof PmfmStrategy) return source;
-    const target = new PmfmStrategy();
-    target.fromObject(source, opts);
-    return target;
-  }
+  static fromObject: (source: any, opts?: any) => PmfmStrategy;
 
   pmfmId: number;
   pmfm: Pmfm;
@@ -91,14 +33,7 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
   hidden?: boolean;
 
   constructor() {
-    super();
-    this.__typename = PmfmStrategy.TYPENAME;
-  }
-
-  clone(): PmfmStrategy {
-    const target = new PmfmStrategy();
-    target.fromObject(this.asObject());
-    return target;
+    super(PmfmStrategy.TYPENAME);
   }
 
   asObject(options?: EntityAsObjectOptions): any {
@@ -125,7 +60,7 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
     return target;
   }
 
-  fromObject(source: any, opts?: PmfmStrategyFromObjectOptions): PmfmStrategy {
+  fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
 
     this.pmfm = source.pmfm && Pmfm.fromObject(source.pmfm);
@@ -146,8 +81,6 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
     this.taxonGroupIds = source.taxonGroupIds && [...source.taxonGroupIds] || undefined;
     this.referenceTaxonIds = source.referenceTaxonIds && [...source.referenceTaxonIds] || undefined;
     this.strategyId = source.strategyId;
-
-    return this;
   }
 
   get required(): boolean {
@@ -193,19 +126,12 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
   }
 }
 
-
+@EntityClass({typename: 'DenormalizedPmfmStrategyVO'})
 export class DenormalizedPmfmStrategy
-  extends DataEntity<DenormalizedPmfmStrategy, PmfmStrategyAsObjectOptions>
-  implements IPmfm<DenormalizedPmfmStrategy> {
+  extends Entity<DenormalizedPmfmStrategy>
+  implements IDenormalizedPmfm<DenormalizedPmfmStrategy> {
 
-  static TYPENAME = 'DenormalizedPmfmStrategyVO';
-
-  static fromObject(source: any, opts?: any): DenormalizedPmfmStrategy {
-    if (!source || source instanceof DenormalizedPmfmStrategy) return source;
-    const res = new DenormalizedPmfmStrategy();
-    res.fromObject(source, opts);
-    return res;
-  }
+  static fromObject: (source: any, opts?: any) => DenormalizedPmfmStrategy;
 
   label: string;
   name: string;
@@ -237,15 +163,7 @@ export class DenormalizedPmfmStrategy
   hidden?: boolean;
 
   constructor() {
-    super();
-    this.__typename = DenormalizedPmfmStrategy.TYPENAME;
-  }
-
-  clone(): DenormalizedPmfmStrategy {
-    const target = new DenormalizedPmfmStrategy();
-    target.fromObject(this.asObject());
-    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.clone()) || undefined;
-    return target;
+    super(DenormalizedPmfmStrategy.TYPENAME);
   }
 
   asObject(options?: EntityAsObjectOptions): any {
@@ -255,7 +173,7 @@ export class DenormalizedPmfmStrategy
     return target;
   }
 
-  fromObject(source: any, opts?: any): DenormalizedPmfmStrategy {
+  fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.parameterId =  source.parameterId;
     this.matrixId = source.matrixId;
@@ -280,8 +198,6 @@ export class DenormalizedPmfmStrategy
     this.referenceTaxonIds = source.referenceTaxonIds && [...source.referenceTaxonIds] || undefined;
     this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject);
     this.strategyId = source.strategyId;
-
-    return this;
   }
 
   get required(): boolean {

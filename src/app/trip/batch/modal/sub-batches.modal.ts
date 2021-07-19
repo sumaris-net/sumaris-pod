@@ -1,22 +1,17 @@
-import {ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {Batch, BatchUtils} from "../../services/model/batch.model";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {SubBatchForm} from "../form/sub-batch.form";
-import {SubBatchValidatorService} from "../../services/validator/sub-batch.validator";
-import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from "../table/sub-batches.table";
-import {AppMeasurementsTableOptions} from "../../measurement/measurements.table.class";
-import {Animation, IonContent, ModalController} from "@ionic/angular";
-import {isEmptyArray, isNil, isNotNilOrBlank, toBoolean} from "../../../shared/functions";
-import {AudioProvider} from "../../../shared/audio/audio";
-import {Alerts} from "../../../shared/alerts";
-import {isObservable, Observable, of, Subject} from "rxjs";
-import {createAnimation} from "@ionic/core";
-import {SubBatch} from "../../services/model/subbatch.model";
-import {BatchGroup} from "../../services/model/batch-group.model";
-import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {AppFormUtils} from "../../../core/form/form.utils";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {Batch, BatchUtils} from '../../services/model/batch.model';
+import {Alerts, AppFormUtils, AudioProvider, isEmptyArray, isNil, isNotNilOrBlank, LocalSettingsService, toBoolean} from '@sumaris-net/ngx-components';
+import {SubBatchForm} from '../form/sub-batch.form';
+import {SubBatchValidatorService} from '../../services/validator/sub-batch.validator';
+import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from '../table/sub-batches.table';
+import {AppMeasurementsTableOptions} from '../../measurement/measurements.table.class';
+import {Animation, IonContent, ModalController} from '@ionic/angular';
+import {isObservable, Observable, of, Subject} from 'rxjs';
+import {createAnimation} from '@ionic/core';
+import {SubBatch} from '../../services/model/subbatch.model';
+import {BatchGroup} from '../../services/model/batch-group.model';
+import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
 
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
@@ -63,6 +58,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   @Input()
   parentGroup: BatchGroup;
 
+  @Input() maxVisibleButtons: number;
+
   @Input() set disabled(value: boolean) {
     if (value) {
       this.disable();
@@ -78,7 +75,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   @ViewChild(IonContent) content: IonContent;
 
   get dirty(): boolean {
-    return this._dirty || (this.form && this.form.dirty);
+    return super.dirty || (this.form && this.form.dirty);
   }
 
   get valid(): boolean {
@@ -184,7 +181,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     if (isNil(parentTaxonGroupId)) return pmfms;
 
     // Filter using parent's taxon group
-    return pmfms.filter(pmfm => !(pmfm instanceof DenormalizedPmfmStrategy)
+    return pmfms.filter(pmfm => !PmfmUtils.isDenormalizedPmfm(pmfm)
       || isEmptyArray(pmfm.taxonGroupIds)
       || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
   }
@@ -238,7 +235,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return row.currentData.rankOrder > this._initialMaxRankOrder;
   }
 
-  onEditRow(event: MouseEvent, row?: TableElement<SubBatch>): boolean {
+  editRow(event: MouseEvent, row?: TableElement<SubBatch>): boolean {
 
     row = row || (!this.selection.isEmpty() && this.selection.selected[0]);
     if (!row) throw new Error ("Missing row argument, or a row selection.");
@@ -259,7 +256,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   }
 
   selectRow(event: MouseEvent|null, row: TableElement<SubBatch>) {
-    if (event && event.defaultPrevented || !row) return;
+    if (event?.defaultPrevented || !row) return;
     if (event) event.preventDefault();
 
     this.selection.clear();
@@ -289,7 +286,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     this.parentGroup = isNotNilOrBlank(parent) ? parent : undefined;
 
     // If pending changes, save new rows
-    if (this._dirty) {
+    if (this.dirty) {
       const saved = await this.save();
       if (!saved) {
         console.error('Could not save the table');

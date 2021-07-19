@@ -10,13 +10,13 @@ import {
 } from "@angular/core";
 import {AlertController, ModalController} from "@ionic/angular";
 import {BehaviorSubject, Subject, Subscription} from "rxjs";
-import {AppFormUtils} from "../../core/form/form.utils";
+import {AppFormUtils}  from "@sumaris-net/ngx-components";
 import {TranslateService} from "@ngx-translate/core";
 import {AggregatedLandingForm, AggregatedLandingFormOption} from "./aggregated-landing.form";
 import {AggregatedLanding, VesselActivity} from "../services/model/aggregated-landing.model";
-import {Alerts} from "../../shared/alerts";
-import {referentialToString} from "../../core/services/model/referential.model";
-import {isNil} from "../../shared/functions";
+import {Alerts} from "@sumaris-net/ngx-components";
+import {referentialToString}  from "@sumaris-net/ngx-components";
+import {isNil} from "@sumaris-net/ngx-components";
 
 @Component({
   selector: 'app-aggregated-landing-modal',

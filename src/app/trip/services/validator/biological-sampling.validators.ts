@@ -1,8 +1,8 @@
 import {FormGroup} from "@angular/forms";
 import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {Subscription} from "rxjs";
-import {isNotNil} from "../../../shared/functions";
-import {ObjectMap} from "../../../shared/types";
+import {isNotNil} from "@sumaris-net/ngx-components";
+import {ObjectMap} from "@sumaris-net/ngx-components";
 
 export class BiologicalSamplingValidators {
 
@@ -26,7 +26,7 @@ export class BiologicalSamplingValidators {
       const hasLengthSize = (pmfmGroups.LENGTH || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
 
       if (!hasWeight && !hasLengthSize){
-        return { missingWeightOrSize: true };
+        return { missingWeightOrSize: 'TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_LENGTH' };
       }
     });
 

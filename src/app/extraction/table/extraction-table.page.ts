@@ -1,29 +1,29 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
-import {arrayGroupBy, isNil, isNotNil, propertyComparator, sleep} from '../../shared/functions';
+import {arrayGroupBy, isNil, isNotNil, propertyComparator, sleep} from "@sumaris-net/ngx-components";
 import {TableDataSource} from "@e-is/ngx-material-table";
-import {ExtractionCategories, ExtractionColumn, ExtractionResult, ExtractionRow, ExtractionType} from "../services/model/extraction.model";
-import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
-import {DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
+import {ExtractionCategories, ExtractionColumn, ExtractionResult, ExtractionRow, ExtractionType} from "../services/model/extraction-type.model";
+import {TableSelectColumnsComponent}  from "@sumaris-net/ngx-components";
+import {DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, SETTINGS_DISPLAY_COLUMNS}  from "@sumaris-net/ngx-components";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {filter, map} from "rxjs/operators";
-import {firstNotNilPromise} from "../../shared/observables";
+import {firstNotNilPromise} from "@sumaris-net/ngx-components";
 import {ExtractionAbstractPage} from "../form/extraction-abstract.page";
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from "@ngx-translate/core";
 import {ExtractionService} from "../services/extraction.service";
 import {FormBuilder} from "@angular/forms";
-import {AccountService} from "../../core/services/account.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {Alerts} from "../../shared/alerts";
-import {PlatformService} from "../../core/services/platform.service";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {Alerts} from "@sumaris-net/ngx-components";
+import {PlatformService}  from "@sumaris-net/ngx-components";
 import {MatTable} from "@angular/material/table";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
 import {MatExpansionPanel} from "@angular/material/expansion";
-import {AggregationType} from "../services/model/aggregation-type.model";
-import {AggregationService} from "../services/aggregation.service";
+import {ExtractionProduct} from "../services/model/extraction-product.model";
+import {ExtractionProductService} from "../services/extraction-product.service";
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
@@ -70,7 +70,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     platform: PlatformService,
     modalCtrl: ModalController,
     protected location: Location,
-    protected aggregationService: AggregationService,
+    protected productService: ExtractionProductService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl);
@@ -115,7 +115,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
     this.criteriaCount$ = this.criteriaForm.form.valueChanges
       .pipe(
-        map(form => this.criteriaForm.criteriaCount)
+        map(_ => this.criteriaForm.criteriaCount)
       );
   }
 
@@ -195,7 +195,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     if (this.paginator) this.paginator.pageIndex = 0;
   }
 
-  async openSelectColumnsModal(event: any): Promise<any> {
+  async openSelectColumnsModal(event?: any): Promise<any> {
     const columns = this.sortedColumns
       .map((column) => {
         return {
@@ -269,20 +269,20 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
         {name: this.type.name})
         .toPromise();
 
-      const aggType = AggregationType.fromObject({
+      const aggType = ExtractionProduct.fromObject({
         label: `${this.type.label}-${this.accountService.account.id}_${Date.now()}`,
         category: this.type.category,
         name: name
       });
 
       // Save aggregation
-      const savedAggType = await this.aggregationService.save(aggType, filter);
+      const savedAggType = await this.productService.save(aggType, filter);
 
       // Wait for types cache updates
       await sleep(1000);
 
       // Open the new aggregation (no wait)
-      await this.openAggregationType(savedAggType);
+      await this.openProduct(savedAggType);
 
       // Change current type
       await this.setType(savedAggType, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
@@ -361,8 +361,8 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     this.disable();
 
     try {
-      const aggType = AggregationType.fromObject(this.type.asObject());
-      await this.aggregationService.delete(aggType);
+      const aggType = ExtractionProduct.fromObject(this.type.asObject());
+      await this.productService.delete(aggType);
 
       // Wait propagation to types
       await sleep(4000);
@@ -408,7 +408,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     }, 200); // Add a delay need by matTooltip to be hide
   }
 
-  openAggregationType(type?: ExtractionType, event?: UIEvent) {
+  openProduct(type?: ExtractionType, event?: UIEvent) {
     type = type || this.type;
 
     if (event) {
@@ -419,11 +419,11 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
     if (!type) return; // skip if not a aggregation type
 
-    console.debug(`[extraction-table] Opening aggregation type {${type.label}`);
+    console.debug(`[extraction-table] Opening product {${type.label}`);
 
     setTimeout(() => {
       // open the aggregation type
-      this.router.navigateByUrl(`/extraction/aggregation/${type.id}`);
+      this.router.navigateByUrl(`/extraction/product/${type.id}`);
     }, 100);
   }
 

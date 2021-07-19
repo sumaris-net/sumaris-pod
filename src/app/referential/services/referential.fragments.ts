@@ -76,10 +76,52 @@ export const ReferentialFragments = {
     name
     statusId
     levelId
+    description
+    comments
+    updateDate
+    creationDate
     referenceTaxonId
+    parentTaxonName{
+      id
+      label
+      name
+      entityName
+      __typename
+    }
     entityName
     isReferent
-    taxonGroupIds
+    isNaming
+    isVirtual
+    taxonomicLevel {
+      id
+      label
+      name
+      entityName
+      __typename
+    }
+    startDate
+    endDate
+    __typename
+  }`,
+  lightTaxonName: gql`fragment LightTaxonNameFragment on TaxonNameVO {
+    id
+    label
+    name
+    statusId
+    levelId
+    description
+    comments
+    updateDate
+    creationDate
+    referenceTaxonId
+    parentId
+    entityName
+    isReferent
+    isNaming
+    isVirtual
+    taxonomicLevelId
+    startDate
+    endDate
     __typename
   }`,
   taxonGroup: gql`fragment TaxonGroupFragment on TaxonGroupVO {
@@ -90,6 +132,13 @@ export const ReferentialFragments = {
     taxonNames {
       ...TaxonNameFragment
     }
+    __typename
+  }`,
+  lightMetier:  gql`fragment LightMetierFragment on MetierVO {
+    id
+    label
+    name
+    entityName
     __typename
   }`,
   metier:  gql`fragment MetierFragment on MetierVO {
@@ -136,6 +185,39 @@ export const ReferentialFragments = {
     id
     label
     name
+    statusId
+    updateDate
+    creationDate
+    entityName
+    type
+    minValue
+    maxValue
+    defaultValue
+    maximumNumberDecimals
+    signifFiguresNumber
+    parameter {
+      ...ParameterFragment
+    }
+    matrix {
+      ...ReferentialFragment
+    }
+    fraction {
+      ...ReferentialFragment
+    }
+    method {
+      ...ReferentialFragment
+    }
+    unit {
+      ...ReferentialFragment
+    }
+    __typename
+  }`,
+  pmfmFull: gql`fragment PmfmFullFragment on PmfmVO {
+    id
+    label
+    name
+    completeName
+    unitLabel
     statusId
     updateDate
     creationDate

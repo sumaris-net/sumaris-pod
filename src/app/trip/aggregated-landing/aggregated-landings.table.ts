@@ -4,16 +4,16 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
-import {PlatformService} from "../../core/services/platform.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AccountService} from "../../core/services/account.service";
-import {NetworkService} from "../../core/services/network.service";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {NetworkService}  from "@sumaris-net/ngx-components";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {BehaviorSubject} from "rxjs";
-import {filterNotNil} from "../../shared/observables";
-import {isNil, isNotEmptyArray, isNotNil, toBoolean} from "../../shared/functions";
+import {filterNotNil} from "@sumaris-net/ngx-components";
+import {isNil, isNotEmptyArray, isNotNil, toBoolean} from "@sumaris-net/ngx-components";
 import {AggregatedLanding, VesselActivity} from "../services/model/aggregated-landing.model";
-import {AggregatedLandingFilter, AggregatedLandingService} from "../services/aggregated-landing.service";
+import {AggregatedLandingService} from "../services/aggregated-landing.service";
 import * as momentImported from "moment";
 import {Moment} from "moment";
 import {ObservedLocation} from "../services/model/observed-location.model";
@@ -24,12 +24,13 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {AggregatedLandingModal} from "./aggregated-landing.modal";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
-import {referentialToString} from "../../core/services/model/referential.model";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
+import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
+import {referentialToString}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {AggregatedLandingFormOption} from "./aggregated-landing.form";
+import {AggregatedLandingFilter} from "@app/trip/services/filter/aggregated-landing.filter";
 
 const moment = momentImported;
 
@@ -160,24 +161,23 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   }
 
   setParent(parent: ObservedLocation) {
-    if (!parent) {
-      this.setFilter({});
-    } else {
+    const filter = new AggregatedLandingFilter();
+    // Filter on parent
+    if (parent) {
       this.startDate = parent.startDateTime;
-      this.setFilter({
-        observedLocationId: parent.id,
-        programLabel: this._program,
-        locationId: parent.location.id,
-        startDate: parent.startDateTime,
-        endDate: parent.endDateTime || moment(parent.startDateTime).add(this._nbDays, "day")
-      });
+      filter.observedLocationId = parent.id;
+      filter.programLabel = this._program;
+      filter.locationId = parent.location && parent.location.id;
+      filter.startDate = parent.startDateTime;
+      filter.endDate = parent.endDateTime || moment(parent.startDateTime).add(this._nbDays, "day");
     }
+    this.setFilter(filter);
   }
 
   setFilter(filter: AggregatedLandingFilter, opts?: { emitEvent: boolean }) {
 
     // Don't refilter if actual filter is equal
-    if (AggregatedLandingFilter.equals(this.filter, filter))
+    if (this.filter && this.filter.equals(filter))
       return;
 
     super.setFilter(filter, opts);
@@ -249,9 +249,9 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     if (!this.mobile) return false;
 
     const today = moment().startOf("day");
-    this.setLoading(true);
+    this.markAsLoading();
     this.openModal(event, row, today)
-      .then(() => this.setLoading(false));
+      .then(() => this.markAsLoaded());
 
   }
 
@@ -260,13 +260,13 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     if (this.debug)
       console.debug('clickCell', $event, row.currentData.vesselSnapshot.exteriorMarking + "|" + row.currentData.vesselActivities.length, date.toISOString());
 
-    this.setLoading(true);
+    this.markAsLoading();
     this.openModal($event, row, date)
-      .then(() => this.setLoading(false));
+      .then(() => this.markAsLoaded());
   }
 
   async openModal(event: MouseEvent|undefined, row: TableElement<AggregatedLanding>, date?: Moment) {
-    this.onEditRow(event, row);
+    this.editRow(event, row);
     const modal = await this.modalCtrl.create({
       component: AggregatedLandingModal,
       componentProps: {
@@ -303,13 +303,13 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
 
       if (res.data.tripToOpen) {
         // navigate to trip
-        this.setLoading(true);
+        this.markAsLoading();
         this.markForCheck();
 
         try {
           await this.router.navigateByUrl(`/observations/${res.data.tripToOpen.observedLocationId}/trip/${res.data.tripToOpen.tripId}`);
         } finally {
-          this.setLoading(false);
+          this.markAsLoaded();
           this.markForCheck();
         }
       }

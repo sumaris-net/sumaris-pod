@@ -82,6 +82,11 @@
       max-width: inherit; // Override default limitation
     }
 
+    .mat-column-actions {
+      max-width: 40px;
+      padding-inline-start: 0;
+      padding-inline-end: 0;
+    }
   }
 }
 

@@ -1,63 +1,17 @@
-import {Injectable, Injector} from "@angular/core";
-import {AggregatedLanding} from "./model/aggregated-landing.model";
-import {Moment} from "moment";
-import {ErrorCodes} from "./trip.errors";
-import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {Beans, isNil, isNotNil} from "../../shared/functions";
-import {gql} from "@apollo/client/core";
-import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
-import {ReferentialFragments} from "../../referential/services/referential.fragments";
-import {Observable} from "rxjs";
-import {filter, map, tap} from "rxjs/operators";
-import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
-import {SortDirection} from "@angular/material/sort";
-import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
-import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
-import {IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
-import {BaseGraphqlService} from "../../core/services/base-graphql-service.class";
-import {environment} from "../../../environments/environment";
-import {toDateISOString} from "../../shared/dates";
-
-export class AggregatedLandingFilter {
-  programLabel?: string;
-  startDate?: Moment;
-  endDate?: Moment;
-  locationId?: number;
-  observedLocationId?: number;
-  synchronizationStatus?: SynchronizationStatus;
-
-  static equals(f1: AggregatedLandingFilter | any, f2: AggregatedLandingFilter | any): boolean {
-    return (isNil(f1) && isNil(f2)) ||
-      (
-        isNotNil(f1) && isNotNil(f2) &&
-        f1.programLabel === f2.programLabel &&
-        f1.observedLocationId === f2.observedLocationId &&
-        f1.locationId === f2.locationId &&
-        f1.synchronizationStatus === f2.synchronizationStatus &&
-        ((!f1.startDate && !f2.startDate) || (f1.startDate.isSame(f2.startDate))) &&
-        ((!f1.endDate && !f2.endDate) || (f1.endDate.isSame(f2.endDate)))
-      )
-  }
-
-  static isEmpty(f: AggregatedLandingFilter | any): boolean {
-    return Beans.isEmpty({...f, synchronizationStatus: null}, undefined, {
-      blankStringLikeEmpty: true
-    });
-  }
-
-  static searchFilter<T extends AggregatedLanding>(filter: AggregatedLandingFilter): (T) => boolean {
-    if (AggregatedLandingFilter.isEmpty(filter)) return undefined;
-    return (data: T) => {
-
-      // observedLocationId
-      if (isNotNil(filter.observedLocationId) && filter.observedLocationId !== data.observedLocationId) return false;
-
-    };
-  }
-
-}
+import {Injectable, Injector} from '@angular/core';
+import {AggregatedLanding} from './model/aggregated-landing.model';
+import {ErrorCodes} from './trip.errors';
+import {BaseGraphqlService, EntitiesStorage, GraphqlService, IEntitiesService, isNotNil, LoadResult, NetworkService, toDateISOString} from '@sumaris-net/ngx-components';
+import {gql} from '@apollo/client/core';
+import {VesselSnapshotFragments} from '../../referential/services/vessel-snapshot.service';
+import {ReferentialFragments} from '../../referential/services/referential.fragments';
+import {Observable} from 'rxjs';
+import {filter, map} from 'rxjs/operators';
+import {SortDirection} from '@angular/material/sort';
+import {DataEntityAsObjectOptions} from '../../data/services/model/data-entity.model';
+import {environment} from '../../../environments/environment';
+import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {AggregatedLandingFilter} from '@app/trip/services/filter/aggregated-landing.filter';
 
 const VesselActivityFragment = gql`fragment VesselActivityFragment on VesselActivityVO {
   __typename
@@ -92,7 +46,7 @@ ${VesselActivityFragment}`;
 // Search query
 const LoadAllQuery: any = gql`
   query AggregatedLandings($filter: AggregatedLandingFilterVOInput){
-    aggregatedLandings(filter: $filter){
+    data: aggregatedLandings(filter: $filter){
       ...AggregatedLandingFragment
     }
   }
@@ -131,62 +85,51 @@ export class AggregatedLandingService
            size: number,
            sortBy?: string,
            sortDirection?: SortDirection,
-           dataFilter?: AggregatedLandingFilter,
+           dataFilter?: Partial<AggregatedLandingFilter>,
            options?: any): Observable<LoadResult<AggregatedLanding>> {
 
-    this._lastFilter = {
-      ...dataFilter,
-      // Serialize all dates
-      startDate: dataFilter && toDateISOString(dataFilter.startDate),
-      endDate: dataFilter && toDateISOString(dataFilter.endDate),
-      // Remove fields that not exists in pod
-      synchronizationStatus: undefined
-    };
+    // Update previous filter
+    dataFilter = this.asFilter(dataFilter);
+    this._lastFilter = dataFilter.clone();
 
-    const variables: any = {
-      filter: this._lastFilter
-    };
+    // TODO: manage offset/size/sort ?
+    const variables: any = {};
 
     let now = this._debug && Date.now();
     if (this._debug) console.debug("[aggregated-landing-service] Loading aggregated landings... using options:", variables);
 
-    let $loadResult: Observable<{ aggregatedLandings: AggregatedLanding[] }>;
-    const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
+    let res: Observable<LoadResult<AggregatedLanding>>;
 
+    const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
     if (offline) {
-      $loadResult = this.entities.watchAll<AggregatedLanding>('AggregatedLandingVO', {
+      res = this.entities.watchAll<AggregatedLanding>('AggregatedLandingVO', {
         ...variables,
-        filter: AggregatedLandingFilter.searchFilter<AggregatedLanding>(dataFilter)
-      })
-        .pipe(
-          tap(() => {
-              if (this._debug) console.debug(`[aggregated-landing-service] Aggregated landings loaded (from offline storage) in ${Date.now() - now}ms`);
-            }
-          ),
-          map(res => {
-            return {aggregatedLandings: res && res.data};
-          }));
+        filter: dataFilter && dataFilter.asFilterFn()
+      });
 
     } else {
 
-      $loadResult = this.mutableWatchQuery<{ aggregatedLandings: AggregatedLanding[] }>({
+      res = this.mutableWatchQuery<LoadResult<AggregatedLanding>>({
         queryName: 'LoadAll',
         query: LoadAllQuery,
-        arrayFieldName: 'aggregatedLandings',
-        insertFilterFn: AggregatedLandingFilter.searchFilter(dataFilter),
-        variables,
+        arrayFieldName: 'data',
+        insertFilterFn: dataFilter && dataFilter.asFilterFn(),
+        variables: {
+          ...variables,
+          filter: dataFilter && dataFilter.asPodObject()
+        },
         error: {code: ErrorCodes.LOAD_AGGREGATED_LANDINGS_ERROR, message: "AGGREGATED_LANDING.ERROR.LOAD_ALL_ERROR"},
         fetchPolicy: options && options.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
       })
-        .pipe(
-          filter(() => !this.loading)
-        );
+      .pipe(
+        filter(() => !this.loading)
+      );
     }
 
-    return $loadResult.pipe(
+    return res.pipe(
       filter(isNotNil),
       map(res => {
-        const data = (res && res.aggregatedLandings || []).map(AggregatedLanding.fromObject);
+        const data = (res && res.data || []).map(AggregatedLanding.fromObject);
         if (now) {
           console.debug(`[aggregated-landing-service] Loaded {${data.length || 0}} landings in ${Date.now() - now}ms`, data);
           now = undefined;
@@ -202,9 +145,7 @@ export class AggregatedLandingService
   async saveAll(entities: AggregatedLanding[], options?: any): Promise<AggregatedLanding[]> {
     if (!entities) return entities;
 
-    const json = entities.map(t => {
-      return this.asObject(t);
-    });
+    const json = entities.map(t => this.asObject(t));
 
     const now = Date.now();
     if (this._debug) console.debug("[aggregated-landing-service] Saving aggregated landings...", json);
@@ -213,7 +154,7 @@ export class AggregatedLandingService
       mutation: SaveAllQuery,
       variables: {
         aggregatedLandings: json,
-        filter: this._lastFilter
+        filter: this._lastFilter && this._lastFilter.asPodObject()
       },
       error: {code: ErrorCodes.SAVE_AGGREGATED_LANDINGS_ERROR, message: "AGGREGATED_LANDING.ERROR.SAVE_ALL_ERROR"},
       update: (proxy, {data}) => {
@@ -230,6 +171,10 @@ export class AggregatedLandingService
 
   deleteAll(data: AggregatedLanding[], options?: any): Promise<any> {
     throw new Error('AggregatedLandingService.deleteAll() not implemented yet');
+  }
+
+  asFilter(filter: Partial<AggregatedLandingFilter>): AggregatedLandingFilter {
+    return AggregatedLandingFilter.fromObject(filter);
   }
 
   protected asObject(entity: AggregatedLanding, options?: DataEntityAsObjectOptions) {

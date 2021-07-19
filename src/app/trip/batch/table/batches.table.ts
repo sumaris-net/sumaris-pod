@@ -1,26 +1,29 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {isNil, isNilOrBlank, isNotNil} from "../../../shared/functions";
-import {AppMeasurementsTable} from "../../measurement/measurements.table.class";
-import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
-import {UsageMode} from "../../../core/services/model/settings.model";
-import {MeasurementValuesUtils} from "../../services/model/measurement.model";
-import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
-import {Batch} from "../../services/model/batch.model";
-import {Operation} from "../../services/model/trip.model";
-import {Landing} from "../../services/model/landing.model";
-import {AcquisitionLevelCodes, PmfmLabelPatterns} from "../../../referential/services/model/model.enum";
-import {IPmfm, PmfmUtils} from "../../../referential/services/model/pmfm.model";
-import {DenormalizedPmfmStrategy, getPmfmName} from "../../../referential/services/model/pmfm-strategy.model";
-import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
-import {BatchModal} from "../modal/batch.modal";
-import {IReferentialRef, ReferentialRef, referentialToString} from "../../../core/services/model/referential.model";
-import {environment} from "../../../../environments/environment";
-import {LoadResult} from "../../../shared/services/entity-service.class";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {EntityFilter, FilterFn, InMemoryEntitiesService, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, UsageMode} from '@sumaris-net/ngx-components';
+import {AppMeasurementsTable} from '../../measurement/measurements.table.class';
+import {TaxonGroupRef, TaxonNameRef} from '@app/referential/services/model/taxon.model';
+import {Batch} from '../../services/model/batch.model';
+import {Landing} from '../../services/model/landing.model';
+import {AcquisitionLevelCodes, PmfmLabelPatterns} from '@app/referential/services/model/model.enum';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {BatchModal} from '../modal/batch.modal';
+import {environment} from '@environments/environment';
+import {Operation} from '../../services/model/trip.model';
 
-export interface BatchFilter {
+export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
   operationId?: number;
   landingId?: number;
+
+  asFilterFn<E extends Batch>(): FilterFn<E> {
+    return (data) =>
+      (isNil(this.operationId) || data.operationId === this.operationId)
+
+      // TODO enable this:
+      // && (isNil(this.landingId) || data.landingId === this.landingId))
+      ;
+  }
 }
 
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
@@ -36,7 +39,7 @@ export const DATA_TYPE_ACCESSOR = new InjectionToken<new() => Batch>('BatchesTab
     {provide: ValidatorService, useValue: null},  // important: do NOT use validator, to be sure to keep all PMFMS, and not only displayed pmfms
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService<Batch, BatchFilter>(Batch, {
+      useFactory: () => new InMemoryEntitiesService<Batch, BatchFilter>(Batch, BatchFilter, {
         equals: Batch.equals
       })
     },
@@ -89,10 +92,10 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
   }
 
   get dirty(): boolean {
-    return this._dirty || this.memoryDataService.dirty;
+    return super.dirty || this.memoryDataService.dirty;
   }
 
-  @Input() defaultTaxonGroup: ReferentialRef;
+  @Input() defaultTaxonGroup: TaxonGroupRef;
   @Input() defaultTaxonName: TaxonNameRef;
 
 
@@ -219,12 +222,12 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
     this.markAsLoaded();
 
-    // Exit if empty
-    if (!(data instanceof Batch)) {
-      return undefined;
+    if (data instanceof Batch) {
+      return data as T;
     }
 
-    return data as T;
+    // Exit if empty
+    return undefined;
   }
 
 
@@ -301,10 +304,6 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
       data.taxonGroup = this.defaultTaxonGroup;
     }
   }
-
-  referentialToString = referentialToString;
-  getPmfmColumnHeader = getPmfmName;
-  measurementValueToString = MeasurementValuesUtils.valueToString;
 
   protected markForCheck() {
     this.cd.markForCheck();

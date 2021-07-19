@@ -1,30 +1,40 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit} from "@angular/core";
-import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from "../../../referential/services/model/model.enum";
-import {LandingPage} from "../landing.page";
-import {debounceTime, filter, map, mergeMap, startWith, switchMap, tap} from "rxjs/operators";
-import {BehaviorSubject, Observable, Subscription} from "rxjs";
-import {Landing} from "../../services/model/landing.model";
-import {AuctionControlValidators} from "../../services/validator/auction-control.validators";
-import {ModalController} from "@ionic/angular";
-import {EntityServiceLoadOptions, LoadResult} from "../../../shared/services/entity-service.class";
-import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {HistoryPageReference} from "../../../core/services/model/settings.model";
-import {ObservedLocation} from "../../services/model/observed-location.model";
-import {FormBuilder, FormControl, FormGroup} from "@angular/forms";
-import {TaxonGroupLabels, TaxonGroupRef} from "../../../referential/services/model/taxon.model";
-import {filterNotNil, firstNotNilPromise} from "../../../shared/observables";
-import {isNil, isNotEmptyArray, isNotNil, toNumber} from "../../../shared/functions";
-import {AppHelpModal} from "../../../shared/help/help.modal";
-import {SharedValidators} from "../../../shared/validator/validators";
-import {Program} from "../../../referential/services/model/program.model";
-import {fadeInOutAnimation} from "../../../shared/material/material.animations";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {ChangeDetectionStrategy, Component, Injector, OnInit} from '@angular/core';
+import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../../referential/services/model/model.enum';
+import {LandingPage} from '../landing.page';
+import {debounceTime, filter, map, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
+import {BehaviorSubject, Observable, Subscription} from 'rxjs';
+import {Landing} from '../../services/model/landing.model';
+import {AuctionControlValidators} from '../../services/validator/auction-control.validators';
+import {ModalController} from '@ionic/angular';
+import {
+  AppHelpModal,
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  filterNotNil,
+  firstNotNilPromise,
+  HistoryPageReference,
+  IReferentialRef,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  LoadResult,
+  ReferentialUtils,
+  SharedValidators,
+  toNumber
+} from '@sumaris-net/ngx-components';
+import {ObservedLocation} from '../../services/model/observed-location.model';
+import {FormBuilder, FormControl, FormGroup} from '@angular/forms';
+import {TaxonGroupLabels, TaxonGroupRef} from '../../../referential/services/model/taxon.model';
+import {Program} from '../../../referential/services/model/program.model';
+import {IPmfm} from '../../../referential/services/model/pmfm.model';
+import {AppRootDataEditor} from '../../../data/form/root-data-editor.class';
 
 @Component({
   selector: 'app-auction-control',
   styleUrls: ['auction-control.page.scss'],
   templateUrl: './auction-control.page.html',
   animations: [fadeInOutAnimation],
+  providers: [{provide: AppRootDataEditor, useExisting: AuctionControlPage}],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AuctionControlPage extends LandingPage implements OnInit {
@@ -147,7 +157,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
         // Update the help content
         tap(qv => {
           // TODO BLA load description, in the executeImport process
-          console.log("TODO: update help modal with QV=", qv);
+          //console.warn("TODO: update help modal with QV=", qv);
           this.helpContent = qv && qv.description || undefined;
         }),
         map(qv => {
@@ -329,7 +339,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   }
 
   protected async computeTitle(data: Landing): Promise<string> {
-    const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
+    const titlePrefix = this.parent && (this.parent instanceof ObservedLocation) &&
       await this.translate.get('AUCTION_CONTROL.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''

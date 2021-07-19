@@ -1,5 +1,18 @@
+:root {
+
+}
+
+.table-container {
+  height: calc(100vh - var(--table-container-offset, 0));
+
+  &.has-offline-nav {
+    --table-container-offset: 49px;
+  }
+}
+
 .mat-expansion-panel {
   margin-bottom: 5px;
+  --expansion-panel-padding: 0!important;
 
   .form-container {
     mat-form-field {
@@ -11,6 +24,7 @@
   }
 
   mat-action-row {
+    height: 46px;
     ion-label {
       line-height: 36px;
     }
@@ -18,9 +32,11 @@
 }
 
 .mat-table {
+  min-width: 100%;
+  --mat-cell-vertical-padding: 4px;
 
-  mat-header-cell.hidden,
-  mat-cell.hidden {
+  .mat-header-cell.cdk-visually-hidden,
+  .mat-cell.cdk-visually-hidden {
     visibility: hidden;
     display: none;
   }
@@ -29,7 +45,6 @@
   .mat-row {
     .mat-column-status {
       max-width: 40px;
-      padding-left: 0px;
     }
   }
 

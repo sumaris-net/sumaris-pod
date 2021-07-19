@@ -1,4 +1,5 @@
-import { Environment } from "./environment.class";
+import {Environment} from "@sumaris-net/ngx-components";
+
 const pkg = require('../../package.json')
 
 /* tslint:disable */
@@ -39,13 +40,17 @@ export const environment: Environment = Object.freeze({
       port: 443
     },
     {
-      host: 'isi.ifremer.fr/imagine-server/',
+      host: 'imagine-pod.isival.ifremer.fr',
       port: 443
     }
   ],
 
   defaultAppName: 'SUMARiS',
   defaultAndroidInstallUrl: 'https://play.google.com/store/apps/details?id=net.sumaris.app',
+
+  // About modal
+  sourceUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app',
+  reportIssueUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app/-/issues/new?issue',
 
   // Storage
   storage: {

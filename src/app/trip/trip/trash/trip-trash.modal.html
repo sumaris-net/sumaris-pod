@@ -179,7 +179,10 @@
       <mat-header-cell *matHeaderCellDef>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <mat-icon color="primary" *ngIf="row.currentData.comments" [title]="row.currentData.comments">comment</mat-icon>
+        <mat-icon color="primary"
+                  class="comment"
+                  *ngIf="row.currentData.comments"
+                  [title]="row.currentData.comments"></mat-icon>
       </mat-cell>
     </ng-container>
 

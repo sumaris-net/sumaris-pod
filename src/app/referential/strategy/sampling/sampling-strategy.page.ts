@@ -2,24 +2,25 @@ import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {ActivatedRoute} from "@angular/router";
 import * as momentImported from "moment";
-import {HistoryPageReference} from "src/app/core/services/model/settings.model";
-import {PlatformService} from "src/app/core/services/platform.service";
-import {AccountService} from "../../../core/services/account.service";
+import {HistoryPageReference}  from "@sumaris-net/ngx-components";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {AccountService}  from "@sumaris-net/ngx-components";
 import {ProgramProperties} from "../../services/config/program.config";
 import {PmfmStrategy} from "../../services/model/pmfm-strategy.model";
 import {Strategy} from "../../services/model/strategy.model";
 import {PmfmService} from "../../services/pmfm.service";
 import {StrategyService} from "../../services/strategy.service";
 import {SamplingStrategyForm} from "./sampling-strategy.form";
-import {AppEntityEditor} from "../../../core/form/editor.class";
-import {isNil, isNotEmptyArray, isNotNil, toNumber} from "../../../shared/functions";
-import {EntityServiceLoadOptions} from "../../../shared/services/entity-service.class";
-import {firstNotNilPromise} from "../../../shared/observables";
+import {AppEntityEditor}  from "@sumaris-net/ngx-components";
+import {isNil, isNotEmptyArray, isNotNil, toNumber} from "@sumaris-net/ngx-components";
+import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
+import {firstNotNilPromise} from "@sumaris-net/ngx-components";
 import {BehaviorSubject} from "rxjs";
 import {Program} from "../../services/model/program.model";
 import {ProgramService} from "../../services/program.service";
 import {AcquisitionLevelCodes, PmfmIds} from "../../services/model/model.enum";
-import {StatusIds} from "../../../core/services/model/model.enum";
+import {StatusIds}  from "@sumaris-net/ngx-components";
+import {MatExpansionPanel} from '@angular/material/expansion';
 
 const moment = momentImported;
 
@@ -52,7 +53,7 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
     super(injector, Strategy, strategyService,
       {
         pathIdAttribute: 'strategyId',
-        tabCount: 1,
+        tabCount: 2,
         autoUpdateRoute: !platform.mobile,
         autoOpenNextTab: false
       });
@@ -115,7 +116,7 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
 
   protected setProgram(program: Program) {
     if (program && isNotNil(program.id)) {
-      this.defaultBackHref = `/referential/programs/${program.id}?tab=1`;
+      this.defaultBackHref = `/referential/programs/${program.id}/strategies`;
       this.markForCheck();
     }
   }
@@ -168,6 +169,7 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
 
   async save(event?: Event, options?: any): Promise<boolean> {
     // Check access concurence
+    this.form.get('label').setValue(this.form.get('label').value.replace(/\s/g, "")); // remove whitespace
     this.form.get('label').updateValueAndValidity();
     return super.save(event, options);
   }
@@ -180,22 +182,34 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
   fillPmfmStrategyDefaults(target: Strategy) {
     target.pmfms = target.pmfms || [];
 
-    let pmfmStrategyLabelExists = false;
+    const pmfmIds: number[] = [];
     target.pmfms.forEach(pmfmStrategy => {
       // Keep only pmfmId
       pmfmStrategy.pmfmId = toNumber(pmfmStrategy.pmfm && pmfmStrategy.pmfm.id, pmfmStrategy.pmfmId);
       // delete pmfmStrategy.pmfm;
 
-      // Find existing strategy label pmfm
-      pmfmStrategyLabelExists = pmfmStrategyLabelExists || (pmfmStrategy.pmfmId === PmfmIds.STRATEGY_LABEL);
+      // Remember PMFM Ids
+      pmfmIds.push(pmfmStrategy.pmfmId);
     });
 
     // Add a Pmfm for the strategy label, if missing
-    if (!pmfmStrategyLabelExists) {
+    if (!pmfmIds.includes(PmfmIds.STRATEGY_LABEL)) {
       console.debug(`[simple-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.STRATEGY_LABEL}} to hold the strategy label, on ${AcquisitionLevelCodes.LANDING}`);
       target.pmfms.push(PmfmStrategy.fromObject({
         pmfm: {id: PmfmIds.STRATEGY_LABEL},
         acquisitionLevel: AcquisitionLevelCodes.LANDING,
+        isMandatory: true,
+        acquisitionNumber : 1,
+        rankOrder: 1 // Should be the only one PmfmStrategy on Landing
+      }));
+    }
+
+    // Add a TAG_ID Pmfm, if missing
+    if (!pmfmIds.includes(PmfmIds.TAG_ID)) {
+      console.debug(`[simple-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.TAG_ID}} to hold the strategy label, on ${AcquisitionLevelCodes.SAMPLE}`);
+      target.pmfms.push(PmfmStrategy.fromObject({
+        pmfm: {id: PmfmIds.TAG_ID},
+        acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
         isMandatory: true,
         acquisitionNumber : 1,
         rankOrder: 1 // Should be the only one PmfmStrategy on Landing

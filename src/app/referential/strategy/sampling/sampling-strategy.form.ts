@@ -1,58 +1,49 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
-import {DateAdapter} from "@angular/material/core";
-import * as momentImported from "moment";
+import {FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn} from '@angular/forms';
+import {DateAdapter} from '@angular/material/core';
+import * as momentImported from 'moment';
 import {Moment} from 'moment';
-import {DEFAULT_PLACEHOLDER_CHAR} from 'src/app/shared/constants';
-import {SharedValidators} from 'src/app/shared/validator/validators';
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {fromDateISOString} from "../../../shared/dates";
-import {PmfmStrategy} from "../../services/model/pmfm-strategy.model";
-import {Program} from '../../services/model/program.model';
 import {
-  AppliedPeriod,
-  AppliedStrategy,
-  Strategy,
-  StrategyDepartment,
-  TaxonNameStrategy
-} from "../../services/model/strategy.model";
-import {TaxonNameRef} from "../../services/model/taxon.model";
-import {ReferentialRefService} from "../../services/referential-ref.service";
-import {StrategyService} from "../../services/strategy.service";
-import {StrategyValidatorService} from '../../services/validator/strategy.validator';
-import {PmfmStrategiesTable} from "../pmfm-strategies.table";
-import {
-  AcquisitionLevelCodes,
-  LocationLevelIds,
-  ParameterLabelGroups, PmfmIds,
-  ProgramPrivilegeIds, TaxonomicLevelIds
-} from '../../services/model/model.enum';
-import {AppForm} from "../../../core/form/form.class";
-import {AppFormUtils, FormArrayHelper} from "../../../core/form/form.utils";
-import {EntityUtils} from "../../../core/services/model/entity.model";
-import {Pmfm, PmfmUtils} from "../../services/model/pmfm.model";
-import {
+  AppForm,
+  AppFormUtils,
+  DEFAULT_PLACEHOLDER_CHAR,
+  EntityUtils,
   firstArrayValue,
+  firstNotNilPromise,
+  FormArrayHelper, FormErrors,
+  fromDateISOString,
+  IReferentialRef,
   isEmptyArray,
-  isNil,
+  isNil, isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  removeDuplicatesFromArray,
+  LoadResult,
+  LocalSettingsService,
+  MatAutocompleteField,
+  ObjectMap,
+  ReferentialRef,
+  ReferentialUtils,
+  removeDuplicatesFromArray, SharedValidators,
+  StatusIds,
   suggestFromArray,
   toNumber
-} from "../../../shared/functions";
-import {StatusIds} from "../../../core/services/model/model.enum";
-import {ProgramProperties} from "../../services/config/program.config";
-import {BehaviorSubject, merge} from "rxjs";
+} from '@sumaris-net/ngx-components';
+import {PmfmStrategy} from '../../services/model/pmfm-strategy.model';
+import {Program} from '../../services/model/program.model';
+import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from '../../services/model/strategy.model';
+import {TaxonNameRef, TaxonUtils} from '../../services/model/taxon.model';
+import {ReferentialRefService} from '../../services/referential-ref.service';
+import {StrategyService} from '../../services/strategy.service';
+import {StrategyValidatorService} from '../../services/validator/strategy.validator';
+import {PmfmStrategiesTable} from '../pmfm-strategies.table';
+import {AcquisitionLevelCodes, autoCompleteFractions, LocationLevelIds, ParameterLabelGroups, PmfmIds, ProgramPrivilegeIds, TaxonomicLevelIds} from '../../services/model/model.enum';
+import {ProgramProperties} from '../../services/config/program.config';
+import {BehaviorSubject, merge} from 'rxjs';
 import {SamplingStrategyService} from '../../services/sampling-strategy.service';
-import {PmfmFilter, PmfmService} from "../../services/pmfm.service";
-import {firstNotNilPromise} from "../../../shared/observables";
-import {MatAutocompleteField} from "../../../shared/material/autocomplete/material.autocomplete";
-import { ObjectMap } from 'src/app/shared/types';
-import {SamplingStrategy, StrategyEffort} from '../../services/model/sampling-strategy.model';
-import {LoadResult} from "../../../shared/services/entity-service.class";
+import {PmfmFilter, PmfmService} from '../../services/pmfm.service';
+import {SamplingStrategy, StrategyEffort} from '@app/referential/services/model/sampling-strategy.model';
+import {TaxonName} from '@app/referential/services/model/taxon-name.model';
 
 const moment = momentImported;
 
@@ -158,6 +149,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   fractionItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
   taxonNameItems: BehaviorSubject<TaxonNameRef[]> = new BehaviorSubject(null);
 
+  allFractionItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected validatorService: StrategyValidatorService,
@@ -186,13 +179,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.initPmfmStrategiesFractionHelper();
   }
 
-  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+  enable(opts?: { onlySelf?: boolean, emitEvent?: boolean; }) {
     super.enable(opts);
     if (this.hasEffort) {
       this.weightPmfmStrategiesTable.disable();
       this.lengthPmfmStrategiesTable.disable();
       this.maturityPmfmStrategiesTable.disable();
       this.taxonNamesFormArray.disable();
+      this.appliedStrategiesForm.disable();
       this.form.get('analyticReference').disable();
       this.form.get('year').disable();
       this.form.get('label').disable();
@@ -203,6 +197,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   ngOnInit() {
     super.ngOnInit();
+
+
+    this.referentialRefService.loadAll(0, 0, null, null, { entityName: 'Fraction' }).then((res) => {
+      this.allFractionItems.next(res.data);
+    });
 
     this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups).then(map => this._$pmfmGroups.next(map));
 
@@ -221,6 +220,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         .subscribe(() => this.initPmfmStrategies())
     );
 
+    this.registerSubscription(this.form.get('age').valueChanges.subscribe(res => this.loadFraction()));
+    this.taxonNamesFormArray.setAsyncValidators([
+      async (control) => {
+        this.loadFraction();
+        return null;
+      }
+    ]);
+
     this.appliedPeriodsForm.setAsyncValidators([
       async (control) => {
         const minLength = 1;
@@ -232,7 +239,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
             return null;
           }
         }
-        return <ValidationErrors>{ minLength: {minLength} };
+        return <ValidationErrors>{ minLength: { minLength } };
       },
       // Check quarter acquisitionNumber is not
       async (control) => {
@@ -245,7 +252,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
             return quarterEffort && quarterEffort.hasRealizedEffort && (isNil(period.acquisitionNumber) || period.acquisitionNumber < 0);
           }).map(period => period.startDate.quarter());
         if (isNotEmptyArray(invalidQuarters)) {
-          return <ValidationErrors>{ hasRealizedEffort: {quarters: invalidQuarters} };
+          return <ValidationErrors>{ hasRealizedEffort: { quarters: invalidQuarters } };
         }
         SharedValidators.clearError(control, 'hasRealizedEffort');
         return null;
@@ -255,19 +262,19 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.form.get('pmfms').setAsyncValidators([
       //Check if WEIGHT or LENGTH
       async (control) => {
-          const pmfms = control.value.flat();
-          if (!isEmptyArray(pmfms)) {
-            const pmfmGroups = await firstNotNilPromise(this._$pmfmGroups);
-            const weight = this.getPmfmsByType(pmfms, pmfmGroups.WEIGHT, ParameterLabelGroups.WEIGHT);
-            const length = this.getPmfmsByType(pmfms, pmfmGroups.LENGTH, ParameterLabelGroups.LENGTH);
-            if (isEmptyArray(weight) && isEmptyArray(length)) {
-              return <ValidationErrors>{ weightOrSize: true };
-            }
-            SharedValidators.clearError(control, 'weightOrSize');
-          } else {
+        const pmfms = control.value.flat();
+        if (!isEmptyArray(pmfms)) {
+          const pmfmGroups = await firstNotNilPromise(this._$pmfmGroups);
+          const weight = this.getPmfmsByType(pmfms, pmfmGroups.WEIGHT, ParameterLabelGroups.WEIGHT);
+          const length = this.getPmfmsByType(pmfms, pmfmGroups.LENGTH, ParameterLabelGroups.LENGTH);
+          if (isEmptyArray(weight) && isEmptyArray(length)) {
             return <ValidationErrors>{ weightOrSize: true };
           }
+          SharedValidators.clearError(control, 'weightOrSize');
+        } else {
+          return <ValidationErrors>{ weightOrSize: true };
         }
+      }
     ]);
 
     this.form.setAsyncValidators([
@@ -289,22 +296,42 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         }
 
         if (length < minLength) {
-          return <ValidationErrors>{ minLength: {minLength} };
+          return <ValidationErrors>{ minLength: { minLength } };
         }
         SharedValidators.clearError(control, 'minLength');
       }
     ]);
 
+    this.registerSubscription(this.form.get('label').valueChanges.subscribe(value => this.onEditLabel(value)));
     // register year field changes
-    this.registerSubscription(
-      this.form.get('year').valueChanges.subscribe(date => this.onDateChange(date))
-    );
+    this.registerSubscription(this.form.get('year').valueChanges.subscribe(date => this.onDateChange(date)));
+    this.registerSubscription(this.taxonNamesFormArray.valueChanges.subscribe(() => this.onTaxonChange()));
+    this.taxonNamesFormArray.valueChanges.subscribe(res => this.loadFilteredPmfm());
 
     const idControl = this.form.get('id');
     this.form.get('label').setAsyncValidators([
-      async (control) => {
-        console.debug('[sampling-strategy-form] Checking of label is unique...');
-        const exists = await this.strategyService.existsByLabel(control.value, {
+    async (control) => {
+      const label = control.value;
+      const parts = label.split(" ");
+      if (parts.some(str => str.indexOf("_") !== -1)) {
+        return <ValidationErrors>{ required: true };
+      }
+      if (label.includes('000')) {
+        return <ValidationErrors>{ zero: true };
+      }
+      /*
+      if (control.hasError('cannotComputeTaxonCode') || control.hasError('uniqueTaxonCode')) {
+        const labelRegex = new RegExp(/\d\d [A-Z][A-Z][A-Z][A-Z][A-Z][A-Z][A-Z]/);
+        if (labelRegex.test(label)) {
+          SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
+          SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
+          const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, label.slice(10), 3));
+          control.setValue(computedLabel);
+        }
+      }
+       */
+      console.debug('[sampling-strategy-form] Checking of label is unique...');
+        const exists = await this.strategyService.existsByLabel(label, {
           programId: this.program && this.program.id,
           excludedIds: isNotNil(idControl.value) ? [idControl.value] : undefined,
           fetchPolicy: 'network-only' // Force to check remotely
@@ -312,9 +339,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         if (exists) {
           console.warn('[sampling-strategy-form] Label not unique!');
           return <ValidationErrors>{ unique: true };
-        }
-        if (control.value.includes('0000')) {
-          return <ValidationErrors>{ zero: true };
         }
 
         console.debug('[sampling-strategy-form] Checking of label is unique [OK]');
@@ -396,11 +420,40 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     }
   }
 
+  loadFraction(): void {
+    if (this.ifAge() && this.taxonNamesFormArray.value && this.taxonNamesFormArray.value[0]) {
+      const taxon = this.taxonNamesFormArray.value[0];
+      const fractionName = autoCompleteFractions[taxon.taxonName.id];
+      if (fractionName) {
+        const fraction = this.allFractionItems.value.find(f => f.label.toUpperCase() === fractionName.toUpperCase());
+        this.pmfmsFractionForm.patchValue([fraction]);
+      }
+    }
+  }
+
+  async loadFilteredPmfm() {
+    const program = this.$program.value;
+    const taxon = isNotEmptyArray(this.taxonNamesFormArray.value) && this.taxonNamesFormArray.value[0] && this.taxonNamesFormArray.value[0].taxonName;
+    if (program) {
+      const strategies = await this.samplingStrategyService.loadAll(0, 1000, 'label', 'desc', {
+        levelId: program.id,
+        // searchJoin: 'referenceTaxons.referenceTaxon',
+        // searchAttribute: 'id',
+        // searchText: taxon.id
+      });
+    }
+  }
+
   async loadFilteredItems(program: Program): Promise<void> {
 
     const sortFn = (a: ReferentialRef, b: ReferentialRef) => {
-      if(a.name < b.name) { return -1; }
-      if(a.name > b.name) { return 1; }
+      if (a.label < b.label) { return -1; }
+      if (a.label > b.label) { return 1; }
+      return 0;
+    };
+    const sortFnByName = (a: ReferentialRef, b: ReferentialRef) => {
+      if (a.name < b.name) { return -1; }
+      if (a.name > b.name) { return 1; }
       return 0;
     };
 
@@ -438,7 +491,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         .reduce((res, taxonName: TaxonNameStrategy): TaxonNameRef[] =>
           res.concat([taxonName.taxonName]), []),
       'id');
-    taxons.sort(sortFn);
+    taxons.sort(sortFnByName);
     this.taxonNameItems.next(taxons);
 
     // Fractions
@@ -449,7 +502,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     const fractions = (
       await Promise.all(
-        fractionIds.map(id => this.referentialRefService.loadAll(0, 1, null, null, { id, entityName: 'Fraction' })
+        fractionIds.map(id => this.referentialRefService.loadAll(0, 1, null, null, { includedIds: [id], entityName: 'Fraction' })
           .then(res => res && firstArrayValue(res.data)))
       ))
       .filter(isNotNil)
@@ -465,22 +518,23 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
             .filter(isNotNilOrBlank)
 
             .map(analyticReference =>
-              this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label: analyticReference  })
+              this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label: analyticReference })
                 .then(res => res && firstArrayValue(res.data)))
         ))
         .filter(isNotNil)
         .sort(sortFn);
-      this.analyticsReferenceItems.next(analyticReferences);
+      this.analyticsReferenceItems.next(removeDuplicatesFromArray(analyticReferences, 'id'));
     } catch (err) {
       console.debug('Error on load AnalyticReference');
     }
   }
 
 
-  async getAnalyticReferenceName(analyticReference): Promise<string> {
+  async getAnalyticReferenceByLabel(label: string): Promise<ReferentialRef> {
+    if (isNilOrBlank(label)) return undefined;
     try {
-      return await this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label: analyticReference  })
-      .then(res => firstArrayValue(res.data).name )
+      const res = await this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label });
+      return firstArrayValue(res && res.data || []);
     } catch (err) {
       console.debug('Error on load AnalyticReference');
     }
@@ -499,8 +553,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     const lengths = this.lengthPmfmStrategiesTable.value.filter(p => p.pmfm || p.parameter);
     const maturities = this.maturityPmfmStrategiesTable.value.filter(p => p.pmfm || p.parameter);
 
-    // pmfms.push(this.sexAndAgeHelper.at(0).value);
-    // pmfms.push(this.sexAndAgeHelper.at(1).value);
     pmfms.push(weights);
     pmfms.push(lengths);
     pmfms.push(maturities);
@@ -521,10 +573,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   selectMask(input: HTMLInputElement) {
     if (!this.labelMask) input.select();
     const startIndex = this.labelMask.findIndex(c => c instanceof RegExp);
-    let endIndex = this.labelMask.slice(startIndex).findIndex(c => !(c instanceof RegExp), startIndex);
-    endIndex = (endIndex === -1)
-      ? this.labelMask.length
-      : startIndex + endIndex;
+    const endIndex = this.labelMask.length;
     input.setSelectionRange(startIndex, endIndex, "backward");
   }
 
@@ -669,18 +718,15 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Get fisrt period
     const firstAppliedPeriod = firstArrayValue(appliedStrategyWithPeriods.appliedPeriods);
 
-
-    this.getAnalyticReferenceName(data.analyticReference).then(name => {
+    this.getAnalyticReferenceByLabel(data.analyticReference).then(data => {
       this.form.patchValue({
         year: firstAppliedPeriod ? firstAppliedPeriod.startDate : moment(),
-        analyticReference: data.analyticReference && { label: data.analyticReference, name } || null
+        analyticReference: data && { label: data.label, name: data.name } || null
       });
-    })
-
-
+    });
 
     // If new
-    if (!data.id) {
+    if (isNil(data.id)) {
       // pmfms = [null, null];
       this.form.get('sex').patchValue(null);
       this.form.get('age').patchValue(null);
@@ -741,10 +787,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     target.label = target.label || target.name;
     target.description = target.label || target.description;
     target.analyticReference = target.analyticReference && EntityUtils.isNotEmpty(target.analyticReference, 'label') ?
-    target.analyticReference['label'] :
-    EntityUtils.isNotEmpty(this.form.get('analyticReference').value, 'label') ?
-    this.form.get('analyticReference').value.label :
-    this.form.get('analyticReference').value;
+      target.analyticReference['label'] :
+      EntityUtils.isNotEmpty(this.form.get('analyticReference').value, 'label') ?
+        this.form.get('analyticReference').value.label :
+        this.form.get('analyticReference').value;
 
     // get taxonName and
     target.taxonNames = (this.form.controls.taxonNames.value || []).map(TaxonNameStrategy.fromObject);
@@ -758,7 +804,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     });
 
     // Apply observer privilege to departments
-    const observerPrivilege = ReferentialRef.fromObject({id: ProgramPrivilegeIds.OBSERVER, entityName: 'ProgramPrivilege'});
+    const observerPrivilege = ReferentialRef.fromObject({ id: ProgramPrivilegeIds.OBSERVER, entityName: 'ProgramPrivilege' });
     target.departments = (target.departments || []).map(StrategyDepartment.fromObject);
     target.departments.forEach(department => {
       department.privilege = observerPrivilege;
@@ -797,13 +843,17 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     await this.lengthPmfmStrategiesTable.save();
 
     let pmfmStrategies: any[] = [
+      // Add tag id Pmfm
+      <PmfmStrategy>{ pmfm: { id: PmfmIds.TAG_ID } },
+      // Add weights Pmfm
       ...this.weightPmfmStrategiesTable.value,
+      // Add length Pmfm
       ...this.lengthPmfmStrategiesTable.value
     ];
 
     // Add SEX Pmfm
     if (sex) {
-      pmfmStrategies.push(<PmfmStrategy>{ pmfm: {id: PmfmIds.SEX }});
+      pmfmStrategies.push(<PmfmStrategy>{ pmfm: { id: PmfmIds.SEX } });
 
       // Add maturity pmfms
       await this.maturityPmfmStrategiesTable.save();
@@ -814,7 +864,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     // Add AGE Pmfm
     if (age) {
-      pmfmStrategies.push(<PmfmStrategy>{ pmfm: {id: PmfmIds.AGE }});
+      pmfmStrategies.push(<PmfmStrategy>{ pmfm: { id: PmfmIds.AGE } });
 
       // Pièces calcifiées
       (json.pmfmsFraction || [])
@@ -822,9 +872,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         .filter(isNotNil)
         .forEach(pmfm => pmfmStrategies.push(pmfm));
     }
-
-    // Add analytic reference Pmfm
-    pmfmStrategies.push(<PmfmStrategy>{pmfm: {id: PmfmIds.MORSE_CODE}});
 
     // Fill PmfmStrategy defaults
     let rankOrder = 1;
@@ -845,33 +892,96 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return target;
   }
 
+  protected async onEditLabel(value: string) {
+    const labelControl = this.form.get('label');
+    const taxonNameControl = this.taxonNamesHelper.at(0);
+    if (taxonNameControl.hasError('cannotComputeTaxonCode') || taxonNameControl.hasError('uniqueTaxonCode')) {
+      const labelRegex = new RegExp(/^\d\d [A-Z][A-Z][A-Z][A-Z][A-Z][A-Z][A-Z]/);
+      if (value.match(labelRegex)) {
+        const isUnique = (await this.referentialRefService.countAll({
+          entityName: TaxonName.ENTITY_NAME,
+          searchText: TaxonUtils.generateNameSearchPatternFromLabel(value.substring(3, 10)),
+          searchAttribute: 'name',
+          statusIds: [StatusIds.ENABLE],
+          levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
+        })) === 0;
+        if (!isUnique) {
+          taxonNameControl.setErrors({ uniqueTaxonCode: true });
+        } else {
+          SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
+          SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
+          const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10), 3));
+          labelControl.setValue(computedLabel);
+        }
+      }
+    }
+  }
+
   protected async onDateChange(date?: Moment) {
     date = fromDateISOString(date || this.form.get('year').value);
-
     if (!date || !this.program) return; // Skip if date or program are missing
+
+    const finalMaskYear = date.format('YY');
+    return await this.generateLabel(finalMaskYear);
+  }
+
+  protected async onTaxonChange(date?: Moment) {
+    date = fromDateISOString(date || this.form.get('year').value);
+    if (!date || !this.program) return; // Skip if program is missing
+
+    const finalMaskYear = date.format('YY');
+    return await this.generateLabel(finalMaskYear);
+  }
+
+  protected async generateLabel(finalMaskYear: any) {
+    let finalMaskTaxonName;
+    let errors: ValidationErrors;
+    const taxonNameControl = this.taxonNamesHelper.at(0);
+    const taxonName = taxonNameControl?.value?.taxonName;
+
+    const label = taxonName && TaxonUtils.generateLabelFromName(taxonName.name);
+    const isUnique = label && (await this.referentialRefService.countAll({
+      entityName: TaxonName.ENTITY_NAME,
+      searchText: TaxonUtils.generateNameSearchPatternFromLabel(label),
+      searchAttribute: 'name',
+      excludedIds: [taxonName.id],
+      statusIds: [StatusIds.ENABLE],
+      levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
+    })) === 0;
+    if (!label) {
+      errors = { cannotComputeTaxonCode: true };
+    } else if (!isUnique) {
+      errors = { uniqueTaxonCode: true };
+    } else {
+      finalMaskTaxonName = [...label];
+    }
+
+    if (errors) {
+      finalMaskTaxonName = [/^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/];
+    }
+
+    let labelMaskArray = finalMaskYear.split("");
+    labelMaskArray = labelMaskArray.concat([' ']);
+    labelMaskArray = labelMaskArray.concat(finalMaskTaxonName);
+    // @ts-ignore
+    labelMaskArray = labelMaskArray.concat([' ', /\d/, /\d/, /\d/]);
+    this.labelMask = labelMaskArray;
+
+    const finalMaskTaxonNameString = finalMaskTaxonName.join("");
 
     const labelControl = this.form.get('label');
 
-    //update mask
-    const year = date.year().toString();
-    this.labelMask = [...year.split(''), '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
-
-    // get new label sample row code
-    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${year}-BIO-`, 4));
-    console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
-
-    const label = labelControl.value;
-    if (isNil(label)) {
+    if (errors && taxonNameControl) {
+      // Lorsque l'on saisi une espece valide, puis une espece non valide le code ligne de plan garde la valeur de l'espece precedente valide
+      // Il faut saisir une deuxieme fois une espece invalide pour que le code ligne de plan prenne la valeur attendue
+      const computedLabel = `${finalMaskYear} _______`;
       labelControl.setValue(computedLabel);
+      taxonNameControl.setErrors(errors);
     } else {
-      const oldYear = label.split('-').shift();
-      // Update the label, if year change
-      if (year && oldYear && year !== oldYear) {
-        labelControl.setValue(computedLabel);
-        this.markAsDirty();
-      } else {
-        labelControl.setValue(label);
-      }
+      const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${finalMaskYear}${finalMaskTaxonNameString}`, 3));
+      SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
+      console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
+      labelControl.setValue(computedLabel);
     }
   }
 
@@ -1017,6 +1127,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     };
   }
 
+  isLocationDisable(index: number): boolean {
+    return this.appliedStrategiesHelper.at(index).status === "DISABLED";
+  }
 
   ifSex(): boolean {
     return this.form.get('sex').value;
@@ -1033,8 +1146,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    */
   protected async getPmfmsByParameterLabels(parameterLabels: string[]) {
     const res = await this.pmfmService.loadAll(0, 1000, null, null, {
-        levelLabels: parameterLabels
-      },
+      levelLabels: parameterLabels
+    },
       {
         withTotal: false,
         withDetails: true,

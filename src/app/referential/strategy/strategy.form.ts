@@ -1,27 +1,27 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {ReferentialForm} from "../form/referential.form";
-import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
+import {ReferentialRef, referentialToString, ReferentialUtils}  from "@sumaris-net/ngx-components";
 import {PmfmStrategiesTable, PmfmStrategyFilter} from "./pmfm-strategies.table";
-import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
+import {ReferentialRefService} from "../services/referential-ref.service";
 import {SelectReferentialModal} from "../list/select-referential.modal";
 import {ModalController} from "@ionic/angular";
-import {AppListForm, AppListFormOptions} from "../../core/form/list.form";
-import {isEmptyArray, isNotNil, toNumber} from "../../shared/functions";
+import {AppListForm, AppListFormOptions}  from "@sumaris-net/ngx-components";
+import {isEmptyArray, isNotNil, toNumber} from "@sumaris-net/ngx-components";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {BehaviorSubject} from "rxjs";
-import {debounceTime, map} from "rxjs/operators";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {debounceTime} from "rxjs/operators";
+import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {AccountService} from "../../core/services/account.service";
+import {AccountService}  from "@sumaris-net/ngx-components";
 import {ReferentialValidatorService} from "../services/validator/referential.validator";
 import {Strategy, TaxonGroupStrategy, TaxonNameStrategy} from "../services/model/strategy.model";
 import {Program} from "../services/model/program.model";
-
-import {referentialToString} from "../../core/services/model/referential.model";
-import {AppEntityEditor} from "../../core/form/editor.class";
+import {AppEntityEditor}  from "@sumaris-net/ngx-components";
+import {ReferentialFilter} from "../services/filter/referential.filter";
+import {ReferentialRefFilter} from "../services/filter/referential-ref.filter";
 
 @Component({
   selector: 'app-strategy-form',
@@ -157,7 +157,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
 
     // Load acquisition levels
     this.registerSubscription(
-      this.referentialRefService.watchAll(0,1000, 'name', 'asc', {entityName: 'AcquisitionLevel'}, {fetchPolicy: 'cache-first', withTotal: false})
+      this.referentialRefService.watchAll(0, 1000, 'name', 'asc', {entityName: 'AcquisitionLevel'}, {fetchPolicy: 'cache-first', withTotal: false})
         .subscribe(res => this.$allAcquisitionLevels.next(res && res.data || []))
     );
 
@@ -174,6 +174,14 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
         return label && (await this.programService.existsByLabel(label)) ? {unique: true} : null;
       });*/
 
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+
+    this.$isPmfmStrategyEmpty.unsubscribe();
+    this.$filter.unsubscribe();
+    this.$allAcquisitionLevels.unsubscribe();
   }
 
   protected registerForms() {
@@ -223,12 +231,12 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
   }
 
   async openSelectReferentialModal(opts: {
-    filter: ReferentialRefFilter
+    filter: Partial<ReferentialRefFilter>
   }): Promise<ReferentialRef[]> {
 
     const modal = await this.modalCtrl.create({ component: SelectReferentialModal,
       componentProps: {
-        filter: opts.filter
+        filter: ReferentialFilter.fromObject(opts.filter)
       },
       keyboardClose: true,
       cssClass: 'modal-large'
@@ -278,7 +286,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
     const items = await this.openSelectReferentialModal({
       filter: {
         entityName: 'Gear',
-        levelId: this.program && this.program.gearClassification ? toNumber(this.program.gearClassification.id, -1) : -1
+        levelId: this.program && this.program.gearClassification ? toNumber(this.program.gearClassification.id, null) : null
       }
     });
 
@@ -354,6 +362,9 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
     const collectedAcquisitionLevels = (data.pmfms || []).reduce((res, item) => {
       if (typeof item.acquisitionLevel === "string" && res[item.acquisitionLevel] === undefined) {
         res[item.acquisitionLevel] = allAcquisitionLevels.find(al => al.label === item.acquisitionLevel) || null;
+      }
+      else if (item.acquisitionLevel instanceof ReferentialRef && res[item.acquisitionLevel.label] === undefined){
+        res[item.acquisitionLevel.label] = item.acquisitionLevel;
       }
       return res;
     }, <{[key: string]: ReferentialRef|null}>{});

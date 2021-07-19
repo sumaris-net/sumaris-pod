@@ -1,15 +1,41 @@
+
+.table-container {
+  height: calc(100% - var(--table-toolbar-height) - var(--table-paginator-height));
+
+  --table-toolbar-height: 0px;
+  --table-paginator-height: 0px;
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
+  }
+  &.has-paginator {
+    --table-paginator-height: var(--app-paginator-height);
+  }
+}
+
 .mat-header-row,
 .mat-row {
   max-height: 140px;
   padding: 0 0;
-  z-index: 999;
 
+  .mat-column-id {
+    min-width: 30px;
+    max-width: 30px;
+  }
+
+  .mat-column-physicalGear,
+  .mat-column-targetSpecies {
+    min-width: 120px;
+    max-width: 180px;
+  }
+
+  .mat-cell-date-time {
+    min-width: 125px;
+    max-width: 180px;
+  }
   .mat-column-endPosition,
   .mat-column-startPosition {
-    padding-left: 0;
+    min-width: 105px;
     max-width: 200px;
-    ion-col {
-      padding: 0;
-    }
   }
+
 }

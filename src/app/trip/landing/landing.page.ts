@@ -1,39 +1,47 @@
 import {ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, Optional, QueryList, ViewChild, ViewChildren} from '@angular/core';
 
-import {firstArrayValue, isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from '../../shared/functions';
-import {LandingForm} from "./landing.form";
-import {SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable} from "../sample/samples.table";
-import {UsageMode} from "../../core/services/model/settings.model";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
-import {LandingService} from "../services/landing.service";
-import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
-import {FormGroup} from "@angular/forms";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {ObservedLocationService} from "../services/observed-location.service";
-import {TripService} from "../services/trip.service";
-import {debounceTime, filter, tap, throttleTime} from "rxjs/operators";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {PlatformService} from "../../core/services/platform.service";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {Landing} from "../services/model/landing.model";
-import {Trip} from "../services/model/trip.model";
-import {ObservedLocation} from "../services/model/observed-location.model";
-import {ProgramProperties} from "../../referential/services/config/program.config";
-import {AppEditorOptions} from "../../core/form/editor.class";
-import {Program} from "../../referential/services/model/program.model";
-import {fromDateISOString} from "../../shared/dates";
-import {environment} from "../../../environments/environment";
-import {STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent} from "../../data/strategy/strategy-summary-card.component";
-import {merge, Subscription} from "rxjs";
-import {Strategy} from "../../referential/services/model/strategy.model";
-import {firstNotNilPromise} from "../../shared/observables";
-import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import * as momentImported from "moment";
-import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {PmfmService} from "../../referential/services/pmfm.service";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
-import {PmfmIds} from "../../referential/services/model/model.enum";
-import {EntityUtils} from "../../core/services/model/entity.model";
+import {
+  AppEditorOptions,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  fadeInOutAnimation,
+  firstArrayValue,
+  firstNotNilPromise,
+  fromDateISOString,
+  HistoryPageReference,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  PlatformService,
+  ReferentialRef,
+  ReferentialUtils,
+  UsageMode
+} from '@sumaris-net/ngx-components';
+import {LandingForm} from './landing.form';
+import {SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable} from '../sample/samples.table';
+import {LandingService} from '../services/landing.service';
+import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
+import {FormGroup} from '@angular/forms';
+import {ObservedLocationService} from '../services/observed-location.service';
+import {TripService} from '../services/trip.service';
+import {debounceTime, filter, tap, throttleTime} from 'rxjs/operators';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {Landing} from '../services/model/landing.model';
+import {Trip} from '../services/model/trip.model';
+import {ObservedLocation} from '../services/model/observed-location.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {Program} from '@app/referential/services/model/program.model';
+import {environment} from '@environments/environment';
+import {STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent} from '@app/data/strategy/strategy-summary-card.component';
+import {merge, Subscription} from 'rxjs';
+import {Strategy} from '@app/referential/services/model/strategy.model';
+import * as momentImported from 'moment';
+import {PmfmService} from '@app/referential/services/pmfm.service';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {PmfmIds} from '@app/referential/services/model/model.enum';
 
 const moment = momentImported;
 
@@ -45,6 +53,7 @@ export class LandingEditorOptions extends AppEditorOptions {
 @Component({
   selector: 'app-landing-page',
   templateUrl: './landing.page.html',
+  styleUrls: ['./landing.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [fadeInOutAnimation],
   providers: [
@@ -71,8 +80,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   showEntityMetadata = false;
   showQualityForm = false;
   i18nPrefix = LANDING_DEFAULT_I18N_PREFIX;
-  oneTabMode = false;
-
 
   get form(): FormGroup {
     return this.landingForm.form;
@@ -90,10 +97,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     @Optional() options: LandingEditorOptions
   ) {
     super(injector, Landing, injector.get(LandingService), {
-        tabCount: 2,
-        pathIdAttribute: 'landingId',
-        ...options
-      });
+      tabCount: 2,
+      pathIdAttribute: 'landingId',
+      autoOpenNextTab: true,
+      ...options
+    });
     this.observedLocationService = injector.get(ObservedLocationService);
     this.tripService = injector.get(TripService);
     this.referentialRefService = injector.get(ReferentialRefService);
@@ -320,13 +328,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
     }
 
-    // Applying the "one tab" mode
-    const oneTabMode = !this.mobile && program.getPropertyAsBoolean(ProgramProperties.LANDING_ONE_TAB_ENABLE);
-    if (this.oneTabMode !== oneTabMode) {
-      this.oneTabMode = oneTabMode;
-      this.refreshTabLayout();
-    }
-
     // Listen program's strategies change (will reload strategy if need)
     this.startListenProgramRemoteChanges(program);
     this.startListenStrategyRemoteChanges(program);
@@ -419,6 +420,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   }
 
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    return {
+      ... (await super.computePageHistory(title)),
+      icon: 'boat'
+    };
+  }
 
   protected async computeTitle(data: Landing): Promise<string> {
 
@@ -426,7 +433,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
-    const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
+    const titlePrefix = this.parent && (this.parent instanceof ObservedLocation) &&
       await this.translate.get('LANDING.EDIT.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
@@ -449,8 +456,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected getFirstInvalidTabIndex(): number {
-    if (this.oneTabMode || this.landingForm.invalid) return 0;
-    if (!this.oneTabMode && this.samplesTable.invalid) return 1;
+    if (this.landingForm.invalid) return 0;
+    if (this.samplesTable.invalid) return 1;
     return -1;
   }
 
@@ -461,10 +468,14 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected async getValue(): Promise<Landing> {
+    console.debug('[landing-page] DEV get value');
     const data = await super.getValue();
 
+    // Re add program, because program control can be disabled
+    data.program = ReferentialRef.fromObject(this.form.controls['program'].value);
+
     // Workaround, because sometime measurementValues is empty (see issue IMAGINE-273)
-    data.measurementValues = this.form.controls.measurementValues && this.form.controls.measurementValues.value;
+    data.measurementValues = this.form.controls.measurementValues?.value || {};
     if (isNotNilOrBlank(this.$strategyLabel.getValue())) {
       data.measurementValues[PmfmIds.STRATEGY_LABEL] = this.$strategyLabel.getValue();
     }
@@ -481,16 +492,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     return data;
   }
 
-
-  protected refreshTabLayout() {
-    // Inject content of tabs, into the first tab
-    const injectionPoint = this.oneTabMode && this.firstTabInjection && this.firstTabInjection.nativeElement;
-    if (injectionPoint) {
-      this.tabContents.forEach(content => {
-        if (!content.nativeElement) return; // Skip
-        injectionPoint.append(content.nativeElement);
-      });
-    }
+  protected getJsonValueToSave(): Promise<any> {
+    return this.landingForm.value.asObject();
   }
 
   protected computeSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {

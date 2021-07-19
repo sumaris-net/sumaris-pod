@@ -2,8 +2,8 @@ import {Injectable} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {AbstractControl, AbstractControlOptions, FormBuilder, FormGroup} from "@angular/forms";
 
-import {toBoolean} from '../../../shared/functions';
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {toBoolean} from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {Measurement, MeasurementUtils, MeasurementValuesUtils} from "../model/measurement.model";
 import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
 import {IPmfm} from "../../../referential/services/model/pmfm.model";

@@ -1,30 +1,40 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {isObservable, Observable, Subscription} from 'rxjs';
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {FormGroup, Validators} from "@angular/forms";
-import {isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, startsWithUpperCase, toBoolean} from "../../../shared/functions";
-import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {UsageMode} from "../../../core/services/model/settings.model";
-import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
-import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../../measurement/measurements.table.class";
-import {Batch, BatchUtils} from "../../services/model/batch.model";
-import {SubBatchValidatorService} from "../../services/validator/sub-batch.validator";
-import {SubBatchForm} from "../form/sub-batch.form";
-import {MeasurementValuesUtils} from "../../services/model/measurement.model";
-import {SubBatchModal} from "../modal/sub-batch.modal";
-import {selectInputContent} from "../../../shared/inputs";
-import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../../referential/services/model/model.enum";
-import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
-import {SortDirection} from "@angular/material/sort";
-import {SubBatch, SubBatchUtils} from "../../services/model/subbatch.model";
-import {BatchGroup} from "../../services/model/batch-group.model";
-import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
-import {AppFormUtils} from "../../../core/form/form.utils";
-import {EntityUtils} from "../../../core/services/model/entity.model";
-import {environment} from "../../../../environments/environment";
-import {LoadResult} from "../../../shared/services/entity-service.class";
-import {IPmfm, PmfmUtils} from "../../../referential/services/model/pmfm.model";
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {FormGroup, Validators} from '@angular/forms';
+import {
+  AppFormUtils,
+  EntityFilter,
+  EntityUtils,
+  FilterFn,
+  InMemoryEntitiesService,
+  IReferentialRef,
+  isEmptyArray,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  LoadResult,
+  ReferentialUtils,
+  selectInputContent,
+  startsWithUpperCase,
+  toBoolean,
+  UsageMode
+} from '@sumaris-net/ngx-components';
+import {AppMeasurementsTable, AppMeasurementsTableOptions} from '../../measurement/measurements.table.class';
+import {Batch, BatchUtils} from '../../services/model/batch.model';
+import {SubBatchValidatorService} from '../../services/validator/sub-batch.validator';
+import {SubBatchForm} from '../form/sub-batch.form';
+import {MeasurementValuesUtils} from '../../services/model/measurement.model';
+import {SubBatchModal} from '../modal/sub-batch.modal';
+import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from '../../../referential/services/model/model.enum';
+import {ReferentialRefService} from '../../../referential/services/referential-ref.service';
+import {SortDirection} from '@angular/material/sort';
+import {SubBatch, SubBatchUtils} from '../../services/model/subbatch.model';
+import {BatchGroup} from '../../services/model/batch-group.model';
+import {PmfmValidators} from '../../../referential/services/validator/pmfm.validators';
+import {environment} from '../../../../environments/environment';
+import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -32,10 +42,20 @@ export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'com
 
 export const SUB_BATCHES_TABLE_OPTIONS = new InjectionToken<AppMeasurementsTableOptions<Batch>>('SubBatchesTableOptions');
 
-export interface SubBatchFilter {
+export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch>{
   parentId?: number;
   operationId?: number;
   landingId?: number;
+
+  asFilterFn<E extends Batch>(): FilterFn<E> {
+    return (data) =>
+      (isNil(this.operationId) || data.operationId === this.operationId)
+      && (isNil(this.parentId) || data.parentId === this.parentId)
+
+      // TODO enable this:
+      // && (isNil(this.landingId) || data.landingId === this.landingId))
+      ;
+  }
 }
 
 const subBatchTableOptionsFactory = (injector: Injector) => {
@@ -156,7 +176,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   }
 
   get dirty(): boolean {
-    return this._dirty || this.memoryDataService.dirty;
+    return super.dirty || this.memoryDataService.dirty;
   }
 
   @ViewChild('form', { static: true }) form: SubBatchForm;
@@ -168,7 +188,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   ) {
     super(injector,
       SubBatch,
-      new InMemoryEntitiesService<SubBatch, SubBatchFilter>(SubBatch, {
+      new InMemoryEntitiesService<SubBatch, SubBatchFilter>(SubBatch, SubBatchFilter, {
         onSort: (data, sortBy, sortDirection) => this.sortData(data, sortBy, sortDirection),
         onLoad: (data) => this.onLoadData(data),
         onSave: (data) => this.onSaveData(data),
@@ -215,61 +235,63 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     if (this.inlineEdition) { // can be override bu subclasses
 
       // Create listener on column 'DISCARD_OR_LANDING' value changes
-      this.registerCellValueChanges('discard', "measurementValues." + PmfmIds.DISCARD_OR_LANDING.toString())
-        .subscribe((value) => {
-          if (!this.editedRow) return; // Should never occur
-          const row = this.editedRow;
-          const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
-          if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
-            if (controls[PmfmIds.DISCARD_REASON]) {
-              if (row.validator.enabled) {
-                controls[PmfmIds.DISCARD_REASON].enable();
-              }
-              controls[PmfmIds.DISCARD_REASON].setValidators(Validators.required);
-              controls[PmfmIds.DISCARD_REASON].updateValueAndValidity();
-            }
-          } else {
-            if (controls[PmfmIds.DISCARD_REASON]) {
-              controls[PmfmIds.DISCARD_REASON].disable();
-              controls[PmfmIds.DISCARD_REASON].setValue(null);
-              controls[PmfmIds.DISCARD_REASON].setValidators(null);
-            }
-          }
-        });
-
-      this.registerCellValueChanges('parentGroup', "parentGroup")
-        .subscribe((parentGroup) => {
-          if (!this.editedRow) return; // Skip
-
-          const parenTaxonGroupId = parentGroup && parentGroup.taxonGroup && parentGroup.taxonGroup.id;
-          if (isNil(parenTaxonGroupId)) return; // Skip
-
-          const row = this.editedRow;
-
-          const pmfms = this.$pmfms.getValue() || [];
-          const formEnabled = row.validator.enabled;
-          const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
-
-          pmfms.forEach(pmfm => {
-            const enable = !(pmfm instanceof DenormalizedPmfmStrategy) || isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(parenTaxonGroupId);
-            const control = controls[pmfm.id];
-
-            // Update control state
-            if (control) {
-              if (enable) {
-                if (formEnabled) {
-                  control.enable();
+      this.registerSubscription(
+        this.registerCellValueChanges('discard', "measurementValues." + PmfmIds.DISCARD_OR_LANDING.toString())
+          .subscribe((value) => {
+            if (!this.editedRow) return; // Should never occur
+            const row = this.editedRow;
+            const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
+            if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
+              if (controls[PmfmIds.DISCARD_REASON]) {
+                if (row.validator.enabled) {
+                  controls[PmfmIds.DISCARD_REASON].enable();
                 }
-                control.setValidators(PmfmValidators.create(pmfm));
+                controls[PmfmIds.DISCARD_REASON].setValidators(Validators.required);
+                controls[PmfmIds.DISCARD_REASON].updateValueAndValidity();
               }
-              else {
-                control.disable();
-                control.setValidators(null);
-                control.setValue(null);
+            } else {
+              if (controls[PmfmIds.DISCARD_REASON]) {
+                controls[PmfmIds.DISCARD_REASON].disable();
+                controls[PmfmIds.DISCARD_REASON].setValue(null);
+                controls[PmfmIds.DISCARD_REASON].setValidators(null);
               }
             }
-          });
-        });
+          }));
+
+      this.registerSubscription(
+        this.registerCellValueChanges('parentGroup', "parentGroup")
+          .subscribe((parentGroup) => {
+            if (!this.editedRow) return; // Skip
+
+            const parenTaxonGroupId = parentGroup && parentGroup.taxonGroup && parentGroup.taxonGroup.id;
+            if (isNil(parenTaxonGroupId)) return; // Skip
+
+            const row = this.editedRow;
+
+            const pmfms = this.$pmfms.getValue() || [];
+            const formEnabled = row.validator.enabled;
+            const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
+
+            pmfms.forEach(pmfm => {
+              const enable = !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(parenTaxonGroupId);
+              const control = controls[pmfm.id];
+
+              // Update control state
+              if (control) {
+                if (enable) {
+                  if (formEnabled) {
+                    control.enable();
+                  }
+                  control.setValidators(PmfmValidators.create(pmfm));
+                }
+                else {
+                  control.disable();
+                  control.setValidators(null);
+                  control.setValue(null);
+                }
+              }
+            });
+          }));
     }
   }
 
@@ -517,7 +539,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       .filter(isNotNil);
     if (isNotEmptyArray(parentTaxonGroupIds)) {
       pmfms = pmfms.map(pmfm => {
-        if (pmfm instanceof DenormalizedPmfmStrategy && isNotEmptyArray(pmfm.taxonGroupIds) && pmfm.taxonGroupIds.findIndex(id => parentTaxonGroupIds.includes(id)) === -1) {
+        if (PmfmUtils.isDenormalizedPmfm(pmfm) && isNotEmptyArray(pmfm.taxonGroupIds) && pmfm.taxonGroupIds.some(id => parentTaxonGroupIds.includes(id))) {
           pmfm = pmfm.clone(); // Keep original
           pmfm.hidden = true;
           pmfm.required = false;
@@ -591,7 +613,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
-    return (data instanceof SubBatch) ? data : undefined;
+    return  (data instanceof SubBatch) ? data : undefined;
   }
 
   protected async addEntityToTable(newBatch: SubBatch): Promise<TableElement<SubBatch>> {

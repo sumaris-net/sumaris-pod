@@ -5,13 +5,13 @@ import {FormGroup, Validators} from "@angular/forms";
 import {AcquisitionLevelCodes, PmfmIds} from "../../../referential/services/model/model.enum";
 import {filter, tap} from "rxjs/operators";
 import {SubSamplesTable} from "../sub-samples.table";
-import {isNotNil} from "../../../shared/functions";
+import {isNotNil} from "@sumaris-net/ngx-components";
 
 
 @Component({
   selector: 'app-individual-monitoring-table',
   templateUrl: '../sub-samples.table.html',
-  styleUrls: ['../sub-samples.table.scss'],
+  styleUrls: ['../sub-samples.table.scss', 'individual-monitoring-samples.table.scss'],
   providers: [
     {provide: ValidatorService, useExisting: SubSampleValidatorService}
   ],
@@ -34,14 +34,15 @@ export class IndividualMonitoringSubSamplesTable extends SubSamplesTable impleme
         .pipe(
           filter(isNotNil),
           // DEBUG
-          //tap(pmfms => console.log("TODO BLA pmfms:", pmfms))
+          //tap(pmfms => console.debug("[individual-monitoring-samples] Pmfms:", pmfms))
         )
         .subscribe(pmfms => {
 
           // Listening on column 'IS_DEAD' value changes
           const hasIsDeadPmfm = pmfms.findIndex(p => p.id === PmfmIds.IS_DEAD) !== -1;
           if (hasIsDeadPmfm) {
-            this.registerCellValueChanges('isDead', `measurementValues.${PmfmIds.IS_DEAD}`)
+            this.registerSubscription(
+              this.registerCellValueChanges('isDead', `measurementValues.${PmfmIds.IS_DEAD}`)
               .subscribe((isDeadValue) => {
                 if (!this.editedRow) return; // Should never occur
                 const row = this.editedRow;
@@ -71,7 +72,7 @@ export class IndividualMonitoringSubSamplesTable extends SubSamplesTable impleme
                     controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].disable();
                   }
                 }
-              });
+              }));
           }
         }));
   }

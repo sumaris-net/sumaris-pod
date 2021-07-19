@@ -1,5 +1,6 @@
-import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
-import {NOT_MINIFY_OPTIONS, ReferentialRef} from "../../../core/services/model/referential.model";
+import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
+import {ReferentialRef} from '@sumaris-net/ngx-components';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export class FishingArea extends DataEntity<FishingArea> {
 
@@ -27,10 +28,6 @@ export class FishingArea extends DataEntity<FishingArea> {
     this.depthGradient = null;
     this.nearbySpecificArea = null;
     // this.operationId = null;
-  }
-
-  clone(): FishingArea {
-    return FishingArea.fromObject(this.asObject());
   }
 
   asObject(options?: DataEntityAsObjectOptions): any {

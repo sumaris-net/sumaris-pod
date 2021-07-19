@@ -2,10 +2,10 @@ import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {ReferentialValidatorService} from "../services/validator/referential.validator";
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";
-import {DefaultStatusList, Referential, StatusValue} from "../../core/services/model/referential.model";
+import {DefaultStatusList, Referential, StatusValue}  from "@sumaris-net/ngx-components";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppForm} from "../../core/form/form.class";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {AppForm}  from "@sumaris-net/ngx-components";
 
 @Component({
   selector: 'app-referential-form',
@@ -24,6 +24,7 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
   statusById: { [id: number]: StatusValue; };
 
   @Input() showError = true;
+  @Input() showDescription = true;
   @Input() showComments = true;
   @Input() entityName;
 

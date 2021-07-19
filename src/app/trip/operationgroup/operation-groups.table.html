@@ -118,7 +118,7 @@
     <mat-cell *matCellDef="let row">
       <mat-icon class="comment"
                 *ngIf="row.currentData.comments"
-                [title]="row.currentData.comments">chat_bubble</mat-icon>
+                [title]="row.currentData.comments"></mat-icon>
     </mat-cell>
   </ng-container>
 
@@ -141,7 +141,7 @@
       </button>
       <!-- add -->
       <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1" [title]="'COMMON.BTN_ADD'|translate"
-              (click)="confirmAndAddRow($event, row)">
+              (click)="confirmAndAdd($event, row)">
         <mat-icon>add</mat-icon>
       </button>
 

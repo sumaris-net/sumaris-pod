@@ -1,37 +1,49 @@
-import {Injectable} from "@angular/core";
-import {FetchPolicy, gql, StoreObject} from "@apollo/client/core";
-import {ReferentialFragments} from "./referential.fragments";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {CacheService} from "ionic-cache";
-import {ErrorCodes} from "./errors";
-import {AccountService} from "../../core/services/account.service";
-import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {ReferentialFilter} from "./referential.service";
-import {Strategy} from "./model/strategy.model";
-import {BaseEntityGraphqlMutations, BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions} from "./base-entity-service.class";
-import {PlatformService} from "../../core/services/platform.service";
-import {EntityAsObjectOptions, EntityUtils} from "../../core/services/model/entity.model";
-import {SortDirection} from "@angular/material/sort";
-import {ReferentialRefFilter, ReferentialRefService} from "./referential-ref.service";
-import {Referential, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {StrategyFragments} from "./strategy.fragments";
-import {isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
-import {LoadResult} from "../../shared/services/entity-service.class";
-import {BaseReferentialService} from "./base-referential-service.class";
-import {Pmfm} from "./model/pmfm.model";
-import {ProgramRefService} from "./program-ref.service";
-import {StrategyRefService} from "./strategy-ref.service";
+import {Injectable} from '@angular/core';
+import {FetchPolicy, gql, StoreObject} from '@apollo/client/core';
+import {ReferentialFragments} from './referential.fragments';
+import {
+  AccountService,
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlQueries,
+  BaseEntityGraphqlSubscriptions,
+  EntitiesStorage,
+  EntityAsObjectOptions,
+  EntityUtils,
+  GraphqlService,
+  isNilOrBlank,
+  isNotNil,
+  LoadResult,
+  NetworkService,
+  PlatformService,
+  Referential,
+  ReferentialRef,
+  ReferentialUtils,
+  toNumber
+} from '@sumaris-net/ngx-components';
+import {CacheService} from 'ionic-cache';
+import {ErrorCodes} from './errors';
 
+import {Strategy} from './model/strategy.model';
+import {SortDirection} from '@angular/material/sort';
+import {ReferentialRefService} from './referential-ref.service';
+import {StrategyFragments} from './strategy.fragments';
+import {BaseReferentialService} from './base-referential-service.class';
+import {Pmfm} from './model/pmfm.model';
+import {ProgramRefService} from './program-ref.service';
+import {StrategyRefService} from './strategy-ref.service';
+import {ReferentialRefFilter} from './filter/referential-ref.filter';
+import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
 
-export class StrategyFilter extends ReferentialFilter {
-  //ODO Imagine: enable this, and override function asPodObject() and searchFilter()
-  //referenceTaxonIds?: number[];
-}
 
 const FindStrategyNextLabel: any = gql`
   query StrategyNextLabelQuery($programId: Int!, $labelPrefix: String, $nbDigit: Int){
-    strategyNextLabel(programId: $programId, labelPrefix: $labelPrefix, nbDigit: $nbDigit)
+    data: strategyNextLabel(programId: $programId, labelPrefix: $labelPrefix, nbDigit: $nbDigit)
+  }
+`;
+
+const FindStrategyNextSampleLabel: any = gql`
+  query StrategyNextSampleLabelQuery($strategyLabel: String!, $labelSeparator: String, $nbDigit: Int){
+    data: strategyNextSampleLabel(strategyLabel: $strategyLabel, labelSeparator: $labelSeparator, nbDigit: $nbDigit)
   }
 `;
 
@@ -148,13 +160,11 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     protected strategyRefService: StrategyRefService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(graphql, platform, Strategy,
+    super(graphql, platform, Strategy, StrategyFilter,
       {
         queries: StrategyQueries,
         mutations: StrategyMutations,
-        subscriptions: strategySubscriptions,
-        filterAsObjectFn: StrategyFilter.asPodObject,
-        filterFnFactory: StrategyFilter.searchFilter
+        subscriptions: strategySubscriptions
       });
   }
 
@@ -165,11 +175,11 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
   }): Promise<boolean> {
     if (isNilOrBlank(label)) throw new Error("Missing argument 'label' ");
 
-    const filter = StrategyFilter.asPodObject({
+    const filter: Partial<StrategyFilter> = {
       label,
       levelId: opts && isNotNil(opts.programId) ? opts.programId : undefined,
       excludedIds: opts && isNotNil(opts.excludedIds) ? opts.excludedIds : undefined,
-    });
+    };
     const {total} = await this.graphql.query<{ total: number }>({
       query: StrategyQueries.count,
       variables: { filter },
@@ -180,9 +190,9 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
   }
 
   async computeNextLabel(programId: number, labelPrefix?: string, nbDigit?: number): Promise<string> {
-    if (this._debug) console.debug(`[strategy-service] Loading strategy next label...`);
+    if (this._debug) console.debug(`[strategy-service] Loading strategy next label for prefix ${labelPrefix}...`);
 
-    const res = await this.graphql.query<{ strategyNextLabel: string }>({
+    const res = await this.graphql.query<{ data: string }>({
       query: FindStrategyNextLabel,
       variables: {
         programId: programId,
@@ -192,7 +202,23 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_LABEL_ERROR"},
       fetchPolicy: 'network-only'
     });
-    return res && res.strategyNextLabel;
+    return res && res.data;
+  }
+
+  async computeNextSampleTagId(strategyLabel: string, separator?: string, nbDigit?: number): Promise<string> {
+    if (this._debug) console.debug(`[strategy-service] Loading strategy next sample label...`);
+
+    const res = await this.graphql.query<{ data: string }>({
+      query: FindStrategyNextSampleLabel,
+      variables: {
+        strategyLabel: strategyLabel,
+        labelSeparator: separator,
+        nbDigit: nbDigit
+      },
+      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR"},
+      fetchPolicy: 'network-only'
+    });
+    return res && res.data;
   }
 
   async loadAllAnalyticReferences(
@@ -200,31 +226,30 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     size: number,
     sortBy?: string,
     sortDirection?: SortDirection,
-    filter?: ReferentialRefFilter): Promise<LoadResult<ReferentialRef>> {
+    filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
 
+    filter = ReferentialRefFilter.fromObject(filter);
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
       sortBy: sortBy || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: ReferentialFilter.asPodObject(filter)
+      filter: filter && filter.asPodObject()
     };
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[strategy-service] Loading analytic references...`, variables);
 
-    const { data } = await this.graphql.query<{ data: any }>({
+    const { data, total } = await this.graphql.query<LoadResult<any>>({
       query: LoadAllAnalyticReferencesQuery,
-      variables: variables,
+      variables,
       error: { code: ErrorCodes.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR" },
       fetchPolicy: 'cache-first'
     });
 
     if (this._debug) console.debug(`[strategy-service] Analytic references loaded in ${Date.now() - now}ms`);
     const entities = data && data.map(ReferentialRef.fromObject);
-    return {
-      data: entities
-    };
+    return { data: entities, total };
   }
 
   async suggestAnalyticReferences(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection): Promise<LoadResult<ReferentialRef>> {

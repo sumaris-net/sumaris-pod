@@ -1,43 +1,52 @@
-import {concat, defer, Observable, of, timer} from "rxjs";
-import {catchError, map, switchMap, tap} from "rxjs/operators";
-import {DataRootEntityUtils, RootDataEntity, SynchronizationStatusEnum} from "./model/root-data-entity.model";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {BaseRootDataService, BaseRootEntityGraphqlMutations} from "./root-data-service.class";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {PersonService} from "../../admin/services/person.service";
-import {Injector} from "@angular/core";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {NetworkService} from "../../core/services/network.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {Moment} from "moment";
-import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from "../../shared/functions";
-import {SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "./model/data-entity.model";
-import {JobUtils} from "../../shared/services/job.utils";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions, BaseEntityServiceOptions} from "../../referential/services/base-entity-service.class";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {Vessel} from "../../vessel/services/model/vessel.model";
-import {ErrorCodes} from "./errors";
-import {FetchPolicy} from "@apollo/client/core";
-import {chainPromises} from "../../shared/observables";
-import {ObservedLocation} from "../../trip/services/model/observed-location.model";
-import * as momentImported from "moment";
+import {concat, defer, Observable, of, timer} from 'rxjs';
+import {catchError, map, switchMap, tap} from 'rxjs/operators';
+import {DataRootEntityUtils, RootDataEntity, SynchronizationStatusEnum} from './model/root-data-entity.model';
+import {
+  BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions, BaseEntityServiceOptions,
+  chainPromises, EntitiesServiceWatchOptions,
+  EntitiesStorage,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  JobUtils,
+  LocalSettingsService,
+  NetworkService,
+  PersonService
+} from '@sumaris-net/ngx-components';
+import {BaseRootDataService, BaseRootEntityGraphqlMutations} from './root-data-service.class';
+
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {Injector} from '@angular/core';
+import * as momentImported from 'moment';
+import {Moment} from 'moment';
+import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from './model/data-entity.model';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {Vessel} from '@app/vessel/services/model/vessel.model';
+import {ErrorCodes} from './errors';
+import {FetchPolicy} from '@apollo/client/core';
+import {ObservedLocation} from '@app/trip/services/model/observed-location.model';
+import {RootDataEntityFilter} from './model/root-data-filter.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 
 
-export interface IDataSynchroService<T extends RootDataEntity<T>, O = EntityServiceLoadOptions> {
+export interface IDataSynchroService<
+  T extends RootDataEntity<T, ID>,
+  ID = number,
+  LO extends EntityServiceLoadOptions = EntityServiceLoadOptions> {
 
-  load(id: number, opts?: O): Promise<T>;
+  load(id: ID, opts?: LO): Promise<T>;
 
   executeImport(opts?: {
     maxProgression?: number;
   }): Observable<number>;
 
-  terminateById(id: number): Promise<T>;
+  terminateById(id: ID): Promise<T>;
 
   terminate(entity: T): Promise<T>;
 
-  synchronizeById(id: number): Promise<T>;
+  synchronizeById(id: ID): Promise<T>;
 
   synchronize(data: T, opts?: any): Promise<T>;
 
@@ -55,14 +64,17 @@ export function isDataSynchroService(object: any): object is IDataSynchroService
 
 export const DEFAULT_FEATURE_NAME = 'synchro';
 
-export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
-  F = any,
-  O = EntityServiceLoadOptions,
+export abstract class RootDataSynchroService<
+  T extends RootDataEntity<T, ID>,
+  F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
+  ID = number,
+  WO extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions,
+  LO extends EntityServiceLoadOptions = EntityServiceLoadOptions,
   Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
   M extends BaseRootEntityGraphqlMutations = BaseRootEntityGraphqlMutations,
   S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions>
-  extends BaseRootDataService<T, F, Q, M, S>
-  implements IDataSynchroService<T, O> {
+  extends BaseRootDataService<T, F, ID, WO, LO, Q, M, S>
+  implements IDataSynchroService<T, ID, LO> {
 
   protected _featureName: string;
 
@@ -84,9 +96,10 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
   protected constructor (
     injector: Injector,
     dataType: new() => T,
-    options: BaseEntityServiceOptions<T, F, Q, M, S>
+    filterType: new() => F,
+    options: BaseEntityServiceOptions<T, ID, Q, M, S>
   ) {
-    super(injector, dataType, options);
+    super(injector, dataType, filterType, options);
 
     this.referentialRefService = injector.get(ReferentialRefService);
     this.personService = injector.get(PersonService);
@@ -170,7 +183,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
   }
 
 
-  async terminateById(id: number): Promise<T> {
+  async terminateById(id: ID): Promise<T> {
     const entity = await this.load(id);
 
     return this.terminate(entity);
@@ -186,7 +199,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
       // Update sync status
       entity.synchronizationStatus = 'READY_TO_SYNC';
 
-      const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+      const json = this.asObject(entity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE);
       if (this._debug) console.debug(`${this._logPrefix}Terminate {${entity.id}} locally...`, json);
 
       // Save entity locally
@@ -199,7 +212,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
     return super.terminate(entity);
   }
 
-  async synchronizeById(id: number): Promise<T> {
+  async synchronizeById(id: ID): Promise<T> {
     const entity = await this.load(id);
 
     if (!EntityUtils.isLocal(entity)) return; // skip if not a local entity
@@ -224,7 +237,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
     return this.referentialRefService.lastUpdateDate();
   }
 
-  async load(id: number, opts?: O & {
+  async load(id: ID, opts?: LO & {
     fetchPolicy?: FetchPolicy;
     toEntity?: boolean;
   }): Promise<T> {
@@ -232,15 +245,15 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
     const now = Date.now();
-    if (this._debug) console.debug(`${this._logPrefix}Loading ${this._entityName} #${id}...`);
+    if (this._debug) console.debug(`${this._logPrefix}Loading ${this._logTypeName} #${id}...`);
     this.loading = true;
 
     try {
       let data: any;
 
       // If local entity
-      if (id < 0) {
-        data = await this.entities.load<Vessel>(id, Vessel.TYPENAME);
+      if (+id < 0) {
+        data = await this.entities.load<Vessel>(+id, Vessel.TYPENAME);
         if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"};
       }
 
@@ -257,7 +270,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
         ? this.fromObject(data)
         : (data as T);
 
-      if (entity && this._debug) console.debug(`${this._logPrefix}${this._entityName} #${id} loaded in ${Date.now() - now}ms`, entity);
+      if (entity && this._debug) console.debug(`${this._logPrefix}${this._logTypeName} #${id} loaded in ${Date.now() - now}ms`, entity);
 
       return entity;
     }
@@ -274,14 +287,13 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
     }
 
     const ids = entities && entities.map(t => t.id)
-      .filter(id => id >= 0);
+      .filter(id => +id >= 0);
     if (isEmptyArray(ids)) return; // stop if empty
 
     return super.deleteAll(entities, opts);
   }
 
   abstract synchronize(data: T, opts?: any): Promise<T>;
-
 
   /* -- protected methods -- */
 
@@ -290,7 +302,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
 
     // If new, generate a local id
     if (isNew) {
-      entity.id =  await this.entities.nextValue(entity);
+      entity.id = (await this.entities.nextValue(entity)) as unknown as ID;
     }
 
     // Fill default synchronization status
@@ -334,17 +346,17 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
     const trash = !opts || opts.trash !== false;
     const trashUpdateDate = trash && momentImported();
 
-    if (this._debug) console.debug(`${this._logPrefix}Deleting ${this._entityName} locally... {trash: ${trash}`);
+    if (this._debug) console.debug(`${this._logPrefix}Deleting ${this._logTypeName} locally... {trash: ${trash}`);
 
     await chainPromises(localEntities.map(entity => async () => {
 
-      await this.entities.delete(entity, {entityName: this._typename});
+      await this.entities.delete<T, ID>(entity, {entityName: this._typename});
 
       if (trash) {
         // Fill observedLocation's operation, before moving it to trash
         entity.updateDate = trashUpdateDate;
 
-        const json = entity.asObject({...SAVE_LOCALLY_AS_OBJECT_OPTIONS, keepLocalId: false});
+        const json = entity.asObject({...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, keepLocalId: false});
 
         // Add to trash
         await this.entities.saveToTrash(json, {entityName: ObservedLocation.TYPENAME});
@@ -352,4 +364,5 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
 
     }));
   }
+
 }

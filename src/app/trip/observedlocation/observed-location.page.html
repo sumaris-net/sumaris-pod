@@ -1,4 +1,4 @@
-<app-toolbar [title]="title$ | async" color="primary"
+<app-toolbar [title]="$title | async" color="primary"
              [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
@@ -44,10 +44,11 @@
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
   <mat-tab-group #tabGroup
+                 class="mat-tab-fixed-content"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="tabGroupAnimationDuration"
-                 dynamicHeight>
+                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+                 [dynamicHeight]="false">
 
     <!-- TAB: general -->
     <mat-tab label="{{'OBSERVED_LOCATION.EDIT.TAB_GENERAL'|translate}}">
@@ -68,19 +69,19 @@
           <ion-col class="ion-padding">
 
             <!-- observed location -->
-            <form-observed-location #observedLocationForm
-                                    [programLabel]="$programLabel|async"
-                                    [showError]="false"
-                                    [showEndDateTime]="false"
-                                    [debug]="debug"
-                                    (onSubmit)="save($event)">
-            </form-observed-location>
+            <app-form-observed-location #observedLocationForm
+                                        [programLabel]="$programLabel|async"
+                                        [showError]="false"
+                                        [showEndDateTime]="false"
+                                        [debug]="debug"
+                                        (onSubmit)="save($event)">
+            </app-form-observed-location>
           </ion-col>
 
           <!-- quality data -->
           <ion-col size="12" size-xl="3" class="ion-no-padding">
-            <app-entity-metadata [value]="data">
-              <app-entity-quality-form [editor]="this">
+            <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
+              <app-entity-quality-form>
               </app-entity-quality-form>
             </app-entity-metadata>
           </ion-col>
@@ -107,18 +108,20 @@
           <ion-label color="danger" class="error" [innerHTML]="landingsTable?.error|translate"></ion-label>
         </ion-item>
 
+
         <app-landings-table #landingsTable
                             [debug]="debug"
                             [programLabel]="$programLabel|async"
                             [showObserversColumn]="false"
                             [showDateTimeColumn]="false"
+                            [showToolbar]="!mobile"
                             (onOpenRow)="onOpenLanding($event)"
                             (onNewRow)="onNewLanding($event)"
                             (onNewTrip)="onNewTrip($event)">
         </app-landings-table>
       </div>
 
-      <div class="ion-no-padding" *ngIf="aggregatedLandings === true">
+      <div class="ion-no-padding" *ngIf="aggregatedLandings">
 
         <!-- error -->
         <ion-item *ngIf="aggregatedLandingsTable?.error" visible-xs visible-sm visible-mobile lines="none">
@@ -139,8 +142,8 @@
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm hidden-mobile>
-  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
+<ion-footer *ngIf="!mobile">
+  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
                     [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 
@@ -150,7 +153,7 @@
       <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 
-  </form-buttons-bar>
+  </app-form-buttons-bar>
 </ion-footer>
 
 <!-- FAB button: add landing -->

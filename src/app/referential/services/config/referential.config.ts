@@ -1,8 +1,8 @@
 import {TypePolicies} from "@apollo/client/core";
-import {FormFieldDefinition, FormFieldDefinitionMap} from "../../../shared/form/field.model";
-import {changeCaseToUnderscore} from "../../../shared/functions";
+import {FormFieldDefinition, FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
+import {changeCaseToUnderscore} from "@sumaris-net/ngx-components";
 import {LocationLevelIds, ParameterLabelGroups, PmfmIds, TaxonomicLevelIds} from "../model/model.enum";
-import {StatusIds} from "../../../core/services/model/model.enum";
+import {StatusIds}  from "@sumaris-net/ngx-components";
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'MetierVO': {
@@ -34,7 +34,7 @@ export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   },
 };
 
-export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
+export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
   REFERENTIAL_VESSEL_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.referential.vessel.enable',
     label: 'REFERENTIAL.OPTIONS.VESSELS_ENABLE',
@@ -155,18 +155,6 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     },
     defaultValue: TaxonomicLevelIds.SUBSPECIES
   },
-  PMFM_MORSE_CODE_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.pmfm.MORSE_CODE.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_MORSE_CODE_ID',
-    type: 'entity',
-    autocomplete: {
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
-    defaultValue: PmfmIds.MORSE_CODE
-  },
   PMFM_STRATEGY_LABEL_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.pmfm.STRATEGY_LABEL.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_STRATEGY_LABEL_ID',
@@ -178,6 +166,18 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
       }
     },
     defaultValue: PmfmIds.STRATEGY_LABEL
+  },
+  PMFM_TAG_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.pmfm.TAG_ID.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TAG_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.TAG_ID
   },
   PMFM_AGE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.pmfm.AGE.id',
@@ -207,13 +207,13 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     key: 'sumaris.enumeration.parameter.age.label',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_AGE_LABEL',
     type: 'string',
-    defaultValue: ParameterLabelGroups.AGE.join(',')
+    defaultValue: ParameterLabelGroups.AGE[0]
   },
   STRATEGY_PARAMETER_SEX_LABEL: <FormFieldDefinition>{
     key: 'sumaris.enumeration.parameter.sex.label',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_SEX_LABEL',
     type: 'string',
-    defaultValue: ParameterLabelGroups.SEX.join(',')
+    defaultValue: ParameterLabelGroups.SEX[0]
   },
   STRATEGY_PARAMETER_WEIGHT_LABELS: <FormFieldDefinition>{
     key: 'sumaris.enumeration.parameter.weight.labels',
@@ -233,9 +233,9 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     type: 'string',
     defaultValue: ParameterLabelGroups.MATURITY.join(',')
   },
-};
+});
 
-export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS: FormFieldDefinitionMap = {
+export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = Object.freeze({
 
   // Display attributes for vessel
   FIELD_VESSEL_SNAPSHOT_ATTRIBUTES: <FormFieldDefinition>{
@@ -248,7 +248,7 @@ export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS: FormFieldDefinitionMap = {
     ]
   },
   // Display attributes for referential useful entities
-  ... ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear']
+  ... ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear', 'fraction']
     // Allow user to choose how to display field (by code+label, code, etc)
     .reduce((res, fieldName) => {
       res[`FIELD_${changeCaseToUnderscore(fieldName).toUpperCase()}_ATTRIBUTES`] = {
@@ -264,4 +264,4 @@ export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS: FormFieldDefinitionMap = {
       };
       return res;
     }, {})
-};
+});

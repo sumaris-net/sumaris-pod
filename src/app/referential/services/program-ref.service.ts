@@ -1,40 +1,38 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {BehaviorSubject, defer, merge, Observable, PartialObserver, Subject, Subscription} from "rxjs";
-import {debounceTime, filter, finalize, map, takeUntil, tap} from "rxjs/operators";
+import {BehaviorSubject, defer, Observable, Subject, Subscription} from "rxjs";
+import {filter, finalize, map, tap} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
-import {GraphqlService} from "../../core/graphql/graphql.service";
-import {IEntitiesService, IEntityService, LoadResult} from "../../shared/services/entity-service.class";
+import {BaseEntityGraphqlSubscriptions, GraphqlService} from '@sumaris-net/ngx-components';
+import {IEntitiesService, IEntityService, LoadResult} from "@sumaris-net/ngx-components";
 import {TaxonGroupRef, TaxonGroupTypeIds, TaxonNameRef} from "./model/taxon.model";
-import {firstArrayValue, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, propertiesPathComparator, suggestFromArray} from "../../shared/functions";
+import {firstArrayValue, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, propertiesPathComparator, suggestFromArray} from "@sumaris-net/ngx-components";
 import {CacheService} from "ionic-cache";
-import {ReferentialRefFilter, ReferentialRefService} from "./referential-ref.service";
-import {firstNotNilPromise} from "../../shared/observables";
-import {AccountService} from "../../core/services/account.service";
-import {NetworkService} from "../../core/services/network.service";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {IReferentialRef, ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {StatusIds} from "../../core/services/model/model.enum";
+import {ReferentialRefService} from "./referential-ref.service";
+import {firstNotNilPromise} from "@sumaris-net/ngx-components";
+import {AccountService}  from "@sumaris-net/ngx-components";
+import {NetworkService}  from "@sumaris-net/ngx-components";
+import {EntitiesStorage}  from "@sumaris-net/ngx-components";
+import {IReferentialRef, ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {StatusIds}  from "@sumaris-net/ngx-components";
 import {Program} from "./model/program.model";
 
 import {DenormalizedPmfmStrategy} from "./model/pmfm-strategy.model";
-import {IWithProgramEntity} from "../../data/services/model/model.utils";
-import {ReferentialFilter} from "./referential.service";
+import {IWithProgramEntity} from '@app/data/services/model/model.utils';
+
 import {StrategyFragments} from "./strategy.fragments";
 import {AcquisitionLevelCodes} from "./model/model.enum";
-import {JobUtils} from "../../shared/services/job.utils";
+import {JobUtils} from "@sumaris-net/ngx-components";
 import {ProgramFragments} from "./program.fragments";
-import {PlatformService} from "../../core/services/platform.service";
-import {ConfigService} from "../../core/services/config.service";
+import {PlatformService}  from "@sumaris-net/ngx-components";
+import {ConfigService}  from "@sumaris-net/ngx-components";
 import {PmfmService} from "./pmfm.service";
 import {BaseReferentialService} from "./base-referential-service.class";
-import {BaseEntityGraphqlSubscriptions} from "./base-entity-service.class";
+import {ProgramFilter} from "./filter/program.filter";
+import {ReferentialRefFilter} from "./filter/referential-ref.filter";
+import {environment} from '@environments/environment';
 
-
-export class ProgramFilter extends ReferentialFilter {
-
-}
 
 export const ProgramRefQueries = {
   // Load by id, with only properties
@@ -56,6 +54,8 @@ export const ProgramRefQueries = {
     }
     ${ProgramFragments.programRef}
     ${StrategyFragments.strategyRef}
+    ${StrategyFragments.lightPmfmStrategy}
+    ${ReferentialFragments.lightPmfm}
     ${StrategyFragments.denormalizedPmfmStrategy}
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
@@ -91,6 +91,8 @@ export const ProgramRefQueries = {
   }
   ${ProgramFragments.programRef}
   ${StrategyFragments.strategyRef}
+  ${StrategyFragments.lightPmfmStrategy}
+  ${ReferentialFragments.lightPmfm}
   ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
@@ -128,7 +130,6 @@ export class ProgramRefService
 
 
   private _subscriptionCache: {[key: string]: {
-      counter: number;
       subject: Subject<Program>;
       subscription: Subscription;
     }} = {};
@@ -144,16 +145,17 @@ export class ProgramRefService
     protected pmfmService: PmfmService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(graphql, platform, Program,
+    super(graphql, platform, Program, ProgramFilter,
       {
         queries: ProgramRefQueries,
-        subscriptions: ProgramRefSubscriptions,
-        filterAsObjectFn: ProgramFilter.asPodObject,
-        filterFnFactory: ProgramFilter.searchFilter,
+        subscriptions: ProgramRefSubscriptions
       });
+
+    this._debug = !environment.production;
+    this._logPrefix = '[program-ref-service] ';
   }
 
-  canUserWrite(data: IWithProgramEntity<any>): boolean {
+  canUserWrite(data: IWithProgramEntity<any, any>): boolean {
     if (!data) return false;
 
     // If the user is the recorder: can write
@@ -583,7 +585,7 @@ export class ProgramRefService
       await this.clearCache();
 
       // Create search filter
-      let loadFilter: ProgramFilter = {
+      let loadFilter: any = {
         statusIds:  [StatusIds.ENABLE, StatusIds.TEMPORARY]
       };
 
@@ -643,32 +645,33 @@ export class ProgramRefService
     const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_ID, id].join('|');
     let cache = this._subscriptionCache[cacheKey];
     if (!cache) {
+      // DEBUG
+      //console.debug(`[program-ref-service] Starting program {${id}} changes`);
+
+      const subject = new Subject<Program>();
       cache = {
-        counter: 0,
-        subject: new Subject<Program>(),
-        subscription: undefined
+        subject,
+        subscription: super.listenChanges(id, opts).subscribe(subject)
       };
       this._subscriptionCache[cacheKey] = cache;
     }
 
-    cache.counter++;
-    cache.subscription = cache.subscription || super.listenChanges(id, opts)
-      .pipe(
-        // DEBUG
-        //tap(program => console.debug('[program-ref-service] Received program changes')),
-        tap(program => cache.subject.next(program))
-      ).subscribe();
-
-    return cache.subject
+    return cache.subject.asObservable()
       .pipe(
         finalize(() => {
-          cache.counter--;
-          if (cache.counter === 0) {
+          // DEBUG
+          //console.debug(`[program-ref-service] Finalize program {${id}} changes (${cache.subject.observers.length} observers)`);
+
+          // Wait 100ms (to avoid to recreate if new subscription comes less than 100ms after)
+          setTimeout(() => {
+            if (cache.subject.observers.length > 0) return; // Skip if has observers
             // DEBUG
-            //console.debug('[program-ref-service] Closing program changes listener'));
+            //console.debug(`[program-ref-service] Closing program {${id}} changes listener`);
+            this._subscriptionCache[cacheKey] = undefined;
+            cache.subject.complete();
+            cache.subject.unsubscribe();
             cache.subscription.unsubscribe();
-            cache.subscription = null;
-          }
+          }, 100);
         })
       );
   }

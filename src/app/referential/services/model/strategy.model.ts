@@ -1,58 +1,37 @@
-import {
-  MINIFY_OPTIONS,
-  NOT_MINIFY_OPTIONS,
-  Referential,
-  ReferentialAsObjectOptions,
-  ReferentialRef
-} from "../../../core/services/model/referential.model";
-import {Entity} from "../../../core/services/model/entity.model";
+import {BaseReferential, ReferentialAsObjectOptions, ReferentialRef}  from "@sumaris-net/ngx-components";
+import {Entity, EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
 import {Moment} from "moment";
-import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
 import {TaxonGroupRef, TaxonNameRef} from "./taxon.model";
 import {DenormalizedPmfmStrategy, PmfmStrategy} from "./pmfm-strategy.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
+import {EntityClass}  from "@sumaris-net/ngx-components";
+import {MINIFY_OPTIONS, NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 
-export class Strategy<T extends Strategy<any> = Strategy<any>> extends Referential<Strategy> {
+@EntityClass({typename: 'StrategyVO'})
+export class Strategy<
+  T extends Strategy<any> = Strategy<any>
+  > extends BaseReferential<Strategy> {
 
-  static TYPENAME = 'StrategyVO';
+  static fromObject: (source: any, opts?: any) => Strategy;
 
-  static fromObject(source: any): Strategy {
-    if (!source || source instanceof Strategy) return source;
-    const res = new Strategy();
-    res.fromObject(source);
-    return res;
-  }
+  analyticReference: string = null;
+  appliedStrategies: AppliedStrategy[] = null;
+  pmfms: PmfmStrategy[] = null;
+  denormalizedPmfms: DenormalizedPmfmStrategy[] = null;
+  departments: StrategyDepartment[] = null;
 
-  analyticReference: string;
-  creationDate: Moment;
-  appliedStrategies: AppliedStrategy[];
-  pmfms: PmfmStrategy[];
-  denormalizedPmfms: DenormalizedPmfmStrategy[];
-  departments: StrategyDepartment[];
+  gears: any[] = null;
+  taxonGroups: TaxonGroupStrategy[] = null;
+  taxonNames: TaxonNameStrategy[] = null;
+  programId: number = null;
 
-  gears: any[];
-  taxonGroups: TaxonGroupStrategy[];
-  taxonNames: TaxonNameStrategy[];
-  programId: number;
-
-  constructor(data?: {
-    id?: number,
-    label?: string,
-    name?: string
-  }) {
+  constructor() {
     super();
     this.__typename = Strategy.TYPENAME;
-    this.id = data && data.id;
-    this.label = data && data.label;
-    this.name = data && data.name;
-    this.appliedStrategies = [];
-    this.departments = [];
-    this.gears = [];
-    this.taxonGroups = [];
-    this.taxonNames = [];
   }
 
+// TODO : Check if clone is needed
   clone(): T {
     const target = new Strategy();
     target.fromObject(this);
@@ -62,7 +41,6 @@ export class Strategy<T extends Strategy<any> = Strategy<any>> extends Referenti
   asObject(opts?: EntityAsObjectOptions): any {
     const target: any = super.asObject(opts);
     target.programId = this.programId;
-    target.creationDate = toDateISOString(this.creationDate);
     target.appliedStrategies = this.appliedStrategies && this.appliedStrategies.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.pmfms = this.pmfms && this.pmfms.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.denormalizedPmfms = this.denormalizedPmfms && this.denormalizedPmfms.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
@@ -113,6 +91,7 @@ export class StrategyDepartment extends Entity<StrategyDepartment> {
     return res;
   }
 
+// TODO : Check if clone is needed
   clone(): StrategyDepartment {
     const target = new StrategyDepartment();
     target.fromObject(this);
@@ -156,7 +135,7 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
     super();
     this.__typename = AppliedStrategy.TYPENAME;
   }
-
+// TODO : Check if clone is needed
   clone(): AppliedStrategy {
     const target = new AppliedStrategy();
     target.fromObject(this);
@@ -223,6 +202,7 @@ export class AppliedPeriod {
     this.acquisitionNumber = source.acquisitionNumber;
   }
 
+// TODO : Check if clone is needed
   clone(): AppliedPeriod {
     const target = new AppliedPeriod();
     target.fromObject(this.asObject());

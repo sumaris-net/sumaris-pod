@@ -1,14 +1,14 @@
 <app-modal-toolbar color="secondary"
-                   [title]="$title|async"
                    (cancel)="close($event)"
+                   [title]="$title | async"
                    (validate)="onSubmit($event)"
                    [showSpinner]="loading"
                    [canValidate]="!enableBurstMode">
 
-  <ion-buttons slot="end">
+  <ion-buttons slot="end" [class.cdk-visually-hidden]="loading">
 
     <!-- Options menu -->
-    <button mat-icon-button *ngIf="!loading"
+    <button mat-icon-button
             [title]="'COMMON.OPTIONS'|translate"
             [matMenuTriggerFor]="optionsMenu">
       <mat-icon>more_vert</mat-icon>
@@ -16,13 +16,13 @@
 
     <!-- Close  -->
     <ion-button visible-xs visible-sm visible-mobile
-                *ngIf="!loading && enableBurstMode"
+                *ngIf="enableBurstMode"
                 (click)="close($event)"
                 translate>COMMON.BTN_DONE</ion-button>
 
     <!-- Validate  -->
     <ion-button visible-xs visible-sm visible-mobile
-                *ngIf="!loading && enableBurstMode"
+                *ngIf="enableBurstMode"
                 (click)="onSubmit($event)"
                 [disabled]="!form.valid">
       <ion-label translate>COMMON.BTN_NEXT</ion-label>
@@ -58,7 +58,7 @@
                    [debug]="debug"
                    [acquisitionLevel]="acquisitionLevel"
                    [programLabel]="programLabel"
-                   [pmfms]="pmfms"
+                   [pmfms]="$pmfms|async"
                    [mapPmfmFn]="mapPmfmFn"
                    [usageMode]="usageMode"
                    [showLabel]="showLabel"

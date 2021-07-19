@@ -1,22 +1,22 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
+import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {ProductValidatorService} from "../services/validator/product.validator";
 import {IWithProductsEntity, Product, ProductFilter} from "../services/model/product.model";
 import {Platform} from "@ionic/angular";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
 import {BehaviorSubject} from "rxjs";
-import {IReferentialRef, referentialToString} from "../../core/services/model/referential.model";
+import {IReferentialRef, referentialToString}  from "@sumaris-net/ngx-components";
 import {TableElement} from "@e-is/ngx-material-table";
 import {ProductSaleModal} from "../sale/product-sale.modal";
-import {isNotEmptyArray} from "../../shared/functions";
+import {isNotEmptyArray} from "@sumaris-net/ngx-components";
 import {SaleProductUtils} from "../services/model/sale-product.model";
-import {filterNotNil} from "../../shared/observables";
-import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {environment} from "../../../environments/environment";
+import {filterNotNil} from "@sumaris-net/ngx-components";
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {environment} from '@environments/environment';
 import {SamplesModal} from "../sample/samples.modal";
-import {LoadResult} from "../../shared/services/entity-service.class";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {LoadResult} from "@sumaris-net/ngx-components";
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -28,9 +28,8 @@ export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // to
   providers: [
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService<Product, ProductFilter>(Product, {
-        equals: Product.equals,
-        filterFnFactory: ProductFilter.searchFilter
+      useFactory: () => new InMemoryEntitiesService(Product, ProductFilter, {
+        equals: Product.equals
       })
     }
   ],
@@ -56,7 +55,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
   }
 
   get dirty(): boolean {
-    return this._dirty || this.memoryDataService.dirty;
+    return super.dirty || this.memoryDataService.dirty;
   }
 
   private productSalePmfms: DenormalizedPmfmStrategy[];

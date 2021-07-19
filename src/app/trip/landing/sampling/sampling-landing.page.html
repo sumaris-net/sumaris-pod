@@ -1,4 +1,4 @@
-<app-toolbar [title]="title$ | async"
+<app-toolbar [title]="$title | async"
              color="primary"
              [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
@@ -49,16 +49,22 @@
   <mat-tab-group #tabGroup
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="tabGroupAnimationDuration"
-                 class="mat-tab-disabled-hidden"
-                 dynamicHeight>
+                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+                 [dynamicHeight]="false"
+                 class="mat-tab-fixed-content">
 
     <!-- TAB: general -->
     <mat-tab label="{{'LANDING.EDIT.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>LANDING.EDIT.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && landingForm.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && landingForm.invalid; else warningIcon"></ion-icon>
+        <ng-template #warningIcon>
+          <span slot="end" *ngIf="warning" style="color: var(--ion-color-tertiary);"
+                [title]="warning|translate">
+            <mat-icon>warning</mat-icon>
+          </span>
+        </ng-template>
       </ng-template>
 
       <!-- error -->
@@ -66,7 +72,6 @@
         <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
         <ion-label color="danger" class="error" [innerHTML]="(landingForm.error||error) | translate"></ion-label>
       </ion-item>
-
 
       <ion-grid class="ion-no-padding">
         <ion-row class="ion-no-padding">
@@ -77,15 +82,16 @@
                               [programLabel]="$programLabel|async"
                               [i18nPrefix]="i18nPrefix"
                               [requiredStrategy]="true"
-                              [showMeasurements]="false"
+                              [showMeasurements]="true"
                               [showError]="false"
-                              [showComment]="!oneTabMode"
+                              [showProgram]="false"
                               [showStrategy]="true"
+                              [showMetier]="true"
                               (onSubmit)="save($event)"
                               [debug]="debug">
 
               <!-- zero effort (warning) -->
-              <mat-hint  afterStrategy *ngIf="landingForm.strategyControl.valid && zeroEffortWarning">
+              <mat-hint afterStrategy *ngIf="landingForm.strategyControl.valid && zeroEffortWarning">
                 <ion-icon color="tertiary" name="warning"></ion-icon>&nbsp;
                 <ion-text color="tertiary" translate>LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR</ion-text>
               </mat-hint>
@@ -102,8 +108,21 @@
                 <ion-col class="ion-no-padding">
                   <app-strategy-summary-card #strategyCard
                                              [editor]="this"
-                                             [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate">
-
+                                             [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate"
+                                             [calcifiedTypesDisplayed]="true">
+                    <!-- calcified types-->
+                        <ng-container *ngIf="strategyCard.data &&  (strategyCard.data.pmfms | isNotEmptyArray)">
+                          <ion-label color="primary">{{i18nPrefix + 'CALCIFIED_TYPE'|translate}}</ion-label>
+                          <ion-label class="status">
+                            <ul>
+                              <ng-container *ngFor="let caclcifiedType of strategyCard.data.pmfms; let i=index">
+                              <li *ngIf="caclcifiedType.fraction && !caclcifiedType.pmfm">
+                                <span>{{caclcifiedType.fraction | referentialToString:strategyCard.displayAttributes.fraction }}</span>
+                              </li>
+                              </ng-container>
+                            </ul>
+                          </ion-label>
+                        </ng-container>
                   </app-strategy-summary-card>
                 </ion-col>
 
@@ -112,6 +131,14 @@
                   <app-entity-metadata [value]="data">
                     <app-entity-quality-form [editor]="this" *ngIf="showQualityForm">
                     </app-entity-quality-form>
+
+                    <!-- not observer (warning) -->
+                    <ion-text color="tertiary" *ngIf="warning">
+                      <br/>
+                      <ion-icon name="warning"></ion-icon>&nbsp;
+                        {{warning|translate}}
+                    </ion-text>
+
                   </app-entity-metadata>
                 </ion-col>
               </ion-row>
@@ -125,11 +152,10 @@
     </mat-tab>
 
     <!-- TAB: samples -->
-    <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES'|translate"
-             [disabled]="oneTabMode">
+    <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES'|translate" [disabled]="!showSamplesTable">
       <ng-template mat-tab-label>
-        <mat-icon *ngIf="showSamplesTable && !oneTabMode">center_focus_strong</mat-icon>
-        <ion-label *ngIf="showSamplesTable && !oneTabMode; else skeletonText100">{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
+        <mat-icon >center_focus_strong</mat-icon>
+        <ion-label>{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
 
@@ -141,47 +167,27 @@
           <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
         </ion-item>
 
-        <app-sampling-samples-table #samplesTable
-                                    [class.cdk-visually-hidden]="!showSamplesTable"
-                                    [disabled]="noEffortError"
-                                    [showLabelColumn]="true"
-                                    [showDateTimeColumn]="false"
-                                    [defaultSampleDate]="data?.dateTime"
-                                    [defaultLocation]="data?.location"
-                                    [pmfmGroups]="$pmfmGroups|async"
-                                    [usageMode]="usageMode"
-                                    [useSticky]="true"
-                                    (onPrepareRowForm)="onPrepareSampleForm($event)"
-                                    [debug]="debug">
-        </app-sampling-samples-table>
+        <app-samples-table  #samplesTable
+                            [disabled]="noEffortError"
+                            [showError]="mobile"
+                            [showLabelColumn]="false"
+                            [showDateTimeColumn]="false"
+                            [showTaxonGroupColumn]="false"
+                            [showTaxonNameColumn]="false"
+                            [showPmfmDetails]="true"
+                            [pmfmGroups]="$pmfmGroups|async"
+                            [canAddPmfm]="true"
+                            [defaultSampleDate]="data?.dateTime"
+                            [defaultLocation]="data?.location"
+                            [usageMode]="usageMode"
+                            [useSticky]="true"
+                            [compactFields]="false"
+                            (onPrepareRowForm)="onPrepareSampleForm($event)"
+                            [debug]="debug">
+        </app-samples-table>
 
         <!-- final space-->
         <p visible-xs visible-sm visible-mobile>&nbsp;</p>
-      </div>
-    </mat-tab>
-
-    <!-- TAB: comments -->
-    <mat-tab label="{{'COMMON.COMMENTS'|translate}}"
-             [disabled]="!showSamplesTable || !oneTabMode">
-      <ng-template mat-tab-label>
-        <mat-icon color="primary" *ngIf="form.controls.comments.valueChanges | async | isNotNilOrBlank; else emptyComment">chat_bubble</mat-icon>
-        <ng-template #emptyComment>
-          <mat-icon>chat_bubble_outline</mat-icon>
-        </ng-template>
-        <ion-label translate>COMMON.COMMENTS</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="form.controls.invalid"></ion-icon>
-      </ng-template>
-
-      <div class="ion-padding form-container">
-        <mat-form-field appearance="outline">
-          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4"
-                    maxlength="2000"
-                    tabindex="100"
-                    [placeholder]="'COMMON.COMMENTS'|translate"
-                    [formControl]="form.controls.comments"></textarea>
-          <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
-          <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
       </div>
     </mat-tab>
 
@@ -191,28 +197,24 @@
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
 
-  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading"
+  <app-form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 
     <!-- error -->
-    <ion-item *ngIf="error" lines="none">
+    <ion-item *ngIf="landingForm.error||error||(samplesTable.error$|async); let error" lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
       <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 
-  </form-buttons-bar>
+  </app-form-buttons-bar>
 </ion-footer>
 
 <!-- FAB button -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed"
-         *ngIf="showSamplesTable && ((oneTabMode && selectedTabIndex === 0) || (!oneTabMode && selectedTabIndex === 1))"
+         *ngIf="showSamplesTable && selectedTabIndex === 1"
          @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
-
-<ng-template #skeletonText100>
-  &nbsp;<ion-skeleton-text style="min-width: 100px"></ion-skeleton-text>
-</ng-template>

@@ -1,7 +1,11 @@
 import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from "./batch.model";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 
+@EntityClass({typename: "BatchGroupVO", fromObjectReuseStrategy: "clone"})
 export class BatchGroup extends Batch<BatchGroup> {
+
+  static fromObject: (source: any, opts?: BatchFromObjectOptions) => BatchGroup;
 
   // Number of individual observed (by individual measure)
   observedIndividualCount: number;
@@ -14,20 +18,8 @@ export class BatchGroup extends Batch<BatchGroup> {
     return target;
   }
 
-  static fromObject(source: any, opts?: BatchFromObjectOptions): BatchGroup {
-    const target = new BatchGroup();
-    target.fromObject(source, opts);
-    return target;
-  }
-
   constructor() {
-    super();
-  }
-
-  clone(): BatchGroup {
-    const target = new BatchGroup();
-    target.fromObject(this.asObject());
-    return target;
+    super(BatchGroup.TYPENAME);
   }
 
   asObject(opts?: BatchAsObjectOptions): any {
@@ -65,6 +57,4 @@ export class BatchGroupUtils {
     // Compute observed indiv. count
     batch.observedIndividualCount = BatchUtils.sumObservedIndividualCount(batch.children);
   }
-
-
 }

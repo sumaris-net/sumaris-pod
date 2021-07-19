@@ -7,8 +7,8 @@
   </ion-item>
 
   <ion-grid class="ion-no-padding">
-    <!-- label -->
-    <ion-row *ngIf="showLabel||showSampleDate">
+    <ion-row>
+      <!-- label -->
       <ion-col *ngIf="showLabel" size="6" class="ion-no-padding ion-padding-start">
         <mat-form-field floatLabel="auto">
           <ion-icon matPrefix name="pricetag"></ion-icon>
@@ -26,21 +26,10 @@
           </mat-error>
         </mat-form-field>
       </ion-col>
-      <ion-col *ngIf="showSampleDate" size="6" class="ion-no-padding ion-padding-start">
-        <mat-date-time-field formControlName="sampleDate"
-                             [placeholder]="i18nPrefix + 'DATE_TIME_PLACEHOLDER'|translate"
-                             [tabindex]="tabindex+1"
-                             [required]="usageMode|isNotOnField"
-                             [clearable]="usageMode|isOnField">
-        </mat-date-time-field>
-      </ion-col>
-    </ion-row>
-
-    <ion-row class="ion-no-padding">
 
       <!-- Taxon group -->
       <ion-col class="ion-no-padding ion-padding-start"
-               size="12" size-md=""
+               size="6" size-md=""
                [hidden]="!showTaxonGroup">
         <mat-autocomplete-field formControlName="taxonGroup"
                                 [appAutofocus]="enabled && focusFieldName === 'taxonGroup'"
@@ -53,7 +42,7 @@
 
       <!-- Taxon name (scientific species) -->
       <ion-col class="ion-no-padding ion-padding-start" padding-left no-padding-xs no-padding-sm
-               size="12" size-md=""
+               size="6" size-md=""
                *ngIf="showTaxonName">
         <mat-autocomplete-field formControlName="taxonName"
                                 [appAutofocus]="enabled && focusFieldName === 'taxonName'"
@@ -62,6 +51,16 @@
                                 [required]="showTaxonName"
                                 [config]="autocompleteFields.taxonName">
         </mat-autocomplete-field>
+      </ion-col>
+
+    <!-- sample date -->
+      <ion-col *ngIf="showSampleDate" size="6" class="ion-no-padding ion-padding-start">
+        <mat-date-time-field formControlName="sampleDate"
+                             [placeholder]="i18nPrefix + 'SAMPLE_DATE_PLACEHOLDER'|translate"
+                             [tabindex]="tabindex+1"
+                             [required]="usageMode|isNotOnField"
+                             [clearable]="usageMode|isOnField">
+        </mat-date-time-field>
       </ion-col>
     </ion-row>
 

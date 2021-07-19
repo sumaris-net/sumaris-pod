@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, ViewChild, ViewEncapsulation} from '@angular/core';
 
 import {TripService} from '../services/trip.service';
 import {TripForm} from './trip.form';
@@ -6,33 +6,39 @@ import {SaleForm} from '../sale/sale.form';
 import {OperationsTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
-import * as momentImported from "moment";
+import * as momentImported from 'moment';
+import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum';
+import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
+import {FormGroup} from '@angular/forms';
+import {
+  Alerts,
+  EntitiesStorage,
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  fromDateISOString,
+  HistoryPageReference,
+  isNil,
+  isNotEmptyArray,
+  NetworkService,
+  PlatformService,
+  PromiseEvent,
+  ReferentialRef,
+  ReferentialUtils,
+  UsageMode
+} from '@sumaris-net/ngx-components';
+import {TripsPageSettingsEnum} from './trips.table';
+import {PhysicalGear, Trip} from '../services/model/trip.model';
+import {SelectPhysicalGearModal} from '../physicalgear/select-physical-gear.modal';
+import {ModalController} from '@ionic/angular';
+import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
+import {ProgramProperties} from '../../referential/services/config/program.config';
+import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
+import {debounceTime, filter, first} from 'rxjs/operators';
+import {TableElement} from '@e-is/ngx-material-table';
+import {Program} from '../../referential/services/model/program.model';
+import {environment} from '../../../environments/environment';
+
 const moment = momentImported;
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
-import {FormGroup} from "@angular/forms";
-import {NetworkService} from "../../core/services/network.service";
-import {TripsPageSettingsEnum} from "./trips.table";
-import {EntitiesStorage} from "../../core/services/storage/entities-storage.service";
-import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
-import {PhysicalGear, Trip} from "../services/model/trip.model";
-import {SelectPhysicalGearModal} from "../physicalgear/select-physical-gear.modal";
-import {ModalController} from "@ionic/angular";
-import {PhysicalGearFilter} from "../services/physicalgear.service";
-import {PromiseEvent} from "../../shared/events";
-import {ProgramProperties} from "../../referential/services/config/program.config";
-import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
-import {PlatformService} from "../../core/services/platform.service";
-import {debounceTime, filter, first} from "rxjs/operators";
-import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {TableElement} from "@e-is/ngx-material-table";
-import {Alerts} from "../../shared/alerts";
-import {Program} from "../../referential/services/model/program.model";
-import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {environment} from "../../../environments/environment";
-import {isNil, isNotEmptyArray} from "../../shared/functions";
-import {fromDateISOString} from "../../shared/dates";
 
 const TripPageTabs = {
   GENERAL: 0,
@@ -45,6 +51,9 @@ const TripPageTabs = {
   templateUrl: './trip.page.html',
   styleUrls: ['./trip.page.scss'],
   animations: [fadeInOutAnimation],
+  providers: [
+    {provide: AppRootDataEditor, useExisting: TripPage}
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TripPage extends AppRootDataEditor<Trip, TripService> {
@@ -145,6 +154,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     if (!this.tripForm.showMetiers) {
       this.data.metiers = []; // make sure to reset data metiers, if any
     }
+    this.tripForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_LOCATION_LEVEL_IDS);
+
     this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
     this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
     this.operationsTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);

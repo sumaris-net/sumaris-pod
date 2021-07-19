@@ -1,8 +1,8 @@
 import {Injectable} from "@angular/core";
 import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {toBoolean} from "../../../shared/functions";
-import {SharedValidators} from "../../../shared/validator/validators";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {toBoolean} from "@sumaris-net/ngx-components";
+import {SharedValidators} from "@sumaris-net/ngx-components";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {AggregatedLanding} from "../model/aggregated-landing.model";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {DataEntityValidatorOptions} from "../../../data/services/validator/data-entity.validator";

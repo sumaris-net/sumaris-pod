@@ -6,8 +6,8 @@ import {
 import {PacketComposition} from "../model/packet.model";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, Validators} from "@angular/forms";
-import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import {SharedValidators} from "@sumaris-net/ngx-components";
 
 @Injectable({providedIn: 'root'})
 export class PacketCompositionValidatorService

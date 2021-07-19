@@ -1,34 +1,40 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup, ValidationErrors} from "@angular/forms";
-import {Program} from "../services/model/program.model";
-import {ProgramService} from "../services/program.service";
-import {ReferentialForm} from "../form/referential.form";
-import {ProgramValidatorService} from "../services/validator/program.validator";
-import {StrategiesTable} from "../strategy/strategies.table";
-import {AccountService} from "../../core/services/account.service";
-import {ReferentialRef, referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
-import {AppPropertiesForm} from "../../core/form/properties.form";
-import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
-import {ModalController} from "@ionic/angular";
-import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {ProgramProperties, StrategyEditor} from "../services/config/program.config";
-import {ActivatedRoute} from "@angular/router";
-import {Subscription} from "rxjs";
-
-import {AppEntityEditor} from "../../core/form/editor.class";
-import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
-import {changeCaseToUnderscore, isNil, isNotNil} from "../../shared/functions";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {HistoryPageReference} from "../../core/services/model/history.model";
-import {SelectReferentialModal} from "../list/select-referential.modal";
-import {AppListForm} from "../../core/form/list.form";
-import {environment} from "../../../environments/environment";
-import {Strategy} from "../services/model/strategy.model";
-import {fadeInOutAnimation} from "../../shared/material/material.animations";
-import {AppTable} from "../../core/table/table.class";
-import {SamplingStrategiesTable} from "../strategy/sampling/sampling-strategies.table";
-import {SharedValidators} from "../../shared/validator/validators";
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {FormBuilder, FormGroup, ValidationErrors} from '@angular/forms';
+import {Program} from '../services/model/program.model';
+import {ProgramService} from '../services/program.service';
+import {ReferentialForm} from '../form/referential.form';
+import {ProgramValidatorService} from '../services/validator/program.validator';
+import {StrategiesTable} from '../strategy/strategies.table';
+import {
+  AccountService,
+  AppEntityEditor,
+  AppListForm,
+  AppPropertiesForm,
+  AppTable,
+  changeCaseToUnderscore,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  fadeInOutAnimation,
+  FormFieldDefinition,
+  FormFieldDefinitionMap,
+  HistoryPageReference,
+  isNil,
+  isNotNil,
+  ReferentialRef,
+  referentialToString,
+  ReferentialUtils,
+  SharedValidators
+} from '@sumaris-net/ngx-components';
+import {ReferentialRefService} from '../services/referential-ref.service';
+import {ModalController} from '@ionic/angular';
+import {ProgramProperties, StrategyEditor} from '../services/config/program.config';
+import {ActivatedRoute} from '@angular/router';
+import {SelectReferentialModal} from '../list/select-referential.modal';
+import {environment} from '../../../environments/environment';
+import {Strategy} from '../services/model/strategy.model';
+import {SamplingStrategiesTable} from '../strategy/sampling/sampling-strategies.table';
+import {ReferentialRefFilter} from '../services/filter/referential-ref.filter';
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -51,6 +57,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   form: FormGroup;
   i18nFieldPrefix = 'PROGRAM.';
   strategyEditor: StrategyEditor = 'legacy';
+  i18nTabStrategiesSuffix = '';
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
@@ -88,6 +95,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.propertyDefinitions = Object.values(ProgramProperties).map(def => {
       if (def.type === 'entity') {
         def = Object.assign({}, def); // Copy
+        def.autocomplete = def.autocomplete || {};
         def.autocomplete.suggestFn = (value, filter) => this.referentialRefService.suggest(value, filter);
       }
       return def;
@@ -153,8 +161,48 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   updateView(data: Program | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
 
     this.strategyEditor = data && data.getProperty<StrategyEditor>(ProgramProperties.PROGRAM_STRATEGY_EDITOR) || 'legacy';
+    this.i18nTabStrategiesSuffix = this.strategyEditor === 'sampling' ? '.SAMPLING' : '';
 
     super.updateView(data, opts);
+  }
+
+  protected async onEntityLoaded(data: Program, options?: EntityServiceLoadOptions): Promise<void> {
+    await this.loadEntityProperties(data);
+    await super.onEntityLoaded(data, options);
+  }
+
+  protected async onEntitySaved(data: Program): Promise<void> {
+    await this.loadEntityProperties(data);
+    await super.onEntitySaved(data);
+  }
+
+  async loadEntityProperties(data: Program | null) {
+
+    return Promise.all(Object.keys(data.properties)
+      .map(key => this.propertyDefinitions.find(def => def.key === key && def.type === 'entity'))
+      .filter(isNotNil)
+      .map(def => {
+        let value = data.properties[def.key];
+        const filter = {...def.autocomplete.filter};
+        const joinAttribute = def.autocomplete.filter.joinAttribute || 'id';
+        if (joinAttribute === 'id') {
+          filter.id = parseInt(value);
+          value = '*';
+        }
+        else {
+          filter.searchAttribute = joinAttribute;
+        }
+        // Fetch entity, as a referential
+        return this.referentialRefService.suggest(value, filter)
+          .then(matches => {
+            data.properties[def.key] = (matches && matches.data && matches.data[0] || {id: value,  label: '??'}) as any;
+          })
+          // Cannot ch: display an error
+          .catch(err => {
+            console.error('Cannot fetch entity, from option: ' + def.key + '=' + value, err);
+            data.properties[def.key] = ({id: value,  label: '??'}) as any;
+          });
+      }));
   }
 
 
@@ -223,6 +271,9 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     // Re add label, because missing when field disable
     data.label = this.form.get('label').value;
     data.properties = this.propertiesForm.value;
+    data.properties
+      .filter(property => this.propertyDefinitions.find(def => def.key === property.key && def.type === 'entity'))
+      .forEach(property => property.value = property.value.id);
 
     return data;
   }
@@ -297,12 +348,12 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
   protected async openSelectReferentialModal(opts: {
-    filter: ReferentialRefFilter
+    filter: Partial<ReferentialRefFilter>
   }): Promise<ReferentialRef[]> {
 
     const modal = await this.modalCtrl.create({ component: SelectReferentialModal,
       componentProps: {
-        filter: opts.filter
+        filter: ReferentialRefFilter.fromObject(opts.filter)
       },
       keyboardClose: true,
       cssClass: 'modal-large'

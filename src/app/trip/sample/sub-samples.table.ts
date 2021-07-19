@@ -1,29 +1,20 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {PmfmIds} from "../../referential/services/model/model.enum";
-import {SubSampleValidatorService} from "../services/validator/sub-sample.validator";
-import {isNil, isNotNil, joinPropertiesPath, toNumber} from "../../shared/functions";
-import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
-import {UsageMode} from "../../core/services/model/settings.model";
-import {filterNotNil, firstFalsePromise} from "../../shared/observables";
-import {Sample} from "../services/model/sample.model";
-import {DenormalizedPmfmStrategy, getPmfmName} from "../../referential/services/model/pmfm-strategy.model";
-import {SortDirection} from "@angular/material/sort";
-import {PmfmValueUtils} from "../../referential/services/model/pmfm-value.model";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {environment} from "../../../environments/environment";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {PmfmIds} from '@app/referential/services/model/model.enum';
+import {SubSampleValidatorService} from '../services/validator/sub-sample.validator';
+import {EntityUtils, filterNotNil, firstFalsePromise, InMemoryEntitiesService, isNil, isNotNil, joinPropertiesPath, toNumber, UsageMode} from '@sumaris-net/ngx-components';
+import {AppMeasurementsTable} from '../measurement/measurements.table.class';
+import {Sample} from '../services/model/sample.model';
+import {SortDirection} from '@angular/material/sort';
+import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
+import {environment} from '@environments/environment';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {SampleFilter} from '../services/filter/sample.filter';
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 
-export interface SubSampleFilter {
-  parentId?: number;
-  operationId?: number;
-  landingId?: number;
-}
 
 @Component({
   selector: 'app-sub-samples-table',
@@ -34,14 +25,14 @@ export interface SubSampleFilter {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilter>
+export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   implements OnInit, OnDestroy {
 
   private _availableSortedParents: Sample[] = [];
   private _availableParents: Sample[] = [];
 
   protected cd: ChangeDetectorRef;
-  protected memoryDataService: InMemoryEntitiesService<Sample, SubSampleFilter>;
+  protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
 
   displayParentPmfm: IPmfm;
 
@@ -79,16 +70,18 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
   @Input() showLabelColumn = false;
 
   @Input() usageMode: UsageMode;
+  @Input() useSticky: true;
 
   constructor(
     protected injector: Injector
   ) {
     super(injector,
       Sample,
-      new InMemoryEntitiesService<Sample, SubSampleFilter>(Sample, {
+      new InMemoryEntitiesService(Sample, SampleFilter, {
         onSort: (data, sortBy, sortDirection) => this.sortData(data, sortBy, sortDirection),
         onLoad: (data) => this.onLoadData(data),
-        equals: Sample.equals
+        equals: Sample.equals,
+        sortByReplacement: {'id': 'rankOrder'}
       }),
       injector.get(ValidatorService),
       {
@@ -98,7 +91,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
         reservedEndColumns: SUB_SAMPLE_RESERVED_END_COLUMNS
       }
     );
-    this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SubSampleFilter>);
+    this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
     // TODO: override openDetailModal(), then uncomment :
@@ -135,7 +128,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
             this.autocompleteFields.parent.columnSizes = [4].concat(displayAttributes.map(attr =>
               // If label then col size = 2
               attr.endsWith('label') ? 2 : undefined));
-            this.autocompleteFields.parent.columnNames = [getPmfmName(this.displayParentPmfm)];
+            this.autocompleteFields.parent.columnNames = [PmfmUtils.getPmfmName(this.displayParentPmfm)];
             this.autocompleteFields.parent.displayWith = (obj) => obj && obj.measurementValues
               && PmfmValueUtils.valueToString(obj.measurementValues[this.displayParentPmfm.id], {pmfm: this.displayParentPmfm})
               || undefined;
@@ -231,6 +224,9 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
 
   protected linkDataToParent(data: Sample[]) {
     if (!this._availableParents || !data) return;
+
+    // DEBUG
+    //console.debug("[sub-samples-table] Calling linkDataToParent()");
 
     data.forEach(s => {
       s.parent = this._availableParents.find(p => Sample.equals(p, {

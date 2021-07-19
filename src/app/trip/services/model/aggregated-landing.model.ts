@@ -1,10 +1,12 @@
 import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {Moment} from "moment";
 import {IWithVesselSnapshotEntity, VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
-import {NOT_MINIFY_OPTIONS, ReferentialRef} from "../../../core/services/model/referential.model";
-import {isEmptyArray, isNotNil} from "../../../shared/functions";
-import {Entity, EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {fromDateISOString, toDateISOString} from "../../../shared/dates";
+import {ReferentialRef}  from "@sumaris-net/ngx-components";
+import {isEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
+import {Entity, EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
+import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
+import {EntityClass}  from "@sumaris-net/ngx-components";
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export class VesselActivity extends Entity<VesselActivity> {
 
@@ -58,10 +60,6 @@ export class VesselActivity extends Entity<VesselActivity> {
     this.tripId = source.tripId;
   }
 
-  clone(): VesselActivity {
-    return VesselActivity.fromObject(this.asObject());
-  }
-
   static isEmpty(value: VesselActivity) {
     return !value || (
       MeasurementValuesUtils.isEmpty(value.measurementValues)
@@ -70,15 +68,10 @@ export class VesselActivity extends Entity<VesselActivity> {
   }
 }
 
+@EntityClass({typename: 'AggregatedLandingVO'})
 export class AggregatedLanding extends Entity<AggregatedLanding> implements IWithVesselSnapshotEntity<AggregatedLanding> {
 
-  static TYPENAME = 'AggregatedLandingVO';
-
-  static fromObject(source: any): AggregatedLanding {
-    const target = new AggregatedLanding();
-    target.fromObject(source);
-    return target;
-  }
+  static fromObject: (source: any, opts?: any) => AggregatedLanding;
 
   vesselSnapshot: VesselSnapshot;
   vesselActivities: VesselActivity[];
@@ -87,8 +80,7 @@ export class AggregatedLanding extends Entity<AggregatedLanding> implements IWit
   observedLocationId: number;
 
   constructor() {
-    super();
-    this.__typename = AggregatedLanding.TYPENAME;
+    super(AggregatedLanding.TYPENAME);
     this.vesselSnapshot = null;
     this.vesselActivities = [];
   }
@@ -105,9 +97,5 @@ export class AggregatedLanding extends Entity<AggregatedLanding> implements IWit
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
     this.id = this.vesselSnapshot.id;
     this.vesselActivities = source.vesselActivities && source.vesselActivities.map(VesselActivity.fromObject) || [];
-  }
-
-  clone(): AggregatedLanding {
-    return AggregatedLanding.fromObject(this.asObject());
   }
 }

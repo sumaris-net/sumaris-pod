@@ -1,28 +1,25 @@
-import {Referential, ReferentialUtils} from "../../../core/services/model/referential.model";
-import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
-import {isNotNil} from "../../../shared/functions";
+import {BaseReferential, Referential, ReferentialUtils}  from "@sumaris-net/ngx-components";
+import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
+import {isNotNil} from "@sumaris-net/ngx-components";
+import {EntityClass}  from "@sumaris-net/ngx-components";
 
 export declare type ParameterType = 'double' | 'string' | 'qualitative_value' | 'date' | 'boolean' ;
 
-export class Parameter extends Referential<Parameter> {
+@EntityClass({typename: 'ParameterVO'})
+export class Parameter extends BaseReferential<Parameter> {
 
-  static TYPENAME = 'Parameter';
-
-  static fromObject(source: any): Parameter {
-    if (!source || source instanceof Parameter) return source;
-    const res = new Parameter();
-    res.fromObject(source);
-    return res;
-  }
+  static ENTITY_NAME = 'Parameter';
+  static fromObject: (source: any, opts?: any) => Parameter;
 
   type: string | ParameterType;
   qualitativeValues: Referential[];
 
   constructor() {
     super();
-    this.entityName = Parameter.TYPENAME;
+    this.entityName = Parameter.ENTITY_NAME;
   }
 
+// TODO : Check if clone is needed
   clone(): Parameter {
     const target = new Parameter();
     target.fromObject(this);
@@ -38,11 +35,9 @@ export class Parameter extends Referential<Parameter> {
 
   fromObject(source: any): Parameter {
     super.fromObject(source);
-
+    this.entityName = source.entityName || Parameter.ENTITY_NAME;
     this.type = source.type;
-    this.entityName = source.entityName || Parameter.TYPENAME;
-
-    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialUtils.fromObject) || [];
+    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(Referential.fromObject) || [];
     return this;
   }
 

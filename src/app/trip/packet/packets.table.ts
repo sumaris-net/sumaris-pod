@@ -1,21 +1,21 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
 import {TableElement} from "@e-is/ngx-material-table";
-import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
+import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
 import {IWithPacketsEntity, Packet, PacketFilter, PacketUtils} from "../services/model/packet.model";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
 import {PacketValidatorService} from "../services/validator/packet.validator";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from "@angular/common";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {BehaviorSubject} from "rxjs";
-import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {PacketModal} from "./packet.modal";
 import {PacketSaleModal} from "../sale/packet-sale.modal";
-import {isNil, isNotEmptyArray} from "../../shared/functions";
+import {isNil, isNotEmptyArray} from "@sumaris-net/ngx-components";
 import {SaleProductUtils} from "../services/model/sale-product.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
+import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 
@@ -26,16 +26,14 @@ import {ProgramRefService} from "../../referential/services/program-ref.service"
   providers: [
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService<Packet, PacketFilter>(Packet, {
-        filterFnFactory: PacketFilter.searchFilter
-      })
+      useFactory: () => new InMemoryEntitiesService(Packet, PacketFilter)
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnInit {
 
-  @Input() $parents: BehaviorSubject<IWithPacketsEntity<any>[]>;
+  @Input() $parents: BehaviorSubject<IWithPacketsEntity<any, any>[]>;
   @Input() parentAttributes: string[];
 
   @Input() set parentFilter(packetFilter: PacketFilter) {
@@ -66,7 +64,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   }
 
   get dirty(): boolean {
-    return this._dirty || this.memoryDataService.dirty;
+    return super.dirty || this.memoryDataService.dirty;
   }
 
   private packetSalePmfms: DenormalizedPmfmStrategy[];

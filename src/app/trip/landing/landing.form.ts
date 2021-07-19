@@ -1,31 +1,44 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment';
-import {DateAdapter} from "@angular/material/core";
+import {DateAdapter} from '@angular/material/core';
 import {debounceTime, map} from 'rxjs/operators';
 import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../referential/services/model/model.enum';
-import {LandingValidatorService} from "../services/validator/landing.validator";
-import {PersonService} from "../../admin/services/person.service";
-import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
-import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {FormArray, FormBuilder, FormControl, Validators} from "@angular/forms";
-import {ModalController} from "@ionic/angular";
-import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
-import {Person, personToString, UserProfileLabels} from "../../core/services/model/person.model";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {isNil, isNotNil, toBoolean} from "../../shared/functions";
-import {Landing} from "../services/model/landing.model";
-import {ReferentialRefFilter, ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {StatusIds} from "../../core/services/model/model.enum";
-import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
-import {VesselModal} from "../../vessel/modal/modal-vessel";
-import {FormArrayHelper} from "../../core/form/form.utils";
-import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {SamplingStrategyService} from "../../referential/services/sampling-strategy.service";
-import {TranslateService} from "@ngx-translate/core";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {LandingValidatorService} from '../services/validator/landing.validator';
+import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {FormArray, FormBuilder, FormControl, Validators} from '@angular/forms';
+import {ModalController} from '@ionic/angular';
+import {
+  ConfigService,
+  EntityUtils,
+  FormArrayHelper,
+  isNil,
+  isNotNil,
+  isNotNilOrBlank,
+  LoadResult,
+  LocalSettingsService,
+  Person,
+  PersonService,
+  PersonUtils,
+  ReferentialRef,
+  ReferentialUtils,
+  StatusIds,
+  toBoolean,
+  UserProfileLabel
+} from '@sumaris-net/ngx-components';
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {Landing} from '../services/model/landing.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {VesselModal} from '@app/vessel/modal/vessel-modal';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
+import {TranslateService} from '@ngx-translate/core';
+import {IPmfm, PmfmType} from '@app/referential/services/model/pmfm.model';
+import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
+import {Metier} from '@app/referential/services/model/taxon.model';
+import {isNumeric} from 'rxjs/internal/util/isNumeric';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -44,6 +57,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   observerFocusIndex = -1;
   mobile: boolean;
   strategyControl: FormControl;
+  mainMetierPmfmId: number;
 
   get empty(): any {
     const value = this.value;
@@ -102,6 +116,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() showStrategy = false;
   @Input() locationLevelIds: number[];
   @Input() allowAddNewVessel: boolean;
+  @Input() showMetier = false;
 
   @Input() set canEditStrategy(value: boolean) {
     if (this._canEditStrategy !== value) {
@@ -142,6 +157,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected vesselSnapshotService: VesselSnapshotService,
     protected settings: LocalSettingsService,
     protected samplingStrategyService: SamplingStrategyService,
+    protected configService: ConfigService,
     protected translate: TranslateService,
     protected modalCtrl: ModalController,
     protected cd: ChangeDetectorRef
@@ -157,7 +173,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
-
+    this.mainMetierPmfmId = PmfmIds.MAIN_METIER;
   }
 
   ngOnInit() {
@@ -231,11 +247,25 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: [UserProfileLabels.SUPERVISOR, UserProfileLabels.USER, UserProfileLabels.GUEST]
+        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST']
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: personToString
+      displayWith: PersonUtils.personToString
     });
+
+    // Combo: observers
+    const metierAttributes = this.settings.getFieldDisplayAttributes('qualitativeValue');
+    this.registerAutocompleteField('metier', {
+      showAllOnFocus: false,
+      suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
+      // Default filter. An excludedIds will be add dynamically
+      filter: {
+        entityName: 'Metier',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+      },
+      attributes: metierAttributes
+    });
+
 
     // Propagate program
     this.registerSubscription(
@@ -283,11 +313,15 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       this.observersHelper.removeAllEmpty();
     }
 
+    // Load metier
+    const metierId = data.measurementValues && data.measurementValues[PmfmIds.MAIN_METIER.toString()];
+    if (isNotNilOrBlank(metierId) && isNumeric(metierId)) {
+      const metierRef = await this.referentialRefService.loadById(+metierId, Metier.ENTITY_NAME);
+      (data.measurementValues as any)[PmfmIds.MAIN_METIER.toString()] = metierRef.asObject();
+    }
+
     // Propagate the strategy
-    const strategyLabel = Object.entries(data.measurementValues || {})
-      .filter(([pmfmId, _]) => +pmfmId == PmfmIds.STRATEGY_LABEL)
-      .map(([_, value]) => value)
-      .find(isNotNil) as string;
+    const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()];
     this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
     this.strategyLabel = strategyLabel;
 
@@ -295,6 +329,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   }
 
   protected getValue(): Landing {
+    console.debug('[landing-form] DEV get value');
     const data = super.getValue();
 
     // Re add the strategy label
@@ -303,6 +338,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       const strategyLabel = EntityUtils.isNotEmpty(strategyValue, 'label') ? strategyValue.label : strategyValue as string;
       data.measurementValues = data.measurementValues || {};
       data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()] = strategyLabel;
+    }
+
+    if (this.showMetier) {
+      data.measurementValues = data.measurementValues || {};
+      const metier = data.measurementValues[PmfmIds.MAIN_METIER.toString()] as any;
+      if (ReferentialUtils.isNotEmpty(metier)) {
+        data.measurementValues[PmfmIds.MAIN_METIER.toString()] = metier.id;
+      }
     }
 
     // DEBUG
@@ -338,9 +381,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     const modal = await this.modalCtrl.create({ component: VesselModal });
     modal.onDidDismiss().then(res => {
       // if new vessel added, use it
-      if (res && res.data instanceof VesselSnapshot) {
+      if (res &&  res.data instanceof VesselSnapshot) {
         console.debug("[landing-form] New vessel added : updating form...", res.data);
-        this.form.controls['vesselSnapshot'].setValue(res.data);
+        this.form.get('vesselSnapshot').setValue(res.data);
         this.markForCheck();
       }
       else {
@@ -350,9 +393,13 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return modal.present();
   }
 
+  notHiddenPmfm(pmfm: IPmfm): boolean{
+    return pmfm && pmfm.hidden !== true;
+  }
+
   /* -- protected method -- */
 
-  protected suggestObservers(value: any, filter?: any): Promise<any[]> {
+  protected suggestObservers(value: any, filter?: any): Promise<LoadResult<Person>> {
     const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
     const newValue = currentControlValue ? '*' : value;
 
@@ -409,8 +456,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     if (this.debug) console.debug(`${this.logPrefix} calling mapPmfms()`);
 
+    // Create the missing Pmfm, to hold strategy (if need)
     if (this.showStrategy) {
-      // Create the missing Pmfm, to hold strategy (if need)
       const existingIndex = (pmfms || []).findIndex(pmfm => pmfm.id === PmfmIds.STRATEGY_LABEL);
       let strategyPmfm: IPmfm;
       if (existingIndex !== -1) {
@@ -427,10 +474,32 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       strategyPmfm.hidden = true; // Do not display it in measurement
       strategyPmfm.required = false; // Not need to be required, because of strategyControl validator
 
-
-
       // Prepend to list
       pmfms = [strategyPmfm, ...pmfms];
+    }
+
+    // Create the missing Pmfm, to hold metier (if need)
+    if (this.showMetier) {
+      const existingIndex = (pmfms || []).findIndex(pmfm => pmfm.id === PmfmIds.MAIN_METIER);
+      let metierPmfm: IPmfm;
+      if (existingIndex !== -1) {
+        // Remove existing, then copy it (to leave original unchanged)
+        metierPmfm = pmfms.splice(existingIndex, 1)[0].clone();
+      }
+      else {
+        metierPmfm = DenormalizedPmfmStrategy.fromObject({
+          id: PmfmIds.MAIN_METIER,
+          name: this.translate.instant('TRIP.METIERS'),
+          type: <PmfmType>'string'
+        });
+      }
+
+      metierPmfm.hidden = false; // Always display in measurement
+      metierPmfm.required = true; // Required
+
+      // Prepend to list
+      pmfms = [metierPmfm, ...pmfms];
+
     }
 
     return pmfms;
