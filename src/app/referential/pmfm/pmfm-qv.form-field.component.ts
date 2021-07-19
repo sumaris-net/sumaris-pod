@@ -26,7 +26,7 @@ import {
   AppFormUtils,
   focusInput,
   InputElement,
-  isEmptyArray, isInstanceOf,
+  isEmptyArray,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
@@ -84,30 +84,19 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   displayWith: (obj: ReferentialRef | any) => string;
 
   @Input() pmfm: IPmfm;
-
   @Input() formControl: FormControl;
-
   @Input() formControlName: string;
-
   @Input() placeholder: string;
-
   @Input() floatLabel: FloatLabelType = "auto";
-
   @Input() required: boolean;
-
   @Input() readonly = false;
-
   @Input() compact = false;
-
   @Input() clearable = false;
-
   @Input() style: 'autocomplete' | 'select' | 'button';
-
   @Input() searchAttributes: string[];
-
   @Input() sortAttribute: string;
-
   @Input() maxVisibleButtons: number;
+  @Input() autofocus: boolean;
 
   @Input() set tabindex(value: number) {
     this._tabindex = value;
@@ -170,7 +159,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     this.sortAttribute =  isNotNil(this.sortAttribute) ? this.sortAttribute : (attributes[0]);
 
     // Sort values
-    this._sortedQualitativeValues = (isInstanceOf(this.pmfm, PmfmStrategy) && this.pmfm.pmfmId !== PmfmIds.DISCARD_OR_LANDING) ?
+    this._sortedQualitativeValues = (this.pmfm instanceof PmfmStrategy && this.pmfm.pmfmId !== PmfmIds.DISCARD_OR_LANDING) ?
       sort(this._qualitativeValues, this.sortAttribute) :
       this._qualitativeValues;
 

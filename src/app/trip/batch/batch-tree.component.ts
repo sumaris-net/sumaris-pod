@@ -12,20 +12,20 @@ import {PlatformService}  from "@sumaris-net/ngx-components";
 import {BatchGroupsTable} from "./table/batch-groups.table";
 import {SubBatchesTable, SubBatchFilter} from "./table/sub-batches.table";
 import {CatchBatchForm} from "../catch/catch.form";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from "@ngx-translate/core";
 import {UsageMode}  from "@sumaris-net/ngx-components";
 import {MatTabChangeEvent} from "@angular/material/tabs";
 import {firstTruePromise} from "@sumaris-net/ngx-components";
-import {ProgramProperties} from "../../referential/services/config/program.config";
+import {ProgramProperties} from '@app/referential/services/config/program.config';
 import {SubBatch, SubBatchUtils} from "../services/model/subbatch.model";
 import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
 import {AppTabEditor}  from "@sumaris-net/ngx-components";
 import {AppTableUtils}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {Program} from "../../referential/services/model/program.model";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {environment} from '@environments/environment';
+import {Program} from '@app/referential/services/model/program.model';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
 
 @Component({
   selector: 'app-batch-tree',

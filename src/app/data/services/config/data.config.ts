@@ -8,20 +8,26 @@ export const DATA_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
 };
 
 export const DATA_CONFIG_OPTIONS = Object.freeze({
-  DATA_NOT_SELF_ACCESS_ROLE: <FormFieldDefinition>{
-    key: "sumaris.auth.notSelfDataAccess.role",
-    label: "CONFIGURATION.OPTIONS.NOT_SELF_DATA_ACCESS_MIN_ROLE",
+  ACCESS_NOT_SELF_DATA_ROLE: <FormFieldDefinition>{
+    key: "sumaris.data.accessNotSelfData.role",
+    label: "CONFIGURATION.OPTIONS.ACCESS_NOT_SELF_DATA_MIN_ROLE",
     type: 'enum',
     values: PRIORITIZED_AUTHORITIES.map(key => ({
       key: 'ROLE_' + key,
       value: 'USER.PROFILE_ENUM.' + key
     }))
   },
-  SUPERVISOR_DEPARTMENT: <FormFieldDefinition>{
-    key: "sumaris.supervisor.department",
-    label: "CONFIGURATION.OPTIONS.SUPERVISOR_DEPARTMENT",
-    defaultValue: "",
+  ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS: <FormFieldDefinition>{
+    key: 'sumaris.data.accessNotSelfData.department.ids',
+    label: 'CONFIGURATION.OPTIONS.ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS',
+    defaultValue: '',
     type: 'string'
+  },
+  CHECK_SAMPLE_UNIQUE_TAG: <FormFieldDefinition>{
+    key: "sumaris.persistence.sample.uniqueTag",
+    label: "CONFIGURATION.OPTIONS.CHECK_SAMPLE_UNIQUE_TAG",
+    type: 'boolean',
+    defaultValue: false
   },
   ENTITY_TRASH: <FormFieldDefinition> {
     key: 'sumaris.persistence.trash.enable',
@@ -61,7 +67,7 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
   },
   SHOW_OBSERVERS: <FormFieldDefinition>{
     key: 'sumaris.data.show.observer.enable',
-    label: 'CONFIGURATION.OPTIONS.LANDING.FILTER_OBSERVERS',
+    label: 'CONFIGURATION.OPTIONS.DATA_SHOW_OBSERVERS',
     type: 'boolean',
     defaultValue: true
   },

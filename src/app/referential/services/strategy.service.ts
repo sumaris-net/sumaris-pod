@@ -190,7 +190,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
   }
 
   async computeNextLabel(programId: number, labelPrefix?: string, nbDigit?: number): Promise<string> {
-    if (this._debug) console.debug(`[strategy-service] Loading strategy next label...`);
+    if (this._debug) console.debug(`[strategy-service] Loading strategy next label for prefix ${labelPrefix}...`);
 
     const res = await this.graphql.query<{ data: string }>({
       query: FindStrategyNextLabel,

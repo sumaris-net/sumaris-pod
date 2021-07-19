@@ -44,10 +44,11 @@
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
   <mat-tab-group #tabGroup
+                 class="mat-tab-fixed-content"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="tabGroupAnimationDuration"
-                 dynamicHeight>
+                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+                 [dynamicHeight]="false">
 
     <!-- TAB: general -->
     <mat-tab label="{{'OBSERVED_LOCATION.EDIT.TAB_GENERAL'|translate}}">
@@ -113,6 +114,7 @@
                             [programLabel]="$programLabel|async"
                             [showObserversColumn]="false"
                             [showDateTimeColumn]="false"
+                            [showToolbar]="!mobile"
                             (onOpenRow)="onOpenLanding($event)"
                             (onNewRow)="onNewLanding($event)"
                             (onNewTrip)="onNewTrip($event)">
@@ -140,8 +142,8 @@
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm hidden-mobile>
-  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
+<ion-footer *ngIf="!mobile">
+  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
                     [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 
@@ -151,7 +153,7 @@
       <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 
-  </form-buttons-bar>
+  </app-form-buttons-bar>
 </ion-footer>
 
 <!-- FAB button: add landing -->

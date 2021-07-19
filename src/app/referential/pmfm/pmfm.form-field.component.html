@@ -16,6 +16,7 @@
            [max]="pmfm.maxValue"
            pattern="[0-9]*"
            step="1"
+           [appAutofocus]="autofocus"
            [placeholder]="placeholder"
            (keydown.enter)="onPressEnter.emit($event)"
            (keypress)="filterNumberInput($event, false)"
@@ -45,6 +46,7 @@
            type="number"
            autocomplete="off" [min]="pmfm.minValue" [max]="pmfm.maxValue"
            decimal="true"
+           [appAutofocus]="autofocus"
            [placeholder]="placeholder"
            [step]="numberInputStep"
            (keyup.enter)="onPressEnter.emit($event)"
@@ -122,15 +124,16 @@
 
   <!-- qualitative value -->
   <app-pmfm-qv-field *ngSwitchCase="'qualitative_value'" #matInput
-                                 [pmfm]="pmfm"
-                                 [formControl]="formControl"
-                                 [floatLabel]="floatLabel"
-                                 [placeholder]="placeholder"
-                                 [required]="required"
-                                 [readonly]="readonly"
-                                 [compact]="compact"
-                                 [tabindex]="tabindex"
-                                 (keyup.enter)="onPressEnter.emit($event)">
+                     [pmfm]="pmfm"
+                     [autofocus]="autofocus"
+                     [formControl]="formControl"
+                     [floatLabel]="floatLabel"
+                     [placeholder]="placeholder"
+                     [required]="required"
+                     [readonly]="readonly"
+                     [compact]="compact"
+                     [tabindex]="tabindex"
+                     (keyup.enter)="onPressEnter.emit($event)">
     <div matAfter>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
@@ -140,6 +143,7 @@
   <mat-form-field *ngSwitchCase="'string'" [floatLabel]="floatLabel">
     <input matInput #matInput
            autocomplete="off"
+           [appAutofocus]="autofocus"
            [formControl]="formControl"
            [placeholder]="placeholder"
            [required]="required"
@@ -148,6 +152,11 @@
            (keypress)="filterAlphanumericalInput($event)"
            (keyup.enter)="onPressEnter.emit($event)">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+    <mat-error *ngIf="formControl.hasError('maxlength')">
+      {{ (compact ? 'ERROR.FIELD_MAX_LENGTH_COMPACT' : 'ERROR.FIELD_MAX_LENGTH') |translate:formControl.errors['maxlength'] }}</mat-error>
+    <mat-error *ngIf="formControl.hasError('minlength')">
+      {{ (compact ? 'ERROR.FIELD_MIN_LENGTH_COMPACT' : 'ERROR.FIELD_MIN_LENGTH') |translate:formControl.errors['minlength'] }}</mat-error>
+
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>

@@ -2,7 +2,7 @@ import {Moment} from 'moment';
 import {DataEntity, DataEntityAsObjectOptions,} from '../../../data/services/model/data-entity.model';
 import {IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
 import {Sale} from './sale.model';
-import {EntityClass, EntityUtils, fromDateISOString, isEmptyArray, isNotNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
+import {EntityClass, EntityUtils, fromDateISOString, isEmptyArray, isNil, isNotNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
 import {FishingArea} from './fishing-area.model';
 import {DataRootVesselEntity} from '../../../data/services/model/root-vessel-entity.model';
 import {IWithObserversEntity} from '../../../data/services/model/model.utils';
@@ -113,9 +113,10 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     {
       // Serialize samples into a tree (will keep only children arrays, and removed parentId and parent)
       if (!opts || opts.sampleAsTree !== false) {
-        target.samples = this.samples && this.samples
-          .filter(s => isNotNil(s.parentId) && isNotNil(s.parent))
-          .map(s => s.asObject({...opts, withChildren: true})) || undefined;
+        target.samples = this.samples
+          // Select root samples
+          && this.samples.filter(s => isNil(s.parentId) && isNil(s.parent))
+            .map(s => s.asObject({...opts, withChildren: true})) || undefined;
       } else {
         // Serialize as samples array (this will fill parentId, and remove children and parent properties)
         target.samples = Sample.treeAsObjectArray(this.samples, opts);
@@ -261,12 +262,6 @@ export class OperationGroup extends DataEntity<OperationGroup>
     this.samples = [];
     this.packets = [];
     this.fishingAreas = [];
-  }
-
-  clone(): OperationGroup {
-    const target = new OperationGroup();
-    target.fromObject(this.asObject());
-    return target;
   }
 
   asObject(opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
@@ -501,12 +496,6 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
     super(PhysicalGear.TYPENAME);
   }
 
-  clone(): PhysicalGear {
-    const target = new PhysicalGear();
-    target.fromObject(this.asObject());
-    return target;
-  }
-
   copy(target: PhysicalGear) {
     target.fromObject(this);
   }
@@ -570,12 +559,6 @@ export class VesselPosition extends DataEntity<VesselPosition> {
   constructor() {
     super();
     this.__typename = VesselPosition.TYPENAME;
-  }
-
-  clone(): VesselPosition {
-    const target = new VesselPosition();
-    target.fromObject(this.asObject());
-    return target;
   }
 
   asObject(options?: DataEntityAsObjectOptions): any {

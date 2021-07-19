@@ -8,3 +8,30 @@
 // --------------------------------------------------
 @import "~@sumaris-net/ngx-components/src/theme/theme";
 
+.mat-tab-fixed-content {
+  .mat-tab-body-content {
+    height: var(--mat-tab-body-content-height, 100%) !important;
+    overflow: auto;
+    & > .ng-star-inserted {
+      height: var(--mat-tab-body-content-height, 100%);
+    }
+  }
+}
+
+.mat-table {
+
+  .mat-header-row,
+  .mat-row,
+  .mat-footer-row {
+
+    .mat-header-cell,
+    .mat-cell,
+    .mat-footer-cell {
+
+      // Remove right border, of sticky columns
+      &.mat-table-sticky-border-elem-left {
+        border-right: 0 !important; // 1px solid #{$app-table-border-color};
+      }
+    }
+  }
+}

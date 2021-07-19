@@ -101,6 +101,7 @@
     "RECORDER": "Recorder",
     "RESULT_COUNT": "{{count}} results",
     "NO_RESULT": "No result",
+    "NO_DATA": "No data",
     "MISSING": "Missing",
 
     "DISPLAYED_COLUMNS": "Displayed columns",
@@ -149,8 +150,9 @@
       "ENABLE_GRAVATAR": "User > Enable Gravatar ?",
       "DEFAULT_LOCALE": "Default Language",
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
-      "NOT_SELF_DATA_ACCESS_MIN_ROLE": "User profile (min) to access other people data",
-      "SUPERVISOR_DEPARTMENT": "Supervisor department: can access other departments data",
+      "ACCESS_NOT_SELF_DATA_MIN_ROLE": "Data entry > Min. user profile (min) to access other people data",
+      "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Data entry > Department that can access other people data",
+      "CHECK_SAMPLE_UNIQUE_TAG": "Check if TAG_ID is unique",
       "APP_MIN_VERSION": "App > Minimal compatible version (x.y.z)",
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
@@ -189,8 +191,8 @@
         "TAXONOMIC_LEVEL_SPECIES_ID": "Referential > Taxonomic level > Species",
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Referential > Taxonomic level > Subspecies",
         "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Strategy label",
-        "PMFM_AGE_ID": "Referential > PMFM > Age",
         "PMFM_TAG_ID": "Référentiel > PSFM > Sample tag",
+        "PMFM_AGE_ID": "Referential > PMFM > Age",
         "PMFM_SEX_ID": "Referential > PMFM > Sex",
         "STRATEGY_PARAMETER_AGE_LABEL": "Strategy > Parameter > Age label",
         "STRATEGY_PARAMETER_SEX_LABEL": "Strategy > Parameter > Sex label",
@@ -210,6 +212,7 @@
       },
       "DATA_QUALITY_PROCESS_ENABLE": "Enable quality process?",
       "DATA_SHOW_RECORDER": "Show recorder person?",
+      "DATA_SHOW_OBSERVERS": "Show observers?",
       "LANDING": {
         "FILTER_PROGRAM": "Landing > Show program filter?",
         "FILTER_LOCATION": "Landing > Show locations filter?",
@@ -461,7 +464,8 @@
         "VESSEL": "Vessel",
         "SYNCHRONIZATION_STATUS": "Status",
         "RECORDER_DEPARTMENT": "Recorder department",
-        "RECORDER_PERSON": "Recorder user"
+        "RECORDER_PERSON": "Recorder user",
+        "OBSERVERS": "Observers"
       },
       "SYNCHRONIZATION_STATUS": {
         "DIRTY_HELP": "Not-synchronized trips",
@@ -704,7 +708,9 @@
         "MATURITY": "Maturity",
         "SEX": "Sex",
         "AGE": "Age",
-        "OTHER": "Other"
+        "OTHER": "Other",
+        "TOTAL_DOTS": "Total:",
+        "TAG_COUNT": "<b>{{tagCount}}</b> sample(s)"
       },
       "ERROR" : {
         "PARAMETERS.WEIGHT_OR_LENGTH": "Weight or length mandatory"
@@ -1618,7 +1624,7 @@
       "ENABLE": "Extraction > Enable?",
       "MAP_ENABLE": "Extraction > Map: enable?",
       "PRODUCT_ENABLE": "Extraction > Products: Enable?",
-      "NOT_SELF_ACCESS_MIN_ROLE": "Extraction > Min. role to show not self extractions"
+      "ACCESS_NOT_SELF_ROLE": "Extraction > Min. role to show not self extractions"
     },
     "PRODUCT": {
       "P01_RDB": {
@@ -1731,7 +1737,9 @@
     "FIELD_REQUIRED": "Value required",
     "FIELD_TOO_SHORT": "Value too short",
     "FIELD_MIN_LENGTH": "Too short value{{ minLength && (' (min ' + minLength + 'characters)') }}.",
+    "FIELD_MIN_LENGTH_COMPACT": "Too short value",
     "FIELD_MAX_LENGTH": "Too long value{{ maxLength && (' (max ' + maxLength + 'characters)') }}.",
+    "FIELD_MAX_LENGTH_COMPACT": "Too long value",
     "FIELD_MIN": "Minimal value: {{min}}",
     "FIELD_MIN_COMPACT": "Min value={{min}}",
     "FIELD_MAX": "Maximum value: {{max}}",

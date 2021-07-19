@@ -147,10 +147,13 @@
   </ion-header>
 
 
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)"
+  <mat-tab-group #tabGroup
+                 class="mat-tab-fixed-content"
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)"
                  (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)"
-                 [dynamicHeight]="mobile ? enableSwipe : false"
-                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'">
+                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+                 [dynamicHeight]="false">
 
     <!-- TAB: general -->
     <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_GENERAL'|translate}}">
@@ -223,10 +226,11 @@
 
       <!-- tab group for samples (e.g. survival test) -->
       <mat-tab-group #sampleTabGroup
-                     animationDuration="0s"
                      [class.cdk-visually-hidden]="!showSampleTables"
                      [(selectedIndex)]="selectedSampleTabIndex"
-                     (selectedTabChange)="onSampleTabChange($event)">
+                     (selectedTabChange)="onSampleTabChange($event)"
+                     [dynamicHeight]="false"
+                     animationDuration="0s">
 
         <!-- TAB: Samples  -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST'|translate}}">
@@ -241,6 +245,8 @@
                              [acquisitionLevel]="sampleAcquisitionLevel"
                              [programLabel]="$programLabel|async"
                              [usageMode]="usageMode"
+                             [showToolbar]="!mobile"
+                             [useSticky]="false"
                              [showLabelColumn]="false"
                              [showDateTimeColumn]="true"
                              [showTaxonNameColumn]="true"
@@ -263,6 +269,7 @@
           <app-individual-monitoring-table #individualMonitoringTable [debug]="true"
                                            [programLabel]="$programLabel | async"
                                            [usageMode]="usageMode"
+                                           [useSticky]="!mobile"
           ></app-individual-monitoring-table>
 
           <!-- final space-->
@@ -296,7 +303,7 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
+  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 
     <!-- error -->
@@ -305,7 +312,7 @@
       <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 
-  </form-buttons-bar>
+  </app-form-buttons-bar>
 </ion-footer>
 
 <!-- FAB button -->

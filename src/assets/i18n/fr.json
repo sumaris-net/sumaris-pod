@@ -101,6 +101,7 @@
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",
     "NO_RESULT": "Aucun résultat",
+    "NO_DATA": "Aucune donnée",
     "MISSING": "Manquant",
 
     "DISPLAYED_COLUMNS": "Paramétrage des colonnes",
@@ -149,8 +150,9 @@
       "ENABLE_GRAVATAR": "Utilisateur > Utiliser Gravatar ?",
       "DEFAULT_LOCALE": "Langue par défaut",
       "DEFAULT_LATLONG_FORMAT": "Format lat/lon par défaut",
-      "NOT_SELF_DATA_ACCESS_MIN_ROLE": "Saisie > Role min. pour voir les données des autres",
-      "SUPERVISOR_DEPARTMENT": "Saisie > Département superviseur : peut voir les données des autres départements",
+      "ACCESS_NOT_SELF_DATA_MIN_ROLE": "Saisie > Role min. pour voir les données des autres",
+      "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Saisie > Services permettant de voir les données des autres (ID)",
+      "CHECK_SAMPLE_UNIQUE_TAG": "Saisie > Vérifier l'unicité du code de prélèvement",
       "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
@@ -210,6 +212,7 @@
       },
       "DATA_QUALITY_PROCESS_ENABLE": "Activer le processus qualité ?",
       "DATA_SHOW_RECORDER": "Afficher le saisisseur ?",
+      "DATA_SHOW_OBSERVERS": "Afficher les observateurs ?",
       "LANDING": {
         "FILTER_PROGRAM": "Sorties > Afficher le filtre sur le programme ?",
         "FILTER_LOCATION": "Sorties > Afficher le filtre sur les lieux ?",
@@ -706,6 +709,8 @@
         "SEX": "Sexe",
         "AGE": "Age",
         "OTHER": "Autre",
+        "TOTAL_DOTS": "Total :",
+        "TAG_COUNT": "<b>{{tagCount}}</b> prélèvement(s)",
         "SAMPLING": {
           "TAXON_GROUP": "Espèce commerciale (FAO)",
           "TAXON_GROUP_PLACEHOLDER": "Code espèce",
@@ -878,7 +883,7 @@
       "STRATEGY": "Stratégie",
       "CREATION_DATE": "Date de création",
       "RECORDER_PERSON" : "Saisisseur",
-      "SAMPLES_COUNT": "Nb. individus",
+      "SAMPLES_COUNT": "Nb. prélèvements",
       "SAMPLING": {
         "STRATEGY_LABEL": "Ligne de plan"
       }
@@ -1662,7 +1667,7 @@
       "ENABLE": "Extraction > Activer ?",
       "MAP_ENABLE": "Extraction > Cartes : Activer ?",
       "PRODUCT_ENABLE": "Extraction > Produits : Activer ?",
-      "NOT_SELF_ACCESS_MIN_ROLE": "Extraction > Role min. pour voir les extractions des autres"
+      "ACCESS_NOT_SELF_ROLE": "Extraction > Role min. pour voir les extractions des autres"
     },
     "PRODUCT": {
       "P01_RDB": {
@@ -1775,7 +1780,9 @@
     "FIELD_REQUIRED": "Champ obligatoire",
     "FIELD_TOO_SHORT": "Valeur trop courte",
     "FIELD_MIN_LENGTH": "Valeur trop courte {{minLength && (' (' + minLength + ' caractères min)') }}",
+    "FIELD_MIN_LENGTH_COMPACT": "Valeur trop courte",
     "FIELD_MAX_LENGTH": "Valeur trop longue {{maxLength && (' (' + maxLength + ' caractères max)') }}",
+    "FIELD_MAX_LENGTH_COMPACT": "Valeur trop longue",
     "FIELD_MIN": "La valeur minimale autorisée est {{min}}",
     "FIELD_MIN_COMPACT": "Min autorisée={{min}}",
     "FIELD_MAX": "Valeur maximale autorisée: {{max}}",

@@ -60,10 +60,6 @@ export class VesselActivity extends Entity<VesselActivity> {
     this.tripId = source.tripId;
   }
 
-  clone(): VesselActivity {
-    return VesselActivity.fromObject(this.asObject());
-  }
-
   static isEmpty(value: VesselActivity) {
     return !value || (
       MeasurementValuesUtils.isEmpty(value.measurementValues)

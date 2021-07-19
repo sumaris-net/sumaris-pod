@@ -4,8 +4,8 @@ import {environment} from "../../../environments/environment";
 import {AlertController, IonContent, ModalController} from "@ionic/angular";
 import {BehaviorSubject, isObservable, Observable, of} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 import {isNil, isNotEmptyArray, toBoolean} from "@sumaris-net/ngx-components";
 import {PlatformService}  from "@sumaris-net/ngx-components";
 import {SampleForm} from "./sample.form";
@@ -13,12 +13,12 @@ import {Sample} from "../services/model/sample.model";
 import {UsageMode}  from "@sumaris-net/ngx-components";
 import {Alerts} from "@sumaris-net/ngx-components";
 import {TRIP_LOCAL_SETTINGS_OPTIONS} from "../services/config/trip.config";
-import {IDataEntityModalOptions} from "../../data/table/data-modal.class";
+import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
 import {debounceTime} from "rxjs/operators";
 import {AppFormUtils}  from "@sumaris-net/ngx-components";
 import {EntityUtils}  from "@sumaris-net/ngx-components";
 import {referentialToString}  from "@sumaris-net/ngx-components";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 
 export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
 
@@ -185,6 +185,9 @@ export class SampleModal implements OnInit, ISampleModalOptions {
   }
 
   async onSubmit(event?: UIEvent) {
+    // DEBUG
+    //console.debug('[sample-modal] Calling onSubmit()');
+
     // Add and reset
     if (this.enableBurstMode) {
       if (this.loading) return undefined; // avoid many call
@@ -201,6 +204,7 @@ export class SampleModal implements OnInit, ISampleModalOptions {
       }
       finally {
         this.loading = false;
+        this.markForCheck();
       }
     }
     // Or leave
@@ -278,7 +282,7 @@ export class SampleModal implements OnInit, ISampleModalOptions {
       this.computeTitle();
     }
     finally {
-
+      this.markForCheck();
     }
   }
 

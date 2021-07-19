@@ -10,7 +10,6 @@ import {
   InMemoryEntitiesService,
   IReferentialRef,
   isEmptyArray,
-  isInstanceOf,
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
@@ -177,7 +176,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   }
 
   get dirty(): boolean {
-    return this._dirty || this.memoryDataService.dirty;
+    return super.dirty || this.memoryDataService.dirty;
   }
 
   @ViewChild('form', { static: true }) form: SubBatchForm;
@@ -236,61 +235,63 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     if (this.inlineEdition) { // can be override bu subclasses
 
       // Create listener on column 'DISCARD_OR_LANDING' value changes
-      this.registerCellValueChanges('discard', "measurementValues." + PmfmIds.DISCARD_OR_LANDING.toString())
-        .subscribe((value) => {
-          if (!this.editedRow) return; // Should never occur
-          const row = this.editedRow;
-          const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
-          if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
-            if (controls[PmfmIds.DISCARD_REASON]) {
-              if (row.validator.enabled) {
-                controls[PmfmIds.DISCARD_REASON].enable();
-              }
-              controls[PmfmIds.DISCARD_REASON].setValidators(Validators.required);
-              controls[PmfmIds.DISCARD_REASON].updateValueAndValidity();
-            }
-          } else {
-            if (controls[PmfmIds.DISCARD_REASON]) {
-              controls[PmfmIds.DISCARD_REASON].disable();
-              controls[PmfmIds.DISCARD_REASON].setValue(null);
-              controls[PmfmIds.DISCARD_REASON].setValidators(null);
-            }
-          }
-        });
-
-      this.registerCellValueChanges('parentGroup', "parentGroup")
-        .subscribe((parentGroup) => {
-          if (!this.editedRow) return; // Skip
-
-          const parenTaxonGroupId = parentGroup && parentGroup.taxonGroup && parentGroup.taxonGroup.id;
-          if (isNil(parenTaxonGroupId)) return; // Skip
-
-          const row = this.editedRow;
-
-          const pmfms = this.$pmfms.getValue() || [];
-          const formEnabled = row.validator.enabled;
-          const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
-
-          pmfms.forEach(pmfm => {
-            const enable = !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(parenTaxonGroupId);
-            const control = controls[pmfm.id];
-
-            // Update control state
-            if (control) {
-              if (enable) {
-                if (formEnabled) {
-                  control.enable();
+      this.registerSubscription(
+        this.registerCellValueChanges('discard', "measurementValues." + PmfmIds.DISCARD_OR_LANDING.toString())
+          .subscribe((value) => {
+            if (!this.editedRow) return; // Should never occur
+            const row = this.editedRow;
+            const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
+            if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
+              if (controls[PmfmIds.DISCARD_REASON]) {
+                if (row.validator.enabled) {
+                  controls[PmfmIds.DISCARD_REASON].enable();
                 }
-                control.setValidators(PmfmValidators.create(pmfm));
+                controls[PmfmIds.DISCARD_REASON].setValidators(Validators.required);
+                controls[PmfmIds.DISCARD_REASON].updateValueAndValidity();
               }
-              else {
-                control.disable();
-                control.setValidators(null);
-                control.setValue(null);
+            } else {
+              if (controls[PmfmIds.DISCARD_REASON]) {
+                controls[PmfmIds.DISCARD_REASON].disable();
+                controls[PmfmIds.DISCARD_REASON].setValue(null);
+                controls[PmfmIds.DISCARD_REASON].setValidators(null);
               }
             }
-          });
-        });
+          }));
+
+      this.registerSubscription(
+        this.registerCellValueChanges('parentGroup', "parentGroup")
+          .subscribe((parentGroup) => {
+            if (!this.editedRow) return; // Skip
+
+            const parenTaxonGroupId = parentGroup && parentGroup.taxonGroup && parentGroup.taxonGroup.id;
+            if (isNil(parenTaxonGroupId)) return; // Skip
+
+            const row = this.editedRow;
+
+            const pmfms = this.$pmfms.getValue() || [];
+            const formEnabled = row.validator.enabled;
+            const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
+
+            pmfms.forEach(pmfm => {
+              const enable = !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(parenTaxonGroupId);
+              const control = controls[pmfm.id];
+
+              // Update control state
+              if (control) {
+                if (enable) {
+                  if (formEnabled) {
+                    control.enable();
+                  }
+                  control.setValidators(PmfmValidators.create(pmfm));
+                }
+                else {
+                  control.disable();
+                  control.setValidators(null);
+                  control.setValue(null);
+                }
+              }
+            });
+          }));
     }
   }
 
@@ -612,7 +613,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
-    return  isInstanceOf(data, SubBatch) ? data : undefined;
+    return  (data instanceof SubBatch) ? data : undefined;
   }
 
   protected async addEntityToTable(newBatch: SubBatch): Promise<TableElement<SubBatch>> {

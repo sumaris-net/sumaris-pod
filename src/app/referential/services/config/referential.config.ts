@@ -177,7 +177,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
-    defaultValue: PmfmIds.SAMPLE_ID
+    defaultValue: PmfmIds.TAG_ID
   },
   PMFM_AGE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.pmfm.AGE.id',
@@ -207,13 +207,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     key: 'sumaris.enumeration.parameter.age.label',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_AGE_LABEL',
     type: 'string',
-    defaultValue: ParameterLabelGroups.AGE.join(',')
+    defaultValue: ParameterLabelGroups.AGE[0]
   },
   STRATEGY_PARAMETER_SEX_LABEL: <FormFieldDefinition>{
     key: 'sumaris.enumeration.parameter.sex.label',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_SEX_LABEL',
     type: 'string',
-    defaultValue: ParameterLabelGroups.SEX.join(',')
+    defaultValue: ParameterLabelGroups.SEX[0]
   },
   STRATEGY_PARAMETER_WEIGHT_LABELS: <FormFieldDefinition>{
     key: 'sumaris.enumeration.parameter.weight.labels',

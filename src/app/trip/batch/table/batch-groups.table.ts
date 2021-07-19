@@ -8,7 +8,6 @@ import {
   FormFieldDefinition,
   InMemoryEntitiesService,
   IReferentialRef,
-  isInstanceOf,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -113,8 +112,13 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   estimatedWeightPmfm: IPmfm;
   dynamicColumns: ColumnDefinition[];
 
-  @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
+  // TODO Top group header
+  //showGroupHeader = false;
+  //groupHeaderStartColSpan: number;
+  //groupHeaderEndColSpan: number;
 
+  @Input() useSticky = false;
+  @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
 
   @Input() set defaultTaxonGroups(value: string[]) {
@@ -798,7 +802,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     const canDeleteRow = await this.canDeleteRows([row]);
     if (canDeleteRow === true) {
-      this.cancelOrDelete(event, row, true /*already confirmed*/);
+      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/ });
     }
     return canDeleteRow;
   }

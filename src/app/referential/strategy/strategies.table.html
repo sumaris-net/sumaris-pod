@@ -147,7 +147,7 @@
 <!--        <mat-icon>undo</mat-icon>-->
 <!--      </button>-->
 <!--      <button mat-icon-button small color="light" *ngIf="row.editing && row.id == -1" [title]="'COMMON.BTN_ADD'|translate"-->
-<!--              (click)="confirmAndAddRow($event, row)">-->
+<!--              (click)="confirmAndAdd($event, row)">-->
 <!--        <mat-icon>add</mat-icon>-->
 <!--      </button>-->
 
@@ -167,7 +167,7 @@
       <!-- add -->
       <button mat-icon-button small color="light" *ngIf="row.validator.valid && row.id === -1"
               [title]="'COMMON.BTN_ADD'|translate"
-              (click)="confirmAndAddRow($event, row)">
+              (click)="confirmAndAdd($event, row)">
         <mat-icon>add</mat-icon>
       </button>
     </mat-cell>

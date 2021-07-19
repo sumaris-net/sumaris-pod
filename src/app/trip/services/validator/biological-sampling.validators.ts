@@ -26,7 +26,7 @@ export class BiologicalSamplingValidators {
       const hasLengthSize = (pmfmGroups.LENGTH || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
 
       if (!hasWeight && !hasLengthSize){
-        return { missingWeightOrSize: true };
+        return { missingWeightOrSize: 'TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_LENGTH' };
       }
     });
 

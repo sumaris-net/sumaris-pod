@@ -15,6 +15,24 @@
 // --------------------------------------------------
 :root {
   @include css-variables-to-root();
+  --mat-tab-link-height: #{$mat-tab-link-height};
+
+  ion-app {
+    @include css-variables-to-root();
+    --mat-tab-link-height: #{$mat-tab-link-height};
+  }
+
+  &.plt-mobile {
+    @include css-variables-to-root-mobile();
+    ion-app {
+      @include css-variables-to-root-mobile();
+    }
+  }
+
+  // Extra small device
+  @media screen and (max-width: $screen-xs-max) {
+    --mat-toolbar-height: #{$mat-toolbar-height-mobile};
+  }
 }
 
 ion-button.mat-form-field-button.ion-color.md.button.button-solid {

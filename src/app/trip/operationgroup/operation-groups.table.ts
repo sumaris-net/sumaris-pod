@@ -46,7 +46,7 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
   }
 
   get dirty(): boolean {
-    return this._dirty || this.memoryDataService.dirty;
+    return super.dirty || this.memoryDataService.dirty;
   }
 
   @Input() $metiers: BehaviorSubject<ReferentialRef[]>;

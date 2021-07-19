@@ -28,8 +28,8 @@ export abstract class AppRootDataEditor<
   extends AppEntityEditor<T, S, ID>
   implements OnInit {
 
-  private _$reloadProgram = new Subject();
-  private _$reloadStrategy = new Subject();
+  private _reloadProgram$ = new Subject();
+  private _reloadStrategy$ = new Subject();
 
   protected programRefService: ProgramRefService;
   protected strategyRefService: StrategyRefService;
@@ -102,7 +102,7 @@ export abstract class AppRootDataEditor<
             distinctUntilChanged()
           ),
         // Allow to force reload (e.g. when program remotely changes - see startListenProgramRemoteChanges() )
-        this._$reloadProgram
+        this._reloadProgram$
           .pipe(
             map(() => this.$programLabel.getValue()),
             filter(isNotNilOrBlank)
@@ -124,7 +124,7 @@ export abstract class AppRootDataEditor<
             distinctUntilChanged()
           ),
         // Allow to force reload (e.g. when program remotely changes - see startListenProgramRemoteChanges() )
-        this._$reloadStrategy
+        this._reloadStrategy$
           .pipe(
             map(() => this.$strategyLabel.getValue())
           )
@@ -160,7 +160,10 @@ export abstract class AppRootDataEditor<
     this.$program.unsubscribe();
     this.$strategy.unsubscribe();
 
-    this._$reloadProgram.unsubscribe();
+    this._reloadProgram$.complete();
+    this._reloadProgram$.unsubscribe();
+    this._reloadStrategy$.complete();
+    this._reloadStrategy$.unsubscribe();
   }
 
   async load(id?: ID, options?: EntityServiceLoadOptions) {
@@ -251,10 +254,12 @@ export abstract class AppRootDataEditor<
   }
 
   protected startListenProgramRemoteChanges(program: Program) {
-    if (!program || isNil(program.id)) return; // Skip
+    if (!program || isNil(program.id)) return; // Skip if program is missing
+    console.debug(`[root-data-editor] Listening program #${program.id} changes...`);
 
-    // Remove previous listener (e.g. on a previous program id)
+    // Remove previous subscription, if exists
     if (this.remoteProgramSubscription) {
+      this.unregisterSubscription(this.remoteProgramSubscription);
       this.remoteProgramSubscription.unsubscribe();
     }
 
@@ -265,7 +270,7 @@ export abstract class AppRootDataEditor<
           if (data.updateDate && (data.updateDate as Moment).isAfter(program.updateDate)) {
             if (this.debug) console.debug(`[root-data-editor] Program changes detected on server, at {${data.updateDate}}: clearing program cache...`);
             // Reload program & strategies
-            await this.reloadProgram();
+            return this.reloadProgram();
           }
         })
       )
@@ -282,6 +287,7 @@ export abstract class AppRootDataEditor<
 
     // Remove previous listener (e.g. on a previous program id)
     if (this.remoteStrategySubscription) {
+      this.unregisterSubscription(this.remoteStrategySubscription);
       this.remoteStrategySubscription.unsubscribe();
     }
 
@@ -309,7 +315,7 @@ export abstract class AppRootDataEditor<
     // Cache clear
     await this.programRefService.clearCache();
 
-    this._$reloadProgram.next();
+    this._reloadProgram$.next();
   }
 
   /**
@@ -322,7 +328,7 @@ export abstract class AppRootDataEditor<
     // Cache clear
     await this.strategyRefService.clearCache();
 
-    this._$reloadStrategy.next();
+    this._reloadStrategy$.next();
   }
 
   /**

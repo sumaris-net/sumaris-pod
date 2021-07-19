@@ -31,6 +31,7 @@ export class Strategy<
     this.__typename = Strategy.TYPENAME;
   }
 
+// TODO : Check if clone is needed
   clone(): T {
     const target = new Strategy();
     target.fromObject(this);
@@ -90,6 +91,7 @@ export class StrategyDepartment extends Entity<StrategyDepartment> {
     return res;
   }
 
+// TODO : Check if clone is needed
   clone(): StrategyDepartment {
     const target = new StrategyDepartment();
     target.fromObject(this);
@@ -133,7 +135,7 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
     super();
     this.__typename = AppliedStrategy.TYPENAME;
   }
-
+// TODO : Check if clone is needed
   clone(): AppliedStrategy {
     const target = new AppliedStrategy();
     target.fromObject(this);
@@ -200,6 +202,7 @@ export class AppliedPeriod {
     this.acquisitionNumber = source.acquisitionNumber;
   }
 
+// TODO : Check if clone is needed
   clone(): AppliedPeriod {
     const target = new AppliedPeriod();
     target.fromObject(this.asObject());

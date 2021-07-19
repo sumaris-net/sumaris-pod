@@ -3,17 +3,22 @@ import {
   AppFormUtils,
   AppTable,
   DefaultStatusList,
-  EntitiesTableDataSource, firstArrayValue,
-  fromDateISOString, isEmptyArray,
+  EntitiesTableDataSource,
+  fromDateISOString,
+  isEmptyArray,
   isNotEmptyArray,
-  isNotNil, isNotNilOrBlank,
-  LocalSettingsService, ObjectMap,
+  isNotNil,
+  LocalSettingsService,
+  ObjectMap,
   PersonService,
-  PersonUtils, ReferentialRef, removeDuplicatesFromArray,
+  PersonUtils,
+  removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  SharedValidators, sleep,
-  StatusIds, toBoolean
+  SharedValidators,
+  sleep,
+  StatusIds,
+  toBoolean
 } from '@sumaris-net/ngx-components';
 import {Program} from '../../services/model/program.model';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -36,8 +41,6 @@ import {MatExpansionPanel} from '@angular/material/expansion';
 import {TableElement} from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
 import {Subject} from 'rxjs';
 import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
-import {Parameter} from '@app/referential/services/model/parameter.model';
-import {TaxonNameService} from '@app/referential/services/taxon-name.service';
 
 const moment = momentImported;
 
@@ -78,6 +81,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   @Input() showError = true;
   @Input() showPaginator = true;
   @Input() filterPanelFloating = true;
+  @Input() useSticky = true;
 
   @Input() set program(program: Program) {
    this.setProgram(program);
@@ -219,12 +223,12 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
 
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value, filter) => this.referentialRefService.suggestTaxonNames(value, filter),
+      attributes: ['name'],
       filter: <ReferentialFilter>{
         levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES],
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }
     });
-
 
     // Combo: recorder person (filter)
     this.registerAutocompleteField('person', {
