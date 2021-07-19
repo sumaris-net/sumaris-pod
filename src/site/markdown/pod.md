@@ -148,7 +148,7 @@ To change the Pod's configuration, follow this steps:
     Your configuration file should have been processed.
 
 
-## Build from source (database + Pod) 
+## Build from source
 
  1. Installe project dependencies:
     * Install build tools (Make, GCC, Git)
