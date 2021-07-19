@@ -23,6 +23,12 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     defaultValue: '',
     type: 'string'
   },
+  CHECK_SAMPLE_UNIQUE_TAG: <FormFieldDefinition>{
+    key: "sumaris.persistence.sample.uniqueTag",
+    label: "CONFIGURATION.OPTIONS.CHECK_SAMPLE_UNIQUE_TAG",
+    type: 'boolean',
+    defaultValue: false
+  },
   ENTITY_TRASH: <FormFieldDefinition> {
     key: 'sumaris.persistence.trash.enable',
     label: 'CONFIGURATION.OPTIONS.ENTITY_TRASH',

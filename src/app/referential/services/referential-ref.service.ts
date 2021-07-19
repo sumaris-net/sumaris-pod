@@ -295,6 +295,16 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     return { data: entities, total };
   }
 
+  async countAll(filter?: Partial<ReferentialRefFilter>,
+                 opts?: {
+                   [key: string]: any;
+                   fetchPolicy?: FetchPolicy;
+                 }): Promise<number> {
+    // TODO use specific query
+    const res = await this.loadAll(0, 0, null, null, filter, {...opts, withTotal: true});
+    return res.total;
+  }
+
   async loadById(id: number,
                  entityName: string,
                  opts?: {

@@ -149,6 +149,8 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
       || (this.rankOrder === other.rankOrder
         // same operation
         && ((!this.operationId && !other.operationId) || this.operationId === other.operationId)
+        // same landing
+        && ((!this.landingId && !other.landingId) || this.landingId === other.landingId)
         // same label
         && ((!this.label && !other.label) || this.label === other.label)
         // Warn: compare using the parent ID is too complicated

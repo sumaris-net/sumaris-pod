@@ -761,7 +761,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     // Update samples (recursively)
     if (target.samples && source.samples) {
-      this.copyIdAndUpdateDateOnSamples(source.samples, target.samples);
+      this.copyIdAndUpdateDateOnSamples(source.samples, target.samples, source);
     }
   }
 
@@ -854,17 +854,24 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
    * @param sources
    * @param targets
    */
-  protected copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[]) {
+  protected copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[], savedLanding: Landing) {
     // Update samples
     if (sources && targets) {
       targets.forEach(target => {
+        // Set the landing id (required by equals function)
+        target.landingId = savedLanding.id;
+
         const source = sources.find(json => target.equals(json));
         EntityUtils.copyIdAndUpdateDate(source, target);
         DataRootEntityUtils.copyControlAndValidationDate(source, target);
 
+        // Copy parent Id (need for link to parent)
+        target.parentId = source.parentId;
+        target.parent = null;
+
         // Apply to children
         if (target.children && target.children.length) {
-          this.copyIdAndUpdateDateOnSamples(sources, target.children); // recursive call
+          this.copyIdAndUpdateDateOnSamples(sources, target.children, savedLanding); // recursive call
         }
       });
     }

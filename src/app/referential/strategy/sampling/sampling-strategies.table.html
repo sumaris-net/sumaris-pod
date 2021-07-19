@@ -232,7 +232,7 @@
          [dataSource]="dataSource"
          [trackBy]="trackByFn">
 
-    <ng-container matColumnDef="select">
+    <ng-container matColumnDef="select" [sticky]="useSticky">
       <th mat-header-cell *matHeaderCellDef>
         <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
                       [indeterminate]="selection.hasValue() && !isAllSelected()">
@@ -245,7 +245,7 @@
     </ng-container>
 
     <!-- Id column -->
-    <ng-container matColumnDef="id">
+    <ng-container matColumnDef="id" [sticky]="useSticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
@@ -253,7 +253,7 @@
     </ng-container>
 
     <!-- label column -->
-    <ng-container matColumnDef="label">
+    <ng-container matColumnDef="label" [sticky]="useSticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <span>{{i18nColumnPrefix + 'LABEL'|translate}}</span>
       </th>
@@ -358,7 +358,7 @@
 
 
     <!-- Actions buttons column -->
-    <ng-container matColumnDef="actions">
+    <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
       <th mat-header-cell *matHeaderCellDef>
 
         <!-- display columns -->

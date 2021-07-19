@@ -15,6 +15,7 @@
                [formControl]="formControl"
                [placeholder]="placeholder"
                [matAutocomplete]="autoCombo"
+               [appAutofocus]="autofocus"
                (click)="selectInputContent($event) && onShowDropdown.emit($event)"
                (focus)="onShowDropdown.next($event)"
                (blur)="_onBlur($event)"

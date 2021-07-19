@@ -40,7 +40,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Input() compact = false;
   @Input() floatLabel: FloatLabelType = "auto";
   @Input() tabindex: number;
-  @Input() appAutofocus: boolean;
+  @Input() autofocus: boolean;
 
   // When async validator (e.g. BatchForm), force update when error detected
   @Input() listenStatusChanges: boolean;

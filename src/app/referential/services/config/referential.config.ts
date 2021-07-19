@@ -177,7 +177,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
-    defaultValue: PmfmIds.SAMPLE_ID
+    defaultValue: PmfmIds.TAG_ID
   },
   PMFM_AGE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.pmfm.AGE.id',

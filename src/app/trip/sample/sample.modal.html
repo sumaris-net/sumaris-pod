@@ -1,6 +1,6 @@
 <app-modal-toolbar color="secondary"
-                   [title]="$title|async"
                    (cancel)="close($event)"
+                   [title]="$title | async"
                    (validate)="onSubmit($event)"
                    [showSpinner]="loading"
                    [canValidate]="!enableBurstMode">

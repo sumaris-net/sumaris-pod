@@ -4,11 +4,9 @@
                    [showSpinner]="loading"
                    [canValidate]="!loading"
                    (validate)="onSubmit($event)">
-
 </app-modal-toolbar>
 
 <ion-content>
-
 <!--                     [class.cdk-visually-hidden]="!samplesTable.defaultTaxonGroup"-->
 <!--                     [defaultSampleDate]="data?.dateTime"-->
   <app-samples-table #table

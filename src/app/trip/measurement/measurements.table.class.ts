@@ -506,6 +506,14 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return row;
   }
 
+  duplicateRow(event?: Event, row?: TableElement<T>, opts?: {
+    skipProperties?: string[];
+  }): Promise<boolean> {
+    const skipProperties = opts && opts.skipProperties
+      || ['id', 'rankOrder', 'updateDate', 'creationDate', 'label'].concat(this.hasRankOrder ? ['rankOrder'] : []);
+    return super.duplicateRow(event, row, {...opts, skipProperties});
+  }
+
   protected getI18nColumnName(columnName: string): string {
 
     // Try to resolve PMFM column, using the cached pmfm list
@@ -517,6 +525,16 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
     return super.getI18nColumnName(columnName);
   }
+
+  protected getI18nFieldName(fieldName: string): string {
+    if (fieldName.startsWith('measurementValues.')) {
+      const pmfmId = parseInt(fieldName.split('.')[1]);
+      const pmfm = (this.$pmfms.getValue() || []).find(p => p.id === pmfmId);
+      if (pmfm) return PmfmUtils.getPmfmName(pmfm);
+    }
+    return super.getI18nFieldName(fieldName);
+  }
+
 
   protected normalizeEntityToRow(data: T, row: TableElement<T>) {
     if (!data) return; // skip

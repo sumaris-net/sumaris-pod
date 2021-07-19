@@ -42,6 +42,7 @@ import {environment} from '../../../environments/environment';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 import {RefetchQueryDescription} from '@apollo/client/core/watchQueryOptions';
+import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -808,7 +809,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Update samples (recursively)
     if (target.samples && source.samples) {
-      this.copyIdAndUpdateDateOnSamples(source.samples, target.samples);
+      this.copyIdAndUpdateDateOnSamples(source.samples, target.samples, source);
     }
 
     // Update batches (recursively)
@@ -822,16 +823,27 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
    * @param sources
    * @param targets
    */
-  protected copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[]) {
+  protected copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[], savedOperation: Operation) {
+    // DEBUG
+    //console.debug("[operation-service] Calling copyIdAndUpdateDateOnSamples()");
+
     // Update samples
     if (sources && targets) {
       targets.forEach(target => {
+        // Set the operation id (required by equals function)
+        target.operationId = savedOperation.id;
+
         const source = sources.find(json => target.equals(json));
         EntityUtils.copyIdAndUpdateDate(source, target);
+        DataRootEntityUtils.copyControlAndValidationDate(source, target);
+
+        // Copy parent Id (need for link to parent)
+        target.parentId = source.parentId;
+        target.parent = null;
 
         // Apply to children
         if (target.children && target.children.length) {
-          this.copyIdAndUpdateDateOnSamples(sources, target.children);
+          this.copyIdAndUpdateDateOnSamples(sources, target.children, savedOperation);
         }
       });
     }

@@ -17,7 +17,6 @@
     "BTN_DELETE_FOREVER": "Supprimer définitivement",
     "BTN_EDIT": "Modifier",
     "BTN_EXPAND": "Déplier",
-    "BTN_UNDO": "Annuler les modifications",
     "BTN_FREEZE_VALUE": "Figer",
     "BTN_FREEZE_VALUE_HELP": "Figer la valeur",
     "BTN_YES_DELETE": "Oui, supprimer",
@@ -102,6 +101,7 @@
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",
     "NO_RESULT": "Aucun résultat",
+    "NO_DATA": "Aucune donnée",
     "MISSING": "Manquant",
 
     "DISPLAYED_COLUMNS": "Paramétrage des colonnes",
@@ -152,6 +152,7 @@
       "DEFAULT_LATLONG_FORMAT": "Format lat/lon par défaut",
       "ACCESS_NOT_SELF_DATA_MIN_ROLE": "Saisie > Role min. pour voir les données des autres",
       "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Saisie > Services permettant de voir les données des autres (ID)",
+      "CHECK_SAMPLE_UNIQUE_TAG": "Saisie > Vérifier l'unicité du code de prélèvement",
       "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
@@ -708,6 +709,8 @@
         "SEX": "Sexe",
         "AGE": "Age",
         "OTHER": "Autre",
+        "TOTAL_DOTS": "Total :",
+        "TAG_COUNT": "<b>{{tagCount}}</b> prélèvement(s)",
         "SAMPLING": {
           "TAXON_GROUP": "Espèce commerciale (FAO)",
           "TAXON_GROUP_PLACEHOLDER": "Code espèce",
@@ -880,7 +883,7 @@
       "STRATEGY": "Stratégie",
       "CREATION_DATE": "Date de création",
       "RECORDER_PERSON" : "Saisisseur",
-      "SAMPLES_COUNT": "Nb. individus",
+      "SAMPLES_COUNT": "Nb. prélèvements",
       "SAMPLING": {
         "STRATEGY_LABEL": "Ligne de plan"
       }
@@ -1462,7 +1465,8 @@
         "STRATEGY_HAS_REALIZED_EFFORT": "La ligne de plan {{label}} est liée à une ou plusieurs observations individuelles",
         "STRATEGIES_HAS_REALIZED_EFFORT": "Les lignes de plan {{label}} sont liées à une ou plusieurs observations individuelles",
         "PMFM.PMFM_OR_PARAMETER": "Veuillez sélectionner un PSFM ou un paramètre",
-        "CANNOT_COMPUTE_TAXON_CODE": "Veuillez saisir manuellement le code espèce du code de la ligne de plan"
+        "CANNOT_COMPUTE_TAXON_CODE": "Veuillez saisir manuellement le code espèce du code de la ligne de plan",
+        "NOT_UNIQUE_TAXON_CODE": "Le code espèce généré n'est pas unique, veuillez le saisir manuellement"
       }
     },
     "ERROR": {
@@ -1776,7 +1780,9 @@
     "FIELD_REQUIRED": "Champ obligatoire",
     "FIELD_TOO_SHORT": "Valeur trop courte",
     "FIELD_MIN_LENGTH": "Valeur trop courte {{minLength && (' (' + minLength + ' caractères min)') }}",
+    "FIELD_MIN_LENGTH_COMPACT": "Valeur trop courte",
     "FIELD_MAX_LENGTH": "Valeur trop longue {{maxLength && (' (' + maxLength + ' caractères max)') }}",
+    "FIELD_MAX_LENGTH_COMPACT": "Valeur trop longue",
     "FIELD_MIN": "La valeur minimale autorisée est {{min}}",
     "FIELD_MIN_COMPACT": "Min autorisée={{min}}",
     "FIELD_MAX": "Valeur maximale autorisée: {{max}}",

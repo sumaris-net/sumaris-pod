@@ -1,18 +1,22 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedFormGroupValidators, SharedValidators} from "@sumaris-net/ngx-components";
+import {AppValidatorService, SharedFormGroupValidators, SharedValidators} from '@sumaris-net/ngx-components';
 import {Sample} from "../model/sample.model";
 import {isNotNil, toNumber} from "@sumaris-net/ngx-components";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {Subscription} from "rxjs";
 import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
 import {ParameterLabelGroups} from "../../../referential/services/model/model.enum";
+import {TranslateService} from '@ngx-translate/core';
 
 @Injectable({providedIn: 'root'})
-export class SampleValidatorService implements ValidatorService {
+export class SampleValidatorService extends AppValidatorService implements ValidatorService {
 
-  constructor(private formBuilder: FormBuilder) {
+  constructor(
+    protected formBuilder: FormBuilder,
+    protected translate: TranslateService) {
+    super(formBuilder, translate);
   }
 
   getRowValidator(): FormGroup {
@@ -47,5 +51,9 @@ export class SampleValidatorService implements ValidatorService {
     });
   }
 
+  getI18nError(errorKey: string, errorContent?: any): any {
+    if (errorKey === 'missingWeightOrSize') return this.translate.instant(errorContent);
+    return super.getI18nError(errorKey, errorContent);
+  }
 
 }

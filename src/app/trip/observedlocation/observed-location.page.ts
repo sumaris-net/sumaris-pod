@@ -36,7 +36,7 @@ import {ObservedLocationsPageSettingsEnum} from './observed-locations.page';
 import {environment} from '../../../environments/environment';
 import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
 import {LandingFilter} from '../services/filter/landing.filter';
-import {LandingValidatorService} from '@app/trip/services/validator/landing.validator';
+import {Browser} from 'leaflet';
 
 const moment = momentImported;
 
@@ -158,8 +158,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     this.$ready.next(true);
 
-    // Listen program change (will reload program if need)
-    //this.startListenProgramRemoteChanges(program);
+    // Listen program, to reload if changes
+    this.startListenProgramRemoteChanges(program);
   }
 
   protected async onNewEntity(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {

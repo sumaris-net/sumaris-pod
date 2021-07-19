@@ -229,7 +229,7 @@ import {AppCoreModule} from '@app/core/core.module';
         // Referential
         {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
         {title: 'MENU.VESSELS', path: '/vessels', icon: 'boat', ifProperty: 'sumaris.referential.vessel.enable', profile: 'USER'},
-        {title: 'MENU.PROGRAMS', path: '/referential/programs', icon: 'contract', profile: 'SUPERVISOR'},
+        {title: 'MENU.PROGRAMS', path: '/referential/programs', icon: 'contract', profile: 'ADMIN'},
         {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
         {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
         {title: 'MENU.SERVER', path: '/admin/config', icon: 'server', profile: 'ADMIN'},
