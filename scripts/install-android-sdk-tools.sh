@@ -14,6 +14,8 @@ if [[ "_" == "_${ANDROID_SDK_CLI_ROOT}" ]]; then
 fi
 
 ANDROID_SDK_TOOLS=${ANDROID_SDK_CLI_ROOT}/cmdline-tools/bin
+# old :
+#ANDROID_SDK_TOOLS=${ANDROID_SDK_CLI_ROOT}/tools/bin
 
 if [[ ! -d "${ANDROID_SDK_TOOLS}" ]]; then
   echo "Installing Android SDK CLI tools... ${ANDROID_SDK_CLI_ROOT}"
