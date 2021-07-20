@@ -1058,9 +1058,7 @@
       }
     },
     "ERROR": {
-      "LOAD_ERROR": "Error while loading vessels.",
-      "SAVE_ERROR": "Error while saving the vessel.",
-      "SAVE_VESSELS_ERROR": "Error while saving vessels."
+      "LOAD_ERROR": "Error while loading vessels."
     }
   },
   "REFERENTIAL": {

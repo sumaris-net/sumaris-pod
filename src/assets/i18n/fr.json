@@ -1076,9 +1076,7 @@
       }
     },
     "ERROR": {
-      "LOAD_ERROR": "Erreur de chargement des navires.",
-      "SAVE_ERROR": "Erreur lors de la sauvegarde du navire.",
-      "SAVE_VESSELS_ERROR": "Erreur lors de la sauvegarde des navires."
+      "LOAD_ERROR": "Erreur de chargement des navires."
     }
   },
   "REFERENTIAL": {

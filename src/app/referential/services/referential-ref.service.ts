@@ -294,7 +294,15 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       entities.forEach(item => item.entityName = uniqueEntityName);
     }
 
-    return { data: entities, total };
+    const res: LoadResult<ReferentialRef> = { data: entities, total };
+
+    // Add fetch more function
+    const nextOffset = offset + entities.length;
+    if (nextOffset < total) {
+      res.fetchMore = () => this.loadAll(nextOffset, size, sortBy, sortDirection, filter, opts);
+    }
+
+    return res;
   }
 
   async countAll(filter?: Partial<ReferentialRefFilter>,

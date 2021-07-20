@@ -146,8 +146,11 @@ export class VesselSnapshotService
       const query = withTotal ? LoadAllWithTotalQuery : LoadAllQuery;
       res = await this.graphql.query<LoadResult<any>>({
         query,
-        variables,
-        error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR"},
+        variables: {
+          ...variables,
+          filter: filter && filter.asPodObject()
+        },
+        error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_ERROR"},
         fetchPolicy: opts && opts.fetchPolicy || undefined /*use default*/
       });
     }
