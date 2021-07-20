@@ -182,6 +182,7 @@
         "DEFAULT_NEW_VESSEL_STATUS": "Default status for new vessel"
       },
       "ENUMERATION": {
+        "PROGRAM_SIH_LABEL": "Referential > Program for vessels",
         "LOCATION_LEVEL_COUNTRY_ID": "Referential > Location level de lieu > Country",
         "LOCATION_LEVEL_PORT_ID": "Referential > Location level > Port",
         "LOCATION_LEVEL_AUCTION_ID": "Referential > Location level > Sale auction",

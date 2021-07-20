@@ -12,23 +12,17 @@ export class PhysicalGearFilter extends RootDataEntityFilter<PhysicalGearFilter,
 
   tripId?: number;
   vesselId?: number;
-  startDate?: Moment;
-  endDate?: Moment;
   excludeTripId?: number;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.tripId = source.tripId;
     this.vesselId = source.vesselId;
-    this.startDate = fromDateISOString(source.startDate);
-    this.endDate = fromDateISOString(source.endDate);
     this.excludeTripId = source.excludeTripId;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
-    target.startDate = toDateISOString(this.startDate);
-    target.endDate = toDateISOString(this.endDate);
 
     if (opts && opts.minify) {
       // NOT exists on pod:

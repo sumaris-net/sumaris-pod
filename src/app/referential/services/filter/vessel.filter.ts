@@ -20,7 +20,7 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.program = ReferentialRef.fromObject(source.program) ||
-      isNotNilOrBlank(source.programLabel) && ReferentialRef.fromObject({label: source.programLabel});
+      isNotNilOrBlank(source.programLabel) && ReferentialRef.fromObject({label: source.programLabel}) || undefined;
     this.date = fromDateISOString(source.date);
     this.vesselId = source.vesselId;
     this.searchText = source.searchText;
@@ -33,6 +33,7 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
     const target = super.asObject(opts);
     if (opts && opts.minify) {
       target.programLabel = this.program && this.program.label;
+      delete target.program;
 
       // NOT in pod
       // target.synchronizationStatus =

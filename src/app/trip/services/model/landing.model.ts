@@ -31,17 +31,21 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     super(Landing.TYPENAME);
   }
 
-  asObject(options?: DataEntityAsObjectOptions): any {
-    const target = super.asObject(options);
+  asObject(opts?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(opts);
     target.dateTime = toDateISOString(this.dateTime);
-    target.location = this.location && this.location.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions) || undefined;
-    target.observers = this.observers && this.observers.map(p => p && p.asObject(options)) || undefined;
-    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, options);
+    target.location = this.location && this.location.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions) || undefined;
+    target.observers = this.observers && this.observers.map(p => p && p.asObject(opts)) || undefined;
+    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
 
     target.rankOrder = this.rankOrderOnVessel; // this.rankOrder is not persisted
 
     // Samples
-    target.samples = this.samples && this.samples.map(s => s.asObject(options)) || undefined;
+    target.samples = this.samples && this.samples.map(s => s.asObject(opts)) || undefined;
+
+    if (opts && opts.minify) {
+      delete target.rankOrderOnVessel;
+    }
 
     return target;
   }

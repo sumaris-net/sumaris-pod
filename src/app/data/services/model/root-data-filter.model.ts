@@ -1,11 +1,12 @@
 import {RootDataEntity, SynchronizationStatus} from "./root-data-entity.model";
-import {Person}  from "@sumaris-net/ngx-components";
+import {fromDateISOString, Person, toDateISOString} from '@sumaris-net/ngx-components';
 import {ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
 import {DataEntityFilter} from "./data-filter.model";
 import {isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
 import {EntityAsObjectOptions, EntityUtils}  from "@sumaris-net/ngx-components";
 import {FilterFn} from "@sumaris-net/ngx-components";
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {Moment} from 'moment';
 
 export abstract class RootDataEntityFilter<
   T extends RootDataEntityFilter<T, E, EID, AS, FO>,
@@ -18,6 +19,8 @@ export abstract class RootDataEntityFilter<
   program: ReferentialRef;
   synchronizationStatus: SynchronizationStatus;
   recorderPerson: Person;
+  startDate?: Moment;
+  endDate?: Moment;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
@@ -26,10 +29,14 @@ export abstract class RootDataEntityFilter<
       isNotNilOrBlank(source.programLabel) && ReferentialRef.fromObject({label: source.programLabel}) || undefined;
     this.recorderPerson = Person.fromObject(source.recorderPerson)
       || isNotNil(source.recorderPersonId) && Person.fromObject({id: source.recorderPersonId}) || undefined;
+    this.startDate = fromDateISOString(source.startDate);
+    this.endDate = fromDateISOString(source.startDate);
   }
 
   asObject(opts?: AS): any {
     const target = super.asObject(opts);
+    target.startDate = toDateISOString(this.startDate);
+    target.endDate = toDateISOString(this.endDate);
     if (opts && opts.minify) {
       target.programLabel = this.program && this.program.label || undefined;
       delete target.program;

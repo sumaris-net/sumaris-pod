@@ -2,6 +2,9 @@
 
 // LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
 import {ObjectMap} from "@sumaris-net/ngx-components";
+export const ProgramLabel = {
+  SIH: 'SIH' // Used for vessel's filter
+}
 
 export const LocationLevelIds = {
   // Lands
