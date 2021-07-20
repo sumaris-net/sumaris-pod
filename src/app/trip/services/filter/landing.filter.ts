@@ -15,8 +15,6 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
   vesselId?: number;
   locationId?: number;
   locationIds?: number[];
-  startDate?: Moment;
-  endDate?: Moment;
   groupByVessel?: boolean;
   excludeVesselIds?: number[];
 
@@ -29,8 +27,6 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
     this.vesselId = source.vesselId;
     this.locationId = source.locationId;
     this.locationIds = source.locationIds;
-    this.startDate = fromDateISOString(source.startDate);
-    this.endDate = fromDateISOString(source.startDate);
     this.groupByVessel = source.groupByVessel;
     this.excludeVesselIds = source.excludeVesselIds;
     this.observedLocationId = source.observedLocationId;
@@ -39,8 +35,6 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
-    target.startDate = toDateISOString(this.startDate);
-    target.endDate = toDateISOString(this.endDate);
     if (opts && opts.minify) {
       delete target.groupByVessel;
     }

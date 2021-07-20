@@ -1,7 +1,7 @@
 import {TypePolicies} from "@apollo/client/core";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
 import {changeCaseToUnderscore} from "@sumaris-net/ngx-components";
-import {LocationLevelIds, ParameterLabelGroups, PmfmIds, TaxonomicLevelIds} from "../model/model.enum";
+import {LocationLevelIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonomicLevelIds} from '../model/model.enum';
 import {StatusIds}  from "@sumaris-net/ngx-components";
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
@@ -46,6 +46,12 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ANALYTIC_REFERENCES_ENABLE',
     type: 'boolean',
     defaultValue: 'false'
+  },
+  PROGRAM_SIH_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Program.SIH.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PROGRAM_SIH_LABEL',
+    type: 'string',
+    defaultValue: ProgramLabel.SIH
   },
   LOCATION_LEVEL_COUNTRY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.COUNTRY.id',

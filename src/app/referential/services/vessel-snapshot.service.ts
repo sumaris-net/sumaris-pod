@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
-import {LoadResult, SuggestService} from "@sumaris-net/ngx-components";
+import {LoadResult, ReferentialRef, SuggestService} from '@sumaris-net/ngx-components';
 import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {ReferentialFragments} from "./referential.fragments";
 import {BehaviorSubject} from "rxjs";
@@ -16,6 +16,7 @@ import {StatusIds}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {EntityUtils}  from "@sumaris-net/ngx-components";
 import {VesselSnapshotFilter} from "./filter/vessel.filter";
+import {ProgramLabel} from '@app/referential/services/model/model.enum';
 
 
 export const VesselSnapshotFragments = {
@@ -136,7 +137,7 @@ export class VesselSnapshotService
       res = await this.entities.loadAll(VesselSnapshot.TYPENAME,
         {
           ...variables,
-          filter: filter && filter.asFilterFn()
+          filter: filter?.asFilterFn()
         }
       );
     }
@@ -148,7 +149,7 @@ export class VesselSnapshotService
         query,
         variables: {
           ...variables,
-          filter: filter && filter.asPodObject()
+          filter: filter?.asPodObject()
         },
         error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_ERROR"},
         fetchPolicy: opts && opts.fetchPolicy || undefined /*use default*/
@@ -223,7 +224,8 @@ export class VesselSnapshotService
 
     const maxProgression = opts && opts.maxProgression || 100;
     const filter: Partial<VesselSnapshotFilter> = {
-      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      program: ReferentialRef.fromObject({label: ProgramLabel.SIH})
     };
 
     console.info("[vessel-snapshot-service] Importing vessels (snapshot)...");
