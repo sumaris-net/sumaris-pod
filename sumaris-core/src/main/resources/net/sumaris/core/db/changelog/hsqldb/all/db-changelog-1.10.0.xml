@@ -42,7 +42,10 @@
 				</not>
 			</and>
 		</preConditions>
-		<renameSequence oldSequenceName="SALE_SEQ" newSequenceName="EXPECTED_SALE_SEQ"/>
+		<sql endDelimiter=";">
+			alter sequence SALE_SEQ rename to EXPECTED_SALE_SEQ;
+			commit;
+		</sql>
 		<createSequence sequenceName="SALE_SEQ" incrementBy="50"/>
 	</changeSet>
 
@@ -52,19 +55,16 @@
     <preConditions onFail="MARK_RAN">
       <tableIsEmpty tableName="EXPECTED_SALE"/>
     </preConditions>
-    <sql>
+    <sql endDelimiter=";">
 			insert into EXPECTED_SALE(ID, SALE_DATE, SALE_LOCATION_FK, SALE_TYPE_FK, TRIP_FK, LANDING_FK)
-			select S.ID, S.START_DATE_TIME, S.SALE_LOCATION_FK, S.SALE_TYPE_FK, S.TRIP_FK, null
-			from SALE S
-			where S.TRIP_FK is not null
-		</sql>
-		<sql>
+			  select S.ID, S.START_DATE_TIME, S.SALE_LOCATION_FK, S.SALE_TYPE_FK, S.TRIP_FK, null
+			  from SALE S
+			  where S.TRIP_FK is not null;
 			update SALE_MEASUREMENT set EXPECTED_SALE_FK=SALE_FK, SALE_FK=null
-			where SALE_FK in (select ES.ID from EXPECTED_SALE ES)
-		</sql>
-		<sql>
+			  where SALE_FK in (select ES.ID from EXPECTED_SALE ES);
 			update PRODUCT set EXPECTED_SALE_FK=SALE_FK, SALE_FK=null
-			where SALE_FK is (select ES.ID from EXPECTED_SALE ES)
+			  where SALE_FK in (select ES.ID from EXPECTED_SALE ES);
+			commit;
 		</sql>
   </changeSet>
 
