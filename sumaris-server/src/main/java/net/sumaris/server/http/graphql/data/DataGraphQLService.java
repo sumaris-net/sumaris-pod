@@ -108,6 +108,9 @@ public class DataGraphQLService {
     private SaleService saleService;
 
     @Autowired
+    private ExpectedSaleService expectedSaleService;
+
+    @Autowired
     private VesselPositionService vesselPositionService;
 
     @Autowired
@@ -689,6 +692,19 @@ public class DataGraphQLService {
         return CollectionUtils.isEmpty(sales) ? null : CollectionUtils.extractSingleton(sales);
     }
 
+    /* -- Expected Sales -- */
+
+    @GraphQLQuery(name = "expectedSales", description = "Get trip's expected sales")
+    public List<ExpectedSaleVO> getExpectedSalesByTrip(@GraphQLContext TripVO trip) {
+        return expectedSaleService.getAllByTripId(trip.getId());
+    }
+
+    @GraphQLQuery(name = "expectedSale", description = "Get trip's unique expected sale")
+    public ExpectedSaleVO getUniqueExpectedSaleByTrip(@GraphQLContext TripVO trip) {
+        List<ExpectedSaleVO> expectedSales = expectedSaleService.getAllByTripId(trip.getId());
+        return CollectionUtils.isEmpty(expectedSales) ? null : CollectionUtils.extractSingleton(expectedSales);
+    }
+
     /* -- Operations -- */
 
     @GraphQLQuery(name = "operations", description = "Get trip's operations")
@@ -807,6 +823,16 @@ public class DataGraphQLService {
         }
 
         return productService.getBySaleId(sale.getId());
+    }
+
+    @GraphQLQuery(name = "products", description = "Get expected sale's products")
+    public List<ProductVO> getProductsByExpectedSale(@GraphQLContext ExpectedSaleVO expectedSale) {
+
+        if (CollectionUtils.isNotEmpty(expectedSale.getProducts())) {
+            return expectedSale.getProducts();
+        }
+
+        return productService.getByExpectedSaleId(expectedSale.getId());
     }
 
     @GraphQLQuery(name = "products", description = "Get landing's products")
@@ -931,13 +957,14 @@ public class DataGraphQLService {
         Set<String> fields = GraphQLUtils.fields(env);
 
         final List<LandingVO> result = landingService.findAll(
-                filter,
-                Page.builder().offset(offset)
+            filter,
+            Page.builder()
+                .offset(offset)
                 .size(size)
                 .sortBy(sort)
                 .sortDirection(SortDirection.fromString(direction))
                 .build(),
-                getFetchOptions(fields));
+            getFetchOptions(fields));
 
         // Add additional properties if needed
         fillLandingsFields(result, fields);
@@ -1143,6 +1170,21 @@ public class DataGraphQLService {
             return sale.getMeasurementValues();
         }
         return measurementService.getSaleMeasurementsMap(sale.getId());
+    }
+
+
+    // ExpectedSale
+    @GraphQLQuery(name = "measurements", description = "Get expected sale measurements")
+    public List<MeasurementVO> getExpectedSaleMeasurements(@GraphQLContext ExpectedSaleVO expectedSale) {
+        return measurementService.getExpectedSaleMeasurements(expectedSale.getId());
+    }
+
+    @GraphQLQuery(name = "measurementValues", description = "Get expected sale measurement values")
+    public Map<Integer, String> getExpectedSaleMeasurementsMap(@GraphQLContext ExpectedSaleVO expectedSale) {
+        if (expectedSale.getMeasurementValues() != null) {
+            return expectedSale.getMeasurementValues();
+        }
+        return measurementService.getExpectedSaleMeasurementsMap(expectedSale.getId());
     }
 
 

@@ -143,7 +143,7 @@ public class OperationGroupRepositoryImpl
             target.setProducts(productRepository.findAll(ProductFilterVO.builder().operationId(operationId).build()));
 
             // Fishing Areas
-            target.setFishingAreas(fishingAreaRepository.getAllVOByOperationId(operationId));
+            target.setFishingAreas(fishingAreaRepository.getAllByOperationId(operationId));
 
             // Packets
             // TODO

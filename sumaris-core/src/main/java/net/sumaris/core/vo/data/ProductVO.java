@@ -87,6 +87,11 @@ public class ProductVO implements IDataVO<Integer>, IWithRecorderPersonEntity<In
     private Integer saleId;
 
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private ExpectedSaleVO expectedSale;
+    private Integer expectedSaleId;
+
+    @EqualsAndHashCode.Exclude
     private LandingVO landing;
     @ToString.Exclude
     private Integer landingId;

@@ -148,7 +148,9 @@ public class SaleServiceImpl implements SaleService {
 
 		// Save produces
 		if (source.getProducts() != null) source.getProducts().forEach(product -> fillDefaultProperties(source, product));
-		productService.saveBySaleId(source.getId(), source.getProducts());
+		source.setProducts(
+			productService.saveBySaleId(source.getId(), source.getProducts())
+		);
 	}
 
 	protected void fillDefaultProperties(SaleVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {

@@ -100,6 +100,12 @@ public interface MeasurementService {
     Map<Integer, String> getSaleMeasurementsMap(int saleId);
 
     @Transactional(readOnly = true)
+    List<MeasurementVO> getExpectedSaleMeasurements(int saleId);
+
+    @Transactional(readOnly = true)
+    Map<Integer, String> getExpectedSaleMeasurementsMap(int saleId);
+
+    @Transactional(readOnly = true)
     List<MeasurementVO> getVesselFeaturesMeasurements(int vesselFeaturesId);
 
     @Transactional(readOnly = true)

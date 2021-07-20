@@ -30,7 +30,7 @@ import java.util.List;
 
 public interface FishingAreaSpecifications {
 
-    List<FishingAreaVO> getAllVOByOperationId(int operationId);
+    List<FishingAreaVO> getAllByOperationId(int operationId);
 
     List<FishingAreaVO> saveAllByOperationId(int operationId, List<FishingAreaVO> fishingAreas);
 

@@ -47,8 +47,6 @@ import org.hibernate.dialect.Dialect;
 import org.nuiton.i18n.I18n;
 import org.nuiton.version.Version;
 import org.nuiton.version.Versions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -56,7 +54,7 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.From;
-import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 import javax.sql.DataSource;
@@ -1717,25 +1715,35 @@ public class Daos {
 
     public static <X> Path<X> composePath(Root<?> root, String attributePath) {
 
-        String[] paths = attributePath.split("\\.");
-        From<?, ?> from = root; // starting from root
+        String[] attributes = attributePath.split("\\.");
+        Path<?> path = root; // starting from root
         Path<X> result = null;
 
-        for (int i = 0; i < paths.length; i++) {
-            String path = paths[i];
+        for (int i = 0; i < attributes.length; i++) {
+            String attribute = attributes[i];
 
-            if (i == paths.length - 1) {
+            if (i == attributes.length - 1) {
                 // last path, find it
-                result = from.get(path);
+                result = path.get(attribute);
             } else {
-                // need a join (find it from existing joins of from)
-                Join join = from.getJoins().stream()
-                        .filter(j -> j.getAttribute().getName().equals(path))
-                        .findFirst().orElse(null);
-                if (join == null) {
-                    throw new IllegalArgumentException(String.format("the join %s from %s doesn't exists", path, from.getClass().getSimpleName()));
+                if (path instanceof From) {
+                    // find a join (find it from existing joins of from)
+                    From<?, ?> from = (From<?, ?>) path;
+                    try {
+                        path = from.getJoins().stream()
+                            .filter(j -> j.getAttribute().getName().equals(attribute))
+                            .findFirst()
+                            .orElseGet(() -> from.join(attribute, JoinType.LEFT));
+                        continue;
+                    } catch (IllegalArgumentException ignored) {
+                    }
                 }
-                from = join;
+                // find an attribute
+                try {
+                    path = path.get(attribute);
+                } catch (IllegalArgumentException iae) {
+                    throw new IllegalArgumentException(String.format("the join or attribute [%s] from [%s] doesn't exists", attribute, path.getJavaType()));
+                }
             }
         }
 

@@ -27,8 +27,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import lombok.NonNull;
-import net.sumaris.core.config.SumarisConfiguration;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
@@ -38,7 +38,6 @@ import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.model.referential.SaleType;
@@ -53,11 +52,13 @@ import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -65,47 +66,42 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TripServiceImpl implements TripService {
 
-    @Autowired
-    private SumarisConfiguration configuration;
+    private final SumarisConfiguration configuration;
+    private final TripRepository tripRepository;
+    private final SaleService saleService;
+    private final ExpectedSaleService expectedSaleService;
+    private final OperationService operationService;
+    private final OperationGroupService operationGroupService;
+    private final PhysicalGearService physicalGearService;
+    private final MeasurementDao measurementDao;
+    private final ApplicationEventPublisher publisher;
+    private final PmfmService pmfmService;
+    private final LandingRepository landingRepository;
+    private final ObservedLocationRepository observedLocationRepository;
+    private final ReferentialService referentialService;
+    private final FishingAreaService fishingAreaService;
+    private final VesselService vesselService;
 
-    @Autowired
-    private TripRepository tripRepository;
-
-    @Autowired
-    private SaleService saleService;
-
-    @Autowired
-    private OperationService operationService;
-
-    @Autowired
-    private OperationGroupService operationGroupService;
-
-    @Autowired
-    private PhysicalGearService physicalGearService;
-
-    @Autowired
-    private MeasurementDao measurementDao;
-
-    @Autowired
-    private ApplicationEventPublisher publisher;
-
-    @Autowired
-    private PmfmService pmfmService;
-
-    @Autowired
-    private LandingRepository landingRepository;
-
-    @Autowired
-    private ObservedLocationRepository observedLocationRepository;
-
-    @Autowired
-    private ReferentialService referentialService;
-
-    @Autowired
-    private FishingAreaService fishingAreaService;
-
-    @Autowired
-    private VesselService vesselService;
+    public TripServiceImpl(MeasurementDao measurementDao, SumarisConfiguration configuration, TripRepository tripRepository, SaleService saleService, ExpectedSaleService expectedSaleService,
+                           OperationService operationService, OperationGroupService operationGroupService, PhysicalGearService physicalGearService, ApplicationEventPublisher publisher,
+                           FishingAreaService fishingAreaService, PmfmService pmfmService, VesselService vesselService, LandingRepository landingRepository,
+                           ObservedLocationRepository observedLocationRepository, ReferentialService referentialService) {
+        this.measurementDao = measurementDao;
+        this.configuration = configuration;
+        this.tripRepository = tripRepository;
+        this.saleService = saleService;
+        this.expectedSaleService = expectedSaleService;
+        this.operationService = operationService;
+        this.operationGroupService = operationGroupService;
+        this.physicalGearService = physicalGearService;
+        this.publisher = publisher;
+        this.fishingAreaService = fishingAreaService;
+        this.pmfmService = pmfmService;
+        this.vesselService = vesselService;
+        this.landingRepository = landingRepository;
+        this.observedLocationRepository = observedLocationRepository;
+        this.referentialService = referentialService;
+    }
 
     @Override
     public List<TripVO> getAllTrips(int offset, int size) {
@@ -143,6 +139,7 @@ public class TripServiceImpl implements TripService {
             target.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(target.getVesselSnapshot().getId(), target.getDepartureDateTime()));
             target.setGears(physicalGearService.getAllByTripId(id, fetchOptions));
             target.setSales(saleService.getAllByTripId(id, fetchOptions));
+            target.setExpectedSales(expectedSaleService.getAllByTripId(id));
 
             // Fill link to landing, if any
             fillTripLandingLinks(target);
@@ -177,13 +174,13 @@ public class TripServiceImpl implements TripService {
     public void fillTripLandingLinks(TripVO target) {
         Preconditions.checkNotNull(target);
         Preconditions.checkNotNull(target.getId());
-        Landing landing = landingRepository.getByTripId(target.getId());
-        if (landing != null) {
+
+        landingRepository.findByTripId(target.getId()).ifPresent(landing -> {
             target.setLanding(landingRepository.toVO(landing, DataFetchOptions.builder().withRecorderDepartment(false).withObservers(false).build()));
             if (landing.getObservedLocation() != null) {
                 target.setObservedLocationId(landing.getObservedLocation().getId());
             }
-        }
+        });
     }
 
     @Override
@@ -293,6 +290,22 @@ public class TripServiceImpl implements TripService {
             saleService.saveAllByTripId(result.getId(), ImmutableList.of());
         }
 
+        // Save expected sales
+        if (CollectionUtils.isNotEmpty(source.getExpectedSales())) {
+            List<ExpectedSaleVO> expectedSales = Beans.getList(source.getExpectedSales());
+            expectedSales.forEach(expectedSale -> fillDefaultProperties(result, expectedSale));
+            expectedSales = expectedSaleService.saveAllByTripId(result.getId(), expectedSales);
+            result.setExpectedSales(expectedSales);
+        } else if (source.getExpectedSale() != null) {
+            ExpectedSaleVO expectedSale = source.getExpectedSale();
+            fillDefaultProperties(result, expectedSale);
+            List<ExpectedSaleVO> expectedSales = expectedSaleService.saveAllByTripId(result.getId(), ImmutableList.of(expectedSale));
+            result.setExpectedSale(expectedSales.get(0));
+        } else {
+            // Remove all
+            expectedSaleService.saveAllByTripId(result.getId(), ImmutableList.of());
+        }
+
         // Publish event
         if (isNew) {
             publisher.publishEvent(new EntityInsertEvent(result.getId(), Trip.class.getSimpleName(), result));
@@ -318,15 +331,14 @@ public class TripServiceImpl implements TripService {
         log.info("Delete Trip#{} {trash: {}}", id, enableTrash);
 
         TripVO eventData = enableTrash ?
-                get(id, DataFetchOptions.FULL_GRAPH) :
-                null;
+            get(id, DataFetchOptions.FULL_GRAPH) :
+            null;
 
         // Remove link LANDING->TRIP
-        Landing landing = landingRepository.getByTripId(id);
-        if (landing != null) {
+        landingRepository.findByTripId(id).ifPresent(landing -> {
             landing.setTrip(null);
             landingRepository.save(landing);
-        }
+        });
 
         // Apply deletion
         tripRepository.deleteById(id);
@@ -335,13 +347,12 @@ public class TripServiceImpl implements TripService {
         publisher.publishEvent(new EntityDeleteEvent(id, Trip.class.getSimpleName(), eventData));
     }
 
-
     @Override
     public void delete(List<Integer> ids) {
         Preconditions.checkNotNull(ids);
         ids.stream()
-                .filter(Objects::nonNull)
-                .forEach(this::delete);
+            .filter(Objects::nonNull)
+            .forEach(this::delete);
     }
 
     @Override
@@ -423,20 +434,21 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(source.getVesselSnapshot(), "Missing vesselSnapshot");
         Preconditions.checkNotNull(source.getVesselSnapshot().getId(), "Missing vesselSnapshot.id");
         Preconditions.checkArgument(Objects.isNull(source.getSale()) || CollectionUtils.isEmpty(source.getSales()), "Must not have both 'sales' and 'sale' attributes");
+        Preconditions.checkArgument(Objects.isNull(source.getExpectedSale()) || CollectionUtils.isEmpty(source.getExpectedSales()), "Must not have both 'expectedSales' and 'expectedSale' attributes");
 
     }
 
     protected void fillOperationPhysicalGears(List<OperationVO> sources, List<PhysicalGearVO> physicalGears) {
         // Find operations with a physical gear, that have NO id, BUT a rankOrder
         List<OperationVO> sourcesToFill = sources.stream()
-                .filter(source -> (source.getPhysicalGearId() == null || source.getPhysicalGearId() < 0)
-                        && source.getPhysicalGear() != null
-                        && (source.getPhysicalGear().getId() == null || source.getPhysicalGear().getId() < 0)
-                        && source.getPhysicalGear().getRankOrder() != null)
-                .collect(Collectors.toList());
+            .filter(source -> (source.getPhysicalGearId() == null || source.getPhysicalGearId() < 0)
+                && source.getPhysicalGear() != null
+                && (source.getPhysicalGear().getId() == null || source.getPhysicalGear().getId() < 0)
+                && source.getPhysicalGear().getRankOrder() != null)
+            .collect(Collectors.toList());
 
         // Replace physical gears by exact trip's VO
-        if (CollectionUtils.isNotEmpty(sourcesToFill)){
+        if (CollectionUtils.isNotEmpty(sourcesToFill)) {
             // Split gears by rankOrder
             Multimap<Integer, PhysicalGearVO> gearsByRankOrder = Beans.splitByNotUniqueProperty(physicalGears, PhysicalGearVO.Fields.RANK_ORDER);
 
@@ -445,8 +457,8 @@ public class TripServiceImpl implements TripService {
                 PhysicalGearVO match = CollectionUtils.isNotEmpty(matches) ? matches.iterator().next() : null;
                 if (match == null) {
                     throw new SumarisTechnicalException(String.format("Operation {startDateTime: '%s'} use an unknown PhysicalGear. Physical gears with {rankOrder: %s} not found in trip's gear.",
-                            Dates.toISODateTimeString(operation.getStartDateTime()),
-                            operation.getPhysicalGear().getRankOrder()));
+                        Dates.toISODateTimeString(operation.getStartDateTime()),
+                        operation.getPhysicalGear().getRankOrder()));
                 }
                 operation.setPhysicalGear(match);
             });
@@ -521,7 +533,7 @@ public class TripServiceImpl implements TripService {
                     landing.setProgram(observedLocation.getProgram());
                     landing.setLocation(observedLocation.getLocation());
                     landing.setVesselSnapshot(trip.getVesselSnapshot());
-                    landing.setRankOrderOnVessel(trip.getLanding().getRankOrderOnVessel());
+                    landing.setRankOrder(trip.getLanding().getRankOrder());
                     landing.setDateTime(trip.getReturnDateTime());
                     landing.setObservers(Beans.getSet(trip.getObservers()));
                     landing.setRecorderDepartment(observedLocation.getRecorderDepartment());
@@ -540,8 +552,8 @@ public class TripServiceImpl implements TripService {
         if (physicalGear.getId() != null) {
             // Find with id
             operationGroup = operationGroups.stream()
-                    .filter(og -> og.getPhysicalGear() != null ? physicalGear.getId().equals(og.getPhysicalGear().getId()) : physicalGear.getId().equals(og.getPhysicalGearId()))
-                    .findFirst().orElseThrow(() -> new SumarisTechnicalException(String.format("OperationGroup with PhysicalGear#%s not found", physicalGear.getId())));
+                .filter(og -> og.getPhysicalGear() != null ? physicalGear.getId().equals(og.getPhysicalGear().getId()) : physicalGear.getId().equals(og.getPhysicalGearId()))
+                .findFirst().orElseThrow(() -> new SumarisTechnicalException(String.format("OperationGroup with PhysicalGear#%s not found", physicalGear.getId())));
 
         } else {
 
@@ -551,13 +563,13 @@ public class TripServiceImpl implements TripService {
 
             // Find with gear and rank order
             operationGroup = operationGroups.stream()
-                    .filter(og -> og.getPhysicalGear() != null && og.getPhysicalGear().getGear() != null
-                            && physicalGear.getGear().getId().equals(og.getPhysicalGear().getGear().getId())
-                            && physicalGear.getRankOrder().equals(og.getPhysicalGear().getRankOrder()))
-                    .findFirst().orElseThrow(() -> new SumarisTechnicalException(
-                            String.format("Operation with PhysicalGear.gear#%s and PhysicalGear.rankOrder#%s not found in OperationGroups",
-                                    physicalGear.getGear().getId(), physicalGear.getRankOrder()))
-                    );
+                .filter(og -> og.getPhysicalGear() != null && og.getPhysicalGear().getGear() != null
+                    && physicalGear.getGear().getId().equals(og.getPhysicalGear().getGear().getId())
+                    && physicalGear.getRankOrder().equals(og.getPhysicalGear().getRankOrder()))
+                .findFirst().orElseThrow(() -> new SumarisTechnicalException(
+                    String.format("Operation with PhysicalGear.gear#%s and PhysicalGear.rankOrder#%s not found in OperationGroups",
+                        physicalGear.getGear().getId(), physicalGear.getRankOrder()))
+                );
         }
 
         // Get gear physical measurement from operation group
@@ -591,6 +603,29 @@ public class TripServiceImpl implements TripService {
         }
 
         sale.setTripId(parent.getId());
+    }
+
+    protected void fillDefaultProperties(TripVO parent, ExpectedSaleVO expectedSale) {
+        if (expectedSale == null) return;
+
+        if (expectedSale.getSaleDate() == null) {
+            expectedSale.setSaleDate(parent.getReturnDateTime());
+        }
+        if (expectedSale.getSaleLocation() == null || expectedSale.getSaleLocation().getId() == null) {
+            expectedSale.setSaleLocation(parent.getReturnLocation());
+        }
+        if (expectedSale.getSaleType() == null || expectedSale.getSaleType().getId() == null) {
+            expectedSale.setSaleType(referentialService.findByUniqueLabel(SaleType.class.getSimpleName(), SaleTypeEnum.OTHER.getLabel()));
+        }
+
+        expectedSale.setTripId(parent.getId());
+
+        // Also set trip recorder department to expected sale's products, because expected sale don't have it
+        if (CollectionUtils.isNotEmpty(expectedSale.getProducts())) {
+            expectedSale.getProducts().stream()
+                .filter(productVO -> productVO.getRecorderDepartment() == null)
+                .forEach(productVO -> productVO.setRecorderDepartment(parent.getRecorderDepartment()));
+        }
     }
 
     protected void fillDefaultProperties(TripVO parent, PhysicalGearVO gear) {

@@ -150,11 +150,12 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     public boolean enableAuthToken() {
-        return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.SECURITY_AUTHENTICATION_TOKEN_ENABLE.getKey());
+        return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.SECURITY_AUTHENTICATION_TOKEN_ENABLED.getKey());
     }
 
     public boolean enableAuthBasic() {
-        return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.SECURITY_AUTHENTICATION_BASIC_ENABLE.getKey());
+        return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.SECURITY_AUTHENTICATION_LDAP_ENABLED.getKey())
+            || applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.SECURITY_AUTHENTICATION_AD_ENABLED.getKey());
     }
 
     /**

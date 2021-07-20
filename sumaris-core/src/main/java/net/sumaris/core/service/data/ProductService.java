@@ -48,6 +48,9 @@ public interface ProductService {
 	@Transactional(readOnly = true)
 	List<ProductVO> getBySaleId(int saleId);
 
+	@Transactional(readOnly = true)
+	List<ProductVO> getByExpectedSaleId(int expectedSaleId);
+
 	ProductVO save(ProductVO product);
 
 	List<ProductVO> save(List<ProductVO> products);
@@ -57,6 +60,8 @@ public interface ProductService {
 	List<ProductVO> saveByOperationId(int operationId, List<ProductVO> products);
 
 	List<ProductVO> saveBySaleId(int saleId, List<ProductVO> products);
+
+	List<ProductVO> saveByExpectedSaleId(int id, List<ProductVO> products);
 
 	void delete(int id);
 
@@ -69,4 +74,5 @@ public interface ProductService {
 	ProductVO unvalidate(ProductVO product);
 
 	void fillMeasurementsMap(ProductVO product);
+
 }

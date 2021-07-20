@@ -154,7 +154,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
 
                 VesselActivityVO activity = new VesselActivityVO();
                 activity.setDate(date);
-                activity.setRankOrder(landing.getRankOrderOnVessel());
+                activity.setRankOrder(landing.getRankOrder());
                 activity.setComments(landing.getComments());
 
                 // Add parent links
@@ -405,7 +405,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
     private boolean createOrUpdateLandings(ObservedLocationVO observedLocation, List<LandingVO> landings, List<Integer> landingIdsToRemove, Integer vesselId, VesselActivityVO activity) {
         boolean landingsDirty = false;
 
-        LandingVO landing = landings.stream().filter(landingVO -> Objects.equals(landingVO.getRankOrderOnVessel(), activity.getRankOrder())).findFirst().orElse(null);
+        LandingVO landing = landings.stream().filter(landingVO -> Objects.equals(landingVO.getRankOrder(), activity.getRankOrder())).findFirst().orElse(null);
 
         // Get measurements
         if (hasMeasurements(activity)) {
@@ -504,7 +504,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
 
     private boolean createOrUpdateTrips(ObservedLocationVO observedLocation, List<LandingVO> landings, Integer vesselId, VesselActivityVO activity) {
 
-        LandingVO landing = landings.stream().filter(landingVO -> Objects.equals(landingVO.getRankOrderOnVessel(), activity.getRankOrder())).findFirst().orElse(null);
+        LandingVO landing = landings.stream().filter(landingVO -> Objects.equals(landingVO.getRankOrder(), activity.getRankOrder())).findFirst().orElse(null);
         Preconditions.checkNotNull(landing, "The landing should already exists.");
         Integer tripId = landing.getTrip() != null ? landing.getTrip().getId() : landing.getTripId();
         // Check if trip ids corresponds (both null is ok)
@@ -697,7 +697,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         landing.setProgram(parent.getProgram());
         landing.setDateTime(parent.getStartDateTime());
         landing.setLocation(parent.getLocation());
-        landing.setRankOrderOnVessel(activity.getRankOrder());
+        landing.setRankOrder(activity.getRankOrder());
         landing.setComments(activity.getComments());
         landing.setRecorderDepartment(parent.getRecorderDepartment());
         landing.setRecorderPerson(parent.getRecorderPerson());

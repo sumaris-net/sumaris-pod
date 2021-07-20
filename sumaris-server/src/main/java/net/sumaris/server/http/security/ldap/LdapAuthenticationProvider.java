@@ -43,7 +43,7 @@ public class LdapAuthenticationProvider
 
     private final AuthService authService;
 
-    public LdapAuthenticationProvider(LdapAuthenticator authenticator, LdapProperties properties, AuthService authService) {
+    public LdapAuthenticationProvider(LdapAuthenticator authenticator, LdapAuthenticationProperties properties, AuthService authService) {
         super(authenticator);
         this.userDn = properties.getUserDn();
         this.authService = authService;

@@ -26,6 +26,7 @@ package net.sumaris.core.util;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -51,6 +52,7 @@ import java.util.stream.Stream;
  * helper class for beans (split by property, make sure list exists, ...)
  * Created by blavenie on 13/10/15.
  */
+@Slf4j
 public class Beans {
 
     protected Beans() {
@@ -397,7 +399,12 @@ public class Beans {
         return (o1, o2) -> -1;
     }
 
-    //public static Map<String, String[]> cacheCopyPropertiesIgnored;
+    public static <T> T clone(T source, Class<T> sourceClass) {
+        T target = newInstance(sourceClass);
+        copyProperties(source, target);
+        return target;
+    }
+
     public static Map<Class<?>, Map<Class<?>, String[]>> cacheCopyPropertiesIgnored = Maps.newConcurrentMap();
 
     /**
@@ -444,6 +451,26 @@ public class Beans {
         }
 
         BeanUtils.copyProperties(source, target, ArrayUtils.addAll(ignoredProperties, exceptProperties));
+    }
+
+    public static boolean beanIsEmpty(Object bean, String... ignoredAttributes) {
+        if (bean == null)
+            return true;
+
+        return Arrays.stream(bean.getClass().getDeclaredFields())
+            .filter(field -> !ArrayUtils.contains(ignoredAttributes, field.getName()))
+            .allMatch(field -> {
+                Object property = getProperty(bean, field.getName());
+                if (property == null)
+                    return true;
+                if (property.getClass().isArray()) {
+                    return ArrayUtils.isEmpty((Object[]) property);
+                }
+                if (property instanceof Collection)
+                    return CollectionUtils.isEmpty((Collection<?>) property);
+                log.warn(String.format("Unable to determinate if %s is null", property));
+                return false;
+            });
     }
 
     /**

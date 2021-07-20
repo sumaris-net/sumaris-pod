@@ -33,15 +33,15 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
 /**
  * @author peck7 on 13/06/2020.
  */
-@TestPropertySource(locations = "classpath:sumaris-core-test-oracle.properties")
 @Ignore("Use only SFA Oracle database")
+@ActiveProfiles("oracle")
 @Slf4j
 public class AggregatedLandingServiceReadTest extends AbstractServiceTest {
 

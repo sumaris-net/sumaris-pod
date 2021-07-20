@@ -25,14 +25,12 @@ package net.sumaris.core.dao.data.fishingArea;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.data.FishingArea;
 import net.sumaris.core.vo.data.FishingAreaVO;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
 import java.util.List;
-import java.util.Set;
 
 public interface FishingAreaRepository
     extends SumarisJpaRepository<FishingArea, Integer, FishingAreaVO>, FishingAreaSpecifications
@@ -54,9 +52,7 @@ public interface FishingAreaRepository
     }
 
 
-    List<FishingArea> getAllByOperationId(int operationId);
-
-    Set<Integer> getAllIdsByOperationId(int operationId);
+    List<FishingArea> getFishingAreaByOperationId(int operationId);
 
     void deleteAllByOperationId(int operationId);
 }

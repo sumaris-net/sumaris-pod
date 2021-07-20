@@ -22,9 +22,7 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-
-import net.sumaris.core.model.data.BatchSortingMeasurement;
-import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.QuantificationMeasurementVO;
@@ -42,7 +40,7 @@ public interface MeasurementDao {
             Class<? extends IMeasurementEntity> entityClass,
             List<V> sources,
             List<T> target,
-            IDataEntity<?> parent);
+            IEntity<?> parent);
 
     <T extends IMeasurementEntity> List<T> getMeasurementEntitiesByParentId(Class<T> entityClass,
                                                                      String parentPropertyName,
@@ -95,6 +93,12 @@ public interface MeasurementDao {
     Map<Integer, String> getSaleMeasurementsMap(int saleId);
     List<MeasurementVO> saveSaleMeasurements(int saleId, List<MeasurementVO> sources);
     Map<Integer, String> saveSaleMeasurementsMap(int saleId, Map<Integer, String> sources);
+
+    // Expected Sale
+    List<MeasurementVO> getExpectedSaleMeasurements(int saleId);
+    Map<Integer, String> getExpectedSaleMeasurementsMap(int saleId);
+    List<MeasurementVO> saveExpectedSaleMeasurements(int saleId, List<MeasurementVO> sources);
+    Map<Integer, String> saveExpectedSaleMeasurementsMap(int saleId, Map<Integer, String> sources);
 
     // Landing
     List<MeasurementVO> saveLandingMeasurements(int landingId, List<MeasurementVO> sources);

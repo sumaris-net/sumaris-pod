@@ -10,18 +10,17 @@ package net.sumaris.core.service.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +47,7 @@ import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -216,8 +216,8 @@ public class PacketServiceImpl implements PacketService {
 
         List<Double> sampledWeights = source.getSampledWeights().stream().filter(Objects::nonNull).collect(Collectors.toList());
         int sampledPacketCount = sampledWeights.size();
-        // Individual count = number of sampled packets
-        target.setIndividualCount(sampledPacketCount); // in SIH, individual_count is stored in subgroup_count
+        // sub group count = number of sampled packets
+        target.setSubgroupCount(sampledPacketCount);
 
         Double averagePacketWeight = Daos.roundValue(sampledWeights.stream()
             .mapToDouble(Number::doubleValue)
@@ -404,9 +404,27 @@ public class PacketServiceImpl implements PacketService {
                 if (ratioMeasurement == null) {
                     ratioMeasurement = createQuantificationMeasurement(BatchQuantificationMeasurement.class, estimatedRatioPmfmId);
                 }
-                ratioMeasurement.setAlphanumericalValue(
-                    source.getRatios().stream().filter(Objects::nonNull).map(Object::toString).collect(Collectors.joining(RATIO_SEPARATOR))
-                );
+                // add zeros on null values before first non null value
+                List<Integer> ratios = source.getRatios();
+                String ratioValue = "";
+                if (ratios.stream().anyMatch(Objects::nonNull)) {
+                    // if a non-zero value exists
+                    MutableBoolean firstNonNull = new MutableBoolean();
+                    ratioValue = ratios.stream()
+                        .map(ratio -> {
+                            if (firstNonNull.isFalse() && (ratio == null || ratio == 0)) {
+                                // set 0 on this null (or 0) value
+                                return 0;
+                            }
+                            // a non null value found, return it
+                            firstNonNull.setTrue();
+                            return ratio;
+                        })
+                        .filter(Objects::nonNull) // filter other null values
+                        .map(Object::toString)
+                        .collect(Collectors.joining(RATIO_SEPARATOR));
+                }
+                ratioMeasurement.setAlphanumericalValue(ratioValue);
                 ratioMeasurement.setIsReferenceQuantification(false);
                 quantificationMeasurements.add(ratioMeasurement);
             }

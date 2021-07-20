@@ -33,7 +33,7 @@ if [[ ! $task =~ ^(pre|rel)$ || ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta
   exit 1
 fi
 
-echo "---- Starting release $version ($task)"...
+echo "---- Creating release $version ($task)"...
 echo ""
 
 # Removing existing release branche
@@ -77,6 +77,17 @@ mvn gitflow:release-finish
 git branch -d "release/$version"
 
 echo "---- Push changes to upstream [OK]"
+echo ""
+
+
+# Uploading artifacts to Github
+echo "---- Uploading artifacts to Github..."
+# Pause (wait propagation to from gitlab to github)
+echo " Waiting 40s, for propagation to github..." && sleep 40s
+. ${PROJECT_DIR}/src/scripts/release-to-github.sh $task ''"$release_description"''
+[[ $? -ne 0 ]] && exit 1
+
+echo "---- Uploading artifacts to Github [OK]"
 echo ""
 
 echo "----------------------------------"

@@ -155,6 +155,11 @@ public class Product
     private Sale sale;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "expected_sale_fk")
+    @ToString.Exclude
+    private ExpectedSale expectedSale;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "batch_fk")
     @ToString.Exclude
     private Batch batch;

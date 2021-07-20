@@ -32,26 +32,26 @@ import org.springframework.security.ldap.authentication.BindAuthenticator;
 
 @Configuration
 @ConditionalOnProperty(name = "spring.security.ldap.enabled", havingValue = "true")
-@EnableConfigurationProperties({LdapProperties.class})
-public class LdapConfiguration {
+@EnableConfigurationProperties({LdapAuthenticationProperties.class})
+public class LdapAuthenticationConfiguration {
 
-    private final LdapProperties ldapProperties;
+    private final LdapAuthenticationProperties ldapAuthenticationProperties;
     private final AuthService authService;
 
-    public LdapConfiguration(LdapProperties ldapProperties, AuthService authService) {
-        this.ldapProperties = ldapProperties;
+    public LdapAuthenticationConfiguration(LdapAuthenticationProperties ldapAuthenticationProperties, AuthService authService) {
+        this.ldapAuthenticationProperties = ldapAuthenticationProperties;
         this.authService = authService;
     }
 
     @Bean
     public DefaultSpringSecurityContextSource contextSource() {
-        return new DefaultSpringSecurityContextSource(ldapProperties.getUrl());
+        return new DefaultSpringSecurityContextSource(ldapAuthenticationProperties.getUrl());
     }
 
     @Bean
     public LdapAuthenticationProvider ldapAuthenticationProvider() {
         BindAuthenticator authenticator = new BindAuthenticator(contextSource());
-        authenticator.setUserDnPatterns(ldapProperties.getUserDnPatterns());
-        return new LdapAuthenticationProvider(authenticator, ldapProperties, authService);
+        authenticator.setUserDnPatterns(ldapAuthenticationProperties.getUserDnPatterns());
+        return new LdapAuthenticationProvider(authenticator, ldapAuthenticationProperties, authService);
     }
 }

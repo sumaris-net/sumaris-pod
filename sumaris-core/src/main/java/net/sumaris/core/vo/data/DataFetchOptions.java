@@ -24,7 +24,6 @@ package net.sumaris.core.vo.data;
 
 import lombok.Builder;
 import lombok.Data;
-import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
 @Data
 @Builder
@@ -57,6 +56,5 @@ public class DataFetchOptions implements IDataFetchOptions {
 
     @Builder.Default
     private boolean withMeasurementValues = false;
-
 
 }

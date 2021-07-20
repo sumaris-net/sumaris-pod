@@ -72,6 +72,7 @@ public class BatchVO implements IDataVO<Integer>,
     private Double samplingRatio;
     private String samplingRatioText;
     private Integer individualCount;
+    private Integer subgroupCount;
     private ReferentialVO taxonGroup;
     private TaxonNameVO taxonName;
     private String comments;

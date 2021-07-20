@@ -56,7 +56,7 @@ public class FishingAreaServiceImpl implements FishingAreaService {
     @Override
     public FishingAreaVO getByFishingTripId(int tripId) {
         return Optional.ofNullable(getMainUndefinedOperationGroup(tripId))
-            .flatMap(operationGroup -> fishingAreaRepository.getAllVOByOperationId(operationGroup.getId()).stream().findFirst())
+            .flatMap(operationGroup -> fishingAreaRepository.getAllByOperationId(operationGroup.getId()).stream().findFirst())
             .orElse(null);
     }
 
@@ -82,7 +82,7 @@ public class FishingAreaServiceImpl implements FishingAreaService {
 
     @Override
     public List<FishingAreaVO> getAllByOperationId(int operationId) {
-        return fishingAreaRepository.getAllVOByOperationId(operationId);
+        return fishingAreaRepository.getAllByOperationId(operationId);
     }
 
     @Override

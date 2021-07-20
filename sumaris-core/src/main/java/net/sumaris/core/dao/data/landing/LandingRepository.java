@@ -29,12 +29,13 @@ import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface LandingRepository extends
     RootDataRepository<Landing, LandingVO, LandingFilterVO, DataFetchOptions>,
     LandingSpecifications {
 
-    Landing getByTripId(Integer tripId);
+    Optional<Landing> findByTripId(Integer tripId);
 
     void deleteByIdIn(Collection<Integer> landingIds);
 

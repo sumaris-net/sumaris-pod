@@ -8,31 +8,23 @@ if [[ "_" == "_${PROJECT_DIR}" ]]; then
 fi;
 cd ${PROJECT_DIR}
 
-### Control that the script is run on `dev` branch
-branch=`git rev-parse --abbrev-ref HEAD`
-if [[ ! "$branch" = "release/$version" ]];
-then
-  echo ">> This script must be run under a release branch (release/$version)"
-  exit 1
-fi
 
 ### Variables
 task=$1
-version=$2
-release_description=$3
+release_description=$2
 PROJECT_NAME=sumaris-pod
 REPO="sumaris-net/sumaris-pod"
 REPO_API_URL=https://api.github.com/repos/$REPO
 REPO_PUBLIC_URL=https://github.com/$REPO
 
 ### Get version to release
-current=`grep -m1 -P "\<version>[0-9A−Z.]+(-\w*)?</version>" pom.xml | grep -oP "\d+.\d+.\d+(-\w*)?"`
-if [[ "_$current" == "_" ]]; then
+version=`grep -m1 -P "\<version>[0-9A−Z.]+(-\w*)?</version>" pom.xml | grep -oP "\d+.\d+.\d+(-\w*)?"`
+if [[ "_$version" == "_" ]]; then
   echo "ERROR: Unable to read 'version' in the file 'pom.xml'."
   echo " - Make sure the file 'pom.xml' exists and is readable."
   exit 1
 fi
-echo "Current version: $current"
+echo "Project version (pom.xml): $version"
 
 ###  get auth token
 if [[ "_${GITHUB_TOKEN}" == "_" ]]; then
@@ -51,7 +43,7 @@ fi
 
 case "$task" in
   del)
-    result=`curl -i "$REPO_API_URL/releases/tags/$current"`
+    result=`curl -i "$REPO_API_URL/releases/tags/$version"`
     release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+"  | grep -oP "$REPO_API_URL/releases/\d+"`
     if [[ $release_url != "" ]]; then
         echo "Deleting existing release..."
@@ -61,6 +53,15 @@ case "$task" in
 
   pre|rel)
 
+    ### Control that the script is run on `dev` branch
+    branch=`git rev-parse --abbrev-ref HEAD`
+    echo "GIT branch: $branch"
+    if [[ ! "$branch" = "release/$version" ]];
+    then
+      echo ">> This script must be run under a release branch (release/$version)"
+      exit 1
+    fi
+
     if [[ $1 = "pre" ]]; then
       prerelease="true"
     else
@@ -69,10 +70,10 @@ case "$task" in
 
     description=`echo $release_description`
     if [[ "_$description" = "_" ]]; then
-        description="Release $current"
+        description="Release $version"
     fi
 
-    result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/$current"`
+    result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/$version"`
     release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+" | grep -oP "https://[A-Za-z0-9/.-]+/releases/\d+"`
     if [[ "_$release_url" != "_" ]]; then
         echo "Deleting existing release... $release_url"
@@ -87,9 +88,9 @@ case "$task" in
     fi
 
     echo "Creating new release..."
-    echo " - tag: $current"
+    echo " - tag: $version"
     echo " - description: $description"
-    result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "'"$current"'","target_commitish": "master","name": "'"$current"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
+    result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "'"$version"'","target_commitish": "master","name": "'"$version"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
     upload_url=`echo "$result" | grep -P "\"upload_url\": \"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
 
     if [[ "_$upload_url" = "_" ]]; then
@@ -102,12 +103,12 @@ case "$task" in
     ###  Sending files
     echo "Uploading files to $upload_url ..."
 
-    WAR_FILE="${PROJECT_DIR}/sumaris-server/target/sumaris-server-$current.war"
+    WAR_FILE="${PROJECT_DIR}/sumaris-server/target/sumaris-server-$version.war"
     if [[ ! -f "${WAR_FILE}" ]]; then
       echo "ERROR: Missing WAR artifact: ${WAR_FILE}. Skipping upload"
       missing_file=true
     else
-      artifact_name="sumaris-pod-$current.war"
+      artifact_name="sumaris-pod-$version.war"
       result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${WAR_FILE}" "${upload_url}?name=${artifact_name}")
       browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
       SHA256=$(sha256sum "${WAR_FILE}" | sed 's/ /\n/gi' | head -n 1)
@@ -117,12 +118,12 @@ case "$task" in
       result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: text/plain' -T "${WAR_FILE}.sha256" "${upload_url}?name=${artifact_name}.sha256")
     fi
 
-    ZIP_FILE="${PROJECT_DIR}/sumaris-server/target/sumaris-server-$current-standalone.zip"
+    ZIP_FILE="${PROJECT_DIR}/sumaris-server/target/sumaris-server-$version-standalone.zip"
     if [[ ! -f "${ZIP_FILE}" ]]; then
       echo "ERROR: Missing ZIP artifact: ${ZIP_FILE}. Skipping upload"
       missing_file=true
     else
-      artifact_name="sumaris-pod-$current.zip"
+      artifact_name="sumaris-pod-$version.zip"
       result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${ZIP_FILE}" "${upload_url}?name=${ZIP_FILENAME}")
       browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
       SHA256=$(sha256sum "${ZIP_FILE}" | sed 's/ /\n/gi' | head -n 1)
@@ -132,12 +133,12 @@ case "$task" in
       result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: text/plain' -T "${ZIP_FILE}.sha256" "${upload_url}?name=${artifact_name}.sha256")
     fi
 
-    DB_FILE="${PROJECT_DIR}/sumaris-core/target/sumaris-db-$current.zip"
+    DB_FILE="${PROJECT_DIR}/sumaris-core/target/sumaris-db-$version.zip"
     if [[ ! -f "${DB_FILE}" ]]; then
       echo "ERROR: Missing DB ZIP artifact: ${DB_FILE}. Skipping uppload"
       missing_file=true
     else
-      artifact_name="sumaris-db-$current.zip"
+      artifact_name="sumaris-db-$version.zip"
       result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${DB_FILE}" "${upload_url}?name=${artifact_name}")
       browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
       SHA256=$(sha256sum "${DB_FILE}" | sed 's/ /\n/gi' | head -n 1)
@@ -150,13 +151,13 @@ case "$task" in
     if [[ ${missing_file} == true ]]; then
       echo "-----------------------------------------"
       echo "ERROR: missing some artifacts (see logs)"
-      echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/${current}"
+      echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/${version}"
       # Continue if error
       exit 1
     else
       echo "-----------------------------------------"
       echo "Successfully uploading files !"
-      echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/${current}"
+      echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/${version}"
       exit 0
     fi
 

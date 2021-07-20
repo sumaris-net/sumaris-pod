@@ -30,21 +30,15 @@ import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.data.IDataEntity;
-import net.sumaris.core.model.data.IWithObserversEntity;
-import net.sumaris.core.model.data.IWithVesselEntity;
-import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
+import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
@@ -68,7 +62,6 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 30/03/2020.
  */
-@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @NoRepositoryBean
 @Slf4j
 public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V extends IDataVO<Integer>, F extends IDataFilter, O extends IDataFetchOptions>
@@ -107,7 +100,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
 
     @Override
     public Page<V> findAll(F filter, Pageable pageable, O fetchOptions) {
-        return findAll(toSpecification(filter), pageable)
+        return findAll(toSpecification(filter, fetchOptions), pageable)
             .map(e -> this.toVO(e, fetchOptions));
     }
 
@@ -276,6 +269,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         toVO(source, target, null, copyIfNull);
     }
 
+    @SuppressWarnings("unchecked")
     public void toVO(E source, V target, O fetchOptions, boolean copyIfNull) {
         Beans.copyProperties(source, target);
 
@@ -291,13 +285,13 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         // Vessel
         if (source instanceof IWithVesselEntity && target instanceof IWithVesselSnapshotEntity) {
             VesselSnapshotVO vesselSnapshot = new VesselSnapshotVO();
-            vesselSnapshot.setId((Integer) ((IWithVesselEntity) source).getVessel().getId());
+            vesselSnapshot.setId(((IWithVesselEntity<Integer, Vessel>) source).getVessel().getId());
             ((IWithVesselSnapshotEntity<Integer, VesselSnapshotVO>) target).setVesselSnapshot(vesselSnapshot);
         }
 
         // Observers
         if (source instanceof IWithObserversEntity && target instanceof IWithObserversEntity) {
-            Set<Person> sourceObservers = ((IWithObserversEntity) source).getObservers();
+            Set<Person> sourceObservers = ((IWithObserversEntity<Integer, Person>) source).getObservers();
             if ((fetchOptions == null || fetchOptions.isWithObservers()) && CollectionUtils.isNotEmpty(sourceObservers)) {
                 Set<PersonVO> observers = sourceObservers.stream()
                     .map(personRepository::toVO)

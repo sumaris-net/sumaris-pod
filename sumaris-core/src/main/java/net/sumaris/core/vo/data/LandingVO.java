@@ -63,11 +63,13 @@ public class LandingVO implements IRootDataVO<Integer>,
     private Date dateTime;
     private LocationVO location;
     private Integer rankOrder;
-    private Integer rankOrderOnVessel;
 
     private Set<PersonVO> observers;
     private List<SampleVO> samples;
     private Integer samplesCount;
+
+    // TODO ?
+//    private List<ExpectedSaleVO> expectedSales;
 
     private ProgramVO program;
 

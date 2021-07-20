@@ -345,6 +345,25 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
+    public List<MeasurementVO> getExpectedSaleMeasurements(int saleId) {
+        return getMeasurementsByParentId(SaleMeasurement.class,
+            MeasurementVO.class,
+            SaleMeasurement.Fields.EXPECTED_SALE,
+            saleId,
+            SaleMeasurement.Fields.ID
+        );
+    }
+
+    @Override
+    public Map<Integer, String> getExpectedSaleMeasurementsMap(int saleId) {
+        return getMeasurementsMapByParentId(SaleMeasurement.class,
+            SaleMeasurement.Fields.EXPECTED_SALE,
+            saleId,
+            null
+        );
+    }
+
+    @Override
     public <T extends IMeasurementEntity, V extends MeasurementVO>  V toMeasurementVO(T source, Class<? extends V> voClass) {
         if (source == null) return null;
 
@@ -449,6 +468,18 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     @Override
     public Map<Integer, String> saveSaleMeasurementsMap(final int saleId, Map<Integer, String> sources) {
         Sale parent = getById(Sale.class, saleId);
+        return saveMeasurementsMap(SaleMeasurement.class, sources, parent.getMeasurements(), parent);
+    }
+
+    @Override
+    public List<MeasurementVO> saveExpectedSaleMeasurements(int saleId, List<MeasurementVO> sources) {
+        ExpectedSale parent = getById(ExpectedSale.class, saleId);
+        return saveMeasurements(SaleMeasurement.class, sources, parent.getMeasurements(), parent);
+    }
+
+    @Override
+    public Map<Integer, String> saveExpectedSaleMeasurementsMap(int saleId, Map<Integer, String> sources) {
+        ExpectedSale parent = getById(ExpectedSale.class, saleId);
         return saveMeasurementsMap(SaleMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
@@ -603,7 +634,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             final Class<? extends IMeasurementEntity> entityClass,
             List<V> sources,
             List<T> target,
-            final IDataEntity<?> parent) {
+            final IEntity<?> parent) {
 
         final EntityManager em = getEntityManager();
 
@@ -717,7 +748,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @SuppressWarnings("unchecked")
-    protected <T extends IDataEntity<?>> Class<T> getEntityClass(T source) {
+    protected <T extends IEntity<?>> Class<T> getEntityClass(T source) {
         String classname = source.getClass().getName();
         int index = classname.indexOf("$HibernateProxy");
         if (index > 0) {
@@ -736,7 +767,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             final Class<? extends T> entityClass,
             Map<Integer, String> sources,
             List<T> target,
-            final IDataEntity<?> parent) {
+            final IEntity<?> parent) {
 
         final EntityManager session = getEntityManager();
 
@@ -1009,15 +1040,17 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         }
     }
 
-    protected void fillDefaultProperties(IDataEntity<?> parent, IMeasurementEntity target) {
+    protected void fillDefaultProperties(IEntity<?> parent, IMeasurementEntity target) {
 
-        // Recorder department
-        if (target.getRecorderDepartment() == null) {
-            if (parent.getRecorderDepartment() == null || parent.getRecorderDepartment().getId() == null) {
-                target.setRecorderDepartment(null);
-            }
-            else {
-                target.setRecorderDepartment(parent.getRecorderDepartment());
+        if (parent instanceof IDataEntity) {
+            IDataEntity<?> parentData = (IDataEntity<?>) parent;
+            // Recorder department
+            if (target.getRecorderDepartment() == null) {
+                if (parentData.getRecorderDepartment() == null || parentData.getRecorderDepartment().getId() == null) {
+                    target.setRecorderDepartment(null);
+                } else {
+                    target.setRecorderDepartment(parentData.getRecorderDepartment());
+                }
             }
         }
 
