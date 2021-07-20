@@ -32,6 +32,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
@@ -160,6 +161,12 @@ public class DataGraphQLService {
                                                               @GraphQLArgument(name = "sortBy", defaultValue = VesselSnapshotVO.Fields.EXTERIOR_MARKING) String sort,
                                                               @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
     ) {
+        // Filter on SIH program, when not an admin
+        if (!authService.isAdmin()) {
+            filter = VesselFilterVO.nullToEmpty(filter);
+            filter.setProgramLabel(ProgramEnum.SIH.getLabel());
+        }
+
         return vesselService.findSnapshotByFilter(
                 filter,
                 offset, size, sort,
@@ -175,6 +182,12 @@ public class DataGraphQLService {
                                              @GraphQLArgument(name = "sortBy") String sort,
                                              @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
     ) {
+        // Filter on SIH program, when not an admin
+        if (!authService.isAdmin()) {
+            filter = VesselFilterVO.nullToEmpty(filter);
+            filter.setProgramLabel(ProgramEnum.SIH.getLabel());
+        }
+
         return vesselService.findVesselsByFilter(
                 filter,
                 offset, size, sort,

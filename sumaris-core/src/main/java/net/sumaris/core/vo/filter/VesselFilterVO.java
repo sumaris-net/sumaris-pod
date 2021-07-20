@@ -30,7 +30,7 @@ import java.util.List;
 
 @Data
 @FieldNameConstants
-public class VesselFilterVO {
+public class VesselFilterVO implements IRootDataFilter {
 
     public static VesselFilterVO nullToEmpty(VesselFilterVO f) {
         return f != null ? f : new VesselFilterVO();
@@ -38,12 +38,30 @@ public class VesselFilterVO {
 
     private String programLabel;
 
-    private Date date;
-
     private Integer vesselId;
     private Integer vesselFeaturesId;
 
     private String searchText;
 
     private List<Integer> statusIds;
+
+    private Integer locationId; // TODO: use it in repository
+    private Integer recorderDepartmentId; // TODO: use it in repository
+    private Integer recorderPersonId; // TODO: use it in repository
+
+    private Date startDate;
+    private Date endDate; // TODO: use it in repository
+
+    public void setDate(Date date) {
+        this.startDate = date;
+    }
+
+    /**
+     * @deprecated use startDate instead
+     * @return
+     */
+    @Deprecated
+    public Date getDate() {
+        return this.startDate;
+    }
 }

@@ -31,6 +31,7 @@ import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
@@ -99,6 +100,7 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
         Root<VesselFeatures> root = query.from(VesselFeatures.class);
 
         Join<VesselFeatures, Vessel> vesselJoin = root.join(VesselFeatures.Fields.VESSEL, JoinType.INNER);
+        Join<Vessel, Program> programJoin = vesselJoin.join(Vessel.Fields.PROGRAM, JoinType.INNER);
         Join<Vessel, VesselRegistrationPeriod> vrpJoin = vesselJoin.join(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
 
         query.multiselect(root, vrpJoin);
@@ -119,6 +121,7 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
             : filter.getStatusIds();
 
         // Apply vessel Filter
+        ParameterExpression<String> programParam = cb.parameter(String.class);
         ParameterExpression<Date> dateParam = cb.parameter(Date.class);
         ParameterExpression<Integer> vesselIdParam = cb.parameter(Integer.class);
         ParameterExpression<Integer> vesselFeaturesIdParam = cb.parameter(Integer.class);
@@ -129,6 +132,12 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
         ParameterExpression<Collection> statusIdsParam = cb.parameter(Collection.class);
 
         query.where(cb.and(
+            // Program
+            cb.or(
+                cb.isNull(programParam),
+                cb.equal(programJoin.get(Program.Fields.LABEL), programParam)
+            ),
+
             // Filter: date
             cb.or(
                 cb.and(
@@ -189,6 +198,7 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
         String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%"+searchTextAsPrefix) : null;
 
         TypedQuery<VesselSnapshotResult> q = getEntityManager().createQuery(query)
+            .setParameter(programParam, filter.getProgramLabel())
             .setParameter(dateParam, filter.getDate())
             .setParameter(vesselFeaturesIdParam, filter.getVesselFeaturesId())
             .setParameter(vesselIdParam, filter.getVesselId())

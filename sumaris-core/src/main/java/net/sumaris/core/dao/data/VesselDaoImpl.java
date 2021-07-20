@@ -316,75 +316,84 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
 
     /* -- protected methods -- */
 
-    private <R> TypedQuery<R> createVesselQuery(CriteriaBuilder builder, CriteriaQuery<R> query,
+    private <R> TypedQuery<R> createVesselQuery(CriteriaBuilder cb, CriteriaQuery<R> query,
                                                 Root<Vessel> vesselRoot,
                                                 Join<Vessel, VesselFeatures> featuresJoin,
                                                 Join<Vessel, VesselRegistrationPeriod> vrpJoin,
                                                 VesselFilterVO filter) {
 
         if (filter != null) {
-            // Apply vessel Filter
-            ParameterExpression<Date> dateParam = builder.parameter(Date.class);
-            ParameterExpression<Integer> vesselIdParam = builder.parameter(Integer.class);
-            ParameterExpression<Integer> vesselFeaturesIdParam = builder.parameter(Integer.class);
-            ParameterExpression<String> searchNameParam = builder.parameter(String.class);
-            ParameterExpression<String> searchExteriorMarkingParam = builder.parameter(String.class);
-            ParameterExpression<String> searchRegistrationCodeParam = builder.parameter(String.class);
-            ParameterExpression<Boolean> hasStatusIdsParam = builder.parameter(Boolean.class);
-            ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
+            Join<Vessel, Program> programJoin = vesselRoot.join(Vessel.Fields.PROGRAM, JoinType.INNER);
 
-            query.where(builder.and(
+            // Apply vessel Filter
+            ParameterExpression<String> programParam = cb.parameter(String.class);
+            ParameterExpression<Date> dateParam = cb.parameter(Date.class);
+            ParameterExpression<Integer> vesselIdParam = cb.parameter(Integer.class);
+            ParameterExpression<Integer> vesselFeaturesIdParam = cb.parameter(Integer.class);
+            ParameterExpression<String> searchNameParam = cb.parameter(String.class);
+            ParameterExpression<String> searchExteriorMarkingParam = cb.parameter(String.class);
+            ParameterExpression<String> searchRegistrationCodeParam = cb.parameter(String.class);
+            ParameterExpression<Boolean> hasStatusIdsParam = cb.parameter(Boolean.class);
+            ParameterExpression<Collection> statusIdsParam = cb.parameter(Collection.class);
+
+            query.where(cb.and(
+                // Program
+                cb.or(
+                    cb.isNull(programParam),
+                    cb.equal(programJoin.get(Program.Fields.LABEL), programParam)
+                ),
+
                 // Filter: date
-                builder.or(
-                    builder.and(
+                cb.or(
+                    cb.and(
                         // if no date in filter, will return only active period
-                        builder.isNull(dateParam.as(String.class)),
-                        builder.isNull(featuresJoin.get(VesselFeatures.Fields.END_DATE)),
-                        builder.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE))
+                        cb.isNull(dateParam.as(String.class)),
+                        cb.isNull(featuresJoin.get(VesselFeatures.Fields.END_DATE)),
+                        cb.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE))
                     ),
-                    builder.and(
-                        builder.isNotNull(dateParam.as(String.class)),
-                        builder.and(
-                            builder.or(
-                                builder.isNull(featuresJoin.get(VesselFeatures.Fields.END_DATE)),
-                                builder.greaterThan(featuresJoin.get(VesselFeatures.Fields.END_DATE), dateParam)
+                    cb.and(
+                        cb.isNotNull(dateParam.as(String.class)),
+                        cb.and(
+                            cb.or(
+                                cb.isNull(featuresJoin.get(VesselFeatures.Fields.END_DATE)),
+                                cb.greaterThan(featuresJoin.get(VesselFeatures.Fields.END_DATE), dateParam)
                             ),
-                            builder.lessThan(featuresJoin.get(VesselFeatures.Fields.START_DATE), dateParam)
+                            cb.lessThan(featuresJoin.get(VesselFeatures.Fields.START_DATE), dateParam)
                         ),
-                        builder.and(
-                            builder.or(
-                                builder.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE)),
-                                builder.greaterThan(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE), dateParam)
+                        cb.and(
+                            cb.or(
+                                cb.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE)),
+                                cb.greaterThan(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE), dateParam)
                             ),
-                            builder.lessThan(vrpJoin.get(VesselRegistrationPeriod.Fields.START_DATE), dateParam)
+                            cb.lessThan(vrpJoin.get(VesselRegistrationPeriod.Fields.START_DATE), dateParam)
                         )
                     )
                 ),
 
                 // Filter: vessel features id
-                builder.or(
-                    builder.isNull(vesselFeaturesIdParam),
-                    builder.equal(featuresJoin.get(VesselFeatures.Fields.ID), vesselFeaturesIdParam)
+                cb.or(
+                    cb.isNull(vesselFeaturesIdParam),
+                    cb.equal(featuresJoin.get(VesselFeatures.Fields.ID), vesselFeaturesIdParam)
                 ),
 
                 // Filter: vessel id
-                builder.or(
-                    builder.isNull(vesselIdParam),
-                    builder.equal(vesselRoot.get(Vessel.Fields.ID), vesselIdParam))
+                cb.or(
+                    cb.isNull(vesselIdParam),
+                    cb.equal(vesselRoot.get(Vessel.Fields.ID), vesselIdParam))
                 ),
 
                 // Filter: search text (on exterior marking OR id)
-                builder.or(
-                    builder.isNull(searchNameParam),
-                    builder.like(builder.lower(featuresJoin.get(VesselFeatures.Fields.NAME)), searchNameParam),
-                    builder.like(builder.lower(featuresJoin.get(VesselFeatures.Fields.EXTERIOR_MARKING)), searchExteriorMarkingParam),
-                    builder.like(builder.lower(vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)), searchRegistrationCodeParam)
+                cb.or(
+                    cb.isNull(searchNameParam),
+                    cb.like(cb.lower(featuresJoin.get(VesselFeatures.Fields.NAME)), searchNameParam),
+                    cb.like(cb.lower(featuresJoin.get(VesselFeatures.Fields.EXTERIOR_MARKING)), searchExteriorMarkingParam),
+                    cb.like(cb.lower(vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)), searchRegistrationCodeParam)
                 ),
 
                 // Status
-                builder.or(
-                    builder.isFalse(hasStatusIdsParam),
-                    builder.in(vesselRoot.get(Vessel.Fields.STATUS).get(Status.Fields.ID)).value(statusIdsParam)
+                cb.or(
+                    cb.isFalse(hasStatusIdsParam),
+                    cb.in(vesselRoot.get(Vessel.Fields.STATUS).get(Status.Fields.ID)).value(statusIdsParam)
                 )
             );
 
@@ -397,6 +406,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
                 : filter.getStatusIds();
 
             return getEntityManager().createQuery(query)
+                .setParameter(programParam, filter.getProgramLabel())
                 .setParameter(dateParam, filter.getDate())
                 .setParameter(vesselFeaturesIdParam, filter.getVesselFeaturesId())
                 .setParameter(vesselIdParam, filter.getVesselId())
@@ -410,9 +420,9 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
 
             // if no date in filter, will return only active period
             query.where(
-                builder.and(
-                    builder.isNull(featuresJoin.get(VesselFeatures.Fields.END_DATE)),
-                    builder.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE))
+                cb.and(
+                    cb.isNull(featuresJoin.get(VesselFeatures.Fields.END_DATE)),
+                    cb.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE))
                 )
             );
 
