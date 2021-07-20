@@ -11,20 +11,24 @@ cd ${PROJECT_DIR}
 
 ### Variables
 task=$1
-release_description=$2
+version=$2
+release_description=$3
 PROJECT_NAME=sumaris-pod
 REPO="sumaris-net/sumaris-pod"
 REPO_API_URL=https://api.github.com/repos/$REPO
 REPO_PUBLIC_URL=https://github.com/$REPO
 
 ### Get version to release
-version=`grep -m1 -P "\<version>[0-9A−Z.]+(-\w*)?</version>" pom.xml | grep -oP "\d+.\d+.\d+(-\w*)?"`
 if [[ "_$version" == "_" ]]; then
-  echo "ERROR: Unable to read 'version' in the file 'pom.xml'."
-  echo " - Make sure the file 'pom.xml' exists and is readable."
-  exit 1
+  version=`grep -m1 -P "\<version>[0-9A−Z.]+(-\w*)?</version>" pom.xml | grep -oP "\d+.\d+.\d+(-\w*)?"`
+  if [[ "_$version" == "_" ]]; then
+    echo "ERROR: Unable to read 'version' in the file 'pom.xml'."
+    echo " - Make sure the file 'pom.xml' exists and is readable."
+    exit 1
+  fi
+  echo "Project version (pom.xml): $version"
+  release_description=$2
 fi
-echo "Project version (pom.xml): $version"
 
 ###  get auth token
 if [[ "_${GITHUB_TOKEN}" == "_" ]]; then
@@ -52,15 +56,6 @@ case "$task" in
   ;;
 
   pre|rel)
-
-    ### Control that the script is run on `dev` branch
-    branch=`git rev-parse --abbrev-ref HEAD`
-    echo "GIT branch: $branch"
-    if [[ ! "$branch" = "release/$version" ]];
-    then
-      echo ">> This script must be run under a release branch (release/$version)"
-      exit 1
-    fi
 
     if [[ $1 = "pre" ]]; then
       prerelease="true"
@@ -124,7 +119,7 @@ case "$task" in
       missing_file=true
     else
       artifact_name="sumaris-pod-$version.zip"
-      result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${ZIP_FILE}" "${upload_url}?name=${ZIP_FILENAME}")
+      result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${ZIP_FILE}" "${upload_url}?name=${artifact_name}")
       browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
       SHA256=$(sha256sum "${ZIP_FILE}" | sed 's/ /\n/gi' | head -n 1)
       echo " - $browser_download_url  | SHA256: ${SHA256}"

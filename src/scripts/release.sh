@@ -84,7 +84,7 @@ echo ""
 echo "---- Uploading artifacts to Github..."
 # Pause (wait propagation to from gitlab to github)
 echo " Waiting 40s, for propagation to github..." && sleep 40s
-. ${PROJECT_DIR}/src/scripts/release-to-github.sh $task ''"$release_description"''
+. ${PROJECT_DIR}/src/scripts/release-to-github.sh $task $version ''"$release_description"''
 [[ $? -ne 0 ]] && exit 1
 
 echo "---- Uploading artifacts to Github [OK]"
