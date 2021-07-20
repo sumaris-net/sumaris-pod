@@ -77,6 +77,10 @@ export const environment: Environment = Object.freeze({
       port: 443
     },
     {
+      host: 'open.sumaris.net',
+      port: 443
+    },
+    {
       host: 'adap.e-is.pro',
       port: 443
     },
