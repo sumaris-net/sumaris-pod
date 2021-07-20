@@ -47,14 +47,19 @@ const FindStrategyNextSampleLabel: any = gql`
   }
 `;
 
-const LoadAllAnalyticReferencesQuery: any = gql`
-  query AnalyticReferencesQuery($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+const LoadAllAnalyticReferencesQuery: any = gql`query AnalyticReferencesQuery($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     data: analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       ...ReferentialFragment
     }
   }
-  ${ReferentialFragments.referential}
-`;
+  ${ReferentialFragments.referential}`;
+const LoadAllAnalyticReferencesWithTotalQuery: any = gql`query AnalyticReferencesQuery($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+  data: analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
+    ...ReferentialFragment
+  }
+  count: analyticReferencesCount(filter: $filter)
+}
+${ReferentialFragments.referential}`;
 
 const StrategyQueries: BaseEntityGraphqlQueries & { count: any; } = {
   load: gql`query Strategy($id: Int!) {
@@ -226,7 +231,11 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     size: number,
     sortBy?: string,
     sortDirection?: SortDirection,
-    filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
+    filter?: Partial<ReferentialRefFilter>,
+    opts?: {
+      withTotal?: boolean;
+      toEntity?: boolean;
+    }): Promise<LoadResult<ReferentialRef>> {
 
     filter = ReferentialRefFilter.fromObject(filter);
     const variables: any = {
@@ -240,16 +249,35 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[strategy-service] Loading analytic references...`, variables);
 
+    const withTotal = (!opts || opts.withTotal !== false);
+    const query = withTotal ? LoadAllAnalyticReferencesWithTotalQuery : LoadAllAnalyticReferencesQuery;
     const { data, total } = await this.graphql.query<LoadResult<any>>({
-      query: LoadAllAnalyticReferencesQuery,
+      query,
       variables,
       error: { code: ErrorCodes.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR" },
       fetchPolicy: 'cache-first'
     });
 
+    const entities = (!opts || opts.toEntity !== false)
+      ? data && data.map(ReferentialRef.fromObject)
+      : data as ReferentialRef[];
+
+    const res: LoadResult<ReferentialRef> = {
+      data: entities,
+      total
+    };
+
+    // Add fetch more capability, if total was fetched
+    if (withTotal) {
+      const nextOffset = offset + entities.length;
+      if (nextOffset < total) {
+        res.fetchMore = () => this.loadAllAnalyticReferences(nextOffset, size, sortBy, sortDirection, filter, opts);
+      }
+    }
+
     if (this._debug) console.debug(`[strategy-service] Analytic references loaded in ${Date.now() - now}ms`);
-    const entities = data && data.map(ReferentialRef.fromObject);
-    return { data: entities, total };
+
+    return res;
   }
 
   async suggestAnalyticReferences(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection): Promise<LoadResult<ReferentialRef>> {
