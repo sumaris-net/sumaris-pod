@@ -151,7 +151,7 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
     this.loading = true;
 
     // Nothing to save: just leave
-    if (!this.form.dirty) {
+    if (!this.isNew && !this.form.dirty) {
       await this.viewCtrl.dismiss();
       return false;
     }

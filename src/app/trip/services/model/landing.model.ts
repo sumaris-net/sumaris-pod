@@ -38,6 +38,8 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     target.observers = this.observers && this.observers.map(p => p && p.asObject(options)) || undefined;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, options);
 
+    target.rankOrder = this.rankOrderOnVessel; // this.rankOrder is not persisted
+
     // Samples
     target.samples = this.samples && this.samples.map(s => s.asObject(options)) || undefined;
 
@@ -48,8 +50,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     super.fromObject(source);
     this.dateTime = fromDateISOString(source.dateTime);
     this.location = source.location && ReferentialRef.fromObject(source.location);
-    this.rankOrder = source.rankOrder;
-    this.rankOrderOnVessel = source.rankOrderOnVessel;
+    this.rankOrderOnVessel = source.rankOrder; // Landing.rankOrder is stored in rankOrderOnVessel, this.rankOrder is computed by LandingService
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
     this.measurementValues = source.measurementValues && {...source.measurementValues};
     if (this.measurementValues === undefined) {

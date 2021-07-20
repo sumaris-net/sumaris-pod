@@ -1,22 +1,13 @@
-import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
-import {Moment} from "moment";
-import {IWithVesselSnapshotEntity, VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
-import {ReferentialRef}  from "@sumaris-net/ngx-components";
-import {isEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
-import {Entity, EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
-import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
-import {EntityClass}  from "@sumaris-net/ngx-components";
+import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
+import {Moment} from 'moment';
+import {IWithVesselSnapshotEntity, VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, isEmptyArray, isNotNil, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
+@EntityClass({typename: 'VesselActivityVO'})
 export class VesselActivity extends Entity<VesselActivity> {
 
-  static TYPENAME = 'VesselActivityVO';
-
-  static fromObject(source: any): VesselActivity {
-    const target = new VesselActivity();
-    target.fromObject(source);
-    return target;
-  }
+  static fromObject: (source: any, opts?: any) => VesselActivity;
 
   date: Moment;
   rankOrder: number;
@@ -28,8 +19,7 @@ export class VesselActivity extends Entity<VesselActivity> {
   tripId: number;
 
   constructor() {
-    super();
-    this.__typename = VesselActivity.TYPENAME;
+    super(VesselActivity.TYPENAME);
     this.date = null;
     this.rankOrder = null;
     this.comments = null;

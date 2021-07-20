@@ -110,6 +110,7 @@ export class MetierService extends BaseGraphqlService
     const now = debug && Date.now();
     if (debug) console.debug(`[metier-ref-service] Loading Metier items...`, variables, filter);
 
+    const withTotal = (!opts || opts.withTotal !== false);
     // Offline mode: read from the entities storage
     let res: LoadResult<Metier>;
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
@@ -124,7 +125,7 @@ export class MetierService extends BaseGraphqlService
 
     // Online mode: use graphQL
     else {
-      const query = (!opts || opts.withTotal !== false) ? MetierQueries.loadAllWithTotal : MetierQueries.loadAll;
+      const query = withTotal ? MetierQueries.loadAllWithTotal : MetierQueries.loadAll;
       res = await this.graphql.query<LoadResult<Metier>>({
         query,
         variables: {
@@ -137,22 +138,25 @@ export class MetierService extends BaseGraphqlService
     }
 
     const entities = (!opts || opts.toEntity !== false) ?
-      (res && res.data || []).map(value => Metier.fromObject(value, {useChildAttributes: false})) :
-      (res && res.data || []) as Metier[];
-    if (debug) console.debug(`[metier-ref-service] Metiers loaded in ${Date.now() - now}ms`);
+      (res?.data || []).map(value => Metier.fromObject(value, {useChildAttributes: false})) :
+      (res?.data || []) as Metier[];
 
-    const end = offset + entities.length;
-    const result: any = {
+    res = {
       data: entities,
       total: res.total || entities.length
     };
 
-    if (end < result.total) {
-      offset = end;
-      result.fetchMore = () => this.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+    // Add fetch more capability, if total was fetched
+    if (withTotal) {
+      const nextOffset = offset + entities.length;
+      if (nextOffset < res.total) {
+        res.fetchMore = () => this.loadAll(nextOffset, size, sortBy, sortDirection, filter, opts);
+      }
     }
 
-    return result;
+    if (debug) console.debug(`[metier-ref-service] Metiers loaded in ${Date.now() - now}ms`);
+
+    return res;
   }
 
   suggest(value: any, filter?: Partial<MetierFilter>): Promise<LoadResult<Metier>> {

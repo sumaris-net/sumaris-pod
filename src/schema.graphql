@@ -141,6 +141,7 @@ type BatchVO {
   samplingRatioText: String
   "Get batch sorting measurements"
   sortingMeasurements: [MeasurementVO]
+  subgroupCount: Int
   taxonGroup: ReferentialVO
   taxonName: TaxonNameVO
   updateDate: Date
@@ -149,7 +150,9 @@ type BatchVO {
 
 type ConfigurationVO {
   backgroundImages: [String]
+  comments: String
   creationDate: Date
+  description: String
   id: Int
   label: String
   largeLogo: String
@@ -191,7 +194,9 @@ type DenormalizedPmfmStrategyVO {
 }
 
 type DepartmentVO {
+  comments: String
   creationDate: Date
+  description: String
   hasLogo: Boolean
   id: Int
   label: String
@@ -202,6 +207,23 @@ type DepartmentVO {
   siteUrl: String
   statusId: Int
   updateDate: Date
+}
+
+type ExpectedSaleVO {
+  id: Int
+  landing: LandingVO
+  landingId: Int
+  "Get expected sale measurement values"
+  measurementValues: Map_Integer_StringScalar
+  "Get expected sale measurements"
+  measurements: [MeasurementVO]
+  "Get expected sale's products"
+  products: [ProductVO]
+  saleDate: Date
+  saleLocation: LocationVO
+  saleType: ReferentialVO
+  trip: TripVO
+  tripId: Int
 }
 
 type ExtractionProductVO {
@@ -325,11 +347,12 @@ type LandingVO {
   qualificationDate: Date
   qualityFlagId: Int
   rankOrder: Int
-  rankOrderOnVessel: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
   "Get landing's samples"
   samples: [SampleVO]
+  "Get number of samples"
+  samplesCount: Long!
   trip: TripVO
   tripId: Int
   updateDate: Date
@@ -514,6 +537,8 @@ type Mutation {
   saveSoftware(software: SoftwareVOInput): SoftwareVO
   "Save a strategy"
   saveStrategy(strategy: StrategyVOInput!): StrategyVO
+  "Save a Taxon name"
+  saveTaxonName(taxonName: TaxonNameVOInput!): TaxonNameVO
   "Create or update a trip"
   saveTrip(options: TripSaveOptionsInput, saveOptions: TripSaveOptionsInput, trip: TripVOInput!, withOperation: Boolean = false): TripVO
   "Create or update many trips"
@@ -808,6 +833,8 @@ type ProductVO {
   cost: Float
   creationDate: Date
   dressingId: Int
+  expectedSale: ExpectedSaleVO
+  expectedSaleId: Int
   id: Int
   individualCount: Int
   label: String
@@ -980,6 +1007,8 @@ type Query {
   programs(filter: ProgramFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ProgramVO]
   "Get programs count"
   programsCount(filter: ProgramFilterVOInput): Long
+  "Search in referenceTaxons"
+  referenceTaxonExists(id: Int): Boolean
   "Get all levels from entityName"
   referentialLevels(entityName: String): [ReferentialVO]
   "Get all types of referential"
@@ -988,6 +1017,8 @@ type Query {
   referentials(entityName: String, filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ReferentialVO]
   "Get referentials count"
   referentialsCount(entityName: String, filter: ReferentialFilterVOInput): Long
+  "Get total number of samples"
+  samplesCount(filter: SampleFilterVOInput): Long!
   "A software config"
   software(id: Int, label: String): SoftwareVO
   "Search in strategies"
@@ -999,9 +1030,13 @@ type Query {
   "Get next label for strategy"
   strategyNextLabel(labelPrefix: String = "", nbDigit: Int = 0, programId: Int!): String
   "Get next sample label for strategy"
-  strategyNextSampleLabel(strategyLabel: String!, labelSeparator: String = "", nbDigit: Int = 0): String
+  strategyNextSampleLabel(labelSeparator: String = "", nbDigit: Int = 0, strategyLabel: String!): String
+  "Get a Taxon Name"
+  taxonName(id: Int, label: String): TaxonNameVO
+  "Get taxon name count"
+  taxonNameCount(filter: TaxonNameFilterVOInput): Long
   "Search in taxon names"
-  taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonNameVO]
+  taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [TaxonNameVO]
   "Get trash content"
   trashEntities(entityName: String, offset: Int = 0, size: Int = 1000, sortBy: String = "updateDate", sortDirection: String = "desc"): [String]
   "Get trash file content"
@@ -1120,7 +1155,9 @@ type SampleVO {
 }
 
 type SoftwareVO {
+  comments: String
   creationDate: Date
+  description: String
   id: Int
   label: String
   name: String
@@ -1265,12 +1302,15 @@ type TaxonNameVO {
   level: ReferentialVO
   levelId: Int
   name: String
+  parentId: Int
+  parentTaxonName: TaxonNameVO
   rankOrder: Int
   referenceTaxonId: Int
   startDate: Date
   statusId: Int
   "Get taxon groups from a taxon name"
   taxonGroupIds: [Int]
+  taxonomicLevel: ReferentialVO
   taxonomicLevelId: Int
   updateDate: Date
   upperRank: Int
@@ -1284,6 +1324,10 @@ type TripVO {
   creationDate: Date
   departureDateTime: Date
   departureLocation: LocationVO
+  "Get trip's unique expected sale"
+  expectedSale: ExpectedSaleVO
+  "Get trip's expected sales"
+  expectedSales: [ExpectedSaleVO]
   "Get trip's fishing area"
   fishingArea: FishingAreaVO
   "Get operation's gears"
@@ -1599,6 +1643,7 @@ input BatchVOInput {
   samplingRatio: Float
   samplingRatioText: String
   sortingMeasurements: [MeasurementVOInput]
+  subgroupCount: Int
   taxonGroup: ReferentialVOInput
   taxonName: TaxonNameVOInput
   updateDate: Date
@@ -1607,7 +1652,9 @@ input BatchVOInput {
 
 input ConfigurationVOInput {
   backgroundImages: [String]
+  comments: String
   creationDate: Date
+  description: String
   id: Int
   label: String
   largeLogo: String
@@ -1666,7 +1713,9 @@ input DepartmentFilterVOInput {
 }
 
 input DepartmentVOInput {
+  comments: String
   creationDate: Date
+  description: String
   hasLogo: Boolean
   id: Int
   label: String
@@ -1675,6 +1724,20 @@ input DepartmentVOInput {
   siteUrl: String
   statusId: Int
   updateDate: Date
+}
+
+input ExpectedSaleVOInput {
+  id: Int
+  landing: LandingVOInput
+  landingId: Int
+  measurementValues: Map_Integer_StringScalar
+  measurements: [MeasurementVOInput]
+  products: [ProductVOInput]
+  saleDate: Date
+  saleLocation: LocationVOInput
+  saleType: ReferentialVOInput
+  trip: TripVOInput
+  tripId: Int
 }
 
 input ExtractionFilterCriterionVOInput {
@@ -1817,10 +1880,10 @@ input LandingVOInput {
   qualificationDate: Date
   qualityFlagId: Int
   rankOrder: Int
-  rankOrderOnVessel: Int
   recorderDepartment: DepartmentVOInput
   recorderPerson: PersonVOInput
   samples: [SampleVOInput]
+  samplesCount: Int
   trip: TripVOInput
   tripId: Int
   updateDate: Date
@@ -1883,8 +1946,9 @@ input MeasurementVOInput {
 }
 
 input MetierFilterVOInput {
-  date: Date
+  endDate: Date
   excludedIds: [Int]
+  excludedTripId: Int
   id: Int
   includedIds: [Int]
   label: String
@@ -1897,8 +1961,8 @@ input MetierFilterVOInput {
   searchAttribute: String
   searchJoin: String
   searchText: String
+  startDate: Date
   statusIds: [Int]
-  tripId: Int
   vesselId: Int
 }
 
@@ -1923,11 +1987,11 @@ input ObservedLocationFilterVOInput {
   endDate: Date
   locationId: Int
   locationIds: [Int]
+  observerPersonIds: [Int]
   programLabel: String
   recorderDepartmentId: Int
   recorderPersonId: Int
   startDate: Date
-  observerPersonIds: Int
 }
 
 input ObservedLocationSaveOptionsInput {
@@ -2071,6 +2135,11 @@ input ParameterVOInput {
   validityStatusId: Int
 }
 
+input PeriodVOInput {
+  endDate: Date
+  startDate: Date
+}
+
 input PersonFilterVOInput {
   email: String
   excludedIds: [Int]
@@ -2210,6 +2279,8 @@ input ProductVOInput {
   cost: Float
   creationDate: Date
   dressingId: Int
+  expectedSale: ExpectedSaleVOInput
+  expectedSaleId: Int
   id: Int
   individualCount: Int
   label: String
@@ -2358,6 +2429,20 @@ input SaleVOInput {
   vesselSnapshot: VesselSnapshotVOInput
 }
 
+input SampleFilterVOInput {
+  endDate: Date
+  landingId: Int
+  locationId: Int
+  observedLocationId: Int
+  observedLocationIds: [Int]
+  operationId: Int
+  parentId: Int
+  programLabel: String
+  recorderDepartmentId: Int
+  recorderPersonId: Int
+  startDate: Date
+}
+
 input SampleVOInput {
   batch: BatchVOInput
   batchId: Int
@@ -2395,7 +2480,9 @@ input SampleVOInput {
 }
 
 input SoftwareVOInput {
+  comments: String
   creationDate: Date
+  description: String
   id: Int
   label: String
   name: String
@@ -2414,14 +2501,21 @@ input StrategyDepartmentVOInput {
 }
 
 input StrategyFilterVOInput {
+  analyticReferences: [String]
+  departmentIds: [Int]
   endDate: Date
   excludedIds: [Int]
   id: Int
   includedIds: [Int]
   label: String
+  levelId: Int
   levelIds: [Int]
+  levelLabel: String
   levelLabels: [String]
+  locationIds: [Int]
   name: String
+  parameterIds: [Int]
+  periods: [PeriodVOInput]
   programIds: [Int]
   programLabels: [String]
   referenceTaxonIds: [Int]
@@ -2520,10 +2614,13 @@ input TaxonNameVOInput {
   label: String
   levelId: Int
   name: String
+  parentId: Int
+  parentTaxonName: TaxonNameVOInput
   rankOrder: Int
   referenceTaxonId: Int
   startDate: Date
   statusId: Int
+  taxonomicLevel: ReferentialVOInput
   taxonomicLevelId: Int
   updateDate: Date
   upperRank: Int
@@ -2553,6 +2650,8 @@ input TripVOInput {
   creationDate: Date
   departureDateTime: Date
   departureLocation: LocationVOInput
+  expectedSale: ExpectedSaleVOInput
+  expectedSales: [ExpectedSaleVOInput]
   fishingArea: FishingAreaVOInput
   gears: [PhysicalGearVOInput]
   id: Int

@@ -1,23 +1,19 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
-import {TableElement} from "@e-is/ngx-material-table";
-import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
-import {IWithPacketsEntity, Packet, PacketFilter, PacketUtils} from "../services/model/packet.model";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
-import {PacketValidatorService} from "../services/validator/packet.validator";
-import {ModalController, Platform} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
-import {Location} from "@angular/common";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {BehaviorSubject} from "rxjs";
-import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {PacketModal} from "./packet.modal";
-import {PacketSaleModal} from "../sale/packet-sale.modal";
-import {isNil, isNotEmptyArray} from "@sumaris-net/ngx-components";
-import {SaleProductUtils} from "../services/model/sale-product.model";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
+import {TableElement} from '@e-is/ngx-material-table';
+import {AppTable, EntitiesTableDataSource, InMemoryEntitiesService, isNil, isNotEmptyArray, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from '@sumaris-net/ngx-components';
+import {IWithPacketsEntity, Packet, PacketFilter, PacketUtils} from '../services/model/packet.model';
+import {PacketValidatorService} from '../services/validator/packet.validator';
+import {ModalController, Platform} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
+import {Location} from '@angular/common';
+import {BehaviorSubject} from 'rxjs';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {PacketModal} from './packet.modal';
+import {PacketSaleModal} from '../sale/packet-sale.modal';
+import {SaleProductUtils} from '../services/model/sale-product.model';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
 
 @Component({
   selector: 'app-packets-table',
@@ -157,7 +153,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   }
 
 
-  async onCompositionClick(event: MouseEvent, row: TableElement<Packet>) {
+  async openComposition(event: MouseEvent, row: TableElement<Packet>) {
     if (event) event.stopPropagation();
 
     const modal = await this.modalCtrl.create({
@@ -169,7 +165,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       cssClass: 'modal-large'
     });
 
-    modal.present();
+    await modal.present();
     const res = await modal.onDidDismiss();
 
     if (res && res.data) {
@@ -210,7 +206,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       cssClass: 'modal-large'
     });
 
-    modal.present();
+    await modal.present();
     const res = await modal.onDidDismiss();
 
     if (res && res.data) {

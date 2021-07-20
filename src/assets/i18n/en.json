@@ -157,7 +157,8 @@
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
         "PARTNER_DEPARTMENTS": "Home > Partners logos",
-        "BACKGROUND_IMAGES": "Home > Background images"
+        "BACKGROUND_IMAGES": "Home > Background images",
+        "ENABLE_REGISTRATION": "Home > Enable registration?"
       },
       "MENU": {
         "ITEMS": "Menu > Additional items (JSON Array)"
@@ -1057,9 +1058,7 @@
       }
     },
     "ERROR": {
-      "LOAD_ERROR": "Error while loading vessels.",
-      "SAVE_ERROR": "Error while saving the vessel.",
-      "SAVE_VESSELS_ERROR": "Error while saving vessels."
+      "LOAD_ERROR": "Error while loading vessels."
     }
   },
   "REFERENTIAL": {

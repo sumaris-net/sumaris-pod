@@ -362,31 +362,34 @@ export class PmfmService
       query,
       variables,
       error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
-      fetchPolicy: opts && opts.fetchPolicy || undefined
+      fetchPolicy: opts.fetchPolicy || undefined
     });
 
     const entities = opts.toEntity !== false ?
       (data || []).map(Pmfm.fromObject) :
       (data || []) as Pmfm[];
-    if (debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`);
 
-    const end = offset + entities.length;
     const res: any = {
       data: entities,
       total
     };
 
-    if (end < total) {
-      offset = end;
-      res.fetchMore = () => this.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+    // Add fetch more capability, if total was fetched
+    if (opts.withTotal) {
+      const nextOffset = offset + entities.length;
+      if (nextOffset < res.total) {
+        res.fetchMore = () => this.loadAll(nextOffset, size, sortBy, sortDirection, filter, opts);
+      }
     }
-    return res;
 
+    if (debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`);
+
+    return res;
   }
 
   async saveAll(data: Pmfm[], options?: any): Promise<Pmfm[]> {
     if (!data) return data;
-    return await Promise.all(data.map((pmfm) => this.save(pmfm, options)));
+    return await Promise.all(data.map(pmfm => this.save(pmfm, options)));
   }
 
   deleteAll(data: Pmfm[], options?: any): Promise<any> {

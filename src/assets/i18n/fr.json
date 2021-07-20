@@ -157,7 +157,8 @@
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
         "PARTNER_DEPARTMENTS": "Accueil > Logo des partenaires",
-        "BACKGROUND_IMAGES": "Accueil > Images de fond"
+        "BACKGROUND_IMAGES": "Accueil > Images de fond",
+        "ENABLE_REGISTRATION": "Accueil > Autoriser les inscriptions ?"
       },
       "MENU": {
         "ITEMS": "Menu > Entrées supplémentaire (JSON Array)"
@@ -1075,9 +1076,7 @@
       }
     },
     "ERROR": {
-      "LOAD_ERROR": "Erreur de chargement des navires.",
-      "SAVE_ERROR": "Erreur lors de la sauvegarde du navire.",
-      "SAVE_VESSELS_ERROR": "Erreur lors de la sauvegarde des navires."
+      "LOAD_ERROR": "Erreur de chargement des navires."
     }
   },
   "REFERENTIAL": {

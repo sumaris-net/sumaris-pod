@@ -220,7 +220,8 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     if (debug) console.debug(`[referential-ref-service] Loading ${uniqueEntityName} items (ref)...`, variables);
 
     // Online mode: use graphQL
-    const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
+    const withTotal = !opts || opts.withTotal !== false;
+    const query = withTotal ? LoadAllWithTotalQuery : LoadAllQuery;
     const { data, total } = await this.graphql.query<LoadResult<any>>({
       query,
       variables,
@@ -237,16 +238,17 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       entities.forEach(item => item.entityName = uniqueEntityName);
     }
 
-    const end = offset + entities.length;
-
-    const res: any = {
+    const res: LoadResult<ReferentialRef> = {
       data: entities,
       total
     }
 
-    if (end < total) {
-      offset = end;
-      res.fetchMore = () => this.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+    // Add fetch more capability, if total was fetched
+    if (withTotal) {
+      const nextOffset = offset + entities.length;
+      if (nextOffset < res.total) {
+        res.fetchMore = () => this.loadAll(nextOffset, size, sortBy, sortDirection, filter, opts);
+      }
     }
 
     if (debug) console.debug(`[referential-ref-service] Loading ${uniqueEntityName} items (ref) [OK] ${entities.length} items, in ${Date.now() - now}ms`);
@@ -292,7 +294,15 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       entities.forEach(item => item.entityName = uniqueEntityName);
     }
 
-    return { data: entities, total };
+    const res: LoadResult<ReferentialRef> = { data: entities, total };
+
+    // Add fetch more function
+    const nextOffset = offset + entities.length;
+    if (nextOffset < total) {
+      res.fetchMore = () => this.loadAll(nextOffset, size, sortBy, sortDirection, filter, opts);
+    }
+
+    return res;
   }
 
   async countAll(filter?: Partial<ReferentialRefFilter>,

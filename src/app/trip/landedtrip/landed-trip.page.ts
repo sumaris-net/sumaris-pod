@@ -1,42 +1,49 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import * as momentImported from "moment";
-import {AcquisitionLevelCodes, SaleTypeIds} from "../../referential/services/model/model.enum";
-import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
-import {FormBuilder, FormGroup} from "@angular/forms";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {TripForm} from "../trip/trip.form";
-import {BehaviorSubject} from "rxjs";
-import {TripSaveOptions, TripService} from "../services/trip.service";
-import {HistoryPageReference, UsageMode}  from "@sumaris-net/ngx-components";
-import {EntitiesStorage}  from "@sumaris-net/ngx-components";
-import {ObservedLocationService} from "../services/observed-location.service";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
-import {OperationGroupTable} from "../operationgroup/operation-groups.table";
-import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
-import {ProductsTable} from "../product/products.table";
-import {Product, ProductFilter, ProductUtils} from "../services/model/product.model";
-import {PacketsTable} from "../packet/packets.table";
-import {Packet, PacketFilter} from "../services/model/packet.model";
-import {OperationGroup, Trip} from "../services/model/trip.model";
-import {ObservedLocation} from "../services/model/observed-location.model";
-import {fillRankOrder, isRankOrderValid} from "../../data/services/model/model.utils";
-import {SaleProductUtils} from "../services/model/sale-product.model";
-import {debounceTime, filter, first} from "rxjs/operators";
-import {Sale} from "../services/model/sale.model";
-import {ExpenseForm} from "../expense/expense.form";
-import {FishingAreaForm} from "../fishing-area/fishing-area.form";
-import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {ProgramProperties} from "../../referential/services/config/program.config";
-import {Landing} from "../services/model/landing.model";
-import {fadeInOutAnimation} from "@sumaris-net/ngx-components";
-import {ReferentialRef}  from "@sumaris-net/ngx-components";
-import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
-import {Program} from "../../referential/services/model/program.model";
-import {environment} from "../../../environments/environment";
-import {Sample} from "../services/model/sample.model";
+import * as momentImported from 'moment';
+import {AcquisitionLevelCodes, SaleTypeIds} from '@app/referential/services/model/model.enum';
+import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {
+  EntitiesStorage,
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  HistoryPageReference,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  NetworkService,
+  ReferentialRef,
+  UsageMode
+} from '@sumaris-net/ngx-components';
+import {TripForm} from '../trip/trip.form';
+import {BehaviorSubject} from 'rxjs';
+import {TripSaveOptions, TripService} from '../services/trip.service';
+import {ObservedLocationService} from '../services/observed-location.service';
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {OperationGroupTable} from '../operationgroup/operation-groups.table';
+import {MatTabChangeEvent, MatTabGroup} from '@angular/material/tabs';
+import {ProductsTable} from '../product/products.table';
+import {Product, ProductFilter, ProductUtils} from '../services/model/product.model';
+import {PacketsTable} from '../packet/packets.table';
+import {Packet, PacketFilter} from '../services/model/packet.model';
+import {OperationGroup, Trip} from '../services/model/trip.model';
+import {ObservedLocation} from '../services/model/observed-location.model';
+import {fillRankOrder, isRankOrderValid} from '@app/data/services/model/model.utils';
+import {SaleProductUtils} from '../services/model/sale-product.model';
+import {debounceTime, filter, first} from 'rxjs/operators';
+import {ExpenseForm} from '../expense/expense.form';
+import {FishingAreaForm} from '../fishing-area/fishing-area.form';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {Landing} from '../services/model/landing.model';
+import {Program} from '@app/referential/services/model/program.model';
+import {environment} from '@environments/environment';
+import {Sample} from '../services/model/sample.model';
+import {ExpectedSale} from '@app/trip/services/model/expected-sale.model';
 
 const moment = momentImported;
 
@@ -81,7 +88,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
 
-  private _sale: Sale; // pending sale
+  private _expectedSale: ExpectedSale; // pending expected sale
 
   constructor(
     injector: Injector,
@@ -379,23 +386,23 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     if (!isRankOrderValid(allPackets))
       fillRankOrder(allPackets);
 
-    // Sale
-    if (data && data.sale && this.productSalePmfms) {
+    // Expected Sale
+    if (data && data.expectedSale && this.productSalePmfms) {
 
-      // fix sale startDateTime
-      data.sale.startDateTime = data.sale.startDateTime || data.returnDateTime;
+      // fix sale date
+      data.expectedSale.saleDate = data.expectedSale.saleDate || data.returnDateTime;
 
       // keep sale object in safe place
-      this._sale = data.sale;
+      this._expectedSale = data.expectedSale;
 
       // Dispatch product and packet sales
-      if (isNotEmptyArray(data.sale.products)) {
+      if (isNotEmptyArray(data.expectedSale.products)) {
 
         // First, reset products and packets sales
         allProducts.forEach(product => product.saleProducts = []);
         allPackets.forEach(packet => packet.saleProducts = []);
 
-        data.sale.products.forEach(saleProduct => {
+        data.expectedSale.products.forEach(saleProduct => {
           if (isNil(saleProduct.batchId)) {
             // = product
             const productFound = allProducts.find(product => SaleProductUtils.isSaleOfProduct(product, saleProduct, this.productSalePmfms));
@@ -539,7 +546,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     // recopy vesselSnapshot (disabled control)
     json.vesselSnapshot = this.data && this.data.vesselSnapshot;
 
-    // json.sale = !this.saleForm.empty ? this.saleForm.value : null;
     // Concat trip and expense measurements
     json.measurements = (this.measurementsForm.value || []).concat(this.expenseForm.value);
 
@@ -552,20 +558,20 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     const products = this.productsTable.value || [];
     const packets = this.packetsTable.value || [];
 
-    // Restore sale
-    json.sale = this._sale && this._sale.asObject();
-    if (!json.sale) {
-      // Create a sale object if any sale product found
+    // Restore expectedSale
+    json.expectedSale = this._expectedSale && this._expectedSale.asObject();
+    if (!json.expectedSale) {
+      // Create a expectedSale object if any expectedSale product found
       if (products.find(product => isNotEmptyArray(product.saleProducts))
         || packets.find(packet => isNotEmptyArray(packet.saleProducts))) {
-        json.sale = {
-          startDateTime: json.returnDateTime,
+        json.expectedSale = {
+          saleDate: json.returnDateTime,
           saleType: {id: SaleTypeIds.OTHER}
         };
       }
     }
 
-    if (json.sale) {
+    if (json.expectedSale) {
       // Gather all sale products
       const saleProducts: Product[] = [];
       products.forEach(product => isNotEmptyArray(product.saleProducts) && saleProducts.push(...product.saleProducts));
@@ -578,7 +584,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
           saleProducts.push(...packet.saleProducts);
         }
       });
-      json.sale.products = saleProducts;
+      json.expectedSale.products = saleProducts;
     }
 
     // Affect in each operation group : products, samples and packets
