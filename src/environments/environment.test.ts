@@ -24,7 +24,7 @@ export const environment: Environment = Object.freeze({
   // FIXME: enable cache
   persistCache: false,
 
-  peerMinVersion: '1.8.0',
+  peerMinVersion: '1.9.1',
 
   // TODO: make this works
   //offline: true,
