@@ -198,7 +198,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
 
-
     this.referentialRefService.loadAll(0, 0, null, null, { entityName: 'Fraction' }).then((res) => {
       this.allFractionItems.next(res.data);
     });
@@ -319,17 +318,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       if (label.includes('000')) {
         return <ValidationErrors>{ zero: true };
       }
-      /*
-      if (control.hasError('cannotComputeTaxonCode') || control.hasError('uniqueTaxonCode')) {
-        const labelRegex = new RegExp(/\d\d [A-Z][A-Z][A-Z][A-Z][A-Z][A-Z][A-Z]/);
-        if (labelRegex.test(label)) {
-          SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
-          SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
-          const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, label.slice(10), 3));
-          control.setValue(computedLabel);
-        }
-      }
-       */
       console.debug('[sampling-strategy-form] Checking of label is unique...');
         const exists = await this.strategyService.existsByLabel(label, {
           programId: this.program && this.program.id,
@@ -396,7 +384,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       columnNames: ['REFERENTIAL.NAME'],
       mobile: this.settings.mobile
     });
-
   }
 
 
@@ -526,6 +513,15 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.analyticsReferenceItems.next(removeDuplicatesFromArray(analyticReferences, 'id'));
     } catch (err) {
       console.debug('Error on load AnalyticReference');
+    }
+
+    // set label when generateLabelFromName return undefined
+    const taxonName = this.taxonNamesHelper.at(0)?.value?.taxonName;
+    const label = taxonName && TaxonUtils.generateLabelFromName(taxonName.name);
+
+    if (!label) {
+      const currentData = data.find(elem => elem.id === this.form.get('id').value)
+      this.form.get('label').setValue(currentData.label);
     }
   }
 
