@@ -515,14 +515,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       console.debug('Error on load AnalyticReference');
     }
 
-    // set label when generateLabelFromName return undefined
-    const taxonName = this.taxonNamesHelper.at(0)?.value?.taxonName;
-    const label = taxonName && TaxonUtils.generateLabelFromName(taxonName.name);
-
-    if (!label) {
-      const currentData = data.find(elem => elem.id === this.form.get('id').value)
-      this.form.get('label').setValue(currentData.label);
-    }
+    const currentData = data.find(elem => elem.id === this.form.get('id').value)
+    this.form.get('label').setValue(currentData.label);
   }
 
 
