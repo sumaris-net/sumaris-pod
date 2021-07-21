@@ -896,7 +896,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     const labelControl = this.form.get('label');
     const taxonNameControl = this.taxonNamesHelper.at(0);
     if (taxonNameControl.hasError('cannotComputeTaxonCode') || taxonNameControl.hasError('uniqueTaxonCode')) {
-      const labelRegex = new RegExp(/^\d\d [A-Z][A-Z][A-Z][A-Z][A-Z][A-Z][A-Z]/);
+      const labelRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]/);
       if (value.match(labelRegex)) {
         const isUnique = (await this.referentialRefService.countAll({
           entityName: TaxonName.ENTITY_NAME,
@@ -910,7 +910,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         } else {
           SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
           SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
-          const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10), 3));
+          const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10).toUpperCase(), 3));
           labelControl.setValue(computedLabel);
         }
       }
@@ -957,7 +957,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     }
 
     if (errors) {
-      finalMaskTaxonName = [/^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/];
+      finalMaskTaxonName = [/^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/];
     }
 
     let labelMaskArray = finalMaskYear.split("");
