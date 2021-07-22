@@ -31,7 +31,8 @@ import java.util.Arrays;
 public enum FractionEnum implements Serializable  {
 
     UNKNOWN(0, "UNK"),
-    ALL(1, "ALL")
+    ALL(1, "ALL"),
+    INDIVIDUAL(2, "INDIV")
     ;
 
     public static FractionEnum valueOf(final int id) {
