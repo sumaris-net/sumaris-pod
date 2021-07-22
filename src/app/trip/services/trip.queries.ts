@@ -8,6 +8,7 @@ export const Fragments = {
   lightDepartment: ReferentialFragments.lightDepartment,
   location: ReferentialFragments.location,
   metier: ReferentialFragments.metier,
+  lightMetier: ReferentialFragments.lightMetier,
   lightPerson: gql`fragment LightPersonFragment on PersonVO {
     id
     firstName
@@ -285,6 +286,43 @@ export const SaleFragments = {
     creationDate
     updateDate
     comments
+    saleType {
+      ...ReferentialFragment
+    }
+    saleLocation {
+      ...LocationFragment
+    }
+    measurements {
+      ...MeasurementFragment
+    }
+    products {
+      ...ProductFragment
+    }
+  }
+  ${Fragments.referential}
+  ${Fragments.location}
+  ${Fragments.measurement}
+  ${DataFragments.product}
+  `
+};
+
+export const ExpectedSaleFragments = {
+  lightExpectedSale: gql`fragment LightExpectedSaleFragment on ExpectedSaleVO {
+    id
+    saleDate
+    saleType {
+      ...ReferentialFragment
+    }
+    saleLocation {
+      ...LocationFragment
+    }
+  }
+  ${Fragments.referential}
+  ${Fragments.location}
+  `,
+  expectedSale: gql`fragment ExpectedSaleFragment on ExpectedSaleVO {
+    id
+    saleDate
     saleType {
       ...ReferentialFragment
     }

@@ -14,20 +14,14 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
     static fromObject: (source: any, opts?: any) => ObservedLocationFilter
 
     location?: ReferentialRef;
-    startDate?: Moment;
-    endDate?: Moment;
 
     fromObject(source: any, opts?: any) {
         super.fromObject(source, opts);
         this.location = ReferentialRef.fromObject(source.location);
-        this.startDate = fromDateISOString(source.startDate);
-        this.endDate = fromDateISOString(source.startDate);
     }
 
     asObject(opts?: EntityAsObjectOptions): any {
         const target = super.asObject(opts);
-        target.startDate = toDateISOString(this.startDate);
-        target.endDate = toDateISOString(this.endDate);
         if (opts && opts.minify) {
             target.locationId = this.location && this.location.id || undefined;
             delete target.location;

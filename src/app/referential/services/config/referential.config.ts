@@ -1,7 +1,7 @@
 import {TypePolicies} from "@apollo/client/core";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
 import {changeCaseToUnderscore} from "@sumaris-net/ngx-components";
-import {LocationLevelIds, ParameterLabelGroups, PmfmIds, TaxonomicLevelIds} from "../model/model.enum";
+import {LocationLevelIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonomicLevelIds} from '../model/model.enum';
 import {StatusIds}  from "@sumaris-net/ngx-components";
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
@@ -47,6 +47,12 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'boolean',
     defaultValue: 'false'
   },
+  PROGRAM_SIH_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Program.SIH.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PROGRAM_SIH_LABEL',
+    type: 'string',
+    defaultValue: ProgramLabel.SIH
+  },
   LOCATION_LEVEL_COUNTRY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.COUNTRY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_COUNTRY_ID',
@@ -72,7 +78,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: LocationLevelIds.PORT
   },
   LOCATION_LEVEL_AUCTION_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.locationLevel.AUCTION.id',
+    key: 'sumaris.enumeration.LocationLevel.AUCTION.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_AUCTION_ID',
     type: 'entity',
     autocomplete: {
@@ -84,7 +90,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: LocationLevelIds.AUCTION
   },
   LOCATION_LEVEL_ICES_RECTANGLE_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.locationLevel.RECTANGLE_ICES.id',
+    key: 'sumaris.enumeration.LocationLevel.RECTANGLE_ICES.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_RECTANGLE_ID',
     type: 'entity',
     autocomplete: {
@@ -96,7 +102,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: LocationLevelIds.ICES_RECTANGLE
   },
   LOCATION_LEVEL_ICES_DIVISION_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.locationLevel.ICES_DIVISION.id',
+    key: 'sumaris.enumeration.LocationLevel.ICES_DIVISION.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_DIVISION_ID',
     type: 'entity',
     autocomplete: {

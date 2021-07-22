@@ -1,18 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
-import {AppForm}  from "@sumaris-net/ngx-components";
-import {Packet, PacketComposition, PacketUtils} from "../services/model/packet.model";
-import {IReferentialRef}  from "@sumaris-net/ngx-components";
-import {UsageMode}  from "@sumaris-net/ngx-components";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {PacketValidatorService} from "../services/validator/packet.validator";
-import {FormArrayHelper}  from "@sumaris-net/ngx-components";
-import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {isNil, isNotEmptyArray, isNotNilOrNaN, round} from "@sumaris-net/ngx-components";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {LoadResult} from "@sumaris-net/ngx-components";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {AppForm, FormArrayHelper, IReferentialRef, isNotEmptyArray, isNotNilOrNaN, LoadResult, LocalSettingsService, PlatformService, round, UsageMode} from '@sumaris-net/ngx-components';
+import {Packet, PacketComposition, PacketIndexes, PacketUtils} from '../services/model/packet.model';
+import {DateAdapter} from '@angular/material/core';
+import {Moment} from 'moment';
+import {PacketValidatorService} from '../services/validator/packet.validator';
+import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
 
 
 @Component({
@@ -28,6 +21,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     computing = false;
     compositionHelper: FormArrayHelper<PacketComposition>;
     compositionFocusIndex = -1;
+    packetIndexes = PacketIndexes;
 
     @Input() mobile: boolean;
     @Input() showError = true;
@@ -56,11 +50,11 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
           json.composition[i].rankOrder = i + 1;
 
           // Fix ratio if empty
-          for (const index of PacketComposition.indexes) {
-            if (isNotNilOrNaN(json['sampledWeight' + index]) && isNil(json.composition[i]['ratio' + index])) {
-              json.composition[i]['ratio' + index] = 0;
-            }
-          }
+          // for (const index of PacketComposition.indexes) {
+          //   if (isNotNilOrNaN(json['sampledWeight' + index]) && isNil(json.composition[i]['ratio' + index])) {
+          //     json.composition[i]['ratio' + index] = 0;
+          //   }
+          // }
         }
       }
 
@@ -120,12 +114,12 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
       this.computeTaxonGroupWeight();
     }));
 
-    for (const i of PacketComposition.indexes) {
-      this.registerSubscription(this.form.controls['sampledWeight' + i].valueChanges.subscribe(() => {
+    PacketIndexes.forEach(index => {
+      this.registerSubscription(this.form.controls['sampledWeight' + index].valueChanges.subscribe(() => {
         this.computeTotalWeight();
         this.computeTaxonGroupWeight();
       }));
-    }
+    })
 
     this.registerSubscription(this.form.controls.composition.valueChanges.subscribe(() => {
       this.computeSampledRatios();
@@ -141,10 +135,10 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     try {
       this.computing = true;
       const compositions: any[] = this.form.controls.composition.value || [];
-      for (const i of PacketComposition.indexes) {
-        const ratio = compositions.reduce((sum, current) => sum + current['ratio' + i], 0);
-        this.form.controls['sampledRatio' + i].setValue(ratio > 0 ? ratio : null);
-      }
+      PacketIndexes.forEach(index => {
+        const ratio = compositions.reduce((sum, current) => sum + current['ratio'+index], 0);
+        this.form.controls['sampledRatio' + index].setValue(ratio > 0 ? ratio : null);
+      });
     } finally {
       this.computing = false;
     }
@@ -161,11 +155,11 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
 
       for (const composition of compositions) {
         const ratios: number[] = [];
-        for (const i of PacketComposition.indexes) {
-          const ratio = composition.controls['ratio' + i].value;
+        PacketIndexes.forEach(index => {
+          const ratio = composition.controls['ratio' + index].value;
           if (isNotNilOrNaN(ratio))
             ratios.push(ratio);
-        }
+        })
         const sum = ratios.reduce((a, b) => a + b, 0);
         const avg = (sum / ratios.length) || 0;
         composition.controls.weight.setValue(round(avg / 100 * totalWeight));
@@ -183,11 +177,11 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     try {
       this.computing = true;
       const sampledWeights: number[] = [];
-      for (const i of PacketComposition.indexes) {
-        const weight = this.form.controls['sampledWeight' + i].value;
+      PacketIndexes.forEach(index => {
+        const weight = this.form.controls['sampledWeight' + index].value;
         if (isNotNilOrNaN(weight))
           sampledWeights.push(weight);
-      }
+      })
       const sum = sampledWeights.reduce((a, b) => a + b, 0);
       const avg = round((sum / sampledWeights.length) || 0);
       const number = this.form.controls.number.value || 0;

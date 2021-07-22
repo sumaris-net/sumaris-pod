@@ -1,36 +1,43 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {AlertController, ModalController} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {AlertController, ModalController} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
-import {FormBuilder} from "@angular/forms";
-import {TranslateService} from "@ngx-translate/core";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {BehaviorSubject} from "rxjs";
-import {filterNotNil} from "@sumaris-net/ngx-components";
-import {isNil, isNotEmptyArray, isNotNil, toBoolean} from "@sumaris-net/ngx-components";
-import {AggregatedLanding, VesselActivity} from "../services/model/aggregated-landing.model";
-import {AggregatedLandingService} from "../services/aggregated-landing.service";
-import * as momentImported from "moment";
-import {Moment} from "moment";
-import {ObservedLocation} from "../services/model/observed-location.model";
-import {TableElement} from "@e-is/ngx-material-table";
-import {MeasurementValuesUtils} from "../services/model/measurement.model";
-import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {AggregatedLandingModal} from "./aggregated-landing.modal";
-import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
-import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
-import {referentialToString}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {AggregatedLandingFormOption} from "./aggregated-landing.form";
-import {AggregatedLandingFilter} from "@app/trip/services/filter/aggregated-landing.filter";
+import {FormBuilder} from '@angular/forms';
+import {TranslateService} from '@ngx-translate/core';
+import {
+  AccountService,
+  AppTable,
+  EntitiesTableDataSource,
+  filterNotNil,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  LocalSettingsService,
+  NetworkService,
+  PlatformService,
+  referentialToString,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+  toBoolean
+} from '@sumaris-net/ngx-components';
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {BehaviorSubject} from 'rxjs';
+import {AggregatedLanding, VesselActivity} from '../services/model/aggregated-landing.model';
+import {AggregatedLandingService} from '../services/aggregated-landing.service';
+import * as momentImported from 'moment';
+import {Moment} from 'moment';
+import {ObservedLocation} from '../services/model/observed-location.model';
+import {TableElement} from '@e-is/ngx-material-table';
+import {MeasurementValuesUtils} from '../services/model/measurement.model';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {AggregatedLandingModal} from './aggregated-landing.modal';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {AggregatedLandingFormOption} from './aggregated-landing.form';
+import {AggregatedLandingFilter} from '@app/trip/services/filter/aggregated-landing.filter';
 
 const moment = momentImported;
 

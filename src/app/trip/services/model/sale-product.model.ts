@@ -1,11 +1,11 @@
-import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 import {MeasurementValuesUtils} from "./measurement.model";
 import {isNil, isNotEmptyArray, isNotNil, isNotNilOrNaN, round} from "@sumaris-net/ngx-components";
-import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
+import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {Product} from "./product.model";
 import {Packet, PacketUtils} from "./packet.model";
 import {ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {PmfmIds} from "../../../referential/services/model/model.enum";
+import {PmfmIds} from '@app/referential/services/model/model.enum';
 import {ObjectMap} from "@sumaris-net/ngx-components";
 
 export class SaleProduct extends Product {

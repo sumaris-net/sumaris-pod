@@ -222,8 +222,8 @@ import {AppCoreModule} from '@app/core/core.module';
         },
 
         // Data extraction
-        {title: 'MENU.DATA_ACCESS_DIVIDER', profile: 'GUEST'},
-        {title: 'MENU.DOWNLOADS', path: '/extraction/data', icon: 'cloud-download', profile: 'GUEST'},
+        {title: 'MENU.DATA_ACCESS_DIVIDER', ifProperty: 'sumaris.extraction.enable', profile: 'GUEST'},
+        {title: 'MENU.DOWNLOADS', path: '/extraction/data', icon: 'cloud-download', ifProperty: 'sumaris.extraction.product.enable', profile: 'GUEST'},
         {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', ifProperty: 'sumaris.extraction.map.enable', profile: 'GUEST'},
 
         // Referential

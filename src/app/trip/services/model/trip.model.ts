@@ -1,19 +1,20 @@
 import {Moment} from 'moment';
-import {DataEntity, DataEntityAsObjectOptions,} from '../../../data/services/model/data-entity.model';
+import {DataEntity, DataEntityAsObjectOptions,} from '@app/data/services/model/data-entity.model';
 import {IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
 import {Sale} from './sale.model';
 import {EntityClass, EntityUtils, fromDateISOString, isEmptyArray, isNil, isNotNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
 import {FishingArea} from './fishing-area.model';
-import {DataRootVesselEntity} from '../../../data/services/model/root-vessel-entity.model';
-import {IWithObserversEntity} from '../../../data/services/model/model.utils';
-import {RootDataEntity} from '../../../data/services/model/root-data-entity.model';
+import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
+import {IWithObserversEntity} from '@app/data/services/model/model.utils';
+import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
 import {Landing} from './landing.model';
-import {Metier} from '../../../referential/services/model/taxon.model';
+import {Metier} from '@app/referential/services/model/taxon.model';
 import {Sample} from './sample.model';
 import {Batch} from './batch.model';
 import {IWithProductsEntity, Product} from './product.model';
 import {IWithPacketsEntity, Packet} from './packet.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {ExpectedSale} from '@app/trip/services/model/expected-sale.model';
 
 /* -- Helper function -- */
 
@@ -378,6 +379,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   departureLocation: ReferentialRef = null;
   returnLocation: ReferentialRef = null;
   sale: Sale = null;
+  expectedSale: ExpectedSale = null;
   gears: PhysicalGear[] = null;
   measurements: Measurement[] = null;
   observers: Person[] = null;
@@ -400,6 +402,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     target.departureLocation = this.departureLocation && this.departureLocation.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
     target.returnLocation = this.returnLocation && this.returnLocation.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
     target.sale = this.sale && this.sale.asObject(options) || undefined;
+    target.expectedSale = this.expectedSale && this.expectedSale.asObject(options) || undefined;
     target.gears = this.gears && this.gears.map(p => p && p.asObject(options)) || undefined;
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(options)) || undefined;
     target.observers = this.observers && this.observers.map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS})) || undefined;
@@ -431,6 +434,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     this.departureLocation = source.departureLocation && ReferentialRef.fromObject(source.departureLocation);
     this.returnLocation = source.returnLocation && ReferentialRef.fromObject(source.returnLocation);
     this.sale = source.sale && Sale.fromObject(source.sale) || undefined;
+    this.expectedSale = source.expectedSale && ExpectedSale.fromObject(source.expectedSale) || undefined;
 
     this.gears = source.gears && source.gears.filter(isNotNil).map(PhysicalGear.fromObject)
       // Sort by rankOrder (useful for gears combo, in the operation form)

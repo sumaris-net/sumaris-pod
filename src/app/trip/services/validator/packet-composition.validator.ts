@@ -1,13 +1,9 @@
-import {Injectable} from "@angular/core";
-import {
-  DataEntityValidatorOptions,
-  DataEntityValidatorService
-} from "../../../data/services/validator/data-entity.validator";
-import {PacketComposition} from "../model/packet.model";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, Validators} from "@angular/forms";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {SharedValidators} from "@sumaris-net/ngx-components";
+import {Injectable} from '@angular/core';
+import {DataEntityValidatorOptions, DataEntityValidatorService} from '@app/data/services/validator/data-entity.validator';
+import {PacketComposition, PacketIndexes} from '../model/packet.model';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {FormBuilder, Validators} from '@angular/forms';
+import {LocalSettingsService, SharedValidators} from '@sumaris-net/ngx-components';
 
 @Injectable({providedIn: 'root'})
 export class PacketCompositionValidatorService
@@ -21,19 +17,21 @@ export class PacketCompositionValidatorService
   }
 
   getFormGroupConfig(data?: PacketComposition, opts?: DataEntityValidatorOptions): { [p: string]: any } {
-    return Object.assign(
+
+    const formConfig = Object.assign(
         super.getFormGroupConfig(data, opts),
         {
           __typename: [PacketComposition.TYPENAME],
-          rankOrder: [data && data.rankOrder || null],
-          taxonGroup: [data && data.taxonGroup || null, Validators.compose([Validators.required, SharedValidators.entity])],
-          weight: [data && data.weight || null, null],
-          ratio1: [data && data.ratio1, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
-          ratio2: [data && data.ratio2, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
-          ratio3: [data && data.ratio3, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
-          ratio4: [data && data.ratio4, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
-          ratio5: [data && data.ratio5, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
-          ratio6: [data && data.ratio6, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])]
+          rankOrder: [data?.rankOrder || null],
+          taxonGroup: [data?.taxonGroup || null, Validators.compose([Validators.required, SharedValidators.entity])],
+          weight: [data?.weight || null, null],
         });
+
+    // add ratios
+    PacketIndexes.forEach(index => {
+      formConfig['ratio'+index] = [data?.['ratio'+index] || null, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])];
+    })
+
+    return formConfig;
   }
 }

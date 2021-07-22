@@ -170,7 +170,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
       cssClass: 'modal-large'
     });
 
-    modal.present();
+    await modal.present();
     const res = await modal.onDidDismiss();
 
     if (res && res.data) {
@@ -183,9 +183,6 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
   async openSampling(event: MouseEvent, row: TableElement<Product>) {
     if (event) event.stopPropagation();
-
-    // test sample modal
-    this.markAsLoading();
 
     const samples = row.currentData.samples || [];
     const taxonGroup = row.currentData.taxonGroup;
@@ -205,6 +202,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
         title
         // onReady: (obj) => this.onInitForm && this.onInitForm.emit({form: obj.form.form, pmfms: obj.$pmfms.getValue()})
       },
+      backdropDismiss: false,
       keyboardClose: true
     });
 
@@ -213,11 +211,11 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
-    // if (data && this.debug)
-      console.debug("[products-table] Modal result: ", data);
-    this.markAsLoaded();
 
     if (data) {
+      if (this.debug)
+        console.debug("[products-table] Modal result: ", data);
+
       // patch samples only
       row.validator.patchValue({samples: data}, {emitEvent: true});
       this.markAsDirty();

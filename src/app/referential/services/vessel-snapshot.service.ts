@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
-import {LoadResult, SuggestService} from "@sumaris-net/ngx-components";
+import {LoadResult, ReferentialRef, SuggestService} from '@sumaris-net/ngx-components';
 import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {ReferentialFragments} from "./referential.fragments";
 import {BehaviorSubject} from "rxjs";
@@ -16,6 +16,7 @@ import {StatusIds}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {EntityUtils}  from "@sumaris-net/ngx-components";
 import {VesselSnapshotFilter} from "./filter/vessel.filter";
+import {ProgramLabel} from '@app/referential/services/model/model.enum';
 
 
 export const VesselSnapshotFragments = {
@@ -127,6 +128,7 @@ export class VesselSnapshotService
     const now = debug && Date.now();
     if (debug) console.debug("[vessel-snapshot-service] Loading vessel snapshots using options:", variables);
 
+    const withTotal = (!opts || opts.withTotal !== false);
     let res: LoadResult<VesselSnapshot>;
 
     // Offline: use local store
@@ -135,28 +137,45 @@ export class VesselSnapshotService
       res = await this.entities.loadAll(VesselSnapshot.TYPENAME,
         {
           ...variables,
-          filter: filter && filter.asFilterFn()
+          filter: filter?.asFilterFn()
         }
       );
     }
 
     // Online: use GraphQL
     else {
-      const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
+      const query = withTotal ? LoadAllWithTotalQuery : LoadAllQuery;
       res = await this.graphql.query<LoadResult<any>>({
         query,
-        variables,
-        error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR"},
+        variables: {
+          ...variables,
+          filter: filter?.asPodObject()
+        },
+        error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_ERROR"},
         fetchPolicy: opts && opts.fetchPolicy || undefined /*use default*/
       });
     }
 
     const entities = (!opts || opts.toEntity !== false) ?
-      (res && res.data || []).map(VesselSnapshot.fromObject) :
-      (res && res.data || []) as VesselSnapshot[];
-    const total = res && res.total || entities.length;
+      (res?.data || []).map(VesselSnapshot.fromObject) :
+      (res?.data || []) as VesselSnapshot[];
+
+    const total = res?.total || entities.length;
+    res = {
+      data: entities,
+      total: res?.total || entities.length
+    }
+
+    // Add fetch more capability, if total was fetched
+    if (withTotal) {
+      const nextOffset = offset + entities.length;
+      if (nextOffset < res.total) {
+        res.fetchMore = () => this.loadAll(nextOffset, size, sortBy, sortDirection, filter, opts);
+      }
+    }
+
     if (debug) console.debug(`[vessel-snapshot-service] Vessels loaded in ${Date.now() - now}ms`);
-    return {data: entities, total};
+    return res;
   }
 
   async suggest(value: any, filter?: VesselSnapshotFilter): Promise<VesselSnapshot[]> {
@@ -166,8 +185,7 @@ export class VesselSnapshotService
       {
         ...filter,
         searchText: value
-      },
-      { withTotal: false /* total not need */ }
+      }
     );
     return res.data;
   }
@@ -206,7 +224,8 @@ export class VesselSnapshotService
 
     const maxProgression = opts && opts.maxProgression || 100;
     const filter: Partial<VesselSnapshotFilter> = {
-      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      program: ReferentialRef.fromObject({label: ProgramLabel.SIH})
     };
 
     console.info("[vessel-snapshot-service] Importing vessels (snapshot)...");

@@ -223,7 +223,7 @@ export class VesselService
       size: size || 100,
       sortBy: sortBy || 'features.exteriorMarking',
       sortDirection: sortDirection || 'asc',
-      filter: filter && filter.asFilterFn()
+      filter: filter?.asFilterFn()
     };
 
     if (this._debug) console.debug("[vessel-service] Loading local vessels using options:", variables);

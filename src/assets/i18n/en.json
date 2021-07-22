@@ -157,7 +157,8 @@
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
         "PARTNER_DEPARTMENTS": "Home > Partners logos",
-        "BACKGROUND_IMAGES": "Home > Background images"
+        "BACKGROUND_IMAGES": "Home > Background images",
+        "ENABLE_REGISTRATION": "Home > Enable registration?"
       },
       "MENU": {
         "ITEMS": "Menu > Additional items (JSON Array)"
@@ -181,6 +182,7 @@
         "DEFAULT_NEW_VESSEL_STATUS": "Default status for new vessel"
       },
       "ENUMERATION": {
+        "PROGRAM_SIH_LABEL": "Referential > Program for vessels",
         "LOCATION_LEVEL_COUNTRY_ID": "Referential > Location level de lieu > Country",
         "LOCATION_LEVEL_PORT_ID": "Referential > Location level > Port",
         "LOCATION_LEVEL_AUCTION_ID": "Referential > Location level > Sale auction",
@@ -1057,9 +1059,7 @@
       }
     },
     "ERROR": {
-      "LOAD_ERROR": "Error while loading vessels.",
-      "SAVE_ERROR": "Error while saving the vessel.",
-      "SAVE_VESSELS_ERROR": "Error while saving vessels."
+      "LOAD_ERROR": "Error while loading vessels."
     }
   },
   "REFERENTIAL": {
