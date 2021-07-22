@@ -108,6 +108,10 @@ export const MethodIds = {
   CALCULATED: 4
 };
 
+export const MatrixIds = {
+  INDIVIDUAL: 2
+}
+
 export const autoCompleteFractions = {
   1362: 'Otholite', 1452: 'Otholite', 1644: 'Ecaille', 1956: 'Otholite', 2049: 'Illicium', 2050: 'Illicium', 1960: 'Otholite', 1693: 'Ecaille',
   1549: 'Otholite', 1990: 'Otholite', 1921: 'Otholite', 1912: 'Otholite', 1349: 'Otholite', 1555: 'Otholite', 1556: 'Otholite', 1986: 'Otholite',

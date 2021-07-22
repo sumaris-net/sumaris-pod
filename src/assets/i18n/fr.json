@@ -196,11 +196,16 @@
         "PMFM_TAG_ID": "Référentiel > PSFM > Code prélèvement",
         "PMFM_AGE_ID": "Référentiel > PSFM > Âge",
         "PMFM_SEX_ID": "Référentiel > PSFM > Sexe",
-        "STRATEGY_PARAMETER_AGE_LABEL": "Stratégie > Paramètre > Code âge",
-        "STRATEGY_PARAMETER_SEX_LABEL": "Stratégie > Paramètre > Code sexe",
-        "STRATEGY_PARAMETER_WEIGHT_LABELS": "Stratégie > Paramètre > Codes poids",
-        "STRATEGY_PARAMETER_LENGTH_LABELS": "Stratégie > Paramètre > Codes longueur",
-        "STRATEGY_PARAMETER_MATURITY_LABELS": "Stratégie > Paramètre > Codes maturités"
+        "METHOD_MEASURED_BY_OBSERVER_ID": "Référentiel > Méthode > Mesuré par un observateur",
+        "METHOD_OBSERVED_BY_OBSERVER_ID": "Référentiel > Méthode > Observé par un observateur",
+        "METHOD_ESTIMATED_BY_OBSERVER_ID": "Référentiel > Méthode > Estimé par un observateur",
+        "METHOD_CALCULATED_ID": "Référentiel > Méthode > Calculée",
+        "FRACTION_INDIVIDUAL_ID": "Référentiel > Fraction > Individu",
+        "PARAMETER_GROUP_AGE_LABELS": "Stratégie > Paramètre > Code âge",
+        "PARAMETER_GROUP_SEX_LABELS": "Stratégie > Paramètre > Code sexe",
+        "PARAMETER_GROUP_WEIGHT_LABELS": "Stratégie > Paramètre > Codes poids",
+        "PARAMETER_GROUP_LENGTH_LABELS": "Stratégie > Paramètre > Codes longueur",
+        "PARAMETER_GROUP_MATURITY_LABELS": "Stratégie > Paramètre > Codes maturités"
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?",
@@ -1306,9 +1311,13 @@
       "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre d'échantillonnages ?",
       "LANDING_ONE_TAB_ENABLE": "Sortie > Débarquement : un seul onglet ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
-      "PROGRAM_STRATEGY_EDITOR" : "Stratégie > éditeur",
-      "PROGRAM_STRATEGY_EDITOR_LEGACY": "Par défaut",
-      "PROGRAM_STRATEGY_EDITOR_SAMPLING": "Paramètres biologiques",
+      "STRATEGY_EDITOR" : "Stratégie > éditeur",
+      "STRATEGY_EDITOR_ENUM": {
+        "LEGACY": "Par défaut",
+        "SAMPLING": "Paramètres biologiques"
+      },
+      "STRATEGY_PREDOC_ENABLE": "Stratégie > Editeur : activer le pré-filtrage des champs",
+      "STRATEGY_PREDOC_FETCH_SIZE": "Stratégie > Editeur : Nb stratégies lues pour le pré-filtrage des champs",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
       "VESSEL_TYPE_ENABLE": "Navires > Activer le type de navire ?"
     },
