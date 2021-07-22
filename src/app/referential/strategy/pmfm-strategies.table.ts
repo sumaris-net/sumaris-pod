@@ -484,6 +484,18 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       this.cancelOrDelete(event, row);
     }
     else if (row.id !== -1) {
+      const rows = (await this.dataSource.getRows() || []).reduce(function(result, rowIter){
+        const currentDataWithId = rowIter.currentData;
+        if (rowIter.id === row.id){
+          currentDataWithId.id = -1;
+          rowIter.currentData = currentDataWithId;
+          row = rowIter;
+        }
+        result.push(currentDataWithId);
+        return result;
+      }, []);
+      this.dataSource.updateDatasource(rows);
+      this.memoryDataService.value[row.id].id = -1;
       this.selection.clear();
       this.selection.select(row);
       await super.deleteSelection(event);
