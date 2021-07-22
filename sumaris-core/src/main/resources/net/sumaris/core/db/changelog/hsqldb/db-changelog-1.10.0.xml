@@ -113,11 +113,11 @@
 	<!-- update SYSTEM_VERSION -->
 	<changeSet author="benoit.lavenier@e-is.pro" id="1625816880596-200" runOnChange="true">
 		<delete tableName="SYSTEM_VERSION">
-			<where>LABEL='1.9.0'</where>
+			<where>LABEL in ('1.9.0', '1.10.0')</where>
 		</delete>
 		<insert tableName="SYSTEM_VERSION">
 			<column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
-			<column name="LABEL">1.9.0</column>
+			<column name="LABEL">1.10.0</column>
 			<column name="DESCRIPTION">
 				- BATCH: Add column SUBGROUP_COUNT
         - Add table EXPECTED_SALE and add relations on SALE_MEASUREMENT and PRODUCT
