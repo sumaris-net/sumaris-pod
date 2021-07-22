@@ -46,6 +46,10 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
     type: 'enum',
     values: [
       {
+        key: 'MENU.OBSERVATIONS',
+        value: 'MENU.OBSERVATIONS'
+      },
+      {
         key: 'MENU.OCCASIONS',
         value: 'MENU.OCCASIONS'
       },
