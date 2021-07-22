@@ -25,6 +25,7 @@ package net.sumaris.core.dao.technical.model.annotation;
 import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
@@ -32,13 +33,14 @@ import org.nuiton.config.ConfigOptionDef;
 import org.reflections.Reflections;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * Helper class for enumerations
  */
+@Slf4j
 public final class EntityEnums {
 
     private static final String MODEL_PACKAGE_NAME = "net.sumaris.core.model";
@@ -50,7 +52,16 @@ public final class EntityEnums {
     public static Set<Class<?>> getEntityEnumClasses(SumarisConfiguration config) {
 
         // Add annotations entities
-        Reflections reflections = (config != null && config.isProduction() ? Reflections.collect() : new Reflections(MODEL_PACKAGE_NAME));
+        Reflections reflections = null;
+        // Try to use saved reflexions file from classpath
+        if (config != null && config.isProduction()) {
+            reflections = Reflections.collect();
+            if (reflections == null) {
+                log.warn("Reflections.collect() in production mode returned null. Fallback to default scanner");
+            }
+        }
+        // Or use reflexions scanner
+        reflections = Optional.ofNullable(reflections).orElse(new Reflections(MODEL_PACKAGE_NAME));
         return reflections.getTypesAnnotatedWith(EntityEnum.class);
     }
 
