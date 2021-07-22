@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.10.1</version>
+    <version>1.10.2</version>
   </parent>
 
   <artifactId>sumaris-core</artifactId>
@@ -240,7 +240,7 @@
               <goal>regex-property</goal>
             </goals>
             <configuration>
-              <value>${project.build.directory}/generated-sources/resources</value>
+              <value>${project.build.directory}/classes</value>
               <regex>\\</regex>
               <replacement>/</replacement>
               <name>escapedOutputDirectory</name>
@@ -263,7 +263,7 @@
         <executions>
           <execution>
             <id>generate-reflections-xml</id>
-            <phase>generate-resources</phase>
+            <phase>process-classes</phase>
             <goals>
               <goal>execute</goal>
             </goals>

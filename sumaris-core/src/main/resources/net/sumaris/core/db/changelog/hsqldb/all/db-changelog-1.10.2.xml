@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/all/db-changelog-1.10.2.xml">
+
+	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
+
+	<!-- rename some properties -->
+	<changeSet id="benoit.lavenier@e-is.pro" author="1625816880600-301">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+			</and>
+		</preConditions>
+		<sql endDelimiter=";">
+			update software_properties set label='sumaris.enumeration.TaxonomicLevel.FAMILY.id' where label='sumaris.enumeration.taxonomicLevel.FAMILY.id';
+			update software_properties set label='sumaris.enumeration.TaxonomicLevel.SUBSPECIES.id' where label='sumaris.enumeration.taxonomicLevel.SUBSPECIES.id';
+			update software_properties set label='sumaris.enumeration.TaxonomicLevel.GENUS.id' where label='sumaris.enumeration.taxonomicLevel.GENUS.id';
+			update software_properties set label='sumaris.enumeration.LocationLevel.AUCTION.id' where label='sumaris.enumeration.locationLevel.AUCTION.id';
+			update software_properties set label='sumaris.enumeration.LocationLevel.HARBOUR.id' where label='sumaris.enumeration.locationLevel.HARBOUR.id';
+			update software_properties set label='sumaris.enumeration.LocationLevel.COUNTRY.id' where label='sumaris.enumeration.locationLevel.COUNTRY.id';
+			update software_properties set label='sumaris.enumeration.Pmfm.AGE.id' where label='sumaris.enumeration.pmfm.AGE.id';
+			update software_properties set label='sumaris.enumeration.Pmfm.SEX.id' where label='sumaris.enumeration.pmfm.SEX.id';
+			update software_properties set label='sumaris.enumeration.Pmfm.TAG_ID.id' where label='sumaris.enumeration.pmfm.TAG_ID.id';
+			update software_properties set label='sumaris.enumeration.Pmfm.STRATEGY_LABEL.id' where label='sumaris.enumeration.pmfm.STRATEGY_LABEL.id';
+			commit;
+		</sql>
+	</changeSet>
+
+
+</databaseChangeLog>
