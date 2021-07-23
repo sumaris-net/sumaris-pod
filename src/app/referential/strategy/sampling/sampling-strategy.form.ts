@@ -519,8 +519,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       console.debug('Error on load AnalyticReference');
     }
 
-    const currentData = data.find(elem => elem.id === this.form.get('id').value)
-    this.form.get('label').setValue(currentData.label);
+    // set label if data already exist
+    const labelAlreadyExist = this.form.get('id').value
+    if (labelAlreadyExist) {
+      const currentData = data.find(elem => elem.id === labelAlreadyExist)
+      this.form.get('label').setValue(currentData.label);
+    }
   }
 
 
@@ -839,6 +843,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     let pmfmStrategies: any[] = [
       // Add tag id Pmfm
       <PmfmStrategy>{ pmfm: { id: PmfmIds.TAG_ID } },
+      // Add dressing Pmfm
+      <PmfmStrategy>{ pmfm: { id: PmfmIds.DRESSING } },
       // Add weights Pmfm
       ...this.weightPmfmStrategiesTable.value,
       // Add length Pmfm
