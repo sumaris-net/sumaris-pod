@@ -39,6 +39,7 @@
 		</preConditions>
 		<sql endDelimiter=";">
 			update SOFTWARE_PROPERTY set LABEL='sumaris.enumeration.TaxonomicLevel.FAMILY.id' WHERE LABEL='sumaris.enumeration.taxonomicLevel.FAMILY.id';
+			update SOFTWARE_PROPERTY set LABEL='sumaris.enumeration.TaxonomicLevel.SPECIES.id' where LABEL='sumaris.enumeration.taxonomicLevel.SPECIES.id';
 			update SOFTWARE_PROPERTY set LABEL='sumaris.enumeration.TaxonomicLevel.SUBSPECIES.id' WHERE LABEL='sumaris.enumeration.taxonomicLevel.SUBSPECIES.id';
 			update SOFTWARE_PROPERTY set LABEL='sumaris.enumeration.TaxonomicLevel.GENUS.id' WHERE LABEL='sumaris.enumeration.taxonomicLevel.GENUS.id';
 			update SOFTWARE_PROPERTY set LABEL='sumaris.enumeration.LocationLevel.AUCTION.id' WHERE LABEL='sumaris.enumeration.locationLevel.AUCTION.id';
@@ -48,6 +49,7 @@
 			update SOFTWARE_PROPERTY set LABEL='sumaris.enumeration.Pmfm.SEX.id' WHERE LABEL='sumaris.enumeration.pmfm.SEX.id';
 			update SOFTWARE_PROPERTY set LABEL='sumaris.enumeration.Pmfm.TAG_ID.id' WHERE LABEL='sumaris.enumeration.pmfm.TAG_ID.id';
 			update SOFTWARE_PROPERTY set LABEL='sumaris.enumeration.Pmfm.STRATEGY_LABEL.id' WHERE LABEL='sumaris.enumeration.pmfm.STRATEGY_LABEL.id';
+			update SOFTWARE set update_date=current_timestamp;
 			commit;
 		</sql>
 	</changeSet>
