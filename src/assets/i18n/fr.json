@@ -589,6 +589,14 @@
         "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération."
       }
     },
+    "OPERATION_GROUP": {
+      "NEW": {
+        "TITLE": "Nouvel effort"
+      },
+      "EDIT": {
+        "TITLE": "Effort #{{rankOrderOnPeriod}}"
+      }
+    },
     "CATCH": {
       "FORM": {
         "ON_DECK": "Arrivée sur pont :",

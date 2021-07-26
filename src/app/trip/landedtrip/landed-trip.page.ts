@@ -15,7 +15,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  NetworkService,
+  NetworkService, PlatformService,
   ReferentialRef,
   UsageMode
 } from '@sumaris-net/ngx-components';
@@ -44,6 +44,7 @@ import {Program} from '@app/referential/services/model/program.model';
 import {environment} from '@environments/environment';
 import {Sample} from '../services/model/sample.model';
 import {ExpectedSale} from '@app/trip/services/model/expected-sale.model';
+import {platform} from 'os';
 
 const moment = momentImported;
 
@@ -64,6 +65,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   showCatchTab = false;
   showSaleTab = false;
   showExpenseTab = false;
+  mobile = false;
 
   // List of trip's metier, used to populate operation group's metier combobox
   $metiers = new BehaviorSubject<ReferentialRef[]>(null);
@@ -93,6 +95,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   constructor(
     injector: Injector,
     protected entities: EntitiesStorage,
+    protected platform: PlatformService,
     protected dataService: TripService,
     protected observedLocationService: ObservedLocationService,
     protected vesselService: VesselSnapshotService,
@@ -107,6 +110,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
         tabCount: 4
       });
 
+    this.mobile = platform.mobile;
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }

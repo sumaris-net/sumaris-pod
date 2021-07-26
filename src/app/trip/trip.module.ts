@@ -37,6 +37,8 @@ import {TranslateModule} from '@ngx-translate/core';
 import {CommonModule} from '@angular/common';
 import {TripTrashModal} from './trip/trash/trip-trash.modal';
 import {AppCoreModule} from '@app/core/core.module';
+import {OperationGroupModal} from '@app/trip/operationgroup/operation-group.modal';
+import {OperationGroupForm} from '@app/trip/operationgroup/operation-group.form';
 
 @NgModule({
   imports: [
@@ -64,6 +66,8 @@ import {AppCoreModule} from '@app/core/core.module';
     OperationForm,
     OperationPage,
     OperationsMap,
+    OperationGroupModal,
+    OperationGroupForm,
     MeasurementsForm,
     CatchBatchForm,
     SamplesTable,

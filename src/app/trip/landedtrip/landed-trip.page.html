@@ -46,9 +46,13 @@
 </mat-menu>
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="tabGroupAnimationDuration"
-                 dynamicHeight>
+  <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content"
+                 [class.mobile]="mobile"
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)"
+                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+                 dynamicHeight="false">
 
     <!-- TAB: general -->
     <mat-tab label="{{'TRIP.TAB_GENERAL'|translate}}">
@@ -130,6 +134,7 @@
                                  [programLabel]="$programLabel | async"
                                  acquisitionLevel="OPERATION"
                                  [$metiers]="$metiers"
+                                 [showToolbar]="!mobile"
                                  (onOpenRow)="onOpenOperationGroup($event)"
                                  (onNewRow)="onNewOperationGroup($event)">
       </app-operation-group-table>

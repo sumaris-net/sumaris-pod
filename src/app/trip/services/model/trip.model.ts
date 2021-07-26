@@ -272,8 +272,12 @@ export class OperationGroup extends DataEntity<OperationGroup>
 
     // Physical gear
     target.physicalGear = this.physicalGear && this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
-    if (target.physicalGear)
+    if (target.physicalGear){
       delete target.physicalGear.measurementValues;
+      if (opts && opts.minify){
+        delete target.physicalGear.synchronizationStatus;
+      }
+    }
 
     // Measurements
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;

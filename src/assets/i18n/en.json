@@ -589,6 +589,14 @@
         "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes."
       }
     },
+    "OPERATION_GROUP": {
+      "NEW": {
+        "TITLE": "New effort"
+      },
+      "EDIT": {
+        "TITLE": "Effort #{{rankOrderOnPeriod}}"
+      }
+    },
     "CATCH": {
       "FORM": {
         "ON_DECK": "On deck:",
