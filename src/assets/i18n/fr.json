@@ -1318,8 +1318,8 @@
         "LEGACY": "Par défaut",
         "SAMPLING": "Paramètres biologiques"
       },
-      "STRATEGY_PREDOC_ENABLE": "Stratégie > Editeur : activer le pré-filtrage des champs",
-      "STRATEGY_PREDOC_FETCH_SIZE": "Stratégie > Editeur : Nb stratégies lues pour le pré-filtrage des champs",
+      "STRATEGY_EDITOR_PREDOC_ENABLE": "Stratégie > Editeur : Activer le pré-filtrage des champs",
+      "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Stratégie > Editeur : Nb stratégies lues pour le pré-filtrage des champs",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
       "VESSEL_TYPE_ENABLE": "Navires > Activer le type de navire ?"
     },
