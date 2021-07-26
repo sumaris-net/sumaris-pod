@@ -161,11 +161,7 @@ public class DataGraphQLService {
                                                               @GraphQLArgument(name = "sortBy", defaultValue = VesselSnapshotVO.Fields.EXTERIOR_MARKING) String sort,
                                                               @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
     ) {
-        // Filter on SIH program, when not an admin
-        if (!authService.isAdmin()) {
-            filter = VesselFilterVO.nullToEmpty(filter);
-            filter.setProgramLabel(ProgramEnum.SIH.getLabel());
-        }
+        fillVesselFilter(filter); // Restrict vessels access
 
         return vesselService.findSnapshotByFilter(
                 filter,
@@ -182,11 +178,7 @@ public class DataGraphQLService {
                                              @GraphQLArgument(name = "sortBy") String sort,
                                              @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
     ) {
-        // Filter on SIH program, when not an admin
-        if (!authService.isAdmin()) {
-            filter = VesselFilterVO.nullToEmpty(filter);
-            filter.setProgramLabel(ProgramEnum.SIH.getLabel());
-        }
+        fillVesselFilter(filter); // Restrict vessels access
 
         return vesselService.findVesselsByFilter(
                 filter,
@@ -198,6 +190,8 @@ public class DataGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public long getVesselsCount(@GraphQLArgument(name = "filter") VesselFilterVO filter) {
+        fillVesselFilter(filter); // Restrict vessels access
+
         return vesselService.countVesselsByFilter(filter);
     }
 
@@ -1447,6 +1441,19 @@ public class DataGraphQLService {
                 .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
                 .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
                 .build();
+    }
+
+    /**
+     * Restrict to vessel, depending of user access rights
+     * @param filter
+     */
+    protected VesselFilterVO fillVesselFilter(VesselFilterVO filter) {
+        // Filter on SIH program, when not an admin
+        if (!authService.isAdmin()) {
+            filter = VesselFilterVO.nullToEmpty(filter);
+            filter.setProgramLabel(ProgramEnum.SIH.getLabel());
+        }
+        return filter;
     }
 
     /**

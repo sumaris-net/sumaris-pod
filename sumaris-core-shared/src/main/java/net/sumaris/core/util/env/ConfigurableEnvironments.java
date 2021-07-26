@@ -22,6 +22,7 @@ package net.sumaris.core.util.env;
  * #L%
  */
 
+import com.google.common.collect.Lists;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -43,14 +44,14 @@ public class ConfigurableEnvironments {
         List<MapPropertySource> sources = env.getPropertySources().stream()
                 .filter(source -> source instanceof MapPropertySource)
                 .map(source -> (MapPropertySource)source).collect(Collectors.toList());
-        Properties target = defaultOptions;
-        target = new Properties(target);
-        for (MapPropertySource source: sources) {
+        final Properties target = new Properties(defaultOptions);
+
+        for (MapPropertySource source: Lists.reverse(sources)) {
             // Cascade properties (keep original order)
             for (String key: source.getPropertyNames()) {
                 Object value = source.getProperty(key);
                 if (value != null) {
-                    //log.info(" {}={}", key, value.toString());
+                    log.info(" {}={}", key, value);
                     target.setProperty(key, value.toString());
                 }
             }

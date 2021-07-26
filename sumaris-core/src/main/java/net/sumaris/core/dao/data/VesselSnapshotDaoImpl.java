@@ -108,7 +108,7 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
         // Apply sorting
         addSorting(query, cb, root, sortAttribute, sortDirection);
 
-        // No tripFilter: execute request
+        // No filter: execute request
         if (filter == null) {
             TypedQuery<VesselSnapshotResult> q = getEntityManager().createQuery(query)
                 .setFirstResult(offset)
