@@ -1301,6 +1301,8 @@
         "LEGACY": "Default",
         "SAMPLING": "Biological parameters"
       },
+      "STRATEGY_EDITOR_PREDOC_ENABLE": "Strategy > Editor: Auto-enable filtered filter",
+      "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Strategy > Editor: Nb. strategy fetched for filtered fields",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Qualitative values > Max nb buttons (mobile)",
       "VESSEL_TYPE_ENABLE": "Vessels > Enable vessel type?"
     },
