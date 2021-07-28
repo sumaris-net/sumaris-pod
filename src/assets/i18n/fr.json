@@ -1315,13 +1315,14 @@
       "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre d'échantillonnages ?",
       "LANDING_ONE_TAB_ENABLE": "Sortie > Débarquement : un seul onglet ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
-      "STRATEGY_EDITOR" : "Stratégie > éditeur",
+      "STRATEGY_EDITOR" : "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Par défaut",
         "SAMPLING": "Paramètres biologiques"
       },
-      "STRATEGY_EDITOR_PREDOC_ENABLE": "Stratégie > Editeur : Activer le pré-filtrage des champs",
-      "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Stratégie > Editeur : Nb stratégies lues pour le pré-filtrage des champs",
+      "STRATEGY_EDITOR_LOCATION_LEVEL_IDS": "Stratégie > Éditeur : Niveau(x) de lieu",
+      "STRATEGY_EDITOR_PREDOC_ENABLE": "Stratégie > Éditeur : Activer le pré-filtrage des champs",
+      "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Stratégie > Éditeur : Nb stratégies lues pour le pré-filtrage des champs",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
       "VESSEL_TYPE_ENABLE": "Navires > Activer le type de navire ?"
     },

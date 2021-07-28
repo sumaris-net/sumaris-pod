@@ -1,6 +1,5 @@
-import {FormFieldDefinition, FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
-import {LocationLevelIds} from "../model/model.enum";
-import {StatusIds}  from "@sumaris-net/ngx-components";
+import {FormFieldDefinition, StatusIds} from '@sumaris-net/ngx-components';
+import {LocationLevelIds} from '../model/model.enum';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 
@@ -316,18 +315,6 @@ export const ProgramProperties = Object.freeze({
 
   /* -- Program / Strategy options -- */
 
-  STRATEGY_EDITOR_PREDOC_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.program.strategy.predoc.fetchSize',
-    label: 'PROGRAM.OPTIONS.STRATEGY_EDITOR_PREDOC_ENABLE',
-    type: 'integer',
-    defaultValue: '50'
-  },
-  STRATEGY_EDITOR_PREDOC_FETCH_SIZE: <FormFieldDefinition>{
-    key: 'sumaris.program.strategy.predoc.fetchSize',
-    label: 'PROGRAM.OPTIONS.STRATEGY_EDITOR_PREDOC_FETCH_SIZE',
-    type: 'integer',
-    defaultValue: '50'
-  },
   STRATEGY_EDITOR: <FormFieldDefinition>{
     key: "sumaris.program.strategy.editor",
     label: "PROGRAM.OPTIONS.STRATEGY_EDITOR",
@@ -343,6 +330,24 @@ export const ProgramProperties = Object.freeze({
       }
     ],
     defaultValue: "legacy"
+  },
+  STRATEGY_EDITOR_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.program.strategy.location.level.ids',
+    label: "PROGRAM.OPTIONS.STRATEGY_EDITOR_LOCATION_LEVEL_IDS",
+    type: 'string',
+    defaultValue: LocationLevelIds.ICES_DIVISION.toString()
+  },
+  STRATEGY_EDITOR_PREDOC_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.program.strategy.predoc.enable',
+    label: 'PROGRAM.OPTIONS.STRATEGY_EDITOR_PREDOC_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
+  },
+  STRATEGY_EDITOR_PREDOC_FETCH_SIZE: <FormFieldDefinition>{
+    key: 'sumaris.program.strategy.predoc.fetchSize',
+    label: 'PROGRAM.OPTIONS.STRATEGY_EDITOR_PREDOC_FETCH_SIZE',
+    type: 'integer',
+    defaultValue: '50'
   },
 
   I18N_SUFFIX: <FormFieldDefinition>{
