@@ -977,7 +977,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }
 
       if (errors) {
-        taxonNameMask = [/^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/];
+        taxonNameMask = [/^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/];
       }
 
       // @ts-ignore
@@ -993,7 +993,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       if (errors && taxonNameControl) {
         // Lorsque l'on saisi une espece valide, puis une espece non valide le code ligne de plan garde la valeur de l'espece precedente valide
         // Il faut saisir une deuxieme fois une espece invalide pour que le code ligne de plan prenne la valeur attendue
-        const computedLabel = `${yearMask} _______`;
+        const computedLabel = `${yearMask}_______`;
         labelControl.setValue(computedLabel);
         taxonNameControl.setErrors(errors);
       } else {
