@@ -94,6 +94,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       levelLabels: ParameterLabelGroups.MATURITY
     }
   };
+  private analyticsReferencePatched: boolean;
+  private fillEffortsCalled: boolean;
 
   get value(): any {
     throw new Error("Not implemented! Please use getValue() instead, that is an async function");
@@ -174,6 +176,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       form.get('age').disable();
       form.get('sex').disable();
     }
+
   }
 
   constructor(
@@ -207,6 +210,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   ngOnInit() {
     super.ngOnInit();
+    this.fillEffortsCalled = false;
+    this.analyticsReferencePatched = false;
 
     this.referentialRefService.loadAll(0, 0, null, null, {
       entityName: 'Fraction',
@@ -423,9 +428,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       if (!opts || opts.emitEvent !== false) {
         this.markForCheck();
       }
-
-      // When program is loaded, reload increment
-      this.onDateChange();
     }
   }
 
@@ -531,13 +533,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     } catch (err) {
       console.debug('Error on load AnalyticReference');
-    }
-
-    // set label if data already exist
-    const labelAlreadyExist = this.form.get('id').value
-    if (labelAlreadyExist) {
-      const currentData = data.find(elem => elem.id === labelAlreadyExist)
-      this.form.get('label').setValue(currentData.label);
     }
   }
 
@@ -689,6 +684,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.samplingStrategyService.fillEfforts([this.data]).then((test) => {
       this.hasEffort = this.data.hasRealizedEffort;
       this.enable();
+      this.fillEffortsCalled = true;
     });
 
     // Make sure to have (at least) one department
@@ -741,6 +737,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         year: firstAppliedPeriod ? firstAppliedPeriod.startDate : moment(),
         analyticReference: data && { label: data.label, name: data.name } || null
       });
+      this.analyticsReferencePatched= true;
     });
 
     // If new
@@ -752,6 +749,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       // pmfms = [hasSex, hasAge];
       this.form.get('age').patchValue((data.pmfms || []).findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.AGE) !== -1);
       this.form.get('sex').patchValue((data.pmfms || []).findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.SEX) !== -1);
+      const displayedLabel = data.label.substr(0, 2).concat(' ').concat(data.label.substr(2, 7)).concat(' ').concat(data.label.substr(9, 3));
+      this.form.get('label').patchValue(displayedLabel);
     }
 
 
@@ -794,6 +793,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.calcifiedFractionsHelper.resize(Math.max(1, pmfmStrategiesWithFraction.length));
       calcifiedTypeControl.patchValue(fractions);
     });
+
   }
 
 
@@ -948,57 +948,60 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   protected async generateLabel(date?: Moment) {
-    date = fromDateISOString(date || this.form.get('year').value);
-    if (!date || !this.program) return // Skip if year or program is missing
-    const yearMask = date.format('YY');
+    // Wait for asynchronous functions to be completed.
+    if (this.analyticsReferencePatched && this.fillEffortsCalled) {
+      date = fromDateISOString(date || this.form.get('year').value);
+      if (!date || !this.program) return // Skip if year or program is missing
+      const yearMask = date.format('YY');
 
-    let taxonNameMask;
-    let errors: ValidationErrors;
-    const taxonNameControl = this.taxonNamesHelper.at(0);
-    const taxonName = taxonNameControl?.value?.taxonName;
+      let taxonNameMask;
+      let errors: ValidationErrors;
+      const taxonNameControl = this.taxonNamesHelper.at(0);
+      const taxonName = taxonNameControl?.value?.taxonName;
 
-    const label = taxonName && TaxonUtils.generateLabelFromName(taxonName.name);
-    const isUnique = label && (await this.referentialRefService.countAll({
-      entityName: TaxonName.ENTITY_NAME,
-      searchText: TaxonUtils.generateNameSearchPatternFromLabel(label),
-      searchAttribute: 'name',
-      excludedIds: [taxonName.id],
-      statusIds: [StatusIds.ENABLE],
-      levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
-    })) === 0;
-    if (!label) {
-      errors = { cannotComputeTaxonCode: true };
-    } else if (!isUnique) {
-      errors = { uniqueTaxonCode: true };
-    } else {
-      taxonNameMask = [...label];
-    }
+      const label = taxonName && TaxonUtils.generateLabelFromName(taxonName.name);
+      const isUnique = label && (await this.referentialRefService.countAll({
+        entityName: TaxonName.ENTITY_NAME,
+        searchText: TaxonUtils.generateNameSearchPatternFromLabel(label),
+        searchAttribute: 'name',
+        excludedIds: [taxonName.id],
+        statusIds: [StatusIds.ENABLE],
+        levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
+      })) === 0;
+      if (!label) {
+        errors = {cannotComputeTaxonCode: true};
+      } else if (!isUnique) {
+        errors = {uniqueTaxonCode: true};
+      } else {
+        taxonNameMask = [...label];
+      }
 
-    if (errors) {
-      taxonNameMask = [/^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/];
-    }
+      if (errors) {
+        taxonNameMask = [/^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/];
+      }
 
-    // @ts-ignore
-    this.labelMask = yearMask.split("")
-      .concat([' '])
-      .concat(taxonNameMask)
-      .concat([' ', /\d/, /\d/, /\d/]);
+      // @ts-ignore
+      this.labelMask = yearMask.split("")
+        .concat([' '])
+        .concat(taxonNameMask)
+        .concat([' ', /\d/, /\d/, /\d/]);
 
-    const taxonNameMaskString = taxonNameMask.join("");
+      const taxonNameMaskString = taxonNameMask.join("");
 
-    const labelControl = this.form.get('label');
+      const labelControl = this.form.get('label');
 
-    if (errors && taxonNameControl) {
-      // Lorsque l'on saisi une espece valide, puis une espece non valide le code ligne de plan garde la valeur de l'espece precedente valide
-      // Il faut saisir une deuxieme fois une espece invalide pour que le code ligne de plan prenne la valeur attendue
-      const computedLabel = `${yearMask} _______`;
-      labelControl.setValue(computedLabel);
-      taxonNameControl.setErrors(errors);
-    } else {
-      const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${yearMask}${taxonNameMaskString}`, 3));
-      SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
-      console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
-      labelControl.setValue(computedLabel);
+      if (errors && taxonNameControl) {
+        // Lorsque l'on saisi une espece valide, puis une espece non valide le code ligne de plan garde la valeur de l'espece precedente valide
+        // Il faut saisir une deuxieme fois une espece invalide pour que le code ligne de plan prenne la valeur attendue
+        const computedLabel = `${yearMask}_______`;
+        labelControl.setValue(computedLabel);
+        taxonNameControl.setErrors(errors);
+      } else {
+        const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${yearMask}${taxonNameMaskString}`, 3));
+        SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
+        console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
+        labelControl.setValue(computedLabel);
+      }
     }
   }
 

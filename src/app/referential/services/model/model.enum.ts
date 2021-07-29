@@ -148,7 +148,8 @@ export const UnitLabelPatterns = {
 export const UnitLabel = {
   DECIMAL_HOURS: 'h dec.',
   DATE_TIME: 'Date & Time',
-  KG: 'kg'
+  KG: 'kg',
+  GRAM: 'g'
 };
 export const QualityFlagIds = {
   NOT_QUALIFIED: 0,
