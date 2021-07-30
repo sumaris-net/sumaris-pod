@@ -14,12 +14,11 @@ import { Context, ContextService } from './context.service';
     SharedModule,
     RouterModule,
     TranslateModule,
-    ContextService,
   ],
   providers: [
     {
       provide: ContextService,
-      useValue: new ContextService<Context>({})
+      useFactory: () => (new ContextService<Context>({}))
     },
   ],
 })

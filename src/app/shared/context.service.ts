@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Inject, Injectable } from "@angular/core";
 import { SamplingStrategy } from "@app/referential/services/model/sampling-strategy.model";
 import { BehaviorSubject, interval } from "rxjs";
 
@@ -14,7 +14,6 @@ export type ObservableValues<T> = {
     [key in keyof T]: BehaviorSubject<T[keyof T]>;
 }
 
-@Injectable({providedIn: 'root'})
 export class ContextService<S extends Record<string, any> = Context> {
     protected observableState: ObservableValues<S>;
 
@@ -31,7 +30,7 @@ export class ContextService<S extends Record<string, any> = Context> {
         }, {}) as ObservableValues<T>;
     }
 
-    constructor(protected defaultState: S = ({} as S)) {
+    constructor(protected defaultState: S) {
         this.reset();
     }
 
