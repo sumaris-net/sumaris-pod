@@ -82,9 +82,6 @@ public class DataGraphQLService {
     private SumarisServerConfiguration config;
 
     @Autowired
-    private VesselService vesselService;
-
-    @Autowired
     private TripService tripService;
 
     @Autowired
@@ -150,110 +147,8 @@ public class DataGraphQLService {
     @Autowired
     private AuthService authService;
 
-    /* -- Vessel -- */
-
-    @GraphQLQuery(name = "vesselSnapshots", description = "Search in vessel snapshots")
-    @Transactional(readOnly = true)
-    @IsUser
-    public List<VesselSnapshotVO> findVesselSnapshotsByFilter(@GraphQLArgument(name = "filter") VesselFilterVO filter,
-                                                              @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                              @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                              @GraphQLArgument(name = "sortBy", defaultValue = VesselSnapshotVO.Fields.EXTERIOR_MARKING) String sort,
-                                                              @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
-    ) {
-        fillVesselFilter(filter); // Restrict vessels access
-
-        return vesselService.findSnapshotByFilter(
-                filter,
-                offset, size, sort,
-                SortDirection.fromString(direction));
-    }
-
-    @GraphQLQuery(name = "vessels", description = "Search in vessels")
-    @Transactional(readOnly = true)
-    @IsUser
-    public List<VesselVO> findVesselByFilter(@GraphQLArgument(name = "filter") VesselFilterVO filter,
-                                             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                             @GraphQLArgument(name = "sortBy") String sort,
-                                             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
-    ) {
-        fillVesselFilter(filter); // Restrict vessels access
-
-        return vesselService.findVesselsByFilter(
-                filter,
-                offset, size, sort,
-                SortDirection.fromString(direction));
-    }
-
-    @GraphQLQuery(name = "vesselsCount", description = "Get total vessels count")
-    @Transactional(readOnly = true)
-    @IsUser
-    public long getVesselsCount(@GraphQLArgument(name = "filter") VesselFilterVO filter) {
-        fillVesselFilter(filter); // Restrict vessels access
-
-        return vesselService.countVesselsByFilter(filter);
-    }
-
-    @GraphQLQuery(name = "vessel", description = "Get a vessel")
-    @Transactional(readOnly = true)
-    @IsUser
-    public VesselVO getVesselById(@GraphQLNonNull @GraphQLArgument(name = "vesselId") int vesselId) {
-        return vesselService.getVesselById(vesselId);
-    }
-
-    @GraphQLQuery(name = "vesselFeaturesHistory", description = "Get vessel features history")
-    @Transactional(readOnly = true)
-    @IsUser
-    public List<VesselFeaturesVO> getVesselFeaturesHistory(
-        @GraphQLArgument(name = "vesselId") Integer vesselId,
-        @GraphQLArgument(name = "filter") VesselFeaturesFilterVO filter,
-                                                           @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                           @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                           @GraphQLArgument(name = "sortBy", defaultValue = VesselFeaturesVO.Fields.START_DATE) String sort,
-                                                           @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
-        vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
-        Preconditions.checkNotNull(vesselId);
-        return vesselService.getFeaturesByVesselId(vesselId, offset, size, sort, SortDirection.fromString(direction));
-    }
-
-    @GraphQLQuery(name = "vesselRegistrationHistory", description = "Get vessel registration history")
-    @Transactional(readOnly = true)
-    @IsUser
-    public List<VesselRegistrationVO> getVesselRegistrationHistory(@GraphQLArgument(name = "vesselId") Integer vesselId,
-                                                                   @GraphQLArgument(name = "filter") VesselRegistrationFilterVO filter,
-                                                                   @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                                   @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                                   @GraphQLArgument(name = "sortBy", defaultValue = VesselRegistrationVO.Fields.START_DATE) String sort,
-                                                                   @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
-        vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
-        Preconditions.checkNotNull(vesselId);
-        return vesselService.getRegistrationsByVesselId(vesselId, offset, size, sort, SortDirection.fromString(direction));
-    }
-
-    @GraphQLMutation(name = "saveVessel", description = "Create or update a vessel")
-    @IsUser
-    public VesselVO saveVessel(@GraphQLNonNull @GraphQLArgument(name = "vessel") VesselVO vessel) {
-        return vesselService.save(vessel);
-    }
-
-    @GraphQLMutation(name = "saveVessels", description = "Create or update many vessels")
-    @IsUser
-    public List<VesselVO> saveVessels(@GraphQLNonNull @GraphQLArgument(name = "vessels") List<VesselVO> vessels) {
-        return vesselService.save(vessels);
-    }
-
-    @GraphQLMutation(name = "deleteVessel", description = "Delete a vessel (by vessel features id)")
-    @IsUser
-    public void deleteVessel(@GraphQLNonNull @GraphQLArgument(name = "id") int id) {
-        vesselService.delete(id);
-    }
-
-    @GraphQLMutation(name = "deleteVessels", description = "Delete many vessels (by vessel features ids)")
-    @IsUser
-    public void deleteVessels(@GraphQLNonNull @GraphQLArgument(name = "ids") List<Integer> ids) {
-        vesselService.delete(ids);
-    }
+    @Autowired
+    private VesselGraphQLService vesselGraphQLService;
 
     /* -- Trip -- */
 
@@ -1052,7 +947,7 @@ public class DataGraphQLService {
             @GraphQLEnvironment ResolutionEnvironment env
     ) {
         List<AggregatedLandingVO> result = aggregatedLandingService.findAll(filter);
-        fillVesselSnapshot(result, GraphQLUtils.fields(env));
+        vesselGraphQLService.fillVesselSnapshot(result, GraphQLUtils.fields(env));
         return result;
     }
 
@@ -1064,7 +959,7 @@ public class DataGraphQLService {
     ) {
         List<AggregatedLandingVO> result = aggregatedLandingService.saveAllByObservedLocationId(filter, aggregatedLandings);
 
-        fillVesselSnapshot(result, GraphQLUtils.fields(env));
+        vesselGraphQLService.fillVesselSnapshot(result, GraphQLUtils.fields(env));
 
         return result;
 
@@ -1317,7 +1212,7 @@ public class DataGraphQLService {
         fillImages(trip, fields);
 
         // Add vessel if need
-        fillVesselSnapshot(trip, fields);
+        vesselGraphQLService.fillVesselSnapshot(trip, fields);
 
         if (fields.contains(StringUtils.slashing(TripVO.Fields.LANDING, LandingVO.Fields.ID)) || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
             tripService.fillTripLandingLinks(trip);
@@ -1329,7 +1224,7 @@ public class DataGraphQLService {
         fillImages(trips, fields);
 
         // Add vessel if need
-        fillVesselSnapshot(trips, fields);
+        vesselGraphQLService.fillVesselSnapshot(trips, fields);
 
         // Fill link to parent landing or observed location
         // (e.g. need by ObsDeb)
@@ -1353,7 +1248,7 @@ public class DataGraphQLService {
         fillImages(landing, fields);
 
         // Add vessel if need
-        fillVesselSnapshot(landing, fields);
+        vesselGraphQLService.fillVesselSnapshot(landing, fields);
     }
 
     protected void fillLandingsFields(List<LandingVO> landings, Set<String> fields) {
@@ -1361,22 +1256,12 @@ public class DataGraphQLService {
         fillImages(landings, fields);
 
         // Add vessel if need
-        fillVesselSnapshot(landings, fields);
+        vesselGraphQLService.fillVesselSnapshot(landings, fields);
     }
 
     protected boolean hasImageField(Set<String> fields) {
         return fields.contains(StringUtils.slashing(TripVO.Fields.RECORDER_DEPARTMENT, DepartmentVO.Fields.LOGO))
                 || fields.contains(StringUtils.slashing(TripVO.Fields.RECORDER_PERSON, PersonVO.Fields.AVATAR));
-    }
-
-    protected boolean hasVesselFeaturesField(Set<String> fields) {
-        return fields.contains(StringUtils.slashing(TripVO.Fields.VESSEL_SNAPSHOT, VesselSnapshotVO.Fields.EXTERIOR_MARKING))
-                || fields.contains(StringUtils.slashing(TripVO.Fields.VESSEL_SNAPSHOT, VesselSnapshotVO.Fields.NAME));
-    }
-
-    protected boolean hasMetiersField(Set<String> fields) {
-        return fields.contains(StringUtils.slashing(TripVO.Fields.METIERS, ReferentialVO.Fields.ID))
-                || fields.contains(StringUtils.slashing(TripVO.Fields.METIERS, ReferentialVO.Fields.LABEL));
     }
 
     protected <T extends IRootDataVO<?>> List<T> fillImages(final List<T> results) {
@@ -1410,50 +1295,12 @@ public class DataGraphQLService {
         return result;
     }
 
-    protected <T extends IWithVesselSnapshotEntity<?, VesselSnapshotVO>> void fillVesselSnapshot(T bean, Set<String> fields) {
-        // Add vessel if need
-        VesselSnapshotVO result = bean.getVesselSnapshot();
-
-        // No ID: cannot fetch
-        if (result == null || result.getId() == null) return;
-
-        // Fetch (if need)
-        if (result.getName() == null && hasVesselFeaturesField(fields)) {
-            result = vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), Dates.resetTime(bean.getVesselDateTime()));
-            bean.setVesselSnapshot(result);
-        }
-    }
-
-    protected <T extends IWithVesselSnapshotEntity<?, VesselSnapshotVO>> void fillVesselSnapshot(List<T> beans, Set<String> fields) {
-        // Add vessel if need
-        if (hasVesselFeaturesField(fields)) {
-            beans.forEach(bean -> {
-                if (bean.getVesselSnapshot() != null && bean.getVesselSnapshot().getId() != null && bean.getVesselSnapshot().getName() == null) {
-                    bean.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), bean.getVesselDateTime()));
-                }
-            });
-        }
-    }
-
     protected DataFetchOptions getFetchOptions(Set<String> fields) {
         return DataFetchOptions.builder()
                 .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
                 .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
                 .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
                 .build();
-    }
-
-    /**
-     * Restrict to vessel, depending of user access rights
-     * @param filter
-     */
-    protected VesselFilterVO fillVesselFilter(VesselFilterVO filter) {
-        // Filter on SIH program, when not an admin
-        if (!authService.isAdmin()) {
-            filter = VesselFilterVO.nullToEmpty(filter);
-            filter.setProgramLabel(ProgramEnum.SIH.getLabel());
-        }
-        return filter;
     }
 
     /**

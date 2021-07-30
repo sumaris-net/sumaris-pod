@@ -38,16 +38,15 @@ public interface DataSpecifications<E extends IDataEntity<? extends Serializable
     String RECORDER_DEPARTMENT_ID_PARAM = "recorderDepartmentId";
 
     default BindableSpecification<E> hasRecorderDepartmentId(Integer recorderDepartmentId) {
-        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             query.distinct(true); // Set distinct here because hasRecorderDepartmentId is always used (usually ...)
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, RECORDER_DEPARTMENT_ID_PARAM);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(param),
                 criteriaBuilder.equal(root.get(E.Fields.RECORDER_DEPARTMENT).get(IEntity.Fields.ID), param)
             );
-        });
-        specification.addBind(RECORDER_DEPARTMENT_ID_PARAM, recorderDepartmentId);
-        return specification;
+        })
+            .addBind(RECORDER_DEPARTMENT_ID_PARAM, recorderDepartmentId);
     }
 
 }

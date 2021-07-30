@@ -35,6 +35,7 @@ import net.sumaris.server.http.graphql.administration.AccountGraphQLService;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
 import net.sumaris.server.http.graphql.administration.ProgramGraphQLService;
 import net.sumaris.server.http.graphql.data.DataGraphQLService;
+import net.sumaris.server.http.graphql.data.VesselGraphQLService;
 import net.sumaris.server.http.graphql.referential.PmfmGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialExternalGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialGraphQLService;
@@ -83,6 +84,9 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
     @Autowired
     private DataGraphQLService dataService;
+
+    @Autowired
+    private DataGraphQLService vesselService;
 
     @Autowired
     private ReferentialGraphQLService referentialService;
@@ -153,6 +157,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
                 // Data
                 .withOperationsFromSingleton(dataService, DataGraphQLService.class)
+                .withOperationsFromSingleton(vesselService, VesselGraphQLService.class)
 
                 // Social
                 .withOperationsFromSingleton(socialService, SocialGraphQLService.class)
