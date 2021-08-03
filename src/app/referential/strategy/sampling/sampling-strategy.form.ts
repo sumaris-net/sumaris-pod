@@ -911,7 +911,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   protected async onEditLabel(value: string) {
-    value = value.toUpperCase();
+    if (value) {
+      value = value.toUpperCase();
+    }
     const labelControl = this.form.get('label');
     const taxonNameControl = this.taxonNamesHelper.at(0);
     if (taxonNameControl.hasError('cannotComputeTaxonCode') || taxonNameControl.hasError('uniqueTaxonCode')) {
