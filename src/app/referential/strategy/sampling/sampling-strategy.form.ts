@@ -960,7 +960,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       const taxonNameControl = this.taxonNamesHelper.at(0);
       const currentViewTaxon = taxonNameControl?.value?.taxonName;
       const currentViewTaxonName = taxonNameControl?.value?.taxonName?.name;
-      const previousFormTaxonName = this.form.value.taxonNames[0]?.taxonName?.name.clone;
+      const previousFormTaxonName = this.form.value.taxonNames[0]?.taxonName?.name?.clone;
       const storedDataTaxonName = this.data.taxonNames[0]?.taxonName?.name;
       const storedDataYear = this.data.appliedStrategies[0]?.appliedPeriods[0]?.startDate ? fromDateISOString(this.data.appliedStrategies[0].appliedPeriods[0].startDate).format('YY') : undefined;
       const previousFormYear = fromDateISOString(this.form.value.year).format('YY');
