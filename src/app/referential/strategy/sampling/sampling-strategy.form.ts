@@ -911,6 +911,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   protected async onEditLabel(value: string) {
+    value = value.toUpperCase();
     const labelControl = this.form.get('label');
     const taxonNameControl = this.taxonNamesHelper.at(0);
     if (taxonNameControl.hasError('cannotComputeTaxonCode') || taxonNameControl.hasError('uniqueTaxonCode')) {
@@ -931,9 +932,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
           const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10).toUpperCase(), 3));
           labelControl.setValue(computedLabel);
         }
-      }
-      else if (!(value === value.toUpperCase())){
-        labelControl.setValue(value.toUpperCase());
       }
     }
   }
