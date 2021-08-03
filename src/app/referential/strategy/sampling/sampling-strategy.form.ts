@@ -334,16 +334,16 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     const idControl = this.form.get('id');
     this.form.get('label').setAsyncValidators([
-    async (control) => {
-      const label = control.value;
-      const parts = label.split(" ");
-      if (parts.some(str => str.indexOf("_") !== -1)) {
-        return <ValidationErrors>{ required: true };
-      }
-      if (label.includes('000')) {
-        return <ValidationErrors>{ zero: true };
-      }
-      console.debug('[sampling-strategy-form] Checking of label is unique...');
+      async (control) => {
+        const label = control.value;
+        const parts = label.split(" ");
+        if (parts.some(str => str.indexOf("_") !== -1)) {
+          return <ValidationErrors>{ required: true };
+        }
+        if (label.includes('000')) {
+          return <ValidationErrors>{ zero: true };
+        }
+        console.debug('[sampling-strategy-form] Checking of label is unique...');
         const exists = await this.strategyService.existsByLabel(label, {
           programId: this.program && this.program.id,
           excludedIds: isNotNil(idControl.value) ? [idControl.value] : undefined,
@@ -964,7 +964,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       const currentViewTaxonName = taxonNameControl?.value?.taxonName?.name;
       const previousFormTaxonName = this.form.value.taxonNames[0]?.taxonName?.name.clone;
       const storedDataTaxonName = this.data.taxonNames[0]?.taxonName?.name;
-      const storedDataYear = fromDateISOString(this.data.appliedStrategies[0]?.appliedPeriods[0]?.startDate).format('YY');
+      const storedDataYear = this.data.appliedStrategies[0]?.appliedPeriods[0]?.startDate ? fromDateISOString(this.data.appliedStrategies[0].appliedPeriods[0].startDate).format('YY') : undefined;
       const previousFormYear = fromDateISOString(this.form.value.year).format('YY');
       const labelControl = this.form.get('label');
 
@@ -990,10 +990,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
       // @ts-ignore
       const newMask = yearMask.split("")
-        .concat([' ', [/^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/], ' ', /\d/, /\d/, /\d/]);
+        .concat([' ', /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, ' ', /\d/, /\d/, /\d/]);
 
        if (currentViewTaxonName  && currentViewTaxonName === previousFormTaxonName && yearMask && yearMask === previousFormYear) return; // Skip generate label when there is no update on year or taxon
-       this.labelMask = newMask;
+      this.labelMask = newMask;
+
+
 
       if (errors && taxonNameControl) {
         const computedLabel = `${yearMask} `;
