@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, ViewChild} from '@angular/core';
 import { ActivatedRoute, Router } from "@angular/router";
 import { TableElement } from "@e-is/ngx-material-table/src/app/ngx-material-table/table-element";
 import { Subject } from "rxjs";
@@ -12,6 +12,8 @@ import { SamplingStrategiesTable } from "./sampling/sampling-strategies.table";
 import { StrategiesTable } from "./strategies.table";
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {MatExpansionPanel} from '@angular/material/expansion';
+import { ContextService } from '../../shared/context.service';
+import { SamplingStrategy } from '../services/model/sampling-strategy.model';
 
 // app-strategies-page
 @Component({
@@ -60,7 +62,8 @@ export class StrategiesPage {
     protected programRefService: ProgramRefService,
     protected accountService: AccountService,
     protected platformService: PlatformService,
-    protected cd: ChangeDetectorRef
+    @Inject(ContextService) protected contextService: ContextService,
+    protected cd: ChangeDetectorRef,
   ) {
     this.mobile = platformService.mobile;
 
@@ -116,8 +119,11 @@ export class StrategiesPage {
     });
   }
 
-  onNewDataFromRow<S extends Strategy>(row: TableElement<S>) {
-    console.debug('Add new Data', row.currentData);
+  onNewDataFromRow(row: TableElement<SamplingStrategy>) {
+    this.contextService.setValue('samplingStrategy', row.currentData, { ttl: 1000 });
+
+    // TODO Navigate to Trip creation screen (and consume `contextService.getObservable('samplingStrategy')`)
+    this.router.navigateByUrl('/observations/new');
   }
 
   markAsLoading(opts?: { emitEvent?: boolean }) {
