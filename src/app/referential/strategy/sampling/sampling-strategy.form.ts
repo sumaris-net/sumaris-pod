@@ -737,7 +737,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         year: firstAppliedPeriod ? firstAppliedPeriod.startDate : moment(),
         analyticReference: data && { label: data.label, name: data.name } || null
       });
-      this.analyticsReferencePatched= true;
+      this.analyticsReferencePatched = true;
     });
 
     // If new
@@ -911,6 +911,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   protected async onEditLabel(value: string) {
+    if (value) {
+      value = value.toUpperCase();
+    }
     const labelControl = this.form.get('label');
     const taxonNameControl = this.taxonNamesHelper.at(0);
     if (taxonNameControl.hasError('cannotComputeTaxonCode') || taxonNameControl.hasError('uniqueTaxonCode')) {
@@ -950,21 +953,32 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   protected async generateLabel(date?: Moment) {
     // Wait for asynchronous functions to be completed.
     if (this.analyticsReferencePatched && this.fillEffortsCalled) {
+      if (date && date === this.form.value?.year) return // Skip if year doesn't change
       date = fromDateISOString(date || this.form.get('year').value);
       if (!date || !this.program) return // Skip if year or program is missing
       const yearMask = date.format('YY');
 
-      let taxonNameMask;
       let errors: ValidationErrors;
       const taxonNameControl = this.taxonNamesHelper.at(0);
-      const taxonName = taxonNameControl?.value?.taxonName;
+      const currentViewTaxon = taxonNameControl?.value?.taxonName;
+      const currentViewTaxonName = taxonNameControl?.value?.taxonName?.name;
+      const previousFormTaxonName = this.form.value.taxonNames[0]?.taxonName?.name?.clone;
+      const storedDataTaxonName = this.data.taxonNames[0]?.taxonName?.name;
+      const storedDataYear = this.data.appliedStrategies[0]?.appliedPeriods[0]?.startDate ? fromDateISOString(this.data.appliedStrategies[0].appliedPeriods[0].startDate).format('YY') : undefined;
+      const previousFormYear = fromDateISOString(this.form.value.year).format('YY');
+      const labelControl = this.form.get('label');
 
-      const label = taxonName && TaxonUtils.generateLabelFromName(taxonName.name);
+      // When taxon is changed first and returned to initial value, we set back initial sampling strategy label (with same year)
+      if (currentViewTaxonName === storedDataTaxonName && yearMask === storedDataYear) {
+        labelControl.setValue(this.data.label);
+        return;
+      }
+      const label = currentViewTaxonName && TaxonUtils.generateLabelFromName(currentViewTaxonName);
       const isUnique = label && (await this.referentialRefService.countAll({
         entityName: TaxonName.ENTITY_NAME,
         searchText: TaxonUtils.generateNameSearchPatternFromLabel(label),
         searchAttribute: 'name',
-        excludedIds: [taxonName.id],
+        excludedIds: [currentViewTaxon.id],
         statusIds: [StatusIds.ENABLE],
         levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
       })) === 0;
@@ -972,32 +986,23 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         errors = {cannotComputeTaxonCode: true};
       } else if (!isUnique) {
         errors = {uniqueTaxonCode: true};
-      } else {
-        taxonNameMask = [...label];
-      }
-
-      if (errors) {
-        taxonNameMask = [/^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/];
       }
 
       // @ts-ignore
-      this.labelMask = yearMask.split("")
-        .concat([' '])
-        .concat(taxonNameMask)
-        .concat([' ', /\d/, /\d/, /\d/]);
+      const newMask = yearMask.split("")
+        .concat([' ', /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, ' ', /\d/, /\d/, /\d/]);
 
-      const taxonNameMaskString = taxonNameMask.join("");
+      if (currentViewTaxonName  && currentViewTaxonName === previousFormTaxonName && yearMask && yearMask === previousFormYear) return; // Skip generate label when there is no update on year or taxon
+      this.labelMask = newMask;
 
-      const labelControl = this.form.get('label');
+
 
       if (errors && taxonNameControl) {
-        // Lorsque l'on saisi une espece valide, puis une espece non valide le code ligne de plan garde la valeur de l'espece precedente valide
-        // Il faut saisir une deuxieme fois une espece invalide pour que le code ligne de plan prenne la valeur attendue
-        const computedLabel = `${yearMask}_______`;
-        labelControl.setValue(computedLabel);
+        const computedLabel = `${yearMask} `;
         taxonNameControl.setErrors(errors);
+        labelControl.setValue(computedLabel);
       } else {
-        const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${yearMask}${taxonNameMaskString}`, 3));
+        const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${yearMask}${label}`, 3));
         SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
         console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
         labelControl.setValue(computedLabel);
