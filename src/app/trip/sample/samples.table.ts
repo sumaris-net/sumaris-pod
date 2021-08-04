@@ -693,5 +693,10 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       .length
     this.tagCount$.next(tagCount);
   }
+
+  displayColumnButton(): boolean {
+    const urlRegex = new RegExp(/^\/observations\/[0-9]*\/sampling\/[0-9]*\?tab=1$/)
+    return !urlRegex.test(this.router.url);
+  }
 }
 
