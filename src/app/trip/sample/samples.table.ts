@@ -75,7 +75,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
   protected pmfmService: PmfmService;
-  protected currentSample: Sample; // require to preset presentation on new row
 
   // Top group header
   groupHeaderStartColSpan: number;
@@ -436,20 +435,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     // Default taxon group
     if (isNotNil(this.defaultTaxonGroup)) {
       data.taxonGroup = TaxonGroupRef.fromObject(this.defaultTaxonGroup);
-    }
-
-    // Default presentation value
-    if (data.measurementValues.hasOwnProperty(PmfmIds.DRESSING)) {
-      // skip first
-      if (data.rankOrder > 1 && !this.currentSample) {
-        const previousSample = this.value.find(s => s.rankOrder === data.rankOrder - 1);
-
-        data.measurementValues[PmfmIds.DRESSING] = previousSample.measurementValues[PmfmIds.DRESSING];
-      } else if (this.currentSample) {
-        const previousSample = await this.findRowBySample(this.currentSample);
-        data.measurementValues[PmfmIds.DRESSING] = previousSample.currentData.measurementValues[PmfmIds.DRESSING];
-      }
-      this.currentSample = data;
     }
   }
 
