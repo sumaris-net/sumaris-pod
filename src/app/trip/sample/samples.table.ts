@@ -103,6 +103,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() defaultLocation: ReferentialRef;
   @Input() modalOptions: Partial<ISampleModalOptions>;
   @Input() compactFields = true;
+  @Input() showDisplayColumn = true;
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.pmfmGroups$.getValue() !== value) {
@@ -692,11 +693,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       .filter(isNotNilOrBlank)
       .length
     this.tagCount$.next(tagCount);
-  }
-
-  displayColumnButton(): boolean {
-    const urlRegex = new RegExp(/^\/observations\/[0-9]*\/sampling\/[0-9]*\?tab=1$/)
-    return !urlRegex.test(this.router.url);
   }
 }
 

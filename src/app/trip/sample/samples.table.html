@@ -297,7 +297,7 @@
                         (forward)="confirmAndForward($event.event, $event.row)"
                         [canCancel]="false">
       <!-- display columns -->
-      <button *ngIf="displayColumnButton()" mat-icon-button matHeader
+      <button *ngIf="showDisplayColumn" mat-icon-button matHeader
               [title]="'COMMON.DISPLAYED_COLUMNS_DOTS'|translate"
               [matMenuTriggerFor]="optionsMenu">
         <mat-icon>more_vert</mat-icon>
