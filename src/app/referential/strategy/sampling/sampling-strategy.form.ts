@@ -46,6 +46,7 @@ import {SamplingStrategyService} from '../../services/sampling-strategy.service'
 import {PmfmFilter, PmfmService} from '../../services/pmfm.service';
 import {SamplingStrategy, StrategyEffort} from '@app/referential/services/model/sampling-strategy.model';
 import {TaxonName} from '@app/referential/services/model/taxon-name.model';
+import {TaxonNameService} from '@app/referential/services/taxon-name.service';
 
 const moment = momentImported;
 
@@ -187,6 +188,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     protected pmfmService: PmfmService,
     protected strategyService: StrategyService,
     protected settings: LocalSettingsService,
+    protected taxonNameService: TaxonNameService,
     protected cd: ChangeDetectorRef,
     protected formBuilder: FormBuilder
   ) {
@@ -974,14 +976,29 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         return;
       }
       const label = currentViewTaxonName && TaxonUtils.generateLabelFromName(currentViewTaxonName);
-      const isUnique = label && (await this.referentialRefService.countAll({
+
+      const taxonNamesItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+
+      if (label) {
+        await this.referentialRefService.loadAll(0, 1000, null, null,{
         entityName: TaxonName.ENTITY_NAME,
         searchText: TaxonUtils.generateNameSearchPatternFromLabel(label),
         searchAttribute: 'name',
         excludedIds: [currentViewTaxon.id],
         statusIds: [StatusIds.ENABLE],
         levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
-      })) === 0;
+      }).then(({data}) => taxonNamesItems.next(data));
+      }
+      let isUnique = true;
+      if (taxonNamesItems && taxonNamesItems.value)
+      {
+        const filteredReferentTaxons = (await Promise.all(taxonNamesItems.value.map(taxonRef => (this.taxonNameService.load(taxonRef.id))))).filter(taxon => taxon.isReferent);
+        if (!(filteredReferentTaxons === null || filteredReferentTaxons.length === 0))
+        {
+          isUnique = false;
+        }
+      }
+
       if (!label) {
         errors = {cannotComputeTaxonCode: true};
       } else if (!isUnique) {
@@ -992,7 +1009,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       const newMask = yearMask.split("")
         .concat([' ', /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, ' ', /\d/, /\d/, /\d/]);
 
-       if (currentViewTaxonName  && currentViewTaxonName === previousFormTaxonName && yearMask && yearMask === previousFormYear) return; // Skip generate label when there is no update on year or taxon
+      if (currentViewTaxonName  && currentViewTaxonName === previousFormTaxonName && yearMask && yearMask === previousFormYear) return; // Skip generate label when there is no update on year or taxon
       this.labelMask = newMask;
 
 
