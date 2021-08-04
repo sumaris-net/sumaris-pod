@@ -101,17 +101,17 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: LocationLevelIds.ICES_RECTANGLE
   },
-  LOCATION_LEVEL_ICES_DIVISION_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.LocationLevel.ICES_DIVISION.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_DIVISION_ID',
-    type: 'entity',
+  LOCATION_LEVEL_LOCATIONS_AREA_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.LOCATIONS_AREA.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_LOCATIONS_AREA_ID',
+    type: 'string',
     autocomplete: {
       filter: {
         entityName: 'LocationLevel',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
-    defaultValue: LocationLevelIds.ICES_DIVISION
+    defaultValue: LocationLevelIds.LOCATIONS_AREA.join(',')
   },
   TAXONOMIC_LEVEL_FAMILY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.TaxonomicLevel.FAMILY.id',
