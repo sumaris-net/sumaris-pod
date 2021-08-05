@@ -1,4 +1,3 @@
-import { Inject, Injectable } from "@angular/core";
 import { SamplingStrategy } from "@app/referential/services/model/sampling-strategy.model";
 import { BehaviorSubject, interval } from "rxjs";
 
@@ -62,7 +61,13 @@ export class ContextService<S extends Record<string, any> = Context> {
         return this.getObservable(key)?.closed ? undefined : this.getObservable(key)?.getValue();
     }
 
+    resetValue(key, opts = {}) {
+      !!this.observableState?.[key] && this.observableState?.[key].complete();
+      this.setValue(key, this.defaultState[key], opts)
+    }
+
     reset(): void {
-        this.observableState = this.toObservableValues(this.defaultState);
+      this.observableState && Object.values(this.observableState).forEach(obs => obs.complete());
+      this.observableState = this.toObservableValues(this.defaultState);
     }
 }
