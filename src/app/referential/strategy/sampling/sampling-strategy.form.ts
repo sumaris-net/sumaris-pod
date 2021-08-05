@@ -589,9 +589,15 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    */
   selectMask(input: HTMLInputElement) {
     if (!this.labelMask) input.select();
-    const startIndex = this.labelMask.findIndex(c => c instanceof RegExp);
+    const taxonNameControl = this.taxonNamesHelper.at(0);
     const endIndex = this.labelMask.length;
-    input.setSelectionRange(startIndex, endIndex, "backward");
+    if (taxonNameControl.hasError('cannotComputeTaxonCode')) {
+      input.setSelectionRange(3, endIndex, "backward");
+    }
+    else
+    {
+      input.setSelectionRange(11, endIndex, "backward");
+    }
   }
 
   toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
@@ -913,10 +919,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   protected async onEditLabel(value: string) {
-    if (value) {
-      value = value.toUpperCase();
-    }
-    const labelControl = this.form.get('label');
     const taxonNameControl = this.taxonNamesHelper.at(0);
     if (taxonNameControl.hasError('cannotComputeTaxonCode') || taxonNameControl.hasError('uniqueTaxonCode')) {
       const labelRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]/);
@@ -930,6 +932,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
           SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
           SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
           const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10).replace(' ', '').toUpperCase(), 3));
+          const labelControl = this.form.get('label');
           labelControl.setValue(computedLabel);
         }
       }
@@ -940,7 +943,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     const taxonNamesItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
     let isUnique = true;
     if (label) {
-      await this.referentialRefService.loadAll(0, 1000, null, null,{
+      await this.referentialRefService.loadAll(0, 1000, null, null, {
         entityName: TaxonName.ENTITY_NAME,
         searchText: TaxonUtils.generateNameSearchPatternFromLabel(label),
         searchAttribute: 'name',
@@ -988,7 +991,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       const previousFormTaxonName = this.form.value.taxonNames[0]?.taxonName?.name?.clone;
       const storedDataTaxonName = this.data.taxonNames[0]?.taxonName?.name;
       const storedDataYear = this.data.appliedStrategies[0]?.appliedPeriods[0]?.startDate ? fromDateISOString(this.data.appliedStrategies[0].appliedPeriods[0].startDate).format('YY') : undefined;
-      const previousFormYear = fromDateISOString(this.form.value.year).format('YY');
+      let previousFormYear = undefined;
+      if (this.form.value.year && fromDateISOString(this.form.value.year)) {
+        previousFormYear = fromDateISOString(this.form.value.year).format('YY');
+      }
       const labelControl = this.form.get('label');
 
       // When taxon is changed first and returned to initial value, we set back initial sampling strategy label (with same year)
