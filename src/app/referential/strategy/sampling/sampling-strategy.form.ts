@@ -997,7 +997,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         return;
       }
       const label = currentViewTaxonName && TaxonUtils.generateLabelFromName(currentViewTaxonName);
-      const isUnique = this.isTaxonNameUnique(label, currentViewTaxon.id);
+      const isUnique = await this.isTaxonNameUnique(label, currentViewTaxon.id);
 
       if (!label) {
         errors = {cannotComputeTaxonCode: true};
