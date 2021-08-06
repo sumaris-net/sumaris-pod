@@ -120,9 +120,7 @@ export class StrategiesPage {
   }
 
   onNewDataFromRow(row: TableElement<SamplingStrategy>) {
-    this.contextService.setValue('samplingStrategy', row.currentData, { ttl: 1000 });
-
-    // TODO Navigate to Trip creation screen (and consume `contextService.getObservable('samplingStrategy')`)
+    this.contextService.setValue('samplingStrategy', row.currentData, { ttl: 60000 });
     this.router.navigateByUrl('/observations/new');
   }
 
