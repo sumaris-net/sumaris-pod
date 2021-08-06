@@ -929,7 +929,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         if (!isUnique) {
           taxonNameControl.setErrors({ uniqueTaxonCode: true });
         } else {
-          SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
+          // SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
           SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
           const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10).replace(' ', '').toUpperCase(), 3));
           const labelControl = this.form.get('label');
