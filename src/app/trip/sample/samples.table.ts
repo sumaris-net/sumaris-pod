@@ -104,6 +104,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() defaultLocation: ReferentialRef;
   @Input() modalOptions: Partial<ISampleModalOptions>;
   @Input() compactFields = true;
+  @Input() showDisplayColumn = true;
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.pmfmGroups$.getValue() !== value) {
