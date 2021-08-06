@@ -216,7 +216,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       filter: <ReferentialFilter>{
         entityName: 'Location',
         // TODO BLA: rendre ceci paramètrable par program properties
-        levelIds: [LocationLevelIds.ICES_DIVISION],
+        levelIds: LocationLevelIds.LOCATIONS_AREA,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }
     });
