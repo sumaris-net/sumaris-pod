@@ -41,6 +41,8 @@ import {MatExpansionPanel} from '@angular/material/expansion';
 import {TableElement} from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
 import {Subject} from 'rxjs';
 import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
+import {StrategyModal} from '@app/referential/strategy/strategy.modal';
+import {Strategy} from '@app/referential/services/model/strategy.model';
 
 const moment = momentImported;
 
@@ -440,6 +442,22 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         .then(parameters => result[groupLabel] = parameters.map(p => p.id))
     }));
     return result;
+  }
+
+  async openModal(event: UIEvent, strategiesToDuplicate: TableElement<SamplingStrategy>[]) {
+    console.info('openModal')
+    const modal = await this.modalCtrl.create({
+      component: StrategyModal,
+    });
+
+    // Open the modal
+    await modal.present();
+
+    const res = await modal.onDidDismiss();
+    console.info(res)
+    strategiesToDuplicate.forEach(row => this.duplicateRow(event, row).then(res => {
+      return res;
+    }))
   }
 }
 

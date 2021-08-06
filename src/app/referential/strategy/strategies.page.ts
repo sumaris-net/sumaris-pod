@@ -12,6 +12,8 @@ import { SamplingStrategiesTable } from "./sampling/sampling-strategies.table";
 import { StrategiesTable } from "./strategies.table";
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {MatExpansionPanel} from '@angular/material/expansion';
+import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
+import {PmfmFilter} from '@app/referential/services/pmfm.service';
 
 // app-strategies-page
 @Component({
@@ -134,6 +136,29 @@ export class StrategiesPage {
 
   resetFilter(event?: UIEvent) {
     this.samplingTable?.resetFilter(event);
+  }
+
+  async openStrategyModal(event: UIEvent) {
+    console.info('openStrategyModal')
+    await this.samplingTable.openModal(event, this.samplingTable.selection.selected);
+    /*
+    const rowsToDuplicate = this.samplingTable.selection.selected;
+    const rowsToDuplicate = this.samplingTable.selection.selected;
+    console.info(rowsToDuplicate);
+
+    rowsToDuplicate.forEach(row => {
+      return this.table.duplicateRow(event, row).then(res => {
+        console.info(res);
+        return res;
+      })
+    })
+
+
+    await Promise.all(rowsToDuplicate.map(row => this.table.duplicateRow(event, row).then(res => {
+      console.info(res);
+      return res;
+    })));
+     */
   }
 
   protected canUserWrite(data: Program): boolean {
