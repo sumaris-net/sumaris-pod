@@ -113,6 +113,18 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: LocationLevelIds.ICES_DIVISION
   },
+  LOCATION_LEVEL_LOCATIONS_AREA_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.LOCATIONS_AREA.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_LOCATIONS_AREA_ID',
+    type: 'string',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: LocationLevelIds.LOCATIONS_AREA.join(',')
+  },
   TAXONOMIC_LEVEL_FAMILY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.TaxonomicLevel.FAMILY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXONOMIC_LEVEL_FAMILY_ID',

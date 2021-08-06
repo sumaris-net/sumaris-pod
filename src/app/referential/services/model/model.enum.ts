@@ -14,7 +14,8 @@ export const LocationLevelIds = {
 
   // At sea
   ICES_RECTANGLE: 4,
-  ICES_DIVISION: 111
+  ICES_DIVISION: 111,
+  LOCATIONS_AREA: [158, 159, 112, 113, 114, 117, 154, 155, 156, 157, 161, 165, 166, 140, 142, 143, 144, 146, 151, 152]
 };
 
 export const GearLevelIds = {

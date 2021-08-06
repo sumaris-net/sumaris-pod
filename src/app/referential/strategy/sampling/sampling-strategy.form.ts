@@ -388,7 +388,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       suggestFn: (value, filter) => this.suggestLocations(value, {
         ...filter,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        levelIds: [LocationLevelIds.ICES_DIVISION]
+        levelIds: LocationLevelIds.LOCATIONS_AREA
       }),
       mobile: this.settings.mobile
     });
