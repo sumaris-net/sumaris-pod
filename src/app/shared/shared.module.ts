@@ -18,7 +18,7 @@ import { Context, ContextService } from './context.service';
   providers: [
     {
       provide: ContextService,
-      useFactory: () => (new ContextService<Context>({}))
+      useValue: new ContextService<Context>({})
     },
   ],
 })
