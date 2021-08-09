@@ -139,7 +139,6 @@ export class StrategiesPage {
   }
 
   async openStrategyModal(event: UIEvent) {
-    console.info('openStrategyModal')
     await this.samplingTable.openModal(event, this.samplingTable.selection.selected);
   }
 

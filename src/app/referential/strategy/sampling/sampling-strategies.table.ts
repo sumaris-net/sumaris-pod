@@ -445,7 +445,6 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   }
 
   async openModal(event: UIEvent, strategiesToDuplicate: TableElement<SamplingStrategy>[]) {
-    console.info('openModal')
     const modal = await this.modalCtrl.create({
       component: StrategyModal,
     });
@@ -467,7 +466,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
           delete strategyToSave.effortByQuarter;
           delete strategyToSave.parameterGroups;
           this.strategyService.save(strategyToSave).then(res => {
-            console.info(`Duplication of ${strategyToSaveLabel} done`)
+            console.info(`[sampling-strategy-table] Duplication of ${strategyToSaveLabel} done`)
           });
         });
       });
