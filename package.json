@@ -33,7 +33,7 @@
     "@angular/platform-browser": "^11.2.14",
     "@angular/platform-browser-dynamic": "^11.2.14",
     "@angular/router": "^11.2.14",
-    "@apollo/client": "^3.3.21",
+    "@apollo/client": "3.3.21",
     "@asymmetrik/ngx-leaflet": "^8.1.0",
     "@e-is/ngx-material-table": "^0.11.9",
     "@ionic-native/audio-management": "^5.34.0",

@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, ViewChild} from '@angular/core';
 import { ActivatedRoute, Router } from "@angular/router";
 import { TableElement } from "@e-is/ngx-material-table/src/app/ngx-material-table/table-element";
 import { Subject } from "rxjs";
@@ -62,7 +62,8 @@ export class StrategiesPage {
     protected programRefService: ProgramRefService,
     protected accountService: AccountService,
     protected platformService: PlatformService,
-    protected cd: ChangeDetectorRef
+    @Inject(ContextService) protected contextService: ContextService,
+    protected cd: ChangeDetectorRef,
   ) {
     this.mobile = platformService.mobile;
 
@@ -118,8 +119,9 @@ export class StrategiesPage {
     });
   }
 
-  onNewDataFromRow<S extends Strategy>(row: TableElement<S>) {
-    console.debug('Add new Data', row.currentData);
+  onNewDataFromRow(row: TableElement<SamplingStrategy>) {
+    this.contextService.setValue('samplingStrategy', row.currentData, { ttl: 60000 });
+    this.router.navigateByUrl('/observations/new');
   }
 
   markAsLoading(opts?: { emitEvent?: boolean }) {
