@@ -921,6 +921,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   protected async onEditLabel(value: string) {
     const taxonNameControl = this.taxonNamesHelper.at(0);
     const labelRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]/);
+    const labelRegexWithoutSpaces = new RegExp(/^\d\d[a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]/);
     if (taxonNameControl.hasError('cannotComputeTaxonCode') || taxonNameControl.hasError('uniqueTaxonCode')) {
       if (value.match(labelRegex)) {
         const currentViewTaxon = taxonNameControl?.value?.taxonName;
@@ -939,7 +940,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     }
     else if (value && !(value === value.toUpperCase()))
     {
-      if (value.match(labelRegex)) {
+      if (value.match(labelRegex) || value.match(labelRegexWithoutSpaces)) {
         const labelControl = this.form.get('label');
         labelControl.setValue(value.toUpperCase());
       }
