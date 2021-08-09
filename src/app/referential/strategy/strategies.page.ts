@@ -12,8 +12,8 @@ import { SamplingStrategiesTable } from "./sampling/sampling-strategies.table";
 import { StrategiesTable } from "./strategies.table";
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {MatExpansionPanel} from '@angular/material/expansion';
-import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
-import {PmfmFilter} from '@app/referential/services/pmfm.service';
+import { ContextService } from '../../shared/context.service';
+import { SamplingStrategy } from '../services/model/sampling-strategy.model';
 
 // app-strategies-page
 @Component({
