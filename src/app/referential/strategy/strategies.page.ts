@@ -141,24 +141,6 @@ export class StrategiesPage {
   async openStrategyModal(event: UIEvent) {
     console.info('openStrategyModal')
     await this.samplingTable.openModal(event, this.samplingTable.selection.selected);
-    /*
-    const rowsToDuplicate = this.samplingTable.selection.selected;
-    const rowsToDuplicate = this.samplingTable.selection.selected;
-    console.info(rowsToDuplicate);
-
-    rowsToDuplicate.forEach(row => {
-      return this.table.duplicateRow(event, row).then(res => {
-        console.info(res);
-        return res;
-      })
-    })
-
-
-    await Promise.all(rowsToDuplicate.map(row => this.table.duplicateRow(event, row).then(res => {
-      console.info(res);
-      return res;
-    })));
-     */
   }
 
   protected canUserWrite(data: Program): boolean {

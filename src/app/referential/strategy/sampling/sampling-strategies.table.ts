@@ -453,11 +453,26 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     // Open the modal
     await modal.present();
 
-    const res = await modal.onDidDismiss();
-    console.info(res)
-    strategiesToDuplicate.forEach(row => this.duplicateRow(event, row).then(res => {
-      return res;
-    }))
+    const userDate = await modal.onDidDismiss();
+
+    if (userDate) {
+      strategiesToDuplicate.forEach(row => {
+        const strategyToSave = SamplingStrategy.fromObject(row.currentData).clone();
+        this.strategyService.computeNextLabel(this.program.id, userDate.data.format('YY').toString() + strategyToSave.label.substring(2, 9), 3).then((strategyToSaveLabel) => {
+          strategyToSave.label = strategyToSaveLabel;
+          strategyToSave.name = strategyToSaveLabel;
+          strategyToSave.description = strategyToSaveLabel;
+          delete strategyToSave.id; // cannot save if this fields exist
+          delete strategyToSave.efforts;
+          delete strategyToSave.effortByQuarter;
+          delete strategyToSave.parameterGroups;
+          this.strategyService.save(strategyToSave).then(res => {
+            console.info(`Duplication of ${strategyToSaveLabel} done`)
+          });
+        });
+      });
+    }
+
   }
 }
 

@@ -46,6 +46,13 @@
 
   <!-- if row selection -->
   <ng-template #hasSelection>
+    <!-- duplicate -->
+    <button mat-icon-button class="hidden-xs hidden-sm"
+            [title]="'COMMON.BTN_DUPLICATE'|translate"
+            (click)="openModal($event, selection.selected)">
+      <mat-icon>library_add</mat-icon>
+    </button>
+
     <button mat-icon-button color="light" *ngIf="canEdit && selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
             (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>
