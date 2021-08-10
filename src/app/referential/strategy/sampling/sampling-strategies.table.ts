@@ -110,6 +110,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     protected personService: PersonService,
     protected parameterService: ParameterService,
     protected strategyService: StrategyService,
+    protected samplingStrategyService: SamplingStrategyService,
     protected formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
   ) {
@@ -456,19 +457,24 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
 
     if (userDate) {
       strategiesToDuplicate.forEach(row => {
-        const strategyToSave = SamplingStrategy.fromObject(row.currentData).clone();
+        const strategyToSave: SamplingStrategy = SamplingStrategy.fromObject(JSON.parse(JSON.stringify(row.currentData)));
+        console.info(row.currentData);
+        console.info(strategyToSave);
+
         this.strategyService.computeNextLabel(this.program.id, userDate.data.format('YY').toString() + strategyToSave.label.substring(2, 9), 3).then((strategyToSaveLabel) => {
           strategyToSave.label = strategyToSaveLabel;
           strategyToSave.name = strategyToSaveLabel;
           strategyToSave.description = strategyToSaveLabel;
-          delete strategyToSave.id; // cannot save if this fields exist
-          delete strategyToSave.efforts;
+          delete strategyToSave.id; // if id exist, it update current row
+          delete strategyToSave.efforts; // cannot save if this fields exist
           delete strategyToSave.effortByQuarter;
-          delete strategyToSave.parameterGroups;
           this.strategyService.save(strategyToSave).then(res => {
-            console.info(`[sampling-strategy-table] Duplication of ${strategyToSaveLabel} done`)
+            //console.info(row.currentData);
+            //console.info(strategyToSave);
+            console.info(`[sampling-strategy-table] Duplication of ${strategyToSaveLabel} done`);
           });
         });
+
       });
     }
 

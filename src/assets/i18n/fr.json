@@ -1339,6 +1339,8 @@
       "SCIENTIFIC_TAXON_NAMES": "Espèces scientifiques",
       "BTN_APPLY_TO_SELECTED_PMFM": "Appliquer aux PSFMs sélectionnés",
       "BTN_REMOVE_TO_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
+      "DUPLICATION": "Duplication",
+      "DUPLICATION_SENTENCE": "Sélectionnez une année de suivie pour les nouvelles lignes de plan :",
       "NEW": {
         "TITLE": "Nouvelle stratégie",
         "SAMPLING": {
