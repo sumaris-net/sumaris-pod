@@ -24,6 +24,7 @@ import {SamplingStrategy, StrategyEffort} from "./model/sampling-strategy.model"
 import {BaseReferentialService} from "./base-referential-service.class";
 import {Moment} from "moment";
 import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
+import {Strategy} from '@app/referential/services/model/strategy.model';
 
 const SamplingStrategyQueries = {
   loadAll: gql`query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -274,4 +275,16 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     });
 
   }
+/*
+  async save(entity: SamplingStrategy, options?: any): Promise<SamplingStrategy> {
+    //await this.clearCache();
+
+    return super.save(entity, {
+      ...options,
+      refetchQueries: this._mutableWatchQueries
+        .filter(query => query.query === this.queries.loadAllWithTotal || query.query === this.queries.loadAllWithTotal),
+      awaitRefetchQueries: true
+    });
+  }
+  */
 }
