@@ -89,7 +89,7 @@ docker:ci:
   allow_failure: true
   script:
     # Build and push the CI image
-    - docker build --from-cache ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} --build-arg="CACHE_DIR=/tmp/build-cache" -f scripts/ci/Dockerfile .
+    - docker build --cache-from ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} --build-arg="CACHE_DIR=/tmp/build-cache" -f scripts/ci/Dockerfile .
     #- docker build --no-cache -t ${CI_BUILD_IMAGE} -f target/ci/DockerFile .
     - docker push ${CI_BUILD_IMAGE}
   only:

@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {ActivatedRoute} from "@angular/router";
 import * as momentImported from "moment";
-import {HistoryPageReference}  from "@sumaris-net/ngx-components";
+import {HistoryPageReference, SharedValidators} from '@sumaris-net/ngx-components';
 import {PlatformService}  from "@sumaris-net/ngx-components";
 import {AccountService}  from "@sumaris-net/ngx-components";
 import {ProgramProperties} from "../../services/config/program.config";
@@ -166,10 +166,23 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
     return value;
   }
 
+  /**
+   * Clear previous cannotComputeTaxonCode warning / error if label match regex constraints
+   */
+  async clearCannotComputeTaxonBeforeSave() {
+    const taxonNameControl = this.strategyForm.taxonNamesHelper.at(0);
+    if (taxonNameControl.hasError('cannotComputeTaxonCode')) {
+    const labelRegex = new RegExp(/^\d\d[a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]\d\d\d/);
+    if (this.form.get('label').value.match(labelRegex)) {
+      SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
+      }
+    }
+  }
 
   async save(event?: Event, options?: any): Promise<boolean> {
     // Check access concurence
     this.form.get('label').setValue(this.form.get('label').value.replace(/\s/g, "")); // remove whitespace
+    await this.clearCannotComputeTaxonBeforeSave();
     this.form.get('label').updateValueAndValidity();
     return super.save(event, options);
   }
