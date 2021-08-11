@@ -22,9 +22,20 @@ export class BiologicalSamplingValidators {
     form.setValidators( (control) => {
       const formGroup = control as FormGroup;
       const measValues = formGroup.get('measurementValues').value;
+      // ensure dressing pmfm exist
+      const tagIdIndex = (pmfmGroups.TAG_ID || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()]));
+      let hasTagId
+      if (tagIdIndex !== -1) {
+        hasTagId = measValues[pmfmGroups.TAG_ID[tagIdIndex].toString()] !== "";
+      } else {
+        hasTagId = false;
+      }
       const hasWeight = (pmfmGroups.WEIGHT || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
       const hasLengthSize = (pmfmGroups.LENGTH || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
 
+      if (!hasTagId) {
+        return { missingDressing: 'TRIP.SAMPLE.ERROR.PARAMETERS.DRESSING' };
+      }
       if (!hasWeight && !hasLengthSize){
         return { missingWeightOrSize: 'TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_LENGTH' };
       }
