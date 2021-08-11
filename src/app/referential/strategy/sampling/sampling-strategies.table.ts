@@ -3,7 +3,7 @@ import {
   AppFormUtils,
   AppTable,
   DefaultStatusList,
-  EntitiesTableDataSource,
+  EntitiesTableDataSource, firstArrayValue,
   fromDateISOString,
   isEmptyArray,
   isNotEmptyArray,
@@ -42,7 +42,7 @@ import {TableElement} from '@e-is/ngx-material-table/src/app/ngx-material-table/
 import {Subject} from 'rxjs';
 import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
 import {StrategyModal} from '@app/referential/strategy/strategy.modal';
-import {StrategyDepartment, TaxonNameStrategy} from '@app/referential/services/model/strategy.model';
+import {AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from '@app/referential/services/model/strategy.model';
 import {PmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 
 const moment = momentImported;
@@ -461,8 +461,9 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     if (userDate && userDate.data) {
       strategiesToDuplicate.forEach(row => {
         const initialStrategy = SamplingStrategy.fromObject(row.currentData);
-        const strategyToSave = new SamplingStrategy();
-        this.strategyService.computeNextLabel(this.program.id, userDate.data.format('YY').toString() + initialStrategy.label.substring(2, 9), 3).then((strategyToSaveLabel) => {
+        const strategyToSave = new Strategy();
+        const year = userDate.data.format('YY').toString();
+        this.strategyService.computeNextLabel(this.program.id, year + initialStrategy.label.substring(2, 9), 3).then((strategyToSaveLabel) => {
           strategyToSave.label = strategyToSaveLabel;
           strategyToSave.name = strategyToSaveLabel;
           strategyToSave.description = strategyToSaveLabel;
@@ -470,45 +471,35 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
           strategyToSave.analyticReference = initialStrategy.analyticReference;
           strategyToSave.programId = initialStrategy.programId;
 
-          // Applied strategy and applied periods must be updated with user selected year
-          //strategyToSave.appliedStrategies = initialStrategy.appliedStrategies && initialStrategy.appliedStrategies.map(AppliedStrategy.fromObject) || [];
-          // const appliedStrategyWithPeriods = firstArrayValue((initialStrategy.appliedStrategies || []).filter(as => isNotEmptyArray(as.appliedPeriods)));
-          // if (appliedStrategyWithPeriods) {
-          //   appliedStrategyWithPeriods.appliedPeriods = (appliedStrategyWithPeriods && appliedStrategyWithPeriods.appliedPeriods || [])
-          //     // Exclude period without acquisition number
-          //     .filter(period => isNotNil(period.acquisitionNumber))
-          //     .map(ap => {
-          //       // Set year (a quarter should be already set)
-          //       ap.startDate.set('year', year);
-          //       ap.endDate.set('year', year);
-          //       ap.appliedStrategyId = appliedStrategyWithPeriods.id;
-          //       return ap;
-          //     });
-          //
-          //   // Clean periods, on each other applied strategies
-          //   (target.appliedStrategies || [])
-          //     .filter(as => as !== appliedStrategyWithPeriods)
-          //     .forEach(appliedStrategy => appliedStrategy.appliedPeriods = []);
-          // }
+          const appliedStrategyWithPeriods = firstArrayValue((initialStrategy.appliedStrategies || []).filter(as => as && isNotEmptyArray(as.appliedPeriods)))
+            || firstArrayValue(initialStrategy.appliedStrategies || []);
 
+          const strategyToSaveAppliedStrategy = new AppliedStrategy();
+          strategyToSaveAppliedStrategy.id = undefined;
+          strategyToSaveAppliedStrategy.updateDate = undefined;
+          strategyToSaveAppliedStrategy.location = appliedStrategyWithPeriods.location;
+          strategyToSaveAppliedStrategy.appliedPeriods = [];
+          strategyToSave.appliedStrategies = [strategyToSaveAppliedStrategy];
 
+          strategyToSave.pmfms = initialStrategy.pmfms && initialStrategy.pmfms.map(pmfmStrategy => {const pmfmStrategyCloned = pmfmStrategy.clone(); pmfmStrategyCloned.id = undefined; pmfmStrategyCloned.strategyId = undefined; return PmfmStrategy.fromObject(pmfmStrategyCloned)}) || [];
+          strategyToSave.departments = initialStrategy.departments && initialStrategy.departments.map(department => {const departmentCloned = department.clone(); departmentCloned.id = undefined; departmentCloned.strategyId = undefined; return StrategyDepartment.fromObject(departmentCloned)}) || [];
+          strategyToSave.taxonNames = initialStrategy.taxonNames && initialStrategy.taxonNames.map(taxonNameStrategy => {const taxonNameStrategyCloned = taxonNameStrategy.clone(); taxonNameStrategyCloned.strategyId = undefined; return TaxonNameStrategy.fromObject(taxonNameStrategyCloned)}) || [];
 
-         // Pmfms and  Denomalized Pmfms strategies must be updated since strategyId is no longer correct
-          strategyToSave.pmfms = initialStrategy.pmfms && initialStrategy.pmfms.map(PmfmStrategy.fromObject) || [];
-          // Unused
-          //strategyToSave.denormalizedPmfms = initialStrategy.denormalizedPmfms && initialStrategy.denormalizedPmfms.map(DenormalizedPmfmStrategy.fromObject) || [];
-          // StrategyDepartments strategyId must be updated
-          strategyToSave.departments = initialStrategy.departments && initialStrategy.departments.map(StrategyDepartment.fromObject) || [];
-          // Unused
-          //strategyToSave.gears = initialStrategy.gears && initialStrategy.gears.map(ReferentialRef.fromObject) || [];
-          // Unused. Taxon groups, sorted by priority level
-          //strategyToSave.taxonGroups = initialStrategy.taxonGroups && initialStrategy.taxonGroups.map(TaxonGroupStrategy.fromObject) || [];
-          // TaxonNameStrategy strategyId must be updated
-          strategyToSave.taxonNames = initialStrategy.taxonNames && initialStrategy.taxonNames.map(TaxonNameStrategy.fromObject) || [];
-
-          // this.strategyService.save(strategyToSave).then(res => {
-          //   console.info(`[sampling-strategy-table] Duplication of ${strategyToSaveLabel} done`)
-          // });
+          strategyToSave.id = undefined;
+          strategyToSave.updateDate = undefined;
+          strategyToSave.comments = undefined;
+          strategyToSave.creationDate = undefined;
+          strategyToSave.statusId = initialStrategy.statusId;
+          strategyToSave.validityStatusId = initialStrategy.validityStatusId;
+          strategyToSave.levelId = initialStrategy.levelId;
+          strategyToSave.parentId = initialStrategy.parentId;
+          strategyToSave.entityName = initialStrategy.entityName;
+          strategyToSave.denormalizedPmfms = undefined;
+          strategyToSave.gears = undefined;
+          strategyToSave.taxonGroups = undefined;
+          this.strategyService.save(strategyToSave).then(res => {
+            console.info(`[sampling-strategy-table] Duplication of ${strategyToSaveLabel} done`)
+          });
         });
       });
     }
