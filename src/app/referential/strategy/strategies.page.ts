@@ -141,7 +141,7 @@ export class StrategiesPage {
   }
 
   async openStrategyModal(event: UIEvent) {
-    await this.samplingTable.openModal(event, this.samplingTable.selection.selected);
+    await this.samplingTable.openStrategyDuplicateYearSelectionModal(event, this.samplingTable.selection.selected);
   }
 
   protected canUserWrite(data: Program): boolean {

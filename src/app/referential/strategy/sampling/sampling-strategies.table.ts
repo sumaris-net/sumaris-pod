@@ -3,16 +3,14 @@ import {
   AppFormUtils,
   AppTable,
   DefaultStatusList,
-  EntitiesTableDataSource,
-  fromDateISOString,
+  EntitiesTableDataSource, fromDateISOString,
   isEmptyArray,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
   ObjectMap,
   PersonService,
-  PersonUtils,
-  removeDuplicatesFromArray,
+  PersonUtils, removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SharedValidators,
@@ -42,7 +40,8 @@ import {TableElement} from '@e-is/ngx-material-table/src/app/ngx-material-table/
 import {Subject} from 'rxjs';
 import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
 import {StrategyModal} from '@app/referential/strategy/strategy.modal';
-import {Strategy} from '@app/referential/services/model/strategy.model';
+import {StrategyDepartment, TaxonNameStrategy} from '@app/referential/services/model/strategy.model';
+import {PmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 
 const moment = momentImported;
 
@@ -444,7 +443,10 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     return result;
   }
 
-  async openModal(event: UIEvent, strategiesToDuplicate: TableElement<SamplingStrategy>[]) {
+  // INFO CLT : Imagine 355. Sampling strategy can be duplicated with selected year.
+  // We keep initial strategy and remove year related data like efforts.
+  // We update year-related values like applied period as done in sampling-strategy.form.ts getValue()
+  async openStrategyDuplicateYearSelectionModal(event: UIEvent, strategiesToDuplicate: TableElement<SamplingStrategy>[]) {
     const modal = await this.modalCtrl.create({
       component: StrategyModal,
     });
@@ -454,20 +456,57 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
 
     const userDate = await modal.onDidDismiss();
 
-    if (userDate) {
+    if (userDate && userDate.data) {
       strategiesToDuplicate.forEach(row => {
-        const strategyToSave = SamplingStrategy.fromObject(row.currentData).clone();
-        this.strategyService.computeNextLabel(this.program.id, userDate.data.format('YY').toString() + strategyToSave.label.substring(2, 9), 3).then((strategyToSaveLabel) => {
+        const initialStrategy = SamplingStrategy.fromObject(row.currentData);
+        const strategyToSave = new SamplingStrategy();
+        this.strategyService.computeNextLabel(this.program.id, userDate.data.format('YY').toString() + initialStrategy.label.substring(2, 9), 3).then((strategyToSaveLabel) => {
           strategyToSave.label = strategyToSaveLabel;
           strategyToSave.name = strategyToSaveLabel;
           strategyToSave.description = strategyToSaveLabel;
-          delete strategyToSave.id; // cannot save if this fields exist
-          delete strategyToSave.efforts;
-          delete strategyToSave.effortByQuarter;
-          delete strategyToSave.parameterGroups;
-          this.strategyService.save(strategyToSave).then(res => {
-            console.info(`[sampling-strategy-table] Duplication of ${strategyToSaveLabel} done`)
-          });
+          // Copy cloned parameters from initial strategy
+          strategyToSave.analyticReference = initialStrategy.analyticReference;
+          strategyToSave.programId = initialStrategy.programId;
+
+          // Applied strategy and applied periods must be updated with user selected year
+          //strategyToSave.appliedStrategies = initialStrategy.appliedStrategies && initialStrategy.appliedStrategies.map(AppliedStrategy.fromObject) || [];
+          // const appliedStrategyWithPeriods = firstArrayValue((initialStrategy.appliedStrategies || []).filter(as => isNotEmptyArray(as.appliedPeriods)));
+          // if (appliedStrategyWithPeriods) {
+          //   appliedStrategyWithPeriods.appliedPeriods = (appliedStrategyWithPeriods && appliedStrategyWithPeriods.appliedPeriods || [])
+          //     // Exclude period without acquisition number
+          //     .filter(period => isNotNil(period.acquisitionNumber))
+          //     .map(ap => {
+          //       // Set year (a quarter should be already set)
+          //       ap.startDate.set('year', year);
+          //       ap.endDate.set('year', year);
+          //       ap.appliedStrategyId = appliedStrategyWithPeriods.id;
+          //       return ap;
+          //     });
+          //
+          //   // Clean periods, on each other applied strategies
+          //   (target.appliedStrategies || [])
+          //     .filter(as => as !== appliedStrategyWithPeriods)
+          //     .forEach(appliedStrategy => appliedStrategy.appliedPeriods = []);
+          // }
+
+
+
+         // Pmfms and  Denomalized Pmfms strategies must be updated since strategyId is no longer correct
+          strategyToSave.pmfms = initialStrategy.pmfms && initialStrategy.pmfms.map(PmfmStrategy.fromObject) || [];
+          // Unused
+          //strategyToSave.denormalizedPmfms = initialStrategy.denormalizedPmfms && initialStrategy.denormalizedPmfms.map(DenormalizedPmfmStrategy.fromObject) || [];
+          // StrategyDepartments strategyId must be updated
+          strategyToSave.departments = initialStrategy.departments && initialStrategy.departments.map(StrategyDepartment.fromObject) || [];
+          // Unused
+          //strategyToSave.gears = initialStrategy.gears && initialStrategy.gears.map(ReferentialRef.fromObject) || [];
+          // Unused. Taxon groups, sorted by priority level
+          //strategyToSave.taxonGroups = initialStrategy.taxonGroups && initialStrategy.taxonGroups.map(TaxonGroupStrategy.fromObject) || [];
+          // TaxonNameStrategy strategyId must be updated
+          strategyToSave.taxonNames = initialStrategy.taxonNames && initialStrategy.taxonNames.map(TaxonNameStrategy.fromObject) || [];
+
+          // this.strategyService.save(strategyToSave).then(res => {
+          //   console.info(`[sampling-strategy-table] Duplication of ${strategyToSaveLabel} done`)
+          // });
         });
       });
     }
