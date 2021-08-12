@@ -230,6 +230,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
       showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/
     });
+
   }
 
   ngOnDestroy() {
@@ -444,7 +445,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       // skip first
       if (data.rankOrder > 1 && !this.currentSample) {
         const previousSample = this.value.find(s => s.rankOrder === data.rankOrder - 1);
-
         data.measurementValues[PmfmIds.DRESSING] = previousSample.measurementValues[PmfmIds.DRESSING];
       } else if (this.currentSample) {
         const previousSample = await this.findRowBySample(this.currentSample);
@@ -597,7 +597,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
           ...groupPmfms.reduce((res, pmfm, index) => {
             if (orderedPmfmIds.includes(pmfm.id)) return res; // Skip if already proceed
             orderedPmfmIds.push(pmfm.id);
-            const visible = group !== 'TAG_ID' && group !== 'DRESSING'; //  && groupPmfmCount > 1;
+            const visible = group !== 'TAG_ID'; //  && groupPmfmCount > 1;
             const key = 'group-' + ((pmfm instanceof DenormalizedPmfmStrategy) ? (pmfm as IDenormalizedPmfm).completeName : pmfm.label);
             return index !== 0 ? res : res.concat(<GroupColumnDefinition>{
               key,
