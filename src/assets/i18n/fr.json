@@ -745,7 +745,8 @@
         }
       },
       "ERROR" : {
-        "PARAMETERS.WEIGHT_OR_LENGTH": "Poids ou taille obligatoire"
+        "PARAMETERS.WEIGHT_OR_LENGTH": "Poids ou taille obligatoire",
+        "PARAMETERS.DRESSING": "Presentation obligatoire"
       },
       "SETTINGS": {
         "BURST_MODE_ENABLE": "Echantillon: activer le mode rafale ?"
@@ -1477,6 +1478,7 @@
         "LOAD_STRATEGY_REFERENCES_ERROR": "Erreur lors de chargement des références analytiques pour la stratégie",
         "PARAMETERS.MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}",
         "PARAMETERS.WEIGHT_OR_LENGTH": "Le poids ou la taille est obligatoire",
+        "PARAMETERS.DRESSING": "La présentation est obligatoire",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
         "EFFORT.REALIZED_EFFORT": "Effort obligatoire pour les trimestres ayant des mesures individuelles : {{quarters}}",
         "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà",

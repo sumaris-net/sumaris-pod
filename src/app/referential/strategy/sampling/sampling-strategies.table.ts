@@ -146,7 +146,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       injector);
 
     this.parameterGroupLabels = Object.keys(ParameterLabelGroups)
-      .filter(label => label !== 'TAG_ID' && label !== 'DRESSING');
+      .filter(label => label !== 'TAG_ID');
 
     this.filterForm = formBuilder.group({
       searchText: [null],
