@@ -42,7 +42,7 @@ import {TableElement} from '@e-is/ngx-material-table/src/app/ngx-material-table/
 import {Subject} from 'rxjs';
 import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
 import {StrategyModal} from '@app/referential/strategy/strategy.modal';
-import {AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from '@app/referential/services/model/strategy.model';
+import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from '@app/referential/services/model/strategy.model';
 import {PmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 
 const moment = momentImported;
@@ -455,7 +455,6 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
 
     // Open the modal
     await modal.present();
-
     const userDate = await modal.onDidDismiss();
 
     if (userDate && userDate.data) {
@@ -467,24 +466,37 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
           strategyToSave.label = strategyToSaveLabel;
           strategyToSave.name = strategyToSaveLabel;
           strategyToSave.description = strategyToSaveLabel;
-          // Copy cloned parameters from initial strategy
+          strategyToSave.comments = initialStrategy.comments;
           strategyToSave.analyticReference = initialStrategy.analyticReference;
           strategyToSave.programId = initialStrategy.programId;
 
-          const appliedStrategyWithPeriods = firstArrayValue((initialStrategy.appliedStrategies || []).filter(as => as && isNotEmptyArray(as.appliedPeriods)))
-            || firstArrayValue(initialStrategy.appliedStrategies || []);
-
-          const strategyToSaveAppliedStrategy = new AppliedStrategy();
-          strategyToSaveAppliedStrategy.id = undefined;
-          strategyToSaveAppliedStrategy.updateDate = undefined;
-          strategyToSaveAppliedStrategy.location = appliedStrategyWithPeriods.location;
-          strategyToSaveAppliedStrategy.appliedPeriods = [];
-          strategyToSave.appliedStrategies = [strategyToSaveAppliedStrategy];
+          strategyToSave.appliedStrategies = (initialStrategy.appliedStrategies || []).map(initialAppliedStrategy => {
+            const strategyToSaveAppliedStrategy = new AppliedStrategy();
+            strategyToSaveAppliedStrategy.id = undefined;
+            strategyToSaveAppliedStrategy.updateDate = undefined;
+            strategyToSaveAppliedStrategy.location = initialAppliedStrategy.location;
+            if (isNotEmptyArray(initialAppliedStrategy.appliedPeriods)) {
+              const strategyToSaveAppliedPeriods = [1, 2, 3, 4].map(quarter => {
+                const startMonth = (quarter - 1) * 3 + 1;
+                const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`).utc();
+                const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
+                const appliedPeriod = AppliedPeriod.fromObject({acquisitionNumber: quarter});
+                appliedPeriod.startDate = startDate;
+                appliedPeriod.endDate = endDate;
+                appliedPeriod.appliedStrategyId = undefined;
+                return appliedPeriod;
+              });
+              strategyToSaveAppliedStrategy.appliedPeriods = strategyToSaveAppliedPeriods;
+            }
+            else {
+              strategyToSaveAppliedStrategy.appliedPeriods = undefined;
+            }
+            return strategyToSaveAppliedStrategy;
+          })
 
           strategyToSave.pmfms = initialStrategy.pmfms && initialStrategy.pmfms.map(pmfmStrategy => {const pmfmStrategyCloned = pmfmStrategy.clone(); pmfmStrategyCloned.id = undefined; pmfmStrategyCloned.strategyId = undefined; return PmfmStrategy.fromObject(pmfmStrategyCloned)}) || [];
           strategyToSave.departments = initialStrategy.departments && initialStrategy.departments.map(department => {const departmentCloned = department.clone(); departmentCloned.id = undefined; departmentCloned.strategyId = undefined; return StrategyDepartment.fromObject(departmentCloned)}) || [];
           strategyToSave.taxonNames = initialStrategy.taxonNames && initialStrategy.taxonNames.map(taxonNameStrategy => {const taxonNameStrategyCloned = taxonNameStrategy.clone(); taxonNameStrategyCloned.strategyId = undefined; return TaxonNameStrategy.fromObject(taxonNameStrategyCloned)}) || [];
-
           strategyToSave.id = undefined;
           strategyToSave.updateDate = undefined;
           strategyToSave.comments = undefined;
