@@ -475,7 +475,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                                toEntity?: boolean;
                              }): Promise<{[key: string]: ReferentialRef[]}> {
     const entityName = filter && filter.entityName;
-    const groupKeys = Object.keys(groupBy.levelIds || groupBy.levelLabels); // AGE, SEX, MATURITY, etc
+    const groupKeys = Object.keys(groupBy.levelIds || groupBy.levelLabels); // AGE, SEX, MATURITY, etc
 
     // Check arguments
     if (!entityName) throw new Error("Missing 'filter.entityName' argument");
