@@ -27,7 +27,7 @@ export class BiologicalSamplingValidators {
       const tagIdIndex = (pmfmGroups.TAG_ID || []).findIndex(pmfmId => pmfmId === PmfmIds.DRESSING);
       let hasTagId
       if (tagIdIndex !== -1) {
-        hasTagId = measValues[pmfmGroups.TAG_ID[tagIdIndex].toString()] !== "";
+        hasTagId = measValues[pmfmGroups.TAG_ID[tagIdIndex].toString()] && (measValues[pmfmGroups.TAG_ID[tagIdIndex].toString()] !== "");
       } else {
         hasTagId = false;
       }
