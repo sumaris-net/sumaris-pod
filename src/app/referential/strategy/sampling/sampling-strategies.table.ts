@@ -489,7 +489,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
               strategyToSaveAppliedStrategy.appliedPeriods = strategyToSaveAppliedPeriods;
             }
             else {
-              strategyToSaveAppliedStrategy.appliedPeriods = undefined;
+              strategyToSaveAppliedStrategy.appliedPeriods = [];
             }
             return strategyToSaveAppliedStrategy;
           })
