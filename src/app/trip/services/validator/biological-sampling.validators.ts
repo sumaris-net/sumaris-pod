@@ -3,6 +3,7 @@ import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm
 import {Subscription} from "rxjs";
 import {isNotNil} from "@sumaris-net/ngx-components";
 import {ObjectMap} from "@sumaris-net/ngx-components";
+import {PmfmIds} from '../../../referential/services/model/model.enum';
 
 export class BiologicalSamplingValidators {
 
@@ -23,7 +24,7 @@ export class BiologicalSamplingValidators {
       const formGroup = control as FormGroup;
       const measValues = formGroup.get('measurementValues').value;
       // ensure dressing pmfm exist
-      const tagIdIndex = (pmfmGroups.TAG_ID || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()]));
+      const tagIdIndex = (pmfmGroups.TAG_ID || []).findIndex(pmfmId => pmfmId === PmfmIds.DRESSING);
       let hasTagId
       if (tagIdIndex !== -1) {
         hasTagId = measValues[pmfmGroups.TAG_ID[tagIdIndex].toString()] !== "";
