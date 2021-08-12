@@ -466,7 +466,6 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
           strategyToSave.label = strategyToSaveLabel;
           strategyToSave.name = strategyToSaveLabel;
           strategyToSave.description = strategyToSaveLabel;
-          strategyToSave.comments = initialStrategy.comments;
           strategyToSave.analyticReference = initialStrategy.analyticReference;
           strategyToSave.programId = initialStrategy.programId;
 
@@ -499,7 +498,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
           strategyToSave.taxonNames = initialStrategy.taxonNames && initialStrategy.taxonNames.map(taxonNameStrategy => {const taxonNameStrategyCloned = taxonNameStrategy.clone(); taxonNameStrategyCloned.strategyId = undefined; return TaxonNameStrategy.fromObject(taxonNameStrategyCloned)}) || [];
           strategyToSave.id = undefined;
           strategyToSave.updateDate = undefined;
-          strategyToSave.comments = undefined;
+          strategyToSave.comments = initialStrategy.comments;
           strategyToSave.creationDate = undefined;
           strategyToSave.statusId = initialStrategy.statusId;
           strategyToSave.validityStatusId = initialStrategy.validityStatusId;
