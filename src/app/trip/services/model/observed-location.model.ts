@@ -20,7 +20,6 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
   endDateTime: Moment;
   location: ReferentialRef;
   measurementValues: { [key: string]: any };
-  observerPerson: Person = null;
   observers: Person[];
 
   landings: Landing[];
