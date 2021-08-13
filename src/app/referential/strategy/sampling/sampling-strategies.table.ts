@@ -461,7 +461,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       for (const strategyToDuplicate of strategiesToDuplicate) {
         const initialStrategy = SamplingStrategy.fromObject(strategyToDuplicate.currentData);
         const strategyToSave = new Strategy();
-        const year = userDate.data.format('YY').toString();
+        const year = typeof(userDate.data) === 'string' ? fromDateISOString(userDate.data).format('YY').toString() : userDate.data.format('YY').toString();
         const strategyToSaveLabel = await this.strategyService.computeNextLabel(this.program.id, year + initialStrategy.label.substring(2, 9), 3);
 
         strategyToSave.label = strategyToSaveLabel;
