@@ -475,17 +475,16 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
             strategyToSaveAppliedStrategy.updateDate = undefined;
             strategyToSaveAppliedStrategy.location = initialAppliedStrategy.location;
             if (isNotEmptyArray(initialAppliedStrategy.appliedPeriods)) {
-              const strategyToSaveAppliedPeriods = [1, 2, 3, 4].map(quarter => {
-                const startMonth = (quarter - 1) * 3 + 1;
-                const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`).utc();
+              strategyToSaveAppliedStrategy.appliedPeriods = initialAppliedStrategy.appliedPeriods.map(initialAppliedStrategyPeriod => {
+                const startMonth = (initialAppliedStrategyPeriod.startDate?.month()) + 1;
+                const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`)?.utc();
                 const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
-                const appliedPeriod = AppliedPeriod.fromObject({acquisitionNumber: quarter});
+                const appliedPeriod = AppliedPeriod.fromObject({acquisitionNumber: initialAppliedStrategyPeriod.acquisitionNumber});
                 appliedPeriod.startDate = startDate;
                 appliedPeriod.endDate = endDate;
                 appliedPeriod.appliedStrategyId = undefined;
                 return appliedPeriod;
               });
-              strategyToSaveAppliedStrategy.appliedPeriods = strategyToSaveAppliedPeriods;
             }
             else {
               strategyToSaveAppliedStrategy.appliedPeriods = [];
