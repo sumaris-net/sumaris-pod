@@ -458,62 +458,72 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     const userDate = await modal.onDidDismiss();
 
     if (userDate && userDate.data) {
-      strategiesToDuplicate.forEach(row => {
-        const initialStrategy = SamplingStrategy.fromObject(row.currentData);
+      for (const strategyToDuplicate of strategiesToDuplicate) {
+        const initialStrategy = SamplingStrategy.fromObject(strategyToDuplicate.currentData);
         const strategyToSave = new Strategy();
         const year = userDate.data.format('YY').toString();
-        this.strategyService.computeNextLabel(this.program.id, year + initialStrategy.label.substring(2, 9), 3).then((strategyToSaveLabel) => {
-          strategyToSave.label = strategyToSaveLabel;
-          strategyToSave.name = strategyToSaveLabel;
-          strategyToSave.description = strategyToSaveLabel;
-          strategyToSave.analyticReference = initialStrategy.analyticReference;
-          strategyToSave.programId = initialStrategy.programId;
+        const strategyToSaveLabel = await this.strategyService.computeNextLabel(this.program.id, year + initialStrategy.label.substring(2, 9), 3);
 
-          strategyToSave.appliedStrategies = (initialStrategy.appliedStrategies || []).map(initialAppliedStrategy => {
-            const strategyToSaveAppliedStrategy = new AppliedStrategy();
-            strategyToSaveAppliedStrategy.id = undefined;
-            strategyToSaveAppliedStrategy.updateDate = undefined;
-            strategyToSaveAppliedStrategy.location = initialAppliedStrategy.location;
-            if (isNotEmptyArray(initialAppliedStrategy.appliedPeriods)) {
-              strategyToSaveAppliedStrategy.appliedPeriods = initialAppliedStrategy.appliedPeriods.map(initialAppliedStrategyPeriod => {
-                const startMonth = (initialAppliedStrategyPeriod.startDate?.month()) + 1;
-                const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`)?.utc();
-                const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
-                const appliedPeriod = AppliedPeriod.fromObject({acquisitionNumber: initialAppliedStrategyPeriod.acquisitionNumber});
-                appliedPeriod.startDate = startDate;
-                appliedPeriod.endDate = endDate;
-                appliedPeriod.appliedStrategyId = undefined;
-                return appliedPeriod;
-              });
-            }
-            else {
-              strategyToSaveAppliedStrategy.appliedPeriods = [];
-            }
-            return strategyToSaveAppliedStrategy;
-          })
+        strategyToSave.label = strategyToSaveLabel;
+        strategyToSave.name = strategyToSaveLabel;
+        strategyToSave.description = strategyToSaveLabel;
+        strategyToSave.analyticReference = initialStrategy.analyticReference;
+        strategyToSave.programId = initialStrategy.programId;
 
-          strategyToSave.pmfms = initialStrategy.pmfms && initialStrategy.pmfms.map(pmfmStrategy => {const pmfmStrategyCloned = pmfmStrategy.clone(); pmfmStrategyCloned.id = undefined; pmfmStrategyCloned.strategyId = undefined; return PmfmStrategy.fromObject(pmfmStrategyCloned)}) || [];
-          strategyToSave.departments = initialStrategy.departments && initialStrategy.departments.map(department => {const departmentCloned = department.clone(); departmentCloned.id = undefined; departmentCloned.strategyId = undefined; return StrategyDepartment.fromObject(departmentCloned)}) || [];
-          strategyToSave.taxonNames = initialStrategy.taxonNames && initialStrategy.taxonNames.map(taxonNameStrategy => {const taxonNameStrategyCloned = taxonNameStrategy.clone(); taxonNameStrategyCloned.strategyId = undefined; return TaxonNameStrategy.fromObject(taxonNameStrategyCloned)}) || [];
-          strategyToSave.id = undefined;
-          strategyToSave.updateDate = undefined;
-          strategyToSave.comments = initialStrategy.comments;
-          strategyToSave.creationDate = undefined;
-          strategyToSave.statusId = initialStrategy.statusId;
-          strategyToSave.validityStatusId = initialStrategy.validityStatusId;
-          strategyToSave.levelId = initialStrategy.levelId;
-          strategyToSave.parentId = initialStrategy.parentId;
-          strategyToSave.entityName = initialStrategy.entityName;
-          strategyToSave.denormalizedPmfms = undefined;
-          strategyToSave.gears = undefined;
-          strategyToSave.taxonGroups = undefined;
-          this.strategyService.save(strategyToSave).then(res => {
-            console.info(`[sampling-strategy-table] Duplication of ${strategyToSaveLabel} done`)
-          });
-        });
-      });
+        strategyToSave.appliedStrategies = (initialStrategy.appliedStrategies || []).map(initialAppliedStrategy => {
+          const strategyToSaveAppliedStrategy = new AppliedStrategy();
+          strategyToSaveAppliedStrategy.id = undefined;
+          strategyToSaveAppliedStrategy.updateDate = undefined;
+          strategyToSaveAppliedStrategy.location = initialAppliedStrategy.location;
+          if (isNotEmptyArray(initialAppliedStrategy.appliedPeriods)) {
+            strategyToSaveAppliedStrategy.appliedPeriods = initialAppliedStrategy.appliedPeriods.map(initialAppliedStrategyPeriod => {
+              const startMonth = (initialAppliedStrategyPeriod.startDate?.month()) + 1;
+              const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`)?.utc();
+              const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
+              const appliedPeriod = AppliedPeriod.fromObject({acquisitionNumber: initialAppliedStrategyPeriod.acquisitionNumber});
+              appliedPeriod.startDate = startDate;
+              appliedPeriod.endDate = endDate;
+              appliedPeriod.appliedStrategyId = undefined;
+              return appliedPeriod;
+            });
+          } else {
+            strategyToSaveAppliedStrategy.appliedPeriods = [];
+          }
+          return strategyToSaveAppliedStrategy;
+        })
+
+        strategyToSave.pmfms = initialStrategy.pmfms && initialStrategy.pmfms.map(pmfmStrategy => {
+          const pmfmStrategyCloned = pmfmStrategy.clone();
+          pmfmStrategyCloned.id = undefined;
+          pmfmStrategyCloned.strategyId = undefined;
+          return PmfmStrategy.fromObject(pmfmStrategyCloned)
+        }) || [];
+        strategyToSave.departments = initialStrategy.departments && initialStrategy.departments.map(department => {
+          const departmentCloned = department.clone();
+          departmentCloned.id = undefined;
+          departmentCloned.strategyId = undefined;
+          return StrategyDepartment.fromObject(departmentCloned)
+        }) || [];
+        strategyToSave.taxonNames = initialStrategy.taxonNames && initialStrategy.taxonNames.map(taxonNameStrategy => {
+          const taxonNameStrategyCloned = taxonNameStrategy.clone();
+          taxonNameStrategyCloned.strategyId = undefined;
+          return TaxonNameStrategy.fromObject(taxonNameStrategyCloned)
+        }) || [];
+        strategyToSave.id = undefined;
+        strategyToSave.updateDate = undefined;
+        strategyToSave.comments = initialStrategy.comments;
+        strategyToSave.creationDate = undefined;
+        strategyToSave.statusId = initialStrategy.statusId;
+        strategyToSave.validityStatusId = initialStrategy.validityStatusId;
+        strategyToSave.levelId = initialStrategy.levelId;
+        strategyToSave.parentId = initialStrategy.parentId;
+        strategyToSave.entityName = initialStrategy.entityName;
+        strategyToSave.denormalizedPmfms = undefined;
+        strategyToSave.gears = undefined;
+        strategyToSave.taxonGroups = undefined;
+        await this.strategyService.save(strategyToSave);
+      }
     }
-
   }
 }
 
