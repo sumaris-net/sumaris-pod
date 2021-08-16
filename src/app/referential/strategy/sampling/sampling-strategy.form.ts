@@ -177,29 +177,16 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       form.get('age').disable();
       form.get('sex').disable();
 
-      if (this.form.get('year').value.format("YY") === moment(new Date()).format("YY")) {
-        this.appliedPeriodsForm.controls.forEach(control => {
-          const formGroupControl = control as FormGroup;
-          const acquisitionNumberControl = formGroupControl.controls.acquisitionNumber as FormControl;
-          if (moment(new Date()).isAfter((formGroupControl.controls.endDate as FormControl).value)) {
-            acquisitionNumberControl.disable();
-          } else {
-            acquisitionNumberControl.enable();
-          }
-        });
-      } else if (this.form.get('year').value.format("YY") < moment(new Date()).format("YY")) {
-        this.appliedPeriodsForm.controls.forEach(control => {
-          const formGroupControl = control as FormGroup;
-          const acquisitionNumberControl = formGroupControl.controls.acquisitionNumber as FormControl;
+      // Allow user to update efforts for current quarter and after even when strategy already has samples (#IMAGINE-471)
+      this.appliedPeriodsForm.controls.forEach(control => {
+        const formGroupControl = control as FormGroup;
+        const acquisitionNumberControl = formGroupControl.controls.acquisitionNumber as FormControl;
+        if (moment().isAfter((formGroupControl.controls.endDate as FormControl).value)) {
           acquisitionNumberControl.disable();
-        });
-      } else {
-        this.appliedPeriodsForm.controls.forEach(control => {
-          const formGroupControl = control as FormGroup;
-          const acquisitionNumberControl = formGroupControl.controls.acquisitionNumber as FormControl;
+        } else {
           acquisitionNumberControl.enable();
-        });
-      }
+        }
+      });
     }
   }
 
