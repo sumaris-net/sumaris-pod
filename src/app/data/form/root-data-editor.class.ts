@@ -1,25 +1,36 @@
 import {Directive, Injector, OnInit} from '@angular/core';
 
 import {BehaviorSubject, merge, Subject, Subscription} from 'rxjs';
-import {changeCaseToUnderscore, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
-import {distinctUntilChanged, filter, map, switchMap, tap} from "rxjs/operators";
-import {Program} from "../../referential/services/model/program.model";
-import {EntityServiceLoadOptions, IEntityService} from "@sumaris-net/ngx-components";
-import {AppEditorOptions, AppEntityEditor}  from "@sumaris-net/ngx-components";
-import {ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {HistoryPageReference}  from "@sumaris-net/ngx-components";
-import {RootDataEntity} from "../services/model/root-data-entity.model";
-import {MatAutocompleteConfigHolder, MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "@sumaris-net/ngx-components";
-import {AddToPageHistoryOptions}  from "@sumaris-net/ngx-components";
-import {Strategy} from "../../referential/services/model/strategy.model";
-import {StrategyRefService} from "../../referential/services/strategy-ref.service";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {mergeMap} from "rxjs/internal/operators";
-import {Moment} from "moment";
+import {
+  AddToPageHistoryOptions,
+  AppEditorOptions,
+  AppEntityEditor,
+  changeCaseToUnderscore,
+  EntityServiceLoadOptions,
+  HistoryPageReference,
+  IEntityService,
+  isNil,
+  isNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
+  MatAutocompleteConfigHolder,
+  MatAutocompleteFieldAddOptions,
+  MatAutocompleteFieldConfig,
+  ReferentialRef,
+  ReferentialUtils
+} from '@sumaris-net/ngx-components';
+import {distinctUntilChanged, filter, map, switchMap, tap} from 'rxjs/operators';
+import {Program} from '../../referential/services/model/program.model';
+import {RootDataEntity} from '../services/model/root-data-entity.model';
+import {Strategy} from '../../referential/services/model/strategy.model';
+import {StrategyRefService} from '../../referential/services/strategy-ref.service';
+import {ProgramRefService} from '../../referential/services/program-ref.service';
+import {mergeMap} from 'rxjs/internal/operators';
+import {Moment} from 'moment';
 
 
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class AppRootDataEditor<
   T extends RootDataEntity<T, ID>,
   S extends IEntityService<T, ID> = IEntityService<T, any>,

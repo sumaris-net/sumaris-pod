@@ -15,7 +15,8 @@ import {
   ReferentialRef,
   ShowToastOptions,
   StatusIds,
-  Toasts
+  Toasts,
+  UserEventService
 } from '@sumaris-net/ngx-components';
 import {IDataEntityQualityService, isDataQualityService} from '../services/data-quality-service.class';
 import {QualityFlags} from '../../referential/services/model/model.enum';
@@ -28,7 +29,6 @@ import {environment} from '@environments/environment';
 import {AppRootDataEditor} from '../form/root-data-editor.class';
 import {RootDataEntity} from '../services/model/root-data-entity.model';
 import {qualityFlagToColor} from '../services/model/model.utils';
-import {UserEventService} from '@sumaris-net/ngx-components';
 import {OverlayEventDetail} from '@ionic/core';
 import {isDataSynchroService, RootDataSynchroService} from '../services/root-data-synchro-service.class';
 import {debounceTime} from 'rxjs/operators';
@@ -235,7 +235,7 @@ export class EntityQualityFormComponent<
 
     try {
       console.debug("[quality] Synchronizing entity...");
-      // tslint:disable-next-line:no-unused-expression
+      // eslint-disable-next-line no-unused-expressions, @typescript-eslint/no-unused-expressions
       const synchroService = this.service as RootDataSynchroService<T, any, ID>;
       const remoteData = await synchroService.synchronize(this.editor.data);
 

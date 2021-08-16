@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {FetchPolicy, FetchResult, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy} from '@apollo/client/core';
 import {EMPTY, Observable} from 'rxjs';
 import {filter, first, map, tap} from 'rxjs/operators';
 import {ErrorCodes} from './trip.errors';
@@ -41,7 +41,6 @@ import {SortDirection} from '@angular/material/sort';
 import {environment} from '../../../environments/environment';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
-import {RefetchQueryDescription} from '@apollo/client/core/watchQueryOptions';
 import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
 
 export const OperationFragments = {
@@ -895,7 +894,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
   }
 
-  protected getRefetchQueriesForMutation(opts?: EntitySaveOptions): ((result: FetchResult<{data: any}>) => RefetchQueryDescription) | RefetchQueryDescription {
+  protected getRefetchQueriesForMutation(opts?: EntitySaveOptions): ((result: FetchResult<{data: any}>) => InternalRefetchQueriesInclude) | InternalRefetchQueriesInclude {
     if (opts && opts.refetchQueries) return opts.refetchQueries;
 
     // Skip if update policy not used refecth queries

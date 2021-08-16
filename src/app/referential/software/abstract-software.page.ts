@@ -5,12 +5,14 @@ import {
   AppEditorOptions,
   AppEntityEditor,
   AppPropertiesForm,
-  CORE_CONFIG_OPTIONS, EntityServiceLoadOptions,
+  CORE_CONFIG_OPTIONS,
+  EntityServiceLoadOptions,
   EntityUtils,
   FormFieldDefinition,
   FormFieldDefinitionMap,
   IEntityService,
-  isNil, isNotNil,
+  isNil,
+  isNotNil,
   PlatformService,
   Software
 } from '@sumaris-net/ngx-components';
@@ -20,7 +22,7 @@ import {SoftwareValidatorService} from '../services/validator/software.validator
 import {ReferentialRefService} from '../services/referential-ref.service';
 
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class AbstractSoftwarePage<
   T extends Software<T>,
   S extends IEntityService<T>>

@@ -1,17 +1,14 @@
-import {BehaviorSubject, isObservable, Observable} from "rxjs";
-import {filter, first, map, switchMap, tap} from "rxjs/operators";
-import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
-import {Directive, EventEmitter, Injector, Input, Optional} from "@angular/core";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {IPmfm, PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
-import {SortDirection} from "@angular/material/sort";
-import {IEntitiesService, LoadResult} from "@sumaris-net/ngx-components";
-import {isNil, isNotNil} from "@sumaris-net/ngx-components";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {BehaviorSubject, isObservable, Observable} from 'rxjs';
+import {filter, first, map, switchMap, tap} from 'rxjs/operators';
+import {IEntityWithMeasurement, MeasurementValuesUtils} from '../services/model/measurement.model';
+import {EntityUtils, firstNotNilPromise, IEntitiesService, isNil, isNotNil, LoadResult} from '@sumaris-net/ngx-components';
+import {Directive, EventEmitter, Injector, Input, Optional} from '@angular/core';
+import {IPmfm, PMFM_ID_REGEXP} from '../../referential/services/model/pmfm.model';
+import {SortDirection} from '@angular/material/sort';
+import {ProgramRefService} from '../../referential/services/program-ref.service';
 
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     implements IEntitiesService<T, F> {
 

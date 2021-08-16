@@ -46,7 +46,7 @@ import {MetierFilter} from '@app/referential/services/filter/metier.filter';
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
 @Component({
-  // tslint:disable-next-line:component-selector
+  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'form-trip',
   templateUrl: './trip.form.html',
   styleUrls: ['./trip.form.scss'],

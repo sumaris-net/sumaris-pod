@@ -28,7 +28,7 @@ import {ExtractionHelpModal} from '../help/help.modal';
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class ExtractionAbstractPage<T extends ExtractionType | ExtractionProduct> extends AppTabEditor {
 
   type: T;

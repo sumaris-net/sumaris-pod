@@ -1,12 +1,11 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {AbstractControl, AbstractControlOptions, FormBuilder, FormGroup} from "@angular/forms";
+import {Injectable} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {AbstractControl, AbstractControlOptions, FormBuilder, FormGroup} from '@angular/forms';
 
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {Measurement, MeasurementUtils, MeasurementValuesUtils} from "../model/measurement.model";
-import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {LocalSettingsService, toBoolean} from '@sumaris-net/ngx-components';
+import {Measurement, MeasurementUtils, MeasurementValuesUtils} from '../model/measurement.model';
+import {PmfmValidators} from '../../../referential/services/validator/pmfm.validators';
+import {IPmfm} from '../../../referential/services/model/pmfm.model';
 
 export interface MeasurementsValidatorOptions {
   isOnFieldMode?: boolean;
@@ -68,7 +67,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
     opts = this.fillDefaultOptions(opts);
 
     const controlNamesToRemove: string[] = [];
-    // tslint:disable-next-line:forin
+    // eslint-disable-next-line guard-for-in
     for (const controlName in form.controls) {
       controlNamesToRemove.push(controlName);
     }

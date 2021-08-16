@@ -1,16 +1,11 @@
-import {Directive, Input, OnInit, Optional, ViewChild} from "@angular/core";
-import {ModalController} from "@ionic/angular";
-import {isNotNil, toBoolean} from "@sumaris-net/ngx-components";
-import {Subject} from "rxjs";
-import {AppTableDataSourceOptions, EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
-import {ReferentialRef}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {IEntity}  from "@sumaris-net/ngx-components";
-import {IEntitiesService} from "@sumaris-net/ngx-components";
-import {AppTable}  from "@sumaris-net/ngx-components";
+import {Directive, Input, OnInit, Optional, ViewChild} from '@angular/core';
+import {ModalController} from '@ionic/angular';
+import {AppTable, AppTableDataSourceOptions, EntitiesTableDataSource, IEntitiesService, IEntity, isNotNil, ReferentialRef, toBoolean} from '@sumaris-net/ngx-components';
+import {Subject} from 'rxjs';
+import {environment} from '../../../environments/environment';
 
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class BaseSelectEntityModal<
   T extends IEntity<T, ID>,
   F = any,

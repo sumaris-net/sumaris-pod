@@ -19,7 +19,7 @@ import {BaseReferentialFilter} from './filter/referential.filter';
 
 
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class BaseReferentialService<
   T extends BaseReferential<T, ID>,
   F extends BaseReferentialFilter<F, T, ID>,
