@@ -176,8 +176,31 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       form.get('label').disable();
       form.get('age').disable();
       form.get('sex').disable();
-    }
 
+      if (this.form.get('year').value.format("YY") === moment(new Date()).format("YY")) {
+        this.appliedPeriodsForm.controls.forEach(control => {
+          const formGroupControl = control as FormGroup;
+          const acquisitionNumberControl = formGroupControl.controls.acquisitionNumber as FormControl;
+          if (moment(new Date()).isAfter((formGroupControl.controls.endDate as FormControl).value)) {
+            acquisitionNumberControl.disable();
+          } else {
+            acquisitionNumberControl.enable();
+          }
+        });
+      } else if (this.form.get('year').value.format("YY") < moment(new Date()).format("YY")) {
+        this.appliedPeriodsForm.controls.forEach(control => {
+          const formGroupControl = control as FormGroup;
+          const acquisitionNumberControl = formGroupControl.controls.acquisitionNumber as FormControl;
+          acquisitionNumberControl.disable();
+        });
+      } else {
+        this.appliedPeriodsForm.controls.forEach(control => {
+          const formGroupControl = control as FormGroup;
+          const acquisitionNumberControl = formGroupControl.controls.acquisitionNumber as FormControl;
+          acquisitionNumberControl.enable();
+        });
+      }
+    }
   }
 
   constructor(
@@ -707,7 +730,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     data.taxonNames = data.taxonNames && data.taxonNames.length ? data.taxonNames : [null];
     // Resize pmfm strategy array
     this.taxonNamesHelper.resize(Math.max(1, data.taxonNames.length));
-
 
     // APPLIED_PERIODS
     // get model appliedPeriods which are stored in first applied strategy

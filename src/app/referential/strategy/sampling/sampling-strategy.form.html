@@ -199,7 +199,7 @@
     </ion-row>
 
     <!-- Effort / quarters -->
-    <ng-container  *ngIf="appliedPeriodsForm; let appliedPeriodsForm">
+    <ng-container *ngIf="appliedPeriodsForm; let appliedPeriodsForm">
       <ion-row>
         <ion-col size="12" size-md="2" size-lg="3">
           <ion-label class="ion-float-end">{{i18nFieldPrefix + 'EFFORT'|translate}}</ion-label>
@@ -212,10 +212,10 @@
             <!-- DEBUG AppliedPeriod.startDate
               <mat-date-field formControlName="startDate"></mat-date-field>
             -->
-            <mat-form-field >
+            <mat-form-field>
               <input matInput
                      formControlName="acquisitionNumber"
-                     [placeholder]="(i18nFieldPrefix + 'QUARTER_PLACEHOLDER' |translate) + (i+1) "
+                     [placeholder]="(i18nFieldPrefix + 'QUARTER_PLACEHOLDER' |translate) + (i+1)"
                      type="number"
                      step="1"
                      min="0"
