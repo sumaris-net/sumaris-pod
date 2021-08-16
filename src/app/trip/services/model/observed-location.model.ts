@@ -21,6 +21,7 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
   location: ReferentialRef;
   measurementValues: { [key: string]: any };
   observers: Person[];
+  observerPersonIds?: number[];
 
   landings: Landing[];
 
@@ -29,6 +30,7 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
     this.location = null;
     this.measurementValues = {};
     this.observers = [];
+    this.observerPersonIds = [];
     this.landings = [];
   }
 
@@ -44,6 +46,7 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, options);
     target.landings = this.landings && this.landings.map(s => s.asObject(options)) || undefined;
     target.observers = this.observers && this.observers.map(o => o.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions)) || undefined;
+    target.observerPersonIds = this.observerPersonIds || undefined;
 
     return target;
   }
@@ -56,6 +59,7 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
 
     this.measurementValues = source.measurementValues && {...source.measurementValues} || MeasurementUtils.toMeasurementValues(source.measurements);
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
+    this.observerPersonIds = source.observerPersonIds;
     this.landings = source.landings && source.landings.map(Landing.fromObject) || [];
 
     return this;
@@ -70,6 +74,7 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
         && (this.startDateTime === other.startDateTime)
         // Same recorder person
         && (this.recorderPerson && other.recorderPerson && this.recorderPerson.id === other.recorderPerson.id)
+        && (this.observerPersonIds && this.observerPersonIds === other.observerPersonIds)
       );
   }
 }
