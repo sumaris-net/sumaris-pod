@@ -68,6 +68,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   data: SamplingStrategy;
 
   hasEffort = false;
+  hasLanding = false;
 
   taxonNamesHelper: FormArrayHelper<TaxonNameStrategy>;
   departmentsHelper: FormArrayHelper<StrategyDepartment>;
@@ -164,7 +165,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   enable(opts?: { onlySelf?: boolean, emitEvent?: boolean; }) {
     super.enable(opts);
-    if (this.hasEffort) {
+    if (this.hasLanding) {
       this.weightPmfmStrategiesTable.disable();
       this.lengthPmfmStrategiesTable.disable();
       this.maturityPmfmStrategiesTable.disable();
@@ -701,6 +702,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Fill efforts (need by validator)
     this.samplingStrategyService.fillEfforts([this.data]).then((test) => {
       this.hasEffort = this.data.hasRealizedEffort;
+      this.hasLanding = this.data.hasLanding;
       this.enable();
       this.fillEffortsCalled = true;
     });

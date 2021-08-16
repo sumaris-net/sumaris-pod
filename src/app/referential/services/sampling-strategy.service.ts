@@ -265,6 +265,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
             existingEffort.endDate = DateUtils.max(existingEffort.endDate, effort.endDate);
             existingEffort.expectedEffort += effort.expectedEffort;
             existingEffort.realizedEffort += effort.realizedEffort;
+            existingEffort.landingCount += effort.landingCount;
           }
         }
       }
