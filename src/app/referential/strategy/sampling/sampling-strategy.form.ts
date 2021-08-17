@@ -39,7 +39,17 @@ import {ReferentialRefService} from '../../services/referential-ref.service';
 import {StrategyService} from '../../services/strategy.service';
 import {StrategyValidatorService} from '../../services/validator/strategy.validator';
 import {PmfmStrategiesTable} from '../pmfm-strategies.table';
-import {AcquisitionLevelCodes, autoCompleteFractions, LocationLevelIds, MatrixIds, ParameterLabelGroups, PmfmIds, ProgramPrivilegeIds, TaxonomicLevelIds} from '../../services/model/model.enum';
+import {
+  AcquisitionLevelCodes,
+  autoCompleteFractions,
+  FractionIdGroups,
+  LocationLevelIds,
+  MatrixIds,
+  ParameterLabelGroups,
+  PmfmIds,
+  ProgramPrivilegeIds,
+  TaxonomicLevelIds
+} from '../../services/model/model.enum';
 import {ProgramProperties} from '../../services/config/program.config';
 import {BehaviorSubject, merge} from 'rxjs';
 import {SamplingStrategyService} from '../../services/sampling-strategy.service';
@@ -226,8 +236,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.analyticsReferencePatched = false;
 
     this.referentialRefService.loadAll(0, 0, null, null, {
-      entityName: 'Fraction',
-      levelId: MatrixIds.INDIVIDUAL
+      entityName: 'Fraction'
     })
       .then(({data}) => this.allFractionItems.next(data));
 
@@ -417,7 +426,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       suggestFn: (value, filter) => this.suggestAgeFractions(value, {
         ...filter,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        levelIds: [MatrixIds.INDIVIDUAL]
+        includedIds: FractionIdGroups.CALCIFIED_STRUCTURE
       }),
       attributes: ['name'],
       columnNames: ['REFERENTIAL.NAME'],
