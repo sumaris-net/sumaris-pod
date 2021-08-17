@@ -1,8 +1,8 @@
-import {TypePolicies} from '@apollo/client/core';
-import {FormFieldDefinition, PRIORITIZED_AUTHORITIES} from '@sumaris-net/ngx-components';
+import { TypePolicies } from '@apollo/client/core';
+import { FormFieldDefinition, PRIORITIZED_AUTHORITIES } from '@sumaris-net/ngx-components';
 
 export const DATA_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
-  'DataReferenceVO': {
+  DataReferenceVO: {
     keyFields: ['entityName', 'id']
   }
 };

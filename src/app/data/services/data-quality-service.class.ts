@@ -1,5 +1,5 @@
-import {DataEntity} from './model/data-entity.model';
-import {FormErrors} from '@sumaris-net/ngx-components';
+import { DataEntity } from './model/data-entity.model';
+import { FormErrors } from '@sumaris-net/ngx-components';
 
 export interface IDataEntityQualityService<
   T extends DataEntity<T, ID>,
@@ -16,8 +16,7 @@ export interface IDataEntityQualityService<
 }
 
 const DataQualityServiceFnName: (keyof IDataEntityQualityService<any>)[] = ['control', 'terminate', 'validate', 'unvalidate', 'qualify', 'canUserWrite'];
-export function isDataQualityService(object: any): object is IDataEntityQualityService<any> {
-  return object && DataQualityServiceFnName.filter(fnName => (typeof object[fnName] === 'function'))
-    .length === DataQualityServiceFnName.length || false;
-}
+
+export const isDataQualityService = (object: any): object is IDataEntityQualityService<any> =>
+  object && DataQualityServiceFnName.filter(fnName => (typeof object[fnName] === 'function')).length === DataQualityServiceFnName.length || false;
 

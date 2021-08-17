@@ -48,7 +48,7 @@
         <ion-grid class="form-container">
 
           <!-- fuel -->
-          <ion-row [hidden]="!($fuelTypePmfm | async) && !($fuelPmfms | async)">
+          <ion-row [hidden]="($fuelTypePmfm | async) !== true && ($fuelPmfms | async) !== true">
             <ion-col size="12" size-md="2" size-lg="3">
               <app-pmfm-qv-field  *ngIf="$fuelTypePmfm | async; let fuelTypePmfm"
                                   [pmfm]="fuelTypePmfm"

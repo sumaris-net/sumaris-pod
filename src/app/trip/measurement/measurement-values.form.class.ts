@@ -1,15 +1,15 @@
-import {ChangeDetectorRef, Directive, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {Moment} from 'moment';
-import {DateAdapter} from '@angular/material/core';
-import {FloatLabelType} from '@angular/material/form-field';
-import {BehaviorSubject, isObservable, Observable} from 'rxjs';
-import {FormBuilder, FormGroup} from '@angular/forms';
-import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {filter, throttleTime} from 'rxjs/operators';
-import {IEntityWithMeasurement, MeasurementValuesUtils} from '../services/model/measurement.model';
-import {AppForm, filterNotNil, firstNotNilPromise, isEmptyArray, isNil, isNotEmptyArray, isNotNil, LocalSettingsService} from '@sumaris-net/ngx-components';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import { ChangeDetectorRef, Directive, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Moment } from 'moment';
+import { DateAdapter } from '@angular/material/core';
+import { FloatLabelType } from '@angular/material/form-field';
+import { BehaviorSubject, isObservable, Observable } from 'rxjs';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
+import { filter, throttleTime } from 'rxjs/operators';
+import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
+import { AppForm, filterNotNil, firstNotNilPromise, isEmptyArray, isNil, isNotEmptyArray, isNotNil, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
@@ -39,6 +39,14 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   get forceOptional(): boolean {
     return this._forceOptional;
+  }
+
+  @Input()
+  set forceOptional(value: boolean) {
+    if (this._forceOptional !== value) {
+      this._forceOptional = value;
+      if (!this.loading) this._onRefreshPmfms.emit();
+    }
   }
 
   get measurementValuesForm(): FormGroup {
@@ -105,14 +113,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   @Input() set pmfms(pmfms: Observable<IPmfm[]> | IPmfm[]) {
     this.loading = true;
     this.setPmfms(pmfms);
-  }
-
-  @Input()
-  set forceOptional(value: boolean) {
-    if (this._forceOptional !== value) {
-      this._forceOptional = value;
-      if (!this.loading) this._onRefreshPmfms.emit();
-    }
   }
 
   @Output() valueChanges = new EventEmitter<any>();

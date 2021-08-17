@@ -18,12 +18,16 @@
       "extends": [
         "plugin:@angular-eslint/ng-cli-compat",
         "plugin:@angular-eslint/ng-cli-compat--formatting-add-on",
-        "plugin:@angular-eslint/template/process-inline-templates"
+        "plugin:@angular-eslint/template/process-inline-templates",
+        "prettier"
       ],
       "rules": {
         "@angular-eslint/component-class-suffix": "off",
         "@angular-eslint/directive-class-suffix": "off",
         "@angular-eslint/component-selector": "off",
+        "@angular-eslint/no-output-on-prefix": "off",
+        "@angular-eslint/no-input-rename": "off",
+        "@angular-eslint/no-output-rename": "off",
         "@typescript-eslint/member-ordering": "off",
         "@typescript-eslint/consistent-type-assertions": "off",
         "@typescript-eslint/consistent-type-definitions": "error",
@@ -69,7 +73,8 @@
         "*.html"
       ],
       "extends": [
-        "plugin:@angular-eslint/template/recommended"
+        "plugin:@angular-eslint/template/recommended",
+        "prettier"
       ],
       "rules": {}
     }

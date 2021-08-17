@@ -1,7 +1,7 @@
-import {Observable} from 'rxjs';
+import { Observable } from 'rxjs';
 
-import {FetchPolicy, WatchQueryFetchPolicy} from '@apollo/client/core';
-import {SortDirection} from '@angular/material/sort';
+import { FetchPolicy, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { SortDirection } from '@angular/material/sort';
 
 import {
   BaseEntityService,
@@ -12,10 +12,10 @@ import {
   isNotNil,
   LoadResult,
   PlatformService,
-  ReferentialUtils
+  ReferentialUtils,
 } from '@sumaris-net/ngx-components';
-import {Directive} from '@angular/core';
-import {BaseReferentialFilter} from './filter/referential.filter';
+import { Directive } from '@angular/core';
+import { BaseReferentialFilter } from './filter/referential.filter';
 
 
 @Directive()
@@ -39,7 +39,8 @@ export abstract class BaseReferentialService<
     });
   }
 
-  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: F, opts?: { fetchPolicy?: WatchQueryFetchPolicy; withTotal: boolean; toEntity?: boolean }): Observable<LoadResult<T>> {
+  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: F,
+           opts?: { fetchPolicy?: WatchQueryFetchPolicy; withTotal: boolean; toEntity?: boolean }): Observable<LoadResult<T>> {
     // Use search attribute as default sort, is set
     sortBy = sortBy || filter && filter.searchAttribute;
     // Call inherited function
@@ -67,7 +68,7 @@ export abstract class BaseReferentialService<
 
   async suggest(value: any, filter?: F): Promise<LoadResult<T>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
-    value = (typeof value === "string" && value !== '*') && value || undefined;
+    value = (typeof value === 'string' && value !== '*') && value || undefined;
     return this.loadAll(0, !value ? 30 : 10, undefined, undefined,
       {
         ...filter,

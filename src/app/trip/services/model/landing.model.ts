@@ -1,11 +1,11 @@
-import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {Moment} from 'moment';
-import {MeasurementModelValues, MeasurementValuesUtils} from './measurement.model';
-import {Sample} from './sample.model';
-import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
-import {IWithObserversEntity} from '@app/data/services/model/model.utils';
-import {EntityClass, fromDateISOString, Person, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils, toDateISOString, toNumber} from '@sumaris-net/ngx-components';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
+import { Moment } from 'moment';
+import { MeasurementModelValues, MeasurementValuesUtils } from './measurement.model';
+import { Sample } from './sample.model';
+import { DataRootVesselEntity } from '@app/data/services/model/root-vessel-entity.model';
+import { IWithObserversEntity } from '@app/data/services/model/model.utils';
+import { EntityClass, fromDateISOString, Person, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils, toDateISOString, toNumber } from '@sumaris-net/ngx-components';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
 /**
  * Landing entity
@@ -58,7 +58,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
     this.measurementValues = source.measurementValues && {...source.measurementValues};
     if (this.measurementValues === undefined) {
-      console.warn("Source as no measurementValues. Should never occur ! ", source);
+      console.warn('Source as no measurementValues. Should never occur !', source);
     }
 
     // Parent link

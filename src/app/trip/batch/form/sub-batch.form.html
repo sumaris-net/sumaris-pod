@@ -35,7 +35,7 @@
 
   <!-- QV pmfm -->
   <app-pmfm-qv-field #inputField
-                     *ngIf="!($loadingControls | async) && qvPmfm"
+                     *ngIf="($loadingControls | async) !== true && qvPmfm"
                      [pmfm]="qvPmfm"
                      [style]="mobile? 'button' : 'autocomplete'"
                      [required]="true"
