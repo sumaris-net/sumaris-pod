@@ -171,12 +171,14 @@ export class TaxonUtils {
 
   static generateLabelFromName(taxonName: string): string {
     if (isNil(taxonName)) return undefined;
+    const taxonNameWithoutStartParentheses = taxonName.replace(/\(/g, '');
+    const taxonNameWithoutParentheses = taxonNameWithoutStartParentheses.replace(/\)/g, '');
     const genusWord = /^[a-zA-Z]{4,}$/;
     const speciesWord = /^[a-zA-Z]{3,}$/;
 
     // Rubin code for "Leucoraja circularis": LEUC CIR
-    const parts = taxonName.split(" ");
-    if ((parts.length === 2 || parts.length === 3) && parts[0].match(genusWord) && parts[1].match(speciesWord)) {
+    const parts = taxonNameWithoutParentheses.split(" ");
+    if ((parts.length > 1) && parts[0].match(genusWord) && parts[1].match(speciesWord)) {
       return parts[0].slice(0, 4).toUpperCase() + parts[1].slice(0, 3).toUpperCase();
     }
 
