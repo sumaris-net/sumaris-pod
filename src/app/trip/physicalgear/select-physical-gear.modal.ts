@@ -1,17 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnInit, ViewChild} from "@angular/core";
-import {ModalController} from "@ionic/angular";
-import {PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearService} from "../services/physicalgear.service";
-import {TableElement} from "@e-is/ngx-material-table";
-import {PhysicalGear} from "../services/model/trip.model";
-import {isNotNil, toBoolean} from "@sumaris-net/ngx-components";
-import {AcquisitionLevelCodes, AcquisitionLevelType} from "../../referential/services/model/model.enum";
-import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {IEntitiesService} from "@sumaris-net/ngx-components";
-import {Observable} from "rxjs";
-import {PhysicalGearFilter} from "../services/filter/physical-gear.filter";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {Browser} from "leaflet";
-import mobile = Browser.mobile;
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnInit, ViewChild} from '@angular/core';
+import {ModalController} from '@ionic/angular';
+import {PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearService} from '../services/physicalgear.service';
+import {TableElement} from '@e-is/ngx-material-table';
+import {PhysicalGear} from '../services/model/trip.model';
+import {IEntitiesService, isNotNil, PlatformService, toBoolean} from '@sumaris-net/ngx-components';
+import {AcquisitionLevelCodes, AcquisitionLevelType} from '@app/referential/services/model/model.enum';
+import {AppMeasurementsTable} from '../measurement/measurements.table.class';
+import {Observable} from 'rxjs';
+import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
 
 @Component({
   selector: 'app-select-physical-gear-modal',
@@ -67,7 +63,7 @@ export class SelectPhysicalGearModal implements OnInit {
 
     // Load landings
     setTimeout(() => {
-      this.table.onRefresh.next("modal");
+      this.table.onRefresh.next('modal');
       this.markForCheck();
     }, 200);
 

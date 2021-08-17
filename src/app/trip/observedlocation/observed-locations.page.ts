@@ -1,34 +1,41 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from '@angular/core';
-import {TableElement} from "@e-is/ngx-material-table";
-import {ActivatedRoute, Router} from "@angular/router";
-import {ModalController} from "@ionic/angular";
-import {Location} from "@angular/common";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {FormBuilder} from "@angular/forms";
-import {Alerts, EntitiesTableDataSource, isNotEmptyArray, PersonService, PersonUtils} from '@sumaris-net/ngx-components';
-import {ObservedLocationService} from "../services/observed-location.service";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
+import {TableElement} from '@e-is/ngx-material-table';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ModalController} from '@ionic/angular';
+import {Location} from '@angular/common';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {FormBuilder} from '@angular/forms';
+import {
+  Alerts,
+  ConfigService,
+  EntitiesTableDataSource,
+  HammerSwipeEvent,
+  isNotEmptyArray,
+  LocalSettingsService,
+  PersonService,
+  PersonUtils,
+  PlatformService,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+  SharedValidators,
+  StatusIds
+} from '@sumaris-net/ngx-components';
+import {ObservedLocationService} from '../services/observed-location.service';
 import {LocationLevelIds} from '@app/referential/services/model/model.enum';
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {ObservedLocation} from "../services/model/observed-location.model";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
+import {ObservedLocation} from '../services/model/observed-location.model';
 import {AppRootTable} from '@app/data/table/root-table.class';
-import {OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS} from "../services/config/trip.config";
-import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
+import {OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS} from '../services/config/trip.config';
 import {environment} from '@environments/environment';
-import {ConfigService}  from "@sumaris-net/ngx-components";
-import {BehaviorSubject} from "rxjs";
-import {ObservedLocationOfflineModal} from "./offline/observed-location-offline.modal";
+import {BehaviorSubject} from 'rxjs';
+import {ObservedLocationOfflineModal} from './offline/observed-location-offline.modal';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {DATA_CONFIG_OPTIONS} from "src/app/data/services/config/data.config";
-import {HammerSwipeEvent} from "@sumaris-net/ngx-components";
-import {ObservedLocationFilter, ObservedLocationOfflineFilter} from "../services/filter/observed-location.filter";
+import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
+import {ObservedLocationFilter, ObservedLocationOfflineFilter} from '../services/filter/observed-location.filter';
 
 
 export const ObservedLocationsPageSettingsEnum = {
-  PAGE_ID: "observedLocations",
-  FILTER_KEY: "filter",
+  PAGE_ID: 'observedLocations',
+  FILTER_KEY: 'filter',
   FEATURE_ID: OBSERVED_LOCATION_FEATURE_NAME
 };
 
@@ -265,7 +272,7 @@ export class ObservedLocationsPage extends
   }
 
   async deleteSelection(event: UIEvent): Promise<number> {
-    let oldConfirmBeforeDelete = this.confirmBeforeDelete;
+    const oldConfirmBeforeDelete = this.confirmBeforeDelete;
     const rowsToDelete = this.selection.selected;
 
     const observations = (rowsToDelete || [])
@@ -280,7 +287,7 @@ export class ObservedLocationsPage extends
         const messageKey = observations.length === 1
           ? 'OBSERVED_LOCATION.CONFIRM.OBSERVATION_HAS_SAMPLE'
           : 'OBSERVED_LOCATION.CONFIRM.OBSERVATIONS_HAS_SAMPLE';
-        let confirm = await Alerts.askConfirmation(messageKey, this.alertCtrl, this.translate, event);
+        const confirm = await Alerts.askConfirmation(messageKey, this.alertCtrl, this.translate, event);
         if (!confirm) return; // skip
         this.confirmBeforeDelete = false;
       }

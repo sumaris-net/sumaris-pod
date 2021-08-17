@@ -1,11 +1,12 @@
 import {Injectable, Injector} from '@angular/core';
 import {gql} from '@apollo/client/core';
 import {Observable} from 'rxjs';
-import {QualityFlagIds} from '../../referential/services/model/model.enum';
+import {QualityFlagIds} from '@app/referential/services/model/model.enum';
 import {
   BaseEntityGraphqlQueries,
   Department,
-  EntityAsObjectOptions, EntitySaveOptions,
+  EntityAsObjectOptions,
+  EntitySaveOptions,
   EntityUtils,
   FormErrors,
   IEntitiesService,
@@ -19,15 +20,15 @@ import {
   StatusIds
 } from '@sumaris-net/ngx-components';
 import {map} from 'rxjs/operators';
-import {ReferentialFragments} from '../../referential/services/referential.fragments';
+import {ReferentialFragments} from '@app/referential/services/referential.fragments';
 import {VesselFeatureQueries, VesselFeaturesFragments, VesselFeaturesService} from './vessel-features.service';
 import {RegistrationFragments, VesselRegistrationService, VesselRegistrationsQueries} from './vessel-registration.service';
 import {Vessel} from './model/vessel.model';
-import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
 import {SortDirection} from '@angular/material/sort';
-import {DataRootEntityUtils} from '../../data/services/model/root-data-entity.model';
-import {IDataSynchroService, RootDataSynchroService} from '../../data/services/root-data-synchro-service.class';
-import {BaseRootEntityGraphqlMutations} from '../../data/services/root-data-service.class';
+import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
+import {IDataSynchroService, RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
+import {BaseRootEntityGraphqlMutations} from '@app/data/services/root-data-service.class';
 import {VESSEL_FEATURE_NAME} from './config/vessel.config';
 import {VesselFilter} from './filter/vessel.filter';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
@@ -189,6 +190,7 @@ export class VesselService
 
   /**
    * Load many vessels
+   *
    * @param offset
    * @param size
    * @param sortBy
@@ -226,7 +228,7 @@ export class VesselService
       filter: filter?.asFilterFn()
     };
 
-    if (this._debug) console.debug("[vessel-service] Loading local vessels using options:", variables);
+    if (this._debug) console.debug('[vessel-service] Loading local vessels using options:', variables);
 
     return this.entities.watchAll<Vessel>(Vessel.TYPENAME, variables)
       .pipe(
@@ -238,6 +240,7 @@ export class VesselService
 
   /**
    * Save many vessels
+   *
    * @param vessels
    */
   async saveAll(entities: Vessel[], opts?: VesselSaveOptions): Promise<Vessel[]> {
@@ -271,6 +274,7 @@ export class VesselService
 
   /**
    * Save a vessel
+   *
    * @param entity
    * @param opts
    */
@@ -283,7 +287,7 @@ export class VesselService
       if (opts.isNewFeatures) {
         // set end date = new start date - 1
         const newStartDate = entity.features.startDate.clone();
-        newStartDate.subtract(1, "seconds");
+        newStartDate.subtract(1, 'seconds');
         opts.previousVessel.features.endDate = newStartDate;
 
       }
@@ -291,7 +295,7 @@ export class VesselService
       else if (opts.isNewRegistration) {
         // set registration end date = new registration start date - 1
         const newRegistrationStartDate = entity.registration.startDate.clone();
-        newRegistrationStartDate.subtract(1, "seconds");
+        newRegistrationStartDate.subtract(1, 'seconds');
         opts.previousVessel.registration.endDate = newRegistrationStartDate;
       }
 
@@ -307,7 +311,7 @@ export class VesselService
     // Save locally, when offline
     const offline = this.network.offline || EntityUtils.isLocal(entity) || (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC');
     if (offline) {
-      console.debug("[vessel-service] Saving a vessel locally...");
+      console.debug('[vessel-service] Saving a vessel locally...');
 
       // Make sure to fill id, with local ids
       await this.fillOfflineDefaultProperties(entity);
@@ -331,6 +335,7 @@ export class VesselService
 
   /**
    * Save a vessel
+   *
    * @param entity
    * @param opts
    */
@@ -343,7 +348,7 @@ export class VesselService
       if (opts.isNewFeatures) {
         // set end date = new start date - 1
         const newStartDate = entity.features.startDate.clone();
-        newStartDate.subtract(1, "seconds");
+        newStartDate.subtract(1, 'seconds');
         opts.previousVessel.features.endDate = newStartDate;
 
       }
@@ -351,7 +356,7 @@ export class VesselService
       else if (opts.isNewRegistration) {
         // set registration end date = new registration start date - 1
         const newRegistrationStartDate = entity.registration.startDate.clone();
-        newRegistrationStartDate.subtract(1, "seconds");
+        newRegistrationStartDate.subtract(1, 'seconds');
         opts.previousVessel.registration.endDate = newRegistrationStartDate;
       }
 
@@ -367,7 +372,7 @@ export class VesselService
     // Save locally, when offline
     const offline = this.network.offline || EntityUtils.isLocal(entity);
     if (offline) {
-      console.debug("[vessel-service] Saving a vessel locally...");
+      console.debug('[vessel-service] Saving a vessel locally...');
 
       // Make sure to fill id, with local ids
       await this.fillOfflineDefaultProperties(entity);
@@ -405,7 +410,7 @@ export class VesselService
   }
 
   listenChanges(id: number, options?: any): Observable<Vessel> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   control(entity: Vessel, opts?: any): Promise<FormErrors> {

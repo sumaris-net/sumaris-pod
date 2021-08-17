@@ -1,5 +1,5 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit} from '@angular/core';
-import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../../referential/services/model/model.enum';
+import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit} from '@angular/core';
+import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '@app/referential/services/model/model.enum';
 import {LandingPage} from '../landing.page';
 import {debounceTime, filter, map, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
 import {BehaviorSubject, Observable, Subscription} from 'rxjs';
@@ -24,10 +24,10 @@ import {
 } from '@sumaris-net/ngx-components';
 import {ObservedLocation} from '../../services/model/observed-location.model';
 import {FormBuilder, FormControl, FormGroup} from '@angular/forms';
-import {TaxonGroupLabels, TaxonGroupRef} from '../../../referential/services/model/taxon.model';
-import {Program} from '../../../referential/services/model/program.model';
-import {IPmfm} from '../../../referential/services/model/pmfm.model';
-import {AppRootDataEditor} from '../../../data/form/root-data-editor.class';
+import {TaxonGroupLabels, TaxonGroupRef} from '@app/referential/services/model/taxon.model';
+import {Program} from '@app/referential/services/model/program.model';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
 
 @Component({
   selector: 'app-auction-control',
@@ -37,7 +37,7 @@ import {AppRootDataEditor} from '../../../data/form/root-data-editor.class';
   providers: [{provide: AppRootDataEditor, useExisting: AuctionControlPage}],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AuctionControlPage extends LandingPage implements OnInit {
+export class AuctionControlPage extends LandingPage implements OnInit, AfterViewInit {
 
   $taxonGroupTypeId = new BehaviorSubject<number>(null);
   taxonGroupControl: FormControl;
@@ -95,7 +95,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
           mergeMap((programLabel) => this.programRefService.loadTaxonGroups(programLabel))
         )
         .subscribe(taxonGroups => {
-          console.debug("[control] Program taxonGroups: ", taxonGroups);
+          console.debug('[control] Program taxonGroups: ', taxonGroups);
           this.$taxonGroups.next(taxonGroups);
         })
     );
@@ -160,11 +160,9 @@ export class AuctionControlPage extends LandingPage implements OnInit {
           //console.warn("TODO: update help modal with QV=", qv);
           this.helpContent = qv && qv.description || undefined;
         }),
-        map(qv => {
-          return ReferentialUtils.isNotEmpty(qv)
+        map(qv => ReferentialUtils.isNotEmpty(qv)
             && this.$taxonGroups.getValue().find(tg => tg.label === qv.label)
-            || undefined;
-        })
+            || undefined)
       );
 
     // Load pmfms

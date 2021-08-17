@@ -14,11 +14,14 @@ import {
   isNotNil,
   LoadResult,
   LocalSettingsService,
-  Person, PersonService, PersonUtils,
+  Person,
+  PersonService,
+  PersonUtils,
   referentialToString,
   ReferentialUtils,
   StatusIds,
-  toBoolean, UserProfileLabel
+  toBoolean,
+  UserProfileLabel
 } from '@sumaris-net/ngx-components';
 import {ObservedLocation} from '../services/model/observed-location.model';
 import {AcquisitionLevelCodes, LocationLevelIds} from '@app/referential/services/model/model.enum';
@@ -51,7 +54,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   @Input() set locationLevelIds(value: number[]) {
     if (this.locationFilter.levelIds !== value) {
 
-      console.debug("[observed-location-form] Location level ids:", value);
+      console.debug('[observed-location-form] Location level ids:', value);
       this.locationFilter = {
         ...this.locationFilter,
         levelIds: value

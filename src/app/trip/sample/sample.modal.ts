@@ -1,23 +1,16 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {AlertController, IonContent, ModalController} from "@ionic/angular";
-import {BehaviorSubject, isObservable, Observable, of} from "rxjs";
-import {TranslateService} from "@ngx-translate/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from '@angular/core';
+import {Alerts, AppFormUtils, EntityUtils, isNil, isNotEmptyArray, LocalSettingsService, PlatformService, referentialToString, toBoolean, UsageMode} from '@sumaris-net/ngx-components';
+import {environment} from '@environments/environment';
+import {AlertController, IonContent, ModalController} from '@ionic/angular';
+import {BehaviorSubject, isObservable, Observable} from 'rxjs';
+import {TranslateService} from '@ngx-translate/core';
 import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {isNil, isNotEmptyArray, toBoolean} from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {SampleForm} from "./sample.form";
-import {Sample} from "../services/model/sample.model";
-import {UsageMode}  from "@sumaris-net/ngx-components";
-import {Alerts} from "@sumaris-net/ngx-components";
-import {TRIP_LOCAL_SETTINGS_OPTIONS} from "../services/config/trip.config";
+import {SampleForm} from './sample.form';
+import {Sample} from '../services/model/sample.model';
+import {TRIP_LOCAL_SETTINGS_OPTIONS} from '../services/config/trip.config';
 import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
-import {debounceTime} from "rxjs/operators";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
-import {referentialToString}  from "@sumaris-net/ngx-components";
+import {debounceTime} from 'rxjs/operators';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 
 export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
@@ -238,11 +231,11 @@ export class SampleModal implements OnInit, ISampleModalOptions {
 
   /* -- protected methods -- */
 
-  protected getDataToSave(opts?: { markAsLoading?: boolean; }): Sample {
+  protected getDataToSave(opts?: { markAsLoading?: boolean }): Sample {
 
     if (this.invalid) {
-      if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sample-modal] ");
-      this.form.error = "COMMON.FORM.HAS_ERROR";
+      if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
+      this.form.error = 'COMMON.FORM.HAS_ERROR';
       this.form.markAsTouched({emitEvent: true});
       this.scrollToTop();
       return undefined;

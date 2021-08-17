@@ -1,26 +1,29 @@
-import {Injectable, InjectionToken} from "@angular/core";
-import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
-import {IEntitiesService, LoadResult} from "@sumaris-net/ngx-components";
-import {PhysicalGear, Trip} from "./model/trip.model";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {EntitiesStorage}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {EMPTY, Observable} from "rxjs";
-import {arrayDistinct, getPropertyByPath, isNil} from "@sumaris-net/ngx-components";
-import {filter, map, throttleTime} from "rxjs/operators";
+import {Injectable, InjectionToken} from '@angular/core';
+import {
+  AccountService,
+  arrayDistinct,
+  BaseGraphqlService,
+  CryptoService,
+  EntitiesStorage,
+  fromDateISOString,
+  GraphqlService,
+  IEntitiesService,
+  isNil,
+  LoadResult,
+  NetworkService
+} from '@sumaris-net/ngx-components';
+import {PhysicalGear, Trip} from './model/trip.model';
+import {environment} from '@environments/environment';
+import {EMPTY, Observable} from 'rxjs';
+import {filter, map, throttleTime} from 'rxjs/operators';
 
-import {ErrorCodes} from "./trip.errors";
-import {gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {PhysicalGearFragments} from "./trip.queries";
-import {ReferentialFragments} from "../../referential/services/referential.fragments";
-import {SortDirection} from "@angular/material/sort";
-import {fromDateISOString} from "@sumaris-net/ngx-components";
-import {TripFilter} from "./filter/trip.filter";
-import {PhysicalGearFilter} from "./filter/physical-gear.filter";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
-import {CryptoService}  from "@sumaris-net/ngx-components";
+import {ErrorCodes} from './trip.errors';
+import {gql, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {PhysicalGearFragments} from './trip.queries';
+import {ReferentialFragments} from '@app/referential/services/referential.fragments';
+import {SortDirection} from '@angular/material/sort';
+import {TripFilter} from './filter/trip.filter';
+import {PhysicalGearFilter} from './filter/physical-gear.filter';
 
 
 const LoadAllQuery: any = gql`
@@ -86,7 +89,7 @@ export class PhysicalGearService extends BaseGraphqlService
     }
 
     if (!dataFilter || isNil(dataFilter.vesselId)) {
-      console.warn("[physical-gear-service] Trying to load gears without 'filter.vesselId'. Skipping.");
+      console.warn(`[physical-gear-service] Trying to load gears without 'filter.vesselId'. Skipping.`);
       return EMPTY;
     }
 
@@ -101,12 +104,12 @@ export class PhysicalGearService extends BaseGraphqlService
     };
 
     let now = this._debug && Date.now();
-    if (this._debug) console.debug("[physical-gear-service] Loading physical gears... using options:", variables);
+    if (this._debug) console.debug('[physical-gear-service] Loading physical gears... using options:', variables);
 
     return this.graphql.watchQuery<LoadResult<any>>({
         query: LoadAllQuery,
         variables,
-        error: {code: ErrorCodes.LOAD_PHYSICAL_GEARS_ERROR, message: "TRIP.PHYSICAL_GEAR.ERROR.LOAD_PHYSICAL_GEARS_ERROR"},
+        error: {code: ErrorCodes.LOAD_PHYSICAL_GEARS_ERROR, message: 'TRIP.PHYSICAL_GEAR.ERROR.LOAD_PHYSICAL_GEARS_ERROR'},
         fetchPolicy: opts && opts.fetchPolicy || undefined
       })
       .pipe(
@@ -156,7 +159,7 @@ export class PhysicalGearService extends BaseGraphqlService
       }
   ): Observable<LoadResult<PhysicalGear>> {
     if (!filter || isNil(filter.vesselId)) {
-      console.warn("[physical-gear-service] Trying to load gears without 'filter.vesselId'. Skipping.");
+      console.warn(`[physical-gear-service] Trying to load gears without 'filter.vesselId'. Skipping.`);
       return EMPTY;
     }
 
@@ -174,7 +177,7 @@ export class PhysicalGearService extends BaseGraphqlService
       filter: tripFilter.asFilterFn()
     };
 
-    if (this._debug) console.debug("[physical-gear-service] Loading physical gears locally... using options:", variables);
+    if (this._debug) console.debug('[physical-gear-service] Loading physical gears locally... using options:', variables);
 
     // First, search on trips
     return this.entities.watchAll<Trip>(Trip.TYPENAME, variables)
@@ -197,15 +200,13 @@ export class PhysicalGearService extends BaseGraphqlService
             }
 
             return res.concat(trip.gears
-              .map(gear => {
-              return {
+              .map(gear => ({
                 ...gear,
                 trip: {
                   departureDateTime: trip.departureDateTime,
                   returnDateTime: trip.returnDateTime
                 }
-              };
-            }));
+              })));
           }, []);
 
           // Sort by trip date

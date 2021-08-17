@@ -1,4 +1,4 @@
-import {Directive, EventEmitter, ViewChild} from '@angular/core';
+import {Directive, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {
   AccountService,
@@ -28,8 +28,9 @@ import {ExtractionHelpModal} from '../help/help.modal';
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Directive()
-// eslint-disable-next-line @angular-eslint/directive-class-suffix
-export abstract class ExtractionAbstractPage<T extends ExtractionType | ExtractionProduct> extends AppTabEditor {
+export abstract class ExtractionAbstractPage<T extends ExtractionType | ExtractionProduct>
+  extends AppTabEditor
+  implements OnInit {
 
   type: T;
   form: FormGroup;
@@ -140,7 +141,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
         }));
   }
 
-  async setType(type: T, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string; }): Promise<boolean> {
+  async setType(type: T, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string }): Promise<boolean> {
     opts = opts || {};
     opts.emitEvent = isNotNil(opts.emitEvent) ? opts.emitEvent : true;
     opts.skipLocationChange = isNotNil(opts.skipLocationChange) ? opts.skipLocationChange : false;
@@ -157,7 +158,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
       // Replace by the full entity
       type = await this.getFullType(type);
       if (!type) {
-        console.warn("[extraction-form] Type not found:", type);
+        console.warn('[extraction-form] Type not found:', type);
         return false;
       }
       console.debug(`[extraction-form] Set type to {${type.label}}`, type);
@@ -190,7 +191,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
   }
 
 
-  setSheetName(sheetName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; }) {
+  setSheetName(sheetName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {
     if (sheetName === this.sheetName) return; //skip
 
     this.form.patchValue({sheetName}, opts);
@@ -262,7 +263,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
     // No I18n translation: continue
 
     // Use name, or label (but replace underscore with space)
-    message = type.name || (type.label && type.label.replace(/[_-]+/g, " ").toUpperCase());
+    message = type.name || (type.label && type.label.replace(/[_-]+/g, ' ').toUpperCase());
     // First letter as upper case
     return capitalizeFirstLetter(message.toLowerCase());
   }
@@ -279,7 +280,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
 
 
   async save(event): Promise<any> {
-    console.warn("Not allow to save extraction filter yet!");
+    console.warn('Not allow to save extraction filter yet!');
 
     return undefined;
   }
@@ -349,7 +350,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
         } else {
           return res.concat(`${criterion.name}${criterion.operator}${criterion.value}`);
         }
-      }, []).join(";");
+      }, []).join(';');
     }
     return params;
   }
@@ -380,7 +381,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
     }
 
     // No translation found: replace underscore with space
-    return sheetName.replace(/[_-]+/g, " ").toUpperCase();
+    return sheetName.replace(/[_-]+/g, ' ').toUpperCase();
   }
 
   protected translateColumns(columns: ExtractionColumn[]) {
@@ -409,7 +410,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
         if (column.name === key) {
 
           // Replace underscore with space
-          column.name = column.columnName.replace(/[_-]+/g, " ").toLowerCase();
+          column.name = column.columnName.replace(/[_-]+/g, ' ').toLowerCase();
 
           // First letter as upper case
           if (column.name.length > 1) column.name = capitalizeFirstLetter(column.name);
@@ -435,7 +436,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
       if (message === key) {
 
         // Replace underscore with space
-        message = columnName.replace(/[_-]+/g, " ").toUpperCase();
+        message = columnName.replace(/[_-]+/g, ' ').toUpperCase();
         if (message.length > 1) {
           // First letter as upper case
           message = message.substring(0, 1) + message.substring(1).toLowerCase();

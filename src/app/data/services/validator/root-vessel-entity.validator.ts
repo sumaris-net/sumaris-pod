@@ -1,8 +1,8 @@
-import {FormBuilder, Validators} from "@angular/forms";
-import {SharedValidators} from "@sumaris-net/ngx-components";
+import {FormBuilder, Validators} from '@angular/forms';
+import {SharedValidators} from '@sumaris-net/ngx-components';
 
-import {DataRootEntityValidatorOptions, DataRootEntityValidatorService} from "./root-data-entity.validator";
-import {DataRootVesselEntity} from "../model/root-vessel-entity.model";
+import {DataRootEntityValidatorOptions, DataRootEntityValidatorService} from './root-data-entity.validator';
+import {DataRootVesselEntity} from '../model/root-vessel-entity.model';
 
 export abstract class DataRootVesselEntityValidatorService<T extends DataRootVesselEntity<T>, O extends DataRootEntityValidatorOptions = DataRootEntityValidatorOptions>
   extends DataRootEntityValidatorService<T, O> {

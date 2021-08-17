@@ -1,19 +1,15 @@
-import {MeasurementsForm} from "../measurement/measurements.form.component";
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output} from "@angular/core";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {FormBuilder} from "@angular/forms";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {TypedExpenseValidatorService} from "../services/validator/typed-expense.validator";
-import {BehaviorSubject} from "rxjs";
-import {filterNotNil} from "@sumaris-net/ngx-components";
-import {isNotEmptyArray, isNotNilOrNaN, remove, removeAll} from "@sumaris-net/ngx-components";
-import {Measurement} from "../services/model/measurement.model";
-import {FormFieldDefinition} from "@sumaris-net/ngx-components";
-import {debounceTime, filter} from "rxjs/operators";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
+import {MeasurementsForm} from '../measurement/measurements.form.component';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {DateAdapter} from '@angular/material/core';
+import {Moment} from 'moment';
+import {FormBuilder} from '@angular/forms';
+import {filterNotNil, FormFieldDefinition, isNotEmptyArray, isNotNilOrNaN, LocalSettingsService, PlatformService, remove, removeAll} from '@sumaris-net/ngx-components';
+import {TypedExpenseValidatorService} from '../services/validator/typed-expense.validator';
+import {BehaviorSubject} from 'rxjs';
+import {Measurement} from '../services/model/measurement.model';
+import {debounceTime, filter} from 'rxjs/operators';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 
 @Component({
   selector: 'app-typed-expense-form',
@@ -21,7 +17,7 @@ import {IPmfm} from "../../referential/services/model/pmfm.model";
   styleUrls: ['./typed-expense.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TypedExpenseForm extends MeasurementsForm {
+export class TypedExpenseForm extends MeasurementsForm implements OnInit {
 
   mobile: boolean;
   $typePmfm = new BehaviorSubject<IPmfm>(undefined);
@@ -65,7 +61,7 @@ export class TypedExpenseForm extends MeasurementsForm {
     this.amountDefinition = {
       key: 'amount',
       label: `EXPENSE.${this.expenseType.toUpperCase()}.AMOUNT`,
-      type: "double",
+      type: 'double',
       minValue: 0,
       maximumNumberDecimals: 2
     };

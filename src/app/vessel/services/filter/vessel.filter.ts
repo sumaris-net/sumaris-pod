@@ -1,6 +1,6 @@
 import {EntityAsObjectOptions, EntityClass, EntityFilter, EntityUtils, FilterFn, fromDateISOString, isNotEmptyArray, isNotNil, toDateISOString} from '@sumaris-net/ngx-components';
 import {Vessel, VesselFeatures, VesselRegistration} from '../model/vessel.model';
-import {RootDataEntityFilter} from '../../../data/services/model/root-data-filter.model';
+import {RootDataEntityFilter} from '@app/data/services/model/root-data-filter.model';
 import {Moment} from 'moment';
 
 @EntityClass({typename: 'VesselFilterVO'})

@@ -9,8 +9,8 @@ export const DATA_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
 
 export const DATA_CONFIG_OPTIONS = Object.freeze({
   ACCESS_NOT_SELF_DATA_ROLE: <FormFieldDefinition>{
-    key: "sumaris.data.accessNotSelfData.role",
-    label: "CONFIGURATION.OPTIONS.ACCESS_NOT_SELF_DATA_MIN_ROLE",
+    key: 'sumaris.data.accessNotSelfData.role',
+    label: 'CONFIGURATION.OPTIONS.ACCESS_NOT_SELF_DATA_MIN_ROLE',
     type: 'enum',
     values: PRIORITIZED_AUTHORITIES.map(key => ({
       key: 'ROLE_' + key,
@@ -24,8 +24,8 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     type: 'string'
   },
   CHECK_SAMPLE_UNIQUE_TAG: <FormFieldDefinition>{
-    key: "sumaris.persistence.sample.uniqueTag",
-    label: "CONFIGURATION.OPTIONS.CHECK_SAMPLE_UNIQUE_TAG",
+    key: 'sumaris.persistence.sample.uniqueTag',
+    label: 'CONFIGURATION.OPTIONS.CHECK_SAMPLE_UNIQUE_TAG',
     type: 'boolean',
     defaultValue: false
   },

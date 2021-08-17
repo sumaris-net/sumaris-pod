@@ -1,4 +1,4 @@
-import {Directive, Injector, Input, ViewChild} from '@angular/core';
+import {Directive, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ModalController, Platform} from '@ionic/angular';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
@@ -32,17 +32,17 @@ import {MatExpansionPanel} from '@angular/material/expansion';
 const moment = momentImported;
 
 export const AppRootTableSettingsEnum = {
-  FILTER_KEY: "filter"
+  FILTER_KEY: 'filter'
 };
 
 @Directive()
-// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class AppRootTable<
   T extends RootDataEntity<T, ID>,
   F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
   ID = number
   >
-  extends AppTable<T, F, ID> {
+  extends AppTable<T, F, ID>
+  implements OnInit, OnDestroy {
 
   protected network: NetworkService;
   protected userEventService: UserEventService;
@@ -120,7 +120,7 @@ export abstract class AppRootTable<
     this.isAdmin = this.accountService.isAdmin();
     this.canEdit = toBoolean(this.canEdit, this.isAdmin || this.accountService.isUser());
     this.canDelete = toBoolean(this.canDelete, this.isAdmin);
-    if (this.debug) console.debug("[root-table] Can user edit table ? " + this.canEdit);
+    if (this.debug) console.debug('[root-table] Can user edit table ? ' + this.canEdit);
 
     if (!this.filterForm) throw new Error(`Missing 'filterForm' in ${this.constructor.name}`);
     if (!this.featureId) throw new Error(`Missing 'featureId' in ${this.constructor.name}`);
@@ -173,7 +173,7 @@ export abstract class AppRootTable<
   }
 
   onNetworkStatusChanged(type: ConnectionType) {
-    const offline = type === "none";
+    const offline = type === 'none';
     if (this.offline !== offline) {
 
       // Update the property used in template
@@ -282,7 +282,7 @@ export abstract class AppRootTable<
       return;
     }
 
-    console.debug("[trips] Applying filter to synchronization status: " + value);
+    console.debug('[trips] Applying filter to synchronization status: ' + value);
     this.error = null;
     this.filterForm.patchValue({synchronizationStatus: value}, {emitEvent: false});
     const json = { ...this.filter, synchronizationStatus: value};
@@ -357,7 +357,7 @@ export abstract class AppRootTable<
   async terminateSelection(opts?: {
     showSuccessToast?: boolean;
     emitEvent?: boolean;
-    rows?: TableElement<T>[]
+    rows?: TableElement<T>[];
   }) {
     if (!this._enabled) return; // Skip
 
@@ -372,7 +372,7 @@ export abstract class AppRootTable<
       return;
     }
 
-    if (this.debug) console.debug("[root-table] Starting to terminate data...");
+    if (this.debug) console.debug('[root-table] Starting to terminate data...');
 
     const ids = rows
       .map(row => row.currentData)
@@ -416,7 +416,7 @@ export abstract class AppRootTable<
     showSuccessToast?: boolean;
     cleanPageHistory?: boolean;
     emitEvent?: boolean;
-    rows?: TableElement<T>[]
+    rows?: TableElement<T>[];
   }) {
     if (!this._enabled) return; // Skip
 
@@ -431,7 +431,7 @@ export abstract class AppRootTable<
       return;
     }
 
-    if (this.debug) console.debug("[root-table] Starting to synchronize data...");
+    if (this.debug) console.debug('[root-table] Starting to synchronize data...');
 
     const ids = rows
       .map(row => row.currentData)
@@ -507,7 +507,7 @@ export abstract class AppRootTable<
   protected async restoreFilterOrLoad() {
     this.markAsLoading();
 
-    console.debug("[root-table] Restoring filter from settings...");
+    console.debug('[root-table] Restoring filter from settings...');
 
     const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
 

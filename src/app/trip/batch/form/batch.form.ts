@@ -1,28 +1,35 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
-import {Batch, BatchUtils} from "../../services/model/batch.model";
-import {MeasurementValuesForm} from "../../measurement/measurement-values.form.class";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {MeasurementsValidatorService} from "../../services/validator/measurement.validator";
-import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
-import {IReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {UsageMode}  from "@sumaris-net/ngx-components";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Batch, BatchUtils} from '../../services/model/batch.model';
+import {MeasurementValuesForm} from '../../measurement/measurement-values.form.class';
+import {DateAdapter} from '@angular/material/core';
+import {Moment} from 'moment';
+import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
+import {FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {
+  AppFormUtils,
+  EntityUtils,
+  firstNotNilPromise,
+  FormArrayHelper,
+  IReferentialRef,
+  isNil,
+  isNotNil,
+  isNotNilOrBlank,
+  LocalSettingsService,
+  PlatformService,
+  ReferentialUtils,
+  SharedFormGroupValidators,
+  toBoolean,
+  UsageMode
+} from '@sumaris-net/ngx-components';
 
-import {debounceTime, filter, first} from "rxjs/operators";
-import {AcquisitionLevelCodes, MethodIds, PmfmLabelPatterns} from "../../../referential/services/model/model.enum";
-import {BehaviorSubject, Observable, Subscription} from "rxjs";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {MeasurementValuesUtils} from "../../services/model/measurement.model";
-import {isNil, isNotNil, isNotNilOrBlank, toBoolean} from "@sumaris-net/ngx-components";
-import {BatchValidatorService} from "../../services/validator/batch.validator";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {SharedFormGroupValidators} from "@sumaris-net/ngx-components";
-import {AppFormUtils, FormArrayHelper}  from "@sumaris-net/ngx-components";
-import {ProgramRefService} from "../../../referential/services/program-ref.service";
-import {IPmfm, PmfmUtils} from "../../../referential/services/model/pmfm.model";
+import {debounceTime, filter, first} from 'rxjs/operators';
+import {AcquisitionLevelCodes, MethodIds, PmfmLabelPatterns} from '@app/referential/services/model/model.enum';
+import {BehaviorSubject, Observable, Subscription} from 'rxjs';
+import {MeasurementValuesUtils} from '../../services/model/measurement.model';
+import {BatchValidatorService} from '../../services/validator/batch.validator';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 
 @Component({
   selector: 'app-batch-form',
@@ -344,7 +351,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       data.fromObject(json);
     }
 
-    if (this.debug) console.debug(data.label + " getValue() with data:", data);
+    if (this.debug) console.debug(data.label + ' getValue() with data:', data);
 
     return data;
   }
@@ -495,12 +502,12 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     }
   }
 
-  protected enableWeightFormGroup(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+  protected enableWeightFormGroup(opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
     const weightFormGroup = this.form.get('weight');
     if (weightFormGroup) weightFormGroup.enable(opts);
   }
 
-  protected disableWeightFormGroup(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+  protected disableWeightFormGroup(opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
     const weightFormGroup = this.form.get('weight');
     if (weightFormGroup) weightFormGroup.disable(opts);
   }

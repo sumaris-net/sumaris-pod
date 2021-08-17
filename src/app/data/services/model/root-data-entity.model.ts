@@ -1,13 +1,7 @@
-import {ReferentialRef}  from "@sumaris-net/ngx-components";
-import {Person}  from "@sumaris-net/ngx-components";
-import {Moment} from "moment";
-
-import {ReferentialAsObjectOptions}  from "@sumaris-net/ngx-components";
-import {DataEntity, DataEntityAsObjectOptions} from "./data-entity.model";
-import {IWithProgramEntity, IWithRecorderPersonEntity} from "./model.utils";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
-import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
-import {isNil} from "@sumaris-net/ngx-components";
+import {fromDateISOString, isNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
+import {Moment} from 'moment';
+import {DataEntity, DataEntityAsObjectOptions} from './data-entity.model';
+import {IWithProgramEntity, IWithRecorderPersonEntity} from './model.utils';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export type SynchronizationStatus = 'DIRTY' | 'READY_TO_SYNC' | 'SYNC' | 'DELETED';

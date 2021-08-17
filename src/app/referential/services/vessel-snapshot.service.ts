@@ -1,21 +1,13 @@
-import {Injectable} from "@angular/core";
-import {FetchPolicy, gql} from "@apollo/client/core";
-import {ErrorCodes} from "./errors";
-import {LoadResult, ReferentialRef, SuggestService} from '@sumaris-net/ngx-components';
-import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {ReferentialFragments} from "./referential.fragments";
-import {BehaviorSubject} from "rxjs";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {EntitiesStorage}  from "@sumaris-net/ngx-components";
-import {ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {VesselSnapshot} from "./model/vessel-snapshot.model";
-import {SortDirection} from "@angular/material/sort";
-import {JobUtils} from "@sumaris-net/ngx-components";
-import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
-import {VesselSnapshotFilter} from "./filter/vessel.filter";
+import {Injectable} from '@angular/core';
+import {FetchPolicy, gql} from '@apollo/client/core';
+import {ErrorCodes} from './errors';
+import {BaseGraphqlService, EntitiesStorage, GraphqlService, JobUtils, LoadResult, NetworkService, ReferentialRef, ReferentialUtils, StatusIds, SuggestService} from '@sumaris-net/ngx-components';
+import {ReferentialFragments} from './referential.fragments';
+import {BehaviorSubject} from 'rxjs';
+import {VesselSnapshot} from './model/vessel-snapshot.model';
+import {SortDirection} from '@angular/material/sort';
+import {environment} from '@environments/environment';
+import {VesselSnapshotFilter} from './filter/vessel.filter';
 import {ProgramLabel} from '@app/referential/services/model/model.enum';
 
 
@@ -95,6 +87,7 @@ export class VesselSnapshotService
 
   /**
    * Load many vessels
+   *
    * @param offset
    * @param size
    * @param sortBy
@@ -126,7 +119,7 @@ export class VesselSnapshotService
 
     const debug = this._debug && (!opts || opts.debug !== false);
     const now = debug && Date.now();
-    if (debug) console.debug("[vessel-snapshot-service] Loading vessel snapshots using options:", variables);
+    if (debug) console.debug('[vessel-snapshot-service] Loading vessel snapshots using options:', variables);
 
     const withTotal = (!opts || opts.withTotal !== false);
     let res: LoadResult<VesselSnapshot>;
@@ -151,7 +144,7 @@ export class VesselSnapshotService
           ...variables,
           filter: filter?.asPodObject()
         },
-        error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_ERROR"},
+        error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: 'VESSEL.ERROR.LOAD_ERROR'},
         fetchPolicy: opts && opts.fetchPolicy || undefined /*use default*/
       });
     }
@@ -164,7 +157,7 @@ export class VesselSnapshotService
     res = {
       data: entities,
       total: res?.total || entities.length
-    }
+    };
 
     // Add fetch more capability, if total was fetched
     if (withTotal) {
@@ -180,7 +173,7 @@ export class VesselSnapshotService
 
   async suggest(value: any, filter?: VesselSnapshotFilter): Promise<VesselSnapshot[]> {
     if (ReferentialUtils.isNotEmpty(value)) return [value];
-    value = (typeof value === "string" && value !== '*') && value || undefined;
+    value = (typeof value === 'string' && value !== '*') && value || undefined;
     const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
       {
         ...filter,
@@ -191,7 +184,7 @@ export class VesselSnapshotService
   }
 
   async load(id: number, opts?: {
-    fetchPolicy?: FetchPolicy,
+    fetchPolicy?: FetchPolicy;
     toEntity?: boolean;
   }): Promise<VesselSnapshot | null> {
 
@@ -201,11 +194,11 @@ export class VesselSnapshotService
     const offline = (id < 0) || (this.network.offline && (!opts || opts.fetchPolicy !== 'network-only'));
     if (offline) {
       const data = await this.entities.load<VesselSnapshot>(id, VesselSnapshot.TYPENAME);
-      if (!data) throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
+      if (!data) throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'};
       return ((!opts || opts.toEntity !== false) ? VesselSnapshot.fromObject(data) : data as VesselSnapshot) || null;
     }
 
-    const { data } = await this.graphql.query<{ data: any[]; }>({
+    const { data } = await this.graphql.query<{ data: any[] }>({
       query: LoadQuery,
       variables: {
         vesselId: id,
@@ -228,12 +221,12 @@ export class VesselSnapshotService
       program: ReferentialRef.fromObject({label: ProgramLabel.SIH})
     };
 
-    console.info("[vessel-snapshot-service] Importing vessels (snapshot)...");
+    console.info('[vessel-snapshot-service] Importing vessels (snapshot)...');
 
     const res = await JobUtils.fetchAllPages((offset, size) =>
         this.loadAll(offset, size, 'id', null, filter, {
           debug: false,
-          fetchPolicy: "network-only",
+          fetchPolicy: 'network-only',
           withTotal: (offset === 0), // Compute total only once
           toEntity: false
         }),

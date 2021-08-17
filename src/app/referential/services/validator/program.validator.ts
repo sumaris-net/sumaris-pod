@@ -1,10 +1,9 @@
-import {Injectable} from "@angular/core";
-import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
-import {Program} from "../model/program.model";
+import {Injectable} from '@angular/core';
+import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {Program} from '../model/program.model';
 
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {SharedFormArrayValidators, SharedValidators} from "@sumaris-net/ngx-components";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {EntityUtils, SharedFormArrayValidators, SharedValidators} from '@sumaris-net/ngx-components';
 
 @Injectable({providedIn: 'root'})
 export class ProgramValidatorService implements ValidatorService {
@@ -43,7 +42,7 @@ export class ProgramValidatorService implements ValidatorService {
     );
   }
 
-  getPropertyFormGroup(data?: {key: string; value?: string;}): FormGroup {
+  getPropertyFormGroup(data?: {key: string; value?: string}): FormGroup {
     return this.formBuilder.group({
       key: [data && data.key || null, Validators.compose([Validators.required, Validators.max(50)])],
       value: [data && data.value || null, Validators.compose([Validators.required, Validators.max(100)])]

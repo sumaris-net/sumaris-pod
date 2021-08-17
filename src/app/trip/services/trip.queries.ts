@@ -1,5 +1,5 @@
-import {gql} from "@apollo/client/core";
-import {ReferentialFragments} from "../../referential/services/referential.fragments";
+import {gql} from '@apollo/client/core';
+import {ReferentialFragments} from '@app/referential/services/referential.fragments';
 
 
 export const Fragments = {

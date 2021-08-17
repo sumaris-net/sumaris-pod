@@ -1,9 +1,8 @@
-import {AfterViewChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {FormBuilder, Validators} from "@angular/forms";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {AppForm}  from "@sumaris-net/ngx-components";
+import {AfterViewChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {DateAdapter} from '@angular/material/core';
+import {Moment} from 'moment';
+import {FormBuilder, Validators} from '@angular/forms';
+import {AppForm, LocalSettingsService} from '@sumaris-net/ngx-components';
 
 @Component({
   selector: 'app-comment-form',

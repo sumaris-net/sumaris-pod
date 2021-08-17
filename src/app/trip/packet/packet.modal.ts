@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {Packet} from '../services/model/packet.model';
 import {ModalController} from '@ionic/angular';
 import {Subject, Subscription} from 'rxjs';
@@ -43,7 +43,7 @@ export class PacketModal implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.enable();
     this.updateTitle();
-    setTimeout(() => this.packetForm.setValue(this.packet))
+    setTimeout(() => this.packetForm.setValue(this.packet));
   }
 
   protected async updateTitle() {

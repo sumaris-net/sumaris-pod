@@ -1,15 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
-import {ActivatedRoute, Router} from "@angular/router";
-import {ModalController, Platform} from "@ionic/angular";
-import {Location} from "@angular/common";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {DefaultStatusList}  from "@sumaris-net/ngx-components";
-import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
-import {debounceTime, filter} from "rxjs/operators";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {Entity}  from "@sumaris-net/ngx-components";
-import {ReferentialFilter} from "../services/filter/referential.filter";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ModalController, Platform} from '@ionic/angular';
+import {Location} from '@angular/common';
+import {AppTable, DefaultStatusList, Entity, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from '@sumaris-net/ngx-components';
+import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
+import {debounceTime, filter} from 'rxjs/operators';
+import {environment} from '@environments/environment';
+import {ReferentialFilter} from '../services/filter/referential.filter';
 
 
 @Component({
@@ -73,7 +70,7 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
     this.statusList.forEach((status) => this.statusById[status.id] = status);
 
     this.filterForm = formBuilder.group({
-      'searchText': [null]
+      searchText: [null]
     });
 
     // Update filter when changes

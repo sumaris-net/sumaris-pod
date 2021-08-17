@@ -20,10 +20,10 @@ import {AlertController, ModalController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
 import {distinctUntilChanged, filter, switchMap, tap, throttleTime} from 'rxjs/operators';
 import {ActivatedRoute, Router} from '@angular/router';
-import {ProgramProperties} from '../../../referential/services/config/program.config';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
 import {LeafletControlLayersConfig} from '@asymmetrik/ngx-leaflet/src/leaflet/layers/control/leaflet-control-layers-config.model';
-import {ProgramRefService} from '../../../referential/services/program-ref.service';
-import {Program} from '../../../referential/services/model/program.model';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {Program} from '@app/referential/services/model/program.model';
 import {Operation} from '../../services/model/trip.model';
 
 @Component({
@@ -41,20 +41,20 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
   // -- Map Layers --
   osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
-    attribution: '<a href=\'https://www.openstreetmap.org\'>Open Street Map</a>'
+    attribution: `<a href='https://www.openstreetmap.org'>Open Street Map</a>`
   });
   sextantBaseLayer = L.tileLayer(
     'https://sextant.ifremer.fr/geowebcache/service/wmts'
       + '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
-    {maxZoom: 18, attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"});
+    {maxZoom: 18, attribution: `<a href='https://sextant.ifremer.fr'>Sextant</a>`});
   sextantGraticuleLayer = L.tileLayer.wms('https://www.ifremer.fr/services/wms1', {
     maxZoom: 18,
     version: '1.3.0',
     crs: CRS.EPSG4326,
-    format: "image/png",
+    format: 'image/png',
     transparent: true
   }).setParams({
-    layers: "graticule_4326",
+    layers: 'graticule_4326',
     service: 'WMS'
   });
 
@@ -71,7 +71,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
       'Open Street Map': this.osmBaseLayer
     },
     overlays: {
-      'Graticule': this.sextantGraticuleLayer
+      Graticule: this.sextantGraticuleLayer
     }
   };
   map: L.Map;
@@ -222,10 +222,10 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
           if (operationCoords.length > 0) {
             // Add to operation layer
             operationLayer.addData(<Feature>{
-              type: "Feature",
+              type: 'Feature',
               id: ope.id,
               geometry: <LineString>{
-                type: "LineString",
+                type: 'LineString',
                 coordinates: operationCoords
               },
               properties: {
@@ -247,10 +247,10 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
 
       // Add trip feature to layer
       tripLayer.addData(<Feature>{
-        type: "Feature",
+        type: 'Feature',
         id: 'trip',
         geometry: <LineString>{
-          type: "LineString",
+          type: 'LineString',
           coordinates: allPositionsCoords
         }
       });
@@ -316,7 +316,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
     };
   }
 
-  protected async setProgram(program: Program, opts?: {emitEvent?: boolean; }) {
+  protected async setProgram(program: Program, opts?: {emitEvent?: boolean }) {
     if (!program) return; // Skip
 
     // Map center
@@ -337,7 +337,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
     }
 
     // Emit event
-    if (!opts || opts.emitEvent !== false) {
+    if (!opts || opts.emitEvent !== false) {
       this.markForCheck();
     }
   }

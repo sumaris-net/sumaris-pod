@@ -1,17 +1,24 @@
 import {Component, Inject} from '@angular/core';
-import {ConfigService} from "@sumaris-net/ngx-components";
-import {DOCUMENT} from "@angular/common";
-import {Configuration}  from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {throttleTime} from "rxjs/operators";
-import {FormFieldDefinition} from "@sumaris-net/ngx-components";
-import {getColorContrast, getColorShade, getColorTint, hexToRgbArray, mixHex} from "@sumaris-net/ngx-components";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {ReferentialRefService} from "./referential/services/referential-ref.service";
-import {MatIconRegistry} from "@angular/material/icon";
-import {DomSanitizer} from "@angular/platform-browser";
-import {isNotNil, joinPropertiesPath} from "@sumaris-net/ngx-components";
+import {
+  AccountService,
+  ConfigService,
+  Configuration,
+  FormFieldDefinition,
+  getColorContrast,
+  getColorShade,
+  getColorTint,
+  hexToRgbArray,
+  isNotNil,
+  joinPropertiesPath,
+  LocalSettingsService,
+  mixHex,
+  PlatformService
+} from '@sumaris-net/ngx-components';
+import {DOCUMENT} from '@angular/common';
+import {throttleTime} from 'rxjs/operators';
+import {ReferentialRefService} from './referential/services/referential-ref.service';
+import {MatIconRegistry} from '@angular/material/icon';
+import {DomSanitizer} from '@angular/platform-browser';
 
 @Component({
   selector: 'app-root',
@@ -20,8 +27,8 @@ import {isNotNil, joinPropertiesPath} from "@sumaris-net/ngx-components";
 })
 export class AppComponent {
 
-  logo: String;
-  appName: String;
+  logo: string;
+  appName: string;
 
   constructor(
     @Inject(DOCUMENT) private _document: HTMLDocument,
@@ -76,7 +83,7 @@ export class AppComponent {
     this._document.getElementById('appTitle').textContent = title;
 
     // Set document favicon
-    const favicon = config.properties && config.properties["sumaris.favicon"];
+    const favicon = config.properties && config.properties['sumaris.favicon'];
     if (isNotNil(favicon)) {
       this._document.getElementById('appFavicon').setAttribute('href', favicon);
     }
@@ -84,25 +91,25 @@ export class AppComponent {
     if (config.properties) {
       this.updateTheme({
         colors: {
-          primary: config.properties["sumaris.color.primary"],
-          secondary: config.properties["sumaris.color.secondary"],
-          tertiary: config.properties["sumaris.color.tertiary"],
-          success: config.properties["sumaris.color.success"],
-          warning: config.properties["sumaris.color.warning"],
-          accent: config.properties["sumaris.color.accent"],
-          danger: config.properties["sumaris.color.danger"]
+          primary: config.properties['sumaris.color.primary'],
+          secondary: config.properties['sumaris.color.secondary'],
+          tertiary: config.properties['sumaris.color.tertiary'],
+          success: config.properties['sumaris.color.success'],
+          warning: config.properties['sumaris.color.warning'],
+          accent: config.properties['sumaris.color.accent'],
+          danger: config.properties['sumaris.color.danger']
         }
       });
     }
   }
 
-  protected updateTheme(options: { colors?: { [color: string]: string; } }) {
+  protected updateTheme(options: { colors?: { [color: string]: string } }) {
     if (!options) return;
 
 
     // Settings colors
     if (options.colors) {
-      console.info("[app] Changing theme colors ", options);
+      console.info('[app] Changing theme colors ', options);
 
       const style =   document.documentElement.style;
 
@@ -147,7 +154,7 @@ export class AppComponent {
 
   protected addAccountFields() {
 
-    console.debug("[app] Add additional account fields...");
+    console.debug('[app] Add additional account fields...');
 
     const attributes = this.settings.getFieldDisplayAttributes('department');
     const departmentDefinition = <FormFieldDefinition>{
@@ -158,7 +165,7 @@ export class AppComponent {
         service: this.referentialRefService,
         filter: {entityName: 'Department'},
         displayWith: (value) => value && joinPropertiesPath(value, attributes),
-        attributes: attributes,
+        attributes,
         columnSizes: attributes.map(attr => attr === 'label' ? 3 : undefined)
       },
       extra: {
@@ -188,8 +195,8 @@ export class AppComponent {
 
   protected addCustomSVGIcons() {
     this.matIconRegistry.addSvgIcon(
-      "fish",
-      this.domSanitizer.bypassSecurityTrustResourceUrl("../assets/icons/fish.svg")
+      'fish',
+      this.domSanitizer.bypassSecurityTrustResourceUrl('../assets/icons/fish.svg')
     );
   }
 }

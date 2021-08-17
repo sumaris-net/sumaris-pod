@@ -1,8 +1,10 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Optional, Output, TemplateRef, ViewChild} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Optional, Output, ViewChild} from '@angular/core';
+import {TableElement} from '@e-is/ngx-material-table';
 import {SampleValidatorService} from '../services/validator/sample.validator';
 import {
-  AppFormUtils, AppValidatorService, ColorName,
+  AppFormUtils,
+  AppValidatorService,
+  ColorName,
   firstNotNilPromise,
   InMemoryEntitiesService,
   IReferentialRef,
@@ -10,7 +12,8 @@ import {
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
   LoadResult,
   ObjectMap,
   PlatformService,
@@ -26,17 +29,17 @@ import {Moment} from 'moment';
 import {AppMeasurementsTable, AppMeasurementsTableOptions} from '../measurement/measurements.table.class';
 import {ISampleModalOptions, SampleModal} from './sample.modal';
 import {FormGroup} from '@angular/forms';
-import {TaxonGroupRef, TaxonNameRef} from '../../referential/services/model/taxon.model';
+import {TaxonGroupRef, TaxonNameRef} from '@app/referential/services/model/taxon.model';
 import {Sample} from '../services/model/sample.model';
-import {AcquisitionLevelCodes, ParameterGroups, PmfmIds} from '../../referential/services/model/model.enum';
-import {ReferentialRefService} from '../../referential/services/referential-ref.service';
-import {environment} from '../../../environments/environment';
+import {AcquisitionLevelCodes, ParameterGroups, PmfmIds} from '@app/referential/services/model/model.enum';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {environment} from '@environments/environment';
 import {debounceTime, filter, map, tap} from 'rxjs/operators';
-import {IDenormalizedPmfm, IPmfm, PmfmUtils} from '../../referential/services/model/pmfm.model';
+import {IDenormalizedPmfm, IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {SampleFilter} from '../services/filter/sample.filter';
 import {PmfmFilter, PmfmService} from '@app/referential/services/pmfm.service';
 import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
-import {BehaviorSubject, Observable, Subscription} from 'rxjs';
+import {BehaviorSubject, Subscription} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 import {MatMenu} from '@angular/material/menu';
 
@@ -69,7 +72,7 @@ export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
+export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> implements OnInit, AfterViewInit, OnDestroy {
 
   private _footerRowsSubscription: Subscription;
   protected cd: ChangeDetectorRef;
@@ -147,7 +150,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return this.dataService as InMemoryEntitiesService<Sample, SampleFilter>;
   }
 
-  @Output() onPrepareRowForm = new EventEmitter<{form: FormGroup, pmfms: IPmfm[]}>();
+  @Output() onPrepareRowForm = new EventEmitter<{form: FormGroup; pmfms: IPmfm[]}>();
 
   @ViewChild('optionsMenu') optionMenu: MatMenu;
 
@@ -159,7 +162,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       Sample,
       new InMemoryEntitiesService(Sample, SampleFilter, {
         equals: Sample.equals,
-        sortByReplacement: {'id': 'rankOrder'}
+        sortByReplacement: {id: 'rankOrder'}
       }),
       injector.get(PlatformService).mobile ? null : injector.get(AppValidatorService),
       {
@@ -246,6 +249,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   /**
    * Use in ngFor, for trackBy
+   *
    * @param index
    * @param column
    */
@@ -319,7 +323,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug("[samples-table] Modal result: ", data);
+    if (data && this.debug) console.debug('[samples-table] Modal result: ', data);
     this.markAsLoaded();
 
     return data instanceof Sample ? data : undefined;
@@ -370,6 +374,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   /**
    * Not used yet. Implementation must manage stored samples values and different pmfms types (number, string, qualitative values...)
+   *
    * @param event
    */
   async openChangePmfmsModal(event?: UIEvent) {
@@ -411,7 +416,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
   protected async onNewEntity(data: Sample): Promise<void> {
-    console.debug("[sample-table] Initializing new row data...");
+    console.debug('[sample-table] Initializing new row data...');
 
     await super.onNewEntity(data);
 
@@ -476,7 +481,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
   protected async findRowBySample(data: Sample): Promise<TableElement<Sample>> {
-    if (!data || isNil(data.rankOrder)) throw new Error("Missing argument data or data.rankOrder");
+    if (!data || isNil(data.rankOrder)) throw new Error('Missing argument data or data.rankOrder');
     return (await this.dataSource.getRows())
       .find(r => r.currentData.rankOrder === data.rankOrder);
   }
@@ -534,6 +539,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   /**
    * Force to wait PMFM map to be loaded
+   *
    * @param pmfms
    */
   protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
@@ -541,7 +547,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     if (isEmptyArray(pmfms)) return pmfms; // Nothing to map
 
     if (this.showGroupHeader) {
-      console.debug("[samples-table] Computing Pmfm group header...");
+      console.debug('[samples-table] Computing Pmfm group header...');
 
       // Wait until map is loaded
       const groupedPmfmIdsMap = await firstNotNilPromise(this.pmfmGroups$);
@@ -601,11 +607,11 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         + (this.showLabelColumn ? 1 : 0)
         + (this.showTaxonGroupColumn ? 1 : 0)
         + (this.showTaxonNameColumn ? 1 : 0)
-        + (this.showDateTimeColumn ? 1 : 0)
+        + (this.showDateTimeColumn ? 1 : 0);
       this.groupHeaderEndColSpan = RESERVED_END_COLUMNS.length
-        + (this.showCommentsColumn ? 1 : 0)
+        + (this.showCommentsColumn ? 1 : 0);
 
-      orderedPmfms.forEach(p => this.memoryDataService.addSortByReplacement(p.id.toString(), "measurementValues." + p.id.toString()));
+      orderedPmfms.forEach(p => this.memoryDataService.addSortByReplacement(p.id.toString(), 'measurementValues.' + p.id.toString()));
       return orderedPmfms;
     }
 
@@ -669,12 +675,12 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     this.showFooter = this.footerColumns.length > 1;
 
     // DEBUG
-    console.debug('[samples-table] Show footer ?', this.showFooter)
+    console.debug('[samples-table] Show footer ?', this.showFooter);
 
     // Remove previous rows listener
     if (!this.showFooter && this._footerRowsSubscription) {
       this.unregisterSubscription(this._footerRowsSubscription);
-      this._footerRowsSubscription.unsubscribe()
+      this._footerRowsSubscription.unsubscribe();
       this._footerRowsSubscription = null;
     }
 
@@ -690,7 +696,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     // Update tag count
     const tagCount = (rows || []).map(row => row.currentData.measurementValues[PmfmIds.TAG_ID.toString()] as string)
       .filter(isNotNilOrBlank)
-      .length
+      .length;
     this.tagCount$.next(tagCount);
   }
 }

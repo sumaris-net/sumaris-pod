@@ -1,6 +1,6 @@
-import {EntityClass, FilterFn, isNotNil} from "@sumaris-net/ngx-components";
-import {DataEntityFilter} from "@app/data/services/model/data-filter.model";
-import {Operation} from "@app/trip/services/model/trip.model";
+import {EntityClass, FilterFn, isNotNil} from '@sumaris-net/ngx-components';
+import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
+import {Operation} from '@app/trip/services/model/trip.model';
 import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 
 @EntityClass({typename: 'OperationFilterVO'})

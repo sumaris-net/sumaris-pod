@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {
   AccountService,
   AppFormUtils,
@@ -90,7 +90,9 @@ const BASE_LAYER_SLD_BODY = '<sld:StyledLayerDescriptor version="1.0.0" xsi:sche
   animations: [fadeInAnimation, fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct> {
+export class ExtractionMapPage
+  extends ExtractionAbstractPage<ExtractionProduct>
+  implements OnInit, OnDestroy {
 
   ready = false;
   started = false;
@@ -98,25 +100,25 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   // -- Map Layers --
   osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
-    attribution: '<a href=\'https://www.openstreetmap.org\'>Open Street Map</a>'
+    attribution: `<a href='https://www.openstreetmap.org'>Open Street Map</a>`
   });
   sextantBaseLayer = L.tileLayer(
     'https://sextant.ifremer.fr/geowebcache/service/wmts'
       + '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
     {
       maxZoom: 18,
-      attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"
+      attribution: `<a href='https://sextant.ifremer.fr'>Sextant</a>`
     });
   countriesLayer = L.tileLayer.wms('http://www.ifremer.fr/services/wms/dcsmm', {
     maxZoom: 18,
     version: '1.3.0',
     crs: CRS.EPSG3857,
-    format: "image/png",
+    format: 'image/png',
     transparent: true,
     zIndex: 9999, // Important, to bring this layer to top
-    attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"
+    attribution: `<a href='https://sextant.ifremer.fr'>Sextant</a>`
   }).setParams({
-    layers: "ESPACES_TERRESTRES_P",
+    layers: 'ESPACES_TERRESTRES_P',
     service: 'WMS',
     sld_body: BASE_LAYER_SLD_BODY
   } as WMSParams);
@@ -124,11 +126,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     maxZoom: 18,
     version: '1.3.0',
     crs: CRS.EPSG3857,
-    format: "image/png",
+    format: 'image/png',
     transparent: true,
-    attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"
+    attribution: `<a href='https://sextant.ifremer.fr'>Sextant</a>`
   }).setParams({
-    layers: "graticule_4326",
+    layers: 'graticule_4326',
     service: 'WMS'
   });
   baseLayer: L.TileLayer = this.sextantBaseLayer;
@@ -159,7 +161,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   // -- Details card --
   $onOverFeature = new Subject<Feature>();
   $selectedFeature = new BehaviorSubject<Feature | undefined>(undefined);
-  $details = new Subject<{ title: string; value?: string;  otherValue?: string; properties: { name: string; value: string }[]; }>();
+  $details = new Subject<{ title: string; value?: string;  otherValue?: string; properties: { name: string; value: string }[] }>();
 
   // -- Tech chart card
   techChartOptions: TechChartOptions = {
@@ -170,7 +172,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     },
     scales: {
       yAxes: [{
-        type: "linear",
+        type: 'linear',
         ticks: {
           suggestedMin: 0
         }
@@ -195,18 +197,18 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   columnNames = {}; // cache for i18n column name
   productFilter: Partial<ExtractionProductFilter>;
   $title = new BehaviorSubject<string>(undefined);
-  $sheetNames = new BehaviorSubject<String[]>(undefined);
+  $sheetNames = new BehaviorSubject<string[]>(undefined);
   $timeColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $spatialColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $aggColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $techColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $criteriaColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $tech = new Subject<{ title: string; titleParams?: any, labels: Label[]; data: SingleOrMultiDataSet }>();
+  $tech = new Subject<{ title: string; titleParams?: any; labels: Label[]; data: SingleOrMultiDataSet }>();
   $years = new BehaviorSubject<number[]>(undefined);
   formatNumberLocale: string;
   animation: Subscription;
   animationOverrides: {
-    techChartOptions?: TechChartOptions
+    techChartOptions?: TechChartOptions;
   } = {};
 
   @ViewChild('filterExpansionPanel', { static: true }) filterExpansionPanel: MatExpansionPanel;
@@ -318,7 +320,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     });
 
     const account = this.accountService.account;
-    this.formatNumberLocale = account && account.settings.locale || 'en-US';
+    this.formatNumberLocale = account && account.settings.locale || 'en-US';
     this.formatNumberLocale = this.formatNumberLocale.replace(/_/g, '-');
 
     this.platform.ready()
@@ -490,7 +492,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     }
   }
 
-  setAggStrata(aggColumnName: string, opts?: {emitEVent?: boolean; }) {
+  setAggStrata(aggColumnName: string, opts?: {emitEVent?: boolean }) {
     const changed = this.aggColumnName !== aggColumnName;
 
     if (!changed) return; // Skip
@@ -504,7 +506,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     }
   }
 
-  setTechStrata(techColumnName: string, opts?: {emitEVent?: boolean; }) {
+  setTechStrata(techColumnName: string, opts?: {emitEVent?: boolean }) {
     this.form.get('strata').patchValue({
       techColumnName
     }, opts);
@@ -558,7 +560,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     }, {});
 
     const columnsMap = ExtractionUtils.dispatchColumns(columns);
-    console.debug("[extraction-map] dispatched columns: ", columnsMap);
+    console.debug('[extraction-map] dispatched columns: ', columnsMap);
 
     this.$aggColumns.next(columnsMap.aggColumns);
     this.$techColumns.next(columnsMap.techColumns);
@@ -581,7 +583,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     this.$sheetNames.next(sheetNames);
   }
 
-  protected applyDefaultStrata(opts?: { emitEvent?: boolean; }) {
+  protected applyDefaultStrata(opts?: { emitEvent?: boolean }) {
     const sheetName = this.sheetName;
     if (!this.type || !sheetName) return;
 
@@ -674,7 +676,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
           offset, size,
           null, null,
           filter, {
-          fetchPolicy: isAnimated ? "cache-first" : undefined /*default*/
+          fetchPolicy: isAnimated ? 'cache-first' : undefined /*default*/
           });
 
         const hasData = isNotNil(geoJson) && geoJson.features && geoJson.features.length || false;
@@ -832,12 +834,12 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
           aggColumnName: this.columnNames[strata.aggColumnName],
           techColumnName: this.columnNames[strata.techColumnName]
         },
-        labels: labels,
-        data: data
+        labels,
+        data
       });
     }
     catch (error) {
-      console.error("Cannot load tech values:", error);
+      console.error('Cannot load tech values:', error);
       // Reset tech, then continue
       this.$tech.next(undefined);
     }
@@ -862,7 +864,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       return false;
     }) !== -1;
     if (!done) {
-      console.warn("[extraction-map] Cannot fit to bound. GeoJSON layer not found.");
+      console.warn('[extraction-map] Cannot fit to bound. GeoJSON layer not found.');
     }
   }
 
@@ -898,7 +900,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     return this.animationOverrides;
   }
 
-  setYear(year: number, opts?: {emitEvent?: boolean; stopAnimation?: boolean; }): boolean {
+  setYear(year: number, opts?: {emitEvent?: boolean; stopAnimation?: boolean }): boolean {
     const changed = this.year !== year;
 
     // If changed or force with opts.emitEvent=true
@@ -937,12 +939,10 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     const strata = this.getStrataValue();
     const properties = Object.getOwnPropertyNames(feature.properties)
       .filter(key => !strata.aggColumnName || key !== strata.aggColumnName)
-      .map(key => {
-        return {
+      .map(key => ({
           name: this.columnNames[key],
           value: feature.properties[key]
-        };
-      });
+        }));
     const aggValue = feature.properties[strata.aggColumnName];
     let value = this.floatToLocaleString(aggValue);
 
@@ -1081,7 +1081,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     this.markForCheck();
   }
 
-  setTechChartOption(value: Partial<TechChartOptions>, opts?: { emitEvent?: boolean; }) {
+  setTechChartOption(value: Partial<TechChartOptions>, opts?: { emitEvent?: boolean }) {
     this.techChartOptions = {
       ...this.techChartOptions,
       ...value
@@ -1110,7 +1110,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     const hasChanged = this.criteriaForm.addFilterCriterion({
       name: this.techColumnName,
       operator: DEFAULT_CRITERION_OPERATOR,
-      value: value,
+      value,
       sheetName: this.sheetName
     }, {
       appendValue: event.ctrlKey
@@ -1147,10 +1147,10 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     const years = this.$years.getValue();
 
     // Pre loading data
-    console.info("[extraction-map] Preloading data for animation...");
+    console.info('[extraction-map] Preloading data for animation...');
 
 
-    console.info("[extraction-map] Starting animation...");
+    console.info('[extraction-map] Starting animation...');
     this.animation = isNotEmptyArray(years) && timer(500, 500)
       .pipe(
         throttleTime(450)
@@ -1165,7 +1165,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       });
 
     this.animation.add(() => {
-      console.info("[extraction-map] Animation stopped");
+      console.info('[extraction-map] Animation stopped');
     });
 
     this.registerSubscription(this.animation);
@@ -1203,7 +1203,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
         fillColor: color,
         weight: 0,
         opacity: 0,
-        color: color,
+        color,
         fillOpacity: 1
       };
     };
@@ -1220,8 +1220,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     // Create scale color (max 10 grades
     const scaleCount = Math.max(2, Math.min(max, 10));
     const scale = ColorScale.custom(scaleCount, {
-      min: min,
-      max: max,
+      min,
+      max,
       opacity: mainColor.opacity,
       startColor: startColor.rgb,
       mainColor: mainColor.rgb,
@@ -1257,19 +1257,19 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
     // Time strata = year
     if (strata.timeColumnName === 'year' && json.year > 0) {
-      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName: sheetName} as ExtractionFilterCriterion);
+      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName} as ExtractionFilterCriterion);
     }
 
     // Time strata = quarter
     else if (strata.timeColumnName === 'quarter' && json.year > 0 && json.quarter > 0) {
-      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName: sheetName} as ExtractionFilterCriterion);
-      filter.criteria.push({name: 'quarter', operator: '=', value: json.quarter, sheetName: sheetName} as ExtractionFilterCriterion);
+      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName} as ExtractionFilterCriterion);
+      filter.criteria.push({name: 'quarter', operator: '=', value: json.quarter, sheetName} as ExtractionFilterCriterion);
     }
 
     // Time strata = month
     else if (strata.timeColumnName === 'month' && json.year > 0 && json.month > 0) {
-      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName: sheetName} as ExtractionFilterCriterion);
-      filter.criteria.push({name: 'month', operator: '=', value: json.month, sheetName: sheetName} as ExtractionFilterCriterion);
+      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName} as ExtractionFilterCriterion);
+      filter.criteria.push({name: 'month', operator: '=', value: json.month, sheetName} as ExtractionFilterCriterion);
     }
 
     return filter;

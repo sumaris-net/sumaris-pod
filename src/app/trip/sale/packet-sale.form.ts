@@ -1,19 +1,15 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {UsageMode}  from "@sumaris-net/ngx-components";
-import {isNotEmptyArray} from "@sumaris-net/ngx-components";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {PacketValidatorService} from "../services/validator/packet.validator";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {Packet} from "../services/model/packet.model";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {Subscription} from "rxjs";
-import {fillRankOrder} from "../../data/services/model/model.utils";
-import {SaleProduct, SaleProductUtils} from "../services/model/sale-product.model";
-import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {AppForm}  from "@sumaris-net/ngx-components";
-import {AppFormUtils, FormArrayHelper}  from "@sumaris-net/ngx-components";
+import {AbstractControl, FormArray, FormBuilder, FormGroup} from '@angular/forms';
+import {AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, LocalSettingsService, UsageMode} from '@sumaris-net/ngx-components';
+import {DateAdapter} from '@angular/material/core';
+import {Moment} from 'moment';
+import {PacketValidatorService} from '../services/validator/packet.validator';
+import {Packet} from '../services/model/packet.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {Subscription} from 'rxjs';
+import {fillRankOrder} from '@app/data/services/model/model.utils';
+import {SaleProduct, SaleProductUtils} from '../services/model/sale-product.model';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 
 @Component({
   selector: 'app-packet-sale-form',

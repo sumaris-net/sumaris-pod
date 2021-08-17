@@ -23,10 +23,10 @@ import {
 } from '@sumaris-net/ngx-components';
 import {IEntityWithMeasurement, MeasurementValuesUtils} from '../services/model/measurement.model';
 import {MeasurementsDataService} from './measurements.service';
-import {AcquisitionLevelType} from '../../referential/services/model/model.enum';
-import {IPmfm, PMFM_ID_REGEXP, PmfmUtils} from '../../referential/services/model/pmfm.model';
+import {AcquisitionLevelType} from '@app/referential/services/model/model.enum';
+import {IPmfm, PMFM_ID_REGEXP, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {ProgramRefService} from '../../referential/services/program-ref.service';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
 
 
 export class AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T>{
@@ -37,7 +37,6 @@ export class AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> ex
 }
 
 @Directive()
-// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, F> extends AppTable<T, F>
   implements OnInit, OnDestroy, ValidatorService {
 
@@ -131,7 +130,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   @Input() set dataService(value: IEntitiesService<T, F>) {
     this.measurementsDataService.delegate = value;
     if (!this.loading) {
-      this.onRefresh.emit("new dataService");
+      this.onRefresh.emit('new dataService');
     }
   }
 
@@ -204,7 +203,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
       filterNotNil(this.$pmfms)
         .subscribe(pmfms => {
           // DEBUG
-          console.debug("[measurement-table] Received PMFMs to applied: ", pmfms);
+          console.debug('[measurement-table] Received PMFMs to applied: ', pmfms);
 
           this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(null, {pmfms});
 
@@ -259,6 +258,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   /**
    * Allow to change the validator service (will recreate the datasource)
+   *
    * @param validatorService
    * @protected
    */
@@ -333,6 +333,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   /**
    * Use in ngFor, for trackBy
+   *
    * @param index
    * @param pmfm
    */
@@ -367,6 +368,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   /**
    * Convert (or clone) a row currentData, into <T> instance (that extends Entity)
+   *
    * @param row
    * @param clone
    */
@@ -417,9 +419,9 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
    * @param data the entity to insert.
    * @param opts
    */
-  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; }): Promise<TableElement<T>> {
-    if (!data) throw new Error("Missing data to add");
-    if (this.debug) console.debug("[measurement-table] Adding new entity", data);
+  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean }): Promise<TableElement<T>> {
+    if (!data) throw new Error('Missing data to add');
+    if (this.debug) console.debug('[measurement-table] Adding new entity', data);
 
     // Before using the given rankOrder, check if not already exists
     if (this.canEditRankOrder && isNotNil(data.rankOrder)) {
@@ -431,7 +433,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     }
 
     const row = await this.addRowToTable();
-    if (!row) throw new Error("Could not add row to table");
+    if (!row) throw new Error('Could not add row to table');
 
     // Override rankOrder (with a computed value)
     if (this.hasRankOrder
@@ -477,9 +479,9 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
    * @param row the row to update
    * @param opts
    */
-  protected async updateEntityToTable(data: T, row: TableElement<T>, opts?: { confirmCreate?: boolean; }): Promise<TableElement<T>> {
-    if (!data || !row) throw new Error("Missing data, or table row to update");
-    if (this.debug) console.debug("[measurement-table] Updating entity to an existing row", data);
+  protected async updateEntityToTable(data: T, row: TableElement<T>, opts?: { confirmCreate?: boolean }): Promise<TableElement<T>> {
+    if (!data || !row) throw new Error('Missing data, or table row to update');
+    if (this.debug) console.debug('[measurement-table] Updating entity to an existing row', data);
 
     // Adapt measurement values to row
     this.normalizeEntityToRow(data, row);

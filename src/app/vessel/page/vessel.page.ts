@@ -2,20 +2,14 @@ import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, Vie
 import {VesselService} from '../services/vessel-service';
 import {VesselForm} from '../form/form-vessel';
 import {Vessel} from '../services/model/vessel.model';
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {AppEntityEditor}  from "@sumaris-net/ngx-components";
-import {FormGroup, Validators} from "@angular/forms";
-import * as momentImported from "moment";
-import {VesselFeaturesHistoryComponent} from "./vessel-features-history.component";
-import {VesselRegistrationHistoryComponent} from "./vessel-registration-history.component";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {HistoryPageReference}  from "@sumaris-net/ngx-components";
-import {DateFormatPipe} from "@sumaris-net/ngx-components";
-import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
-import {isNil} from "@sumaris-net/ngx-components";
-import {VesselFeaturesFilter, VesselRegistrationFilter} from "../services/filter/vessel.filter";
-import {VesselFeaturesService} from "../services/vessel-features.service";
-import {VesselRegistrationService} from "../services/vessel-registration.service";
+import {AccountService, AppEntityEditor, DateFormatPipe, EntityServiceLoadOptions, HistoryPageReference, isNil, SharedValidators} from '@sumaris-net/ngx-components';
+import {FormGroup, Validators} from '@angular/forms';
+import * as momentImported from 'moment';
+import {VesselFeaturesHistoryComponent} from './vessel-features-history.component';
+import {VesselRegistrationHistoryComponent} from './vessel-registration-history.component';
+import {VesselFeaturesFilter, VesselRegistrationFilter} from '../services/filter/vessel.filter';
+import {VesselFeaturesService} from '../services/vessel-features.service';
+import {VesselRegistrationService} from '../services/vessel-registration.service';
 
 const moment = momentImported;
 
@@ -66,7 +60,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
 
   ngOnInit() {
     // Make sure template has a form
-    if (!this.form) throw new Error("No form for value setting");
+    if (!this.form) throw new Error('No form for value setting');
     this.form.disable();
 
     super.ngOnInit();
@@ -148,16 +142,16 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     this.form.enable();
 
     // Start date
-    const featureStartDate = this.form.get("features.startDate").value;
+    const featureStartDate = this.form.get('features.startDate').value;
     const canEditStartDate = isNil(featureStartDate)
-      || await this.vesselFeaturesService.count({vesselId: this.data.id}, {fetchPolicy: "cache-first"});
+      || await this.vesselFeaturesService.count({vesselId: this.data.id}, {fetchPolicy: 'cache-first'});
     if (!canEditStartDate) {
-      this.form.get("features.startDate").disable();
+      this.form.get('features.startDate').disable();
     }
 
     // disable registration controls
-    this.form.get("registration").disable();
-    this.form.get("statusId").disable();
+    this.form.get('registration').disable();
+    this.form.get('statusId').disable();
   }
 
   newFeatures() {
@@ -169,15 +163,15 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
 
     this.form.setValue({...json, ...{features: { ...json.features, id: null, startDate: null, endDate: null}}});
 
-    this.form.get("features.startDate").setValidators([
+    this.form.get('features.startDate').setValidators([
       Validators.required,
       SharedValidators.dateIsAfter(this.previousVessel.features.startDate,
         this.dateAdapter.format(this.previousVessel.features.startDate, this.translate.instant('COMMON.DATE_PATTERN')))
     ]);
     this.form.enable();
 
-    this.form.get("registration").disable();
-    this.form.get("statusId").disable();
+    this.form.get('registration').disable();
+    this.form.get('statusId').disable();
   }
 
   async editRegistration() {
@@ -187,17 +181,17 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     this.form.enable();
 
     // Start date
-    const registrationStartDate = this.form.get("registration.startDate").value;
+    const registrationStartDate = this.form.get('registration.startDate').value;
     const canEditStartDate = isNil(registrationStartDate)
-      || await this.vesselRegistrationService.count({vesselId: this.data.id}, {fetchPolicy: "cache-first"}) <= 1;
+      || await this.vesselRegistrationService.count({vesselId: this.data.id}, {fetchPolicy: 'cache-first'}) <= 1;
     if (!canEditStartDate) {
-      this.form.get("registration.startDate").disable();
+      this.form.get('registration.startDate').disable();
     }
 
     // disable features controls
-    this.form.get("features").disable();
-    this.form.get("vesselType").disable();
-    this.form.get("statusId").disable();
+    this.form.get('features').disable();
+    this.form.get('vesselType').disable();
+    this.form.get('statusId').disable();
 
   }
 
@@ -220,16 +214,16 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
       }
     });
 
-    this.form.get("registration.startDate").setValidators([
+    this.form.get('registration.startDate').setValidators([
       Validators.required,
       SharedValidators.dateIsAfter(this.previousVessel.registration.startDate,
         this.dateAdapter.format(this.previousVessel.registration.startDate, this.translate.instant('COMMON.DATE_PATTERN')))
     ]);
     this.form.enable();
 
-    this.form.get("features").disable();
-    this.form.get("vesselType").disable();
-    this.form.get("statusId").disable();
+    this.form.get('features').disable();
+    this.form.get('vesselType').disable();
+    this.form.get('statusId').disable();
 
   }
 
@@ -240,9 +234,9 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     this.form.enable();
 
     // disable features controls
-    this.form.get("features").disable();
-    this.form.get("registration").disable();
-    this.form.get("vesselType").disable();
+    this.form.get('features').disable();
+    this.form.get('registration').disable();
+    this.form.get('vesselType').disable();
   }
 
   async save(event, options?: any): Promise<boolean> {

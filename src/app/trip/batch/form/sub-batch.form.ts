@@ -5,7 +5,7 @@ import {DateAdapter} from '@angular/material/core';
 import {Moment} from 'moment';
 import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
 import {AbstractControl, FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {ReferentialRefService} from '../../../referential/services/referential-ref.service';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {SubBatchValidatorService} from '../../services/validator/sub-batch.validator';
 import {
   AppFormUtils,
@@ -29,18 +29,18 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import {debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap} from 'rxjs/operators';
-import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from '../../../referential/services/model/model.enum';
-import {DenormalizedPmfmStrategy, PmfmStrategy} from '../../../referential/services/model/pmfm-strategy.model';
+import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from '@app/referential/services/model/model.enum';
+import {DenormalizedPmfmStrategy, PmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 import {BehaviorSubject, combineLatest} from 'rxjs';
 import {MeasurementValuesUtils} from '../../services/model/measurement.model';
-import {PmfmFormField} from '../../../referential/pmfm/pmfm.form-field.component';
-import {TaxonNameRef} from '../../../referential/services/model/taxon.model';
+import {PmfmFormField} from '@app/referential/pmfm/pmfm.form-field.component';
+import {TaxonNameRef} from '@app/referential/services/model/taxon.model';
 import {SubBatch} from '../../services/model/subbatch.model';
 import {BatchGroup} from '../../services/model/batch-group.model';
 import {TranslateService} from '@ngx-translate/core';
 import {FloatLabelType} from '@angular/material/form-field';
-import {ProgramRefService} from '../../../referential/services/program-ref.service';
-import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 
 
 @Component({
@@ -274,7 +274,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
                 filter(([items, value]) => isNotNil(items))
               )
               .subscribe(([items, value]) => {
-                let newTaxonName: TaxonNameRef;
                 let index = -1;
                 // Compute index in list, and get value
                 if (items && items.length === 1) {
@@ -283,7 +282,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
                 else if (ReferentialUtils.isNotEmpty(lastTaxonName)) {
                   index = items.findIndex(v => TaxonNameRef.equalsOrSameReferenceTaxon(v, lastTaxonName));
                 }
-                newTaxonName = (index !== -1) ? items[index] : null;
+                const newTaxonName: TaxonNameRef = (index !== -1) ? items[index] : null;
 
                 // Apply to form, if need
                 if (!ReferentialUtils.equals(lastTaxonName, newTaxonName)) {
@@ -382,7 +381,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     }
   }
 
-  setValue(data: SubBatch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; linkToParent?: boolean; }) {
+  setValue(data: SubBatch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; linkToParent?: boolean }) {
     // Replace parent with value from availableParents
     if (!opts || opts.linkToParent !== false) {
       this.linkToParentGroup(data);
@@ -400,7 +399,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     super.setValue(data, {...opts, linkToParent: false /* avoid to be relink, if loop to setValue() */ });
   }
 
-  reset(data?: SubBatch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; linkToParent?: boolean; }) {
+  reset(data?: SubBatch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; linkToParent?: boolean }) {
     // Replace parent with value from availableParents
     if (!opts || opts.linkToParent !== false) {
       this.linkToParentGroup(data);
@@ -521,9 +520,9 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   protected async suggestParents(value: any, options?: any): Promise<Batch[]> {
     // Has select a valid parent: return the parent
     if (EntityUtils.isNotEmpty(value, 'label')) return [value];
-    value = (typeof value === "string" && value !== "*") && value || undefined;
+    value = (typeof value === 'string' && value !== '*') && value || undefined;
     if (isNilOrBlank(value)) return this._availableParents; // All
-    const ucValueParts = value.trim().toUpperCase().split(" ", 1);
+    const ucValueParts = value.trim().toUpperCase().split(' ', 1);
     if (this.debug) console.debug(`[sub-batch-form] Searching parent {${value || '*'}}...`);
     // Search on attributes
     return this._availableParents.filter(parent => ucValueParts

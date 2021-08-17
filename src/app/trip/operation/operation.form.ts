@@ -23,8 +23,8 @@ import {TranslateService} from '@ngx-translate/core';
 import {Operation, PhysicalGear, Trip} from '../services/model/trip.model';
 import {BehaviorSubject} from 'rxjs';
 import {distinctUntilChanged} from 'rxjs/operators';
-import {METIER_DEFAULT_FILTER} from '../../referential/services/metier.service';
-import {ReferentialRefService} from '../../referential/services/referential-ref.service';
+import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {GeolocationOptions} from '@ionic-native/geolocation';
 
@@ -108,7 +108,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     );
   }
 
-  setValue(data: Operation, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  setValue(data: Operation, opts?: {emitEvent?: boolean; onlySelf?: boolean }) {
     // Use label and name from metier.taxonGroup
     if (data && data.metier) {
       data.metier = data.metier.clone(); // Leave original object unchanged
@@ -126,7 +126,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       this._physicalGearsSubject.next((trip.gears || []).map(ps => ps.clone()));
 
       // Use trip physical gear Object (if possible)
-      const physicalGearControl = this.form.get("physicalGear");
+      const physicalGearControl = this.form.get('physicalGear');
       let physicalGear = physicalGearControl.value;
       if (physicalGear && isNotNil(physicalGear.id)) {
         physicalGear = (trip.gears || []).find(g => g.id === physicalGear.id) || physicalGear;
@@ -134,7 +134,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       }
 
       // Add validator on trip date
-      this.form.get('endDateTime').setAsyncValidators(async(control)  => {
+      this.form.get('endDateTime').setAsyncValidators(async (control)  => {
         if (!control.touched) return null;
         const endDateTime = fromDateISOString(control.value);
 
@@ -158,6 +158,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   /**
    * Get the position by GPS sensor
+   *
    * @param fieldName
    */
   async onFillPositionClick(event: UIEvent, fieldName: string) {
@@ -183,7 +184,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   /**
    * Get the position by geo loc sensor
    */
-  async getGeoCoordinates(options?: GeolocationOptions): Promise<{ latitude: number; longitude: number; }> {
+  async getGeoCoordinates(options?: GeolocationOptions): Promise<{ latitude: number; longitude: number }> {
     options = {
         maximumAge: 30000/*30s*/,
         timeout: 10000/*10s*/,
@@ -207,7 +208,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
 
     // Or fallback to navigator
-    return new Promise<{ latitude: number; longitude: number; }>((resolve, reject) => {
+    return new Promise<{ latitude: number; longitude: number }>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition((res) => {
           resolve({
             latitude: res.coords.latitude,
@@ -292,9 +293,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     const res = await this.referentialRefService.loadAll(0, 100, null, null,
       {
-        entityName: "Metier",
+        entityName: 'Metier',
         ...METIER_DEFAULT_FILTER,
-        searchJoin: "TaxonGroup",
+        searchJoin: 'TaxonGroup',
         levelId: gear && gear.id || undefined
       },
       {

@@ -1,4 +1,4 @@
-import {Directive, Injector, OnInit} from '@angular/core';
+import {Directive, Injector, OnDestroy, OnInit} from '@angular/core';
 
 import {BehaviorSubject, merge, Subject, Subscription} from 'rxjs';
 import {
@@ -20,24 +20,23 @@ import {
   ReferentialUtils
 } from '@sumaris-net/ngx-components';
 import {distinctUntilChanged, filter, map, switchMap, tap} from 'rxjs/operators';
-import {Program} from '../../referential/services/model/program.model';
+import {Program} from '@app/referential/services/model/program.model';
 import {RootDataEntity} from '../services/model/root-data-entity.model';
-import {Strategy} from '../../referential/services/model/strategy.model';
-import {StrategyRefService} from '../../referential/services/strategy-ref.service';
-import {ProgramRefService} from '../../referential/services/program-ref.service';
+import {Strategy} from '@app/referential/services/model/strategy.model';
+import {StrategyRefService} from '@app/referential/services/strategy-ref.service';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {mergeMap} from 'rxjs/internal/operators';
 import {Moment} from 'moment';
 
 
 @Directive()
-// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class AppRootDataEditor<
   T extends RootDataEntity<T, ID>,
   S extends IEntityService<T, ID> = IEntityService<T, any>,
   ID = number
   >
   extends AppEntityEditor<T, S, ID>
-  implements OnInit {
+  implements OnInit, OnDestroy {
 
   private _reloadProgram$ = new Subject();
   private _reloadStrategy$ = new Subject();
@@ -186,7 +185,7 @@ export abstract class AppRootDataEditor<
     }
   }
 
-  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+  enable(opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
     if (!this.data || isNotNil(this.data.validationDate)) return false;
 
     super.enable(opts);
@@ -226,7 +225,7 @@ export abstract class AppRootDataEditor<
               const key = 'ERROR.FIELD_' + errorKey.toUpperCase();
               return this.translate.instant(key, fieldErrors[key]);
             }).join(', ');
-            return fieldName + ": " + errorMsg;
+            return fieldName + ': ' + errorMsg;
           }).filter(isNotNil);
         if (messages.length) {
           error.details.message = `<ul><li>${messages.join('</li><li>')}</li></ul>`;
@@ -251,6 +250,7 @@ export abstract class AppRootDataEditor<
 
   /**
    * Listen program changes (only if new data)
+   *
    * @protected
    */
   private startListenProgramChanges() {
@@ -258,7 +258,7 @@ export abstract class AppRootDataEditor<
       this.form.controls.program.valueChanges
         .subscribe(program => {
           if (ReferentialUtils.isNotEmpty(program)) {
-            console.debug("[root-data-editor] Propagate program change: " + program.label);
+            console.debug('[root-data-editor] Propagate program change: ' + program.label);
             this.$programLabel.next(program.label);
           }
         }));
@@ -318,6 +318,7 @@ export abstract class AppRootDataEditor<
 
   /**
    * Force to reload the program
+   *
    * @protected
    */
   protected async reloadProgram() {
@@ -331,6 +332,7 @@ export abstract class AppRootDataEditor<
 
   /**
    * Force to reload the strategy
+   *
    * @protected
    */
   protected async reloadStrategy() {
@@ -344,6 +346,7 @@ export abstract class AppRootDataEditor<
 
   /**
    * Override default function, to add the entity program as subtitle)
+   *
    * @param page
    */
   protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {

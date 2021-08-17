@@ -36,7 +36,7 @@ import {filter, tap} from 'rxjs/operators';
 import {BehaviorSubject} from 'rxjs';
 
 export const TripsPageSettingsEnum = {
-  PAGE_ID: "trips",
+  PAGE_ID: 'trips',
   FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY,
   FEATURE_ID: TRIP_FEATURE_NAME
 };
@@ -196,7 +196,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
           })
         )
         .subscribe()
-    )
+    );
 
 
   }

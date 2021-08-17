@@ -1,17 +1,13 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from '@angular/core';
-import {AppTable}  from "@sumaris-net/ngx-components";
+import {AccountService, AppTable, EntitiesTableDataSource, LocalSettingsService, referentialToString} from '@sumaris-net/ngx-components';
 
-import {ActivatedRoute, Router} from "@angular/router";
-import {ModalController, Platform} from "@ionic/angular";
-import {Location} from "@angular/common";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
-import {VesselRegistrationService} from "../services/vessel-registration.service";
-import {VesselRegistration} from "../services/model/vessel.model";
-import {referentialToString}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {VesselRegistrationFilter} from "../services/filter/vessel.filter";
+import {ActivatedRoute, Router} from '@angular/router';
+import {ModalController, Platform} from '@ionic/angular';
+import {Location} from '@angular/common';
+import {VesselRegistrationService} from '../services/vessel-registration.service';
+import {VesselRegistration} from '../services/model/vessel.model';
+import {environment} from '@environments/environment';
+import {VesselRegistrationFilter} from '../services/filter/vessel.filter';
 
 @Component({
   selector: 'app-vessel-registration-history-table',

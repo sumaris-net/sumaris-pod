@@ -1,10 +1,9 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ViewChild} from "@angular/core";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {ModalController, Platform} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
-import {Location} from "@angular/common";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {ReferentialsPage} from "../list/referentials.page";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ViewChild} from '@angular/core';
+import {AccountService, LocalSettingsService} from '@sumaris-net/ngx-components';
+import {ModalController, Platform} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
+import {Location} from '@angular/common';
+import {ReferentialsPage} from '../list/referentials.page';
 
 export enum AnimationState {
   ENTER = 'enter',

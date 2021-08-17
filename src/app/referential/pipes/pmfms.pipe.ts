@@ -52,7 +52,7 @@ export class PmfmNamePipe implements PipeTransform {
 @Injectable({providedIn: 'root'})
 export class PmfmValuePipe implements PipeTransform {
 
-  transform(val: any, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; }): any {
+  transform(val: any, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean }): any {
     return PmfmValueUtils.valueToString(val, opts);
   }
 }

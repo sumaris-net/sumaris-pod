@@ -19,8 +19,8 @@ import {
   UserEventService
 } from '@sumaris-net/ngx-components';
 import {IDataEntityQualityService, isDataQualityService} from '../services/data-quality-service.class';
-import {QualityFlags} from '../../referential/services/model/model.enum';
-import {ReferentialRefService} from '../../referential/services/referential-ref.service';
+import {QualityFlags} from '@app/referential/services/model/model.enum';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {merge, Subscription} from 'rxjs';
 import {Router} from '@angular/router';
 import {ToastController} from '@ionic/angular';
@@ -66,7 +66,7 @@ export class EntityQualityFormComponent<
 
   qualityFlags: ReferentialRef[];
 
-  @Input("value")
+  @Input('value')
   set value(value: T) {
     this.data = value;
     this.updateView();
@@ -104,11 +104,11 @@ export class EntityQualityFormComponent<
   ngOnInit() {
 
     // Check editor exists
-    if (!this.editor) throw new Error("Missing mandatory 'editor' input!");
+    if (!this.editor) throw new Error(`Missing mandatory 'editor' input!`);
 
     // Check data service exists
     this.service = this.service || isDataQualityService(this.editor.service) && this.editor.service || null;
-    if (!this.service) throw new Error("Missing mandatory 'dataService' input!");
+    if (!this.service) throw new Error(`Missing mandatory 'dataService' input!`);
     this._isSynchroService = isDataSynchroService(this.service);
 
     // Subscribe to config
@@ -194,7 +194,7 @@ export class EntityQualityFormComponent<
     this.editor.disable();
 
     try {
-      console.debug("[quality] Terminate entity input...");
+      console.debug('[quality] Terminate entity input...');
       const data = await this.service.terminate(this.editor.data);
 
       // Emit event (refresh editor -> will refresh component also)
@@ -234,7 +234,7 @@ export class EntityQualityFormComponent<
     this.editor.disable();
 
     try {
-      console.debug("[quality] Synchronizing entity...");
+      console.debug('[quality] Synchronizing entity...');
       // eslint-disable-next-line no-unused-expressions, @typescript-eslint/no-unused-expressions
       const synchroService = this.service as RootDataSynchroService<T, any, ID>;
       const remoteData = await synchroService.synchronize(this.editor.data);
@@ -246,7 +246,7 @@ export class EntityQualityFormComponent<
       await this.settings.removePageHistory(path);
 
       // Do a ONLINE terminate
-      console.debug("[quality] Terminate entity...");
+      console.debug('[quality] Terminate entity...');
       const data = await this.service.terminate(remoteData);
 
       // Update the editor (Will refresh the component)
@@ -272,7 +272,7 @@ export class EntityQualityFormComponent<
     const controlled = await this.control(event, {emitEvent: false});
     if (!controlled || event.defaultPrevented) return;
 
-    console.debug("[quality] Mark entity as validated...");
+    console.debug('[quality] Mark entity as validated...');
     const data = await this.service.validate(this.data);
     this.updateEditor(data);
   }
@@ -357,7 +357,7 @@ export class EntityQualityFormComponent<
       entityName: 'QualityFlag',
       statusId: StatusIds.ENABLE
     }, {
-      fetchPolicy: "cache-first"
+      fetchPolicy: 'cache-first'
     });
 
     const items = res && res.data || [];
@@ -371,7 +371,7 @@ export class EntityQualityFormComponent<
 
 
   protected async showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
-    if (!this.toastController) throw new Error("Missing toastController in component's constructor");
+    if (!this.toastController) throw new Error(`Missing toastController in component's constructor`);
     return await Toasts.show(this.toastController, this.translate, opts);
   }
 

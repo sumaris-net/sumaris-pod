@@ -1,9 +1,5 @@
-import {EntityFilter}  from "@sumaris-net/ngx-components";
-import {DataEntity} from "./data-entity.model";
-import {Department}  from "@sumaris-net/ngx-components";
-import {isNotNil} from "@sumaris-net/ngx-components";
-import {FilterFn} from "@sumaris-net/ngx-components";
-import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
+import {Department, EntityAsObjectOptions, EntityFilter, FilterFn, isNotNil} from '@sumaris-net/ngx-components';
+import {DataEntity} from './data-entity.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export abstract class DataEntityFilter<

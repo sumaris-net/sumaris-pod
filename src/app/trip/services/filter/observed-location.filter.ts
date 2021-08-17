@@ -1,17 +1,14 @@
-import {Moment} from "moment";
-import {LandingFilter} from "./landing.filter";
-import {RootDataEntityFilter} from "../../../data/services/model/root-data-filter.model";
-import {ObservedLocation} from "../model/observed-location.model";
-import {EntityClass, EntityFilter, ReferentialRef, ReferentialUtils} from '@sumaris-net/ngx-components';
-import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
-import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
-import {FilterFn} from "@sumaris-net/ngx-components";
+import {Moment} from 'moment';
+import {LandingFilter} from './landing.filter';
+import {RootDataEntityFilter} from '@app/data/services/model/root-data-filter.model';
+import {ObservedLocation} from '../model/observed-location.model';
+import {EntityAsObjectOptions, EntityClass, FilterFn, ReferentialRef, ReferentialUtils} from '@sumaris-net/ngx-components';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 @EntityClass({typename: 'ObservedLocationFilterVO'})
 export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocationFilter, ObservedLocation> {
 
-    static fromObject: (source: any, opts?: any) => ObservedLocationFilter
+    static fromObject: (source: any, opts?: any) => ObservedLocationFilter;
 
     location?: ReferentialRef;
 

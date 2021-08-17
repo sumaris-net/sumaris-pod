@@ -27,14 +27,14 @@ import {SubBatchValidatorService} from '../../services/validator/sub-batch.valid
 import {SubBatchForm} from '../form/sub-batch.form';
 import {MeasurementValuesUtils} from '../../services/model/measurement.model';
 import {SubBatchModal} from '../modal/sub-batch.modal';
-import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from '../../../referential/services/model/model.enum';
-import {ReferentialRefService} from '../../../referential/services/referential-ref.service';
+import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from '@app/referential/services/model/model.enum';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {SortDirection} from '@angular/material/sort';
 import {SubBatch, SubBatchUtils} from '../../services/model/subbatch.model';
 import {BatchGroup} from '../../services/model/batch-group.model';
-import {PmfmValidators} from '../../../referential/services/validator/pmfm.validators';
-import {environment} from '../../../../environments/environment';
-import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
+import {PmfmValidators} from '@app/referential/services/validator/pmfm.validators';
+import {environment} from '@environments/environment';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -58,14 +58,12 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch>{
   }
 }
 
-const subBatchTableOptionsFactory = (injector: Injector) => {
-  return {
+const subBatchTableOptionsFactory = (injector: Injector) => ({
     prependNewElements: false,
     suppressErrors: environment.production,
     reservedStartColumns: SUB_BATCH_RESERVED_START_COLUMNS,
     reservedEndColumns: SUB_BATCH_RESERVED_END_COLUMNS
-  };
-};
+  });
 
 @Component({
   selector: 'app-sub-batches-table',
@@ -236,7 +234,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
       // Create listener on column 'DISCARD_OR_LANDING' value changes
       this.registerSubscription(
-        this.registerCellValueChanges('discard', "measurementValues." + PmfmIds.DISCARD_OR_LANDING.toString())
+        this.registerCellValueChanges('discard', 'measurementValues.' + PmfmIds.DISCARD_OR_LANDING.toString())
           .subscribe((value) => {
             if (!this.editedRow) return; // Should never occur
             const row = this.editedRow;
@@ -259,7 +257,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
           }));
 
       this.registerSubscription(
-        this.registerCellValueChanges('parentGroup', "parentGroup")
+        this.registerCellValueChanges('parentGroup', 'parentGroup')
           .subscribe((parentGroup) => {
             if (!this.editedRow) return; // Skip
 
@@ -366,7 +364,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     if (this.form) this.form.markAsUntouched();
   }
 
-  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+  enable(opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
     super.enable(opts);
 
     if (this.showForm && this.form && this.form.disabled) {
@@ -374,7 +372,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     }
   }
 
-  disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+  disable(opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
     super.disable(opts);
 
     if (this.showForm && this.form && this.form.enabled) {
@@ -384,10 +382,11 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
   /**
    * Allow to set value
+   *
    * @param data
    * @param opts
    */
-  setValue(data: SubBatch[], opts?: { emitEvent?: boolean; }) {
+  setValue(data: SubBatch[], opts?: { emitEvent?: boolean }) {
     this.memoryDataService.value = data;
   }
 
@@ -409,8 +408,8 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
     const parentToStringOptions = {
       pmfm: this.displayParentPmfm,
-      taxonGroupAttributes: taxonGroupAttributes,
-      taxonNameAttributes: taxonNameAttributes
+      taxonGroupAttributes,
+      taxonNameAttributes
     };
     if (this.showTaxonNameColumn) {
       this.autocompleteFields.parentGroup.attributes = ['rankOrder']
@@ -423,7 +422,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     this.autocompleteFields.parentGroup.displayWith = (value) => BatchUtils.parentToString(value, parentToStringOptions);
   }
 
-  public async resetForm(previousBatch?: SubBatch, opts?: {focusFirstEmpty?: boolean, emitEvent?: boolean}) {
+  public async resetForm(previousBatch?: SubBatch, opts?: {focusFirstEmpty?: boolean; emitEvent?: boolean}) {
     if (!this.form) throw new Error('Form not exists');
     await this.ready();
 
@@ -492,11 +491,11 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     if (EntityUtils.isNotEmpty(value, 'label')) {
       return [value];
     }
-    value = (typeof value === "string" && value !== "*") && value || undefined;
+    value = (typeof value === 'string' && value !== '*') && value || undefined;
     if (isNil(value)) return this._availableSortedParents; // All
 
     if (this.debug) console.debug(`[sub-batch-table] Searching parent {${value || '*'}}...`);
-    const ucValueParts = value.trim().toUpperCase().split(" ", 1);
+    const ucValueParts = value.trim().toUpperCase().split(' ', 1);
 
     // Search on labels (taxonGroup or taxonName)
     return this._availableSortedParents.filter(p =>
@@ -598,7 +597,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
         acquisitionLevel: this.acquisitionLevel,
         availableParents: this.availableParents,
         value: batch,
-        isNew: isNew,
+        isNew,
         disabled: this.disabled,
         qvPmfm: this.qvPmfm,
         showParent: this.showParentColumn,
@@ -612,12 +611,12 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
+    if (data && this.debug) console.debug('[batches-table] Batch modal result: ', data);
     return  (data instanceof SubBatch) ? data : undefined;
   }
 
   protected async addEntityToTable(newBatch: SubBatch): Promise<TableElement<SubBatch>> {
-    if (this.debug) console.debug("[batches-table] Adding batch to table:", newBatch);
+    if (this.debug) console.debug('[batches-table] Adding batch to table:', newBatch);
 
     // Make sure individual count if init
     newBatch.individualCount = isNotNil(newBatch.individualCount) ? newBatch.individualCount : 1;
@@ -652,7 +651,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     return await super.addEntityToTable(newBatch);
   }
 
-  async setAvailableParents(parents: BatchGroup[], opts?: { emitEvent?: boolean; linkDataToParent?: boolean; }) {
+  async setAvailableParents(parents: BatchGroup[], opts?: { emitEvent?: boolean; linkDataToParent?: boolean }) {
     this._availableParents = parents;
 
     // Sort parents by Tag-ID, or rankOrder
@@ -678,12 +677,12 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   }
 
   protected async onNewEntity(data: SubBatch): Promise<void> {
-    console.debug("[sub-batch-table] Initializing new row data...");
+    console.debug('[sub-batch-table] Initializing new row data...');
 
     await super.onNewEntity(data);
 
     // Generate label
-    data.label = this.acquisitionLevel + "#" + data.rankOrder;
+    data.label = this.acquisitionLevel + '#' + data.rankOrder;
 
     if (isNil(data.id)) {
       // TODO : add sequence
@@ -697,7 +696,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
   protected onInvalidForm() {
     this.form.markAsTouched({emitEvent: true});
-    if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-batch-table] ");
+    if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sub-batch-table] ');
   }
 
   protected getI18nColumnName(columnName: string): string {
@@ -713,7 +712,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
     data.forEach(s => {
       s.parentGroup = s.parentGroup && this._availableParents.find(p => Batch.equals(p, s.parentGroup)) || null;
-      if (!s.parentGroup) console.warn("[sub-batches-table] linkDataToParent() - Could not found parent group, for sub-batch:", s);
+      if (!s.parentGroup) console.warn('[sub-batches-table] linkDataToParent() - Could not found parent group, for sub-batch:', s);
     });
   }
 

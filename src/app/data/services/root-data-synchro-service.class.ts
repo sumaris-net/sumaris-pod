@@ -2,8 +2,11 @@ import {concat, defer, Observable, of, timer} from 'rxjs';
 import {catchError, map, switchMap, tap} from 'rxjs/operators';
 import {DataRootEntityUtils, RootDataEntity, SynchronizationStatusEnum} from './model/root-data-entity.model';
 import {
-  BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions, BaseEntityServiceOptions,
-  chainPromises, EntitiesServiceWatchOptions,
+  BaseEntityGraphqlQueries,
+  BaseEntityGraphqlSubscriptions,
+  BaseEntityServiceOptions,
+  chainPromises,
+  EntitiesServiceWatchOptions,
   EntitiesStorage,
   EntityServiceLoadOptions,
   EntityUtils,
@@ -57,10 +60,8 @@ export interface IDataSynchroService<
 
 const DataSynchroServiceFnName: (keyof IDataSynchroService<any>)[] = ['load', 'executeImport', 'synchronizeById', 'synchronize', 'lastUpdateDate'];
 
-export function isDataSynchroService(object: any): object is IDataSynchroService<any> {
-  return object && DataSynchroServiceFnName.filter(fnName => (typeof object[fnName] === 'function'))
-    .length === DataSynchroServiceFnName.length || false;
-}
+export const isDataSynchroService = (object: any): object is IDataSynchroService<any> =>
+  object && DataSynchroServiceFnName.filter(fnName => (typeof object[fnName] === 'function')).length === DataSynchroServiceFnName.length || false;
 
 export const DEFAULT_FEATURE_NAME = 'synchro';
 
@@ -93,7 +94,7 @@ export abstract class RootDataSynchroService<
     return this._featureName || DEFAULT_FEATURE_NAME;
   }
 
-  protected constructor (
+  protected constructor(
     injector: Injector,
     dataType: new() => T,
     filterType: new() => F,
@@ -145,8 +146,7 @@ export abstract class RootDataSynchroService<
     // Execute all jobs, one by one
     let jobIndex = 0;
     this.$importationProgress = concat(
-      ...jobDefers.map((jobDefer: Observable<number>, index) => {
-        return jobDefer
+      ...jobDefers.map((jobDefer: Observable<number>, index) => jobDefer
           .pipe(
             //switchMap(() => jobDefer),
             map(jobProgression => {
@@ -157,8 +157,7 @@ export abstract class RootDataSynchroService<
               // Compute total progression
               return index * jobOpts.maxProgression + Math.min(jobProgression || 0, jobOpts.maxProgression);
             })
-          );
-      }),
+          )),
 
       // Finish (force to reach max value)
       of(totalProgression)
@@ -242,7 +241,7 @@ export abstract class RootDataSynchroService<
     toEntity?: boolean;
   }): Promise<T> {
     if (!this.queries.load) throw new Error('Not implemented');
-    if (isNil(id)) throw new Error("Missing argument 'id'");
+    if (isNil(id)) throw new Error(`Missing argument 'id'`);
 
     const now = Date.now();
     if (this._debug) console.debug(`${this._logPrefix}Loading ${this._logTypeName} #${id}...`);
@@ -254,14 +253,14 @@ export abstract class RootDataSynchroService<
       // If local entity
       if (+id < 0) {
         data = await this.entities.load<Vessel>(+id, Vessel.TYPENAME);
-        if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"};
+        if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
       }
 
       else {
         const res = await this.graphql.query<{ data: any }>({
           query: this.queries.load,
           variables: { id },
-          error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"},
+          error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'},
           fetchPolicy: opts && opts.fetchPolicy || undefined
         });
         data = res && res.data;
@@ -312,6 +311,7 @@ export abstract class RootDataSynchroService<
 
   /**
    * List of importation jobs. Can be override by subclasses, to add or remove some jobs
+   *
    * @param opts
    * @protected
    */
@@ -332,10 +332,11 @@ export abstract class RootDataSynchroService<
 
   /**
    * Delete many local entities
+   *
    * @param entities
    * @param opts
    */
-  protected async deleteAllLocally(entities: T[], opts?: { trash?: boolean; }): Promise<any> {
+  protected async deleteAllLocally(entities: T[], opts?: { trash?: boolean }): Promise<any> {
 
     // Get local entity ids, then delete id
     const localEntities = entities && entities

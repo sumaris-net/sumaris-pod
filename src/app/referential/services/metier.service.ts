@@ -1,20 +1,24 @@
-import {Injectable} from "@angular/core";
-import {FetchPolicy, gql} from "@apollo/client/core";
-import {ErrorCodes} from "./errors";
-import {AccountService, BaseEntityGraphqlQueries} from '@sumaris-net/ngx-components';
-import {LoadResult, SuggestService} from "@sumaris-net/ngx-components";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {Metier} from "./model/taxon.model";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {EntitiesStorage}  from "@sumaris-net/ngx-components";
-import {ReferentialFragments} from "./referential.fragments";
-import {ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {SortDirection} from "@angular/material/sort";
-import {isNil} from "@sumaris-net/ngx-components";
-import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
+import {Injectable} from '@angular/core';
+import {FetchPolicy, gql} from '@apollo/client/core';
+import {ErrorCodes} from './errors';
+import {
+  AccountService,
+  BaseEntityGraphqlQueries,
+  BaseGraphqlService,
+  EntitiesStorage,
+  GraphqlService,
+  isNil,
+  LoadResult,
+  NetworkService,
+  ReferentialUtils,
+  StatusIds,
+  SuggestService
+} from '@sumaris-net/ngx-components';
+import {Metier} from './model/taxon.model';
+import {ReferentialFragments} from './referential.fragments';
+import {SortDirection} from '@angular/material/sort';
 import {environment} from '@environments/environment';
-import {MetierFilter} from "./filter/metier.filter";
+import {MetierFilter} from './filter/metier.filter';
 
 export const METIER_DEFAULT_FILTER: Readonly<MetierFilter> = Object.freeze(MetierFilter.fromObject({
   entityName: 'Metier',
@@ -62,7 +66,7 @@ export class MetierService extends BaseGraphqlService
   }
 
   async load(id: number, options?: any): Promise<Metier> {
-    if (isNil(id)) throw new Error("Missing argument 'id'");
+    if (isNil(id)) throw new Error(`Missing argument 'id'`);
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[metier-ref-service] Loading Metier #${id}...`);
 
@@ -95,8 +99,8 @@ export class MetierService extends BaseGraphqlService
     filter = this.asFilter(filter);
 
     if (!filter) {
-      console.error("[metier-ref-service] Missing filter");
-      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
+      console.error('[metier-ref-service] Missing filter');
+      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'};
     }
 
     const variables: any = {
@@ -132,7 +136,7 @@ export class MetierService extends BaseGraphqlService
           ...variables,
           filter: filter && filter.asPodObject()
         },
-        error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+        error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'},
         fetchPolicy: opts && opts.fetchPolicy || 'cache-first'
       });
     }
@@ -161,7 +165,7 @@ export class MetierService extends BaseGraphqlService
 
   suggest(value: any, filter?: Partial<MetierFilter>): Promise<LoadResult<Metier>> {
     if (ReferentialUtils.isNotEmpty(value)) return Promise.resolve({ data: [value as Metier] });
-    value = (typeof value === "string" && value !== '*') && value || undefined;
+    value = (typeof value === 'string' && value !== '*') && value || undefined;
     return this.loadAll(0, !value ? 30 : 10, undefined, undefined,
       {...filter, searchText: value},
       {withTotal: true /* used by autocomplete */}

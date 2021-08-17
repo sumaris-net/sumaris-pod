@@ -1,27 +1,22 @@
-import {Component, OnInit, ViewChild} from "@angular/core";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {BehaviorSubject} from "rxjs";
-import {Batch, BatchUtils} from "../../services/model/batch.model";
-import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
-import {ProgramService} from "../../../referential/services/program.service";
-import {mergeMap} from "rxjs/operators";
-import {BatchTreeComponent} from "../batch-tree.component";
-import {MatAutocompleteConfigHolder} from "@sumaris-net/ngx-components";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {PmfmIds} from "../../../referential/services/model/model.enum";
-import {isEmptyArray, isNotNil, toNumber} from "@sumaris-net/ngx-components";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
-import {EntitiesStorage}  from "@sumaris-net/ngx-components";
-import {ProgramRefService} from "../../../referential/services/program-ref.service";
+import {Component, OnInit, ViewChild} from '@angular/core';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {BehaviorSubject} from 'rxjs';
+import {Batch, BatchUtils} from '../../services/model/batch.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {mergeMap} from 'rxjs/operators';
+import {BatchTreeComponent} from '../batch-tree.component';
+import {EntitiesStorage, EntityUtils, isEmptyArray, isNotNil, MatAutocompleteConfigHolder, SharedValidators, toNumber} from '@sumaris-net/ngx-components';
+import {PmfmIds} from '@app/referential/services/model/model.enum';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
 
-function getSortingMeasValues(opts?: {
+const getSortingMeasValues = (opts?: {
   weight?: number;
   discardOrLanding: 'LAN'|'DIS';
-}) {
+}) => {
   opts = {
     discardOrLanding: 'LAN',
     ...opts
-  }
+  };
   const res = {};
 
   res[PmfmIds.DISCARD_OR_LANDING] = opts.discardOrLanding === 'LAN' ? 190 : 191;
@@ -29,16 +24,16 @@ function getSortingMeasValues(opts?: {
     res[PmfmIds.BATCH_MEASURED_WEIGHT] = opts.weight;
   }
   return res;
-}
+};
 
-function getIndivMeasValues(opts?: {
+const getIndivMeasValues = (opts?: {
   length?: number;
   discardOrLanding: 'LAN'|'DIS';
-}) {
+}) => {
   opts = {
     discardOrLanding: 'LAN',
     ...opts
-  }
+  };
   const res = {};
 
   res[PmfmIds.DISCARD_OR_LANDING] = opts.discardOrLanding === 'LAN' ? 190 : 191;
@@ -46,9 +41,9 @@ function getIndivMeasValues(opts?: {
     res[PmfmIds.LENGTH_TOTAL_CM] = opts.length;
   }
   return res;
-}
+};
 const TREE_EXAMPLES: {[key: string]: any} = {
-  'default':
+  default:
     {
       label: 'CATCH_BATCH', rankOrder: 1, children: [
         {
@@ -109,7 +104,7 @@ const TREE_EXAMPLES: {[key: string]: any} = {
         }
       ]
     },
-  'empty': {id: 100, label: 'CATCH_BATCH', rankOrder: 1}
+  empty: {id: 100, label: 'CATCH_BATCH', rankOrder: 1}
 };
 
 @Component({
@@ -215,7 +210,7 @@ export class BatchTreeTestPage implements OnInit {
 
     setTimeout(() => {
       this.mobileBatchTree.ready().then( () => this.mobileBatchTree.autoFill());
-      this.desktopBatchTree.ready().then( () => this.desktopBatchTree.autoFill())
+      this.desktopBatchTree.ready().then( () => this.desktopBatchTree.autoFill());
     });
   }
 
@@ -245,7 +240,7 @@ export class BatchTreeTestPage implements OnInit {
     });
 
     // Convert into Batch tree
-    const catchBatch = Batch.fromObjectArrayAsTree(batches)
+    const catchBatch = Batch.fromObjectArrayAsTree(batches);
     BatchUtils.computeIndividualCount(catchBatch);
 
     return catchBatch;
@@ -270,22 +265,22 @@ export class BatchTreeTestPage implements OnInit {
     this.dumpCatchBatch(catchBatch, outputName);
 
     if (batchTree.mobile) {
-      let html = "<br/>Sub batches :<br/>";
+      let html = '<br/>Sub batches :<br/>';
       const subBatches = await batchTree.getSubBatches();
       if (isEmptyArray(subBatches)) {
         html += '&nbsp;No result';
       }
       else {
-        let html = "<ul>";
+        let html = '<ul>';
         subBatches.forEach(b => {
           BatchUtils.logTree(b, {
             showAll: false,
             println: (m) => {
-              html += "<li>" + m + "</li>";
+              html += '<li>' + m + '</li>';
             }
           });
         });
-        html += "</ul>"
+        html += '</ul>';
       }
 
       // Append to result
@@ -296,12 +291,12 @@ export class BatchTreeTestPage implements OnInit {
 
 
   dumpCatchBatch(catchBatch: Batch, outputName?: string) {
-    let html = "";
+    let html = '';
     if (catchBatch) {
       BatchUtils.logTree(catchBatch, {
         showAll: false,
         println: (m) => {
-          html += "<br/>" + m
+          html += '<br/>' + m;
         }
       });
       html = html.replace(/\t/g, '&nbsp;&nbsp;');

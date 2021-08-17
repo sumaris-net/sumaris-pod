@@ -100,7 +100,7 @@ export class ExtractionColumn {
   name: string;
   columnName: string;
   type: string;
-  description?: String;
+  description?: string;
   rankOrder: number;
   values?: string[];
 

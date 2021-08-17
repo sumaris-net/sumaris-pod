@@ -219,7 +219,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
+    if (data && this.debug) console.debug('[batches-table] Batch modal result: ', data);
     this.markAsLoaded();
 
     if (data instanceof Batch) {
@@ -262,6 +262,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
   /**
    * Allow to remove/Add some pmfms. Can be oerrive by subclasses
+   *
    * @param pmfms
    */
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
@@ -289,12 +290,12 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
   }
 
   protected async onNewEntity(data: T): Promise<void> {
-    console.debug("[sample-table] Initializing new row data...");
+    console.debug('[sample-table] Initializing new row data...');
 
     await super.onNewEntity(data);
 
     // generate label
-    data.label = this.acquisitionLevel + "#" + data.rankOrder;
+    data.label = this.acquisitionLevel + '#' + data.rankOrder;
 
     // Default values
     if (isNotNil(this.defaultTaxonName)) {

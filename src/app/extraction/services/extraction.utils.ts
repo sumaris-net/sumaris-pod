@@ -1,8 +1,8 @@
 /* -- Extraction -- */
 
-import {arraySize, isNotEmptyArray} from "@sumaris-net/ngx-components";
-import {ExtractionColumn, ExtractionFilter, ExtractionType} from "./model/extraction-type.model";
-import {ExtractionProduct} from "./model/extraction-product.model";
+import {arraySize, isNotEmptyArray} from '@sumaris-net/ngx-components';
+import {ExtractionColumn, ExtractionFilter, ExtractionType} from './model/extraction-type.model';
+import {ExtractionProduct} from './model/extraction-product.model';
 
 export const SPATIAL_COLUMNS: string[] = [
   //'area', FIXME no area geometries in Pod
@@ -70,7 +70,7 @@ export class ExtractionUtils {
         } else {
           return res.concat(`${criterion.name}${criterion.operator}${criterion.value}`);
         }
-      }, []).join(";");
+      }, []).join(';');
     }
     return queryParams;
   }

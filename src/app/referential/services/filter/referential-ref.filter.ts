@@ -1,9 +1,5 @@
-import {EntityAsObjectOptions, EntityUtils}  from "@sumaris-net/ngx-components";
-import {BaseReferentialFilter} from "./referential.filter";
-import {ReferentialRef}  from "@sumaris-net/ngx-components";
-import {FilterFn} from "@sumaris-net/ngx-components";
-import {isNotEmptyArray} from "@sumaris-net/ngx-components";
-import {EntityClass}  from "@sumaris-net/ngx-components";
+import {EntityAsObjectOptions, EntityClass, EntityUtils, FilterFn, isNotEmptyArray, ReferentialRef} from '@sumaris-net/ngx-components';
+import {BaseReferentialFilter} from './referential.filter';
 
 @EntityClass({typename: 'ReferentialFilterVO'})
 export class ReferentialRefFilter

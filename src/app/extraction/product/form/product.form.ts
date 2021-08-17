@@ -1,28 +1,23 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
-import {ExtractionColumn} from "../../services/model/extraction-type.model";
-import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {AggregationTypeValidatorService} from "../../services/validator/aggregation-type.validator";
-import {ReferentialForm} from "../../../referential/form/referential.form";
-import {BehaviorSubject} from "rxjs";
-import {arraySize, isNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {ExtractionService} from "../../services/extraction.service";
-import {debounceTime} from "rxjs/operators";
-import {AggregationStrata, ExtractionProduct, ProcessingFrequency, ProcessingFrequencyList} from "../../services/model/extraction-product.model";
-import {ExtractionUtils} from "../../services/extraction.utils";
-import {ExtractionProductService} from "../../services/extraction-product.service";
-import {FormArrayHelper}  from "@sumaris-net/ngx-components";
-import {AppForm}  from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
+import {ExtractionColumn} from '../../services/model/extraction-type.model';
+import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
+import {AggregationTypeValidatorService} from '../../services/validator/aggregation-type.validator';
+import {ReferentialForm} from '@app/referential/form/referential.form';
+import {BehaviorSubject} from 'rxjs';
+import {AppForm, arraySize, EntityUtils, FormArrayHelper, isNil, isNotNilOrBlank, LocalSettingsService, StatusIds} from '@sumaris-net/ngx-components';
+import {DateAdapter} from '@angular/material/core';
+import {Moment} from 'moment';
+import {ExtractionService} from '../../services/extraction.service';
+import {debounceTime} from 'rxjs/operators';
+import {AggregationStrata, ExtractionProduct, ProcessingFrequency, ProcessingFrequencyList} from '../../services/model/extraction-product.model';
+import {ExtractionUtils} from '../../services/extraction.utils';
+import {ExtractionProductService} from '../../services/extraction-product.service';
 
 declare interface ColumnMap {
   [sheetName: string]: ExtractionColumn[];
 }
 
-const FrequenciesById: { [id: number]: ProcessingFrequency; } = ProcessingFrequencyList.reduce((res, frequency) => {
+const FrequenciesById: { [id: number]: ProcessingFrequency } = ProcessingFrequencyList.reduce((res, frequency) => {
   res[frequency.id] = frequency;
   return res;
 }, {});
@@ -39,7 +34,7 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
   data: ExtractionProduct;
   frequenciesById = FrequenciesById;
 
-  $sheetNames = new BehaviorSubject<String[]>(undefined);
+  $sheetNames = new BehaviorSubject<string[]>(undefined);
   $timeColumns = new BehaviorSubject<ColumnMap>(undefined);
   $spatialColumns = new BehaviorSubject<ColumnMap>(undefined);
   $aggColumns = new BehaviorSubject<ColumnMap>(undefined);
@@ -146,18 +141,16 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
       this.$sheetNames.next(sheetNames);
 
       const map: {[key: string]: ColumnMap} = {};
-      await Promise.all(sheetNames.map(sheetName => {
-        return this.aggregationService.loadColumns(type, sheetName)
+      await Promise.all(sheetNames.map(sheetName => this.aggregationService.loadColumns(type, sheetName)
           .then(columns => {
             columns = columns || [];
             const columnMap = ExtractionUtils.dispatchColumns(columns);
             Object.keys(columnMap).forEach(key => {
-              const m: ColumnMap = map[key] ||  <ColumnMap>{};
+              const m: ColumnMap = map[key] || <ColumnMap>{};
               m[sheetName] = columnMap[key];
               map[key] = m;
             });
-          });
-      }));
+          })));
 
       console.debug('[aggregation-type] Columns map:', map);
       this.$timeColumns.next(map.timeColumns);

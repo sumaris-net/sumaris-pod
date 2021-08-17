@@ -1,9 +1,9 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Moment} from "moment";
-import {toNumber} from "@sumaris-net/ngx-components";
-import {VesselPosition} from "../model/trip.model";
+import {Injectable} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {Moment} from 'moment';
+import {toNumber} from '@sumaris-net/ngx-components';
+import {VesselPosition} from '../model/trip.model';
 
 @Injectable({providedIn: 'root'})
 export class PositionValidatorService implements ValidatorService {
@@ -15,7 +15,7 @@ export class PositionValidatorService implements ValidatorService {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: {id?: number; dateTime: Date|Moment; latitude: number; longitude: number; updateDate?: Date|Moment}, opts?: {required: boolean; }): FormGroup {
+  getFormGroup(data?: {id?: number; dateTime: Date|Moment; latitude: number; longitude: number; updateDate?: Date|Moment}, opts?: {required: boolean }): FormGroup {
     return this.formBuilder.group({
       __typename: [VesselPosition.TYPENAME],
       id: [toNumber(data && data.id, null)],

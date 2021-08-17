@@ -1,10 +1,6 @@
-import {IEntity}  from "@sumaris-net/ngx-components";
-import {Department}  from "@sumaris-net/ngx-components";
-import {Referential, ReferentialRef}  from "@sumaris-net/ngx-components";
-import {Person}  from "@sumaris-net/ngx-components";
-import {PredefinedColors} from "@ionic/core";
-import {QualityFlagIds} from "../../../referential/services/model/model.enum";
-import {StatusIds}  from "@sumaris-net/ngx-components";
+import {Department, IEntity, Person, Referential, ReferentialRef, StatusIds} from '@sumaris-net/ngx-components';
+import {PredefinedColors} from '@ionic/core';
+import {QualityFlagIds} from '@app/referential/services/model/model.enum';
 
 /* -- Interface -- */
 
@@ -25,33 +21,32 @@ export interface IWithProgramEntity<T, ID = number> extends IEntity<T, ID> {
 
 /* -- Helper function -- */
 
-export function getMaxRankOrder(values: { rankOrder: number }[]): number {
+export const getMaxRankOrder = (values: { rankOrder: number }[]): number => {
   let maxRankOrder = 0;
   (values || []).forEach(m => {
     if (m.rankOrder && m.rankOrder > maxRankOrder) maxRankOrder = m.rankOrder;
   });
   return maxRankOrder;
-}
+};
 
-export function fillRankOrder(values: { rankOrder: number }[]) {
+export const fillRankOrder = (values: { rankOrder: number }[]) => {
   // Compute rankOrder
   let maxRankOrder = getMaxRankOrder(values);
   (values || []).forEach(m => {
     m.rankOrder = m.rankOrder || ++maxRankOrder;
   });
-}
+};
 
 /**
  * Compare unique rankOrder from values with values count
+ *
  * @param values
  * @return true if all rankOrder are unique
  */
-export function isRankOrderValid(values: { rankOrder: number }[]): boolean {
-  return (values || []).length ===
-    (values || []).filter((v1, i, array) => array.findIndex(v2 => v2.rankOrder === v1.rankOrder) === i).length;
-}
+export const isRankOrderValid = (values: { rankOrder: number }[]): boolean => (values || []).length ===
+  (values || []).filter((v1, i, array) => array.findIndex(v2 => v2.rankOrder === v1.rankOrder) === i).length;
 
-export function qualityFlagToColor(qualityFlagId: number): PredefinedColors {
+export const qualityFlagToColor = (qualityFlagId: number): PredefinedColors => {
   switch (qualityFlagId) {
     case QualityFlagIds.NOT_QUALIFIED:
       return 'secondary';
@@ -68,9 +63,9 @@ export function qualityFlagToColor(qualityFlagId: number): PredefinedColors {
     default:
       return 'secondary';
   }
-}
+};
 
-export function statusToColor(statusId: number): PredefinedColors {
+export const statusToColor = (statusId: number): PredefinedColors => {
   switch (statusId) {
     case StatusIds.ENABLE:
       return 'tertiary';
@@ -81,5 +76,5 @@ export function statusToColor(statusId: number): PredefinedColors {
     default:
       return 'secondary';
   }
-}
+};
 

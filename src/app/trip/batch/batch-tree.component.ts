@@ -1,28 +1,34 @@
 import {AfterViewInit, ChangeDetectionStrategy, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean} from "@sumaris-net/ngx-components";
-import {AlertController, ModalController} from "@ionic/angular";
-import {BehaviorSubject, defer} from "rxjs";
-import {FormGroup} from "@angular/forms";
-import {OperationService} from "../services/operation.service";
-import {debounceTime, filter, map, switchMap} from "rxjs/operators";
-import {TripService} from "../services/trip.service";
-import {Batch, BatchUtils} from "../services/model/batch.model";
-import {BatchGroup, BatchGroupUtils} from "../services/model/batch-group.model";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {BatchGroupsTable} from "./table/batch-groups.table";
-import {SubBatchesTable, SubBatchFilter} from "./table/sub-batches.table";
-import {CatchBatchForm} from "../catch/catch.form";
+import {
+  AppTabEditor,
+  AppTableUtils,
+  firstTruePromise,
+  InMemoryEntitiesService,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  PlatformService,
+  toBoolean,
+  UsageMode
+} from '@sumaris-net/ngx-components';
+import {AlertController, ModalController} from '@ionic/angular';
+import {BehaviorSubject, defer} from 'rxjs';
+import {FormGroup} from '@angular/forms';
+import {OperationService} from '../services/operation.service';
+import {debounceTime, filter, map, switchMap} from 'rxjs/operators';
+import {TripService} from '../services/trip.service';
+import {Batch, BatchUtils} from '../services/model/batch.model';
+import {BatchGroup, BatchGroupUtils} from '../services/model/batch-group.model';
+import {BatchGroupsTable} from './table/batch-groups.table';
+import {SubBatchesTable, SubBatchFilter} from './table/sub-batches.table';
+import {CatchBatchForm} from '../catch/catch.form';
 import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {ActivatedRoute, Router} from "@angular/router";
-import {TranslateService} from "@ngx-translate/core";
-import {UsageMode}  from "@sumaris-net/ngx-components";
-import {MatTabChangeEvent} from "@angular/material/tabs";
-import {firstTruePromise} from "@sumaris-net/ngx-components";
+import {ActivatedRoute, Router} from '@angular/router';
+import {TranslateService} from '@ngx-translate/core';
+import {MatTabChangeEvent} from '@angular/material/tabs';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {SubBatch, SubBatchUtils} from "../services/model/subbatch.model";
-import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
-import {AppTabEditor}  from "@sumaris-net/ngx-components";
-import {AppTableUtils}  from "@sumaris-net/ngx-components";
+import {SubBatch, SubBatchUtils} from '../services/model/subbatch.model';
 import {environment} from '@environments/environment';
 import {Program} from '@app/referential/services/model/program.model';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
@@ -349,11 +355,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
 
-  autoFill(opts?: {defaultTaxonGroups?: string[]; }): Promise<void> {
+  autoFill(opts?: {defaultTaxonGroups?: string[] }): Promise<void> {
     return this.batchGroupsTable.autoFillTable(opts);
   }
 
-  setSelectedTabIndex(value: number, opts?: {emitEvent?: boolean; realignInkBar?: boolean; }) {
+  setSelectedTabIndex(value: number, opts?: {emitEvent?: boolean; realignInkBar?: boolean }) {
     if (!this.tabGroup) {
       // Juste remember the value, but do nothing else
       this.selectedTabIndex = value;
@@ -394,7 +400,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   /* -- protected methods -- */
 
-  async getSubBatches(opts?: { saveIfDirty?: boolean; }): Promise<SubBatch[]> {
+  async getSubBatches(opts?: { saveIfDirty?: boolean }): Promise<SubBatch[]> {
     if (!this.showBatchTables) return undefined;
     if (this.subBatchesTable) {
       // Save table first (if need)

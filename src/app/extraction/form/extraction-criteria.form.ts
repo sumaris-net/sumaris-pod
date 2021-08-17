@@ -1,19 +1,15 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from "@angular/router";
+import {ActivatedRoute, Router} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {isNil, isNotEmptyArray, isNotNil, toBoolean} from "@sumaris-net/ngx-components";
-import {CriterionOperator, ExtractionColumn, ExtractionFilterCriterion, ExtractionType} from "../services/model/extraction-type.model";
-import {ExtractionService} from "../services/extraction.service";
-import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {filter, map} from "rxjs/operators";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {ExtractionCriteriaValidatorService} from "../services/validator/extraction-criterion.validator";
-import {FormFieldDefinition, FormFieldType} from "@sumaris-net/ngx-components";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {AppForm}  from "@sumaris-net/ngx-components";
+import {AccountService, AppForm, FormFieldDefinition, FormFieldType, isNil, isNotEmptyArray, isNotNil, LocalSettingsService, toBoolean} from '@sumaris-net/ngx-components';
+import {CriterionOperator, ExtractionColumn, ExtractionFilterCriterion, ExtractionType} from '../services/model/extraction-type.model';
+import {ExtractionService} from '../services/extraction.service';
+import {AbstractControl, FormArray, FormBuilder, FormGroup} from '@angular/forms';
+import {filter, map} from 'rxjs/operators';
+import {DateAdapter} from '@angular/material/core';
+import {Moment} from 'moment';
+import {ExtractionCriteriaValidatorService} from '../services/validator/extraction-criterion.validator';
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -29,16 +25,16 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   private _sheetName: string;
   private _type: E;
 
-  operators: { symbol: CriterionOperator; name?: String; }[] = [
+  operators: { symbol: CriterionOperator; name?: string }[] = [
     {symbol: '='},
     {symbol: '!='},
     {symbol: '>'},
     {symbol: '>='},
     {symbol: '<'},
     {symbol: '<='},
-    {symbol: 'BETWEEN', name: "EXTRACTION.FILTER.BETWEEN"},
-    {symbol: 'NULL', name: "EXTRACTION.FILTER.NULL"},
-    {symbol: 'NOT NULL', name: "EXTRACTION.FILTER.NOT_NULL"}
+    {symbol: 'BETWEEN', name: 'EXTRACTION.FILTER.BETWEEN'},
+    {symbol: 'NULL', name: 'EXTRACTION.FILTER.NULL'},
+    {symbol: 'NOT NULL', name: 'EXTRACTION.FILTER.NOT_NULL'}
   ];
 
   $columns = new BehaviorSubject<ExtractionColumn[]>(undefined);
@@ -108,9 +104,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
       this.$columns
         .pipe(
           filter(isNotNil),
-          map(columns => {
-            return columns.map(c => this.toFieldDefinition(c));
-          })
+          map(columns => columns.map(c => this.toFieldDefinition(c)))
         )
         .subscribe(definitions => this.$columnValueDefinitions.next(definitions))
     );
@@ -143,10 +137,10 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     this._sheetName = sheetName;
   }
 
-  addFilterCriterion(criterion?: ExtractionFilterCriterion|any, opts?: { appendValue?: boolean; emitEvent?: boolean; }): boolean {
+  addFilterCriterion(criterion?: ExtractionFilterCriterion|any, opts?: { appendValue?: boolean; emitEvent?: boolean }): boolean {
     opts = opts || {};
     opts.appendValue = toBoolean(opts.appendValue, false);
-    console.debug("[extraction-form] Adding filter criterion");
+    console.debug('[extraction-form] Adding filter criterion');
 
     let hasChanged = false;
     let index = -1;
@@ -181,7 +175,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
         // Append value to existing value
         if (opts.appendValue) {
-          existingCriterion.value += ", " + criterion.value;
+          existingCriterion.value += ', ' + criterion.value;
           this.setCriterionValue(criterionForm, existingCriterion);
         }
 
@@ -270,7 +264,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     (this._type && this._type.sheetNames || []).forEach(sheetName => this.addFilterCriterion({
       name: null,
       operator: '=',
-      sheetName: sheetName
+      sheetName
     }));
 
     if (!opts || opts.emitEvent !== false) {
@@ -339,9 +333,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     if (!this._enable) this.form.disable({emitEvent: false});
     if (!json) return undefined;
 
-    const criteria = Object.getOwnPropertyNames(json).reduce((res, sheetName) => {
-      return res.concat(json[sheetName]);
-    }, []);
+    const criteria = Object.getOwnPropertyNames(json).reduce((res, sheetName) => res.concat(json[sheetName]), []);
     return criteria;
   }
 

@@ -4,8 +4,8 @@ import {AbstractControl, AbstractControlOptions, FormBuilder, FormGroup} from '@
 
 import {LocalSettingsService, toBoolean} from '@sumaris-net/ngx-components';
 import {Measurement, MeasurementUtils, MeasurementValuesUtils} from '../model/measurement.model';
-import {PmfmValidators} from '../../../referential/services/validator/pmfm.validators';
-import {IPmfm} from '../../../referential/services/model/pmfm.model';
+import {PmfmValidators} from '@app/referential/services/validator/pmfm.validators';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 
 export interface MeasurementsValidatorOptions {
   isOnFieldMode?: boolean;

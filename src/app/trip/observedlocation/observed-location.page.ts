@@ -1,9 +1,9 @@
-import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 import * as momentImported from 'moment';
 import {ObservedLocationForm} from './observed-location.form';
 import {ObservedLocationService} from '../services/observed-location.service';
 import {LandingsTable} from '../landing/landings.table';
-import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
+import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
 import {FormGroup} from '@angular/forms';
 import {
   Alerts,
@@ -26,17 +26,16 @@ import {ModalController} from '@ionic/angular';
 import {SelectVesselsModal} from './vessels/select-vessel.modal';
 import {ObservedLocation} from '../services/model/observed-location.model';
 import {Landing} from '../services/model/landing.model';
-import {LandingEditor, ProgramProperties} from '../../referential/services/config/program.config';
-import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
+import {LandingEditor, ProgramProperties} from '@app/referential/services/config/program.config';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
 import {BehaviorSubject} from 'rxjs';
 import {filter, first, tap} from 'rxjs/operators';
 import {AggregatedLandingsTable} from '../aggregated-landing/aggregated-landings.table';
-import {Program} from '../../referential/services/model/program.model';
+import {Program} from '@app/referential/services/model/program.model';
 import {ObservedLocationsPageSettingsEnum} from './observed-locations.page';
-import {environment} from '../../../environments/environment';
+import {environment} from '@environments/environment';
 import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
 import {LandingFilter} from '../services/filter/landing.filter';
-import {Browser} from 'leaflet';
 
 const moment = momentImported;
 
@@ -58,7 +57,7 @@ const ObservedLocationPageTabs = {
     {provide: AppRootDataEditor, useExisting: ObservedLocationPage}
   ],
 })
-export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, ObservedLocationService> {
+export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, ObservedLocationService> implements OnInit {
 
   mobile: boolean;
   showLandingTab = false;
@@ -95,7 +94,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         autoOpenNextTab: !platform.mobile,
         i18nPrefix: OBSERVED_LOCATION_DEFAULT_I18N_PREFIX
       });
-    this.defaultBackHref = "/observations";
+    this.defaultBackHref = '/observations';
     this.mobile = this.platform.mobile;
 
     // FOR DEV ONLY ----
@@ -167,7 +166,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     if (this.isOnFieldMode) {
       data.startDateTime = moment();
 
-      console.debug("[observed-location] New entity: set default values...");
+      console.debug('[observed-location] New entity: set default values...');
 
       // Fil defaults, using filter applied on trips table
       const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);
@@ -210,7 +209,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.$programLabel.next(programLabel);
   }
 
-  updateViewState(data: ObservedLocation, opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+  updateViewState(data: ObservedLocation, opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
     super.updateViewState(data);
 
     // Update tabs state (show/hide)
@@ -247,11 +246,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     // Propagate parent to landings table
     if (!isNew) {
       if (this.landingsTable) {
-        if (this.debug) console.debug("[observed-location] Propagate observed location to landings table");
+        if (this.debug) console.debug('[observed-location] Propagate observed location to landings table');
         this.landingsTable.setParent(data);
       }
       if (this.aggregatedLandingsTable) {
-        if (this.debug) console.debug("[observed-location] Propagate observed location to aggregated landings form");
+        if (this.debug) console.debug('[observed-location] Propagate observed location to aggregated landings form');
         this.aggregatedLandingsTable.setParent(data);
       }
     }
@@ -352,7 +351,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       throw new Error('Root entity has no program and start date. Cannot open select vessels modal');
     }
 
-    const startDate = this.data.startDateTime.clone().add(-15, "days");
+    const startDate = this.data.startDateTime.clone().add(-15, 'days');
     const endDate = this.data.startDateTime.clone();
     const programLabel = (this.aggregatedLandingsTable && this.aggregatedLandingsTable.program) || this.data.program.label;
     const excludeVesselIds = (toBoolean(excludeExistingVessels, false) && this.aggregatedLandingsTable
@@ -388,11 +387,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     // If modal return a landing, use it
     if (data && data[0] instanceof Landing) {
-      console.debug("[observed-location] Vessel selection modal result:", data);
+      console.debug('[observed-location] Vessel selection modal result:', data);
       return (data[0] as Landing).vesselSnapshot;
     }
     if (data && data[0] instanceof VesselSnapshot) {
-      console.debug("[observed-location] Vessel selection modal result:", data);
+      console.debug('[observed-location] Vessel selection modal result:', data);
       const vessel = data[0] as VesselSnapshot;
       if (excludeVesselIds.includes(data.id)) {
         await Alerts.showError('AGGREGATED_LANDING.VESSEL_ALREADY_PRESENT', this.alertCtrl, this.translate);
@@ -400,7 +399,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       }
       return vessel;
     } else {
-      console.debug("[observed-location] Vessel selection modal was cancelled");
+      console.debug('[observed-location] Vessel selection modal was cancelled');
     }
   }
 

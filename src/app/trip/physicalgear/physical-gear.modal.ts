@@ -1,15 +1,11 @@
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Output, ViewChild} from "@angular/core";
-import {AlertController, IonContent, ModalController} from "@ionic/angular";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {PhysicalGearForm} from "./physical-gear.form";
-import {BehaviorSubject} from "rxjs";
-import {TranslateService} from "@ngx-translate/core";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {Alerts} from "@sumaris-net/ngx-components";
-import {PhysicalGear} from "../services/model/trip.model";
-import {createPromiseEventEmitter, emitPromiseEvent} from "@sumaris-net/ngx-components";
-import {isNil} from "@sumaris-net/ngx-components";
-import {BatchGroup} from '@app/trip/services/model/batch-group.model';
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {AlertController, IonContent, ModalController} from '@ionic/angular';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {PhysicalGearForm} from './physical-gear.form';
+import {BehaviorSubject} from 'rxjs';
+import {TranslateService} from '@ngx-translate/core';
+import {Alerts, createPromiseEventEmitter, emitPromiseEvent, isNil, PlatformService} from '@sumaris-net/ngx-components';
+import {PhysicalGear} from '../services/model/trip.model';
 
 @Component({
   selector: 'app-physical-gear-modal',

@@ -1,15 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
-import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
-import {PmfmFilter} from "../services/pmfm.service";
-import {DefaultStatusList}  from "@sumaris-net/ngx-components";
-import {ActivatedRoute, Router} from "@angular/router";
-import {ModalController, Platform} from "@ionic/angular";
-import {Location} from "@angular/common";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {debounceTime, filter} from "rxjs/operators";
-import {environment} from "../../../environments/environment";
-import {Pmfm} from "../services/model/pmfm.model";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from '@angular/core';
+import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
+import {AppTable, DefaultStatusList, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from '@sumaris-net/ngx-components';
+import {PmfmFilter} from '../services/pmfm.service';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ModalController, Platform} from '@ionic/angular';
+import {Location} from '@angular/common';
+import {debounceTime, filter} from 'rxjs/operators';
+import {environment} from '@environments/environment';
+import {Pmfm} from '../services/model/pmfm.model';
 
 
 @Component({
@@ -61,7 +59,7 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
     this.statusList.forEach((status) => this.statusById[status.id] = status);
 
     this.filterForm = formBuilder.group({
-      'searchText': [null]
+      searchText: [null]
     });
 
     // Update filter when changes

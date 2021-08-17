@@ -1,22 +1,19 @@
 import {ChangeDetectorRef, Component, EventEmitter, Input, OnInit} from '@angular/core';
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {FormArray, FormBuilder} from "@angular/forms";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {ModalController} from "@ionic/angular";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {AggregatedLandingService} from "../services/aggregated-landing.service";
-import {VesselActivity} from "../services/model/aggregated-landing.model";
-import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
-import {VesselActivityValidatorService} from "../services/validator/vessel-activity.validator";
-import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {METIER_DEFAULT_FILTER} from "../../referential/services/metier.service";
-import {ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {FormArrayHelper}  from "@sumaris-net/ngx-components";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
-import {MetierFilter} from "../../referential/services/filter/metier.filter";
+import {DateAdapter} from '@angular/material/core';
+import {Moment} from 'moment';
+import {FormArray, FormBuilder} from '@angular/forms';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {ModalController} from '@ionic/angular';
+import {FormArrayHelper, LocalSettingsService, NetworkService, ReferentialRef, ReferentialUtils} from '@sumaris-net/ngx-components';
+import {AggregatedLandingService} from '../services/aggregated-landing.service';
+import {VesselActivity} from '../services/model/aggregated-landing.model';
+import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
+import {VesselActivityValidatorService} from '../services/validator/vessel-activity.validator';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {MetierFilter} from '@app/referential/services/filter/metier.filter';
 
 @Component({
   selector: 'app-vessel-activity-form',

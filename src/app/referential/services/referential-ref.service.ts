@@ -1,33 +1,40 @@
-import {Injectable} from "@angular/core";
-import {FetchPolicy, gql} from "@apollo/client/core";
-import {BehaviorSubject, Observable} from "rxjs";
-import {map} from "rxjs/operators";
-import {ErrorCodes} from "./errors";
-import {AccountService, BaseEntityGraphqlQueries} from '@sumaris-net/ngx-components';
-import {Referential, ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {ReferentialService} from "./referential.service";
-import {IEntitiesService, LoadResult, SuggestService} from "@sumaris-net/ngx-components";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
+import {Injectable} from '@angular/core';
+import {FetchPolicy, gql} from '@apollo/client/core';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
+import {ErrorCodes} from './errors';
+import {
+  AccountService,
+  BaseEntityGraphqlQueries,
+  BaseGraphqlService,
+  chainPromises,
+  ConfigService,
+  Configuration,
+  EntitiesStorage,
+  fromDateISOString,
+  GraphqlService,
+  IEntitiesService,
+  isEmptyArray,
+  JobUtils,
+  LoadResult,
+  NetworkService,
+  ObjectMap,
+  Referential,
+  ReferentialRef,
+  ReferentialUtils,
+  StatusIds,
+  SuggestService
+} from '@sumaris-net/ngx-components';
+import {ReferentialService} from './referential.service';
 import {LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, TaxonGroupIds, TaxonomicLevelIds} from './model/model.enum';
-import {Metier, TaxonNameRef} from "./model/taxon.model";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {EntitiesStorage}  from "@sumaris-net/ngx-components";
-import {ReferentialFragments} from "./referential.fragments";
-import {SortDirection} from "@angular/material/sort";
-import {Moment} from "moment";
-import {isEmptyArray} from "@sumaris-net/ngx-components";
-import {JobUtils} from "@sumaris-net/ngx-components";
-import {chainPromises} from "@sumaris-net/ngx-components";
-import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
+import {Metier, TaxonNameRef} from './model/taxon.model';
+import {ReferentialFragments} from './referential.fragments';
+import {SortDirection} from '@angular/material/sort';
+import {Moment} from 'moment';
 import {environment} from '@environments/environment';
-import {fromDateISOString} from "@sumaris-net/ngx-components";
-import {ObjectMap} from "@sumaris-net/ngx-components";
-import {TaxonNameRefFilter} from "./filter/taxon-name-ref.filter";
-import {ReferentialRefFilter} from "./filter/referential-ref.filter";
-import {Configuration}  from "@sumaris-net/ngx-components";
-import {REFERENTIAL_CONFIG_OPTIONS} from "./config/referential.config";
-import {ConfigService}  from "@sumaris-net/ngx-components";
+import {TaxonNameRefFilter} from './filter/taxon-name-ref.filter';
+import {ReferentialRefFilter} from './filter/referential-ref.filter';
+import {REFERENTIAL_CONFIG_OPTIONS} from './config/referential.config';
 
 const LastUpdateDate: any = gql`
   query LastUpdateDate{
@@ -118,15 +125,15 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
            }): Observable<LoadResult<ReferentialRef>> {
 
     if (!filter || !filter.entityName) {
-      console.error("[referential-ref-service] Missing filter.entityName");
-      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
+      console.error('[referential-ref-service] Missing filter.entityName');
+      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'};
     }
 
     const entityName = filter.entityName;
     filter = this.asFilter(filter);
 
     const variables: any = {
-      entityName: entityName,
+      entityName,
       offset: offset || 0,
       size: size || 100,
       sortBy: sortBy || filter.searchAttribute || 'label',
@@ -153,8 +160,8 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
           ...variables,
           filter: filter && filter.asPodObject()
         },
-        error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
-        fetchPolicy: opts && opts.fetchPolicy || "cache-first"
+        error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'},
+        fetchPolicy: opts && opts.fetchPolicy || 'cache-first'
       });
     }
 
@@ -197,8 +204,8 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     const entityName = filter && filter.entityName;
     if (!entityName) {
-      console.error("[referential-ref-service] Missing filter.entityName");
-      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
+      console.error('[referential-ref-service] Missing filter.entityName');
+      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'};
     }
 
     filter = this.asFilter(filter);
@@ -225,7 +232,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     const { data, total } = await this.graphql.query<LoadResult<any>>({
       query,
       variables,
-      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || 'cache-first'
     });
 
@@ -241,7 +248,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     const res: LoadResult<ReferentialRef> = {
       data: entities,
       total
-    }
+    };
 
     // Add fetch more capability, if total was fetched
     if (withTotal) {
@@ -266,8 +273,8 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                 }): Promise<LoadResult<ReferentialRef>> {
 
     if (!filter || !filter.entityName) {
-      console.error("[referential-ref-service] Missing argument 'filter.entityName'");
-      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
+      console.error(`[referential-ref-service] Missing argument 'filter.entityName'`);
+      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'};
     }
     const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
     filter = this.asFilter(filter);
@@ -335,7 +342,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                   fetchPolicy?: FetchPolicy;
                 }): Promise<LoadResult<ReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
-    value = (typeof value === "string" && value !== '*') && value || undefined;
+    value = (typeof value === 'string' && value !== '*') && value || undefined;
     return this.loadAll(0, !value ? 30 : 10, sortBy, sortDirection,
       { ...filter, searchText: value},
       { withTotal: true /* Used by autocomplete */ , ...opts }
@@ -357,8 +364,8 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     filter = TaxonNameRefFilter.fromObject(filter);
     if (!filter) {
-      console.error("[referential-ref-service] Missing filter");
-      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
+      console.error('[referential-ref-service] Missing filter');
+      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'};
     }
 
     const variables: any = {
@@ -391,8 +398,8 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
           ...variables,
           filter: filter.asPodObject()
         },
-        error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
-        fetchPolicy: opts && opts.fetchPolicy || "cache-first"
+        error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'},
+        fetchPolicy: opts && opts.fetchPolicy || 'cache-first'
       });
     }
 
@@ -420,7 +427,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
   suggestTaxonNames(value: any, filter?: Partial<TaxonNameRefFilter>): Promise<LoadResult<TaxonNameRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return Promise.resolve({data: [value]});
-    value = (typeof value === "string" && value !== '*') && value || undefined;
+    value = (typeof value === 'string' && value !== '*') && value || undefined;
     return this.loadAllTaxonNames(0, !value ? 20 : 10, undefined, undefined,
       {
         entityName: 'TaxonName',
@@ -458,14 +465,15 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
   /**
    * Get referential references, group by level
+   *
    * @param filter
    * @param groupBy
    * @param opts
    */
   async loadAllGroupByLevels(filter: Partial<ReferentialRefFilter>,
                              groupBy: {
-                               levelIds?: ObjectMap<number[]>
-                               levelLabels?: ObjectMap<string[]>,
+                               levelIds?: ObjectMap<number[]>;
+                               levelLabels?: ObjectMap<string[]>;
                              },
                              opts?: {
                                [key: string]: any;
@@ -475,20 +483,20 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                                toEntity?: boolean;
                              }): Promise<{[key: string]: ReferentialRef[]}> {
     const entityName = filter && filter.entityName;
-    const groupKeys = Object.keys(groupBy.levelIds || groupBy.levelLabels); // AGE, SEX, MATURITY, etc
+    const groupKeys = Object.keys(groupBy.levelIds || groupBy.levelLabels); // AGE, SEX, MATURITY, etc
 
     // Check arguments
-    if (!entityName) throw new Error("Missing 'filter.entityName' argument");
-    if (isEmptyArray(groupKeys)) throw new Error("Missing 'levelLabelsMap' argument");
+    if (!entityName) throw new Error(`Missing 'filter.entityName' argument`);
+    if (isEmptyArray(groupKeys)) throw new Error(`Missing 'levelLabelsMap' argument`);
     if ((groupBy.levelIds && groupBy.levelLabels) || (!groupBy.levelIds && !groupBy.levelLabels)) {
-      throw new Error("Invalid groupBy value: one (and only one) required: 'levelIds' or 'levelLabels'");
+      throw new Error(`Invalid groupBy value: one (and only one) required: 'levelIds' or 'levelLabels'`);
     }
 
     const debug = this._debug || (opts && opts.debug);
     const now = debug && Date.now();
     if (debug) console.debug(`[referential-ref-service] Loading grouped ${entityName}...`);
 
-    const result: { [key: string]: ReferentialRef[]; } = {};
+    const result: { [key: string]: ReferentialRef[] } = {};
     await Promise.all(groupKeys.map(key => this.loadAll(0, 1000, 'id', 'asc', {
         ...filter,
         levelIds: groupBy.levelIds && groupBy.levelIds[key],
@@ -510,7 +518,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
   async executeImport(progression: BehaviorSubject<number>,
                       opts?: {
                         maxProgression?: number;
-                        entityNames?: string[],
+                        entityNames?: string[];
                         statusIds?: number[];
                       }) {
 
@@ -558,7 +566,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                               statusIds?: number[];
                             }) {
     const entityName = opts && opts.entityName;
-    if (!entityName) throw new Error("Missing 'opts.entityName'");
+    if (!entityName) throw new Error(`Missing 'opts.entityName'`);
 
     const maxProgression = opts.maxProgression || 100;
     const logPrefix = this._debug && `[referential-ref-service] [${entityName}]`;
@@ -637,10 +645,10 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
   private updateModelEnumerations(config: Configuration) {
     if (!config.properties) {
-      console.warn("[referential-ref] No properties found in pod config! Skip model enumerations update");
+      console.warn('[referential-ref] No properties found in pod config! Skip model enumerations update');
       return;
     }
-    console.info("[referential-ref] Updating model enumerations...");
+    console.info('[referential-ref] Updating model enumerations...');
 
     // Location Levels
     LocationLevelIds.COUNTRY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_COUNTRY_ID);

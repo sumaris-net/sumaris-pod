@@ -1,12 +1,11 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup, ValidationErrors, Validators} from "@angular/forms";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {Batch, BatchUtils, BatchWeight} from "../model/batch.model";
-import {debounceTime, filter, map, tap} from "rxjs/operators";
-import {isNil, isNotNilOrNaN, toBoolean, toNumber} from "@sumaris-net/ngx-components";
-import {MethodIds} from "../../../referential/services/model/model.enum";
-import {Subject, Subscription} from "rxjs";
+import {Injectable} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {FormBuilder, FormGroup, ValidationErrors, Validators} from '@angular/forms';
+import {isNil, isNotNilOrNaN, SharedValidators, toBoolean, toNumber} from '@sumaris-net/ngx-components';
+import {Batch, BatchUtils, BatchWeight} from '../model/batch.model';
+import {debounceTime, filter, map, tap} from 'rxjs/operators';
+import {MethodIds} from '@app/referential/services/model/model.enum';
+import {Subject, Subscription} from 'rxjs';
 
 @Injectable({providedIn: 'root'})
 export class BatchValidatorService<T extends Batch = Batch> implements ValidatorService {
@@ -73,7 +72,7 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
   }): Subscription {
 
     // Sampling ratio: should be a percentage
-    form.get("samplingRatio").setValidators(
+    form.get('samplingRatio').setValidators(
       Validators.compose([Validators.min(0), Validators.max(100), SharedValidators.double({maxDecimals: 2})])
     );
 
@@ -105,6 +104,7 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
 
   /**
    * Computing weight, samplingWeight or sampling ratio
+   *
    * @param form
    * @param opts
    */

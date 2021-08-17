@@ -38,7 +38,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Input() formControlName: string;
   @Input() placeholder: string;
   @Input() compact = false;
-  @Input() floatLabel: FloatLabelType = "auto";
+  @Input() floatLabel: FloatLabelType = 'auto';
   @Input() tabindex: number;
   @Input() autofocus: boolean;
 
@@ -72,11 +72,11 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
 
   ngOnInit() {
 
-    if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <app-pmfm-field>.");
-    if (typeof this.pmfm !== 'object') throw new Error("Invalid attribute 'pmfm' in <app-pmfm-field>. Should be an object.");
+    if (!this.pmfm) throw new Error(`Missing mandatory attribute 'pmfm' in <app-pmfm-field>.`);
+    if (typeof this.pmfm !== 'object') throw new Error(`Invalid attribute 'pmfm' in <app-pmfm-field>. Should be an object.`);
 
     this.formControl = this.formControl || (this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl);
-    if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-field>.");
+    if (!this.formControl) throw new Error(`Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-field>.`);
 
     this.formControl.setValidators(PmfmValidators.create(this.pmfm));
 
@@ -91,22 +91,22 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
     // Compute the field type (use special case for Latitude/Longitude)
     let type = this.pmfm.type;
     if (this.hidden) {
-      type = "hidden";
+      type = 'hidden';
     }
-    else if (type === "double") {
+    else if (type === 'double') {
       if (PmfmLabelPatterns.LATITUDE.test(this.pmfm.label) ) {
-        type = "latitude";
+        type = 'latitude';
       } else if (PmfmLabelPatterns.LONGITUDE.test(this.pmfm.label)) {
-        type = "longitude";
+        type = 'longitude';
       }
       else if (this.pmfm.unitLabel === UnitLabel.DECIMAL_HOURS || UnitLabelPatterns.DECIMAL_HOURS.test(this.pmfm.unitLabel)) {
-        type = "duration";
+        type = 'duration';
       }
       else {
         this.numberInputStep = this.computeNumberInputStep(this.pmfm);
       }
     }
-    else if (type === "date") {
+    else if (type === 'date') {
       if (this.pmfm.unitLabel === UnitLabel.DATE_TIME || UnitLabelPatterns.DATE_TIME.test(this.pmfm.unitLabel)) {
          type = 'dateTime';
       }
@@ -154,7 +154,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
 
   focus() {
     if (this.hidden) {
-      console.warn("Cannot focus an hidden measurement field!")
+      console.warn('Cannot focus an hidden measurement field!');
     }
     else {
       focusInput(this.matInput);
@@ -168,16 +168,16 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   protected computeNumberInputStep(pmfm: IPmfm): string {
 
     if (pmfm.maximumNumberDecimals > 0) {
-      let step = "0.";
+      let step = '0.';
       if (pmfm.maximumNumberDecimals > 1) {
         for (let i = 0; i < pmfm.maximumNumberDecimals - 1; i++) {
-          step += "0";
+          step += '0';
         }
       }
-      step += "1";
+      step += '1';
       return step;
     } else {
-      return "1";
+      return '1';
     }
   }
 

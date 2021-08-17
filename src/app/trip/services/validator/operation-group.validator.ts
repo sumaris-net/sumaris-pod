@@ -1,17 +1,12 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {
-  DataEntityValidatorOptions,
-  DataEntityValidatorService
-} from "../../../data/services/validator/data-entity.validator";
-import {MeasurementsValidatorService} from "./measurement.validator";
-import {Program} from "../../../referential/services/model/program.model";
-import {OperationGroup} from "../model/trip.model";
+import {Injectable} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {LocalSettingsService, SharedValidators, toBoolean} from '@sumaris-net/ngx-components';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {DataEntityValidatorOptions, DataEntityValidatorService} from '@app/data/services/validator/data-entity.validator';
+import {MeasurementsValidatorService} from './measurement.validator';
+import {Program} from '@app/referential/services/model/program.model';
+import {OperationGroup} from '../model/trip.model';
 
 export interface OperationGroupValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;

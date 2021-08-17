@@ -1,21 +1,24 @@
 import {Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {BehaviorSubject, Observable, of, Subject} from 'rxjs';
+import {BehaviorSubject} from 'rxjs';
 import {debounceTime, filter, map, tap} from 'rxjs/operators';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {ReferentialValidatorService} from '../services/validator/referential.validator';
 import {ReferentialService} from '../services/referential.service';
 import {
   AccountService,
-  AppTable, changeCaseToUnderscore,
+  AppTable,
+  changeCaseToUnderscore,
   DefaultStatusList,
-  EntitiesTableDataSource, EntityUtils,
+  EntitiesTableDataSource,
+  EntityUtils,
   firstNotNilPromise,
   isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
-  Referential, ReferentialRef,
+  Referential,
+  ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   slideUpDownAnimation,
@@ -26,11 +29,10 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
 import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
 import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../../../environments/environment';
+import {environment} from '@environments/environment';
 import {ReferentialFilter} from '../services/filter/referential.filter';
 import {MatExpansionPanel} from '@angular/material/expansion';
 import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
-
 
 
 @Component({
@@ -44,7 +46,7 @@ import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
 })
 export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {
 
-  static DEFAULT_ENTITY_NAME = "Pmfm";
+  static DEFAULT_ENTITY_NAME = 'Pmfm';
   static DEFAULT_I18N_LEVEL_NAME = 'REFERENTIAL.LEVEL';
 
   private _entityName: string;
@@ -61,12 +63,12 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
   canOpenDetail = false;
   detailsPath = {
-    'Program': '/referential/programs/:id',
-    'Software': '/referential/software/:id?label=:label',
-    'Pmfm': '/referential/pmfm/:id?label=:label',
-    'Parameter': '/referential/parameter/:id?label=:label',
-    'ExtractionProduct': '/extraction/product/:id?label=:label',
-    'TaxonName': '/referential/taxonName/:id?label=:label'
+    Program: '/referential/programs/:id',
+    Software: '/referential/software/:id?label=:label',
+    Pmfm: '/referential/pmfm/:id?label=:label',
+    Parameter: '/referential/parameter/:id?label=:label',
+    ExtractionProduct: '/extraction/product/:id?label=:label',
+    TaxonName: '/referential/taxonName/:id?label=:label'
   };
 
   @Input() set showLevelColumn(value: boolean) {
@@ -218,7 +220,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.markAsLoading();
 
     const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY);
-    console.debug("[referentials] Restoring filter from settings...", json);
+    console.debug('[referentials] Restoring filter from settings...', json);
 
     if (json && json.entityName) {
       const filter = this.asFilter(json);
@@ -321,7 +323,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     if (isNotEmptyArray(levels)) {
       const typeName = levels[0].entityName;
-      const i18nLevelName = "REFERENTIAL.ENTITY." + changeCaseToUnderscore(typeName).toUpperCase();
+      const i18nLevelName = 'REFERENTIAL.ENTITY.' + changeCaseToUnderscore(typeName).toUpperCase();
       const levelName = this.translate.instant(i18nLevelName);
       this.i18nLevelName = (levelName !== i18nLevelName) ? levelName : ReferentialsPage.DEFAULT_I18N_LEVEL_NAME;
     }
@@ -341,7 +343,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     if (isNil(entityName)) return undefined;
 
-    const tableName = entityName.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase();
+    const tableName = entityName.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase();
     const key = `REFERENTIAL.ENTITY.${tableName}`;
     let message = self.translate.instant(key);
 
@@ -349,7 +351,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     // No I18n translation: continue
 
     // Use tableName, but replace underscore with space
-    message = tableName.replace(/[_-]+/g, " ").toUpperCase() || '';
+    message = tableName.replace(/[_-]+/g, ' ').toUpperCase() || '';
     // First letter as upper case
     if (message.length > 1) {
       return message.substring(0, 1) + message.substring(1).toLowerCase();
@@ -396,8 +398,8 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     if (path) {
       await this.router.navigateByUrl(path
-        .replace(':id', "new")
-        .replace(':label', ""));
+        .replace(':id', 'new')
+        .replace(':label', ''));
       return true;
     }
 

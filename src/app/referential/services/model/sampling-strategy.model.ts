@@ -1,7 +1,6 @@
-import {Strategy} from "./strategy.model";
-import {Moment} from "moment";
-import {fromDateISOString} from "@sumaris-net/ngx-components";
-import {isNil, toNumber} from "@sumaris-net/ngx-components";
+import {Strategy} from './strategy.model';
+import {Moment} from 'moment';
+import {fromDateISOString, isNil, toNumber} from '@sumaris-net/ngx-components';
 
 export class SamplingStrategy extends Strategy<SamplingStrategy> {
 

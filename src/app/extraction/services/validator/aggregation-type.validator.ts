@@ -1,9 +1,7 @@
-import {Injectable} from "@angular/core";
-import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {AggregationStrata, ExtractionProduct} from "../model/extraction-product.model";
-import {AppValidatorService}  from "@sumaris-net/ngx-components";
-import {toBoolean, toNumber} from "@sumaris-net/ngx-components";
+import {Injectable} from '@angular/core';
+import {FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {AppValidatorService, SharedValidators, toBoolean, toNumber} from '@sumaris-net/ngx-components';
+import {AggregationStrata, ExtractionProduct} from '../model/extraction-product.model';
 
 @Injectable({providedIn: 'root'})
 export class AggregationTypeValidatorService extends AppValidatorService<ExtractionProduct> {

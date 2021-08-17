@@ -42,7 +42,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   @Input() compact = false;
 
-  @Input() floatLabel: FloatLabelType = "auto";
+  @Input() floatLabel: FloatLabelType = 'auto';
 
   @Input() requiredGear = false;
 
@@ -146,9 +146,9 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     );
   }
 
-  setValue(data: Measurement[], opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  setValue(data: Measurement[], opts?: {emitEvent?: boolean; onlySelf?: boolean }) {
     if (this.$loadingControls.getValue()) {
-      throw Error("Form not ready yet. Please use safeSetValue() instead!");
+      throw Error('Form not ready yet. Please use safeSetValue() instead!');
     }
 
     const pmfms = this.$pmfms.getValue();
@@ -177,6 +177,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   /**
    * Wait form is ready, before setting the value to form
+   *
    * @param data
    */
   protected async safeSetValue(data: Measurement[]) {
@@ -334,7 +335,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     return true;
   }
 
-  protected restoreFormStatus(opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  protected restoreFormStatus(opts?: {emitEvent?: boolean; onlySelf?: boolean }) {
     const form = this.form;
     // Restore enable state (because form.setValue() can change it !)
     if (this._enable) {

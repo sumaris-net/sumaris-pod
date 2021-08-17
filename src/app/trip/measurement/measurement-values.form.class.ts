@@ -17,7 +17,6 @@ export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T
 }
 
 @Directive()
-// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>> extends AppForm<T> implements OnInit {
 
   protected _onValueChanged = new EventEmitter<T>();
@@ -48,7 +47,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   @Input() compact = false;
-  @Input() floatLabel: FloatLabelType = "auto";
+  @Input() floatLabel: FloatLabelType = 'auto';
   @Input() requiredStrategy = false;
   @Input() requiredGear = false;
 
@@ -165,7 +164,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
-  setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
+  setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any }) {
     if (!this.isReady() || !this.data) {
       this.safeSetValue(data, opts); // Loop
       return;
@@ -188,7 +187,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.restoreFormStatus({onlySelf: true, emitEvent: opts && opts.emitEvent});
   }
 
-  reset(data?: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
+  reset(data?: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any }) {
     if (!this.isReady() || !this.data) {
       this.safeSetValue(data, opts); // Loop
       return;
@@ -260,12 +259,13 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   /**
    * Wait form is ready, before setting the value to form
+   *
    * @param data
    * @param opts
    */
-  protected async safeSetValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }) {
+  protected async safeSetValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean }) {
     if (!data) {
-      console.warn("Trying to set undefined value to meas form. Skipping");
+      console.warn('Trying to set undefined value to meas form. Skipping');
       return;
     }
 
@@ -495,7 +495,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     return pmfms;
   }
 
-  protected restoreFormStatus(opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  protected restoreFormStatus(opts?: {emitEvent?: boolean; onlySelf?: boolean }) {
     const form = this.measurementValuesForm;
     // Restore enable state (because form.setValue() can change it !)
     if (this._enable) {

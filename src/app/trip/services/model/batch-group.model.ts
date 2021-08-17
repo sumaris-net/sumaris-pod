@@ -1,8 +1,8 @@
-import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from "./batch.model";
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {EntityClass}  from "@sumaris-net/ngx-components";
+import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from './batch.model';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {EntityClass} from '@sumaris-net/ngx-components';
 
-@EntityClass({typename: "BatchGroupVO", fromObjectReuseStrategy: "clone"})
+@EntityClass({typename: 'BatchGroupVO', fromObjectReuseStrategy: 'clone'})
 export class BatchGroup extends Batch<BatchGroup> {
 
   static fromObject: (source: any, opts?: BatchFromObjectOptions) => BatchGroup;
@@ -43,13 +43,14 @@ export class BatchGroupUtils {
     // Retrieve batch group (make sure label start with acquisition level)
     // Then convert into batch group entities
     return (catchBatch.children || [])
-      .filter(s => s.label && s.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH + "#"))
+      .filter(s => s.label && s.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH + '#'))
       // Convert to Batch Group
       .map(BatchGroup.fromBatch);
   }
 
   /**
    * Count only individual count with measure
+   *
    * @param batch
    */
   static computeObservedIndividualCount(batch: BatchGroup) {

@@ -11,7 +11,7 @@ import {isObservable, Observable, of, Subject} from 'rxjs';
 import {createAnimation} from '@ionic/core';
 import {SubBatch} from '../../services/model/subbatch.model';
 import {BatchGroup} from '../../services/model/batch-group.model';
-import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
@@ -25,14 +25,12 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // d
     {provide: ValidatorService, useExisting: SubBatchValidatorService},
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
-      useFactory: () => {
-        return {
+      useFactory: () => ({
           prependNewElements: true,
           suppressErrors: true,
           reservedStartColumns: SUB_BATCH_MODAL_RESERVED_START_COLUMNS,
           reservedEndColumns: SUB_BATCH_MODAL_RESERVED_END_COLUMNS
-        };
-      }
+        })
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -158,7 +156,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
     data$.subscribe(data => {
         // Compute the first rankOrder to save
-        this._initialMaxRankOrder = (data || []).reduce((max, b) => Math.max(max, b.rankOrder || 0), 0);
+        this._initialMaxRankOrder = (data || []).reduce((max, b) => Math.max(max, b.rankOrder || 0), 0);
 
         // Apply data to table
         this.setValue(data);
@@ -209,9 +207,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   async close(event?: Event) {
     if (this.loading) return; // avoid many call
 
-    if (this.debug) console.debug("[sub-batch-modal] Closing modal...");
+    if (this.debug) console.debug('[sub-batch-modal] Closing modal...');
     if (this.debug && this.form && this.form.dirty && this.form.invalid) {
-      AppFormUtils.logFormErrors(this.form.form, "[sub-batch-modal] ");
+      AppFormUtils.logFormErrors(this.form.form, '[sub-batch-modal] ');
       // Continue
     }
 
@@ -238,7 +236,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   editRow(event: MouseEvent, row?: TableElement<SubBatch>): boolean {
 
     row = row || (!this.selection.isEmpty() && this.selection.selected[0]);
-    if (!row) throw new Error ("Missing row argument, or a row selection.");
+    if (!row) throw new Error ('Missing row argument, or a row selection.');
 
     // Confirm last edited row
     if (this.editedRow) {
@@ -372,6 +370,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
   /**
    * When a row has been edited, play a beep and highlight the row (during few seconds)
+   *
    * @param row
    * @pram times duration of highlight
    */

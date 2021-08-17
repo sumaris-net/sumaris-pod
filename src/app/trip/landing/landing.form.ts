@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {Moment} from 'moment';
 import {DateAdapter} from '@angular/material/core';
 import {debounceTime, map} from 'rxjs/operators';
-import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../referential/services/model/model.enum';
+import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '@app/referential/services/model/model.enum';
 import {LandingValidatorService} from '../services/validator/landing.validator';
 import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
@@ -184,7 +184,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     if (isNil(this.locationLevelIds) && this.showLocation) {
       this.locationLevelIds = [LocationLevelIds.PORT];
-      console.debug("[landing-form] Location level ids:", this.locationLevelIds);
+      console.debug('[landing-form] Location level ids:', this.locationLevelIds);
     }
 
     // Combo: programs
@@ -382,12 +382,12 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     modal.onDidDismiss().then(res => {
       // if new vessel added, use it
       if (res &&  res.data instanceof VesselSnapshot) {
-        console.debug("[landing-form] New vessel added : updating form...", res.data);
+        console.debug('[landing-form] New vessel added : updating form...', res.data);
         this.form.get('vesselSnapshot').setValue(res.data);
         this.markForCheck();
       }
       else {
-        console.debug("[landing-form] No vessel added (user cancelled)");
+        console.debug('[landing-form] No vessel added (user cancelled)');
       }
     });
     return modal.present();

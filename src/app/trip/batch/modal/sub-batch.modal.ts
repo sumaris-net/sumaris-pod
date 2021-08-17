@@ -1,16 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {Batch, BatchUtils} from "../../services/model/batch.model";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {IonContent, ModalController} from "@ionic/angular";
-import {BehaviorSubject} from "rxjs";
-import {TranslateService} from "@ngx-translate/core";
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {SubBatchForm} from "../form/sub-batch.form";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {SubBatch} from "../../services/model/subbatch.model";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from '@angular/core';
+import {Batch, BatchUtils} from '../../services/model/batch.model';
+import {AppFormUtils, LocalSettingsService, PlatformService, toBoolean} from '@sumaris-net/ngx-components';
+import {IonContent, ModalController} from '@ionic/angular';
+import {BehaviorSubject} from 'rxjs';
+import {TranslateService} from '@ngx-translate/core';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {PmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {SubBatchForm} from '../form/sub-batch.form';
+import {SubBatch} from '../../services/model/subbatch.model';
 
 @Component({
   selector: 'app-sub-batch-modal',
@@ -108,8 +105,8 @@ export class SubBatchModal implements OnInit {
     if (this.loading) return; // avoid many call
 
     if (this.invalid) {
-      if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-batch-modal] ");
-      this.form.error = "COMMON.FORM.HAS_ERROR";
+      if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sub-batch-modal] ');
+      this.form.error = 'COMMON.FORM.HAS_ERROR';
       this.form.markAsTouched({emitEvent: true});
       return;
     }

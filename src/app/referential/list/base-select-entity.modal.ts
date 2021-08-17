@@ -2,10 +2,9 @@ import {Directive, Input, OnInit, Optional, ViewChild} from '@angular/core';
 import {ModalController} from '@ionic/angular';
 import {AppTable, AppTableDataSourceOptions, EntitiesTableDataSource, IEntitiesService, IEntity, isNotNil, ReferentialRef, toBoolean} from '@sumaris-net/ngx-components';
 import {Subject} from 'rxjs';
-import {environment} from '../../../environments/environment';
+import {environment} from '@environments/environment';
 
 @Directive()
-// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class BaseSelectEntityModal<
   T extends IEntity<T, ID>,
   F = any,
@@ -37,8 +36,8 @@ export abstract class BaseSelectEntityModal<
   ngOnInit() {
 
     // Init table
-    if (!this.table) throw new Error("Missing table child component");
-    if (!this.filter) throw new Error("Missing argument 'filter'");
+    if (!this.table) throw new Error(`Missing table child component`);
+    if (!this.filter) throw new Error(`Missing argument 'filter'`);
 
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);
@@ -66,7 +65,7 @@ export abstract class BaseSelectEntityModal<
     // Load data
     setTimeout(() => {
 
-      this.table.onRefresh.next("modal");
+      this.table.onRefresh.next('modal');
       this.markForCheck();
     }, 200);
   }

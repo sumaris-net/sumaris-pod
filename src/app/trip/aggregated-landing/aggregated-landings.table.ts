@@ -176,7 +176,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
       filter.programLabel = this._program;
       filter.locationId = parent.location && parent.location.id;
       filter.startDate = parent.startDateTime;
-      filter.endDate = parent.endDateTime || moment(parent.startDateTime).add(this._nbDays, "day");
+      filter.endDate = parent.endDateTime || moment(parent.startDateTime).add(this._nbDays, 'day');
     }
     this.setFilter(filter);
   }
@@ -208,7 +208,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
 
     const dates: Moment[] = [];
     for (let d = 0; d < this._nbDays; d++) {
-      dates[d] = moment(this._startDate).add(d, "day");
+      dates[d] = moment(this._startDate).add(d, 'day');
     }
     this.$dates.next(dates);
   }
@@ -255,7 +255,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     if (event && event.defaultPrevented || this.loading) return false;
     if (!this.mobile) return false;
 
-    const today = moment().startOf("day");
+    const today = moment().startOf('day');
     this.markAsLoading();
     this.openModal(event, row, today)
       .then(() => this.markAsLoaded());
@@ -265,7 +265,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   clickCell($event: MouseEvent, row: TableElement<AggregatedLanding>, date: Moment) {
     if ($event) $event.stopPropagation();
     if (this.debug)
-      console.debug('clickCell', $event, row.currentData.vesselSnapshot.exteriorMarking + "|" + row.currentData.vesselActivities.length, date.toISOString());
+      console.debug('clickCell', $event, row.currentData.vesselSnapshot.exteriorMarking + '|' + row.currentData.vesselActivities.length, date.toISOString());
 
     this.markAsLoading();
     this.openModal($event, row, date)

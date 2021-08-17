@@ -6,6 +6,8 @@ import {ErrorCodes} from './errors';
 import {ReferentialFragments} from './referential.fragments';
 import {
   AccountService,
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlQueries,
   EntitiesStorage,
   EntityUtils,
   GraphqlService,
@@ -16,7 +18,8 @@ import {
   LoadResult,
   NetworkService,
   PlatformService,
-  ReferentialAsObjectOptions, ReferentialUtils,
+  ReferentialAsObjectOptions,
+  ReferentialUtils,
   StatusIds
 } from '@sumaris-net/ngx-components';
 import {CacheService} from 'ionic-cache';
@@ -25,7 +28,6 @@ import {Program} from './model/program.model';
 import {SortDirection} from '@angular/material/sort';
 import {ReferentialService} from './referential.service';
 import {ProgramFragments} from './program.fragments';
-import {BaseEntityGraphqlMutations, BaseEntityGraphqlQueries} from '@sumaris-net/ngx-components';
 import {ProgramRefService} from './program-ref.service';
 import {BaseReferentialService} from './base-referential-service.class';
 import {StrategyRefService} from './strategy-ref.service';
@@ -100,6 +102,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
 
   /**
    * Load programs
+   *
    * @param offset
    * @param size
    * @param sortBy
@@ -125,7 +128,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
       filter: dataFilter
     };
     const now = Date.now();
-    if (this._debug) console.debug("[program-service] Watching programs using options:", variables);
+    if (this._debug) console.debug('[program-service] Watching programs using options:', variables);
 
     const query = (!opts || opts.withTotal !== false) ? ProgramQueries.loadAllWithTotal : ProgramQueries.loadAll;
     return this.mutableWatchQuery<LoadResult<any>>({
@@ -134,7 +137,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
       totalFieldName: 'total',
       query,
       variables,
-      error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAMS_ERROR"},
+      error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: 'PROGRAM.ERROR.LOAD_PROGRAMS_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || undefined
     })
       .pipe(
@@ -152,6 +155,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
 
   /**
    * Load programs
+   *
    * @param offset
    * @param size
    * @param sortBy
@@ -165,7 +169,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
            sortDirection?: SortDirection,
            dataFilter?: Partial<ProgramFilter>,
            opts?: {
-             query?: any,
+             query?: any;
              fetchPolicy: FetchPolicy;
              withTotal?: boolean;
              toEntity?: boolean;
@@ -182,7 +186,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     };
     const debug = this._debug && (!opts || opts.debug !== false);
     const now = debug && Date.now();
-    if (debug) console.debug("[program-service] Loading programs... using options:", variables);
+    if (debug) console.debug('[program-service] Loading programs... using options:', variables);
 
     let res: LoadResult<any>;
 
@@ -208,7 +212,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
           ...variables,
           filter: dataFilter && dataFilter.asPodObject()
         },
-        error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAMS_ERROR"},
+        error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: 'PROGRAM.ERROR.LOAD_PROGRAMS_ERROR'},
         fetchPolicy: opts && opts.fetchPolicy || undefined
       });
     }

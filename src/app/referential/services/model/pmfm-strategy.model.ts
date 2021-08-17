@@ -1,11 +1,11 @@
 import {Entity, EntityAsObjectOptions, EntityClass, ReferentialRef, toNumber} from '@sumaris-net/ngx-components';
-import {IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils} from './pmfm.model';
+import {IDenormalizedPmfm, Pmfm, PmfmType, PmfmUtils} from './pmfm.model';
 import {PmfmValue, PmfmValueUtils} from './pmfm-value.model';
 import {MethodIds} from './model.enum';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 
-@EntityClass({typename: "PmfmStrategyVO"})
+@EntityClass({typename: 'PmfmStrategyVO'})
 export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   static fromObject: (source: any, opts?: any) => PmfmStrategy;
@@ -38,7 +38,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
-    target.acquisitionLevel = (target.acquisitionLevel && typeof target.acquisitionLevel === "object" && target.acquisitionLevel.label)
+    target.acquisitionLevel = (target.acquisitionLevel && typeof target.acquisitionLevel === 'object' && target.acquisitionLevel.label)
       || target.acquisitionLevel;
 
     target.pmfmId = toNumber(this.pmfmId, this.pmfm && this.pmfm.id);

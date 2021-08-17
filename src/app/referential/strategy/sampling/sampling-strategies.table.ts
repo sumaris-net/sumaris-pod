@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Output, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {
   AppFormUtils,
   AppTable,
@@ -45,8 +45,8 @@ import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
 const moment = momentImported;
 
 export const SamplingStrategiesPageSettingsEnum = {
-  PAGE_ID: "samplingStrategies",
-  FILTER_KEY: "filter",
+  PAGE_ID: 'samplingStrategies',
+  FILTER_KEY: 'filter',
   FEATURE_ID: SAMPLING_STRATEGIES_FEATURE_NAME
 };
 
@@ -56,7 +56,9 @@ export const SamplingStrategiesPageSettingsEnum = {
   styleUrls: ['sampling-strategies.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplingStrategiesTable extends AppTable<SamplingStrategy, StrategyFilter> {
+export class SamplingStrategiesTable
+  extends AppTable<SamplingStrategy, StrategyFilter>
+  implements OnInit {
 
   private _program: Program;
 
@@ -73,7 +75,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   i18nContext: {
     prefix?: string;
     suffix?: string;
-  } = {}
+  } = {};
 
   @Input() showToolbar = true;
   @Input() canEdit = false;
@@ -91,7 +93,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     return this._program;
   }
 
-  @Output() onNewDataFromRow = new Subject<TableElement<SamplingStrategy>>()
+  @Output() onNewDataFromRow = new Subject<TableElement<SamplingStrategy>>();
 
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
@@ -187,7 +189,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     super.ngOnInit();
 
     // By default, use floating filter if toolbar not shown
-    this.filterPanelFloating = toBoolean(this.filterPanelFloating, !this.showToolbar)
+    this.filterPanelFloating = toBoolean(this.filterPanelFloating, !this.showToolbar);
 
       // Remove error after changed selection
     this.selection.changed.subscribe(() => {
@@ -358,7 +360,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       this.parameterIdsByGroupLabel = await this.loadParameterIdsByGroupLabel();
     }
 
-    console.debug("[root-table] Restoring filter from settings...");
+    console.debug('[root-table] Restoring filter from settings...');
 
     const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
 
@@ -394,11 +396,9 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       // Filter on checked item
       .filter(label => source.parameterGroups[label] === true);
 
-    const parameterIds = checkedParameterGroupLabels.reduce((res, groupLabel) => {
-      return res.concat(this.parameterIdsByGroupLabel[groupLabel]);
-    }, []);
+    const parameterIds = checkedParameterGroupLabels.reduce((res, groupLabel) => res.concat(this.parameterIdsByGroupLabel[groupLabel]), []);
 
-    if (isEmptyArray(parameterIds)) return undefined
+    if (isEmptyArray(parameterIds)) return undefined;
 
     return removeDuplicatesFromArray(parameterIds);
   }
@@ -437,7 +437,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     await Promise.all(this.parameterGroupLabels.map(groupLabel => {
       const parameterLabels = ParameterLabelGroups[groupLabel];
       return this.parameterService.loadAllByLabels(parameterLabels, {toEntity: false, fetchPolicy: 'cache-first'})
-        .then(parameters => result[groupLabel] = parameters.map(p => p.id))
+        .then(parameters => result[groupLabel] = parameters.map(p => p.id));
     }));
     return result;
   }

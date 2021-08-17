@@ -1,21 +1,24 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {AbstractControl, FormGroup} from "@angular/forms";
-import {ReferentialForm} from "../form/referential.form";
-import {ParameterValidatorService} from "../services/validator/parameter.validator";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {Parameter} from "../services/model/parameter.model";
-import {ParameterService} from "../services/parameter.service";
-import {FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
-import {ReferentialRefService} from "../services/referential-ref.service";
-import {referentialToString, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {HistoryPageReference}  from "@sumaris-net/ngx-components";
-import {fadeInOutAnimation} from "@sumaris-net/ngx-components";
-import {AppEntityEditor}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {isNil} from "@sumaris-net/ngx-components";
-import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
-import {SimpleReferentialTable} from "../list/referential-simple.table";
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {AbstractControl, FormGroup} from '@angular/forms';
+import {ReferentialForm} from '../form/referential.form';
+import {ParameterValidatorService} from '../services/validator/parameter.validator';
+import {
+  AccountService,
+  AppEntityEditor,
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  FormFieldDefinitionMap,
+  HistoryPageReference,
+  isNil,
+  referentialToString,
+  ReferentialUtils
+} from '@sumaris-net/ngx-components';
+import {Parameter} from '../services/model/parameter.model';
+import {ParameterService} from '../services/parameter.service';
+import {ReferentialRefService} from '../services/referential-ref.service';
+import {environment} from '@environments/environment';
+import {SimpleReferentialTable} from '../list/referential-simple.table';
 
 @Component({
   selector: 'app-parameter',
@@ -59,7 +62,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
     this.form = validatorService.getFormGroup();
 
     // default values
-    this.defaultBackHref = "/referential/parameter";
+    this.defaultBackHref = '/referential/parameter';
     this.canEdit = this.accountService.isAdmin();
     this.tabCount = 2;
 
@@ -72,9 +75,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
         type: 'enum',
         required: true,
         values: ['double', 'string', 'qualitative_value', 'date', 'boolean']
-          .map(key => {
-            return {key, value: ('REFERENTIAL.PARAMETER.TYPE_ENUM.' + key.toUpperCase()) };
-          })
+          .map(key => ({key, value: ('REFERENTIAL.PARAMETER.TYPE_ENUM.' + key.toUpperCase()) }))
       }
     };
   }

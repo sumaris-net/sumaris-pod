@@ -1,9 +1,8 @@
-import {AbstractControlOptions, FormBuilder, Validators} from "@angular/forms";
-import {isNotNil, toNumber} from "@sumaris-net/ngx-components";
-import {SharedFormGroupValidators, SharedValidators} from "@sumaris-net/ngx-components";
-import {Injectable} from "@angular/core";
-import {ReferentialValidatorService} from "./referential.validator";
-import {Pmfm} from "../model/pmfm.model";
+import {AbstractControlOptions, FormBuilder, Validators} from '@angular/forms';
+import {isNotNil, SharedValidators, toNumber} from '@sumaris-net/ngx-components';
+import {Injectable} from '@angular/core';
+import {ReferentialValidatorService} from './referential.validator';
+import {Pmfm} from '../model/pmfm.model';
 
 
 @Injectable({providedIn: 'root'})

@@ -60,7 +60,7 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> implements OnInit 
     this.form = validatorService.getFormGroup();
 
     // default values
-    this.defaultBackHref = "/referential/taxonName";
+    this.defaultBackHref = '/referential/taxonName';
     this.canEdit = this.accountService.isAdmin();
     this.tabCount = 1;
 

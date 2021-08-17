@@ -229,21 +229,16 @@ const LandingSubscriptions: BaseEntityGraphqlSubscriptions = {
 };
 
 
-const sortByDateOrIdFn = (n1: Landing, n2: Landing) => {
-  return n1.dateTime.isSame(n2.dateTime)
+const sortByDateOrIdFn = (n1: Landing, n2: Landing) =>
+  n1.dateTime.isSame(n2.dateTime)
     ? (n1.id === n2.id ? 0 : n1.id > n2.id ? 1 : -1)
     : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1);
-};
 
-const sortByAscRankOrder = (n1: Landing, n2: Landing) => {
-  return n1.rankOrder === n2.rankOrder ? 0 :
-    (n1.rankOrder > n2.rankOrder ? 1 : -1);
-};
+const sortByAscRankOrder = (n1: Landing, n2: Landing) =>
+  n1.rankOrder === n2.rankOrder ? 0 : (n1.rankOrder > n2.rankOrder ? 1 : -1);
 
-const sortByDescRankOrder = (n1: Landing, n2: Landing) => {
-  return n1.rankOrder === n2.rankOrder ? 0 :
-    (n1.rankOrder > n2.rankOrder ? -1 : 1);
-};
+const sortByDescRankOrder = (n1: Landing, n2: Landing) =>
+  n1.rankOrder === n2.rankOrder ? 0 : (n1.rankOrder > n2.rankOrder ? -1 : 1);
 
 @Injectable({providedIn: 'root'})
 export class LandingService extends BaseRootDataService<Landing, LandingFilter>
@@ -269,11 +264,11 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     );
   }
 
-  async loadAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
+  async loadAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
     return firstNotNilPromise(this.watchAllByObservedLocation(filter, opts));
   }
 
-  watchAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
+  watchAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number }, opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
     return this.watchAll(0, -1, null, null, filter, opts);
   }
 
@@ -309,7 +304,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     };
 
     let now = this._debug && Date.now();
-    if (this._debug) console.debug("[landing-service] Watching landings... using variables:", variables);
+    if (this._debug) console.debug('[landing-service] Watching landings... using variables:', variables);
 
     const fullLoad = (opts && opts.fullLoad === true);
     const withTotal = (!opts || opts.withTotal !== false);
@@ -319,11 +314,11 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     return this.mutableWatchQuery<LoadResult<any>>({
         queryName: 'LoadAll',
         query,
-        arrayFieldName: "data",
-        totalFieldName: withTotal ? "total" : undefined,
+        arrayFieldName: 'data',
+        totalFieldName: withTotal ? 'total' : undefined,
         insertFilterFn: dataFilter && dataFilter.asFilterFn(),
         variables,
-        error: {code: ErrorCodes.LOAD_LANDINGS_ERROR, message: "LANDING.ERROR.LOAD_ALL_ERROR"},
+        error: {code: ErrorCodes.LOAD_LANDINGS_ERROR, message: 'LANDING.ERROR.LOAD_ALL_ERROR'},
         fetchPolicy: opts && opts.fetchPolicy || undefined
       })
         .pipe(
@@ -373,7 +368,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
   }
 
   async load(id: number, options?: EntityServiceLoadOptions): Promise<Landing> {
-    if (isNil(id)) throw new Error("Missing argument 'id'");
+    if (isNil(id)) throw new Error(`Missing argument 'id'`);
 
     const now = Date.now();
     if (this._debug) console.debug(`[landing-service] Loading landing {${id}}...`);
@@ -392,9 +387,9 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         const res = await this.graphql.query<{ data: any }>({
           query: this.queries.load,
           variables: {
-            id: id
+            id
           },
-          error: {code: ErrorCodes.LOAD_LANDING_ERROR, message: "LANDING.ERROR.LOAD_ERROR"},
+          error: {code: ErrorCodes.LOAD_LANDING_ERROR, message: 'LANDING.ERROR.LOAD_ERROR'},
           fetchPolicy: options && options.fetchPolicy || undefined
         });
         data = res && res.data;
@@ -430,14 +425,14 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       });
 
     const now = Date.now();
-    if (this._debug) console.debug("[landing-service] Saving landings...", json);
+    if (this._debug) console.debug('[landing-service] Saving landings...', json);
 
     await this.graphql.mutate<LoadResult<any>>({
       mutation: this.mutations.saveAll,
       variables: {
         data: json
       },
-      error: {code: ErrorCodes.SAVE_LANDINGS_ERROR, message: "LANDING.ERROR.SAVE_ALL_ERROR"},
+      error: {code: ErrorCodes.SAVE_LANDINGS_ERROR, message: 'LANDING.ERROR.SAVE_ALL_ERROR'},
       update: (proxy, {data}) => {
 
         if (this._debug) console.debug(`[landing-service] Landings saved remotely in ${Date.now() - now}ms`);
@@ -484,7 +479,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     }
 
     const now = Date.now();
-    if (this._debug) console.debug("[landing-service] Saving a landing...", entity);
+    if (this._debug) console.debug('[landing-service] Saving a landing...', entity);
 
     // Prepare to save
     this.fillDefaultProperties(entity, opts);
@@ -507,7 +502,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     // Transform into json
     const json = this.asObject(entity, MINIFY_ENTITY_FOR_POD);
-    if (this._debug) console.debug("[landing-service] Using minify object, to send:", json);
+    if (this._debug) console.debug('[landing-service] Using minify object, to send:', json);
 
     await this.graphql.mutate<{ data: any }>({
       mutation: this.mutations.save,
@@ -515,7 +510,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         data: json
       },
       offlineResponse,
-      error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "ERROR.SAVE_ERROR"},
+      error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: 'ERROR.SAVE_ERROR'},
       update: async (proxy, {data}) => {
         const savedEntity = data && data.data ;
 
@@ -557,10 +552,11 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
   /**
    * Delete landing locally (from the entity storage)
+   *
    * @param filter (required observedLocationId)
    */
-  async deleteLocally(filter: Partial<LandingFilter> & { observedLocationId: number; }): Promise<Landing[]> {
-    if (!filter || isNil(filter.observedLocationId)) throw new Error("Missing arguments 'filter.observedLocationId'");
+  async deleteLocally(filter: Partial<LandingFilter> & { observedLocationId: number }): Promise<Landing[]> {
+    if (!filter || isNil(filter.observedLocationId)) throw new Error(`Missing arguments 'filter.observedLocationId'`);
 
     const dataFilter = this.asFilter(filter);
     const variables = {
@@ -596,11 +592,11 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     dataFilter = LandingFilter.fromObject(dataFilter);
 
     if (!dataFilter || dataFilter.isEmpty()) {
-      console.warn("[landing-service] Trying to watch landings without 'filter': skipping.");
+      console.warn(`[landing-service] Trying to watch landings without 'filter': skipping.`);
       return EMPTY;
     }
-    if (isNotNil(dataFilter.observedLocationId) && dataFilter.observedLocationId >= 0) throw new Error("Invalid 'filter.observedLocationId': must be a local ID (id<0)!");
-    if (isNotNil(dataFilter.tripId) && dataFilter.tripId >= 0) throw new Error("Invalid 'filter.tripId': must be a local ID (id<0)!");
+    if (isNotNil(dataFilter.observedLocationId) && dataFilter.observedLocationId >= 0) throw new Error(`Invalid 'filter.observedLocationId': must be a local ID (id<0)!`);
+    if (isNotNil(dataFilter.tripId) && dataFilter.tripId >= 0) throw new Error(`Invalid 'filter.tripId': must be a local ID (id<0)!`);
 
     const variables = {
       offset: offset || 0,
@@ -644,7 +640,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       .map(t => t.id)
       .filter(id => id < 0);
     if (isNotEmptyArray(localIds)) {
-      if (this._debug) console.debug("[landing-service] Deleting landings locally... ids:", localIds);
+      if (this._debug) console.debug('[landing-service] Deleting landings locally... ids:', localIds);
       await this.entities.deleteMany<Landing>(localIds, {entityName: Landing.TYPENAME});
     }
 
@@ -654,7 +650,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     if (isEmptyArray(ids)) return; // stop, if nothing else to do
 
     const now = Date.now();
-    if (this._debug) console.debug("[landing-service] Deleting landings... ids:", ids);
+    if (this._debug) console.debug('[landing-service] Deleting landings... ids:', ids);
 
     await this.graphql.mutate<any>({
       mutation: this.mutations.deleteAll,
@@ -673,14 +669,14 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
 
   listenChanges(id: number): Observable<Landing> {
-    if (!id && id !== 0) throw new Error("Missing argument 'id'");
+    if (!id && id !== 0) throw new Error(`Missing argument 'id'`);
 
     if (this._debug) console.debug(`[landing-service] [WS] Listening changes for trip {${id}}...`);
 
-    return this.graphql.subscribe<{ data: any }, { id: number, interval: number }>({
+    return this.graphql.subscribe<{ data: any }, { id: number; interval: number }>({
       query: this.subscriptions.listenChanges,
       variables: {
-        id: id,
+        id,
         interval: 10
       },
       error: {
@@ -718,7 +714,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
   async executeImport(progression: BehaviorSubject<number>,
                 opts?: {
                   maxProgression?: number;
-                  filter?: LandingFilter|any
+                  filter?: LandingFilter|any;
                 }) {
     const now = this._debug && Date.now();
     const maxProgression = opts && opts.maxProgression || 100;
@@ -732,7 +728,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     const {data} = await JobUtils.fetchAllPages<any>((offset, size) =>
         this.loadAll(offset, size, 'id', null, filter, {
-          fetchPolicy: "no-cache", // Skip cache
+          fetchPolicy: 'no-cache', // Skip cache
           fullLoad: false,
           toEntity: false
         }),
@@ -769,6 +765,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
   /**
    * Save into the local storage
+   *
    * @param data
    */
   protected async saveLocally(entity: Landing, opts?: LandingSaveOptions): Promise<Landing> {
@@ -851,6 +848,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
   /**
    * Copy Id and update, in sample tree (recursively)
+   *
    * @param sources
    * @param targets
    */

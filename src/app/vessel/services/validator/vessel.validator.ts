@@ -1,11 +1,10 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Vessel} from "../model/vessel.model";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {VesselFeaturesValidatorService} from "./vessel-features.validator";
-import {VesselRegistrationValidatorService} from "./vessel-registration.validator";
-import {toNumber} from "@sumaris-net/ngx-components";
+import {Injectable} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {Vessel} from '../model/vessel.model';
+import {SharedValidators, toNumber} from '@sumaris-net/ngx-components';
+import {VesselFeaturesValidatorService} from './vessel-features.validator';
+import {VesselRegistrationValidatorService} from './vessel-registration.validator';
 
 @Injectable({providedIn: 'root'})
 export class VesselValidatorService implements ValidatorService {

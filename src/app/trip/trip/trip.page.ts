@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, ViewChild, ViewEncapsulation} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
 
 import {TripService} from '../services/trip.service';
 import {TripForm} from './trip.form';
@@ -7,8 +7,8 @@ import {OperationsTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
 import * as momentImported from 'moment';
-import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum';
-import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
 import {FormGroup} from '@angular/forms';
 import {
   Alerts,
@@ -31,12 +31,12 @@ import {PhysicalGear, Trip} from '../services/model/trip.model';
 import {SelectPhysicalGearModal} from '../physicalgear/select-physical-gear.modal';
 import {ModalController} from '@ionic/angular';
 import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
-import {ProgramProperties} from '../../referential/services/config/program.config';
-import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
 import {debounceTime, filter, first} from 'rxjs/operators';
 import {TableElement} from '@e-is/ngx-material-table';
-import {Program} from '../../referential/services/model/program.model';
-import {environment} from '../../../environments/environment';
+import {Program} from '@app/referential/services/model/program.model';
+import {environment} from '@environments/environment';
 
 const moment = momentImported;
 
@@ -56,7 +56,7 @@ const TripPageTabs = {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripPage extends AppRootDataEditor<Trip, TripService> {
+export class TripPage extends AppRootDataEditor<Trip, TripService> implements AfterViewInit {
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   showSaleForm = false;
@@ -90,7 +90,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
         tabCount: 3,
         autoOpenNextTab: !platform.mobile
       });
-    this.defaultBackHref = "/trips";
+    this.defaultBackHref = '/trips';
     this.mobile = platform.mobile;
 
     // FOR DEV ONLY ----
@@ -163,7 +163,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {
       const subscription = this.network.onNetworkStatusChanges
-        .pipe(filter(status => status === "none"))
+        .pipe(filter(status => status === 'none'))
         .subscribe(status => {
           this.operationsTable.showMap = false;
           this.markForCheck();
@@ -185,7 +185,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     if (this.isOnFieldMode) {
       data.departureDateTime = moment();
 
-      console.debug("[trip] New entity: set default values...");
+      console.debug('[trip] New entity: set default values...');
 
       // Fil defaults, using filter applied on trips table
       const searchFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
@@ -228,7 +228,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     this.showOperationTable = false;
   }
 
-  updateViewState(data: Trip, opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+  updateViewState(data: Trip, opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
     super.updateViewState(data, opts);
 
     // Update tabs state (show/hide)
@@ -263,7 +263,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     }
   }
 
-  async onOpenOperation({id, row}: { id?: number; row: TableElement<any>; }) {
+  async onOpenOperation({id, row}: { id?: number; row: TableElement<any> }) {
 
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
@@ -335,6 +335,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
 
   /**
    * Open a modal to select a previous gear
+   *
    * @param event
    */
   async openSelectPreviousGearsModal(event: PromiseEvent<PhysicalGear>) {
@@ -367,7 +368,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     // On dismiss
     const res = await modal.onDidDismiss();
 
-    console.debug("[trip] Result of select gear modal:", res);
+    console.debug('[trip] Result of select gear modal:', res);
     if (res && res.data && isNotEmptyArray(res.data)) {
       // Cal resolve callback
       event.detail.success(res.data[0]);

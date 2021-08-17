@@ -81,7 +81,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         onSort: (data, sortBy, sortDirection) => this.sortData(data, sortBy, sortDirection),
         onLoad: (data) => this.onLoadData(data),
         equals: Sample.equals,
-        sortByReplacement: {'id': 'rankOrder'}
+        sortByReplacement: {id: 'rankOrder'}
       }),
       injector.get(ValidatorService),
       {
@@ -153,14 +153,14 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     // Skip when disabled or still editing a row
     if (this.disabled || !this.confirmEditCreate()) {
-      console.warn("[sub-samples-table] Skipping autofill, as table is disabled or still editing a row");
+      console.warn('[sub-samples-table] Skipping autofill, as table is disabled or still editing a row');
       return;
     }
 
     this.markAsLoading();
 
     try {
-      console.debug("[sub-sample-table] Auto fill table");
+      console.debug('[sub-sample-table] Auto fill table');
 
       // Read existing rows
       const existingSamples = (await this.dataSource.getRows() || []).map(r => r.currentData);
@@ -186,6 +186,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   /**
    * Allow to set value
+   *
    * @param data
    */
   setValue(data: Sample[]) {
@@ -203,14 +204,14 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   }
 
   protected async onNewEntity(data: Sample): Promise<void> {
-    console.debug("[sample-table] Initializing new row data...");
+    console.debug('[sample-table] Initializing new row data...');
 
     await super.onNewEntity(data);
 
     // label
     if (!this.showLabelColumn) {
       // Generate label
-      data.label = this.acquisitionLevel + "#" + data.rankOrder;
+      data.label = this.acquisitionLevel + '#' + data.rankOrder;
     }
   }
 
@@ -233,7 +234,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         id: toNumber(s.parentId, s.parent && s.parent.id),
         label: s.parent && s.parent.label
       }));
-      if (!s.parent) console.warn("[sub-samples-table] linkDataToParent() - Could not found parent for sub-sample:", s);
+      if (!s.parent) console.warn('[sub-samples-table] linkDataToParent() - Could not found parent for sub-sample:', s);
     });
   }
 
@@ -302,7 +303,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     if (EntityUtils.isNotEmpty(value, 'label')) {
       return [value];
     }
-    value = (typeof value === "string" && value !== "*") && value || undefined;
+    value = (typeof value === 'string' && value !== '*') && value || undefined;
     if (isNil(value)) return this._availableSortedParents; // All
 
     if (this.debug) console.debug(`[sub-sample-table] Searching parent {${value || '*'}}...`);

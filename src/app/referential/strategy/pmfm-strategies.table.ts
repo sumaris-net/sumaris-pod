@@ -4,7 +4,8 @@ import {
   AppTableDataSourceOptions,
   changeCaseToUnderscore,
   EntityClass,
-  EntityFilter, EntityUtils,
+  EntityFilter,
+  EntityUtils,
   FilterFn,
   firstFalsePromise,
   FormFieldDefinition,
@@ -14,7 +15,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
@@ -356,18 +356,18 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     await this.waitReferentialReady();
 
-    console.debug("[pmfm-strategy-table] Adapt loaded data to table...");
+    console.debug('[pmfm-strategy-table] Adapt loaded data to table...');
 
     const acquisitionLevels = this.$acquisitionLevels.getValue();
 
     return data.map(source => {
       const target: any = source instanceof PmfmStrategy ? source.asObject() : source;
-      if (typeof target.acquisitionLevel === "string"){
+      if (typeof target.acquisitionLevel === 'string'){
         target.acquisitionLevel = acquisitionLevels.find(i => i.label === target.acquisitionLevel);
       }
 
       if (isNotNil(target.defaultValue)) {
-        console.debug("[pmfm-strategy-table] TODO check default value is valid: ", target.defaultValue);
+        console.debug('[pmfm-strategy-table] TODO check default value is valid: ', target.defaultValue);
       }
       target.defaultValue = target.pmfm && PmfmValueUtils.fromModelValue(target.defaultValue, target.pmfm);
 
@@ -376,7 +376,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   }
 
   protected async onSave(data: PmfmStrategy[]): Promise<PmfmStrategy[]> {
-    console.debug("[pmfm-strategy-table] Saving...", data);
+    console.debug('[pmfm-strategy-table] Saving...', data);
 
     // Convert to JSON
     //return data.map(source => source instanceof PmfmStrategy ? source.asObject() : source);
@@ -452,7 +452,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   }
 
   protected async loadReferential() {
-    console.debug("[pmfm-strategy-table] Loading referential items...");
+    console.debug('[pmfm-strategy-table] Loading referential items...');
     this.markAsLoading();
 
     this.$loadingReferential.next(true);
@@ -462,7 +462,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         this.loadAcquisitionLevels()
       ]);
 
-      console.debug("[pmfm-strategy-table] Loaded referential items");
+      console.debug('[pmfm-strategy-table] Loaded referential items');
     } catch (err) {
       this.error = err && err.message || err;
       this.markForCheck();
@@ -524,6 +524,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   /**
    * Compute a PMFM.NAME, with the last part of the name
+   *
    * @param pmfm
    * @param opts
    */

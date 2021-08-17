@@ -1,15 +1,7 @@
-import {
-  EntityClass,
-  ReferentialAsObjectOptions,
-  ReferentialRef,
-  ReferentialUtils
-} from '@sumaris-net/ngx-components';
+import {EntityClass, equalsOrNil, FilterFn, IEntity, isNotNil, isNotNilOrBlank, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils} from '@sumaris-net/ngx-components';
 import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {IEntityWithMeasurement, MeasurementFormValues, MeasurementValuesUtils} from "./measurement.model";
-import {equalsOrNil, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
-import {IEntity}  from "@sumaris-net/ngx-components";
-import {Sample} from "./sample.model";
-import {FilterFn} from "@sumaris-net/ngx-components";
+import {IEntityWithMeasurement, MeasurementFormValues, MeasurementValuesUtils} from './measurement.model';
+import {Sample} from './sample.model';
 import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
@@ -159,6 +151,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
 
   /**
    * This equals function should also works with SaleProduct
+   *
    * @param other
    */
   equals(other: Product): boolean {

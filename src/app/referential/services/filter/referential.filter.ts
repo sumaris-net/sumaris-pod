@@ -1,11 +1,18 @@
-import {EntityFilter, ReferentialRef} from '@sumaris-net/ngx-components';
-import {IReferentialRef, Referential}  from "@sumaris-net/ngx-components";
-import {EntityAsObjectOptions, EntityUtils}  from "@sumaris-net/ngx-components";
-import {isNil, isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {FilterFn} from "@sumaris-net/ngx-components";
-import {EntityClass}  from "@sumaris-net/ngx-components";
-import {toDateISOString} from "@sumaris-net/ngx-components";
+import {
+  EntityAsObjectOptions,
+  EntityClass,
+  EntityFilter,
+  EntityUtils,
+  FilterFn,
+  IReferentialRef,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  Referential,
+  ReferentialRef,
+  StatusIds,
+  toDateISOString
+} from '@sumaris-net/ngx-components';
 
 export abstract class BaseReferentialFilter<
   F extends EntityFilter<F, T, ID, AO, FO>,

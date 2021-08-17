@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
 
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import * as momentImported from 'moment';
@@ -55,7 +55,7 @@ const moment = momentImported;
   providers: [{provide: AppRootDataEditor, useExisting: LandedTripPage}],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LandedTripPage extends AppRootDataEditor<Trip, TripService> implements OnInit {
+export class LandedTripPage extends AppRootDataEditor<Trip, TripService> implements OnInit, OnDestroy {
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   observedLocationId: number;
@@ -153,8 +153,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     .pipe(first())
     .subscribe(queryParams => {
 
-      const tabIndex = queryParams["tab"] && parseInt(queryParams["tab"]) || 0;
-      const subTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]) || 0;
+      const tabIndex = queryParams['tab'] && parseInt(queryParams['tab']) || 0;
+      const subTabIndex = queryParams['subtab'] && parseInt(queryParams['subtab']) || 0;
 
       // Update catch tab index
       if (this.catchTabGroup && tabIndex === 2) {
@@ -239,7 +239,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     console.info(options);
     if (options && options.observedLocationId) {
 
-      console.debug("[landedTrip-page] New entity: settings defaults...");
+      console.debug('[landedTrip-page] New entity: settings defaults...');
       this.observedLocationId = parseInt(options.observedLocationId);
       const observedLocation = await this.getObservedLocationById(this.observedLocationId);
 
@@ -263,7 +263,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
         }
       }
     } else {
-      throw new Error("[landedTrip-page] the observedLocationId must be present");
+      throw new Error('[landedTrip-page] the observedLocationId must be present');
     }
 
     const queryParams = this.route.snapshot.queryParams;
@@ -306,7 +306,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     // Load parent observed location
     if (isNotNil(observedLocationId)) {
       console.debug(`[landedTrip-page] Loading parent observed location ${observedLocationId}...`);
-      return this.observedLocationService.load(observedLocationId, {fetchPolicy: "cache-first"});
+      return this.observedLocationService.load(observedLocationId, {fetchPolicy: 'cache-first'});
     } else {
       throw new Error('No parent found in path. landed trip without parent not implemented yet !');
     }
@@ -510,6 +510,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   /**
    * Compute the title
+   *
    * @param data
    */
   protected async computeTitle(data: Trip) {

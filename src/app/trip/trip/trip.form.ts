@@ -104,7 +104,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   @Input() set locationLevelIds(value: number[]) {
     if (this.locationFilter.levelIds !== value) {
 
-      console.debug("[trip-form] Location level ids:", value);
+      console.debug('[trip-form] Location level ids:', value);
       this.locationFilter = {
         ...this.locationFilter,
         entityName: 'Location',
@@ -309,11 +309,11 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       const vesselSnapshot = (vessel instanceof VesselSnapshot)
         ? vessel
         : ((vessel instanceof Vessel) ? VesselSnapshot.fromVessel(vessel) : VesselSnapshot.fromObject(vessel));
-      console.debug("[trip-form] New vessel added : updating form...", vesselSnapshot);
+      console.debug('[trip-form] New vessel added : updating form...', vesselSnapshot);
       this.form.controls['vesselSnapshot'].setValue(vesselSnapshot);
       this.markForCheck();
     } else {
-      console.debug("[trip-form] No vessel added (user cancelled)");
+      console.debug('[trip-form] No vessel added (user cancelled)');
     }
   }
 
@@ -391,7 +391,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   }
 
   protected updateMetierFilter(value?: Trip) {
-    console.debug("[trip-form] Updating metier filter...");
+    console.debug('[trip-form] Updating metier filter...');
     value = value || this.form.value as Trip;
     const program = value.program || this.form.get('program').value;
     const programLabel = program && program.label;

@@ -1,27 +1,19 @@
-import {Injectable} from "@angular/core";
-import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {Observable} from "rxjs";
-import {map} from "rxjs/operators";
+import {Injectable} from '@angular/core';
+import {FetchPolicy, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 
-import {ErrorCodes} from "../../trip/services/trip.errors";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType} from "./model/extraction-type.model";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {FeatureCollection} from "geojson";
-import {Fragments} from "../../trip/services/trip.queries";
-import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
-import {ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {SortDirection} from "@angular/material/sort";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {ExtractionProduct, IAggregationStrata} from "./model/extraction-product.model";
-import {ExtractionFragments, ExtractionService} from "./extraction.service";
-import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
-import {isNil, isNotNil} from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {ExtractionProductFilter} from "./filter/extraction-product.filter";
-import {LoadResult} from "@sumaris-net/ngx-components";
+import {ErrorCodes} from '@app/trip/services/trip.errors';
+import {AccountService, BaseGraphqlService, EntityUtils, firstNotNilPromise, GraphqlService, isNil, isNotNil, LoadResult, ReferentialUtils, StatusIds} from '@sumaris-net/ngx-components';
+import {ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType} from './model/extraction-type.model';
+import {FeatureCollection} from 'geojson';
+import {Fragments} from '@app/trip/services/trip.queries';
+import {SAVE_AS_OBJECT_OPTIONS} from '@app/data/services/model/data-entity.model';
+import {SortDirection} from '@angular/material/sort';
+import {ExtractionProduct, IAggregationStrata} from './model/extraction-product.model';
+import {ExtractionFragments, ExtractionService} from './extraction.service';
+import {environment} from '@environments/environment';
+import {ExtractionProductFilter} from './filter/extraction-product.filter';
 
 
 export const AggregationFragments = {
@@ -168,7 +160,7 @@ export class ExtractionProductService extends BaseGraphqlService {
   watchAll(dataFilter?: Partial<ExtractionProductFilter>,
            options?: { fetchPolicy?: WatchQueryFetchPolicy }
   ): Observable<ExtractionProduct[]> {
-    if (this._debug) console.debug("[product-service] Loading products...");
+    if (this._debug) console.debug('[product-service] Loading products...');
 
     dataFilter = this.asFilter(dataFilter);
 
@@ -182,7 +174,7 @@ export class ExtractionProductService extends BaseGraphqlService {
       arrayFieldName: 'data',
       insertFilterFn: dataFilter && dataFilter.asFilterFn(),
       variables,
-      error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR"},
+      error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: 'EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR'},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     })
       .pipe(
@@ -191,14 +183,14 @@ export class ExtractionProductService extends BaseGraphqlService {
   }
 
   async load(id: number, options?: {
-    fetchPolicy?: FetchPolicy
+    fetchPolicy?: FetchPolicy;
   }): Promise<ExtractionProduct> {
     const data = await this.graphql.query<{ aggregationType: ExtractionProduct }>({
       query: LoadTypeQuery,
       variables: {
         id
       },
-      error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPE_ERROR"},
+      error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: 'EXTRACTION.ERROR.LOAD_GEO_TYPE_ERROR'},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
 
@@ -207,6 +199,7 @@ export class ExtractionProductService extends BaseGraphqlService {
 
   /**
    * Load columns metadata
+   *
    * @param type
    * @param sheetName
    * @param options
@@ -215,7 +208,7 @@ export class ExtractionProductService extends BaseGraphqlService {
     type: ExtractionType,
     sheetName?: string,
     options?: {
-      fetchPolicy?: FetchPolicy
+      fetchPolicy?: FetchPolicy;
     }): Promise<ExtractionColumn[]> {
 
     const variables: any = {
@@ -227,11 +220,11 @@ export class ExtractionProductService extends BaseGraphqlService {
     };
 
     const now = Date.now();
-    if (this._debug) console.debug("[product-service] Loading columns... using options:", variables);
+    if (this._debug) console.debug('[product-service] Loading columns... using options:', variables);
     const res = await this.graphql.query<{ aggregationColumns: ExtractionColumn[] }>({
       query: LoadAggColumnsQuery,
-      variables: variables,
-      error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
+      variables,
+      error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: 'EXTRACTION.ERROR.LOAD_ROWS_ERROR'},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
     if (!res || !res.aggregationColumns) return null;
@@ -255,7 +248,7 @@ export class ExtractionProductService extends BaseGraphqlService {
                     sortDirection?: SortDirection,
                     filter?: ExtractionFilter,
                     options?: {
-                      fetchPolicy?: FetchPolicy
+                      fetchPolicy?: FetchPolicy;
                     }): Promise<FeatureCollection> {
     options = options || {};
 
@@ -264,16 +257,16 @@ export class ExtractionProductService extends BaseGraphqlService {
         category: type.category,
         label: type.label
       },
-      strata: strata,
-      filter: filter,
+      strata,
+      filter,
       offset: offset || 0,
       size: size >= 0 ? size : 1000
     };
 
     const res = await this.graphql.query<{ aggregationGeoJson: any }>({
       query: LoadAggGeoJsonQuery,
-      variables: variables,
-      error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_JSON_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_JSON_ERROR"},
+      variables,
+      error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_JSON_ERROR, message: 'EXTRACTION.ERROR.LOAD_GEO_JSON_ERROR'},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
     if (!res || !res.aggregationGeoJson) return null;
@@ -282,20 +275,20 @@ export class ExtractionProductService extends BaseGraphqlService {
   }
 
   async loadAggByTech(type: ExtractionType, strata: IAggregationStrata, filter: ExtractionFilter,
-                      options?: { fetchPolicy?: FetchPolicy; }): Promise<Map<string, any>> {
+                      options?: { fetchPolicy?: FetchPolicy }): Promise<Map<string, any>> {
     const variables: any = {
       type: {
         category: type.category,
         label: type.label
       },
-      strata: strata,
-      filter: filter
+      strata,
+      filter
     };
 
     const res = await this.graphql.query<{ aggregationTech: {data: Map<string, any>} }>({
       query: LoadAggByTechQuery,
-      variables: variables,
-      error: {code: ErrorCodes.LOAD_EXTRACTION_TECH_ERROR, message: "EXTRACTION.ERROR.LOAD_TECH_ERROR"},
+      variables,
+      error: {code: ErrorCodes.LOAD_EXTRACTION_TECH_ERROR, message: 'EXTRACTION.ERROR.LOAD_TECH_ERROR'},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
 
@@ -303,20 +296,20 @@ export class ExtractionProductService extends BaseGraphqlService {
   }
 
   async loadAggMinMaxByTech(type: ExtractionType, strata: IAggregationStrata, filter: ExtractionFilter,
-                            options?: { fetchPolicy?: FetchPolicy; }): Promise<{min: number; max: number; }> {
+                            options?: { fetchPolicy?: FetchPolicy }): Promise<{min: number; max: number }> {
     const variables: any = {
       type: {
         category: type.category,
         label: type.label
       },
-      strata: strata,
-      filter: filter
+      strata,
+      filter
     };
 
-    const res = await this.graphql.query<{ aggregationTechMinMax: {min: number; max: number; } }>({
+    const res = await this.graphql.query<{ aggregationTechMinMax: {min: number; max: number } }>({
       query: LoadAggMinMaxByTechQuery,
-      variables: variables,
-      error: {code: ErrorCodes.LOAD_EXTRACTION_MIN_MAX_TECH_ERROR, message: "EXTRACTION.ERROR.LOAD_MIN_MAX_ERROR"},
+      variables,
+      error: {code: ErrorCodes.LOAD_EXTRACTION_MIN_MAX_TECH_ERROR, message: 'EXTRACTION.ERROR.LOAD_MIN_MAX_ERROR'},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
 
@@ -326,7 +319,7 @@ export class ExtractionProductService extends BaseGraphqlService {
   async save(entity: ExtractionProduct,
              filter?: ExtractionFilter): Promise<ExtractionProduct> {
     const now = Date.now();
-    if (this._debug) console.debug("[product-service] Saving product...");
+    if (this._debug) console.debug('[product-service] Saving product...');
 
     // Make sure to have an entity
     entity = ExtractionProduct.fromObject(entity);
@@ -337,15 +330,15 @@ export class ExtractionProductService extends BaseGraphqlService {
 
     // Transform to json
     const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
-    if (this._debug) console.debug("[product-service] Using minify object, to send:", json);
+    if (this._debug) console.debug('[product-service] Using minify object, to send:', json);
 
     await this.graphql.mutate<{ data: any }>({
       mutation: SaveAggregation,
       variables: {
         type: json,
-        filter: filter
+        filter
       },
-      error: {code: ErrorCodes.SAVE_AGGREGATION_ERROR, message: "ERROR.SAVE_DATA_ERROR"},
+      error: {code: ErrorCodes.SAVE_AGGREGATION_ERROR, message: 'ERROR.SAVE_DATA_ERROR'},
       update: (cache, {data}) => {
         const savedEntity = data && data.data;
         EntityUtils.copyIdAndUpdateDate(savedEntity, entity);

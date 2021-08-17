@@ -72,7 +72,7 @@ export const TRIP_LOCAL_SETTINGS_OPTIONS = Object.freeze({
 });
 
 export const TRIP_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
-  'MeasurementVO': {
+  MeasurementVO: {
     keyFields: ['entityName', 'id']
   }
 };
@@ -81,27 +81,27 @@ export const TRIP_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
  * Define the way the entities will be stored into the local storage
  */
 export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
-  'TripVO': <EntityStoreTypePolicy<Trip>>{
+  TripVO: <EntityStoreTypePolicy<Trip>>{
     mode: 'by-id',
     skipNonLocalEntities: true,
     lightFieldsExcludes: ['measurements', 'sale', 'gears', 'operationGroups', 'operations']
   },
 
-  'OperationVO': <EntityStoreTypePolicy<Operation>>{
+  OperationVO: <EntityStoreTypePolicy<Operation>>{
     mode: 'by-id',
     skipNonLocalEntities: true,
-    lightFieldsExcludes: ["trip", "measurements", "samples", "batches", "catchBatch", "gearMeasurements", 'fishingAreas']
+    lightFieldsExcludes: ['trip', 'measurements', 'samples', 'batches', 'catchBatch', 'gearMeasurements', 'fishingAreas']
   },
 
-  'ObservedLocationVO': <EntityStoreTypePolicy<ObservedLocation>>{
+  ObservedLocationVO: <EntityStoreTypePolicy<ObservedLocation>>{
     mode: 'by-id',
     skipNonLocalEntities: true
   },
 
-  'LandingVO': <EntityStoreTypePolicy<Landing>>{
+  LandingVO: <EntityStoreTypePolicy<Landing>>{
     mode: 'by-id',
     skipNonLocalEntities: true,
-    lightFieldsExcludes: ["samples"]
+    lightFieldsExcludes: ['samples']
   },
 
   // Fake entity, use to store historical data

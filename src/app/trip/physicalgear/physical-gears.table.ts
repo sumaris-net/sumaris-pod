@@ -6,8 +6,8 @@ import {createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService} fr
 import {PhysicalGearModal} from './physical-gear.modal';
 import {PhysicalGear} from '../services/model/trip.model';
 import {PHYSICAL_GEAR_DATA_SERVICE} from '../services/physicalgear.service';
-import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum';
-import {environment} from '../../../environments/environment';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {environment} from '@environments/environment';
 import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
@@ -112,7 +112,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
     const newGear = await this.openDetailModal();
     if (newGear) {
-      if (this.debug) console.debug("Adding new gear:", newGear);
+      if (this.debug) console.debug('Adding new gear:', newGear);
       await this.addEntityToTable(newGear);
     }
     return true;
@@ -153,7 +153,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         value: gear.clone(), // Do a copy, because edition can be cancelled
-        isNew: isNew,
+        isNew,
         canEditRankOrder: this.canEditRankOrder,
         onInit: (inst: PhysicalGearModal) => {
           // Subscribe to click on copy button, then redirect the event
@@ -170,7 +170,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug("[physical-gear-table] Modal result: ", data);
+    if (data && this.debug) console.debug('[physical-gear-table] Modal result: ', data);
 
     return (data instanceof PhysicalGear) ? data : undefined;
   }

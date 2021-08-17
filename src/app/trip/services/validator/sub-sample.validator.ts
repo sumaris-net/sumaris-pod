@@ -1,9 +1,8 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {Sample} from "../model/sample.model";
-import {toNumber} from "@sumaris-net/ngx-components";
+import {Injectable} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {SharedValidators, toNumber} from '@sumaris-net/ngx-components';
+import {Sample} from '../model/sample.model';
 
 @Injectable({providedIn: 'root'})
 export class SubSampleValidatorService implements ValidatorService {

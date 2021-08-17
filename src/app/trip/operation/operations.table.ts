@@ -25,7 +25,7 @@ import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 export class OperationsTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
 
   displayAttributes: {
-    [key: string]: string[]
+    [key: string]: string[];
   };
   highlightedRow: TableElement<Operation>;
 
@@ -160,7 +160,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     }
   }
 
-  setTripId(id: number, opts?: {emitEvent?: boolean; }) {
+  setTripId(id: number, opts?: {emitEvent?: boolean }) {
     if (this.tripId !== id) {
       this.tripId = id;
       const filter = this.filter || new OperationFilter();

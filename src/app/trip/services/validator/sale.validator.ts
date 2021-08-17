@@ -1,13 +1,8 @@
-import {Injectable} from "@angular/core";
-import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedFormGroupValidators, SharedValidators} from "@sumaris-net/ngx-components";
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {Sale} from "../model/sale.model";
-import {
-  DataRootEntityValidatorOptions,
-  DataRootEntityValidatorService
-} from "../../../data/services/validator/root-data-entity.validator";
+import {Injectable} from '@angular/core';
+import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean} from '@sumaris-net/ngx-components';
+import {Sale} from '../model/sale.model';
+import {DataRootEntityValidatorOptions, DataRootEntityValidatorService} from '@app/data/services/validator/root-data-entity.validator';
 
 export interface SaleValidatorOptions extends DataRootEntityValidatorOptions {
   required?: boolean;

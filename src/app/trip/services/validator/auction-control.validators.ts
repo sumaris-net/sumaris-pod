@@ -1,18 +1,16 @@
-import {FormGroup, ValidationErrors, Validators} from "@angular/forms";
-import {Subject, Subscription} from "rxjs";
-import {debounceTime, filter, map, startWith, tap} from "rxjs/operators";
-import {PmfmIds} from "../../../referential/services/model/model.enum";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {isNotNilOrBlank} from "@sumaris-net/ngx-components";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {FormGroup, ValidationErrors, Validators} from '@angular/forms';
+import {Subject, Subscription} from 'rxjs';
+import {debounceTime, filter, map, startWith, tap} from 'rxjs/operators';
+import {PmfmIds} from '@app/referential/services/model/model.enum';
+import {AppFormUtils, isNotNilOrBlank, SharedValidators} from '@sumaris-net/ngx-components';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 
 export class AuctionControlValidators {
 
   static addSampleValidators(form: FormGroup, pmfms: IPmfm[],
                              opts?: { markForCheck: () => void }): Subscription {
     if (!form) {
-      console.warn("Argument 'form' required");
+      console.warn(`Argument 'form' required`);
       return null;
     }
 
@@ -58,6 +56,7 @@ export class AuctionControlValidators {
 
   /**
    * Validate and compute
+   *
    * @param form
    * @param pmfms
    * @param opts
@@ -70,7 +69,7 @@ export class AuctionControlValidators {
     markForCheck: () => void;
   }): ValidationErrors | null {
 
-    console.debug("[auction-control-validator] Starting computation and validation...");
+    console.debug('[auction-control-validator] Starting computation and validation...');
     let errors: any;
 
     // Read pmfms
@@ -186,7 +185,7 @@ export class AuctionControlValidators {
     }
 
     if (opts && opts.markForCheck) {
-      console.debug("[auction-control-validator] calling MarkForCheck...");
+      console.debug('[auction-control-validator] calling MarkForCheck...');
       opts.markForCheck();
     }
     return errors;

@@ -1,22 +1,15 @@
-import {Injectable} from "@angular/core";
-import {ApolloCache, FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {Observable} from "rxjs";
-import {map} from "rxjs/operators";
+import {Injectable} from '@angular/core';
+import {ApolloCache, FetchPolicy, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 
-import {ErrorCodes} from "../../trip/services/trip.errors";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType} from "./model/extraction-type.model";
-import {isNil, isNotNil, isNotNilOrBlank, trimEmptyToNull} from "@sumaris-net/ngx-components";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {Fragments} from "../../trip/services/trip.queries";
-import {SortDirection} from "@angular/material/sort";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
-
-import {Person}  from "@sumaris-net/ngx-components";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
+import {ErrorCodes} from '@app/trip/services/trip.errors';
+import {AccountService, BaseGraphqlService, EntityUtils, firstNotNilPromise, GraphqlService, isNil, isNotNil, isNotNilOrBlank, Person, trimEmptyToNull} from '@sumaris-net/ngx-components';
+import {ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType} from './model/extraction-type.model';
+import {Fragments} from '@app/trip/services/trip.queries';
+import {SortDirection} from '@angular/material/sort';
+import {environment} from '@environments/environment';
+import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 
@@ -109,13 +102,13 @@ export class ExtractionService extends BaseGraphqlService {
    */
   watchAll(opts?: { fetchPolicy?: WatchQueryFetchPolicy }): Observable<ExtractionType[]> {
     let now = Date.now();
-    if (this._debug) console.debug("[extraction-service] Loading extraction types...");
+    if (this._debug) console.debug('[extraction-service] Loading extraction types...');
 
     return this.mutableWatchQuery<{ data: ExtractionType[] }>({
       queryName: 'LoadExtractionTypes',
       query: LoadTypesQuery,
       arrayFieldName: 'data',
-      error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"},
+      error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: 'EXTRACTION.ERROR.LOAD_TYPES_ERROR'},
       ...opts
     })
       .pipe(
@@ -144,6 +137,7 @@ export class ExtractionService extends BaseGraphqlService {
 
   /**
    * Load many trips
+   *
    * @param type
    * @param offset
    * @param size
@@ -161,7 +155,7 @@ export class ExtractionService extends BaseGraphqlService {
     sortDirection?: SortDirection,
     filter?: ExtractionFilter,
     options?: {
-      fetchPolicy?: FetchPolicy
+      fetchPolicy?: FetchPolicy;
     }): Promise<ExtractionResult> {
 
     const variables: any = {
@@ -173,15 +167,15 @@ export class ExtractionService extends BaseGraphqlService {
       size: size || 100,
       sortBy: sortBy || undefined,
       sortDirection: sortDirection || 'asc',
-      filter: filter
+      filter
     };
 
     const now = Date.now();
-    if (this._debug) console.debug("[extraction-service] Loading rows... using options:", variables);
+    if (this._debug) console.debug('[extraction-service] Loading rows... using options:', variables);
     const res = await this.graphql.query<{ extractionRows: ExtractionResult }>({
       query: LoadRowsQuery,
-      variables: variables,
-      error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
+      variables,
+      error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: 'EXTRACTION.ERROR.LOAD_ROWS_ERROR'},
       fetchPolicy: options && options.fetchPolicy || 'no-cache'
     });
     if (!res || !res.extractionRows) return null;
@@ -197,6 +191,7 @@ export class ExtractionService extends BaseGraphqlService {
 
   /**
    * Download extraction to file
+   *
    * @param type
    * @param filter
    * @param options
@@ -205,7 +200,7 @@ export class ExtractionService extends BaseGraphqlService {
     type: ExtractionType,
     filter?: ExtractionFilter,
     options?: {
-      fetchPolicy?: FetchPolicy
+      fetchPolicy?: FetchPolicy;
     }): Promise<string | undefined> {
 
     const variables: any = {
@@ -213,15 +208,15 @@ export class ExtractionService extends BaseGraphqlService {
         category: type.category,
         label: type.label
       },
-      filter: filter
+      filter
     };
 
     const now = Date.now();
-    if (this._debug) console.debug("[extraction-service] Download extraction file... using options:", variables);
+    if (this._debug) console.debug('[extraction-service] Download extraction file... using options:', variables);
     const res = await this.graphql.query<{ extractionFile: string }>({
       query: GetFileQuery,
-      variables: variables,
-      error: {code: ErrorCodes.DOWNLOAD_EXTRACTION_FILE_ERROR, message: "EXTRACTION.ERROR.DOWNLOAD_FILE_ERROR"},
+      variables,
+      error: {code: ErrorCodes.DOWNLOAD_EXTRACTION_FILE_ERROR, message: 'EXTRACTION.ERROR.DOWNLOAD_FILE_ERROR'},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
     const fileUrl = res && res.extractionFile;
@@ -288,7 +283,7 @@ export class ExtractionService extends BaseGraphqlService {
   }
 
   async save(entity: ExtractionType, filter: ExtractionFilter): Promise<ExtractionType> {
-    if (this._debug) console.debug("[extraction-service] Saving extraction...", entity, filter);
+    if (this._debug) console.debug('[extraction-service] Saving extraction...', entity, filter);
 
     this.fillDefaultProperties(entity);
 
@@ -300,7 +295,7 @@ export class ExtractionService extends BaseGraphqlService {
       mutation: SaveExtractionMutation,
       variables: { type: json, filter },
       // TODO : change error code
-      error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
+      error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: 'EXTRACTION.ERROR.LOAD_ROWS_ERROR'},
       update: (cache, {data}) => {
         const savedEntity = data && data.data;
         EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
@@ -320,7 +315,7 @@ export class ExtractionService extends BaseGraphqlService {
 
     console.info('[extraction-service] Inserting into cache:', type);
     this.insertIntoMutableCachedQueries(cache, {
-      queryName: "LoadExtractionTypes",
+      queryName: 'LoadExtractionTypes',
       query: LoadTypesQuery,
       data: type
     });
@@ -331,13 +326,13 @@ export class ExtractionService extends BaseGraphqlService {
     console.info('[extraction-service] Updating cache:', type);
     // Remove, then insert, from extraction types
     const exists = this.removeFromMutableCachedQueriesByIds(cache, {
-      queryName: "LoadExtractionTypes",
+      queryName: 'LoadExtractionTypes',
       query: LoadTypesQuery,
       ids: type.id
     }) > 0;
     if (exists) {
       this.insertIntoMutableCachedQueries(cache, {
-        queryName: "LoadExtractionTypes",
+        queryName: 'LoadExtractionTypes',
         query: LoadTypesQuery,
         data: type
       });

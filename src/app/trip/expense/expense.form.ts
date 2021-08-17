@@ -1,36 +1,31 @@
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren} from '@angular/core';
+import {DateAdapter} from '@angular/material/core';
+import {Moment} from 'moment';
+import {FormArray, FormBuilder} from '@angular/forms';
 import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output,
-  QueryList,
-  ViewChild,
-  ViewChildren
-} from '@angular/core';
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {FormArray, FormBuilder} from "@angular/forms";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {MeasurementsForm} from "../measurement/measurements.form.component";
-import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {filterNotNil, firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {BehaviorSubject} from "rxjs";
-import {isNil, isNotEmptyArray, isNotNilOrNaN, remove, removeAll, round} from "@sumaris-net/ngx-components";
-import {debounceTime, filter} from "rxjs/operators";
-import {Measurement, MeasurementUtils} from "../services/model/measurement.model";
-import {ExpenseValidatorService} from "../services/validator/expense.validator";
-import {FormArrayHelper}  from "@sumaris-net/ngx-components";
-import {getMaxRankOrder} from "../../data/services/model/model.utils";
-import {TypedExpenseForm} from "./typed-expense.form";
-import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
-import {ObjectMap} from "@sumaris-net/ngx-components";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
+  filterNotNil,
+  firstNotNilPromise,
+  FormArrayHelper,
+  isNil,
+  isNotEmptyArray,
+  isNotNilOrNaN,
+  LocalSettingsService,
+  ObjectMap,
+  PlatformService,
+  remove,
+  removeAll,
+  round
+} from '@sumaris-net/ngx-components';
+import {MeasurementsForm} from '../measurement/measurements.form.component';
+import {BehaviorSubject} from 'rxjs';
+import {debounceTime, filter} from 'rxjs/operators';
+import {Measurement, MeasurementUtils} from '../services/model/measurement.model';
+import {ExpenseValidatorService} from '../services/validator/expense.validator';
+import {getMaxRankOrder} from '@app/data/services/model/model.utils';
+import {TypedExpenseForm} from './typed-expense.form';
+import {MatTabChangeEvent, MatTabGroup} from '@angular/material/tabs';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 
 type TupleType = 'quantity' | 'unitPrice' | 'total';
 
@@ -101,7 +96,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   }
 
   get invalid(): boolean {
-    return super.invalid || (this.iceFrom && this.iceFrom.invalid) || (this.baitForms && this.baitForms.find(form => form.invalid) && true);
+    return super.invalid || (this.iceFrom?.invalid) || (this.baitForms?.find(form => form.invalid) && true);
   }
 
   get pending(): boolean {
@@ -354,30 +349,30 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
       // choose which part is to calculate
       let targetType: TupleType;
       switch (tuple[sourcePmfmId].type) {
-        case "quantity":
+        case 'quantity':
           if (values.unitPrice) {
-            targetType = "total";
+            targetType = 'total';
             values.total = value && round(value * values.unitPrice) || undefined;
           } else if (values.total) {
-            targetType = "unitPrice";
+            targetType = 'unitPrice';
             values.unitPrice = value && value > 0 && round(values.total / value) || undefined;
           }
           break;
-        case "unitPrice":
+        case 'unitPrice':
           if (values.quantity) {
-            targetType = "total";
+            targetType = 'total';
             values.total = value && round(value * values.quantity) || undefined;
           } else if (values.total) {
-            targetType = "quantity";
+            targetType = 'quantity';
             values.quantity = value && value > 0 && round(values.total / value) || undefined;
           }
           break;
-        case "total":
+        case 'total':
           if (values.quantity) {
-            targetType = "unitPrice";
+            targetType = 'unitPrice';
             values.unitPrice = value && values.quantity > 0 && round(value / values.quantity) || undefined;
           } else if (values.unitPrice) {
-            targetType = "quantity";
+            targetType = 'quantity';
             values.quantity = value && values.unitPrice > 0 && round(value / values.unitPrice) || undefined;
           }
           break;
@@ -406,9 +401,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
   calculateInitialTupleValues(tuple: ObjectMap<TupleValue>) {
     if (tuple) {
-      const pmfmIdWithValue = Object.keys(tuple).find(pmfmId => {
-        return !tuple[pmfmId].computed && isNotNilOrNaN(this.form.get(pmfmId).value);
-      });
+      const pmfmIdWithValue = Object.keys(tuple).find(pmfmId => !tuple[pmfmId].computed && isNotNilOrNaN(this.form.get(pmfmId).value));
       if (pmfmIdWithValue) {
         this.calculateTupleValues(tuple, pmfmIdWithValue, this.form.get(pmfmIdWithValue).value);
       }
@@ -466,9 +459,9 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
       const totalPmfm = pmfms.find(this.isTotalPmfm);
       if (quantityPmfm && unitPricePmfm && totalPmfm) {
         const tuple: ObjectMap<TupleValue> = {};
-        tuple[quantityPmfm.id.toString()] = {computed: false, type: "quantity"};
-        tuple[unitPricePmfm.id.toString()] = {computed: false, type: "unitPrice"};
-        tuple[totalPmfm.id.toString()] = {computed: false, type: "total"};
+        tuple[quantityPmfm.id.toString()] = {computed: false, type: 'quantity'};
+        tuple[unitPricePmfm.id.toString()] = {computed: false, type: 'unitPrice'};
+        tuple[totalPmfm.id.toString()] = {computed: false, type: 'total'};
         return tuple;
       }
     }
@@ -510,35 +503,35 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     this.calculating = true;
     super.enable(opts);
-    this.iceFrom && this.iceFrom.enable(opts);
-    this.baitForms && this.baitForms.forEach(form => form.enable(opts));
+    this.iceFrom?.enable(opts);
+    this.baitForms?.forEach(form => form.enable(opts));
     this.calculating = false;
   }
 
   disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     this.calculating = true;
     super.disable(opts);
-    this.iceFrom && this.iceFrom.disable(opts);
-    this.baitForms && this.baitForms.forEach(form => form.disable(opts));
+    this.iceFrom?.disable(opts);
+    this.baitForms?.forEach(form => form.disable(opts));
     this.calculating = false;
   }
 
   markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAsPristine(opts);
-    this.iceFrom && this.iceFrom.markAsPristine(opts);
-    this.baitForms && this.baitForms.forEach(form => form.markAsPristine(opts));
+    this.iceFrom?.markAsPristine(opts);
+    this.baitForms?.forEach(form => form.markAsPristine(opts));
   }
 
   markAsUntouched(opts?: { onlySelf?: boolean }) {
     super.markAsUntouched(opts);
-    this.iceFrom && this.iceFrom.markAsUntouched(opts);
-    this.baitForms && this.baitForms.forEach(form => form.markAsUntouched());
+    this.iceFrom?.markAsUntouched(opts);
+    this.baitForms?.forEach(form => form.markAsUntouched());
   }
 
   markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAsTouched(opts);
-    this.iceFrom && this.iceFrom.markAsTouched(opts);
-    this.baitForms && this.baitForms.forEach(form => form.markAsTouched(opts));
+    this.iceFrom?.markAsTouched(opts);
+    this.baitForms?.forEach(form => form.markAsTouched(opts));
   }
 
   protected markForCheck() {

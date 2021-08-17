@@ -1,28 +1,31 @@
-import {Injectable} from "@angular/core";
-import {FetchPolicy, gql} from "@apollo/client/core";
-import {ReferentialFragments} from "./referential.fragments";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {CacheService} from "ionic-cache";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {EntitiesStorage}  from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {SortDirection} from "@angular/material/sort";
-import {StrategyFragments} from "./strategy.fragments";
-import {LoadResult} from "@sumaris-net/ngx-components";
-import {StrategyService} from "./strategy.service";
-import {Observable} from "rxjs";
-import {map} from "rxjs/operators";
-import {firstArrayValue, isEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
-import {ParameterLabelGroups, PmfmLabelPatterns} from './model/model.enum';
-import {ConfigService}  from "@sumaris-net/ngx-components";
-import {PmfmService} from "./pmfm.service";
-import {ReferentialRefService} from "./referential-ref.service";
-import {mergeMap} from "rxjs/operators";
-import {DateUtils} from "@sumaris-net/ngx-components";
-import {SamplingStrategy, StrategyEffort} from "./model/sampling-strategy.model";
-import {BaseReferentialService} from "./base-referential-service.class";
-import {Moment} from "moment";
+import {Injectable} from '@angular/core';
+import {FetchPolicy, gql} from '@apollo/client/core';
+import {ReferentialFragments} from './referential.fragments';
+import {
+  AccountService,
+  ConfigService,
+  DateUtils,
+  EntitiesStorage,
+  firstArrayValue,
+  GraphqlService,
+  isEmptyArray,
+  isNotNil,
+  LoadResult,
+  NetworkService,
+  PlatformService
+} from '@sumaris-net/ngx-components';
+import {CacheService} from 'ionic-cache';
+import {SortDirection} from '@angular/material/sort';
+import {StrategyFragments} from './strategy.fragments';
+import {StrategyService} from './strategy.service';
+import {Observable} from 'rxjs';
+import {map, mergeMap} from 'rxjs/operators';
+import {ParameterLabelGroups} from './model/model.enum';
+import {PmfmService} from './pmfm.service';
+import {ReferentialRefService} from './referential-ref.service';
+import {SamplingStrategy, StrategyEffort} from './model/sampling-strategy.model';
+import {BaseReferentialService} from './base-referential-service.class';
+import {Moment} from 'moment';
 import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
 
 const SamplingStrategyQueries = {
@@ -118,7 +121,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
   async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
                 filter?: Partial<StrategyFilter>,
-           opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean; withEffort?: boolean; withParameterGroups?: boolean; toEntity?: boolean; }
+           opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean; withEffort?: boolean; withParameterGroups?: boolean; toEntity?: boolean }
   ): Promise<LoadResult<SamplingStrategy>> {
     const res = await super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
 
@@ -138,14 +141,12 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
   watchPmfmIdsByParameterLabels(parameterLabels: string[]): Observable<number[]> {
     return this.referentialRefService.watchAll(0, 1000, 'id', 'asc', {
-      entityName: "Pmfm",
+      entityName: 'Pmfm',
       levelLabels: parameterLabels
     }, {
       withTotal: false
     }).pipe(
-      map((res) => {
-        return (res.data || []).map(p => p.id);
-      }));
+      map((res) => (res.data || []).map(p => p.id)));
   }
 
   async hasEffort(samplingStrategy: SamplingStrategy, opts?: {
@@ -165,7 +166,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
       withEffort: true,
       withTotal: false,
       withParameterGroups: false,
-      fetchPolicy: "cache-first"
+      fetchPolicy: 'cache-first'
     });
     const strategy = firstArrayValue(data);
     if (strategy && strategy.effortByQuarter) {
@@ -192,7 +193,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     if (!opts || opts.withEffort !== false) {
       jobs.push(this.fillEfforts(res.data, opts)
         .catch(err => {
-          console.error("Error while computing effort: " + err && err.message || err, err);
+          console.error('Error while computing effort: ' + err && err.message || err, err);
           res.errors = (res.errors || []).concat(err);
         })
       );
@@ -206,6 +207,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
   /**
    * Fill parameterGroups attribute, on each denormalized strategy
+   *
    * @param entities
    */
   protected async fillParameterGroups(entities: SamplingStrategy[]): Promise<void> {
@@ -215,9 +217,10 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
     entities.forEach(s => {
       const pmfms = s.pmfms;
-      s.parameterGroups = (pmfms && parameterListKeys || []).reduce((res, key) => {
-        return pmfms.findIndex(p => pmfmIdsMap[key].includes(p.pmfmId) || (p.parameter && p.parameter.label && p.parameter.label.includes(key))) !== -1 ? res.concat(key) : res;
-      }, []);
+      s.parameterGroups = (pmfms && parameterListKeys || [])
+        .reduce((res, key) =>
+          pmfms.findIndex(p => pmfmIdsMap[key].includes(p.pmfmId) || (p.parameter && p.parameter.label && p.parameter.label.includes(key))) !== -1 ? res.concat(key) : res, []
+        );
     });
   }
 
@@ -230,15 +233,15 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     const {data} = await this.graphql.query<{data: { strategy: string; startDate: string; endDate: string; expectedEffort}[]}>({
       query: SamplingStrategyQueries.loadEffort,
       variables: {
-        extractionType: "strat",
-        viewSheetName: "SM",
+        extractionType: 'strat',
+        viewSheetName: 'SM',
         offset: 0,
         size: 1000, // All rows
-        sortBy: "start_date",
-        sortDirection: "asc",
-        filterSheetName: "ST",
-        columnName: "strategy_id",
-        operator: "IN",
+        sortBy: 'start_date',
+        sortDirection: 'asc',
+        filterSheetName: 'ST',
+        columnName: 'strategy_id',
+        operator: 'IN',
         values: entities.filter(s => s.id).map(s => s.id.toString())
       },
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'

@@ -1,11 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";
-import {ModalController} from "@ionic/angular";
-import {ExtractionProduct} from "../../services/model/extraction-product.model";
-import {Observable} from "rxjs";
-import {first} from "rxjs/operators";
-import {TranslateService} from "@ngx-translate/core";
-import {ExtractionProductService} from "../../services/extraction-product.service";
-import {ExtractionProductFilter} from "../../services/filter/extraction-product.filter";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {ModalController} from '@ionic/angular';
+import {ExtractionProduct} from '../../services/model/extraction-product.model';
+import {Observable} from 'rxjs';
+import {first} from 'rxjs/operators';
+import {TranslateService} from '@ngx-translate/core';
+import {ExtractionProductService} from '../../services/extraction-product.service';
+import {ExtractionProductFilter} from '../../services/filter/extraction-product.filter';
 
 @Component({
   selector: 'app-select-product-modal',

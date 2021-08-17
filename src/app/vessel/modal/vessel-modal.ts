@@ -1,15 +1,11 @@
 import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Vessel} from "../services/model/vessel.model";
-import {IonContent, ModalController} from "@ionic/angular";
+import {Vessel} from '../services/model/vessel.model';
+import {IonContent, ModalController} from '@ionic/angular';
 import {VesselForm} from '../form/form-vessel';
 import {VesselService} from '../services/vessel-service';
-import {ConfigService}  from "@sumaris-net/ngx-components";
-import {Subscription} from "rxjs";
-import {CORE_CONFIG_OPTIONS}  from "@sumaris-net/ngx-components";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {isNotNil} from "@sumaris-net/ngx-components";
-import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
-import {APP_CORE_CONFIG_OPTIONS} from '@app/core/services/config/core.config';
+import {AppFormUtils, ConfigService, isNotNil} from '@sumaris-net/ngx-components';
+import {Subscription} from 'rxjs';
+import {SynchronizationStatus} from '@app/data/services/model/root-data-entity.model';
 import {VESSEL_CONFIG_OPTIONS} from '@app/vessel/services/config/vessel.config';
 
 export interface VesselModalOptions {
@@ -80,7 +76,7 @@ export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
 
   async onSave(event: any): Promise<any> {
 
-    console.debug("[vessel-modal] Saving new vessel...");
+    console.debug('[vessel-modal] Saving new vessel...');
 
     // Avoid multiple call
     if (this.disabled) return;

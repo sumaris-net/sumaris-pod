@@ -1,25 +1,19 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
-import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {FormBuilder, FormGroup} from "@angular/forms";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {IReferentialRef}  from "@sumaris-net/ngx-components";
-import {UsageMode}  from "@sumaris-net/ngx-components";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {isNil, isNilOrBlank, isNotNil} from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {SampleValidatorService} from "../services/validator/sample.validator";
-import {Sample} from "../services/model/sample.model";
-import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {LoadResult} from "@sumaris-net/ngx-components";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
+import {DateAdapter} from '@angular/material/core';
+import {Moment} from 'moment';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {AppFormUtils, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, LocalSettingsService, PlatformService, UsageMode} from '@sumaris-net/ngx-components';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {SampleValidatorService} from '../services/validator/sample.validator';
+import {Sample} from '../services/model/sample.model';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
 
-const SAMPLE_FORM_DEFAULT_I18N_PREFIX = "TRIP.SAMPLE.TABLE.";
+const SAMPLE_FORM_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
 
 @Component({
   selector: 'app-sample-form',

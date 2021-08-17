@@ -1,10 +1,9 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {toNumber} from "@sumaris-net/ngx-components";
-import {Batch} from "../model/batch.model";
-import {SubBatch} from "../model/subbatch.model";
+import {Injectable} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {SharedValidators, toNumber} from '@sumaris-net/ngx-components';
+import {Batch} from '../model/batch.model';
+import {SubBatch} from '../model/subbatch.model';
 
 @Injectable({providedIn: 'root'})
 export class SubBatchValidatorService implements ValidatorService {

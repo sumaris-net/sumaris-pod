@@ -61,7 +61,7 @@ const LoadAllAnalyticReferencesWithTotalQuery: any = gql`query AnalyticReference
 }
 ${ReferentialFragments.referential}`;
 
-const StrategyQueries: BaseEntityGraphqlQueries & { count: any; } = {
+const StrategyQueries: BaseEntityGraphqlQueries & { count: any } = {
   load: gql`query Strategy($id: Int!) {
     data: strategy(id: $id) {
       ...StrategyFragment
@@ -176,9 +176,9 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
   async existsByLabel(label: string, opts?: {
     programId?: number;
     excludedIds?: number[];
-    fetchPolicy?: FetchPolicy
+    fetchPolicy?: FetchPolicy;
   }): Promise<boolean> {
-    if (isNilOrBlank(label)) throw new Error("Missing argument 'label' ");
+    if (isNilOrBlank(label)) throw new Error(`Missing argument 'label'`);
 
     const filter: Partial<StrategyFilter> = {
       label,
@@ -188,7 +188,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     const {total} = await this.graphql.query<{ total: number }>({
       query: StrategyQueries.count,
       variables: { filter },
-      error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "ERROR.LOAD_ERROR"},
+      error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: 'ERROR.LOAD_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || undefined
     });
     return toNumber(total, 0) > 0;
@@ -200,11 +200,11 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     const res = await this.graphql.query<{ data: string }>({
       query: FindStrategyNextLabel,
       variables: {
-        programId: programId,
-        labelPrefix: labelPrefix,
-        nbDigit: nbDigit
+        programId,
+        labelPrefix,
+        nbDigit
       },
-      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_LABEL_ERROR"},
+      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: 'PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_LABEL_ERROR'},
       fetchPolicy: 'network-only'
     });
     return res && res.data;
@@ -216,11 +216,11 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     const res = await this.graphql.query<{ data: string }>({
       query: FindStrategyNextSampleLabel,
       variables: {
-        strategyLabel: strategyLabel,
+        strategyLabel,
         labelSeparator: separator,
-        nbDigit: nbDigit
+        nbDigit
       },
-      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR"},
+      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: 'PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR'},
       fetchPolicy: 'network-only'
     });
     return res && res.data;
@@ -254,7 +254,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     const { data, total } = await this.graphql.query<LoadResult<any>>({
       query,
       variables,
-      error: { code: ErrorCodes.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR" },
+      error: { code: ErrorCodes.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR, message: 'PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR' },
       fetchPolicy: 'cache-first'
     });
 
@@ -282,7 +282,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
 
   async suggestAnalyticReferences(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection): Promise<LoadResult<ReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
-    value = (typeof value === "string" && value !== '*') && value || undefined;
+    value = (typeof value === 'string' && value !== '*') && value || undefined;
     return this.loadAllAnalyticReferences(0, !value ? 30 : 10, sortBy, sortDirection,
       { ...filter, searchText: value}
     );

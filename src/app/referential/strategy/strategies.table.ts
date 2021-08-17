@@ -85,7 +85,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
       null,
       injector);
 
-    this.inlineEdition = false
+    this.inlineEdition = false;
     this.i18nColumnPrefix = 'REFERENTIAL.';
     this.autoLoad = false; // waiting parent to load
     this.confirmBeforeDelete = true;

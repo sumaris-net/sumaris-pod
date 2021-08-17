@@ -1,11 +1,11 @@
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {OperationPage} from './operation/operation.page';
-import {LandingPage} from "./landing/landing.page";
-import {SharedRoutingModule} from "@sumaris-net/ngx-components";
-import {TripTable} from "./trip/trips.table";
-import {TripPage} from "./trip/trip.page";
-import {TripModule} from "./trip.module";
+import {LandingPage} from './landing/landing.page';
+import {SharedRoutingModule} from '@sumaris-net/ngx-components';
+import {TripTable} from './trip/trips.table';
+import {TripPage} from './trip/trip.page';
+import {TripModule} from './trip.module';
 
 const routes: Routes = [
   {

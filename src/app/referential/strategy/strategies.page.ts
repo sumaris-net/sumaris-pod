@@ -1,15 +1,15 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
-import { ActivatedRoute, Router } from "@angular/router";
-import { TableElement } from "@e-is/ngx-material-table/src/app/ngx-material-table/table-element";
-import { Subject } from "rxjs";
-import {AppTable, isNotNil, EntityServiceLoadOptions, ReferentialUtils, AccountService, CompletableEvent, PlatformService} from '@sumaris-net/ngx-components';
-import { ProgramProperties, StrategyEditor } from "../services/config/program.config";
-import { Program } from "../services/model/program.model";
-import { Strategy } from "../services/model/strategy.model";
-import { ProgramService } from "../services/program.service";
-import { ReferentialRefService } from "../services/referential-ref.service";
-import { SamplingStrategiesTable } from "./sampling/sampling-strategies.table";
-import { StrategiesTable } from "./strategies.table";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ViewChild} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {TableElement} from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
+import {Subject} from 'rxjs';
+import {AccountService, AppTable, CompletableEvent, EntityServiceLoadOptions, isNotNil, PlatformService} from '@sumaris-net/ngx-components';
+import {ProgramProperties, StrategyEditor} from '../services/config/program.config';
+import {Program} from '../services/model/program.model';
+import {Strategy} from '../services/model/strategy.model';
+import {ProgramService} from '../services/program.service';
+import {ReferentialRefService} from '../services/referential-ref.service';
+import {SamplingStrategiesTable} from './sampling/sampling-strategies.table';
+import {StrategiesTable} from './strategies.table';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {MatExpansionPanel} from '@angular/material/expansion';
 
@@ -73,7 +73,7 @@ export class StrategiesPage {
   async load(id?: number, opts?: EntityServiceLoadOptions) {
     try {
       // Force the load from network
-      const program = await this.programService.load(id, { ...opts, fetchPolicy: "network-only" });
+      const program = await this.programService.load(id, { ...opts, fetchPolicy: 'network-only' });
       this.data = program;
 
       // Check user rights
@@ -90,7 +90,7 @@ export class StrategiesPage {
     }
   }
 
-  async onOpenRow({ id, row }: { id?: number; row: TableElement<any>; }) {
+  async onOpenRow({ id, row }: { id?: number; row: TableElement<any> }) {
 
     this.markAsLoading();
     setTimeout(async () => {
@@ -129,7 +129,7 @@ export class StrategiesPage {
   }
 
   doRefresh(event?: CompletableEvent) {
-    this.table?.doRefresh(event)
+    this.table?.doRefresh(event);
   }
 
   resetFilter(event?: UIEvent) {

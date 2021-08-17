@@ -88,7 +88,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.form = validatorService.getFormGroup();
 
     // default values
-    this.defaultBackHref = "/referential/list?entity=Program";
+    this.defaultBackHref = '/referential/list?entity=Program';
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
 
@@ -156,7 +156,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
-    return super.load(id, {...opts, fetchPolicy: "network-only"});
+    return super.load(id, {...opts, fetchPolicy: 'network-only'});
   }
   updateView(data: Program | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
 
@@ -222,7 +222,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   }
 
-  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+  enable(opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
     super.enable(opts);
 
     // TODO BLA remove this ?
@@ -320,7 +320,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.markForCheck();
   }
 
-  async onOpenStrategy({id, row}: { id?: number; row: TableElement<any>; }) {
+  async onOpenStrategy({id, row}: { id?: number; row: TableElement<any> }) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
       this.markAsLoading();
@@ -348,7 +348,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
   protected async openSelectReferentialModal(opts: {
-    filter: Partial<ReferentialRefFilter>
+    filter: Partial<ReferentialRefFilter>;
   }): Promise<ReferentialRef[]> {
 
     const modal = await this.modalCtrl.create({ component: SelectReferentialModal,

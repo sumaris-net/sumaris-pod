@@ -1,8 +1,8 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from "@angular/core";
-import {ModalController} from "@ionic/angular";
-import {PmfmFilter, PmfmService} from "../services/pmfm.service";
-import {Pmfm} from "../services/model/pmfm.model";
-import {BaseSelectEntityModal} from "../list/base-select-entity.modal";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {ModalController} from '@ionic/angular';
+import {PmfmFilter, PmfmService} from '../services/pmfm.service';
+import {Pmfm} from '../services/model/pmfm.model';
+import {BaseSelectEntityModal} from '../list/base-select-entity.modal';
 
 @Component({
   selector: 'app-select-pmfm-modal',
@@ -24,7 +24,7 @@ export class SelectPmfmModal extends BaseSelectEntityModal<Pmfm, PmfmFilter> imp
   }
 
   protected async computeTitle(): Promise<string> {
-    return "REFERENTIAL.ENTITY.PMFM";
+    return 'REFERENTIAL.ENTITY.PMFM';
   }
 
 }

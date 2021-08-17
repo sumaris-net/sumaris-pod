@@ -1,23 +1,19 @@
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
-import {LandingsTable} from "../../landing/landings.table";
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {LandingsTable} from '../../landing/landings.table';
 
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {ModalController} from "@ionic/angular";
-import {Landing} from "../../services/model/landing.model";
-import { VesselService} from "../../../vessel/services/vessel-service";
-import {VesselFilter} from "../../../vessel/services/filter/vessel.filter";
-import {VesselsTable} from "../../../vessel/list/vessels.table";
-import {AppTable}  from "@sumaris-net/ngx-components";
-import {isEmptyArray, isNotNil, toBoolean} from "@sumaris-net/ngx-components";
-import {VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
-import {VesselForm} from "../../../vessel/form/form-vessel";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {Vessel} from "../../../vessel/services/model/vessel.model";
-import {Subscription} from "rxjs";
-import {CORE_CONFIG_OPTIONS}  from "@sumaris-net/ngx-components";
-import {ConfigService}  from "@sumaris-net/ngx-components";
-import {MatTabGroup} from "@angular/material/tabs";
-import {LandingFilter} from "../../services/filter/landing.filter";
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {ModalController} from '@ionic/angular';
+import {Landing} from '../../services/model/landing.model';
+import {VesselService} from '@app/vessel/services/vessel-service';
+import {VesselFilter} from '@app/vessel/services/filter/vessel.filter';
+import {VesselsTable} from '@app/vessel/list/vessels.table';
+import {AppFormUtils, AppTable, ConfigService, isEmptyArray, isNotNil, toBoolean} from '@sumaris-net/ngx-components';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {VesselForm} from '@app/vessel/form/form-vessel';
+import {Vessel} from '@app/vessel/services/model/vessel.model';
+import {Subscription} from 'rxjs';
+import {MatTabGroup} from '@angular/material/tabs';
+import {LandingFilter} from '../../services/filter/landing.filter';
 import {VESSEL_CONFIG_OPTIONS} from '@app/vessel/services/config/vessel.config';
 
 @Component({
@@ -99,7 +95,7 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
 
     setTimeout(() => {
       // Load landings
-      this.landingsTable.onRefresh.next("modal");
+      this.landingsTable.onRefresh.next('modal');
       this.selectedTabIndex = 0;
       this.tabGroup.realignInkBar();
       this.markForCheck();
@@ -166,7 +162,7 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
         }
       }
       if (isEmptyArray(vessels)) {
-        console.warn("[select-vessel-modal] no selection");
+        console.warn('[select-vessel-modal] no selection');
       }
       this.viewCtrl.dismiss(vessels);
       return true;
@@ -180,7 +176,7 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
 
     if (!this.vesselForm) throw Error('No Vessel Form');
 
-    console.debug("[select-vessel-modal] Saving new vessel...");
+    console.debug('[select-vessel-modal] Saving new vessel...');
 
     // Avoid multiple call
     if (this.vesselForm.disabled) return;

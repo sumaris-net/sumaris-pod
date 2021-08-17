@@ -2,15 +2,14 @@ import {BehaviorSubject, isObservable, Observable} from 'rxjs';
 import {filter, first, map, switchMap, tap} from 'rxjs/operators';
 import {IEntityWithMeasurement, MeasurementValuesUtils} from '../services/model/measurement.model';
 import {EntityUtils, firstNotNilPromise, IEntitiesService, isNil, isNotNil, LoadResult} from '@sumaris-net/ngx-components';
-import {Directive, EventEmitter, Injector, Input, Optional} from '@angular/core';
-import {IPmfm, PMFM_ID_REGEXP} from '../../referential/services/model/pmfm.model';
+import {Directive, EventEmitter, Injector, Input, OnDestroy, Optional} from '@angular/core';
+import {IPmfm, PMFM_ID_REGEXP} from '@app/referential/services/model/pmfm.model';
 import {SortDirection} from '@angular/material/sort';
-import {ProgramRefService} from '../../referential/services/program-ref.service';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
 
 @Directive()
-// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
-    implements IEntitiesService<T, F> {
+    implements IEntitiesService<T, F>, OnDestroy {
 
   private readonly _debug: boolean;
   private _programLabel: string;
@@ -172,7 +171,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
 
   async saveAll(data: T[], options?: any): Promise<T[]> {
 
-    if (this._debug) console.debug("[meas-service] converting measurement values before saving...");
+    if (this._debug) console.debug('[meas-service] converting measurement values before saving...');
     const pmfms = this.$pmfms.getValue() || [];
     const dataToSaved = data.map(json => {
       const entity = new this.dataType() as T;
@@ -203,7 +202,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     }
 
     if (this._requiredStrategy && isNil(this._strategyLabel)) {
-      if (this._debug) console.debug("[meas-service] Cannot watch Pmfms yet. Missing required 'strategyLabel'.");
+      if (this._debug) console.debug(`[meas-service] Cannot watch Pmfms yet. Missing required 'strategyLabel'.`);
       return false;
     }
 
@@ -240,7 +239,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
 
     // Wait loaded
     if (isObservable<IPmfm[]>(pmfms)) {
-      if (this._debug) console.debug("[meas-service] setPmfms(): waiting pmfms observable to emit...");
+      if (this._debug) console.debug('[meas-service] setPmfms(): waiting pmfms observable to emit...');
       pmfms = await firstNotNilPromise(pmfms);
     }
 

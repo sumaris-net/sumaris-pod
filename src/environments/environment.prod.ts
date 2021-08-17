@@ -1,16 +1,15 @@
 import {Environment} from '@sumaris-net/ngx-components';
 
-const pkg = require('../../package.json')
+const pkg = require('../../package.json');
 
-/* eslint-disable */
 export const environment: Environment = Object.freeze({
   name: (pkg.name as string),
   version: (pkg.version as string),
   production: true,
-  baseUrl: "/",
-  defaultLocale: "fr",
-  defaultLatLongFormat: "DDMM",
-  apolloFetchPolicy: "cache-first",
+  baseUrl: '/',
+  defaultLocale: 'fr',
+  defaultLatLongFormat: 'DDMM',
+  apolloFetchPolicy: 'cache-first',
   mock: false,
 
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
@@ -66,4 +65,3 @@ export const environment: Environment = Object.freeze({
     driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage']
   }
 });
-/* eslint-enable */

@@ -1,10 +1,9 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";
-import {ModalController} from "@ionic/angular";
-import {changeCaseToUnderscore} from "@sumaris-net/ngx-components";
-import {ReferentialFilter} from "../services/filter/referential.filter";
-import {ReferentialRefService} from "../services/referential-ref.service";
-import {ReferentialRef}  from "@sumaris-net/ngx-components";
-import {BaseSelectEntityModal} from "./base-select-entity.modal";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {ModalController} from '@ionic/angular';
+import {changeCaseToUnderscore, ReferentialRef} from '@sumaris-net/ngx-components';
+import {ReferentialFilter} from '../services/filter/referential.filter';
+import {ReferentialRefService} from '../services/referential-ref.service';
+import {BaseSelectEntityModal} from './base-select-entity.modal';
 
 @Component({
   selector: 'app-select-referential-modal',

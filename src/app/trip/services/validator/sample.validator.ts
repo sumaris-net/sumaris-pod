@@ -1,13 +1,8 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {AppValidatorService, SharedFormGroupValidators, SharedValidators} from '@sumaris-net/ngx-components';
-import {Sample} from "../model/sample.model";
-import {isNotNil, toNumber} from "@sumaris-net/ngx-components";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {Subscription} from "rxjs";
-import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
-import {ParameterLabelGroups} from "../../../referential/services/model/model.enum";
+import {Injectable} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {AppValidatorService, SharedFormGroupValidators, SharedValidators, toNumber} from '@sumaris-net/ngx-components';
+import {Sample} from '../model/sample.model';
 import {TranslateService} from '@ngx-translate/core';
 
 @Injectable({providedIn: 'root'})

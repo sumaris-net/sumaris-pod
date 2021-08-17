@@ -1,11 +1,5 @@
 import {Injectable, Pipe, PipeTransform} from '@angular/core';
-import {
-  isArray,
-  Referential,
-  ReferentialRef,
-  referentialsToString,
-  referentialToString
-} from '@sumaris-net/ngx-components';
+import {isArray, Referential, ReferentialRef, referentialsToString, referentialToString} from '@sumaris-net/ngx-components';
 
 @Pipe({
   name: 'referentialToString'

@@ -1,36 +1,49 @@
-import {Injectable} from "@angular/core";
-import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {BehaviorSubject, defer, Observable, Subject, Subscription} from "rxjs";
-import {filter, finalize, map, tap} from "rxjs/operators";
-import {ErrorCodes} from "./errors";
-import {ReferentialFragments} from "./referential.fragments";
-import {BaseEntityGraphqlSubscriptions, GraphqlService} from '@sumaris-net/ngx-components';
-import {IEntitiesService, IEntityService, LoadResult} from "@sumaris-net/ngx-components";
-import {TaxonGroupRef, TaxonGroupTypeIds, TaxonNameRef} from "./model/taxon.model";
-import {firstArrayValue, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, propertiesPathComparator, suggestFromArray} from "@sumaris-net/ngx-components";
-import {CacheService} from "ionic-cache";
-import {ReferentialRefService} from "./referential-ref.service";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {EntitiesStorage}  from "@sumaris-net/ngx-components";
-import {IReferentialRef, ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {Program} from "./model/program.model";
+import {Injectable} from '@angular/core';
+import {FetchPolicy, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {BehaviorSubject, defer, Observable, Subject, Subscription} from 'rxjs';
+import {filter, finalize, map} from 'rxjs/operators';
+import {ErrorCodes} from './errors';
+import {ReferentialFragments} from './referential.fragments';
+import {
+  AccountService,
+  BaseEntityGraphqlSubscriptions,
+  ConfigService,
+  EntitiesStorage,
+  firstArrayValue,
+  firstNotNilPromise,
+  GraphqlService,
+  IEntitiesService,
+  IEntityService,
+  IReferentialRef,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  JobUtils,
+  LoadResult,
+  NetworkService,
+  PlatformService,
+  propertiesPathComparator,
+  ReferentialRef,
+  ReferentialUtils,
+  StatusIds,
+  suggestFromArray
+} from '@sumaris-net/ngx-components';
+import {TaxonGroupRef, TaxonGroupTypeIds, TaxonNameRef} from './model/taxon.model';
+import {CacheService} from 'ionic-cache';
+import {ReferentialRefService} from './referential-ref.service';
+import {Program} from './model/program.model';
 
-import {DenormalizedPmfmStrategy} from "./model/pmfm-strategy.model";
+import {DenormalizedPmfmStrategy} from './model/pmfm-strategy.model';
 import {IWithProgramEntity} from '@app/data/services/model/model.utils';
 
-import {StrategyFragments} from "./strategy.fragments";
-import {AcquisitionLevelCodes} from "./model/model.enum";
-import {JobUtils} from "@sumaris-net/ngx-components";
-import {ProgramFragments} from "./program.fragments";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {ConfigService}  from "@sumaris-net/ngx-components";
-import {PmfmService} from "./pmfm.service";
-import {BaseReferentialService} from "./base-referential-service.class";
-import {ProgramFilter} from "./filter/program.filter";
-import {ReferentialRefFilter} from "./filter/referential-ref.filter";
+import {StrategyFragments} from './strategy.fragments';
+import {AcquisitionLevelCodes} from './model/model.enum';
+import {ProgramFragments} from './program.fragments';
+import {PmfmService} from './pmfm.service';
+import {BaseReferentialService} from './base-referential-service.class';
+import {ProgramFilter} from './filter/program.filter';
+import {ReferentialRefFilter} from './filter/referential-ref.filter';
 import {environment} from '@environments/environment';
 
 
@@ -132,7 +145,7 @@ export class ProgramRefService
   private _subscriptionCache: {[key: string]: {
       subject: Subject<Program>;
       subscription: Subscription;
-    }} = {};
+    };} = {};
 
   constructor(
     graphql: GraphqlService,
@@ -171,6 +184,7 @@ export class ProgramRefService
 
   /**
    * Watch program by label
+   *
    * @param label
    * @param opts
    */
@@ -217,7 +231,7 @@ export class ProgramRefService
         // Important: do NOT using cache here, as default (= 'no-cache')
         // because cache is manage by Ionic cache (easier to clean)
         fetchPolicy: opts && (opts.fetchPolicy as FetchPolicy) || 'no-cache',
-        error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"}
+        error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'}
       }).pipe(map(res => res && res.data));
     }
 
@@ -234,7 +248,7 @@ export class ProgramRefService
     );
   }
 
-  async existsByLabel(label: string): Promise<Boolean> {
+  async existsByLabel(label: string): Promise<boolean> {
     if (isNilOrBlank(label)) return false;
 
     const program = await this.loadByLabel(label, {toEntity: false});
@@ -273,7 +287,7 @@ export class ProgramRefService
       const res = await this.graphql.query<{ data: any }>({
         query,
         variables: { label },
-        error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
+        error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: 'PROGRAM.ERROR.LOAD_PROGRAM_ERROR'}
       });
       data = res && res.data;
     }
@@ -467,14 +481,14 @@ export class ProgramRefService
   /**
    * Load program taxon groups
    */
-  async loadTaxonGroups(programLabel: string, opts?: { toEntity?: boolean; }): Promise<TaxonGroupRef[]> {
+  async loadTaxonGroups(programLabel: string, opts?: { toEntity?: boolean }): Promise<TaxonGroupRef[]> {
     return firstNotNilPromise(this.watchTaxonGroups(programLabel, opts));
   }
 
   /**
    * Suggest program taxon groups
    */
-  async suggestTaxonGroups(value: any, filter?: Partial<ReferentialRefFilter & { program: string; }>): Promise<LoadResult<IReferentialRef>> {
+  async suggestTaxonGroups(value: any, filter?: Partial<ReferentialRefFilter & { program: string }>): Promise<LoadResult<IReferentialRef>> {
     // Search on program's taxon groups
     if (filter && isNotNil(filter.program)) {
       const programItems = await this.loadTaxonGroups(filter.program, {toEntity: false});
@@ -499,7 +513,7 @@ export class ProgramRefService
   async suggestTaxonNames(value: any, opts: {
     programLabel?: string;
     levelId?: number;
-    levelIds?: number[]
+    levelIds?: number[];
     searchAttribute?: string;
     taxonGroupId?: number;
   }): Promise<LoadResult<TaxonNameRef>> {
@@ -578,7 +592,7 @@ export class ProgramRefService
     const maxProgression = opts && opts.maxProgression || 100;
 
     const now = this._debug && Date.now();
-    console.info("[program-ref-service] Importing programs...");
+    console.info('[program-ref-service] Importing programs...');
 
     try {
       // Clear cache
@@ -595,8 +609,8 @@ export class ProgramRefService
         if (acquisitionLevels && acquisitionLevels.length === 1) {
           loadFilter = {
             ...loadFilter,
-            searchJoin: "strategies/pmfms/acquisitionLevel",
-            searchAttribute: "label",
+            searchJoin: 'strategies/pmfms/acquisitionLevel',
+            searchAttribute: 'label',
             searchText: acquisitionLevels[0]
           };
         }
@@ -611,7 +625,7 @@ export class ProgramRefService
           this.loadAll(offset, size, 'id', 'asc', loadFilter, {
             debug: false,
             query: ProgramRefQueries.loadAllWithTotalAndStrategy,
-            fetchPolicy: "network-only",
+            fetchPolicy: 'network-only',
             toEntity: false
           }),
         progression,
@@ -635,7 +649,7 @@ export class ProgramRefService
 
     }
     catch (err) {
-      console.error("[program-ref-service] Error during programs importation", err);
+      console.error('[program-ref-service] Error during programs importation', err);
       throw err;
     }
   }
@@ -680,8 +694,8 @@ export class ProgramRefService
     interval?: number;
     toEntity?: false;
   }): Observable<Program> {
-    if (isNil(label)) throw Error("Missing argument 'label' ");
-    if (!this.subscriptions.listenChanges) throw Error("Not implemented!");
+    if (isNil(label)) throw Error(`Missing argument 'label'`);
+    if (!this.subscriptions.listenChanges) throw Error('Not implemented!');
 
     const variables = {
       label,
@@ -711,7 +725,7 @@ export class ProgramRefService
   }
 
   async clearCache() {
-    console.info("[program-ref-service] Clearing program cache...");
+    console.info('[program-ref-service] Clearing program cache...');
     await this.cache.clearGroup(ProgramRefCacheKeys.CACHE_GROUP);
   }
 

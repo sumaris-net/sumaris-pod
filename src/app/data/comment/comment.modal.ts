@@ -1,9 +1,9 @@
-import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
-import {ModalController, PopoverController} from "@ionic/angular";
-import {Observable, Subscription} from "rxjs";
-import {TranslateService} from "@ngx-translate/core";
-import {CommentForm} from "./comment.form";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
+import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {PopoverController} from '@ionic/angular';
+import {Subscription} from 'rxjs';
+import {TranslateService} from '@ngx-translate/core';
+import {CommentForm} from './comment.form';
+import {AppFormUtils} from '@sumaris-net/ngx-components';
 
 @Component({
   selector: 'app-comment-modal',

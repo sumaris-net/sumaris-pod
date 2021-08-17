@@ -1,35 +1,33 @@
-import {TypePolicies} from "@apollo/client/core";
-import {FormFieldDefinition, FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
-import {changeCaseToUnderscore} from "@sumaris-net/ngx-components";
+import {TypePolicies} from '@apollo/client/core';
+import {changeCaseToUnderscore, FormFieldDefinition, StatusIds} from '@sumaris-net/ngx-components';
 import {LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonomicLevelIds} from '../model/model.enum';
-import {StatusIds}  from "@sumaris-net/ngx-components";
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
-  'MetierVO': {
+  MetierVO: {
     keyFields: ['entityName', 'id']
   },
-  'PmfmVO': {
+  PmfmVO: {
     keyFields: ['entityName', 'id']
   },
-  'TaxonGroupVO': {
+  TaxonGroupVO: {
     keyFields: ['entityName', 'id']
   },
-  'TaxonNameVO': {
+  TaxonNameVO: {
     keyFields: ['entityName', 'id']
   },
-  'LocationVO': {
+  LocationVO: {
     keyFields: ['entityName', 'id']
   },
-  'ReferentialVO': {
+  ReferentialVO: {
     keyFields: ['entityName', 'id']
   },
-  'TaxonGroupStrategyVO': {
+  TaxonGroupStrategyVO: {
     keyFields: ['__typename', 'strategyId', 'taxonGroup', ['entityName', 'id']]
   },
-  'TaxonNameStrategyVO': {
+  TaxonNameStrategyVO: {
     keyFields: ['__typename', 'strategyId', 'taxonName', ['entityName', 'id']]
   },
-  'DenormalizedPmfmStrategyVO': {
+  DenormalizedPmfmStrategyVO: {
     keyFields: ['__typename', 'strategyId', 'acquisitionLevel', 'id']
   },
 };

@@ -251,7 +251,7 @@ export interface TripServiceCopyOptions extends TripSaveOptions {
   displaySuccessToast?: boolean;
 }
 
-const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any; } = {
+const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any } = {
 
   // Load a trip
   load: gql` query Trip($id: Int!) {
@@ -400,6 +400,7 @@ export class TripService
 
   /**
    * Load many trips
+   *
    * @param offset
    * @param size
    * @param sortBy
@@ -492,7 +493,7 @@ export class TripService
   }
 
   async load(id: number, opts?: TripLoadOptions): Promise<Trip | null> {
-    if (isNil(id)) throw new Error('Missing argument \'id\'');
+    if (isNil(id)) throw new Error(`Missing argument 'id'`);
 
     // use landedTrip option if itself or withOperationGroups is present in service options
     const isLandedTrip = opts && (opts.isLandedTrip || opts.withOperationGroup);
@@ -548,12 +549,12 @@ export class TripService
     return res && res.total > 0;
   }
 
-  listenChanges(id: number, opts?: { interval?: number; }): Observable<Trip> {
-    if (isNil(id)) throw new Error('Missing argument \'id\' ');
+  listenChanges(id: number, opts?: { interval?: number }): Observable<Trip> {
+    if (isNil(id)) throw new Error(`Missing argument 'id'`);
 
     if (this._debug) console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
 
-    return this.graphql.subscribe<{ data: any }, { id: number, interval: number }>({
+    return this.graphql.subscribe<{ data: any }, { id: number; interval: number }>({
       query: this.subscriptions.listenChanges,
       variables: {id, interval: toNumber(opts && opts.interval, 10)},
       error: {
@@ -572,6 +573,7 @@ export class TripService
 
   /**
    * Save many trips
+   *
    * @param entities
    * @param opts
    */
@@ -585,6 +587,7 @@ export class TripService
 
   /**
    * Save a trip
+   *
    * @param entity
    * @param opts
    */
@@ -813,6 +816,7 @@ export class TripService
 
   /**
    * Control the validity of an trip
+   *
    * @param entity
    * @param opts
    */
@@ -822,7 +826,7 @@ export class TripService
     if (this._debug) console.debug(`[trip-service] Control {${entity.id}}...`, entity);
 
     const programLabel = entity.program && entity.program.label || null;
-    if (!programLabel) throw new Error('Missing trip\'s program. Unable to control the trip');
+    if (!programLabel) throw new Error(`Missing trip's program. Unable to control the trip`);
     const program = await this.programRefService.loadByLabel(programLabel);
 
     const form = this.validatorService.getFormGroup(entity, {
@@ -857,6 +861,7 @@ export class TripService
 
   /**
    * Delete many trips
+   *
    * @param entities
    * @param opts
    */
@@ -894,6 +899,7 @@ export class TripService
 
   /**
    * Delete many local trips
+   *
    * @param entities
    * @param opts
    */
@@ -939,6 +945,7 @@ export class TripService
 
   /**
    * Copy entities (local or remote) to the local storage
+   *
    * @param entities
    * @param opts
    */
@@ -946,7 +953,7 @@ export class TripService
     return chainPromises(entities.map(source => () => this.copyLocally(source, opts)));
   }
 
-  async copyLocallyById(id: number, opts?: TripLoadOptions & {}): Promise<Trip> {
+  async copyLocallyById(id: number, opts?: TripLoadOptions): Promise<Trip> {
 
     // Load existing data
     const data = await this.load(id, {...opts, fetchPolicy: 'network-only'});
@@ -967,6 +974,7 @@ export class TripService
 
   /**
    * Copy an entity (local or remote) to the local storage
+   *
    * @param source
    * @param opts
    */
@@ -1158,6 +1166,7 @@ export class TripService
 
   /**
    * Copy Id and update, in sample tree (recursively)
+   *
    * @param sources
    * @param targets
    */

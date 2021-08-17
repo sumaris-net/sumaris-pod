@@ -1,7 +1,4 @@
-import {BaseReferential, Referential, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
-import {isNotNil} from "@sumaris-net/ngx-components";
-import {EntityClass}  from "@sumaris-net/ngx-components";
+import {BaseReferential, EntityAsObjectOptions, EntityClass, isNotNil, Referential} from '@sumaris-net/ngx-components';
 
 export declare type ParameterType = 'double' | 'string' | 'qualitative_value' | 'date' | 'boolean' ;
 

@@ -1,8 +1,7 @@
-import {FormGroup} from "@angular/forms";
-import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {Subscription} from "rxjs";
-import {isNotNil} from "@sumaris-net/ngx-components";
-import {ObjectMap} from "@sumaris-net/ngx-components";
+import {FormGroup} from '@angular/forms';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {Subscription} from 'rxjs';
+import {isNotNil, ObjectMap} from '@sumaris-net/ngx-components';
 
 export class BiologicalSamplingValidators {
 
@@ -11,11 +10,11 @@ export class BiologicalSamplingValidators {
                              pmfmGroups: ObjectMap<number[]>,
                              opts?: { markForCheck: () => void }): Subscription {
     if (!form) {
-      console.warn("Argument 'form' required");
+      console.warn(`Argument 'form' required`);
       return null;
     }
     if (!pmfmGroups) {
-      console.warn("Argument 'pmfmGroups' required");
+      console.warn(`Argument 'pmfmGroups' required`);
       return null;
     }
 

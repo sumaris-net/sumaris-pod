@@ -1,15 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {Batch, BatchUtils} from "../../services/model/batch.model";
-import {BehaviorSubject} from "rxjs";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {BatchForm} from "../form/batch.form";
-import {ModalController} from "@ionic/angular";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {TranslateService} from "@ngx-translate/core";
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from '@angular/core';
+import {Batch, BatchUtils} from '../../services/model/batch.model';
+import {BehaviorSubject} from 'rxjs';
+import {PmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {BatchForm} from '../form/batch.form';
+import {ModalController} from '@ionic/angular';
+import {AppFormUtils, LocalSettingsService, PlatformService, toBoolean} from '@sumaris-net/ngx-components';
+import {TranslateService} from '@ngx-translate/core';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
 
 @Component({
     selector: 'app-batch-modal',
@@ -110,8 +107,8 @@ export class BatchModal implements OnInit {
         if (this.loading) return; // avoid many call
 
         if (this.invalid) {
-            if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[batch-modal] ");
-            this.form.error = "COMMON.FORM.HAS_ERROR";
+            if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[batch-modal] ');
+            this.form.error = 'COMMON.FORM.HAS_ERROR';
             this.form.markAsTouched({emitEvent: true});
             return;
         }

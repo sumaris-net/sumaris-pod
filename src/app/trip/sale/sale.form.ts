@@ -1,15 +1,12 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {SaleValidatorService} from "../services/validator/sale.validator";
+import {SaleValidatorService} from '../services/validator/sale.validator';
 import {Moment} from 'moment';
-import {DateAdapter} from "@angular/material/core";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {Sale} from "../services/model/sale.model";
-import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {AppForm}  from "@sumaris-net/ngx-components";
-import {referentialToString}  from "@sumaris-net/ngx-components";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {StatusIds}  from "@sumaris-net/ngx-components";
+import {DateAdapter} from '@angular/material/core';
+import {AppForm, LocalSettingsService, referentialToString, StatusIds} from '@sumaris-net/ngx-components';
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {Sale} from '../services/model/sale.model';
+import {LocationLevelIds} from '@app/referential/services/model/model.enum';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 
 @Component({
   selector: 'form-sale',

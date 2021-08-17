@@ -1,21 +1,28 @@
-import {Injectable} from "@angular/core";
-import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {ReferentialFragments} from "./referential.fragments";
-import {BaseEntityGraphqlQueries, GraphqlService} from '@sumaris-net/ngx-components';
-import {CacheService} from "ionic-cache";
-import {ErrorCodes} from "./errors";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {EntitiesStorage}  from "@sumaris-net/ngx-components";
-import {ReferentialFilter} from "./filter/referential.filter";
-import {Strategy} from "./model/strategy.model";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {StrategyFragments} from "./strategy.fragments";
-import {firstArrayValue, isNil, isNotEmptyArray, isNotNil, toNumber} from "@sumaris-net/ngx-components";
-import {defer, Observable, Subject, Subscription} from "rxjs";
-import {filter, finalize, map, tap} from "rxjs/operators";
-import {BaseReferentialService} from "./base-referential-service.class";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
+import {Injectable} from '@angular/core';
+import {FetchPolicy, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {ReferentialFragments} from './referential.fragments';
+import {
+  AccountService,
+  BaseEntityGraphqlQueries,
+  EntitiesStorage,
+  firstArrayValue,
+  firstNotNilPromise,
+  GraphqlService,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  NetworkService,
+  PlatformService,
+  toNumber
+} from '@sumaris-net/ngx-components';
+import {CacheService} from 'ionic-cache';
+import {ErrorCodes} from './errors';
+import {ReferentialFilter} from './filter/referential.filter';
+import {Strategy} from './model/strategy.model';
+import {StrategyFragments} from './strategy.fragments';
+import {defer, Observable, Subject, Subscription} from 'rxjs';
+import {filter, finalize, map} from 'rxjs/operators';
+import {BaseReferentialService} from './base-referential-service.class';
 
 
 export class StrategyFilter extends ReferentialFilter {
@@ -148,6 +155,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
 
   /**
    * Watch strategy by label
+   *
    * @param label
    * @param opts
    */
@@ -198,7 +206,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
         // Important: do NOT using cache here, as default (= 'no-cache')
         // because cache is manage by Ionic cache (easier to clean)
         fetchPolicy: opts && opts.fetchPolicy || 'no-cache',
-        error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "ERROR.LOAD_ERROR"}
+        error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: 'ERROR.LOAD_ERROR'}
       }).pipe(map(res => firstArrayValue(res && res.data)));
     }
 
@@ -229,19 +237,19 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
   }
 
   async clearCache() {
-    console.info("[strategy-ref-service] Clearing strategy cache...");
+    console.info('[strategy-ref-service] Clearing strategy cache...');
     await this.cache.clearGroup(StrategyRefCacheKeys.CACHE_GROUP);
   }
 
   private _subscriptionCache: {[key: string]: {
       subject: Subject<Strategy[]>;
       subscription: Subscription;
-    }} = {};
+    };} = {};
 
   listenChangesByProgram(programId: number, opts?: {
     interval?: number;
   }): Observable<Strategy[]> {
-    if (isNil(programId)) throw Error("Missing argument 'programId' ");
+    if (isNil(programId)) throw Error(`Missing argument 'programId'`);
 
     const cacheKey = [StrategyRefCacheKeys.STRATEGIES_BY_PROGRAM_ID, programId].join('|');
     let cache = this._subscriptionCache[cacheKey];

@@ -1,30 +1,15 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Inject,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from "@angular/core";
-import {Batch, BatchUtils} from "../../services/model/batch.model";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {AlertController, ModalController} from "@ionic/angular";
-import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
-import {TranslateService} from "@ngx-translate/core";
-import {AcquisitionLevelCodes, QualityFlagIds} from "../../../referential/services/model/model.enum";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {BatchGroupForm} from "../form/batch-group.form";
-import {isNil, toBoolean} from "@sumaris-net/ngx-components";
-import {debounceTime, map, startWith} from "rxjs/operators";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {Alerts} from "@sumaris-net/ngx-components";
-import {BatchGroup} from "../../services/model/batch-group.model";
-import {IReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../../environments/environment";
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Batch, BatchUtils} from '../../services/model/batch.model';
+import {Alerts, AppFormUtils, IReferentialRef, isNil, LocalSettingsService, PlatformService, ReferentialUtils, toBoolean} from '@sumaris-net/ngx-components';
+import {AlertController, ModalController} from '@ionic/angular';
+import {BehaviorSubject, merge, Observable, Subscription} from 'rxjs';
+import {TranslateService} from '@ngx-translate/core';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {PmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {BatchGroupForm} from '../form/batch-group.form';
+import {debounceTime, map, startWith} from 'rxjs/operators';
+import {BatchGroup} from '../../services/model/batch-group.model';
+import {environment} from '@environments/environment';
 
 @Component({
   selector: 'app-batch-group-modal',
@@ -32,7 +17,7 @@ import {environment} from "../../../../environments/environment";
   styleUrls: ['batch-group.modal.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchGroupModal implements OnInit, OnDestroy {
+export class BatchGroupModal implements OnInit, OnDestroy, AfterViewInit {
 
   private _subscription = new Subscription();
 
@@ -193,7 +178,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     await this.modalCtrl.dismiss();
   }
 
-  async save(opts?: {allowInvalid?: boolean; }): Promise<BatchGroup | undefined> {
+  async save(opts?: {allowInvalid?: boolean }): Promise<BatchGroup | undefined> {
     if (this.loading) return undefined; // avoid many call
 
     this.loading = true;
@@ -214,13 +199,13 @@ export class BatchGroupModal implements OnInit, OnDestroy {
         const taxonGroup = this.form.form.get('taxonGroup').value;
         const taxonName = this.form.form.get('taxonName').value;
         if (ReferentialUtils.isEmpty(taxonGroup) && ReferentialUtils.isEmpty(taxonName)) {
-          this.form.error = "COMMON.FORM.HAS_ERROR";
+          this.form.error = 'COMMON.FORM.HAS_ERROR';
           allowInvalid = false;
         }
 
         // Invalid not allowed: stop
         if (!allowInvalid) {
-          if (this.debug) this.form.logFormErrors("[batch-group-modal] ");
+          if (this.debug) this.form.logFormErrors('[batch-group-modal] ');
           this.form.markAsTouched({emitEvent: true});
           return undefined;
         }
@@ -238,7 +223,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     }
   }
 
-  async close(event?: UIEvent, opts?: {allowInvalid?: boolean; }): Promise<BatchGroup | undefined> {
+  async close(event?: UIEvent, opts?: {allowInvalid?: boolean }): Promise<BatchGroup | undefined> {
 
     const savedBatch = await this.save({allowInvalid: true, ...opts});
     if (!savedBatch) return;

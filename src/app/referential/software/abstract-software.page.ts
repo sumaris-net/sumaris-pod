@@ -22,7 +22,6 @@ import {SoftwareValidatorService} from '../services/validator/software.validator
 import {ReferentialRefService} from '../services/referential-ref.service';
 
 @Directive()
-// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class AbstractSoftwarePage<
   T extends Software<T>,
   S extends IEntityService<T>>

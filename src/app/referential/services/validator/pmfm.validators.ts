@@ -1,14 +1,13 @@
-import {ValidatorFn, Validators} from "@angular/forms";
-import {isNil, isNotNil} from "@sumaris-net/ngx-components";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {IPmfm} from "../model/pmfm.model";
+import {ValidatorFn, Validators} from '@angular/forms';
+import {isNil, isNotNil, SharedValidators} from '@sumaris-net/ngx-components';
+import {IPmfm} from '../model/pmfm.model';
 
 const REGEXP_INTEGER = /^[0-9]+$/;
 const REGEXP_DOUBLE = /^[0-9]+(\.[0-9]+)?$/;
 
 export class PmfmValidators {
 
-  static create(pmfm: IPmfm, validatorFns?: ValidatorFn[], opts?: { forceOptional?: boolean; } ): ValidatorFn {
+  static create(pmfm: IPmfm, validatorFns?: ValidatorFn[], opts?: { forceOptional?: boolean } ): ValidatorFn {
     validatorFns = validatorFns || [];
     // Add required validator (if NOT force as optional - can occur when on field mode)
     if (pmfm.required && (!opts || opts.forceOptional !== true)) {

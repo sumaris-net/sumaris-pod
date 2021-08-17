@@ -1,4 +1,4 @@
-import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
+import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {EntityClass, ReferentialRef} from '@sumaris-net/ngx-components';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 

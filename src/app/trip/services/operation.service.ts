@@ -30,15 +30,15 @@ import {
   NetworkService,
   QueryVariables
 } from '@sumaris-net/ngx-components';
-import {DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '../../data/services/model/data-entity.model';
+import {DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
 import {Operation, OperationFromObjectOptions, VesselPosition} from './model/trip.model';
 import {Measurement} from './model/measurement.model';
 import {Batch, BatchUtils} from './model/batch.model';
 import {Sample} from './model/sample.model';
-import {ReferentialFragments} from '../../referential/services/referential.fragments';
-import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum';
+import {ReferentialFragments} from '@app/referential/services/referential.fragments';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
 import {SortDirection} from '@angular/material/sort';
-import {environment} from '../../../environments/environment';
+import {environment} from '@environments/environment';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
@@ -158,7 +158,7 @@ const OperationQueries = {
     }
   }
   ${OperationFragments.operation}`
-}
+};
 
 const OperationMutations: BaseEntityGraphqlMutations = {
   // Save many operations
@@ -184,9 +184,7 @@ const OperationSubscriptions: BaseEntityGraphqlSubscriptions = {
   ${OperationFragments.operation}`
 };
 
-const sortByStartDateFn = (n1: Operation, n2: Operation) => {
-  return n1.startDateTime.isSame(n2.startDateTime) ? 0 : (n1.startDateTime.isAfter(n2.startDateTime) ? 1 : -1);
-};
+const sortByStartDateFn = (n1: Operation, n2: Operation) => n1.startDateTime.isSame(n2.startDateTime) ? 0 : (n1.startDateTime.isAfter(n2.startDateTime) ? 1 : -1);
 
 const sortByEndDateOrStartDateFn = (n1: Operation, n2: Operation) => {
   const d1 = n1.endDateTime || n1.startDateTime;
@@ -194,15 +192,11 @@ const sortByEndDateOrStartDateFn = (n1: Operation, n2: Operation) => {
   return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
 };
 
-const sortByAscRankOrderOnPeriod = (n1: Operation, n2: Operation) => {
-  return n1.rankOrderOnPeriod === n2.rankOrderOnPeriod ? 0 :
+const sortByAscRankOrderOnPeriod = (n1: Operation, n2: Operation) => n1.rankOrderOnPeriod === n2.rankOrderOnPeriod ? 0 :
     (n1.rankOrderOnPeriod > n2.rankOrderOnPeriod ? 1 : -1);
-};
 
-const sortByDescRankOrderOnPeriod = (n1: Operation, n2: Operation) => {
-  return n1.rankOrderOnPeriod === n2.rankOrderOnPeriod ? 0 :
+const sortByDescRankOrderOnPeriod = (n1: Operation, n2: Operation) => n1.rankOrderOnPeriod === n2.rankOrderOnPeriod ? 0 :
     (n1.rankOrderOnPeriod > n2.rankOrderOnPeriod ? -1 : 1);
-};
 
 export declare interface OperationSaveOptions extends EntitySaveOptions {
   tripId?: number;
@@ -242,16 +236,17 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     this._debug = !environment.production;
   }
 
-  async loadAllByTrip(filter?: (OperationFilter | any) & { tripId: number; }, opts?: OperationServiceWatchOptions): Promise<LoadResult<Operation>> {
+  async loadAllByTrip(filter?: (OperationFilter | any) & { tripId: number }, opts?: OperationServiceWatchOptions): Promise<LoadResult<Operation>> {
     return firstNotNilPromise(this.watchAllByTrip(filter, opts));
   }
 
-  watchAllByTrip(filter?: (OperationFilter | any) & { tripId: number; }, opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
+  watchAllByTrip(filter?: (OperationFilter | any) & { tripId: number }, opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
       return this.watchAll(0, -1, null, null, filter, opts);
   }
 
   /**
    * Load many operations
+   *
    * @param offset
    * @param size
    * @param sortBy
@@ -274,7 +269,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
 
     if (!dataFilter || isNil(dataFilter.tripId)) {
-      console.warn("[operation-service] Trying to load operations without 'filter.tripId'. Skipping.");
+      console.warn(`[operation-service] Trying to load operations without 'filter.tripId'. Skipping.`);
       return EMPTY;
     }
     if (opts && opts.fullLoad) {
@@ -293,18 +288,18 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     };
 
     let now = this._debug && Date.now();
-    if (this._debug) console.debug("[operation-service] Loading operations... using options:", variables);
+    if (this._debug) console.debug('[operation-service] Loading operations... using options:', variables);
 
     const withTotal = opts && opts.withTotal === true;
     const query = withTotal ? OperationQueries.loadAllWithTotal : OperationQueries.loadAll;
     return this.mutableWatchQuery<LoadResult<any>>({
       queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
-      query: query,
+      query,
       arrayFieldName: 'data',
       totalFieldName: withTotal ? 'total' : undefined,
       insertFilterFn: dataFilter.asFilterFn(),
-      variables: variables,
-      error: {code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR"},
+      variables,
+      error: {code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: 'TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
     })
     .pipe(
@@ -331,7 +326,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   }
 
   async load(id: number, options?: EntityServiceLoadOptions): Promise<Operation | null> {
-    if (isNil(id)) throw new Error("Missing argument 'id' ");
+    if (isNil(id)) throw new Error(`Missing argument 'id'`);
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[operation-service] Loading operation #${id}...`);
@@ -343,7 +338,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       // Load locally
       if (id < 0) {
         json = await this.entities.load<Operation>(id, Operation.TYPENAME);
-        if (!json) throw {code: ErrorCodes.LOAD_OPERATION_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR"};
+        if (!json) throw {code: ErrorCodes.LOAD_OPERATION_ERROR, message: 'TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR'};
       }
 
       // Load from pod
@@ -351,7 +346,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         const res = await this.graphql.query<{ data: Operation }>({
           query: OperationQueries.load,
           variables: { id },
-          error: {code: ErrorCodes.LOAD_OPERATION_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR"},
+          error: {code: ErrorCodes.LOAD_OPERATION_ERROR, message: 'TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR'},
           fetchPolicy: options && options.fetchPolicy || undefined
         });
         json = res && res.data;
@@ -372,14 +367,14 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   }
 
   public listenChanges(id: number): Observable<Operation> {
-    if (isNil(id)) throw new Error("Missing argument 'id' ");
+    if (isNil(id)) throw new Error(`Missing argument 'id'`);
 
     if (this._debug) console.debug(`[operation-service] [WS] Listening changes for operation {${id}}...`);
 
-    return this.graphql.subscribe<{ data: Operation }, { id: number, interval: number }>({
+    return this.graphql.subscribe<{ data: Operation }, { id: number; interval: number }>({
       query: OperationSubscriptions.listenChanges,
       variables: {
-        id: id,
+        id,
         interval: 10
       },
       error: {
@@ -401,6 +396,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
   /**
    * Save many operations
+   *
    * @param entities
    * @param opts
    */
@@ -414,6 +410,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
   /**
    * Save an operation
+   *
    * @param data
    */
   async save(entity: Operation, opts?: OperationSaveOptions): Promise<Operation> {
@@ -433,14 +430,14 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Transform into json
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
-    if (this._debug) console.debug("[operation-service] Saving operation remotely...", json);
+    if (this._debug) console.debug('[operation-service] Saving operation remotely...', json);
 
     await this.graphql.mutate<{ data: Operation[] }>({
         mutation: OperationMutations.saveAll,
         variables: {
           data: [json]
         },
-        error: {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATION_ERROR"},
+        error: {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: 'TRIP.OPERATION.ERROR.SAVE_OPERATION_ERROR'},
         offlineResponse: async (context) => {
           // Make sure to fill id, with local ids
           await this.fillOfflineDefaultProperties(entity);
@@ -501,6 +498,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
   /**
    * Save many operations
+   *
    * @param entities
    * @param opts
    */
@@ -520,7 +518,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
       const ids = remoteEntities.map(e => e.id);
       const now = Date.now();
-      if (this._debug) console.debug("[operation-service] Deleting operations... ids:", ids);
+      if (this._debug) console.debug('[operation-service] Deleting operations... ids:', ids);
 
       await this.graphql.mutate({
         mutation: OperationMutations.deleteAll,
@@ -533,7 +531,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           if (this._watchQueriesUpdatePolicy === 'update-cache') {
             this.removeFromMutableCachedQueriesByIds(cache, {
               queryNames: this.getLoadQueryNames(),
-              ids: ids
+              ids
             });
           }
 
@@ -568,10 +566,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
   /**
    * Delete operation locally (from the entity storage)
+   *
    * @param filter
    */
-  async deleteLocally(filter: Partial<OperationFilter> & { tripId: number; }): Promise<Operation[]> {
-    if (!filter || isNil(filter.tripId)) throw new Error("Missing arguments 'filter.tripId'");
+  async deleteLocally(filter: Partial<OperationFilter> & { tripId: number }): Promise<Operation[]> {
+    if (!filter || isNil(filter.tripId)) throw new Error(`Missing arguments 'filter.tripId'`);
 
     const dataFilter = this.asFilter(filter);
 
@@ -604,10 +603,10 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
 
     if (!dataFilter || isNil(dataFilter.tripId)) {
-      console.warn("[operation-service] Trying to load operations without 'filter.tripId'. Skipping.");
+      console.warn(`[operation-service] Trying to load operations without 'filter.tripId'. Skipping.`);
       return EMPTY;
     }
-    if (dataFilter.tripId >= 0) throw new Error("Invalid 'filter.tripId': must be a local ID (id<0)!");
+    if (dataFilter.tripId >= 0) throw new Error(`Invalid 'filter.tripId': must be a local ID (id<0)!`);
 
     dataFilter = this.asFilter(dataFilter);
 
@@ -620,7 +619,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       filter: dataFilter.asFilterFn()
     };
 
-    if (this._debug) console.debug("[operation-service] Loading operations locally... using options:", variables);
+    if (this._debug) console.debug('[operation-service] Loading operations locally... using options:', variables);
     return this.entities.watchAll<Operation>(Operation.TYPENAME, variables, {fullLoad: opts && opts.fullLoad})
       .pipe(map(({data, total}) => {
         const entities = (!opts || opts.toEntity !== false) ?
@@ -639,10 +638,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   /**
    * Compute rank order of the given operation. This function will load all operations, to compute the rank order.
    * Please use opts={fetchPolicy: 'cache-first'} when possible
+   *
    * @param source
    * @param opts
    */
-  computeRankOrder(source: Operation, opts?: { fetchPolicy?: FetchPolicy; } ): Promise<number> {
+  computeRankOrder(source: Operation, opts?: { fetchPolicy?: FetchPolicy } ): Promise<number> {
     return this.watchRankOrder(source, opts)
       .pipe(first())
       .toPromise();
@@ -650,6 +650,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
   /**
    * Compute rank order of the operation
+   *
    * @param source
    * @param opts
    */
@@ -673,6 +674,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
   /**
    * Save an operation on the local storage
+   *
    * @param data
    */
   protected async saveLocally(entity: Operation, opts?: OperationSaveOptions): Promise<Operation> {
@@ -693,7 +695,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     return entity;
   }
 
-  protected asObject(entity: Operation, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean; sampleAsTree?: boolean; }): any {
+  protected asObject(entity: Operation, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean; sampleAsTree?: boolean }): any {
     opts = { ...MINIFY_OPTIONS, ...opts };
     const copy: any = entity.asObject(opts);
 
@@ -767,7 +769,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     if (isNotEmptyArray(batches)) {
       await EntityUtils.fillLocalIds(batches, (_, count) => this.entities.nextValues('BatchVO', count));
       if (this._debug) {
-        console.debug("[Operation-service] Preparing batches to be saved locally:");
+        console.debug('[Operation-service] Preparing batches to be saved locally:');
         BatchUtils.logTree(entity.catchBatch);
       }
     }
@@ -819,6 +821,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
   /**
    * Copy Id and update, in sample tree (recursively)
+   *
    * @param sources
    * @param targets
    */
@@ -850,6 +853,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
   /**
    * Copy Id and update, in batch tree (recursively)
+   *
    * @param sources
    * @param targets
    */
@@ -862,7 +866,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           sources.splice(index, 1); // remove from sources list, as it has been found
         }
         else {
-          console.error("Batch NOT found ! ", target);
+          console.error('Batch NOT found ! ', target);
         }
 
         // Loop on children

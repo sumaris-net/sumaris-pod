@@ -1,26 +1,30 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {FormBuilder, FormGroup} from "@angular/forms";
-import {ActivatedRoute} from "@angular/router";
-import * as momentImported from "moment";
-import {HistoryPageReference}  from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {ProgramProperties} from "../../services/config/program.config";
-import {PmfmStrategy} from "../../services/model/pmfm-strategy.model";
-import {Strategy} from "../../services/model/strategy.model";
-import {PmfmService} from "../../services/pmfm.service";
-import {StrategyService} from "../../services/strategy.service";
-import {SamplingStrategyForm} from "./sampling-strategy.form";
-import {AppEntityEditor}  from "@sumaris-net/ngx-components";
-import {isNil, isNotEmptyArray, isNotNil, toNumber} from "@sumaris-net/ngx-components";
-import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {BehaviorSubject} from "rxjs";
-import {Program} from "../../services/model/program.model";
-import {ProgramService} from "../../services/program.service";
-import {AcquisitionLevelCodes, PmfmIds} from "../../services/model/model.enum";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {MatExpansionPanel} from '@angular/material/expansion';
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {ActivatedRoute} from '@angular/router';
+import * as momentImported from 'moment';
+import {
+  AccountService,
+  AppEntityEditor,
+  EntityServiceLoadOptions,
+  firstNotNilPromise,
+  HistoryPageReference,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  PlatformService,
+  StatusIds,
+  toNumber
+} from '@sumaris-net/ngx-components';
+import {ProgramProperties} from '../../services/config/program.config';
+import {PmfmStrategy} from '../../services/model/pmfm-strategy.model';
+import {Strategy} from '../../services/model/strategy.model';
+import {PmfmService} from '../../services/pmfm.service';
+import {StrategyService} from '../../services/strategy.service';
+import {SamplingStrategyForm} from './sampling-strategy.form';
+import {BehaviorSubject} from 'rxjs';
+import {Program} from '../../services/model/program.model';
+import {ProgramService} from '../../services/program.service';
+import {AcquisitionLevelCodes, PmfmIds} from '../../services/model/model.enum';
 
 const moment = momentImported;
 
@@ -58,7 +62,7 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
         autoOpenNextTab: false
       });
     // default values
-    this.defaultBackHref = "/referential/programs";
+    this.defaultBackHref = '/referential/programs';
     this._enabled = this.accountService.isAdmin();
   }
 
@@ -73,7 +77,7 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
 
   async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
-    return super.load(id, {...opts, fetchPolicy: "network-only"});
+    return super.load(id, {...opts, fetchPolicy: 'network-only'});
   }
 
   protected async onNewEntity(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
@@ -123,6 +127,7 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
 
   /**
    * Compute the title
+   *
    * @param data
    * @param opts
    */
@@ -169,7 +174,7 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
 
   async save(event?: Event, options?: any): Promise<boolean> {
     // Check access concurence
-    this.form.get('label').setValue(this.form.get('label').value.replace(/\s/g, "")); // remove whitespace
+    this.form.get('label').setValue(this.form.get('label').value.replace(/\s/g, '')); // remove whitespace
     this.form.get('label').updateValueAndValidity();
     return super.save(event, options);
   }
@@ -177,6 +182,7 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
 
   /**
    * Fill default PmfmStrategy (e.g. the PMFM to store the strategy's label)
+   *
    * @param target
    */
   fillPmfmStrategyDefaults(target: Strategy) {

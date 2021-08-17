@@ -1,17 +1,14 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from "@angular/core";
-import {ModalController, Platform} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
-import {AccountService}  from "@sumaris-net/ngx-components";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
+import {ModalController} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
+import {AccountService, HammerSwipeEvent, LocalSettingsService, PlatformService} from '@sumaris-net/ngx-components';
 import {Location} from '@angular/common';
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {VesselsTable} from "./vessels.table";
-import {VESSEL_FEATURE_NAME} from "../services/config/vessel.config";
-import {TableElement} from "@e-is/ngx-material-table";
-import {HammerSwipeEvent} from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
+import {VesselsTable} from './vessels.table';
+import {VESSEL_FEATURE_NAME} from '../services/config/vessel.config';
+import {TableElement} from '@e-is/ngx-material-table';
 
 export const VesselsPageSettingsEnum = {
-  PAGE_ID: "vessels",
+  PAGE_ID: 'vessels',
   FEATURE_ID: VESSEL_FEATURE_NAME
 };
 
@@ -76,7 +73,7 @@ export class VesselsPage implements OnInit {
     this.cd.markForCheck();
   }
 
-  async onOpenRow(event: {id?: number, row: TableElement<any>}) {
+  async onOpenRow(event: {id?: number; row: TableElement<any>}) {
     return await this.router.navigateByUrl(`/vessels/${event.row && event.row.currentData.id || event.id}` );
   }
 }

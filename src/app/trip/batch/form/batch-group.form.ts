@@ -1,27 +1,19 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, QueryList, ViewChildren} from "@angular/core";
-import {Batch, BatchUtils} from "../../services/model/batch.model";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {AbstractControl, FormBuilder, FormControl} from "@angular/forms";
-import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {BatchGroupValidatorService} from "../../services/validator/batch-group.validator";
-import {BehaviorSubject} from "rxjs";
-import {BatchForm} from "./batch.form";
-import {filter, switchMap} from "rxjs/operators";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {BatchGroup} from "../../services/model/batch-group.model";
-import {MeasurementsValidatorService} from "../../services/validator/measurement.validator";
-import {ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {IPmfm, PmfmUtils} from "../../../referential/services/model/pmfm.model";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {InputElement} from "@sumaris-net/ngx-components";
-import {isNotNil} from "@sumaris-net/ngx-components";
-import {fadeInAnimation} from "@sumaris-net/ngx-components";
-import {ProgramRefService} from "../../../referential/services/program-ref.service";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, QueryList, ViewChildren} from '@angular/core';
+import {Batch, BatchUtils} from '../../services/model/batch.model';
+import {DateAdapter} from '@angular/material/core';
+import {Moment} from 'moment';
+import {AbstractControl, FormBuilder, FormControl} from '@angular/forms';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {AppFormUtils, fadeInAnimation, firstNotNilPromise, InputElement, isNotNil, LocalSettingsService, PlatformService, ReferentialUtils} from '@sumaris-net/ngx-components';
+import {BatchGroupValidatorService} from '../../services/validator/batch-group.validator';
+import {BehaviorSubject} from 'rxjs';
+import {BatchForm} from './batch.form';
+import {filter, switchMap} from 'rxjs/operators';
+import {BatchGroup} from '../../services/model/batch-group.model';
+import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
 
 @Component({
   selector: 'app-batch-group-form',
@@ -30,7 +22,7 @@ import {ProgramRefService} from "../../../referential/services/program-ref.servi
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [fadeInAnimation]
 })
-export class BatchGroupForm extends BatchForm<BatchGroup> {
+export class BatchGroupForm extends BatchForm<BatchGroup> implements OnInit {
 
   $childrenPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   hasIndividualMeasureControl: AbstractControl;
@@ -43,7 +35,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
   @Input() showChildrenSampleBatch = true;
 
-  @ViewChildren("firstInput") firstInputFields !: QueryList<InputElement>;
+  @ViewChildren('firstInput') firstInputFields !: QueryList<InputElement>;
 
   @ViewChildren('childForm') childrenForms !: QueryList<BatchForm>;
 
@@ -68,19 +60,19 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       (this.childrenForms && this.childrenForms.find(child => child.dirty) && true) || false;
   }
 
-  markAsTouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+  markAsTouched(opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAsTouched(opts);
     (this.childrenForms || []).forEach(child => child.markAsTouched(opts));
     this.hasIndividualMeasureControl.markAsTouched(opts);
   }
 
-  markAsPristine(opts?: {onlySelf?: boolean; }) {
+  markAsPristine(opts?: {onlySelf?: boolean }) {
     super.markAsPristine(opts);
     (this.childrenForms || []).forEach(child => child.markAsPristine(opts));
     this.hasIndividualMeasureControl.markAsPristine(opts);
   }
 
-  markAsUntouched(opts?: {onlySelf?: boolean; }) {
+  markAsUntouched(opts?: {onlySelf?: boolean }) {
     super.markAsUntouched(opts);
     (this.childrenForms || []).forEach(child => child.markAsUntouched(opts));
     this.hasIndividualMeasureControl.markAsUntouched(opts);
@@ -180,13 +172,13 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     this.hasIndividualMeasureControl = new FormControl(false);
   }
 
-  setValue(data: BatchGroup, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  setValue(data: BatchGroup, opts?: {emitEvent?: boolean; onlySelf?: boolean }) {
     if (!this.isReady() || !this.data) {
       this.safeSetValue(data, opts);
       return;
     }
 
-    if (this.debug) console.debug("[batch-group-form] setValue() with value:", data);
+    if (this.debug) console.debug('[batch-group-form] setValue() with value:', data);
     let hasIndividualMeasure = data.observedIndividualCount > 0;
 
     if (!this.qvPmfm) {
@@ -200,6 +192,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       data.children = this.qvPmfm.qualitativeValues.map((qv, index) => {
 
         // Find existing child, or create a new one
+        // eslint-disable-next-line eqeqeq
         const child = (data.children || []).find(c => +(c.measurementValues[this.qvPmfm.id]) == qv.id)
           || new Batch();
 
@@ -260,7 +253,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   }
 
   logFormErrors(logPrefix: string) {
-    logPrefix = logPrefix || '';
+    logPrefix = logPrefix || '';
     AppFormUtils.logFormErrors(this.form, logPrefix);
     if (this.childrenForms) this.childrenForms.forEach((childForm, index) => {
         AppFormUtils.logFormErrors(childForm.form, logPrefix, `children#${index}`);
@@ -336,7 +329,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       });
     }
 
-    if (this.debug) console.debug("[batch-group-form] getValue():", data);
+    if (this.debug) console.debug('[batch-group-form] getValue():', data);
 
     return data;
   }

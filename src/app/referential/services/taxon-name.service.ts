@@ -54,7 +54,7 @@ export class TaxonNameService extends BaseGraphqlService implements IEntityServi
     super(graphql, environment);
   }
 
-  async existsByLabel(label: string, opts?: { excludedId?: number; }): Promise<boolean> {
+  async existsByLabel(label: string, opts?: { excludedId?: number }): Promise<boolean> {
     if (isNil(label)) return false;
     return await this.referentialService.existsByLabel(label, { ...opts, entityName: 'TaxonName' });
   }
@@ -62,12 +62,12 @@ export class TaxonNameService extends BaseGraphqlService implements IEntityServi
   async referenceTaxonExists(referenceTaxonId: number): Promise<boolean> {
     if (isNil(referenceTaxonId)) return false;
 
-    const {data} = await this.graphql.query<{ data: boolean; }>({
+    const {data} = await this.graphql.query<{ data: boolean }>({
       query: ExistsQuery,
       variables : {
         id: referenceTaxonId
       },
-      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" }
+      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' }
     });
 
     return data;
@@ -82,7 +82,7 @@ export class TaxonNameService extends BaseGraphqlService implements IEntityServi
       variables: {
         id
       },
-      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"}
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'}
     });
     const entity = data && TaxonName.fromObject(data);
 
@@ -93,6 +93,7 @@ export class TaxonNameService extends BaseGraphqlService implements IEntityServi
 
   /**
    * Save a taxon name entity
+   *
    * @param entity
    */
   async save(entity: TaxonName, options?: EntityServiceLoadOptions): Promise<TaxonName> {
@@ -110,7 +111,7 @@ export class TaxonNameService extends BaseGraphqlService implements IEntityServi
       variables: {
         taxonName: json
       },
-      error: { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR" },
+      error: { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR' },
       update: (proxy, {data}) => {
         // Update entity
         const savedEntity = data && data.saveTaxonName;
@@ -137,7 +138,7 @@ export class TaxonNameService extends BaseGraphqlService implements IEntityServi
 
   listenChanges(id: number, options?: any): Observable<TaxonName | undefined> {
     // TODO
-    console.warn("TODO: implement listen changes on taxon name");
+    console.warn('TODO: implement listen changes on taxon name');
     return of();
   }
 

@@ -1,4 +1,4 @@
-import {TypePolicies} from "@apollo/client/core";
+import {TypePolicies} from '@apollo/client/core';
 import {FormFieldDefinition, FormFieldDefinitionMap, StatusIds} from '@sumaris-net/ngx-components';
 
 export const VESSEL_FEATURE_NAME = 'vessel';

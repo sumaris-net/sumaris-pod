@@ -1,4 +1,4 @@
-import {TypePolicies} from "@apollo/client/core";
+import {TypePolicies} from '@apollo/client/core';
 import {FormFieldDefinition, PRIORITIZED_AUTHORITIES} from '@sumaris-net/ngx-components';
 
 export const EXTRACTION_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
@@ -30,8 +30,8 @@ export const EXTRACTION_CONFIG_OPTIONS = Object.freeze({
     defaultValue: 'false'
   },
   EXTRACTION_ACCESS_NOT_SELF_ROLE: <FormFieldDefinition>{
-    key: "sumaris.extraction.accessNotSelfExtraction.role",
-    label: "EXTRACTION.OPTIONS.ACCESS_NOT_SELF_ROLE",
+    key: 'sumaris.extraction.accessNotSelfExtraction.role',
+    label: 'EXTRACTION.OPTIONS.ACCESS_NOT_SELF_ROLE',
     type: 'enum',
     values: PRIORITIZED_AUTHORITIES.map(label => ({
       key: 'ROLE_' + label,

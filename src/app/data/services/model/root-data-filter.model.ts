@@ -1,10 +1,6 @@
-import {RootDataEntity, SynchronizationStatus} from "./root-data-entity.model";
-import {fromDateISOString, Person, toDateISOString} from '@sumaris-net/ngx-components';
-import {ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {DataEntityFilter} from "./data-filter.model";
-import {isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
-import {EntityAsObjectOptions, EntityUtils}  from "@sumaris-net/ngx-components";
-import {FilterFn} from "@sumaris-net/ngx-components";
+import {RootDataEntity, SynchronizationStatus} from './root-data-entity.model';
+import {EntityAsObjectOptions, EntityUtils, FilterFn, fromDateISOString, isNotNil, isNotNilOrBlank, Person, ReferentialRef, ReferentialUtils, toDateISOString} from '@sumaris-net/ngx-components';
+import {DataEntityFilter} from './data-filter.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {Moment} from 'moment';
 

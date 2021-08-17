@@ -1,10 +1,6 @@
-import {Moment} from "moment";
-import {ReferentialAsObjectOptions}  from "@sumaris-net/ngx-components";
-import {IWithRecorderDepartmentEntity} from "./model.utils";
-import {Entity}  from "@sumaris-net/ngx-components";
-import {Department}  from "@sumaris-net/ngx-components";
-import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
-import {isNotNil} from "@sumaris-net/ngx-components";
+import {Moment} from 'moment';
+import {Department, Entity, fromDateISOString, isNotNil, ReferentialAsObjectOptions, toDateISOString} from '@sumaris-net/ngx-components';
+import {IWithRecorderDepartmentEntity} from './model.utils';
 
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {

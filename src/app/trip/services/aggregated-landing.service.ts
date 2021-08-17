@@ -1,15 +1,15 @@
 import {Injectable, Injector} from '@angular/core';
 import {AggregatedLanding} from './model/aggregated-landing.model';
 import {ErrorCodes} from './trip.errors';
-import {BaseGraphqlService, EntitiesStorage, GraphqlService, IEntitiesService, isNotNil, LoadResult, NetworkService, toDateISOString} from '@sumaris-net/ngx-components';
+import {BaseGraphqlService, EntitiesStorage, GraphqlService, IEntitiesService, isNotNil, LoadResult, NetworkService} from '@sumaris-net/ngx-components';
 import {gql} from '@apollo/client/core';
-import {VesselSnapshotFragments} from '../../referential/services/vessel-snapshot.service';
-import {ReferentialFragments} from '../../referential/services/referential.fragments';
+import {VesselSnapshotFragments} from '@app/referential/services/vessel-snapshot.service';
+import {ReferentialFragments} from '@app/referential/services/referential.fragments';
 import {Observable} from 'rxjs';
 import {filter, map} from 'rxjs/operators';
 import {SortDirection} from '@angular/material/sort';
-import {DataEntityAsObjectOptions} from '../../data/services/model/data-entity.model';
-import {environment} from '../../../environments/environment';
+import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
+import {environment} from '@environments/environment';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {AggregatedLandingFilter} from '@app/trip/services/filter/aggregated-landing.filter';
 
@@ -96,7 +96,7 @@ export class AggregatedLandingService
     const variables: any = {};
 
     let now = this._debug && Date.now();
-    if (this._debug) console.debug("[aggregated-landing-service] Loading aggregated landings... using options:", variables);
+    if (this._debug) console.debug('[aggregated-landing-service] Loading aggregated landings... using options:', variables);
 
     let res: Observable<LoadResult<AggregatedLanding>>;
 
@@ -118,7 +118,7 @@ export class AggregatedLandingService
           ...variables,
           filter: dataFilter && dataFilter.asPodObject()
         },
-        error: {code: ErrorCodes.LOAD_AGGREGATED_LANDINGS_ERROR, message: "AGGREGATED_LANDING.ERROR.LOAD_ALL_ERROR"},
+        error: {code: ErrorCodes.LOAD_AGGREGATED_LANDINGS_ERROR, message: 'AGGREGATED_LANDING.ERROR.LOAD_ALL_ERROR'},
         fetchPolicy: options && options.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
       })
       .pipe(
@@ -135,7 +135,7 @@ export class AggregatedLandingService
           now = undefined;
         }
         return {
-          data: data,
+          data,
           total: undefined
         };
       })
@@ -148,7 +148,7 @@ export class AggregatedLandingService
     const json = entities.map(t => this.asObject(t));
 
     const now = Date.now();
-    if (this._debug) console.debug("[aggregated-landing-service] Saving aggregated landings...", json);
+    if (this._debug) console.debug('[aggregated-landing-service] Saving aggregated landings...', json);
 
     await this.graphql.mutate<{ saveAggregatedLandings: AggregatedLanding[] }>({
       mutation: SaveAllQuery,
@@ -156,7 +156,7 @@ export class AggregatedLandingService
         aggregatedLandings: json,
         filter: this._lastFilter && this._lastFilter.asPodObject()
       },
-      error: {code: ErrorCodes.SAVE_AGGREGATED_LANDINGS_ERROR, message: "AGGREGATED_LANDING.ERROR.SAVE_ALL_ERROR"},
+      error: {code: ErrorCodes.SAVE_AGGREGATED_LANDINGS_ERROR, message: 'AGGREGATED_LANDING.ERROR.SAVE_ALL_ERROR'},
       update: (proxy, {data}) => {
 
         if (this._debug) console.debug(`[aggregated-landing-service] Aggregated landings saved remotely in ${Date.now() - now}ms`, entities);

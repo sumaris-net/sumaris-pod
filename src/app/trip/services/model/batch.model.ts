@@ -1,5 +1,5 @@
-import {AcquisitionLevelCodes, PmfmIds, QualitativeValueIds, QualityFlagIds} from '../../../referential/services/model/model.enum';
-import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
+import {AcquisitionLevelCodes, PmfmIds, QualitativeValueIds, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
 import {
   EntityClass,
@@ -15,9 +15,9 @@ import {
   ReferentialUtils,
   toNumber
 } from '@sumaris-net/ngx-components';
-import {TaxonGroupRef, TaxonNameRef} from '../../../referential/services/model/taxon.model';
-import {PmfmValueUtils} from '../../../referential/services/model/pmfm-value.model';
-import {IPmfm} from '../../../referential/services/model/pmfm.model';
+import {TaxonGroupRef, TaxonNameRef} from '@app/referential/services/model/taxon.model';
+import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export declare interface BatchWeight extends IMeasurementValue {
@@ -46,7 +46,7 @@ export class Batch<
     ITreeItemEntity<Batch> {
 
   static SAMPLING_BATCH_SUFFIX = '.%';
-  static fromObject: (source: any, opts?: { withChildren?: boolean; }) => Batch;
+  static fromObject: (source: any, opts?: { withChildren?: boolean }) => Batch;
 
   static fromObjectArrayAsTree(source: any[]): Batch {
     if (!source) return null;
@@ -73,6 +73,7 @@ export class Batch<
   /**
    * Transform a batch entity tree, into a array of object.
    * Parent/.children link are removed, to keep only a parentId/
+   *
    * @param source
    * @param opts
    * @throw Error if a batch has no id
@@ -96,9 +97,7 @@ export class Batch<
       delete target.parent; // not need
     }
 
-    return (source.children || []).reduce((res, batch) => {
-        return res.concat(this.treeAsObjectArray(batch, {...opts, parent: target}) || []);
-      },
+    return (source.children || []).reduce((res, batch) => res.concat(this.treeAsObjectArray(batch, {...opts, parent: target}) || []),
       [target]) || undefined;
   }
 
@@ -214,7 +213,7 @@ export class Batch<
 export class BatchUtils {
 
   static parentToString(parent: Batch, opts?: {
-    pmfm?: IPmfm,
+    pmfm?: IPmfm;
     taxonGroupAttributes: string[];
     taxonNameAttributes: string[];
   }): string {
@@ -295,14 +294,14 @@ export class BatchUtils {
   /**
    * Will copy root (species) batch id into subBatch.parentId
    * AND copy the QV sorting measurement hold by direct parent
+   *
    * @param rootBatches
    * @param subAcquisitionLevel
    * @param qvPmfm
    */
   static prepareSubBatchesForTable(rootBatches: Batch[], subAcquisitionLevel: string, qvPmfm?: IPmfm): Batch[] {
     if (qvPmfm) {
-      return rootBatches.reduce((res, rootBatch) => {
-        return res.concat((rootBatch.children || []).reduce((res, qvBatch) => {
+      return rootBatches.reduce((res, rootBatch) => res.concat((rootBatch.children || []).reduce((res, qvBatch) => {
           const children = BatchUtils.getChildrenByLevel(qvBatch, subAcquisitionLevel);
           return res.concat(children
             .map(child => {
@@ -313,38 +312,34 @@ export class BatchUtils {
               child.parentId = rootBatch.id;
               return child;
             }));
-        }, []));
-      }, []);
+        }, [])), []);
     }
-    return rootBatches.reduce((res, rootBatch) => {
-      return res.concat(BatchUtils.getChildrenByLevel(rootBatch, subAcquisitionLevel)
+    return rootBatches.reduce((res, rootBatch) => res.concat(BatchUtils.getChildrenByLevel(rootBatch, subAcquisitionLevel)
         .map(child => {
           // Replace parent by the group (instead of the sampling batch)
           child.parentId = rootBatch.id;
           return child;
-        }));
-    }, []);
+        })), []);
   }
 
   static getChildrenByLevel(batch: Batch, acquisitionLevel: string): Batch[] {
     return (batch.children || []).reduce((res, child) => {
-      if (child.label && child.label.startsWith(acquisitionLevel + "#")) return res.concat(child);
+      if (child.label && child.label.startsWith(acquisitionLevel + '#')) return res.concat(child);
       return res.concat(BatchUtils.getChildrenByLevel(child, acquisitionLevel)); // recursive call
     }, []);
   }
 
   static hasChildrenWithLevel(batch: Batch, acquisitionLevel: string): boolean {
-    return batch && (batch.children || []).findIndex(child => {
-      return (child.label && child.label.startsWith(acquisitionLevel + "#")) ||
+    return batch && (batch.children || []).findIndex(child => (child.label && child.label.startsWith(acquisitionLevel + '#')) ||
         // If children, recursive call
-        (child.children && BatchUtils.hasChildrenWithLevel(child, acquisitionLevel));
-    }) !== -1;
+        (child.children && BatchUtils.hasChildrenWithLevel(child, acquisitionLevel))) !== -1;
   }
 
 
 
   /**
    * Compute individual count, from individual measures
+   *
    * @param source
    */
   static computeIndividualCount(source: Batch) {
@@ -413,6 +408,7 @@ export class BatchUtils {
 
   /**
    * Sum individual count, onlly on batch with measure
+   *
    * @param batches
    */
   static sumObservedIndividualCount(batches: Batch[]): number {
@@ -425,9 +421,7 @@ export class BatchUtils {
           // Default value, if not an individual batches
           // Use '0' because we want only observed batches count
           0)
-      .reduce((sum, individualCount) => {
-        return sum + individualCount;
-      }, 0);
+      .reduce((sum, individualCount) => sum + individualCount, 0);
   }
 
   static logTree(batch: Batch, opts?: {
@@ -490,6 +484,7 @@ export class BatchUtils {
       // Measurement
       if (opts.showMeasure !== false) {
         if (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING]) {
+          // eslint-disable-next-line eqeqeq
           message += ' discardOrLanding:' + (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING] == QualitativeValueIds.DISCARD_OR_LANDING.LANDING ? 'LAN' : 'DIS');
         }
         if (isNotNil(batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM])) {

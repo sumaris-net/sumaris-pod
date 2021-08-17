@@ -1,9 +1,9 @@
-import {MeasurementsValidatorOptions, MeasurementsValidatorService} from "./measurement.validator";
-import {Injectable} from "@angular/core";
-import {AbstractControlOptions, FormGroup, ValidatorFn, Validators} from "@angular/forms";
-import {Measurement} from "../model/measurement.model";
-import {SharedFormGroupValidators, SharedValidators} from "@sumaris-net/ngx-components";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {MeasurementsValidatorOptions, MeasurementsValidatorService} from './measurement.validator';
+import {Injectable} from '@angular/core';
+import {AbstractControlOptions, FormGroup, ValidatorFn, Validators} from '@angular/forms';
+import {Measurement} from '../model/measurement.model';
+import {SharedFormGroupValidators, SharedValidators} from '@sumaris-net/ngx-components';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 
 interface TypedExpenseValidatorOptions extends MeasurementsValidatorOptions {
   typePmfm?: IPmfm;

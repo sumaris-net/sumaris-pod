@@ -21,9 +21,7 @@ import {ExpectedSale} from '@app/trip/services/model/expected-sale.model';
 
 /* -- Data -- */
 
-const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => {
-  return n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1);
-};
+const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1);
 
 export interface OperationAsObjectOptions extends DataEntityAsObjectOptions {
   batchAsTree?: boolean;
@@ -330,7 +328,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
       ...source.measurementValues // important: keep at last assignment
     };
     if (Object.keys(this.measurementValues).length === 0) {
-      console.warn("Source as no measurement. Should never occur! ", source);
+      console.warn('Source as no measurement. Should never occur! ', source);
     }
 
     // Products
@@ -369,7 +367,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
   }
 }
 
-@EntityClass({typename: "TripVO"})
+@EntityClass({typename: 'TripVO'})
 export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEntity<Trip> {
 
   static fromObject: (source: any, opts?: any) => Trip;
@@ -447,7 +445,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     if (source.operations) {
       this.operations = source.operations
         .map(Operation.fromObject)
-        .map((o:Operation) => {
+        .map((o: Operation) => {
           o.tripId = this.id;
           // Ling to trip's gear
           o.physicalGear = o.physicalGear && (this.gears || []).find(g => o.physicalGear.equals(g));

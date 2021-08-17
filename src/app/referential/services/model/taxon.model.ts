@@ -1,7 +1,15 @@
-import {BaseReferential, IReferentialRef, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {isNil, isNotNil, uncapitalizeFirstLetter} from "@sumaris-net/ngx-components";
-import {Entity}  from "@sumaris-net/ngx-components";
-import {EntityClass}  from "@sumaris-net/ngx-components";
+import {
+  BaseReferential,
+  Entity,
+  EntityClass,
+  IReferentialRef,
+  isNil,
+  isNotNil,
+  ReferentialAsObjectOptions,
+  ReferentialRef,
+  ReferentialUtils,
+  uncapitalizeFirstLetter
+} from '@sumaris-net/ngx-components';
 
 
 export const TaxonGroupTypeIds = {
@@ -22,7 +30,7 @@ export const TaxonGroupLabels = {
   FISH: 'MZZ'
 };
 
-@EntityClass({typename: "TaxonNameVO"})
+@EntityClass({typename: 'TaxonNameVO'})
 export class TaxonNameRef
   extends Entity<TaxonNameRef, number, ReferentialAsObjectOptions>
   implements IReferentialRef<TaxonNameRef> {
@@ -121,7 +129,7 @@ export interface MetierFromObjectOptions {
   useChildAttributes?: false | 'TaxonGroup' | 'Gear';
 }
 
-@EntityClass({typename: "MetierVO"})
+@EntityClass({typename: 'MetierVO'})
 export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectOptions,  MetierFromObjectOptions> {
   static ENTITY_NAME = 'Metier';
   static fromObject: (source: any, opts?: MetierFromObjectOptions) => Metier;
@@ -175,7 +183,7 @@ export class TaxonUtils {
     const speciesWord = /^[a-zA-Z]{3,}$/;
 
     // Rubin code for "Leucoraja circularis": LEUC CIR
-    const parts = taxonName.split(" ");
+    const parts = taxonName.split(' ');
     if (parts.length === 2 && parts[0].match(genusWord) && parts[1].match(speciesWord)) {
       return parts[0].slice(0, 4).toUpperCase() + parts[1].slice(0, 3).toUpperCase();
     }

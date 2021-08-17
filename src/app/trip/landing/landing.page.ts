@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, Optional, QueryList, ViewChild, ViewChildren} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, Optional, QueryList, ViewChild, ViewChildren} from '@angular/core';
 
 import {
   AppEditorOptions,
@@ -65,7 +65,7 @@ export class LandingEditorOptions extends AppEditorOptions {
     }
   ]
 })
-export class LandingPage extends AppRootDataEditor<Landing, LandingService> implements OnInit {
+export class LandingPage extends AppRootDataEditor<Landing, LandingService> implements OnInit, AfterViewInit {
 
   protected parent: Trip | ObservedLocation;
   protected observedLocationService: ObservedLocationService;
@@ -129,7 +129,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.registerSubscription(
       this.landingForm.$strategyLabel
         .pipe(
-          tap(strategyLabel => console.debug("[landing-page] Received strategy label: ", strategyLabel)),
+          tap(strategyLabel => console.debug('[landing-page] Received strategy label: ', strategyLabel)),
           tap(strategyLabel => this.$strategyLabel.next(strategyLabel))
         )
         .subscribe());
@@ -464,7 +464,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected computeUsageMode(landing: Landing): UsageMode {
     return this.settings.isUsageMode('FIELD')
       // Force desktop mode if landing date/time is 1 day later than now
-      && (isNil(landing && landing.dateTime) || landing.dateTime.diff(moment(), "day") <= 1) ? 'FIELD' : 'DESK';
+      && (isNil(landing && landing.dateTime) || landing.dateTime.diff(moment(), 'day') <= 1) ? 'FIELD' : 'DESK';
   }
 
   protected async getValue(): Promise<Landing> {

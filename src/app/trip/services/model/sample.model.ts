@@ -12,11 +12,11 @@ import {
   toDateISOString
 } from '@sumaris-net/ngx-components';
 import {Moment} from 'moment';
-import {DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
+import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
-import {TaxonGroupRef, TaxonNameRef} from '../../../referential/services/model/taxon.model';
-import {RootDataEntity} from '../../../data/services/model/root-data-entity.model';
-import {IPmfm} from '../../../referential/services/model/pmfm.model';
+import {TaxonGroupRef, TaxonNameRef} from '@app/referential/services/model/taxon.model';
+import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 export interface SampleAsObjectOptions extends DataEntityAsObjectOptions {
@@ -34,6 +34,7 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
   /**
    * Transform a samples tree, into a array of object.
    * Parent & children links are removed, to keep only a parentId
+   *
    * @param sources
    * @param opts
    * @throw Error if a sample has no id
@@ -124,7 +125,7 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
     this.label = source.label;
     this.rankOrder = source.rankOrder;
     this.sampleDate = fromDateISOString(source.sampleDate);
-    this.individualCount = isNotNil(source.individualCount) && source.individualCount !== "" ? source.individualCount : null;
+    this.individualCount = isNotNil(source.individualCount) && source.individualCount !== '' ? source.individualCount : null;
     this.taxonGroup = source.taxonGroup && TaxonGroupRef.fromObject(source.taxonGroup) || undefined;
     this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName) || undefined;
     this.size = source.size;
@@ -161,7 +162,7 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
 export class SampleUtils {
 
   static parentToString(parent: Sample, opts?: {
-    pmfm?: IPmfm,
+    pmfm?: IPmfm;
     taxonGroupAttributes: string[];
     taxonNameAttributes: string[];
   }) {

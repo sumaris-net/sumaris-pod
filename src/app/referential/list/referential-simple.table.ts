@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {
   AccountService,
@@ -26,14 +26,14 @@ import {environment} from '@environments/environment';
     {provide: ValidatorService, useExisting: ReferentialValidatorService},
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => {
-        return new InMemoryEntitiesService(Referential, ReferentialFilter);
-      }
+      useFactory: () => new InMemoryEntitiesService(Referential, ReferentialFilter)
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partial<ReferentialFilter>> {
+export class SimpleReferentialTable
+  extends AppInMemoryTable<Referential, Partial<ReferentialFilter>>
+  implements OnInit {
 
   statusList = DefaultStatusList;
   statusById: any;

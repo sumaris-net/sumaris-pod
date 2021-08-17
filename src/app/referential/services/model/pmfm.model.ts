@@ -198,7 +198,7 @@ export abstract class PmfmUtils {
   }
 
   static isWeight(pmfm: IPmfm): boolean {
-    return isNotNil(pmfm.label) && pmfm.label.endsWith("WEIGHT");
+    return isNotNil(pmfm.label) && pmfm.label.endsWith('WEIGHT');
   }
 
   static hasParameterLabelIncludes(pmfm: Pmfm, labels: string[]): boolean {
@@ -219,6 +219,7 @@ export abstract class PmfmUtils {
 
   /**
    * Compute a PMFM.NAME, with the last part of the name
+   *
    * @param pmfm
    * @param opts
    */
@@ -234,7 +235,7 @@ export abstract class PmfmUtils {
       // Is complete name exists, use it
       if (opts && opts.withDetails && pmfm.completeName) {
         if (opts.html) {
-          const parts = pmfm.completeName.split(' - ')
+          const parts = pmfm.completeName.split(' - ');
           return parts.length === 1 ? pmfm.completeName : `<b>${parts[0]}</b><br/><span style="font-size: smaller;">` + parts.slice(1).join(' - ') + '</span>';
         }
         return pmfm.completeName;

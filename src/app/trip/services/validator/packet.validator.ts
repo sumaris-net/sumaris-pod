@@ -38,7 +38,7 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
     // add sampledWeights
     PacketIndexes.forEach(index => {
       formConfig['sampledWeight'+index] = [data?.['sampledWeight'+index] || null, Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])];
-    })
+    });
 
     if (opts.withComposition) {
       formConfig.composition = this.getCompositionFormArray(data);
@@ -46,7 +46,7 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
       // add sampledRatios
       PacketIndexes.forEach(index => {
         formConfig['sampledRatio'+index] = [data?.['sampledRatio'+index] || null, Validators.max(100)];
-      })
+      });
 
     } else {
       formConfig.composition = [data?.composition || null, Validators.required];

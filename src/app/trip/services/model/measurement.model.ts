@@ -1,15 +1,11 @@
-import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
-import {FormGroup} from "@angular/forms";
-import {arraySize, isEmptyArray, isNil, isNotNil, notNilOrDefault} from "@sumaris-net/ngx-components";
-import * as momentImported from "moment";
-import {isMoment} from "moment";
-import {IEntity}  from "@sumaris-net/ngx-components";
-import {IPmfm, Pmfm} from "../../../referential/services/model/pmfm.model";
-import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {PmfmValue, PmfmValueUtils} from "../../../referential/services/model/pmfm-value.model";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {ReferentialRef}  from "@sumaris-net/ngx-components";
-import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
+import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
+import {FormGroup} from '@angular/forms';
+import {AppFormUtils, arraySize, fromDateISOString, IEntity, isEmptyArray, isNil, isNotNil, notNilOrDefault, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
+import * as momentImported from 'moment';
+import {isMoment} from 'moment';
+import {IPmfm, Pmfm} from '@app/referential/services/model/pmfm.model';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {PmfmValue, PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
 
 const moment = momentImported;
 
@@ -123,22 +119,22 @@ export class MeasurementUtils {
 
   static getMeasurementEntityValue(source: Measurement, pmfm: IPmfm): any {
     switch (pmfm.type) {
-      case "qualitative_value":
+      case 'qualitative_value':
         if (source.qualitativeValue && source.qualitativeValue.id) {
           return pmfm.qualitativeValues.find(qv => +qv.id === +source.qualitativeValue.id);
         }
         return null;
-      case "integer":
-      case "double":
+      case 'integer':
+      case 'double':
         return source.numericalValue;
-      case "string":
+      case 'string':
         return source.alphanumericalValue;
-      case "boolean":
+      case 'boolean':
         return source.numericalValue === 1 ? true : (source.numericalValue === 0 ? false : undefined);
-      case "date":
+      case 'date':
         return fromDateISOString(source.alphanumericalValue);
       default:
-        throw new Error("Unknown pmfm.type for getting value of measurement: " + pmfm.type);
+        throw new Error('Unknown pmfm.type for getting value of measurement: ' + pmfm.type);
     }
   }
 
@@ -146,24 +142,24 @@ export class MeasurementUtils {
   static setMeasurementValue(value: any, target: Measurement, pmfm: IPmfm) {
     value = (value === null || value === undefined) ? undefined : value;
     switch (pmfm.type) {
-      case "qualitative_value":
+      case 'qualitative_value':
         target.qualitativeValue = value;
         break;
-      case "integer":
-      case "double":
+      case 'integer':
+      case 'double':
         target.numericalValue = value;
         break;
-      case "string":
+      case 'string':
         target.alphanumericalValue = value;
         break;
-      case "boolean":
-        target.numericalValue = (value === true || value === "true") ? 1 : ((value === false || value === "false") ? 0 : undefined);
+      case 'boolean':
+        target.numericalValue = (value === true || value === 'true') ? 1 : ((value === false || value === 'false') ? 0 : undefined);
         break;
-      case "date":
+      case 'date':
         target.alphanumericalValue = toDateISOString(value);
         break;
       default:
-        throw new Error("Unknown pmfm.type: " + pmfm.type);
+        throw new Error('Unknown pmfm.type: ' + pmfm.type);
     }
   }
 
@@ -240,7 +236,7 @@ export class MeasurementValuesUtils {
       || !pmfms.find(pmfm => !MeasurementValuesUtils.valueEquals(m1[pmfm.id], m2[pmfm.id]));
   }
 
-  static valueToString(value: any, opts: {pmfm: IPmfm; propertyNames?: string[]; htmls?: boolean; }): string | undefined {
+  static valueToString(value: any, opts: {pmfm: IPmfm; propertyNames?: string[]; htmls?: boolean }): string | undefined {
     return PmfmValueUtils.valueToString(value, opts);
   }
 
@@ -249,7 +245,7 @@ export class MeasurementValuesUtils {
   }
 
   static normalizeValuesToModel(source: MeasurementFormValues, pmfms: IPmfm[], opts?: {
-    keepSourceObject?: boolean
+    keepSourceObject?: boolean;
   }): MeasurementModelValues {
     const target: MeasurementModelValues = opts && opts.keepSourceObject ? source as MeasurementModelValues : {};
     (pmfms || []).forEach(pmfm => {
@@ -323,7 +319,7 @@ export class MeasurementValuesUtils {
           onlyExistingPmfms: opts && opts.onlyExistingPmfms
         });
       } else {
-        throw Error("No measurementValues found in form ! Make sure you use the right validator");
+        throw Error('No measurementValues found in form ! Make sure you use the right validator');
       }
     }
     // No validator: just normalize values

@@ -1,21 +1,12 @@
-import {Injectable} from "@angular/core";
-import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {
-  SharedFormArrayValidators,
-  SharedFormGroupValidators,
-  SharedValidators
-} from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {SaleValidatorService} from "./sale.validator";
-import {MeasurementsValidatorService} from "./measurement.validator";
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {Trip} from "../model/trip.model";
-import {
-  DataRootEntityValidatorOptions,
-  DataRootEntityValidatorService
-} from "../../../data/services/validator/root-data-entity.validator";
-import {ProgramProperties} from "../../../referential/services/config/program.config";
+import {Injectable} from '@angular/core';
+import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean} from '@sumaris-net/ngx-components';
+import {SaleValidatorService} from './sale.validator';
+import {MeasurementsValidatorService} from './measurement.validator';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {Trip} from '../model/trip.model';
+import {DataRootEntityValidatorOptions, DataRootEntityValidatorService} from '@app/data/services/validator/root-data-entity.validator';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
 
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withSale?: boolean;
@@ -113,11 +104,11 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
     opts.withObservers = toBoolean(opts.withObservers,
       toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE),
-    ProgramProperties.TRIP_OBSERVERS_ENABLE.defaultValue === "true"));
+    ProgramProperties.TRIP_OBSERVERS_ENABLE.defaultValue === 'true'));
 
     opts.withMetiers = toBoolean(opts.withMetiers,
       toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE),
-    ProgramProperties.TRIP_METIERS_ENABLE.defaultValue === "true"));
+    ProgramProperties.TRIP_METIERS_ENABLE.defaultValue === 'true'));
 
     opts.withSale = toBoolean(opts.withSale,
       toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE), false));

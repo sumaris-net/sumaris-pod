@@ -1,12 +1,9 @@
-import {Injectable} from "@angular/core";
-import {FetchPolicy, gql} from "@apollo/client/core";
-import {VesselFeatures} from "./model/vessel.model";
-import {BaseEntityService, GraphqlService} from '@sumaris-net/ngx-components';
+import {Injectable} from '@angular/core';
+import {FetchPolicy, gql} from '@apollo/client/core';
+import {VesselFeatures} from './model/vessel.model';
+import {BaseEntityService, GraphqlService, IEntitiesService, isNotNil, PlatformService} from '@sumaris-net/ngx-components';
 import {ReferentialFragments} from '@app/referential/services/referential.fragments';
-import {IEntitiesService} from "@sumaris-net/ngx-components";
-import {VesselFeaturesFilter} from "./filter/vessel.filter";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {isNotNil} from "@sumaris-net/ngx-components";
+import {VesselFeaturesFilter} from './filter/vessel.filter';
 
 export const VesselFeaturesFragments = {
     vesselFeatures: gql`fragment VesselFeaturesFragment on VesselFeaturesVO {
@@ -63,7 +60,7 @@ export class VesselFeaturesService
   }
 
   async count(filter: Partial<VesselFeaturesFilter> & {vesselId: number}, opts?: {
-    fetchPolicy?: FetchPolicy
+    fetchPolicy?: FetchPolicy;
   }): Promise<number> {
     const {data, total} = await this.loadAll(0, 100, null, null, filter, opts);
     return isNotNil(total) ? total : (data || []).length;

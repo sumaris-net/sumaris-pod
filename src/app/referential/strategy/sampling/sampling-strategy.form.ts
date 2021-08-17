@@ -11,7 +11,8 @@ import {
   firstArrayValue,
   firstNotNilPromise,
   FormArrayHelper,
-  fromDateISOString, IAppForm,
+  fromDateISOString,
+  IAppForm,
   IReferentialRef,
   isEmptyArray,
   isNil,
@@ -96,7 +97,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   };
 
   get value(): any {
-    throw new Error("Not implemented! Please use getValue() instead, that is an async function");
+    throw new Error('Not implemented! Please use getValue() instead, that is an async function');
   }
 
   @Input() set program(value: Program) {
@@ -159,7 +160,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return [this.lengthPmfmStrategiesTable, this.weightPmfmStrategiesTable, this.maturityPmfmStrategiesTable];
   }
 
-  enable(opts?: { onlySelf?: boolean, emitEvent?: boolean; }) {
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.enable(opts);
     if (this.hasEffort) {
       this.weightPmfmStrategiesTable.disable();
@@ -327,8 +328,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.form.get('label').setAsyncValidators([
     async (control) => {
       const label = control.value;
-      const parts = label.split(" ");
-      if (parts.some(str => str.indexOf("_") !== -1)) {
+      const parts = label.split(' ');
+      if (parts.some(str => str.indexOf('_') !== -1)) {
         return <ValidationErrors>{ required: true };
       }
       if (label.includes('000')) {
@@ -417,7 +418,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
 
-  protected async setProgram(program: Program, opts?: { emitEvent?: boolean; }) {
+  protected async setProgram(program: Program, opts?: { emitEvent?: boolean }) {
     if (program && this.program !== program) {
       this.i18nFieldPrefix = 'PROGRAM.STRATEGY.EDIT.';
       const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX) || '';
@@ -589,13 +590,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   /**
    * Select text that can be changed, using the text mask
+   *
    * @param input
    */
   selectMask(input: HTMLInputElement) {
     if (!this.labelMask) input.select();
     const startIndex = this.labelMask.findIndex(c => c instanceof RegExp);
     const endIndex = this.labelMask.length;
-    input.setSelectionRange(startIndex, endIndex, "backward");
+    input.setSelectionRange(startIndex, endIndex, 'backward');
   }
 
   toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
@@ -607,6 +609,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   /**
    * Suggest autocomplete values
+   *
    * @param value
    * @param filter - filters to apply
    */
@@ -623,6 +626,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   /**
    * Suggest autocomplete values
+   *
    * @param value
    * @param filter - filters to apply
    */
@@ -636,6 +640,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   /**
    * Suggest autocomplete values, for age fraction
+   *
    * @param value
    * @param filter - filters to apply
    */
@@ -652,6 +657,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   /**
    * Suggest autocomplete values
+   *
    * @param value
    * @param filter - filters to apply
    */
@@ -680,7 +686,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   setValue(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-    console.debug("[sampling-strategy-form] Setting Strategy value", data);
+    console.debug('[sampling-strategy-form] Setting Strategy value', data);
     if (!data) return;
 
     this.data = new SamplingStrategy();
@@ -785,12 +791,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     ).then(res => {
       const calcifiedTypeControl = this.pmfmsFractionForm;
       const pmfmStrategiesWithFraction = (data.pmfms || []).filter(p => p.fraction && !p.pmfm);
-      const fractions = pmfmStrategiesWithFraction.map(cal => {
-        return {
+      const fractions = pmfmStrategiesWithFraction.map(cal => ({
           id: cal.fraction.id,
           name: res.data.find(fraction => fraction.id === cal.fraction.id).name,
-        };
-      });
+        }));
       calcifiedTypeControl.clear();
       this.calcifiedFractionsHelper.resize(Math.max(1, pmfmStrategiesWithFraction.length));
       calcifiedTypeControl.patchValue(fractions);
@@ -948,7 +952,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   protected async generateLabel(date?: Moment) {
     date = fromDateISOString(date || this.form.get('year').value);
-    if (!date || !this.program) return // Skip if year or program is missing
+    if (!date || !this.program) return; // Skip if year or program is missing
     const yearMask = date.format('YY');
 
     let taxonNameMask;
@@ -978,12 +982,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     }
 
     // @ts-ignore
-    this.labelMask = yearMask.split("")
+    this.labelMask = yearMask.split('')
       .concat([' '])
       .concat(taxonNameMask)
       .concat([' ', /\d/, /\d/, /\d/]);
 
-    const taxonNameMaskString = taxonNameMask.join("");
+    const taxonNameMaskString = taxonNameMask.join('');
 
     const labelControl = this.form.get('label');
 
@@ -1138,14 +1142,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return (array: FormArray): ValidationErrors | null => {
       const values = array.value.flat().filter(period => period.acquisitionNumber !== undefined && period.acquisitionNumber !== null && period.acquisitionNumber >= 1);
       if (!values || values.length < minLength) {
-        return { minLength: { minLength: minLength } };
+        return { minLength: { minLength } };
       }
       return null;
     };
   }
 
   isLocationDisable(index: number): boolean {
-    return this.appliedStrategiesHelper.at(index).status === "DISABLED";
+    return this.appliedStrategiesHelper.at(index).status === 'DISABLED';
   }
 
   hasSex(): boolean {
@@ -1162,6 +1166,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   /**
    * get pmfm by type
+   *
    * @param pmfms
    * @param pmfmGroups
    * @param type

@@ -124,7 +124,7 @@ import {AppCoreModule} from '@app/core/core.module';
     InAppBrowser,
     AudioManagement,
 
-    {provide: APP_BASE_HREF, useFactory: function () {
+    {provide: APP_BASE_HREF, useFactory: () => {
         try {
           return document.getElementsByTagName('base')[0].href;
         }

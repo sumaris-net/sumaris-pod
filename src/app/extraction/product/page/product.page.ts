@@ -1,20 +1,14 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {ExtractionCategories, ExtractionColumn} from "../../services/model/extraction-type.model";
-import {FormBuilder, FormGroup} from "@angular/forms";
-import {AggregationTypeValidatorService} from "../../services/validator/aggregation-type.validator";
-import {ExtractionService} from "../../services/extraction.service";
-import {Router} from "@angular/router";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
-import {ProductForm} from "../form/product.form";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {ExtractionProduct} from "../../services/model/extraction-product.model";
-import {Alerts} from "@sumaris-net/ngx-components";
-import {isEmptyArray, isNil} from "@sumaris-net/ngx-components";
-import {ExtractionProductService} from "../../services/extraction-product.service";
-import {AppEntityEditor}  from "@sumaris-net/ngx-components";
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ExtractionCategories, ExtractionColumn} from '../../services/model/extraction-type.model';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {AggregationTypeValidatorService} from '../../services/validator/aggregation-type.validator';
+import {ExtractionService} from '../../services/extraction.service';
+import {Router} from '@angular/router';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {AccountService, Alerts, AppEntityEditor, EntityServiceLoadOptions, isEmptyArray, isNil, LocalSettingsService, ReferentialUtils} from '@sumaris-net/ngx-components';
+import {ProductForm} from '../form/product.form';
+import {ExtractionProduct} from '../../services/model/extraction-product.model';
+import {ExtractionProductService} from '../../services/extraction-product.service';
 
 @Component({
   selector: 'app-product-page',
@@ -78,9 +72,9 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
 
     if (!this.data || isEmptyArray(this.data.stratum)) return; // Unable to load the map
 
-    return setTimeout(() => {
+    return setTimeout(() =>
       // open the map
-      return this.router.navigate(['../../map'],
+       this.router.navigate(['../../map'],
         {
           relativeTo: this.route,
           queryParams: {
@@ -88,8 +82,8 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
             label: this.data.label,
             sheet: this.data.stratum[0].sheetName
           }
-        });
-    }, 200); // Add a delay need by matTooltip to be hide
+        })
+    , 200); // Add a delay need by matTooltip to be hide
   }
 
   /* -- protected -- */

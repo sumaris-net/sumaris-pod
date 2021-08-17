@@ -279,7 +279,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
     if (this.isTripDetailEditor) {
       if (!this._enabled) return false;
-      if (this.debug) console.debug("[landings-table] Asking for new landing...");
+      if (this.debug) console.debug('[landings-table] Asking for new landing...');
 
       // Force modal
       this.openNewRowDetail(event);
@@ -299,10 +299,10 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
     if (row.currentData.tripId) {
       // Edit trip
-      this.onOpenRow.emit({id: row.currentData.tripId, row: row});
+      this.onOpenRow.emit({id: row.currentData.tripId, row});
     } else {
       // New trip
-      this.onNewTrip.emit({id: null, row: row});
+      this.onNewTrip.emit({id: null, row});
     }
   }
 

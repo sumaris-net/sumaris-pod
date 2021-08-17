@@ -22,7 +22,7 @@ import {TripFilter} from '../../services/filter/trip.filter';
 import {FormBuilder} from '@angular/forms';
 import {TranslateService} from '@ngx-translate/core';
 import {TableElement} from '@e-is/ngx-material-table';
-import {SynchronizationStatus} from '../../../data/services/model/root-data-entity.model';
+import {SynchronizationStatus} from '@app/data/services/model/root-data-entity.model';
 import {OperationService} from '../../services/operation.service';
 import {environment} from '@environments/environment';
 import {TrashRemoteService} from '@app/core/services/trash-remote.service';
@@ -41,7 +41,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
 
   canDelete: boolean;
   displayedAttributes: {
-    [key: string]: string[]
+    [key: string]: string[];
   };
 
   @Input() showIdColumn: boolean;
@@ -178,7 +178,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
       // Success toast
       setTimeout(() => {
         this.showToast({
-          type: "info",
+          type: 'info',
           message: rows.length === 1 ?
             'TRIP.TRASH.INFO.ONE_TRIP_RESTORED' :
             'TRIP.TRASH.INFO.MANY_TRIPS_RESTORED' });

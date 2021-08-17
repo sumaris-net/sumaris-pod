@@ -1,5 +1,5 @@
-import {DataEntity} from "./model/data-entity.model";
-import {FormErrors}  from "@sumaris-net/ngx-components";
+import {DataEntity} from './model/data-entity.model';
+import {FormErrors} from '@sumaris-net/ngx-components';
 
 export interface IDataEntityQualityService<
   T extends DataEntity<T, ID>,

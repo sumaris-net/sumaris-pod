@@ -1,10 +1,5 @@
-import {EntityUtils}  from "@sumaris-net/ngx-components";
-import {BaseReferential, ReferentialAsObjectOptions, ReferentialRef}  from "@sumaris-net/ngx-components";
-import {FormFieldDefinition} from "@sumaris-net/ngx-components";
-import {Strategy} from "./strategy.model";
-import {PropertiesMap} from "@sumaris-net/ngx-components";
-import {isNotNil} from "@sumaris-net/ngx-components";
-import {EntityClass}  from "@sumaris-net/ngx-components";
+import {BaseReferential, EntityClass, EntityUtils, FormFieldDefinition, isNotNil, PropertiesMap, ReferentialAsObjectOptions, ReferentialRef} from '@sumaris-net/ngx-components';
+import {Strategy} from './strategy.model';
 
 @EntityClass({typename: 'ProgramVO'})
 export class Program extends BaseReferential<Program> {
@@ -63,7 +58,7 @@ export class Program extends BaseReferential<Program> {
 
   getPropertyAsBoolean(definition: FormFieldDefinition): boolean {
     const value = this.getProperty(definition);
-    return isNotNil(value) ? (value && value !== "false") : undefined;
+    return isNotNil(value) ? (value && value !== 'false') : undefined;
   }
 
   getPropertyAsInt(definition: FormFieldDefinition): number {
@@ -83,7 +78,7 @@ export class Program extends BaseReferential<Program> {
   }
 
   getProperty<T = string>(definition: FormFieldDefinition): T {
-    if (!definition) throw new Error("Missing 'definition' argument");
+    if (!definition) throw new Error(`Missing 'definition' argument`);
     return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : (definition.defaultValue || undefined);
   }
 }
