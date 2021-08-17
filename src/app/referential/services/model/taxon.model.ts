@@ -176,7 +176,7 @@ export class TaxonUtils {
 
     // Rubin code for "Leucoraja circularis": LEUC CIR
     const parts = taxonName.split(" ");
-    if (parts.length === 2 && parts[0].match(genusWord) && parts[1].match(speciesWord)) {
+    if ((parts.length === 2 || parts.length === 3) && parts[0].match(genusWord) && parts[1].match(speciesWord)) {
       return parts[0].slice(0, 4).toUpperCase() + parts[1].slice(0, 3).toUpperCase();
     }
 
