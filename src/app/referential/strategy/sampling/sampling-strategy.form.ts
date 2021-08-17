@@ -179,13 +179,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       form.get('sex').disable();
 
       // Allow user to update efforts for current quarter and after even when strategy already has samples (#IMAGINE-471)
-      this.appliedPeriodsForm.controls.forEach(control => {
+      this.appliedPeriodsForm.controls.map(control => {
         const formGroupControl = control as FormGroup;
-        const acquisitionNumberControl = formGroupControl.controls.acquisitionNumber as FormControl;
         if (moment().isAfter((formGroupControl.controls.endDate as FormControl).value)) {
-          acquisitionNumberControl.disable();
+          formGroupControl.disable();
         } else {
-          acquisitionNumberControl.enable();
+          formGroupControl.enable();
         }
       });
     }
