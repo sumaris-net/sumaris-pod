@@ -131,6 +131,10 @@ export const ParameterLabelGroups = {
   AGE: ['AGE']
 };
 
+export const FractionIdGroups = {
+  CALCIFIED_STRUCTURE: [10, 11, 12, 13]
+};
+
 export const ParameterGroups = Object.freeze(Object.keys(ParameterLabelGroups));
 
 export const PmfmLabelPatterns = {

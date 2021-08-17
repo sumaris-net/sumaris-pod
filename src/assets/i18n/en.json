@@ -209,7 +209,8 @@
         "PARAMETER_GROUP_SEX_LABELS": "Strategy > Parameter > Sex labels",
         "PARAMETER_GROUP_WEIGHT_LABELS": "Strategy > Parameter > Weight labels",
         "PARAMETER_GROUP_LENGTH_LABELS": "Strategy > Parameter > Length labels",
-        "PARAMETER_GROUP_MATURITY_LABELS": "Strategy > Parameter > Maturity labels"
+        "PARAMETER_GROUP_MATURITY_LABELS": "Strategy > Parameter > Maturity labels",
+        "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Strategy > Fraction > Calcified structure ids"
       },
       "TESTING": "Developer mode ?",
       "ENTITY_TRASH": "Enable trash on pod?",
