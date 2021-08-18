@@ -69,7 +69,6 @@
       <ion-label>{{definition.label | translate}}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" >
-      <mat-error *ngIf="definition.key === 'pmfm' && row.validator.hasError('pmfmOrParameterId')">{{'PROGRAM.STRATEGY.ERROR.PMFM.PMFM_OR_PARAMETER' | translate}}</mat-error>
       <app-form-field floatLabel="never"
                       [formControl]="row.validator.controls[definition.key]"
                       [definition]="definition"
