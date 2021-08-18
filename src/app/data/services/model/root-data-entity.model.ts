@@ -1,26 +1,26 @@
-import {fromDateISOString, isNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
-import {Moment} from 'moment';
-import {DataEntity, DataEntityAsObjectOptions} from './data-entity.model';
-import {IWithProgramEntity, IWithRecorderPersonEntity} from './model.utils';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { fromDateISOString, isNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
+import { DataEntity, DataEntityAsObjectOptions } from './data-entity.model';
+import { IWithProgramEntity, IWithRecorderPersonEntity } from './model.utils';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
 export type SynchronizationStatus = 'DIRTY' | 'READY_TO_SYNC' | 'SYNC' | 'DELETED';
 export const SynchronizationStatusEnum = {
   DIRTY: <SynchronizationStatus>'DIRTY',
   READY_TO_SYNC: <SynchronizationStatus>'READY_TO_SYNC',
   SYNC: <SynchronizationStatus>'SYNC',
-  DELETED: <SynchronizationStatus>'DELETED'
+  DELETED: <SynchronizationStatus>'DELETED',
 };
 
 export abstract class RootDataEntity<
-  T extends RootDataEntity<any, ID, O>,
-  ID = number,
-  O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions,
-  FO = any>
+    T extends RootDataEntity<any, ID, O>,
+    ID = number,
+    O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions,
+    FO = any
+  >
   extends DataEntity<T, ID, O, FO>
-  implements IWithRecorderPersonEntity<T, ID>,
-    IWithProgramEntity<T, ID> {
-
+  implements IWithRecorderPersonEntity<T, ID>, IWithProgramEntity<T, ID>
+{
   creationDate: Moment = null;
   validationDate: Moment = null;
   comments: string = null;
@@ -36,8 +36,10 @@ export abstract class RootDataEntity<
     const target = super.asObject(options);
     target.creationDate = toDateISOString(this.creationDate);
     target.validationDate = toDateISOString(this.validationDate);
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
-    target.program = this.program && this.program.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*always keep for table*/ } as ReferentialAsObjectOptions) || undefined;
+    target.recorderPerson = (this.recorderPerson && this.recorderPerson.asObject(options)) || undefined;
+    target.program =
+      (this.program && this.program.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*always keep for table*/ } as ReferentialAsObjectOptions)) ||
+      undefined;
     if (options && options.minify) {
       if (target.program) delete target.program.entityName;
       if (options.keepSynchronizationStatus !== true) {
@@ -46,7 +48,6 @@ export abstract class RootDataEntity<
     }
     return target;
   }
-
 
   fromObject(source: any, opts?: FO) {
     super.fromObject(source, opts);
@@ -60,7 +61,6 @@ export abstract class RootDataEntity<
 }
 
 export abstract class DataRootEntityUtils {
-
   static copyControlAndValidationDate(source: RootDataEntity<any, any> | undefined, target: RootDataEntity<any, any>) {
     if (!source) return;
     target.controlDate = fromDateISOString(source.controlDate);
@@ -74,7 +74,7 @@ export abstract class DataRootEntityUtils {
   }
 
   static isLocal(entity: RootDataEntity<any, any>): boolean {
-    return entity && (isNil(entity.id) ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0);
+    return entity && (isNil(entity.id) ? entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC' : entity.id < 0);
   }
 
   static isRemote(entity: RootDataEntity<any, any>): boolean {
@@ -82,10 +82,10 @@ export abstract class DataRootEntityUtils {
   }
 
   static isLocalAndDirty(entity: RootDataEntity<any, any>): boolean {
-    return entity && entity.id < 0 && entity.synchronizationStatus === 'DIRTY' || false;
+    return (entity && entity.id < 0 && entity.synchronizationStatus === 'DIRTY') || false;
   }
 
   static isReadyToSync(entity: RootDataEntity<any, any>): boolean {
-    return entity && entity.id < 0 && entity.synchronizationStatus === 'READY_TO_SYNC' || false;
+    return (entity && entity.id < 0 && entity.synchronizationStatus === 'READY_TO_SYNC') || false;
   }
 }

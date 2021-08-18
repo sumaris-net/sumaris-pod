@@ -1,6 +1,6 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {AbstractControl, FormGroup} from '@angular/forms';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { AbstractControl, FormGroup } from '@angular/forms';
 import {
   AccountService,
   AppEntityEditor,
@@ -12,30 +12,27 @@ import {
   joinPropertiesPath,
   MatAutocompleteFieldConfig,
   referentialToString,
-  ReferentialUtils
+  ReferentialUtils,
 } from '@sumaris-net/ngx-components';
-import {ReferentialForm} from '../form/referential.form';
-import {PmfmValidatorService} from '../services/validator/pmfm.validator';
-import {Pmfm} from '../services/model/pmfm.model';
-import {Parameter} from '../services/model/parameter.model';
-import {PmfmService} from '../services/pmfm.service';
-import {ReferentialRefService} from '../services/referential-ref.service';
-import {ParameterService} from '../services/parameter.service';
-import {filter, mergeMap} from 'rxjs/operators';
-import {Observable} from 'rxjs';
-import {environment} from '@environments/environment';
+import { ReferentialForm } from '../form/referential.form';
+import { PmfmValidatorService } from '../services/validator/pmfm.validator';
+import { Pmfm } from '../services/model/pmfm.model';
+import { Parameter } from '../services/model/parameter.model';
+import { PmfmService } from '../services/pmfm.service';
+import { ReferentialRefService } from '../services/referential-ref.service';
+import { ParameterService } from '../services/parameter.service';
+import { filter, mergeMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-pmfm',
   templateUrl: 'pmfm.page.html',
-  providers: [
-    {provide: ValidatorService, useExisting: PmfmValidatorService}
-  ],
+  providers: [{ provide: ValidatorService, useExisting: PmfmValidatorService }],
   animations: [fadeInOutAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
-
   canEdit: boolean;
   form: FormGroup;
   fieldDefinitions: FormFieldDefinitionMap;
@@ -59,9 +56,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
     protected parameterService: ParameterService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(injector,
-      Pmfm,
-      pmfmService);
+    super(injector, Pmfm, pmfmService);
     this.form = validatorService.getFormGroup();
 
     // default values
@@ -69,8 +64,6 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
     this.canEdit = this.accountService.isAdmin();
 
     this.debug = !environment.production;
-
-
   }
   ngOnInit() {
     super.ngOnInit();
@@ -82,18 +75,17 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
       suggestFn: (value, opts) => this.referentialRefService.suggest(value, opts),
       displayWith: (value) => value && joinPropertiesPath(value, ['label', 'name']),
       attributes: ['label', 'name'],
-      columnSizes: [6, 6]
+      columnSizes: [6, 6],
     };
     this.fieldDefinitions = {
-
       parameter: {
         key: `parameter`,
         label: `REFERENTIAL.PMFM.PARAMETER`,
         type: 'entity',
         autocomplete: {
           ...autocompleteConfig,
-          filter: {entityName: 'Parameter'}
-        }
+          filter: { entityName: 'Parameter' },
+        },
       },
       unit: {
         key: `unit`,
@@ -102,37 +94,37 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
         autocomplete: {
           ...autocompleteConfig,
           attributes: ['label'],
-          filter: {entityName: 'Unit'}
-        }
+          filter: { entityName: 'Unit' },
+        },
       },
 
       // Numerical options
       minValue: {
         key: `minValue`,
         label: `REFERENTIAL.PMFM.MIN_VALUE`,
-        type: 'double'
+        type: 'double',
       },
       maxValue: {
         key: `maxValue`,
         label: `REFERENTIAL.PMFM.MAX_VALUE`,
-        type: 'double'
+        type: 'double',
       },
       defaultValue: {
         key: `defaultValue`,
         label: `REFERENTIAL.PMFM.DEFAULT_VALUE`,
-        type: 'double'
+        type: 'double',
       },
       maximumNumberDecimals: {
         key: `maximumNumberDecimals`,
         label: `REFERENTIAL.PMFM.MAXIMUM_NUMBER_DECIMALS`,
         type: 'integer',
-        minValue: 0
+        minValue: 0,
       },
       signifFiguresNumber: {
         key: `signifFiguresNumber`,
         label: `REFERENTIAL.PMFM.SIGNIF_FIGURES_NUMBER`,
         type: 'integer',
-        minValue: 0
+        minValue: 0,
       },
       matrix: {
         key: `matrix`,
@@ -140,8 +132,8 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
         type: 'entity',
         autocomplete: {
           ...autocompleteConfig,
-          filter: {entityName: 'Matrix'}
-        }
+          filter: { entityName: 'Matrix' },
+        },
       },
       fraction: {
         key: `fraction`,
@@ -149,8 +141,8 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
         type: 'entity',
         autocomplete: {
           ...autocompleteConfig,
-          filter: {entityName: 'Fraction', levelId: 1}
-        }
+          filter: { entityName: 'Fraction', levelId: 1 },
+        },
       },
       method: {
         key: `method`,
@@ -158,41 +150,34 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
         type: 'entity',
         autocomplete: {
           ...autocompleteConfig,
-          filter: {entityName: 'Method'}
-        }
-      }
+          filter: { entityName: 'Method' },
+        },
+      },
     };
 
     // Check fraction
-    this.form.get('fraction')
-      .setAsyncValidators(async (control: AbstractControl) => {
-        const value = control.enabled && control.value;
-        return value && (!this.matrix || value.levelId !== this.matrix.id) ? {entity: true} : null;
-      });
+    this.form.get('fraction').setAsyncValidators(async (control: AbstractControl) => {
+      const value = control.enabled && control.value;
+      return value && (!this.matrix || value.levelId !== this.matrix.id) ? { entity: true } : null;
+    });
 
     // Check fraction
-    this.$parameter = this.form.get('parameter').valueChanges
-        .pipe(
-          filter(ReferentialUtils.isNotEmpty),
-          mergeMap(p => this.parameterService.load(p.id))
-        );
+    this.$parameter = this.form.get('parameter').valueChanges.pipe(
+      filter(ReferentialUtils.isNotEmpty),
+      mergeMap((p) => this.parameterService.load(p.id))
+    );
   }
 
   async addNewParameter() {
-    await this.router.navigateByUrl(
-      '/referential/parameter/new'
-    );
+    await this.router.navigateByUrl('/referential/parameter/new');
     return true;
   }
 
   /* -- protected methods -- */
 
-
   protected canUserWrite(data: Pmfm): boolean {
     // TODO : check user is in pmfm managers
-    return (this.isNewData && this.accountService.isAdmin())
-      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
-
+    return (this.isNewData && this.accountService.isAdmin()) || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
   }
 
   enable() {
@@ -213,7 +198,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
     const json = data.asObject();
     json.entityName = Pmfm.ENTITY_NAME;
 
-    this.form.patchValue(json, {emitEvent: false});
+    this.form.patchValue(json, { emitEvent: false });
 
     // qualitativeValues
     //this.qualitativeValuesTable.value = data.qualitativeValues.slice(); // force update
@@ -249,7 +234,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
       ...(await super.computePageHistory(title)),
       title: `${this.data.label} - ${this.data.name}`,
       subtitle: 'REFERENTIAL.ENTITY.PMFM',
-      icon: 'list'
+      icon: 'list',
     };
   }
 
@@ -262,11 +247,10 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
     await super.onNewEntity(data, options);
 
     // Check label is unique
-    this.form.get('label')
-      .setAsyncValidators(async (control: AbstractControl) => {
-        const label = control.enabled && control.value;
-        return label && (await this.pmfmService.existsByLabel(label, {excludedId: this.data.id})) ? {unique: true} : null;
-      });
+    this.form.get('label').setAsyncValidators(async (control: AbstractControl) => {
+      const label = control.enabled && control.value;
+      return label && (await this.pmfmService.existsByLabel(label, { excludedId: this.data.id })) ? { unique: true } : null;
+    });
   }
 
   protected async onEntityLoaded(data: Pmfm, options?: EntityServiceLoadOptions): Promise<void> {
@@ -280,6 +264,4 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }
-

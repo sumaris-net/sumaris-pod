@@ -1,9 +1,8 @@
-import {BaseReferential, EntityAsObjectOptions, EntityClass, ReferentialRef} from '@sumaris-net/ngx-components';
-import {Moment} from 'moment';
+import { BaseReferential, EntityAsObjectOptions, EntityClass, ReferentialRef } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
 
-@EntityClass({typename: 'TaxonNameVO'})
+@EntityClass({ typename: 'TaxonNameVO' })
 export class TaxonName extends BaseReferential<TaxonName> {
-
   static ENTITY_NAME = 'TaxonName';
   static fromObject: (source: any, opts?: any) => TaxonName;
 
@@ -23,7 +22,7 @@ export class TaxonName extends BaseReferential<TaxonName> {
     this.entityName = TaxonName.ENTITY_NAME;
   }
 
-// TODO : Check if clone is needed
+  // TODO : Check if clone is needed
   clone(): TaxonName {
     const target = new TaxonName();
     target.fromObject(this);
@@ -33,7 +32,7 @@ export class TaxonName extends BaseReferential<TaxonName> {
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject({
       ...options,
-      minify: false // Do NOT minify itself
+      minify: false, // Do NOT minify itself
     });
 
     if (options && options.minify) {
@@ -44,7 +43,6 @@ export class TaxonName extends BaseReferential<TaxonName> {
       delete target.useExistingReferenceTaxon;
     } else {
       target.parentTaxonName = this.parentTaxonName && this.parentTaxonName.asObject(options);
-
     }
     return target;
   }

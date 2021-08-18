@@ -1,20 +1,19 @@
-import {Injectable} from '@angular/core';
-import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {LocalSettingsService, SharedValidators} from '@sumaris-net/ngx-components';
-import {AggregatedLanding} from '../model/aggregated-landing.model';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {DataEntityValidatorOptions} from '@app/data/services/validator/data-entity.validator';
+import { Injectable } from '@angular/core';
+import { AbstractControlOptions, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { LocalSettingsService, SharedValidators } from '@sumaris-net/ngx-components';
+import { AggregatedLanding } from '../model/aggregated-landing.model';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { DataEntityValidatorOptions } from '@app/data/services/validator/data-entity.validator';
 
 export type AggregatedLandingValidatorOptions = DataEntityValidatorOptions;
 
-@Injectable({providedIn: 'root'})
-export class AggregatedLandingValidatorService<T extends AggregatedLanding = AggregatedLanding, O extends AggregatedLandingValidatorOptions = AggregatedLandingValidatorOptions>
-  implements ValidatorService {
-
-  constructor(
-    protected formBuilder: FormBuilder,
-    protected settings: LocalSettingsService) {
-  }
+@Injectable({ providedIn: 'root' })
+export class AggregatedLandingValidatorService<
+  T extends AggregatedLanding = AggregatedLanding,
+  O extends AggregatedLandingValidatorOptions = AggregatedLandingValidatorOptions
+> implements ValidatorService
+{
+  constructor(protected formBuilder: FormBuilder, protected settings: LocalSettingsService) {}
 
   getRowValidator(opts?: O) {
     return this.getFormGroup();
@@ -23,10 +22,7 @@ export class AggregatedLandingValidatorService<T extends AggregatedLanding = Agg
   getFormGroup(data?: T, opts?: O): FormGroup {
     opts = this.fillDefaultOptions(opts);
 
-    return this.formBuilder.group(
-      this.getFormGroupConfig(data, opts),
-      this.getFormGroupOptions(data, opts)
-    );
+    return this.formBuilder.group(this.getFormGroupConfig(data, opts), this.getFormGroupOptions(data, opts));
   }
 
   getFormGroupConfig(data?: T, opts?: O): { [p: string]: any } {
@@ -34,7 +30,7 @@ export class AggregatedLandingValidatorService<T extends AggregatedLanding = Agg
 
     return {
       vesselSnapshot: [data && data.vesselSnapshot, Validators.compose([Validators.required, SharedValidators.entity])],
-      vesselActivities: [data && data.vesselActivities || []]
+      vesselActivities: [(data && data.vesselActivities) || []],
     };
   }
 
@@ -43,7 +39,7 @@ export class AggregatedLandingValidatorService<T extends AggregatedLanding = Agg
   }
 
   protected fillDefaultOptions(opts?: O): O {
-    opts = opts || {} as O;
+    opts = opts || ({} as O);
 
     // opts.required = toBoolean(opts.required, false);
 

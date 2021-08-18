@@ -1,24 +1,23 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {AbstractControl, FormArray, FormBuilder, FormGroup} from '@angular/forms';
-import {AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, LocalSettingsService, UsageMode} from '@sumaris-net/ngx-components';
-import {DateAdapter} from '@angular/material/core';
-import {Moment} from 'moment';
-import {PacketValidatorService} from '../services/validator/packet.validator';
-import {Packet} from '../services/model/packet.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {Subscription} from 'rxjs';
-import {fillRankOrder} from '@app/data/services/model/model.utils';
-import {SaleProduct, SaleProductUtils} from '../services/model/sale-product.model';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, LocalSettingsService, UsageMode } from '@sumaris-net/ngx-components';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { PacketValidatorService } from '../services/validator/packet.validator';
+import { Packet } from '../services/model/packet.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { Subscription } from 'rxjs';
+import { fillRankOrder } from '@app/data/services/model/model.utils';
+import { SaleProduct, SaleProductUtils } from '../services/model/sale-product.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 @Component({
   selector: 'app-packet-sale-form',
   templateUrl: './packet-sale.form.html',
   styleUrls: ['./packet-sale.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy {
-
   computing = false;
   salesHelper: FormArrayHelper<SaleProduct>;
   salesFocusIndex = -1;
@@ -55,7 +54,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     protected formBuilder: FormBuilder,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(dateAdapter, validatorService.getFormGroup(undefined, {withSaleProducts: true}), settings);
+    super(dateAdapter, validatorService.getFormGroup(undefined, { withSaleProducts: true }), settings);
   }
 
   ngOnInit() {
@@ -73,29 +72,29 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
       service: this.referentialRefService,
       attributes: ['name'],
       filter: {
-        entityName: 'SaleType'
-      }
+        entityName: 'SaleType',
+      },
     });
-
   }
 
   setValue(data: Packet, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-
     if (!data) return;
     this._packet = data;
 
     // Initialize product sales by converting products to aggregated sale products
-    const aggregatedSaleProducts = isNotEmptyArray(data.saleProducts) ? SaleProductUtils.productsToAggregatedSaleProduct(data.saleProducts, this.packetSalePmfms) : [{}];
+    const aggregatedSaleProducts = isNotEmptyArray(data.saleProducts)
+      ? SaleProductUtils.productsToAggregatedSaleProduct(data.saleProducts, this.packetSalePmfms)
+      : [{}];
     this.salesHelper.resize(Math.max(1, aggregatedSaleProducts.length));
 
     // Set value
     super.setValue(data, opts);
 
     // Then patch saleProducts to keep this._packet safe
-    this.form.patchValue({saleProducts: aggregatedSaleProducts});
+    this.form.patchValue({ saleProducts: aggregatedSaleProducts });
 
     // update saleFromArray validators
-    this.validatorService.updateFormGroup(this.form, {withSaleProducts: true});
+    this.validatorService.updateFormGroup(this.form, { withSaleProducts: true });
 
     this.computeAllPrices();
 
@@ -103,31 +102,29 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
   }
 
   private initSubscription() {
-
     // clear and re-create
     this.saleSubscription.unsubscribe();
     this.saleSubscription = new Subscription();
 
     // add subscription on each sale form
     for (const saleControl of this.saleFormArray.controls) {
-      this.saleSubscription.add(saleControl.valueChanges.subscribe(() => {
-        this.computePrices(this.asFormGroup(saleControl).controls);
-        saleControl.markAsPristine();
-      }));
+      this.saleSubscription.add(
+        saleControl.valueChanges.subscribe(() => {
+          this.computePrices(this.asFormGroup(saleControl).controls);
+          saleControl.markAsPristine();
+        })
+      );
     }
-
   }
 
   private computeAllPrices() {
-    for (const sale of this.saleFormArray.controls as FormGroup[] || []) {
+    for (const sale of (this.saleFormArray.controls as FormGroup[]) || []) {
       this.computePrices(sale.controls);
     }
   }
 
   computePrices(controls: { [key: string]: AbstractControl }) {
-
-    if (this.computing)
-      return;
+    if (this.computing) return;
 
     try {
       this.computing = true;
@@ -143,11 +140,9 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
         'subgroupCount',
         'number'
       );
-
     } finally {
       this.computing = false;
     }
-
   }
 
   private initSalesHelper() {
@@ -157,7 +152,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
       SaleProductUtils.isSaleProductEquals,
       SaleProductUtils.isSaleProductEmpty,
       {
-        allowEmptyArray: true
+        allowEmptyArray: true,
       }
     );
     if (this.salesHelper.size() === 0) {
@@ -165,7 +160,6 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
       this.salesHelper.resize(1);
     }
     this.markForCheck();
-
   }
 
   asFormGroup(control): FormGroup {

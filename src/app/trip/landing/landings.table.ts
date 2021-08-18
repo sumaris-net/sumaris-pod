@@ -1,23 +1,33 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 
-import {isNotNil, StatusIds} from '@sumaris-net/ngx-components';
-import {LandingService} from '../services/landing.service';
-import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {AcquisitionLevelCodes, LocationLevelIds} from '@app/referential/services/model/model.enum';
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {Moment} from 'moment';
-import {Trip} from '../services/model/trip.model';
-import {ObservedLocation} from '../services/model/observed-location.model';
-import {Landing} from '../services/model/landing.model';
-import {LandingEditor} from '@app/referential/services/config/program.config';
-import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {environment} from '@environments/environment';
-import {LandingFilter} from '../services/filter/landing.filter';
-import {LandingValidatorService} from '@app/trip/services/validator/landing.validator';
+import { isNotNil, StatusIds } from '@sumaris-net/ngx-components';
+import { LandingService } from '../services/landing.service';
+import { AppMeasurementsTable } from '../measurement/measurements.table.class';
+import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { Moment } from 'moment';
+import { Trip } from '../services/model/trip.model';
+import { ObservedLocation } from '../services/model/observed-location.model';
+import { Landing } from '../services/model/landing.model';
+import { LandingEditor } from '@app/referential/services/config/program.config';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { environment } from '@environments/environment';
+import { LandingFilter } from '../services/filter/landing.filter';
+import { LandingValidatorService } from '@app/trip/services/validator/landing.validator';
 
-export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson', 'samplesCount'];
+export const LANDING_RESERVED_START_COLUMNS: string[] = [
+  'vessel',
+  'vesselType',
+  'vesselBasePortLocation',
+  'location',
+  'dateTime',
+  'observers',
+  'creationDate',
+  'recorderPerson',
+  'samplesCount',
+];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
@@ -26,13 +36,10 @@ const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
   selector: 'app-landings-table',
   templateUrl: 'landings.table.html',
   styleUrls: ['landings.table.scss'],
-  providers: [
-    {provide: ValidatorService, useExisting: LandingValidatorService}
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: ValidatorService, useExisting: LandingValidatorService }],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> implements OnInit, OnDestroy {
-
   private _parentDateTime;
   private _detailEditor: LandingEditor;
   private _strategyPmfmId: number;
@@ -173,20 +180,14 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     return this.getShowColumn('samplesCount');
   }
 
-  constructor(
-    injector: Injector
-  ) {
-    super(injector,
-      Landing,
-      injector.get(LandingService),
-      injector.get(LandingValidatorService),
-      {
-        prependNewElements: false,
-        suppressErrors: environment.production,
-        reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
-        reservedEndColumns: LANDING_RESERVED_END_COLUMNS,
-        mapPmfms: (pmfms) => pmfms.filter(p => p.required)
-      });
+  constructor(injector: Injector) {
+    super(injector, Landing, injector.get(LandingService), injector.get(LandingValidatorService), {
+      prependNewElements: false,
+      suppressErrors: environment.production,
+      reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
+      reservedEndColumns: LANDING_RESERVED_END_COLUMNS,
+      mapPmfms: (pmfms) => pmfms.filter((p) => p.required),
+    });
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = LANDING_TABLE_DEFAULT_I18N_PREFIX;
     this.autoLoad = false; // waiting parent to be loaded, or the call of onRefresh.next()
@@ -206,7 +207,6 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   }
 
   ngOnInit() {
-
     this._enabled = this.canEdit;
 
     super.ngOnInit();
@@ -215,22 +215,21 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
       service: this.vesselSnapshotService,
       attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
       filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
     });
 
     this.registerAutocompleteField('location', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
-        levelId: LocationLevelIds.PORT
+        levelId: LocationLevelIds.PORT,
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Get attributes for qualitative values from settings
     this.qualitativeValueAttributes = this.settings.getFieldDisplayAttributes('qualitativeValue', ['label', 'name']);
-
   }
 
   ngOnDestroy() {
@@ -244,17 +243,17 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
       this.setFilter(LandingFilter.fromObject({}));
     } else if (data instanceof ObservedLocation) {
       this._parentDateTime = data.startDateTime;
-      this.setFilter(LandingFilter.fromObject({observedLocationId: data.id}), {emitEvent: true/*refresh*/});
+      this.setFilter(LandingFilter.fromObject({ observedLocationId: data.id }), { emitEvent: true /*refresh*/ });
     } else if (data instanceof Trip) {
       this._parentDateTime = data.departureDateTime;
-      this.setFilter(LandingFilter.fromObject({tripId: data.id}), {emitEvent: true/*refresh*/});
+      this.setFilter(LandingFilter.fromObject({ tripId: data.id }), { emitEvent: true /*refresh*/ });
     }
   }
 
   async getMaxRankOrderOnVessel(vessel: VesselSnapshot): Promise<number> {
     const rows = await this.dataSource.getRows();
     return rows
-      .filter(row => vessel.equals(row.currentData.vesselSnapshot))
+      .filter((row) => vessel.equals(row.currentData.vesselSnapshot))
       .reduce((res, row) => Math.max(res, row.currentData.rankOrderOnVessel || 0), 0);
   }
 
@@ -276,7 +275,6 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   }
 
   addRow(event?: any): boolean {
-
     if (this.isTripDetailEditor) {
       if (!this._enabled) return false;
       if (this.debug) console.debug('[landings-table] Asking for new landing...');
@@ -299,13 +297,12 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
     if (row.currentData.tripId) {
       // Edit trip
-      this.onOpenRow.emit({id: row.currentData.tripId, row});
+      this.onOpenRow.emit({ id: row.currentData.tripId, row });
     } else {
       // New trip
-      this.onNewTrip.emit({id: null, row});
+      this.onNewTrip.emit({ id: null, row });
     }
   }
-
 
   /* -- protected methods -- */
 
@@ -313,4 +310,3 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     this.cd.markForCheck();
   }
 }
-

@@ -1,12 +1,11 @@
-import {VesselSnapshot} from '../model/vessel-snapshot.model';
-import {Moment} from 'moment';
-import {EntityAsObjectOptions, EntityClass, EntityFilter, EntityUtils, FilterFn, fromDateISOString, isNotNil, isNotNilOrBlank, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
-import {SynchronizationStatus} from '@app/data/services/model/root-data-entity.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { VesselSnapshot } from '../model/vessel-snapshot.model';
+import { Moment } from 'moment';
+import { EntityAsObjectOptions, EntityClass, EntityFilter, EntityUtils, FilterFn, fromDateISOString, isNotNil, isNotNilOrBlank, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import { SynchronizationStatus } from '@app/data/services/model/root-data-entity.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
-@EntityClass({typename: 'VesselFilterVO'})
+@EntityClass({ typename: 'VesselFilterVO' })
 export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, VesselSnapshot> {
-
   static fromObject: (source: any, opts?: any) => VesselSnapshotFilter;
 
   program: ReferentialRef;
@@ -19,8 +18,10 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
-    this.program = ReferentialRef.fromObject(source.program) ||
-      isNotNilOrBlank(source.programLabel) && ReferentialRef.fromObject({label: source.programLabel}) || undefined;
+    this.program =
+      ReferentialRef.fromObject(source.program) ||
+      (isNotNilOrBlank(source.programLabel) && ReferentialRef.fromObject({ label: source.programLabel })) ||
+      undefined;
     this.date = fromDateISOString(source.date);
     this.vesselId = source.vesselId;
     this.searchText = source.searchText;
@@ -37,9 +38,8 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
 
       // NOT in pod
       // target.synchronizationStatus =
-    }
-    else {
-      target.program = this.program && this.program.asObject({...opts, ...NOT_MINIFY_OPTIONS});
+    } else {
+      target.program = this.program && this.program.asObject({ ...opts, ...NOT_MINIFY_OPTIONS });
       target.synchronizationStatus = this.synchronizationStatus;
     }
     target.vesselId = this.vesselId;
@@ -56,23 +56,22 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
       const programId = this.program.id;
       const programLabel = this.program.label;
       if (isNotNil(programId)) {
-        filterFns.push(t => (t.program && t.program.id === programId));
-      }
-      else if (isNotNilOrBlank(programLabel)) {
-        filterFns.push(t => (t.program && t.program.label === programLabel));
+        filterFns.push((t) => t.program && t.program.id === programId);
+      } else if (isNotNilOrBlank(programLabel)) {
+        filterFns.push((t) => t.program && t.program.label === programLabel);
       }
     }
 
     // Vessel id
     if (isNotNil(this.vesselId)) {
       const vesselId = this.vesselId;
-      filterFns.push(t => t.id === vesselId);
+      filterFns.push((t) => t.id === vesselId);
     }
 
     // Status
     const statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds;
     if (statusIds) {
-      filterFns.push(t => statusIds.includes(t.vesselStatusId));
+      filterFns.push((t) => statusIds.includes(t.vesselStatusId));
     }
 
     // Search text
@@ -83,8 +82,7 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
     if (this.synchronizationStatus) {
       if (this.synchronizationStatus === 'SYNC') {
         filterFns.push(EntityUtils.isRemote);
-      }
-      else {
+      } else {
         filterFns.push(EntityUtils.isLocal);
       }
     }

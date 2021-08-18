@@ -1,21 +1,18 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {BehaviorSubject} from 'rxjs';
-import {Batch, BatchUtils} from '../../services/model/batch.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {mergeMap} from 'rxjs/operators';
-import {BatchTreeComponent} from '../batch-tree.component';
-import {EntitiesStorage, EntityUtils, isEmptyArray, isNotNil, MatAutocompleteConfigHolder, SharedValidators, toNumber} from '@sumaris-net/ngx-components';
-import {PmfmIds} from '@app/referential/services/model/model.enum';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { BehaviorSubject } from 'rxjs';
+import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { mergeMap } from 'rxjs/operators';
+import { BatchTreeComponent } from '../batch-tree.component';
+import { EntitiesStorage, EntityUtils, isEmptyArray, isNotNil, MatAutocompleteConfigHolder, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
-const getSortingMeasValues = (opts?: {
-  weight?: number;
-  discardOrLanding: 'LAN'|'DIS';
-}) => {
+const getSortingMeasValues = (opts?: { weight?: number; discardOrLanding: 'LAN' | 'DIS' }) => {
   opts = {
     discardOrLanding: 'LAN',
-    ...opts
+    ...opts,
   };
   const res = {};
 
@@ -26,13 +23,10 @@ const getSortingMeasValues = (opts?: {
   return res;
 };
 
-const getIndivMeasValues = (opts?: {
-  length?: number;
-  discardOrLanding: 'LAN'|'DIS';
-}) => {
+const getIndivMeasValues = (opts?: { length?: number; discardOrLanding: 'LAN' | 'DIS' }) => {
   opts = {
     discardOrLanding: 'LAN',
-    ...opts
+    ...opts,
   };
   const res = {};
 
@@ -42,78 +36,79 @@ const getIndivMeasValues = (opts?: {
   }
   return res;
 };
-const TREE_EXAMPLES: {[key: string]: any} = {
-  default:
-    {
-      label: 'CATCH_BATCH', rankOrder: 1, children: [
-        {
-          label: 'SORTING_BATCH#1',
-          rankOrder: 1,
-          taxonGroup: {id: 1122, label: 'MNZ', name: 'Baudroie nca'},
-          children: [
-            {
-              label: 'SORTING_BATCH#1.LAN', rankOrder: 1,
-              measurementValues: getSortingMeasValues({discardOrLanding: 'LAN', weight: 100}),
-              children: [
-                {
-                  label: 'SORTING_BATCH#1.LAN.%',
-                  rankOrder: 1,
-                  samplingRatio: 0.5,
-                  samplingRatioText: '50%',
-                  children: [
-                    {
-                      label: 'SORTING_BATCH_INDIVIDUAL#1',
-                      rankOrder: 1,
-                      taxonName: {id: 1033, label: 'MON', name: 'Lophius piscatorius'},
-                      measurementValues: getIndivMeasValues({discardOrLanding: 'LAN', length: 11}),
-                      individualCount: 1
-                    },
-                    {
-                      label: 'SORTING_BATCH_INDIVIDUAL#3',
-                      rankOrder: 3,
-                      taxonName: {id: 1034, label: 'ANK', name: 'Lophius budegassa'},
-                      measurementValues: getIndivMeasValues({discardOrLanding: 'LAN', length: 33}),
-                      individualCount: 1
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              label: 'SORTING_BATCH#1.DIS', rankOrder: 2,
-              measurementValues: getSortingMeasValues({discardOrLanding: 'DIS', weight: 0}),
-              children: [
-                {
-                  label: 'SORTING_BATCH#1.DIS.%',
-                  rankOrder: 1,
-                  samplingRatio: 0.5,
-                  samplingRatioText: '50%',
-                  children: [
-                    {
-                      label: 'SORTING_BATCH_INDIVIDUAL#2',
-                      rankOrder: 2,
-                      taxonName: {id: 1034, label: 'ANK', name: 'Lophius budegassa'},
-                      measurementValues: getIndivMeasValues({discardOrLanding: 'DIS', length: 22}),
-                      individualCount: 1
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-  empty: {id: 100, label: 'CATCH_BATCH', rankOrder: 1}
+const TREE_EXAMPLES: { [key: string]: any } = {
+  default: {
+    label: 'CATCH_BATCH',
+    rankOrder: 1,
+    children: [
+      {
+        label: 'SORTING_BATCH#1',
+        rankOrder: 1,
+        taxonGroup: { id: 1122, label: 'MNZ', name: 'Baudroie nca' },
+        children: [
+          {
+            label: 'SORTING_BATCH#1.LAN',
+            rankOrder: 1,
+            measurementValues: getSortingMeasValues({ discardOrLanding: 'LAN', weight: 100 }),
+            children: [
+              {
+                label: 'SORTING_BATCH#1.LAN.%',
+                rankOrder: 1,
+                samplingRatio: 0.5,
+                samplingRatioText: '50%',
+                children: [
+                  {
+                    label: 'SORTING_BATCH_INDIVIDUAL#1',
+                    rankOrder: 1,
+                    taxonName: { id: 1033, label: 'MON', name: 'Lophius piscatorius' },
+                    measurementValues: getIndivMeasValues({ discardOrLanding: 'LAN', length: 11 }),
+                    individualCount: 1,
+                  },
+                  {
+                    label: 'SORTING_BATCH_INDIVIDUAL#3',
+                    rankOrder: 3,
+                    taxonName: { id: 1034, label: 'ANK', name: 'Lophius budegassa' },
+                    measurementValues: getIndivMeasValues({ discardOrLanding: 'LAN', length: 33 }),
+                    individualCount: 1,
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            label: 'SORTING_BATCH#1.DIS',
+            rankOrder: 2,
+            measurementValues: getSortingMeasValues({ discardOrLanding: 'DIS', weight: 0 }),
+            children: [
+              {
+                label: 'SORTING_BATCH#1.DIS.%',
+                rankOrder: 1,
+                samplingRatio: 0.5,
+                samplingRatioText: '50%',
+                children: [
+                  {
+                    label: 'SORTING_BATCH_INDIVIDUAL#2',
+                    rankOrder: 2,
+                    taxonName: { id: 1034, label: 'ANK', name: 'Lophius budegassa' },
+                    measurementValues: getIndivMeasValues({ discardOrLanding: 'DIS', length: 22 }),
+                    individualCount: 1,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  empty: { id: 100, label: 'CATCH_BATCH', rankOrder: 1 },
 };
 
 @Component({
   selector: 'app-batch-tree-test',
-  templateUrl: './batch-tree.test.html'
+  templateUrl: './batch-tree.test.html',
 })
 export class BatchTreeTestPage implements OnInit {
-
-
   $programLabel = new BehaviorSubject<string>(undefined);
   $gearId = new BehaviorSubject<number>(undefined);
   form: FormGroup;
@@ -132,27 +127,27 @@ export class BatchTreeTestPage implements OnInit {
     protected programRefService: ProgramRefService,
     private entities: EntitiesStorage
   ) {
-
     this.form = formBuilder.group({
-      program: [{id:10, label: 'ADAP-MER'}, Validators.compose([Validators.required, SharedValidators.entity])],
+      program: [{ id: 10, label: 'ADAP-MER' }, Validators.compose([Validators.required, SharedValidators.entity])],
       gear: [null, Validators.compose([Validators.required, SharedValidators.entity])],
-      example: [null, Validators.required]
+      example: [null, Validators.required],
     });
   }
 
   ngOnInit() {
-
     // Program
     this.autocomplete.add('program', {
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        ...filter,
-        entityName: 'Program'
-      }),
-      attributes: ['label', 'name']
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          entityName: 'Program',
+        }),
+      attributes: ['label', 'name'],
     });
-    this.form.get('program').valueChanges
-      //.pipe(debounceTime(450))
-      .subscribe(p => {
+    this.form
+      .get('program')
+      .valueChanges//.pipe(debounceTime(450))
+      .subscribe((p) => {
         const label = p && p.label;
         if (label) {
           this.$programLabel.next(label);
@@ -167,41 +162,39 @@ export class BatchTreeTestPage implements OnInit {
           return this.programRefService.loadGears(programLabel);
         })
       ),
-      attributes: ['label', 'name']
+      attributes: ['label', 'name'],
     });
-    this.form.get('gear').valueChanges
-      //.pipe(debounceTime(450))
-      .subscribe(g => this.$gearId.next(toNumber(g && g.id, null)));
-
+    this.form
+      .get('gear')
+      .valueChanges//.pipe(debounceTime(450))
+      .subscribe((g) => this.$gearId.next(toNumber(g && g.id, null)));
 
     // Input example
     this.autocomplete.add('example', {
-      items: Object.keys(TREE_EXAMPLES).map((label, index) => ({id: index+1, label})),
-      attributes: ['label']
+      items: Object.keys(TREE_EXAMPLES).map((label, index) => ({ id: index + 1, label })),
+      attributes: ['label'],
     });
-    this.form.get('example').valueChanges
-      //.pipe(debounceTime(450))
-      .subscribe(example => {
+    this.form
+      .get('example')
+      .valueChanges//.pipe(debounceTime(450))
+      .subscribe((example) => {
         if (example && typeof example.label == 'string') {
           const json = TREE_EXAMPLES[example.label];
           this.dumpCatchBatch(Batch.fromObject(json), 'example');
         }
       });
 
-
     this.form.patchValue({
-      program: {id: 10, label: 'ADAP-MER' },
-      gear: {id: 6, label: 'OTB'},
-      example: {id: 1, label: 'default'}
+      program: { id: 10, label: 'ADAP-MER' },
+      gear: { id: 6, label: 'OTB' },
+      example: { id: 1, label: 'default' },
     });
 
     this.applyExample();
   }
 
-
   // Load data into components
   async updateView(data: Batch) {
-
     this.mobileBatchTree.value = data.clone();
     this.desktopBatchTree.value = data.clone();
 
@@ -209,8 +202,8 @@ export class BatchTreeTestPage implements OnInit {
     this.desktopBatchTree.enable();
 
     setTimeout(() => {
-      this.mobileBatchTree.ready().then( () => this.mobileBatchTree.autoFill());
-      this.desktopBatchTree.ready().then( () => this.desktopBatchTree.autoFill());
+      this.mobileBatchTree.ready().then(() => this.mobileBatchTree.autoFill());
+      this.desktopBatchTree.ready().then(() => this.desktopBatchTree.autoFill());
     });
   }
 
@@ -218,12 +211,10 @@ export class BatchTreeTestPage implements OnInit {
     // Nothing to do
   }
 
-
   async getExampleTree(key?: string): Promise<Batch> {
-
     if (!key) {
       const example = this.form.get('example').value;
-      key = example && example.label || 'default';
+      key = (example && example.label) || 'default';
     }
 
     // Load example
@@ -234,7 +225,7 @@ export class BatchTreeTestPage implements OnInit {
     // - only the parentId, and NOT the parent
     const batches = EntityUtils.treeToArray(json) || [];
     await EntityUtils.fillLocalIds(batches, (_, count) => this.entities.nextValues('BatchVO', count));
-    batches.forEach(b => {
+    batches.forEach((b) => {
       b.parentId = b.parent && b.parent.id;
       delete b.parent;
     });
@@ -254,11 +245,10 @@ export class BatchTreeTestPage implements OnInit {
 
   async dumpExample(key?: string) {
     const catchBatch = await this.getExampleTree(key);
-     this.dumpCatchBatch(catchBatch, 'example');
+    this.dumpCatchBatch(catchBatch, 'example');
   }
 
   async dumpBatchTree(batchTree: BatchTreeComponent, outputName?: string) {
-
     await batchTree.save();
     const catchBatch = batchTree.value;
 
@@ -269,15 +259,14 @@ export class BatchTreeTestPage implements OnInit {
       const subBatches = await batchTree.getSubBatches();
       if (isEmptyArray(subBatches)) {
         html += '&nbsp;No result';
-      }
-      else {
+      } else {
         let html = '<ul>';
-        subBatches.forEach(b => {
+        subBatches.forEach((b) => {
           BatchUtils.logTree(b, {
             showAll: false,
             println: (m) => {
               html += '<li>' + m + '</li>';
-            }
+            },
           });
         });
         html += '</ul>';
@@ -286,9 +275,7 @@ export class BatchTreeTestPage implements OnInit {
       // Append to result
       this.outputs[outputName] += html;
     }
-
   }
-
 
   dumpCatchBatch(catchBatch: Batch, outputName?: string) {
     let html = '';
@@ -297,13 +284,12 @@ export class BatchTreeTestPage implements OnInit {
         showAll: false,
         println: (m) => {
           html += '<br/>' + m;
-        }
+        },
       });
       html = html.replace(/\t/g, '&nbsp;&nbsp;');
 
       this.outputs[outputName] = html;
-    }
-    else {
+    } else {
       this.outputs[outputName] = '&nbsp;No result';
     }
 
@@ -317,8 +303,7 @@ export class BatchTreeTestPage implements OnInit {
     target.disable();
     try {
       await target.setValue(source.value);
-    }
-    finally {
+    } finally {
       source.enable();
       target.enable();
     }
@@ -330,4 +315,3 @@ export class BatchTreeTestPage implements OnInit {
     return JSON.stringify(value);
   }
 }
-

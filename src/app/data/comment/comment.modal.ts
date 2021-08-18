@@ -1,20 +1,19 @@
-import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {PopoverController} from '@ionic/angular';
-import {Subscription} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {CommentForm} from './comment.form';
-import {AppFormUtils} from '@sumaris-net/ngx-components';
+import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { PopoverController } from '@ionic/angular';
+import { Subscription } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { CommentForm } from './comment.form';
+import { AppFormUtils } from '@sumaris-net/ngx-components';
 
 @Component({
   selector: 'app-comment-modal',
-  templateUrl: './comment.modal.html'
+  templateUrl: './comment.modal.html',
 })
 export class CommentModal implements OnInit, OnDestroy {
-
   loading = false;
   subscription = new Subscription();
 
-  @ViewChild('commentForm', {static: true}) commentForm: CommentForm;
+  @ViewChild('commentForm', { static: true }) commentForm: CommentForm;
 
   @Input() comment: string;
   @Input() title: string;
@@ -29,24 +28,17 @@ export class CommentModal implements OnInit, OnDestroy {
   }
 
   get valid() {
-    return this.commentForm && this.commentForm.valid || false;
+    return (this.commentForm && this.commentForm.valid) || false;
   }
 
-
-  constructor(
-    protected viewCtrl: PopoverController,
-    protected translate: TranslateService
-  ) {
-
-  }
+  constructor(protected viewCtrl: PopoverController, protected translate: TranslateService) {}
 
   ngOnInit(): void {
     this.enable();
-    this.commentForm.setValue({comment: this.comment});
+    this.commentForm.setValue({ comment: this.comment });
   }
 
   async onSave(event: any): Promise<any> {
-
     // Avoid multiple call
     if (this.disabled) return;
 
@@ -65,7 +57,7 @@ export class CommentModal implements OnInit, OnDestroy {
       await this.viewCtrl.dismiss(value);
       this.commentForm.error = null;
     } catch (err) {
-      this.commentForm.error = err && err.message || err;
+      this.commentForm.error = (err && err.message) || err;
       this.enable();
       this.loading = false;
     }
@@ -76,8 +68,7 @@ export class CommentModal implements OnInit, OnDestroy {
   }
 
   enable() {
-    if (this.editing)
-      this.commentForm.enable();
+    if (this.editing) this.commentForm.enable();
   }
 
   cancel() {
@@ -87,5 +78,4 @@ export class CommentModal implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
   }
-
 }

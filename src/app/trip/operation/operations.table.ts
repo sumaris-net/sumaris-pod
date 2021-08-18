@@ -1,29 +1,35 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {OperationValidatorService} from '../services/validator/operation.validator';
-import {AlertController, ModalController, Platform} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {OperationService, OperationServiceWatchOptions} from '../services/operation.service';
-import {TranslateService} from '@ngx-translate/core';
-import {AccountService, AppTable, EntitiesTableDataSource, isNotNil, LatLongPattern, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, toBoolean} from '@sumaris-net/ngx-components';
-import {OperationsMap} from './map/operations.map';
-import {environment} from '@environments/environment';
-import {Operation} from '../services/model/trip.model';
-import {OperationFilter} from '@app/trip/services/filter/operation.filter';
-
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { OperationValidatorService } from '../services/validator/operation.validator';
+import { AlertController, ModalController, Platform } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
+import { OperationService, OperationServiceWatchOptions } from '../services/operation.service';
+import { TranslateService } from '@ngx-translate/core';
+import {
+  AccountService,
+  AppTable,
+  EntitiesTableDataSource,
+  isNotNil,
+  LatLongPattern,
+  LocalSettingsService,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+  toBoolean,
+} from '@sumaris-net/ngx-components';
+import { OperationsMap } from './map/operations.map';
+import { environment } from '@environments/environment';
+import { Operation } from '../services/model/trip.model';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 
 @Component({
   selector: 'app-operations-table',
   templateUrl: 'operations.table.html',
   styleUrls: ['operations.table.scss'],
-  providers: [
-    {provide: ValidatorService, useExisting: OperationValidatorService}
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: ValidatorService, useExisting: OperationValidatorService }],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OperationsTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
-
   displayAttributes: {
     [key: string]: string[];
   };
@@ -73,25 +79,22 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected accountService: AccountService,
-    protected cd: ChangeDetectorRef,
+    protected cd: ChangeDetectorRef
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
-      RESERVED_START_COLUMNS
-        .concat(
-          platform.is('mobile') ?
-            ['physicalGear',
-              'targetSpecies',
-              'startDateTime',
-              'endDateTime']  :
-          ['physicalGear',
-            'targetSpecies',
-            'startDateTime',
-            'startPosition',
-            'endDateTime',
-            'endPosition',
-            'comments'])
-        .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Operation, OperationFilter, number, OperationServiceWatchOptions>(Operation,
+    super(
+      route,
+      router,
+      platform,
+      location,
+      modalCtrl,
+      settings,
+      RESERVED_START_COLUMNS.concat(
+        platform.is('mobile')
+          ? ['physicalGear', 'targetSpecies', 'startDateTime', 'endDateTime']
+          : ['physicalGear', 'targetSpecies', 'startDateTime', 'startPosition', 'endDateTime', 'endPosition', 'comments']
+      ).concat(RESERVED_END_COLUMNS),
+      new EntitiesTableDataSource<Operation, OperationFilter, number, OperationServiceWatchOptions>(
+        Operation,
         dataService,
         null,
         // DataSource options
@@ -102,9 +105,10 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
             readOnly: true,
             withBatchTree: false,
             withSamples: false,
-            withTotal: true
-          }
-        })
+            withTotal: true,
+          },
+        }
+      )
     );
     this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
 
@@ -123,9 +127,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     settings.ready().then(() => {
       if (this.settings.settings.accountInheritance) {
         const account = this.accountService.account;
-        this.latLongPattern = account && account.settings && account.settings.latLongFormat || this.settings.latLongFormat;
-      }
-      else {
+        this.latLongPattern = (account && account.settings && account.settings.latLongFormat) || this.settings.latLongFormat;
+      } else {
         this.latLongPattern = this.settings.latLongFormat;
       }
     });
@@ -152,7 +155,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
         };
 
         this.markForCheck();
-      }));
+      })
+    );
 
     // Apply trip id, if already set
     if (isNotNil(this.tripId)) {
@@ -160,53 +164,53 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     }
   }
 
-  setTripId(id: number, opts?: {emitEvent?: boolean }) {
+  setTripId(id: number, opts?: { emitEvent?: boolean }) {
     if (this.tripId !== id) {
       this.tripId = id;
       const filter = this.filter || new OperationFilter();
       filter.tripId = id;
       this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
       this.dataSource.serviceOptions.tripId = id;
-      this.setFilter(filter, {emitEvent: (!opts || opts.emitEvent !== false) && isNotNil(id)});
-    }
-    else if ((!opts || opts.emitEvent !== false) && isNotNil(this.filter.tripId)){
+      this.setFilter(filter, { emitEvent: (!opts || opts.emitEvent !== false) && isNotNil(id) });
+    } else if ((!opts || opts.emitEvent !== false) && isNotNil(this.filter.tripId)) {
       this.onRefresh.emit();
     }
   }
 
   async openMapModal(event?: UIEvent) {
-
-    const res = await this.dataService.loadAllByTrip({
-        tripId: this.tripId
-      }, {fetchPolicy: 'cache-first', fullLoad: false, withTotal: true});
+    const res = await this.dataService.loadAllByTrip(
+      {
+        tripId: this.tripId,
+      },
+      { fetchPolicy: 'cache-first', fullLoad: false, withTotal: true }
+    );
 
     const modal = await this.modalCtrl.create({
       component: OperationsMap,
       componentProps: {
         operations: res.data,
         latLongPattern: this.latLongPattern,
-        program: this.program
+        program: this.program,
       },
       keyboardClose: true,
-      cssClass: 'modal-large'
+      cssClass: 'modal-large',
     });
 
     // Open the modal
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
     if (data instanceof Operation) {
       // Select the row
-      const row = (await this.dataSource.getRows()).find(row => row.currentData.id === data.id);
+      const row = (await this.dataSource.getRows()).find((row) => row.currentData.id === data.id);
       if (row) {
         this.clickRow(null, row);
       }
     }
-
   }
 
-  clickRow(event: MouseEvent|undefined, row: TableElement<Operation>): boolean {
+  clickRow(event: MouseEvent | undefined, row: TableElement<Operation>): boolean {
     this.highlightedRow = row;
 
     return super.clickRow(event, row);
@@ -214,10 +218,10 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
   async getUsedPhysicalGearIds(): Promise<number[]> {
     return (await this.dataSource.getRows())
-      .map(ope => ope.currentData.physicalGear)
+      .map((ope) => ope.currentData.physicalGear)
       .filter(isNotNil)
-      .map(gear => gear.id)
-      .reduce( (res, id) => res.includes(id) ? res : res.concat(id), []);
+      .map((gear) => gear.id)
+      .reduce((res, id) => (res.includes(id) ? res : res.concat(id)), []);
   }
 
   /* -- protected methods -- */
@@ -226,4 +230,3 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     this.cd.markForCheck();
   }
 }
-

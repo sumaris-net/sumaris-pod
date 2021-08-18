@@ -1,5 +1,5 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Optional} from '@angular/core';
-import {DataEntity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from '../services/model/data-entity.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Optional } from '@angular/core';
+import { DataEntity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '../services/model/data-entity.model';
 // import fade in animation
 import {
   AccountService,
@@ -16,37 +16,37 @@ import {
   ShowToastOptions,
   StatusIds,
   Toasts,
-  UserEventService
+  UserEventService,
 } from '@sumaris-net/ngx-components';
-import {IDataEntityQualityService, isDataQualityService} from '../services/data-quality-service.class';
-import {QualityFlags} from '@app/referential/services/model/model.enum';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {merge, Subscription} from 'rxjs';
-import {Router} from '@angular/router';
-import {ToastController} from '@ionic/angular';
-import {TranslateService} from '@ngx-translate/core';
-import {environment} from '@environments/environment';
-import {AppRootDataEditor} from '../form/root-data-editor.class';
-import {RootDataEntity} from '../services/model/root-data-entity.model';
-import {qualityFlagToColor} from '../services/model/model.utils';
-import {OverlayEventDetail} from '@ionic/core';
-import {isDataSynchroService, RootDataSynchroService} from '../services/root-data-synchro-service.class';
-import {debounceTime} from 'rxjs/operators';
-import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
+import { IDataEntityQualityService, isDataQualityService } from '../services/data-quality-service.class';
+import { QualityFlags } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { merge, Subscription } from 'rxjs';
+import { Router } from '@angular/router';
+import { ToastController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { environment } from '@environments/environment';
+import { AppRootDataEditor } from '../form/root-data-editor.class';
+import { RootDataEntity } from '../services/model/root-data-entity.model';
+import { qualityFlagToColor } from '../services/model/model.utils';
+import { OverlayEventDetail } from '@ionic/core';
+import { isDataSynchroService, RootDataSynchroService } from '../services/root-data-synchro-service.class';
+import { debounceTime } from 'rxjs/operators';
+import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
 
 @Component({
   selector: 'app-entity-quality-form',
   templateUrl: './entity-quality-form.component.html',
   styleUrls: ['./entity-quality-form.component.scss'],
   animations: [fadeInAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EntityQualityFormComponent<
   T extends RootDataEntity<T, ID> = RootDataEntity<any, any>,
   S extends IEntityService<T, ID> = IEntityService<any, any>,
-  ID = number>
-  implements OnInit, OnDestroy {
-
+  ID = number
+> implements OnInit, OnDestroy
+{
   private _debug = false;
   private _mobile: boolean;
   private _subscription = new Subscription();
@@ -102,35 +102,28 @@ export class EntityQualityFormComponent<
   }
 
   ngOnInit() {
-
     // Check editor exists
     if (!this.editor) throw new Error(`Missing mandatory 'editor' input!`);
 
     // Check data service exists
-    this.service = this.service || isDataQualityService(this.editor.service) && this.editor.service || null;
+    this.service = this.service || (isDataQualityService(this.editor.service) && this.editor.service) || null;
     if (!this.service) throw new Error(`Missing mandatory 'dataService' input!`);
     this._isSynchroService = isDataSynchroService(this.service);
 
     // Subscribe to config
     this._subscription.add(
-      this.configService.config.subscribe(config => {
+      this.configService.config.subscribe((config) => {
         this._enableQualityProcess = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
       })
     );
 
     // Subscribe to refresh events
-    let updateEvent$ = merge(
-      this.editor.onUpdateView,
-      this.accountService.onLogin,
-      this.network.onNetworkStatusChanges
-    );
+    let updateEvent$ = merge(this.editor.onUpdateView, this.accountService.onLogin, this.network.onNetworkStatusChanges);
 
     // Mobile: add a debounce time
     if (this._mobile) updateEvent$ = updateEvent$.pipe(debounceTime(500));
 
-    this._subscription.add(
-      updateEvent$.subscribe(() => this.updateView(this.editor.data))
-    );
+    this._subscription.add(updateEvent$.subscribe(() => this.updateView(this.editor.data)));
   }
 
   ngOnDestroy(): void {
@@ -141,8 +134,7 @@ export class EntityQualityFormComponent<
     this.service = null;
   }
 
-  async control(event?: Event, opts?: {emitEvent?: boolean}): Promise<boolean> {
-
+  async control(event?: Event, opts?: { emitEvent?: boolean }): Promise<boolean> {
     this._controlling = true;
 
     let valid = false;
@@ -158,31 +150,27 @@ export class EntityQualityFormComponent<
       valid = isNil(errors);
 
       if (!valid) {
-        this.editor.setError({message: 'QUALITY.ERROR.INVALID_FORM', details: {errors} });
+        this.editor.setError({ message: 'QUALITY.ERROR.INVALID_FORM', details: { errors } });
         this.editor.markAsTouched();
-      }
-      else {
+      } else {
         // Emit event (refresh component with the new data)
         if (!opts || opts.emitEvent !== false) {
           this.updateView(data);
-        }
-        else {
+        } else {
           this.data = data;
         }
       }
-    }
-    finally {
+    } finally {
       this._controlling = false;
     }
 
     return valid;
   }
 
-  async terminate(event?: Event, opts?: {emitEvent?: boolean}): Promise<boolean> {
+  async terminate(event?: Event, opts?: { emitEvent?: boolean }): Promise<boolean> {
     // Control data
-    const controlled = await this.control(event, {emitEvent: false});
-    if (!controlled || event && event.defaultPrevented) {
-
+    const controlled = await this.control(event, { emitEvent: false });
+    if (!controlled || (event && event.defaultPrevented)) {
       // If mode was on field: force desk mode, to show errors
       if (this.editor.isOnFieldMode) {
         this.editor.usageMode = 'DESK';
@@ -200,26 +188,22 @@ export class EntityQualityFormComponent<
       // Emit event (refresh editor -> will refresh component also)
       if (!opts || opts.emitEvent !== false) {
         this.updateEditor(data);
-      }
-      else {
+      } else {
         this.data = data;
       }
       return true;
-    }
-    finally {
+    } finally {
       this.editor.enable(opts);
     }
   }
 
-
   async synchronize(event?: Event): Promise<boolean> {
-
     if (!this.data || +this.data.id >= 0) throw new Error('Need a local trip');
 
     if (this.network.offline) {
       this.network.showOfflineToast({
         showRetryButton: true,
-        onRetrySuccess: () => this.synchronize()
+        onRetrySuccess: () => this.synchronize(),
       });
       return;
     }
@@ -227,8 +211,8 @@ export class EntityQualityFormComponent<
     const path = this.router.url;
 
     // Control data
-    const controlled = await this.control(event, {emitEvent: false});
-    if (!controlled || event && event.defaultPrevented) return false;
+    const controlled = await this.control(event, { emitEvent: false });
+    if (!controlled || (event && event.defaultPrevented)) return false;
 
     // Disable the editor
     this.editor.disable();
@@ -240,7 +224,7 @@ export class EntityQualityFormComponent<
       const remoteData = await synchroService.synchronize(this.editor.data);
 
       // Success message
-      this.showToast({message: 'INFO.SYNCHRONIZATION_SUCCEED', type: 'info', showCloseButton: true});
+      this.showToast({ message: 'INFO.SYNCHRONIZATION_SUCCEED', type: 'info', showCloseButton: true });
 
       // Remove the page from the history (because of local id)
       await this.settings.removePageHistory(path);
@@ -250,26 +234,22 @@ export class EntityQualityFormComponent<
       const data = await this.service.terminate(remoteData);
 
       // Update the editor (Will refresh the component)
-      this.updateEditor(data, {updateRoute: true});
-    }
-    catch (error) {
+      this.updateEditor(data, { updateRoute: true });
+    } catch (error) {
       this.editor.setError(error);
-      const context = error && error.context || (() => this.data.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE));
+      const context = (error && error.context) || (() => this.data.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE));
       this.userEventService.showToastErrorWithContext({
         error,
-        context
+        context,
       });
-
-    }
-    finally {
+    } finally {
       this.editor.enable();
     }
-
   }
 
   async validate(event: Event) {
     // Control data
-    const controlled = await this.control(event, {emitEvent: false});
+    const controlled = await this.control(event, { emitEvent: false });
     if (!controlled || event.defaultPrevented) return;
 
     console.debug('[quality] Mark entity as validated...');
@@ -282,19 +262,19 @@ export class EntityQualityFormComponent<
     this.updateEditor(data);
   }
 
-  async qualify(event: Event, qualityFlagId: number ) {
+  async qualify(event: Event, qualityFlagId: number) {
     const data = await this.service.qualify(this.data, qualityFlagId);
     this.updateEditor(data);
   }
 
   getI18nQualityFlag(qualityFlagId: number, qualityFlags?: ReferentialRef[]) {
     // Get label from the input list, if any
-    let qualityFlag: any = qualityFlags && qualityFlags.find(qf => qf.id === qualityFlagId);
+    let qualityFlag: any = qualityFlags && qualityFlags.find((qf) => qf.id === qualityFlagId);
     if (qualityFlag && qualityFlag.label) return qualityFlag.label;
 
     // Or try to compute a label from the model enumeration
-    qualityFlag = qualityFlag || QualityFlags.find(qf => qf.id === qualityFlagId);
-    return qualityFlag ? ('QUALITY.QUALITY_FLAGS.' + qualityFlag.label) : undefined;
+    qualityFlag = qualityFlag || QualityFlags.find((qf) => qf.id === qualityFlagId);
+    return qualityFlag ? 'QUALITY.QUALITY_FLAGS.' + qualityFlag.label : undefined;
   }
 
   qualityFlagToColor = qualityFlagToColor;
@@ -304,7 +284,7 @@ export class EntityQualityFormComponent<
   protected updateView(data?: T) {
     if (this._controlling) return; // Skip
 
-    data = data || this.data || this.editor && this.editor.data;
+    data = data || this.data || (this.editor && this.editor.data);
     this.data = data;
 
     this.loading = isNil(data) || isNil(data.id);
@@ -317,16 +297,14 @@ export class EntityQualityFormComponent<
       this.canUnvalidate = false;
       this.canQualify = false;
       this.canUnqualify = false;
-    }
-    else if (data instanceof DataEntity) {
-
+    } else if (data instanceof DataEntity) {
       // If local, avoid to check too many properties (for performance in mobile devices)
       const isLocalData = EntityUtils.isLocal(data);
       const canWrite = isLocalData || this.service.canUserWrite(data);
       const isSupervisor = !isLocalData && this.accountService.isSupervisor();
 
       // Quality service
-      this.canControl = canWrite && (isLocalData && data.synchronizationStatus === 'DIRTY' || isNil(data.controlDate));
+      this.canControl = canWrite && ((isLocalData && data.synchronizationStatus === 'DIRTY') || isNil(data.controlDate));
       this.canTerminate = this.canControl && (!isLocalData || data.synchronizationStatus === 'DIRTY');
 
       if (this._enableQualityProcess) {
@@ -347,39 +325,48 @@ export class EntityQualityFormComponent<
 
     this.markForCheck();
 
-    if (this.canQualify || this.canUnqualify && !this.qualityFlags) {
+    if (this.canQualify || (this.canUnqualify && !this.qualityFlags)) {
       this.loadQualityFlags();
     }
   }
 
   protected async loadQualityFlags() {
-    const res = await this.referentialRefService.loadAll(0, 100, 'id', 'asc', {
-      entityName: 'QualityFlag',
-      statusId: StatusIds.ENABLE
-    }, {
-      fetchPolicy: 'cache-first'
-    });
+    const res = await this.referentialRefService.loadAll(
+      0,
+      100,
+      'id',
+      'asc',
+      {
+        entityName: 'QualityFlag',
+        statusId: StatusIds.ENABLE,
+      },
+      {
+        fetchPolicy: 'cache-first',
+      }
+    );
 
-    const items = res && res.data || [];
+    const items = (res && res.data) || [];
 
     // Try to get i18n key instead of label
-    items.forEach(flag => flag.label = this.getI18nQualityFlag(flag.id) || flag.label);
+    items.forEach((flag) => (flag.label = this.getI18nQualityFlag(flag.id) || flag.label));
 
     this.qualityFlags = items;
     this.markForCheck();
   }
-
 
   protected async showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     if (!this.toastController) throw new Error(`Missing toastController in component's constructor`);
     return await Toasts.show(this.toastController, this.translate, opts);
   }
 
-  protected updateEditor(data: T, opts?: {
+  protected updateEditor(
+    data: T,
+    opts?: {
       emitEvent?: boolean;
       openTabIndex?: number;
       updateRoute?: boolean;
-    }) {
+    }
+  ) {
     this.editor.updateView(data, opts);
   }
 

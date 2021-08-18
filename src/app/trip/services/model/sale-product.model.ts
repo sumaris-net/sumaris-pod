@@ -1,13 +1,12 @@
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {MeasurementValuesUtils} from './measurement.model';
-import {isNil, isNotEmptyArray, isNotNil, isNotNilOrNaN, ObjectMap, ReferentialUtils, round} from '@sumaris-net/ngx-components';
-import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {Product} from './product.model';
-import {Packet, PacketUtils} from './packet.model';
-import {PmfmIds} from '@app/referential/services/model/model.enum';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { MeasurementValuesUtils } from './measurement.model';
+import { isNil, isNotEmptyArray, isNotNil, isNotNilOrNaN, ObjectMap, ReferentialUtils, round } from '@sumaris-net/ngx-components';
+import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
+import { Product } from './product.model';
+import { Packet, PacketUtils } from './packet.model';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
 
 export class SaleProduct extends Product {
-
   // static TYPENAME = 'SaleProductVO'; // fixme: This VO don't exists, keep its TYPENAME ?
 
   static fromObject(source: any): SaleProduct {
@@ -58,30 +57,39 @@ export class SaleProduct extends Product {
 }
 
 export class SaleProductUtils {
-
   static isSaleProductEmpty(saleProduct: SaleProduct): boolean {
     return !saleProduct || isNil(saleProduct.saleType);
   }
 
   static isSaleProductEquals(saleProduct1: SaleProduct, saleProduct2: SaleProduct): boolean {
-    return (saleProduct1 === saleProduct2) || (isNil(saleProduct1) && isNil(saleProduct2)) || (
-      saleProduct1 && saleProduct2 && ReferentialUtils.equals(saleProduct1.saleType, saleProduct2.saleType)
-      && saleProduct1.rankOrder === saleProduct2.rankOrder
+    return (
+      saleProduct1 === saleProduct2 ||
+      (isNil(saleProduct1) && isNil(saleProduct2)) ||
+      (saleProduct1 &&
+        saleProduct2 &&
+        ReferentialUtils.equals(saleProduct1.saleType, saleProduct2.saleType) &&
+        saleProduct1.rankOrder === saleProduct2.rankOrder)
     );
   }
 
   static isSaleOfProduct(product: Product, saleProduct: Product, pmfms: DenormalizedPmfmStrategy[]): boolean {
-    return product && saleProduct
-      && product.taxonGroup && saleProduct.taxonGroup && product.taxonGroup.equals(saleProduct.taxonGroup)
-      && product.measurementValues && saleProduct.measurementValues
-      && MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.PACKAGING) === MeasurementValuesUtils.getValue(saleProduct.measurementValues, pmfms, PmfmIds.PACKAGING)
-      && MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.SIZE_CATEGORY) === MeasurementValuesUtils.getValue(saleProduct.measurementValues, pmfms, PmfmIds.SIZE_CATEGORY)
-      ;
+    return (
+      product &&
+      saleProduct &&
+      product.taxonGroup &&
+      saleProduct.taxonGroup &&
+      product.taxonGroup.equals(saleProduct.taxonGroup) &&
+      product.measurementValues &&
+      saleProduct.measurementValues &&
+      MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.PACKAGING) ===
+        MeasurementValuesUtils.getValue(saleProduct.measurementValues, pmfms, PmfmIds.PACKAGING) &&
+      MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.SIZE_CATEGORY) ===
+        MeasurementValuesUtils.getValue(saleProduct.measurementValues, pmfms, PmfmIds.SIZE_CATEGORY)
+    );
   }
 
   static isSaleOfPacket(packet: Packet, saleProduct: Product): boolean {
-    return packet && saleProduct
-      && packet.id === saleProduct.batchId;
+    return packet && saleProduct && packet.id === saleProduct.batchId;
   }
 
   static productToSaleProduct(product: Product, pmfms: DenormalizedPmfmStrategy[]): SaleProduct {
@@ -114,35 +122,35 @@ export class SaleProductUtils {
   static productsToAggregatedSaleProduct(products: Product[], pmfms: DenormalizedPmfmStrategy[]): SaleProduct[] {
     const target: SaleProduct[] = [];
 
-    (products || []).forEach(product => {
+    (products || []).forEach((product) => {
       const saleProduct = this.productToSaleProduct(product, pmfms);
 
       // Valid saleProduct
-      if (ReferentialUtils.isEmpty(saleProduct.taxonGroup))
-        throw new Error('this saleProduct has no taxonGroup');
+      if (ReferentialUtils.isEmpty(saleProduct.taxonGroup)) throw new Error('this saleProduct has no taxonGroup');
 
       // aggregate weight price to packaging price
       saleProduct.averagePackagingPrice = saleProduct.averageWeightPrice;
       saleProduct.averagePackagingPriceCalculated = !saleProduct.averagePackagingPrice;
       saleProduct.averageWeightPrice = undefined;
 
-      const aggregatedSaleProduct = target.find(a => a.rankOrder === saleProduct.rankOrder);
+      const aggregatedSaleProduct = target.find((a) => a.rankOrder === saleProduct.rankOrder);
       if (aggregatedSaleProduct) {
-
         // Some assertions
         if (aggregatedSaleProduct.subgroupCount !== saleProduct.subgroupCount)
-          throw new Error(`Invalid packet sale: different packet count found: ${aggregatedSaleProduct.subgroupCount} != ${saleProduct.subgroupCount}`);
+          throw new Error(
+            `Invalid packet sale: different packet count found: ${aggregatedSaleProduct.subgroupCount} != ${saleProduct.subgroupCount}`
+          );
         if (isNil(saleProduct.saleType) || !saleProduct.saleType.equals(aggregatedSaleProduct.saleType))
           throw new Error(`Invalid packet sale: different sale type found:
-              ${aggregatedSaleProduct.saleType && aggregatedSaleProduct.saleType.name || null} != ${saleProduct.saleType && saleProduct.saleType.name || null}`);
+              ${(aggregatedSaleProduct.saleType && aggregatedSaleProduct.saleType.name) || null} != ${
+            (saleProduct.saleType && saleProduct.saleType.name) || null
+          }`);
 
         // Sum values
-        if (aggregatedSaleProduct.weight && saleProduct.weight)
-          aggregatedSaleProduct.weight += saleProduct.weight;
+        if (aggregatedSaleProduct.weight && saleProduct.weight) aggregatedSaleProduct.weight += saleProduct.weight;
         if (aggregatedSaleProduct.averagePackagingPrice && saleProduct.averagePackagingPrice)
           aggregatedSaleProduct.averagePackagingPrice += saleProduct.averagePackagingPrice;
-        if (aggregatedSaleProduct.totalPrice && saleProduct.totalPrice)
-          aggregatedSaleProduct.totalPrice += saleProduct.totalPrice;
+        if (aggregatedSaleProduct.totalPrice && saleProduct.totalPrice) aggregatedSaleProduct.totalPrice += saleProduct.totalPrice;
 
         // Keep id
         if (saleProduct.id) {
@@ -150,11 +158,9 @@ export class SaleProductUtils {
             throw new Error(`The taxonGroup id:${saleProduct.taxonGroup.id} already present in this aggregated sale product`);
           aggregatedSaleProduct.productIdByTaxonGroup[saleProduct.taxonGroup.id] = saleProduct.id;
         }
-
       } else {
         // Keep id
-        if (saleProduct.id)
-          saleProduct.productIdByTaxonGroup[saleProduct.taxonGroup.id] = saleProduct.id;
+        if (saleProduct.id) saleProduct.productIdByTaxonGroup[saleProduct.taxonGroup.id] = saleProduct.id;
         // just add to aggregation
         target.push(saleProduct);
       }
@@ -163,15 +169,18 @@ export class SaleProductUtils {
     return target;
   }
 
-
-  static saleProductToProduct(product: Product, saleProduct: SaleProduct, pmfms: DenormalizedPmfmStrategy[], options?: { keepId?: boolean }): Product {
+  static saleProductToProduct(
+    product: Product,
+    saleProduct: SaleProduct,
+    pmfms: DenormalizedPmfmStrategy[],
+    options?: { keepId?: boolean }
+  ): Product {
     // merge product with sale product to initialize target product
-    const target = {...product, ...saleProduct};
+    const target = { ...product, ...saleProduct };
     delete target.saleProducts;
 
     // Don't copy id by default
-    if (!options || !options.keepId)
-      delete target.id;
+    if (!options || !options.keepId) delete target.id;
 
     target.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(target.measurementValues, pmfms);
 
@@ -182,12 +191,24 @@ export class SaleProductUtils {
     //   MeasurementValuesUtils.setValue(target.measurementValues, pmfms, 'SALE_RANK_ORDER', saleProduct.rankOrder);
     // }
     // add measurements for each non calculated values
-    MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_PRICE_WEI,
-      isNotNilOrNaN(saleProduct.averageWeightPrice) && !saleProduct.averageWeightPriceCalculated ? saleProduct.averageWeightPrice : undefined);
-    MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_PACKAGING_PRICE,
-      isNotNilOrNaN(saleProduct.averagePackagingPrice) && !saleProduct.averagePackagingPriceCalculated ? saleProduct.averagePackagingPrice : undefined);
-    MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.TOTAL_PRICE,
-      isNotNilOrNaN(saleProduct.totalPrice) && !saleProduct.totalPriceCalculated ? saleProduct.totalPrice : undefined);
+    MeasurementValuesUtils.setValue(
+      target.measurementValues,
+      pmfms,
+      PmfmIds.AVERAGE_PRICE_WEI,
+      isNotNilOrNaN(saleProduct.averageWeightPrice) && !saleProduct.averageWeightPriceCalculated ? saleProduct.averageWeightPrice : undefined
+    );
+    MeasurementValuesUtils.setValue(
+      target.measurementValues,
+      pmfms,
+      PmfmIds.AVERAGE_PACKAGING_PRICE,
+      isNotNilOrNaN(saleProduct.averagePackagingPrice) && !saleProduct.averagePackagingPriceCalculated ? saleProduct.averagePackagingPrice : undefined
+    );
+    MeasurementValuesUtils.setValue(
+      target.measurementValues,
+      pmfms,
+      PmfmIds.TOTAL_PRICE,
+      isNotNilOrNaN(saleProduct.totalPrice) && !saleProduct.totalPriceCalculated ? saleProduct.totalPrice : undefined
+    );
 
     return Product.fromObject(target);
   }
@@ -195,13 +216,13 @@ export class SaleProductUtils {
   static aggregatedSaleProductsToProducts(packet: Packet, saleProducts: SaleProduct[], pmfms: DenormalizedPmfmStrategy[]): Product[] {
     const target: Product[] = [];
 
-    (saleProducts || []).forEach(saleProduct => {
+    (saleProducts || []).forEach((saleProduct) => {
       // dispatch each sale product with packet composition
-      packet.composition.forEach(composition => {
+      packet.composition.forEach((composition) => {
         const existingProductId = saleProduct.productIdByTaxonGroup && saleProduct.productIdByTaxonGroup[composition.taxonGroup.id];
         let product: Product;
         if (existingProductId) {
-          product = packet.saleProducts.find(p => p.id === existingProductId);
+          product = packet.saleProducts.find((p) => p.id === existingProductId);
         }
         if (!product) {
           product = new Product();
@@ -218,71 +239,77 @@ export class SaleProductUtils {
         if (!averageWeight) {
           averageWeight = compositionAverageRatio * packet.weight;
         }
-        product.weight = round(averageWeight * saleProduct.subgroupCount / packet.number);
+        product.weight = round((averageWeight * saleProduct.subgroupCount) / packet.number);
         product.weightCalculated = true;
 
         // sale rank order
         MeasurementValuesUtils.setValue(product.measurementValues, pmfms, PmfmIds.SALE_RANK_ORDER, saleProduct.rankOrder);
 
         // average packaging converted to average weight price
-        MeasurementValuesUtils.setValue(product.measurementValues, pmfms, PmfmIds.AVERAGE_PRICE_WEI,
+        MeasurementValuesUtils.setValue(
+          product.measurementValues,
+          pmfms,
+          PmfmIds.AVERAGE_PRICE_WEI,
           isNotNilOrNaN(saleProduct.averagePackagingPrice) && !saleProduct.averagePackagingPriceCalculated
             ? round(compositionAverageRatio * saleProduct.averagePackagingPrice)
-            : undefined);
+            : undefined
+        );
 
         // total price
-        MeasurementValuesUtils.setValue(product.measurementValues, pmfms, PmfmIds.TOTAL_PRICE,
+        MeasurementValuesUtils.setValue(
+          product.measurementValues,
+          pmfms,
+          PmfmIds.TOTAL_PRICE,
           isNotNilOrNaN(saleProduct.totalPrice) && !saleProduct.totalPriceCalculated
             ? round(compositionAverageRatio * saleProduct.totalPrice)
-            : undefined);
+            : undefined
+        );
 
         // add to target
         target.push(product);
       });
-
     });
 
     return target;
   }
 
   static updateSaleProducts(product: Product, pmfms: DenormalizedPmfmStrategy[]): Product[] {
-
     // convert to SaleProduct
-    const saleProducts = isNotEmptyArray(product.saleProducts) ? product.saleProducts.map(p => SaleProductUtils.productToSaleProduct(p, pmfms)) : [];
+    const saleProducts = isNotEmptyArray(product.saleProducts)
+      ? product.saleProducts.map((p) => SaleProductUtils.productToSaleProduct(p, pmfms))
+      : [];
 
     // compute prices
-    saleProducts.forEach(saleProduct =>
+    saleProducts.forEach((saleProduct) =>
       SaleProductUtils.computeSaleProduct(
         product,
         saleProduct,
         (object, valueName) => !!object[valueName],
         (object, valueName) => object[valueName],
-        (object, valueName, value) => object[valueName] = round(value),
-        (object, valueName) => object[valueName] = undefined,
+        (object, valueName, value) => (object[valueName] = round(value)),
+        (object, valueName) => (object[valueName] = undefined),
         true,
         'individualCount'
       )
     );
 
     // convert back to Product
-    return saleProducts.map(saleProduct => SaleProductUtils.saleProductToProduct(product, saleProduct, pmfms, {keepId: true}));
-
+    return saleProducts.map((saleProduct) => SaleProductUtils.saleProductToProduct(product, saleProduct, pmfms, { keepId: true }));
   }
 
   static updateAggregatedSaleProducts(packet: Packet, pmfms: DenormalizedPmfmStrategy[]): Product[] {
-
     // convert to SaleProduct
     const saleProducts = isNotEmptyArray(packet.saleProducts) ? SaleProductUtils.productsToAggregatedSaleProduct(packet.saleProducts, pmfms) : [];
 
     // compute prices
-    saleProducts.forEach(saleProduct =>
+    saleProducts.forEach((saleProduct) =>
       SaleProductUtils.computeSaleProduct(
         packet,
         saleProduct,
         (object, valueName) => !!object[valueName],
         (object, valueName) => object[valueName],
-        (object, valueName, value) => object[valueName] = round(value),
-        (object, valueName) => object[valueName] = undefined,
+        (object, valueName, value) => (object[valueName] = round(value)),
+        (object, valueName) => (object[valueName] = undefined),
         false,
         'subgroupCount',
         'number'
@@ -291,7 +318,6 @@ export class SaleProductUtils {
 
     // convert back to Product
     return SaleProductUtils.aggregatedSaleProductsToProducts(packet, saleProducts, pmfms);
-
   }
 
   static computeSaleProduct(
@@ -305,33 +331,29 @@ export class SaleProductUtils {
     countProperty: string,
     parentCountProperty?: string
   ) {
-
     const parentCount = parent[parentCountProperty || countProperty];
     const parentWeight = parent['weight'];
 
     if (isNotNil(parentCount)) {
-
       // with saleProduct count (should be < whole parent count)
       const count = getValueFn(saleProduct, countProperty);
       if (count) {
         if (hasValueFn(saleProduct, 'averagePackagingPrice')) {
           // compute total price
           setValueFn(saleProduct, 'totalPrice', getValueFn(saleProduct, 'averagePackagingPrice') * count);
-
         } else if (hasValueFn(saleProduct, 'totalPrice')) {
           // compute average packaging price
           setValueFn(saleProduct, 'averagePackagingPrice', getValueFn(saleProduct, 'totalPrice') / count);
-
         }
 
         if (useRatioAndWeight) {
           // compute ratio
-          const ratio = count / parentCount * 100;
+          const ratio = (count / parentCount) * 100;
           setValueFn(saleProduct, 'ratio', ratio);
 
           if (isNotNil(parentWeight)) {
             // calculate weight
-            setValueFn(saleProduct, 'weight', ratio * parentWeight / 100);
+            setValueFn(saleProduct, 'weight', (ratio * parentWeight) / 100);
 
             // calculate average weight price (with calculated or input total price)
             if (isNotNil(getValueFn(saleProduct, 'totalPrice'))) {
@@ -343,12 +365,9 @@ export class SaleProductUtils {
             resetValueFn(saleProduct, 'averageWeightPrice');
           }
         } else {
-
           // compute weigh (always calculated)
-          setValueFn(saleProduct, 'weight', count * parentWeight / parentCount);
-
+          setValueFn(saleProduct, 'weight', (count * parentWeight) / parentCount);
         }
-
       } else {
         // reset all
         resetValueFn(saleProduct, 'averagePackagingPrice');
@@ -359,17 +378,14 @@ export class SaleProductUtils {
           resetValueFn(saleProduct, 'averageWeightPrice');
         }
       }
-
     } else if (useRatioAndWeight && isNotNil(parentWeight)) {
       // with weight only
       if (hasValueFn(saleProduct, 'weight')) {
         // calculate ratio
-        setValueFn(saleProduct, 'ratio', getValueFn(saleProduct, 'weight') / parentWeight * 100);
-
+        setValueFn(saleProduct, 'ratio', (getValueFn(saleProduct, 'weight') / parentWeight) * 100);
       } else if (hasValueFn(saleProduct, 'ratio')) {
         // calculate weight
-        setValueFn(saleProduct, 'weight', getValueFn(saleProduct, 'ratio') * parentWeight / 100);
-
+        setValueFn(saleProduct, 'weight', (getValueFn(saleProduct, 'ratio') * parentWeight) / 100);
       } else {
         // reset all
         resetValueFn(saleProduct, 'ratio');
@@ -380,24 +396,18 @@ export class SaleProductUtils {
 
       const weight = getValueFn(saleProduct, 'weight');
       if (isNotNil(weight)) {
-
         if (hasValueFn(saleProduct, 'averageWeightPrice')) {
           // compute total price
           setValueFn(saleProduct, 'totalPrice', getValueFn(saleProduct, 'averageWeightPrice') * weight);
-
         } else if (hasValueFn(saleProduct, 'totalPrice')) {
           // compute average weight price
           setValueFn(saleProduct, 'averageWeightPrice', getValueFn(saleProduct, 'totalPrice') / weight);
-
         } else {
           // reset
           resetValueFn(saleProduct, 'averageWeightPrice');
           resetValueFn(saleProduct, 'totalPrice');
         }
-
       }
-
     }
   }
-
 }

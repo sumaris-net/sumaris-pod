@@ -1,10 +1,10 @@
-import {Environment} from '@sumaris-net/ngx-components';
+import { Environment } from '@sumaris-net/ngx-components';
 
 const pkg = require('../../package.json');
 
 export const environment: Environment = Object.freeze({
-  name: (pkg.name as string),
-  version: (pkg.version as string),
+  name: pkg.name as string,
+  version: pkg.version as string,
   production: true,
   baseUrl: '/',
   defaultLocale: 'fr',
@@ -28,29 +28,29 @@ export const environment: Environment = Object.freeze({
   defaultPeers: [
     {
       host: 'www.sumaris.net',
-      port: 443
+      port: 443,
     },
     {
       host: 'open.sumaris.net',
-      port: 443
+      port: 443,
     },
     {
       host: 'adap.pecheursdebretagne.eu',
-      port: 443
+      port: 443,
     },
     {
       host: 'test.sumaris.net',
-      port: 443
+      port: 443,
     },
     {
       host: 'sih.sfa.sc',
       port: 80,
-      useSsl: false
+      useSsl: false,
     },
     {
       host: 'imagine-pod.isival.ifremer.fr',
-      port: 443
-    }
+      port: 443,
+    },
   ],
 
   defaultAppName: 'SUMARiS',
@@ -62,6 +62,6 @@ export const environment: Environment = Object.freeze({
 
   // Storage
   storage: {
-    driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage']
-  }
+    driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage'],
+  },
 });

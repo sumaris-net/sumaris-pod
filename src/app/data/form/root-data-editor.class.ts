@@ -1,6 +1,6 @@
-import {Directive, Injector, OnDestroy, OnInit} from '@angular/core';
+import { Directive, Injector, OnDestroy, OnInit } from '@angular/core';
 
-import {BehaviorSubject, merge, Subject, Subscription} from 'rxjs';
+import { BehaviorSubject, merge, Subject, Subscription } from 'rxjs';
 import {
   AddToPageHistoryOptions,
   AppEditorOptions,
@@ -17,27 +17,22 @@ import {
   MatAutocompleteFieldAddOptions,
   MatAutocompleteFieldConfig,
   ReferentialRef,
-  ReferentialUtils
+  ReferentialUtils,
 } from '@sumaris-net/ngx-components';
-import {distinctUntilChanged, filter, map, switchMap, tap} from 'rxjs/operators';
-import {Program} from '@app/referential/services/model/program.model';
-import {RootDataEntity} from '../services/model/root-data-entity.model';
-import {Strategy} from '@app/referential/services/model/strategy.model';
-import {StrategyRefService} from '@app/referential/services/strategy-ref.service';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {mergeMap} from 'rxjs/internal/operators';
-import {Moment} from 'moment';
-
+import { distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
+import { Program } from '@app/referential/services/model/program.model';
+import { RootDataEntity } from '../services/model/root-data-entity.model';
+import { Strategy } from '@app/referential/services/model/strategy.model';
+import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { mergeMap } from 'rxjs/internal/operators';
+import { Moment } from 'moment';
 
 @Directive()
-export abstract class AppRootDataEditor<
-  T extends RootDataEntity<T, ID>,
-  S extends IEntityService<T, ID> = IEntityService<T, any>,
-  ID = number
-  >
+export abstract class AppRootDataEditor<T extends RootDataEntity<T, ID>, S extends IEntityService<T, ID> = IEntityService<T, any>, ID = number>
   extends AppEntityEditor<T, S, ID>
-  implements OnInit, OnDestroy {
-
+  implements OnInit, OnDestroy
+{
   private _reloadProgram$ = new Subject();
   private _reloadStrategy$ = new Subject();
 
@@ -54,7 +49,6 @@ export abstract class AppRootDataEditor<
   $program = new BehaviorSubject<Program>(undefined);
   $strategyLabel = new BehaviorSubject<string>(undefined);
   $strategy = new BehaviorSubject<Strategy>(undefined);
-
 
   set program(value: Program) {
     if (isNotNil(value) && this.$program.getValue() !== value) {
@@ -76,24 +70,18 @@ export abstract class AppRootDataEditor<
     return this.$strategy.getValue();
   }
 
-  protected constructor(
-    injector: Injector,
-    dataType: new() => T,
-    dataService: S,
-    options?: AppEditorOptions
-  ) {
-    super(injector,
-      dataType,
-      dataService,
-      options);
+  protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: AppEditorOptions) {
+    super(injector, dataType, dataService, options);
 
     this.programRefService = injector.get(ProgramRefService);
     this.strategyRefService = injector.get(StrategyRefService);
 
     // Create autocomplete fields registry
-    this.autocompleteHelper = new MatAutocompleteConfigHolder(this.settings && {
-      getUserAttributes: (a, b) => this.settings.getFieldDisplayAttributes(a, b)
-    });
+    this.autocompleteHelper = new MatAutocompleteConfigHolder(
+      this.settings && {
+        getUserAttributes: (a, b) => this.settings.getFieldDisplayAttributes(a, b),
+      }
+    );
     this.autocompleteFields = this.autocompleteHelper.fields;
 
     // FOR DEV ONLY ----
@@ -106,58 +94,50 @@ export abstract class AppRootDataEditor<
     // Watch program, to configure tables from program properties
     this.registerSubscription(
       merge(
-        this.$programLabel
-          .pipe(
-            filter(isNotNilOrBlank),
-            distinctUntilChanged()
-          ),
+        this.$programLabel.pipe(filter(isNotNilOrBlank), distinctUntilChanged()),
         // Allow to force reload (e.g. when program remotely changes - see startListenProgramRemoteChanges() )
-        this._reloadProgram$
-          .pipe(
-            map(() => this.$programLabel.getValue()),
-            filter(isNotNilOrBlank)
-          )
+        this._reloadProgram$.pipe(
+          map(() => this.$programLabel.getValue()),
+          filter(isNotNilOrBlank)
+        )
       )
-      .pipe(
-        // DEBUG --
-        //tap(programLabel => console.debug('DEV - Getting programLabel=' + programLabel)),
-        switchMap(programLabel => this.programRefService.watchByLabel(programLabel, {debug: this.debug})),
-        tap(program => this.$program.next(program))
-      )
-      .subscribe());
+        .pipe(
+          // DEBUG --
+          //tap(programLabel => console.debug('DEV - Getting programLabel=' + programLabel)),
+          switchMap((programLabel) => this.programRefService.watchByLabel(programLabel, { debug: this.debug })),
+          tap((program) => this.$program.next(program))
+        )
+        .subscribe()
+    );
 
     // Watch strategy
     this.registerSubscription(
       merge(
-        this.$strategyLabel
-          .pipe(
-            distinctUntilChanged()
-          ),
+        this.$strategyLabel.pipe(distinctUntilChanged()),
         // Allow to force reload (e.g. when program remotely changes - see startListenProgramRemoteChanges() )
-        this._reloadStrategy$
-          .pipe(
-            map(() => this.$strategyLabel.getValue())
-          )
+        this._reloadStrategy$.pipe(map(() => this.$strategyLabel.getValue()))
       )
-      .pipe(
-        // DEBUG
-        //tap(strategyLabel => console.debug("[root-data-editor] Received strategy label: ", strategyLabel)),
-        mergeMap( async (strategyLabel) => isNilOrBlank(strategyLabel)
-          ? undefined // Allow to have empty strategy (e.g. when user reset the strategy field)
-          : this.strategyRefService.loadByLabel(strategyLabel)
-        ),
-        // DEBUG
-        //tap(strategy => console.debug("[root-data-editor] Received strategy: ", strategy)),
+        .pipe(
+          // DEBUG
+          //tap(strategyLabel => console.debug("[root-data-editor] Received strategy label: ", strategyLabel)),
+          mergeMap(async (strategyLabel) =>
+            isNilOrBlank(strategyLabel)
+              ? undefined // Allow to have empty strategy (e.g. when user reset the strategy field)
+              : this.strategyRefService.loadByLabel(strategyLabel)
+          ),
+          // DEBUG
+          //tap(strategy => console.debug("[root-data-editor] Received strategy: ", strategy)),
 
-        filter(strategy => strategy !== this.$strategy.getValue()),
-        tap(strategy => this.$strategy.next(strategy))
-      )
-      .subscribe());
+          filter((strategy) => strategy !== this.$strategy.getValue()),
+          tap((strategy) => this.$strategy.next(strategy))
+        )
+        .subscribe()
+    );
 
     this.registerSubscription(
       merge(
-        this.$program.pipe(tap(program => this.setProgram(program))),
-        this.$strategy.pipe(tap(strategy => this.setStrategy(strategy)))
+        this.$program.pipe(tap((program) => this.setProgram(program))),
+        this.$strategy.pipe(tap((strategy) => this.setStrategy(strategy)))
       ).subscribe()
     );
   }
@@ -185,7 +165,7 @@ export abstract class AppRootDataEditor<
     }
   }
 
-  enable(opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     if (!this.data || isNotNil(this.data.validationDate)) return false;
 
     super.enable(opts);
@@ -203,7 +183,6 @@ export abstract class AppRootDataEditor<
     if (!program) return; // SKip
 
     if (this.debug) console.debug(`[root-data-editor] Program ${program.label} loaded, with properties: `, program.properties);
-
   }
 
   protected async setStrategy(value: Strategy) {
@@ -211,27 +190,28 @@ export abstract class AppRootDataEditor<
   }
 
   setError(error: any) {
-
     if (error) {
       // Create a details message, from errors in forms (e.g. returned by control())
       const formErrors = error && error.details && error.details.errors;
       if (formErrors) {
         const messages = Object.keys(formErrors)
-          .map(field => {
+          .map((field) => {
             const fieldErrors = formErrors[field];
             const fieldI18nKey = changeCaseToUnderscore(field).toUpperCase();
             const fieldName = this.translate.instant(fieldI18nKey);
-            const errorMsg = Object.keys(fieldErrors).map(errorKey => {
-              const key = 'ERROR.FIELD_' + errorKey.toUpperCase();
-              return this.translate.instant(key, fieldErrors[key]);
-            }).join(', ');
+            const errorMsg = Object.keys(fieldErrors)
+              .map((errorKey) => {
+                const key = 'ERROR.FIELD_' + errorKey.toUpperCase();
+                return this.translate.instant(key, fieldErrors[key]);
+              })
+              .join(', ');
             return fieldName + ': ' + errorMsg;
-          }).filter(isNotNil);
+          })
+          .filter(isNotNil);
         if (messages.length) {
           error.details.message = `<ul><li>${messages.join('</li><li>')}</li></ul>`;
         }
       }
-
     }
 
     super.setError(error);
@@ -239,8 +219,10 @@ export abstract class AppRootDataEditor<
 
   /* -- protected methods -- */
 
-  protected registerAutocompleteField<T = any, F = any>(fieldName: string,
-                                                        opts?: MatAutocompleteFieldAddOptions<T, F>): MatAutocompleteFieldConfig<T, F> {
+  protected registerAutocompleteField<T = any, F = any>(
+    fieldName: string,
+    opts?: MatAutocompleteFieldAddOptions<T, F>
+  ): MatAutocompleteFieldConfig<T, F> {
     return this.autocompleteHelper.add(fieldName, opts);
   }
 
@@ -255,13 +237,13 @@ export abstract class AppRootDataEditor<
    */
   private startListenProgramChanges() {
     this.registerSubscription(
-      this.form.controls.program.valueChanges
-        .subscribe(program => {
-          if (ReferentialUtils.isNotEmpty(program)) {
-            console.debug('[root-data-editor] Propagate program change: ' + program.label);
-            this.$programLabel.next(program.label);
-          }
-        }));
+      this.form.controls.program.valueChanges.subscribe((program) => {
+        if (ReferentialUtils.isNotEmpty(program)) {
+          console.debug('[root-data-editor] Propagate program change: ' + program.label);
+          this.$programLabel.next(program.label);
+        }
+      })
+    );
   }
 
   protected startListenProgramRemoteChanges(program: Program) {
@@ -274,21 +256,22 @@ export abstract class AppRootDataEditor<
       this.remoteProgramSubscription.unsubscribe();
     }
 
-    this.remoteProgramSubscription = this.programRefService.listenChanges(program.id)
+    this.remoteProgramSubscription = this.programRefService
+      .listenChanges(program.id)
       .pipe(
         filter(isNotNil),
         mergeMap(async (data) => {
           if (data.updateDate && (data.updateDate as Moment).isAfter(program.updateDate)) {
-            if (this.debug) console.debug(`[root-data-editor] Program changes detected on server, at {${data.updateDate}}: clearing program cache...`);
+            if (this.debug)
+              console.debug(`[root-data-editor] Program changes detected on server, at {${data.updateDate}}: clearing program cache...`);
             // Reload program & strategies
             return this.reloadProgram();
           }
         })
       )
-      .subscribe()
-      // DEBUG
-      //.add(() =>  console.debug(`[root-data-editor] [WS] Stop listening to program changes on server.`))
-    ;
+      .subscribe();
+    // DEBUG
+    //.add(() =>  console.debug(`[root-data-editor] [WS] Stop listening to program changes on server.`))
 
     this.registerSubscription(this.remoteProgramSubscription);
   }
@@ -302,16 +285,16 @@ export abstract class AppRootDataEditor<
       this.remoteStrategySubscription.unsubscribe();
     }
 
-    this.remoteStrategySubscription = this.strategyRefService.listenChangesByProgram(program.id)
-        .pipe(
-          filter(isNotNil),
-          // Reload strategies
-          mergeMap((_) => this.reloadStrategy())
-        )
-        .subscribe()
+    this.remoteStrategySubscription = this.strategyRefService
+      .listenChangesByProgram(program.id)
+      .pipe(
+        filter(isNotNil),
+        // Reload strategies
+        mergeMap((_) => this.reloadStrategy())
+      )
+      .subscribe();
     // DEBUG
     //.add(() =>  console.debug(`[root-data-editor] [WS] Stop listening to program changes on server.`))
-    ;
 
     this.registerSubscription(this.remoteStrategySubscription);
   }
@@ -355,7 +338,6 @@ export abstract class AppRootDataEditor<
   }
 
   protected async getValue(): Promise<T> {
-
     const data = await super.getValue();
 
     // Re add program, because program control can be disabled

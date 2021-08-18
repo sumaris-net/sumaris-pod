@@ -1,6 +1,6 @@
-import {Department, EntityAsObjectOptions, EntityFilter, FilterFn, isNotNil} from '@sumaris-net/ngx-components';
-import {DataEntity} from './data-entity.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { Department, EntityAsObjectOptions, EntityFilter, FilterFn, isNotNil } from '@sumaris-net/ngx-components';
+import { DataEntity } from './data-entity.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
 export abstract class DataEntityFilter<
   T extends DataEntityFilter<T, E, EID, AO, FO>,
@@ -8,16 +8,15 @@ export abstract class DataEntityFilter<
   EID = number,
   AO extends EntityAsObjectOptions = EntityAsObjectOptions,
   FO = any
-  >
-  extends EntityFilter<T, E, EID, AO, FO> {
-
+> extends EntityFilter<T, E, EID, AO, FO> {
   recorderDepartment: Department;
 
   fromObject(source: any, opts?: FO) {
     super.fromObject(source, opts);
-    this.recorderDepartment = Department.fromObject(source.recorderDepartment)
-      || isNotNil(source.recorderDepartmentId) && Department.fromObject({id: source.recorderDepartmentId})
-      || undefined;
+    this.recorderDepartment =
+      Department.fromObject(source.recorderDepartment) ||
+      (isNotNil(source.recorderDepartmentId) && Department.fromObject({ id: source.recorderDepartmentId })) ||
+      undefined;
   }
 
   asObject(opts?: AO): any {
@@ -25,9 +24,8 @@ export abstract class DataEntityFilter<
     if (opts && opts.minify) {
       target.recorderDepartmentId = this.recorderDepartment && isNotNil(this.recorderDepartment.id) ? this.recorderDepartment.id : undefined;
       delete target.recorderDepartment;
-    }
-    else {
-      target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject({...opts, ...NOT_MINIFY_OPTIONS});
+    } else {
+      target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject({ ...opts, ...NOT_MINIFY_OPTIONS });
     }
     return target;
   }
@@ -39,7 +37,7 @@ export abstract class DataEntityFilter<
     if (this.recorderDepartment) {
       const recorderDepartmentId = this.recorderDepartment.id;
       if (isNotNil(recorderDepartmentId)) {
-        filterFns.push(t => (t.recorderDepartment && t.recorderDepartment.id === recorderDepartmentId));
+        filterFns.push((t) => t.recorderDepartment && t.recorderDepartment.id === recorderDepartmentId);
       }
     }
 

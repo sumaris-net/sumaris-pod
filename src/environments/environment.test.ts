@@ -4,7 +4,7 @@
 
 // Environment to use only with unit tests
 
-import {Environment} from '@sumaris-net/ngx-components';
+import { Environment } from '@sumaris-net/ngx-components';
 /*
  * In development mode, to ignore zone related error stack frames such as
  * `zone.run`, `zoneDelegate.invokeTask` for easier debugging, you can
@@ -16,8 +16,8 @@ import 'zone.js/dist/zone-error';
 const pkg = require('../../package.json');
 
 export const environment: Environment = Object.freeze({
-  name: (pkg.name as string),
-  version: (pkg.version as string),
+  name: pkg.name as string,
+  version: pkg.version as string,
   production: false,
   baseUrl: '/',
   defaultLocale: 'fr',
@@ -38,17 +38,17 @@ export const environment: Environment = Object.freeze({
 
   defaultPeer: {
     host: 'localhost',
-    port: 8080
+    port: 8080,
   },
   defaultPeers: [
     {
       host: 'localhost',
-      port: 8080
+      port: 8080,
     },
     {
       host: 'localhost',
-      port: 8081
-    }
+      port: 8081,
+    },
   ],
 
   defaultAppName: 'SUMARiS',
@@ -60,7 +60,6 @@ export const environment: Environment = Object.freeze({
 
   // Storage
   storage: {
-    driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage']
-  }
+    driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage'],
+  },
 });
-

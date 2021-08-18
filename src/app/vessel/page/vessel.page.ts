@@ -1,25 +1,32 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {VesselService} from '../services/vessel-service';
-import {VesselForm} from '../form/form-vessel';
-import {Vessel} from '../services/model/vessel.model';
-import {AccountService, AppEntityEditor, DateFormatPipe, EntityServiceLoadOptions, HistoryPageReference, isNil, SharedValidators} from '@sumaris-net/ngx-components';
-import {FormGroup, Validators} from '@angular/forms';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { VesselService } from '../services/vessel-service';
+import { VesselForm } from '../form/form-vessel';
+import { Vessel } from '../services/model/vessel.model';
+import {
+  AccountService,
+  AppEntityEditor,
+  DateFormatPipe,
+  EntityServiceLoadOptions,
+  HistoryPageReference,
+  isNil,
+  SharedValidators,
+} from '@sumaris-net/ngx-components';
+import { FormGroup, Validators } from '@angular/forms';
 import * as momentImported from 'moment';
-import {VesselFeaturesHistoryComponent} from './vessel-features-history.component';
-import {VesselRegistrationHistoryComponent} from './vessel-registration-history.component';
-import {VesselFeaturesFilter, VesselRegistrationFilter} from '../services/filter/vessel.filter';
-import {VesselFeaturesService} from '../services/vessel-features.service';
-import {VesselRegistrationService} from '../services/vessel-registration.service';
+import { VesselFeaturesHistoryComponent } from './vessel-features-history.component';
+import { VesselRegistrationHistoryComponent } from './vessel-registration-history.component';
+import { VesselFeaturesFilter, VesselRegistrationFilter } from '../services/filter/vessel.filter';
+import { VesselFeaturesService } from '../services/vessel-features.service';
+import { VesselRegistrationService } from '../services/vessel-registration.service';
 
 const moment = momentImported;
 
 @Component({
   selector: 'app-vessel-page',
   templateUrl: './vessel.page.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VesselPage extends AppEntityEditor<Vessel, VesselService> implements OnInit, AfterViewInit {
-
   previousVessel: Vessel;
   isNewFeatures = false;
   isNewRegistration = false;
@@ -36,11 +43,11 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     this._editing = value;
   }
 
-  @ViewChild('vesselForm', {static: true}) private vesselForm: VesselForm;
+  @ViewChild('vesselForm', { static: true }) private vesselForm: VesselForm;
 
-  @ViewChild('featuresHistoryTable', {static: true}) private featuresHistoryTable: VesselFeaturesHistoryComponent;
+  @ViewChild('featuresHistoryTable', { static: true }) private featuresHistoryTable: VesselFeaturesHistoryComponent;
 
-  @ViewChild('registrationHistoryTable', {static: true}) private registrationHistoryTable: VesselRegistrationHistoryComponent;
+  @ViewChild('registrationHistoryTable', { static: true }) private registrationHistoryTable: VesselRegistrationHistoryComponent;
 
   protected get form(): FormGroup {
     return this.vesselForm.form;
@@ -69,11 +76,12 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
-    this.registerSubscription(this.onUpdateView.subscribe(() => {
-      this.featuresHistoryTable.setFilter(VesselFeaturesFilter.fromObject({vesselId: this.data.id}));
-      this.registrationHistoryTable.setFilter(VesselRegistrationFilter.fromObject({vesselId: this.data.id}));
-    }));
-
+    this.registerSubscription(
+      this.onUpdateView.subscribe(() => {
+        this.featuresHistoryTable.setFilter(VesselFeaturesFilter.fromObject({ vesselId: this.data.id }));
+        this.registrationHistoryTable.setFilter(VesselRegistrationFilter.fromObject({ vesselId: this.data.id }));
+      })
+    );
   }
 
   protected registerForms() {
@@ -110,7 +118,6 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
   }
 
   protected async computeTitle(data: Vessel): Promise<string> {
-
     if (this.isNewData) {
       return await this.translate.get('VESSEL.NEW.TITLE').toPromise();
     }
@@ -122,7 +129,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     return {
       ...(await super.computePageHistory(title)),
       icon: 'boat',
-      subtitle: 'MENU.VESSELS'
+      subtitle: 'MENU.VESSELS',
     };
   }
 
@@ -136,15 +143,14 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
   }
 
   async editFeatures() {
-
     this.editing = true;
     this.previousVessel = undefined;
     this.form.enable();
 
     // Start date
     const featureStartDate = this.form.get('features.startDate').value;
-    const canEditStartDate = isNil(featureStartDate)
-      || await this.vesselFeaturesService.count({vesselId: this.data.id}, {fetchPolicy: 'cache-first'});
+    const canEditStartDate =
+      isNil(featureStartDate) || (await this.vesselFeaturesService.count({ vesselId: this.data.id }, { fetchPolicy: 'cache-first' }));
     if (!canEditStartDate) {
       this.form.get('features.startDate').disable();
     }
@@ -155,19 +161,22 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
   }
 
   newFeatures() {
-
     this.isNewFeatures = true;
 
     const json = this.form.value;
     this.previousVessel = Vessel.fromObject(json);
 
-    this.form.setValue({...json, ...{features: { ...json.features, id: null, startDate: null, endDate: null}}});
+    this.form.setValue({ ...json, ...{ features: { ...json.features, id: null, startDate: null, endDate: null } } });
 
-    this.form.get('features.startDate').setValidators([
-      Validators.required,
-      SharedValidators.dateIsAfter(this.previousVessel.features.startDate,
-        this.dateAdapter.format(this.previousVessel.features.startDate, this.translate.instant('COMMON.DATE_PATTERN')))
-    ]);
+    this.form
+      .get('features.startDate')
+      .setValidators([
+        Validators.required,
+        SharedValidators.dateIsAfter(
+          this.previousVessel.features.startDate,
+          this.dateAdapter.format(this.previousVessel.features.startDate, this.translate.instant('COMMON.DATE_PATTERN'))
+        ),
+      ]);
     this.form.enable();
 
     this.form.get('registration').disable();
@@ -175,15 +184,14 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
   }
 
   async editRegistration() {
-
     this.editing = true;
     this.previousVessel = undefined;
     this.form.enable();
 
     // Start date
     const registrationStartDate = this.form.get('registration.startDate').value;
-    const canEditStartDate = isNil(registrationStartDate)
-      || await this.vesselRegistrationService.count({vesselId: this.data.id}, {fetchPolicy: 'cache-first'}) <= 1;
+    const canEditStartDate =
+      isNil(registrationStartDate) || (await this.vesselRegistrationService.count({ vesselId: this.data.id }, { fetchPolicy: 'cache-first' })) <= 1;
     if (!canEditStartDate) {
       this.form.get('registration.startDate').disable();
     }
@@ -192,43 +200,44 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     this.form.get('features').disable();
     this.form.get('vesselType').disable();
     this.form.get('statusId').disable();
-
   }
 
   newRegistration() {
-
     this.isNewRegistration = true;
 
     const json = this.form.value;
     this.previousVessel = Vessel.fromObject(json);
 
     this.form.setValue({
-      ...json, ...{
+      ...json,
+      ...{
         registration: {
           ...json.registration,
           id: null,
           registrationCode: null,
           startDate: null,
-          endDate: null
-        }
-      }
+          endDate: null,
+        },
+      },
     });
 
-    this.form.get('registration.startDate').setValidators([
-      Validators.required,
-      SharedValidators.dateIsAfter(this.previousVessel.registration.startDate,
-        this.dateAdapter.format(this.previousVessel.registration.startDate, this.translate.instant('COMMON.DATE_PATTERN')))
-    ]);
+    this.form
+      .get('registration.startDate')
+      .setValidators([
+        Validators.required,
+        SharedValidators.dateIsAfter(
+          this.previousVessel.registration.startDate,
+          this.dateAdapter.format(this.previousVessel.registration.startDate, this.translate.instant('COMMON.DATE_PATTERN'))
+        ),
+      ]);
     this.form.enable();
 
     this.form.get('features').disable();
     this.form.get('vesselType').disable();
     this.form.get('statusId').disable();
-
   }
 
   editStatus() {
-
     this.editing = true;
     this.previousVessel = undefined;
     this.form.enable();
@@ -243,7 +252,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     return super.save(event, {
       previousVessel: this.previousVessel,
       isNewFeatures: this.isNewFeatures,
-      isNewRegistration: this.isNewRegistration
+      isNewRegistration: this.isNewRegistration,
     });
   }
 

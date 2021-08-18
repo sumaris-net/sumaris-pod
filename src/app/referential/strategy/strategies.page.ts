@@ -1,27 +1,26 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ViewChild} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
-import {TableElement} from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
-import {Subject} from 'rxjs';
-import {AccountService, AppTable, CompletableEvent, EntityServiceLoadOptions, isNotNil, PlatformService} from '@sumaris-net/ngx-components';
-import {ProgramProperties, StrategyEditor} from '../services/config/program.config';
-import {Program} from '../services/model/program.model';
-import {Strategy} from '../services/model/strategy.model';
-import {ProgramService} from '../services/program.service';
-import {ReferentialRefService} from '../services/referential-ref.service';
-import {SamplingStrategiesTable} from './sampling/sampling-strategies.table';
-import {StrategiesTable} from './strategies.table';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {MatExpansionPanel} from '@angular/material/expansion';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ViewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TableElement } from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
+import { Subject } from 'rxjs';
+import { AccountService, AppTable, CompletableEvent, EntityServiceLoadOptions, isNotNil, PlatformService } from '@sumaris-net/ngx-components';
+import { ProgramProperties, StrategyEditor } from '../services/config/program.config';
+import { Program } from '../services/model/program.model';
+import { Strategy } from '../services/model/strategy.model';
+import { ProgramService } from '../services/program.service';
+import { ReferentialRefService } from '../services/referential-ref.service';
+import { SamplingStrategiesTable } from './sampling/sampling-strategies.table';
+import { StrategiesTable } from './strategies.table';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { MatExpansionPanel } from '@angular/material/expansion';
 
 // app-strategies-page
 @Component({
   selector: 'app-strategies-page',
   templateUrl: 'strategies.page.html',
   styleUrls: ['strategies.page.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StrategiesPage {
-
   data: Program;
   strategyEditor: StrategyEditor;
 
@@ -86,31 +85,28 @@ export class StrategiesPage {
       this.$title.next(program.label);
     } catch (err) {
       console.error(err);
-      this.error = err && err.message || err;
+      this.error = (err && err.message) || err;
     }
   }
 
   async onOpenRow({ id, row }: { id?: number; row: TableElement<any> }) {
-
     this.markAsLoading();
     setTimeout(async () => {
       await this.router.navigate(['referential', 'programs', this.data.id, 'strategy', this.strategyEditor, id], {
-        queryParams: {}
+        queryParams: {},
       });
       this.markAsLoaded();
     });
-
   }
 
   async onNewRow(event?: any) {
-
     // Skip
     if (this.loading) return;
 
     this.markAsLoading();
     setTimeout(async () => {
       await this.router.navigate(['referential', 'programs', this.data.id, 'strategy', this.strategyEditor, 'new'], {
-        queryParams: {}
+        queryParams: {},
       });
       this.markAsLoaded();
     });
@@ -139,5 +135,4 @@ export class StrategiesPage {
   protected canUserWrite(data: Program): boolean {
     return this.programService.canUserWrite(data);
   }
-
 }

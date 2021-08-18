@@ -1,9 +1,9 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {VesselValidatorService} from '../services/validator/vessel.validator';
-import {VesselService} from '../services/vessel-service';
-import {VesselModal, VesselModalOptions} from '../modal/vessel-modal';
-import {Vessel} from '../services/model/vessel.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { VesselValidatorService } from '../services/validator/vessel.validator';
+import { VesselService } from '../services/vessel-service';
+import { VesselModal, VesselModalOptions } from '../modal/vessel-modal';
+import { Vessel } from '../services/model/vessel.model';
 import {
   AccountService,
   DefaultStatusList,
@@ -17,41 +17,36 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SharedValidators,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
-import {ModalController} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {Observable} from 'rxjs';
-import {FormBuilder} from '@angular/forms';
-import {statusToColor} from '@app/data/services/model/model.utils';
-import {LocationLevelIds} from '@app/referential/services/model/model.enum';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {environment} from '@environments/environment';
-import {AppRootTable} from '@app/data/table/root-table.class';
-import {VESSEL_FEATURE_NAME} from '../services/config/vessel.config';
-import {SynchronizationStatusEnum} from '@app/data/services/model/root-data-entity.model';
-import {VesselFilter} from '../services/filter/vessel.filter';
-import {MatExpansionPanel} from '@angular/material/expansion';
-
+import { ModalController } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
+import { Observable } from 'rxjs';
+import { FormBuilder } from '@angular/forms';
+import { statusToColor } from '@app/data/services/model/model.utils';
+import { LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { environment } from '@environments/environment';
+import { AppRootTable } from '@app/data/table/root-table.class';
+import { VESSEL_FEATURE_NAME } from '../services/config/vessel.config';
+import { SynchronizationStatusEnum } from '@app/data/services/model/root-data-entity.model';
+import { VesselFilter } from '../services/filter/vessel.filter';
+import { MatExpansionPanel } from '@angular/material/expansion';
 
 export const VesselsTableSettingsEnum = {
   TABLE_ID: 'vessels',
-  FEATURE_ID: VESSEL_FEATURE_NAME
+  FEATURE_ID: VESSEL_FEATURE_NAME,
 };
-
 
 @Component({
   selector: 'app-vessels-table',
   templateUrl: 'vessels.table.html',
   styleUrls: ['./vessels.table.scss'],
-  providers: [
-    { provide: ValidatorService, useClass: VesselValidatorService }
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: ValidatorService, useClass: VesselValidatorService }],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements OnInit {
-
   locations: Observable<ReferentialRef[]>;
   vesselTypes: Observable<ReferentialRef[]>;
   statusList = DefaultStatusList;
@@ -82,7 +77,7 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
     return this.getShowColumn('vesselType');
   }
 
-  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
     protected route: ActivatedRoute,
@@ -98,33 +93,26 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
     formBuilder: FormBuilder,
     injector: Injector
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
+    super(
+      route,
+      router,
+      platform,
+      location,
+      modalCtrl,
+      settings,
       // columns
-      RESERVED_START_COLUMNS
-        .concat([
-          'status',
-          'features.exteriorMarking',
-          'registration.registrationCode'])
-        .concat(platform.mobile ? [] : [
-          'features.startDate',
-          'features.endDate'
-        ])
-        .concat([
-          'features.name',
-          'vesselType',
-          'features.basePortLocation'
-        ])
-        .concat(platform.mobile ? [] : [
-          'comments'
-        ])
+      RESERVED_START_COLUMNS.concat(['status', 'features.exteriorMarking', 'registration.registrationCode'])
+        .concat(platform.mobile ? [] : ['features.startDate', 'features.endDate'])
+        .concat(['features.name', 'vesselType', 'features.basePortLocation'])
+        .concat(platform.mobile ? [] : ['comments'])
         .concat(RESERVED_END_COLUMNS),
       vesselService,
       new EntitiesTableDataSource<Vessel, VesselFilter>(Vessel, vesselService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
-          saveOnlyDirtyRows: true
-        }
+          saveOnlyDirtyRows: true,
+        },
       }),
       null,
       injector
@@ -135,7 +123,7 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
       date: [null, SharedValidators.validDate],
       searchText: [null],
       statusId: [null],
-      synchronizationStatus: [null]
+      synchronizationStatus: [null],
     });
     this.autoLoad = false;
     this.inlineEdition = false;
@@ -144,7 +132,7 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
 
     // Fill statusById
     this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
+    this.statusList.forEach((status) => (this.statusById[status.id] = status));
 
     this.debug = !environment.production;
     this.settingsId = VesselsTableSettingsEnum.TABLE_ID; // Fixed value, to be able to reuse it in vessel modal
@@ -152,7 +140,6 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
   }
 
   ngOnInit() {
-
     super.ngOnInit();
 
     // Locations
@@ -160,9 +147,9 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
-        levelId: LocationLevelIds.PORT
+        levelId: LocationLevelIds.PORT,
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // TODO fill vessel types
@@ -174,22 +161,21 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
   async openNewRowDetail(): Promise<boolean> {
     if (this.loading) return Promise.resolve(false);
 
-
     const defaultStatus = this.synchronizationStatus !== 'SYNC' ? StatusIds.TEMPORARY : undefined;
     const modal = await this.modalCtrl.create({
       component: VesselModal,
       componentProps: <VesselModalOptions>{
         defaultStatus,
         synchronizationStatus: this.synchronizationStatus !== 'SYNC' ? SynchronizationStatusEnum.DIRTY : undefined,
-        canEditStatus: isNil(defaultStatus)
+        canEditStatus: isNil(defaultStatus),
       },
       backdropDismiss: false,
-      cssClass: 'modal-large'
+      cssClass: 'modal-large',
     });
 
     await modal.present();
 
-    const {data} = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
 
     // if new vessel added, refresh the table
     if (isNotNil(data)) this.onRefresh.emit();
@@ -212,7 +198,7 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
       event.preventDefault();
       event.stopPropagation();
     }
-    this.filterForm.patchValue({statusId: null});
+    this.filterForm.patchValue({ statusId: null });
   }
 
   referentialToString = referentialToString;
@@ -224,4 +210,3 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
     this.cd.markForCheck();
   }
 }
-

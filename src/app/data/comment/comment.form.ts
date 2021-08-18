@@ -1,17 +1,16 @@
-import {AfterViewChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {DateAdapter} from '@angular/material/core';
-import {Moment} from 'moment';
-import {FormBuilder, Validators} from '@angular/forms';
-import {AppForm, LocalSettingsService} from '@sumaris-net/ngx-components';
+import { AfterViewChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { FormBuilder, Validators } from '@angular/forms';
+import { AppForm, LocalSettingsService } from '@sumaris-net/ngx-components';
 
 @Component({
   selector: 'app-comment-form',
   templateUrl: './comment.form.html',
   styleUrls: ['./comment.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CommentForm extends AppForm<{comment: string}> implements OnInit, AfterViewChecked, OnDestroy {
-
+export class CommentForm extends AppForm<{ comment: string }> implements OnInit, AfterViewChecked, OnDestroy {
   @Input() showError = true;
 
   @ViewChild('textarea') textArea: ElementRef;
@@ -22,9 +21,9 @@ export class CommentForm extends AppForm<{comment: string}> implements OnInit, A
     protected dateAdapter: DateAdapter<Moment>,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: FormBuilder
   ) {
-    super(dateAdapter, formBuilder.group({comment: [null, Validators.maxLength(2000)]}), settings);
+    super(dateAdapter, formBuilder.group({ comment: [null, Validators.maxLength(2000)] }), settings);
   }
 
   protected markForCheck() {

@@ -1,11 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {Batch, BatchUtils} from '../../services/model/batch.model';
-import {MeasurementValuesForm} from '../../measurement/measurement-values.form.class';
-import {DateAdapter} from '@angular/material/core';
-import {Moment} from 'moment';
-import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
-import {FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import {
   AppFormUtils,
   EntityUtils,
@@ -20,26 +20,24 @@ import {
   ReferentialUtils,
   SharedFormGroupValidators,
   toBoolean,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 
-import {debounceTime, filter, first} from 'rxjs/operators';
-import {AcquisitionLevelCodes, MethodIds, PmfmLabelPatterns} from '@app/referential/services/model/model.enum';
-import {BehaviorSubject, Observable, Subscription} from 'rxjs';
-import {MeasurementValuesUtils} from '../../services/model/measurement.model';
-import {BatchValidatorService} from '../../services/validator/batch.validator';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import { debounceTime, filter, first } from 'rxjs/operators';
+import { AcquisitionLevelCodes, MethodIds, PmfmLabelPatterns } from '@app/referential/services/model/model.enum';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { MeasurementValuesUtils } from '../../services/model/measurement.model';
+import { BatchValidatorService } from '../../services/validator/batch.validator';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 
 @Component({
   selector: 'app-batch-form',
   templateUrl: './batch.form.html',
   styleUrls: ['batch.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementValuesForm<T>
-  implements OnInit, OnDestroy {
-
+export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementValuesForm<T> implements OnInit, OnDestroy {
   protected $initialized = new BehaviorSubject<boolean>(false);
   protected _requiredWeight = false;
   protected _showWeight = true;
@@ -142,16 +140,23 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
+    super(
+      dateAdapter,
+      measurementValidatorService,
+      formBuilder,
+      programRefService,
+      settings,
+      cd,
       validatorService.getFormGroup(null, {
         withWeight: true,
         rankOrderRequired: false, // Allow to be set by parent component
-        labelRequired: false // Allow to be set by parent component
+        labelRequired: false, // Allow to be set by parent component
       }),
       {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        onUpdateControls: (form) => this.onUpdateControls(form)
-      });
+        onUpdateControls: (form) => this.onUpdateControls(form),
+      }
+    );
     this.mobile = platform.mobile;
 
     // Set default acquisition level
@@ -178,15 +183,13 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       // Set items (useful to speed up the batch group modal)
       this.registerAutocompleteField('taxonGroup', {
         items: this.availableTaxonGroups,
-        mobile: this.settings.mobile
+        mobile: this.settings.mobile,
       });
-    }
-    else {
+    } else {
       this.registerAutocompleteField('taxonGroup', {
-        suggestFn: (value: any, filter?: any) => this.programRefService.suggestTaxonGroups(value, {...filter, program: this.programLabel}),
-        mobile: this.settings.mobile
-    });
-
+        suggestFn: (value: any, filter?: any) => this.programRefService.suggestTaxonGroups(value, { ...filter, program: this.programLabel }),
+        mobile: this.settings.mobile,
+      });
     }
 
     // Taxon name combo
@@ -194,16 +197,17 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value: any, filter?: any) => this.programRefService.suggestTaxonNames(value, filter),
       filter: this.taxonNameFilter,
-      mobile: this.settings.mobile
+      mobile: this.settings.mobile,
     });
 
     this.registerSubscription(
-      this.form.get('taxonGroup').valueChanges
-        .pipe(
+      this.form
+        .get('taxonGroup')
+        .valueChanges.pipe(
           debounceTime(250),
           filter((value) => this.showTaxonGroup && this.showTaxonName)
         )
-        .subscribe(taxonGroup => this.updateTaxonNameFilter({taxonGroup}))
+        .subscribe((taxonGroup) => this.updateTaxonNameFilter({ taxonGroup }))
     );
   }
 
@@ -212,8 +216,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     if (this.samplingFormValidator) this.samplingFormValidator.unsubscribe();
   }
 
-  setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean}) {
-
+  setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean }) {
     if (!this.isReady() || !this.data) {
       this.safeSetValue(data, opts);
       return;
@@ -221,16 +224,16 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
     // Fill weight, if a weight PMFM exists
     if (this.defaultWeightPmfm && this.showWeight) {
-      const weightPmfm = (this.weightPmfms || []).find(p => isNotNil(data.measurementValues[p.id.toString()]));
+      const weightPmfm = (this.weightPmfms || []).find((p) => isNotNil(data.measurementValues[p.id.toString()]));
       data.weight = {
         methodId: weightPmfm && weightPmfm.methodId,
         computed: false,
         estimated: weightPmfm && weightPmfm.methodId === MethodIds.ESTIMATED_BY_OBSERVER,
-        value : weightPmfm && data.measurementValues[weightPmfm.id.toString()],
+        value: weightPmfm && data.measurementValues[weightPmfm.id.toString()],
       };
 
       // Clean all weight values and control (to keep only the weight form group)
-      this.weightPmfms.forEach(p => {
+      this.weightPmfms.forEach((p) => {
         delete data.measurementValues[p.id.toString()];
         this.form.removeControl(p.id.toString());
       });
@@ -250,7 +253,6 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     }
 
     if (this.showSampleBatch) {
-
       this.childrenFormHelper.resize(1);
       const samplingFormGroup = this.childrenFormHelper.at(0) as FormGroup;
 
@@ -259,7 +261,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
       // Read child weight (use the first one)
       if (this.defaultWeightPmfm) {
-        const samplingWeightPmfm = (this.weightPmfms || []).find(p => isNotNil(samplingBatch.measurementValues[p.id.toString()]));
+        const samplingWeightPmfm = (this.weightPmfms || []).find((p) => isNotNil(samplingBatch.measurementValues[p.id.toString()]));
         samplingBatch.weight = {
           methodId: samplingWeightPmfm && samplingWeightPmfm.methodId,
           computed: false,
@@ -275,16 +277,14 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       if (isNotNil(samplingBatch.samplingRatio)) {
         samplingBatch.samplingRatio = samplingBatch.samplingRatio * 100;
       }
-
-    }
-    else {
+    } else {
       this.childrenFormHelper.resize((data.children || []).length);
       this.childrenFormHelper.disable();
     }
 
     super.setValue(data, {
       // Always skip normalization (already done)
-      normalizeEntityToForm: false
+      normalizeEntityToForm: false,
     });
   }
 
@@ -303,32 +303,33 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     // Convert measurements
     json.measurementValues = {
       ...data.measurementValues,
-      ...MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, this.$allPmfms.getValue())
+      ...MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, this.$allPmfms.getValue()),
     };
 
     if (this.showSampleBatch) {
-
       if (this.isSampling) {
         const child = BatchUtils.getOrCreateSamplingChild(data);
-        const childJson = json.children && json.children[0] || {};
+        const childJson = (json.children && json.children[0]) || {};
 
         childJson.rankOrder = 1;
-        childJson.label = json.label && (json.label  + Batch.SAMPLING_BATCH_SUFFIX) || undefined;
+        childJson.label = (json.label && json.label + Batch.SAMPLING_BATCH_SUFFIX) || undefined;
 
         childJson.measurementValues = childJson.measurementValues || {};
 
         // Convert weight into measurement
         if (childJson.weight && isNotNil(childJson.weight.value)) {
-          const childWeightPmfm = childJson.weight.estimated && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
+          const childWeightPmfm = (childJson.weight.estimated && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER]) || this.defaultWeightPmfm;
           childJson.measurementValues[childWeightPmfm.id.toString()] = childJson.weight.value;
         }
 
         childJson.weight = undefined;
 
         // Convert measurements
-        childJson.measurementValues = Object.assign({},
-          child.measurementValues,  // Keep existing extra measurements
-          MeasurementValuesUtils.normalizeValuesToModel(childJson.measurementValues, this.weightPmfms));
+        childJson.measurementValues = Object.assign(
+          {},
+          child.measurementValues, // Keep existing extra measurements
+          MeasurementValuesUtils.normalizeValuesToModel(childJson.measurementValues, this.weightPmfms)
+        );
 
         // Convert sampling ratio
         if (isNotNilOrBlank(childJson.samplingRatio)) {
@@ -337,16 +338,14 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         }
 
         json.children = [childJson];
-      }
-      else {
+      } else {
         // No sampling batch
         json.children = [];
       }
 
       // Update data
-      data.fromObject(json, {withChildren: true});
-    }
-    else {
+      data.fromObject(json, { withChildren: true });
+    } else {
       // Keep existing children
       data.fromObject(json);
     }
@@ -356,7 +355,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     return data;
   }
 
-  setIsSampling(enable: boolean, opts?: {emitEvent?: boolean}) {
+  setIsSampling(enable: boolean, opts?: { emitEvent?: boolean }) {
     if (this.isSampling !== enable) {
       this.isSampling = enable;
 
@@ -366,10 +365,10 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
       if (childrenArray) {
         if (enable && childrenArray.disabled) {
-          childrenArray.enable({emitEvent: toBoolean(opts && opts.emitEvent, false)});
+          childrenArray.enable({ emitEvent: toBoolean(opts && opts.emitEvent, false) });
           this.markForCheck();
         } else if (!enable && childrenArray.enabled) {
-          childrenArray.disable({emitEvent: toBoolean(opts && opts.emitEvent, false)});
+          childrenArray.disable({ emitEvent: toBoolean(opts && opts.emitEvent, false) });
           this.markForCheck();
         }
       }
@@ -385,7 +384,8 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         .pipe(
           filter((initialized) => initialized === true),
           first()
-        ).toPromise();
+        )
+        .toPromise();
     }
   }
 
@@ -399,40 +399,37 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     }
   }
 
-  protected updateTaxonNameFilter(opts?: {taxonGroup?: any}) {
-
+  protected updateTaxonNameFilter(opts?: { taxonGroup?: any }) {
     // If taxonGroup exists: taxon group must be filled first
     if (this.showTaxonGroup && ReferentialUtils.isEmpty(opts && opts.taxonGroup)) {
       this.taxonNameFilter = {
-        programLabel: 'NONE' /*fake program, will cause empty array*/
+        programLabel: 'NONE' /*fake program, will cause empty array*/,
       };
-    }
-    else {
+    } else {
       this.taxonNameFilter = {
         programLabel: this.programLabel,
-        taxonGroupId: opts && opts.taxonGroup && opts.taxonGroup.id
+        taxonGroupId: opts && opts.taxonGroup && opts.taxonGroup.id,
       };
     }
     this.markForCheck();
   }
 
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-
     if (this.mapPmfmFn) {
       pmfms = this.mapPmfmFn(pmfms);
     }
 
     // Read weight PMFMs
-    this.weightPmfms = pmfms.filter(p => PmfmLabelPatterns.BATCH_WEIGHT.exec(p.label));
-    this.defaultWeightPmfm = this.weightPmfms.length && this.weightPmfms[0] || undefined;
+    this.weightPmfms = pmfms.filter((p) => PmfmLabelPatterns.BATCH_WEIGHT.exec(p.label));
+    this.defaultWeightPmfm = (this.weightPmfms.length && this.weightPmfms[0]) || undefined;
     this.weightPmfmsByMethod = {};
-    this.weightPmfms.forEach(p => this.weightPmfmsByMethod[p.methodId] = p);
+    this.weightPmfms.forEach((p) => (this.weightPmfmsByMethod[p.methodId] = p));
 
     this.showSampleBatch = toBoolean(this.showSampleBatch, isNotNil(this.defaultWeightPmfm));
     this.$allPmfms.next(pmfms);
 
     // Exclude hidden and weight PMFMs
-    return pmfms.filter(p => !PmfmUtils.isWeight(p) && !p.hidden);
+    return pmfms.filter((p) => !PmfmUtils.isWeight(p) && !p.hidden);
   }
 
   protected async onUpdateControls(form?: FormGroup): Promise<void> {
@@ -446,21 +443,20 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     // Add pmfms to form
     const measFormGroup = form.get('measurementValues') as FormGroup;
     if (measFormGroup) {
-      this.measurementValidatorService.updateFormGroup(measFormGroup, {pmfms: this.$allPmfms.getValue()});
+      this.measurementValidatorService.updateFormGroup(measFormGroup, { pmfms: this.$allPmfms.getValue() });
     }
 
     const hasSamplingForm = childrenFormHelper.size() === 1 && this.defaultWeightPmfm && true;
 
     // If the sample batch exists
     if (this.showSampleBatch) {
-
       childrenFormHelper.resize(1);
       const samplingForm = childrenFormHelper.at(0) as FormGroup;
 
       // Reset measurementValues (if exists)
       const samplingMeasFormGroup = samplingForm.get('measurementValues');
       if (samplingMeasFormGroup) {
-        this.measurementValidatorService.updateFormGroup(samplingMeasFormGroup as FormGroup, {pmfms: []});
+        this.measurementValidatorService.updateFormGroup(samplingMeasFormGroup as FormGroup, { pmfms: [] });
       }
 
       // Adapt exists sampling child, if any
@@ -468,7 +464,6 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         const samplingChildBatch = BatchUtils.getOrCreateSamplingChild(this.data);
 
         this.setIsSampling(this.isSampling || BatchUtils.isSampleNotEmpty(samplingChildBatch));
-
       } else {
         // No data: disable sampling
         this.setIsSampling(false);
@@ -476,9 +471,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
       // If sampling weight is required, make batch weight required also
       if (this._requiredSampleWeight) {
-        this.weightForm.setValidators(
-          SharedFormGroupValidators.requiredIf('value', samplingForm.get('weight.value'))
-        );
+        this.weightForm.setValidators(SharedFormGroupValidators.requiredIf('value', samplingForm.get('weight.value')));
       }
 
       // If sampling weight is required, make batch weight required also
@@ -495,19 +488,18 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     this.addSamplingFormValidators();
 
     if (this.showWeight) {
-      this.enableWeightFormGroup({emitEvent: false});
-    }
-    else {
-      this.disableWeightFormGroup({emitEvent: false});
+      this.enableWeightFormGroup({ emitEvent: false });
+    } else {
+      this.disableWeightFormGroup({ emitEvent: false });
     }
   }
 
-  protected enableWeightFormGroup(opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
+  protected enableWeightFormGroup(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     const weightFormGroup = this.form.get('weight');
     if (weightFormGroup) weightFormGroup.enable(opts);
   }
 
-  protected disableWeightFormGroup(opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
+  protected disableWeightFormGroup(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     const weightFormGroup = this.form.get('weight');
     if (weightFormGroup) weightFormGroup.disable(opts);
   }
@@ -522,10 +514,10 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     }
     return new FormArrayHelper<Batch>(
       arrayControl,
-      (value) => this.validatorService.getFormGroup(value, {withWeight: true}),
+      (value) => this.validatorService.getFormGroup(value, { withWeight: true }),
       (v1, v2) => EntityUtils.equals(v1, v2, 'label'),
       (value) => isNil(value),
-      {allowEmptyArray: true}
+      { allowEmptyArray: true }
     );
   }
 
@@ -535,11 +527,10 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     if (this.samplingFormValidator) {
       this.samplingFormValidator.unsubscribe();
       this.samplingFormValidator = undefined;
-
     }
     if (this.showSampleBatch && this.showWeight) {
       this.samplingFormValidator = this.validatorService.addSamplingFormValidators(this.form, {
-        requiredSampleWeight: this.requiredSampleWeight
+        requiredSampleWeight: this.requiredSampleWeight,
       });
     }
   }

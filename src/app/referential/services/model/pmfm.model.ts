@@ -1,7 +1,7 @@
-import {BaseReferential, Entity, EntityAsObjectOptions, EntityClass, IEntity, isNotNil, ReferentialRef} from '@sumaris-net/ngx-components';
-import {MethodIds, PmfmIds} from './model.enum';
-import {Parameter, ParameterType} from './parameter.model';
-import {PmfmValue} from './pmfm-value.model';
+import { BaseReferential, Entity, EntityAsObjectOptions, EntityClass, IEntity, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
+import { MethodIds, PmfmIds } from './model.enum';
+import { Parameter, ParameterType } from './parameter.model';
+import { PmfmValue } from './pmfm-value.model';
 
 export declare type PmfmType = ParameterType | 'integer';
 
@@ -9,17 +9,14 @@ export const PMFM_ID_REGEXP = /\d+/;
 
 export const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/(]+)[/(]\s*(.*)$/);
 
-export interface IPmfm<
-  T extends Entity<T, ID> = Entity<any, any>,
-  ID = number
-  > extends IEntity<IPmfm<T, ID>, ID> {
+export interface IPmfm<T extends Entity<T, ID> = Entity<any, any>, ID = number> extends IEntity<IPmfm<T, ID>, ID> {
   id: ID;
   label: string;
 
   type: string | PmfmType;
   minValue: number;
   maxValue: number;
-  defaultValue: number|PmfmValue;
+  defaultValue: number | PmfmValue;
   maximumNumberDecimals: number;
   signifFiguresNumber: number;
 
@@ -35,14 +32,9 @@ export interface IPmfm<
   isComputed: boolean;
   hidden?: boolean;
   rankOrder?: number;
-
 }
 
-export interface IDenormalizedPmfm<
-  T extends Entity<T, ID> = Entity<any, any>,
-  ID = number
-  > extends IPmfm<T, ID> {
-
+export interface IDenormalizedPmfm<T extends Entity<T, ID> = Entity<any, any>, ID = number> extends IPmfm<T, ID> {
   completeName?: string;
   name?: string;
 
@@ -51,12 +43,7 @@ export interface IDenormalizedPmfm<
   referenceTaxonIds: number[];
 }
 
-
-export interface IFullPmfm<
-  T extends Entity<T, ID> = Entity<any, any>,
-  ID = number
-  > extends IPmfm<T, ID> {
-
+export interface IFullPmfm<T extends Entity<T, ID> = Entity<any, any>, ID = number> extends IPmfm<T, ID> {
   parameter: Parameter;
   matrix: ReferentialRef;
   fraction: ReferentialRef;
@@ -64,9 +51,8 @@ export interface IFullPmfm<
   unit: ReferentialRef;
 }
 
-@EntityClass({typename: 'PmfmVO'})
+@EntityClass({ typename: 'PmfmVO' })
 export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
-
   static ENTITY_NAME = 'Pmfm';
   static fromObject: (source: any, opts?: any) => Pmfm;
 
@@ -95,7 +81,7 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject({
       ...options,
-      minify: false // Do NOT minify itself
+      minify: false, // Do NOT minify itself
     });
 
     if (options && options.minify) {
@@ -109,8 +95,7 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
       delete target.fraction;
       delete target.method;
       delete target.unit;
-    }
-    else {
+    } else {
       target.parameter = this.parameter && this.parameter.asObject(options);
       target.matrix = this.matrix && this.matrix.asObject(options);
       target.fraction = this.fraction && this.fraction.asObject(options);
@@ -118,7 +103,7 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
       target.unit = this.unit && this.unit.asObject(options);
     }
 
-    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
+    target.qualitativeValues = (this.qualitativeValues && this.qualitativeValues.map((qv) => qv.asObject(options))) || undefined;
     return target;
   }
 
@@ -139,7 +124,7 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
     this.method = source.method && ReferentialRef.fromObject(source.method);
     this.unit = source.unit && ReferentialRef.fromObject(source.unit);
 
-    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject) || undefined;
+    this.qualitativeValues = (source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject)) || undefined;
 
     this.completeName = source.completeName;
     return this;
@@ -171,16 +156,17 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
 }
 
 export abstract class PmfmUtils {
-
   static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[]): P {
-    let qvPmfm = pmfms.find(p => p.type === 'qualitative_value'
-      // exclude hidden pmfm (see batch modal)
-      && !p.hidden
+    let qvPmfm = pmfms.find(
+      (p) =>
+        p.type === 'qualitative_value' &&
+        // exclude hidden pmfm (see batch modal)
+        !p.hidden
     );
     // If landing/discard: 'Landing' is always before 'Discard (see issue #122)
     if (qvPmfm && qvPmfm.id === PmfmIds.DISCARD_OR_LANDING) {
       qvPmfm = qvPmfm.clone() as P; // copy, to keep original array
-      qvPmfm.qualitativeValues.sort((qv1, qv2) => qv1.label === 'LAN' ? -1 : 1);
+      qvPmfm.qualitativeValues.sort((qv1, qv2) => (qv1.label === 'LAN' ? -1 : 1));
     }
     return qvPmfm;
   }
@@ -190,11 +176,11 @@ export abstract class PmfmUtils {
   }
 
   static isAlphanumeric(pmfm: IPmfm): boolean {
-    return isNotNil(pmfm.type) && (pmfm.type === 'string');
+    return isNotNil(pmfm.type) && pmfm.type === 'string';
   }
 
   static isDate(pmfm: IPmfm): boolean {
-    return isNotNil(pmfm.type) && (pmfm.type === 'date');
+    return isNotNil(pmfm.type) && pmfm.type === 'date';
   }
 
   static isWeight(pmfm: IPmfm): boolean {
@@ -223,11 +209,14 @@ export abstract class PmfmUtils {
    * @param pmfm
    * @param opts
    */
-  static getPmfmName(pmfm: IPmfm, opts?: {
-    withUnit?: boolean;
-    html?: boolean;
-    withDetails?: boolean;
-  }): string {
+  static getPmfmName(
+    pmfm: IPmfm,
+    opts?: {
+      withUnit?: boolean;
+      html?: boolean;
+      withDetails?: boolean;
+    }
+  ): string {
     if (!pmfm) return undefined;
 
     let name;
@@ -236,22 +225,20 @@ export abstract class PmfmUtils {
       if (opts && opts.withDetails && pmfm.completeName) {
         if (opts.html) {
           const parts = pmfm.completeName.split(' - ');
-          return parts.length === 1 ? pmfm.completeName : `<b>${parts[0]}</b><br/><span style="font-size: smaller;">` + parts.slice(1).join(' - ') + '</span>';
+          return parts.length === 1
+            ? pmfm.completeName
+            : `<b>${parts[0]}</b><br/><span style="font-size: smaller;">` + parts.slice(1).join(' - ') + '</span>';
         }
         return pmfm.completeName;
       }
 
       // Remove parenthesis content, if any
       const matches = PMFM_NAME_REGEXP.exec(pmfm.name || '');
-      name = matches && matches[1] || pmfm.name;
+      name = (matches && matches[1]) || pmfm.name;
     } else if (PmfmUtils.isFullPmfm(pmfm)) {
       name = pmfm.parameter && pmfm.parameter.name;
       if (opts && opts.withDetails) {
-        name += [
-          pmfm.matrix && pmfm.matrix.name,
-          pmfm.fraction && pmfm.fraction.name,
-          pmfm.method && pmfm.method.name
-        ].filter(isNotNil).join(' - ');
+        name += [pmfm.matrix && pmfm.matrix.name, pmfm.fraction && pmfm.fraction.name, pmfm.method && pmfm.method.name].filter(isNotNil).join(' - ');
       }
     }
 
@@ -266,5 +253,3 @@ export abstract class PmfmUtils {
     return name;
   }
 }
-
-

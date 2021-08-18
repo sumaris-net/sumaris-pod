@@ -1,24 +1,19 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {ModalController} from '@ionic/angular';
-import {changeCaseToUnderscore, ReferentialRef} from '@sumaris-net/ngx-components';
-import {ReferentialFilter} from '../services/filter/referential.filter';
-import {ReferentialRefService} from '../services/referential-ref.service';
-import {BaseSelectEntityModal} from './base-select-entity.modal';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { changeCaseToUnderscore, ReferentialRef } from '@sumaris-net/ngx-components';
+import { ReferentialFilter } from '../services/filter/referential.filter';
+import { ReferentialRefService } from '../services/referential-ref.service';
+import { BaseSelectEntityModal } from './base-select-entity.modal';
 
 @Component({
   selector: 'app-select-referential-modal',
   templateUrl: './select-referential.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectReferentialModal extends BaseSelectEntityModal<ReferentialRef, ReferentialFilter> implements OnInit {
-
   @Input() entityName: string;
 
-  constructor(
-    protected viewCtrl: ModalController,
-    protected dataService: ReferentialRefService,
-    protected cd: ChangeDetectorRef
-  ) {
+  constructor(protected viewCtrl: ModalController, protected dataService: ReferentialRefService, protected cd: ChangeDetectorRef) {
     super(viewCtrl, ReferentialRef, dataService);
   }
 

@@ -1,21 +1,20 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {SaleValidatorService} from '../services/validator/sale.validator';
-import {Moment} from 'moment';
-import {DateAdapter} from '@angular/material/core';
-import {AppForm, LocalSettingsService, referentialToString, StatusIds} from '@sumaris-net/ngx-components';
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {Sale} from '../services/model/sale.model';
-import {LocationLevelIds} from '@app/referential/services/model/model.enum';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { SaleValidatorService } from '../services/validator/sale.validator';
+import { Moment } from 'moment';
+import { DateAdapter } from '@angular/material/core';
+import { AppForm, LocalSettingsService, referentialToString, StatusIds } from '@sumaris-net/ngx-components';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { Sale } from '../services/model/sale.model';
+import { LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 
 @Component({
   selector: 'form-sale',
   templateUrl: './sale.form.html',
   styleUrls: ['./sale.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SaleForm extends AppForm<Sale> implements OnInit {
-
   @Input() required = true;
   @Input() showError = true;
   @Input() showVessel = true;
@@ -25,15 +24,17 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
 
   get empty(): any {
     const value = this.value;
-    return (!value.saleLocation || !value.saleLocation.id)
-      && (!value.startDateTime)
-      && (!value.endDateTime)
-      && (!value.saleType || !value.saleType.id)
-      && (!value.comments || !value.comments.length);
+    return (
+      (!value.saleLocation || !value.saleLocation.id) &&
+      !value.startDateTime &&
+      !value.endDateTime &&
+      (!value.saleType || !value.saleType.id) &&
+      (!value.comments || !value.comments.length)
+    );
   }
 
   get valid(): any {
-    return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty));
+    return this.form && (this.required ? this.form.valid : this.form.valid || this.empty);
   }
 
   constructor(
@@ -51,7 +52,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
     super.ngOnInit();
 
     // Set if required or not
-    this.saleValidatorService.updateFormGroup(this.form, {required: this.required});
+    this.saleValidatorService.updateFormGroup(this.form, { required: this.required });
 
     // Combo: vessels (if need)
     if (this.showVessel) {
@@ -60,12 +61,13 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
         service: this.vesselSnapshotService,
         attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
         filter: {
-          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-        }
+          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        },
       });
       // Add base port location
-      vesselField.attributes = vesselField.attributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key));
-
+      vesselField.attributes = vesselField.attributes.concat(
+        this.settings.getFieldDisplayAttributes('location').map((key) => 'basePortLocation.' + key)
+      );
     } else {
       this.form.get('vesselSnapshot').clearValidators();
     }
@@ -75,8 +77,8 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
-        levelId: LocationLevelIds.PORT
-      }
+        levelId: LocationLevelIds.PORT,
+      },
     });
 
     // Combo: sale types
@@ -84,8 +86,8 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
       service: this.referentialRefService,
       attributes: ['name'],
       filter: {
-        entityName: 'SaleType'
-      }
+        entityName: 'SaleType',
+      },
     });
   }
 

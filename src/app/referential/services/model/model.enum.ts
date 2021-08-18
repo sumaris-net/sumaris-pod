@@ -1,7 +1,7 @@
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 
 export const ProgramLabel = {
-  SIH: 'SIH' // Used for vessel's filter
+  SIH: 'SIH', // Used for vessel's filter
 };
 
 // LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
@@ -13,16 +13,16 @@ export const LocationLevelIds = {
 
   // At sea
   ICES_RECTANGLE: 4,
-  ICES_DIVISION: 111
+  ICES_DIVISION: 111,
 };
 
 export const GearLevelIds = {
-  FAO: 1
+  FAO: 1,
 };
 
 export const TaxonGroupIds = {
   FAO: 2,
-  METIER: 3
+  METIER: 3,
 };
 
 export const TaxonomicLevelIds = {
@@ -31,7 +31,7 @@ export const TaxonomicLevelIds = {
   GENUS: 26,
   SUBGENUS: 27,
   SPECIES: 28,
-  SUBSPECIES: 29
+  SUBSPECIES: 29,
 };
 
 export const PmfmIds = {
@@ -82,52 +82,109 @@ export const PmfmIds = {
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {
     LANDING: 'LAN',
-    DISCARD: 'DIS'
+    DISCARD: 'DIS',
   },
   SURVIVAL_SAMPLING_TYPE: {
     SURVIVAL: 'S',
     CATCH_HAUL: 'C',
-    UNSAMPLED: 'N'
+    UNSAMPLED: 'N',
   },
   VIVACITY: {
-    DEAD: 'MOR'
-  }
+    DEAD: 'MOR',
+  },
 };
 
 export const QualitativeValueIds = {
   DISCARD_OR_LANDING: {
-    LANDING: 190
-  }
+    LANDING: 190,
+  },
 };
 
 export const MethodIds = {
   MEASURED_BY_OBSERVER: 1,
   OBSERVED_BY_OBSERVER: 2,
   ESTIMATED_BY_OBSERVER: 3,
-  CALCULATED: 4
+  CALCULATED: 4,
 };
 
 export const MatrixIds = {
-  INDIVIDUAL: 2
+  INDIVIDUAL: 2,
 };
 
 export const autoCompleteFractions = {
-  1362: 'Otholite', 1452: 'Otholite', 1644: 'Ecaille', 1956: 'Otholite', 2049: 'Illicium', 2050: 'Illicium', 1960: 'Otholite', 1693: 'Ecaille',
-  1549: 'Otholite', 1990: 'Otholite', 1921: 'Otholite', 1912: 'Otholite', 1349: 'Otholite', 1555: 'Otholite', 1556: 'Otholite', 1986: 'Otholite',
-  1988: 'Otholite', 1567: 'Otholite', 1566: 'Otholite', 1681: 'Otholite', 1772: 'Otholite', 1551: 'Otholite', 1540: 'Otholite', 1543: 'Otholite',
-  1573: 'Otholite', 1980: 'Otholite', 1978: 'Otholite', 1690: 'Otholite', 1689: 'Otholite', 1351: 'Otholite', 1996: 'Otholite', 1356: 'Otholite',
-  1560: 'Otholite', 1559: 'Otholite'
+  1362: 'Otholite',
+  1452: 'Otholite',
+  1644: 'Ecaille',
+  1956: 'Otholite',
+  2049: 'Illicium',
+  2050: 'Illicium',
+  1960: 'Otholite',
+  1693: 'Ecaille',
+  1549: 'Otholite',
+  1990: 'Otholite',
+  1921: 'Otholite',
+  1912: 'Otholite',
+  1349: 'Otholite',
+  1555: 'Otholite',
+  1556: 'Otholite',
+  1986: 'Otholite',
+  1988: 'Otholite',
+  1567: 'Otholite',
+  1566: 'Otholite',
+  1681: 'Otholite',
+  1772: 'Otholite',
+  1551: 'Otholite',
+  1540: 'Otholite',
+  1543: 'Otholite',
+  1573: 'Otholite',
+  1980: 'Otholite',
+  1978: 'Otholite',
+  1690: 'Otholite',
+  1689: 'Otholite',
+  1351: 'Otholite',
+  1996: 'Otholite',
+  1356: 'Otholite',
+  1560: 'Otholite',
+  1559: 'Otholite',
 };
 
 export const ParameterLabelGroups = {
   TAG_ID: ['TAG_ID'],
-  LENGTH: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL',
-    'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL',
-    'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'],
+  LENGTH: [
+    'LENGTH_PECTORAL_FORK',
+    'LENGTH_CLEITHRUM_KEEL_CURVE',
+    'LENGTH_PREPELVIC',
+    'LENGTH_FRONT_EYE_PREPELVIC',
+    'LENGTH_LM_FORK',
+    'LENGTH_PRE_SUPRA_CAUDAL',
+    'LENGTH_CLEITHRUM_KEEL',
+    'LENGTH_LM_FORK_CURVE',
+    'LENGTH_PECTORAL_FORK_CURVE',
+    'LENGTH_FORK_CURVE',
+    'STD_STRAIGTH_LENGTH',
+    'STD_CURVE_LENGTH',
+    'SEGMENT_LENGTH',
+    'LENGTH_MINIMUM_ALLOWED',
+    'LENGTH',
+    'LENGTH_TOTAL',
+    'LENGTH_STANDARD',
+    'LENGTH_PREANAL',
+    'LENGTH_PELVIC',
+    'LENGTH_CARAPACE',
+    'LENGTH_FORK',
+    'LENGTH_MANTLE',
+  ],
   WEIGHT: ['WEIGHT'],
   SEX: ['SEX'],
-  MATURITY: ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'],
-  AGE: ['AGE']
+  MATURITY: [
+    'MATURITY_STAGE_3_VISUAL',
+    'MATURITY_STAGE_4_VISUAL',
+    'MATURITY_STAGE_5_VISUAL',
+    'MATURITY_STAGE_6_VISUAL',
+    'MATURITY_STAGE_7_VISUAL',
+    'MATURITY_STAGE_9_VISUAL',
+  ],
+  AGE: ['AGE'],
 };
 
 export const ParameterGroups = Object.freeze(Object.keys(ParameterLabelGroups));
@@ -135,19 +192,19 @@ export const ParameterGroups = Object.freeze(Object.keys(ParameterLabelGroups));
 export const PmfmLabelPatterns = {
   BATCH_WEIGHT: /^BATCH_(.+)_WEIGHT$/,
   LATITUDE: /^latitude$/i,
-  LONGITUDE: /^longitude$/i
+  LONGITUDE: /^longitude$/i,
 };
 
 export const UnitLabelPatterns = {
   DECIMAL_HOURS: /^(h[. ]+dec[.]?|hours)$/,
-  DATE_TIME: /^Date[ &]+Time$/
+  DATE_TIME: /^Date[ &]+Time$/,
 };
 
 // TODO Should be override by config properties
 export const UnitLabel = {
   DECIMAL_HOURS: 'h dec.',
   DATE_TIME: 'Date & Time',
-  KG: 'kg'
+  KG: 'kg',
 };
 export const QualityFlagIds = {
   NOT_QUALIFIED: 0,
@@ -157,19 +214,37 @@ export const QualityFlagIds = {
   BAD: 4,
   FIXED: 5,
   NOT_COMPLETED: 8,
-  MISSING: 9
+  MISSING: 9,
 };
 
 export const QualityFlags = Object.entries(QualityFlagIds).map(([label, id]) => ({
-    id,
-    label
-  }));
+  id,
+  label,
+}));
 
-export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING' | 'PHYSICAL_GEAR' | 'CATCH_BATCH'
-  | 'SORTING_BATCH' | 'SORTING_BATCH_INDIVIDUAL' | 'SAMPLE' | 'SURVIVAL_TEST' | 'INDIVIDUAL_MONITORING' | 'INDIVIDUAL_RELEASE'
-  | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' | 'PACKET_SALE' | 'EXPENSE' | 'BAIT_EXPENSE' | 'ICE_EXPENSE' ;
+export declare type AcquisitionLevelType =
+  | 'TRIP'
+  | 'OPERATION'
+  | 'SALE'
+  | 'LANDING'
+  | 'PHYSICAL_GEAR'
+  | 'CATCH_BATCH'
+  | 'SORTING_BATCH'
+  | 'SORTING_BATCH_INDIVIDUAL'
+  | 'SAMPLE'
+  | 'SURVIVAL_TEST'
+  | 'INDIVIDUAL_MONITORING'
+  | 'INDIVIDUAL_RELEASE'
+  | 'OBSERVED_LOCATION'
+  | 'OBSERVED_VESSEL'
+  | 'PRODUCT'
+  | 'PRODUCT_SALE'
+  | 'PACKET_SALE'
+  | 'EXPENSE'
+  | 'BAIT_EXPENSE'
+  | 'ICE_EXPENSE';
 
-export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
+export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType } = {
   TRIP: 'TRIP',
   PHYSICAL_GEAR: 'PHYSICAL_GEAR',
   OPERATION: 'OPERATION',
@@ -189,14 +264,14 @@ export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
   PACKET_SALE: 'PACKET_SALE',
   EXPENSE: 'EXPENSE',
   BAIT_EXPENSE: 'BAIT_EXPENSE',
-  ICE_EXPENSE: 'ICE_EXPENSE'
+  ICE_EXPENSE: 'ICE_EXPENSE',
 };
 
 export const SaleTypeIds = {
   AUCTION: 1,
   DIRECT: 2,
   EXPORT: 3,
-  OTHER: 4
+  OTHER: 4,
 };
 
 export const ProgramPrivilegeIds = {
@@ -204,7 +279,5 @@ export const ProgramPrivilegeIds = {
   OBSERVER: 2,
   VIEWER: 3,
   VALIDATOR: 4,
-  QUALIFIER: 5
+  QUALIFIER: 5,
 };
-
-

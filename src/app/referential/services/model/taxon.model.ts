@@ -8,13 +8,12 @@ import {
   ReferentialAsObjectOptions,
   ReferentialRef,
   ReferentialUtils,
-  uncapitalizeFirstLetter
+  uncapitalizeFirstLetter,
 } from '@sumaris-net/ngx-components';
-
 
 export const TaxonGroupTypeIds = {
   FAO: 2,
-  METIER: 3
+  METIER: 3,
 };
 
 export const TaxonomicLevelIds = {
@@ -23,18 +22,15 @@ export const TaxonomicLevelIds = {
   GENUS: 26,
   SUBGENUS: 27,
   SPECIES: 28,
-  SUBSPECIES: 29
+  SUBSPECIES: 29,
 };
 
 export const TaxonGroupLabels = {
-  FISH: 'MZZ'
+  FISH: 'MZZ',
 };
 
-@EntityClass({typename: 'TaxonNameVO'})
-export class TaxonNameRef
-  extends Entity<TaxonNameRef, number, ReferentialAsObjectOptions>
-  implements IReferentialRef<TaxonNameRef> {
-
+@EntityClass({ typename: 'TaxonNameVO' })
+export class TaxonNameRef extends Entity<TaxonNameRef, number, ReferentialAsObjectOptions> implements IReferentialRef<TaxonNameRef> {
   static ENTITY_NAME = 'TaxonName';
   static fromObject: (source: any, opts?: any) => TaxonNameRef;
 
@@ -62,7 +58,7 @@ export class TaxonNameRef
     if (options && options.minify) {
       return {
         id: this.id,
-        __typename: options.keepTypename && this.__typename || undefined
+        __typename: (options.keepTypename && this.__typename) || undefined,
       };
     }
     const target: any = super.asObject(options);
@@ -83,10 +79,8 @@ export class TaxonNameRef
   }
 }
 
-@EntityClass({typename: 'TaxonGroupVO'})
-export class TaxonGroupRef extends Entity<TaxonGroupRef, number, ReferentialAsObjectOptions>
-  implements IReferentialRef<TaxonGroupRef> {
-
+@EntityClass({ typename: 'TaxonGroupVO' })
+export class TaxonGroupRef extends Entity<TaxonGroupRef, number, ReferentialAsObjectOptions> implements IReferentialRef<TaxonGroupRef> {
   static ENTITY_NAME = 'TaxonGroup';
   static fromObject: (source: any, opts?: any) => TaxonGroupRef;
 
@@ -106,7 +100,7 @@ export class TaxonGroupRef extends Entity<TaxonGroupRef, number, ReferentialAsOb
     if (options && options.minify) {
       return {
         id: this.id,
-        __typename: options.keepTypename && this.__typename || undefined
+        __typename: (options.keepTypename && this.__typename) || undefined,
       };
     }
     const target: any = super.asObject(options);
@@ -121,7 +115,7 @@ export class TaxonGroupRef extends Entity<TaxonGroupRef, number, ReferentialAsOb
     this.name = source.name;
     this.statusId = source.statusId;
     this.entityName = source.entityName || TaxonGroupRef.ENTITY_NAME;
-    this.taxonNames = source.taxonNames && source.taxonNames.map(TaxonNameRef.fromObject) || [];
+    this.taxonNames = (source.taxonNames && source.taxonNames.map(TaxonNameRef.fromObject)) || [];
   }
 }
 
@@ -129,8 +123,8 @@ export interface MetierFromObjectOptions {
   useChildAttributes?: false | 'TaxonGroup' | 'Gear';
 }
 
-@EntityClass({typename: 'MetierVO'})
-export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectOptions,  MetierFromObjectOptions> {
+@EntityClass({ typename: 'MetierVO' })
+export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectOptions, MetierFromObjectOptions> {
   static ENTITY_NAME = 'Metier';
   static fromObject: (source: any, opts?: MetierFromObjectOptions) => Metier;
 
@@ -145,7 +139,7 @@ export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectO
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target = super.asObject(opts);
     if (!opts || opts.minify !== true) {
-      target.gear = this.gear && this.gear.asObject(opts) || undefined;
+      target.gear = (this.gear && this.gear.asObject(opts)) || undefined;
 
       if (target.gear && !target.gear.entityName) {
         // Fixme gear entityName here
@@ -153,7 +147,7 @@ export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectO
         target.gear.entityName = 'Gear';
       }
 
-      target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(opts) || undefined;
+      target.taxonGroup = (this.taxonGroup && this.taxonGroup.asObject(opts)) || undefined;
     }
     return target;
   }
@@ -176,7 +170,6 @@ export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectO
 }
 
 export class TaxonUtils {
-
   static generateLabelFromName(taxonName: string): string {
     if (isNil(taxonName)) return undefined;
     const genusWord = /^[a-zA-Z]{4,}$/;
@@ -197,5 +190,4 @@ export class TaxonUtils {
     }
     return label.slice(0, 4) + '* ' + label.slice(4) + '*';
   }
-
 }

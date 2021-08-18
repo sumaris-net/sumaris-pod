@@ -17,47 +17,55 @@ import {
 import { Directive } from '@angular/core';
 import { BaseReferentialFilter } from './filter/referential.filter';
 
-
 @Directive()
 export abstract class BaseReferentialService<
   T extends BaseReferential<T, ID>,
   F extends BaseReferentialFilter<F, T, ID>,
   ID = number
-  >
-  extends BaseEntityService<T, F, ID>  {
-
+> extends BaseEntityService<T, F, ID> {
   protected constructor(
     protected graphql: GraphqlService,
     protected platform: PlatformService,
-    protected dataType: new() => T,
-    protected filterType: new() => F,
+    protected dataType: new () => T,
+    protected filterType: new () => F,
     options: BaseEntityServiceOptions<T, ID>
   ) {
     super(graphql, platform, dataType, filterType, {
       equalsFn: (e1, e2) => this.equals(e1, e2),
-      ...options
+      ...options,
     });
   }
 
-  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: F,
-           opts?: { fetchPolicy?: WatchQueryFetchPolicy; withTotal: boolean; toEntity?: boolean }): Observable<LoadResult<T>> {
+  watchAll(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: F,
+    opts?: { fetchPolicy?: WatchQueryFetchPolicy; withTotal: boolean; toEntity?: boolean }
+  ): Observable<LoadResult<T>> {
     // Use search attribute as default sort, is set
-    sortBy = sortBy || filter && filter.searchAttribute;
+    sortBy = sortBy || (filter && filter.searchAttribute);
     // Call inherited function
     return super.watchAll(offset, size, sortBy, sortDirection, filter, opts);
   }
 
-  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
-                filter?: Partial<F>,
-                opts?: { [p: string]: any; query?: any; fetchPolicy?: FetchPolicy; debug?: boolean; withTotal?: boolean; toEntity?: boolean }): Promise<LoadResult<T>> {
+  async loadAll(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: Partial<F>,
+    opts?: { [p: string]: any; query?: any; fetchPolicy?: FetchPolicy; debug?: boolean; withTotal?: boolean; toEntity?: boolean }
+  ): Promise<LoadResult<T>> {
     // Use search attribute as default sort, is set
-    sortBy = sortBy || filter && filter.searchAttribute;
+    sortBy = sortBy || (filter && filter.searchAttribute);
     // Call inherited function
     return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
   }
 
   async load(id: ID, opts?: EntityServiceLoadOptions & { query?: any; toEntity?: boolean }): Promise<T> {
-    const query = opts && opts.query || this.queries.load;
+    const query = (opts && opts.query) || this.queries.load;
     if (!query) {
       if (!this.queries.loadAll) throw new Error('Not implemented');
       const data = await this.loadAll(0, 1, null, null, { id } as unknown as F, opts);
@@ -67,14 +75,12 @@ export abstract class BaseReferentialService<
   }
 
   async suggest(value: any, filter?: F): Promise<LoadResult<T>> {
-    if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
-    value = (typeof value === 'string' && value !== '*') && value || undefined;
-    return this.loadAll(0, !value ? 30 : 10, undefined, undefined,
-      {
-        ...filter,
-        searchText: value as string
-      }
-    );
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+    value = (typeof value === 'string' && value !== '*' && value) || undefined;
+    return this.loadAll(0, !value ? 30 : 10, undefined, undefined, {
+      ...filter,
+      searchText: value as string,
+    });
   }
 
   /* -- protected functions -- */

@@ -1,9 +1,9 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {TripValidatorService} from '../services/validator/trip.validator';
-import {ModalController} from '@ionic/angular';
-import {Moment} from 'moment';
-import {DateAdapter} from '@angular/material/core';
-import {LocationLevelIds} from '@app/referential/services/model/model.enum';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { TripValidatorService } from '../services/validator/trip.validator';
+import { ModalController } from '@ionic/angular';
+import { Moment } from 'moment';
+import { DateAdapter } from '@angular/material/core';
+import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 
 import {
   AppForm,
@@ -27,21 +27,21 @@ import {
   StatusIds,
   toBoolean,
   UsageMode,
-  UserProfileLabel
+  UserProfileLabel,
 } from '@sumaris-net/ngx-components';
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {FormArray, FormBuilder} from '@angular/forms';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { FormArray, FormBuilder } from '@angular/forms';
 
-import {Vessel} from '@app/vessel/services/model/vessel.model';
-import {METIER_DEFAULT_FILTER, MetierService} from '@app/referential/services/metier.service';
-import {Trip} from '../services/model/trip.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {debounceTime, filter} from 'rxjs/operators';
-import {VesselModal} from '@app/vessel/modal/vessel-modal';
-import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
-import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
-import {Metier} from '@app/referential/services/model/taxon.model';
-import {MetierFilter} from '@app/referential/services/filter/metier.filter';
+import { Vessel } from '@app/vessel/services/model/vessel.model';
+import { METIER_DEFAULT_FILTER, MetierService } from '@app/referential/services/metier.service';
+import { Trip } from '../services/model/trip.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { debounceTime, filter } from 'rxjs/operators';
+import { VesselModal } from '@app/vessel/modal/vessel-modal';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { Metier } from '@app/referential/services/model/taxon.model';
+import { MetierFilter } from '@app/referential/services/filter/metier.filter';
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
@@ -50,10 +50,9 @@ const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
   selector: 'form-trip',
   templateUrl: './trip.form.html',
   styleUrls: ['./trip.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TripForm extends AppForm<Trip> implements OnInit {
-
   private _showObservers: boolean;
   private _showMetiers: boolean;
 
@@ -65,7 +64,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   metierFocusIndex = -1;
   locationFilter: Partial<ReferentialRefFilter> = {
     entityName: 'Location',
-    levelIds: [LocationLevelIds.PORT]
+    levelIds: [LocationLevelIds.PORT],
   };
   canFilterMetier = false;
   mobile: boolean;
@@ -103,12 +102,11 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   @Input() set locationLevelIds(value: number[]) {
     if (this.locationFilter.levelIds !== value) {
-
       console.debug('[trip-form] Location level ids:', value);
       this.locationFilter = {
         ...this.locationFilter,
         entityName: 'Location',
-        levelIds: value
+        levelIds: value,
       };
       this.markForCheck();
     }
@@ -163,7 +161,6 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     public network: NetworkService,
     protected cd: ChangeDetectorRef
   ) {
-
     super(dateAdapter, validatorService.getFormGroup(), settings);
     this.mobile = this.settings.mobile;
   }
@@ -183,11 +180,11 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       service: this.referentialRefService,
       attributes: programAttributes,
       // Increase default column size, for 'label'
-      columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
+      columnSizes: programAttributes.map((a) => (a === 'label' ? 4 : undefined) /*auto*/),
       filter: <ReferentialRefFilter>{
-        entityName: 'Program'
+        entityName: 'Program',
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: vessels
@@ -195,16 +192,18 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       service: this.vesselSnapshotService,
       attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
       filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
     });
     // Add base port location
-    vesselField.attributes = vesselField.attributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key));
+    vesselField.attributes = vesselField.attributes.concat(
+      this.settings.getFieldDisplayAttributes('location').map((key) => 'basePortLocation.' + key)
+    );
 
     // Combo location
     this.registerAutocompleteField('location', {
       service: this.referentialRefService,
-      filter: this.locationFilter
+      filter: this.locationFilter,
     });
 
     // Combo: observers
@@ -215,10 +214,10 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST']
+        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST'],
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: PersonUtils.personToString
+      displayWith: PersonUtils.personToString,
     });
 
     // Combo: metiers
@@ -229,12 +228,12 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       suggestFn: (value, options) => this.suggestMetiers(value, options),
       // Default filter. An excludedIds will be add dynamically
       filter: {
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       // Increase default column size, for 'label'
-      columnSizes: metierAttributes.map(a => a === 'label' ? 3 : undefined/*auto*/),
+      columnSizes: metierAttributes.map((a) => (a === 'label' ? 3 : undefined) /*auto*/),
       attributes: metierAttributes,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Update metier filter when form changed (if filter enable)
@@ -242,7 +241,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       this.form.valueChanges
         .pipe(
           debounceTime(250),
-          filter(_ => this._showMetiers)
+          filter((_) => this._showMetiers)
         )
         .subscribe((value) => this.updateMetierFilter(value))
     );
@@ -251,8 +250,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   toggleFilteredMetier() {
     if (this.enableMetierFilter) {
       this.enableMetierFilter = false;
-    }
-    else {
+    } else {
       const value = this.form.value;
       const date = value.returnDateTime || value.departureDateTime;
       const vesselId = value.vesselSnapshot && value.vesselSnapshot.id;
@@ -264,7 +262,6 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   }
 
   setValue(value: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-
     if (!value) return;
 
     // Make sure to have (at least) one observer
@@ -273,8 +270,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Resize observers array
     if (this._showObservers) {
       this.observersHelper.resize(Math.max(1, value.observers.length));
-    }
-    else {
+    } else {
       this.observersHelper.removeAllEmpty();
     }
 
@@ -295,8 +291,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     const modal = await this.modalCtrl.create({
       component: VesselModal,
       componentProps: {
-        defaultStatus: this.vesselDefaultStatus
-      }
+        defaultStatus: this.vesselDefaultStatus,
+      },
     });
 
     await modal.present();
@@ -306,9 +302,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // if new vessel added, use it
     const vessel = res && res.data;
     if (vessel) {
-      const vesselSnapshot = (vessel instanceof VesselSnapshot)
-        ? vessel
-        : ((vessel instanceof Vessel) ? VesselSnapshot.fromVessel(vessel) : VesselSnapshot.fromObject(vessel));
+      const vesselSnapshot =
+        vessel instanceof VesselSnapshot ? vessel : vessel instanceof Vessel ? VesselSnapshot.fromVessel(vessel) : VesselSnapshot.fromObject(vessel);
       console.debug('[trip-form] New vessel added : updating form...', vesselSnapshot);
       this.form.controls['vesselSnapshot'].setValue(vesselSnapshot);
       this.markForCheck();
@@ -346,7 +341,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
         ReferentialUtils.equals,
         ReferentialUtils.isEmpty,
         {
-          allowEmptyArray: !this._showObservers
+          allowEmptyArray: !this._showObservers,
         }
       );
     }
@@ -375,7 +370,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
-        allowEmptyArray: !this._showMetiers
+        allowEmptyArray: !this._showMetiers,
       }
     );
 
@@ -383,7 +378,6 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       // Create at least one metier
       if (this.metiersHelper.size() === 0) {
         this.metiersHelper.resize(1);
-
       }
     } else if (this.metiersHelper.size() > 0) {
       this.metiersHelper.resize(0);
@@ -392,7 +386,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   protected updateMetierFilter(value?: Trip) {
     console.debug('[trip-form] Updating metier filter...');
-    value = value || this.form.value as Trip;
+    value = value || (this.form.value as Trip);
     const program = value.program || this.form.get('program').value;
     const programLabel = program && program.label;
     const endDate = fromDateISOString(value.returnDateTime || value.departureDateTime);
@@ -403,9 +397,11 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     let metierFilter: Partial<MetierFilter>;
     if (!this.enableMetierFilter || !canFilterMetier) {
       metierFilter = TRIP_METIER_DEFAULT_FILTER;
-    }
-    else {
-      const startDate = endDate.clone().startOf('day').add(-1 * this.metierHistoryNbDays, 'day');
+    } else {
+      const startDate = endDate
+        .clone()
+        .startOf('day')
+        .add(-1 * this.metierHistoryNbDays, 'day');
       const excludedTripId = EntityUtils.isRemote(value) ? value.id : undefined;
 
       metierFilter = {
@@ -414,7 +410,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
         vesselId,
         startDate,
         endDate,
-        excludedTripId
+        excludedTripId,
       };
     }
     if (this.canFilterMetier !== canFilterMetier || this.metierFilter !== metierFilter) {
@@ -432,12 +428,12 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Excluded existing observers, BUT keep the current control value
     const excludedIds = (this.observersForm.value || [])
       .filter(ReferentialUtils.isNotEmpty)
-      .filter(person => !currentControlValue || currentControlValue !== person)
-      .map(person => parseInt(person.id));
+      .filter((person) => !currentControlValue || currentControlValue !== person)
+      .map((person) => parseInt(person.id));
 
     return this.personService.suggest(newValue, {
       ...filter,
-      excludedIds
+      excludedIds,
     });
   }
 
@@ -448,13 +444,13 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Excluded existing observers, BUT keep the current control value
     const excludedIds = (this.metiersForm.value || [])
       .filter(ReferentialUtils.isNotEmpty)
-      .filter(metier => !currentControlValue || currentControlValue !== metier)
-      .map(metier => parseInt(metier.id));
+      .filter((metier) => !currentControlValue || currentControlValue !== metier)
+      .map((metier) => parseInt(metier.id));
 
     return this.metierService.suggest(newValue, {
       ...filter,
       ...this.metierFilter,
-      excludedIds
+      excludedIds,
     });
   }
 

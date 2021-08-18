@@ -1,5 +1,4 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
-
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -7,44 +6,45 @@
   </ion-item>
 
   <ion-grid class="ion-margin-bottom">
-
     <ion-row>
       <!--  empty col for alignment  -->
-      <ion-col>
-      </ion-col>
+      <ion-col></ion-col>
 
       <!--  NB packets  -->
       <ion-col>
         <mat-form-field>
-          <input matInput #packetNumber
-                 autocomplete="off" type="number"
-                 pattern="[0-9]*"
-                 step="1"
-                 [placeholder]="'PACKET.NUMBER' | translate"
-                 [formControl]="form.controls.number"
-                 [required]="true"
-          >
+          <input
+            matInput
+            #packetNumber
+            autocomplete="off"
+            type="number"
+            pattern="[0-9]*"
+            step="1"
+            [placeholder]="'PACKET.NUMBER' | translate"
+            [formControl]="form.controls.number"
+            [required]="true"
+          />
         </mat-form-field>
       </ion-col>
 
       <!--  weight (computed)  -->
       <ion-col>
         <mat-form-field class="computed">
-          <input matInput #packetWeight
-                 autocomplete="off" type="number"
-                 [placeholder]="'PACKET.WEIGHT' | translate"
-                 [formControl]="form.controls.weight"
-                 readonly
-          >
+          <input
+            matInput
+            #packetWeight
+            autocomplete="off"
+            type="number"
+            [placeholder]="'PACKET.WEIGHT' | translate"
+            [formControl]="form.controls.weight"
+            readonly
+          />
         </mat-form-field>
       </ion-col>
-
     </ion-row>
-
   </ion-grid>
 
   <ion-grid class="composition">
-
     <!-- sampled weights -->
     <ion-row>
       <ion-col size="4">
@@ -52,13 +52,15 @@
       </ion-col>
       <ion-col size="1" *ngFor="let index of packetIndexes">
         <mat-form-field>
-          <input matInput
-                 autocomplete="off" type="number"
-                 decimal="true"
-                 step="0.1"
-                 [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate: {rankOrder: index + 1}"
-                 [formControl]="form.controls['sampledWeight'+index]"
-          >
+          <input
+            matInput
+            autocomplete="off"
+            type="number"
+            decimal="true"
+            step="0.1"
+            [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate: { rankOrder: index + 1 }"
+            [formControl]="form.controls['sampledWeight' + index]"
+          />
         </mat-form-field>
       </ion-col>
       <ion-col size="1"></ion-col>
@@ -72,10 +74,7 @@
       </ion-col>
       <ion-col size="1" *ngFor="let index of packetIndexes">
         <mat-form-field class="computed">
-          <input matInput
-                 autocomplete="off" type="number" readonly
-                 [formControl]="form.controls['sampledRatio'+index]"
-          >
+          <input matInput autocomplete="off" type="number" readonly [formControl]="form.controls['sampledRatio' + index]" />
         </mat-form-field>
       </ion-col>
       <ion-col size="1"></ion-col>
@@ -84,55 +83,72 @@
 
     <!--  composition row  -->
     <ion-row *ngFor="let compositionForm of compositionsFormArray?.controls; index as i; first as first">
-
       <!-- taxon group -->
       <ion-col size="4">
-        <mat-autocomplete-field [formControl]="asFormGroup(compositionForm).controls.taxonGroup"
-                                [placeholder]="'PACKET.COMPOSITION.TAXON_GROUP'|translate"
-                                [floatLabel]="first ? 'always' : 'never'"
-                                [appAutofocus]="compositionFocusIndex === i"
-                                [config]="autocompleteFields.taxonGroup"
-                                [required]="first"
-                                [tabindex]="tabindex+10+i*9"
-        >
-        </mat-autocomplete-field>
+        <mat-autocomplete-field
+          [formControl]="asFormGroup(compositionForm).controls.taxonGroup"
+          [placeholder]="'PACKET.COMPOSITION.TAXON_GROUP' | translate"
+          [floatLabel]="first ? 'always' : 'never'"
+          [appAutofocus]="compositionFocusIndex === i"
+          [config]="autocompleteFields.taxonGroup"
+          [required]="first"
+          [tabindex]="tabindex + 10 + i * 9"
+        ></mat-autocomplete-field>
       </ion-col>
 
       <!-- ratios -->
       <ion-col size="1" *ngFor="let index of packetIndexes">
         <mat-form-field>
-          <input matInput autocomplete="off" type="number" pattern="[0-9]*" step="1" max="100" [tabIndex]="tabindex+10+i*9+index+1"
-                 [formControl]="asFormGroup(compositionForm).controls['ratio'+index]">
+          <input
+            matInput
+            autocomplete="off"
+            type="number"
+            pattern="[0-9]*"
+            step="1"
+            max="100"
+            [tabIndex]="tabindex + 10 + i * 9 + index + 1"
+            [formControl]="asFormGroup(compositionForm).controls['ratio' + index]"
+          />
         </mat-form-field>
       </ion-col>
 
       <!-- computed weight -->
       <ion-col size="1">
         <mat-form-field class="computed" [floatLabel]="first ? 'always' : 'never'">
-          <input matInput autocomplete="off" type="number" readonly
-                 [placeholder]="'PACKET.COMPOSITION.WEIGHT'|translate"
-                 [formControl]="asFormGroup(compositionForm).controls.weight">
+          <input
+            matInput
+            autocomplete="off"
+            type="number"
+            readonly
+            [placeholder]="'PACKET.COMPOSITION.WEIGHT' | translate"
+            [formControl]="asFormGroup(compositionForm).controls.weight"
+          />
         </mat-form-field>
       </ion-col>
 
       <!-- buttons -->
       <ion-col size="1" class="ion-align-self-center">
-        <button type="button" mat-icon-button [tabindex]="tabindex+10+i*9+7" [disabled]="disabled"
-                [title]="'COMMON.BTN_ADD'|translate"
-                (click)="addComposition()">
+        <button
+          type="button"
+          mat-icon-button
+          [tabindex]="tabindex + 10 + i * 9 + 7"
+          [disabled]="disabled"
+          [title]="'COMMON.BTN_ADD' | translate"
+          (click)="addComposition()"
+        >
           <mat-icon>add</mat-icon>
         </button>
-        <button type="button" mat-icon-button [tabindex]="tabindex+10+i*9+8" [disabled]="disabled"
-                [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="compositionHelper.removeAt(i)">
+        <button
+          type="button"
+          mat-icon-button
+          [tabindex]="tabindex + 10 + i * 9 + 8"
+          [disabled]="disabled"
+          [title]="'COMMON.BTN_DELETE' | translate"
+          (click)="compositionHelper.removeAt(i)"
+        >
           <mat-icon>close</mat-icon>
         </button>
       </ion-col>
-
     </ion-row>
-
-
   </ion-grid>
-
-
 </form>

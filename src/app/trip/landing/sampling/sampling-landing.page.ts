@@ -1,43 +1,37 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnDestroy} from '@angular/core';
-import {FormGroup, ValidationErrors} from '@angular/forms';
-import {BehaviorSubject, Subscription} from 'rxjs';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {ParameterLabelGroups, PmfmIds} from '@app/referential/services/model/model.enum';
-import {PmfmService} from '@app/referential/services/pmfm.service';
-import {EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, ObjectMap, SharedValidators} from '@sumaris-net/ngx-components';
-import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
-import {LandingPage} from '../landing.page';
-import {Landing} from '../../services/model/landing.model';
-import {filter, tap, throttleTime} from 'rxjs/operators';
-import {ObservedLocation} from '../../services/model/observed-location.model';
-import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
-import {Strategy} from '@app/referential/services/model/strategy.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-
+import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnDestroy } from '@angular/core';
+import { FormGroup, ValidationErrors } from '@angular/forms';
+import { BehaviorSubject, Subscription } from 'rxjs';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { ParameterLabelGroups, PmfmIds } from '@app/referential/services/model/model.enum';
+import { PmfmService } from '@app/referential/services/pmfm.service';
+import { EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, ObjectMap, SharedValidators } from '@sumaris-net/ngx-components';
+import { BiologicalSamplingValidators } from '../../services/validator/biological-sampling.validators';
+import { LandingPage } from '../landing.page';
+import { Landing } from '../../services/model/landing.model';
+import { filter, tap, throttleTime } from 'rxjs/operators';
+import { ObservedLocation } from '../../services/model/observed-location.model';
+import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
+import { Strategy } from '@app/referential/services/model/strategy.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 @Component({
   selector: 'app-sampling-landing-page',
   templateUrl: './sampling-landing.page.html',
   styleUrls: ['./sampling-landing.page.scss'],
   animations: [fadeInOutAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SamplingLandingPage extends LandingPage implements AfterViewInit, OnDestroy {
-
   $pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
   showSamplesTable = false;
   zeroEffortWarning = false;
   noEffortError = false;
   warning: string = null;
 
-  constructor(
-    injector: Injector,
-    protected samplingStrategyService: SamplingStrategyService,
-    protected pmfmService: PmfmService
-  ) {
+  constructor(injector: Injector, protected samplingStrategyService: SamplingStrategyService, protected pmfmService: PmfmService) {
     super(injector, {
       pathIdAttribute: 'samplingId',
-      autoOpenNextTab: true
+      autoOpenNextTab: true,
     });
   }
 
@@ -45,22 +39,23 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit, O
     super.ngAfterViewInit();
 
     // Check strategy effort
-    this.$strategy.subscribe(strategy => this.checkStrategyEffort(strategy));
+    this.$strategy.subscribe((strategy) => this.checkStrategyEffort(strategy));
 
     // Use landing location as default location for samples
     // TODO: BLA review this : a quoi sert defaultLocation ?
     this.registerSubscription(
-      this.landingForm.form.get('location').valueChanges
-        .pipe(
+      this.landingForm.form
+        .get('location')
+        .valueChanges.pipe(
           throttleTime(200),
           filter(isNotNil),
-          tap(location => this.samplesTable.defaultLocation = location)
+          tap((location) => (this.samplesTable.defaultLocation = location))
         )
-        .subscribe());
+        .subscribe()
+    );
 
     // Load Pmfm IDS, group by parameter labels
-    this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups)
-      .then(pmfmGroups => this.$pmfmGroups.next(pmfmGroups));
+    this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups).then((pmfmGroups) => this.$pmfmGroups.next(pmfmGroups));
   }
 
   ngOnDestroy() {
@@ -71,15 +66,10 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit, O
 
   /* -- protected functions -- */
 
-
   protected async checkStrategyEffort(strategy: Strategy): Promise<void> {
+    const [program] = await Promise.all([firstNotNilPromise(this.$program), this.landingForm.ready()]);
 
-    const [program] = await Promise.all([
-      firstNotNilPromise(this.$program),
-      this.landingForm.ready()
-    ]);
-
-    if (strategy &&  strategy.label) {
+    if (strategy && strategy.label) {
       // Add validator errors on expected effort for this sampleRow (issue #175)
       const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, this.data.dateTime);
 
@@ -90,7 +80,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit, O
       if (!strategyEffort) {
         this.noEffortError = true;
         this.zeroEffortWarning = false;
-        this.landingForm.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
+        this.landingForm.strategyControl.setErrors(<ValidationErrors>{ noEffort: true });
       }
       // Effort is set, but = 0
       else if (strategyEffort.expectedEffort === 0) {
@@ -128,7 +118,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit, O
     }
 
     if (this.parent && this.parent instanceof ObservedLocation && isNotNil(data.id)) {
-      const recorderIsNotObserver = !(this.parent.observers && this.parent.observers.find(p => p.equals(data.recorderPerson)));
+      const recorderIsNotObserver = !(this.parent.observers && this.parent.observers.find((p) => p.equals(data.recorderPerson)));
       this.warning = recorderIsNotObserver ? 'LANDING.ERROR.NOT_OBSERVER_ERROR' : null;
     }
 
@@ -137,12 +127,12 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit, O
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
     return {
-      ... (await super.computePageHistory(title)),
-      icon: 'boat'
+      ...(await super.computePageHistory(title)),
+      icon: 'boat',
     };
   }
 
-  protected computePageUrl(id: number|'new') {
+  protected computePageUrl(id: number | 'new') {
     const parentUrl = this.getParentPageUrl();
     return `${parentUrl}/sampling/${id}`;
   }
@@ -154,22 +144,25 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit, O
     //this.samplingStrategyService.computeNextSampleTagId(this.$strategyLabel.getValue())
 
     return BiologicalSamplingValidators.addSampleValidators(form, pmfms, this.$pmfmGroups.getValue() || {}, {
-      markForCheck: () => this.markForCheck()
+      markForCheck: () => this.markForCheck(),
     });
   }
 
-
   protected async computeTitle(data: Landing): Promise<string> {
-
     const program = await firstNotNilPromise(this.$program);
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
+    i18nSuffix = (i18nSuffix !== 'legacy' && i18nSuffix) || '';
 
-    const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
-      await this.translate.get('LANDING.EDIT.TITLE_PREFIX', {
-        location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
-        date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
-      }).toPromise() || '';
+    const titlePrefix =
+      (this.parent &&
+        this.parent instanceof ObservedLocation &&
+        (await this.translate
+          .get('LANDING.EDIT.TITLE_PREFIX', {
+            location: this.parent.location && (this.parent.location.name || this.parent.location.label),
+            date: (this.parent.startDateTime && (this.dateFormat.transform(this.parent.startDateTime) as string)) || '',
+          })
+          .toPromise())) ||
+      '';
 
     // new data
     if (!data || isNil(data.id)) {
@@ -178,9 +171,14 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit, O
     // Existing data
     const strategy = await firstNotNilPromise(this.$strategy);
 
-    return titlePrefix + (await this.translate.get(`LANDING.EDIT.${i18nSuffix}TITLE`, {
-      vessel: data.vesselSnapshot && (data.vesselSnapshot.registrationCode || data.vesselSnapshot.name),
-      strategyLabel: strategy && strategy.label
-    }).toPromise());
+    return (
+      titlePrefix +
+      (await this.translate
+        .get(`LANDING.EDIT.${i18nSuffix}TITLE`, {
+          vessel: data.vesselSnapshot && (data.vesselSnapshot.registrationCode || data.vesselSnapshot.name),
+          strategyLabel: strategy && strategy.label,
+        })
+        .toPromise())
+    );
   }
 }

@@ -1,23 +1,21 @@
-import {Injectable} from '@angular/core';
-import {AbstractControlOptions, FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
-import {LocalSettingsService, ReferentialRef, SharedFormArrayValidators, SharedValidators, toBoolean} from '@sumaris-net/ngx-components';
-import {VesselActivity} from '../model/aggregated-landing.model';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {DataEntityValidatorOptions} from '@app/data/services/validator/data-entity.validator';
+import { Injectable } from '@angular/core';
+import { AbstractControlOptions, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { LocalSettingsService, ReferentialRef, SharedFormArrayValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
+import { VesselActivity } from '../model/aggregated-landing.model';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { DataEntityValidatorOptions } from '@app/data/services/validator/data-entity.validator';
 
 export interface VesselActivityValidatorOptions extends DataEntityValidatorOptions {
   required?: boolean;
 }
 
-@Injectable({providedIn: 'root'})
-export class VesselActivityValidatorService<T extends VesselActivity = VesselActivity, O extends VesselActivityValidatorOptions = VesselActivityValidatorOptions>
-  implements ValidatorService {
-
-  constructor(
-    protected formBuilder: FormBuilder,
-    protected settings: LocalSettingsService
-  ) {
-  }
+@Injectable({ providedIn: 'root' })
+export class VesselActivityValidatorService<
+  T extends VesselActivity = VesselActivity,
+  O extends VesselActivityValidatorOptions = VesselActivityValidatorOptions
+> implements ValidatorService
+{
+  constructor(protected formBuilder: FormBuilder, protected settings: LocalSettingsService) {}
 
   getRowValidator(opts?: O) {
     return this.getFormGroup();
@@ -26,10 +24,7 @@ export class VesselActivityValidatorService<T extends VesselActivity = VesselAct
   getFormGroup(data?: T, opts?: O): FormGroup {
     opts = this.fillDefaultOptions(opts);
 
-    return this.formBuilder.group(
-      this.getFormGroupConfig(data, opts),
-      this.getFormGroupOptions(data, opts)
-    );
+    return this.formBuilder.group(this.getFormGroupConfig(data, opts), this.getFormGroupOptions(data, opts));
   }
 
   getFormGroupConfig(data?: T, opts?: O): { [p: string]: any } {
@@ -44,7 +39,7 @@ export class VesselActivityValidatorService<T extends VesselActivity = VesselAct
       metiers: this.getMetiersFormArray(data, opts),
       tripId: [data && data.tripId],
       observedLocationId: [data && data.observedLocationId],
-      landingId: [data && data.landingId]
+      landingId: [data && data.landingId],
     };
   }
 
@@ -53,28 +48,28 @@ export class VesselActivityValidatorService<T extends VesselActivity = VesselAct
   }
 
   getMeasurementGroup(data?: T): FormGroup {
-    const config = data && data.measurementValues && Object.keys(data.measurementValues)
-        .reduce((res, pmfmId) => {
+    const config =
+      (data &&
+        data.measurementValues &&
+        Object.keys(data.measurementValues).reduce((res, pmfmId) => {
           res[pmfmId] = [data.measurementValues[pmfmId]];
           return res;
-        }, {})
-      || {};
+        }, {})) ||
+      {};
     return this.formBuilder.group(config);
   }
 
-
   protected fillDefaultOptions(opts?: O): O {
-    opts = opts || {} as O;
+    opts = opts || ({} as O);
 
     opts.required = toBoolean(opts.required, false);
 
     return opts;
   }
 
-
   private getMetiersFormArray(data: VesselActivity, opts: O): FormArray {
     return this.formBuilder.array(
-      (data && data.metiers || []).map(metier => this.getMetierFormControl(metier, opts)),
+      ((data && data.metiers) || []).map((metier) => this.getMetierFormControl(metier, opts)),
       SharedFormArrayValidators.requiredArrayMinLength(1)
     );
   }

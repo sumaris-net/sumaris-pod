@@ -1,10 +1,8 @@
-import {EntityAsObjectOptions, EntityClass, EntityUtils, FilterFn, isNotEmptyArray, ReferentialRef} from '@sumaris-net/ngx-components';
-import {BaseReferentialFilter} from './referential.filter';
+import { EntityAsObjectOptions, EntityClass, EntityUtils, FilterFn, isNotEmptyArray, ReferentialRef } from '@sumaris-net/ngx-components';
+import { BaseReferentialFilter } from './referential.filter';
 
-@EntityClass({typename: 'ReferentialFilterVO'})
-export class ReferentialRefFilter
-    extends BaseReferentialFilter<ReferentialRefFilter, ReferentialRef> {
-
+@EntityClass({ typename: 'ReferentialFilterVO' })
+export class ReferentialRefFilter extends BaseReferentialFilter<ReferentialRefFilter, ReferentialRef> {
   static fromObject: (source, opts?: any) => ReferentialRefFilter;
 
   searchAttributes: string[] = null;
@@ -12,8 +10,7 @@ export class ReferentialRefFilter
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
     if (opts && opts.minify) {
-      target.searchAttribute = target.searchAttribute ||
-        (isNotEmptyArray(this.searchAttributes) ? this.searchAttributes[0] : undefined);
+      target.searchAttribute = target.searchAttribute || (isNotEmptyArray(this.searchAttributes) ? this.searchAttributes[0] : undefined);
       delete target.searchAttributes;
     }
     return target;

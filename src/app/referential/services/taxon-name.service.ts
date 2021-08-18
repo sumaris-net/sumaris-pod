@@ -1,6 +1,6 @@
-import {Injectable} from '@angular/core';
-import {gql} from '@apollo/client/core';
-import {ErrorCodes} from './errors';
+import { Injectable } from '@angular/core';
+import { gql } from '@apollo/client/core';
+import { ErrorCodes } from './errors';
 import {
   AccountService,
   BaseGraphqlService,
@@ -11,17 +11,17 @@ import {
   isNil,
   isNotNil,
   MINIFY_ENTITY_FOR_POD,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
-import {ReferentialService} from './referential.service';
-import {Observable, of} from 'rxjs';
-import {ReferentialFragments} from './referential.fragments';
-import {environment} from '@environments/environment';
-import {TaxonName} from './model/taxon-name.model';
+import { ReferentialService } from './referential.service';
+import { Observable, of } from 'rxjs';
+import { ReferentialFragments } from './referential.fragments';
+import { environment } from '@environments/environment';
+import { TaxonName } from './model/taxon-name.model';
 
 const SaveQuery: any = gql`
-  mutation saveTaxonName($taxonName:TaxonNameVOInput!){
-    saveTaxonName(taxonName: $taxonName){
+  mutation saveTaxonName($taxonName: TaxonNameVOInput!) {
+    saveTaxonName(taxonName: $taxonName) {
       ...LightTaxonNameFragment
     }
   }
@@ -29,28 +29,23 @@ const SaveQuery: any = gql`
 `;
 
 const LoadQuery: any = gql`
-  query taxonName($label: String, $id: Int){
-      data: taxonName(label: $label, id: $id){
-        ...FullTaxonNameFragment
+  query taxonName($label: String, $id: Int) {
+    data: taxonName(label: $label, id: $id) {
+      ...FullTaxonNameFragment
     }
   }
   ${ReferentialFragments.fullTaxonName}
 `;
 
 const ExistsQuery: any = gql`
-  query referenceTaxonExists($id: Int){
+  query referenceTaxonExists($id: Int) {
     data: referenceTaxonExists(id: $id)
   }
 `;
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class TaxonNameService extends BaseGraphqlService implements IEntityService<TaxonName> {
-
-  constructor(
-    protected graphql: GraphqlService,
-    protected accountService: AccountService,
-    protected referentialService: ReferentialService
-  ) {
+  constructor(protected graphql: GraphqlService, protected accountService: AccountService, protected referentialService: ReferentialService) {
     super(graphql, environment);
   }
 
@@ -62,27 +57,26 @@ export class TaxonNameService extends BaseGraphqlService implements IEntityServi
   async referenceTaxonExists(referenceTaxonId: number): Promise<boolean> {
     if (isNil(referenceTaxonId)) return false;
 
-    const {data} = await this.graphql.query<{ data: boolean }>({
+    const { data } = await this.graphql.query<{ data: boolean }>({
       query: ExistsQuery,
-      variables : {
-        id: referenceTaxonId
+      variables: {
+        id: referenceTaxonId,
       },
-      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' }
+      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' },
     });
 
     return data;
   }
 
   async load(id: number, options?: EntityServiceLoadOptions): Promise<TaxonName> {
-
     if (this._debug) console.debug(`[taxon-name-service] Loading taxon name {${id}}...`);
 
-    const {data} = await this.graphql.query<{ data: any }>({
+    const { data } = await this.graphql.query<{ data: any }>({
       query: LoadQuery,
       variables: {
-        id
+        id,
       },
-      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'}
+      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' },
     });
     const entity = data && TaxonName.fromObject(data);
 
@@ -97,7 +91,6 @@ export class TaxonNameService extends BaseGraphqlService implements IEntityServi
    * @param entity
    */
   async save(entity: TaxonName, options?: EntityServiceLoadOptions): Promise<TaxonName> {
-
     this.fillDefaultProperties(entity);
 
     // Transform into json
@@ -109,10 +102,10 @@ export class TaxonNameService extends BaseGraphqlService implements IEntityServi
     await this.graphql.mutate<{ saveTaxonName: any }>({
       mutation: SaveQuery,
       variables: {
-        taxonName: json
+        taxonName: json,
       },
       error: { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR' },
-      update: (proxy, {data}) => {
+      update: (proxy, { data }) => {
         // Update entity
         const savedEntity = data && data.saveTaxonName;
         if (savedEntity) {
@@ -120,7 +113,7 @@ export class TaxonNameService extends BaseGraphqlService implements IEntityServi
           this.copyIdAndUpdateDate(savedEntity, entity);
           entity.referenceTaxonId = savedEntity.referenceTaxonId;
         }
-      }
+      },
     });
 
     return entity;
@@ -130,7 +123,6 @@ export class TaxonNameService extends BaseGraphqlService implements IEntityServi
    * Delete parameter entities
    */
   async delete(entity: TaxonName, options?: any): Promise<any> {
-
     entity.entityName = 'TaxonName';
 
     await this.referentialService.deleteAll([entity]);
@@ -143,7 +135,6 @@ export class TaxonNameService extends BaseGraphqlService implements IEntityServi
   }
 
   /* -- protected methods -- */
-
 
   protected fillDefaultProperties(entity: TaxonName) {
     entity.statusId = isNotNil(entity.statusId) ? entity.statusId : StatusIds.ENABLE;

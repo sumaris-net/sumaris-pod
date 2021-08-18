@@ -1,27 +1,26 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {Sale} from '../services/model/sale.model';
-import {DateAdapter} from '@angular/material/core';
-import {Moment} from 'moment';
-import {FormBuilder} from '@angular/forms';
-import {AppForm, LocalSettingsService} from '@sumaris-net/ngx-components';
-import {ProductsTable} from '../product/products.table';
-import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {SaleValidatorService} from '../services/validator/sale.validator';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Sale } from '../services/model/sale.model';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { FormBuilder } from '@angular/forms';
+import { AppForm, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { ProductsTable } from '../product/products.table';
+import { MeasurementsForm } from '../measurement/measurements.form.component';
+import { SaleValidatorService } from '../services/validator/sale.validator';
 
 @Component({
   selector: 'app-landed-sale-form',
   templateUrl: './landed-sale.form.html',
   styleUrls: ['./landed-sale.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandedSaleForm extends AppForm<Sale> implements OnInit {
-
   @Input() program: string;
 
   @Input() showError = false;
 
-  @ViewChild('saleMeasurementsForm', {static: true}) saleMeasurementsForm: MeasurementsForm;
-  @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
+  @ViewChild('saleMeasurementsForm', { static: true }) saleMeasurementsForm: MeasurementsForm;
+  @ViewChild('productsTable', { static: true }) productsTable: ProductsTable;
 
   totalPriceCalculated: number;
 
@@ -43,8 +42,7 @@ export class LandedSaleForm extends AppForm<Sale> implements OnInit {
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, landedSaleValidatorService.getFormGroup(undefined, {required: false}), settings);
-
+    super(dateAdapter, landedSaleValidatorService.getFormGroup(undefined, { required: false }), settings);
   }
 
   setValue(data: Sale, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
@@ -56,10 +54,8 @@ export class LandedSaleForm extends AppForm<Sale> implements OnInit {
     this.productsTable.value = data.products;
   }
 
-
   ngOnInit() {
     super.ngOnInit();
-
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
@@ -75,5 +71,4 @@ export class LandedSaleForm extends AppForm<Sale> implements OnInit {
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }

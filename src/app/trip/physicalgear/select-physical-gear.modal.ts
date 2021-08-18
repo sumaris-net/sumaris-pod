@@ -1,13 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnInit, ViewChild} from '@angular/core';
-import {ModalController} from '@ionic/angular';
-import {PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearService} from '../services/physicalgear.service';
-import {TableElement} from '@e-is/ngx-material-table';
-import {PhysicalGear} from '../services/model/trip.model';
-import {IEntitiesService, isNotNil, PlatformService, toBoolean} from '@sumaris-net/ngx-components';
-import {AcquisitionLevelCodes, AcquisitionLevelType} from '@app/referential/services/model/model.enum';
-import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {Observable} from 'rxjs';
-import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnInit, ViewChild } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearService } from '../services/physicalgear.service';
+import { TableElement } from '@e-is/ngx-material-table';
+import { PhysicalGear } from '../services/model/trip.model';
+import { IEntitiesService, isNotNil, PlatformService, toBoolean } from '@sumaris-net/ngx-components';
+import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { AppMeasurementsTable } from '../measurement/measurements.table.class';
+import { Observable } from 'rxjs';
+import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
 
 @Component({
   selector: 'app-select-physical-gear-modal',
@@ -16,12 +16,11 @@ import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
   providers: [
     {
       provide: PHYSICAL_GEAR_DATA_SERVICE,
-      useExisting: PhysicalGearService
-    }
-  ]
+      useExisting: PhysicalGearService,
+    },
+  ],
 })
 export class SelectPhysicalGearModal implements OnInit {
-
   selectedTabIndex = 0;
   readonly mobile: boolean;
 
@@ -29,7 +28,7 @@ export class SelectPhysicalGearModal implements OnInit {
 
   @Input() allowMultiple: boolean;
 
-  @Input() filter: PhysicalGearFilter|null = null;
+  @Input() filter: PhysicalGearFilter | null = null;
   @Input() acquisitionLevel: AcquisitionLevelType;
   @Input() program: string;
 
@@ -47,13 +46,12 @@ export class SelectPhysicalGearModal implements OnInit {
   }
 
   ngOnInit() {
-
     // Init table
     this.table.dataService = this.dataService;
     this.filter = PhysicalGearFilter.fromObject(this.filter);
     this.table.filter = this.filter;
     this.table.dataSource.serviceOptions = {
-      distinctByRankOrder: true
+      distinctByRankOrder: true,
     };
     this.table.acquisitionLevel = this.acquisitionLevel || AcquisitionLevelCodes.PHYSICAL_GEAR;
     this.table.programLabel = this.program;
@@ -66,12 +64,10 @@ export class SelectPhysicalGearModal implements OnInit {
       this.table.onRefresh.next('modal');
       this.markForCheck();
     }, 200);
-
   }
 
   async selectRow(event: { id?: number; row: TableElement<PhysicalGear> }) {
     if (event.row && this.table) {
-
       // Select the clicked row, then close
       if (!this.allowMultiple) {
         this.table.selection.clear();
@@ -90,9 +86,9 @@ export class SelectPhysicalGearModal implements OnInit {
     try {
       if (this.hasSelection()) {
         const gears = (this.table.selection.selected || [])
-            .map(row => row.currentData)
-            .map(PhysicalGear.fromObject)
-            .filter(isNotNil);
+          .map((row) => row.currentData)
+          .map(PhysicalGear.fromObject)
+          .filter(isNotNil);
         this.viewCtrl.dismiss(gears);
       }
       return true;

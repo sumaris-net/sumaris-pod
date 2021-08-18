@@ -1,59 +1,58 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {EntityFilter, FilterFn, InMemoryEntitiesService, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, UsageMode} from '@sumaris-net/ngx-components';
-import {AppMeasurementsTable} from '../../measurement/measurements.table.class';
-import {TaxonGroupRef, TaxonNameRef} from '@app/referential/services/model/taxon.model';
-import {Batch} from '../../services/model/batch.model';
-import {Landing} from '../../services/model/landing.model';
-import {AcquisitionLevelCodes, PmfmLabelPatterns} from '@app/referential/services/model/model.enum';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {BatchModal} from '../modal/batch.modal';
-import {environment} from '@environments/environment';
-import {Operation} from '../../services/model/trip.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { EntityFilter, FilterFn, InMemoryEntitiesService, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, UsageMode } from '@sumaris-net/ngx-components';
+import { AppMeasurementsTable } from '../../measurement/measurements.table.class';
+import { TaxonGroupRef, TaxonNameRef } from '@app/referential/services/model/taxon.model';
+import { Batch } from '../../services/model/batch.model';
+import { Landing } from '../../services/model/landing.model';
+import { AcquisitionLevelCodes, PmfmLabelPatterns } from '@app/referential/services/model/model.enum';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { BatchModal } from '../modal/batch.modal';
+import { environment } from '@environments/environment';
+import { Operation } from '../../services/model/trip.model';
 
 export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
   operationId?: number;
   landingId?: number;
 
   asFilterFn<E extends Batch>(): FilterFn<E> {
-    return (data) =>
-      (isNil(this.operationId) || data.operationId === this.operationId)
+    return (data) => isNil(this.operationId) || data.operationId === this.operationId;
 
-      // TODO enable this:
-      // && (isNil(this.landingId) || data.landingId === this.landingId))
-      ;
+    // TODO enable this:
+    // && (isNil(this.landingId) || data.landingId === this.landingId))
   }
 }
 
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
 
-export const DATA_TYPE_ACCESSOR = new InjectionToken<new() => Batch>('BatchesTableDataType');
+export const DATA_TYPE_ACCESSOR = new InjectionToken<new () => Batch>('BatchesTableDataType');
 
 @Component({
   selector: 'app-batches-table',
   templateUrl: 'batches.table.html',
   styleUrls: ['batches.table.scss'],
   providers: [
-    {provide: ValidatorService, useValue: null},  // important: do NOT use validator, to be sure to keep all PMFMS, and not only displayed pmfms
+    { provide: ValidatorService, useValue: null }, // important: do NOT use validator, to be sure to keep all PMFMS, and not only displayed pmfms
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService<Batch, BatchFilter>(Batch, BatchFilter, {
-        equals: Batch.equals
-      })
+      useFactory: () =>
+        new InMemoryEntitiesService<Batch, BatchFilter>(Batch, BatchFilter, {
+          equals: Batch.equals,
+        }),
     },
     {
       provide: DATA_TYPE_ACCESSOR,
-      useValue: Batch
-    }
+      useValue: Batch,
+    },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilter = BatchFilter>
   extends AppMeasurementsTable<T, F>
-  implements OnInit, OnDestroy {
-
+  implements OnInit, OnDestroy
+{
   protected _initialPmfms: IPmfm[];
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
@@ -98,25 +97,19 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
   @Input() defaultTaxonGroup: TaxonGroupRef;
   @Input() defaultTaxonName: TaxonNameRef;
 
-
   constructor(
     injector: Injector,
     validatorService: ValidatorService,
     protected memoryDataService: InMemoryEntitiesService<T, F>,
-    @Inject(DATA_TYPE_ACCESSOR) dataType?: new() => T
+    @Inject(DATA_TYPE_ACCESSOR) dataType?: new () => T
   ) {
-    super(injector,
-      dataType || ((Batch as any) as (new() => T)),
-      memoryDataService,
-      validatorService,
-      {
-        prependNewElements: false,
-        suppressErrors: environment.production,
-        reservedStartColumns: BATCH_RESERVED_START_COLUMNS,
-        reservedEndColumns: BATCH_RESERVED_END_COLUMNS,
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
-      }
-    );
+    super(injector, dataType || (Batch as any as new () => T), memoryDataService, validatorService, {
+      prependNewElements: false,
+      suppressErrors: environment.production,
+      reservedStartColumns: BATCH_RESERVED_START_COLUMNS,
+      reservedEndColumns: BATCH_RESERVED_END_COLUMNS,
+      mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+    });
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
@@ -135,12 +128,12 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
+      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
     });
 
     // Taxon name combo
     this.registerAutocompleteField('taxonName', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options)
+      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
     });
   }
 
@@ -148,9 +141,9 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     if (!data) {
       this.setFilter({} as F);
     } else if (data instanceof Operation) {
-      this.setFilter({operationId: data.id} as F);
+      this.setFilter({ operationId: data.id } as F);
     } else if (data instanceof Landing) {
-      this.setFilter({landingId: data.id} as F);
+      this.setFilter({ landingId: data.id } as F);
     }
   }
 
@@ -168,7 +161,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit({id, row});
+      this.onOpenRow.emit({ id, row });
       return true;
     }
 
@@ -179,9 +172,8 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
     const updatedData = await this.openDetailModal(data);
     if (updatedData) {
-      await this.updateEntityToTable(updatedData, row, {confirmCreate: false});
-    }
-    else {
+      await this.updateEntityToTable(updatedData, row, { confirmCreate: false });
+    } else {
       this.editedRow = null;
     }
     return true;
@@ -209,16 +201,16 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
         showTaxonName: this.showTaxonNameColumn,
         // Not need on a root species batch (fill in sub-batches)
         showTotalIndividualCount: false,
-        showIndividualCount: false
+        showIndividualCount: false,
       },
-      keyboardClose: true
+      keyboardClose: true,
     });
 
     // Open the modal
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
     if (data && this.debug) console.debug('[batches-table] Batch modal result: ', data);
     this.markAsLoaded();
 
@@ -230,30 +222,27 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     return undefined;
   }
 
-
   /* -- protected methods -- */
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     //if (isNilOrBlank(value)) return [];
-    return this.programRefService.suggestTaxonGroups(value,
-      {
-        program: this.programLabel,
-        searchAttribute: options && options.searchAttribute
-      });
+    return this.programRefService.suggestTaxonGroups(value, {
+      program: this.programLabel,
+      searchAttribute: options && options.searchAttribute,
+    });
   }
 
   protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     const taxonGroup = this.editedRow && this.editedRow.validator.get('taxonGroup').value;
 
     // IF taxonGroup column exists: taxon group must be filled first
-    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return {data: []};
+    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return { data: [] };
 
-    return this.programRefService.suggestTaxonNames(value,
-      {
-        programLabel: this.programLabel,
-        searchAttribute: options && options.searchAttribute,
-        taxonGroupId: taxonGroup && taxonGroup.id || undefined
-      });
+    return this.programRefService.suggestTaxonNames(value, {
+      programLabel: this.programLabel,
+      searchAttribute: options && options.searchAttribute,
+      taxonGroupId: (taxonGroup && taxonGroup.id) || undefined,
+    });
   }
 
   protected prepareEntityToSave(batch: T) {
@@ -281,12 +270,11 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
       return res;
     }, {});
 
-
     // Find the first qualitative PMFM
     this.qvPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms);
 
     // Remove weight pmfms
-    return pmfms.filter(p => !PmfmUtils.isWeight(p));
+    return pmfms.filter((p) => !PmfmUtils.isWeight(p));
   }
 
   protected async onNewEntity(data: T): Promise<void> {
@@ -310,4 +298,3 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     this.cd.markForCheck();
   }
 }
-

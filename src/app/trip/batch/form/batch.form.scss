@@ -1,5 +1,4 @@
 :host {
-
   .mat-checkbox-checkmark {
     .mat-checkbox-checkmark-path {
       stroke: black !important;
@@ -9,7 +8,6 @@
     //  stroke: var(--ion-color-light-contrast, white) !important;
     //}
   }
-
 }
 mat-card.qv.even,
 ion-card.qv.even {
@@ -22,7 +20,6 @@ ion-card.qv.even {
   }
 }
 mat-card.qv.odd,
-ion-card.qv.odd{
+ion-card.qv.odd {
   background-color: var(--ion-color-light, whitesmoke) !important;
-
 }

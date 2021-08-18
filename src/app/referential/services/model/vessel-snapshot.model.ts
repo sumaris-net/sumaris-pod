@@ -1,16 +1,14 @@
-import {Moment} from 'moment';
-import {Department, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
-import {Vessel} from '@app/vessel/services/model/vessel.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-
+import { Moment } from 'moment';
+import { Department, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import { Vessel } from '@app/vessel/services/model/vessel.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
 export interface IWithVesselSnapshotEntity<T, ID = number> extends IEntity<T, ID> {
   vesselSnapshot: VesselSnapshot;
 }
 
-@EntityClass({typename: 'VesselSnapshotVO', fromObjectReuseStrategy: 'clone'})
+@EntityClass({ typename: 'VesselSnapshotVO', fromObjectReuseStrategy: 'clone' })
 export class VesselSnapshot extends Entity<VesselSnapshot> {
-
   static fromObject: (source: any, opts?: any) => VesselSnapshot;
 
   static fromVessel(source: Vessel | any): VesselSnapshot {
@@ -29,7 +27,7 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
       registrationCode: source.registration && source.registration.registrationCode,
       registrationStartDate: source.registration && source.registration.startDate,
       registrationEndDate: source.registration && source.registration.endDate,
-      registrationLocation: source.registration && source.registration.registrationLocation
+      registrationLocation: source.registration && source.registration.registrationLocation,
     });
     return target;
   }
@@ -66,33 +64,36 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
     this.program = null;
   }
 
- // TODO: Check if clone is needed
+  // TODO: Check if clone is needed
   clone(): VesselSnapshot {
     const target = new VesselSnapshot();
     target.fromObject(this);
-    target.program = this.program && this.program.clone() || undefined;
-    target.vesselType = this.vesselType && this.vesselType.clone() || undefined;
-    target.basePortLocation = this.basePortLocation && this.basePortLocation.clone() || undefined;
-    target.registrationLocation = this.registrationLocation && this.registrationLocation.clone() || undefined;
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.clone() || undefined;
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.clone() || undefined;
+    target.program = (this.program && this.program.clone()) || undefined;
+    target.vesselType = (this.vesselType && this.vesselType.clone()) || undefined;
+    target.basePortLocation = (this.basePortLocation && this.basePortLocation.clone()) || undefined;
+    target.registrationLocation = (this.registrationLocation && this.registrationLocation.clone()) || undefined;
+    target.recorderDepartment = (this.recorderDepartment && this.recorderDepartment.clone()) || undefined;
+    target.recorderPerson = (this.recorderPerson && this.recorderPerson.clone()) || undefined;
     return target;
   }
 
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
 
-    target.program = this.program && this.program.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*always keep for table*/ } as ReferentialAsObjectOptions) || undefined;
-    target.vesselType = this.vesselType && this.vesselType.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
-    target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
-    target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.program =
+      (this.program && this.program.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*always keep for table*/ } as ReferentialAsObjectOptions)) ||
+      undefined;
+    target.vesselType = (this.vesselType && this.vesselType.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.basePortLocation = (this.basePortLocation && this.basePortLocation.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.registrationLocation =
+      (this.registrationLocation && this.registrationLocation.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
     target.registrationStartDate = toDateISOString(this.registrationStartDate);
     target.registrationEndDate = toDateISOString(this.registrationEndDate);
     target.creationDate = toDateISOString(this.creationDate);
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
+    target.recorderDepartment = (this.recorderDepartment && this.recorderDepartment.asObject(options)) || undefined;
+    target.recorderPerson = (this.recorderPerson && this.recorderPerson.asObject(options)) || undefined;
 
     return target;
   }

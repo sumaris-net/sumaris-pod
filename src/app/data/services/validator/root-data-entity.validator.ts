@@ -1,43 +1,43 @@
-import {LocalSettingsService, Person, SharedFormArrayValidators, SharedValidators} from '@sumaris-net/ngx-components';
-import {FormBuilder, FormControl, Validators} from '@angular/forms';
-import {RootDataEntity} from '../model/root-data-entity.model';
-import {IWithObserversEntity} from '../model/model.utils';
-import {Program} from '@app/referential/services/model/program.model';
-import {Optional} from '@angular/core';
-import {DataEntityValidatorOptions, DataEntityValidatorService} from './data-entity.validator';
+import { LocalSettingsService, Person, SharedFormArrayValidators, SharedValidators } from '@sumaris-net/ngx-components';
+import { FormBuilder, FormControl, Validators } from '@angular/forms';
+import { RootDataEntity } from '../model/root-data-entity.model';
+import { IWithObserversEntity } from '../model/model.utils';
+import { Program } from '@app/referential/services/model/program.model';
+import { Optional } from '@angular/core';
+import { DataEntityValidatorOptions, DataEntityValidatorService } from './data-entity.validator';
 
 export interface DataRootEntityValidatorOptions extends DataEntityValidatorOptions {
   withObservers?: boolean;
   program?: Program;
 }
 
-export abstract class DataRootEntityValidatorService<T extends RootDataEntity<T>, O extends DataRootEntityValidatorOptions = DataRootEntityValidatorOptions>
-  extends DataEntityValidatorService<T, O> {
-
-  protected constructor(
-    protected formBuilder: FormBuilder,
-    @Optional() protected settings?: LocalSettingsService
-    ) {
+export abstract class DataRootEntityValidatorService<
+  T extends RootDataEntity<T>,
+  O extends DataRootEntityValidatorOptions = DataRootEntityValidatorOptions
+> extends DataEntityValidatorService<T, O> {
+  protected constructor(protected formBuilder: FormBuilder, @Optional() protected settings?: LocalSettingsService) {
     super(formBuilder, settings);
   }
 
-  getFormGroupConfig(data?: T, opts?: O): {
+  getFormGroupConfig(
+    data?: T,
+    opts?: O
+  ): {
     [key: string]: any;
   } {
-
     return {
       ...super.getFormGroupConfig(data),
-      program: [data && data.program || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      creationDate: [data && data.creationDate || null],
-      recorderPerson: [data && data.recorderPerson || null, SharedValidators.entity],
-      comments: [data && data.comments || null, Validators.maxLength(2000)],
-      synchronizationStatus: [data && data.synchronizationStatus || null]
+      program: [(data && data.program) || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      creationDate: [(data && data.creationDate) || null],
+      recorderPerson: [(data && data.recorderPerson) || null, SharedValidators.entity],
+      comments: [(data && data.comments) || null, Validators.maxLength(2000)],
+      synchronizationStatus: [(data && data.synchronizationStatus) || null],
     };
   }
 
   getObserversFormArray(data?: IWithObserversEntity<T>) {
     return this.formBuilder.array(
-      (data && data.observers || [null]).map(observer => this.getObserverControl(observer)),
+      ((data && data.observers) || [null]).map((observer) => this.getObserverControl(observer)),
       SharedFormArrayValidators.requiredArrayMinLength(1)
     );
   }

@@ -1,19 +1,18 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {ModalController} from '@ionic/angular';
-import {ExtractionProduct} from '../../services/model/extraction-product.model';
-import {Observable} from 'rxjs';
-import {first} from 'rxjs/operators';
-import {TranslateService} from '@ngx-translate/core';
-import {ExtractionProductService} from '../../services/extraction-product.service';
-import {ExtractionProductFilter} from '../../services/filter/extraction-product.filter';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { ExtractionProduct } from '../../services/model/extraction-product.model';
+import { Observable } from 'rxjs';
+import { first } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
+import { ExtractionProductService } from '../../services/extraction-product.service';
+import { ExtractionProductFilter } from '../../services/filter/extraction-product.filter';
 
 @Component({
   selector: 'app-select-product-modal',
   templateUrl: './select-product.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectProductModal implements OnInit {
-
   loading = true;
   $types: Observable<ExtractionProduct[]>;
 
@@ -25,26 +24,21 @@ export class SelectProductModal implements OnInit {
     protected service: ExtractionProductService,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
-  ) {
-
-  }
+  ) {}
 
   ngOnInit() {
-
     // Load items
     this.$types = this.service.watchAll(this.filter, {});
 
     // Update loading indicator
-    this.$types.pipe(first()).subscribe((_) => this.loading = false);
+    this.$types.pipe(first()).subscribe((_) => (this.loading = false));
   }
 
   selectType(type: ExtractionProduct) {
-
     this.close(type);
   }
 
   async close(event?: any) {
-
     await this.viewCtrl.dismiss(event);
   }
 
@@ -64,9 +58,7 @@ export class SelectProductModal implements OnInit {
     return type.name;
   }
 
-
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }

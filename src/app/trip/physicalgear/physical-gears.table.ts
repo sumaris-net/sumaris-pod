@@ -1,34 +1,32 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {PhysicalGearValidatorService} from '../services/validator/physicalgear.validator';
-import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService} from '@sumaris-net/ngx-components';
-import {PhysicalGearModal} from './physical-gear.modal';
-import {PhysicalGear} from '../services/model/trip.model';
-import {PHYSICAL_GEAR_DATA_SERVICE} from '../services/physicalgear.service';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {environment} from '@environments/environment';
-import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { PhysicalGearValidatorService } from '../services/validator/physicalgear.validator';
+import { AppMeasurementsTable } from '../measurement/measurements.table.class';
+import { createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService } from '@sumaris-net/ngx-components';
+import { PhysicalGearModal } from './physical-gear.modal';
+import { PhysicalGear } from '../services/model/trip.model';
+import { PHYSICAL_GEAR_DATA_SERVICE } from '../services/physicalgear.service';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { environment } from '@environments/environment';
+import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
-
 
 @Component({
   selector: 'app-physicalgears-table',
   templateUrl: 'physical-gears.table.html',
   styleUrls: ['physical-gears.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: PhysicalGearValidatorService},
+    { provide: ValidatorService, useExisting: PhysicalGearValidatorService },
     {
       provide: PHYSICAL_GEAR_DATA_SERVICE,
-      useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter)
-    }
+      useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter),
+    },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, PhysicalGearFilter> implements OnInit, OnDestroy {
-
   protected cd: ChangeDetectorRef;
   protected memoryDataService: InMemoryEntitiesService<PhysicalGear>;
 
@@ -57,11 +55,9 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
   @Output() onSelectPreviousGear = createPromiseEventEmitter();
 
-  constructor(
-    injector: Injector,
-    @Inject(PHYSICAL_GEAR_DATA_SERVICE) dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>
-  ) {
-    super(injector,
+  constructor(injector: Injector, @Inject(PHYSICAL_GEAR_DATA_SERVICE) dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>) {
+    super(
+      injector,
       PhysicalGear,
       dataService,
       null, // No validator = no inline edition
@@ -70,10 +66,11 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
         suppressErrors: environment.production,
         reservedStartColumns: GEAR_RESERVED_START_COLUMNS,
         reservedEndColumns: GEAR_RESERVED_END_COLUMNS,
-        mapPmfms: (pmfms) => pmfms.filter(p => p.required)
-      });
+        mapPmfms: (pmfms) => pmfms.filter((p) => p.required),
+      }
+    );
     this.cd = injector.get(ChangeDetectorRef);
-    this.memoryDataService = (this.dataService as InMemoryEntitiesService<PhysicalGear>);
+    this.memoryDataService = this.dataService as InMemoryEntitiesService<PhysicalGear>;
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.LIST.';
     this.autoLoad = true;
 
@@ -94,7 +91,6 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   }
 
   ngOnDestroy() {
-
     super.ngOnDestroy();
     this.onSelectPreviousGear.unsubscribe();
 
@@ -122,7 +118,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit({id, row});
+      this.onOpenRow.emit({ id, row });
       return true;
     }
 
@@ -131,15 +127,13 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     const updatedGear = await this.openDetailModal(gear);
     if (updatedGear) {
       await this.updateEntityToTable(updatedGear, row);
-    }
-    else {
+    } else {
       this.editedRow = null;
     }
     return true;
   }
 
   async openDetailModal(gear?: PhysicalGear): Promise<PhysicalGear | undefined> {
-
     const isNew = !gear && true;
     if (isNew) {
       gear = new PhysicalGear();
@@ -159,20 +153,20 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
           // Subscribe to click on copy button, then redirect the event
           inst.onCopyPreviousGearClick.subscribe((event) => this.onSelectPreviousGear.emit(event));
         },
-        onDelete: (event, PhysicalGear) => this.deletePhysicalGear(event, PhysicalGear)
+        onDelete: (event, PhysicalGear) => this.deletePhysicalGear(event, PhysicalGear),
       },
       keyboardClose: true,
-      backdropDismiss: false
+      backdropDismiss: false,
     });
 
     // Open the modal
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
     if (data && this.debug) console.debug('[physical-gear-table] Modal result: ', data);
 
-    return (data instanceof PhysicalGear) ? data : undefined;
+    return data instanceof PhysicalGear ? data : undefined;
   }
 
   async deletePhysicalGear(event: UIEvent, data: PhysicalGear): Promise<boolean> {
@@ -183,7 +177,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
     const canDeleteRow = await this.canDeleteRows([row]);
     if (canDeleteRow === true) {
-      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
+      this.cancelOrDelete(event, row, { interactive: false /*already confirmed*/ });
     }
     return canDeleteRow;
   }
@@ -195,9 +189,6 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   }
 
   protected async findRowByPhysicalGear(physicalGear: PhysicalGear): Promise<TableElement<PhysicalGear>> {
-    return PhysicalGear && (await this.dataSource.getRows()).find(r => r.currentData.equals(physicalGear));
+    return PhysicalGear && (await this.dataSource.getRows()).find((r) => r.currentData.equals(physicalGear));
   }
-
 }
-
-

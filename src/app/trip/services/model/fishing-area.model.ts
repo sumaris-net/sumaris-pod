@@ -1,10 +1,9 @@
-import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {EntityClass, ReferentialRef} from '@sumaris-net/ngx-components';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
+import { EntityClass, ReferentialRef } from '@sumaris-net/ngx-components';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
-@EntityClass({typename: 'FishingAreaVO'})
+@EntityClass({ typename: 'FishingAreaVO' })
 export class FishingArea extends DataEntity<FishingArea> {
-
   static fromObject: (source: any, opts?: any) => FishingArea;
 
   location: ReferentialRef;
@@ -26,10 +25,11 @@ export class FishingArea extends DataEntity<FishingArea> {
 
   asObject(options?: DataEntityAsObjectOptions): any {
     const target = super.asObject(options);
-    target.location = this.location && this.location.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.distanceToCoastGradient = this.distanceToCoastGradient && this.distanceToCoastGradient.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.depthGradient = this.depthGradient && this.depthGradient.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.nearbySpecificArea = this.nearbySpecificArea && this.nearbySpecificArea.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
+    target.location = (this.location && this.location.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.distanceToCoastGradient =
+      (this.distanceToCoastGradient && this.distanceToCoastGradient.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.depthGradient = (this.depthGradient && this.depthGradient.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.nearbySpecificArea = (this.nearbySpecificArea && this.nearbySpecificArea.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
     return target;
   }
 
@@ -42,5 +42,4 @@ export class FishingArea extends DataEntity<FishingArea> {
     // this.operationId = source.operationId;
     return this;
   }
-
-  }
+}

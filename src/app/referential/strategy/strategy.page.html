@@ -1,17 +1,24 @@
-<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
-             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
+<app-toolbar
+  [title]="$title | async"
+  color="primary"
+  [hasValidate]="!loading"
+  (onValidate)="save($event)"
+  [defaultBackHref]="defaultBackHref"
+  [canGoBack]="true"
+>
   <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
 <ion-content>
-
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex"
-                 (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="tabGroupAnimationDuration"
-                 dynamicHeight>
-
+  <mat-tab-group
+    #tabGroup
+    [(selectedIndex)]="selectedTabIndex"
+    (selectedTabChange)="onTabChange($event)"
+    [animationDuration]="tabGroupAnimationDuration"
+    dynamicHeight
+  >
     <!-- TAB: general -->
-    <mat-tab label="{{'PROGRAM.TAB_GENERAL'|translate}}">
+    <mat-tab label="{{ 'PROGRAM.TAB_GENERAL' | translate }}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>PROGRAM.TAB_GENERAL</ion-label>
@@ -22,21 +29,22 @@
         <!-- error -->
         <ion-item *ngIf="referentialForm.error || error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="referentialForm.error || error | translate"></ion-label>
         </ion-item>
 
         <!-- base form -->
-        <app-referential-form #referentialForm
-                              entityName="Strategy"
-                              [showError]="false"
-                              [debug]="debug"
-                              (onSubmit)="save($event)">
-        </app-referential-form>
+        <app-referential-form
+          #referentialForm
+          entityName="Strategy"
+          [showError]="false"
+          [debug]="debug"
+          (onSubmit)="save($event)"
+        ></app-referential-form>
       </div>
     </mat-tab>
 
     <!-- TAB: PMFM -->
-    <mat-tab label="{{'PROGRAM.STRATEGY.TAB_PMFM'|translate}}">
+    <mat-tab label="{{ 'PROGRAM.STRATEGY.TAB_PMFM' | translate }}">
       <ng-template mat-tab-label>
         <mat-icon>view_list</mat-icon>
         <ion-label translate>PROGRAM.STRATEGY.TAB_PMFM</ion-label>
@@ -47,19 +55,16 @@
         <!-- error -->
         <ion-item *ngIf="strategyForm.error || error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="(strategyForm.error || error) | translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="strategyForm.error || error | translate"></ion-label>
         </ion-item>
 
         <!-- strategy details-->
-        <app-strategy-form #strategyForm
-                           [showBaseForm]="false"
-                           [program]="$program|async">
-        </app-strategy-form>
+        <app-strategy-form #strategyForm [showBaseForm]="false" [program]="$program | async"></app-strategy-form>
       </div>
     </mat-tab>
 
     <!-- TAB: access rights -->
-    <mat-tab label="{{'PROGRAM.TAB_ACCESS_RIGHTS'|translate}}" [disabled]="isNewData">
+    <mat-tab label="{{ 'PROGRAM.TAB_ACCESS_RIGHTS' | translate }}" [disabled]="isNewData">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="people"></ion-icon>
@@ -69,25 +74,18 @@
       </ng-template>
 
       <div class="ion-padding">
-
         <h2>Coming soon !</h2>
       </div>
     </mat-tab>
-
   </mat-tab-group>
-
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
-  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
-                    [disabledCancel]="!dirty || loading">
-
+  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading" [disabledCancel]="!dirty || loading">
     <!-- error -->
     <ion-item *ngIf="error" lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
     </ion-item>
-
   </app-form-buttons-bar>
 </ion-footer>

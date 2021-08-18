@@ -1,11 +1,11 @@
-import {Department, IEntity, Person, Referential, ReferentialRef, StatusIds} from '@sumaris-net/ngx-components';
-import {PredefinedColors} from '@ionic/core';
-import {QualityFlagIds} from '@app/referential/services/model/model.enum';
+import { Department, IEntity, Person, Referential, ReferentialRef, StatusIds } from '@sumaris-net/ngx-components';
+import { PredefinedColors } from '@ionic/core';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 
 /* -- Interface -- */
 
 export interface IWithRecorderDepartmentEntity<T, ID = number> extends IEntity<T, ID> {
-  recorderDepartment: Department|ReferentialRef|Referential;
+  recorderDepartment: Department | ReferentialRef | Referential;
 }
 export interface IWithRecorderPersonEntity<T, ID = number> extends IEntity<T, ID> {
   recorderPerson: Person;
@@ -23,7 +23,7 @@ export interface IWithProgramEntity<T, ID = number> extends IEntity<T, ID> {
 
 export const getMaxRankOrder = (values: { rankOrder: number }[]): number => {
   let maxRankOrder = 0;
-  (values || []).forEach(m => {
+  (values || []).forEach((m) => {
     if (m.rankOrder && m.rankOrder > maxRankOrder) maxRankOrder = m.rankOrder;
   });
   return maxRankOrder;
@@ -32,7 +32,7 @@ export const getMaxRankOrder = (values: { rankOrder: number }[]): number => {
 export const fillRankOrder = (values: { rankOrder: number }[]) => {
   // Compute rankOrder
   let maxRankOrder = getMaxRankOrder(values);
-  (values || []).forEach(m => {
+  (values || []).forEach((m) => {
     m.rankOrder = m.rankOrder || ++maxRankOrder;
   });
 };
@@ -43,8 +43,8 @@ export const fillRankOrder = (values: { rankOrder: number }[]) => {
  * @param values
  * @return true if all rankOrder are unique
  */
-export const isRankOrderValid = (values: { rankOrder: number }[]): boolean => (values || []).length ===
-  (values || []).filter((v1, i, array) => array.findIndex(v2 => v2.rankOrder === v1.rankOrder) === i).length;
+export const isRankOrderValid = (values: { rankOrder: number }[]): boolean =>
+  (values || []).length === (values || []).filter((v1, i, array) => array.findIndex((v2) => v2.rankOrder === v1.rankOrder) === i).length;
 
 export const qualityFlagToColor = (qualityFlagId: number): PredefinedColors => {
   switch (qualityFlagId) {
@@ -77,4 +77,3 @@ export const statusToColor = (statusId: number): PredefinedColors => {
       return 'secondary';
   }
 };
-

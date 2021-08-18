@@ -1,10 +1,10 @@
-import {NgModule} from '@angular/core';
-import {AppReferentialModule} from '../referential/app-referential.module';
-import {EntityQualityFormComponent} from './quality/entity-quality-form.component';
-import {CoreModule} from '@sumaris-net/ngx-components';
-import {QualityFlagToColorPipe} from './services/pipes/quality-flag-to-color.pipe';
-import {StrategySummaryCardComponent} from './strategy/strategy-summary-card.component';
-import {DataCommentModule} from './comment/comment.module';
+import { NgModule } from '@angular/core';
+import { AppReferentialModule } from '../referential/app-referential.module';
+import { EntityQualityFormComponent } from './quality/entity-quality-form.component';
+import { CoreModule } from '@sumaris-net/ngx-components';
+import { QualityFlagToColorPipe } from './services/pipes/quality-flag-to-color.pipe';
+import { StrategySummaryCardComponent } from './strategy/strategy-summary-card.component';
+import { DataCommentModule } from './comment/comment.module';
 
 @NgModule({
   imports: [
@@ -12,7 +12,7 @@ import {DataCommentModule} from './comment/comment.module';
     AppReferentialModule,
 
     // Sub modules
-    DataCommentModule
+    DataCommentModule,
   ],
   declarations: [
     // Pipes
@@ -20,8 +20,7 @@ import {DataCommentModule} from './comment/comment.module';
 
     // Components
     EntityQualityFormComponent,
-    StrategySummaryCardComponent
-
+    StrategySummaryCardComponent,
   ],
   exports: [
     // Sub modules
@@ -32,9 +31,7 @@ import {DataCommentModule} from './comment/comment.module';
 
     // Components
     EntityQualityFormComponent,
-    StrategySummaryCardComponent
-  ]
+    StrategySummaryCardComponent,
+  ],
 })
-export class AppDataModule {
-
-}
+export class AppDataModule {}

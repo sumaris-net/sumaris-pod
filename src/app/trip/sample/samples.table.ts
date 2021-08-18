@@ -1,6 +1,6 @@
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Optional, Output, ViewChild} from '@angular/core';
-import {TableElement} from '@e-is/ngx-material-table';
-import {SampleValidatorService} from '../services/validator/sample.validator';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Optional, Output, ViewChild } from '@angular/core';
+import { TableElement } from '@e-is/ngx-material-table';
+import { SampleValidatorService } from '../services/validator/sample.validator';
 import {
   AppFormUtils,
   AppValidatorService,
@@ -22,34 +22,32 @@ import {
   RESERVED_START_COLUMNS,
   toBoolean,
   toNumber,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
-import {AppMeasurementsTable, AppMeasurementsTableOptions} from '../measurement/measurements.table.class';
-import {ISampleModalOptions, SampleModal} from './sample.modal';
-import {FormGroup} from '@angular/forms';
-import {TaxonGroupRef, TaxonNameRef} from '@app/referential/services/model/taxon.model';
-import {Sample} from '../services/model/sample.model';
-import {AcquisitionLevelCodes, ParameterGroups, PmfmIds} from '@app/referential/services/model/model.enum';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {environment} from '@environments/environment';
-import {debounceTime, filter, map, tap} from 'rxjs/operators';
-import {IDenormalizedPmfm, IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {SampleFilter} from '../services/filter/sample.filter';
-import {PmfmFilter, PmfmService} from '@app/referential/services/pmfm.service';
-import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
-import {BehaviorSubject, Subscription} from 'rxjs';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {MatMenu} from '@angular/material/menu';
+import { Moment } from 'moment';
+import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../measurement/measurements.table.class';
+import { ISampleModalOptions, SampleModal } from './sample.modal';
+import { FormGroup } from '@angular/forms';
+import { TaxonGroupRef, TaxonNameRef } from '@app/referential/services/model/taxon.model';
+import { Sample } from '../services/model/sample.model';
+import { AcquisitionLevelCodes, ParameterGroups, PmfmIds } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { environment } from '@environments/environment';
+import { debounceTime, filter, map, tap } from 'rxjs/operators';
+import { IDenormalizedPmfm, IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { SampleFilter } from '../services/filter/sample.filter';
+import { PmfmFilter, PmfmService } from '@app/referential/services/pmfm.service';
+import { SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
+import { BehaviorSubject, Subscription } from 'rxjs';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { MatMenu } from '@angular/material/menu';
 
 const moment = momentImported;
 
 export type PmfmValueColorFn = (value: any, pmfm: IPmfm) => ColorName;
 
-export class SamplesTableOptions extends AppMeasurementsTableOptions<Sample> {
-
-}
+export class SamplesTableOptions extends AppMeasurementsTableOptions<Sample> {}
 
 declare interface GroupColumnDefinition {
   key: string;
@@ -67,13 +65,10 @@ export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
   selector: 'app-samples-table',
   templateUrl: 'samples.table.html',
   styleUrls: ['samples.table.scss'],
-  providers: [
-    {provide: AppValidatorService, useExisting: SampleValidatorService}
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: AppValidatorService, useExisting: SampleValidatorService }],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> implements OnInit, AfterViewInit, OnDestroy {
-
   private _footerRowsSubscription: Subscription;
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
@@ -150,19 +145,17 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
     return this.dataService as InMemoryEntitiesService<Sample, SampleFilter>;
   }
 
-  @Output() onPrepareRowForm = new EventEmitter<{form: FormGroup; pmfms: IPmfm[]}>();
+  @Output() onPrepareRowForm = new EventEmitter<{ form: FormGroup; pmfms: IPmfm[] }>();
 
   @ViewChild('optionsMenu') optionMenu: MatMenu;
 
-  constructor(
-    injector: Injector,
-    @Optional() options?: SamplesTableOptions
-  ) {
-    super(injector,
+  constructor(injector: Injector, @Optional() options?: SamplesTableOptions) {
+    super(
+      injector,
       Sample,
       new InMemoryEntitiesService(Sample, SampleFilter, {
         equals: Sample.equals,
-        sortByReplacement: {id: 'rankOrder'}
+        sortByReplacement: { id: 'rankOrder' },
       }),
       injector.get(PlatformService).mobile ? null : injector.get(AppValidatorService),
       {
@@ -174,7 +167,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
         debug: !environment.production,
         ...options,
         // Cannot override mapPmfms (by options)
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
+        mapPmfms: (pmfms) => this.mapPmfms(pmfms),
       }
     );
     this.cd = injector.get(ChangeDetectorRef);
@@ -196,14 +189,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
     this.registerSubscription(
       this.onStartEditingRow
         .pipe(
-          filter(row => row && row.validator && true),
-          map(row => ({form: row.validator, pmfms: this.$pmfms.getValue()})),
+          filter((row) => row && row.validator && true),
+          map((row) => ({ form: row.validator, pmfms: this.$pmfms.getValue() })),
           // DEBUG
           //tap(() => console.debug('[samples-table] will sent onPrepareRowForm event:', event))
-          tap(event => this.onPrepareRowForm.emit(event))
+          tap((event) => this.onPrepareRowForm.emit(event))
         )
-        .subscribe());
-
+        .subscribe()
+    );
   }
 
   ngOnInit() {
@@ -211,7 +204,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
     this.showToolbar = toBoolean(this.showToolbar, !this.showGroupHeader);
 
     // Add footer listener
-    this.$pmfms.subscribe(pmfms => this.addFooterListener(pmfms));
+    this.$pmfms.subscribe((pmfms) => this.addFooterListener(pmfms));
   }
 
   ngAfterViewInit() {
@@ -223,13 +216,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
 
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
+      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
     });
 
     // Taxon name combo
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
-      showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/
+      showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/,
     });
   }
 
@@ -244,8 +237,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
     this.pmfmGroupColumns$.unsubscribe();
   }
 
-  openMenu() {
-  }
+  openMenu() {}
 
   /**
    * Use in ngFor, for trackBy
@@ -256,7 +248,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
   trackColumnDef(index: number, column: GroupColumnDefinition) {
     return column.key;
   }
-
 
   async openDetailModal(sample?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
     console.debug('[samples-table] Opening detail modal...');
@@ -286,13 +277,12 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
       onReady: async (modal) => {
         const form = modal.form.form;
         const pmfms = await firstNotNilPromise(modal.$pmfms);
-        this.onPrepareRowForm.emit({form, pmfms});
+        this.onPrepareRowForm.emit({ form, pmfms });
       },
       onSaveAndNew: async (data) => {
         if (isNew) {
           await this.addEntityToTable(data);
-        }
-        else {
+        } else {
           this.updateEntityToTable(data, row);
           row = null; // Avoid to update twice (should never occur, because validateAndContinue always create a new entity)
           isNew = true; // Next row should be new
@@ -315,14 +305,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
       component: SampleModal,
       componentProps: options,
       keyboardClose: true,
-      backdropDismiss: false
+      backdropDismiss: false,
     });
 
     // Open the modal
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
     if (data && this.debug) console.debug('[samples-table] Modal result: ', data);
     this.markAsLoaded();
 
@@ -335,41 +325,40 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
 
     try {
       const taxonGroupId = toNumber(taxonGroup && taxonGroup.id, null);
-      (this.$pmfms.getValue() || []).forEach(pmfm => {
-
-        const show = isNil(taxonGroupId)
-          || !PmfmUtils.isDenormalizedPmfm(pmfm)
-          || (isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(taxonGroupId));
+      (this.$pmfms.getValue() || []).forEach((pmfm) => {
+        const show =
+          isNil(taxonGroupId) || !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(taxonGroupId);
         this.setShowColumn(pmfm.id.toString(), show);
       });
 
       this.updateColumns();
-    }
-    finally {
+    } finally {
       if (toggleLoading) this.markAsLoaded();
     }
   }
 
   async openAddPmfmsModal(event?: UIEvent) {
-
     // If pending rows, save first
     if (this.dirty) {
       const saved = await this.save();
       if (!saved) return;
     }
 
-    const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.id).filter(isNotNil);
+    const existingPmfmIds = (this.$pmfms.getValue() || []).map((p) => p.id).filter(isNotNil);
 
-    const pmfmIds = await this.openSelectPmfmsModal(event, {
-      excludedIds: existingPmfmIds
-    }, {
-      allowMultiple: false
-    });
+    const pmfmIds = await this.openSelectPmfmsModal(
+      event,
+      {
+        excludedIds: existingPmfmIds,
+      },
+      {
+        allowMultiple: false,
+      }
+    );
     if (!pmfmIds) return; // USer cancelled
 
     console.debug('[samples-table] Adding pmfm ids:', pmfmIds);
     await this.addPmfmColumns(pmfmIds);
-
   }
 
   /**
@@ -378,41 +367,41 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
    * @param event
    */
   async openChangePmfmsModal(event?: UIEvent) {
-    const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.id).filter(isNotNil);
+    const existingPmfmIds = (this.$pmfms.getValue() || []).map((p) => p.id).filter(isNotNil);
 
-    const pmfmIds = await this.openSelectPmfmsModal(event, {
-      excludedIds: existingPmfmIds
-    }, {
-      allowMultiple: false
-    });
+    const pmfmIds = await this.openSelectPmfmsModal(
+      event,
+      {
+        excludedIds: existingPmfmIds,
+      },
+      {
+        allowMultiple: false,
+      }
+    );
     if (!pmfmIds) return; // USer cancelled
-
   }
 
   /* -- protected methods -- */
 
-
   protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     //if (isNilOrBlank(value)) return [];
-    return this.programRefService.suggestTaxonGroups(value,
-      {
-        program: this.programLabel,
-        searchAttribute: options && options.searchAttribute
-      });
+    return this.programRefService.suggestTaxonGroups(value, {
+      program: this.programLabel,
+      searchAttribute: options && options.searchAttribute,
+    });
   }
 
   protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     const taxonGroup = this.editedRow && this.editedRow.validator.get('taxonGroup').value;
 
     // IF taxonGroup column exists: taxon group must be filled first
-    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return {data: []};
+    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return { data: [] };
 
-    return this.programRefService.suggestTaxonNames(value,
-      {
-        programLabel: this.programLabel,
-        searchAttribute: options && options.searchAttribute,
-        taxonGroupId: taxonGroup && taxonGroup.id || undefined
-      });
+    return this.programRefService.suggestTaxonNames(value, {
+      programLabel: this.programLabel,
+      searchAttribute: options && options.searchAttribute,
+      taxonGroupId: (taxonGroup && taxonGroup.id) || undefined,
+    });
   }
 
   protected async onNewEntity(data: Sample): Promise<void> {
@@ -457,7 +446,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit({id, row});
+      this.onOpenRow.emit({ id, row });
       return true;
     }
 
@@ -469,8 +458,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
     const updatedData = await this.openDetailModal(data, row);
     if (updatedData) {
       await this.updateEntityToTable(updatedData, row);
-    }
-    else {
+    } else {
       this.editedRow = null;
     }
     return true;
@@ -482,8 +470,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
 
   protected async findRowBySample(data: Sample): Promise<TableElement<Sample>> {
     if (!data || isNil(data.rankOrder)) throw new Error('Missing argument data or data.rankOrder');
-    return (await this.dataSource.getRows())
-      .find(r => r.currentData.rankOrder === data.rankOrder);
+    return (await this.dataSource.getRows()).find((r) => r.currentData.rankOrder === data.rankOrder);
   }
 
   async delete(event: UIEvent, data: Sample): Promise<boolean> {
@@ -494,7 +481,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
 
     const canDeleteRow = await this.canDeleteRows([row]);
     if (canDeleteRow === true) {
-      this.deleteRow(event, row, {interactive: false /*already confirmed*/});
+      this.deleteRow(event, row, { interactive: false /*already confirmed*/ });
     }
     return canDeleteRow;
   }
@@ -503,27 +490,26 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
     if (isEmptyArray(pmfmIds)) return; // Skip if empty
 
     // Load each pmfms, by id
-    const pmfms = (await Promise.all(pmfmIds.map(id => this.pmfmService.loadPmfmFull(id))));
+    const pmfms = await Promise.all(pmfmIds.map((id) => this.pmfmService.loadPmfmFull(id)));
 
-    this.pmfms = [
-      ...this.$pmfms.getValue(),
-      ...pmfms
-    ];
+    this.pmfms = [...this.$pmfms.getValue(), ...pmfms];
   }
 
-  protected async openSelectPmfmsModal(event?: UIEvent, filter?: Partial<PmfmFilter>,
-                                       opts?: {
-                                         allowMultiple?: boolean;
-                                       }): Promise<number[]> {
-
+  protected async openSelectPmfmsModal(
+    event?: UIEvent,
+    filter?: Partial<PmfmFilter>,
+    opts?: {
+      allowMultiple?: boolean;
+    }
+  ): Promise<number[]> {
     const modal = await this.modalCtrl.create({
       component: SelectPmfmModal,
       componentProps: {
         filter: PmfmFilter.fromObject(filter),
-        allowMultiple: opts && opts.allowMultiple
+        allowMultiple: opts && opts.allowMultiple,
       },
       keyboardClose: true,
-      cssClass: 'modal-large'
+      cssClass: 'modal-large',
     });
 
     // Open the modal
@@ -534,7 +520,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
     if (!res || isEmptyArray(res.data)) return; // CANCELLED
 
     // Return pmfm ids
-    return res.data.map(p => p.id);
+    return res.data.map((p) => p.id);
   }
 
   /**
@@ -543,7 +529,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
    * @param pmfms
    */
   protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
-
     if (isEmptyArray(pmfms)) return pmfms; // Nothing to map
 
     if (this.showGroupHeader) {
@@ -562,16 +547,16 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
       const pmfmGroupColumns: GroupColumnDefinition[] = ParameterGroups.concat('OTHER').reduce((pmfmGroups, group) => {
         let groupPmfms: IPmfm[];
         if (group === 'OTHER') {
-          groupPmfms = pmfms.filter(p => !groupedPmfmIds.includes(p.id));
+          groupPmfms = pmfms.filter((p) => !groupedPmfmIds.includes(p.id));
         } else {
           const groupPmfmIds = groupedPmfmIdsMap[group];
-          groupPmfms = isNotEmptyArray(groupPmfmIds) ? pmfms.filter(p => groupPmfmIds.includes(p.id)) : [];
+          groupPmfms = isNotEmptyArray(groupPmfmIds) ? pmfms.filter((p) => groupPmfmIds.includes(p.id)) : [];
         }
 
         const groupPmfmCount = groupPmfms.length;
-        const cssClass = (++groupIndex) % 2 === 0 ? 'even' : 'odd';
+        const cssClass = ++groupIndex % 2 === 0 ? 'even' : 'odd';
 
-        groupPmfms.forEach(pmfm => {
+        groupPmfms.forEach((pmfm) => {
           pmfm = pmfm.clone(); // Clone, to leave original PMFM unchanged
 
           // Use rankOrder as a group index (will be used in template, to computed column class)
@@ -588,30 +573,30 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
             if (orderedPmfmIds.includes(pmfm.id)) return res; // Skip if already proceed
             orderedPmfmIds.push(pmfm.id);
             const visible = group !== 'TAG_ID'; //  && groupPmfmCount > 1;
-            const key = 'group-' + ((pmfm instanceof DenormalizedPmfmStrategy) ? (pmfm as IDenormalizedPmfm).completeName : pmfm.label);
-            return index !== 0 ? res : res.concat(<GroupColumnDefinition>{
-              key,
-              label: group,
-              name: visible && (this.i18nColumnPrefix + group) || '',
-              cssClass: visible && cssClass || '',
-              colSpan: groupPmfmCount
-            });
-          }, []));
+            const key = 'group-' + (pmfm instanceof DenormalizedPmfmStrategy ? (pmfm as IDenormalizedPmfm).completeName : pmfm.label);
+            return index !== 0
+              ? res
+              : res.concat(<GroupColumnDefinition>{
+                  key,
+                  label: group,
+                  name: (visible && this.i18nColumnPrefix + group) || '',
+                  cssClass: (visible && cssClass) || '',
+                  colSpan: groupPmfmCount,
+                });
+          }, [])
+        );
       }, []);
       this.pmfmGroupColumns$.next(pmfmGroupColumns);
-      this.groupHeaderColumnNames =
-        ['top-start']
-          .concat(pmfmGroupColumns.map(g => g.key))
-          .concat(['top-end']);
-      this.groupHeaderStartColSpan = RESERVED_START_COLUMNS.length
-        + (this.showLabelColumn ? 1 : 0)
-        + (this.showTaxonGroupColumn ? 1 : 0)
-        + (this.showTaxonNameColumn ? 1 : 0)
-        + (this.showDateTimeColumn ? 1 : 0);
-      this.groupHeaderEndColSpan = RESERVED_END_COLUMNS.length
-        + (this.showCommentsColumn ? 1 : 0);
+      this.groupHeaderColumnNames = ['top-start'].concat(pmfmGroupColumns.map((g) => g.key)).concat(['top-end']);
+      this.groupHeaderStartColSpan =
+        RESERVED_START_COLUMNS.length +
+        (this.showLabelColumn ? 1 : 0) +
+        (this.showTaxonGroupColumn ? 1 : 0) +
+        (this.showTaxonNameColumn ? 1 : 0) +
+        (this.showDateTimeColumn ? 1 : 0);
+      this.groupHeaderEndColSpan = RESERVED_END_COLUMNS.length + (this.showCommentsColumn ? 1 : 0);
 
-      orderedPmfms.forEach(p => this.memoryDataService.addSortByReplacement(p.id.toString(), 'measurementValues.' + p.id.toString()));
+      orderedPmfms.forEach((p) => this.memoryDataService.addSortByReplacement(p.id.toString(), 'measurementValues.' + p.id.toString()));
       return orderedPmfms;
     }
 
@@ -628,8 +613,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
       case PmfmIds.OUT_OF_SIZE_PCT:
         if (pmfmValue && pmfmValue > 50) {
           color = 'danger';
-        }
-        else {
+        } else {
           color = 'success';
         }
         break;
@@ -656,8 +640,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
   }
 
   protected addFooterListener(pmfms: IPmfm[]) {
-
-    this.showTagCount = pmfms && pmfms.findIndex(pmfm => pmfm.id === PmfmIds.TAG_ID) !== -1;
+    this.showTagCount = pmfms && pmfms.findIndex((pmfm) => pmfm.id === PmfmIds.TAG_ID) !== -1;
 
     // Should display tag count: add column to footer
     if (this.showTagCount && !this.footerColumns.includes('footer-tagCount')) {
@@ -666,7 +649,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
     // If tag count not displayed
     else if (!this.showTagCount) {
       // Remove from footer columns
-      this.footerColumns = this.footerColumns.filter(column => column !== 'footer-tagCount');
+      this.footerColumns = this.footerColumns.filter((column) => column !== 'footer-tagCount');
 
       // Reset counter
       this.tagCount$.next(0);
@@ -682,22 +665,17 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> imp
       this.unregisterSubscription(this._footerRowsSubscription);
       this._footerRowsSubscription.unsubscribe();
       this._footerRowsSubscription = null;
-    }
-
-    else if (this.showFooter && !this._footerRowsSubscription) {
-      this._footerRowsSubscription = this.dataSource.connect(null)
-        .pipe(
-          debounceTime(500)
-        ).subscribe(rows => this.updateFooter(rows));
+    } else if (this.showFooter && !this._footerRowsSubscription) {
+      this._footerRowsSubscription = this.dataSource
+        .connect(null)
+        .pipe(debounceTime(500))
+        .subscribe((rows) => this.updateFooter(rows));
     }
   }
 
   protected updateFooter(rows: TableElement<Sample>[] | readonly TableElement<Sample>[]) {
     // Update tag count
-    const tagCount = (rows || []).map(row => row.currentData.measurementValues[PmfmIds.TAG_ID.toString()] as string)
-      .filter(isNotNilOrBlank)
-      .length;
+    const tagCount = (rows || []).map((row) => row.currentData.measurementValues[PmfmIds.TAG_ID.toString()] as string).filter(isNotNilOrBlank).length;
     this.tagCount$.next(tagCount);
   }
 }
-

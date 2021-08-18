@@ -1,14 +1,12 @@
-import {Injectable} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {SharedValidators, toNumber} from '@sumaris-net/ngx-components';
-import {Sample} from '../model/sample.model';
+import { Injectable } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { SharedValidators, toNumber } from '@sumaris-net/ngx-components';
+import { Sample } from '../model/sample.model';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class SubSampleValidatorService implements ValidatorService {
-
-  constructor(private formBuilder: FormBuilder) {
-  }
+  constructor(private formBuilder: FormBuilder) {}
 
   getRowValidator(): FormGroup {
     return this.getFormGroup();
@@ -18,11 +16,11 @@ export class SubSampleValidatorService implements ValidatorService {
     return this.formBuilder.group({
       __typename: [Sample.TYPENAME],
       id: [toNumber(data && data.id, null)],
-      updateDate: [data && data.updateDate || null],
+      updateDate: [(data && data.updateDate) || null],
       rankOrder: [toNumber(data && data.rankOrder, null), Validators.required],
-      label: [data && data.label || null, Validators.required],
-      parent: [data && data.parent || null, Validators.compose([Validators.required, SharedValidators.object])],
-      comments: [data && data.comments || null]
+      label: [(data && data.label) || null, Validators.required],
+      parent: [(data && data.parent) || null, Validators.compose([Validators.required, SharedValidators.object])],
+      comments: [(data && data.comments) || null],
     });
   }
 }

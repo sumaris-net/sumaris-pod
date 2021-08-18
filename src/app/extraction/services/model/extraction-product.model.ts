@@ -1,9 +1,9 @@
 /* -- Extraction -- */
 
-import {Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, isNotEmptyArray, toBoolean, toDateISOString} from '@sumaris-net/ngx-components';
-import {Moment} from 'moment';
-import {IWithRecorderDepartmentEntity, IWithRecorderPersonEntity} from '@app/data/services/model/model.utils';
-import {ExtractionColumn, ExtractionFilter, ExtractionType} from './extraction-type.model';
+import { Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, isNotEmptyArray, toBoolean, toDateISOString } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
+import { IWithRecorderDepartmentEntity, IWithRecorderPersonEntity } from '@app/data/services/model/model.utils';
+import { ExtractionColumn, ExtractionFilter, ExtractionType } from './extraction-type.model';
 
 export type StrataAreaType = 'area' | 'statistical_rectangle' | 'sub_polygon' | 'square';
 export type StrataTimeType = 'year' | 'quarter' | 'month';
@@ -13,7 +13,7 @@ export const ProcessingFrequencyIds = {
   MANUALLY: 1,
   DAILY: 2,
   WEEKLY: 3,
-  MONTHLY: 4
+  MONTHLY: 4,
 };
 
 export declare interface ProcessingFrequency {
@@ -23,32 +23,31 @@ export declare interface ProcessingFrequency {
 export const ProcessingFrequencyList: ProcessingFrequency[] = [
   {
     id: ProcessingFrequencyIds.NEVER,
-    label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.NEVER'
+    label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.NEVER',
   },
   {
     id: ProcessingFrequencyIds.MANUALLY,
-    label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.MANUALLY'
+    label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.MANUALLY',
   },
   {
     id: ProcessingFrequencyIds.DAILY,
-    label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.DAILY'
+    label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.DAILY',
   },
   {
     id: ProcessingFrequencyIds.WEEKLY,
-    label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.WEEKLY'
+    label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.WEEKLY',
   },
   {
     id: ProcessingFrequencyIds.MONTHLY,
-    label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.MONTHLY'
-  }
+    label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.MONTHLY',
+  },
 ];
 
-
-@EntityClass({typename: 'AggregationTypeVO'})
-export class ExtractionProduct extends ExtractionType<ExtractionProduct>
-  implements IWithRecorderDepartmentEntity<ExtractionProduct>,
-             IWithRecorderPersonEntity<ExtractionProduct> {
-
+@EntityClass({ typename: 'AggregationTypeVO' })
+export class ExtractionProduct
+  extends ExtractionType<ExtractionProduct>
+  implements IWithRecorderDepartmentEntity<ExtractionProduct>, IWithRecorderPersonEntity<ExtractionProduct>
+{
   static fromObject: (source: any, opts?: any) => ExtractionProduct;
 
   category: 'PRODUCT' = null;
@@ -70,22 +69,25 @@ export class ExtractionProduct extends ExtractionType<ExtractionProduct>
     this.processingFrequencyId = source.processingFrequencyId;
     this.documentation = source.documentation;
     this.creationDate = fromDateISOString(source.creationDate);
-    this.stratum = isNotEmptyArray(source.stratum) && source.stratum.map(AggregationStrata.fromObject) || [];
-    this.filter = source.filter && (typeof source.filter === 'string') ? JSON.parse(source.filter) as ExtractionFilter : source.filter;
+    this.stratum = (isNotEmptyArray(source.stratum) && source.stratum.map(AggregationStrata.fromObject)) || [];
+    this.filter = source.filter && typeof source.filter === 'string' ? (JSON.parse(source.filter) as ExtractionFilter) : source.filter;
   }
 
   asObject(options?: EntityAsObjectOptions): any {
     const target = super.asObject(options);
 
     target.creationDate = toDateISOString(this.creationDate);
-    target.stratum = this.stratum && this.stratum.map(s => s.asObject(options)) || undefined;
-    target.columns = this.columns && this.columns.map((c: any) => {
-      const json = Object.assign({}, c);
-      delete json.index;
-      delete json.__typename;
-      return json;
-    }) || undefined;
-    target.filter = this.filter && (typeof this.filter === 'object') ? JSON.stringify(this.filter) : this.filter;
+    target.stratum = (this.stratum && this.stratum.map((s) => s.asObject(options))) || undefined;
+    target.columns =
+      (this.columns &&
+        this.columns.map((c: any) => {
+          const json = Object.assign({}, c);
+          delete json.index;
+          delete json.__typename;
+          return json;
+        })) ||
+      undefined;
+    target.filter = this.filter && typeof this.filter === 'object' ? JSON.stringify(this.filter) : this.filter;
     return target;
   }
 }
@@ -99,7 +101,6 @@ export declare interface IAggregationStrata {
 }
 
 export class AggregationStrata extends Entity<AggregationStrata> implements IAggregationStrata {
-
   static TYPENAME = 'AggregationStrataVO';
 
   static fromObject(source: any): AggregationStrata {
@@ -128,7 +129,7 @@ export class AggregationStrata extends Entity<AggregationStrata> implements IAgg
     return target;
   }
 
-// TODO : Check if clone is needed
+  // TODO : Check if clone is needed
   clone(): AggregationStrata {
     return this.copy(new AggregationStrata());
   }

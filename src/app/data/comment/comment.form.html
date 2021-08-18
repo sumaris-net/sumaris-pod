@@ -1,5 +1,4 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
-
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -7,19 +6,18 @@
   </ion-item>
 
   <ion-grid class="ion-no-margin">
-
     <ion-row>
       <ion-col>
         <mat-form-field>
-          <textarea #textarea
-                    matInput
-                    [formControl]="form.controls.comment"
-                    [placeholder]="'REFERENTIAL.COMMENTS'|translate"
-                    [readonly]="disabled">
-          </textarea>
+          <textarea
+            #textarea
+            matInput
+            [formControl]="form.controls.comment"
+            [placeholder]="'REFERENTIAL.COMMENTS' | translate"
+            [readonly]="disabled"
+          ></textarea>
         </mat-form-field>
       </ion-col>
     </ion-row>
   </ion-grid>
-
 </form>

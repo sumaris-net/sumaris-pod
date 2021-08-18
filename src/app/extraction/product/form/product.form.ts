@@ -1,17 +1,17 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {ExtractionColumn} from '../../services/model/extraction-type.model';
-import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
-import {AggregationTypeValidatorService} from '../../services/validator/aggregation-type.validator';
-import {ReferentialForm} from '@app/referential/form/referential.form';
-import {BehaviorSubject} from 'rxjs';
-import {AppForm, arraySize, EntityUtils, FormArrayHelper, isNil, isNotNilOrBlank, LocalSettingsService, StatusIds} from '@sumaris-net/ngx-components';
-import {DateAdapter} from '@angular/material/core';
-import {Moment} from 'moment';
-import {ExtractionService} from '../../services/extraction.service';
-import {debounceTime} from 'rxjs/operators';
-import {AggregationStrata, ExtractionProduct, ProcessingFrequency, ProcessingFrequencyList} from '../../services/model/extraction-product.model';
-import {ExtractionUtils} from '../../services/extraction.utils';
-import {ExtractionProductService} from '../../services/extraction-product.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { ExtractionColumn } from '../../services/model/extraction-type.model';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { AggregationTypeValidatorService } from '../../services/validator/aggregation-type.validator';
+import { ReferentialForm } from '@app/referential/form/referential.form';
+import { BehaviorSubject } from 'rxjs';
+import { AppForm, arraySize, EntityUtils, FormArrayHelper, isNil, isNotNilOrBlank, LocalSettingsService, StatusIds } from '@sumaris-net/ngx-components';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { ExtractionService } from '../../services/extraction.service';
+import { debounceTime } from 'rxjs/operators';
+import { AggregationStrata, ExtractionProduct, ProcessingFrequency, ProcessingFrequencyList } from '../../services/model/extraction-product.model';
+import { ExtractionUtils } from '../../services/extraction.utils';
+import { ExtractionProductService } from '../../services/extraction-product.service';
 
 declare interface ColumnMap {
   [sheetName: string]: ExtractionColumn[];
@@ -26,11 +26,9 @@ const FrequenciesById: { [id: number]: ProcessingFrequency } = ProcessingFrequen
   selector: 'app-product-form',
   styleUrls: ['product.form.scss'],
   templateUrl: 'product.form.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
-
-
   data: ExtractionProduct;
   frequenciesById = FrequenciesById;
 
@@ -42,12 +40,12 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
   aggFunctions = [
     {
       value: 'SUM',
-      name: 'EXTRACTION.AGGREGATION.EDIT.AGG_FUNCTION.SUM'
+      name: 'EXTRACTION.AGGREGATION.EDIT.AGG_FUNCTION.SUM',
     },
     {
       value: 'AVG',
-      name: 'EXTRACTION.AGGREGATION.EDIT.AGG_FUNCTION.AVG'
-    }
+      name: 'EXTRACTION.AGGREGATION.EDIT.AGG_FUNCTION.AVG',
+    },
   ];
 
   stratumFormArray: FormArray;
@@ -59,7 +57,7 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
   @Input()
   showError = true;
 
-  @ViewChild('referentialForm', {static: true}) referentialForm: ReferentialForm;
+  @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
 
   get value(): any {
     const json = this.form.value;
@@ -89,16 +87,16 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
     }
   }
 
-  constructor(protected dateAdapter: DateAdapter<Moment>,
-              protected formBuilder: FormBuilder,
-              protected settings: LocalSettingsService,
-              protected validatorService: AggregationTypeValidatorService,
-              protected extractionService: ExtractionService,
-              protected aggregationService: ExtractionProductService,
-              protected cd: ChangeDetectorRef) {
-    super(dateAdapter,
-      validatorService.getFormGroup(),
-      settings);
+  constructor(
+    protected dateAdapter: DateAdapter<Moment>,
+    protected formBuilder: FormBuilder,
+    protected settings: LocalSettingsService,
+    protected validatorService: AggregationTypeValidatorService,
+    protected extractionService: ExtractionService,
+    protected aggregationService: ExtractionProductService,
+    protected cd: ChangeDetectorRef
+  ) {
+    super(dateAdapter, validatorService.getFormGroup(), settings);
 
     // Stratum
     this.stratumFormArray = this.form.controls.stratum as FormArray;
@@ -108,27 +106,24 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
       (v1, v2) => EntityUtils.equals(v1, v2, 'id') || v1.sheetName === v2.sheetName,
       (strata) => !strata || isNil(strata.sheetName),
       {
-        allowEmptyArray: false
+        allowEmptyArray: false,
       }
     );
 
     this.registerSubscription(
-      this.form.get('documentation').valueChanges
-        .pipe(
-          debounceTime(350)
-        )
-        .subscribe(md => this.$markdownContent.next(md))
-      );
+      this.form
+        .get('documentation')
+        .valueChanges.pipe(debounceTime(350))
+        .subscribe((md) => this.$markdownContent.next(md))
+    );
   }
 
   async updateLists(type?: ExtractionProduct) {
     if (type) {
       this.data = type;
-    }
-    else if (this.data) {
+    } else if (this.data) {
       type = this.data;
-    }
-    else {
+    } else {
       return; // Skip
     }
 
@@ -136,21 +131,23 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
 
     // If spatial, load columns
     if (type.isSpatial || this.isSpatial) {
-
       const sheetNames = type.sheetNames || [];
       this.$sheetNames.next(sheetNames);
 
-      const map: {[key: string]: ColumnMap} = {};
-      await Promise.all(sheetNames.map(sheetName => this.aggregationService.loadColumns(type, sheetName)
-          .then(columns => {
+      const map: { [key: string]: ColumnMap } = {};
+      await Promise.all(
+        sheetNames.map((sheetName) =>
+          this.aggregationService.loadColumns(type, sheetName).then((columns) => {
             columns = columns || [];
             const columnMap = ExtractionUtils.dispatchColumns(columns);
-            Object.keys(columnMap).forEach(key => {
+            Object.keys(columnMap).forEach((key) => {
               const m: ColumnMap = map[key] || <ColumnMap>{};
               m[sheetName] = columnMap[key];
               map[key] = m;
             });
-          })));
+          })
+        )
+      );
 
       console.debug('[aggregation-type] Columns map:', map);
       this.$timeColumns.next(map.timeColumns);
@@ -171,38 +168,36 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
       {
         id: StatusIds.ENABLE,
         icon: 'eye',
-        label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.PUBLIC'
+        label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.PUBLIC',
       },
       {
         id: StatusIds.TEMPORARY,
         icon: 'eye-off',
-        label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.PRIVATE'
+        label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.PRIVATE',
       },
       {
         id: StatusIds.DISABLE,
         icon: 'close',
-        label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.DISABLE'
-      }
+        label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.DISABLE',
+      },
     ];
 
     this.registerSubscription(
-      this.form.get('isSpatial').valueChanges
-        .subscribe(isSpatial => {
-           // Not need stratum
-           if (!isSpatial) {
-             this.stratumHelper.resize(0);
-             this.stratumHelper.allowEmptyArray = true;
-             this.stratumFormArray.disable();
-           }
-           else {
-             if (this.stratumHelper.size() === 0) {
-               this.stratumHelper.resize(1);
-             }
-             this.stratumHelper.allowEmptyArray = false;
-             this.stratumFormArray.enable();
-             this.updateLists();
-           }
-        })
+      this.form.get('isSpatial').valueChanges.subscribe((isSpatial) => {
+        // Not need stratum
+        if (!isSpatial) {
+          this.stratumHelper.resize(0);
+          this.stratumHelper.allowEmptyArray = true;
+          this.stratumFormArray.disable();
+        } else {
+          if (this.stratumHelper.size() === 0) {
+            this.stratumHelper.resize(1);
+          }
+          this.stratumHelper.allowEmptyArray = false;
+          this.stratumFormArray.enable();
+          this.updateLists();
+        }
+      })
     );
   }
 
@@ -216,7 +211,6 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
   /* -- protected -- */
 
   setValue(data: ExtractionProduct, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-
     console.debug('[product-form] Setting value: ', data);
     // If spatial, load columns
     if (data && data.isSpatial) {
@@ -224,8 +218,7 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
       this.stratumHelper.resize(Math.max(1, arraySize(data.stratum)));
       this.stratumHelper.allowEmptyArray = false;
       this.stratumHelper.enable();
-    }
-    else {
+    } else {
       this.stratumHelper.resize(0);
       this.stratumHelper.allowEmptyArray = true;
       this.stratumHelper.disable();
@@ -235,13 +228,9 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
     this.showMarkdownPreview = this.showMarkdownPreview && isNotNilOrBlank(data.documentation);
 
     super.setValue(data, opts);
-
   }
-
-
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }

@@ -1,19 +1,18 @@
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Output, ViewChild} from '@angular/core';
-import {AlertController, IonContent, ModalController} from '@ionic/angular';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {PhysicalGearForm} from './physical-gear.form';
-import {BehaviorSubject} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {Alerts, createPromiseEventEmitter, emitPromiseEvent, isNil, PlatformService} from '@sumaris-net/ngx-components';
-import {PhysicalGear} from '../services/model/trip.model';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { AlertController, IonContent, ModalController } from '@ionic/angular';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { PhysicalGearForm } from './physical-gear.form';
+import { BehaviorSubject } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { Alerts, createPromiseEventEmitter, emitPromiseEvent, isNil, PlatformService } from '@sumaris-net/ngx-components';
+import { PhysicalGear } from '../services/model/trip.model';
 
 @Component({
   selector: 'app-physical-gear-modal',
   templateUrl: './physical-gear.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PhysicalGearModal implements OnInit, AfterViewInit {
-
   loading = false;
   originalData: PhysicalGear;
   $title = new BehaviorSubject<string>(undefined);
@@ -40,9 +39,9 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
 
   @Output() onCopyPreviousGearClick = createPromiseEventEmitter<PhysicalGear>();
 
-  @ViewChild('form', {static: true}) form: PhysicalGearForm;
+  @ViewChild('form', { static: true }) form: PhysicalGearForm;
 
-  @ViewChild(IonContent, {static: true}) content: IonContent;
+  @ViewChild(IonContent, { static: true }) content: IonContent;
 
   get enabled(): boolean {
     return !this.disabled;
@@ -55,7 +54,6 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
     protected platform: PlatformService,
     protected cd: ChangeDetectorRef
   ) {
-
     // Default values
     this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
     this.mobile = platform.mobile;
@@ -78,13 +76,12 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     // Focus on the first field, is not in mobile
-     if (this.isNew && !this.mobile && this.enabled) {
-       setTimeout(() => this.form.focusFirstInput(), 400);
-     }
+    if (this.isNew && !this.mobile && this.enabled) {
+      setTimeout(() => this.form.focusFirstInput(), 400);
+    }
   }
 
   async copyPreviousGear(event?: UIEvent) {
-
     if (this.onCopyPreviousGearClick.observers.length === 0) return; // Skip
 
     // Emit event, then wait for a result
@@ -114,11 +111,10 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
 
       await this.form.ready();
       this.form.markAsDirty();
-    }
-    catch (err) {
+    } catch (err) {
       if (err === 'CANCELLED') return; // Skip
       console.error(err);
-      this.form.error = err && err.message || err;
+      this.form.error = (err && err.message) || err;
       this.scrollToTop();
     }
   }
@@ -131,7 +127,6 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
   //
   //   return physicalGear;
   // }
-
 
   async cancel(event: UIEvent) {
     await this.saveIfDirtyAndConfirm(event);
@@ -158,10 +153,9 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
       const gear = this.form.value;
 
       return await this.viewCtrl.dismiss(gear);
-    }
-    catch (err) {
+    } catch (err) {
       this.loading = false;
-      this.form.error = err && err.message || err;
+      this.form.error = (err && err.message) || err;
       this.scrollToTop();
       return false;
     }
@@ -185,7 +179,7 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
     const confirmation = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
 
     // User cancelled
-    if (isNil(confirmation) || event && event.defaultPrevented) {
+    if (isNil(confirmation) || (event && event.defaultPrevented)) {
       return;
     }
 
@@ -207,8 +201,7 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
   protected async computeTitle() {
     if (this.isNew || !this.originalData) {
       this.$title.next(await this.translate.get('TRIP.PHYSICAL_GEAR.NEW.TITLE').toPromise());
-    }
-    else {
+    } else {
       this.$title.next(await this.translate.get('TRIP.PHYSICAL_GEAR.EDIT.TITLE', this.originalData).toPromise());
     }
   }

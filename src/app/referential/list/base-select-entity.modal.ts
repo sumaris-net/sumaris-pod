@@ -1,16 +1,11 @@
-import {Directive, Input, OnInit, Optional, ViewChild} from '@angular/core';
-import {ModalController} from '@ionic/angular';
-import {AppTable, AppTableDataSourceOptions, EntitiesTableDataSource, IEntitiesService, IEntity, isNotNil, ReferentialRef, toBoolean} from '@sumaris-net/ngx-components';
-import {Subject} from 'rxjs';
-import {environment} from '@environments/environment';
+import { Directive, Input, OnInit, Optional, ViewChild } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { AppTable, AppTableDataSourceOptions, EntitiesTableDataSource, IEntitiesService, IEntity, isNotNil, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
+import { Subject } from 'rxjs';
+import { environment } from '@environments/environment';
 
 @Directive()
-export abstract class BaseSelectEntityModal<
-  T extends IEntity<T, ID>,
-  F = any,
-  ID = number
-  > implements OnInit {
-
+export abstract class BaseSelectEntityModal<T extends IEntity<T, ID>, F = any, ID = number> implements OnInit {
   selectedTabIndex = 0;
   $title = new Subject<string>();
   datasource: EntitiesTableDataSource<T, F, ID>;
@@ -27,14 +22,12 @@ export abstract class BaseSelectEntityModal<
 
   protected constructor(
     protected viewCtrl: ModalController,
-    protected dataType: new() => T,
+    protected dataType: new () => T,
     protected dataService: IEntitiesService<T, F>,
     @Optional() protected options?: Partial<AppTableDataSourceOptions<T, ID>>
-  ) {
-  }
+  ) {}
 
   ngOnInit() {
-
     // Init table
     if (!this.table) throw new Error(`Missing table child component`);
     if (!this.filter) throw new Error(`Missing argument 'filter'`);
@@ -42,14 +35,11 @@ export abstract class BaseSelectEntityModal<
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);
 
-    this.datasource = new EntitiesTableDataSource<T, F, ID>(this.dataType,
-      this.dataService,
-      null,
-      {
-        prependNewElements: false,
-        suppressErrors: environment.production,
-        ...this.options
-      });
+    this.datasource = new EntitiesTableDataSource<T, F, ID>(this.dataType, this.dataService, null, {
+      prependNewElements: false,
+      suppressErrors: environment.production,
+      ...this.options,
+    });
 
     this.table.setDatasource(this.datasource);
     this.table.filter = this.filter;
@@ -58,27 +48,24 @@ export abstract class BaseSelectEntityModal<
     this.updateTitle();
 
     this.loadData();
-
   }
 
   loadData() {
     // Load data
     setTimeout(() => {
-
       this.table.onRefresh.next('modal');
       this.markForCheck();
     }, 200);
   }
 
-  async selectRow({id, row}) {
+  async selectRow({ id, row }) {
     const table = this.table;
     if (row && table) {
       if (!this.allowMultiple) {
         table.selection.clear();
         table.selection.select(row);
         await this.close();
-      }
-      else {
+      } else {
         table.selection.select(row);
       }
     }
@@ -88,9 +75,9 @@ export abstract class BaseSelectEntityModal<
     try {
       if (this.hasSelection()) {
         const items = (this.table.selection.selected || [])
-            .map(row => row.currentData)
-            .map(ReferentialRef.fromObject)
-            .filter(isNotNil);
+          .map((row) => row.currentData)
+          .map(ReferentialRef.fromObject)
+          .filter(isNotNil);
         this.viewCtrl.dismiss(items);
       }
       return true;
@@ -109,7 +96,7 @@ export abstract class BaseSelectEntityModal<
     return table && table.selection.hasValue() && (this.allowMultiple || table.selection.selected.length === 1);
   }
 
-  private async updateTitle(){
+  private async updateTitle() {
     const title = await this.computeTitle();
     this.$title.next(title);
   }

@@ -1,18 +1,18 @@
-import {NgModule} from '@angular/core';
-import {VesselForm} from './form/form-vessel';
-import {VesselPage} from './page/vessel.page';
-import {VesselsTable} from './list/vessels.table';
-import {VesselModal} from './modal/vessel-modal';
-import {VesselsPage} from './list/vessels.page';
-import {TranslateModule} from '@ngx-translate/core';
+import { NgModule } from '@angular/core';
+import { VesselForm } from './form/form-vessel';
+import { VesselPage } from './page/vessel.page';
+import { VesselsTable } from './list/vessels.table';
+import { VesselModal } from './modal/vessel-modal';
+import { VesselsPage } from './list/vessels.page';
+import { TranslateModule } from '@ngx-translate/core';
 
-import {TextMaskModule} from 'angular2-text-mask';
-import {CommonModule} from '@angular/common';
-import {AppDataModule} from '../data/app-data.module';
-import {VesselFeaturesHistoryComponent} from './page/vessel-features-history.component';
-import {VesselRegistrationHistoryComponent} from './page/vessel-registration-history.component';
-import {AppReferentialModule} from '../referential/app-referential.module';
-import {AppCoreModule} from '@app/core/core.module';
+import { TextMaskModule } from 'angular2-text-mask';
+import { CommonModule } from '@angular/common';
+import { AppDataModule } from '../data/app-data.module';
+import { VesselFeaturesHistoryComponent } from './page/vessel-features-history.component';
+import { VesselRegistrationHistoryComponent } from './page/vessel-registration-history.component';
+import { AppReferentialModule } from '../referential/app-referential.module';
+import { AppCoreModule } from '@app/core/core.module';
 
 @NgModule({
   imports: [
@@ -26,7 +26,6 @@ import {AppCoreModule} from '@app/core/core.module';
     AppDataModule,
   ],
   declarations: [
-
     // Components
     VesselsTable,
     VesselPage,
@@ -34,7 +33,7 @@ import {AppCoreModule} from '@app/core/core.module';
     VesselForm,
     VesselModal,
     VesselFeaturesHistoryComponent,
-    VesselRegistrationHistoryComponent
+    VesselRegistrationHistoryComponent,
   ],
   exports: [
     TranslateModule,
@@ -44,8 +43,7 @@ import {AppCoreModule} from '@app/core/core.module';
     VesselPage,
     VesselsPage,
     VesselForm,
-    VesselsPage
-  ]
+    VesselsPage,
+  ],
 })
-export class VesselModule {
-}
+export class VesselModule {}

@@ -1,9 +1,9 @@
-import {DateAdapter} from '@angular/material/core';
-import {Moment} from 'moment';
-import {ReferentialValidatorService} from '../services/validator/referential.validator';
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {AppForm, DefaultStatusList, LocalSettingsService, Referential, StatusValue} from '@sumaris-net/ngx-components';
-import {ValidatorService} from '@e-is/ngx-material-table';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { ReferentialValidatorService } from '../services/validator/referential.validator';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { AppForm, DefaultStatusList, LocalSettingsService, Referential, StatusValue } from '@sumaris-net/ngx-components';
+import { ValidatorService } from '@e-is/ngx-material-table';
 
 @Component({
   selector: 'app-referential-form',
@@ -12,12 +12,11 @@ import {ValidatorService} from '@e-is/ngx-material-table';
   providers: [
     {
       provide: ValidatorService,
-      useExisting: ReferentialValidatorService
-    }
-  ]
+      useExisting: ReferentialValidatorService,
+    },
+  ],
 })
 export class ReferentialForm extends AppForm<Referential> implements OnInit {
-
   private _statusList = DefaultStatusList;
   statusById: { [id: number]: StatusValue };
 
@@ -32,7 +31,7 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
 
     // Fill statusById
     this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
+    this.statusList.forEach((status) => (this.statusById[status.id] = status));
   }
 
   get statusList(): StatusValue[] {
@@ -46,7 +45,6 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
     protected cd?: ChangeDetectorRef
   ) {
     super(dateAdapter, validatorService.getRowValidator(), settings);
-
   }
 
   ngOnInit() {
@@ -55,7 +53,7 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
     // Fill statusById
     if (this._statusList && !this.statusById) {
       this.statusById = {};
-      this._statusList.forEach((status) => this.statusById[status.id] = status);
+      this._statusList.forEach((status) => (this.statusById[status.id] = status));
     }
   }
 

@@ -1,22 +1,29 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {VesselValidatorService} from '../services/validator/vessel.validator';
-import {Vessel} from '../services/model/vessel.model';
-import {LocationLevelIds} from '@app/referential/services/model/model.enum';
-import {AccountService, AppForm, AppFormUtils, DefaultStatusList, LocalSettingsService, referentialToString, StatusIds, toBoolean} from '@sumaris-net/ngx-components';
-import {Moment} from 'moment';
-import {DateAdapter} from '@angular/material/core';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {FormGroup} from '@angular/forms';
-
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { VesselValidatorService } from '../services/validator/vessel.validator';
+import { Vessel } from '../services/model/vessel.model';
+import { LocationLevelIds } from '@app/referential/services/model/model.enum';
+import {
+  AccountService,
+  AppForm,
+  AppFormUtils,
+  DefaultStatusList,
+  LocalSettingsService,
+  referentialToString,
+  StatusIds,
+  toBoolean,
+} from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
+import { DateAdapter } from '@angular/material/core';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { FormGroup } from '@angular/forms';
 
 @Component({
   selector: 'form-vessel',
   templateUrl: './form-vessel.html',
   styleUrls: ['./form-vessel.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VesselForm extends AppForm<Vessel> implements OnInit {
-
   private _defaultStatus: number;
 
   data: Vessel;
@@ -30,7 +37,7 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
       this._defaultStatus = value;
       console.debug('[form-vessel] Changing default status to:' + value);
       if (this.form) {
-        this.form.patchValue({statusId : this.defaultStatus});
+        this.form.patchValue({ statusId: this.defaultStatus });
       }
       this.canEditStatus = !this._defaultStatus || this.isAdmin();
     }
@@ -56,16 +63,13 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
     protected settings: LocalSettingsService,
     private accountService: AccountService
   ) {
-
-    super(dateAdapter,
-      vesselValidatorService.getFormGroup(),
-      settings);
+    super(dateAdapter, vesselValidatorService.getFormGroup(), settings);
 
     this.canEditStatus = this.accountService.isAdmin();
 
     // Fill statusById
     this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
+    this.statusList.forEach((status) => (this.statusById[status.id] = status));
   }
 
   ngOnInit() {
@@ -80,28 +84,28 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
       filter: {
         entityName: 'Location',
         levelId: LocationLevelIds.PORT,
-        statusId: StatusIds.ENABLE
-      }
+        statusId: StatusIds.ENABLE,
+      },
     });
     this.registerAutocompleteField('registrationLocation', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
         levelId: LocationLevelIds.COUNTRY,
-        statusId: StatusIds.ENABLE
-      }
+        statusId: StatusIds.ENABLE,
+      },
     });
     this.registerAutocompleteField('vesselType', {
       service: this.referentialRefService,
       filter: {
         entityName: 'VesselType',
-        statusId: StatusIds.ENABLE
-      }
+        statusId: StatusIds.ENABLE,
+      },
     });
 
     if (this._defaultStatus) {
       this.form.patchValue({
-        statusId: this._defaultStatus
+        statusId: this._defaultStatus,
       });
     }
   }
@@ -112,7 +116,6 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
 
   referentialToString = referentialToString;
   filterNumberInput = AppFormUtils.filterNumberInput;
-
 
   /* -- protected methods -- */
 

@@ -1,9 +1,8 @@
-import {BaseReferential, EntityClass, EntityUtils, FormFieldDefinition, isNotNil, PropertiesMap, ReferentialAsObjectOptions, ReferentialRef} from '@sumaris-net/ngx-components';
-import {Strategy} from './strategy.model';
+import { BaseReferential, EntityClass, EntityUtils, FormFieldDefinition, isNotNil, PropertiesMap, ReferentialAsObjectOptions, ReferentialRef } from '@sumaris-net/ngx-components';
+import { Strategy } from './strategy.model';
 
-@EntityClass({typename: 'ProgramVO'})
+@EntityClass({ typename: 'ProgramVO' })
 export class Program extends BaseReferential<Program> {
-
   static fromObject: (source: any, opts?: any) => Program;
 
   properties: PropertiesMap = {};
@@ -22,17 +21,17 @@ export class Program extends BaseReferential<Program> {
     if (opts && opts.minify) {
       return {
         id: this.id,
-        __typename: opts.keepTypename && this.__typename || undefined
+        __typename: (opts.keepTypename && this.__typename) || undefined,
       };
     }
     const target: any = super.asObject(opts);
-    target.properties = {...this.properties};
+    target.properties = { ...this.properties };
     target.gearClassification = this.gearClassification && this.gearClassification.asObject(opts);
     target.taxonGroupType = this.taxonGroupType && this.taxonGroupType.asObject(opts);
-    target.locationClassifications = this.locationClassifications  && this.locationClassifications.map(item => item.asObject(opts)) || [];
-    target.locations = this.locations && this.locations.map(item => item.asObject(opts)) || [];
+    target.locationClassifications = (this.locationClassifications && this.locationClassifications.map((item) => item.asObject(opts))) || [];
+    target.locations = (this.locations && this.locations.map((item) => item.asObject(opts))) || [];
 
-    target.strategies = this.strategies && this.strategies.map(s => s.asObject(opts));
+    target.strategies = this.strategies && this.strategies.map((s) => s.asObject(opts));
     return target;
   }
 
@@ -41,15 +40,16 @@ export class Program extends BaseReferential<Program> {
     if (source.properties && source.properties instanceof Array) {
       this.properties = EntityUtils.getPropertyArrayAsObject(source.properties);
     } else {
-      this.properties = {...source.properties};
+      this.properties = { ...source.properties };
     }
     this.gearClassification = source.gearClassification && ReferentialRef.fromObject(source.gearClassification);
-    this.taxonGroupType = (source.taxonGroupType && ReferentialRef.fromObject(source.taxonGroupType)) ||
-      (isNotNil(source.taxonGroupTypeId) ? ReferentialRef.fromObject({id: source.taxonGroupTypeId}) : undefined);
-    this.locationClassifications = source.locationClassifications  && source.locationClassifications.map(ReferentialRef.fromObject) || [];
-    this.locations = source.locations && source.locations.map(ReferentialRef.fromObject) || [];
+    this.taxonGroupType =
+      (source.taxonGroupType && ReferentialRef.fromObject(source.taxonGroupType)) ||
+      (isNotNil(source.taxonGroupTypeId) ? ReferentialRef.fromObject({ id: source.taxonGroupTypeId }) : undefined);
+    this.locationClassifications = (source.locationClassifications && source.locationClassifications.map(ReferentialRef.fromObject)) || [];
+    this.locations = (source.locations && source.locations.map(ReferentialRef.fromObject)) || [];
 
-    this.strategies = source.strategies && source.strategies.map(Strategy.fromObject) || [];
+    this.strategies = (source.strategies && source.strategies.map(Strategy.fromObject)) || [];
   }
 
   equals(other: Program): boolean {
@@ -58,7 +58,7 @@ export class Program extends BaseReferential<Program> {
 
   getPropertyAsBoolean(definition: FormFieldDefinition): boolean {
     const value = this.getProperty(definition);
-    return isNotNil(value) ? (value && value !== 'false') : undefined;
+    return isNotNil(value) ? value && value !== 'false' : undefined;
   }
 
   getPropertyAsInt(definition: FormFieldDefinition): number {
@@ -74,11 +74,11 @@ export class Program extends BaseReferential<Program> {
 
   getPropertyAsStrings(definition: FormFieldDefinition): string[] {
     const value = this.getProperty(definition);
-    return value && value.split(',') || undefined;
+    return (value && value.split(',')) || undefined;
   }
 
   getProperty<T = string>(definition: FormFieldDefinition): T {
     if (!definition) throw new Error(`Missing 'definition' argument`);
-    return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : (definition.defaultValue || undefined);
+    return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : definition.defaultValue || undefined;
   }
 }

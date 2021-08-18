@@ -1,16 +1,17 @@
-import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {Moment} from 'moment';
-import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
-import {Landing} from './landing.model';
-import {EntityClass, fromDateISOString, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
-import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
-import {IWithObserversEntity} from '@app/data/services/model/model.utils';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
+import { Moment } from 'moment';
+import { IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
+import { Landing } from './landing.model';
+import { EntityClass, fromDateISOString, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
+import { IWithObserversEntity } from '@app/data/services/model/model.utils';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
-@EntityClass({typename: 'ObservedLocationVO'})
-export class ObservedLocation extends RootDataEntity<ObservedLocation>
-  implements IEntityWithMeasurement<ObservedLocation>, IWithObserversEntity<ObservedLocation> {
-
+@EntityClass({ typename: 'ObservedLocationVO' })
+export class ObservedLocation
+  extends RootDataEntity<ObservedLocation>
+  implements IEntityWithMeasurement<ObservedLocation>, IWithObserversEntity<ObservedLocation>
+{
   static fromObject: (source, opts?: any) => ObservedLocation;
 
   startDateTime: Moment;
@@ -37,10 +38,14 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
     const target = super.asObject(options);
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
-    target.location = this.location && this.location.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions) || undefined;
+    target.location =
+      (this.location && this.location.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions)) || undefined;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, options);
-    target.landings = this.landings && this.landings.map(s => s.asObject(options)) || undefined;
-    target.observers = this.observers && this.observers.map(o => o.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions)) || undefined;
+    target.landings = (this.landings && this.landings.map((s) => s.asObject(options))) || undefined;
+    target.observers =
+      (this.observers &&
+        this.observers.map((o) => o.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions))) ||
+      undefined;
 
     return target;
   }
@@ -51,22 +56,27 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
     this.endDateTime = fromDateISOString(source.endDateTime);
     this.location = source.location && ReferentialRef.fromObject(source.location);
 
-    this.measurementValues = source.measurementValues && {...source.measurementValues} || MeasurementUtils.toMeasurementValues(source.measurements);
-    this.observers = source.observers && source.observers.map(Person.fromObject) || [];
-    this.landings = source.landings && source.landings.map(Landing.fromObject) || [];
+    this.measurementValues =
+      (source.measurementValues && { ...source.measurementValues }) || MeasurementUtils.toMeasurementValues(source.measurements);
+    this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];
+    this.landings = (source.landings && source.landings.map(Landing.fromObject)) || [];
 
     return this;
   }
 
   equals(other: ObservedLocation): boolean {
-    return super.equals(other)
-      || (
-        // Same location
-        (this.location && other.location && this.location.id === other.location.id)
+    return (
+      super.equals(other) ||
+      // Same location
+      (this.location &&
+        other.location &&
+        this.location.id === other.location.id &&
         // Same start date/time
-        && (this.startDateTime === other.startDateTime)
+        this.startDateTime === other.startDateTime &&
         // Same recorder person
-        && (this.recorderPerson && other.recorderPerson && this.recorderPerson.id === other.recorderPerson.id)
-      );
+        this.recorderPerson &&
+        other.recorderPerson &&
+        this.recorderPerson.id === other.recorderPerson.id)
+    );
   }
 }

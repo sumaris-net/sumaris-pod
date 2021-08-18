@@ -1,7 +1,7 @@
-import {Injectable, Injector} from '@angular/core';
-import {gql} from '@apollo/client/core';
-import {Observable} from 'rxjs';
-import {QualityFlagIds} from '@app/referential/services/model/model.enum';
+import { Injectable, Injector } from '@angular/core';
+import { gql } from '@apollo/client/core';
+import { Observable } from 'rxjs';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 import {
   BaseEntityGraphqlQueries,
   Department,
@@ -17,25 +17,25 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   Person,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
-import {map} from 'rxjs/operators';
-import {ReferentialFragments} from '@app/referential/services/referential.fragments';
-import {VesselFeatureQueries, VesselFeaturesFragments, VesselFeaturesService} from './vessel-features.service';
-import {RegistrationFragments, VesselRegistrationService, VesselRegistrationsQueries} from './vessel-registration.service';
-import {Vessel} from './model/vessel.model';
-import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
-import {SortDirection} from '@angular/material/sort';
-import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
-import {IDataSynchroService, RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
-import {BaseRootEntityGraphqlMutations} from '@app/data/services/root-data-service.class';
-import {VESSEL_FEATURE_NAME} from './config/vessel.config';
-import {VesselFilter} from './filter/vessel.filter';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-
+import { map } from 'rxjs/operators';
+import { ReferentialFragments } from '@app/referential/services/referential.fragments';
+import { VesselFeatureQueries, VesselFeaturesFragments, VesselFeaturesService } from './vessel-features.service';
+import { RegistrationFragments, VesselRegistrationService, VesselRegistrationsQueries } from './vessel-registration.service';
+import { Vessel } from './model/vessel.model';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { SortDirection } from '@angular/material/sort';
+import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { IDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
+import { VESSEL_FEATURE_NAME } from './config/vessel.config';
+import { VesselFilter } from './filter/vessel.filter';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
 export const VesselFragments = {
-  lightVessel: gql`fragment VesselFragment on VesselVO {
+  lightVessel: gql`
+    fragment VesselFragment on VesselVO {
       id
       comments
       statusId
@@ -56,7 +56,7 @@ export const VesselFragments = {
       features {
         ...VesselFeaturesFragment
       }
-      registration{
+      registration {
         ...RegistrationFragment
       }
       recorderDepartment {
@@ -65,46 +65,49 @@ export const VesselFragments = {
       recorderPerson {
         ...LightPersonFragment
       }
-    }`,
-    vessel: gql`fragment VesselFragment on VesselVO {
+    }
+  `,
+  vessel: gql`
+    fragment VesselFragment on VesselVO {
+      id
+      comments
+      statusId
+      creationDate
+      controlDate
+      validationDate
+      qualificationDate
+      qualificationComments
+      updateDate
+      comments
+      program {
         id
-        comments
-        statusId
-        creationDate
-        controlDate
-        validationDate
-        qualificationDate
-        qualificationComments
-        updateDate
-        comments
-        program {
-          id
-          label
-        }
-        vesselType {
-            ...ReferentialFragment
-        }
-        features {
-            ...VesselFeaturesFragment
-        }
-        registration{
-            ...RegistrationFragment
-        }
-        recorderDepartment {
-            ...LightDepartmentFragment
-        }
-        recorderPerson {
-            ...LightPersonFragment
-        }
-    }`
+        label
+      }
+      vesselType {
+        ...ReferentialFragment
+      }
+      features {
+        ...VesselFeaturesFragment
+      }
+      registration {
+        ...RegistrationFragment
+      }
+      recorderDepartment {
+        ...LightDepartmentFragment
+      }
+      recorderPerson {
+        ...LightPersonFragment
+      }
+    }
+  `,
 };
-
 
 const VesselQueries: BaseEntityGraphqlQueries = {
-  load: gql`query Vessel($id: Int!) {
-        data: vessel(vesselId: $id) {
-            ...VesselFragment
-        }
+  load: gql`
+    query Vessel($id: Int!) {
+      data: vessel(vesselId: $id) {
+        ...VesselFragment
+      }
     }
     ${VesselFragments.vessel}
     ${VesselFeaturesFragments.vesselFeatures}
@@ -112,13 +115,15 @@ const VesselQueries: BaseEntityGraphqlQueries = {
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
-    ${ReferentialFragments.referential}`,
+    ${ReferentialFragments.referential}
+  `,
 
-  loadAllWithTotal: gql`query Vessels($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
-        data: vessels(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-            ...VesselFragment
-        }
-        total: vesselsCount(filter: $filter)
+  loadAllWithTotal: gql`
+    query Vessels($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput) {
+      data: vessels(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
+        ...VesselFragment
+      }
+      total: vesselsCount(filter: $filter)
     }
     ${VesselFragments.vessel}
     ${VesselFeaturesFragments.vesselFeatures}
@@ -126,12 +131,14 @@ const VesselQueries: BaseEntityGraphqlQueries = {
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
-    ${ReferentialFragments.referential}`,
+    ${ReferentialFragments.referential}
+  `,
 
-  loadAll: gql`query Vessels($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
-        data: vessels(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-            ...VesselFragment
-        }
+  loadAll: gql`
+    query Vessels($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput) {
+      data: vessels(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
+        ...VesselFragment
+      }
     }
     ${VesselFragments.vessel}
     ${VesselFeaturesFragments.vesselFeatures}
@@ -139,15 +146,16 @@ const VesselQueries: BaseEntityGraphqlQueries = {
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
-    ${ReferentialFragments.referential}`
+    ${ReferentialFragments.referential}
+  `,
 };
 
-
 const VesselMutations: BaseRootEntityGraphqlMutations = {
-  saveAll: gql`mutation SaveVessels($data:[VesselVOInput]!){
-        data: saveVessels(vessels: $data){
-            ...VesselFragment
-        }
+  saveAll: gql`
+    mutation SaveVessels($data: [VesselVOInput]!) {
+      data: saveVessels(vessels: $data) {
+        ...VesselFragment
+      }
     }
     ${VesselFragments.vessel}
     ${VesselFeaturesFragments.vesselFeatures}
@@ -155,11 +163,14 @@ const VesselMutations: BaseRootEntityGraphqlMutations = {
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
-    ${ReferentialFragments.referential}`,
+    ${ReferentialFragments.referential}
+  `,
 
-  deleteAll: gql`mutation DeleteVessels($ids:[Int]!){
-        deleteVessels(ids: $ids)
-    }`
+  deleteAll: gql`
+    mutation DeleteVessels($ids: [Int]!) {
+      deleteVessels(ids: $ids)
+    }
+  `,
 };
 
 export interface VesselSaveOptions extends EntitySaveOptions {
@@ -168,22 +179,15 @@ export interface VesselSaveOptions extends EntitySaveOptions {
   isNewRegistration?: boolean;
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class VesselService
   extends RootDataSynchroService<Vessel, VesselFilter>
-  implements
-    IEntitiesService<Vessel, VesselFilter>,
-    IEntityService<Vessel>,
-    IDataSynchroService<Vessel> {
-
-  constructor(
-    injector: Injector,
-    private vesselFeatureService: VesselFeaturesService,
-    private vesselRegistrationService: VesselRegistrationService,
-  ) {
+  implements IEntitiesService<Vessel, VesselFilter>, IEntityService<Vessel>, IDataSynchroService<Vessel>
+{
+  constructor(injector: Injector, private vesselFeatureService: VesselFeaturesService, private vesselRegistrationService: VesselRegistrationService) {
     super(injector, Vessel, VesselFilter, {
       queries: VesselQueries,
-      mutations: VesselMutations
+      mutations: VesselMutations,
     });
     this._featureName = VESSEL_FEATURE_NAME;
   }
@@ -197,27 +201,23 @@ export class VesselService
    * @param sortDirection
    * @param filter
    */
-  watchAll(offset: number,
-           size: number,
-           sortBy?: string,
-           sortDirection?: SortDirection,
-           filter?: VesselFilter): Observable<LoadResult<Vessel>> {
-
+  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: VesselFilter): Observable<LoadResult<Vessel>> {
     // Load offline
-    const offline = this.network.offline || filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC';
+    const offline = this.network.offline || (filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC');
     if (offline) {
       return this.watchAllLocally(offset, size, sortBy, sortDirection, filter);
     }
 
-    return super.watchAll(offset, size,  sortBy || 'features.exteriorMarking', sortDirection, filter);
+    return super.watchAll(offset, size, sortBy || 'features.exteriorMarking', sortDirection, filter);
   }
 
-  watchAllLocally(offset: number,
-                 size: number,
-                 sortBy?: string,
-                 sortDirection?: SortDirection,
-                 filter?: Partial<VesselFilter>): Observable<LoadResult<Vessel>> {
-
+  watchAllLocally(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: Partial<VesselFilter>
+  ): Observable<LoadResult<Vessel>> {
     filter = this.asFilter(filter);
 
     const variables: any = {
@@ -225,17 +225,17 @@ export class VesselService
       size: size || 100,
       sortBy: sortBy || 'features.exteriorMarking',
       sortDirection: sortDirection || 'asc',
-      filter: filter?.asFilterFn()
+      filter: filter?.asFilterFn(),
     };
 
     if (this._debug) console.debug('[vessel-service] Loading local vessels using options:', variables);
 
-    return this.entities.watchAll<Vessel>(Vessel.TYPENAME, variables)
-      .pipe(
-        map(({data, total}) => {
-          const entities = (data || []).map(Vessel.fromObject);
-          return {data: entities, total};
-        }));
+    return this.entities.watchAll<Vessel>(Vessel.TYPENAME, variables).pipe(
+      map(({ data, total }) => {
+        const entities = (data || []).map(Vessel.fromObject);
+        return { data: entities, total };
+      })
+    );
   }
 
   /**
@@ -244,10 +244,9 @@ export class VesselService
    * @param vessels
    */
   async saveAll(entities: Vessel[], opts?: VesselSaveOptions): Promise<Vessel[]> {
-
     return super.saveAll(entities, {
       ...opts,
-      update: (proxy, {data}) => {
+      update: (proxy, { data }) => {
         if (isEmptyArray(data && data.data)) return; // Skip if empty
 
         // update features history FIXME: marche pas
@@ -255,7 +254,7 @@ export class VesselService
           const lastFeatures = entities[entities.length - 1].features;
           this.vesselFeatureService.insertIntoMutableCachedQueries(proxy, {
             query: VesselFeatureQueries.loadAll,
-            data: lastFeatures
+            data: lastFeatures,
           });
         }
 
@@ -264,11 +263,10 @@ export class VesselService
           const lastRegistration = entities[entities.length - 1].registration;
           this.vesselRegistrationService.insertIntoMutableCachedQueries(proxy, {
             query: VesselRegistrationsQueries.loadAll,
-            data: lastRegistration
+            data: lastRegistration,
           });
         }
-
-      }
+      },
     });
   }
 
@@ -279,17 +277,14 @@ export class VesselService
    * @param opts
    */
   async save(entity: Vessel, opts?: VesselSaveOptions): Promise<Vessel> {
-
     // prepare previous vessel to save if present
     if (opts && isNotNil(opts.previousVessel)) {
-
       // update previous features
       if (opts.isNewFeatures) {
         // set end date = new start date - 1
         const newStartDate = entity.features.startDate.clone();
         newStartDate.subtract(1, 'seconds');
         opts.previousVessel.features.endDate = newStartDate;
-
       }
       // prepare previous registration period
       else if (opts.isNewRegistration) {
@@ -340,17 +335,14 @@ export class VesselService
    * @param opts
    */
   async saveLocally(entity: Vessel, opts?: VesselSaveOptions): Promise<Vessel> {
-
     // prepare previous vessel to save if present
     if (opts && isNotNil(opts.previousVessel)) {
-
       // update previous features
       if (opts.isNewFeatures) {
         // set end date = new start date - 1
         const newStartDate = entity.features.startDate.clone();
         newStartDate.subtract(1, 'seconds');
         opts.previousVessel.features.endDate = newStartDate;
-
       }
       // prepare previous registration period
       else if (opts.isNewRegistration) {
@@ -399,9 +391,9 @@ export class VesselService
     await super.deleteAllLocally(entities, opts);
 
     // Delete the associated vessel snapshot
-    const snapshots = entities.filter(DataRootEntityUtils.isLocal).map(e => e.id);
+    const snapshots = entities.filter(DataRootEntityUtils.isLocal).map((e) => e.id);
     if (isEmptyArray(snapshots)) return; // Skip
-    await this.entities.deleteMany(snapshots, {entityName: VesselSnapshot.TYPENAME});
+    await this.entities.deleteMany(snapshots, { entityName: VesselSnapshot.TYPENAME });
   }
 
   async synchronize(data: Vessel, opts?: any): Promise<Vessel> {
@@ -424,11 +416,10 @@ export class VesselService
   /* -- protected methods -- */
 
   protected asObject(vessel: Vessel, opts?: EntityAsObjectOptions): any {
-    return vessel.asObject({...MINIFY_OPTIONS, ...opts} as EntityAsObjectOptions);
+    return vessel.asObject({ ...MINIFY_OPTIONS, ...opts } as EntityAsObjectOptions);
   }
 
   protected fillDefaultProperties(vessel: Vessel) {
-
     const person: Person = this.accountService.account;
 
     // Recorder department
@@ -463,7 +454,6 @@ export class VesselService
     if (vessel.features && isNil(vessel.features.qualityFlagId)) {
       vessel.features.qualityFlagId = QualityFlagIds.NOT_QUALIFIED;
     }
-
   }
 
   protected async fillOfflineDefaultProperties(entity: Vessel) {
@@ -471,7 +461,7 @@ export class VesselService
 
     // If new, generate a local id
     if (isNew) {
-      entity.id =  await this.entities.nextValue(entity);
+      entity.id = await this.entities.nextValue(entity);
     }
 
     // Force status as temporary
@@ -479,12 +469,10 @@ export class VesselService
   }
 
   copyIdAndUpdateDate(source: Vessel | undefined, target: Vessel) {
-
     EntityUtils.copyIdAndUpdateDate(source, target);
     if (source) {
       EntityUtils.copyIdAndUpdateDate(source.features, target.features);
       EntityUtils.copyIdAndUpdateDate(source.registration, target.registration);
     }
-
   }
 }

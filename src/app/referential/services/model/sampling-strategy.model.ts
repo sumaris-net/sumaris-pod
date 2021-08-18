@@ -1,9 +1,8 @@
-import {Strategy} from './strategy.model';
-import {Moment} from 'moment';
-import {fromDateISOString, isNil, toNumber} from '@sumaris-net/ngx-components';
+import { Strategy } from './strategy.model';
+import { Moment } from 'moment';
+import { fromDateISOString, isNil, toNumber } from '@sumaris-net/ngx-components';
 
 export class SamplingStrategy extends Strategy<SamplingStrategy> {
-
   static fromObject(source: any): SamplingStrategy {
     if (!source || source instanceof SamplingStrategy) return source;
     const res = new SamplingStrategy();
@@ -34,17 +33,15 @@ export class SamplingStrategy extends Strategy<SamplingStrategy> {
   }
 
   get hasRealizedEffort(): boolean {
-    return (this.efforts || []).findIndex(e => e.hasRealizedEffort) !== -1;
+    return (this.efforts || []).findIndex((e) => e.hasRealizedEffort) !== -1;
   }
 
   get hasExpectedEffort(): boolean {
-    return (this.efforts || []).findIndex(e => e.hasExpectedEffort) !== -1;
+    return (this.efforts || []).findIndex((e) => e.hasExpectedEffort) !== -1;
   }
 }
 
-
 export class StrategyEffort {
-
   static fromObject(value: any): StrategyEffort {
     if (!value || value instanceof StrategyEffort) return value;
     const target = new StrategyEffort();
@@ -59,10 +56,9 @@ export class StrategyEffort {
   expectedEffort: number;
   realizedEffort: number;
 
-  constructor() {
-  }
+  constructor() {}
 
-// TODO : Check if clone is needed
+  // TODO : Check if clone is needed
   clone(): StrategyEffort {
     const target = new StrategyEffort();
     target.fromObject(this);
@@ -84,20 +80,21 @@ export class StrategyEffort {
   }
 
   get realized(): boolean {
-    return (!this.expectedEffort || (this.realizedEffort && this.realizedEffort >= this.expectedEffort));
+    return !this.expectedEffort || (this.realizedEffort && this.realizedEffort >= this.expectedEffort);
   }
 
   get missingEffort(): number {
-    return isNil(this.expectedEffort) ? undefined :
-      // Avoid negative missing effort (when realized > expected)
-      Math.max(0, this.expectedEffort - (this.realizedEffort || 0));
+    return isNil(this.expectedEffort)
+      ? undefined
+      : // Avoid negative missing effort (when realized > expected)
+        Math.max(0, this.expectedEffort - (this.realizedEffort || 0));
   }
 
   get hasRealizedEffort(): boolean {
-    return (this.realizedEffort && this.realizedEffort > 0);
+    return this.realizedEffort && this.realizedEffort > 0;
   }
 
   get hasExpectedEffort(): boolean {
-    return (this.expectedEffort && this.expectedEffort > 0);
+    return this.expectedEffort && this.expectedEffort > 0;
   }
 }

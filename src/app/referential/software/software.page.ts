@@ -1,29 +1,23 @@
-import {ChangeDetectionStrategy, Component, Inject, Injector, Optional} from '@angular/core';
-import {APP_CONFIG_OPTIONS, FormFieldDefinitionMap, HistoryPageReference, Software} from '@sumaris-net/ngx-components';
-import {SoftwareService} from '../services/software.service';
-import {SoftwareValidatorService} from '../services/validator/software.validator';
-import {AbstractSoftwarePage} from './abstract-software.page';
-
+import { ChangeDetectionStrategy, Component, Inject, Injector, Optional } from '@angular/core';
+import { APP_CONFIG_OPTIONS, FormFieldDefinitionMap, HistoryPageReference, Software } from '@sumaris-net/ngx-components';
+import { SoftwareService } from '../services/software.service';
+import { SoftwareValidatorService } from '../services/validator/software.validator';
+import { AbstractSoftwarePage } from './abstract-software.page';
 
 @Component({
   selector: 'app-software-page',
   templateUrl: 'software.page.html',
   styleUrls: ['./software.page.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SoftwarePage extends AbstractSoftwarePage<Software, SoftwareService> {
-
   constructor(
     injector: Injector,
     dataService: SoftwareService,
     validatorService: SoftwareValidatorService,
     @Optional() @Inject(APP_CONFIG_OPTIONS) configOptions: FormFieldDefinitionMap
-    ) {
-    super(injector,
-      Software,
-      dataService,
-      validatorService,
-      configOptions);
+  ) {
+    super(injector, Software, dataService, validatorService, configOptions);
 
     // default values
     this.defaultBackHref = '/referential/list?entity=Software';
@@ -35,8 +29,7 @@ export class SoftwarePage extends AbstractSoftwarePage<Software, SoftwareService
     return {
       ...(await super.computePageHistory(title)),
       subtitle: 'REFERENTIAL.ENTITY.SOFTWARE',
-      icon: 'server'
+      icon: 'server',
     };
   }
 }
-

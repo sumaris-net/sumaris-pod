@@ -1,22 +1,21 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from '@angular/core';
-import {LocalSettingsService, PlatformService, ReferentialRef, toBoolean} from '@sumaris-net/ngx-components';
-import {environment} from '@environments/environment';
-import {ModalController} from '@ionic/angular';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {AcquisitionLevelCodes, AcquisitionLevelType} from '@app/referential/services/model/model.enum';
-import {Sample} from '../services/model/sample.model';
-import {SamplesTable} from './samples.table';
-import {Moment} from 'moment';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { LocalSettingsService, PlatformService, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
+import { environment } from '@environments/environment';
+import { ModalController } from '@ionic/angular';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { Sample } from '../services/model/sample.model';
+import { SamplesTable } from './samples.table';
+import { Moment } from 'moment';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 @Component({
   selector: 'app-samples-modal',
   templateUrl: 'samples.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SamplesModal implements OnInit {
-
   debug = false;
   loading = false;
   mobile: boolean;
@@ -86,7 +85,6 @@ export class SamplesModal implements OnInit {
     this.debug = !environment.production;
   }
 
-
   ngOnInit() {
     this.canEdit = toBoolean(this.canEdit, !this.disabled);
     this.disabled = !this.canEdit || toBoolean(this.disabled, true);
@@ -111,7 +109,7 @@ export class SamplesModal implements OnInit {
     await this.viewCtrl.dismiss();
   }
 
-  async ready(): Promise<void>{
+  async ready(): Promise<void> {
     await this.table.ready();
   }
 
@@ -121,7 +119,7 @@ export class SamplesModal implements OnInit {
     if (this.invalid) {
       // if (this.debug) AppFormUtils.logFormErrors(this.table.table., "[sample-modal] ");
       this.table.error = 'COMMON.FORM.HAS_ERROR';
-      this.table.markAsTouched({emitEvent: true});
+      this.table.markAsTouched({ emitEvent: true });
       return;
     }
 
@@ -139,5 +137,4 @@ export class SamplesModal implements OnInit {
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }

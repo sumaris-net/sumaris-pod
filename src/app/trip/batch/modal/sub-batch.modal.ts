@@ -1,21 +1,20 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from '@angular/core';
-import {Batch, BatchUtils} from '../../services/model/batch.model';
-import {AppFormUtils, LocalSettingsService, PlatformService, toBoolean} from '@sumaris-net/ngx-components';
-import {IonContent, ModalController} from '@ionic/angular';
-import {BehaviorSubject} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {PmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {SubBatchForm} from '../form/sub-batch.form';
-import {SubBatch} from '../../services/model/subbatch.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { AppFormUtils, LocalSettingsService, PlatformService, toBoolean } from '@sumaris-net/ngx-components';
+import { IonContent, ModalController } from '@ionic/angular';
+import { BehaviorSubject } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { SubBatchForm } from '../form/sub-batch.form';
+import { SubBatch } from '../../services/model/subbatch.model';
 
 @Component({
   selector: 'app-sub-batch-modal',
   templateUrl: 'sub-batch.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubBatchModal implements OnInit {
-
   debug = false;
   loading = false;
   mobile: boolean;
@@ -70,7 +69,6 @@ export class SubBatchModal implements OnInit {
     //this.debug = !environment.production;
   }
 
-
   async ngOnInit() {
     this.canEdit = toBoolean(this.canEdit, !this.disabled);
     this.disabled = !this.canEdit || toBoolean(this.disabled, true);
@@ -86,15 +84,14 @@ export class SubBatchModal implements OnInit {
 
     if (!this.isNew) {
       // Update title each time value changes
-      this.form.valueChanges.subscribe(batch => this.computeTitle(batch));
+      this.form.valueChanges.subscribe((batch) => this.computeTitle(batch));
     }
 
     if (!this.disabled) {
       //setTimeout(() => {
-        this.form.enable({emitEvent: false});
+      this.form.enable({ emitEvent: false });
       //}, 500);
     }
-
   }
 
   async cancel() {
@@ -107,7 +104,7 @@ export class SubBatchModal implements OnInit {
     if (this.invalid) {
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sub-batch-modal] ');
       this.form.error = 'COMMON.FORM.HAS_ERROR';
-      this.form.markAsTouched({emitEvent: true});
+      this.form.markAsTouched({ emitEvent: true });
       return;
     }
 
@@ -125,10 +122,9 @@ export class SubBatchModal implements OnInit {
     data = data || this.data;
     if (this.isNew || !data) {
       this.$title.next(await this.translate.get('TRIP.SUB_BATCH.NEW.TITLE').toPromise());
-    }
-    else {
+    } else {
       const label = BatchUtils.parentToString(data);
-      this.$title.next(await this.translate.get('TRIP.SUB_BATCH.EDIT.TITLE', {label}).toPromise());
+      this.$title.next(await this.translate.get('TRIP.SUB_BATCH.EDIT.TITLE', { label }).toPromise());
     }
   }
 

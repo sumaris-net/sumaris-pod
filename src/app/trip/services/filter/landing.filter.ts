@@ -1,10 +1,9 @@
-import {RootDataEntityFilter} from '@app/data/services/model/root-data-filter.model';
-import {Landing} from '../model/landing.model';
-import {EntityAsObjectOptions, EntityClass, FilterFn, isNotEmptyArray, isNotNil} from '@sumaris-net/ngx-components';
+import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
+import { Landing } from '../model/landing.model';
+import { EntityAsObjectOptions, EntityClass, FilterFn, isNotEmptyArray, isNotNil } from '@sumaris-net/ngx-components';
 
-@EntityClass({typename: 'LandingFilterVO'})
+@EntityClass({ typename: 'LandingFilterVO' })
 export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> {
-
   static fromObject: (source: any, opts?: any) => LandingFilter;
 
   vesselId?: number;
@@ -70,11 +69,11 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
     // Start/end period
     if (this.startDate) {
       const startDate = this.startDate.clone();
-      filterFns.push(t => t.dateTime && startDate.isSameOrBefore(t.dateTime));
+      filterFns.push((t) => t.dateTime && startDate.isSameOrBefore(t.dateTime));
     }
     if (this.endDate) {
       const endDate = this.endDate.clone().add(1, 'day').startOf('day');
-      filterFns.push(t => t.dateTime && endDate.isAfter(t.dateTime));
+      filterFns.push((t) => t.dateTime && endDate.isAfter(t.dateTime));
     }
     return filterFns;
   }

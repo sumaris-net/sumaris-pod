@@ -1,12 +1,11 @@
-import {EntityAsObjectOptions, EntityClass, EntityUtils, FilterFn, fromDateISOString, ReferentialRef, ReferentialUtils, toDateISOString} from '@sumaris-net/ngx-components';
-import {BaseReferentialFilter} from '@app/referential/services/filter/referential.filter';
-import {Strategy} from '@app/referential/services/model/strategy.model';
-import {TaxonNameRef} from '@app/referential/services/model/taxon.model';
-import {Moment} from 'moment';
+import { EntityAsObjectOptions, EntityClass, EntityUtils, FilterFn, fromDateISOString, ReferentialRef, ReferentialUtils, toDateISOString } from '@sumaris-net/ngx-components';
+import { BaseReferentialFilter } from '@app/referential/services/filter/referential.filter';
+import { Strategy } from '@app/referential/services/model/strategy.model';
+import { TaxonNameRef } from '@app/referential/services/model/taxon.model';
+import { Moment } from 'moment';
 
-@EntityClass({typename: 'StrategyFilterVO'})
+@EntityClass({ typename: 'StrategyFilterVO' })
 export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strategy> {
-
   static fromObject: (source: any, opts?: any) => StrategyFilter;
 
   startDate: Moment;
@@ -23,10 +22,10 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
     super.fromObject(source);
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
-    this.department = source.department && ReferentialRef.fromObject(source.department) || undefined;
-    this.location = source.location && ReferentialRef.fromObject(source.location) || undefined;
-    this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName) || undefined;
-    this.analyticReference = source.analyticReference && ReferentialRef.fromObject(source.analyticReference) || undefined;
+    this.department = (source.department && ReferentialRef.fromObject(source.department)) || undefined;
+    this.location = (source.location && ReferentialRef.fromObject(source.location)) || undefined;
+    this.taxonName = (source.taxonName && TaxonNameRef.fromObject(source.taxonName)) || undefined;
+    this.analyticReference = (source.analyticReference && ReferentialRef.fromObject(source.analyticReference)) || undefined;
 
     this.parameterIds = source.parameterIds;
     this.periods = source.periods;
@@ -47,8 +46,7 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
       delete target.location;
       delete target.taxonName;
       delete target.analyticReference;
-    }
-    else {
+    } else {
       target.department = this.department && this.department.asObject(opts);
       target.location = this.location && this.location.asObject(opts);
       target.taxonName = this.taxonName && this.taxonName.asObject(opts);

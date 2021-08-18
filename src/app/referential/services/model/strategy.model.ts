@@ -1,15 +1,11 @@
-import {BaseReferential, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
-import {Moment} from 'moment';
-import {TaxonGroupRef, TaxonNameRef} from './taxon.model';
-import {DenormalizedPmfmStrategy, PmfmStrategy} from './pmfm-strategy.model';
-import {MINIFY_OPTIONS, NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { BaseReferential, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, ReferentialAsObjectOptions, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
+import { TaxonGroupRef, TaxonNameRef } from './taxon.model';
+import { DenormalizedPmfmStrategy, PmfmStrategy } from './pmfm-strategy.model';
+import { MINIFY_OPTIONS, NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
-
-@EntityClass({typename: 'StrategyVO'})
-export class Strategy<
-  T extends Strategy<any> = Strategy<any>
-  > extends BaseReferential<Strategy> {
-
+@EntityClass({ typename: 'StrategyVO' })
+export class Strategy<T extends Strategy<any> = Strategy<any>> extends BaseReferential<Strategy> {
   static fromObject: (source: any, opts?: any) => Strategy;
 
   analyticReference: string = null;
@@ -28,7 +24,7 @@ export class Strategy<
     this.__typename = Strategy.TYPENAME;
   }
 
-// TODO : Check if clone is needed
+  // TODO : Check if clone is needed
   clone(): T {
     const target = new Strategy();
     target.fromObject(this);
@@ -38,13 +34,13 @@ export class Strategy<
   asObject(opts?: EntityAsObjectOptions): any {
     const target: any = super.asObject(opts);
     target.programId = this.programId;
-    target.appliedStrategies = this.appliedStrategies && this.appliedStrategies.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    target.pmfms = this.pmfms && this.pmfms.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    target.denormalizedPmfms = this.denormalizedPmfms && this.denormalizedPmfms.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    target.departments = this.departments && this.departments.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    target.gears = this.gears && this.gears.map(s => s.asObject(opts));
-    target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    target.appliedStrategies = this.appliedStrategies && this.appliedStrategies.map((s) => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    target.pmfms = this.pmfms && this.pmfms.map((s) => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    target.denormalizedPmfms = this.denormalizedPmfms && this.denormalizedPmfms.map((s) => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    target.departments = this.departments && this.departments.map((s) => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    target.gears = this.gears && this.gears.map((s) => s.asObject(opts));
+    target.taxonGroups = this.taxonGroups && this.taxonGroups.map((s) => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    target.taxonNames = this.taxonNames && this.taxonNames.map((s) => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     return target;
   }
 
@@ -52,30 +48,29 @@ export class Strategy<
     super.fromObject(source);
     this.analyticReference = source.analyticReference;
     this.programId = source.programId;
-    this.appliedStrategies = source.appliedStrategies && source.appliedStrategies.map(AppliedStrategy.fromObject) || [];
-    this.pmfms = source.pmfms && source.pmfms.map(PmfmStrategy.fromObject) || [];
-    this.denormalizedPmfms = source.denormalizedPmfms && source.denormalizedPmfms.map(DenormalizedPmfmStrategy.fromObject) || [];
-    this.departments = source.departments && source.departments.map(StrategyDepartment.fromObject) || [];
-    this.gears = source.gears && source.gears.map(ReferentialRef.fromObject) || [];
+    this.appliedStrategies = (source.appliedStrategies && source.appliedStrategies.map(AppliedStrategy.fromObject)) || [];
+    this.pmfms = (source.pmfms && source.pmfms.map(PmfmStrategy.fromObject)) || [];
+    this.denormalizedPmfms = (source.denormalizedPmfms && source.denormalizedPmfms.map(DenormalizedPmfmStrategy.fromObject)) || [];
+    this.departments = (source.departments && source.departments.map(StrategyDepartment.fromObject)) || [];
+    this.gears = (source.gears && source.gears.map(ReferentialRef.fromObject)) || [];
     // Taxon groups, sorted by priority level
-    this.taxonGroups = source.taxonGroups && source.taxonGroups.map(TaxonGroupStrategy.fromObject) || [];
-    this.taxonNames = source.taxonNames && source.taxonNames.map(TaxonNameStrategy.fromObject) || [];
+    this.taxonGroups = (source.taxonGroups && source.taxonGroups.map(TaxonGroupStrategy.fromObject)) || [];
+    this.taxonNames = (source.taxonNames && source.taxonNames.map(TaxonNameStrategy.fromObject)) || [];
   }
 
   equals(other: T): boolean {
-    return super.equals(other)
+    return (
+      super.equals(other) ||
       // Or by functional attributes
-      || (
-        // Same label
-        this.label === other.label
+      // Same label
+      (this.label === other.label &&
         // Same program
-        && ((!this.programId && !other.programId) || this.programId === other.programId)
-      );
+        ((!this.programId && !other.programId) || this.programId === other.programId))
+    );
   }
 }
 
 export class StrategyDepartment extends Entity<StrategyDepartment> {
-
   strategyId: number;
   location: ReferentialRef;
   privilege: ReferentialRef;
@@ -88,7 +83,7 @@ export class StrategyDepartment extends Entity<StrategyDepartment> {
     return res;
   }
 
-// TODO : Check if clone is needed
+  // TODO : Check if clone is needed
   clone(): StrategyDepartment {
     const target = new StrategyDepartment();
     target.fromObject(this);
@@ -97,7 +92,7 @@ export class StrategyDepartment extends Entity<StrategyDepartment> {
 
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target: any = super.asObject(opts);
-    target.location = this.location && this.location.asObject(opts) || undefined;
+    target.location = (this.location && this.location.asObject(opts)) || undefined;
     target.privilege = this.privilege && this.privilege.asObject(opts);
     target.department = this.department && this.department.asObject(opts);
     return target;
@@ -110,11 +105,9 @@ export class StrategyDepartment extends Entity<StrategyDepartment> {
     this.privilege = source.privilege && ReferentialRef.fromObject(source.privilege);
     this.department = source.department && ReferentialRef.fromObject(source.department);
   }
-
 }
 
 export class AppliedStrategy extends Entity<AppliedStrategy> {
-
   static TYPENAME = 'AppliedStrategyVO';
 
   strategyId: number;
@@ -132,7 +125,7 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
     super();
     this.__typename = AppliedStrategy.TYPENAME;
   }
-// TODO : Check if clone is needed
+  // TODO : Check if clone is needed
   clone(): AppliedStrategy {
     const target = new AppliedStrategy();
     target.fromObject(this);
@@ -142,7 +135,7 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target: any = super.asObject(opts);
     target.location = this.location && this.location.asObject(opts);
-    target.appliedPeriods = this.appliedPeriods && this.appliedPeriods.map(p => p.asObject(opts)) || undefined;
+    target.appliedPeriods = (this.appliedPeriods && this.appliedPeriods.map((p) => p.asObject(opts))) || undefined;
     return target;
   }
 
@@ -150,21 +143,20 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
     super.fromObject(source);
     this.strategyId = source.strategyId;
     this.location = source.location && ReferentialRef.fromObject(source.location);
-    this.appliedPeriods = source.appliedPeriods && source.appliedPeriods.map(AppliedPeriod.fromObject) || [];
+    this.appliedPeriods = (source.appliedPeriods && source.appliedPeriods.map(AppliedPeriod.fromObject)) || [];
   }
 
   equals(other: AppliedStrategy) {
-    return super.equals(other)
+    return (
+      super.equals(other) ||
       // Same strategyId and location
-      || (this.strategyId === other.strategyId
-      && ((!this.location && !other.location) || (this.location && other.location && this.location.id === other.location.id))
+      (this.strategyId === other.strategyId &&
+        ((!this.location && !other.location) || (this.location && other.location && this.location.id === other.location.id)))
     );
   }
-
 }
 
 export class AppliedPeriod {
-
   static TYPENAME = 'AppliedPeriodVO';
 
   __typename: string;
@@ -199,7 +191,7 @@ export class AppliedPeriod {
     this.acquisitionNumber = source.acquisitionNumber;
   }
 
-// TODO : Check if clone is needed
+  // TODO : Check if clone is needed
   clone(): AppliedPeriod {
     const target = new AppliedPeriod();
     target.fromObject(this.asObject());
@@ -208,7 +200,6 @@ export class AppliedPeriod {
 }
 
 export class TaxonGroupStrategy {
-
   strategyId: number;
   priorityLevel: number;
   taxonGroup: TaxonGroupRef;
@@ -235,7 +226,6 @@ export class TaxonGroupStrategy {
 }
 
 export class TaxonNameStrategy {
-
   strategyId: number;
   priorityLevel: number;
   taxonName: TaxonNameRef;
@@ -258,5 +248,4 @@ export class TaxonNameStrategy {
     this.priorityLevel = source.priorityLevel;
     this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName);
   }
-
 }

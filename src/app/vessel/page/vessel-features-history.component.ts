@@ -1,21 +1,20 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from '@angular/core';
-import {AccountService, AppTable, EntitiesTableDataSource, LocalSettingsService, referentialToString} from '@sumaris-net/ngx-components';
-import {VesselFeatures} from '../services/model/vessel.model';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ModalController, Platform} from '@ionic/angular';
-import {Location} from '@angular/common';
-import {VesselFeaturesService} from '../services/vessel-features.service';
-import {environment} from '@environments/environment';
-import {VesselFeaturesFilter} from '../services/filter/vessel.filter';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit } from '@angular/core';
+import { AccountService, AppTable, EntitiesTableDataSource, LocalSettingsService, referentialToString } from '@sumaris-net/ngx-components';
+import { VesselFeatures } from '../services/model/vessel.model';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ModalController, Platform } from '@ionic/angular';
+import { Location } from '@angular/common';
+import { VesselFeaturesService } from '../services/vessel-features.service';
+import { environment } from '@environments/environment';
+import { VesselFeaturesFilter } from '../services/filter/vessel.filter';
 
 @Component({
   selector: 'app-vessel-features-history-table',
   templateUrl: './vessel-features-history.component.html',
   styleUrls: ['./vessel-features-history.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, VesselFeaturesFilter> implements OnInit {
-
   referentialToString = referentialToString;
   isAdmin: boolean;
 
@@ -31,10 +30,16 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
     dataService: VesselFeaturesService,
     protected cd: ChangeDetectorRef
   ) {
-
-    super(route, router, platform, location, modalCtrl, settings,
+    super(
+      route,
+      router,
+      platform,
+      location,
+      modalCtrl,
+      settings,
       // columns
-      ['id',
+      [
+        'id',
         'startDate',
         'endDate',
         'exteriorMarking',
@@ -43,13 +48,14 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
         'lengthOverAll',
         'grossTonnageGt',
         'basePortLocation',
-        'comments'],
+        'comments',
+      ],
       new EntitiesTableDataSource<VesselFeatures>(VesselFeatures, dataService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
-          saveOnlyDirtyRows: true
-        }
+          saveOnlyDirtyRows: true,
+        },
       }),
       null,
       injector
@@ -73,5 +79,4 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }

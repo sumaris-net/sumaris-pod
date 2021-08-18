@@ -1,27 +1,30 @@
 <mat-toolbar>
-  <button mat-icon-button
-          hidden-xs hidden-sm hidden-mobile
-          *ngIf="!selection.hasValue() && enabled"
-          [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+  <button
+    mat-icon-button
+    hidden-xs
+    hidden-sm
+    hidden-mobile
+    *ngIf="!selection.hasValue() && enabled"
+    [title]="'COMMON.BTN_ADD' | translate"
+    (click)="addRow()"
+  >
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
-          (click)="onRefresh.emit()">
+  <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
-  <button mat-icon-button *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
-          (click)="deleteSelection($event)">
+  <button mat-icon-button *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
     <mat-icon>delete</mat-icon>
   </button>
 
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <span class="toolbar-spacer"></span>
 
-  <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
+  <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS' | translate" (click)="openSelectColumnsModal($event)">
     <mat-icon>more_vert</mat-icon>
   </button>
 </mat-toolbar>
@@ -29,32 +32,34 @@
 <!-- error -->
 <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
   <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-  <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+  <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
 </ion-item>
 
-<mat-table [dataSource]="dataSource" class="table-Packets" matSort matSortDirection="asc"
-           matSortDisableClear [trackBy]="trackByFn">
-
+<mat-table [dataSource]="dataSource" class="table-Packets" matSort matSortDirection="asc" matSortDisableClear [trackBy]="trackByFn">
   <ng-container matColumnDef="select">
     <mat-header-cell *matHeaderCellDef>
-      <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-                    [indeterminate]="selection.hasValue() && !isAllSelected()">
-      </mat-checkbox>
+      <mat-checkbox
+        (change)="$event ? masterToggle() : null"
+        [checked]="selection.hasValue() && isAllSelected()"
+        [indeterminate]="selection.hasValue() && !isAllSelected()"
+      ></mat-checkbox>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null"
-                    [checked]="selection.isSelected(row)">
-      </mat-checkbox>
+      <mat-checkbox
+        (click)="$event.stopPropagation()"
+        (change)="$event ? selection.toggle(row) : null"
+        [checked]="selection.isSelected(row)"
+      ></mat-checkbox>
     </mat-cell>
   </ng-container>
 
   <!-- id -->
   <ng-container matColumnDef="id">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
+      <app-loading-spinner [loading]="loadingSubject | async"><ion-label>#</ion-label></app-loading-spinner>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text>{{row.currentData.rankOrder}}</ion-text>
+      <ion-text>{{ row.currentData.rankOrder }}</ion-text>
     </mat-cell>
   </ng-container>
 
@@ -64,15 +69,16 @@
       <ion-label translate>PACKET.LIST.PARENT</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-
-      <mat-autocomplete-field floatLabel="never" class="min-width-large ion-text-wrap"
-                              [appAutofocus]="row.id == -1 && row.editing"
-                              [formControl]="row.validator.controls.parent"
-                              [placeholder]="'PACKET.LIST.PARENT'|translate"
-                              [required]="true" [readonly]="!row.editing"
-                              [config]="autocompleteFields.parent">
-      </mat-autocomplete-field>
-
+      <mat-autocomplete-field
+        floatLabel="never"
+        class="min-width-large ion-text-wrap"
+        [appAutofocus]="row.id == -1 && row.editing"
+        [formControl]="row.validator.controls.parent"
+        [placeholder]="'PACKET.LIST.PARENT' | translate"
+        [required]="true"
+        [readonly]="!row.editing"
+        [config]="autocompleteFields.parent"
+      ></mat-autocomplete-field>
     </mat-cell>
   </ng-container>
 
@@ -82,7 +88,7 @@
       <ion-label translate>PACKET.LIST.LABEL</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <mat-label>{{'PACKET.LIST.LABEL_VALUE' | translate : {rankOrder: row.currentData.rankOrder} }}</mat-label>
+      <mat-label>{{ 'PACKET.LIST.LABEL_VALUE' | translate: { rankOrder: row.currentData.rankOrder } }}</mat-label>
     </mat-cell>
   </ng-container>
 
@@ -92,7 +98,7 @@
       <ion-label translate>PACKET.LIST.NUMBER</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <mat-label>{{row.currentData.number}}</mat-label>
+      <mat-label>{{ row.currentData.number }}</mat-label>
     </mat-cell>
   </ng-container>
 
@@ -102,62 +108,89 @@
       <ion-label translate>PACKET.LIST.WEIGHT</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <mat-label>{{row.currentData.weight}}</mat-label>
+      <mat-label>{{ row.currentData.weight }}</mat-label>
     </mat-cell>
   </ng-container>
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
-    </mat-header-cell>
+    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition"></mat-header-cell>
     <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
-
       <!-- composition always visible -->
-      <button mat-icon-button color="light"
-              [title]="getComposition(row)"
-              (click)="openComposition($event, row)">
-        <mat-icon [matBadge]="row.currentData.composition && row.currentData.composition.length"
-                  [matBadgeHidden]="!row.currentData.composition || !row.currentData.composition.length"
-                  matBadgeColor="accent"
-                  matBadgeSize="small"
-                  matBadgePosition="above after">pie_chart</mat-icon>
+      <button mat-icon-button color="light" [title]="getComposition(row)" (click)="openComposition($event, row)">
+        <mat-icon
+          [matBadge]="row.currentData.composition && row.currentData.composition.length"
+          [matBadgeHidden]="!row.currentData.composition || !row.currentData.composition.length"
+          matBadgeColor="accent"
+          matBadgeSize="small"
+          matBadgePosition="above after"
+        >
+          pie_chart
+        </mat-icon>
       </button>
 
       <!-- undo or delete  -->
-      <button mat-icon-button color="light" *ngIf="row.validator.invalid"
-              [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-              (click)="cancelOrDelete($event, row)">
+      <button
+        mat-icon-button
+        color="light"
+        *ngIf="row.validator.invalid"
+        [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO' : 'COMMON.BTN_DELETE') | translate"
+        (click)="cancelOrDelete($event, row)"
+      >
         <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
         <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
       </button>
       <!-- validate -->
-      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
-              [title]="'COMMON.BTN_VALIDATE'|translate"
-              (click)="confirmEditCreate($event, row)">
+      <button
+        mat-icon-button
+        color="light"
+        *ngIf="row.validator.valid && row.id !== -1"
+        [title]="'COMMON.BTN_VALIDATE' | translate"
+        (click)="confirmEditCreate($event, row)"
+      >
         <mat-icon>check</mat-icon>
       </button>
       <!-- add -->
-      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1"
-              [title]="'COMMON.BTN_ADD'|translate"
-              (click)="confirmAndAdd($event, row)">
+      <button
+        mat-icon-button
+        color="light"
+        *ngIf="row.validator.valid && row.id === -1"
+        [title]="'COMMON.BTN_ADD' | translate"
+        (click)="confirmAndAdd($event, row)"
+      >
         <mat-icon>add</mat-icon>
       </button>
 
       <!-- packet sale -->
-      <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"
-              [title]="'PACKET.LIST.PACKET_SALE'|translate"
-              (click)="openPacketSale($event, row)">
-        <mat-icon [matBadge]="row.currentData.saleProducts && row.currentData.composition && (row.currentData.saleProducts.length / row.currentData.composition.length).toString()"
-                  [matBadgeHidden]="!row.currentData.saleProducts || !row.currentData.saleProducts.length || !row.currentData.composition || !row.currentData.composition.length"
-                  matBadgeColor="accent"
-                  matBadgeSize="small"
-                  matBadgePosition="above after">local_offer</mat-icon>
+      <button
+        mat-icon-button
+        color="light"
+        *ngIf="!row.editing && row.id !== -1"
+        [title]="'PACKET.LIST.PACKET_SALE' | translate"
+        (click)="openPacketSale($event, row)"
+      >
+        <mat-icon
+          [matBadge]="
+            row.currentData.saleProducts &&
+            row.currentData.composition &&
+            (row.currentData.saleProducts.length / row.currentData.composition.length).toString()
+          "
+          [matBadgeHidden]="
+            !row.currentData.saleProducts ||
+            !row.currentData.saleProducts.length ||
+            !row.currentData.composition ||
+            !row.currentData.composition.length
+          "
+          matBadgeColor="accent"
+          matBadgeSize="small"
+          matBadgePosition="above after"
+        >
+          local_offer
+        </mat-icon>
       </button>
-
     </mat-cell>
   </ng-container>
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled"
-           (click)="clickRow($event, row)"></mat-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns" class="mat-row-disabled" (click)="clickRow($event, row)"></mat-row>
 </mat-table>

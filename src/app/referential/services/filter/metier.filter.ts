@@ -1,16 +1,15 @@
-import {EntityAsObjectOptions, EntityClass, fromDateISOString, toDateISOString} from '@sumaris-net/ngx-components';
-import {ReferentialRefFilter} from './referential-ref.filter';
-import {Metier} from '../model/taxon.model';
-import {Moment} from 'moment';
+import { EntityAsObjectOptions, EntityClass, fromDateISOString, toDateISOString } from '@sumaris-net/ngx-components';
+import { ReferentialRefFilter } from './referential-ref.filter';
+import { Metier } from '../model/taxon.model';
+import { Moment } from 'moment';
 
-@EntityClass({typename: 'MetierFilterVO'})
+@EntityClass({ typename: 'MetierFilterVO' })
 export class MetierFilter extends ReferentialRefFilter {
-
   static fromObject: (source: any, opts?: any) => MetierFilter;
 
   constructor() {
-      super();
-      this.entityName = Metier.ENTITY_NAME;
+    super();
+    this.entityName = Metier.ENTITY_NAME;
   }
 
   // Add predoc properties

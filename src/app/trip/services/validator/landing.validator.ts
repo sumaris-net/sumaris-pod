@@ -1,14 +1,14 @@
-import {Injectable} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {SharedValidators, toBoolean, toNumber} from '@sumaris-net/ngx-components';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {MeasurementsValidatorService} from './measurement.validator';
-import {Landing} from '../model/landing.model';
-import {DataRootEntityValidatorOptions} from '@app/data/services/validator/root-data-entity.validator';
-import {DataRootVesselEntityValidatorService} from '@app/data/services/validator/root-vessel-entity.validator';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {PmfmValidators} from '@app/referential/services/validator/pmfm.validators';
-import {Strategy} from '@app/referential/services/model/strategy.model';
+import { Injectable } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { MeasurementsValidatorService } from './measurement.validator';
+import { Landing } from '../model/landing.model';
+import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
+import { DataRootVesselEntityValidatorService } from '@app/data/services/validator/root-vessel-entity.validator';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
+import { Strategy } from '@app/referential/services/model/strategy.model';
 
 export interface LandingValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;
@@ -16,14 +16,12 @@ export interface LandingValidatorOptions extends DataRootEntityValidatorOptions 
   strategy: Strategy;
 }
 
-@Injectable({providedIn: 'root'})
-export class LandingValidatorService<O extends LandingValidatorOptions = LandingValidatorOptions>
-  extends DataRootVesselEntityValidatorService<Landing, O> {
-
-  constructor(
-    formBuilder: FormBuilder,
-    protected measurementsValidatorService: MeasurementsValidatorService
-  ) {
+@Injectable({ providedIn: 'root' })
+export class LandingValidatorService<O extends LandingValidatorOptions = LandingValidatorOptions> extends DataRootVesselEntityValidatorService<
+  Landing,
+  O
+> {
+  constructor(formBuilder: FormBuilder, protected measurementsValidatorService: MeasurementsValidatorService) {
     super(formBuilder);
   }
 
@@ -32,18 +30,18 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
   }
 
   getFormGroup(data?: Landing, opts?: O): FormGroup {
-
     const form = super.getFormGroup(data, opts);
 
     // Add measurement form
     if (opts && opts.withMeasurements) {
       const measForm = form.get('measurementValues') as FormGroup;
-      const pmfms = (opts.strategy && opts.strategy.denormalizedPmfms)
-        || (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms)
-        || [];
+      const pmfms =
+        (opts.strategy && opts.strategy.denormalizedPmfms) ||
+        (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms) ||
+        [];
       pmfms
-        .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.LANDING)
-        .forEach(p => {
+        .filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.LANDING)
+        .forEach((p) => {
           const key = p.pmfmId.toString();
           const value = data && data.measurementValues && data.measurementValues[key];
           measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));
@@ -54,22 +52,21 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
   }
 
   getFormGroupConfig(data?: Landing, opts?: O): { [p: string]: any } {
-
     const formConfig = Object.assign(super.getFormGroupConfig(data), {
       __typename: [Landing.TYPENAME],
       id: [toNumber(data && data.id, null)],
-      updateDate: [data && data.updateDate || null],
-      location: [data && data.location || null, SharedValidators.entity],
-      dateTime: [data && data.dateTime || null],
+      updateDate: [(data && data.updateDate) || null],
+      location: [(data && data.location) || null, SharedValidators.entity],
+      dateTime: [(data && data.dateTime) || null],
       rankOrder: [toNumber(data && data.rankOrder, null), Validators.compose([SharedValidators.integer, Validators.min(1)])],
       rankOrderOnVessel: [toNumber(data && data.rankOrderOnVessel, null), Validators.compose([SharedValidators.integer, Validators.min(1)])],
       measurementValues: this.formBuilder.group({}),
       observedLocationId: [toNumber(data && data.observedLocationId, null)],
       tripId: [toNumber(data && data.tripId, null)],
-      comments: [data && data.comments || null],
+      comments: [(data && data.comments) || null],
 
       // Computed values (e.g. for BIO-PARAM program)
-      samplesCount: [data && data.samplesCount, null]
+      samplesCount: [data && data.samplesCount, null],
     });
 
     // Add observers
@@ -83,15 +80,18 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
   protected fillDefaultOptions(opts?: O): O {
     opts = super.fillDefaultOptions(opts);
 
-    opts.withObservers = toBoolean(opts.withObservers,
-      opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE) || false);
+    opts.withObservers = toBoolean(
+      opts.withObservers,
+      (opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE)) || false
+    );
 
-    opts.withStrategy = toBoolean(opts.withStrategy,
-      opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE) || false);
+    opts.withStrategy = toBoolean(
+      opts.withStrategy,
+      (opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE)) || false
+    );
 
-    opts.withMeasurements = toBoolean(opts.withMeasurements,  toBoolean(!!opts.program, false));
+    opts.withMeasurements = toBoolean(opts.withMeasurements, toBoolean(!!opts.program, false));
 
     return opts;
   }
-
 }

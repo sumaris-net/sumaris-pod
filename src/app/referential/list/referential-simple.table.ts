@@ -1,5 +1,5 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import {
   AccountService,
   AppInMemoryTable,
@@ -8,40 +8,36 @@ import {
   LocalSettingsService,
   Referential,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
+  RESERVED_START_COLUMNS,
 } from '@sumaris-net/ngx-components';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ModalController, Platform} from '@ionic/angular';
-import {Location} from '@angular/common';
-import {ReferentialValidatorService} from '../services/validator/referential.validator';
-import {ReferentialFilter} from '../services/filter/referential.filter';
-import {environment} from '@environments/environment';
-
+import { ActivatedRoute, Router } from '@angular/router';
+import { ModalController, Platform } from '@ionic/angular';
+import { Location } from '@angular/common';
+import { ReferentialValidatorService } from '../services/validator/referential.validator';
+import { ReferentialFilter } from '../services/filter/referential.filter';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-simple-referential-table',
   templateUrl: 'referential-simple.table.html',
   styleUrls: ['referential-simple.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: ReferentialValidatorService},
+    { provide: ValidatorService, useExisting: ReferentialValidatorService },
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService(Referential, ReferentialFilter)
-    }
+      useFactory: () => new InMemoryEntitiesService(Referential, ReferentialFilter),
+    },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SimpleReferentialTable
-  extends AppInMemoryTable<Referential, Partial<ReferentialFilter>>
-  implements OnInit {
-
+export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partial<ReferentialFilter>> implements OnInit {
   statusList = DefaultStatusList;
   statusById: any;
 
   @Input() set entityName(entityName: string) {
     this.setFilter({
       ...this.filter,
-      entityName
+      entityName,
     });
   }
 
@@ -57,7 +53,6 @@ export class SimpleReferentialTable
     this.setShowColumn('updateDate', value);
   }
 
-
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
@@ -71,28 +66,22 @@ export class SimpleReferentialTable
     protected cd: ChangeDetectorRef,
     protected injector: Injector
   ) {
-    super(injector,
+    super(
+      injector,
       // columns
-      RESERVED_START_COLUMNS
-        .concat([
-          'label',
-          'name',
-          'description',
-          'status',
-          'updateDate',
-          'comments'])
-        .concat(RESERVED_END_COLUMNS),
+      RESERVED_START_COLUMNS.concat(['label', 'name', 'description', 'status', 'updateDate', 'comments']).concat(RESERVED_END_COLUMNS),
       Referential,
       memoryDataService,
       validatorService,
       {
         onRowCreated: (row) => this.onRowCreated(row),
         prependNewElements: false,
-        suppressErrors: true
+        suppressErrors: true,
       },
       {
-        entityName: 'Program'
-      });
+        entityName: 'Program',
+      }
+    );
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
     this.autoLoad = false; // waiting parent to load
@@ -102,7 +91,7 @@ export class SimpleReferentialTable
 
     // Fill statusById
     this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
+    this.statusList.forEach((status) => (this.statusById[status.id] = status));
 
     this.debug = !environment.production;
   }
@@ -117,12 +106,11 @@ export class SimpleReferentialTable
 
   protected onRowCreated(row: TableElement<Referential>) {
     const defaultValues = {
-      entityName: this.entityName
+      entityName: this.entityName,
     };
     if (row.validator) {
       row.validator.patchValue(defaultValues);
-    }
-    else {
+    } else {
       Object.assign(row.currentData, defaultValues);
     }
   }
@@ -131,4 +119,3 @@ export class SimpleReferentialTable
     this.cd.markForCheck();
   }
 }
-

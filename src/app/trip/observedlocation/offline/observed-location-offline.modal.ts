@@ -1,41 +1,38 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {ModalController} from '@ionic/angular';
-import {TranslateService} from '@ngx-translate/core';
-import {FormBuilder, Validators} from '@angular/forms';
-import {AppForm, AppFormUtils, isEmptyArray, isNotEmptyArray, LocalSettingsService, PlatformService, referentialsToString, referentialToString, SharedValidators} from '@sumaris-net/ngx-components';
-import {DateAdapter} from '@angular/material/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { FormBuilder, Validators } from '@angular/forms';
+import { AppForm, AppFormUtils, isEmptyArray, isNotEmptyArray, LocalSettingsService, PlatformService, referentialsToString, referentialToString, SharedValidators } from '@sumaris-net/ngx-components';
+import { DateAdapter } from '@angular/material/core';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {ProgramRefQueries, ProgramRefService} from '@app/referential/services/program-ref.service';
-import {map} from 'rxjs/operators';
-import {mergeMap} from 'rxjs/internal/operators';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {Program} from '@app/referential/services/model/program.model';
-import {ObservedLocationOfflineFilter} from '../../services/filter/observed-location.filter';
+import { Moment } from 'moment';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { ProgramRefQueries, ProgramRefService } from '@app/referential/services/program-ref.service';
+import { map } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/internal/operators';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { Program } from '@app/referential/services/model/program.model';
+import { ObservedLocationOfflineFilter } from '../../services/filter/observed-location.filter';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 const moment = momentImported;
 
 @Component({
   selector: 'app-observed-location-offline-modal',
-  styleUrls: [
-    './observed-location-offline.modal.scss'
-  ],
+  styleUrls: ['./observed-location-offline.modal.scss'],
   templateUrl: './observed-location-offline.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflineFilter> implements OnInit {
-
   loading = true;
   mobile: boolean;
 
   periodDurations: { value: number; unit: DurationConstructor }[] = [
     { value: 1, unit: 'week' },
     { value: 15, unit: 'day' },
-    { value: 1,  unit: 'month' },
-    { value: 3,  unit: 'month' },
-    { value: 6,  unit: 'month' }
+    { value: 1, unit: 'month' },
+    { value: 3, unit: 'month' },
+    { value: 6, unit: 'month' },
   ];
   periodDurationLabels: { key: string; label: string; startDate: Moment }[];
 
@@ -71,26 +68,29 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter,
+    super(
+      dateAdapter,
       formBuilder.group({
         program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
         enableHistory: [true, Validators.required],
         location: [null, Validators.required],
         periodDuration: ['15day', Validators.required],
       }),
-      settings);
+      settings
+    );
     this._enable = false; // Disable by default
     this.mobile = platform.mobile;
 
     // Prepare start date items
     const datePattern = translate.instant('COMMON.DATE_PATTERN');
-    this.periodDurationLabels = this.periodDurations.map(v => {
-      const date = moment().utc(false)
+    this.periodDurationLabels = this.periodDurations.map((v) => {
+      const date = moment()
+        .utc(false)
         .add(-1 * v.value, v.unit); // Substract the period, from now
       return {
         key: `${v.value} ${v.unit}`,
-        label: `${date.fromNow(true/*no suffix*/)} (${date.format(datePattern)})`,
-        startDate: date.startOf('day') // Reset time
+        label: `${date.fromNow(true /*no suffix*/)} (${date.format(datePattern)})`,
+        startDate: date.startOf('day'), // Reset time
       };
     });
   }
@@ -102,34 +102,32 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     this.registerAutocompleteField('program', {
       service: this.referentialRefService,
       filter: {
-        entityName: 'Program'
+        entityName: 'Program',
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     const displayAttributes = this.settings.getFieldDisplayAttributes('location');
-    const locations$ = this.form.get('program').valueChanges
-      .pipe(
-        mergeMap(program => program && program.label && this.programRefService.loadByLabel(program.label) || Promise.resolve()),
-        mergeMap(program => {
-          if (!program) return Promise.resolve();
-          const locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
-          return this.referentialRefService.loadAll(0, 100, displayAttributes[0],  'asc', {
-            entityName: 'Location',
-            levelIds: locationLevelIds
-          });
-        }),
-        map(res => {
-          if (!res || isEmptyArray(res.data)) {
-            this.form.get('location').disable();
-            return [];
-          }
-          else {
-            this.form.get('location').enable();
-            return res.data;
-          }
-        })
-      );
+    const locations$ = this.form.get('program').valueChanges.pipe(
+      mergeMap((program) => (program && program.label && this.programRefService.loadByLabel(program.label)) || Promise.resolve()),
+      mergeMap((program) => {
+        if (!program) return Promise.resolve();
+        const locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
+        return this.referentialRefService.loadAll(0, 100, displayAttributes[0], 'asc', {
+          entityName: 'Location',
+          levelIds: locationLevelIds,
+        });
+      }),
+      map((res) => {
+        if (!res || isEmptyArray(res.data)) {
+          this.form.get('location').disable();
+          return [];
+        } else {
+          this.form.get('location').enable();
+          return res.data;
+        }
+      })
+    );
 
     // Location
     this.registerAutocompleteField('location', {
@@ -140,30 +138,24 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
         }
         return referentialToString(arg, displayAttributes);
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Enable/disable sub controls, from the 'enable history' checkbox
-    const subControls = [
-      this.form.get('program'),
-      this.form.get('location'),
-      this.form.get('periodDuration')
-    ];
-    this.form.get('enableHistory').valueChanges.subscribe(enable => {
+    const subControls = [this.form.get('program'), this.form.get('location'), this.form.get('periodDuration')];
+    this.form.get('enableHistory').valueChanges.subscribe((enable) => {
       if (enable) {
-        subControls.forEach(control => {
+        subControls.forEach((control) => {
           control.enable();
           control.setValidators(Validators.required);
         });
-      }
-      else {
-        subControls.forEach(control => {
+      } else {
+        subControls.forEach((control) => {
           control.disable();
           control.setValidators(null);
         });
       }
     });
-
   }
 
   async setValue(value: ObservedLocationOfflineFilter | any) {
@@ -172,17 +164,16 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     const json = {
       program: null,
       location: null,
-      periodDuration: null
+      periodDuration: null,
     };
     // Program
     if (value.programLabel) {
-      json.program = await this.programRefService.loadByLabel(value.programLabel, {query: ProgramRefQueries.loadLight});
+      json.program = await this.programRefService.loadByLabel(value.programLabel, { query: ProgramRefQueries.loadLight });
     }
 
     // Location
     if (isNotEmptyArray(value.locationIds)) {
-      json.location = await Promise.all(value.locationIds
-        .map(id => this.referentialRefService.loadById(id, 'Location')));
+      json.location = await Promise.all(value.locationIds.map((id) => this.referentialRefService.loadById(id, 'Location')));
     }
 
     // Duration period
@@ -205,21 +196,20 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     const value = new ObservedLocationOfflineFilter();
 
     // Set program
-    value.programLabel = json.program && json.program.label || json.program;
+    value.programLabel = (json.program && json.program.label) || json.program;
 
     // Location
     if (json.location) {
       if (json.location instanceof Array) {
-        value.locationIds = json.location.map(entity => entity.id);
-      }
-      else {
+        value.locationIds = json.location.map((entity) => entity.id);
+      } else {
         value.locationIds = [json.location.id];
       }
     }
 
     // Set start date
     if (json.enableHistory && json.periodDuration) {
-      const periodDuration = this.periodDurationLabels.find(item => item.key === json.periodDuration);
+      const periodDuration = this.periodDurationLabels.find((item) => item.key === json.periodDuration);
       value.startDate = periodDuration && periodDuration.startDate;
 
       // Keep value of periodDuration (to be able to save it in local settings)

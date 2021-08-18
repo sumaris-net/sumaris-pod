@@ -1,16 +1,14 @@
-import {EntityClass, fromDateISOString, isNotEmptyArray, Person, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
-import {Moment} from 'moment';
-import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {Sample} from './sample.model';
-import {Measurement, MeasurementUtils} from './measurement.model';
-import {IWithProductsEntity, Product} from './product.model';
-import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { EntityClass, fromDateISOString, isNotEmptyArray, Person, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
+import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
+import { Sample } from './sample.model';
+import { Measurement, MeasurementUtils } from './measurement.model';
+import { IWithProductsEntity, Product } from './product.model';
+import { DataRootVesselEntity } from '@app/data/services/model/root-vessel-entity.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
-@EntityClass({typename: 'SaleVO'})
-export class Sale extends DataRootVesselEntity<Sale>
-  implements IWithProductsEntity<Sale> {
-
+@EntityClass({ typename: 'SaleVO' })
+export class Sale extends DataRootVesselEntity<Sale> implements IWithProductsEntity<Sale> {
   static fromObject: (source, opts?: any) => Sale;
 
   startDateTime: Moment = null;
@@ -38,14 +36,14 @@ export class Sale extends DataRootVesselEntity<Sale>
     this.rankOrder = source.rankOrder;
     this.tripId = source.tripId;
     this.observedLocationId = source.observedLocationId;
-    this.samples = source.samples && source.samples.map(Sample.fromObject) || [];
-    this.observers = source.observers && source.observers.map(Person.fromObject) || [];
-    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
+    this.samples = (source.samples && source.samples.map(Sample.fromObject)) || [];
+    this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];
+    this.measurements = (source.measurements && source.measurements.map(Measurement.fromObject)) || [];
 
     // Products (sale)
-    this.products = source.products && source.products.map(Product.fromObject) || [];
+    this.products = (source.products && source.products.map(Product.fromObject)) || [];
     // Affect parent
-    this.products.forEach(product => {
+    this.products.forEach((product) => {
       product.parent = this;
     });
 
@@ -56,17 +54,17 @@ export class Sale extends DataRootVesselEntity<Sale>
     const target = super.asObject(options);
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
-    target.saleLocation = this.saleLocation && this.saleLocation.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.saleType = this.saleType && this.saleType.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.samples = this.samples && this.samples.map(s => s.asObject(options)) || undefined;
-    target.observers = this.observers && this.observers.map(o => o.asObject(options)) || undefined;
-    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(options)) || undefined;
+    target.saleLocation = (this.saleLocation && this.saleLocation.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.saleType = (this.saleType && this.saleType.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.samples = (this.samples && this.samples.map((s) => s.asObject(options))) || undefined;
+    target.observers = (this.observers && this.observers.map((o) => o.asObject(options))) || undefined;
+    target.measurements = (this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map((m) => m.asObject(options))) || undefined;
 
     // Products
-    target.products = this.products && this.products.map(o => o.asObject(options)) || undefined;
+    target.products = (this.products && this.products.map((o) => o.asObject(options))) || undefined;
     // Affect parent link
     if (isNotEmptyArray(target.products)) {
-      target.products.forEach(product => {
+      target.products.forEach((product) => {
         product.saleId = target.id;
         // todo product.landingId must also be set, but not here, see pod
         delete product.parent;
@@ -75,5 +73,4 @@ export class Sale extends DataRootVesselEntity<Sale>
 
     return target;
   }
-
 }

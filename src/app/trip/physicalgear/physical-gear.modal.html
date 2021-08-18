@@ -7,20 +7,17 @@
     </ion-buttons>
 
     <ion-title>
-      {{$title | async}}
+      {{ $title | async }}
     </ion-title>
 
     <ion-buttons slot="end">
       <!-- Options menu -->
-      <button mat-icon-button *ngIf="!isNew && mobile"
-              [title]="'COMMON.OPTIONS'|translate"
-              [matMenuTriggerFor]="optionsMenu">
+      <button mat-icon-button *ngIf="!isNew && mobile" [title]="'COMMON.OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
 
       <!-- copy existing button -->
-      <ion-button *ngIf="isNew"
-                  (click)="copyPreviousGear($event)">
+      <ion-button *ngIf="isNew" (click)="copyPreviousGear($event)">
         <ion-icon slot="start" name="search"></ion-icon>
         <ion-label>
           <span translate>COMMON.BTN_SEARCH</span>
@@ -29,10 +26,7 @@
 
       <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <ion-button class="back-button" (click)="save($event)"
-                  *ngIf="!loading"
-                  [disabled]="!form.valid"
-                  visible-xs visible-sm visible-mobile>
+      <ion-button class="back-button" (click)="save($event)" *ngIf="!loading" [disabled]="!form.valid" visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -41,35 +35,28 @@
 
 <!-- Options menu -->
 <mat-menu #optionsMenu="matMenu">
-  <button mat-menu-item
-          (click)="delete($event)"
-          [disabled]="disabled">
+  <button mat-menu-item (click)="delete($event)" [disabled]="disabled">
     <mat-icon>delete_outline</mat-icon>
     <ion-label translate>COMMON.BTN_DELETE</ion-label>
   </button>
 </mat-menu>
 
-<ion-content class="ion-padding" >
-
+<ion-content class="ion-padding">
   <ion-item *ngIf="form.error" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="form.error|translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="form.error | translate"></ion-label>
   </ion-item>
 
-  <app-physical-gear-form #form
-                          [programLabel]="program"
-                          [acquisitionLevel]="acquisitionLevel"
-                          [canEditRankOrder]="canEditRankOrder">
-  </app-physical-gear-form>
-
-
+  <app-physical-gear-form
+    #form
+    [programLabel]="program"
+    [acquisitionLevel]="acquisitionLevel"
+    [canEditRankOrder]="canEditRankOrder"
+  ></app-physical-gear-form>
 </ion-content>
 
-
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
   <ion-toolbar>
-
     <ion-row class="ion-no-padding" nowrap>
       <ion-col></ion-col>
 
@@ -79,16 +66,17 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button [fill]="form.invalid ? 'clear' : 'solid'"
-                    [disabled]="loading || form.invalid"
-                    (keyup.enter)="save($event)"
-                    (click)="save($event)" color="tertiary">
+        <ion-button
+          [fill]="form.invalid ? 'clear' : 'solid'"
+          [disabled]="loading || form.invalid"
+          (keyup.enter)="save($event)"
+          (click)="save($event)"
+          color="tertiary"
+        >
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_APPLY</ion-label>
           <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>
-
-
   </ion-toolbar>
 </ion-footer>

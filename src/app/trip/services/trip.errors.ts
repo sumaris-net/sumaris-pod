@@ -1,6 +1,4 @@
-
 export const ErrorCodes = {
-
   LOAD_TRIP_ERROR: 200,
   LOAD_TRIPS_ERROR: 201,
   SAVE_TRIP_ERROR: 202,
@@ -50,6 +48,4 @@ export const ErrorCodes = {
   LOAD_EXTRACTION_MIN_MAX_TECH_ERROR: 306,
 
   SAVE_AGGREGATION_ERROR: 400,
-
-
 };

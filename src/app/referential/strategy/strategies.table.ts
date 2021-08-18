@@ -1,28 +1,24 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {StrategyValidatorService} from '../services/validator/strategy.validator';
-import {Strategy} from '../services/model/strategy.model';
-import {AppTable, DefaultStatusList, EntitiesTableDataSource, isNotNil, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from '@sumaris-net/ngx-components';
-import {StrategyService} from '../services/strategy.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ModalController, Platform} from '@ionic/angular';
-import {Location} from '@angular/common';
-import {Program} from '../services/model/program.model';
-import {environment} from '@environments/environment';
-import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
-
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { StrategyValidatorService } from '../services/validator/strategy.validator';
+import { Strategy } from '../services/model/strategy.model';
+import { AppTable, DefaultStatusList, EntitiesTableDataSource, isNotNil, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
+import { StrategyService } from '../services/strategy.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ModalController, Platform } from '@ionic/angular';
+import { Location } from '@angular/common';
+import { Program } from '../services/model/program.model';
+import { environment } from '@environments/environment';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 
 @Component({
   selector: 'app-strategy-table',
   templateUrl: 'strategies.table.html',
   styleUrls: ['strategies.table.scss'],
-  providers: [
-    {provide: ValidatorService, useExisting: StrategyValidatorService}
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: ValidatorService, useExisting: StrategyValidatorService }],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implements OnInit, OnDestroy {
-
   private _program: Program;
 
   statusList = DefaultStatusList;
@@ -37,10 +33,12 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     if (program && isNotNil(program.id) && this._program !== program) {
       this._program = program;
       console.debug('[strategy-table] Setting program:', program);
-      this.setFilter( StrategyFilter.fromObject({
-        ...this.filter,
-        levelId: program.id
-      }));
+      this.setFilter(
+        StrategyFilter.fromObject({
+          ...this.filter,
+          levelId: program.id,
+        })
+      );
     }
   }
 
@@ -60,30 +58,25 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     validatorService: ValidatorService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route,
+    super(
+      route,
       router,
       platform,
       location,
       modalCtrl,
       localSettingsService,
       // columns
-      RESERVED_START_COLUMNS
-        .concat([
-          'label',
-          'name',
-          'description',
-          'status',
-          'comments'])
-        .concat(RESERVED_END_COLUMNS),
+      RESERVED_START_COLUMNS.concat(['label', 'name', 'description', 'status', 'comments']).concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource(Strategy, dataService, validatorService, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
-          saveOnlyDirtyRows: false
-        }
+          saveOnlyDirtyRows: false,
+        },
       }),
       null,
-      injector);
+      injector
+    );
 
     this.inlineEdition = false;
     this.i18nColumnPrefix = 'REFERENTIAL.';
@@ -92,7 +85,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
 
     // Fill statusById
     this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
+    this.statusList.forEach((status) => (this.statusById[status.id] = status));
 
     this.debug = !environment.production;
   }
@@ -101,4 +94,3 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     this.cd.markForCheck();
   }
 }
-

@@ -11,7 +11,7 @@ import {
   Referential,
   ReferentialRef,
   StatusIds,
-  toDateISOString
+  toDateISOString,
 } from '@sumaris-net/ngx-components';
 
 export abstract class BaseReferentialFilter<
@@ -19,9 +19,8 @@ export abstract class BaseReferentialFilter<
   T extends IReferentialRef<T, ID>,
   ID = number,
   AO extends EntityAsObjectOptions = EntityAsObjectOptions,
-  FO = any>
-  extends EntityFilter<F, T, ID, AO, FO> {
-
+  FO = any
+> extends EntityFilter<F, T, ID, AO, FO> {
   entityName?: string;
 
   label?: string;
@@ -71,7 +70,7 @@ export abstract class BaseReferentialFilter<
     target.updateDate = toDateISOString(this.updateDate);
     target.levelIds = isNotNil(this.levelId) ? [this.levelId] : this.levelIds;
     target.levelLabels = isNotNil(this.levelLabel) ? [this.levelLabel] : this.levelLabels;
-    target.statusIds = isNotNil(this.statusId) ? [this.statusId] : (this.statusIds || [StatusIds.ENABLE]);
+    target.statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds || [StatusIds.ENABLE];
     if (opts && opts.minify) {
       // do NOT include entityName
       delete target.entityName;
@@ -117,10 +116,8 @@ export abstract class BaseReferentialFilter<
   }
 }
 
-@EntityClass({typename: 'ReferentialFilterVO'})
-export class ReferentialFilter
-  extends BaseReferentialFilter<ReferentialFilter, Referential> {
-
+@EntityClass({ typename: 'ReferentialFilterVO' })
+export class ReferentialFilter extends BaseReferentialFilter<ReferentialFilter, Referential> {
   static TYPENAME = 'ReferentialVO';
   static fromObject: (source: any, opts?: any) => ReferentialFilter;
 
@@ -133,7 +130,7 @@ export class ReferentialFilter
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
 
-    target.levelIds = target.levelIds || this.level && isNotNil(this.level.id) && [this.level.id] || undefined;
+    target.levelIds = target.levelIds || (this.level && isNotNil(this.level.id) && [this.level.id]) || undefined;
     if (opts && opts.minify) {
       delete target.level;
     }

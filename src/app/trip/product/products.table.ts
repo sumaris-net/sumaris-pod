@@ -1,18 +1,18 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, referentialToString} from '@sumaris-net/ngx-components';
-import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {ProductValidatorService} from '../services/validator/product.validator';
-import {IWithProductsEntity, Product, ProductFilter} from '../services/model/product.model';
-import {Platform} from '@ionic/angular';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {BehaviorSubject} from 'rxjs';
-import {TableElement} from '@e-is/ngx-material-table';
-import {ProductSaleModal} from '../sale/product-sale.modal';
-import {SaleProductUtils} from '../services/model/sale-product.model';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {environment} from '@environments/environment';
-import {SamplesModal} from '../sample/samples.modal';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, referentialToString } from '@sumaris-net/ngx-components';
+import { AppMeasurementsTable } from '../measurement/measurements.table.class';
+import { ProductValidatorService } from '../services/validator/product.validator';
+import { IWithProductsEntity, Product, ProductFilter } from '../services/model/product.model';
+import { Platform } from '@ionic/angular';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { BehaviorSubject } from 'rxjs';
+import { TableElement } from '@e-is/ngx-material-table';
+import { ProductSaleModal } from '../sale/product-sale.modal';
+import { SaleProductUtils } from '../services/model/sale-product.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { environment } from '@environments/environment';
+import { SamplesModal } from '../sample/samples.modal';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -24,15 +24,15 @@ export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // to
   providers: [
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService(Product, ProductFilter, {
-        equals: Product.equals
-      })
-    }
+      useFactory: () =>
+        new InMemoryEntitiesService(Product, ProductFilter, {
+          equals: Product.equals,
+        }),
+    },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> implements OnInit, OnDestroy {
-
   @Input() showParent = true;
   @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
   @Input() parentAttributes: string[];
@@ -61,19 +61,15 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     protected platform: Platform,
     protected validatorService: ProductValidatorService,
     protected memoryDataService: InMemoryEntitiesService<Product, ProductFilter>,
-    protected cd: ChangeDetectorRef,
+    protected cd: ChangeDetectorRef
   ) {
-    super(injector,
-      Product,
-      memoryDataService,
-      validatorService,
-      {
-        prependNewElements: false,
-        suppressErrors: environment.production,
-        reservedStartColumns: PRODUCT_RESERVED_START_COLUMNS,
-        reservedEndColumns: platform.is('mobile') ? [] : PRODUCT_RESERVED_END_COLUMNS,
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-      });
+    super(injector, Product, memoryDataService, validatorService, {
+      prependNewElements: false,
+      suppressErrors: environment.production,
+      reservedStartColumns: PRODUCT_RESERVED_START_COLUMNS,
+      reservedEndColumns: platform.is('mobile') ? [] : PRODUCT_RESERVED_END_COLUMNS,
+      mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+    });
     this.i18nColumnPrefix = 'TRIP.PRODUCT.LIST.';
     this.autoLoad = false; // waiting parent to be loaded
     this.inlineEdition = true;
@@ -94,34 +90,34 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
       items: this.$parents,
       attributes: this.parentAttributes,
       columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
-      columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : undefined)
+      columnSizes: this.parentAttributes.map((attr) => (attr === 'metier.label' ? 3 : undefined)),
     });
 
     const taxonGroupAttributes = this.settings.getFieldDisplayAttributes('taxonGroup');
     this.registerAutocompleteField('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
-      columnSizes: taxonGroupAttributes.map(attr => attr === 'label' ? 3 : undefined)
+      columnSizes: taxonGroupAttributes.map((attr) => (attr === 'label' ? 3 : undefined)),
     });
 
     this.registerSubscription(
-      filterNotNil(this.$pmfms)
-        .subscribe(() => {
-          // if main pmfms are loaded, then other pmfm can be loaded
-          this.programRefService.loadProgramPmfms(this.programLabel, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE})
-            .then(productSalePmfms => this.productSalePmfms = productSalePmfms);
-        }));
+      filterNotNil(this.$pmfms).subscribe(() => {
+        // if main pmfms are loaded, then other pmfm can be loaded
+        this.programRefService
+          .loadProgramPmfms(this.programLabel, { acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE })
+          .then((productSalePmfms) => (this.productSalePmfms = productSalePmfms));
+      })
+    );
 
-    this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditProduct(row)));
+    this.registerSubscription(this.onStartEditingRow.subscribe((row) => this.onStartEditProduct(row)));
   }
 
   /* -- protected methods -- */
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
-    return this.programRefService.suggestTaxonGroups(value,
-      {
-        program: this.programLabel,
-        searchAttribute: options && options.searchAttribute
-      });
+    return this.programRefService.suggestTaxonGroups(value, {
+      program: this.programLabel,
+      searchAttribute: options && options.searchAttribute,
+    });
   }
 
   protected markForCheck() {
@@ -129,7 +125,6 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
   }
 
   private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-
     if (this.platform.is('mobile')) {
       // hide pmfms on mobile
       return [];
@@ -147,7 +142,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
       // update sales if any
       if (isNotEmptyArray(row.currentData.saleProducts)) {
         const updatedSaleProducts = SaleProductUtils.updateSaleProducts(row.currentData, this.productSalePmfms);
-        row.validator.patchValue({saleProducts: updatedSaleProducts}, {emitEvent: true});
+        row.validator.patchValue({ saleProducts: updatedSaleProducts }, { emitEvent: true });
       }
     }
     return confirmed;
@@ -160,10 +155,10 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
       component: ProductSaleModal,
       componentProps: {
         product: row.currentData,
-        productSalePmfms: this.productSalePmfms
+        productSalePmfms: this.productSalePmfms,
       },
       backdropDismiss: false,
-      cssClass: 'modal-large'
+      cssClass: 'modal-large',
     });
 
     await modal.present();
@@ -171,10 +166,9 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
     if (res && res.data) {
       // patch saleProducts only
-      row.validator.patchValue({saleProducts: res.data.saleProducts}, {emitEvent: true});
+      row.validator.patchValue({ saleProducts: res.data.saleProducts }, { emitEvent: true });
       this.markAsDirty();
     }
-
   }
 
   async openSampling(event: MouseEvent, row: TableElement<Product>) {
@@ -182,7 +176,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
     const samples = row.currentData.samples || [];
     const taxonGroup = row.currentData.taxonGroup;
-    const title = await this.translate.get('TRIP.SAMPLE.EDIT.TITLE', {label: referentialToString(taxonGroup)}).toPromise();
+    const title = await this.translate.get('TRIP.SAMPLE.EDIT.TITLE', { label: referentialToString(taxonGroup) }).toPromise();
 
     const modal = await this.modalCtrl.create({
       component: SamplesModal,
@@ -195,33 +189,31 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
         showLabel: false,
         showTaxonGroup: false,
         showTaxonName: false,
-        title
+        title,
         // onReady: (obj) => this.onInitForm && this.onInitForm.emit({form: obj.form.form, pmfms: obj.$pmfms.getValue()})
       },
       backdropDismiss: false,
-      keyboardClose: true
+      keyboardClose: true,
     });
 
     // Open the modal
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
 
     if (data) {
-      if (this.debug)
-        console.debug('[products-table] Modal result: ', data);
+      if (this.debug) console.debug('[products-table] Modal result: ', data);
 
       // patch samples only
-      row.validator.patchValue({samples: data}, {emitEvent: true});
+      row.validator.patchValue({ samples: data }, { emitEvent: true });
       this.markAsDirty();
     }
-
   }
 
   private onStartEditProduct(row: TableElement<Product>) {
     if (this.filter && this.filter.parent && row.currentData && !row.currentData.parent) {
-      row.validator.patchValue({parent: this.filter.parent});
+      row.validator.patchValue({ parent: this.filter.parent });
     }
   }
 }

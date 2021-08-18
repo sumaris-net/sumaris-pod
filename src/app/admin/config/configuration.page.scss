@@ -18,7 +18,6 @@ ion-skeleton-text {
 }
 
 ion-grid.cache {
-
   --ion-grid-column-padding: 5px;
 
   ion-row {
@@ -29,8 +28,7 @@ ion-grid.cache {
       }
     }
     &.computed ion-col ion-label,
-    ion-label.computed
-    {
+    ion-label.computed {
       color: var(--ion-color-primary-tint) !important;
       font-style: italic !important;
     }

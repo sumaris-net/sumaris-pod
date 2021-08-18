@@ -1,20 +1,19 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from '@angular/core';
-import {Alerts, AppFormUtils, EntityUtils, isNil, isNotEmptyArray, LocalSettingsService, PlatformService, referentialToString, toBoolean, UsageMode} from '@sumaris-net/ngx-components';
-import {environment} from '@environments/environment';
-import {AlertController, IonContent, ModalController} from '@ionic/angular';
-import {BehaviorSubject, isObservable, Observable} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {SampleForm} from './sample.form';
-import {Sample} from '../services/model/sample.model';
-import {TRIP_LOCAL_SETTINGS_OPTIONS} from '../services/config/trip.config';
-import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
-import {debounceTime} from 'rxjs/operators';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { Alerts, AppFormUtils, EntityUtils, isNil, isNotEmptyArray, LocalSettingsService, PlatformService, referentialToString, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
+import { environment } from '@environments/environment';
+import { AlertController, IonContent, ModalController } from '@ionic/angular';
+import { BehaviorSubject, isObservable, Observable } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { SampleForm } from './sample.form';
+import { Sample } from '../services/model/sample.model';
+import { TRIP_LOCAL_SETTINGS_OPTIONS } from '../services/config/trip.config';
+import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
+import { debounceTime } from 'rxjs/operators';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
-
   // UI Fields show/hide
   showLabel: boolean;
   showDateTime: boolean;
@@ -34,10 +33,9 @@ export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
 @Component({
   selector: 'app-sample-modal',
   templateUrl: 'sample.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SampleModal implements OnInit, ISampleModalOptions {
-
   private _pmfms$ = new BehaviorSubject<IPmfm[]>(undefined);
   debug = false;
   loading = false;
@@ -51,9 +49,8 @@ export class SampleModal implements OnInit, ISampleModalOptions {
   // Avoid to load PMFM from program
   @Input() set pmfms(pmfms: Observable<IPmfm[]> | IPmfm[]) {
     if (isObservable(pmfms)) {
-      pmfms.subscribe(pmfms => this._pmfms$.next(pmfms));
-    }
-    else {
+      pmfms.subscribe((pmfms) => this._pmfms$.next(pmfms));
+    } else {
       this._pmfms$.next(pmfms);
     }
   }
@@ -73,7 +70,6 @@ export class SampleModal implements OnInit, ISampleModalOptions {
   @Input() showDateTime = true;
   @Input() showTaxonGroup = true;
   @Input() showTaxonName = true;
-
 
   @Input() onReady: (modal: SampleModal) => void;
   @Input() onSaveAndNew: (data: Sample) => Promise<Sample>;
@@ -99,7 +95,6 @@ export class SampleModal implements OnInit, ISampleModalOptions {
     return this.form.valid;
   }
 
-
   constructor(
     protected injector: Injector,
     protected modalCtrl: ModalController,
@@ -122,14 +117,12 @@ export class SampleModal implements OnInit, ISampleModalOptions {
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.disabled = toBoolean(this.disabled, false);
     if (isNil(this.enableBurstMode)) {
-      this.enableBurstMode = this.settings.getPropertyAsBoolean(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_BURST_MODE_ENABLE,
-        this.usageMode === 'FIELD');
+      this.enableBurstMode = this.settings.getPropertyAsBoolean(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_BURST_MODE_ENABLE, this.usageMode === 'FIELD');
     }
 
     if (this.disabled) {
       this.form.disable();
-    }
-    else {
+    } else {
       // Change rankOrder validator, to optional
       this.form.form.get('rankOrder').setValidators(null);
     }
@@ -141,9 +134,7 @@ export class SampleModal implements OnInit, ISampleModalOptions {
 
     if (!this.isNew) {
       // Update title each time value changes
-      this.form.valueChanges
-        .pipe(debounceTime(250))
-        .subscribe(json => this.computeTitle(json));
+      this.form.valueChanges.pipe(debounceTime(250)).subscribe((json) => this.computeTitle(json));
     }
 
     // Add callback
@@ -158,7 +149,7 @@ export class SampleModal implements OnInit, ISampleModalOptions {
       const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
 
       // User cancelled
-      if (isNil(saveBeforeLeave) || event && event.defaultPrevented) {
+      if (isNil(saveBeforeLeave) || (event && event.defaultPrevented)) {
         return;
       }
 
@@ -194,8 +185,7 @@ export class SampleModal implements OnInit, ISampleModalOptions {
         this.reset(newData);
 
         await this.scrollToTop();
-      }
-      finally {
+      } finally {
         this.loading = false;
         this.markForCheck();
       }
@@ -232,11 +222,10 @@ export class SampleModal implements OnInit, ISampleModalOptions {
   /* -- protected methods -- */
 
   protected getDataToSave(opts?: { markAsLoading?: boolean }): Sample {
-
     if (this.invalid) {
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
       this.form.error = 'COMMON.FORM.HAS_ERROR';
-      this.form.markAsTouched({emitEvent: true});
+      this.form.markAsTouched({ emitEvent: true });
       this.scrollToTop();
       return undefined;
     }
@@ -249,14 +238,12 @@ export class SampleModal implements OnInit, ISampleModalOptions {
     try {
       // Get form value
       return this.form.value;
-    }
-    finally {
+    } finally {
       this.form.form.disable();
     }
   }
 
   protected reset(data?: Sample) {
-
     this.data = data || new Sample();
     this.form.error = null;
 
@@ -273,14 +260,12 @@ export class SampleModal implements OnInit, ISampleModalOptions {
 
       // Compute the title
       this.computeTitle();
-    }
-    finally {
+    } finally {
       this.markForCheck();
     }
   }
 
   protected async computeTitle(data?: Sample) {
-
     data = data || this.data;
 
     // Compute prefix
@@ -293,18 +278,15 @@ export class SampleModal implements OnInit, ISampleModalOptions {
       prefixItems.push(referentialToString(data.taxonName, this.settings.getFieldDisplayAttributes('taxonName')));
     }
     if (isNotEmptyArray(prefixItems)) {
-      prefix = await this.translate.get('TRIP.SAMPLE.NEW.TITLE_PREFIX',
-        { prefix: prefixItems.join(' / ')})
-        .toPromise();
+      prefix = await this.translate.get('TRIP.SAMPLE.NEW.TITLE_PREFIX', { prefix: prefixItems.join(' / ') }).toPromise();
     }
 
     if (this.isNew || !data) {
-      this.$title.next(prefix + await this.translate.get('TRIP.SAMPLE.NEW.TITLE').toPromise());
-    }
-    else {
+      this.$title.next(prefix + (await this.translate.get('TRIP.SAMPLE.NEW.TITLE').toPromise()));
+    } else {
       // Label can be optional (e.g. in auction control)
-      const label = this.showLabel && data.label || ('#' + data.rankOrder);
-      this.$title.next(prefix + await this.translate.get('TRIP.SAMPLE.EDIT.TITLE', {label}).toPromise());
+      const label = (this.showLabel && data.label) || '#' + data.rankOrder;
+      this.$title.next(prefix + (await this.translate.get('TRIP.SAMPLE.EDIT.TITLE', { label }).toPromise()));
     }
   }
 

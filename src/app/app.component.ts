@@ -1,4 +1,4 @@
-import {Component, Inject} from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import {
   AccountService,
   ConfigService,
@@ -12,21 +12,20 @@ import {
   joinPropertiesPath,
   LocalSettingsService,
   mixHex,
-  PlatformService
+  PlatformService,
 } from '@sumaris-net/ngx-components';
-import {DOCUMENT} from '@angular/common';
-import {throttleTime} from 'rxjs/operators';
-import {ReferentialRefService} from './referential/services/referential-ref.service';
-import {MatIconRegistry} from '@angular/material/icon';
-import {DomSanitizer} from '@angular/platform-browser';
+import { DOCUMENT } from '@angular/common';
+import { throttleTime } from 'rxjs/operators';
+import { ReferentialRefService } from './referential/services/referential-ref.service';
+import { MatIconRegistry } from '@angular/material/icon';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-
   logo: string;
   appName: string;
 
@@ -40,7 +39,6 @@ export class AppComponent {
     private matIconRegistry: MatIconRegistry,
     private domSanitizer: DomSanitizer
   ) {
-
     this.start();
   }
 
@@ -50,7 +48,7 @@ export class AppComponent {
     await this.platform.start();
 
     // Listen for config changed
-    this.configService.config.subscribe(config => this.onConfigChanged(config));
+    this.configService.config.subscribe((config) => this.onConfigChanged(config));
 
     // Add additional account fields
     this.addAccountFields();
@@ -74,7 +72,6 @@ export class AppComponent {
   }
 
   protected onConfigChanged(config: Configuration) {
-
     this.logo = config.smallLogo || config.largeLogo;
     this.appName = config.label;
 
@@ -97,8 +94,8 @@ export class AppComponent {
           success: config.properties['sumaris.color.success'],
           warning: config.properties['sumaris.color.warning'],
           accent: config.properties['sumaris.color.accent'],
-          danger: config.properties['sumaris.color.danger']
-        }
+          danger: config.properties['sumaris.color.danger'],
+        },
       });
     }
   }
@@ -106,22 +103,20 @@ export class AppComponent {
   protected updateTheme(options: { colors?: { [color: string]: string } }) {
     if (!options) return;
 
-
     // Settings colors
     if (options.colors) {
       console.info('[app] Changing theme colors ', options);
 
-      const style =   document.documentElement.style;
+      const style = document.documentElement.style;
 
       // Add 100 & 900 color for primary and secondary color
-      ['primary', 'secondary'].forEach(colorName => {
+      ['primary', 'secondary'].forEach((colorName) => {
         const color = options.colors[colorName];
-        options.colors[colorName + '100'] = color && mixHex('#ffffff', color, 10) || undefined;
-        options.colors[colorName + '900'] = color && mixHex('#000000', color, 12) || undefined;
+        options.colors[colorName + '100'] = (color && mixHex('#ffffff', color, 10)) || undefined;
+        options.colors[colorName + '900'] = (color && mixHex('#000000', color, 12)) || undefined;
       });
 
-      Object.getOwnPropertyNames(options.colors).forEach(colorName => {
-
+      Object.getOwnPropertyNames(options.colors).forEach((colorName) => {
         // Remove existing value
         style.removeProperty(`--ion-color-${colorName}`);
         style.removeProperty(`--ion-color-${colorName}-rgb`);
@@ -153,7 +148,6 @@ export class AppComponent {
   }
 
   protected addAccountFields() {
-
     console.debug('[app] Add additional account fields...');
 
     const attributes = this.settings.getFieldDisplayAttributes('department');
@@ -163,41 +157,35 @@ export class AppComponent {
       type: 'entity',
       autocomplete: {
         service: this.referentialRefService,
-        filter: {entityName: 'Department'},
+        filter: { entityName: 'Department' },
         displayWith: (value) => value && joinPropertiesPath(value, attributes),
         attributes,
-        columnSizes: attributes.map(attr => attr === 'label' ? 3 : undefined)
+        columnSizes: attributes.map((attr) => (attr === 'label' ? 3 : undefined)),
       },
       extra: {
         registration: {
-          required: true
+          required: true,
         },
         account: {
           required: true,
-          disable: true
-        }
-      }
+          disable: true,
+        },
+      },
     };
 
     // Add account field: department
     this.accountService.registerAdditionalField(departmentDefinition);
 
     // When settings changed
-    this.settings.onChange
-      .pipe(throttleTime(400))
-      .subscribe(() => {
-        // Update the display fn
-        const attributes = this.settings.getFieldDisplayAttributes('department');
-        departmentDefinition.autocomplete.attributes = attributes;
-        departmentDefinition.autocomplete.displayWith = (value) => value && joinPropertiesPath(value, attributes) || undefined;
-      });
+    this.settings.onChange.pipe(throttleTime(400)).subscribe(() => {
+      // Update the display fn
+      const attributes = this.settings.getFieldDisplayAttributes('department');
+      departmentDefinition.autocomplete.attributes = attributes;
+      departmentDefinition.autocomplete.displayWith = (value) => (value && joinPropertiesPath(value, attributes)) || undefined;
+    });
   }
 
   protected addCustomSVGIcons() {
-    this.matIconRegistry.addSvgIcon(
-      'fish',
-      this.domSanitizer.bypassSecurityTrustResourceUrl('../assets/icons/fish.svg')
-    );
+    this.matIconRegistry.addSvgIcon('fish', this.domSanitizer.bypassSecurityTrustResourceUrl('../assets/icons/fish.svg'));
   }
 }
-

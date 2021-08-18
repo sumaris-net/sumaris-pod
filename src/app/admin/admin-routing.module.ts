@@ -1,8 +1,8 @@
-import {RouterModule, Routes} from '@angular/router';
-import {AuthGuardService, SharedRoutingModule, UsersPage} from '@sumaris-net/ngx-components';
-import {NgModule} from '@angular/core';
-import {ConfigurationPage} from './config/configuration.page';
-import {AppAdminModule} from './admin.module';
+import { RouterModule, Routes } from '@angular/router';
+import { AuthGuardService, SharedRoutingModule, UsersPage } from '@sumaris-net/ngx-components';
+import { NgModule } from '@angular/core';
+import { ConfigurationPage } from './config/configuration.page';
+import { AppAdminModule } from './admin.module';
 
 const routes: Routes = [
   {
@@ -11,8 +11,8 @@ const routes: Routes = [
     component: UsersPage,
     canActivate: [AuthGuardService],
     data: {
-      profile: 'ADMIN'
-    }
+      profile: 'ADMIN',
+    },
   },
   {
     path: 'config',
@@ -20,17 +20,13 @@ const routes: Routes = [
     component: ConfigurationPage,
     canActivate: [AuthGuardService],
     data: {
-      profile: 'ADMIN'
-    }
-  }
+      profile: 'ADMIN',
+    },
+  },
 ];
 
 @NgModule({
-  imports: [
-    SharedRoutingModule,
-    AppAdminModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [RouterModule]
+  imports: [SharedRoutingModule, AppAdminModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class AppAdminRoutingModule { }
+export class AppAdminRoutingModule {}

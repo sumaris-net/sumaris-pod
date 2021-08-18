@@ -1,6 +1,5 @@
-import {gql} from '@apollo/client/core';
-import {ReferentialFragments} from '@app/referential/services/referential.fragments';
-
+import { gql } from '@apollo/client/core';
+import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 
 export const Fragments = {
   referential: ReferentialFragments.referential,
@@ -9,337 +8,358 @@ export const Fragments = {
   location: ReferentialFragments.location,
   metier: ReferentialFragments.metier,
   lightMetier: ReferentialFragments.lightMetier,
-  lightPerson: gql`fragment LightPersonFragment on PersonVO {
-    id
-    firstName
-    lastName
-    avatar
-    department {
+  lightPerson: gql`
+    fragment LightPersonFragment on PersonVO {
       id
-      label
-      name
+      firstName
+      lastName
+      avatar
+      department {
+        id
+        label
+        name
+        __typename
+      }
       __typename
     }
-    __typename
-  }`,
-  position: gql`fragment PositionFragment on VesselPositionVO {
-    id
-    dateTime
-    latitude
-    longitude
-    updateDate
-    qualityFlagId
-    recorderDepartment {
+  `,
+  position: gql`
+    fragment PositionFragment on VesselPositionVO {
       id
-      label
-      name
+      dateTime
+      latitude
+      longitude
+      updateDate
+      qualityFlagId
+      recorderDepartment {
+        id
+        label
+        name
+        __typename
+      }
       __typename
     }
-    __typename
-  }`,
-  measurement: gql`fragment MeasurementFragment on MeasurementVO {
-    id
-    pmfmId
-    alphanumericalValue
-    numericalValue
-    rankOrder
-    qualitativeValue {
+  `,
+  measurement: gql`
+    fragment MeasurementFragment on MeasurementVO {
       id
-      label
-      name
+      pmfmId
+      alphanumericalValue
+      numericalValue
+      rankOrder
+      qualitativeValue {
+        id
+        label
+        name
+        entityName
+        __typename
+      }
+      digitCount
+      qualityFlagId
+      creationDate
+      updateDate
+      recorderDepartment {
+        id
+        label
+        name
+        __typename
+      }
       entityName
       __typename
     }
-    digitCount
-    qualityFlagId
-    creationDate
-    updateDate
-    recorderDepartment {
+  `,
+  packetComposition: gql`
+    fragment PacketCompositionFragment on PacketCompositionVO {
       id
-      label
-      name
+      rankOrder
+      taxonGroup {
+        id
+        label
+        name
+        entityName
+        __typename
+      }
+      ratios
       __typename
     }
-    entityName
-    __typename
-  }`,
-  packetComposition: gql`fragment PacketCompositionFragment on PacketCompositionVO {
-    id
-    rankOrder
-    taxonGroup {
-      id
-      label
-      name
-      entityName
-      __typename
-    }
-    ratios
-    __typename
-  }`
+  `,
 };
 
 export const DataFragments = {
-  sample: gql`fragment SampleFragment on SampleVO {
-    id
-    label
-    rankOrder
-    parentId
-    sampleDate
-    individualCount
-    size
-    sizeUnit
-    comments
-    updateDate
-    creationDate
-    matrix {
-      ...ReferentialFragment
+  sample: gql`
+    fragment SampleFragment on SampleVO {
+      id
+      label
+      rankOrder
+      parentId
+      sampleDate
+      individualCount
+      size
+      sizeUnit
+      comments
+      updateDate
+      creationDate
+      matrix {
+        ...ReferentialFragment
+      }
+      taxonGroup {
+        ...ReferentialFragment
+      }
+      taxonName {
+        ...TaxonNameFragment
+      }
+      measurementValues
+      qualityFlagId
+      operationId
+      __typename
     }
-    taxonGroup {
-      ...ReferentialFragment
-    }
-    taxonName {
-      ...TaxonNameFragment
-    }
-    measurementValues
-    qualityFlagId
-    operationId
-    __typename
-  }
-  ${Fragments.referential}
-  ${ReferentialFragments.taxonName}`,
-  batch: gql`fragment BatchFragment on BatchVO {
-    id
-    label
-    rankOrder
-    parentId
-    exhaustiveInventory
-    samplingRatio
-    samplingRatioText
-    individualCount
-    comments
-    updateDate
-    taxonGroup {
-      ...ReferentialFragment
-    }
-    taxonName {
-      ...TaxonNameFragment
-    }
-    measurementValues
-    qualityFlagId
-    __typename
-  }
-  ${Fragments.referential}
-  ${ReferentialFragments.taxonName}`,
-  packet: gql`fragment PacketFragment on PacketVO {
-    id
-    rankOrder
-    comments
-    updateDate
-    qualityFlagId
-    number
-    weight
-    sampledWeights
-    composition {
-      ...PacketCompositionFragment
-    }
-    operationId
-    __typename
-  }
-  ${Fragments.packetComposition}`,
-  product: gql`fragment ProductFragment on ProductVO {
-    id
-    label
-    rankOrder
-    individualCount
-    subgroupCount
-    weight
-    weightCalculated
-    comments
-    updateDate
-    taxonGroup {
-      ...ReferentialFragment
-    }
-    saleType {
-      ...ReferentialFragment
-    }
-    measurementValues
-    qualityFlagId
-    operationId
-    saleId
-    landingId
-    batchId
-    __typename
-  }
-  ${Fragments.referential}
+    ${Fragments.referential}
+    ${ReferentialFragments.taxonName}
   `,
-  fishingArea: gql`fragment FishingAreaFragment on FishingAreaVO {
-    id
-#    qualificationDate
-#    qualificationComments
-    qualityFlagId
-    location {
-      ...LocationFragment
+  batch: gql`
+    fragment BatchFragment on BatchVO {
+      id
+      label
+      rankOrder
+      parentId
+      exhaustiveInventory
+      samplingRatio
+      samplingRatioText
+      individualCount
+      comments
+      updateDate
+      taxonGroup {
+        ...ReferentialFragment
+      }
+      taxonName {
+        ...TaxonNameFragment
+      }
+      measurementValues
+      qualityFlagId
+      __typename
     }
-    distanceToCoastGradient {
-      ...ReferentialFragment
+    ${Fragments.referential}
+    ${ReferentialFragments.taxonName}
+  `,
+  packet: gql`
+    fragment PacketFragment on PacketVO {
+      id
+      rankOrder
+      comments
+      updateDate
+      qualityFlagId
+      number
+      weight
+      sampledWeights
+      composition {
+        ...PacketCompositionFragment
+      }
+      operationId
+      __typename
     }
-    depthGradient {
-      ...ReferentialFragment
+    ${Fragments.packetComposition}
+  `,
+  product: gql`
+    fragment ProductFragment on ProductVO {
+      id
+      label
+      rankOrder
+      individualCount
+      subgroupCount
+      weight
+      weightCalculated
+      comments
+      updateDate
+      taxonGroup {
+        ...ReferentialFragment
+      }
+      saleType {
+        ...ReferentialFragment
+      }
+      measurementValues
+      qualityFlagId
+      operationId
+      saleId
+      landingId
+      batchId
+      __typename
     }
-    nearbySpecificArea {
-      ...ReferentialFragment
+    ${Fragments.referential}
+  `,
+  fishingArea: gql`
+    fragment FishingAreaFragment on FishingAreaVO {
+      id
+      #    qualificationDate
+      #    qualificationComments
+      qualityFlagId
+      location {
+        ...LocationFragment
+      }
+      distanceToCoastGradient {
+        ...ReferentialFragment
+      }
+      depthGradient {
+        ...ReferentialFragment
+      }
+      nearbySpecificArea {
+        ...ReferentialFragment
+      }
+      operationId
+      __typename
     }
-    operationId
-    __typename
-  }
-  ${Fragments.location}
-  ${Fragments.referential}
-  `
+    ${Fragments.location}
+    ${Fragments.referential}
+  `,
 };
 
 export const PhysicalGearFragments = {
-  physicalGear: gql`fragment PhysicalGearFragment on PhysicalGearVO {
-    id
-    rankOrder
-    updateDate
-    creationDate
-    comments
-    gear {
-      ...ReferentialFragment
+  physicalGear: gql`
+    fragment PhysicalGearFragment on PhysicalGearVO {
+      id
+      rankOrder
+      updateDate
+      creationDate
+      comments
+      gear {
+        ...ReferentialFragment
+      }
+      recorderDepartment {
+        ...LightDepartmentFragment
+      }
+      measurementValues
     }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-    measurementValues
-  }`
+  `,
 };
 
-
 export const OperationGroupFragment = {
-  operationGroup: gql`fragment OperationGroupFragment on OperationGroupVO {
-    id
-    rankOrderOnPeriod
-    physicalGearId
-    tripId
-    comments
-    hasCatch
-    updateDate
-    metier {
-      ...MetierFragment
+  operationGroup: gql`
+    fragment OperationGroupFragment on OperationGroupVO {
+      id
+      rankOrderOnPeriod
+      physicalGearId
+      tripId
+      comments
+      hasCatch
+      updateDate
+      metier {
+        ...MetierFragment
+      }
+      physicalGear {
+        ...PhysicalGearFragment
+      }
+      recorderDepartment {
+        ...LightDepartmentFragment
+      }
+      measurements {
+        ...MeasurementFragment
+      }
+      gearMeasurements {
+        ...MeasurementFragment
+      }
+      packets {
+        ...PacketFragment
+      }
+      products {
+        ...ProductFragment
+      }
+      samples {
+        ...SampleFragment
+      }
+      fishingAreas {
+        ...FishingAreaFragment
+      }
     }
-    physicalGear {
-      ...PhysicalGearFragment
-    }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-    measurements {
-      ...MeasurementFragment
-    }
-    gearMeasurements {
-      ...MeasurementFragment
-    }
-    packets {
-      ...PacketFragment
-    }
-    products {
-      ...ProductFragment
-    }
-    samples {
-      ...SampleFragment
-    }
-    fishingAreas {
-      ...FishingAreaFragment
-    }
-  }
-  ${ReferentialFragments.lightDepartment}
-  ${ReferentialFragments.metier}
-  ${DataFragments.packet}
-  ${DataFragments.product}
-  ${DataFragments.sample}
-  ${DataFragments.fishingArea}
-  ${PhysicalGearFragments.physicalGear}
-  ${Fragments.measurement}
-  `
+    ${ReferentialFragments.lightDepartment}
+    ${ReferentialFragments.metier}
+    ${DataFragments.packet}
+    ${DataFragments.product}
+    ${DataFragments.sample}
+    ${DataFragments.fishingArea}
+    ${PhysicalGearFragments.physicalGear}
+    ${Fragments.measurement}
+  `,
 };
 
 export const SaleFragments = {
-  lightSale: gql`fragment LightSaleFragment on SaleVO {
-    id
-    startDateTime
-    creationDate
-    updateDate
-    comments
-    saleType {
-      ...ReferentialFragment
+  lightSale: gql`
+    fragment LightSaleFragment on SaleVO {
+      id
+      startDateTime
+      creationDate
+      updateDate
+      comments
+      saleType {
+        ...ReferentialFragment
+      }
+      saleLocation {
+        ...LocationFragment
+      }
     }
-    saleLocation {
-      ...LocationFragment
-    }
-  }
-  ${Fragments.referential}
-  ${Fragments.location}
+    ${Fragments.referential}
+    ${Fragments.location}
   `,
-  sale: gql`fragment SaleFragment on SaleVO {
-    id
-    startDateTime
-    creationDate
-    updateDate
-    comments
-    saleType {
-      ...ReferentialFragment
+  sale: gql`
+    fragment SaleFragment on SaleVO {
+      id
+      startDateTime
+      creationDate
+      updateDate
+      comments
+      saleType {
+        ...ReferentialFragment
+      }
+      saleLocation {
+        ...LocationFragment
+      }
+      measurements {
+        ...MeasurementFragment
+      }
+      products {
+        ...ProductFragment
+      }
     }
-    saleLocation {
-      ...LocationFragment
-    }
-    measurements {
-      ...MeasurementFragment
-    }
-    products {
-      ...ProductFragment
-    }
-  }
-  ${Fragments.referential}
-  ${Fragments.location}
-  ${Fragments.measurement}
-  ${DataFragments.product}
-  `
+    ${Fragments.referential}
+    ${Fragments.location}
+    ${Fragments.measurement}
+    ${DataFragments.product}
+  `,
 };
 
 export const ExpectedSaleFragments = {
-  lightExpectedSale: gql`fragment LightExpectedSaleFragment on ExpectedSaleVO {
-    id
-    saleDate
-    saleType {
-      ...ReferentialFragment
+  lightExpectedSale: gql`
+    fragment LightExpectedSaleFragment on ExpectedSaleVO {
+      id
+      saleDate
+      saleType {
+        ...ReferentialFragment
+      }
+      saleLocation {
+        ...LocationFragment
+      }
     }
-    saleLocation {
-      ...LocationFragment
-    }
-  }
-  ${Fragments.referential}
-  ${Fragments.location}
+    ${Fragments.referential}
+    ${Fragments.location}
   `,
-  expectedSale: gql`fragment ExpectedSaleFragment on ExpectedSaleVO {
-    id
-    saleDate
-    saleType {
-      ...ReferentialFragment
+  expectedSale: gql`
+    fragment ExpectedSaleFragment on ExpectedSaleVO {
+      id
+      saleDate
+      saleType {
+        ...ReferentialFragment
+      }
+      saleLocation {
+        ...LocationFragment
+      }
+      measurements {
+        ...MeasurementFragment
+      }
+      products {
+        ...ProductFragment
+      }
     }
-    saleLocation {
-      ...LocationFragment
-    }
-    measurements {
-      ...MeasurementFragment
-    }
-    products {
-      ...ProductFragment
-    }
-  }
-  ${Fragments.referential}
-  ${Fragments.location}
-  ${Fragments.measurement}
-  ${DataFragments.product}
-  `
+    ${Fragments.referential}
+    ${Fragments.location}
+    ${Fragments.measurement}
+    ${DataFragments.product}
+  `,
 };
-

@@ -111,9 +111,9 @@
       "HAS_ERROR": "Please correct errors in the form"
     },
     "PAGINATOR": {
-      "ITEMS_PER_PAGE":"Items per page",
-      "NEXT_PAGE":"Next page",
-      "PREVIOUS_PAGE":"Previous page",
+      "ITEMS_PER_PAGE": "Items per page",
+      "NEXT_PAGE": "Next page",
+      "PREVIOUS_PAGE": "Previous page",
       "OF": "sur"
     },
     "TABLE": {
@@ -352,7 +352,7 @@
     "OFFLINE_MODE": "Force offline mode? (experimental)",
     "DATA_ENTRY_DIVIDER": "Data entry settings",
     "USAGE_MODE": "Usage mode",
-    "USAGE_MODES":  {
+    "USAGE_MODES": {
       "FIELD": "On field",
       "DESK": "In office"
     },
@@ -721,7 +721,7 @@
         "TOTAL_DOTS": "Total:",
         "TAG_COUNT": "<b>{{tagCount}}</b> sample(s)"
       },
-      "ERROR" : {
+      "ERROR": {
         "PARAMETERS.WEIGHT_OR_LENGTH": "Weight or length mandatory"
       },
       "SETTINGS": {
@@ -873,7 +873,7 @@
       "COMMENTS": "Comments",
       "STRATEGY": "Strategy",
       "CREATION_DATE": "Creation date",
-      "RECORDER_PERSON" : "Recorder",
+      "RECORDER_PERSON": "Recorder",
       "SAMPLES_COUNT": "Samples count",
       "SAMPLING": {
         "STRATEGY_LABEL": "Sample row"
@@ -1246,9 +1246,9 @@
       "TITLE": "Data collection program"
     },
     "OPTIONS": {
-      "I18N_SUFFIX" : "Thematic dictionary",
-      "I18N_SUFFIX_LEGACY" : "By default",
-      "I18N_SUFFIX_SAMPLING" : "Biological parameter",
+      "I18N_SUFFIX": "Thematic dictionary",
+      "I18N_SUFFIX_LEGACY": "By default",
+      "I18N_SUFFIX_SAMPLING": "Biological parameter",
       "TRIP_LOCATION_LEVEL_IDS": "Trip: Location level(s)",
       "TRIP_SALE_ENABLE": "Trip: Enter the sale?",
       "TRIP_OBSERVERS_ENABLE": "Trip: Enter observers?",
@@ -1295,7 +1295,7 @@
       "LANDING_SAMPLES_COUNT_ENABLE": "Observation > Landings: Show samples count?",
       "LANDING_ONE_TAB_ENABLE": "Observation > Landing: single tab?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
-      "STRATEGY_EDITOR" : "Strategy > editor",
+      "STRATEGY_EDITOR": "Strategy > editor",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Default",
         "SAMPLING": "Biological parameters"
@@ -1349,10 +1349,10 @@
         "ANALYTIC_REFERENCE": "Analytic reference",
         "RECORDER_DEPARTMENTS": "Recoder department(s)",
         "TAXON_NAMES": "Scientific specie(s)",
-        "EFFORT_Q1": "Quarter Q1" ,
-        "EFFORT_Q2": "Quarter Q2" ,
-        "EFFORT_Q3": "Quarter Q3" ,
-        "EFFORT_Q4": "Quarter Q4" ,
+        "EFFORT_Q1": "Quarter Q1",
+        "EFFORT_Q2": "Quarter Q2",
+        "EFFORT_Q3": "Quarter Q3",
+        "EFFORT_Q4": "Quarter Q4",
         "PARAMETERS": "PMFM",
         "COMMENTS": "Comments",
         "AGE": "Age",
@@ -1371,10 +1371,10 @@
           "QUARTERS_DOTS": "Quarters :",
           "START_YEAR": "Start year",
           "END_YEAR": "End year",
-          "EFFORT_Q1": "QUarter Q1" ,
-          "EFFORT_Q2": "QUarter Q2" ,
-          "EFFORT_Q3": "QUarter Q3" ,
-          "EFFORT_Q4": "QUarter Q4" ,
+          "EFFORT_Q1": "QUarter Q1",
+          "EFFORT_Q2": "QUarter Q2",
+          "EFFORT_Q3": "QUarter Q3",
+          "EFFORT_Q4": "QUarter Q4",
           "PARAMETERS": "Measured parameters",
           "PARAMETERS_DOTS": "Measured parameters:",
           "COMMENTS": "Comments",
@@ -1388,15 +1388,15 @@
       },
       "SUMMARY": {
         "TITLE": "Strategy",
-        "LOCATIONS" :"Applied locations:",
-        "TAXON_NAMES" :"Sceitnfic species(s):",
-        "TAXON_GROUPS" :"Commercial specie(s) :",
-        "BTN_SHOW" :"Open the strategy",
-        "SAMPLING" : {
+        "LOCATIONS": "Applied locations:",
+        "TAXON_NAMES": "Sceitnfic species(s):",
+        "TAXON_GROUPS": "Commercial specie(s) :",
+        "BTN_SHOW": "Open the strategy",
+        "SAMPLING": {
           "TITLE": "Sampling scheme",
-          "LOCATIONS" :"Fishing area(s):",
-          "TAXON_NAMES" :"Target species:",
-          "TAXON_GROUPS" :"Commercial species:",
+          "LOCATIONS": "Fishing area(s):",
+          "TAXON_NAMES": "Target species:",
+          "TAXON_GROUPS": "Commercial species:",
           "BTN_SHOW": "Open the sampling scheme"
         }
       },
@@ -1548,8 +1548,8 @@
       "TECH_CHART_TITLE": "{{aggColumnName}} by {{techColumnName}}",
       "FREEZE_VALUES": "Freeze values",
       "LEGEND": "Legend",
-      "SCALE_LINEAR" : "Linear",
-      "SCALE_LOGARITHMIC":  "Logarithmic",
+      "SCALE_LINEAR": "Linear",
+      "SCALE_LOGARITHMIC": "Logarithmic",
       "CHART_AXIS_Y": "Y scale (left)",
       "CHART_AXIS_X": "X scale (bottom)",
       "LEGEND_FORM": {
@@ -1560,14 +1560,14 @@
       },
       "CHART_TYPE": {
         "TITLE": "Kind of chart",
-        "PIE" : "Pie",
-        "BAR":  "Histogram",
+        "PIE": "Pie",
+        "BAR": "Histogram",
         "DOUGHNUT": "Doughnut"
       },
       "CHART_SORT_BY": {
         "TITLE": "Sort by",
-        "LABEL" : "Label (asc)",
-        "VALUE":  "Value (desc)"
+        "LABEL": "Label (asc)",
+        "VALUE": "Value (desc)"
       },
       "SELECT_MODAL": {
         "TITLE": "Map list",

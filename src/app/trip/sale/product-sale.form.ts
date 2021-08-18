@@ -1,23 +1,22 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {Product} from '../services/model/product.model';
-import {AbstractControl, FormArray, FormBuilder, FormGroup} from '@angular/forms';
-import {AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, isNotNil, LocalSettingsService, UsageMode} from '@sumaris-net/ngx-components';
-import {DateAdapter} from '@angular/material/core';
-import {Moment} from 'moment';
-import {ProductValidatorService} from '../services/validator/product.validator';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {Subscription} from 'rxjs';
-import {SaleProduct, SaleProductUtils} from '../services/model/sale-product.model';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Product } from '../services/model/product.model';
+import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, isNotNil, LocalSettingsService, UsageMode } from '@sumaris-net/ngx-components';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { ProductValidatorService } from '../services/validator/product.validator';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { Subscription } from 'rxjs';
+import { SaleProduct, SaleProductUtils } from '../services/model/sale-product.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 @Component({
   selector: 'app-product-sale-form',
   templateUrl: './product-sale.form.html',
   styleUrls: ['./product-sale.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestroy {
-
   computing = false;
   salesHelper: FormArrayHelper<SaleProduct>;
   salesFocusIndex = -1;
@@ -38,7 +37,9 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
     const json = this.form.value;
 
     // Convert products sales to products
-    json.saleProducts = (json.saleProducts || []).map(saleProduct => SaleProductUtils.saleProductToProduct(this._product, saleProduct, this.productSalePmfms, {keepId: true}));
+    json.saleProducts = (json.saleProducts || []).map((saleProduct) =>
+      SaleProductUtils.saleProductToProduct(this._product, saleProduct, this.productSalePmfms, { keepId: true })
+    );
 
     return json;
   }
@@ -51,7 +52,7 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
     protected formBuilder: FormBuilder,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(dateAdapter, validatorService.getFormGroup(undefined, {withSaleProducts: true}), settings);
+    super(dateAdapter, validatorService.getFormGroup(undefined, { withSaleProducts: true }), settings);
   }
 
   ngOnInit() {
@@ -66,25 +67,25 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
       service: this.referentialRefService,
       attributes: ['name'],
       filter: {
-        entityName: 'SaleType'
-      }
+        entityName: 'SaleType',
+      },
     });
-
   }
 
   async setValue(data: Product, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-
     if (!data) return;
     this._product = data;
 
     // Initialize product sales by converting products to sale products
-    data.saleProducts = isNotEmptyArray(data.saleProducts) ? data.saleProducts.map(p => SaleProductUtils.productToSaleProduct(p, this.productSalePmfms)) : [null];
+    data.saleProducts = isNotEmptyArray(data.saleProducts)
+      ? data.saleProducts.map((p) => SaleProductUtils.productToSaleProduct(p, this.productSalePmfms))
+      : [null];
     this.salesHelper.resize(Math.max(1, data.saleProducts.length));
 
     super.setValue(data, opts);
 
     // update saleFromArray validators
-    this.validatorService.updateFormGroup(this.form, {withSaleProducts: true});
+    this.validatorService.updateFormGroup(this.form, { withSaleProducts: true });
 
     this.computeAllPrices();
 
@@ -92,31 +93,29 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
   }
 
   private initSubscription() {
-
     // clear and re-create
     this.saleSubscription.unsubscribe();
     this.saleSubscription = new Subscription();
 
     // add subscription on each sale form
     for (const saleControl of this.saleFormArray.controls) {
-      this.saleSubscription.add(saleControl.valueChanges.subscribe(() => {
-        this.computePrices(this.asFormGroup(saleControl).controls);
-        saleControl.markAsPristine();
-      }));
+      this.saleSubscription.add(
+        saleControl.valueChanges.subscribe(() => {
+          this.computePrices(this.asFormGroup(saleControl).controls);
+          saleControl.markAsPristine();
+        })
+      );
     }
-
   }
 
   private computeAllPrices() {
-    for (const sale of this.saleFormArray.controls as FormGroup[] || []) {
+    for (const sale of (this.saleFormArray.controls as FormGroup[]) || []) {
       this.computePrices(sale.controls);
     }
   }
 
   computePrices(controls: { [key: string]: AbstractControl }) {
-
-    if (this.computing)
-      return;
+    if (this.computing) return;
 
     try {
       this.computing = true;
@@ -131,11 +130,9 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
         true,
         'individualCount'
       );
-
     } finally {
       this.computing = false;
     }
-
   }
 
   isProductWithNumber(): boolean {
@@ -154,7 +151,7 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
       SaleProductUtils.isSaleProductEmpty,
       {
         allowEmptyArray: true,
-        validators: this.validatorService.getDefaultSaleProductValidators()
+        validators: this.validatorService.getDefaultSaleProductValidators(),
       }
     );
     if (this.salesHelper.size() === 0) {
@@ -162,7 +159,6 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
       this.salesHelper.resize(1);
     }
     this.markForCheck();
-
   }
 
   asFormGroup(control): FormGroup {

@@ -111,9 +111,9 @@
       "HAS_ERROR": "Veuillez corriger des erreurs dans le formulaire"
     },
     "PAGINATOR": {
-      "ITEMS_PER_PAGE":"Nombre de lignes",
-      "NEXT_PAGE":"Page suivante",
-      "PREVIOUS_PAGE":"Page précédente",
+      "ITEMS_PER_PAGE": "Nombre de lignes",
+      "NEXT_PAGE": "Page suivante",
+      "PREVIOUS_PAGE": "Page précédente",
       "OF": "sur"
     },
     "TABLE": {
@@ -352,7 +352,7 @@
     "OFFLINE_MODE": "Forcer le mode hors-ligne ?",
     "DATA_ENTRY_DIVIDER": "Paramètres de saisie",
     "USAGE_MODE": "Mode de saisie",
-    "USAGE_MODES":  {
+    "USAGE_MODES": {
       "FIELD": "Saisie terrain",
       "DESK": "Saisie bureau"
     },
@@ -501,7 +501,7 @@
       "NO_PRACTICED_METIER_FOUND": "Aucun métier pratiqué trouvé"
     },
     "MEASUREMENT": {
-      "FEATURE_PLACEHOLDER" : "Caractéristique #{{rankOrder}}",
+      "FEATURE_PLACEHOLDER": "Caractéristique #{{rankOrder}}",
       "ERROR": {
         "DUPLICATE_RANK_ORDER": "Le numero #{{rankOrder}} existe déjà. Impossible de l'ajouter à nouveau."
       }
@@ -739,7 +739,7 @@
           "OTHER": "Autre"
         }
       },
-      "ERROR" : {
+      "ERROR": {
         "PARAMETERS.WEIGHT_OR_LENGTH": "Poids ou taille obligatoire"
       },
       "SETTINGS": {
@@ -891,7 +891,7 @@
       "COMMENTS": "Commentaire",
       "STRATEGY": "Stratégie",
       "CREATION_DATE": "Date de création",
-      "RECORDER_PERSON" : "Saisisseur",
+      "RECORDER_PERSON": "Saisisseur",
       "SAMPLES_COUNT": "Nb. prélèvements",
       "SAMPLING": {
         "STRATEGY_LABEL": "Ligne de plan"
@@ -1116,7 +1116,7 @@
       "IS_NAMING": "Nommage conventionnel ?",
       "IS_VIRTUAL": "Virtuel ?",
       "USE_EXISTING_REFERENCE_TAXON": "Utiliser référence unique de taxon existante ?",
-      "REFERENCE_TAXON":"Référence unique de taxon",
+      "REFERENCE_TAXON": "Référence unique de taxon",
       "TAXONOMIC_LEVEL": "Niveau taxonomique",
       "START_DATE": "Date de début",
       "END_DATE": "Date de fin",
@@ -1264,9 +1264,9 @@
       "TITLE": "Programmes de collecte"
     },
     "OPTIONS": {
-      "I18N_SUFFIX" : "Dictionnaire thématique",
-      "I18N_SUFFIX_LEGACY" : "Par défaut",
-      "I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
+      "I18N_SUFFIX": "Dictionnaire thématique",
+      "I18N_SUFFIX_LEGACY": "Par défaut",
+      "I18N_SUFFIX_SAMPLING": "Paramètres biologiques",
       "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
@@ -1313,7 +1313,7 @@
       "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre d'échantillonnages ?",
       "LANDING_ONE_TAB_ENABLE": "Sortie > Débarquement : un seul onglet ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
-      "STRATEGY_EDITOR" : "Stratégie > éditeur",
+      "STRATEGY_EDITOR": "Stratégie > éditeur",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Par défaut",
         "SAMPLING": "Paramètres biologiques"
@@ -1394,10 +1394,10 @@
         "ANALYTIC_REFERENCE": "Code analytique",
         "RECORDER_DEPARTMENTS": "Service(s) saisisseur(s)",
         "TAXON_NAMES": "Espèce(s) scientifique(s)",
-        "EFFORT_Q1": "Effort T1" ,
-        "EFFORT_Q2": "Effort T2" ,
-        "EFFORT_Q3": "Effort T3" ,
-        "EFFORT_Q4": "Effort T4" ,
+        "EFFORT_Q1": "Effort T1",
+        "EFFORT_Q2": "Effort T2",
+        "EFFORT_Q3": "Effort T3",
+        "EFFORT_Q4": "Effort T4",
         "PARAMETERS": "Paramètres collectés",
         "COMMENTS": "Commentaires",
         "AGE": "Age",
@@ -1416,10 +1416,10 @@
           "QUARTERS_DOTS": "Efforts :",
           "START_YEAR": "Année début",
           "END_YEAR": "Année fin",
-          "EFFORT_Q1": "Efforts T1" ,
-          "EFFORT_Q2": "Efforts T2" ,
-          "EFFORT_Q3": "Efforts T3" ,
-          "EFFORT_Q4": "Efforts T4" ,
+          "EFFORT_Q1": "Efforts T1",
+          "EFFORT_Q2": "Efforts T2",
+          "EFFORT_Q3": "Efforts T3",
+          "EFFORT_Q4": "Efforts T4",
           "PARAMETERS": "Paramètres à mesurer",
           "PARAMETERS_DOTS": "Paramètres à mesurer :",
           "COMMENTS": "Commentaires",
@@ -1433,15 +1433,15 @@
       },
       "SUMMARY": {
         "TITLE": "Stratégie",
-        "LOCATIONS" :"Lieux applicables :",
-        "TAXON_NAMES" :"Espèce(s) scientifique(s) :",
-        "TAXON_GROUPS" :"Espèce(s) commerciale(s) :",
-        "BTN_SHOW" :"Ouvrir la stratégie",
-        "SAMPLING" : {
+        "LOCATIONS": "Lieux applicables :",
+        "TAXON_NAMES": "Espèce(s) scientifique(s) :",
+        "TAXON_GROUPS": "Espèce(s) commerciale(s) :",
+        "BTN_SHOW": "Ouvrir la stratégie",
+        "SAMPLING": {
           "TITLE": "Plan d'échantillonnage",
-          "LOCATIONS" :"Zone(s) de pêche :",
-          "TAXON_NAMES" :"Espèce cible :",
-          "TAXON_GROUPS" :"Espèces commerciales :",
+          "LOCATIONS": "Zone(s) de pêche :",
+          "TAXON_NAMES": "Espèce cible :",
+          "TAXON_GROUPS": "Espèces commerciales :",
           "BTN_SHOW": "Ouvrir la ligne de plan"
         }
       },
@@ -1593,8 +1593,8 @@
       "TECH_CHART_TITLE": "{{aggColumnName}} par <b>{{techColumnName}}</b>",
       "FREEZE_VALUES": "Figer les valeurs",
       "LEGEND": "Légende",
-      "SCALE_LINEAR" : "Linéaire",
-      "SCALE_LOGARITHMIC":  "Logarithmique",
+      "SCALE_LINEAR": "Linéaire",
+      "SCALE_LOGARITHMIC": "Logarithmique",
       "CHART_AXIS_Y": "Echelle Y (gauche)",
       "CHART_AXIS_X": "Echelle X (bas)",
       "LEGEND_FORM": {
@@ -1605,14 +1605,14 @@
       },
       "CHART_TYPE": {
         "TITLE": "Type de graphique",
-        "PIE" : "Camenbert",
-        "BAR":  "Histogramme",
+        "PIE": "Camenbert",
+        "BAR": "Histogramme",
         "DOUGHNUT": "Donut"
       },
       "CHART_SORT_BY": {
         "TITLE": "Trier par",
-        "LABEL" : "Libellé (asc)",
-        "VALUE":  "Valeur (desc)"
+        "LABEL": "Libellé (asc)",
+        "VALUE": "Valeur (desc)"
       },
       "SELECT_MODAL": {
         "TITLE": "Liste des cartes",

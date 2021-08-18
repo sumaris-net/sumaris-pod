@@ -7,13 +7,12 @@ app-toolbar ion-spinner {
   top: 10px;
 }
 
-ion-col>ion-label {
+ion-col > ion-label {
   word-wrap: break-word;
   white-space: normal;
 }
 
 .mat-tab-group {
-
   .mat-tab-body .mat-tab-body-content {
     min-height: var(--ion-tab-min-height, 250px);
   }

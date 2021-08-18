@@ -1,16 +1,17 @@
-<app-toolbar [title]="$title | async" color="primary"
-             [hasValidate]="!loading && dirty"
-             (onValidate)="save($event)"
-             [hasClose]="!loading && !dirty"
-             (onValidateAndClose)="saveAndClose($event)"
-             (onClose)="close($event)"
-             [defaultBackHref]="defaultBackHref"
-             [canGoBack]="true">
-</app-toolbar>
+<app-toolbar
+  [title]="$title | async"
+  color="primary"
+  [hasValidate]="!loading && dirty"
+  (onValidate)="save($event)"
+  [hasClose]="!loading && !dirty"
+  (onValidateAndClose)="saveAndClose($event)"
+  (onClose)="close($event)"
+  [defaultBackHref]="defaultBackHref"
+  [canGoBack]="true"
+></app-toolbar>
 
 <!-- Vessel actions -->
 <mat-menu #actionMenu="matMenu" xPosition="after">
-
   <!-- vessel registration -->
   <mat-label mat-menu-item class="mat-menu-title" translate>VESSEL.ACTION.REGISTRATION_DIVIDER</mat-label>
   <button mat-menu-item translate (click)="editRegistration()">VESSEL.ACTION.EDIT_REGISTRATION</button>
@@ -28,15 +29,16 @@
 </mat-menu>
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
-  <mat-tab-group #tabGroup
-                 class="mat-tab-disabled-hidden"
-                 [(selectedIndex)]="selectedTabIndex"
-                 (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="tabGroupAnimationDuration"
-                 dynamicHeight>
-
+  <mat-tab-group
+    #tabGroup
+    class="mat-tab-disabled-hidden"
+    [(selectedIndex)]="selectedTabIndex"
+    (selectedTabChange)="onTabChange($event)"
+    [animationDuration]="tabGroupAnimationDuration"
+    dynamicHeight
+  >
     <!-- TAB: general -->
-    <mat-tab label="{{'VESSEL.TAB_GENERAL'|translate}}">
+    <mat-tab label="{{ 'VESSEL.TAB_GENERAL' | translate }}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>VESSEL.TAB_GENERAL</ion-label>
@@ -45,28 +47,21 @@
       <ion-grid class="ion-no-padding">
         <ion-row class="ion-no-padding">
           <ion-col class="ion-padding">
-
             <!-- main form -->
-            <form-vessel (onSubmit)="save($event)" #vesselForm>
-            </form-vessel>
-
+            <form-vessel (onSubmit)="save($event)" #vesselForm></form-vessel>
           </ion-col>
 
           <!-- quality process -->
           <ion-col size="12" size-md="4" size-lg="4" size-xl="3" class="ion-no-padding">
             <app-entity-metadata [value]="data">
-
-              <ion-button color="tertiary" expand="block"
-                          [matMenuTriggerFor]="actionMenu" [disabled]="!data || !canUserWrite(data)">
-                <ion-icon slot="start" name="create" class="ion-float-start"></ion-icon>&nbsp;
+              <ion-button color="tertiary" expand="block" [matMenuTriggerFor]="actionMenu" [disabled]="!data || !canUserWrite(data)">
+                <ion-icon slot="start" name="create" class="ion-float-start"></ion-icon>
+                &nbsp;
                 <ion-label translate>VESSEL.ACTION.EDIT</ion-label>
                 <mat-icon slot="end" class="ion-float-end">arrow_drop_down</mat-icon>
               </ion-button>
 
-              <ion-button *ngIf="editing"
-                          fill="clear" expand="block" color="dark"
-                          class="visible-mobile visible-xs visible-sm"
-                          (click)="cancel()">
+              <ion-button *ngIf="editing" fill="clear" expand="block" color="dark" class="visible-mobile visible-xs visible-sm" (click)="cancel()">
                 <ion-label translate>COMMON.BTN_CANCEL</ion-label>
               </ion-button>
             </app-entity-metadata>
@@ -75,32 +70,28 @@
       </ion-grid>
     </mat-tab>
 
-    <mat-tab label="{{'VESSEL.TAB_HISTORY'|translate}}">
+    <mat-tab label="{{ 'VESSEL.TAB_HISTORY' | translate }}">
       <ng-template mat-tab-label>
-        <mat-icon>history</mat-icon>&nbsp;
+        <mat-icon>history</mat-icon>
+        &nbsp;
         <ion-label translate>VESSEL.TAB_HISTORY</ion-label>
       </ng-template>
 
       <ion-row class="ion-no-padding">
         <ion-col class="ion-padding">
-          <app-vessel-registration-history-table #registrationHistoryTable>
-          </app-vessel-registration-history-table>
+          <app-vessel-registration-history-table #registrationHistoryTable></app-vessel-registration-history-table>
         </ion-col>
       </ion-row>
 
       <ion-row class="ion-no-padding">
         <ion-col class="ion-padding">
-          <app-vessel-features-history-table #featuresHistoryTable>
-          </app-vessel-features-history-table>
+          <app-vessel-features-history-table #featuresHistoryTable></app-vessel-features-history-table>
         </ion-col>
       </ion-row>
-
     </mat-tab>
-
   </mat-tab-group>
-
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-  <app-form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading "></app-form-buttons-bar>
+  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"></app-form-buttons-bar>
 </ion-footer>

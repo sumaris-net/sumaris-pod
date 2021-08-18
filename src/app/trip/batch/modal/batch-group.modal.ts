@@ -1,24 +1,23 @@
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Batch, BatchUtils} from '../../services/model/batch.model';
-import {Alerts, AppFormUtils, IReferentialRef, isNil, LocalSettingsService, PlatformService, ReferentialUtils, toBoolean} from '@sumaris-net/ngx-components';
-import {AlertController, ModalController} from '@ionic/angular';
-import {BehaviorSubject, merge, Observable, Subscription} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {PmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {BatchGroupForm} from '../form/batch-group.form';
-import {debounceTime, map, startWith} from 'rxjs/operators';
-import {BatchGroup} from '../../services/model/batch-group.model';
-import {environment} from '@environments/environment';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { Alerts, AppFormUtils, IReferentialRef, isNil, LocalSettingsService, PlatformService, ReferentialUtils, toBoolean } from '@sumaris-net/ngx-components';
+import { AlertController, ModalController } from '@ionic/angular';
+import { BehaviorSubject, merge, Observable, Subscription } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { BatchGroupForm } from '../form/batch-group.form';
+import { debounceTime, map, startWith } from 'rxjs/operators';
+import { BatchGroup } from '../../services/model/batch-group.model';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-batch-group-modal',
   templateUrl: 'batch-group.modal.html',
   styleUrls: ['batch-group.modal.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BatchGroupModal implements OnInit, OnDestroy, AfterViewInit {
-
   private _subscription = new Subscription();
 
   debug = false;
@@ -76,17 +75,11 @@ export class BatchGroupModal implements OnInit, OnDestroy, AfterViewInit {
     return !this.disabled;
   }
 
-  enable(opts?: {
-    onlySelf?: boolean;
-    emitEvent?: boolean;
-  }) {
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     this.form.enable(opts);
   }
 
-  disable(opts?: {
-    onlySelf?: boolean;
-    emitEvent?: boolean;
-  }) {
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     this.form.disable(opts);
   }
 
@@ -97,7 +90,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, AfterViewInit {
     protected platform: PlatformService,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
-    protected cd: ChangeDetectorRef,
+    protected cd: ChangeDetectorRef
   ) {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
@@ -108,7 +101,6 @@ export class BatchGroupModal implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit() {
-
     this.isNew = toBoolean(this.isNew, !this.data);
     this.data = this.data || new BatchGroup();
     this.form.setValue(this.data);
@@ -117,27 +109,21 @@ export class BatchGroupModal implements OnInit, OnDestroy, AfterViewInit {
 
     if (this.disabled) {
       this.disable();
-    }
-    else {
+    } else {
       this.enable();
     }
 
-
     // Update title, when form change
     this._subscription.add(
-      merge(
-        this.form.form.get('taxonGroup').valueChanges,
-        this.form.form.get('taxonName').valueChanges
-      )
-      .pipe(
-        debounceTime(500),
-        map(() => this.form.value),
-        // Start with current data
-        startWith(this.data)
-      )
-      .subscribe((data) => this.computeTitle(data))
+      merge(this.form.form.get('taxonGroup').valueChanges, this.form.form.get('taxonName').valueChanges)
+        .pipe(
+          debounceTime(500),
+          map(() => this.form.value),
+          // Start with current data
+          startWith(this.data)
+        )
+        .subscribe((data) => this.computeTitle(data))
     );
-
 
     // Wait that form are ready (because of safeSetValue()) then mark as pristine
     setTimeout(() => {
@@ -160,12 +146,12 @@ export class BatchGroupModal implements OnInit, OnDestroy, AfterViewInit {
   async cancel(event?: UIEvent) {
     if (this.dirty) {
       let saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
-      if (isNil(saveBeforeLeave) || event && event.defaultPrevented) return; // User cancelled
+      if (isNil(saveBeforeLeave) || (event && event.defaultPrevented)) return; // User cancelled
 
       // Ask a second confirmation, if observed individual count > 0
       if (saveBeforeLeave === false && this.isNew && this.data.observedIndividualCount > 0) {
         saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
-        if (isNil(saveBeforeLeave) || event && event.defaultPrevented) return; // User cancelled
+        if (isNil(saveBeforeLeave) || (event && event.defaultPrevented)) return; // User cancelled
       }
 
       // Is user confirm: close normally
@@ -178,18 +164,18 @@ export class BatchGroupModal implements OnInit, OnDestroy, AfterViewInit {
     await this.modalCtrl.dismiss();
   }
 
-  async save(opts?: {allowInvalid?: boolean }): Promise<BatchGroup | undefined> {
+  async save(opts?: { allowInvalid?: boolean }): Promise<BatchGroup | undefined> {
     if (this.loading) return undefined; // avoid many call
 
     this.loading = true;
 
     // Force enable form, before use value
-    if (!this.enabled) this.enable({emitEvent: false});
+    if (!this.enabled) this.enable({ emitEvent: false });
 
     try {
       // Wait pending async validator
       await AppFormUtils.waitWhilePending(this.form, {
-        timeout: 2000 // Workaround because from child form never finish FIXME
+        timeout: 2000, // Workaround because from child form never finish FIXME
       });
 
       const invalid = !this.valid;
@@ -206,7 +192,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, AfterViewInit {
         // Invalid not allowed: stop
         if (!allowInvalid) {
           if (this.debug) this.form.logFormErrors('[batch-group-modal] ');
-          this.form.markAsTouched({emitEvent: true});
+          this.form.markAsTouched({ emitEvent: true });
           return undefined;
         }
       }
@@ -216,16 +202,14 @@ export class BatchGroupModal implements OnInit, OnDestroy, AfterViewInit {
       //this.data.qualityFlagId = invalid ? QualityFlagIds.BAD : undefined;
 
       return this.data;
-    }
-    finally {
+    } finally {
       this.loading = false;
       this.markForCheck();
     }
   }
 
-  async close(event?: UIEvent, opts?: {allowInvalid?: boolean }): Promise<BatchGroup | undefined> {
-
-    const savedBatch = await this.save({allowInvalid: true, ...opts});
+  async close(event?: UIEvent, opts?: { allowInvalid?: boolean }): Promise<BatchGroup | undefined> {
+    const savedBatch = await this.save({ allowInvalid: true, ...opts });
     if (!savedBatch) return;
     await this.modalCtrl.dismiss(savedBatch);
 
@@ -246,7 +230,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, AfterViewInit {
     if (!this.openSubBatchesModal) return; // Skip
 
     // Save
-    const savedBatch = await this.save({allowInvalid: true});
+    const savedBatch = await this.save({ allowInvalid: true });
     if (!savedBatch) return;
 
     // Execute the callback
@@ -255,8 +239,8 @@ export class BatchGroupModal implements OnInit, OnDestroy, AfterViewInit {
     if (!updatedParent) return; // User cancelled
 
     this.data.observedIndividualCount = updatedParent.observedIndividualCount;
-    this.form.form.patchValue({observedIndividualCount: updatedParent.observedIndividualCount}, {emitEvent: false});
-    this.form.hasIndividualMeasure = (updatedParent.observedIndividualCount > 0);
+    this.form.form.patchValue({ observedIndividualCount: updatedParent.observedIndividualCount }, { emitEvent: false });
+    this.form.hasIndividualMeasure = updatedParent.observedIndividualCount > 0;
     this.form.markAsDirty();
   }
 
@@ -266,10 +250,9 @@ export class BatchGroupModal implements OnInit, OnDestroy, AfterViewInit {
     data = data || this.data;
     if (this.isNew) {
       this.$title.next(await this.translate.get('TRIP.BATCH.NEW.TITLE').toPromise());
-    }
-    else {
+    } else {
       const label = BatchUtils.parentToString(data);
-      this.$title.next(await this.translate.get('TRIP.BATCH.EDIT.TITLE', {label}).toPromise());
+      this.$title.next(await this.translate.get('TRIP.BATCH.EDIT.TITLE', { label }).toPromise());
     }
   }
 

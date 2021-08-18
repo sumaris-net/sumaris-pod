@@ -1,6 +1,6 @@
-import {concat, defer, Observable, of, timer} from 'rxjs';
-import {catchError, map, switchMap, tap} from 'rxjs/operators';
-import {DataRootEntityUtils, RootDataEntity, SynchronizationStatusEnum} from './model/root-data-entity.model';
+import { concat, defer, Observable, of, timer } from 'rxjs';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { DataRootEntityUtils, RootDataEntity, SynchronizationStatusEnum } from './model/root-data-entity.model';
 import {
   BaseEntityGraphqlQueries,
   BaseEntityGraphqlSubscriptions,
@@ -16,34 +16,27 @@ import {
   JobUtils,
   LocalSettingsService,
   NetworkService,
-  PersonService
+  PersonService,
 } from '@sumaris-net/ngx-components';
-import {BaseRootDataService, BaseRootEntityGraphqlMutations} from './root-data-service.class';
+import { BaseRootDataService, BaseRootEntityGraphqlMutations } from './root-data-service.class';
 
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {Injector} from '@angular/core';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { Injector } from '@angular/core';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
-import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from './model/data-entity.model';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {Vessel} from '@app/vessel/services/model/vessel.model';
-import {ErrorCodes} from './errors';
-import {FetchPolicy} from '@apollo/client/core';
-import {ObservedLocation} from '@app/trip/services/model/observed-location.model';
-import {RootDataEntityFilter} from './model/root-data-filter.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import { Moment } from 'moment';
+import { MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from './model/data-entity.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { Vessel } from '@app/vessel/services/model/vessel.model';
+import { ErrorCodes } from './errors';
+import { FetchPolicy } from '@apollo/client/core';
+import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
+import { RootDataEntityFilter } from './model/root-data-filter.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 
-
-export interface IDataSynchroService<
-  T extends RootDataEntity<T, ID>,
-  ID = number,
-  LO extends EntityServiceLoadOptions = EntityServiceLoadOptions> {
-
+export interface IDataSynchroService<T extends RootDataEntity<T, ID>, ID = number, LO extends EntityServiceLoadOptions = EntityServiceLoadOptions> {
   load(id: ID, opts?: LO): Promise<T>;
 
-  executeImport(opts?: {
-    maxProgression?: number;
-  }): Observable<number>;
+  executeImport(opts?: { maxProgression?: number }): Observable<number>;
 
   terminateById(id: ID): Promise<T>;
 
@@ -61,22 +54,23 @@ export interface IDataSynchroService<
 const DataSynchroServiceFnName: (keyof IDataSynchroService<any>)[] = ['load', 'executeImport', 'synchronizeById', 'synchronize', 'lastUpdateDate'];
 
 export const isDataSynchroService = (object: any): object is IDataSynchroService<any> =>
-  object && DataSynchroServiceFnName.filter(fnName => (typeof object[fnName] === 'function')).length === DataSynchroServiceFnName.length || false;
+  (object && DataSynchroServiceFnName.filter((fnName) => typeof object[fnName] === 'function').length === DataSynchroServiceFnName.length) || false;
 
 export const DEFAULT_FEATURE_NAME = 'synchro';
 
 export abstract class RootDataSynchroService<
-  T extends RootDataEntity<T, ID>,
-  F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
-  ID = number,
-  WO extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions,
-  LO extends EntityServiceLoadOptions = EntityServiceLoadOptions,
-  Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
-  M extends BaseRootEntityGraphqlMutations = BaseRootEntityGraphqlMutations,
-  S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions>
+    T extends RootDataEntity<T, ID>,
+    F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
+    ID = number,
+    WO extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions,
+    LO extends EntityServiceLoadOptions = EntityServiceLoadOptions,
+    Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
+    M extends BaseRootEntityGraphqlMutations = BaseRootEntityGraphqlMutations,
+    S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions
+  >
   extends BaseRootDataService<T, F, ID, WO, LO, Q, M, S>
-  implements IDataSynchroService<T, ID, LO> {
-
+  implements IDataSynchroService<T, ID, LO>
+{
   protected _featureName: string;
 
   protected referentialRefService: ReferentialRefService;
@@ -94,12 +88,7 @@ export abstract class RootDataSynchroService<
     return this._featureName || DEFAULT_FEATURE_NAME;
   }
 
-  protected constructor(
-    injector: Injector,
-    dataType: new() => T,
-    filterType: new() => F,
-    options: BaseEntityServiceOptions<T, ID, Q, M, S>
-  ) {
+  protected constructor(injector: Injector, dataType: new () => T, filterType: new () => F, options: BaseEntityServiceOptions<T, ID, Q, M, S>) {
     super(injector, dataType, filterType, options);
 
     this.referentialRefService = injector.get(ReferentialRefService);
@@ -111,17 +100,15 @@ export abstract class RootDataSynchroService<
     this.settings = injector.get(LocalSettingsService);
   }
 
-  executeImport(opts?: {
-    maxProgression?: number;
-  }): Observable<number>{
+  executeImport(opts?: { maxProgression?: number }): Observable<number> {
     if (this.$importationProgress) return this.$importationProgress; // Skip to may call
 
-    const totalProgression = opts && opts.maxProgression || 100;
-    const jobOpts = { maxProgression: undefined};
+    const totalProgression = (opts && opts.maxProgression) || 100;
+    const jobOpts = { maxProgression: undefined };
     const jobDefers: Observable<number>[] = [
       // Clear caches
-      defer(() => timer()
-        .pipe(
+      defer(() =>
+        timer().pipe(
           switchMap(() => this.network.clearCache()),
           map(() => jobOpts.maxProgression as number)
         )
@@ -131,11 +118,12 @@ export abstract class RootDataSynchroService<
       ...this.getImportJobs(jobOpts),
 
       // Save data to local storage, then set progression to the max
-      defer(() => timer()
-        .pipe(
+      defer(() =>
+        timer().pipe(
           switchMap(() => this.entities.persist()),
           map(() => jobOpts.maxProgression as number)
-        ))
+        )
+      ),
     ];
     const jobCount = jobDefers.length;
     jobOpts.maxProgression = Math.trunc(totalProgression / jobCount);
@@ -146,41 +134,41 @@ export abstract class RootDataSynchroService<
     // Execute all jobs, one by one
     let jobIndex = 0;
     this.$importationProgress = concat(
-      ...jobDefers.map((jobDefer: Observable<number>, index) => jobDefer
-          .pipe(
-            //switchMap(() => jobDefer),
-            map(jobProgression => {
-              jobIndex = index;
-              if (this._debug && jobProgression > jobOpts.maxProgression) {
-                console.warn(`[root-data-service] WARN job #${jobIndex} return a jobProgression > maxProgression (${jobProgression} > ${jobOpts.maxProgression})!`);
-              }
-              // Compute total progression
-              return index * jobOpts.maxProgression + Math.min(jobProgression || 0, jobOpts.maxProgression);
-            })
-          )),
+      ...jobDefers.map((jobDefer: Observable<number>, index) =>
+        jobDefer.pipe(
+          //switchMap(() => jobDefer),
+          map((jobProgression) => {
+            jobIndex = index;
+            if (this._debug && jobProgression > jobOpts.maxProgression) {
+              console.warn(
+                `[root-data-service] WARN job #${jobIndex} return a jobProgression > maxProgression (${jobProgression} > ${jobOpts.maxProgression})!`
+              );
+            }
+            // Compute total progression
+            return index * jobOpts.maxProgression + Math.min(jobProgression || 0, jobOpts.maxProgression);
+          })
+        )
+      ),
 
       // Finish (force to reach max value)
-      of(totalProgression)
-        .pipe(
-          tap(() => this.$importationProgress = null),
-          tap(() => this.finishImport()),
-          tap(() => console.info(`[root-data-service] Importation finished in ${Date.now() - now}ms`))
-        ))
-
-      .pipe(
-        catchError((err) => {
-          this.$importationProgress = null;
-          console.error(`[root-data-service] Error during importation (job #${jobIndex + 1}): ${err && err.message || err}`, err);
-          throw err;
-        }),
-        // Compute total progression (= job offset + job progression)
-        // (and make ti always <= maxProgression)
-        map((progression) =>  Math.min(progression, totalProgression))
-      );
+      of(totalProgression).pipe(
+        tap(() => (this.$importationProgress = null)),
+        tap(() => this.finishImport()),
+        tap(() => console.info(`[root-data-service] Importation finished in ${Date.now() - now}ms`))
+      )
+    ).pipe(
+      catchError((err) => {
+        this.$importationProgress = null;
+        console.error(`[root-data-service] Error during importation (job #${jobIndex + 1}): ${(err && err.message) || err}`, err);
+        throw err;
+      }),
+      // Compute total progression (= job offset + job progression)
+      // (and make ti always <= maxProgression)
+      map((progression) => Math.min(progression, totalProgression))
+    );
 
     return this.$importationProgress;
   }
-
 
   async terminateById(id: ID): Promise<T> {
     const entity = await this.load(id);
@@ -191,7 +179,6 @@ export abstract class RootDataSynchroService<
   async terminate(entity: T): Promise<T> {
     // If local entity
     if (EntityUtils.isLocal(entity)) {
-
       // Make sure to fill id, with local ids
       await this.fillOfflineDefaultProperties(entity);
 
@@ -236,10 +223,13 @@ export abstract class RootDataSynchroService<
     return this.referentialRefService.lastUpdateDate();
   }
 
-  async load(id: ID, opts?: LO & {
-    fetchPolicy?: FetchPolicy;
-    toEntity?: boolean;
-  }): Promise<T> {
+  async load(
+    id: ID,
+    opts?: LO & {
+      fetchPolicy?: FetchPolicy;
+      toEntity?: boolean;
+    }
+  ): Promise<T> {
     if (!this.queries.load) throw new Error('Not implemented');
     if (isNil(id)) throw new Error(`Missing argument 'id'`);
 
@@ -253,27 +243,22 @@ export abstract class RootDataSynchroService<
       // If local entity
       if (+id < 0) {
         data = await this.entities.load<Vessel>(+id, Vessel.TYPENAME);
-        if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
-      }
-
-      else {
+        if (!data) throw { code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' };
+      } else {
         const res = await this.graphql.query<{ data: any }>({
           query: this.queries.load,
           variables: { id },
-          error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'},
-          fetchPolicy: opts && opts.fetchPolicy || undefined
+          error: { code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
+          fetchPolicy: (opts && opts.fetchPolicy) || undefined,
         });
         data = res && res.data;
       }
-      const entity = (!opts || opts.toEntity !== false)
-        ? this.fromObject(data)
-        : (data as T);
+      const entity = !opts || opts.toEntity !== false ? this.fromObject(data) : (data as T);
 
       if (entity && this._debug) console.debug(`${this._logPrefix}${this._logTypeName} #${id} loaded in ${Date.now() - now}ms`, entity);
 
       return entity;
-    }
-    finally {
+    } finally {
       this.loading = false;
     }
   }
@@ -285,8 +270,7 @@ export abstract class RootDataSynchroService<
       return this.deleteAllLocally(localEntities, opts);
     }
 
-    const ids = entities && entities.map(t => t.id)
-      .filter(id => +id >= 0);
+    const ids = entities && entities.map((t) => t.id).filter((id) => +id >= 0);
     if (isEmptyArray(ids)) return; // stop if empty
 
     return super.deleteAll(entities, opts);
@@ -306,7 +290,6 @@ export abstract class RootDataSynchroService<
 
     // Fill default synchronization status
     entity.synchronizationStatus = entity.synchronizationStatus || SynchronizationStatusEnum.DIRTY;
-
   }
 
   /**
@@ -315,15 +298,16 @@ export abstract class RootDataSynchroService<
    * @param opts
    * @protected
    */
-  protected getImportJobs(opts: {
-    maxProgression: undefined;
-  }): Observable<number>[] {
-    return JobUtils.defers([
-      (p, o) => this.referentialRefService.executeImport(p, o),
-      (p, o) => this.personService.executeImport(p, o),
-      (p, o) => this.vesselSnapshotService.executeImport(p, o),
-      (p, o) => this.programRefService.executeImport(p, o)
-    ], opts);
+  protected getImportJobs(opts: { maxProgression: undefined }): Observable<number>[] {
+    return JobUtils.defers(
+      [
+        (p, o) => this.referentialRefService.executeImport(p, o),
+        (p, o) => this.personService.executeImport(p, o),
+        (p, o) => this.vesselSnapshotService.executeImport(p, o),
+        (p, o) => this.programRefService.executeImport(p, o),
+      ],
+      opts
+    );
   }
 
   protected finishImport() {
@@ -337,10 +321,8 @@ export abstract class RootDataSynchroService<
    * @param opts
    */
   protected async deleteAllLocally(entities: T[], opts?: { trash?: boolean }): Promise<any> {
-
     // Get local entity ids, then delete id
-    const localEntities = entities && entities
-      .filter(DataRootEntityUtils.isLocal);
+    const localEntities = entities && entities.filter(DataRootEntityUtils.isLocal);
 
     if (isEmptyArray(localEntities)) return; // Skip if empty
 
@@ -349,21 +331,20 @@ export abstract class RootDataSynchroService<
 
     if (this._debug) console.debug(`${this._logPrefix}Deleting ${this._logTypeName} locally... {trash: ${trash}`);
 
-    await chainPromises(localEntities.map(entity => async () => {
+    await chainPromises(
+      localEntities.map((entity) => async () => {
+        await this.entities.delete<T, ID>(entity, { entityName: this._typename });
 
-      await this.entities.delete<T, ID>(entity, {entityName: this._typename});
+        if (trash) {
+          // Fill observedLocation's operation, before moving it to trash
+          entity.updateDate = trashUpdateDate;
 
-      if (trash) {
-        // Fill observedLocation's operation, before moving it to trash
-        entity.updateDate = trashUpdateDate;
+          const json = entity.asObject({ ...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, keepLocalId: false });
 
-        const json = entity.asObject({...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, keepLocalId: false});
-
-        // Add to trash
-        await this.entities.saveToTrash(json, {entityName: ObservedLocation.TYPENAME});
-      }
-
-    }));
+          // Add to trash
+          await this.entities.saveToTrash(json, { entityName: ObservedLocation.TYPENAME });
+        }
+      })
+    );
   }
-
 }

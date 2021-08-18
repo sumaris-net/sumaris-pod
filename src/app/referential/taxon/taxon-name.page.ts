@@ -1,8 +1,8 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {AbstractControl, FormGroup} from '@angular/forms';
-import {ReferentialForm} from '../form/referential.form';
-import {ParameterValidatorService} from '../services/validator/parameter.validator';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { AbstractControl, FormGroup } from '@angular/forms';
+import { ReferentialForm } from '../form/referential.form';
+import { ParameterValidatorService } from '../services/validator/parameter.validator';
 import {
   AccountService,
   AppEntityEditor,
@@ -14,13 +14,13 @@ import {
   joinPropertiesPath,
   MatAutocompleteFieldConfig,
   referentialToString,
-  ReferentialUtils
+  ReferentialUtils,
 } from '@sumaris-net/ngx-components';
-import {ReferentialRefService} from '../services/referential-ref.service';
-import {TaxonName} from '../services/model/taxon-name.model';
-import {TaxonNameService} from '../services/taxon-name.service';
-import {TaxonNameValidatorService} from '../services/validator/taxon-name.validator';
-import {environment} from '@environments/environment';
+import { ReferentialRefService } from '../services/referential-ref.service';
+import { TaxonName } from '../services/model/taxon-name.model';
+import { TaxonNameService } from '../services/taxon-name.service';
+import { TaxonNameValidatorService } from '../services/validator/taxon-name.validator';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-taxon-name',
@@ -28,14 +28,13 @@ import {environment} from '@environments/environment';
   providers: [
     {
       provide: ValidatorService,
-      useExisting: ParameterValidatorService
-    }
+      useExisting: ParameterValidatorService,
+    },
   ],
   animations: [fadeInOutAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaxonNamePage extends AppEntityEditor<TaxonName> implements OnInit {
-
   canEdit: boolean;
   form: FormGroup;
   fieldDefinitions: FormFieldDefinitionMap;
@@ -44,7 +43,7 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> implements OnInit 
     return this.form.controls.useExistingReferenceTaxon.value;
   }
 
-  @ViewChild('referentialForm', {static: true}) referentialForm: ReferentialForm;
+  @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
 
   constructor(
     protected injector: Injector,
@@ -53,10 +52,7 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> implements OnInit 
     protected TaxonNameService: TaxonNameService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(injector,
-      TaxonName,
-      TaxonNameService
-    );
+    super(injector, TaxonName, TaxonNameService);
     this.form = validatorService.getFormGroup();
 
     // default values
@@ -65,7 +61,6 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> implements OnInit 
     this.tabCount = 1;
 
     this.debug = !environment.production;
-
   }
 
   ngOnInit() {
@@ -78,7 +73,7 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> implements OnInit 
       suggestFn: (value, opts) => this.referentialRefService.suggest(value, opts),
       displayWith: (value) => value && joinPropertiesPath(value, ['label', 'name']),
       attributes: ['label', 'name'],
-      columnSizes: [6, 6]
+      columnSizes: [6, 6],
     };
 
     this.fieldDefinitions = {
@@ -88,8 +83,8 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> implements OnInit 
         type: 'entity',
         autocomplete: {
           ...autocompleteConfig,
-          filter: {entityName: 'TaxonName', statusIds: [0, 1]}
-        }
+          filter: { entityName: 'TaxonName', statusIds: [0, 1] },
+        },
       },
       taxonomicLevel: {
         key: `taxonomicLevel`,
@@ -97,31 +92,30 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> implements OnInit 
         type: 'entity',
         autocomplete: {
           ...autocompleteConfig,
-          filter: {entityName: 'TaxonomicLevel'}
-        }
+          filter: { entityName: 'TaxonomicLevel' },
+        },
       },
       isReferent: {
         key: `isReferent`,
         label: `REFERENTIAL.TAXON_NAME.IS_REFERENT`,
-        type: 'boolean'
+        type: 'boolean',
       },
       isNaming: {
         key: `isNaming`,
         label: `REFERENTIAL.TAXON_NAME.IS_NAMING`,
-        type: 'boolean'
+        type: 'boolean',
       },
       isVirtual: {
         key: `isReferent`,
         label: `REFERENTIAL.TAXON_NAME.IS_VIRTUAL`,
-        type: 'boolean'
-      }
+        type: 'boolean',
+      },
     };
   }
 
   /* -- protected methods -- */
   protected canUserWrite(data: TaxonName): boolean {
-    return (this.isNewData && this.accountService.isAdmin())
-      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
+    return (this.isNewData && this.accountService.isAdmin()) || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
   }
 
   enable() {
@@ -145,7 +139,7 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> implements OnInit 
 
     const json = data.asObject();
 
-    this.form.patchValue(json, {emitEvent: false});
+    this.form.patchValue(json, { emitEvent: false });
     this.markAsPristine();
   }
 
@@ -176,7 +170,7 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> implements OnInit 
       ...(await super.computePageHistory(title)),
       title: `${this.data.label} - ${this.data.name}`,
       subtitle: 'REFERENTIAL.ENTITY.TAXON_NAME',
-      icon: 'list'
+      icon: 'list',
     };
   }
 
@@ -189,37 +183,34 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> implements OnInit 
     await super.onNewEntity(data, options);
 
     // Check label is unique
-    this.form.get('label')
-      .setAsyncValidators(async (control: AbstractControl) => {
-        const label = control.enabled && control.value;
-        return label && (await this.TaxonNameService.existsByLabel(label, {excludedId: this.data.id})) ? {unique: true} : null;
-      });
+    this.form.get('label').setAsyncValidators(async (control: AbstractControl) => {
+      const label = control.enabled && control.value;
+      return label && (await this.TaxonNameService.existsByLabel(label, { excludedId: this.data.id })) ? { unique: true } : null;
+    });
 
     // Check Reference Taxon exists
-    this.form.get('referenceTaxonId')
-      .setAsyncValidators(async (control: AbstractControl) => {
-        const useExistingReferenceTaxon = this.form.get('useExistingReferenceTaxon').value;
-        if (this.isNewData && useExistingReferenceTaxon) {
-          const referenceTaxon = control.enabled && control.value;
-          if (!referenceTaxon) {
-            return {required: true};
-          } else if (!await this.TaxonNameService.referenceTaxonExists(referenceTaxon)) {
-            return {not_exist: true};
-          }
+    this.form.get('referenceTaxonId').setAsyncValidators(async (control: AbstractControl) => {
+      const useExistingReferenceTaxon = this.form.get('useExistingReferenceTaxon').value;
+      if (this.isNewData && useExistingReferenceTaxon) {
+        const referenceTaxon = control.enabled && control.value;
+        if (!referenceTaxon) {
+          return { required: true };
+        } else if (!(await this.TaxonNameService.referenceTaxonExists(referenceTaxon))) {
+          return { not_exist: true };
         }
-        return null;
-      });
+      }
+      return null;
+    });
 
-    this.form.get('useExistingReferenceTaxon')
-      .setAsyncValidators(async (control: AbstractControl) => {
-        const useExistingReferenceTaxon = this.form.controls['useExistingReferenceTaxon'].value;
-        if (useExistingReferenceTaxon) {
-          this.form.get('referenceTaxonId').updateValueAndValidity();
-        } else {
-          this.form.get('referenceTaxonId').setValue(null);
-        }
-        return null;
-      });
+    this.form.get('useExistingReferenceTaxon').setAsyncValidators(async (control: AbstractControl) => {
+      const useExistingReferenceTaxon = this.form.controls['useExistingReferenceTaxon'].value;
+      if (useExistingReferenceTaxon) {
+        this.form.get('referenceTaxonId').updateValueAndValidity();
+      } else {
+        this.form.get('referenceTaxonId').setValue(null);
+      }
+      return null;
+    });
   }
 
   protected async onEntityLoaded(data: TaxonName, options?: EntityServiceLoadOptions): Promise<void> {
@@ -234,4 +225,3 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> implements OnInit 
     this.cd.markForCheck();
   }
 }
-

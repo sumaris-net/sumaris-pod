@@ -1,23 +1,22 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {LandingsTable} from './landings.table';
-import {ModalController} from '@ionic/angular';
-import {LandingFilter} from '../services/filter/landing.filter';
-import {AcquisitionLevelCodes, AcquisitionLevelType} from '@app/referential/services/model/model.enum';
-import {Landing} from '../services/model/landing.model';
-import {Observable} from 'rxjs';
-import {isNotNil} from '@sumaris-net/ngx-components';
-import {TableElement} from '@e-is/ngx-material-table';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { LandingsTable } from './landings.table';
+import { ModalController } from '@ionic/angular';
+import { LandingFilter } from '../services/filter/landing.filter';
+import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { Landing } from '../services/model/landing.model';
+import { Observable } from 'rxjs';
+import { isNotNil } from '@sumaris-net/ngx-components';
+import { TableElement } from '@e-is/ngx-material-table';
 
 @Component({
   selector: 'app-select-landings-modal',
   templateUrl: './select-landings.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectLandingsModal implements OnInit {
-
   @ViewChild('table', { static: true }) table: LandingsTable;
 
-  @Input() filter: LandingFilter|null = null;
+  @Input() filter: LandingFilter | null = null;
   @Input() acquisitionLevel: AcquisitionLevelType;
   @Input() programLabel: string;
 
@@ -25,11 +24,7 @@ export class SelectLandingsModal implements OnInit {
     return this.table.loadingSubject;
   }
 
-  constructor(
-    protected viewCtrl: ModalController,
-    protected cd: ChangeDetectorRef
-  ) {
-
+  constructor(protected viewCtrl: ModalController, protected cd: ChangeDetectorRef) {
     // default value
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
   }
@@ -37,14 +32,13 @@ export class SelectLandingsModal implements OnInit {
   ngOnInit() {
     this.filter = this.filter || new LandingFilter();
     this.table.filter = this.filter;
-    this.table.programLabel = this.programLabel || this.filter.program && this.filter.program.label;
+    this.table.programLabel = this.programLabel || (this.filter.program && this.filter.program.label);
     this.table.acquisitionLevel = this.acquisitionLevel;
     setTimeout(() => {
       this.table.onRefresh.next('modal');
       this.markForCheck();
     }, 200);
   }
-
 
   selectRow(event: { id?: number; row: TableElement<Landing> }) {
     if (event.row) {
@@ -57,7 +51,7 @@ export class SelectLandingsModal implements OnInit {
     try {
       if (this.hasSelection()) {
         const landings = (this.table.selection.selected || [])
-          .map(row => row.currentData)
+          .map((row) => row.currentData)
           .map(Landing.fromObject)
           .filter(isNotNil);
         this.viewCtrl.dismiss(landings);

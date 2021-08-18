@@ -1,16 +1,12 @@
-
-
 .mat-tab-group {
   height: calc(100%);
 
   .mat-tab-body-wrapper {
     height: calc(100%);
-
   }
 }
 
 app-vessels-table {
-
   .table-container {
     --table-container-offset: 247px;
     height: calc(100vh - var(--table-container-offset, 0)) !important;
@@ -20,6 +16,4 @@ app-vessels-table {
       height: calc(100vh - var(--table-container-offset, 0)) !important;
     }
   }
-
-
 }

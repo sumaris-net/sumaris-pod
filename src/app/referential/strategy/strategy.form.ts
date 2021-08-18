@@ -1,5 +1,5 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {ReferentialForm} from '../form/referential.form';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ReferentialForm } from '../form/referential.form';
 import {
   AccountService,
   AppEntityEditor,
@@ -12,36 +12,32 @@ import {
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
-import {PmfmStrategiesTable, PmfmStrategyFilter} from './pmfm-strategies.table';
-import {ReferentialRefService} from '../services/referential-ref.service';
-import {SelectReferentialModal} from '../list/select-referential.modal';
-import {ModalController} from '@ionic/angular';
-import {DateAdapter} from '@angular/material/core';
-import {Moment} from 'moment';
-import {StrategyValidatorService} from '../services/validator/strategy.validator';
-import {BehaviorSubject} from 'rxjs';
-import {debounceTime} from 'rxjs/operators';
-import {FormBuilder, FormGroup} from '@angular/forms';
-import {ReferentialValidatorService} from '../services/validator/referential.validator';
-import {Strategy, TaxonGroupStrategy, TaxonNameStrategy} from '../services/model/strategy.model';
-import {Program} from '../services/model/program.model';
-import {ReferentialFilter} from '../services/filter/referential.filter';
-import {ReferentialRefFilter} from '../services/filter/referential-ref.filter';
+import { PmfmStrategiesTable, PmfmStrategyFilter } from './pmfm-strategies.table';
+import { ReferentialRefService } from '../services/referential-ref.service';
+import { SelectReferentialModal } from '../list/select-referential.modal';
+import { ModalController } from '@ionic/angular';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { StrategyValidatorService } from '../services/validator/strategy.validator';
+import { BehaviorSubject } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { ReferentialValidatorService } from '../services/validator/referential.validator';
+import { Strategy, TaxonGroupStrategy, TaxonNameStrategy } from '../services/model/strategy.model';
+import { Program } from '../services/model/program.model';
+import { ReferentialFilter } from '../services/filter/referential.filter';
+import { ReferentialRefFilter } from '../services/filter/referential-ref.filter';
 
 @Component({
   selector: 'app-strategy-form',
   templateUrl: 'strategy.form.html',
   styleUrls: ['strategy.form.scss'],
-  providers: [
-    {provide: ReferentialValidatorService, useExisting: StrategyValidatorService}
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: ReferentialValidatorService, useExisting: StrategyValidatorService }],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, OnDestroy {
-
-
   private $isPmfmStrategyEmpty = new BehaviorSubject<boolean>(true);
 
   filterForm: FormGroup;
@@ -56,16 +52,17 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
         title: 'PROGRAM.STRATEGY.BTN_REMOVE_FROM_SELECTED_PMFM',
         icon: 'arrow-back-circle-outline',
         disabled: this.$isPmfmStrategyEmpty,
-        click: (event, item) => this.removeFromSelectedPmfmRows(event, 'gears', item.id)
+        click: (event, item) => this.removeFromSelectedPmfmRows(event, 'gears', item.id),
       },
       // Apply to Pmfm
       {
         title: 'PROGRAM.STRATEGY.BTN_APPLY_TO_SELECTED_PMFM',
         icon: 'arrow-forward-circle-outline',
         disabled: this.$isPmfmStrategyEmpty,
-        click: (event, item) => this.addToSelectedPmfmRows(event, 'gears', item.id)
-      }
-    ]};
+        click: (event, item) => this.addToSelectedPmfmRows(event, 'gears', item.id),
+      },
+    ],
+  };
   taxonGroupListOptions = <AppListFormOptions<TaxonGroupStrategy>>{
     allowEmptyArray: true,
     allowMultipleSelection: true,
@@ -75,16 +72,17 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
         title: 'PROGRAM.STRATEGY.BTN_REMOVE_FROM_SELECTED_PMFM',
         icon: 'arrow-back-circle-outline',
         disabled: this.$isPmfmStrategyEmpty,
-        click: (event, item) => this.removeFromSelectedPmfmRows(event, 'taxonGroupIds', item.taxonGroup.id)
+        click: (event, item) => this.removeFromSelectedPmfmRows(event, 'taxonGroupIds', item.taxonGroup.id),
       },
       // Apply to Pmfm
       {
         title: 'PROGRAM.STRATEGY.BTN_APPLY_TO_SELECTED_PMFM',
         icon: 'arrow-forward-circle-outline',
         disabled: this.$isPmfmStrategyEmpty,
-        click: (event, item) => this.addToSelectedPmfmRows(event, 'taxonGroupIds', item.taxonGroup.id)
-      }
-    ]};
+        click: (event, item) => this.addToSelectedPmfmRows(event, 'taxonGroupIds', item.taxonGroup.id),
+      },
+    ],
+  };
   taxonNameListOptions = {
     allowEmptyArray: true,
     allowMultipleSelection: true,
@@ -94,16 +92,17 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
         title: 'PROGRAM.STRATEGY.BTN_REMOVE_FROM_SELECTED_PMFM',
         icon: 'arrow-back-circle-outline',
         disabled: this.$isPmfmStrategyEmpty,
-        click: (event, item) => this.removeFromSelectedPmfmRows(event, 'taxonNameIds', item.taxonName.id)
+        click: (event, item) => this.removeFromSelectedPmfmRows(event, 'taxonNameIds', item.taxonName.id),
       },
       // Apply to Pmfm
       {
         title: 'PROGRAM.STRATEGY.BTN_APPLY_TO_SELECTED_PMFM',
         icon: 'arrow-forward-circle-outline',
         disabled: this.$isPmfmStrategyEmpty,
-        click: (event, item) => this.addToSelectedPmfmRows(event, 'taxonNameIds', item.taxonName.id)
-      }
-    ]};
+        click: (event, item) => this.addToSelectedPmfmRows(event, 'taxonNameIds', item.taxonName.id),
+      },
+    ],
+  };
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('acquisitionLevelList', { static: true }) acquisitionLevelList: AppListForm;
@@ -118,7 +117,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
   }
 
   get firstError(): string {
-    const firstChildWithError = this.children.find(item => isNotNil(item.error));
+    const firstChildWithError = this.children.find((item) => isNotNil(item.error));
     return firstChildWithError && firstChildWithError.error;
   }
 
@@ -140,12 +139,12 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
   ) {
     super(injector, Strategy, null, {
       pathIdAttribute: null, // Do not load from route
-      autoLoad: false
+      autoLoad: false,
     });
 
     this.filterForm = formBuilder.group({
       acquisitionLevels: formBuilder.array([]),
-      locations: formBuilder.array([])
+      locations: formBuilder.array([]),
     });
 
     //this.debug = !environment.production;
@@ -154,25 +153,17 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
   ngOnInit() {
     super.ngOnInit();
 
-    this.registerSubscription(
-      this.$filter
-        .pipe(
-          debounceTime(450)
-        )
-        .subscribe(filter => this.pmfmsTable.setFilter(filter))
-    );
+    this.registerSubscription(this.$filter.pipe(debounceTime(450)).subscribe((filter) => this.pmfmsTable.setFilter(filter)));
 
     // Load acquisition levels
     this.registerSubscription(
-      this.referentialRefService.watchAll(0, 1000, 'name', 'asc', {entityName: 'AcquisitionLevel'}, {fetchPolicy: 'cache-first', withTotal: false})
-        .subscribe(res => this.$allAcquisitionLevels.next(res && res.data || []))
+      this.referentialRefService
+        .watchAll(0, 1000, 'name', 'asc', { entityName: 'AcquisitionLevel' }, { fetchPolicy: 'cache-first', withTotal: false })
+        .subscribe((res) => this.$allAcquisitionLevels.next((res && res.data) || []))
     );
 
     // Listen when Pmfm selection is empty
-    this.registerSubscription(
-      this.pmfmsTable.selectionChanges
-        .subscribe(rows => this.$isPmfmStrategyEmpty.next(isEmptyArray(rows)))
-      );
+    this.registerSubscription(this.pmfmsTable.selectionChanges.subscribe((rows) => this.$isPmfmStrategyEmpty.next(isEmptyArray(rows))));
 
     // TODO: Check label is unique
     /*this.form.get('label')
@@ -180,7 +171,6 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
         const label = control.enabled && control.value;
         return label && (await this.programService.existsByLabel(label)) ? {unique: true} : null;
       });*/
-
   }
 
   ngOnDestroy() {
@@ -199,7 +189,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
       this.locationListForm,
       this.gearListForm,
       this.taxonGroupListForm,
-      this.taxonNameListForm
+      this.taxonNameListForm,
     ]);
   }
 
@@ -208,7 +198,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
   }
 
   protected async computeTitle(data: Strategy): Promise<string> {
-    return data && referentialToString(data) || 'PROGRAM.STRATEGY.NEW.TITLE';
+    return (data && referentialToString(data)) || 'PROGRAM.STRATEGY.NEW.TITLE';
   }
 
   protected canUserWrite(data: Strategy): boolean {
@@ -227,31 +217,29 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
 
       const json = await this.getJsonValueToSave();
       const data = Strategy.fromObject(json);
-      this.updateView(data, {openTabIndex: -1, updateTabAndRoute: false});
+      this.updateView(data, { openTabIndex: -1, updateTabAndRoute: false });
     }
 
     return true;
   }
 
   updateView(data: Strategy | null, opts?: { openTabIndex?: number; updateTabAndRoute?: boolean }) {
-    super.updateView(data, {...opts, updateRoute: false});
+    super.updateView(data, { ...opts, updateRoute: false });
   }
 
-  async openSelectReferentialModal(opts: {
-    filter: Partial<ReferentialRefFilter>;
-  }): Promise<ReferentialRef[]> {
-
-    const modal = await this.modalCtrl.create({ component: SelectReferentialModal,
+  async openSelectReferentialModal(opts: { filter: Partial<ReferentialRefFilter> }): Promise<ReferentialRef[]> {
+    const modal = await this.modalCtrl.create({
+      component: SelectReferentialModal,
       componentProps: {
-        filter: ReferentialFilter.fromObject(opts.filter)
+        filter: ReferentialFilter.fromObject(opts.filter),
       },
       keyboardClose: true,
-      cssClass: 'modal-large'
+      cssClass: 'modal-large',
     });
 
     await modal.present();
 
-    const {data} = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
 
     return data;
   }
@@ -261,12 +249,12 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
 
     const items = await this.openSelectReferentialModal({
       filter: {
-        entityName: 'AcquisitionLevel'
-      }
+        entityName: 'AcquisitionLevel',
+      },
     });
 
     // Add to list
-    (items || []).forEach(item => this.acquisitionLevelList.add(item));
+    (items || []).forEach((item) => this.acquisitionLevelList.add(item));
 
     this.markForCheck();
   }
@@ -277,12 +265,12 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
     const items = await this.openSelectReferentialModal({
       filter: {
         entityName: 'Location',
-        levelIds: (this.program && this.program.locationClassifications || []).map(item => item.id).filter(isNotNil)
-      }
+        levelIds: ((this.program && this.program.locationClassifications) || []).map((item) => item.id).filter(isNotNil),
+      },
     });
 
     // Add to list
-    (items || []).forEach(item => this.locationListForm.add(item));
+    (items || []).forEach((item) => this.locationListForm.add(item));
 
     this.markForCheck();
   }
@@ -293,12 +281,12 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
     const items = await this.openSelectReferentialModal({
       filter: {
         entityName: 'Gear',
-        levelId: this.program && this.program.gearClassification ? toNumber(this.program.gearClassification.id, null) : null
-      }
+        levelId: this.program && this.program.gearClassification ? toNumber(this.program.gearClassification.id, null) : null,
+      },
     });
 
     // Add to list
-    (items || []).forEach(item => this.gearListForm.add(item));
+    (items || []).forEach((item) => this.gearListForm.add(item));
     this.markForCheck();
   }
 
@@ -310,19 +298,21 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
     const items = await this.openSelectReferentialModal({
       filter: {
         entityName: 'TaxonGroup',
-        levelId: this.program && this.program.taxonGroupType ? toNumber(this.program.taxonGroupType.id, -1) : -1
-      }
+        levelId: this.program && this.program.taxonGroupType ? toNumber(this.program.taxonGroupType.id, -1) : -1,
+      },
     });
 
     // Add to list
-    (items || []).map(taxonGroup => TaxonGroupStrategy.fromObject({
-      priorityLevel,
-      taxonGroup: taxonGroup.asObject()
-    }))
-      .forEach(item => this.taxonGroupListForm.add(item));
+    (items || [])
+      .map((taxonGroup) =>
+        TaxonGroupStrategy.fromObject({
+          priorityLevel,
+          taxonGroup: taxonGroup.asObject(),
+        })
+      )
+      .forEach((item) => this.taxonGroupListForm.add(item));
     this.markForCheck();
   }
-
 
   async addTaxonName(priorityLevel?: number) {
     if (this.disabled) return; // Skip
@@ -331,26 +321,25 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
 
     const items = await this.openSelectReferentialModal({
       filter: {
-        entityName: 'TaxonName'
-      }
+        entityName: 'TaxonName',
+      },
     });
 
     // Add to list
-    (items || []).map(taxonName => TaxonNameStrategy.fromObject({
-      priorityLevel,
-      taxonName: taxonName.asObject()
-    }))
-      .forEach(item => this.taxonNameListForm.add(item));
+    (items || [])
+      .map((taxonName) =>
+        TaxonNameStrategy.fromObject({
+          priorityLevel,
+          taxonName: taxonName.asObject(),
+        })
+      )
+      .forEach((item) => this.taxonNameListForm.add(item));
     this.markForCheck();
   }
 
-  async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
-
-  }
-
+  async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {}
 
   setValue(data: Strategy) {
-
     console.debug('[strategy-form] Setting value', data);
     //const json = data.asObject();
 
@@ -364,29 +353,23 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
     this.taxonGroupListForm.value = data.taxonGroups;
     this.taxonNameListForm.value = data.taxonNames;
 
-
     const allAcquisitionLevels = this.$allAcquisitionLevels.getValue();
     const collectedAcquisitionLevels = (data.pmfms || []).reduce((res, item) => {
       if (typeof item.acquisitionLevel === 'string' && res[item.acquisitionLevel] === undefined) {
-        res[item.acquisitionLevel] = allAcquisitionLevels.find(al => al.label === item.acquisitionLevel) || null;
-      }
-      else if (item.acquisitionLevel instanceof ReferentialRef && res[item.acquisitionLevel.label] === undefined){
+        res[item.acquisitionLevel] = allAcquisitionLevels.find((al) => al.label === item.acquisitionLevel) || null;
+      } else if (item.acquisitionLevel instanceof ReferentialRef && res[item.acquisitionLevel.label] === undefined) {
         res[item.acquisitionLevel.label] = item.acquisitionLevel;
       }
       return res;
-    }, <{[key: string]: ReferentialRef|null}>{});
+    }, <{ [key: string]: ReferentialRef | null }>{});
     this.acquisitionLevelList.value = Object.values(collectedAcquisitionLevels).filter(isNotNil) as ReferentialRef[];
 
     this.pmfmsTable.value = data.pmfms || [];
-
-
   }
 
   /* -- protected methods -- */
 
-
   protected async getJsonValueToSave(): Promise<any> {
-
     const json = this.form.value as Partial<Strategy>;
 
     // Re add label, because missing when field disable
@@ -406,81 +389,77 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
     return json;
   }
 
-  updateFilterAcquisitionLevel(value: ReferentialRef|any) {
-    const acquisitionLevel = value && (value as ReferentialRef).label || undefined;
-    this.patchPmfmStrategyFilter({acquisitionLevel});
+  updateFilterAcquisitionLevel(value: ReferentialRef | any) {
+    const acquisitionLevel = (value && (value as ReferentialRef).label) || undefined;
+    this.patchPmfmStrategyFilter({ acquisitionLevel });
   }
 
-  updateFilterLocations(value: ReferentialRef[]|any) {
-    const locationIds = value && (value as ReferentialRef[]).map(item => item.id) || undefined;
-    this.patchPmfmStrategyFilter({locationIds});
+  updateFilterLocations(value: ReferentialRef[] | any) {
+    const locationIds = (value && (value as ReferentialRef[]).map((item) => item.id)) || undefined;
+    this.patchPmfmStrategyFilter({ locationIds });
   }
 
-  updateFilterGears(value: ReferentialRef[]|any) {
-    const gearIds = value && (value as ReferentialRef[]).map(item => item.id) || undefined;
-    this.patchPmfmStrategyFilter({gearIds});
+  updateFilterGears(value: ReferentialRef[] | any) {
+    const gearIds = (value && (value as ReferentialRef[]).map((item) => item.id)) || undefined;
+    this.patchPmfmStrategyFilter({ gearIds });
   }
 
-  updateFilterTaxonGroups(value: TaxonGroupStrategy[]|any) {
-    const taxonGroupIds = value && value.map(tgs => tgs.taxonGroup && tgs.taxonGroup.id) || undefined;
-    this.patchPmfmStrategyFilter({taxonGroupIds});
+  updateFilterTaxonGroups(value: TaxonGroupStrategy[] | any) {
+    const taxonGroupIds = (value && value.map((tgs) => tgs.taxonGroup && tgs.taxonGroup.id)) || undefined;
+    this.patchPmfmStrategyFilter({ taxonGroupIds });
   }
 
-  updateFilterTaxonNames(value: TaxonNameStrategy[]|any) {
-    const referenceTaxonIds = value && (value as TaxonNameStrategy[]).map(tgs => tgs.taxonName && tgs.taxonName.referenceTaxonId) || undefined;
-    this.patchPmfmStrategyFilter({referenceTaxonIds});
+  updateFilterTaxonNames(value: TaxonNameStrategy[] | any) {
+    const referenceTaxonIds = (value && (value as TaxonNameStrategy[]).map((tgs) => tgs.taxonName && tgs.taxonName.referenceTaxonId)) || undefined;
+    this.patchPmfmStrategyFilter({ referenceTaxonIds });
   }
 
   protected patchPmfmStrategyFilter(filter: Partial<PmfmStrategyFilter>) {
     this.$filter.next({
       ...this.$filter.getValue(),
-      ...filter
+      ...filter,
     });
   }
 
   protected addToSelectedPmfmRows(event: Event, arrayName: string, value: any) {
     if (event) event.preventDefault(); // Cancel toggle event, in <list-form> component
 
-    (this.pmfmsTable.selection.selected || [])
-      .forEach(row => {
-        const control = row.validator.get(arrayName);
-        if (!control) throw new Error('Control not found in row validator: ' + arrayName);
+    (this.pmfmsTable.selection.selected || []).forEach((row) => {
+      const control = row.validator.get(arrayName);
+      if (!control) throw new Error('Control not found in row validator: ' + arrayName);
 
-        const existingValues = (control.value || []) as number[];
-        if (!existingValues.includes(value)) {
-          existingValues.push(value);
-          control.setValue(existingValues, {emitEvent: false});
-          row.validator.markAsDirty();
-        }
-      });
+      const existingValues = (control.value || []) as number[];
+      if (!existingValues.includes(value)) {
+        existingValues.push(value);
+        control.setValue(existingValues, { emitEvent: false });
+        row.validator.markAsDirty();
+      }
+    });
 
     this.pmfmsTable.markAsDirty();
   }
 
-  protected removeFromSelectedPmfmRows(event: Event,
-                                          arrayName: string,
-                                          value: any) {
+  protected removeFromSelectedPmfmRows(event: Event, arrayName: string, value: any) {
     if (event) event.preventDefault(); // Cancel toggle event, in <list-form> component
 
-    (this.pmfmsTable.selection.selected || [])
-      .forEach(row => {
-        const control = row.validator.get(arrayName);
-        if (!control) throw new Error('Control not found in row validator: ' + arrayName);
+    (this.pmfmsTable.selection.selected || []).forEach((row) => {
+      const control = row.validator.get(arrayName);
+      if (!control) throw new Error('Control not found in row validator: ' + arrayName);
 
-        const existingValues = (control.value || []) as number[];
-        const index = existingValues.indexOf(value);
-        if (index !== -1) {
-          existingValues.splice(index, 1);
-          control.setValue(existingValues, {emitEvent: false});
-          row.validator.markAsDirty();
-        }
-      });
+      const existingValues = (control.value || []) as number[];
+      const index = existingValues.indexOf(value);
+      if (index !== -1) {
+        existingValues.splice(index, 1);
+        control.setValue(existingValues, { emitEvent: false });
+        row.validator.markAsDirty();
+      }
+    });
 
     this.pmfmsTable.markAsDirty();
   }
 
   taxonGroupStrategyToString(data: TaxonGroupStrategy): string {
-    return data && referentialToString(data.taxonGroup) || '';
+    return (data && referentialToString(data.taxonGroup)) || '';
   }
 
   taxonGroupStrategyEquals(v1: TaxonGroupStrategy, v2: TaxonGroupStrategy) {
@@ -488,7 +467,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
   }
 
   taxonNameStrategyToString(data: TaxonNameStrategy): string {
-    return data && referentialToString(data.taxonName) || '';
+    return (data && referentialToString(data.taxonName)) || '';
   }
 
   taxonNameStrategyEquals(v1: TaxonNameStrategy, v2: TaxonNameStrategy) {
@@ -496,7 +475,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
   }
 
   getReferentialName(item: ReferentialRef) {
-    return item && item.name || '';
+    return (item && item.name) || '';
   }
 
   referentialToString = referentialToString;
@@ -505,6 +484,4 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }
-

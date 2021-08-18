@@ -1,27 +1,24 @@
-import {Injectable} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {LocalSettingsService, SharedValidators, toBoolean} from '@sumaris-net/ngx-components';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {DataEntityValidatorOptions, DataEntityValidatorService} from '@app/data/services/validator/data-entity.validator';
-import {MeasurementsValidatorService} from './measurement.validator';
-import {Program} from '@app/referential/services/model/program.model';
-import {OperationGroup} from '../model/trip.model';
+import { Injectable } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { LocalSettingsService, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
+import { MeasurementsValidatorService } from './measurement.validator';
+import { Program } from '@app/referential/services/model/program.model';
+import { OperationGroup } from '../model/trip.model';
 
 export interface OperationGroupValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;
   withMeasurements?: boolean;
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class OperationGroupValidatorService<O extends OperationGroupValidatorOptions = OperationGroupValidatorOptions>
-  extends DataEntityValidatorService<OperationGroup, O> implements ValidatorService {
-
-  constructor(
-    formBuilder: FormBuilder,
-    settings: LocalSettingsService,
-    protected measurementsValidatorService: MeasurementsValidatorService
-  ) {
+  extends DataEntityValidatorService<OperationGroup, O>
+  implements ValidatorService
+{
+  constructor(formBuilder: FormBuilder, settings: LocalSettingsService, protected measurementsValidatorService: MeasurementsValidatorService) {
     super(formBuilder, settings);
   }
 
@@ -36,29 +33,30 @@ export class OperationGroupValidatorService<O extends OperationGroupValidatorOpt
 
     // Add measurement form
     if (opts.withMeasurements) {
-      const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms || [])
-        .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.OPERATION);
-      form.addControl('measurements', this.measurementsValidatorService.getFormGroup(data && data.measurements, {
-        isOnFieldMode: opts.isOnFieldMode,
-        pmfms
-      }));
+      const pmfms = ((opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms) || []).filter(
+        (p) => p.acquisitionLevel === AcquisitionLevelCodes.OPERATION
+      );
+      form.addControl(
+        'measurements',
+        this.measurementsValidatorService.getFormGroup(data && data.measurements, {
+          isOnFieldMode: opts.isOnFieldMode,
+          pmfms,
+        })
+      );
     }
 
     return form;
   }
 
   getFormGroupConfig(data?: OperationGroup, opts?: O): { [key: string]: any } {
-
-    const formConfig = Object.assign(
-      super.getFormGroupConfig(data, opts),
-      {
-        __typename: [OperationGroup.TYPENAME],
-        rankOrderOnPeriod: [data && data.rankOrderOnPeriod || null],
-        metier: [data && data.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        // physicalGear: [data && data.physicalGear || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        physicalGear: [data && data.physicalGear || null, Validators.required], // Just required because new physicalGear fails the entity validator
-        comments: [data && data.comments || null, Validators.maxLength(2000)]
-      });
+    const formConfig = Object.assign(super.getFormGroupConfig(data, opts), {
+      __typename: [OperationGroup.TYPENAME],
+      rankOrderOnPeriod: [(data && data.rankOrderOnPeriod) || null],
+      metier: [(data && data.metier) || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      // physicalGear: [data && data.physicalGear || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      physicalGear: [(data && data.physicalGear) || null, Validators.required], // Just required because new physicalGear fails the entity validator
+      comments: [(data && data.comments) || null, Validators.maxLength(2000)],
+    });
 
     return formConfig;
   }
@@ -73,5 +71,4 @@ export class OperationGroupValidatorService<O extends OperationGroupValidatorOpt
 
     return opts;
   }
-
 }

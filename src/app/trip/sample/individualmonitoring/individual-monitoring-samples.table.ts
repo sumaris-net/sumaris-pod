@@ -1,27 +1,21 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {SubSampleValidatorService} from '../../services/validator/sub-sample.validator';
-import {FormGroup, Validators} from '@angular/forms';
-import {AcquisitionLevelCodes, PmfmIds} from '@app/referential/services/model/model.enum';
-import {filter} from 'rxjs/operators';
-import {SubSamplesTable} from '../sub-samples.table';
-import {isNotNil} from '@sumaris-net/ngx-components';
-
+import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { SubSampleValidatorService } from '../../services/validator/sub-sample.validator';
+import { FormGroup, Validators } from '@angular/forms';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { filter } from 'rxjs/operators';
+import { SubSamplesTable } from '../sub-samples.table';
+import { isNotNil } from '@sumaris-net/ngx-components';
 
 @Component({
   selector: 'app-individual-monitoring-table',
   templateUrl: '../sub-samples.table.html',
   styleUrls: ['../sub-samples.table.scss', 'individual-monitoring-samples.table.scss'],
-  providers: [
-    {provide: ValidatorService, useExisting: SubSampleValidatorService}
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: ValidatorService, useExisting: SubSampleValidatorService }],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class IndividualMonitoringSubSamplesTable extends SubSamplesTable implements OnInit, AfterViewInit {
-
-  constructor(
-    injector: Injector
-  ) {
+  constructor(injector: Injector) {
     super(injector);
     this.acquisitionLevel = AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
   }
@@ -32,18 +26,16 @@ export class IndividualMonitoringSubSamplesTable extends SubSamplesTable impleme
     this.registerSubscription(
       this.$pmfms
         .pipe(
-          filter(isNotNil),
+          filter(isNotNil)
           // DEBUG
           //tap(pmfms => console.debug("[individual-monitoring-samples] Pmfms:", pmfms))
         )
-        .subscribe(pmfms => {
-
+        .subscribe((pmfms) => {
           // Listening on column 'IS_DEAD' value changes
-          const hasIsDeadPmfm = pmfms.findIndex(p => p.id === PmfmIds.IS_DEAD) !== -1;
+          const hasIsDeadPmfm = pmfms.findIndex((p) => p.id === PmfmIds.IS_DEAD) !== -1;
           if (hasIsDeadPmfm) {
             this.registerSubscription(
-              this.registerCellValueChanges('isDead', `measurementValues.${PmfmIds.IS_DEAD}`)
-              .subscribe((isDeadValue) => {
+              this.registerCellValueChanges('isDead', `measurementValues.${PmfmIds.IS_DEAD}`).subscribe((isDeadValue) => {
                 if (!this.editedRow) return; // Should never occur
                 const row = this.editedRow;
                 const controls = (row.validator.get('measurementValues') as FormGroup).controls;
@@ -72,11 +64,10 @@ export class IndividualMonitoringSubSamplesTable extends SubSamplesTable impleme
                     controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].disable();
                   }
                 }
-              }));
+              })
+            );
           }
-        }));
+        })
+    );
   }
-
-
 }
-

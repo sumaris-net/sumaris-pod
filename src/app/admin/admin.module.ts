@@ -1,10 +1,10 @@
-import {NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {AppReferentialModule} from '../referential/app-referential.module';
-import {ConfigurationPage} from './config/configuration.page';
-import {SocialModule} from '@sumaris-net/ngx-components';
-import {NgxJdenticonModule} from 'ngx-jdenticon';
-import {AppCoreModule} from '@app/core/core.module';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { AppReferentialModule } from '../referential/app-referential.module';
+import { ConfigurationPage } from './config/configuration.page';
+import { SocialModule } from '@sumaris-net/ngx-components';
+import { NgxJdenticonModule } from 'ngx-jdenticon';
+import { AppCoreModule } from '@app/core/core.module';
 
 @NgModule({
   imports: [
@@ -14,17 +14,12 @@ import {AppCoreModule} from '@app/core/core.module';
 
     // App modules
     AppCoreModule,
-    AppReferentialModule
+    AppReferentialModule,
   ],
-  declarations: [
-    ConfigurationPage
-  ],
-  exports: [
-    ConfigurationPage
-  ]
+  declarations: [ConfigurationPage],
+  exports: [ConfigurationPage],
 })
 export class AppAdminModule {
-
   constructor() {
     console.debug('[admin] Creating module');
   }

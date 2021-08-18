@@ -1,10 +1,10 @@
-import {RouterModule, Routes} from '@angular/router';
-import {AuthGuardService, SharedModule} from '@sumaris-net/ngx-components';
-import {NgModule} from '@angular/core';
-import {ExtractionTablePage} from './table/extraction-table.page';
-import {ProductPage} from './product/page/product.page';
-import {ExtractionMapPage} from './map/extraction-map.page';
-import {AppExtractionModule} from '@app/extraction/extraction.module';
+import { RouterModule, Routes } from '@angular/router';
+import { AuthGuardService, SharedModule } from '@sumaris-net/ngx-components';
+import { NgModule } from '@angular/core';
+import { ExtractionTablePage } from './table/extraction-table.page';
+import { ProductPage } from './product/page/product.page';
+import { ExtractionMapPage } from './map/extraction-map.page';
+import { AppExtractionModule } from '@app/extraction/extraction.module';
 
 const routes: Routes = [
   {
@@ -13,8 +13,8 @@ const routes: Routes = [
     component: ExtractionTablePage,
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
-      profile: 'GUEST'
-    }
+      profile: 'GUEST',
+    },
   },
   {
     path: 'product/:productId',
@@ -22,8 +22,8 @@ const routes: Routes = [
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
       profile: 'SUPERVISOR',
-      pathIdParam: 'productId'
-    }
+      pathIdParam: 'productId',
+    },
   },
   {
     path: 'map',
@@ -34,20 +34,15 @@ const routes: Routes = [
         component: ExtractionMapPage,
         runGuardsAndResolvers: 'pathParamsChange',
         data: {
-          profile: 'USER'
-        }
-      }
-    ]
-  }
+          profile: 'USER',
+        },
+      },
+    ],
+  },
 ];
 
 @NgModule({
-  imports: [
-    SharedModule,
-    AppExtractionModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [RouterModule]
+  imports: [SharedModule, AppExtractionModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class AppExtractionRoutingModule {
-}
+export class AppExtractionRoutingModule {}

@@ -1,22 +1,21 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from '@angular/core';
-import {AccountService, AppTable, EntitiesTableDataSource, LocalSettingsService, referentialToString} from '@sumaris-net/ngx-components';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit } from '@angular/core';
+import { AccountService, AppTable, EntitiesTableDataSource, LocalSettingsService, referentialToString } from '@sumaris-net/ngx-components';
 
-import {ActivatedRoute, Router} from '@angular/router';
-import {ModalController, Platform} from '@ionic/angular';
-import {Location} from '@angular/common';
-import {VesselRegistrationService} from '../services/vessel-registration.service';
-import {VesselRegistration} from '../services/model/vessel.model';
-import {environment} from '@environments/environment';
-import {VesselRegistrationFilter} from '../services/filter/vessel.filter';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ModalController, Platform } from '@ionic/angular';
+import { Location } from '@angular/common';
+import { VesselRegistrationService } from '../services/vessel-registration.service';
+import { VesselRegistration } from '../services/model/vessel.model';
+import { environment } from '@environments/environment';
+import { VesselRegistrationFilter } from '../services/filter/vessel.filter';
 
 @Component({
   selector: 'app-vessel-registration-history-table',
   templateUrl: './vessel-registration-history.component.html',
   styleUrls: ['./vessel-registration-history.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistration, VesselRegistrationFilter> implements OnInit {
-
   referentialToString = referentialToString;
   isAdmin: boolean;
 
@@ -32,21 +31,21 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
     dataService: VesselRegistrationService,
     protected cd: ChangeDetectorRef
   ) {
-
-    super(route, router, platform, location, modalCtrl, settings,
+    super(
+      route,
+      router,
+      platform,
+      location,
+      modalCtrl,
+      settings,
       // columns
-      ['id',
-        'startDate',
-        'endDate',
-        'registrationCode',
-        'registrationLocation']
-      ,
+      ['id', 'startDate', 'endDate', 'registrationCode', 'registrationLocation'],
       new EntitiesTableDataSource<VesselRegistration>(VesselRegistration, dataService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
-          saveOnlyDirtyRows: true
-        }
+          saveOnlyDirtyRows: true,
+        },
       }),
       null,
       injector
@@ -57,7 +56,6 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
     this.autoLoad = false;
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
-
   }
 
   ngOnInit() {

@@ -1,7 +1,6 @@
-import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
-import {Sample} from '../model/sample.model';
-import {EntityAsObjectOptions, FilterFn, isNil} from '@sumaris-net/ngx-components';
-
+import { DataEntityFilter } from '@app/data/services/model/data-filter.model';
+import { Sample } from '../model/sample.model';
+import { EntityAsObjectOptions, FilterFn, isNil } from '@sumaris-net/ngx-components';
 
 export class SampleFilter extends DataEntityFilter<SampleFilter, Sample> {
   operationId?: number;
@@ -24,9 +23,8 @@ export class SampleFilter extends DataEntityFilter<SampleFilter, Sample> {
     if (opts && opts.minify) {
       target.parentId = this.parent ? this.parent.id : undefined;
       delete target.parent;
-    }
-    else {
-      target.parent = this.parent ? {id: this.parent.id, label: this.parent.label} : undefined;
+    } else {
+      target.parent = this.parent ? { id: this.parent.id, label: this.parent.label } : undefined;
     }
     return target;
   }
@@ -39,22 +37,21 @@ export class SampleFilter extends DataEntityFilter<SampleFilter, Sample> {
 
     // Landing
     if (isNil(this.landingId)) {
-      filterFns.push(t => (t.landingId === this.landingId));
+      filterFns.push((t) => t.landingId === this.landingId);
     }
 
     // Operation
     if (isNil(this.operationId)) {
-      filterFns.push(t => (t.operationId === this.operationId));
+      filterFns.push((t) => t.operationId === this.operationId);
     }
 
     // Parent
     if (isNil(this.parent)) {
-      filterFns.push(t => (t.parentId === this.parent.id || this.parent.equals(t.parent)));
+      filterFns.push((t) => t.parentId === this.parent.id || this.parent.equals(t.parent));
     }
 
     if (!filterFns.length) return undefined;
 
-    return (entity) => !filterFns.find(fn => !fn(entity));
+    return (entity) => !filterFns.find((fn) => !fn(entity));
   }
 }
-

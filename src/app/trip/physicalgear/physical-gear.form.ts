@@ -1,27 +1,26 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {PhysicalGearValidatorService} from '../services/validator/physicalgear.validator';
-import {Moment} from 'moment';
-import {BehaviorSubject} from 'rxjs';
-import {distinctUntilChanged, filter, mergeMap} from 'rxjs/operators';
-import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
-import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {FormBuilder} from '@angular/forms';
-import {InputElement, isNotNil, LocalSettingsService, PlatformService, ReferentialRef, referentialToString, ReferentialUtils, selectInputContent} from '@sumaris-net/ngx-components';
-import {PhysicalGear} from '../services/model/trip.model';
-import {DateAdapter} from '@angular/material/core';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { PhysicalGearValidatorService } from '../services/validator/physicalgear.validator';
+import { Moment } from 'moment';
+import { BehaviorSubject } from 'rxjs';
+import { distinctUntilChanged, filter, mergeMap } from 'rxjs/operators';
+import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
+import { FormBuilder } from '@angular/forms';
+import { InputElement, isNotNil, LocalSettingsService, PlatformService, ReferentialRef, referentialToString, ReferentialUtils, selectInputContent } from '@sumaris-net/ngx-components';
+import { PhysicalGear } from '../services/model/trip.model';
+import { DateAdapter } from '@angular/material/core';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
 @Component({
   selector: 'app-physical-gear-form',
   templateUrl: './physical-gear.form.html',
   styleUrls: ['./physical-gear.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implements OnInit {
-
   gearsSubject = new BehaviorSubject<ReferentialRef[]>(undefined);
   mobile: boolean;
 
@@ -47,7 +46,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
     protected validatorService: PhysicalGearValidatorService,
-    protected referentialRefService: ReferentialRefService,
+    protected referentialRefService: ReferentialRefService
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup());
     this._enable = true;
@@ -63,9 +62,9 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
         .pipe(
           filter(isNotNil),
           distinctUntilChanged(),
-          mergeMap(program => this.programRefService.loadGears(program))
+          mergeMap((program) => this.programRefService.loadGears(program))
         )
-        .subscribe(gears => this.gearsSubject.next(gears))
+        .subscribe((gears) => this.gearsSubject.next(gears))
     );
 
     this.debug = !environment.production;
@@ -79,20 +78,19 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     // Combo: gears
     this.registerAutocompleteField('gear', {
       items: this.gearsSubject,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
-    this.form.get('gear').valueChanges
-      .pipe(
-        filter(value => ReferentialUtils.isNotEmpty(value) && !this.loading)
-      )
-      .subscribe(value => {
+    this.form
+      .get('gear')
+      .valueChanges.pipe(filter((value) => ReferentialUtils.isNotEmpty(value) && !this.loading))
+      .subscribe((value) => {
         this.data.gear = value;
         this.gearId = value.id;
       });
   }
 
-  setValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any }) {
+  setValue(data: PhysicalGear, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any }) {
     if (data && ReferentialUtils.isNotEmpty(data.gear)) {
       this.gearId = data.gear.id;
     }
@@ -105,8 +103,10 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
   /* -- protected methods -- */
 
-  protected async safeSetValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean }): Promise<void> {
-
+  protected async safeSetValue(
+    data: PhysicalGear,
+    opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean }
+  ): Promise<void> {
     if (data && ReferentialUtils.isNotEmpty(data.gear)) {
       this.gearId = data.gear.id;
     }

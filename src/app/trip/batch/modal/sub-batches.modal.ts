@@ -1,18 +1,17 @@
-import {ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {Batch, BatchUtils} from '../../services/model/batch.model';
-import {Alerts, AppFormUtils, AudioProvider, isEmptyArray, isNil, isNotNilOrBlank, LocalSettingsService, toBoolean} from '@sumaris-net/ngx-components';
-import {SubBatchForm} from '../form/sub-batch.form';
-import {SubBatchValidatorService} from '../../services/validator/sub-batch.validator';
-import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from '../table/sub-batches.table';
-import {AppMeasurementsTableOptions} from '../../measurement/measurements.table.class';
-import {Animation, IonContent, ModalController} from '@ionic/angular';
-import {isObservable, Observable, of, Subject} from 'rxjs';
-import {createAnimation} from '@ionic/core';
-import {SubBatch} from '../../services/model/subbatch.model';
-import {BatchGroup} from '../../services/model/batch-group.model';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-
+import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { Alerts, AppFormUtils, AudioProvider, isEmptyArray, isNil, isNotNilOrBlank, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
+import { SubBatchForm } from '../form/sub-batch.form';
+import { SubBatchValidatorService } from '../../services/validator/sub-batch.validator';
+import { SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from '../table/sub-batches.table';
+import { AppMeasurementsTableOptions } from '../../measurement/measurements.table.class';
+import { Animation, IonContent, ModalController } from '@ionic/angular';
+import { isObservable, Observable, of, Subject } from 'rxjs';
+import { createAnimation } from '@ionic/core';
+import { SubBatch } from '../../services/model/subbatch.model';
+import { BatchGroup } from '../../services/model/batch-group.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // do NOT use individual count
@@ -22,21 +21,20 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // d
   styleUrls: ['sub-batches.modal.scss'],
   templateUrl: 'sub-batches.modal.html',
   providers: [
-    {provide: ValidatorService, useExisting: SubBatchValidatorService},
+    { provide: ValidatorService, useExisting: SubBatchValidatorService },
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
       useFactory: () => ({
-          prependNewElements: true,
-          suppressErrors: true,
-          reservedStartColumns: SUB_BATCH_MODAL_RESERVED_START_COLUMNS,
-          reservedEndColumns: SUB_BATCH_MODAL_RESERVED_END_COLUMNS
-        })
-    }
+        prependNewElements: true,
+        suppressErrors: true,
+        reservedStartColumns: SUB_BATCH_MODAL_RESERVED_START_COLUMNS,
+        reservedEndColumns: SUB_BATCH_MODAL_RESERVED_END_COLUMNS,
+      }),
+    },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubBatchesModal extends SubBatchesTable implements OnInit {
-
   private _initialMaxRankOrder: number;
   private _previousMaxRankOrder: number;
   private _hiddenData: SubBatch[];
@@ -62,8 +60,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     if (value) {
       this.disable();
       this.showForm = false;
-    }
-    else {
+    } else {
       this.enable();
       this.showForm = true;
     }
@@ -84,7 +81,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return this.form && this.form.invalid;
   }
 
-
   constructor(
     protected injector: Injector,
     protected viewCtrl: ModalController,
@@ -92,9 +88,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     protected audio: AudioProvider,
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: AppMeasurementsTableOptions<Batch>
   ) {
-    super(injector,
-      null/*no validator = not editable*/,
-      options);
+    super(injector, null /*no validator = not editable*/, options);
     this.inlineEdition = false; // Disable row edition (readonly)
     this.confirmBeforeDelete = true; // Ask confirmation before delete
     this.allowRowDetail = false; // Disable click on a row
@@ -115,7 +109,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     this.showIndividualCount = !this.isOnFieldMode; // Hide individual count on mobile device
     this.showParentGroup = toBoolean(this.showParentGroup, true);
 
-    this.showForm = this.showForm && (this.form && !this.disabled);
+    this.showForm = this.showForm && this.form && !this.disabled;
 
     if (this.form) await this.form.ready();
 
@@ -130,40 +124,41 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
       // Update table content when changing parent
       this.registerSubscription(
-        this.form.form.get('parentGroup').valueChanges
-          // Init table with existing values
+        this.form.form
+          .get('parentGroup')
+          .valueChanges// Init table with existing values
           //.pipe(startWith(() => this._defaultValue && this._defaultValue.parent))
-          .subscribe(parent => this.onParentChange(parent))
+          .subscribe((parent) => this.onParentChange(parent))
       );
     }
 
     this._rowAnimation = createAnimation()
-
       .duration(300)
       .direction('normal')
       .iterations(1)
       .keyframes([
-        { offset: 0, transform: 'scale(1.5)', opacity: '0.5'},
-        { offset: 1, transform: 'scale(1)', opacity: '1' }
+        { offset: 0, transform: 'scale(1.5)', opacity: '0.5' },
+        { offset: 1, transform: 'scale(1)', opacity: '1' },
       ])
       .beforeStyles({
         color: 'var(--ion-color-accent-contrast)',
-        background: 'var(--ion-color-accent)'
+        background: 'var(--ion-color-accent)',
       });
 
-    const data$: Observable<SubBatch[]> = isObservable<SubBatch[]>(this.availableSubBatches) ? this.availableSubBatches :
-      of(this.availableSubBatches);
+    const data$: Observable<SubBatch[]> = isObservable<SubBatch[]>(this.availableSubBatches)
+      ? this.availableSubBatches
+      : of(this.availableSubBatches);
 
-    data$.subscribe(data => {
-        // Compute the first rankOrder to save
-        this._initialMaxRankOrder = (data || []).reduce((max, b) => Math.max(max, b.rankOrder || 0), 0);
+    data$.subscribe((data) => {
+      // Compute the first rankOrder to save
+      this._initialMaxRankOrder = (data || []).reduce((max, b) => Math.max(max, b.rankOrder || 0), 0);
 
-        // Apply data to table
-        this.setValue(data);
+      // Apply data to table
+      this.setValue(data);
 
-        // Compute the title
-        this.computeTitle();
-      });
+      // Compute the title
+      this.computeTitle();
+    });
   }
 
   async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {
@@ -179,18 +174,17 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     if (isNil(parentTaxonGroupId)) return pmfms;
 
     // Filter using parent's taxon group
-    return pmfms.filter(pmfm => !PmfmUtils.isDenormalizedPmfm(pmfm)
-      || isEmptyArray(pmfm.taxonGroupIds)
-      || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
+    return pmfms.filter(
+      (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(parentTaxonGroupId)
+    );
   }
 
   async cancel(event?: UIEvent) {
-
     if (this.dirty) {
       const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
 
       // User cancelled
-      if (isNil(saveBeforeLeave) || event && event.defaultPrevented) {
+      if (isNil(saveBeforeLeave) || (event && event.defaultPrevented)) {
         return;
       }
 
@@ -224,7 +218,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
       await this.viewCtrl.dismiss(this.getValue());
     } catch (err) {
       console.error(err);
-      this.error = err && err.message || err;
+      this.error = (err && err.message) || err;
       this.markAsLoaded();
     }
   }
@@ -234,9 +228,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   }
 
   editRow(event: MouseEvent, row?: TableElement<SubBatch>): boolean {
-
     row = row || (!this.selection.isEmpty() && this.selection.selected[0]);
-    if (!row) throw new Error ('Missing row argument, or a row selection.');
+    if (!row) throw new Error('Missing row argument, or a row selection.');
 
     // Confirm last edited row
     if (this.editedRow) {
@@ -244,7 +237,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     }
 
     // Copy the row into the form
-    this.form.setValue(this.toEntity(row), {emitEvent: true});
+    this.form.setValue(this.toEntity(row), { emitEvent: true });
     this.markForCheck();
 
     // Then remove the row
@@ -253,7 +246,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return true;
   }
 
-  selectRow(event: MouseEvent|null, row: TableElement<SubBatch>) {
+  selectRow(event: MouseEvent | null, row: TableElement<SubBatch>) {
     if (event?.defaultPrevented || !row) return;
     if (event) event.preventDefault();
 
@@ -264,13 +257,11 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   /* -- protected methods -- */
 
   protected async computeTitle() {
-
     let titlePrefix;
     if (!this.showParentGroup && this.parentGroup) {
       const label = BatchUtils.parentToString(this.parentGroup);
-      titlePrefix = await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE_PREFIX', {label}).toPromise();
-    }
-    else {
+      titlePrefix = await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE_PREFIX', { label }).toPromise();
+    } else {
       titlePrefix = '';
     }
     this.$title.next(titlePrefix + (await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE').toPromise()));
@@ -297,11 +288,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     this.onRefresh.emit();
 
     // TODO BLA: refresh PMFM
-
   }
 
   protected onLoadData(data: SubBatch[]): SubBatch[] {
-
     // Filter by parent group
     if (data && this.parentGroup) {
       const showIndividualCount = this.showIndividualCount; // Read once the getter value
@@ -312,8 +301,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
         maxRankOrder = Math.max(maxRankOrder, b.rankOrder || 0);
         // Filter on individual count = 1 when individual count is hide
         // AND same parent
-        if ( (showIndividualCount || b.individualCount === 1)
-          && Batch.equals(this.parentGroup, b.parentGroup)) {
+        if ((showIndividualCount || b.individualCount === 1) && Batch.equals(this.parentGroup, b.parentGroup)) {
           return res.concat(b);
         }
         hiddenData.push(b);
@@ -351,7 +339,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return row;
   }
 
-  protected async updateEntityToTable(updatedBatch: SubBatch, row: TableElement<SubBatch>):  Promise<TableElement<SubBatch>> {
+  protected async updateEntityToTable(updatedBatch: SubBatch, row: TableElement<SubBatch>): Promise<TableElement<SubBatch>> {
     const updatedRow = await super.updateEntityToTable(updatedBatch, row);
 
     // Highlight the row, few seconds
@@ -361,7 +349,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   }
 
   protected onInvalidForm() {
-
     // Play a error beep, if on field
     if (this.isOnFieldMode) this.audio.playBeepError();
 
@@ -375,7 +362,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
    * @pram times duration of highlight
    */
   protected onRowChanged(row: TableElement<SubBatch>) {
-
     // Play a beep, if on field
     if (this.isOnFieldMode) {
       this.audio.playBeepConfirm();
@@ -396,7 +382,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
       }
     }, 1500);
   }
-
 
   async scrollToTop() {
     return this.content.scrollToTop();

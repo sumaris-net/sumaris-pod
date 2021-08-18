@@ -1,8 +1,8 @@
 /* -- Extraction -- */
 
-import {BaseReferential, Department, Entity, EntityAsObjectOptions, EntityClass, isNotEmptyArray, isNotNilOrBlank, Person} from '@sumaris-net/ngx-components';
-import {Moment} from 'moment';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { BaseReferential, Department, Entity, EntityAsObjectOptions, EntityClass, isNotEmptyArray, isNotNilOrBlank, Person } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
 export declare type ExtractionCategoryType = 'PRODUCT' | 'LIVE';
 export const ExtractionCategories = {
@@ -10,13 +10,8 @@ export const ExtractionCategories = {
   LIVE: 'LIVE',
 };
 
-@EntityClass({typename: 'ExtractionTypeVO'})
-export class ExtractionType<
-  T extends ExtractionType<T, ID> = ExtractionType<any, any>,
-  ID = number
-  >
-  extends BaseReferential<T, ID> {
-
+@EntityClass({ typename: 'ExtractionTypeVO' })
+export class ExtractionType<T extends ExtractionType<T, ID> = ExtractionType<any, any>, ID = number> extends BaseReferential<T, ID> {
   static fromObject: (source: any, opts?: any) => ExtractionType;
   static equals(o1: ExtractionType, o2: ExtractionType): boolean {
     return o1 && o2 ? o1.label === o2.label && o1.category === o2.category : o1 === o2;
@@ -44,14 +39,14 @@ export class ExtractionType<
     this.sheetNames = source.sheetNames;
     this.isSpatial = source.isSpatial;
     this.docUrl = source.docUrl;
-    this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson) || null;
+    this.recorderPerson = (source.recorderPerson && Person.fromObject(source.recorderPerson)) || null;
     this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
   }
 
   asObject(options?: EntityAsObjectOptions): any {
-    const target = super.asObject({...options, ...NOT_MINIFY_OPTIONS});
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
+    const target = super.asObject({ ...options, ...NOT_MINIFY_OPTIONS });
+    target.recorderPerson = (this.recorderPerson && this.recorderPerson.asObject(options)) || undefined;
+    target.recorderDepartment = (this.recorderDepartment && this.recorderDepartment.asObject(options)) || undefined;
     return target;
   }
 
@@ -64,7 +59,6 @@ export class ExtractionType<
 }
 
 export class ExtractionResult {
-
   static fromObject(source: any): ExtractionResult {
     if (!source || source instanceof ExtractionResult) return source;
     const target = new ExtractionResult();
@@ -78,12 +72,11 @@ export class ExtractionResult {
 
   fromObject(source: any): ExtractionResult {
     this.total = source.total;
-    this.columns = source.columns && source.columns.map(ExtractionColumn.fromObject) || null;
-    this.rows = source.rows && source.rows.slice() || null;
+    this.columns = (source.columns && source.columns.map(ExtractionColumn.fromObject)) || null;
+    this.rows = (source.rows && source.rows.slice()) || null;
     return this;
   }
 }
-
 
 export class ExtractionColumn {
   static fromObject(source: any): ExtractionColumn {
@@ -134,7 +127,6 @@ export class ExtractionFilter {
 export declare type CriterionOperator = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'BETWEEN' | 'NULL' | 'NOT NULL';
 
 export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion> {
-
   static fromObject(source: any): ExtractionFilterCriterion {
     const res = new ExtractionFilterCriterion();
     res.fromObject(source);
@@ -142,11 +134,10 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
   }
 
   static isNotEmpty(criterion: ExtractionFilterCriterion): boolean {
-    return criterion && (
-      isNotNilOrBlank(criterion.value)
-      || isNotEmptyArray(criterion.values)
-      || criterion.operator === 'NULL'
-      || criterion.operator === 'NOT NULL');
+    return (
+      criterion &&
+      (isNotNilOrBlank(criterion.value) || isNotEmptyArray(criterion.values) || criterion.operator === 'NULL' || criterion.operator === 'NOT NULL')
+    );
   }
 
   name?: string;

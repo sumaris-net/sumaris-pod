@@ -1,8 +1,8 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {AbstractControl, FormGroup} from '@angular/forms';
-import {ReferentialForm} from '../form/referential.form';
-import {ParameterValidatorService} from '../services/validator/parameter.validator';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { AbstractControl, FormGroup } from '@angular/forms';
+import { ReferentialForm } from '../form/referential.form';
+import { ParameterValidatorService } from '../services/validator/parameter.validator';
 import {
   AccountService,
   AppEntityEditor,
@@ -12,25 +12,22 @@ import {
   HistoryPageReference,
   isNil,
   referentialToString,
-  ReferentialUtils
+  ReferentialUtils,
 } from '@sumaris-net/ngx-components';
-import {Parameter} from '../services/model/parameter.model';
-import {ParameterService} from '../services/parameter.service';
-import {ReferentialRefService} from '../services/referential-ref.service';
-import {environment} from '@environments/environment';
-import {SimpleReferentialTable} from '../list/referential-simple.table';
+import { Parameter } from '../services/model/parameter.model';
+import { ParameterService } from '../services/parameter.service';
+import { ReferentialRefService } from '../services/referential-ref.service';
+import { environment } from '@environments/environment';
+import { SimpleReferentialTable } from '../list/referential-simple.table';
 
 @Component({
   selector: 'app-parameter',
   templateUrl: 'parameter.page.html',
-  providers: [
-    {provide: ValidatorService, useExisting: ParameterValidatorService}
-  ],
+  providers: [{ provide: ValidatorService, useExisting: ParameterValidatorService }],
   animations: [fadeInOutAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit {
-
   canEdit: boolean;
   form: FormGroup;
   fieldDefinitions: FormFieldDefinitionMap;
@@ -53,12 +50,9 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
     protected parameterService: ParameterService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(injector,
-      Parameter,
-      parameterService,
-      {
-        tabCount: 1
-      });
+    super(injector, Parameter, parameterService, {
+      tabCount: 1,
+    });
     this.form = validatorService.getFormGroup();
 
     // default values
@@ -74,9 +68,11 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
         label: `REFERENTIAL.PARAMETER.TYPE`,
         type: 'enum',
         required: true,
-        values: ['double', 'string', 'qualitative_value', 'date', 'boolean']
-          .map(key => ({key, value: ('REFERENTIAL.PARAMETER.TYPE_ENUM.' + key.toUpperCase()) }))
-      }
+        values: ['double', 'string', 'qualitative_value', 'date', 'boolean'].map((key) => ({
+          key,
+          value: 'REFERENTIAL.PARAMETER.TYPE_ENUM.' + key.toUpperCase(),
+        })),
+      },
     };
   }
   ngOnInit() {
@@ -86,13 +82,10 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
     this.referentialForm.entityName = 'Parameter';
 
     // Check label is unique
-    this.form.get('label')
-      .setAsyncValidators(async (control: AbstractControl) => {
-        const label = control.enabled && control.value;
-        return label && (await this.parameterService.existsByLabel(label, {excludedId: this.data && this.data.id})) ?
-          {unique: true} : null;
-      });
-
+    this.form.get('label').setAsyncValidators(async (control: AbstractControl) => {
+      const label = control.enabled && control.value;
+      return label && (await this.parameterService.existsByLabel(label, { excludedId: this.data && this.data.id })) ? { unique: true } : null;
+    });
   }
 
   /* -- protected methods -- */
@@ -104,8 +97,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
   }
 
   protected canUserWrite(data: Parameter): boolean {
-    return (this.isNewData && this.accountService.isAdmin())
-      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
+    return (this.isNewData && this.accountService.isAdmin()) || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
   }
 
   enable() {
@@ -126,10 +118,10 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
     const json = data.asObject();
     json.qualitativeValues = json.qualitativeValues || []; // Make sure to it array
 
-    this.form.patchValue(json, {emitEvent: false});
+    this.form.patchValue(json, { emitEvent: false });
 
     // QualitativeValues
-    this.qualitativeValuesTable.value = data.qualitativeValues && data.qualitativeValues.slice() || []; // force update
+    this.qualitativeValuesTable.value = (data.qualitativeValues && data.qualitativeValues.slice()) || []; // force update
 
     this.markAsPristine();
   }
@@ -162,7 +154,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
       ...(await super.computePageHistory(title)),
       title: `${this.data.label} - ${this.data.name}`,
       subtitle: 'REFERENTIAL.ENTITY.PARAMETER',
-      icon: 'list'
+      icon: 'list',
     };
   }
 
@@ -183,6 +175,4 @@ export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit 
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }
-

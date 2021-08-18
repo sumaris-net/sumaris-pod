@@ -1,23 +1,22 @@
-import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {ModalController} from '@ionic/angular';
-import {Subject, Subscription} from 'rxjs';
-import {AppFormUtils, referentialToString} from '@sumaris-net/ngx-components';
-import {ProductSaleForm} from './product-sale.form';
-import {Product} from '../services/model/product.model';
-import {PmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {TranslateService} from '@ngx-translate/core';
+import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { Subject, Subscription } from 'rxjs';
+import { AppFormUtils, referentialToString } from '@sumaris-net/ngx-components';
+import { ProductSaleForm } from './product-sale.form';
+import { Product } from '../services/model/product.model';
+import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-product-sale-modal',
-  templateUrl: './product-sale.modal.html'
+  templateUrl: './product-sale.modal.html',
 })
 export class ProductSaleModal implements OnInit, OnDestroy {
-
   loading = false;
   subscription = new Subscription();
   $title = new Subject<string>();
 
-  @ViewChild('productSaleForm', {static: true}) productSaleForm: ProductSaleForm;
+  @ViewChild('productSaleForm', { static: true }) productSaleForm: ProductSaleForm;
 
   @Input() product: Product;
   @Input() productSalePmfms: PmfmStrategy[];
@@ -31,16 +30,10 @@ export class ProductSaleModal implements OnInit, OnDestroy {
   }
 
   get valid() {
-    return this.productSaleForm && this.productSaleForm.valid || false;
+    return (this.productSaleForm && this.productSaleForm.valid) || false;
   }
 
-
-  constructor(
-    protected viewCtrl: ModalController,
-    protected translate: TranslateService
-  ) {
-
-  }
+  constructor(protected viewCtrl: ModalController, protected translate: TranslateService) {}
 
   ngOnInit(): void {
     this.enable();
@@ -48,15 +41,12 @@ export class ProductSaleModal implements OnInit, OnDestroy {
     setTimeout(() => this.productSaleForm.setValue(Product.fromObject(this.product)));
   }
 
-
   protected async updateTitle() {
-    const title = await this.translate.get('TRIP.PRODUCT.SALE.TITLE', {taxonGroupLabel: referentialToString(this.product.taxonGroup)}).toPromise();
+    const title = await this.translate.get('TRIP.PRODUCT.SALE.TITLE', { taxonGroupLabel: referentialToString(this.product.taxonGroup) }).toPromise();
     this.$title.next(title);
   }
 
-
   async onSave(event: any): Promise<any> {
-
     // Avoid multiple call
     if (this.disabled) return;
 
@@ -76,7 +66,7 @@ export class ProductSaleModal implements OnInit, OnDestroy {
       this.productSaleForm.error = null;
     } catch (err) {
       console.error(err);
-      this.productSaleForm.error = err && err.message || err;
+      this.productSaleForm.error = (err && err.message) || err;
       this.enable();
       this.loading = false;
     }

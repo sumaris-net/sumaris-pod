@@ -1,13 +1,11 @@
-import {Entity, EntityAsObjectOptions, EntityClass, ReferentialRef, toNumber} from '@sumaris-net/ngx-components';
-import {IDenormalizedPmfm, Pmfm, PmfmType, PmfmUtils} from './pmfm.model';
-import {PmfmValue, PmfmValueUtils} from './pmfm-value.model';
-import {MethodIds} from './model.enum';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { Entity, EntityAsObjectOptions, EntityClass, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
+import { IDenormalizedPmfm, Pmfm, PmfmType, PmfmUtils } from './pmfm.model';
+import { PmfmValue, PmfmValueUtils } from './pmfm-value.model';
+import { MethodIds } from './model.enum';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
-
-@EntityClass({typename: 'PmfmStrategyVO'})
+@EntityClass({ typename: 'PmfmStrategyVO' })
 export class PmfmStrategy extends Entity<PmfmStrategy> {
-
   static fromObject: (source: any, opts?: any) => PmfmStrategy;
 
   pmfmId: number;
@@ -23,7 +21,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   defaultValue: PmfmValue;
   isMandatory: boolean;
   rankOrder: number;
-  acquisitionLevel: string|ReferentialRef;
+  acquisitionLevel: string | ReferentialRef;
 
   gearIds: number[];
   taxonGroupIds: number[];
@@ -38,22 +36,21 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
-    target.acquisitionLevel = (target.acquisitionLevel && typeof target.acquisitionLevel === 'object' && target.acquisitionLevel.label)
-      || target.acquisitionLevel;
+    target.acquisitionLevel =
+      (target.acquisitionLevel && typeof target.acquisitionLevel === 'object' && target.acquisitionLevel.label) || target.acquisitionLevel;
 
     target.pmfmId = toNumber(this.pmfmId, this.pmfm && this.pmfm.id);
-    target.pmfm = this.pmfm && this.pmfm.asObject({...NOT_MINIFY_OPTIONS, ...options});
-    target.parameter = this.parameter && this.parameter.asObject({...NOT_MINIFY_OPTIONS, ...options});
-    target.matrix = this.matrix && this.matrix.asObject({...NOT_MINIFY_OPTIONS, ...options});
-    target.fraction = this.fraction && this.fraction.asObject({...NOT_MINIFY_OPTIONS, ...options});
-    target.method = this.method && this.method.asObject({...NOT_MINIFY_OPTIONS, ...options});
+    target.pmfm = this.pmfm && this.pmfm.asObject({ ...NOT_MINIFY_OPTIONS, ...options });
+    target.parameter = this.parameter && this.parameter.asObject({ ...NOT_MINIFY_OPTIONS, ...options });
+    target.matrix = this.matrix && this.matrix.asObject({ ...NOT_MINIFY_OPTIONS, ...options });
+    target.fraction = this.fraction && this.fraction.asObject({ ...NOT_MINIFY_OPTIONS, ...options });
+    target.method = this.method && this.method.asObject({ ...NOT_MINIFY_OPTIONS, ...options });
 
     // Serialize default value
     // only if NOT an alphanumerical value (DB column is a double) or a computed PMFM
-    if (this.defaultValue && (!this.isAlphanumeric && !this.isComputed)) {
-      target.defaultValue = +(PmfmValueUtils.toModelValue(this.defaultValue, this.pmfm));
-    }
-    else {
+    if (this.defaultValue && !this.isAlphanumeric && !this.isComputed) {
+      target.defaultValue = +PmfmValueUtils.toModelValue(this.defaultValue, this.pmfm);
+    } else {
       delete target.defaultValue;
     }
 
@@ -77,9 +74,9 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     this.isMandatory = source.isMandatory;
     this.rankOrder = source.rankOrder;
     this.acquisitionLevel = source.acquisitionLevel;
-    this.gearIds = source.gearIds && [...source.gearIds] || undefined;
-    this.taxonGroupIds = source.taxonGroupIds && [...source.taxonGroupIds] || undefined;
-    this.referenceTaxonIds = source.referenceTaxonIds && [...source.referenceTaxonIds] || undefined;
+    this.gearIds = (source.gearIds && [...source.gearIds]) || undefined;
+    this.taxonGroupIds = (source.taxonGroupIds && [...source.taxonGroupIds]) || undefined;
+    this.referenceTaxonIds = (source.referenceTaxonIds && [...source.referenceTaxonIds]) || undefined;
     this.strategyId = source.strategyId;
   }
 
@@ -91,7 +88,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     this.isMandatory = value;
   }
 
-  get type(): string|PmfmType {
+  get type(): string | PmfmType {
     return this.pmfm && this.pmfm.type;
   }
 
@@ -116,21 +113,20 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   }
 
   equals(other: PmfmStrategy): boolean {
-    return other && (this.id === other.id
-      // Same acquisitionLevel, pmfm, parameter
-      || (this.strategyId === other.strategyId && this.acquisitionLevel === other.acquisitionLevel
-        && ((!this.pmfm && !other.pmfm) || (this.pmfm && other.pmfm && this.pmfm.id === other.pmfm.id))
-        && ((!this.parameter && !other.parameter) || (this.parameter && other.parameter && this.parameter.id === other.parameter.id))
-      )
+    return (
+      other &&
+      (this.id === other.id ||
+        // Same acquisitionLevel, pmfm, parameter
+        (this.strategyId === other.strategyId &&
+          this.acquisitionLevel === other.acquisitionLevel &&
+          ((!this.pmfm && !other.pmfm) || (this.pmfm && other.pmfm && this.pmfm.id === other.pmfm.id)) &&
+          ((!this.parameter && !other.parameter) || (this.parameter && other.parameter && this.parameter.id === other.parameter.id))))
     );
   }
 }
 
-@EntityClass({typename: 'DenormalizedPmfmStrategyVO'})
-export class DenormalizedPmfmStrategy
-  extends Entity<DenormalizedPmfmStrategy>
-  implements IDenormalizedPmfm<DenormalizedPmfmStrategy> {
-
+@EntityClass({ typename: 'DenormalizedPmfmStrategyVO' })
+export class DenormalizedPmfmStrategy extends Entity<DenormalizedPmfmStrategy> implements IDenormalizedPmfm<DenormalizedPmfmStrategy> {
   static fromObject: (source: any, opts?: any) => DenormalizedPmfmStrategy;
 
   label: string;
@@ -168,14 +164,14 @@ export class DenormalizedPmfmStrategy
 
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
-    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
-    target.defaultValue = +(PmfmValueUtils.toModelValue(this.defaultValue, this));
+    target.qualitativeValues = (this.qualitativeValues && this.qualitativeValues.map((qv) => qv.asObject(options))) || undefined;
+    target.defaultValue = +PmfmValueUtils.toModelValue(this.defaultValue, this);
     return target;
   }
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
-    this.parameterId =  source.parameterId;
+    this.parameterId = source.parameterId;
     this.matrixId = source.matrixId;
     this.fractionId = source.fractionId;
     this.methodId = source.methodId;
@@ -193,9 +189,9 @@ export class DenormalizedPmfmStrategy
     this.isMandatory = source.isMandatory;
     this.rankOrder = source.rankOrder;
     this.acquisitionLevel = source.acquisitionLevel;
-    this.gearIds = source.gearIds && [...source.gearIds] || undefined;
-    this.taxonGroupIds = source.taxonGroupIds && [...source.taxonGroupIds] || undefined;
-    this.referenceTaxonIds = source.referenceTaxonIds && [...source.referenceTaxonIds] || undefined;
+    this.gearIds = (source.gearIds && [...source.gearIds]) || undefined;
+    this.taxonGroupIds = (source.taxonGroupIds && [...source.taxonGroupIds]) || undefined;
+    this.referenceTaxonIds = (source.referenceTaxonIds && [...source.referenceTaxonIds]) || undefined;
     this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject);
     this.strategyId = source.strategyId;
   }
@@ -221,7 +217,7 @@ export class DenormalizedPmfmStrategy
   }
 
   get isComputed(): boolean {
-    return this.type && (this.methodId === MethodIds.CALCULATED);
+    return this.type && this.methodId === MethodIds.CALCULATED;
   }
 
   get isQualitative(): boolean {
@@ -244,9 +240,11 @@ export class DenormalizedPmfmStrategy
   }
 
   equals(other: DenormalizedPmfmStrategy): boolean {
-    return other && (this.id === other.id
-      // Same strategy, acquisitionLevel, pmfmId
-      || (this.strategyId === other.strategyId && this.acquisitionLevel === other.acquisitionLevel)
+    return (
+      other &&
+      (this.id === other.id ||
+        // Same strategy, acquisitionLevel, pmfmId
+        (this.strategyId === other.strategyId && this.acquisitionLevel === other.acquisitionLevel))
     );
   }
 }

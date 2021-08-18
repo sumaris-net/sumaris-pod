@@ -1,22 +1,21 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ViewChild} from '@angular/core';
-import {AccountService, LocalSettingsService} from '@sumaris-net/ngx-components';
-import {ModalController, Platform} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {ReferentialsPage} from '../list/referentials.page';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ViewChild } from '@angular/core';
+import { AccountService, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { ModalController, Platform } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
+import { ReferentialsPage } from '../list/referentials.page';
 
 export enum AnimationState {
   ENTER = 'enter',
-  LEAVE = 'leave'
+  LEAVE = 'leave',
 }
 
 @Component({
   selector: 'app-program-page',
   templateUrl: './programs.page.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProgramsPage {
-
   canEdit: boolean;
   canDelete: boolean;
 
@@ -38,7 +37,4 @@ export class ProgramsPage {
   }
 
   /* -- protected methods -- */
-
-
 }
-

@@ -1,15 +1,15 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
 
-import {TripService} from '../services/trip.service';
-import {TripForm} from './trip.form';
-import {SaleForm} from '../sale/sale.form';
-import {OperationsTable} from '../operation/operations.table';
-import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
+import { TripService } from '../services/trip.service';
+import { TripForm } from './trip.form';
+import { SaleForm } from '../sale/sale.form';
+import { OperationsTable } from '../operation/operations.table';
+import { MeasurementsForm } from '../measurement/measurements.form.component';
+import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
 import * as momentImported from 'moment';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
-import {FormGroup} from '@angular/forms';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
+import { FormGroup } from '@angular/forms';
 import {
   Alerts,
   EntitiesStorage,
@@ -24,26 +24,26 @@ import {
   PromiseEvent,
   ReferentialRef,
   ReferentialUtils,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
-import {TripsPageSettingsEnum} from './trips.table';
-import {PhysicalGear, Trip} from '../services/model/trip.model';
-import {SelectPhysicalGearModal} from '../physicalgear/select-physical-gear.modal';
-import {ModalController} from '@ionic/angular';
-import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
-import {debounceTime, filter, first} from 'rxjs/operators';
-import {TableElement} from '@e-is/ngx-material-table';
-import {Program} from '@app/referential/services/model/program.model';
-import {environment} from '@environments/environment';
+import { TripsPageSettingsEnum } from './trips.table';
+import { PhysicalGear, Trip } from '../services/model/trip.model';
+import { SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
+import { ModalController } from '@ionic/angular';
+import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { debounceTime, filter, first } from 'rxjs/operators';
+import { TableElement } from '@e-is/ngx-material-table';
+import { Program } from '@app/referential/services/model/program.model';
+import { environment } from '@environments/environment';
 
 const moment = momentImported;
 
 const TripPageTabs = {
   GENERAL: 0,
   PHYSICAL_GEARS: 1,
-  OPERATIONS: 2
+  OPERATIONS: 2,
 };
 
 @Component({
@@ -51,13 +51,10 @@ const TripPageTabs = {
   templateUrl: './trip.page.html',
   styleUrls: ['./trip.page.scss'],
   animations: [fadeInOutAnimation],
-  providers: [
-    {provide: AppRootDataEditor, useExisting: TripPage}
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: AppRootDataEditor, useExisting: TripPage }],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TripPage extends AppRootDataEditor<Trip, TripService> implements AfterViewInit {
-
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   showSaleForm = false;
   showGearTable = false;
@@ -82,14 +79,11 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements Af
     protected platform: PlatformService,
     public network: NetworkService
   ) {
-    super(injector,
-      Trip,
-      injector.get(TripService),
-      {
-        pathIdAttribute: 'tripId',
-        tabCount: 3,
-        autoOpenNextTab: !platform.mobile
-      });
+    super(injector, Trip, injector.get(TripService), {
+      pathIdAttribute: 'tripId',
+      tabCount: 3,
+      autoOpenNextTab: !platform.mobile,
+    });
     this.defaultBackHref = '/trips';
     this.mobile = platform.mobile;
 
@@ -101,44 +95,31 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements Af
     super.ngAfterViewInit();
 
     // Cascade refresh to operation tables
-    this.registerSubscription(
-      this.onUpdateView
-        .pipe(debounceTime(200))
-        .subscribe(() => this.operationsTable.onRefresh.emit()));
+    this.registerSubscription(this.onUpdateView.pipe(debounceTime(200)).subscribe(() => this.operationsTable.onRefresh.emit()));
 
     // Before delete gears, check if used in operations
     this.registerSubscription(
-      this.physicalGearsTable.onBeforeDeleteRows
-        .subscribe(async (event) => {
-          const rows = (event.detail.rows as TableElement<PhysicalGear>[]);
-          const usedGearIds = await this.operationsTable.getUsedPhysicalGearIds();
-          const usedGears = rows.map(row => row.currentData)
-            .filter(gear => usedGearIds.includes(gear.id));
+      this.physicalGearsTable.onBeforeDeleteRows.subscribe(async (event) => {
+        const rows = event.detail.rows as TableElement<PhysicalGear>[];
+        const usedGearIds = await this.operationsTable.getUsedPhysicalGearIds();
+        const usedGears = rows.map((row) => row.currentData).filter((gear) => usedGearIds.includes(gear.id));
 
-          const canDelete = (usedGears.length === 0);
-          event.detail.success(canDelete);
-          if (!canDelete) {
-            await Alerts.showError('TRIP.PHYSICAL_GEAR.ERROR.CANNOT_DELETE_USED_GEAR_HELP',
-              this.alertCtrl, this.translate, {
-                titleKey: 'TRIP.PHYSICAL_GEAR.ERROR.CANNOT_DELETE'
-              });
-          }
-        }));
+        const canDelete = usedGears.length === 0;
+        event.detail.success(canDelete);
+        if (!canDelete) {
+          await Alerts.showError('TRIP.PHYSICAL_GEAR.ERROR.CANNOT_DELETE_USED_GEAR_HELP', this.alertCtrl, this.translate, {
+            titleKey: 'TRIP.PHYSICAL_GEAR.ERROR.CANNOT_DELETE',
+          });
+        }
+      })
+    );
 
     // Allow to show operations tab, when add gear
-    this.registerSubscription(
-      this.physicalGearsTable.onConfirmEditCreateRow
-        .subscribe((_) => this.showOperationTable = true));
+    this.registerSubscription(this.physicalGearsTable.onConfirmEditCreateRow.subscribe((_) => (this.showOperationTable = true)));
   }
 
   protected registerForms() {
-    this.addChildForms([
-      this.tripForm,
-      this.saleForm,
-      this.measurementsForm,
-      this.physicalGearsTable,
-      this.operationsTable
-    ]);
+    this.addChildForms([this.tripForm, this.saleForm, this.measurementsForm, this.physicalGearsTable, this.operationsTable]);
   }
 
   protected async setProgram(program: Program) {
@@ -162,13 +143,11 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements Af
 
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {
-      const subscription = this.network.onNetworkStatusChanges
-        .pipe(filter(status => status === 'none'))
-        .subscribe(status => {
-          this.operationsTable.showMap = false;
-          this.markForCheck();
-          subscription.unsubscribe(); // Remove the subscription (not need anymore)
-        });
+      const subscription = this.network.onNetworkStatusChanges.pipe(filter((status) => status === 'none')).subscribe((status) => {
+        this.operationsTable.showMap = false;
+        this.markForCheck();
+        subscription.unsubscribe(); // Remove the subscription (not need anymore)
+      });
       this.registerSubscription(subscription);
     }
 
@@ -190,7 +169,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements Af
       // Fil defaults, using filter applied on trips table
       const searchFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
       if (searchFilter) {
-
         // Synchronization status
         if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
           data.synchronizationStatus = 'DIRTY';
@@ -217,18 +195,18 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements Af
       this.registerSubscription(
         this.tabGroup.selectedTabChange
           .pipe(
-            filter(event => this.showOperationTable && event.index === TripPageTabs.OPERATIONS),
+            filter((event) => this.showOperationTable && event.index === TripPageTabs.OPERATIONS),
             first()
           )
-          .subscribe(event => this.save())
-        );
+          .subscribe((event) => this.save())
+      );
     }
 
     this.showGearTable = false;
     this.showOperationTable = false;
   }
 
-  updateViewState(data: Trip, opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
+  updateViewState(data: Trip, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.updateViewState(data, opts);
 
     // Update tabs state (show/hide)
@@ -252,39 +230,39 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements Af
       this.$programLabel.next(data.program.label);
     }
     this.saleForm.value = data && data.sale;
-    this.measurementsForm.value = data && data.measurements || [];
+    this.measurementsForm.value = (data && data.measurements) || [];
 
     // Physical gear table
-    this.physicalGearsTable.value = data && data.gears || [];
+    this.physicalGearsTable.value = (data && data.gears) || [];
 
     // Operations table
     if (!isNew && this.operationsTable) {
-      this.operationsTable.setTripId(data.id, {emitEvent: false});
+      this.operationsTable.setTripId(data.id, { emitEvent: false });
     }
   }
 
-  async onOpenOperation({id, row}: { id?: number; row: TableElement<any> }) {
-
+  async onOpenOperation({ id, row }: { id?: number; row: TableElement<any> }) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
       this.markAsLoading();
 
-     setTimeout(async () => {
+      setTimeout(async () => {
         await this.router.navigate(['trips', this.data.id, 'operation', id], {
-          queryParams: {}
+          queryParams: {},
         });
 
-       this.markAsLoaded();
+        this.markAsLoaded();
       });
     }
   }
 
   async onNewOperation(event?: any) {
-    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
-      // If on field mode: try to save silently
-      ? this.save(event)
-      // If desktop mode: ask before save
-      : this.saveIfDirtyAndConfirm();
+    const savePromise: Promise<boolean> =
+      this.isOnFieldMode && this.dirty
+        ? // If on field mode: try to save silently
+          this.save(event)
+        : // If desktop mode: ask before save
+          this.saveIfDirtyAndConfirm();
 
     const savedOrContinue = await savePromise;
     if (savedOrContinue) {
@@ -292,7 +270,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements Af
 
       setTimeout(async () => {
         await this.router.navigate(['trips', this.data.id, 'operation', 'new'], {
-          queryParams: {}
+          queryParams: {},
         });
         this.markAsLoaded();
       });
@@ -302,15 +280,19 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements Af
   // For DEV only
   devFillFakeTrip(event?: UIEvent) {
     const trip = {
-      program: {id: 10, label: 'ADAP-MER', name: 'Application d’assistance à l’auto-échantillonnage en mer', __typename: 'ProgramVO'},
+      program: { id: 10, label: 'ADAP-MER', name: 'Application d’assistance à l’auto-échantillonnage en mer', __typename: 'ProgramVO' },
       departureDateTime: fromDateISOString('2019-01-01T12:00:00.000Z'),
-      departureLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO'},
+      departureLocation: { id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO' },
       returnDateTime: fromDateISOString('2019-01-05T12:00:00.000Z'),
-      returnLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO'},
-      vesselSnapshot: {id: 1, vesselId: 1, name: 'Vessel 1', basePortLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', __typename: 'ReferentialVO'} , __typename: 'VesselSnapshotVO'},
-      measurements: [
-        { numericalValue: '1', pmfmId: 21}
-      ]
+      returnLocation: { id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO' },
+      vesselSnapshot: {
+        id: 1,
+        vesselId: 1,
+        name: 'Vessel 1',
+        basePortLocation: { id: 11, label: 'FRDRZ', name: 'Douarnenez', __typename: 'ReferentialVO' },
+        __typename: 'VesselSnapshotVO',
+      },
+      measurements: [{ numericalValue: '1', pmfmId: 21 }],
     };
 
     this.form.patchValue(trip);
@@ -319,8 +301,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements Af
   devToggleOfflineMode() {
     if (this.network.offline) {
       this.network.setForceOffline(false);
-    }
-    else {
+    } else {
       this.network.setForceOffline();
     }
   }
@@ -330,7 +311,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements Af
 
     // Copy the trip
     await this.dataService.copyLocallyById(this.data.id, { withOperations: true });
-
   }
 
   /**
@@ -349,7 +329,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements Af
     const filter = <PhysicalGearFilter>{
       vesselId: vessel.id,
       endDate: date,
-      excludeTripId: trip.id
+      excludeTripId: trip.id,
       // TODO startDate : endDate - 6 month ?
     };
     const modal = await this.modalCtrl.create({
@@ -358,8 +338,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements Af
         filter,
         allowMultiple: false,
         program: this.$programLabel.getValue(),
-        acquisitionLevel: this.physicalGearsTable.acquisitionLevel
-      }
+        acquisitionLevel: this.physicalGearsTable.acquisitionLevel,
+      },
     });
 
     // Open the modal
@@ -372,8 +352,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements Af
     if (res && res.data && isNotEmptyArray(res.data)) {
       // Cal resolve callback
       event.detail.success(res.data[0]);
-    }
-    else {
+    } else {
       // User cancelled
       event.detail.error('CANCELLED');
     }
@@ -390,27 +369,28 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements Af
   }
 
   protected computeUsageMode(data: Trip): UsageMode {
-    return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY'  ? 'FIELD' : 'DESK';
+    return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY' ? 'FIELD' : 'DESK';
   }
 
   protected computeTitle(data: Trip): Promise<string> {
-
     // new data
     if (!data || isNil(data.id)) {
       return this.translate.get('TRIP.NEW.TITLE').toPromise();
     }
 
     // Existing data
-    return this.translate.get('TRIP.EDIT.TITLE', {
-      vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name),
-      departureDateTime: data.departureDateTime && this.dateFormat.transform(data.departureDateTime) as string
-    }).toPromise();
+    return this.translate
+      .get('TRIP.EDIT.TITLE', {
+        vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name),
+        departureDateTime: data.departureDateTime && (this.dateFormat.transform(data.departureDateTime) as string),
+      })
+      .toPromise();
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
     return {
-      ... (await super.computePageHistory(title)),
-      icon: 'boat'
+      ...(await super.computePageHistory(title)),
+      icon: 'boat',
     };
   }
 
@@ -433,7 +413,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements Af
     const tab1Invalid = !tab0Invalid && this.physicalGearsTable.invalid;
     const tab2Invalid = !tab1Invalid && this.operationsTable.invalid;
 
-    return tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
+    return tab0Invalid ? 0 : tab1Invalid ? 1 : tab2Invalid ? 2 : this.selectedTabIndex;
   }
 
   protected markForCheck() {

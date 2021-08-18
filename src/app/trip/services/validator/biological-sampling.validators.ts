@@ -1,14 +1,15 @@
-import {FormGroup} from '@angular/forms';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {Subscription} from 'rxjs';
-import {isNotNil, ObjectMap} from '@sumaris-net/ngx-components';
+import { FormGroup } from '@angular/forms';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { Subscription } from 'rxjs';
+import { isNotNil, ObjectMap } from '@sumaris-net/ngx-components';
 
 export class BiologicalSamplingValidators {
-
-
-  static addSampleValidators(form: FormGroup, pmfms: DenormalizedPmfmStrategy[],
-                             pmfmGroups: ObjectMap<number[]>,
-                             opts?: { markForCheck: () => void }): Subscription {
+  static addSampleValidators(
+    form: FormGroup,
+    pmfms: DenormalizedPmfmStrategy[],
+    pmfmGroups: ObjectMap<number[]>,
+    opts?: { markForCheck: () => void }
+  ): Subscription {
     if (!form) {
       console.warn(`Argument 'form' required`);
       return null;
@@ -18,16 +19,15 @@ export class BiologicalSamplingValidators {
       return null;
     }
 
-    form.setValidators( (control) => {
+    form.setValidators((control) => {
       const formGroup = control as FormGroup;
       const measValues = formGroup.get('measurementValues').value;
-      const hasWeight = (pmfmGroups.WEIGHT || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
-      const hasLengthSize = (pmfmGroups.LENGTH || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
+      const hasWeight = (pmfmGroups.WEIGHT || []).findIndex((pmfmId) => isNotNil(measValues[pmfmId.toString()])) !== -1;
+      const hasLengthSize = (pmfmGroups.LENGTH || []).findIndex((pmfmId) => isNotNil(measValues[pmfmId.toString()])) !== -1;
 
-      if (!hasWeight && !hasLengthSize){
+      if (!hasWeight && !hasLengthSize) {
         return { missingWeightOrSize: 'TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_LENGTH' };
       }
     });
-
   }
 }

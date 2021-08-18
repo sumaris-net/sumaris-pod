@@ -1,24 +1,24 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
-
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <ion-grid>
-
     <!-- PROGRAM -->
     <ion-row *ngIf="showProgram">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
       <ion-col>
-        <mat-autocomplete-field formControlName="program"
-                                [placeholder]="i18nPrefix + 'PROGRAM'|translate"
-                                [config]="autocompleteFields.program"
-                                [tabindex]="tabindex"
-                                required>
+        <mat-autocomplete-field
+          formControlName="program"
+          [placeholder]="i18nPrefix + 'PROGRAM' | translate"
+          [config]="autocompleteFields.program"
+          [tabindex]="tabindex"
+          required
+        >
           <ion-icon matPrefix name="contract"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
@@ -27,22 +27,22 @@
     <!-- Strategy -->
     <ion-row *ngIf="showStrategy">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label class="ion-float-end hidden-xs hidden-sm">{{i18nPrefix + 'STRATEGY'|translate}}</ion-label>
+        <ion-label class="ion-float-end hidden-xs hidden-sm">{{ i18nPrefix + 'STRATEGY' | translate }}</ion-label>
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
           [formControl]="strategyControl"
-          [placeholder]="i18nPrefix + 'STRATEGY_PLACEHOLDER'|translate"
+          [placeholder]="i18nPrefix + 'STRATEGY_PLACEHOLDER' | translate"
           [config]="autocompleteFields.strategy"
           [readonly]="!canEditStrategy"
-          required>
+          required
+        >
           <mat-icon matPrefix>date_range</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
     </ion-row>
     <ion-row *ngIf="strategyControl.touched">
-      <ion-col size="12" size-md="10" offset-md="2" size-lg="9" offset-lg="3"
-               class="mat-form-field-errors">
+      <ion-col size="12" size-md="10" offset-md="2" size-lg="9" offset-lg="3" class="mat-form-field-errors">
         <ng-content select="[afterStrategy]"></ng-content>
         <!--<mat-error *ngIf="strategyControl.hasError('noEffort')" translate>LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR</mat-error>
         <mat-error *ngIf="strategyControl.hasError('zeroEffort')" translate>LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR</mat-error>-->
@@ -56,16 +56,16 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
-          [placeholder]="'TRIP.VESSEL'|translate"
+          [placeholder]="'TRIP.VESSEL' | translate"
           formControlName="vesselSnapshot"
           [config]="autocompleteFields.vesselSnapshot"
-          required>
+          required
+        >
           <ion-icon matPrefix name="boat"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="auto" class="ion-align-self-center" *ngIf="allowAddNewVessel">
-        <button mat-icon-button tabindex="-1" [title]="'COMMON.BTN_ADD'|translate" (click)="addVesselModal()"
-                type="button">
+        <button mat-icon-button tabindex="-1" [title]="'COMMON.BTN_ADD' | translate" (click)="addVesselModal()" type="button">
           <mat-icon>add</mat-icon>
         </button>
       </ion-col>
@@ -74,22 +74,22 @@
     <!-- LOCATION + date/time-->
     <ion-row *ngIf="showLocation || showDateTime">
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label class="ion-float-end">{{i18nPrefix+'LANDING'|translate}}</ion-label>
+        <ion-label class="ion-float-end">{{ i18nPrefix + 'LANDING' | translate }}</ion-label>
       </ion-col>
       <!-- location -->
       <ion-col *ngIf="showLocation">
-        <mat-autocomplete-field formControlName="location"
-                                [placeholder]="i18nPrefix + 'LOCATION'|translate"
-                                [config]="autocompleteFields.location"
-                                [tabindex]="tabindex+1"
-                                required>
+        <mat-autocomplete-field
+          formControlName="location"
+          [placeholder]="i18nPrefix + 'LOCATION' | translate"
+          [config]="autocompleteFields.location"
+          [tabindex]="tabindex + 1"
+          required
+        >
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="12" size-sm="" offset-lg="3" *ngIf="showDateTime">
-        <mat-date-time-field [placeholder]="i18nPrefix + 'DATE'|translate"
-                             formControlName="dateTime"
-                             [required]="true">
+        <mat-date-time-field [placeholder]="i18nPrefix + 'DATE' | translate" formControlName="dateTime" [required]="true">
           <mat-icon *ngIf="!showLocation && !mobile" matPrefix>event</mat-icon>
         </mat-date-time-field>
       </ion-col>
@@ -97,30 +97,42 @@
 
     <!-- Observers -->
     <ng-container *ngIf="showObservers">
-      <ion-row *ngFor="let observerForm of observersForm?.controls; let i=index">
+      <ion-row *ngFor="let observerForm of observersForm?.controls; let i = index">
         <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
           <ion-label class="ion-float-end" *ngIf="!i" translate>OBSERVED_LOCATION.EDIT.OBSERVERS</ion-label>
         </ion-col>
-        <ion-col >
-          <mat-autocomplete-field [formControl]="observersHelper.at(i)"
-                                  [placeholder]="('OBSERVED_LOCATION.EDIT.OBSERVER_PLACEHOLDER'|translate) + (i+1)"
-                                  [appAutofocus]="observerFocusIndex === i"
-                                  [config]="autocompleteFields.person"
-                                  [tabindex]="tabindex+10+i*3"
-                                  [i18nPrefix]="'USER.'"
-                                  [required]="i === 0">
+        <ion-col>
+          <mat-autocomplete-field
+            [formControl]="observersHelper.at(i)"
+            [placeholder]="('OBSERVED_LOCATION.EDIT.OBSERVER_PLACEHOLDER' | translate) + (i + 1)"
+            [appAutofocus]="observerFocusIndex === i"
+            [config]="autocompleteFields.person"
+            [tabindex]="tabindex + 10 + i * 3"
+            [i18nPrefix]="'USER.'"
+            [required]="i === 0"
+          >
             <ion-icon matPrefix name="person"></ion-icon>
           </mat-autocomplete-field>
         </ion-col>
         <ion-col size="auto" class="ion-align-self-center">
-          <button type="button" mat-icon-button [tabindex]="tabindex+10++i*3+1" [disabled]="disabled"
-                  [title]="'COMMON.BTN_ADD'|translate"
-                  (click)="addObserver()">
+          <button
+            type="button"
+            mat-icon-button
+            [tabindex]="tabindex + 10 + +i * 3 + 1"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_ADD' | translate"
+            (click)="addObserver()"
+          >
             <mat-icon>add</mat-icon>
           </button>
-          <button type="button" mat-icon-button [tabindex]="tabindex+10++i*3+2" [disabled]="disabled"
-                  [title]="'COMMON.BTN_DELETE'|translate"
-                  (click)="observersHelper.removeAt(i)">
+          <button
+            type="button"
+            mat-icon-button
+            [tabindex]="tabindex + 10 + +i * 3 + 2"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_DELETE' | translate"
+            (click)="observersHelper.removeAt(i)"
+          >
             <mat-icon>close</mat-icon>
           </button>
         </ion-col>
@@ -130,38 +142,41 @@
     <!-- Measurements -->
     <ng-container *ngIf="showMeasurements">
       <!-- If mmfms NOT loaded, display skeleton -->
-      <ion-row *ngIf="$pmfms | async | arrayFilter: notHiddenPmfm; let pmfms; else measurementsSkeleton;"
-               [class.cdk-visually-hidden]="!(pmfms | isNotEmptyArray)">
-
+      <ion-row
+        *ngIf="$pmfms | async | arrayFilter: notHiddenPmfm; let pmfms; else: measurementsSkeleton"
+        [class.cdk-visually-hidden]="!(pmfms | isNotEmptyArray)"
+      >
         <ion-col size="12" size-md="2" size-lg="3">
           <ion-label class="ion-float-end">
             <!-- "other features" label -->
-            <span *ngIf="pmfms | isArrayLength: {greaterThan: 1}; else firstPmfmLabel" translate>LANDING.EDIT.OTHER_FEATURES</span>
+            <span *ngIf="pmfms | isArrayLength: { greaterThan: 1 }; else firstPmfmLabel" translate>LANDING.EDIT.OTHER_FEATURES</span>
             <ng-template #firstPmfmLabel>
-              <span [innerHTML]="pmfms[0] | pmfmName: {withUnit: false, withDetails: false} "></span>
+              <span [innerHTML]="pmfms[0] | pmfmName: { withUnit: false, withDetails: false }"></span>
             </ng-template>
           </ion-label>
         </ion-col>
 
         <ion-col>
           <!-- pmfms -->
-          <ng-container *ngFor="let pmfm of pmfms; index as i;">
-
-            <mat-autocomplete-field *ngIf="mainMetierPmfmId === pmfm.id; else pmfmField"
-                                    [formControl]="form.get('measurementValues.' + pmfm.id)"
-                                    [placeholder]="'TRIP.MAIN_METIER_PLACEHOLDER'|translate"
-                                    [config]="autocompleteFields.metier"
-                                    [required]="true"
-                                    [panelWidth]="!mobile && '500px'">
+          <ng-container *ngFor="let pmfm of pmfms; index as i">
+            <mat-autocomplete-field
+              *ngIf="mainMetierPmfmId === pmfm.id; else pmfmField"
+              [formControl]="form.get('measurementValues.' + pmfm.id)"
+              [placeholder]="'TRIP.MAIN_METIER_PLACEHOLDER' | translate"
+              [config]="autocompleteFields.metier"
+              [required]="true"
+              [panelWidth]="!mobile && '500px'"
+            >
               <ion-icon matPrefix name="locate"></ion-icon>
             </mat-autocomplete-field>
             <ng-template #pmfmField>
-              <app-pmfm-field [pmfm]="pmfm"
-                              [formControl]="form.get('measurementValues.' + pmfm.id)"
-                              [compact]="compact"
-                              [tabindex]="50 + i*2"
-                              [floatLabel]="floatLabel">
-              </app-pmfm-field>
+              <app-pmfm-field
+                [pmfm]="pmfm"
+                [formControl]="form.get('measurementValues.' + pmfm.id)"
+                [compact]="compact"
+                [tabindex]="50 + i * 2"
+                [floatLabel]="floatLabel"
+              ></app-pmfm-field>
             </ng-template>
           </ng-container>
         </ion-col>
@@ -174,22 +189,26 @@
     <ion-row *ngIf="showComment">
       <ion-col>
         <mat-form-field appearance="outline">
-          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4"
-                    maxlength="2000"
-                    tabindex="100"
-                    [placeholder]="'COMMON.COMMENTS'|translate"
-                    formControlName="comments"></textarea>
-          <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
+          <textarea
+            matInput
+            #comments
+            matTextareaAutosize="true"
+            matAutosizeMinRows="4"
+            maxlength="2000"
+            tabindex="100"
+            [placeholder]="'COMMON.COMMENTS' | translate"
+            formControlName="comments"
+          ></textarea>
+          <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
           <mat-error *ngIf="form.controls['comments'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>
   </ion-grid>
-
 </form>
 
 <ng-template #measurementsSkeleton>
-  <ion-row class="ion-no-padding" >
+  <ion-row class="ion-no-padding">
     <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
     <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
   </ion-row>
@@ -199,7 +218,7 @@
   <ion-col size="12" size-md="2" size-lg="3">&nbsp;</ion-col>
   <ion-col size="12" size-md="10" size-lg="9" class="ion-no-padding">
     <mat-form-field>
-      <input matInput hidden>
+      <input matInput hidden />
       <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
     </mat-form-field>
   </ion-col>

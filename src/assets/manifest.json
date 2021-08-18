@@ -5,11 +5,13 @@
   "version": "1.10.3",
   "default_locale": "fr",
   "description": "ADAP App.",
-  "icons": [{
-    "src": "assets/img/logo-adap-small.png",
-    "sizes": "183x120",
-    "type": "image/png"
-  }],
+  "icons": [
+    {
+      "src": "assets/img/logo-adap-small.png",
+      "sizes": "183x120",
+      "type": "image/png"
+    }
+  ],
   "background_color": "#144391",
   "theme_color": "black",
   "start_url": "/",

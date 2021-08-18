@@ -1,21 +1,17 @@
-
 .mat-table {
-
   .mat-column-vessel {
     max-width: 200px;
     padding-right: 5px;
   }
 
   mat-header-cell.hidden,
-  mat-cell.hidden
-    {
+  mat-cell.hidden {
     visibility: hidden;
     display: none;
   }
 
   .mat-header-row,
   .mat-row {
-
     .comments-italic {
       font-style: italic;
     }

@@ -1,10 +1,10 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
 import * as momentImported from 'moment';
-import {ObservedLocationForm} from './observed-location.form';
-import {ObservedLocationService} from '../services/observed-location.service';
-import {LandingsTable} from '../landing/landings.table';
-import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
-import {FormGroup} from '@angular/forms';
+import { ObservedLocationForm } from './observed-location.form';
+import { ObservedLocationService } from '../services/observed-location.service';
+import { LandingsTable } from '../landing/landings.table';
+import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
+import { FormGroup } from '@angular/forms';
 import {
   Alerts,
   AppTable,
@@ -20,31 +20,30 @@ import {
   ReferentialRef,
   ReferentialUtils,
   toBoolean,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
-import {ModalController} from '@ionic/angular';
-import {SelectVesselsModal} from './vessels/select-vessel.modal';
-import {ObservedLocation} from '../services/model/observed-location.model';
-import {Landing} from '../services/model/landing.model';
-import {LandingEditor, ProgramProperties} from '@app/referential/services/config/program.config';
-import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
-import {BehaviorSubject} from 'rxjs';
-import {filter, first, tap} from 'rxjs/operators';
-import {AggregatedLandingsTable} from '../aggregated-landing/aggregated-landings.table';
-import {Program} from '@app/referential/services/model/program.model';
-import {ObservedLocationsPageSettingsEnum} from './observed-locations.page';
-import {environment} from '@environments/environment';
-import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
-import {LandingFilter} from '../services/filter/landing.filter';
+import { ModalController } from '@ionic/angular';
+import { SelectVesselsModal } from './vessels/select-vessel.modal';
+import { ObservedLocation } from '../services/model/observed-location.model';
+import { Landing } from '../services/model/landing.model';
+import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { BehaviorSubject } from 'rxjs';
+import { filter, first, tap } from 'rxjs/operators';
+import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
+import { Program } from '@app/referential/services/model/program.model';
+import { ObservedLocationsPageSettingsEnum } from './observed-locations.page';
+import { environment } from '@environments/environment';
+import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
+import { LandingFilter } from '../services/filter/landing.filter';
 
 const moment = momentImported;
-
 
 const OBSERVED_LOCATION_DEFAULT_I18N_PREFIX = 'OBSERVED_LOCATION.EDIT.';
 
 const ObservedLocationPageTabs = {
   GENERAL: 0,
-  LANDINGS: 1
+  LANDINGS: 1,
 };
 
 @Component({
@@ -53,12 +52,9 @@ const ObservedLocationPageTabs = {
   styleUrls: ['./observed-location.page.scss'],
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    {provide: AppRootDataEditor, useExisting: ObservedLocationPage}
-  ],
+  providers: [{ provide: AppRootDataEditor, useExisting: ObservedLocationPage }],
 })
 export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, ObservedLocationService> implements OnInit {
-
   mobile: boolean;
   showLandingTab = false;
   aggregatedLandings: boolean;
@@ -70,7 +66,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   showRecorder = true;
   landingEditor: LandingEditor = undefined;
 
-  @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
+  @ViewChild('observedLocationForm', { static: true }) observedLocationForm: ObservedLocationForm;
   @ViewChild('landingsTable') landingsTable: LandingsTable;
   @ViewChild('aggregatedLandingsTable') aggregatedLandingsTable: AggregatedLandingsTable;
 
@@ -85,15 +81,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     protected platform: PlatformService,
     protected configService: ConfigService
   ) {
-    super(injector,
-      ObservedLocation,
-      dataService,
-      {
-        pathIdAttribute: 'observedLocationId',
-        tabCount: 2,
-        autoOpenNextTab: !platform.mobile,
-        i18nPrefix: OBSERVED_LOCATION_DEFAULT_I18N_PREFIX
-      });
+    super(injector, ObservedLocation, dataService, {
+      pathIdAttribute: 'observedLocationId',
+      tabCount: 2,
+      autoOpenNextTab: !platform.mobile,
+      i18nPrefix: OBSERVED_LOCATION_DEFAULT_I18N_PREFIX,
+    });
     this.defaultBackHref = '/observations';
     this.mobile = this.platform.mobile;
 
@@ -105,13 +98,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     super.ngOnInit();
 
     this.registerSubscription(
-      this.configService.config.subscribe(config => {
+      this.configService.config.subscribe((config) => {
         if (!config) return;
         this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
         this.markForCheck();
       })
     );
-
   }
 
   /* -- protected methods  -- */
@@ -128,7 +120,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
     this.addLandingUsingHistoryModal = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY);
     this.cd.detectChanges();
-
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -169,7 +160,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       console.debug('[observed-location] New entity: set default values...');
 
       // Fil defaults, using filter applied on trips table
-      const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);
+      const searchFilter = this.settings.getPageSettings<any>(
+        ObservedLocationsPageSettingsEnum.PAGE_ID,
+        ObservedLocationsPageSettingsEnum.FILTER_KEY
+      );
       if (searchFilter) {
         // Synchronization status
         if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
@@ -194,22 +188,21 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.registerSubscription(
         this.tabGroup.selectedTabChange
           .pipe(
-            filter(event => event.index === ObservedLocationPageTabs.LANDINGS),
+            filter((event) => event.index === ObservedLocationPageTabs.LANDINGS),
             first(),
             tap(() => this.save())
           )
           .subscribe()
-        );
+      );
     }
   }
 
   protected async onEntityLoaded(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
-
     const programLabel = data.program && data.program.label;
     this.$programLabel.next(programLabel);
   }
 
-  updateViewState(data: ObservedLocation, opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
+  updateViewState(data: ObservedLocation, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.updateViewState(data);
 
     // Update tabs state (show/hide)
@@ -218,7 +211,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   updateTabsState(data: ObservedLocation) {
     // Enable landings tab
-    this.showLandingTab = this.showLandingTab || (isNotNil(data.id) || this.isOnFieldMode);
+    this.showLandingTab = this.showLandingTab || isNotNil(data.id) || this.isOnFieldMode;
 
     // Move to second tab
     if (!this.isNewData && !this.isOnFieldMode) {
@@ -226,8 +219,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.tabGroup.realignInkBar();
     }
   }
-
-
 
   protected async setValue(data: ObservedLocation) {
     // Set data to form
@@ -264,7 +255,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  async onOpenLanding({id, row}) {
+  async onOpenLanding({ id, row }) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
       await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${id}`);
@@ -272,12 +263,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   async onNewLanding(event?: any) {
-
-    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
-      // If on field mode: try to save silently
-      ? this.save(event)
-      // If desktop mode: ask before save
-      : this.saveIfDirtyAndConfirm();
+    const savePromise: Promise<boolean> =
+      this.isOnFieldMode && this.dirty
+        ? // If on field mode: try to save silently
+          this.save(event)
+        : // If desktop mode: ask before save
+          this.saveIfDirtyAndConfirm();
 
     const savedOrContinue = await savePromise;
     if (savedOrContinue) {
@@ -288,13 +279,13 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         if (this.addLandingUsingHistoryModal) {
           const vessel = await this.openSelectVesselModal();
           if (vessel && this.landingsTable) {
-            const rankOrder = (await this.landingsTable.getMaxRankOrderOnVessel(vessel) || 0) + 1;
+            const rankOrder = ((await this.landingsTable.getMaxRankOrderOnVessel(vessel)) || 0) + 1;
             await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
           }
         }
         // Create landing without vessel selection
         else {
-          const rankOrder = (await this.landingsTable.getMaxRankOrder() || 0) + 1;
+          const rankOrder = ((await this.landingsTable.getMaxRankOrder()) || 0) + 1;
           await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?rankOrder=${rankOrder}`);
         }
       } finally {
@@ -303,13 +294,13 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-
   async onNewAggregatedLanding(event?: any) {
-    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
-      // If on field mode: try to save silently
-      ? this.save(event)
-      // If desktop mode: ask before save
-      : this.saveIfDirtyAndConfirm();
+    const savePromise: Promise<boolean> =
+      this.isOnFieldMode && this.dirty
+        ? // If on field mode: try to save silently
+          this.save(event)
+        : // If desktop mode: ask before save
+          this.saveIfDirtyAndConfirm();
 
     const savedOrContinue = await savePromise;
     if (savedOrContinue) {
@@ -326,24 +317,26 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  async onNewTrip({id, row}) {
-    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
-      // If on field mode: try to save silently
-      ? this.save(undefined)
-      // If desktop mode: ask before save
-      : this.saveIfDirtyAndConfirm();
+  async onNewTrip({ id, row }) {
+    const savePromise: Promise<boolean> =
+      this.isOnFieldMode && this.dirty
+        ? // If on field mode: try to save silently
+          this.save(undefined)
+        : // If desktop mode: ask before save
+          this.saveIfDirtyAndConfirm();
 
     const savedOrContinue = await savePromise;
     if (savedOrContinue) {
       this.markAsLoading();
 
       try {
-        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${row.currentData.vesselSnapshot.id}&landing=${row.currentData.id}`);
+        await this.router.navigateByUrl(
+          `/observations/${this.data.id}/${this.landingEditor}/new?vessel=${row.currentData.vesselSnapshot.id}&landing=${row.currentData.id}`
+        );
       } finally {
         this.markAsLoaded();
       }
     }
-
   }
 
   async openSelectVesselModal(excludeExistingVessels?: boolean): Promise<VesselSnapshot | undefined> {
@@ -354,17 +347,18 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     const startDate = this.data.startDateTime.clone().add(-15, 'days');
     const endDate = this.data.startDateTime.clone();
     const programLabel = (this.aggregatedLandingsTable && this.aggregatedLandingsTable.program) || this.data.program.label;
-    const excludeVesselIds = (toBoolean(excludeExistingVessels, false) && this.aggregatedLandingsTable
-      && await this.aggregatedLandingsTable.vesselIdsAlreadyPresent()) || [];
+    const excludeVesselIds =
+      (toBoolean(excludeExistingVessels, false) && this.aggregatedLandingsTable && (await this.aggregatedLandingsTable.vesselIdsAlreadyPresent())) ||
+      [];
 
     const landingFilter = LandingFilter.fromObject({
       programLabel,
       startDate,
       endDate,
       locationId: ReferentialUtils.isNotEmpty(this.data.location) ? this.data.location.id : undefined,
-      groupByVessel: (this.landingsTable && this.landingsTable.isTripDetailEditor) || (isNotNil(this.aggregatedLandingsTable)),
+      groupByVessel: (this.landingsTable && this.landingsTable.isTripDetailEditor) || isNotNil(this.aggregatedLandingsTable),
       excludeVesselIds,
-      synchronizationStatus: 'SYNC' // only remote entities. This is required to read 'Remote#LandingVO' local storage
+      synchronizationStatus: 'SYNC', // only remote entities. This is required to read 'Remote#LandingVO' local storage
     });
 
     const modal = await this.modalCtrl.create({
@@ -373,17 +367,17 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         allowMultiple: false,
         allowAddNewVessel: this.allowAddNewVessel,
         showVesselTypeColumn: this.showVesselType,
-        landingFilter
+        landingFilter,
       },
       keyboardClose: true,
-      cssClass: 'modal-large'
+      cssClass: 'modal-large',
     });
 
     // Open the modal
     modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
 
     // If modal return a landing, use it
     if (data && data[0] instanceof Landing) {
@@ -403,7 +397,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-
   addRow($event: MouseEvent) {
     if (this.landingsTable) {
       this.landingsTable.addRow($event);
@@ -414,8 +407,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   /* -- protected methods -- */
 
-
-
   protected get form(): FormGroup {
     return this.observedLocationForm.form;
   }
@@ -425,19 +416,14 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   protected computeUsageMode(data: ObservedLocation): UsageMode {
-    return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY'  ? 'FIELD' : 'DESK';
+    return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY' ? 'FIELD' : 'DESK';
   }
 
   protected registerForms() {
-    this.addChildForms([
-      this.observedLocationForm,
-      () => this.landingsTable,
-      () => this.aggregatedLandingsTable
-    ]);
+    this.addChildForms([this.observedLocationForm, () => this.landingsTable, () => this.aggregatedLandingsTable]);
   }
 
   protected async computeTitle(data: ObservedLocation): Promise<string> {
-
     //await this.ready();
     await firstNotNilPromise(this.$ready);
 
@@ -447,16 +433,18 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
 
     // Existing data
-    return this.translate.get(`OBSERVED_LOCATION.EDIT.${this.i18nContext.suffix}TITLE`, {
-      location: data.location && (data.location.name || data.location.label),
-      dateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime) as string
-    }).toPromise();
+    return this.translate
+      .get(`OBSERVED_LOCATION.EDIT.${this.i18nContext.suffix}TITLE`, {
+        location: data.location && (data.location.name || data.location.label),
+        dateTime: data.startDateTime && (this.dateFormat.transform(data.startDateTime) as string),
+      })
+      .toPromise();
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
     return {
-      ... (await super.computePageHistory(title)),
-      matIcon: 'verified_user'
+      ...(await super.computePageHistory(title)),
+      matIcon: 'verified_user',
     };
   }
 
@@ -474,9 +462,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   protected getFirstInvalidTabIndex(): number {
-    return this.observedLocationForm.invalid ? 0
-      : ((this.landingsTable && this.landingsTable.invalid) || (this.aggregatedLandingsTable && this.aggregatedLandingsTable.invalid) ? 1
-        : -1);
+    return this.observedLocationForm.invalid
+      ? 0
+      : (this.landingsTable && this.landingsTable.invalid) || (this.aggregatedLandingsTable && this.aggregatedLandingsTable.invalid)
+      ? 1
+      : -1;
   }
 
   protected markForCheck() {

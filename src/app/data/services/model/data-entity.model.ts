@@ -1,7 +1,6 @@
-import {Moment} from 'moment';
-import {Department, Entity, fromDateISOString, isNotNil, ReferentialAsObjectOptions, toDateISOString} from '@sumaris-net/ngx-components';
-import {IWithRecorderDepartmentEntity} from './model.utils';
-
+import { Moment } from 'moment';
+import { Department, Entity, fromDateISOString, isNotNil, ReferentialAsObjectOptions, toDateISOString } from '@sumaris-net/ngx-components';
+import { IWithRecorderDepartmentEntity } from './model.utils';
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
   keepSynchronizationStatus?: boolean;
@@ -15,14 +14,14 @@ export const SERIALIZE_FOR_OPTIMISTIC_RESPONSE = Object.freeze(<DataEntityAsObje
   keepTypename: true,
   keepEntityName: true,
   keepLocalId: true,
-  keepSynchronizationStatus: true
+  keepSynchronizationStatus: true,
 });
 export const MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE = Object.freeze(<DataEntityAsObjectOptions>{
   minify: true,
   keepTypename: true,
   keepEntityName: true,
   keepLocalId: true,
-  keepSynchronizationStatus: true
+  keepSynchronizationStatus: true,
 });
 
 export const SAVE_AS_OBJECT_OPTIONS = Object.freeze(<DataEntityAsObjectOptions>{
@@ -30,27 +29,28 @@ export const SAVE_AS_OBJECT_OPTIONS = Object.freeze(<DataEntityAsObjectOptions>{
   keepTypename: false,
   keepEntityName: false,
   keepLocalId: false,
-  keepSynchronizationStatus: false
+  keepSynchronizationStatus: false,
 });
 export const COPY_LOCALLY_AS_OBJECT_OPTIONS = Object.freeze(<DataEntityAsObjectOptions>{
   ...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
   keepLocalId: false,
   keepRemoteId: false,
-  keepUpdateDate: false
+  keepUpdateDate: false,
 });
 export const CLONE_AS_OBJECT_OPTIONS = Object.freeze(<DataEntityAsObjectOptions>{
   ...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
-  minify: false
+  minify: false,
 });
 
 export abstract class DataEntity<
-  T extends DataEntity<T, ID, O>,
-  ID = number,
-  O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions,
-  FO = any>
+    T extends DataEntity<T, ID, O>,
+    ID = number,
+    O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions,
+    FO = any
+  >
   extends Entity<T, ID, O>
-  implements IWithRecorderDepartmentEntity<T, ID> {
-
+  implements IWithRecorderDepartmentEntity<T, ID>
+{
   recorderDepartment: Department;
   controlDate: Moment;
   qualificationDate: Moment;
@@ -66,7 +66,7 @@ export abstract class DataEntity<
     const target = super.asObject(opts);
     if (opts && opts.keepRemoteId === false && target.id >= 0) delete target.id;
     if (opts && opts.keepUpdateDate === false && target.id >= 0) delete target.updateDate;
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(opts) || undefined;
+    target.recorderDepartment = (this.recorderDepartment && this.recorderDepartment.asObject(opts)) || undefined;
     target.controlDate = toDateISOString(this.controlDate);
     target.qualificationDate = toDateISOString(this.qualificationDate);
     target.qualificationComments = this.qualificationComments || undefined;
@@ -83,4 +83,3 @@ export abstract class DataEntity<
     this.qualityFlagId = source.qualityFlagId;
   }
 }
-

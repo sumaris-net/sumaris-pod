@@ -1,9 +1,9 @@
-import {Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {BehaviorSubject} from 'rxjs';
-import {debounceTime, filter, map, tap} from 'rxjs/operators';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {ReferentialValidatorService} from '../services/validator/referential.validator';
-import {ReferentialService} from '../services/referential.service';
+import { Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { debounceTime, filter, map, tap } from 'rxjs/operators';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { ReferentialValidatorService } from '../services/validator/referential.validator';
+import { ReferentialService } from '../services/referential.service';
 import {
   AccountService,
   AppTable,
@@ -22,30 +22,26 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   slideUpDownAnimation,
-  sort
+  sort,
 } from '@sumaris-net/ngx-components';
-import {ModalController, Platform} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
-import {TranslateService} from '@ngx-translate/core';
-import {environment} from '@environments/environment';
-import {ReferentialFilter} from '../services/filter/referential.filter';
-import {MatExpansionPanel} from '@angular/material/expansion';
-import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
-
+import { ModalController, Platform } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
+import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
+import { environment } from '@environments/environment';
+import { ReferentialFilter } from '../services/filter/referential.filter';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 
 @Component({
   selector: 'app-referential-page',
   templateUrl: 'referentials.page.html',
   styleUrls: ['referentials.page.scss'],
-  providers: [
-    {provide: ValidatorService, useExisting: ReferentialValidatorService}
-  ],
-  animations: [slideUpDownAnimation]
+  providers: [{ provide: ValidatorService, useExisting: ReferentialValidatorService }],
+  animations: [slideUpDownAnimation],
 })
 export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {
-
   static DEFAULT_ENTITY_NAME = 'Pmfm';
   static DEFAULT_I18N_LEVEL_NAME = 'REFERENTIAL.LEVEL';
 
@@ -68,7 +64,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     Pmfm: '/referential/pmfm/:id?label=:label',
     Parameter: '/referential/parameter/:id?label=:label',
     ExtractionProduct: '/extraction/product/:id?label=:label',
-    TaxonName: '/referential/taxonName/:id?label=:label'
+    TaxonName: '/referential/taxonName/:id?label=:label',
   };
 
   @Input() set showLevelColumn(value: boolean) {
@@ -95,7 +91,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     return this._entityName;
   }
 
-  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
     protected injector: Injector,
@@ -111,23 +107,21 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     protected formBuilder: FormBuilder,
     protected translate: TranslateService
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
+    super(
+      route,
+      router,
+      platform,
+      location,
+      modalCtrl,
+      settings,
       // columns
-      RESERVED_START_COLUMNS
-        .concat([
-          'label',
-          'name',
-          'level',
-          'status',
-          'updateDate',
-          'comments'])
-        .concat(RESERVED_END_COLUMNS),
+      RESERVED_START_COLUMNS.concat(['label', 'name', 'level', 'status', 'updateDate', 'comments']).concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource(Referential, referentialService, validatorService, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
-          saveOnlyDirtyRows: true
-        }
+          saveOnlyDirtyRows: true,
+        },
       }),
       null,
       injector
@@ -147,12 +141,12 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       entityName: [null],
       searchText: [null],
       level: [null],
-      statusId: [null]
+      statusId: [null],
     });
 
     // Fill statusById
     this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
+    this.statusList.forEach((status) => (this.statusById[status.id] = status));
     this.autoLoad = false;
 
     // FOR DEV ONLY
@@ -164,17 +158,20 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     // Load entities
     this.registerSubscription(
-      this.referentialService.loadTypes()
+      this.referentialService
+        .loadTypes()
         .pipe(
-          map(types => types.map(type => ({
+          map((types) =>
+            types.map((type) => ({
               id: type.id,
               label: this.getI18nEntityName(type.id),
               level: type.level,
-              levelLabel: this.getI18nEntityName(type.level)
-            }))),
-          map(types => sort(types, 'label'))
+              levelLabel: this.getI18nEntityName(type.level),
+            }))
+          ),
+          map((types) => sort(types, 'label'))
         )
-        .subscribe(types => this.$entities.next(types))
+        .subscribe((types) => this.$entities.next(types))
     );
 
     // Update filter when changes
@@ -183,35 +180,35 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
         .pipe(
           debounceTime(250),
           filter(() => this.filterForm.valid),
-          tap(value => {
+          tap((value) => {
             const filter = this.asFilter(value);
             this.filterCriteriaCount = filter.countNotEmptyCriteria();
             this.markForCheck();
             // Applying the filter
-            this.setFilter(filter, {emitEvent: false});
+            this.setFilter(filter, { emitEvent: false });
           }),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
-          tap(json => this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY))
+          tap((json) => this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY))
         )
         .subscribe()
-      );
+    );
 
     this.registerSubscription(
       this.onRefresh.subscribe(() => {
         this.filterForm.markAsUntouched();
         this.filterForm.markAsPristine();
-      }));
+      })
+    );
 
     // Level autocomplete
     this.registerAutocompleteField('level', {
-      items: this.$levels
+      items: this.$levels,
     });
 
     if (this.canSelectEntity) {
       this.restoreFilterOrLoad();
-    }
-    else if (this._entityName) {
+    } else if (this._entityName) {
       this.applyEntityName(this._entityName);
     }
   }
@@ -224,28 +221,31 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     if (json && json.entityName) {
       const filter = this.asFilter(json);
-      this.filterForm.patchValue(json, {emitEvent: false});
+      this.filterForm.patchValue(json, { emitEvent: false });
       this.filterCriteriaCount = filter.countNotEmptyCriteria();
       this.markForCheck();
       return this.applyEntityName(filter.entityName);
     }
 
     // Check route parameters
-    const {entity, q, level, status} = this.route.snapshot.queryParams;
+    const { entity, q, level, status } = this.route.snapshot.queryParams;
     if (entity) {
       let levelRef: ReferentialRef;
       if (level) {
         const levels = await firstNotNilPromise(this.$levels);
-        levelRef = levels.find(l => l.id === level);
+        levelRef = levels.find((l) => l.id === level);
       }
 
-      this.filterForm.patchValue({
-        entityName: entity,
-        searchText: q || null,
-        level: levelRef,
-        statusId: isNotNil(status) ? +status : null
-      }, {emitEvent: false});
-      return this.applyEntityName(entity, {skipLocationChange: true});
+      this.filterForm.patchValue(
+        {
+          entityName: entity,
+          searchText: q || null,
+          level: levelRef,
+          statusId: isNotNil(status) ? +status : null,
+        },
+        { emitEvent: false }
+      );
+      return this.applyEntityName(entity, { skipLocationChange: true });
     }
 
     // Load default entity
@@ -253,7 +253,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   }
 
   async applyEntityName(entityName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {
-    opts = {emitEvent: true, skipLocationChange: false, ...opts};
+    opts = { emitEvent: true, skipLocationChange: false, ...opts };
     this._entityName = entityName;
 
     this.canOpenDetail = false;
@@ -262,7 +262,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     if (this.canSelectEntity) {
       const entities = await firstNotNilPromise(this.$entities);
 
-      const entity = entities.find(e => e.id === entityName);
+      const entity = entities.find((e) => e.id === entityName);
       if (!entity) {
         throw new Error(`[referential] Entity {${entityName}} not found !`);
       }
@@ -280,10 +280,10 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     const filter = ReferentialFilter.fromObject({
       ...this.filterForm.value,
       level: null,
-      entityName
+      entityName,
     });
-    this.filterForm.patchValue({entityName, level: null}, {emitEvent: false});
-    this.setFilter(filter, {emitEvent: opts.emitEvent});
+    this.filterForm.patchValue({ entityName, level: null }, { emitEvent: false });
+    this.setFilter(filter, { emitEvent: opts.emitEvent });
 
     // Update route location
     if (opts.skipLocationChange !== true && this.canSelectEntity) {
@@ -291,8 +291,8 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
         relativeTo: this.route,
         skipLocationChange: false,
         queryParams: {
-          entity: entityName
-        }
+          entity: entityName,
+        },
       });
     }
   }
@@ -315,7 +315,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
   async loadLevels(entityName: string): Promise<ReferentialRef[]> {
     const res = await this.referentialService.loadLevels(entityName, {
-      fetchPolicy: 'network-only'
+      fetchPolicy: 'network-only',
     });
 
     const levels = (res || []).sort(EntityUtils.sortComparator('label', 'asc'));
@@ -325,9 +325,8 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       const typeName = levels[0].entityName;
       const i18nLevelName = 'REFERENTIAL.ENTITY.' + changeCaseToUnderscore(typeName).toUpperCase();
       const levelName = this.translate.instant(i18nLevelName);
-      this.i18nLevelName = (levelName !== i18nLevelName) ? levelName : ReferentialsPage.DEFAULT_I18N_LEVEL_NAME;
-    }
-    else {
+      this.i18nLevelName = levelName !== i18nLevelName ? levelName : ReferentialsPage.DEFAULT_I18N_LEVEL_NAME;
+    } else {
       this.i18nLevelName = ReferentialsPage.DEFAULT_I18N_LEVEL_NAME;
     }
 
@@ -388,8 +387,8 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   }
 
   resetFilter(event?: UIEvent) {
-    this.filterForm.reset({entityName: this._entityName}, {emitEvent: true});
-    this.setFilter(ReferentialFilter.fromObject({entityName: this._entityName}), {emitEvent: true});
+    this.filterForm.reset({ entityName: this._entityName }, { emitEvent: true });
+    this.setFilter(ReferentialFilter.fromObject({ entityName: this._entityName }), { emitEvent: true });
     this.filterExpansionPanel.close();
   }
 
@@ -397,9 +396,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     const path = this.detailsPath[this._entityName];
 
     if (path) {
-      await this.router.navigateByUrl(path
-        .replace(':id', 'new')
-        .replace(':label', ''));
+      await this.router.navigateByUrl(path.replace(':id', 'new').replace(':label', ''));
       return true;
     }
 
@@ -416,4 +413,3 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     return ReferentialFilter.fromObject(source);
   }
 }
-

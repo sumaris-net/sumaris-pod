@@ -1,17 +1,17 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
-import {DateAdapter} from '@angular/material/core';
-import {Moment} from 'moment';
-import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {FormBuilder, FormGroup} from '@angular/forms';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {AppFormUtils, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, LocalSettingsService, PlatformService, UsageMode} from '@sumaris-net/ngx-components';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {SampleValidatorService} from '../services/validator/sample.validator';
-import {Sample} from '../services/model/sample.model';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { AppFormUtils, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, LocalSettingsService, PlatformService, UsageMode } from '@sumaris-net/ngx-components';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { SampleValidatorService } from '../services/validator/sample.validator';
+import { Sample } from '../services/model/sample.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
 const SAMPLE_FORM_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
 
@@ -19,11 +19,9 @@ const SAMPLE_FORM_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
   selector: 'app-sample-form',
   templateUrl: 'sample.form.html',
   styleUrls: ['sample.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SampleForm extends MeasurementValuesForm<Sample>
-  implements OnInit, OnDestroy {
-
+export class SampleForm extends MeasurementValuesForm<Sample> implements OnInit, OnDestroy {
   focusFieldName: string;
 
   @Input() i18nPrefix = SAMPLE_FORM_DEFAULT_I18N_PREFIX;
@@ -53,11 +51,9 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     protected cd: ChangeDetectorRef,
     protected validatorService: SampleValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService,
+    protected settings: LocalSettingsService
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
-      validatorService.getFormGroup()
-    );
+    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup());
     this.mobile = platform.mobile;
 
     // Set default acquisition level
@@ -76,41 +72,38 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
-      mobile: this.mobile
+      mobile: this.mobile,
     });
     // Taxon name combo
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
-    this.focusFieldName = !this.mobile && ((this.showLabel && 'label')
-      || (this.showTaxonGroup && 'taxonGroup')
-      || (this.showTaxonName && 'taxonName'));
+    this.focusFieldName =
+      !this.mobile && ((this.showLabel && 'label') || (this.showTaxonGroup && 'taxonGroup') || (this.showTaxonName && 'taxonName'));
   }
 
   /* -- protected methods -- */
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
-    return this.programRefService.suggestTaxonGroups(value,
-      {
-        program: this.programLabel,
-        searchAttribute: options && options.searchAttribute
-      });
+    return this.programRefService.suggestTaxonGroups(value, {
+      program: this.programLabel,
+      searchAttribute: options && options.searchAttribute,
+    });
   }
 
   protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     const taxonGroup = this.form.get('taxonGroup').value;
 
     // IF taxonGroup column exists: taxon group must be filled first
-    if (this.showTaxonGroup && isNilOrBlank(value) && isNil(parent)) return {data: []};
+    if (this.showTaxonGroup && isNilOrBlank(value) && isNil(parent)) return { data: [] };
 
-    return this.programRefService.suggestTaxonNames(value,
-      {
-        programLabel: this.programLabel,
-        searchAttribute: options && options.searchAttribute,
-        taxonGroupId: taxonGroup && taxonGroup.id || undefined
-      });
+    return this.programRefService.suggestTaxonNames(value, {
+      programLabel: this.programLabel,
+      searchAttribute: options && options.searchAttribute,
+      taxonGroupId: (taxonGroup && taxonGroup.id) || undefined,
+    });
   }
 
   selectInputContent = AppFormUtils.selectInputContent;

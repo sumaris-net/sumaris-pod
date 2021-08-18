@@ -1,19 +1,18 @@
-<app-toolbar [title]="$title | async"
-             color="primary"
-             [hasValidate]="!loading && dirty"
-             (onValidate)="save($event)"
-             (onValidateAndClose)="saveAndClose($event)"
-             [hasClose]="!loading && !dirty"
-             (onClose)="close($event)"
-             [defaultBackHref]="defaultBackHref"
-             [canGoBack]="true">
-
+<app-toolbar
+  [title]="$title | async"
+  color="primary"
+  [hasValidate]="!loading && dirty"
+  (onValidate)="save($event)"
+  (onValidateAndClose)="saveAndClose($event)"
+  [hasClose]="!loading && !dirty"
+  (onClose)="close($event)"
+  [defaultBackHref]="defaultBackHref"
+  [canGoBack]="true"
+>
   <ion-buttons slot="end">
     <ion-spinner *ngIf="loading"></ion-spinner>
 
-    <ion-button *ngIf="enabled && !isNewData || debug"
-                [matMenuTriggerFor]="optionsMenu"
-                [title]=" 'COMMON.BTN_OPTIONS'|translate">
+    <ion-button *ngIf="(enabled && !isNewData) || debug" [matMenuTriggerFor]="optionsMenu" [title]="'COMMON.BTN_OPTIONS' | translate">
       <mat-icon slot="icon-only">more_vert</mat-icon>
     </ion-button>
   </ion-buttons>
@@ -21,78 +20,74 @@
 
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
-
   <!-- delete -->
-  <button mat-menu-item
-          [disabled]="isNewData || disabled"
-          (click)="delete($event)">
+  <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
     <ion-label>
-      <mat-icon>delete</mat-icon>&nbsp;
+      <mat-icon>delete</mat-icon>
+      &nbsp;
       <span translate>COMMON.BTN_DELETE</span>
     </ion-label>
   </button>
 
   <!-- reset -->
-  <button mat-menu-item
-          [disabled]="!dirty"
-          (click)="cancel($event)">
+  <button mat-menu-item [disabled]="!dirty" (click)="cancel($event)">
     <ion-label>
-      <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>
+      &nbsp;
       <span translate>COMMON.BTN_RESET</span>
     </ion-label>
   </button>
-
 </mat-menu>
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
-
-  <mat-tab-group #tabGroup
-                 [(selectedIndex)]="selectedTabIndex"
-                 (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
-                 [dynamicHeight]="false"
-                 class="mat-tab-fixed-content">
-
+  <mat-tab-group
+    #tabGroup
+    [(selectedIndex)]="selectedTabIndex"
+    (selectedTabChange)="onTabChange($event)"
+    [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+    [dynamicHeight]="false"
+    class="mat-tab-fixed-content"
+  >
     <!-- TAB: general -->
-    <mat-tab label="{{'LANDING.EDIT.TAB_GENERAL'|translate}}">
+    <mat-tab label="{{ 'LANDING.EDIT.TAB_GENERAL' | translate }}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>LANDING.EDIT.TAB_GENERAL</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && landingForm.invalid; else warningIcon"></ion-icon>
         <ng-template #warningIcon>
-          <span slot="end" *ngIf="warning" style="color: var(--ion-color-tertiary);"
-                [title]="warning|translate">
+          <span slot="end" *ngIf="warning" style="color: var(--ion-color-tertiary)" [title]="warning | translate">
             <mat-icon>warning</mat-icon>
           </span>
         </ng-template>
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="landingForm.error||error" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="landingForm.error || error" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="(landingForm.error||error) | translate"></ion-label>
+        <ion-label color="danger" class="error" [innerHTML]="landingForm.error || error | translate"></ion-label>
       </ion-item>
 
       <ion-grid class="ion-no-padding">
         <ion-row class="ion-no-padding">
           <ion-col class="ion-padding">
-
             <!-- landing form-->
-            <app-landing-form #landingForm
-                              [programLabel]="$programLabel|async"
-                              [i18nPrefix]="i18nPrefix"
-                              [requiredStrategy]="true"
-                              [showMeasurements]="true"
-                              [showError]="false"
-                              [showProgram]="false"
-                              [showStrategy]="true"
-                              [showMetier]="true"
-                              (onSubmit)="save($event)"
-                              [debug]="debug">
-
+            <app-landing-form
+              #landingForm
+              [programLabel]="$programLabel | async"
+              [i18nPrefix]="i18nPrefix"
+              [requiredStrategy]="true"
+              [showMeasurements]="true"
+              [showError]="false"
+              [showProgram]="false"
+              [showStrategy]="true"
+              [showMetier]="true"
+              (onSubmit)="save($event)"
+              [debug]="debug"
+            >
               <!-- zero effort (warning) -->
               <mat-hint afterStrategy *ngIf="landingForm.strategyControl.valid && zeroEffortWarning">
-                <ion-icon color="tertiary" name="warning"></ion-icon>&nbsp;
+                <ion-icon color="tertiary" name="warning"></ion-icon>
+                &nbsp;
                 <ion-text color="tertiary" translate>LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR</ion-text>
               </mat-hint>
               <!-- no effort (error) -->
@@ -101,44 +96,44 @@
           </ion-col>
 
           <ion-col class="ion-no-padding" size="12" size-xl="5">
-
             <ion-grid class="ion-no-padding">
               <ion-row class="ion-no-padding">
                 <!-- strategy summary -->
                 <ion-col class="ion-no-padding">
-                  <app-strategy-summary-card #strategyCard
-                                             [editor]="this"
-                                             [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate"
-                                             [calcifiedTypesDisplayed]="true">
+                  <app-strategy-summary-card
+                    #strategyCard
+                    [editor]="this"
+                    [title]="i18nPrefix + 'STRATEGY_SUMMARY_TITLE' | translate"
+                    [calcifiedTypesDisplayed]="true"
+                  >
                     <!-- calcified types-->
-                        <ng-container *ngIf="strategyCard.data &&  (strategyCard.data.pmfms | isNotEmptyArray)">
-                          <ion-label color="primary">{{i18nPrefix + 'CALCIFIED_TYPE'|translate}}</ion-label>
-                          <ion-label class="status">
-                            <ul>
-                              <ng-container *ngFor="let caclcifiedType of strategyCard.data.pmfms; let i=index">
-                              <li *ngIf="caclcifiedType.fraction && !caclcifiedType.pmfm">
-                                <span>{{caclcifiedType.fraction | referentialToString:strategyCard.displayAttributes.fraction }}</span>
-                              </li>
-                              </ng-container>
-                            </ul>
-                          </ion-label>
-                        </ng-container>
+                    <ng-container *ngIf="strategyCard.data && (strategyCard.data.pmfms | isNotEmptyArray)">
+                      <ion-label color="primary">{{ i18nPrefix + 'CALCIFIED_TYPE' | translate }}</ion-label>
+                      <ion-label class="status">
+                        <ul>
+                          <ng-container *ngFor="let caclcifiedType of strategyCard.data.pmfms; let i = index">
+                            <li *ngIf="caclcifiedType.fraction && !caclcifiedType.pmfm">
+                              <span>{{ caclcifiedType.fraction | referentialToString: strategyCard.displayAttributes.fraction }}</span>
+                            </li>
+                          </ng-container>
+                        </ul>
+                      </ion-label>
+                    </ng-container>
                   </app-strategy-summary-card>
                 </ion-col>
 
                 <!-- data quality -->
                 <ion-col class="ion-no-padding" *ngIf="showEntityMetadata">
                   <app-entity-metadata [value]="data">
-                    <app-entity-quality-form [editor]="this" *ngIf="showQualityForm">
-                    </app-entity-quality-form>
+                    <app-entity-quality-form [editor]="this" *ngIf="showQualityForm"></app-entity-quality-form>
 
                     <!-- not observer (warning) -->
                     <ion-text color="tertiary" *ngIf="warning">
-                      <br/>
-                      <ion-icon name="warning"></ion-icon>&nbsp;
-                        {{warning|translate}}
+                      <br />
+                      <ion-icon name="warning"></ion-icon>
+                      &nbsp;
+                      {{ warning | translate }}
                     </ion-text>
-
                   </app-entity-metadata>
                 </ion-col>
               </ion-row>
@@ -148,72 +143,71 @@
       </ion-grid>
 
       <div #firstTabInjection></div>
-
     </mat-tab>
 
     <!-- TAB: samples -->
-    <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES'|translate" [disabled]="!showSamplesTable">
+    <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES' | translate" [disabled]="!showSamplesTable">
       <ng-template mat-tab-label>
-        <mat-icon >center_focus_strong</mat-icon>
-        <ion-label>{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
+        <mat-icon>center_focus_strong</mat-icon>
+        <ion-label>{{ i18nPrefix + 'TAB_SAMPLES' | translate }}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
 
       <div #tabContent>
-
         <!-- error -->
         <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="samplesTable.error | translate"></ion-label>
         </ion-item>
 
-        <app-samples-table  #samplesTable
-                            [disabled]="noEffortError"
-                            [showError]="mobile"
-                            [showLabelColumn]="false"
-                            [showDateTimeColumn]="false"
-                            [showTaxonGroupColumn]="false"
-                            [showTaxonNameColumn]="false"
-                            [showPmfmDetails]="true"
-                            [pmfmGroups]="$pmfmGroups|async"
-                            [canAddPmfm]="true"
-                            [defaultSampleDate]="data?.dateTime"
-                            [defaultLocation]="data?.location"
-                            [usageMode]="usageMode"
-                            [useSticky]="true"
-                            [compactFields]="false"
-                            (onPrepareRowForm)="onPrepareSampleForm($event)"
-                            [debug]="debug">
-        </app-samples-table>
+        <app-samples-table
+          #samplesTable
+          [disabled]="noEffortError"
+          [showError]="mobile"
+          [showLabelColumn]="false"
+          [showDateTimeColumn]="false"
+          [showTaxonGroupColumn]="false"
+          [showTaxonNameColumn]="false"
+          [showPmfmDetails]="true"
+          [pmfmGroups]="$pmfmGroups | async"
+          [canAddPmfm]="true"
+          [defaultSampleDate]="data?.dateTime"
+          [defaultLocation]="data?.location"
+          [usageMode]="usageMode"
+          [useSticky]="true"
+          [compactFields]="false"
+          (onPrepareRowForm)="onPrepareSampleForm($event)"
+          [debug]="debug"
+        ></app-samples-table>
 
         <!-- final space-->
         <p visible-xs visible-sm visible-mobile>&nbsp;</p>
       </div>
     </mat-tab>
-
   </mat-tab-group>
-
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
-  <app-form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading"
-                    [disabledCancel]="!dirty || loading">
-
+  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading" [disabledCancel]="!dirty || loading">
     <!-- error -->
-    <ion-item *ngIf="landingForm.error||error||(samplesTable.error$|async); let error" lines="none">
+    <ion-item *ngIf="landingForm.error || error || (samplesTable.error$ | async); let error" lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
     </ion-item>
-
   </app-form-buttons-bar>
 </ion-footer>
 
 <!-- FAB button -->
-<ion-fab vertical="bottom" horizontal="end" slot="fixed"
-         *ngIf="showSamplesTable && selectedTabIndex === 1"
-         @fadeInOutAnimation
-         visible-xs visible-sm visible-mobile>
+<ion-fab
+  vertical="bottom"
+  horizontal="end"
+  slot="fixed"
+  *ngIf="showSamplesTable && selectedTabIndex === 1"
+  @fadeInOutAnimation
+  visible-xs
+  visible-sm
+  visible-mobile
+>
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>

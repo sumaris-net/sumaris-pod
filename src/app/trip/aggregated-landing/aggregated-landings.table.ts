@@ -1,9 +1,9 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {AlertController, ModalController} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {FormBuilder} from '@angular/forms';
-import {TranslateService} from '@ngx-translate/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { AlertController, ModalController } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
+import { FormBuilder } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
 import {
   AccountService,
   AppTable,
@@ -18,26 +18,26 @@ import {
   referentialToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  toBoolean
+  toBoolean,
 } from '@sumaris-net/ngx-components';
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {BehaviorSubject} from 'rxjs';
-import {AggregatedLanding, VesselActivity} from '../services/model/aggregated-landing.model';
-import {AggregatedLandingService} from '../services/aggregated-landing.service';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { BehaviorSubject } from 'rxjs';
+import { AggregatedLanding, VesselActivity } from '../services/model/aggregated-landing.model';
+import { AggregatedLandingService } from '../services/aggregated-landing.service';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
-import {ObservedLocation} from '../services/model/observed-location.model';
-import {TableElement} from '@e-is/ngx-material-table';
-import {MeasurementValuesUtils} from '../services/model/measurement.model';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {AggregatedLandingModal} from './aggregated-landing.modal';
-import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {AggregatedLandingFormOption} from './aggregated-landing.form';
-import {AggregatedLandingFilter} from '@app/trip/services/filter/aggregated-landing.filter';
+import { Moment } from 'moment';
+import { ObservedLocation } from '../services/model/observed-location.model';
+import { TableElement } from '@e-is/ngx-material-table';
+import { MeasurementValuesUtils } from '../services/model/measurement.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AggregatedLandingModal } from './aggregated-landing.modal';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { AggregatedLandingFormOption } from './aggregated-landing.form';
+import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
 
 const moment = momentImported;
 
@@ -45,10 +45,9 @@ const moment = momentImported;
   selector: 'app-aggregated-landings-table',
   templateUrl: 'aggregated-landings.table.html',
   styleUrls: ['./aggregated-landings.table.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AggregatedLandingsTable extends AppTable<AggregatedLanding, AggregatedLandingFilter> implements OnInit, OnDestroy {
-
   canEdit: boolean;
   canDelete: boolean;
   isAdmin: boolean;
@@ -115,18 +114,23 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
-    protected cd: ChangeDetectorRef,
+    protected cd: ChangeDetectorRef
   ) {
-
-    super(route, router, platform, location, modalCtrl, settings,
+    super(
+      route,
+      router,
+      platform,
+      location,
+      modalCtrl,
+      settings,
       ['vessel'],
       new EntitiesTableDataSource<AggregatedLanding, AggregatedLandingFilter>(AggregatedLanding, service, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         debug: !environment.production,
         serviceOptions: {
-          saveOnlyDirtyRows: true
-        }
+          saveOnlyDirtyRows: true,
+        },
       }),
       null,
       injector
@@ -148,7 +152,6 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
-
   }
 
   ngOnInit() {
@@ -182,10 +185,8 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   }
 
   setFilter(filter: AggregatedLandingFilter, opts?: { emitEvent: boolean }) {
-
     // Don't refilter if actual filter is equal
-    if (this.filter && this.filter.equals(filter))
-      return;
+    if (this.filter && this.filter.equals(filter)) return;
 
     super.setFilter(filter, opts);
   }
@@ -194,7 +195,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   measurementValueToString = MeasurementValuesUtils.valueToString;
 
   getActivities(row: TableElement<AggregatedLanding>, date: Moment): VesselActivity[] {
-    const activities = row.currentData?.vesselActivities.filter(activity => activity.date.isSame(date)) || [];
+    const activities = row.currentData?.vesselActivities.filter((activity) => activity.date.isSame(date)) || [];
     return isNotEmptyArray(activities) ? activities : undefined;
   }
 
@@ -220,59 +221,58 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   }
 
   protected getDisplayColumns(): string[] {
-
     const additionalColumns = [];
     if (this.mobile) {
       // add summary column
     } else {
-      additionalColumns.push(...(this.$dates.getValue()?.map(date => date.valueOf().toString()) || []));
+      additionalColumns.push(...(this.$dates.getValue()?.map((date) => date.valueOf().toString()) || []));
     }
 
-    return RESERVED_START_COLUMNS
-      .concat(this.columns)
-      .concat(additionalColumns)
-      .concat(RESERVED_END_COLUMNS);
+    return RESERVED_START_COLUMNS.concat(this.columns).concat(additionalColumns).concat(RESERVED_END_COLUMNS);
   }
 
   private async refreshPmfms() {
     if (isNil(this._program) || isNil(this._acquisitionLevel)) return;
 
     // Load pmfms
-    const pmfms = (await this.programRefService.loadProgramPmfms(
-      this._program,
-      {
-        acquisitionLevel: this._acquisitionLevel
+    const pmfms =
+      (await this.programRefService.loadProgramPmfms(this._program, {
+        acquisitionLevel: this._acquisitionLevel,
       })) || [];
 
     if (!pmfms.length && this.debug) {
-      console.debug(`[aggregated-landings-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
+      console.debug(
+        `[aggregated-landings-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`
+      );
     }
 
     this.$pmfms.next(pmfms);
   }
 
   clickRow(event: MouseEvent | undefined, row: TableElement<AggregatedLanding>): boolean {
-    if (event && event.defaultPrevented || this.loading) return false;
+    if ((event && event.defaultPrevented) || this.loading) return false;
     if (!this.mobile) return false;
 
     const today = moment().startOf('day');
     this.markAsLoading();
-    this.openModal(event, row, today)
-      .then(() => this.markAsLoaded());
-
+    this.openModal(event, row, today).then(() => this.markAsLoaded());
   }
 
   clickCell($event: MouseEvent, row: TableElement<AggregatedLanding>, date: Moment) {
     if ($event) $event.stopPropagation();
     if (this.debug)
-      console.debug('clickCell', $event, row.currentData.vesselSnapshot.exteriorMarking + '|' + row.currentData.vesselActivities.length, date.toISOString());
+      console.debug(
+        'clickCell',
+        $event,
+        row.currentData.vesselSnapshot.exteriorMarking + '|' + row.currentData.vesselActivities.length,
+        date.toISOString()
+      );
 
     this.markAsLoading();
-    this.openModal($event, row, date)
-      .then(() => this.markAsLoaded());
+    this.openModal($event, row, date).then(() => this.markAsLoaded());
   }
 
-  async openModal(event: MouseEvent|undefined, row: TableElement<AggregatedLanding>, date?: Moment) {
+  async openModal(event: MouseEvent | undefined, row: TableElement<AggregatedLanding>, date?: Moment) {
     this.editRow(event, row);
     const modal = await this.modalCtrl.create({
       component: AggregatedLandingModal,
@@ -282,8 +282,8 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
           dates: this.$dates.getValue(),
           initialDate: date,
           programLabel: this._program,
-          acquisitionLevel: this._acquisitionLevel
-        }
+          acquisitionLevel: this._acquisitionLevel,
+        },
       },
       backdropDismiss: false,
       // cssClass: 'modal-large'
@@ -293,7 +293,6 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     const res = await modal.onDidDismiss();
 
     if (res && res.data) {
-
       if (res.data.aggregatedLanding) {
         console.debug('data to update:', res.data.aggregatedLanding);
 
@@ -333,7 +332,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
 
   async vesselIdsAlreadyPresent(): Promise<number[]> {
     const rows = await this.dataSource.getRows();
-    return (rows || []).map(row => row.currentData.vesselSnapshot.id);
+    return (rows || []).map((row) => row.currentData.vesselSnapshot.id);
   }
 
   // private scrollToRow(row: TableElement<AggregatedLanding>) {
@@ -345,4 +344,3 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   //   }
   // }
 }
-

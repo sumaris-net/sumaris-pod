@@ -2,7 +2,7 @@
 // `ng build ---prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
-import {Environment} from '@sumaris-net/ngx-components';
+import { Environment } from '@sumaris-net/ngx-components';
 /*
  * In development mode, to ignore zone related error stack frames such as
  * `zone.run`, `zoneDelegate.invokeTask` for easier debugging, you can
@@ -14,8 +14,8 @@ import 'zone.js/dist/zone-error';
 const pkg = require('../../package.json');
 
 export const environment: Environment = Object.freeze({
-  name: (pkg.name as string),
-  version: (pkg.version as string),
+  name: pkg.name as string,
+  version: pkg.version as string,
   production: false,
   baseUrl: '/',
   defaultLocale: 'fr',
@@ -37,61 +37,61 @@ export const environment: Environment = Object.freeze({
   defaultPeers: [
     {
       host: 'localhost',
-      port: 8080
+      port: 8080,
     },
     {
       host: 'localhost',
-      port: 8081
+      port: 8081,
     },
     {
       host: '192.168.0.45',
-      port: 8080
+      port: 8080,
     },
     {
       host: '192.168.0.24',
-      port: 8080
+      port: 8080,
     },
     {
       host: '192.168.0.29',
-      port: 8080
+      port: 8080,
     },
     {
       host: 'server.e-is.pro',
-      port: 443
+      port: 443,
     },
     {
       host: 'adap.pecheursdebretagne.eu',
-      port: 443
+      port: 443,
     },
     {
       host: 'sih.sfa.sc',
       port: 80,
-      useSsl: false
+      useSsl: false,
     },
     {
       host: 'www.sumaris.net',
-      port: 443
+      port: 443,
     },
     {
       host: 'test.sumaris.net',
-      port: 443
+      port: 443,
     },
     {
       host: 'open.sumaris.net',
-      port: 443
+      port: 443,
     },
     {
       host: 'adap.e-is.pro',
-      port: 443
+      port: 443,
     },
     {
       host: 'visi-common-docker1.ifremer.fr',
-      port: 8080
+      port: 8080,
     },
     {
       host: 'imagine-pod.isival.ifremer.fr',
-      port: 443
-    }
+      port: 443,
+    },
   ],
   defaultAppName: 'SUMARiS',
   defaultAndroidInstallUrl: 'https://play.google.com/store/apps/details?id=net.sumaris.app',
@@ -102,7 +102,6 @@ export const environment: Environment = Object.freeze({
 
   // Storage
   storage: {
-    driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage']
-  }
+    driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage'],
+  },
 });
-

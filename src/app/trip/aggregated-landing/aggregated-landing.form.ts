@@ -1,18 +1,18 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {DateAdapter} from '@angular/material/core';
-import {Moment} from 'moment';
-import {FormArray, FormBuilder, Validators} from '@angular/forms';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {ModalController} from '@ionic/angular';
-import {AppForm, DateFormatPipe, DisplayFn, filterNotNil, firstNotNilPromise, FormArrayHelper, isNil, LocalSettingsService, NetworkService, SharedValidators} from '@sumaris-net/ngx-components';
-import {BehaviorSubject, combineLatest, Observable} from 'rxjs';
-import {distinctUntilChanged, filter} from 'rxjs/operators';
-import {AggregatedLandingService} from '../services/aggregated-landing.service';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {AggregatedLanding, VesselActivity} from '../services/model/aggregated-landing.model';
-import {VesselActivityValidatorService} from '../services/validator/vessel-activity.validator';
-import {getMaxRankOrder} from '@app/data/services/model/model.utils';
-import {environment} from '@environments/environment';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { FormArray, FormBuilder, Validators } from '@angular/forms';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { ModalController } from '@ionic/angular';
+import { AppForm, DateFormatPipe, DisplayFn, filterNotNil, firstNotNilPromise, FormArrayHelper, isNil, LocalSettingsService, NetworkService, SharedValidators } from '@sumaris-net/ngx-components';
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { distinctUntilChanged, filter } from 'rxjs/operators';
+import { AggregatedLandingService } from '../services/aggregated-landing.service';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AggregatedLanding, VesselActivity } from '../services/model/aggregated-landing.model';
+import { VesselActivityValidatorService } from '../services/validator/vessel-activity.validator';
+import { getMaxRankOrder } from '@app/data/services/model/model.utils';
+import { environment } from '@environments/environment';
 
 export class AggregatedLandingFormOption {
   dates: Observable<Moment[]> | Moment[];
@@ -25,10 +25,9 @@ export class AggregatedLandingFormOption {
   selector: 'app-aggregated-landings-form',
   templateUrl: './aggregated-landing.form.html',
   styleUrls: ['./aggregated-landing.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements OnInit {
-
   private _options: AggregatedLandingFormOption;
   private _activeDate: Moment;
   private _loading = true;
@@ -97,7 +96,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     public network: NetworkService,
-    protected cd: ChangeDetectorRef,
+    protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, null, settings);
     this.mobile = this.settings.mobile;
@@ -108,7 +107,6 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
   }
 
   ngOnInit() {
-
     if (isNil(this._options)) {
       console.warn('[aggregated-landing-form] No option found, the form will be unusable');
     }
@@ -118,18 +116,18 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     this.acquisitionLevel = this._options && this._options.acquisitionLevel;
 
     const form = this.formBuilder.group({
-      date: [this._options && this._options.initialDate || undefined, Validators.compose([Validators.required, SharedValidators.validDate])],
-      activities: this.formBuilder.array([])
+      date: [(this._options && this._options.initialDate) || undefined, Validators.compose([Validators.required, SharedValidators.validDate])],
+      activities: this.formBuilder.array([]),
     });
     this.setForm(form);
 
     this.form.controls.activities.valueChanges
       .pipe(
-        filter(() => !this._loading),
+        filter(() => !this._loading)
         // distinctUntilChanged()
         // debounceTime(1000)
       )
-      .subscribe(value => {
+      .subscribe((value) => {
         if (this.debug) console.debug('[aggregated-landing] activities changes', value);
         this._activityDirty = true;
       });
@@ -137,20 +135,16 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     this.initActivitiesHelper();
 
     this.registerSubscription(
-      combineLatest([
-        this.form.get('date').valueChanges.pipe(distinctUntilChanged()),
-        filterNotNil(this.$data)
-      ])
-        .subscribe(date => this.showAtDate(this.form.value.date))
+      combineLatest([this.form.get('date').valueChanges.pipe(distinctUntilChanged()), filterNotNil(this.$data)]).subscribe((date) =>
+        this.showAtDate(this.form.value.date)
+      )
     );
 
     super.ngOnInit();
-
   }
 
   private showAtDate(date: Moment) {
-    if (!date)
-      throw new Error('[aggregated-landing-form] No date provided');
+    if (!date) throw new Error('[aggregated-landing-form] No date provided');
 
     console.debug(`[aggregated-landing-form] Show vessel activity at ${date}`);
 
@@ -164,7 +158,10 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
 
     // Load activities for this date
     this._activeDate = date;
-    this.activities = this.$data.getValue().vesselActivities.filter(value => value.date.isSame(date)).slice() || [null];
+    this.activities = this.$data
+      .getValue()
+      .vesselActivities.filter((value) => value.date.isSame(date))
+      .slice() || [null];
 
     // remove all previous forms
     this.activitiesForm.clear();
@@ -175,7 +172,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     }
 
     this.enable();
-    setTimeout(() => this._loading = false, 500);
+    setTimeout(() => (this._loading = false), 500);
   }
 
   addActivity() {
@@ -203,24 +200,20 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     // Wait pmfms load, and controls load
     if (this.$loadingControls.getValue() === true && this.controlsLoaded === false) {
       if (this.debug) console.debug(`[aggregated-landings-form] waiting form to be ready...`);
-      await firstNotNilPromise(this.$loadingControls
-        .pipe(
-          filter((loadingControls) => loadingControls === false && this.controlsLoaded === true)
-        ));
+      await firstNotNilPromise(this.$loadingControls.pipe(filter((loadingControls) => loadingControls === false && this.controlsLoaded === true)));
     }
   }
-
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
 
   displayDate(): DisplayFn {
-    return (obj: any) => this.dateFormatPipe.transform(obj, {pattern: 'dddd L'}).toString();
+    return (obj: any) => this.dateFormatPipe.transform(obj, { pattern: 'dddd L' }).toString();
   }
 
   compareDate() {
-    return (d1: Moment, d2: Moment) => d1 && d2 && d1.isSame(d2) || false;
+    return (d1: Moment, d2: Moment) => (d1 && d2 && d1.isSame(d2)) || false;
   }
 
   private initActivitiesHelper() {
@@ -228,9 +221,9 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'activities'),
       (activity) => this.vesselActivityValidatorService.getFormGroup(activity),
       (v1, v2) => v1.rankOrder === v2.rankOrder,
-      value => VesselActivity.isEmpty(value),
+      (value) => VesselActivity.isEmpty(value),
       {
-        allowEmptyArray: true
+        allowEmptyArray: true,
       }
     );
   }
@@ -241,18 +234,24 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
       return;
     }
     if (this.debug) console.debug(`[aggregated-landing-form] save activities at ${date}`);
-    const newActivities = this.$data.getValue().vesselActivities.filter(value => !value.date.isSame(date)).slice() || [];
-    const activities = this.activitiesForm.value.map(v => VesselActivity.fromObject(v));
+    const newActivities =
+      this.$data
+        .getValue()
+        .vesselActivities.filter((value) => !value.date.isSame(date))
+        .slice() || [];
+    const activities = this.activitiesForm.value.map((v) => VesselActivity.fromObject(v));
     newActivities.push(...activities);
     this.$data.getValue().vesselActivities = newActivities;
   }
 
   openTrip(activity: VesselActivity) {
     if (!activity || !activity.observedLocationId || !activity.tripId) {
-      console.warn(`Something is missing to open trip: observedLocationId=${activity && activity.observedLocationId}, tripId=${activity && activity.tripId}`);
+      console.warn(
+        `Something is missing to open trip: observedLocationId=${activity && activity.observedLocationId}, tripId=${activity && activity.tripId}`
+      );
       return;
     }
 
-    this.onOpenTrip.emit({activity});
+    this.onOpenTrip.emit({ activity });
   }
 }

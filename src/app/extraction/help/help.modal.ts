@@ -1,29 +1,27 @@
-import {ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
-import {ModalController} from '@ionic/angular';
-import {AppHelpModal, isNotNilOrBlank, LocalSettingsService, PlatformService} from '@sumaris-net/ngx-components';
-import {TranslateService} from '@ngx-translate/core';
-import {ExtractionType} from '../services/model/extraction-type.model';
+import { ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { AppHelpModal, isNotNilOrBlank, LocalSettingsService, PlatformService } from '@sumaris-net/ngx-components';
+import { TranslateService } from '@ngx-translate/core';
+import { ExtractionType } from '../services/model/extraction-type.model';
 
 @Component({
-    selector: 'app-extraction-help-modal',
-    templateUrl: 'help.modal.html'
+  selector: 'app-extraction-help-modal',
+  templateUrl: 'help.modal.html',
 })
 export class ExtractionHelpModal extends AppHelpModal implements OnInit {
-
   @Input()
   type: ExtractionType;
 
   constructor(
-      protected injector: Injector,
-      protected viewCtrl: ModalController,
-      protected platform: PlatformService,
-      protected settings: LocalSettingsService,
-      protected translate: TranslateService,
-      protected cd: ChangeDetectorRef
+    protected injector: Injector,
+    protected viewCtrl: ModalController,
+    protected platform: PlatformService,
+    protected settings: LocalSettingsService,
+    protected translate: TranslateService,
+    protected cd: ChangeDetectorRef
   ) {
     super(injector, viewCtrl, platform, settings, translate, cd);
   }
-
 
   ngOnInit() {
     if (!this.type) throw new Error(`Missing 'type' input`);
@@ -37,8 +35,7 @@ export class ExtractionHelpModal extends AppHelpModal implements OnInit {
     if (this.type.docUrl) {
       this.loading = true;
       this.docUrl = this.type.docUrl;
-    }
-    else {
+    } else {
       this.markAsLoaded(); // Nothing to load
     }
   }

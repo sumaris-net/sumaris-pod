@@ -1,17 +1,17 @@
-import {RouterModule, Routes} from '@angular/router';
-import {NgModule} from '@angular/core';
-import {ReferentialsPage} from './list/referentials.page';
-import {ProgramPage} from './program/program.page';
-import {SoftwarePage} from './software/software.page';
-import {ParameterPage} from './pmfm/parameter.page';
-import {PmfmPage} from './pmfm/pmfm.page';
-import {SharedRoutingModule} from '@sumaris-net/ngx-components';
-import {AppReferentialModule} from './app-referential.module';
-import {StrategyPage} from './strategy/strategy.page';
-import {ProgramsPage} from './program/programs.page';
-import {SamplingStrategyPage} from './strategy/sampling/sampling-strategy.page';
-import {TaxonNamePage} from './taxon/taxon-name.page';
-import {StrategiesPage} from './strategy/strategies.page';
+import { RouterModule, Routes } from '@angular/router';
+import { NgModule } from '@angular/core';
+import { ReferentialsPage } from './list/referentials.page';
+import { ProgramPage } from './program/program.page';
+import { SoftwarePage } from './software/software.page';
+import { ParameterPage } from './pmfm/parameter.page';
+import { PmfmPage } from './pmfm/pmfm.page';
+import { SharedRoutingModule } from '@sumaris-net/ngx-components';
+import { AppReferentialModule } from './app-referential.module';
+import { StrategyPage } from './strategy/strategy.page';
+import { ProgramsPage } from './program/programs.page';
+import { SamplingStrategyPage } from './strategy/sampling/sampling-strategy.page';
+import { TaxonNamePage } from './taxon/taxon-name.page';
+import { StrategiesPage } from './strategy/strategies.page';
 
 const routes: Routes = [
   {
@@ -20,8 +20,8 @@ const routes: Routes = [
     component: ReferentialsPage,
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
-      profile: 'ADMIN'
-    }
+      profile: 'ADMIN',
+    },
   },
   {
     path: 'programs',
@@ -31,8 +31,8 @@ const routes: Routes = [
         component: ProgramsPage,
         runGuardsAndResolvers: 'pathParamsChange',
         data: {
-          profile: 'SUPERVISOR'
-        }
+          profile: 'SUPERVISOR',
+        },
       },
       {
         path: ':programId',
@@ -44,30 +44,30 @@ const routes: Routes = [
             component: ProgramPage,
             data: {
               profile: 'SUPERVISOR',
-              pathIdParam: 'programId'
-            }
+              pathIdParam: 'programId',
+            },
           },
           {
             path: 'strategies',
             component: StrategiesPage,
             data: {
               profile: 'SUPERVISOR',
-              pathIdParam: 'programId'
-            }
+              pathIdParam: 'programId',
+            },
           },
           {
             path: 'strategy/legacy/:strategyId',
             data: {
               profile: 'SUPERVISOR',
-              pathIdParam: 'strategyId'
+              pathIdParam: 'strategyId',
             },
             children: [
               {
                 path: '',
                 pathMatch: 'full',
-                component: StrategyPage
-              }
-            ]
+                component: StrategyPage,
+              },
+            ],
           },
 
           {
@@ -75,19 +75,19 @@ const routes: Routes = [
             component: SamplingStrategyPage,
             data: {
               profile: 'SUPERVISOR',
-              pathIdParam: 'strategyId'
+              pathIdParam: 'strategyId',
             },
             children: [
               {
                 path: '',
                 pathMatch: 'full',
-                component: StrategyPage
-              }
-            ]
-          }
-        ]
-      }
-    ]
+                component: StrategyPage,
+              },
+            ],
+          },
+        ],
+      },
+    ],
   },
   {
     path: 'software/:id',
@@ -97,10 +97,10 @@ const routes: Routes = [
         pathMatch: 'full',
         component: SoftwarePage,
         data: {
-          profile: 'ADMIN'
-        }
-      }
-    ]
+          profile: 'ADMIN',
+        },
+      },
+    ],
   },
   {
     path: 'parameter/:id',
@@ -110,10 +110,10 @@ const routes: Routes = [
         pathMatch: 'full',
         component: ParameterPage,
         data: {
-          profile: 'ADMIN'
-        }
-      }
-    ]
+          profile: 'ADMIN',
+        },
+      },
+    ],
   },
   {
     path: 'pmfm/:id',
@@ -123,10 +123,10 @@ const routes: Routes = [
         pathMatch: 'full',
         component: PmfmPage,
         data: {
-          profile: 'ADMIN'
-        }
-      }
-    ]
+          profile: 'ADMIN',
+        },
+      },
+    ],
   },
   {
     path: 'taxonName/:id',
@@ -136,19 +136,15 @@ const routes: Routes = [
         pathMatch: 'full',
         component: TaxonNamePage,
         data: {
-          profile: 'ADMIN'
-        }
-      }
-    ]
-  }
+          profile: 'ADMIN',
+        },
+      },
+    ],
+  },
 ];
 
 @NgModule({
-  imports: [
-    SharedRoutingModule,
-    AppReferentialModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [RouterModule]
+  imports: [SharedRoutingModule, AppReferentialModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class ReferentialRoutingModule { }
+export class ReferentialRoutingModule {}
