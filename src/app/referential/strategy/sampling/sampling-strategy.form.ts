@@ -825,7 +825,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
 
   async getValue(): Promise<Strategy> {
-    const json = this.form.value;
+    const json = this.form.getRawValue();
     const target = Strategy.fromObject(json);
 
     target.name = target.label || target.name;
@@ -1015,12 +1015,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       const taxonNameControl = this.taxonNamesHelper.at(0);
       const currentViewTaxon = taxonNameControl?.value?.taxonName;
       const currentViewTaxonName = taxonNameControl?.value?.taxonName?.name;
-      const previousFormTaxonName = this.form.value.taxonNames[0]?.taxonName?.name?.clone;
+      const previousFormTaxonName = this.form.getRawValue().taxonNames[0]?.taxonName?.name?.clone;
       const storedDataTaxonName = this.data.taxonNames[0]?.taxonName?.name;
       const storedDataYear = this.data.appliedStrategies[0]?.appliedPeriods[0]?.startDate ? fromDateISOString(this.data.appliedStrategies[0].appliedPeriods[0].startDate).format('YY') : undefined;
       let previousFormYear = undefined;
-      if (this.form.value.year && fromDateISOString(this.form.value.year)) {
-        previousFormYear = fromDateISOString(this.form.value.year).format('YY');
+      if (this.form.getRawValue().year && fromDateISOString(this.form.getRawValue().year)) {
+        previousFormYear = fromDateISOString(this.form.getRawValue().year).format('YY');
       }
       const labelControl = this.form.get('label');
 
@@ -1204,7 +1204,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   isLocationDisable(index: number): boolean {
-    return this.appliedStrategiesHelper.at(index).status === "DISABLED";
+    return (this.appliedStrategiesHelper.at(index).status === "DISABLED") || (this.hasLanding);
   }
 
   hasSex(): boolean {
