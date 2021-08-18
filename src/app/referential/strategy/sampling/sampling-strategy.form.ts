@@ -968,6 +968,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   private async isTaxonNameUnique(label: string, currentViewTaxonId: number) {
     const taxonNamesItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+    const taxonNamesWithParentheseItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
     let isUnique = true;
     if (label) {
       await this.referentialRefService.loadAll(0, 1000, null, null, {
@@ -978,14 +979,31 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         statusIds: [StatusIds.ENABLE],
         levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
       }).then(({data}) => taxonNamesItems.next(data));
-    }
 
-    if (taxonNamesItems && taxonNamesItems.value)
-    {
-      const filteredReferentTaxons = (await Promise.all(taxonNamesItems.value.map(taxonRef => (this.taxonNameService.load(taxonRef.id))))).filter(taxon => taxon.isReferent);
-      if (!(filteredReferentTaxons === null || filteredReferentTaxons.length === 0))
+      if (taxonNamesItems && taxonNamesItems.value)
       {
-        isUnique = false;
+        const filteredReferentTaxons = (await Promise.all(taxonNamesItems.value.map(taxonRef => (this.taxonNameService.load(taxonRef.id))))).filter(taxon => taxon.isReferent);
+        if (!(filteredReferentTaxons === null || filteredReferentTaxons.length === 0))
+        {
+          isUnique = false;
+        }
+        else if (taxonNamesWithParentheseItems && taxonNamesWithParentheseItems.value) {
+          // IMAGINE-511 - add a control on taxon unicity searching in taxon with parentheses
+          // should be replaced by generateNameSearchPatternFromLabel managing optional parentheses in searchText parameter
+          await this.referentialRefService.loadAll(0, 1000, null, null, {
+            entityName: TaxonName.ENTITY_NAME,
+            searchText: TaxonUtils.generateNameSearchPatternFromLabel(label, true),
+            searchAttribute: 'name',
+            excludedIds: [currentViewTaxonId],
+            statusIds: [StatusIds.ENABLE],
+            levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
+          }).then(({data}) => taxonNamesWithParentheseItems.next(data));
+          const filteredReferentTaxonsWithParenthese = (await Promise.all(taxonNamesWithParentheseItems.value.map(taxonRef => (this.taxonNameService.load(taxonRef.id))))).filter(taxon => taxon.isReferent);
+          if (!(filteredReferentTaxonsWithParenthese === null || filteredReferentTaxonsWithParenthese.length === 0))
+          {
+            isUnique = false;
+          }
+        }
       }
     }
     return isUnique;

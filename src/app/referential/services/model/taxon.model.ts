@@ -185,9 +185,13 @@ export class TaxonUtils {
     return undefined;
   }
 
-  static generateNameSearchPatternFromLabel(label: string) {
+  static generateNameSearchPatternFromLabel(label: string, optionalParenthese ?: boolean) {
     if (!label || label.length !== 7) {
       throw new Error('Invalid taxon name label (expected 7 characters)');
+    }
+    if (optionalParenthese)
+    {
+      return label.slice(0, 4) + '* (' + label.slice(4) + '*';
     }
     return label.slice(0, 4) + '* ' + label.slice(4) + '*';
   }
