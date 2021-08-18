@@ -530,7 +530,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     );
     const fractions = isNotEmptyArray(fractionIds)
       && (await this.referentialRefService.loadAll(0, fractionIds.length, null, null, { includedIds: fractionIds, entityName: 'Fraction' }, {withTotal: false})
-        .then(({data}) => data.sort(sortFn)))
+        .then(({data}) => data.sort(sortFnByName)))
       || [];
     this.fractionItems.next(fractions);
     this.autocompleteFilters.fraction = isNotEmptyArray(fractions) && autoEnableFilter; // Enable filtering, if need by program
