@@ -258,9 +258,17 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       fetchPolicy: 'cache-first'
     });
 
+    const filterData: any[] = [];
+    data.forEach(value => {
+      const valueLabel = value.label;
+      if (valueLabel.slice(valueLabel.length - 3) === "-MS") {
+        filterData.push(value);
+      }
+    })
+
     const entities = (!opts || opts.toEntity !== false)
-      ? data && data.map(ReferentialRef.fromObject)
-      : data as ReferentialRef[];
+      ? filterData !== [] && filterData.map(ReferentialRef.fromObject)
+      : filterData as ReferentialRef[];
 
     const res: LoadResult<ReferentialRef> = {
       data: entities,
