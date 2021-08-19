@@ -987,7 +987,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         {
           isUnique = false;
         }
-        else if (taxonNamesWithParentheseItems && taxonNamesWithParentheseItems.value) {
+        else {
           // IMAGINE-511 - add a control on taxon unicity searching in taxon with parentheses
           // should be replaced by generateNameSearchPatternFromLabel managing optional parentheses in searchText parameter
           await this.referentialRefService.loadAll(0, 1000, null, null, {

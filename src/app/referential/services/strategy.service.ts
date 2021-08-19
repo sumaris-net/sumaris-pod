@@ -57,7 +57,7 @@ const LoadAllAnalyticReferencesWithTotalQuery: any = gql`query AnalyticReference
   data: analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
     ...ReferentialFragment
   }
-  count: analyticReferencesCount(filter: $filter)
+  total: analyticReferencesCount(filter: $filter)
 }
 ${ReferentialFragments.referential}`;
 
