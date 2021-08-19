@@ -238,6 +238,11 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     }): Promise<LoadResult<ReferentialRef>> {
 
     filter = ReferentialRefFilter.fromObject(filter);
+    if (filter.searchText) {
+      filter.searchText = filter.searchText + "-MS";
+    } else {
+      filter.searchText = "*-MS";
+    }
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
@@ -258,17 +263,9 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       fetchPolicy: 'cache-first'
     });
 
-    const filterData: any[] = [];
-    data.forEach(value => {
-      const valueLabel = value.label;
-      if (valueLabel.slice(valueLabel.length - 3) === "-MS") {
-        filterData.push(value);
-      }
-    })
-
     const entities = (!opts || opts.toEntity !== false)
-      ? filterData !== [] && filterData.map(ReferentialRef.fromObject)
-      : filterData as ReferentialRef[];
+      ? data && data.map(ReferentialRef.fromObject)
+      : data as ReferentialRef[];
 
     const res: LoadResult<ReferentialRef> = {
       data: entities,
