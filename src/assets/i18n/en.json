@@ -1436,8 +1436,8 @@
         "EFFORT.REALIZED_EFFORT": "The number of efforts must be greater than or equal to 1 for quarters with individual measures",
         "LABEL.UNIQUE": "The code of the sampling plan line already exists",
         "LABEL.ZERO": "The minimum increment is 001",
-        "STRATEGY_HAS_REALIZED_EFFORT": "Sampling scheme {{label}} used by observed locations",
-        "STRATEGIES_HAS_REALIZED_EFFORT": "Sampling schemes {{label}} used by observed locations",
+        "STRATEGY_HAS_DATA": "Sampling scheme {{label}} used by observed locations",
+        "STRATEGIES_HAS_DATA": "Sampling schemes {{label}} used by observed locations",
         "CANNOT_COMPUTE_TAXON_CODE": "Taxon name is invalid",
         "NOT_UNIQUE_TAXON_CODE": "Generate taxon code is not unique"
       }
