@@ -239,7 +239,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
 
     filter = ReferentialRefFilter.fromObject(filter);
     if (filter.searchText) {
-      filter.searchText = filter.searchText + "-MS";
+      filter.searchText = filter.searchText + "*-MS";
     } else {
       filter.searchText = "*-MS";
     }
