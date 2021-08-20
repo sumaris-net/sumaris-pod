@@ -175,7 +175,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   enable(opts?: { onlySelf?: boolean, emitEvent?: boolean; }) {
     super.enable(opts);
-    if (this.hasLanding) {
+
+    // disable whole form or form part
+    if (!this.strategyService.canUserWrite(this.data)) {
+      this.form.disable();
+    } else if (this.hasLanding) {
       this.weightPmfmStrategiesTable.disable();
       this.lengthPmfmStrategiesTable.disable();
       this.maturityPmfmStrategiesTable.disable();
