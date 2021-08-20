@@ -961,7 +961,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     {
       if (value.match(labelRegex) || value.match(labelRegexWithoutSpaces)) {
         const labelControl = this.form.get('label');
-        labelControl.setValue(value.toUpperCase());
+        const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10).replace(' ', '').toUpperCase(), 3));
+        labelControl.setValue(computedLabel);
       }
     }
   }
