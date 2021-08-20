@@ -289,18 +289,18 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   async deleteSelection(event: UIEvent): Promise<number> {
     const rowsToDelete = this.selection.selected;
 
-    const strategyLabelsWithRealizedEffort = (rowsToDelete || [])
+    const strategyLabelsWithData = (rowsToDelete || [])
       .map(row => row.currentData as SamplingStrategy)
       .map(SamplingStrategy.fromObject)
-      .filter(strategy => strategy.hasRealizedEffort)
+      .filter(strategy => strategy.hasLanding)
       .map(s => s.label);
 
-    // send error if one strategy has realized effort
-    if (isNotEmptyArray(strategyLabelsWithRealizedEffort)) {
-      this.errorDetails = {label: strategyLabelsWithRealizedEffort.join(', ')};
-      this.error = strategyLabelsWithRealizedEffort.length === 1
-        ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_REALIZED_EFFORT'
-        : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_REALIZED_EFFORT';
+    // send error if one strategy has landing
+    if (isNotEmptyArray(strategyLabelsWithData)) {
+      this.errorDetails = {label: strategyLabelsWithData.join(', ')};
+      this.error = strategyLabelsWithData.length === 1
+        ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA'
+        : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA';
       return 0;
     }
 

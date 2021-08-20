@@ -74,7 +74,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   mobile: boolean;
   $program = new BehaviorSubject<Program>(null);
-  labelMask: (string | RegExp)[];
+  labelMask: (string | RegExp)[] = [/\d/, /\d/, ' ', /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, ' ', /\d/, /\d/, /\d/];
   data: SamplingStrategy;
 
   hasEffort = false;
