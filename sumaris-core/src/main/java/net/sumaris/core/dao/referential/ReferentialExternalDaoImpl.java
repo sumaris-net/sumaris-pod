@@ -52,6 +52,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Repository("referentialExternalDao")
@@ -181,12 +182,7 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
                 && (filter.getLevelId() == null || filter.getLevelId().equals(s.getLevelId()))
                 && (filter.getLevelIds() == null || Arrays.asList(filter.getLevelIds()).contains(s.getLevelId()))
                 && (filter.getStatusIds() == null || Arrays.asList(filter.getStatusIds()).contains(s.getStatusId()))
-                && (filter.getSearchText() == null || likeIgnoreCase(s.getLabel(), filter.getSearchText(),false) || likeIgnoreCase(s.getName(), filter.getSearchText(),true));
-    }
-
-    private static boolean likeIgnoreCase(String text, String searchText, boolean searchAny) {
-        if (StringUtils.isEmpty(text) || StringUtils.isEmpty(searchText)) return false;
-        return like(text.toLowerCase(), searchText.toLowerCase(), searchAny);
+                && (filter.getSearchText() == null || like(s.getLabel(), filter.getSearchText(),false) || like(s.getName(), filter.getSearchText(),true));
     }
 
     private static boolean like(String text, String searchText, boolean searchAny) {
@@ -195,15 +191,20 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
         // add leading wildcard (if searchAny specified) and trailing wildcard
         searchText = ((searchAny ? "*" : "") + searchText + "*");
 
-        if (searchText.startsWith("*") && searchText.endsWith("*")) {
-            return text.contains(searchText.replace("*", ""));
-        } else if (searchText.startsWith("*")) {
-            return text.endsWith(searchText.replace("*", ""));
-        } else if (searchText.endsWith("*")) {
-            return text.startsWith(searchText.replace("*", ""));
-        } else {
-            return text.equals(searchText.replace("*", ""));
+        // translate searchText in regexp
+        StringBuilder sb = new StringBuilder();
+        String[] searchArray = searchText.split("\\*", -1);
+        for (int i = 0; i < searchArray.length; i++) {
+            if (!StringUtils.isEmpty(searchArray[i])) {
+                sb.append(Pattern.quote(searchArray[i]));
+            }
+            if (i < searchArray.length - 1) {
+                sb.append(".*");
+            }
         }
+        Pattern p = Pattern.compile(sb.toString(), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+
+        return p.matcher(text).matches();
     }
 
 }
