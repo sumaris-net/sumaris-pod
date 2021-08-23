@@ -86,7 +86,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     private DataGraphQLService dataService;
 
     @Autowired
-    private DataGraphQLService vesselService;
+    private VesselGraphQLService vesselService;
 
     @Autowired
     private ReferentialGraphQLService referentialService;
