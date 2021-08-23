@@ -91,6 +91,7 @@
 
       <ion-col size="auto" class="ion-align-self-center">
         <button type="button" mat-icon-button
+                [disabled]="isDepartmentDisable(i)"
                 [tabindex]="tabindex+10++i*3+1"
                 [title]="'COMMON.BTN_ADD'|translate"
                 (click)="addDepartment()">
@@ -98,6 +99,7 @@
         </button>
 
         <button type="button" mat-icon-button
+                [disabled]="isDepartmentDisable(i)"
                 [tabindex]="tabindex+10++i*3+2"
                 [title]="'COMMON.BTN_DELETE'|translate"
                 (click)="departmentsHelper.removeAt(i)">
@@ -245,7 +247,7 @@
       </ion-col>
     </ion-row>
 
-    <!-- Weight Pmfms -->
+    <!-- Lengths Pmfms -->
     <!-- <ion-item *ngIf="form.controls.pmfms.invalid && (form.touched)" hidden-xs hidden-sm hidden-mobile lines="none">
       <div *ngIf="form.controls.pmfms.errors.required">
         Name is required.
@@ -390,6 +392,7 @@
       <ion-col size="auto" class="ion-align-self-center">
 
         <button type="button" mat-icon-button
+                [disabled]="isFractionDisable(i)"
                 [tabindex]="tabindex+10++i*3+1"
                 [title]="'COMMON.BTN_ADD'|translate"
                 (click)="addPmfmStrategiesFraction()">
@@ -397,6 +400,7 @@
         </button>
 
         <button type="button" mat-icon-button
+                [disabled]="isFractionDisable(i)"
                 [tabindex]="tabindex+10++i*3+2"
                 [title]="'COMMON.BTN_DELETE'|translate"
                 (click)="calcifiedFractionsHelper.removeAt(i)">

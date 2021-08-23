@@ -148,7 +148,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return this.form.controls.taxonNames as FormArray;
   }
 
-
   get pmfmsForm(): FormArray {
     return this.form.controls.pmfms as FormArray;
   }
@@ -177,8 +176,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     super.enable(opts);
 
     // disable whole form or form part
-    if (!this.strategyService.canUserWrite(this.data)) {
-      this.form.disable();
+    if (!this.canUserWrite()) {
+      this.disable();
     } else if (this.hasLanding) {
       this.weightPmfmStrategiesTable.disable();
       this.lengthPmfmStrategiesTable.disable();
@@ -202,6 +201,15 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         }
       });
     }
+  }
+
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.disable(opts);
+    this.weightPmfmStrategiesTable.disable(opts);
+    this.lengthPmfmStrategiesTable.disable(opts);
+    this.maturityPmfmStrategiesTable.disable(opts);
+    // FIXME fractions not disabled
+    this.calcifiedFractionsHelper.disable(opts);
   }
 
   constructor(
@@ -1215,6 +1223,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     if (this.cd) this.cd.markForCheck();
   }
 
+  protected canUserWrite(): boolean {
+    return this.strategyService.canUserWrite(this.data);
+  }
+
   requiredPeriodMinLength(minLength?: number): ValidatorFn {
     minLength = minLength || 1;
     return (array: FormArray): ValidationErrors | null => {
@@ -1226,8 +1238,16 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     };
   }
 
+  isDepartmentDisable(index: number): boolean {
+    return this.departmentsHelper.at(index).status === "DISABLED";
+  }
+
   isLocationDisable(index: number): boolean {
-    return (this.appliedStrategiesHelper.at(index).status === "DISABLED") || (this.hasLanding);
+    return this.appliedStrategiesHelper.at(index).status === "DISABLED";
+  }
+
+  isFractionDisable(index: number): boolean {
+    return this.calcifiedFractionsHelper.at(index).status === "DISABLED";
   }
 
   hasSex(): boolean {
