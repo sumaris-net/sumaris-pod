@@ -6,7 +6,7 @@ WORKDIR ${CACHE_DIR}
 
 # Copy need files, to check deps
 COPY ./package.json ./
-COPY ./yarn.lock ./
+# COPY ./yarn.lock ./ FIXME : comment to fix pipeline
 COPY ./scripts/ci/*.sh scripts/ci/
 
 # Store disk usage (before install)

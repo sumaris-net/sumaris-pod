@@ -75,6 +75,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
   protected pmfmService: PmfmService;
+  protected currentSample: Sample; // require to preset presentation on new row
 
   // Top group header
   groupHeaderStartColSpan: number;
@@ -103,6 +104,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() defaultLocation: ReferentialRef;
   @Input() modalOptions: Partial<ISampleModalOptions>;
   @Input() compactFields = true;
+  @Input() showDisplayColumn = true;
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.pmfmGroups$.getValue() !== value) {
@@ -228,6 +230,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
       showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/
     });
+
   }
 
   ngOnDestroy() {
@@ -436,6 +439,19 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     if (isNotNil(this.defaultTaxonGroup)) {
       data.taxonGroup = TaxonGroupRef.fromObject(this.defaultTaxonGroup);
     }
+
+    // Default presentation value
+    if (data.measurementValues.hasOwnProperty(PmfmIds.DRESSING)) {
+      // skip first
+      if (data.rankOrder > 1 && !this.currentSample) {
+        const previousSample = this.value.find(s => s.rankOrder === data.rankOrder - 1);
+        data.measurementValues[PmfmIds.DRESSING] = previousSample.measurementValues[PmfmIds.DRESSING];
+      } else if (this.currentSample) {
+        const previousSample = await this.findRowBySample(this.currentSample);
+        data.measurementValues[PmfmIds.DRESSING] = previousSample.currentData.measurementValues[PmfmIds.DRESSING];
+      }
+      this.currentSample = data;
+    }
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
@@ -581,7 +597,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
           ...groupPmfms.reduce((res, pmfm, index) => {
             if (orderedPmfmIds.includes(pmfm.id)) return res; // Skip if already proceed
             orderedPmfmIds.push(pmfm.id);
-            const visible = group !== 'TAG_ID' && group !== 'DRESSING'; //  && groupPmfmCount > 1;
+            const visible = group !== 'TAG_ID'; //  && groupPmfmCount > 1;
             const key = 'group-' + ((pmfm instanceof DenormalizedPmfmStrategy) ? (pmfm as IDenormalizedPmfm).completeName : pmfm.label);
             return index !== 0 ? res : res.concat(<GroupColumnDefinition>{
               key,

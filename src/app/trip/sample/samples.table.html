@@ -58,7 +58,7 @@
   <mat-divider></mat-divider>
 
   <!-- display columns -->
-  <button mat-menu-item
+  <button *ngIf="showDisplayColumn" mat-menu-item
           (click)="openSelectColumnsModal($event)">
     <mat-icon>view_column</mat-icon>
     <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>

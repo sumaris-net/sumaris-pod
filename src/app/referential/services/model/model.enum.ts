@@ -14,7 +14,8 @@ export const LocationLevelIds = {
 
   // At sea
   ICES_RECTANGLE: 4,
-  ICES_DIVISION: 111
+  ICES_DIVISION: 111,
+  LOCATIONS_AREA: [4, 5, 111]
 };
 
 export const GearLevelIds = {
@@ -122,13 +123,16 @@ export const autoCompleteFractions = {
 }
 
 export const ParameterLabelGroups = {
-  TAG_ID: ['TAG_ID'],
-  DRESSING: ['DRESSING'],
+  TAG_ID: ['TAG_ID', 'SAMPLE_ID' /* SAMPLE_ID parameter label is required for specific Oracle TAG_ID (SAMPLE_ID whith Pmfm id = 1435. */, 'DRESSING'],
   LENGTH: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'],
   WEIGHT: ['WEIGHT'],
   SEX: ['SEX'],
   MATURITY: ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'],
   AGE: ['AGE']
+};
+
+export const FractionIdGroups = {
+  CALCIFIED_STRUCTURE: [10, 11, 12, 13]
 };
 
 export const ParameterGroups = Object.freeze(Object.keys(ParameterLabelGroups));
@@ -148,7 +152,8 @@ export const UnitLabelPatterns = {
 export const UnitLabel = {
   DECIMAL_HOURS: 'h dec.',
   DATE_TIME: 'Date & Time',
-  KG: 'kg'
+  KG: 'kg',
+  GRAM: 'g'
 };
 export const QualityFlagIds = {
   NOT_QUALIFIED: 0,

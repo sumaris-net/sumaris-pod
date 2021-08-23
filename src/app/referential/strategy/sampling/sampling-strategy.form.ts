@@ -39,13 +39,24 @@ import {ReferentialRefService} from '../../services/referential-ref.service';
 import {StrategyService} from '../../services/strategy.service';
 import {StrategyValidatorService} from '../../services/validator/strategy.validator';
 import {PmfmStrategiesTable} from '../pmfm-strategies.table';
-import {AcquisitionLevelCodes, autoCompleteFractions, LocationLevelIds, MatrixIds, ParameterLabelGroups, PmfmIds, ProgramPrivilegeIds, TaxonomicLevelIds} from '../../services/model/model.enum';
+import {
+  AcquisitionLevelCodes,
+  autoCompleteFractions,
+  FractionIdGroups,
+  LocationLevelIds,
+  MatrixIds,
+  ParameterLabelGroups,
+  PmfmIds,
+  ProgramPrivilegeIds,
+  TaxonomicLevelIds
+} from '../../services/model/model.enum';
 import {ProgramProperties} from '../../services/config/program.config';
 import {BehaviorSubject, merge} from 'rxjs';
 import {SamplingStrategyService} from '../../services/sampling-strategy.service';
 import {PmfmFilter, PmfmService} from '../../services/pmfm.service';
 import {SamplingStrategy, StrategyEffort} from '@app/referential/services/model/sampling-strategy.model';
 import {TaxonName} from '@app/referential/services/model/taxon-name.model';
+import {TaxonNameService} from '@app/referential/services/taxon-name.service';
 
 const moment = momentImported;
 
@@ -63,10 +74,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   mobile: boolean;
   $program = new BehaviorSubject<Program>(null);
-  labelMask: (string | RegExp)[];
+  labelMask: (string | RegExp)[] = [/\d/, /\d/, ' ', /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, ' ', /\d/, /\d/, /\d/];
   data: SamplingStrategy;
 
   hasEffort = false;
+  hasLanding = false;
 
   taxonNamesHelper: FormArrayHelper<TaxonNameStrategy>;
   departmentsHelper: FormArrayHelper<StrategyDepartment>;
@@ -94,6 +106,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       levelLabels: ParameterLabelGroups.MATURITY
     }
   };
+  private analyticsReferencePatched: boolean;
+  private fillEffortsCalled: boolean;
 
   get value(): any {
     throw new Error("Not implemented! Please use getValue() instead, that is an async function");
@@ -161,7 +175,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   enable(opts?: { onlySelf?: boolean, emitEvent?: boolean; }) {
     super.enable(opts);
-    if (this.hasEffort) {
+
+    // disable whole form or form part
+    if (!this.strategyService.canUserWrite(this.data)) {
+      this.form.disable();
+    } else if (this.hasLanding) {
       this.weightPmfmStrategiesTable.disable();
       this.lengthPmfmStrategiesTable.disable();
       this.maturityPmfmStrategiesTable.disable();
@@ -173,6 +191,16 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       form.get('label').disable();
       form.get('age').disable();
       form.get('sex').disable();
+
+      // Allow user to update efforts for current quarter and after even when strategy already has samples (#IMAGINE-471)
+      this.appliedPeriodsForm.controls.map(control => {
+        const formGroupControl = control as FormGroup;
+        if (moment().isAfter((formGroupControl.controls.endDate as FormControl).value)) {
+          formGroupControl.disable();
+        } else {
+          formGroupControl.enable();
+        }
+      });
     }
   }
 
@@ -184,6 +212,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     protected pmfmService: PmfmService,
     protected strategyService: StrategyService,
     protected settings: LocalSettingsService,
+    protected taxonNameService: TaxonNameService,
     protected cd: ChangeDetectorRef,
     protected formBuilder: FormBuilder
   ) {
@@ -207,10 +236,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   ngOnInit() {
     super.ngOnInit();
+    this.fillEffortsCalled = false;
+    this.analyticsReferencePatched = false;
 
     this.referentialRefService.loadAll(0, 0, null, null, {
-      entityName: 'Fraction',
-      levelId: MatrixIds.INDIVIDUAL
+      entityName: 'Fraction'
     })
       .then(({data}) => this.allFractionItems.next(data));
 
@@ -329,16 +359,16 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     const idControl = this.form.get('id');
     this.form.get('label').setAsyncValidators([
-    async (control) => {
-      const label = control.value;
-      const parts = label.split(" ");
-      if (parts.some(str => str.indexOf("_") !== -1)) {
-        return <ValidationErrors>{ required: true };
-      }
-      if (label.includes('000')) {
-        return <ValidationErrors>{ zero: true };
-      }
-      console.debug('[sampling-strategy-form] Checking of label is unique...');
+      async (control) => {
+        const label = control.value;
+        const parts = label.split(" ");
+        if (parts.some(str => str.indexOf("_") !== -1)) {
+          return <ValidationErrors>{ required: true };
+        }
+        if (label.includes('000')) {
+          return <ValidationErrors>{ zero: true };
+        }
+        console.debug('[sampling-strategy-form] Checking of label is unique...');
         const exists = await this.strategyService.existsByLabel(label, {
           programId: this.program && this.program.id,
           excludedIds: isNotNil(idControl.value) ? [idControl.value] : undefined,
@@ -381,7 +411,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       suggestFn: (value, filter) => this.suggestLocations(value, {
         ...filter,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        levelIds: [LocationLevelIds.ICES_DIVISION]
+        levelIds: LocationLevelIds.LOCATIONS_AREA
       }),
       mobile: this.settings.mobile
     });
@@ -400,7 +430,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       suggestFn: (value, filter) => this.suggestAgeFractions(value, {
         ...filter,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        levelIds: [MatrixIds.INDIVIDUAL]
+        includedIds: FractionIdGroups.CALCIFIED_STRUCTURE
       }),
       attributes: ['name'],
       columnNames: ['REFERENTIAL.NAME'],
@@ -423,9 +453,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       if (!opts || opts.emitEvent !== false) {
         this.markForCheck();
       }
-
-      // When program is loaded, reload increment
-      this.onDateChange();
     }
   }
 
@@ -507,7 +534,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     );
     const fractions = isNotEmptyArray(fractionIds)
       && (await this.referentialRefService.loadAll(0, fractionIds.length, null, null, { includedIds: fractionIds, entityName: 'Fraction' }, {withTotal: false})
-        .then(({data}) => data.sort(sortFn)))
+        .then(({data}) => data.sort(sortFnByName)))
       || [];
     this.fractionItems.next(fractions);
     this.autocompleteFilters.fraction = isNotEmptyArray(fractions) && autoEnableFilter; // Enable filtering, if need by program
@@ -531,13 +558,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     } catch (err) {
       console.debug('Error on load AnalyticReference');
-    }
-
-    // set label if data already exist
-    const labelAlreadyExist = this.form.get('id').value
-    if (labelAlreadyExist) {
-      const currentData = data.find(elem => elem.id === labelAlreadyExist)
-      this.form.get('label').setValue(currentData.label);
     }
   }
 
@@ -592,9 +612,15 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    */
   selectMask(input: HTMLInputElement) {
     if (!this.labelMask) input.select();
-    const startIndex = this.labelMask.findIndex(c => c instanceof RegExp);
+    const taxonNameControl = this.taxonNamesHelper.at(0);
     const endIndex = this.labelMask.length;
-    input.setSelectionRange(startIndex, endIndex, "backward");
+    if (taxonNameControl.hasError('cannotComputeTaxonCode') || taxonNameControl.hasError('uniqueTaxonCode')) {
+      input.setSelectionRange(3, endIndex, "backward");
+    }
+    else
+    {
+      input.setSelectionRange(11, endIndex, "backward");
+    }
   }
 
   toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
@@ -688,7 +714,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Fill efforts (need by validator)
     this.samplingStrategyService.fillEfforts([this.data]).then((test) => {
       this.hasEffort = this.data.hasRealizedEffort;
+      this.hasLanding = this.data.hasLanding;
       this.enable();
+      this.fillEffortsCalled = true;
     });
 
     // Make sure to have (at least) one department
@@ -703,7 +731,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     data.taxonNames = data.taxonNames && data.taxonNames.length ? data.taxonNames : [null];
     // Resize pmfm strategy array
     this.taxonNamesHelper.resize(Math.max(1, data.taxonNames.length));
-
 
     // APPLIED_PERIODS
     // get model appliedPeriods which are stored in first applied strategy
@@ -741,6 +768,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         year: firstAppliedPeriod ? firstAppliedPeriod.startDate : moment(),
         analyticReference: data && { label: data.label, name: data.name } || null
       });
+      this.analyticsReferencePatched = true;
     });
 
     // If new
@@ -752,6 +780,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       // pmfms = [hasSex, hasAge];
       this.form.get('age').patchValue((data.pmfms || []).findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.AGE) !== -1);
       this.form.get('sex').patchValue((data.pmfms || []).findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.SEX) !== -1);
+      const displayedLabel = data.label.substr(0, 2).concat(' ').concat(data.label.substr(2, 7)).concat(' ').concat(data.label.substr(9, 3));
+      this.form.get('label').patchValue(displayedLabel);
     }
 
 
@@ -794,11 +824,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.calcifiedFractionsHelper.resize(Math.max(1, pmfmStrategiesWithFraction.length));
       calcifiedTypeControl.patchValue(fractions);
     });
+
   }
 
 
   async getValue(): Promise<Strategy> {
-    const json = this.form.value;
+    const json = this.form.getRawValue();
     const target = Strategy.fromObject(json);
 
     target.name = target.label || target.name;
@@ -911,28 +942,76 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   protected async onEditLabel(value: string) {
-    const labelControl = this.form.get('label');
     const taxonNameControl = this.taxonNamesHelper.at(0);
+    const labelRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]/);
+    const labelRegexWithoutSpaces = new RegExp(/^\d\d[a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]/);
     if (taxonNameControl.hasError('cannotComputeTaxonCode') || taxonNameControl.hasError('uniqueTaxonCode')) {
-      const labelRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]/);
       if (value.match(labelRegex)) {
-        const isUnique = (await this.referentialRefService.countAll({
-          entityName: TaxonName.ENTITY_NAME,
-          searchText: TaxonUtils.generateNameSearchPatternFromLabel(value.substring(3, 10)),
-          searchAttribute: 'name',
-          statusIds: [StatusIds.ENABLE],
-          levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
-        })) === 0;
+        const currentViewTaxon = taxonNameControl?.value?.taxonName;
+        const isUnique = this.isTaxonNameUnique(value.substring(3, 10), currentViewTaxon?.id);
+
         if (!isUnique) {
           taxonNameControl.setErrors({ uniqueTaxonCode: true });
         } else {
-          SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
+          // SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
           SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
-          const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10).toUpperCase(), 3));
+          const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10).replace(' ', '').toUpperCase(), 3));
+          const labelControl = this.form.get('label');
           labelControl.setValue(computedLabel);
         }
       }
     }
+    else if (value && !(value === value.toUpperCase()))
+    {
+      if (value.match(labelRegex) || value.match(labelRegexWithoutSpaces)) {
+        const labelControl = this.form.get('label');
+        const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10).replace(' ', '').toUpperCase(), 3));
+        labelControl.setValue(computedLabel);
+      }
+    }
+  }
+
+  private async isTaxonNameUnique(label: string, currentViewTaxonId: number) {
+    const taxonNamesItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+    const taxonNamesWithParentheseItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+    let isUnique = true;
+    if (label) {
+      await this.referentialRefService.loadAll(0, 1000, null, null, {
+        entityName: TaxonName.ENTITY_NAME,
+        searchText: TaxonUtils.generateNameSearchPatternFromLabel(label),
+        searchAttribute: 'name',
+        excludedIds: [currentViewTaxonId],
+        statusIds: [StatusIds.ENABLE],
+        levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
+      }).then(({data}) => taxonNamesItems.next(data));
+
+      if (taxonNamesItems && taxonNamesItems.value)
+      {
+        const filteredReferentTaxons = (await Promise.all(taxonNamesItems.value.map(taxonRef => (this.taxonNameService.load(taxonRef.id))))).filter(taxon => taxon.isReferent);
+        if (!(filteredReferentTaxons === null || filteredReferentTaxons.length === 0))
+        {
+          isUnique = false;
+        }
+        else {
+          // IMAGINE-511 - add a control on taxon unicity searching in taxon with parentheses
+          // should be replaced by generateNameSearchPatternFromLabel managing optional parentheses in searchText parameter
+          await this.referentialRefService.loadAll(0, 1000, null, null, {
+            entityName: TaxonName.ENTITY_NAME,
+            searchText: TaxonUtils.generateNameSearchPatternFromLabel(label, true),
+            searchAttribute: 'name',
+            excludedIds: [currentViewTaxonId],
+            statusIds: [StatusIds.ENABLE],
+            levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
+          }).then(({data}) => taxonNamesWithParentheseItems.next(data));
+          const filteredReferentTaxonsWithParenthese = (await Promise.all(taxonNamesWithParentheseItems.value.map(taxonRef => (this.taxonNameService.load(taxonRef.id))))).filter(taxon => taxon.isReferent);
+          if (!(filteredReferentTaxonsWithParenthese === null || filteredReferentTaxonsWithParenthese.length === 0))
+          {
+            isUnique = false;
+          }
+        }
+      }
+    }
+    return isUnique;
   }
 
   protected async onDateChange(date?: Moment) {
@@ -948,57 +1027,59 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   protected async generateLabel(date?: Moment) {
-    date = fromDateISOString(date || this.form.get('year').value);
-    if (!date || !this.program) return // Skip if year or program is missing
-    const yearMask = date.format('YY');
+    // Wait for asynchronous functions to be completed.
+    if (this.analyticsReferencePatched && this.fillEffortsCalled) {
+      if (date && date === this.form.value?.year) return // Skip if year doesn't change
+      date = fromDateISOString(date || this.form.get('year').value);
+      if (!date || !this.program) return // Skip if year or program is missing
+      const yearMask = date.format('YY');
 
-    let taxonNameMask;
-    let errors: ValidationErrors;
-    const taxonNameControl = this.taxonNamesHelper.at(0);
-    const taxonName = taxonNameControl?.value?.taxonName;
+      let errors: ValidationErrors;
+      const taxonNameControl = this.taxonNamesHelper.at(0);
+      const currentViewTaxon = taxonNameControl?.value?.taxonName;
+      const currentViewTaxonName = taxonNameControl?.value?.taxonName?.name;
+      const previousFormTaxonName = this.form.getRawValue().taxonNames[0]?.taxonName?.name?.clone;
+      const storedDataTaxonName = this.data.taxonNames[0]?.taxonName?.name;
+      const storedDataYear = this.data.appliedStrategies[0]?.appliedPeriods[0]?.startDate ? fromDateISOString(this.data.appliedStrategies[0].appliedPeriods[0].startDate).format('YY') : undefined;
+      let previousFormYear = undefined;
+      if (this.form.getRawValue().year && fromDateISOString(this.form.getRawValue().year)) {
+        previousFormYear = fromDateISOString(this.form.getRawValue().year).format('YY');
+      }
+      const labelControl = this.form.get('label');
 
-    const label = taxonName && TaxonUtils.generateLabelFromName(taxonName.name);
-    const isUnique = label && (await this.referentialRefService.countAll({
-      entityName: TaxonName.ENTITY_NAME,
-      searchText: TaxonUtils.generateNameSearchPatternFromLabel(label),
-      searchAttribute: 'name',
-      excludedIds: [taxonName.id],
-      statusIds: [StatusIds.ENABLE],
-      levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
-    })) === 0;
-    if (!label) {
-      errors = { cannotComputeTaxonCode: true };
-    } else if (!isUnique) {
-      errors = { uniqueTaxonCode: true };
-    } else {
-      taxonNameMask = [...label];
-    }
+      // When taxon is changed first and returned to initial value, we set back initial sampling strategy label (with same year)
+      if (currentViewTaxonName === storedDataTaxonName && yearMask === storedDataYear) {
+        labelControl.setValue(this.data.label);
+        return;
+      }
+      const label = currentViewTaxonName && TaxonUtils.generateLabelFromName(currentViewTaxonName);
+      const isUnique = await this.isTaxonNameUnique(label, currentViewTaxon.id);
 
-    if (errors) {
-      taxonNameMask = [/^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/];
-    }
+      if (!label) {
+        errors = {cannotComputeTaxonCode: true};
+      } else if (!isUnique) {
+        errors = {uniqueTaxonCode: true};
+      }
 
-    // @ts-ignore
-    this.labelMask = yearMask.split("")
-      .concat([' '])
-      .concat(taxonNameMask)
-      .concat([' ', /\d/, /\d/, /\d/]);
+      // @ts-ignore
+      const newMask = yearMask.split("")
+        .concat([' ', /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, ' ', /\d/, /\d/, /\d/]);
 
-    const taxonNameMaskString = taxonNameMask.join("");
+      if (currentViewTaxonName  && currentViewTaxonName === previousFormTaxonName && yearMask && yearMask === previousFormYear) return; // Skip generate label when there is no update on year or taxon
+      this.labelMask = newMask;
 
-    const labelControl = this.form.get('label');
 
-    if (errors && taxonNameControl) {
-      // Lorsque l'on saisi une espece valide, puis une espece non valide le code ligne de plan garde la valeur de l'espece precedente valide
-      // Il faut saisir une deuxieme fois une espece invalide pour que le code ligne de plan prenne la valeur attendue
-      const computedLabel = `${yearMask} _______`;
-      labelControl.setValue(computedLabel);
-      taxonNameControl.setErrors(errors);
-    } else {
-      const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${yearMask}${taxonNameMaskString}`, 3));
-      SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
-      console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
-      labelControl.setValue(computedLabel);
+
+      if (errors && taxonNameControl) {
+        const computedLabel = `${yearMask} `;
+        taxonNameControl.setErrors(errors);
+        labelControl.setValue(computedLabel);
+      } else {
+        const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${yearMask}${label}`, 3));
+        SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
+        console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
+        labelControl.setValue(computedLabel);
+      }
     }
   }
 
@@ -1146,7 +1227,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   isLocationDisable(index: number): boolean {
-    return this.appliedStrategiesHelper.at(index).status === "DISABLED";
+    return (this.appliedStrategiesHelper.at(index).status === "DISABLED") || (this.hasLanding);
   }
 
   hasSex(): boolean {

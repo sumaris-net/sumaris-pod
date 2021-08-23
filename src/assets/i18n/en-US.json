@@ -13,6 +13,7 @@
     "BTN_CLOSE": "Close",
     "BTN_DONE": "Done",
     "BTN_DOWNLOAD": "Download",
+    "BTN_DUPLICATE": "Duplicate",
     "BTN_DELETE": "Delete",
     "BTN_DELETE_FOREVER": "Delete forever",
     "BTN_EDIT": "Edit",
@@ -150,6 +151,7 @@
       "ENABLE_GRAVATAR": "User > Enable Gravatar ?",
       "DEFAULT_LOCALE": "Default Language",
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
+      "DEFAULT_WEIGHT_UNIT": "Default weight unit",
       "ACCESS_NOT_SELF_DATA_MIN_ROLE": "Data entry > Min. user profile (min) to access other people data",
       "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Data entry > Department that can access other people data",
       "CHECK_SAMPLE_UNIQUE_TAG": "Check if TAG_ID is unique",
@@ -187,6 +189,7 @@
         "LOCATION_LEVEL_PORT_ID": "Referential > Location level > Port",
         "LOCATION_LEVEL_AUCTION_ID": "Referential > Location level > Sale auction",
         "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Referential > Location level > CIEM/ICES Statistical Rectangle",
+        "LOCATION_LEVEL_LOCATIONS_AREA_ID": "Strategy > fishing area level",
         "LOCATION_LEVEL_ICES_DIVISION_ID": "Referential > Location level > CIEM/ICES Division",
         "TAXONOMIC_LEVEL_FAMILY_ID": "Referential > Taxonomic level > Family",
         "TAXONOMIC_LEVEL_GENUS_ID": "Referential > Taxonomic level > Genus",
@@ -206,7 +209,8 @@
         "PARAMETER_GROUP_SEX_LABELS": "Strategy > Parameter > Sex labels",
         "PARAMETER_GROUP_WEIGHT_LABELS": "Strategy > Parameter > Weight labels",
         "PARAMETER_GROUP_LENGTH_LABELS": "Strategy > Parameter > Length labels",
-        "PARAMETER_GROUP_MATURITY_LABELS": "Strategy > Parameter > Maturity labels"
+        "PARAMETER_GROUP_MATURITY_LABELS": "Strategy > Parameter > Maturity labels",
+        "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Strategy > Fraction > Calcified structure ids"
       },
       "TESTING": "Developer mode ?",
       "ENTITY_TRASH": "Enable trash on pod?",
@@ -1194,6 +1198,7 @@
       "USER_PROFILE": "User profiles",
       "VESSEL_TYPE": "Vessel types",
       "PMFM": "Collected parameters",
+      "DUPLICATE_STRATEGY": "Strategy to duplicate",
       "MATRIX": "Matrices",
       "FRACTION": "Fractions of the matrix",
       "QUALITATIVE_VALUE": "Qualitative values",
@@ -1431,9 +1436,8 @@
         "EFFORT.REALIZED_EFFORT": "The number of efforts must be greater than or equal to 1 for quarters with individual measures",
         "LABEL.UNIQUE": "The code of the sampling plan line already exists",
         "LABEL.ZERO": "The minimum increment is 001",
-        "STRATEGY_HAS_REALIZED_EFFORT": "Sampling scheme {{label}} used by observed locations",
-        "STRATEGIES_HAS_REALIZED_EFFORT": "Sampling schemes {{label}} used by observed locations",
-        "PMFM.PMFM_OR_PARAMETER": "Please select a PMFM or Parameter",
+        "STRATEGY_HAS_DATA": "Sampling scheme {{label}} used by observed locations",
+        "STRATEGIES_HAS_DATA": "Sampling schemes {{label}} used by observed locations",
         "CANNOT_COMPUTE_TAXON_CODE": "Taxon name is invalid",
         "NOT_UNIQUE_TAXON_CODE": "Generate taxon code is not unique"
       }

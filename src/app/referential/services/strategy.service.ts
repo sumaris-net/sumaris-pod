@@ -57,7 +57,7 @@ const LoadAllAnalyticReferencesWithTotalQuery: any = gql`query AnalyticReference
   data: analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
     ...ReferentialFragment
   }
-  count: analyticReferencesCount(filter: $filter)
+  total: analyticReferencesCount(filter: $filter)
 }
 ${ReferentialFragments.referential}`;
 
@@ -238,6 +238,11 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     }): Promise<LoadResult<ReferentialRef>> {
 
     filter = ReferentialRefFilter.fromObject(filter);
+    if (filter.searchText) {
+      filter.searchText = filter.searchText + "*-MS";
+    } else {
+      filter.searchText = "*-MS";
+    }
     const variables: any = {
       offset: offset || 0,
       size: size || 100,

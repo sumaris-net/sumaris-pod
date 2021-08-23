@@ -13,6 +13,7 @@ import {ObservedLocation} from '../../services/model/observed-location.model';
 import {SamplingStrategyService} from '../../../referential/services/sampling-strategy.service';
 import {Strategy} from '../../../referential/services/model/strategy.model';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {SamplesTable} from '@app/trip/sample/samples.table';
 
 
 @Component({
@@ -150,8 +151,19 @@ export class SamplingLandingPage extends LandingPage {
   protected computeSampleRowValidator(form: FormGroup, pmfms: DenormalizedPmfmStrategy[]): Subscription {
     console.debug('[sampling-landing-page] Adding row validator');
 
-    // TODO generate new label ?
-    //this.samplingStrategyService.computeNextSampleTagId(this.$strategyLabel.getValue())
+      this.samplingStrategyService.computeNextSampleTagId(this.$strategyLabel.getValue(), '-').then(value => {
+        if (this.samplesTable.editedRow.currentData && (!this.samplesTable.editedRow.currentData.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) || !this.samplesTable.editedRow.currentData.measurementValues[PmfmIds.TAG_ID])) {
+          console.info("computeSampleRowValidator: " + value);
+          const parts = value && value.split('-');
+          const sampleTagIdIncrement = (parts.length === 2) ? parts[1] : undefined;
+          // Set sample tag pmfm value
+          const data = this.samplesTable.editedRow.currentData;
+          data.measurementValues[PmfmIds.TAG_ID] = ("0000" + (Number(sampleTagIdIncrement) + data.rankOrder - 1)).slice(-4);
+          console.info("computeSampleRowValidator result: " + data.measurementValues[PmfmIds.TAG_ID]);
+          this.samplesTable.editedRow.validator.patchValue(data);
+          this.markAsDirty();
+        }
+      });
 
     return BiologicalSamplingValidators.addSampleValidators(form, pmfms, this.$pmfmGroups.getValue() || {}, {
       markForCheck: () => this.markForCheck()

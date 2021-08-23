@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, Optional, QueryList, ViewChild, ViewChildren} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, Inject, Injector, OnInit, Optional, QueryList, ViewChild, ViewChildren} from '@angular/core';
 
 import {
   AppEditorOptions,
@@ -42,6 +42,7 @@ import * as momentImported from 'moment';
 import {PmfmService} from '@app/referential/services/pmfm.service';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {PmfmIds} from '@app/referential/services/model/model.enum';
+import { ContextService } from '@app/shared/context.service';
 
 const moment = momentImported;
 
@@ -80,6 +81,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   showEntityMetadata = false;
   showQualityForm = false;
   i18nPrefix = LANDING_DEFAULT_I18N_PREFIX;
+  contextService: ContextService;
 
   get form(): FormGroup {
     return this.landingForm.form;
@@ -94,7 +96,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   constructor(
     injector: Injector,
-    @Optional() options: LandingEditorOptions
+    @Optional() options: LandingEditorOptions,
   ) {
     super(injector, Landing, injector.get(LandingService), {
       tabCount: 2,
@@ -107,6 +109,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.referentialRefService = injector.get(ReferentialRefService);
     this.vesselService = injector.get(VesselSnapshotService);
     this.platform = injector.get(PlatformService);
+    this.contextService = injector.get(ContextService);
+
 
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
@@ -144,6 +148,10 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         .pipe(debounceTime(500))
         .subscribe(() => this.landingForm.canEditStrategy = this.samplesTable.empty)
     );
+
+    const presetStrategy = this.contextService.getValue('samplingStrategy');
+    this.setStrategy(presetStrategy);
+    this.contextService.resetValue('samplingStrategy');
   }
 
   protected registerForms() {
@@ -343,6 +351,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.strategyCard.value = strategy;
     }
     this.samplesTable.strategyLabel = strategy.label;
+    this.landingForm.strategyControl.setValue(strategy);
+
 
     // Set table defaults
     const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
@@ -354,7 +364,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     const strategyPmfmIds = strategyPmfms.map(pmfm => pmfm.id);
 
     // Retrieve additional pmfms, from data (= PMFMs NOT in the strategy)
-    const additionalPmfmIds = (this.data.samples || []).reduce((res, sample) => {
+    const additionalPmfmIds = (this.data?.samples || []).reduce((res, sample) => {
       const pmfmIds = Object.keys(sample.measurementValues || {}).map(id => +id);
       const newPmfmIds = pmfmIds.filter(id => !res.includes(id) && !strategyPmfmIds.includes(id));
       return newPmfmIds.length ? res.concat(...newPmfmIds) : res;
@@ -377,6 +387,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       ];
     }
 
+    this.markForCheck();
   }
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {

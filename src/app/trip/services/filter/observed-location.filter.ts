@@ -14,14 +14,18 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
     static fromObject: (source: any, opts?: any) => ObservedLocationFilter
 
     location?: ReferentialRef;
+    observerPersonIds?: number[];
 
     fromObject(source: any, opts?: any) {
         super.fromObject(source, opts);
         this.location = ReferentialRef.fromObject(source.location);
+        this.observerPersonIds = (source.observers && [source.observers.id]) || [];
     }
 
     asObject(opts?: EntityAsObjectOptions): any {
         const target = super.asObject(opts);
+        target.observerPersonIds = this.observerPersonIds;
+        delete target.observerPerson;
         if (opts && opts.minify) {
             target.locationId = this.location && this.location.id || undefined;
             delete target.location;
@@ -51,6 +55,13 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
             filterFns.push(t => t.startDateTime && endDate.isAfter(t.startDateTime));
         }
 
+        // Recorder department and person
+        // Already defined in super classes root-data-filter.model.ts et data-filter.model.ts
+
+        // Observers
+      if (ReferentialUtils.isNotEmpty(this.observerPersonIds)) {
+        filterFns.push(t => t.observerPersonIds && t.observerPersonIds === this.observerPersonIds);
+      }
         return filterFns;
     }
 }

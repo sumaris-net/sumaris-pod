@@ -3,7 +3,7 @@ import {
   AppFormUtils,
   AppTable,
   DefaultStatusList,
-  EntitiesTableDataSource,
+  EntitiesTableDataSource, firstArrayValue,
   fromDateISOString,
   isEmptyArray,
   isNotEmptyArray,
@@ -41,6 +41,9 @@ import {MatExpansionPanel} from '@angular/material/expansion';
 import {TableElement} from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
 import {Subject} from 'rxjs';
 import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
+import {StrategyModal} from '@app/referential/strategy/strategy.modal';
+import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from '@app/referential/services/model/strategy.model';
+import {PmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 
 const moment = momentImported;
 
@@ -143,7 +146,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       injector);
 
     this.parameterGroupLabels = Object.keys(ParameterLabelGroups)
-      .filter(label => label !== 'TAG_ID' && label !== 'DRESSING');
+      .filter(label => label !== 'TAG_ID');
 
     this.filterForm = formBuilder.group({
       searchText: [null],
@@ -216,7 +219,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       filter: <ReferentialFilter>{
         entityName: 'Location',
         // TODO BLA: rendre ceci paramètrable par program properties
-        levelIds: [LocationLevelIds.ICES_DIVISION],
+        levelIds: LocationLevelIds.LOCATIONS_AREA,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }
     });
@@ -286,18 +289,18 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   async deleteSelection(event: UIEvent): Promise<number> {
     const rowsToDelete = this.selection.selected;
 
-    const strategyLabelsWithRealizedEffort = (rowsToDelete || [])
+    const strategyLabelsWithData = (rowsToDelete || [])
       .map(row => row.currentData as SamplingStrategy)
       .map(SamplingStrategy.fromObject)
-      .filter(strategy => strategy.hasRealizedEffort)
+      .filter(strategy => strategy.hasLanding)
       .map(s => s.label);
 
-    // send error if one strategy has realized effort
-    if (isNotEmptyArray(strategyLabelsWithRealizedEffort)) {
-      this.errorDetails = {label: strategyLabelsWithRealizedEffort.join(', ')};
-      this.error = strategyLabelsWithRealizedEffort.length === 1
-        ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_REALIZED_EFFORT'
-        : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_REALIZED_EFFORT';
+    // send error if one strategy has landing
+    if (isNotEmptyArray(strategyLabelsWithData)) {
+      this.errorDetails = {label: strategyLabelsWithData.join(', ')};
+      this.error = strategyLabelsWithData.length === 1
+        ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA'
+        : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA';
       return 0;
     }
 
@@ -440,6 +443,87 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         .then(parameters => result[groupLabel] = parameters.map(p => p.id))
     }));
     return result;
+  }
+
+  // INFO CLT : Imagine 355. Sampling strategy can be duplicated with selected year.
+  // We keep initial strategy and remove year related data like efforts.
+  // We update year-related values like applied period as done in sampling-strategy.form.ts getValue()
+  async openStrategyDuplicateYearSelectionModal(event: UIEvent, strategiesToDuplicate: TableElement<SamplingStrategy>[]) {
+    const modal = await this.modalCtrl.create({
+      component: StrategyModal,
+    });
+
+    // Open the modal
+    await modal.present();
+    const userDate = await modal.onDidDismiss();
+
+    if (userDate && userDate.data) {
+      for (const strategyToDuplicate of strategiesToDuplicate) {
+        const initialStrategy = SamplingStrategy.fromObject(strategyToDuplicate.currentData);
+        const strategyToSave = new Strategy();
+        const year = typeof(userDate.data) === 'string' ? fromDateISOString(userDate.data).format('YY').toString() : userDate.data.format('YY').toString();
+        const strategyToSaveLabel = await this.strategyService.computeNextLabel(this.program.id, year + initialStrategy.label.substring(2, 9), 3);
+
+        strategyToSave.label = strategyToSaveLabel;
+        strategyToSave.name = strategyToSaveLabel;
+        strategyToSave.description = strategyToSaveLabel;
+        strategyToSave.analyticReference = initialStrategy.analyticReference;
+        strategyToSave.programId = initialStrategy.programId;
+
+        strategyToSave.appliedStrategies = (initialStrategy.appliedStrategies || []).map(initialAppliedStrategy => {
+          const strategyToSaveAppliedStrategy = new AppliedStrategy();
+          strategyToSaveAppliedStrategy.id = undefined;
+          strategyToSaveAppliedStrategy.updateDate = undefined;
+          strategyToSaveAppliedStrategy.location = initialAppliedStrategy.location;
+          if (isNotEmptyArray(initialAppliedStrategy.appliedPeriods)) {
+            strategyToSaveAppliedStrategy.appliedPeriods = initialAppliedStrategy.appliedPeriods.map(initialAppliedStrategyPeriod => {
+              const startMonth = (initialAppliedStrategyPeriod.startDate?.month()) + 1;
+              const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`)?.utc();
+              const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
+              const appliedPeriod = AppliedPeriod.fromObject({acquisitionNumber: initialAppliedStrategyPeriod.acquisitionNumber});
+              appliedPeriod.startDate = startDate;
+              appliedPeriod.endDate = endDate;
+              appliedPeriod.appliedStrategyId = undefined;
+              return appliedPeriod;
+            });
+          } else {
+            strategyToSaveAppliedStrategy.appliedPeriods = [];
+          }
+          return strategyToSaveAppliedStrategy;
+        })
+
+        strategyToSave.pmfms = initialStrategy.pmfms && initialStrategy.pmfms.map(pmfmStrategy => {
+          const pmfmStrategyCloned = pmfmStrategy.clone();
+          pmfmStrategyCloned.id = undefined;
+          pmfmStrategyCloned.strategyId = undefined;
+          return PmfmStrategy.fromObject(pmfmStrategyCloned)
+        }) || [];
+        strategyToSave.departments = initialStrategy.departments && initialStrategy.departments.map(department => {
+          const departmentCloned = department.clone();
+          departmentCloned.id = undefined;
+          departmentCloned.strategyId = undefined;
+          return StrategyDepartment.fromObject(departmentCloned)
+        }) || [];
+        strategyToSave.taxonNames = initialStrategy.taxonNames && initialStrategy.taxonNames.map(taxonNameStrategy => {
+          const taxonNameStrategyCloned = taxonNameStrategy.clone();
+          taxonNameStrategyCloned.strategyId = undefined;
+          return TaxonNameStrategy.fromObject(taxonNameStrategyCloned)
+        }) || [];
+        strategyToSave.id = undefined;
+        strategyToSave.updateDate = undefined;
+        strategyToSave.comments = initialStrategy.comments;
+        strategyToSave.creationDate = undefined;
+        strategyToSave.statusId = initialStrategy.statusId;
+        strategyToSave.validityStatusId = initialStrategy.validityStatusId;
+        strategyToSave.levelId = initialStrategy.levelId;
+        strategyToSave.parentId = initialStrategy.parentId;
+        strategyToSave.entityName = initialStrategy.entityName;
+        strategyToSave.denormalizedPmfms = undefined;
+        strategyToSave.gears = undefined;
+        strategyToSave.taxonGroups = undefined;
+        await this.strategyService.save(strategyToSave);
+      }
+    }
   }
 }
 
