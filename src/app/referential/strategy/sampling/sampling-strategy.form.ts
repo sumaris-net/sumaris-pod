@@ -178,6 +178,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // disable whole form or form part
     if (!this.canUserWrite()) {
       this.disable();
+      this.weightPmfmStrategiesTable.disable();
+      this.lengthPmfmStrategiesTable.disable();
+      this.maturityPmfmStrategiesTable.disable();
+      // FIXME fractions not disabled
+      this.calcifiedFractionsHelper.disable();
     } else if (this.hasLanding) {
       this.weightPmfmStrategiesTable.disable();
       this.lengthPmfmStrategiesTable.disable();
@@ -201,15 +206,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         }
       });
     }
-  }
-
-  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.disable(opts);
-    this.weightPmfmStrategiesTable.disable(opts);
-    this.lengthPmfmStrategiesTable.disable(opts);
-    this.maturityPmfmStrategiesTable.disable(opts);
-    // FIXME fractions not disabled
-    this.calcifiedFractionsHelper.disable(opts);
   }
 
   constructor(
