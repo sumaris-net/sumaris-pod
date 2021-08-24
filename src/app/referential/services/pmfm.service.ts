@@ -1,11 +1,11 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
-import {AccountService, MINIFY_ENTITY_FOR_POD} from '@sumaris-net/ngx-components';
+import {AccountService, ConfigService, MINIFY_ENTITY_FOR_POD} from '@sumaris-net/ngx-components';
 import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {environment} from '@environments/environment';
 import {ReferentialService} from "./referential.service";
-import {Pmfm} from "./model/pmfm.model";
+import {IPmfm, Pmfm} from './model/pmfm.model';
 import {Observable, of} from "rxjs";
 import {ReferentialFragments} from "./referential.fragments";
 import {map} from "rxjs/operators";
@@ -22,6 +22,8 @@ import {CacheService} from "ionic-cache";
 import {CryptoService}  from "@sumaris-net/ngx-components";
 import {BaseReferentialFilter} from "./filter/referential.filter";
 import {EntityClass}  from "@sumaris-net/ngx-components";
+import {UnitLabel} from '@app/referential/services/model/model.enum';
+import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
 
 const LoadAllQuery = gql`query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
   data: pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -173,11 +175,17 @@ export class PmfmService
     protected accountService: AccountService,
     protected referentialService: ReferentialService,
     protected referentialRefService: ReferentialRefService,
+    protected configService: ConfigService,
     protected cache: CacheService,
     protected cryptoService: CryptoService
   ) {
     super(graphql, environment);
+    this.configService.config.subscribe(config => {
+      this.weightDisplayedUnit = config && config.getProperty(DATA_CONFIG_OPTIONS.WEIGHT_DISPLAYED_UNIT);
+    });
   }
+
+  protected weightDisplayedUnit: string;
 
   async existsByLabel(label: string, opts?: { excludedId?: number; }): Promise<boolean> {
     if (isNil(label)) return false;
@@ -465,4 +473,31 @@ export class PmfmService
     }
 
   }
+
+  public getConvertedPmfm(pmfm: IPmfm): IPmfm {
+    // Weight pmfms are the only ones that can be converted yet.
+    if (pmfm.unitLabel === 'Kg' || pmfm.unitLabel === UnitLabel.KG || pmfm.unitLabel === UnitLabel.GRAM) {
+      const convertedPmfm = pmfm.clone();
+      // Retrieve software displayed unit in software properties
+      convertedPmfm.unitLabel = this.weightDisplayedUnit;
+      const conversionFn = function (number) {
+        return number * 1000;
+      }
+      convertedPmfm.minValue = isNotNil(convertedPmfm.minValue) ? conversionFn(convertedPmfm.minValue) : convertedPmfm.minValue;
+      convertedPmfm.maxValue = isNotNil(convertedPmfm.maxValue) ? conversionFn(convertedPmfm.maxValue) : convertedPmfm.maxValue;
+      if (UnitLabel.GRAM === pmfm.unitLabel && UnitLabel.KG === convertedPmfm.unitLabel) {
+        convertedPmfm.maximumNumberDecimals += 3;
+      }
+      if (UnitLabel.KG === pmfm.unitLabel && UnitLabel.GRAM === convertedPmfm.unitLabel) {
+        convertedPmfm.maximumNumberDecimals = isNotNil(convertedPmfm.maximumNumberDecimals) ? Math.max(convertedPmfm.maximumNumberDecimals - 3, 0) : convertedPmfm.maximumNumberDecimals;
+      }
+      if (convertedPmfm.maximumNumberDecimals === 0) {
+        convertedPmfm.type = 'integer';
+      }
+      return convertedPmfm;
+    }
+    // TODO : Manage length pmfms conversion...
+    return pmfm;
+  }
+
 }
