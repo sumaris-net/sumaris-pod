@@ -458,6 +458,13 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         Integer.class,
         false),
 
+    ANALYTIC_REFERENCES_SERVICE_FILTER(
+        "sumaris.analyticReferences.service.filter",
+        n("sumaris.config.option.analyticReferences.service.filter.description"),
+        ".*-MS", /* regexp */
+        String.class,
+        false),
+
     /*
      * CLI options
      */

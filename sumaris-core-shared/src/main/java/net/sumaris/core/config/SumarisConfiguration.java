@@ -815,6 +815,15 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
+     * <p>get the analytic references service filter as a regexp on code.</p>
+     *
+     * @return a {@link String}.
+     */
+    public String getAnalyticReferencesServiceFilter() {
+        return applicationConfig.getOption(SumarisConfigurationOption.ANALYTIC_REFERENCES_SERVICE_FILTER.getKey());
+    }
+
+    /**
      * <p>Get the output file, for action (e.g. a file to create, when executing a dump action).</p>
      * <p>Used by CLI (Command Line Interface) actions</p>
      *

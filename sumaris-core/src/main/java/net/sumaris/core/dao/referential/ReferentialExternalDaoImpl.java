@@ -70,6 +70,9 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
     private List<ReferentialVO> analyticReferences;
     private Date analyticReferencesUpdateDate = new Date(0L);
 
+    private Pattern searchPattern;
+    private Pattern searchAnyPattern;
+
     @Autowired
     public ReferentialExternalDaoImpl(SumarisConfiguration config) {
         this.config = config;
@@ -102,6 +105,11 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
 
         loadAnalyticReferences();
 
+        // Prepare search pattern
+        filter.setSearchText(StringUtils.trimToNull(filter.getSearchText()));
+        searchPattern = getPattern(filter.getSearchText(), false);
+        searchAnyPattern = getPattern(filter.getSearchText(), true);
+
         return analyticReferences.stream()
                 .filter(getAnalyticReferencesPredicate(filter))
                 .sorted(Beans.naturalComparator(sortAttribute, sortDirection))
@@ -119,13 +127,15 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
         int delay = config.getAnalyticReferencesServiceDelay();
         String urlStr = config.getAnalyticReferencesServiceUrl();
         String authStr = config.getAnalyticReferencesServiceAuth();
+        String filter = config.getAnalyticReferencesServiceFilter();
 
         // load analyticReferences if not loaded or too old
         if (StringUtils.isNotBlank(urlStr) && (delta > delay || analyticReferences == null)) {
             log.info(String.format("Loading analytic references from {%s}", urlStr));
             BufferedReader content = requestAnalyticReferenceService(urlStr, authStr);
-            analyticReferences = parseAnalyticReferencesToVO(content);
+            analyticReferences = parseAnalyticReferencesToVO(content, filter);
             analyticReferencesUpdateDate = updateDate;
+            log.info(String.format("Analytic references loaded {%s}", analyticReferences.size()));
         }
     }
 
@@ -148,22 +158,26 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
         return content;
     }
 
-    private List<ReferentialVO> parseAnalyticReferencesToVO(BufferedReader content) {
+    private List<ReferentialVO> parseAnalyticReferencesToVO(BufferedReader content, String filter) {
         List<ReferentialVO> results = new ArrayList<>();
+        Pattern filterPattern = Pattern.compile(filter, Pattern.CASE_INSENSITIVE);
 
         try {
             JsonNode node = objectMapper.readTree(content);
             node.get("d").get("results").forEach(source -> {
-                ReferentialVO target = new ReferentialVO();
-                target.setId(source.get("Code").asText().hashCode());
-                target.setLabel(source.get("Code").asText());
-                target.setName(source.get("Description").asText());
-                target.setLevelId(source.get("Niveau").asInt());
-                int statusId = "O".equals(source.get("Imputable").asText())
-                        ? StatusEnum.ENABLE.getId() : StatusEnum.DISABLE.getId();
-                target.setStatusId(statusId);
-                target.setEntityName("AnalyticReference");
-                results.add(target);
+                String code = source.get("Code").asText();
+                if (filterPattern.matcher(code).matches()) {
+                    ReferentialVO target = new ReferentialVO();
+                    target.setId(code.hashCode());
+                    target.setLabel(code);
+                    target.setName(source.get("Description").asText());
+                    target.setLevelId(source.get("Niveau").asInt());
+                    int statusId = "O".equals(source.get("Imputable").asText())
+                            ? StatusEnum.ENABLE.getId() : StatusEnum.DISABLE.getId();
+                    target.setStatusId(statusId);
+                    target.setEntityName("AnalyticReference");
+                    results.add(target);
+                }
             });
         } catch (Exception e) {
             throw new SumarisTechnicalException("Unable to parse analytic references: " + e.getMessage(), e);
@@ -174,7 +188,6 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
 
     private Predicate<ReferentialVO> getAnalyticReferencesPredicate(ReferentialFilterVO filter) {
         Preconditions.checkNotNull(filter, "Missing 'filter' argument");
-        filter.setSearchText(StringUtils.trimToNull(filter.getSearchText()));
 
         return s -> (filter.getId() == null || filter.getId().equals(s.getId()))
                 && (filter.getLabel() == null || filter.getLabel().equalsIgnoreCase(s.getLabel()))
@@ -182,14 +195,13 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
                 && (filter.getLevelId() == null || filter.getLevelId().equals(s.getLevelId()))
                 && (filter.getLevelIds() == null || Arrays.asList(filter.getLevelIds()).contains(s.getLevelId()))
                 && (filter.getStatusIds() == null || Arrays.asList(filter.getStatusIds()).contains(s.getStatusId()))
-                && (filter.getSearchText() == null || like(s.getLabel(), filter.getSearchText(),false) || like(s.getName(), filter.getSearchText(),true));
+                && (filter.getSearchText() == null || searchPattern.matcher(s.getLabel()).matches() || searchAnyPattern.matcher(s.getName()).matches());
     }
 
-    private static boolean like(String text, String searchText, boolean searchAny) {
-        if (StringUtils.isEmpty(text) || StringUtils.isEmpty(searchText)) return false;
+    private static Pattern getPattern(String searchText, boolean searchAny) {
 
         // add leading wildcard (if searchAny specified) and trailing wildcard
-        searchText = ((searchAny ? "*" : "") + searchText + "*");
+        searchText = searchText != null ? ((searchAny ? "*" : "") + searchText + "*") : "";
 
         // translate searchText in regexp
         StringBuilder sb = new StringBuilder();
@@ -202,9 +214,8 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
                 sb.append(".*");
             }
         }
-        Pattern p = Pattern.compile(sb.toString(), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 
-        return p.matcher(text).matches();
+        return Pattern.compile(sb.toString(), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     }
 
 }
