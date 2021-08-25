@@ -24,12 +24,13 @@ package net.sumaris.core.dao.data.vessel;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
-import net.sumaris.core.dao.data.landing.LandingRepository;
-import net.sumaris.core.dao.referential.location.LocationRepository;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -40,9 +41,19 @@ public class VesselRepositoryImpl
     extends RootDataRepositoryImpl<Vessel, VesselVO, VesselFilterVO, DataFetchOptions>
     implements VesselSpecifications {
 
+    private final ReferentialDao referentialDao;
+    private final VesselFeaturesRepository vesselFeaturesRepository;
+    private final VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository;
+
     @Autowired
-    public VesselRepositoryImpl(EntityManager entityManager) {
+    public VesselRepositoryImpl(EntityManager entityManager,
+                                VesselFeaturesRepository vesselFeaturesRepository,
+                                VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository,
+                                ReferentialDao referentialDao) {
         super(Vessel.class, VesselVO.class, entityManager);
+        this.vesselFeaturesRepository = vesselFeaturesRepository;
+        this.vesselRegistrationPeriodRepository = vesselRegistrationPeriodRepository;
+        this.referentialDao = referentialDao;
     }
 
     @Override
@@ -58,6 +69,26 @@ public class VesselRepositoryImpl
     @Override
     public void toVO(Vessel source, VesselVO target, DataFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
+
+        // Status
+        target.setStatusId(source.getStatus().getId());
+
+        // Vessel type
+        ReferentialVO vesselType = referentialDao.toVO(source.getVesselType());
+        target.setVesselType(vesselType);
+
+        // Recorder department
+        if (fetchOptions != null && fetchOptions.isWithRecorderDepartment()) {
+            DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
+            target.setRecorderDepartment(recorderDepartment);
+        }
+
+        // Vessel features
+        target.setVesselFeatures(vesselFeaturesRepository.getLastByVesselId(source.getId(), DataFetchOptions.MINIMAL).orElse(null));
+
+        // Vessel registration period
+        target.setVesselRegistrationPeriod(vesselRegistrationPeriodRepository.getLastByVesselId(source.getId()).orElse(null));
+
     }
 
     @Override

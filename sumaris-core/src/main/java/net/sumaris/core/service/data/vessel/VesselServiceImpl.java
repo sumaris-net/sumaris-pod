@@ -24,13 +24,19 @@ package net.sumaris.core.service.data.vessel;
 
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.data.vessel.VesselFeaturesSpecifications;
 import net.sumaris.core.dao.data.vessel.VesselRepository;
+import net.sumaris.core.dao.data.vessel.VesselSnapshotRepository;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.vo.data.*;
+import net.sumaris.core.model.data.VesselFeatures;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
+import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service("vesselService2")
@@ -39,6 +45,16 @@ public class VesselServiceImpl implements VesselService2 {
 
 	@Autowired
 	protected VesselRepository vesselRepository;
+
+	@Autowired
+	protected VesselSnapshotRepository vesselSnapshotRepository;
+
+	@Override
+	public List<VesselSnapshotVO> findSnapshotByFilter(VesselFilterVO filter, Page page,
+													   DataFetchOptions fetchOptions) {
+		return ((VesselFeaturesSpecifications<VesselFeatures, VesselSnapshotVO, VesselFilterVO, DataFetchOptions>)vesselSnapshotRepository)
+			.findAll(VesselFilterVO.nullToEmpty(filter), page, fetchOptions);
+	}
 
 	@Override
 	public List<VesselVO> findAll(VesselFilterVO filter, Page page,
@@ -58,5 +74,16 @@ public class VesselServiceImpl implements VesselService2 {
 	@Override
 	public VesselVO get(int id) {
 		return vesselRepository.get(id);
+	}
+
+	@Override
+	public VesselSnapshotVO getSnapshotByIdAndDate(int vesselId, Date date) {
+		return vesselSnapshotRepository.getByVesselIdAndDate(vesselId, date, DataFetchOptions.MINIMAL)
+			.orElseGet(() -> {
+				VesselSnapshotVO unknownVessel = new VesselSnapshotVO();
+				unknownVessel.setId(vesselId);
+				unknownVessel.setName("Unknown vessel " + vesselId); // TODO remove string
+				return unknownVessel;
+			});
 	}
 }

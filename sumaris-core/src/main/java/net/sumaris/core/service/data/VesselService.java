@@ -27,7 +27,7 @@ import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
-import net.sumaris.core.vo.data.VesselRegistrationVO;
+import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
 import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.springframework.cache.annotation.CacheEvict;
@@ -66,7 +66,7 @@ public interface VesselService {
 	List<VesselFeaturesVO> getFeaturesByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
 	@Transactional(readOnly = true)
-	List<VesselRegistrationVO> getRegistrationsByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection);
+	List<VesselRegistrationPeriodVO> getRegistrationsByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
 	@CacheEvict(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE, allEntries = true)
 	VesselVO save(VesselVO source);

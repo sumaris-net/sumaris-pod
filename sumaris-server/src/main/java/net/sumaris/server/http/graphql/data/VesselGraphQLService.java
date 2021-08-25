@@ -80,30 +80,10 @@ public class VesselGraphQLService {
                                                               @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                                               @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
                                                               @GraphQLArgument(name = "sortBy", defaultValue = VesselSnapshotVO.Fields.EXTERIOR_MARKING) String sort,
-                                                              @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
+                                                              @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                                              @GraphQLEnvironment ResolutionEnvironment env
     ) {
-        return vesselService.findSnapshotByFilter(
-            restrictVesselFilter(filter),
-            offset, size, sort,
-            SortDirection.fromString(direction));
-    }
-
-    
-    @GraphQLQuery(name = "vessels", description = "Search in vessels")
-    //@Transactional(readOnly = true)
-    //@IsUser
-    public List<VesselVO> findVesselByFilter(@GraphQLArgument(name = "filter") VesselFilterVO filter,
-                                             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                             @GraphQLArgument(name = "sortBy") String sort,
-                                             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                             @GraphQLEnvironment ResolutionEnvironment env
-    ) {
-        return vesselService.findVesselsByFilter(
-            filter,
-            offset, size, sort,
-            SortDirection.fromString(direction));/*
-        return vesselService2.findAll(
+        return vesselService2.findSnapshotByFilter(
             restrictVesselFilter(filter),
             Page.builder()
                 .offset(offset)
@@ -112,12 +92,28 @@ public class VesselGraphQLService {
                 .sortDirection(SortDirection.fromString(direction))
                 .build(),
             getFetchOptions(GraphQLUtils.fields(env))
-        );*/
+        );
     }
-
-    @GraphQLQuery(name = "vesselsCount2", description = "Get total vessels count")
-    public long countVessels2() {
-        return 2l;
+    
+    @GraphQLQuery(name = "vessels", description = "Search in vessels")
+    @Transactional(readOnly = true)
+    @IsUser
+    public List<VesselVO> findVesselByFilter(@GraphQLArgument(name = "filter") VesselFilterVO filter,
+                                             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                             @GraphQLArgument(name = "sortBy") String sort,
+                                             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                             @GraphQLEnvironment ResolutionEnvironment env
+    ) {
+        return vesselService2.findAll(restrictVesselFilter(filter),
+            Page.builder()
+                .offset(offset)
+                .size(size)
+                .sortBy(sort)
+                .sortDirection(SortDirection.fromString(direction))
+                .build(),
+            getFetchOptions(GraphQLUtils.fields(env))
+        );
     }
 
     @GraphQLQuery(name = "vesselsCount", description = "Get total vessels count")
@@ -158,12 +154,12 @@ public class VesselGraphQLService {
     @GraphQLQuery(name = "vesselRegistrationHistory", description = "Get vessel registration history")
     @Transactional(readOnly = true)
     @IsUser
-    public List<VesselRegistrationVO> getVesselRegistrationHistory(@GraphQLArgument(name = "vesselId") Integer vesselId,
-                                                                   @GraphQLArgument(name = "filter") VesselRegistrationFilterVO filter,
-                                                                   @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                                   @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                                   @GraphQLArgument(name = "sortBy", defaultValue = VesselRegistrationVO.Fields.START_DATE) String sort,
-                                                                   @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+    public List<VesselRegistrationPeriodVO> getVesselRegistrationHistory(@GraphQLArgument(name = "vesselId") Integer vesselId,
+                                                                         @GraphQLArgument(name = "filter") VesselRegistrationFilterVO filter,
+                                                                         @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                                         @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                                         @GraphQLArgument(name = "sortBy", defaultValue = VesselRegistrationPeriodVO.Fields.START_DATE) String sort,
+                                                                         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
         vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
         Preconditions.checkNotNull(vesselId);
         return vesselService.getRegistrationsByVesselId(vesselId, offset, size, sort, SortDirection.fromString(direction));
@@ -240,6 +236,9 @@ public class VesselGraphQLService {
         // Filter on SIH program, when not an admin
         if (!authService.isAdmin()) {
             filter = VesselFilterVO.nullToEmpty(filter);
+            filter.setProgramLabel(ProgramEnum.SIH.getLabel());
+        }
+        else if (StringUtils.isBlank(filter.getProgramLabel())) {
             filter.setProgramLabel(ProgramEnum.SIH.getLabel());
         }
         return filter;

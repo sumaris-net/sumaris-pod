@@ -70,7 +70,7 @@ public class VesselServiceImpl implements VesselService {
 	}
 
 	@Override
-	public List<VesselRegistrationVO> getRegistrationsByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+	public List<VesselRegistrationPeriodVO> getRegistrationsByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
 		return vesselDao.getRegistrationsByVesselId(vesselId, offset, size, sortAttribute, sortDirection);
 	}
 
@@ -108,21 +108,21 @@ public class VesselServiceImpl implements VesselService {
 		Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
 		Preconditions.checkNotNull(source.getVesselType(), "Missing vesselId or vesselTypeId");
 
-		if (source.getFeatures() != null) {
-			Preconditions.checkNotNull(source.getFeatures().getBasePortLocation().getId(), "Missing basePortLocation.id");
-			Preconditions.checkNotNull(source.getFeatures().getStartDate(), "Missing start date");
-			Preconditions.checkArgument(StringUtils.isNotBlank(source.getFeatures().getExteriorMarking()), "Missing exterior marking");
+		if (source.getVesselFeatures() != null) {
+			Preconditions.checkNotNull(source.getVesselFeatures().getBasePortLocation().getId(), "Missing basePortLocation.id");
+			Preconditions.checkNotNull(source.getVesselFeatures().getStartDate(), "Missing start date");
+			Preconditions.checkArgument(StringUtils.isNotBlank(source.getVesselFeatures().getExteriorMarking()), "Missing exterior marking");
 		}
 
-		if (source.getRegistration() != null) {
-			Preconditions.checkArgument(StringUtils.isNotBlank(source.getRegistration().getRegistrationCode()), "Missing registration code");
-			Preconditions.checkNotNull(source.getRegistration().getRegistrationLocation().getId(), "Missing registration location");
+		if (source.getVesselRegistrationPeriod() != null) {
+			Preconditions.checkArgument(StringUtils.isNotBlank(source.getVesselRegistrationPeriod().getRegistrationCode()), "Missing registration code");
+			Preconditions.checkNotNull(source.getVesselRegistrationPeriod().getRegistrationLocation().getId(), "Missing registration location");
 		}
 
 		VesselVO savedVessel = vesselDao.save(source, checkUpdateDate);
 
-		if (savedVessel.getFeatures() != null) {
-			VesselFeaturesVO savedVesselFeatures = savedVessel.getFeatures();
+		if (savedVessel.getVesselFeatures() != null) {
+			VesselFeaturesVO savedVesselFeatures = savedVessel.getVesselFeatures();
 			// Save measurements
 			if (savedVesselFeatures.getMeasurementValues() != null) {
 				measurementDao.saveVesselPhysicalMeasurementsMap(savedVesselFeatures.getId(), savedVesselFeatures.getMeasurementValues());

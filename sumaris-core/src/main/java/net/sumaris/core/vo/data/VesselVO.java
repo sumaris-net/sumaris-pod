@@ -44,12 +44,6 @@ public class VesselVO implements IRootDataVO<Integer> {
     private String comments;
     private ProgramVO program;
 
-    // Features
-    private VesselFeaturesVO features;
-
-    // Registration
-    private VesselRegistrationVO registration;
-
     private Date creationDate;
     private Date updateDate;
     private Date controlDate;
@@ -59,5 +53,11 @@ public class VesselVO implements IRootDataVO<Integer> {
     private Integer qualityFlagId;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
+
+    // Features
+    private VesselFeaturesVO vesselFeatures;
+
+    // Registration
+    private VesselRegistrationPeriodVO vesselRegistrationPeriod;
 
 }

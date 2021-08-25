@@ -22,18 +22,24 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
 import java.util.List;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @FieldNameConstants
 public class VesselFilterVO implements IRootDataFilter {
 
     public static VesselFilterVO nullToEmpty(VesselFilterVO f) {
-        return f != null ? f : new VesselFilterVO();
+        return f != null ? f : VesselFilterVO.builder().build();
     }
 
     private String programLabel;
@@ -55,11 +61,12 @@ public class VesselFilterVO implements IRootDataFilter {
 
     public void setDate(Date date) {
         this.startDate = date;
+        this.endDate = date;
     }
 
     /**
      * @deprecated use startDate instead
-     * @return
+     * @return startDate
      */
     @Deprecated
     public Date getDate() {

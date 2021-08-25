@@ -48,7 +48,11 @@ public class DatabaseResource extends net.sumaris.core.test.DatabaseResource {
 	}
 
 	protected DatabaseResource(String configName, boolean readOnly) {
-		super(configName, readOnly);
+		this(configName, null, readOnly);
+	}
+
+	protected DatabaseResource(String configName, String datasourcePlatform, boolean readOnly) {
+		super(configName, datasourcePlatform, readOnly);
 	}
 
 	@Override

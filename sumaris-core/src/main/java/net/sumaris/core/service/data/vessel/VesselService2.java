@@ -45,6 +45,10 @@ import java.util.List;
 public interface VesselService2 {
 
 	@Transactional(readOnly = true)
+	List<VesselSnapshotVO> findSnapshotByFilter(VesselFilterVO filter, Page page,
+												DataFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
 	List<VesselVO> findAll(VesselFilterVO filter, Page page,
 						   DataFetchOptions fetchOptions);
 
@@ -54,15 +58,13 @@ public interface VesselService2 {
 	@Transactional(readOnly = true)
 	VesselVO get(int id);
 
+	@Transactional(readOnly = true)
+	@Cacheable(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE)
+	VesselSnapshotVO getSnapshotByIdAndDate(int vesselId, Date date);
+
 	/*@Transactional(readOnly = true)
 	List<VesselSnapshotVO> findSnapshotByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
-	@Transactional(readOnly = true)
-	@Cacheable(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE)
-    VesselSnapshotVO getSnapshotByIdAndDate(int vesselId, Date date);
-
-	@Transactional(readOnly = true)
-	List<VesselVO> findVesselsByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
 	@Transactional(readOnly = true)
 	Long countVesselsByFilter(VesselFilterVO filter);

@@ -87,7 +87,7 @@ import static org.nuiton.i18n.I18n.t;
 @Slf4j
 public class Daos {
 
-
+    public final static Date NVL_END_DATE_TIME = Dates.fromISODateTimeString("2100-01-01T00:00:00.000Z");
 
     private final static String JDBC_URL_PREFIX = "jdbc:";
     private final static String JDBC_URL_PREFIX_HSQLDB = JDBC_URL_PREFIX + DatabaseType.hsqldb.name() + ":";
