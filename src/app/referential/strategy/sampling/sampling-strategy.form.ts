@@ -947,35 +947,23 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   protected async onEditLabel(value: string) {
     const taxonNameControl = this.taxonNamesHelper.at(0);
-    const labelRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]/);
-    const labelRegexWithoutSpaces = new RegExp(/^\d\d[a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]/);
-    if (taxonNameControl.hasError('cannotComputeTaxonCode') || taxonNameControl.hasError('uniqueTaxonCode')) {
-      if (value.match(labelRegex)) {
-        const currentViewTaxon = taxonNameControl?.value?.taxonName;
-        const isUnique = this.isTaxonNameUnique(value.substring(3, 10), currentViewTaxon?.id);
-
-        if (!isUnique) {
-          taxonNameControl.setErrors({ uniqueTaxonCode: true });
-        } else {
-          // SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
-          SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
-          const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10).replace(' ', '').toUpperCase(), 3));
-          const labelControl = this.form.get('label');
-          labelControl.setValue(computedLabel);
-        }
-      }
-    }
-    else if (value && !(value === value.toUpperCase()))
-    {
-      if (value.match(labelRegex) || value.match(labelRegexWithoutSpaces)) {
-        const labelControl = this.form.get('label');
+    if (!value) return
+    const expectedLabelFormatRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] ___/);
+    if (value.match(expectedLabelFormatRegex)) {
+      const currentViewTaxon = taxonNameControl?.value?.taxonName;
+      const isUnique = await this.isTaxonNameUnique(value.substring(3, 10), currentViewTaxon?.id);
+      if (!isUnique) {
+        taxonNameControl.setErrors({ uniqueTaxonCode: true });
+      } else {
+        SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
         const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10).replace(' ', '').toUpperCase(), 3));
+        const labelControl = this.form.get('label');
         labelControl.setValue(computedLabel);
       }
     }
   }
 
-  private async isTaxonNameUnique(label: string, currentViewTaxonId: number) {
+  private async isTaxonNameUnique(label: string, currentViewTaxonId?: number) {
     const taxonNamesItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
     const taxonNamesWithParentheseItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
     let isUnique = true;
@@ -1057,7 +1045,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         return;
       }
       const label = currentViewTaxonName && TaxonUtils.generateLabelFromName(currentViewTaxonName);
-      const isUnique = await this.isTaxonNameUnique(label, currentViewTaxon.id);
+      const isUnique = await this.isTaxonNameUnique(label, currentViewTaxon?.id);
 
       if (!label) {
         errors = {cannotComputeTaxonCode: true};
