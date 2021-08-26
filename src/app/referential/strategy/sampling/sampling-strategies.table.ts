@@ -449,6 +449,10 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   // We keep initial strategy and remove year related data like efforts.
   // We update year-related values like applied period as done in sampling-strategy.form.ts getValue()
   async openStrategyDuplicateYearSelectionModal(event: UIEvent, strategiesToDuplicate: TableElement<SamplingStrategy>[]) {
+    console.info("openStrategyDuplicateYearSelectionModal")
+    strategiesToDuplicate.forEach(value => {
+      console.info(value)
+    })
     const modal = await this.modalCtrl.create({
       component: StrategyModal,
     });
@@ -524,6 +528,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         await this.strategyService.save(strategyToSave);
       }
     }
+    this.selection.clear();
   }
 }
 
