@@ -587,6 +587,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
           // Use rankOrder as a group index (will be used in template, to computed column class)
           if (PmfmUtils.isDenormalizedPmfm(pmfm)) {
             pmfm.rankOrder = groupIndex;
+            if (pmfm.id === PmfmIds.DRESSING) {
+              pmfm.completeName = null;
+            }
           }
 
           // Add pmfm into the final list of ordered pmfms
@@ -621,7 +624,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       this.groupHeaderEndColSpan = RESERVED_END_COLUMNS.length
         + (this.showCommentsColumn ? 1 : 0)
 
-      orderedPmfms.forEach(p => this.memoryDataService.addSortByReplacement(p.id.toString(), "measurementValues." + p.id.toString()));
+      orderedPmfms.forEach(p => {
+        this.memoryDataService.addSortByReplacement(p.id.toString(), "measurementValues." + p.id.toString());
+      });
       return orderedPmfms;
     }
 
