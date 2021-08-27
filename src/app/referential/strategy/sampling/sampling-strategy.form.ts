@@ -1033,7 +1033,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   protected async generateLabel(date?: Moment) {
     // Wait for asynchronous functions to be completed.
     if (this.analyticsReferencePatched && this.fillEffortsCalled) {
-      if (date && date === this.form.value?.year) return // Skip if year doesn't change
       date = fromDateISOString(date || this.form.get('year').value);
       if (!date || !this.program) return // Skip if year or program is missing
       const yearMask = date.format('YY');
