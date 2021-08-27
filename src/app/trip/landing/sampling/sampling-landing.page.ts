@@ -131,7 +131,7 @@ export class SamplingLandingPage extends LandingPage {
         if (sample.measurementValues && sample.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) && landing.measurementValues && landing.measurementValues.hasOwnProperty(PmfmIds.STRATEGY_LABEL))
         {
           const strategyLabel = landing.measurementValues[PmfmIds.STRATEGY_LABEL];
-          const tagIdConcatenatedWithStrategyLabel = strategyLabel + "-" + sample.measurementValues[PmfmIds.TAG_ID];
+          const tagIdConcatenatedWithStrategyLabel = sample.measurementValues[PmfmIds.TAG_ID] ? strategyLabel + "-" + sample.measurementValues[PmfmIds.TAG_ID] : null;
           sample.measurementValues[PmfmIds.TAG_ID] = tagIdConcatenatedWithStrategyLabel;
         }
       });
@@ -157,7 +157,7 @@ export class SamplingLandingPage extends LandingPage {
     data.samples.map(sample => {
       if (sample.measurementValues.hasOwnProperty(PmfmIds.TAG_ID)) {
         const storedTagId = sample.measurementValues[PmfmIds.TAG_ID];
-        if (storedTagId.length > 4 && storedTagId.split('-').length > 1) {
+        if (storedTagId && storedTagId.length > 4 && storedTagId.split('-').length > 1) {
           const tagIdWithoutSampleLabel = storedTagId.split('-')[1];
           sample.measurementValues[PmfmIds.TAG_ID] = tagIdWithoutSampleLabel;
         }
