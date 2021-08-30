@@ -1148,6 +1148,11 @@ public class DataGraphQLService {
         return fishingAreaService.getByFishingTripId(trip.getId());
     }
 
+    @GraphQLQuery(name = "fishingAreas", description = "Get trip's fishing areas")
+    public List<FishingAreaVO> getTripFishingAreas(@GraphQLContext TripVO trip) {
+        return fishingAreaService.getAllByFishingTripId(trip.getId());
+    }
+
     @GraphQLQuery(name = "fishingAreas", description = "Get operation's fishing areas")
     public List<FishingAreaVO> getOperationFishingAreas(@GraphQLContext OperationVO operation) {
         if (operation.getFishingAreas() != null) {

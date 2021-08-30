@@ -244,8 +244,16 @@ public class TripServiceImpl implements TripService {
         result.setMetiers(metiers);
 
         // Save fishing area
-        FishingAreaVO savedFishingArea = fishingAreaService.saveByFishingTripId(result.getId(), source.getFishingArea());
-        result.setFishingArea(savedFishingArea);
+        if (CollectionUtils.isNotEmpty(source.getFishingAreas())) {
+            List<FishingAreaVO> fishingAreas = fishingAreaService.saveAllByFishingTripId(result.getId(), source.getFishingAreas());
+            result.setFishingAreas(fishingAreas);
+        } else if (source.getFishingArea() != null) {
+            FishingAreaVO fishingArea = fishingAreaService.saveByFishingTripId(result.getId(), source.getFishingArea());
+            result.setFishingArea(fishingArea);
+        } else {
+            // Remove all
+            fishingAreaService.saveAllByFishingTripId(result.getId(), ImmutableList.of());
+        }
 
         // Save physical gears
         List<PhysicalGearVO> physicalGears = Beans.getList(source.getGears());
