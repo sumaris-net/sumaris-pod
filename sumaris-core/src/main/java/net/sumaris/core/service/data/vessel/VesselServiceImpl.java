@@ -23,21 +23,29 @@ package net.sumaris.core.service.data.vessel;
  */
 
 
+import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.data.vessel.VesselFeaturesSpecifications;
+import net.sumaris.core.dao.data.MeasurementDao;
+import net.sumaris.core.dao.data.vessel.VesselFeaturesRepository;
+import net.sumaris.core.dao.data.vessel.VesselRegistrationPeriodRepository;
 import net.sumaris.core.dao.data.vessel.VesselRepository;
 import net.sumaris.core.dao.data.vessel.VesselSnapshotRepository;
-import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.model.data.VesselFeatures;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.VesselSnapshotVO;
-import net.sumaris.core.vo.data.VesselVO;
+import net.sumaris.core.model.data.VesselPhysicalMeasurement;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.DataBeans;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.VesselFilterVO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service("vesselService2")
 @Slf4j
@@ -49,20 +57,29 @@ public class VesselServiceImpl implements VesselService2 {
 	@Autowired
 	protected VesselSnapshotRepository vesselSnapshotRepository;
 
+	@Autowired
+	protected VesselFeaturesRepository vesselFeaturesRepository;
+
+	@Autowired
+	protected VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository;
+
+	@Autowired
+	protected MeasurementDao measurementDao;
+
 	@Override
-	public List<VesselSnapshotVO> findSnapshotByFilter(VesselFilterVO filter, Page page,
+	public Page<VesselSnapshotVO> findSnapshotByFilter(VesselFilterVO filter, Pageable pageable,
 													   DataFetchOptions fetchOptions) {
-		return ((VesselFeaturesSpecifications<VesselFeatures, VesselSnapshotVO, VesselFilterVO, DataFetchOptions>)vesselSnapshotRepository)
-			.findAll(VesselFilterVO.nullToEmpty(filter), page, fetchOptions);
+		return vesselSnapshotRepository
+			.findAll(VesselFilterVO.nullToEmpty(filter), pageable, fetchOptions);
 	}
 
 	@Override
-	public List<VesselVO> findAll(VesselFilterVO filter, Page page,
+	public Page<VesselVO> findAll(VesselFilterVO filter, Pageable pageable,
 								  DataFetchOptions fetchOptions) {
 
 		return vesselRepository.findAll(
 			VesselFilterVO.nullToEmpty(filter),
-			page,
+			pageable,
 			fetchOptions);
 	}
 
@@ -85,5 +102,105 @@ public class VesselServiceImpl implements VesselService2 {
 				unknownVessel.setName("Unknown vessel " + vesselId); // TODO remove string
 				return unknownVessel;
 			});
+	}
+
+	@Override
+	public Page<VesselFeaturesVO> getFeaturesByVesselId(int vesselId, Pageable pageable, DataFetchOptions fetchOptions) {
+		return vesselFeaturesRepository
+			.findAll(VesselFilterVO.builder().vesselId(vesselId).build(), pageable, fetchOptions);
+	}
+
+	@Override
+	public Page<VesselRegistrationPeriodVO> getRegistrationPeriodsByVesselId(int vesselId, Pageable pageable) {
+		return vesselRegistrationPeriodRepository.findAll(
+			VesselFilterVO.builder().vesselId(vesselId).build(),
+			pageable);
+	}
+
+	@Override
+	public List<VesselVO> save(List<VesselVO> sources) {
+		Preconditions.checkNotNull(sources);
+
+		// special case if a vessel is saved twice: it means a features or registration change
+		if (sources.size() == 2 && Objects.equals(sources.get(0).getId(), sources.get(1).getId())) {
+			List<VesselVO> result = new ArrayList<>();
+			// save the first vo normally
+			result.add(save(sources.get(0)));
+			// save the second without checking update date
+			result.add(save(sources.get(1), false));
+			return result;
+		}
+
+		return sources.stream()
+			.map(this::save)
+			.collect(Collectors.toList());
+	}
+
+	@Override
+	public VesselVO save(VesselVO source) {
+		return save(source, true);
+	}
+
+	@Override
+	public void delete(int id) {
+
+		// TODO: check if there is data on this vessel, and throw exception
+		vesselRepository.deleteById(id);
+	}
+
+	@Override
+	public void delete(List<Integer> ids) {
+		Preconditions.checkNotNull(ids);
+
+		ids.stream()
+			.filter(Objects::nonNull)
+			.forEach(this::delete);
+	}
+
+	/* protected methods */
+
+	protected VesselVO save(VesselVO source, boolean checkUpdateDate) {
+		Preconditions.checkNotNull(source);
+		Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
+		Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
+		Preconditions.checkNotNull(source.getVesselType(), "Missing vesselId or vesselTypeId");
+
+		if (source.getVesselFeatures() != null) {
+			Preconditions.checkNotNull(source.getVesselFeatures().getBasePortLocation().getId(), "Missing basePortLocation.id");
+			Preconditions.checkNotNull(source.getVesselFeatures().getStartDate(), "Missing start date");
+			Preconditions.checkArgument(StringUtils.isNotBlank(source.getVesselFeatures().getExteriorMarking()), "Missing exterior marking");
+		}
+
+		if (source.getVesselRegistrationPeriod() != null) {
+			Preconditions.checkArgument(StringUtils.isNotBlank(source.getVesselRegistrationPeriod().getRegistrationCode()), "Missing registration code");
+			Preconditions.checkNotNull(source.getVesselRegistrationPeriod().getRegistrationLocation().getId(), "Missing registration location");
+		}
+
+		VesselVO savedVessel = vesselRepository.save(source, checkUpdateDate);
+
+		if (savedVessel.getVesselFeatures() != null) {
+			VesselFeaturesVO savedVesselFeatures = vesselFeaturesRepository.save(savedVessel.getVesselFeatures());
+			// Save measurements
+			if (savedVesselFeatures.getMeasurementValues() != null) {
+				measurementDao.saveVesselPhysicalMeasurementsMap(savedVesselFeatures.getId(), savedVesselFeatures.getMeasurementValues());
+			} else {
+				List<MeasurementVO> measurements = Beans.getList(savedVesselFeatures.getMeasurements());
+				measurements.forEach(m -> fillDefaultProperties(savedVesselFeatures, m));
+				measurements = measurementDao.saveVesselPhysicalMeasurements(savedVesselFeatures.getId(), measurements);
+				savedVesselFeatures.setMeasurements(measurements);
+			}
+		}
+
+		return savedVessel;
+	}
+
+	protected void fillDefaultProperties(VesselFeaturesVO parent, MeasurementVO measurement) {
+		if (measurement == null) return;
+
+		// Set default value for recorder department and person
+		DataBeans.setDefaultRecorderDepartment(measurement, parent.getRecorderDepartment());
+		DataBeans.setDefaultRecorderPerson(measurement, parent.getRecorderPerson());
+
+		measurement.setEntityName(VesselPhysicalMeasurement.class.getSimpleName());
 	}
 }

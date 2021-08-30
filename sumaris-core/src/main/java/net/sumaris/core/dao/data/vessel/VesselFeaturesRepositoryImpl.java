@@ -23,10 +23,14 @@ package net.sumaris.core.dao.data.vessel;
  */
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.data.DataDaos;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.VesselFeatures;
+import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.QualityFlagEnum;
+import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
@@ -90,6 +94,43 @@ public class VesselFeaturesRepositoryImpl
     @Override
     public void toEntity(VesselFeaturesVO source, VesselFeatures target, boolean copyIfNull) {
         super.toEntity(source, target, copyIfNull);
+
+        // Recorder department and person
+        DataDaos.copyRecorderPerson(getEntityManager(), source, target, copyIfNull);
+
+        // Convert from meter to centimeter
+        if (source.getLengthOverAll() != null) {
+            target.setLengthOverAll((int) (source.getLengthOverAll() * 100));
+        }
+        // Convert tonnage (x100)
+        if (source.getGrossTonnageGrt() != null) {
+            target.setGrossTonnageGrt((int) (source.getGrossTonnageGrt() * 100));
+        }
+        if (source.getGrossTonnageGt() != null) {
+            target.setGrossTonnageGt((int) (source.getGrossTonnageGt() * 100));
+        }
+
+        // Base port location
+        if (copyIfNull || source.getBasePortLocation() != null) {
+            if (source.getBasePortLocation() == null || source.getBasePortLocation().getId() == null) {
+                target.setBasePortLocation(null);
+            } else {
+                target.setBasePortLocation(getReference(Location.class, source.getBasePortLocation().getId()));
+            }
+        }
+
+        // Quality flag
+        if (copyIfNull || source.getQualityFlagId() != null) {
+            if (source.getQualityFlagId() == null) {
+                target.setQualityFlag(null);
+            } else {
+                target.setQualityFlag(getReference(QualityFlag.class, source.getQualityFlagId()));
+            }
+        }
+        else if (copyIfNull) {
+            // Set default
+            target.setQualityFlag(getReference(QualityFlag.class, QualityFlagEnum.NOT_QUALIFIED.getId()));
+        }
     }
 
     @Override

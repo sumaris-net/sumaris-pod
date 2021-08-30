@@ -23,28 +23,25 @@ package net.sumaris.core.dao.data.vessel;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.data.DataRepositoryImpl;
-import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -52,16 +49,25 @@ public class VesselRegistrationPeriodRepositoryImpl
     extends SumarisJpaRepositoryImpl<VesselRegistrationPeriod, Integer, VesselRegistrationPeriodVO>
     implements VesselRegistrationPeriodSpecifications {
 
-    private final ReferentialDao referentialDao;
     private final LocationRepository locationRepository;
 
     @Autowired
     public VesselRegistrationPeriodRepositoryImpl(EntityManager entityManager,
-                                                  ReferentialDao referentialDao,
                                                   LocationRepository locationRepository) {
         super(VesselRegistrationPeriod.class, VesselRegistrationPeriodVO.class, entityManager);
-        this.referentialDao = referentialDao;
         this.locationRepository = locationRepository;
+    }
+
+    @Override
+    public Specification<VesselRegistrationPeriod> toSpecification(VesselFilterVO filter) {
+        return BindableSpecification.where(vesselId(filter.getVesselId()))
+            .and(betweenDate(filter.getStartDate(), filter.getEndDate()));
+    }
+
+    @Override
+    public Page<VesselRegistrationPeriodVO> findAll(VesselFilterVO filter, Pageable pageable) {
+        return super.findAll(toSpecification(filter), pageable)
+            .map(this::toVO);
     }
 
     @Override
@@ -98,6 +104,25 @@ public class VesselRegistrationPeriodRepositoryImpl
     @Override
     public void toEntity(VesselRegistrationPeriodVO source, VesselRegistrationPeriod target, boolean copyIfNull) {
         super.toEntity(source, target, copyIfNull);
+
+        // Registration location
+        if (copyIfNull || source.getRegistrationLocation() != null) {
+            if (source.getRegistrationLocation() == null || source.getRegistrationLocation().getId() == null) {
+                target.setRegistrationLocation(null);
+            } else {
+                target.setRegistrationLocation(getReference(Location.class, source.getRegistrationLocation().getId()));
+            }
+        }
+
+        // default quality flag
+        if (target.getQualityFlag() == null) {
+            target.setQualityFlag(getReference(QualityFlag.class, SumarisConfiguration.getInstance().getDefaultQualityFlagId()));
+        }
+
+        // default rank order
+        if (target.getRankOrder() == null) {
+            target.setRankOrder(1);
+        }
     }
 
     @Override

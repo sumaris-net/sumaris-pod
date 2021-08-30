@@ -22,9 +22,10 @@ package net.sumaris.core.dao.data.vessel;
  * #L%
  */
 
+import net.sumaris.core.dao.data.DataRepository;
 import net.sumaris.core.dao.data.DataSpecifications;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
@@ -37,19 +38,22 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.NoRepositoryBean;
 
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.*;
 import java.util.*;
 
+@NoRepositoryBean
 public interface VesselFeaturesSpecifications<
     E extends IDataEntity<Integer>,
     V extends IDataVO<Integer>,
     F extends VesselFilterVO,
     O extends IFetchOptions
     >
-    extends DataSpecifications<VesselFeatures> {
+    extends DataSpecifications<VesselFeatures>, DataRepository<E, V, F, O> {
 
     String VESSEL_ID_PARAM = "vesselId";
     String STATUS_IDS_PARAM = "statusIds";
@@ -58,12 +62,11 @@ public interface VesselFeaturesSpecifications<
 
     default Specification<VesselFeatures> vesselId(Integer vesselId) {
         if (vesselId == null) return null;
-        BindableSpecification<VesselFeatures> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, VESSEL_ID_PARAM);
             return criteriaBuilder.equal(root.get(VesselFeatures.Fields.VESSEL).get(Vessel.Fields.ID), param);
-        });
-        specification.addBind(VESSEL_ID_PARAM, vesselId);
-        return specification;
+        })
+            .addBind(VESSEL_ID_PARAM, vesselId);
     }
 
     default Specification<VesselFeatures> statusIds(List<Integer> statusIds) {
@@ -71,7 +74,7 @@ public interface VesselFeaturesSpecifications<
 
         return BindableSpecification.where((root, query, cb) -> {
                 ParameterExpression<Collection> param = cb.parameter(Collection.class, STATUS_IDS_PARAM);
-                return cb.in(root.get(Vessel.Fields.STATUS).get(Status.Fields.ID)).value(param);
+                return cb.in(root.get(VesselFeatures.Fields.VESSEL).get(Vessel.Fields.STATUS).get(Status.Fields.ID)).value(param);
             })
             .addBind(STATUS_IDS_PARAM, statusIds);
     }
@@ -114,6 +117,8 @@ public interface VesselFeaturesSpecifications<
         String searchTextAsPrefix = Daos.getEscapedSearchText(searchText);
         if (searchTextAsPrefix == null) return null;
 
+        final String vrpPath = StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS);
+
         // If not defined, search on :
         // - VesselFeatures.exteriorMarking (prefix match - e.g. '<searchText>%')
         // - VesselRegistrationPeriod.registrationCode (prefix match - e.g. '<searchText>%')
@@ -121,7 +126,7 @@ public interface VesselFeaturesSpecifications<
         final String[] attributes = searchAttributes != null ? searchAttributes : new String[] {
             // Label
             VesselFeatures.Fields.EXTERIOR_MARKING,
-            StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE),
+            StringUtils.doting(vrpPath, VesselRegistrationPeriod.Fields.REGISTRATION_CODE),
             // Name
             VesselFeatures.Fields.NAME
         };
@@ -133,12 +138,27 @@ public interface VesselFeaturesSpecifications<
         BindableSpecification<VesselFeatures> specification = BindableSpecification.where((root, query, cb) -> {
             final ParameterExpression<String> prefixParam = cb.parameter(String.class, SEARCH_TEXT_PREFIX_PARAM);
             final ParameterExpression<String> anyParam = cb.parameter(String.class, SEARCH_TEXT_ANY_PARAM);
+            final Join<VesselFeatures, Vessel> vessel = root.join(VesselFeatures.Fields.VESSEL, JoinType.INNER);
+            final Join<Vessel, VesselRegistrationPeriod> vrp = vessel.join(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
 
             return cb.or(Arrays.stream(attributes)
-                .map(attr -> cb.like(
-                    cb.upper(Daos.composePath(root, attr)),
-                    attr.equals(VesselFeatures.Fields.NAME) ? anyParam : prefixParam)
-                ).toArray(Predicate[]::new)
+                .map(attr -> {
+                    Path<String> attrPath;
+                    if (attr.indexOf('.') != -1) {
+                        if (attr.startsWith(vrpPath)) {
+                            attrPath = Daos.composePath(vrp, attr.substring(vrpPath.length()+1));
+                        }
+                        else {
+                            attrPath = Daos.composePath(root, attr);
+                        }
+                    }
+                    else {
+                        attrPath = root.get(attr);
+                    }
+                    return cb.like(
+                            cb.upper(attrPath),
+                            attr.equals(VesselFeatures.Fields.NAME) ? anyParam : prefixParam);
+                }).toArray(Predicate[]::new)
             );
         });
 
@@ -157,22 +177,18 @@ public interface VesselFeaturesSpecifications<
             .vesselId(vesselId)
             .startDate(date)
             .build();
-        Page lastVesselPage = Page.builder()
-            .offset(0).size(1)
-            .sortBy(VesselFeatures.Fields.START_DATE).sortDirection(SortDirection.DESC)
-            .build();
-        List<V> result = findAll((F)filter, lastVesselPage, fetchOptions);
+        Pageable lastVesselPage = Pageables.create(0, 1, VesselFeatures.Fields.START_DATE, SortDirection.DESC);
+        Page<V> result = findAll((F)filter, lastVesselPage, fetchOptions);
 
-        // No result for this date: retry without date (should return the last features and period)
-        if (CollectionUtils.isEmpty(result) && date != null) {
+        // No result for this date:
+        // => retry without date (should return the last features and period)
+        if (date != null && result.isEmpty()) {
             filter.setDate(null);
             result = findAll((F)filter, lastVesselPage, fetchOptions);
         }
-        if (CollectionUtils.isEmpty(result)) {
+        if (result.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(result.get(0));
+        return result.get().findFirst();
     }
-
-    List<V> findAll(F filter, Page page, O fetchOptions);
 }

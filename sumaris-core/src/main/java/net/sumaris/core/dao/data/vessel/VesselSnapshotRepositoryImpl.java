@@ -22,22 +22,27 @@ package net.sumaris.core.dao.data.vessel;
  * #L%
  */
 
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
+import net.sumaris.core.model.data.VesselRegistrationPeriod;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 
 @Slf4j
 public class VesselSnapshotRepositoryImpl
@@ -66,7 +71,7 @@ public class VesselSnapshotRepositoryImpl
             .and(vesselId(filter.getVesselId()))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(statusIds(filter.getStatusIds()))
-            .and(searchText(filter.getSearchAttributes(), filter.getSearchText()));
+            .and(searchText(adaptSearchAttributes(filter.getSearchAttributes()), filter.getSearchText()));
     }
 
     @Override
@@ -127,5 +132,20 @@ public class VesselSnapshotRepositoryImpl
     @Override
     protected void onAfterSaveEntity(VesselSnapshotVO vo, VesselFeatures savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
+    }
+
+    protected String[] adaptSearchAttributes(String[] searchAttributes) {
+        if (ArrayUtils.isNotEmpty(searchAttributes)) {
+            for (int i = 0; i < searchAttributes.length; i++) {
+                String attr = searchAttributes[i];
+                switch (attr) {
+                    case VesselRegistrationPeriod.Fields.REGISTRATION_CODE:
+                    case VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE:
+                        searchAttributes[i] = StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, attr);
+                        break;
+                }
+            }
+        }
+        return searchAttributes;
     }
 }

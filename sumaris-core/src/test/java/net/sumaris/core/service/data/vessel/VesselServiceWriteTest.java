@@ -24,9 +24,11 @@ package net.sumaris.core.service.data.vessel;
 
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.data.VesselService;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.data.VesselVO;
 import org.apache.commons.lang3.time.DateUtils;
@@ -34,6 +36,7 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 
 import java.util.Date;
 import java.util.List;
@@ -44,14 +47,14 @@ public class VesselServiceWriteTest extends AbstractServiceTest{
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private VesselService service;
+    private VesselService2 service;
 
     @Test
     public void save() {
         int vesselId = fixtures.getVesselId(0);
 
         // declare a feature change (vessel1 represent previous version, vessel2 the new version)
-        VesselVO vessel1 = service.getVesselById(vesselId);
+        VesselVO vessel1 = service.get(vesselId);
         Assert.assertNotNull(vessel1);
         Assert.assertNotNull(vessel1.getVesselFeatures());
         Assert.assertEquals(1, vessel1.getVesselFeatures().getId().intValue());
@@ -60,7 +63,7 @@ public class VesselServiceWriteTest extends AbstractServiceTest{
         Assert.assertNotNull(vessel1.getVesselFeatures().getExteriorMarking());
         Assert.assertEquals("Vessel 1", vessel1.getVesselFeatures().getName());
 
-        VesselVO vessel2 = service.getVesselById(vesselId);
+        VesselVO vessel2 = service.get(vesselId);
         Assert.assertNotNull(vessel2);
 
         // close period
@@ -85,11 +88,17 @@ public class VesselServiceWriteTest extends AbstractServiceTest{
         Assert.assertEquals("new name", savedVessel2.getVesselFeatures().getName());
 
         // read features history
-        List<VesselFeaturesVO> features = service.getFeaturesByVesselId(vessel1.getId(), 0, 10, "id", SortDirection.ASC);
-        Assert.assertNotNull(features);
-        Assert.assertEquals(2, features.size());
-        Assert.assertEquals(1, features.get(0).getId().intValue());
-        Assert.assertEquals(featuresId2, features.get(1).getId().intValue());
+        Page<VesselFeaturesVO> featuresPage = service.getFeaturesByVesselId(vessel1.getId(), Pageables.create(0, 10, "id", SortDirection.ASC),
+            DataFetchOptions.MINIMAL);
+        Assert.assertNotNull(featuresPage);
+        Assert.assertFalse(featuresPage.isEmpty());
+        VesselFeaturesVO[] features = featuresPage.get().toArray(VesselFeaturesVO[]::new);
+
+        Assert.assertNotNull(features[0]);
+        Assert.assertEquals(1, features[0].getId().intValue());
+
+        Assert.assertNotNull(features[1]);
+        Assert.assertEquals(featuresId2, features[1].getId().intValue());
 
     }
 

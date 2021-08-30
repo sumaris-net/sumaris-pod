@@ -26,22 +26,26 @@ import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.Pageables;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.service.data.vessel.VesselService2;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Date;
@@ -121,10 +125,39 @@ public class VesselServiceReadTest extends AbstractServiceTest{
         filter.setSearchAttributes(new String[]{
             Vessel.Fields.VESSEL_REGISTRATION_PERIODS + "." + VesselRegistrationPeriod.Fields.REGISTRATION_CODE
         });
-        filter.setSearchText("CN851751");
+        filter.setSearchText("FRA000851751");
 
-        List<VesselVO> vessels = service.findAll(filter, Page.builder().size(10).build(), DataFetchOptions.DEFAULT);
-        Assert.assertNotNull(vessels);
-        Assert.assertTrue(vessels.size() > 0);
+        Pageable pageable = Pageables.create(0, 10,
+            StringUtils.doting(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE),
+            SortDirection.ASC);
+
+        Page<VesselVO> result = service.findAll(filter, pageable, DataFetchOptions.DEFAULT);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isEmpty());
+        Assert.assertTrue(result.getTotalElements() > 0);
+    }
+
+    @Test
+    public void findSnapshotByFilter() {
+
+        VesselFilterVO filter = VesselFilterVO.builder()
+            .programLabel(ProgramEnum.SIH.getLabel())
+            .build();
+
+        filter.setStatusIds(ImmutableList.of(StatusEnum.ENABLE.getId()));
+
+        filter.setSearchAttributes(new String[]{
+            VesselRegistrationPeriod.Fields.REGISTRATION_CODE
+        });
+        filter.setSearchText("FRA000851*");
+
+        Pageable pageable = Pageables.create(0, 10,
+            StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE),
+            SortDirection.ASC);
+
+        Page<VesselSnapshotVO> result = service.findSnapshotByFilter(filter, pageable, DataFetchOptions.DEFAULT);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isEmpty());
+        Assert.assertTrue(result.getTotalElements() > 0);
     }
 }

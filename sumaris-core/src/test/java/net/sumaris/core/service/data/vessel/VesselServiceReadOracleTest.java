@@ -25,7 +25,7 @@ package net.sumaris.core.service.data.vessel;
 import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
@@ -40,6 +40,7 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Date;
@@ -118,8 +119,9 @@ public class VesselServiceReadOracleTest extends AbstractServiceTest{
         });
         filter.setSearchText("851751");
 
-        List<VesselVO> vessels = service.findAll(filter, Page.builder().size(10).build(), DataFetchOptions.DEFAULT);
-        Assert.assertNotNull(vessels);
-        Assert.assertTrue(vessels.size() > 0);
+        Page<VesselVO> result = service.findAll(filter, Pageables.create(0, 10), DataFetchOptions.DEFAULT);
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isEmpty());
+        Assert.assertTrue(result.getTotalElements() > 0);
     }
 }

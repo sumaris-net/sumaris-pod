@@ -42,10 +42,13 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
@@ -68,6 +71,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     private boolean debugEntityLoad = false;
     private boolean checkUpdateDate = true;
     private boolean lockForUpdate = false;
+    private boolean enablePageTotalElement = false;
 
     private EntityManager entityManager;
 
@@ -123,35 +127,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     @Override
     public V save(V vo) {
-        E entity = toEntity(vo);
-
-        boolean isNew = entity.getId() == null;
-
-        // Entity has update date
-        if (entity instanceof IUpdateDateEntityBean && vo instanceof IUpdateDateEntityBean) {
-
-            if (!isNew && isCheckUpdateDate()) {
-                // Check update date
-                Daos.checkUpdateDateForUpdate((IUpdateDateEntityBean) vo, (IUpdateDateEntityBean) entity);
-            }
-
-            // Update update_dt
-            ((IUpdateDateEntityBean) entity).setUpdateDate(getDatabaseCurrentTimestamp());
-        }
-
-        if (!isNew && isLockForUpdate()) {
-            lockForUpdate(entity);
-        }
-
-        onBeforeSaveEntity(vo, entity, isNew);
-
-        // Save entity
-        E savedEntity = super.save(entity);
-
-        // Update VO
-        onAfterSaveEntity(vo, savedEntity, isNew);
-
-        return vo;
+        return save(vo, isCheckUpdateDate());
     }
 
     public E toEntity(V vo) {
@@ -180,6 +156,38 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     public void toEntity(V source, E target, boolean copyIfNull) {
         Beans.copyProperties(source, target);
+    }
+
+    protected V save(V vo, boolean checkUpdateDate) {
+        E entity = toEntity(vo);
+
+        boolean isNew = entity.getId() == null;
+
+        // Entity has update date
+        if (entity instanceof IUpdateDateEntityBean && vo instanceof IUpdateDateEntityBean) {
+
+            if (!isNew && checkUpdateDate) {
+                // Check update date
+                Daos.checkUpdateDateForUpdate((IUpdateDateEntityBean) vo, (IUpdateDateEntityBean) entity);
+            }
+
+            // Update update_dt
+            ((IUpdateDateEntityBean) entity).setUpdateDate(getDatabaseCurrentTimestamp());
+        }
+
+        if (!isNew && isLockForUpdate()) {
+            lockForUpdate(entity);
+        }
+
+        onBeforeSaveEntity(vo, entity, isNew);
+
+        // Save entity
+        E savedEntity = super.save(entity);
+
+        // Update VO
+        onAfterSaveEntity(vo, savedEntity, isNew);
+
+        return vo;
     }
 
     protected void onBeforeSaveEntity(V vo, E entity, boolean isNew) {
@@ -227,6 +235,25 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     /* -- protected method -- */
+
+    @Override
+    protected <S extends E> Page<S> readPage(TypedQuery<S> query, Class<S> domainClass, Pageable pageable, Specification<S> spec) {
+        if (enablePageTotalElement) {
+            return super.readPage(query, domainClass, pageable, spec);
+        }
+
+        if (pageable.isPaged()) {
+            query.setFirstResult((int)pageable.getOffset());
+            query.setMaxResults(pageable.getPageSize());
+        }
+
+        List<S> result = query.getResultList();
+
+        // Replace the count of total element, by the result size
+        final long fakeTotal =  pageable.getOffset() + result.size();
+
+        return PageableExecutionUtils.getPage(result, pageable, () -> fakeTotal);
+    }
 
     protected EntityManager getEntityManager() {
         return entityManager;

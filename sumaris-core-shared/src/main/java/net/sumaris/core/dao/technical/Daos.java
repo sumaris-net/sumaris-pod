@@ -1713,7 +1713,7 @@ public class Daos {
         }
     }
 
-    public static <X> Path<X> composePath(Root<?> root, String attributePath) {
+    public static <X> Path<X> composePath(Path<?> root, String attributePath) {
 
         String[] attributes = attributePath.split("\\.");
         Path<?> path = root; // starting from root

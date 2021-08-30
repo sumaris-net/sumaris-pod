@@ -54,12 +54,24 @@ public interface DataRepository<
 
     List<V> findAll(F filter, @Nullable O fetchOptions);
 
-    List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, @Nullable O fetchOptions);
-
     Page<V> findAll(F filter, Pageable pageable, @Nullable O fetchOptions);
 
+    /**
+     * @deprecated use Pageable instead
+     */
+    @Deprecated
+    List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, @Nullable O fetchOptions);
+
+    /**
+     * @deprecated use Pageable instead
+     */
+    @Deprecated
     Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions);
 
+    /**
+     * @deprecated use Pageable instead
+     */
+    @Deprecated
     Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions);
 
     // From a specification

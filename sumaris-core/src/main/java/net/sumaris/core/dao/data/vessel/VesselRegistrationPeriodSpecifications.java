@@ -27,6 +27,9 @@ import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
+import net.sumaris.core.vo.filter.VesselFilterVO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
@@ -84,5 +87,9 @@ public interface VesselRegistrationPeriodSpecifications {
         return getByVesselIdAndDate(vesselId, null);
     }
 
+    Specification<VesselRegistrationPeriod> toSpecification(VesselFilterVO filter);
+
     Optional<VesselRegistrationPeriodVO> getByVesselIdAndDate(int vesselId, Date date);
+
+    Page<VesselRegistrationPeriodVO> findAll(VesselFilterVO filter, Pageable pageable);
 }

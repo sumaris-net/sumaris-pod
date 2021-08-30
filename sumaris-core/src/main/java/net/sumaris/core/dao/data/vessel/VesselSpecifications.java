@@ -30,6 +30,7 @@ import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.data.VesselVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -70,6 +71,7 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
                     ),
                     cb.not(
                         cb.or(
+                            cb.isNotNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
                             cb.lessThan(cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.NVL_END_DATE_TIME), startDate),
                             cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
                         )
@@ -160,4 +162,5 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
         return specification;
     }
 
+    VesselVO save(VesselVO vo, boolean checkUpdateDate);
 }
