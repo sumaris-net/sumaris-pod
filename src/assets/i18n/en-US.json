@@ -196,11 +196,16 @@
         "PMFM_TAG_ID": "Référentiel > PSFM > Sample tag",
         "PMFM_AGE_ID": "Referential > PMFM > Age",
         "PMFM_SEX_ID": "Referential > PMFM > Sex",
-        "STRATEGY_PARAMETER_AGE_LABEL": "Strategy > Parameter > Age label",
-        "STRATEGY_PARAMETER_SEX_LABEL": "Strategy > Parameter > Sex label",
-        "STRATEGY_PARAMETER_WEIGHT_LABELS": "Strategy > Parameter > Weight labels",
-        "STRATEGY_PARAMETER_LENGTH_LABELS": "Strategy > Parameter > Length labels",
-        "STRATEGY_PARAMETER_MATURITY_LABELS": "Strategy > Parameter > Maturity labels"
+        "METHOD_MEASURED_BY_OBSERVER_ID": "Referential > Method > Measured by observer",
+        "METHOD_OBSERVED_BY_OBSERVER_ID": "Referential > Method > Observed by observer",
+        "METHOD_ESTIMATED_BY_OBSERVER_ID": "Referential > Method > Estimated by observer",
+        "METHOD_CALCULATED_ID": "Referential > Method > Calculated",
+        "FRACTION_INDIVIDUAL_ID": "Referential > Fraction > Individual",
+        "PARAMETER_GROUP_AGE_LABELS": "Strategy > Parameter > Age labels",
+        "PARAMETER_GROUP_SEX_LABELS": "Strategy > Parameter > Sex labels",
+        "PARAMETER_GROUP_WEIGHT_LABELS": "Strategy > Parameter > Weight labels",
+        "PARAMETER_GROUP_LENGTH_LABELS": "Strategy > Parameter > Length labels",
+        "PARAMETER_GROUP_MATURITY_LABELS": "Strategy > Parameter > Maturity labels"
       },
       "TESTING": "Developer mode ?",
       "ENTITY_TRASH": "Enable trash on pod?",
@@ -1290,9 +1295,11 @@
       "LANDING_SAMPLES_COUNT_ENABLE": "Observation > Landings: Show samples count?",
       "LANDING_ONE_TAB_ENABLE": "Observation > Landing: single tab?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
-      "PROGRAM_STRATEGY_EDITOR" : "Strategy > editor",
-      "PROGRAM_STRATEGY_EDITOR_LEGACY": "Default",
-      "PROGRAM_STRATEGY_EDITOR_SAMPLING": "Biological parameters",
+      "STRATEGY_EDITOR" : "Strategy > editor",
+      "STRATEGY_EDITOR_ENUM": {
+        "LEGACY": "Default",
+        "SAMPLING": "Biological parameters"
+      },
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Qualitative values > Max nb buttons (mobile)",
       "VESSEL_TYPE_ENABLE": "Vessels > Enable vessel type?"
     },
