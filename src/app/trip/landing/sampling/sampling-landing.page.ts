@@ -4,7 +4,7 @@ import {BehaviorSubject, Subscription} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '../../../referential/services/model/pmfm-strategy.model';
 import {ParameterLabelGroups, PmfmIds} from '../../../referential/services/model/model.enum';
 import {PmfmService} from '../../../referential/services/pmfm.service';
-import {EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, ObjectMap, SharedValidators} from '@sumaris-net/ngx-components';
+import {EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, fromDateISOString, HistoryPageReference, isNil, isNotNil, ObjectMap, ReferentialRef, SharedValidators} from '@sumaris-net/ngx-components';
 import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
 import {LandingPage} from '../landing.page';
 import {Landing} from '../../services/model/landing.model';
@@ -14,6 +14,8 @@ import {SamplingStrategyService} from '../../../referential/services/sampling-st
 import {Strategy} from '../../../referential/services/model/strategy.model';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
 import {SamplesTable} from '@app/trip/sample/samples.table';
+import {Trip} from '@app/trip/services/model/trip.model';
+import {FishingArea} from '@app/trip/services/model/fishing-area.model';
 
 
 @Component({
@@ -136,6 +138,20 @@ export class SamplingLandingPage extends LandingPage {
         }
       });
     }
+
+    // TODO (436,529) on save: create trip from landing and add trip.metiers, trip.fishingAreas
+    const trip = new Trip();
+    trip.program = ReferentialRef.fromObject(data.program);
+    trip.departureDateTime = fromDateISOString(data.dateTime);
+    trip.returnDateTime = fromDateISOString(data.dateTime);
+    trip.departureLocation = data.location && ReferentialRef.fromObject(data.location);
+    trip.returnLocation = data.location && ReferentialRef.fromObject(data.location);
+    trip.landing = data && Landing.fromObject(data) || undefined;
+    trip.observedLocationId = data.observedLocationId;
+    trip.metiers = this.landingForm.mainMetiers;
+    trip.fishingAreas = this.landingForm.fishingAreas;
+    await this.tripService.save(trip).then(value => data.tripId = value.id);
+
     return data;
   }
 
@@ -154,16 +170,21 @@ export class SamplingLandingPage extends LandingPage {
 
     // Update landing samples tag_id. We store the tag_id with a concatenation of sample label and sample tag_id but we only display sample tag_id
     if (data.samples) {
-    data.samples.map(sample => {
-      if (sample.measurementValues.hasOwnProperty(PmfmIds.TAG_ID)) {
-        const storedTagId = sample.measurementValues[PmfmIds.TAG_ID];
-        if (storedTagId && storedTagId.length > 4 && storedTagId.split('-').length > 1) {
-          const tagIdWithoutSampleLabel = storedTagId.split('-')[1];
-          sample.measurementValues[PmfmIds.TAG_ID] = tagIdWithoutSampleLabel;
+      data.samples.map(sample => {
+        if (sample.measurementValues.hasOwnProperty(PmfmIds.TAG_ID)) {
+          const storedTagId = sample.measurementValues[PmfmIds.TAG_ID];
+          if (storedTagId && storedTagId.length > 4 && storedTagId.split('-').length > 1) {
+            const tagIdWithoutSampleLabel = storedTagId.split('-')[1];
+            sample.measurementValues[PmfmIds.TAG_ID] = tagIdWithoutSampleLabel;
+          }
         }
-      }
-    });
-  }
+      });
+    }
+
+    // TODO (436,529) on load: get trip.metiers, trip.fishingAreas
+    const trip = await this.tripService.load(data.tripId);
+    this.landingForm.mainMetiers = trip && trip.metiers;
+    this.landingForm.fishingAreas = trip && trip.fishingAreas;
 
     await super.setValue(data);
   }

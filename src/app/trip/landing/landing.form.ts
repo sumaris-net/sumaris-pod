@@ -39,6 +39,7 @@ import {IPmfm, PmfmType} from '@app/referential/services/model/pmfm.model';
 import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
 import {Metier} from '@app/referential/services/model/taxon.model';
 import {isNumeric} from 'rxjs/internal/util/isNumeric';
+import {FishingArea} from '@app/trip/services/model/fishing-area.model';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -58,6 +59,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   mobile: boolean;
   strategyControl: FormControl;
   mainMetierPmfmId: number;
+  mainMetiers: ReferentialRef[];
+  fishingAreas: FishingArea[];
 
   get empty(): any {
     const value = this.value;
