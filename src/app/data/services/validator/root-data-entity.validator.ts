@@ -1,4 +1,4 @@
-import {Person}  from "@sumaris-net/ngx-components";
+import {IReferentialRef, Person, ReferentialRef} from '@sumaris-net/ngx-components';
 import {FormBuilder, FormControl, Validators} from "@angular/forms";
 import {SharedFormArrayValidators, SharedValidators} from "@sumaris-net/ngx-components";
 import {RootDataEntity} from "../model/root-data-entity.model";
@@ -46,5 +46,8 @@ export abstract class DataRootEntityValidatorService<T extends RootDataEntity<T>
 
   getObserverControl(observer?: Person): FormControl {
     return this.formBuilder.control(observer || null, [Validators.required, SharedValidators.entity]);
+  }
+  getFishingAreaControl(fishingArea?: ReferentialRef): FormControl {
+    return this.formBuilder.control(fishingArea || null, [Validators.required, SharedValidators.entity]);
   }
 }

@@ -39,6 +39,7 @@ import {IPmfm, PmfmType} from '@app/referential/services/model/pmfm.model';
 import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
 import {Metier} from '@app/referential/services/model/taxon.model';
 import {isNumeric} from 'rxjs/internal/util/isNumeric';
+import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -54,6 +55,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   private _canEditStrategy: boolean;
 
   observersHelper: FormArrayHelper<Person>;
+  fishingAreasHelper: FormArrayHelper<ReferentialRef>;
   observerFocusIndex = -1;
   mobile: boolean;
   strategyControl: FormControl;
@@ -101,6 +103,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   get observersForm(): FormArray {
     return this.form.controls.observers as FormArray;
+  }
+  get fishingAreasForm(): FormArray {
+    return this.form.controls.fishingAreas as FormArray;
   }
 
   @Input() i18nPrefix = LANDING_DEFAULT_I18N_PREFIX;
@@ -266,6 +271,17 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       attributes: metierAttributes
     });
 
+    this.registerAutocompleteField('fishingAreas', {
+      // Important, to get the current (focused) control value, in suggestObservers() function (otherwise it will received '*').
+      showAllOnFocus: false,
+      suggestFn: (value, filter) => this.suggestFishingAreas(value, filter),
+      // Default filter. An excludedIds will be add dynamically
+      filter: {
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST']
+      }
+    });
+
 
     // Propagate program
     this.registerSubscription(
@@ -298,6 +314,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
             measControl.setValue(strategyLabel);
           }
         }));
+
+    this.initFishingAreas();
   }
 
   async safeSetValue(data: Landing, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }) {
@@ -360,6 +378,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       this.observerFocusIndex = this.observersHelper.size() - 1;
     }
   }
+  addFishingArea() {
+    this.fishingAreasHelper.add();
+  }
 
   enable(opts?: {
     onlySelf?: boolean;
@@ -414,6 +435,21 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       excludedIds
     });
   }
+  protected suggestFishingAreas(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+    const newValue = currentControlValue ? '*' : value;
+
+    // Excluded existing fishing area, BUT keep the current control value
+    const excludedIds = (this.fishingAreasForm.value || [])
+      .filter(ReferentialUtils.isNotEmpty)
+      .filter(person => !currentControlValue || currentControlValue !== person)
+      .map(person => parseInt(person.id));
+
+    return this.referentialRefService.suggest(newValue, {
+      ...filter,
+      excludedIds
+    });
+  }
 
   protected setProgramLabel(program: string) {
     super.setProgramLabel(program);
@@ -442,6 +478,18 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
     else if (this.observersHelper.size() > 0) {
       this.observersHelper.resize(0);
+    }
+  }
+  protected initFishingAreas() {
+    this.fishingAreasHelper = new FormArrayHelper<ReferentialRef>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'fishingAreas'),
+      (fishingArea) => this.validatorService.getFishingAreaControl(fishingArea),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+    {allowEmptyArray: true}
+    );
+    if (this.fishingAreasHelper.size() === 0) {
+      this.fishingAreasHelper.resize(1);
     }
   }
 

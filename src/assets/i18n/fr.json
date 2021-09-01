@@ -808,6 +808,8 @@
       "TAB_GENERAL": "Détails",
       "OBSERVER_PLACEHOLDER": "Observateur #",
       "OBSERVERS": "Observateurs :",
+      "FISHING_AREA_PLACEHOLDER": "Zone de pêche #",
+      "FISHING_AREAS": "Zones de pêche :",
       "SAMPLING": {
         "TITLE": "{{location}} - {{dateTime}}",
         "TAB_LANDINGS": "Échantillonnages"
