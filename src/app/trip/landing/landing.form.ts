@@ -11,18 +11,18 @@ import {ModalController} from '@ionic/angular';
 import {
   ConfigService,
   EntityUtils,
-  FormArrayHelper,
-  isNil,
+  FormArrayHelper, IReferentialRef,
+  isNil, isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   LoadResult,
-  LocalSettingsService,
+  LocalSettingsService, MatAutocompleteField,
   Person,
   PersonService,
   PersonUtils,
   ReferentialRef,
-  ReferentialUtils,
-  StatusIds,
+  ReferentialUtils, removeDuplicatesFromArray,
+  StatusIds, suggestFromArray,
   toBoolean,
   UserProfileLabel
 } from '@sumaris-net/ngx-components';
@@ -40,8 +40,14 @@ import {ReferentialRefFilter} from '@app/referential/services/filter/referential
 import {Metier} from '@app/referential/services/model/taxon.model';
 import {isNumeric} from 'rxjs/internal/util/isNumeric';
 import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
+import {BehaviorSubject} from 'rxjs';
+import {Program} from '@app/referential/services/model/program.model';
+import {AppliedStrategy} from '@app/referential/services/model/strategy.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
+
+type FilterableFieldName = 'fishingArea';
 
 @Component({
   selector: 'app-landing-form',
@@ -60,6 +66,11 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   mobile: boolean;
   strategyControl: FormControl;
   mainMetierPmfmId: number;
+
+  autocompleteFilters = {
+    fishingArea: false
+  };
+  fishingAreaItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
 
   get empty(): any {
     const value = this.value;
@@ -150,6 +161,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   get showObservers(): boolean {
     return this._showObservers;
   }
+
+  @Input() editor: AppRootDataEditor<any, any>;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -278,7 +291,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST']
+        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST'],
+        levelIds: LocationLevelIds.LOCATIONS_AREA
       }
     });
 
@@ -315,7 +329,20 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           }
         }));
 
+    // set fishingAreas filter
+    this.editor.$strategy.subscribe(strategy => {
+      this.fishingAreaItems.next(strategy?.appliedStrategies.map(appliedStrategy => {
+        return appliedStrategy?.location as ReferentialRef;
+      }))
+    })
     this.initFishingAreas();
+  }
+
+  toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
+    this.autocompleteFilters[fieldName] = !this.autocompleteFilters[fieldName];
+    this.markForCheck();
+
+    if (field) field.reloadItems();
   }
 
   async safeSetValue(data: Landing, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }) {
@@ -435,20 +462,15 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       excludedIds
     });
   }
-  protected suggestFishingAreas(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
-    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
-    const newValue = currentControlValue ? '*' : value;
-
-    // Excluded existing fishing area, BUT keep the current control value
-    const excludedIds = (this.fishingAreasForm.value || [])
-      .filter(ReferentialUtils.isNotEmpty)
-      .filter(person => !currentControlValue || currentControlValue !== person)
-      .map(person => parseInt(person.id));
-
-    return this.referentialRefService.suggest(newValue, {
-      ...filter,
-      excludedIds
-    });
+  protected async suggestFishingAreas(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
+    if (this.autocompleteFilters.fishingArea) {
+      return suggestFromArray(this.fishingAreaItems.getValue(), value, filter);
+    } else {
+      return this.referentialRefService.suggest(value, {
+        ...filter,
+        entityName: 'Location'
+      });
+    }
   }
 
   protected setProgramLabel(program: string) {
