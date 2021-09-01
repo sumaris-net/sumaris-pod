@@ -1057,7 +1057,16 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
       // When taxon is changed first and returned to initial value, we set back initial sampling strategy label (with same year)
       if (currentViewTaxonName === storedDataTaxonName && yearMask === storedDataYear) {
-        labelControl.setValue(this.data.label);
+        // Strategy label is stored without any spaces. We must set the label back with specific pattern
+        let storedLabelToSetBack = this.data.label;
+        if (this.data.label && this.data.label.length === 12)
+        {
+          storedLabelToSetBack = this.data.label.substr(0, 2).concat(' ').concat(this.data.label.substr(2, 7)).concat(' ').concat(this.data.label.substr(9, 11));
+        }
+        labelControl.setValue(storedLabelToSetBack);
+        // @ts-ignore
+        this.labelMask = yearMask.split("")
+          .concat([' ', /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, ' ', /\d/, /\d/, /\d/]);
         return;
       }
       const label = currentViewTaxonName && TaxonUtils.generateLabelFromName(currentViewTaxonName);
