@@ -167,6 +167,30 @@ export const ProgramProperties = Object.freeze({
       }
     ]
   },
+  TRIP_OPERATION_LINKED: <FormFieldDefinition>{
+    key: "sumaris.trip.operation.linked",
+    label: "PROGRAM.OPTIONS.TRIP_OPERATION_LINKED",
+    defaultValue: "false",
+    type: 'boolean'
+  },
+  TRIP_FILTER_METIER: <FormFieldDefinition>{
+    key: "sumaris.trip.metier.filter",
+    label: "PROGRAM.OPTIONS.TRIP_METIER_FILTER",
+    defaultValue: "false",
+    type: 'boolean'
+  },
+  TRIP_DISTANCE_MAX_WARNING: <FormFieldDefinition>{
+    key: "sumaris.trip.operation.distanceMaxWarning",
+    label: "PROGRAM.OPTIONS.TRIP_OPERATION_DISTANCE_MAX_WARNING",
+    defaultValue: "0",
+    type: 'integer'
+  },
+  TRIP_DISTANCE_MAX_ERROR: <FormFieldDefinition>{
+    key: "sumaris.trip.operation.distanceMaxError",
+    label: "PROGRAM.OPTIONS.TRIP_OPERATION_DISTANCE_MAX_ERROR",
+    defaultValue: "0",
+    type: 'integer'
+  },
 
   // Observed location
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: <FormFieldDefinition>{

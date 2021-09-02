@@ -7,5 +7,14 @@ form {
   ion-col[no-padding] {
     padding: 0 !important;
   }
+}
 
+:host ::ng-deep{
+  mat-date-time-field {
+    .mat-form-field-disabled {
+      .mat-form-field-infix {
+        min-height: 38px !important;
+      }
+    }
+  }
 }

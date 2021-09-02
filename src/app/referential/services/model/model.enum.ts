@@ -168,7 +168,7 @@ export const QualityFlags = Object.entries(QualityFlagIds).map(([label, id]) => 
 
 export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING' | 'PHYSICAL_GEAR' | 'CATCH_BATCH'
   | 'SORTING_BATCH' | 'SORTING_BATCH_INDIVIDUAL' | 'SAMPLE' | 'SURVIVAL_TEST' | 'INDIVIDUAL_MONITORING' | 'INDIVIDUAL_RELEASE'
-  | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' | 'PACKET_SALE' | 'EXPENSE' | 'BAIT_EXPENSE' | 'ICE_EXPENSE' ;
+  | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' | 'PACKET_SALE' | 'EXPENSE' | 'BAIT_EXPENSE' | 'ICE_EXPENSE' | 'CHILD_OPERATION' ;
 
 export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
   TRIP: 'TRIP',
@@ -190,7 +190,8 @@ export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
   PACKET_SALE: 'PACKET_SALE',
   EXPENSE: 'EXPENSE',
   BAIT_EXPENSE: 'BAIT_EXPENSE',
-  ICE_EXPENSE: 'ICE_EXPENSE'
+  ICE_EXPENSE: 'ICE_EXPENSE',
+  CHILD_OPERATION: 'CHILD_OPERATION'
 };
 
 export const SaleTypeIds = {

@@ -35,6 +35,22 @@ export interface OperationFromObjectOptions {
   withBatchTree?: boolean;
 }
 
+export declare interface OperationType {
+  id: number;
+  label: string;
+}
+
+export const defaultOperationTypesList: OperationType[] = [
+  {
+    id: 0,
+    label: "TRIP.OPERATION.EDIT.TYPE.PARENT"
+  },
+  {
+    id: 1,
+    label: "TRIP.OPERATION.EDIT.TYPE.CHILD"
+  }
+];
+
 @EntityClass({typename: 'OperationVO'})
 export class Operation extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> {
 
@@ -60,6 +76,10 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
   samples: Sample[] = null;
   catchBatch: Batch = null;
   fishingAreas: FishingArea[] = [];
+  operationTypeId: number;
+  parentOperationId: number = null;
+  parentOperation: Operation = null;
+  qualityFlagId:  number = null;
 
   constructor() {
     super(Operation.TYPENAME);
@@ -143,6 +163,18 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     // Fishing areas
     target.fishingAreas = this.fishingAreas && this.fishingAreas.map(value => value.asObject(opts)) || undefined;
 
+    //Parent Operation
+    target.parentOperationId = this.parentOperation && this.parentOperation.id
+
+    if (opts.minify){
+      delete target.operationTypeId;
+      delete target.parentOperation;
+    }
+    else {
+      target.parentOperation = this.parentOperation && this.parentOperation.asObject(opts) || undefined;
+      target.operationTypeId = this.parentOperation ? 1 : 0;
+    }
+
     return target;
   }
 
@@ -209,6 +241,12 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
         // Convert list to tree (useful when fetching from a pod)
         Batch.fromObjectArrayAsTree(source.batches);
     }
+
+    //Parent Operation
+    this.parentOperationId = source.parentOperationId;
+    this.parentOperation = (source.parentOperation || source.parentOperationId) ? Operation.fromObject(source.parentOperation || {id: source.parentOperationId}) : undefined;
+
+    this.operationTypeId = this.parentOperationId ? 1 : 0;
   }
 
   equals(other: Operation): boolean {
@@ -447,7 +485,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     if (source.operations) {
       this.operations = source.operations
         .map(Operation.fromObject)
-        .map((o:Operation) => {
+        .map((o: Operation) => {
           o.tripId = this.id;
           // Ling to trip's gear
           o.physicalGear = o.physicalGear && (this.gears || []).find(g => o.physicalGear.equals(g));

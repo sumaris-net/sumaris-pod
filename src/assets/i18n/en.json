@@ -565,7 +565,25 @@
         "LATITUDE": "Latitude",
         "LONGITUDE": "Longitude",
         "OTHER_FEATURES": "Other features:",
-        "NO_TARGET_SPECIES_FOUND": "No species for this gear"
+        "NO_TARGET_SPECIES_FOUND": "No species for this gear",
+        "DISTANCE_TRAVELED" : "Traveled distance :",
+        "START_PARENT_OPERATION" : "Start laying :",
+        "END_PARENT_OPERATION" : "End laying / Start Fishing :",
+        "START_CHILD_OPERATION" : "End fishing / Start hauling :",
+        "END_CHILD_OPERATION" : "End hauling :",
+        "TYPE": {
+          "TITLE" : "Operation type :",
+          "PARENT" : "Setting",
+          "CHILD" : "Hauling"
+        }
+      },
+      "PARENT": {
+        "TITLE" : "Select setting",
+        "TRIP" : "{{vessel}} - Trip {{departureDateTime}}",
+        "FILTER" : {
+          "SEARCH_TEXT" : "Search : code gear / target species",
+          "START_DATE" : "Start period"
+        }
       },
       "MAP": {
         "TITLE": "Positions map",
@@ -582,7 +600,8 @@
         "FISHING_END_DATE_TIME": "Towing",
         "START_POSITION": "Shooting GPS Position",
         "END_POSITION": "Towing GPS Position",
-        "COMMENTS": "Comments"
+        "COMMENTS": "Comments",
+        "OPERATION_TYPE" : "Type"
       },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Before trip's start",
@@ -591,7 +610,9 @@
         "LOAD_OPERATIONS_ERROR": "Error while loading operations.",
         "SAVE_OPERATION_ERROR": "Error while saving the operation.",
         "SAVE_OPERATIONS_ERROR": "Error while saving operations.",
-        "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes."
+        "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes.",
+        "FIELD_DATE_BEFORE_PARENT_OPERATION": "Before setting's end",
+        "TOO_LONG_DISTANCE" : "Traveled distance too long"
       }
     },
     "CATCH": {
@@ -1272,6 +1293,10 @@
       "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Catch > Survival test: Commercial species?",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Position > Latitude: Default direction:",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Position > Longitude: Default direction:",
+      "TRIP_OPERATION_LINKED": "Trip > Operation : linked Operations (setting/hauling) ?",
+      "TRIP_METIER_FILTER": "Trip > Operation : Filter already used metiers ?",
+      "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Trip > Operation : Max travelled distance before warning :",
+      "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Trip > Operation : Max travelled distance before error : ",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation > End date?",
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Observation > Add landing: Can add vessel?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Observation > Add landing: Show history?",

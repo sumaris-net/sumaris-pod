@@ -12,7 +12,7 @@ import {
   Entity,
   EntitySaveOptions,
   EntityServiceLoadOptions,
-  EntityUtils,
+  EntityUtils, firstNotNilPromise,
   FormErrors,
   GraphqlService,
   IEntitiesService,
@@ -40,7 +40,7 @@ import {
 } from '@app/data/services/model/data-entity.model';
 import {Observable} from 'rxjs';
 import {IDataEntityQualityService} from '@app/data/services/data-quality-service.class';
-import {OperationService} from './operation.service';
+import {OperationService, OperationServiceWatchOptions} from './operation.service';
 import {VesselSnapshotFragments, VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {TripValidatorService} from './validator/trip.validator';
@@ -61,6 +61,7 @@ import {VESSEL_FEATURE_NAME} from '@app/vessel/services/config/vessel.config';
 import {TripFilter} from './filter/trip.filter';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {TrashRemoteService} from '@app/core/services/trash-remote.service';
+import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 
 const moment = momentImported;
 

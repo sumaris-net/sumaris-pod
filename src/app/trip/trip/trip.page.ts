@@ -160,6 +160,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
     this.operationsTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
 
+    this.operationsTable.$uselinkedOperations.next(this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_LINKED));
+
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {
       const subscription = this.network.onNetworkStatusChanges

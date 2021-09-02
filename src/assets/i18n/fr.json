@@ -565,7 +565,25 @@
         "LATITUDE": "Latitude",
         "LONGITUDE": "Longitude",
         "OTHER_FEATURES": "Caractéristiques :",
-        "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin"
+        "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin",
+        "DISTANCE_TRAVELED" : "Distance parcourue :",
+        "START_PARENT_OPERATION" : "Début pose :",
+        "END_PARENT_OPERATION" : "Fin pose / Début pêche :",
+        "START_CHILD_OPERATION" : "Fin pêche / Début virage :",
+        "END_CHILD_OPERATION" : "Fin virage :",
+        "TYPE": {
+          "TITLE" : "Type d'opération :",
+          "PARENT" : "Filage",
+          "CHILD" : "Virage"
+        }
+      },
+      "PARENT": {
+        "TITLE" : "Sélectionner filage",
+        "TRIP" : "{{vessel}} - Marée {{departureDateTime}}",
+        "FILTER" : {
+          "SEARCH_TEXT" : "Recherche : code engin / espèce",
+          "START_DATE" : "Début de période"
+        }
       },
       "MAP": {
         "TITLE": "Carte des positions",
@@ -582,7 +600,8 @@
         "FISHING_END_DATE_TIME": "Fin de pêche",
         "START_POSITION": "Position début",
         "END_POSITION": "Position de fin",
-        "COMMENTS": "Commentaires"
+        "COMMENTS": "Commentaires",
+        "OPERATION_TYPE" : "Type"
       },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Avant le départ de la marée",
@@ -591,7 +610,9 @@
         "LOAD_OPERATIONS_ERROR": "Erreur de chargement des opérations.",
         "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
         "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des opérations.",
-        "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération."
+        "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération.",
+        "FIELD_DATE_BEFORE_PARENT_OPERATION": "Avant la date de fin du filage",
+        "TOO_LONG_DISTANCE" : "Distance parcourue trop grande"
       }
     },
     "CATCH": {
@@ -1290,6 +1311,10 @@
       "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Capture > Test de survie : Espèces commerciales ?",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Position > Longitude: Direction par défaut :",
+      "TRIP_OPERATION_LINKED": "Marée > Opération : Opérations liées (Filage/Virage) ?",
+      "TRIP_METIER_FILTER": "Marée > Opération : Filtrer les métiers déjà saisis ?",
+      "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Marée > Opération : Distance max parcourue avant alerte :",
+      "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Marée > Opération : Distance max parcourue avant erreur : ",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie > Date de fin ?",
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Sortie > Débarquements: Ajout de navire ?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Sortie > Afficher l'historique pour ajouter un débarquement ?",
