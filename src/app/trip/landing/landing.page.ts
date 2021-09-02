@@ -164,6 +164,22 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     await this.load(this.data && this.data.id, route.params);
   }
 
+  protected async onEntitySaved(data: any): Promise<void> {
+    const trip = new Trip();
+    trip.program = ReferentialRef.fromObject(data.program);
+    trip.departureDateTime = fromDateISOString(data.dateTime);
+    trip.returnDateTime = fromDateISOString(data.dateTime);
+    trip.departureLocation = data.location && ReferentialRef.fromObject(data.location);
+    trip.returnLocation = data.location && ReferentialRef.fromObject(data.location);
+    trip.landing = data && Landing.fromObject(data) || undefined;
+    trip.observedLocationId = data.observedLocationId;
+    trip.metiers = [this.landingForm.form.get("metier")?.value];
+    trip.fishingAreas = this.landingForm.fishingAreaItems.getValue();
+    await this.tripService.save(trip).then(value => data.tripId = value.id);
+
+    await super.onEntitySaved(data);
+  }
+
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
 
     if (this.isOnFieldMode) {

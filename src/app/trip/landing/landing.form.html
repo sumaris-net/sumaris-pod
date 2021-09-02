@@ -144,25 +144,14 @@
         </ion-col>
 
         <ion-col>
-          <!-- pmfms -->
-          <ng-container *ngFor="let pmfm of pmfms; index as i;">
-
-            <mat-autocomplete-field *ngIf="mainMetierPmfmId === pmfm.id; else pmfmField"
-                                    [formControl]="form.get('measurementValues.' + pmfm.id)"
+          <ng-container>
+            <mat-autocomplete-field formControlName="metier"
                                     [placeholder]="'TRIP.MAIN_METIER_PLACEHOLDER'|translate"
                                     [config]="autocompleteFields.metier"
                                     [required]="true"
                                     [panelWidth]="!mobile && '500px'">
               <ion-icon matPrefix name="locate"></ion-icon>
             </mat-autocomplete-field>
-            <ng-template #pmfmField>
-              <app-pmfm-field [pmfm]="pmfm"
-                              [formControl]="form.get('measurementValues.' + pmfm.id)"
-                              [compact]="compact"
-                              [tabindex]="50 + i*2"
-                              [floatLabel]="floatLabel">
-              </app-pmfm-field>
-            </ng-template>
           </ng-container>
         </ion-col>
       </ion-row>
@@ -170,9 +159,9 @@
 
     <!-- fishing areas -->
     <ng-container>
-      <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i=index">
+      <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i=index; first as first">
         <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-          <ion-label class="ion-float-end" translate>OBSERVED_LOCATION.EDIT.FISHING_AREAS</ion-label>
+          <ion-label class="ion-float-end" *ngIf="first" translate>OBSERVED_LOCATION.EDIT.FISHING_AREAS</ion-label>
         </ion-col>
         <ion-col >
           <mat-autocomplete-field #fishingAreaField

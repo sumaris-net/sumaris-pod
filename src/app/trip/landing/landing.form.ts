@@ -189,6 +189,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this._enable = false;
     this.mobile = this.settings.mobile;
 
+    // add missing control
+    this.form.addControl('metier', new FormControl());
+
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
     this.mainMetierPmfmId = PmfmIds.MAIN_METIER;
@@ -336,6 +339,12 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       }))
     })
     this.initFishingAreas();
+    // force to set a least one value
+    this.fishingAreasHelper.formArray.valueChanges.subscribe(() => {
+      if (this.fishingAreasHelper.size() === 0) {
+        this.fishingAreasHelper.resize(1);
+      }
+    });
   }
 
   toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
