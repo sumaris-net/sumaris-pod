@@ -42,6 +42,7 @@ import {ReferentialFragments} from '@app/referential/services/referential.fragme
 import {LandingFilter} from './filter/landing.filter';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
+import {TripFragments} from '@app/trip/services/trip.service';
 
 const moment = momentImported;
 
@@ -139,13 +140,11 @@ export const LandingFragments = {
       ...SampleFragment
     }
     samplesCount
-    #fishingAreas {
-    #  id
-    #  location {
-    #    ...LocationFragment
-    #  }
-    #}
-  }`
+    trip {
+      ...TripFragment
+    }
+  }
+  ${TripFragments.trip}`
 };
 
 const LandingQueries = {

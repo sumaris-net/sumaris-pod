@@ -167,7 +167,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   protected async onEntitySaved(data: Landing): Promise<void> {
     const trip = new Trip();
-    trip.id = data.tripId;
     trip.program = ReferentialRef.fromObject(data.program);
     trip.vesselSnapshot = data.vesselSnapshot;
     trip.departureDateTime = fromDateISOString(data.dateTime);
@@ -179,7 +178,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     trip.metiers = [this.landingForm.form.get("metier")?.value];
     trip.fishingAreas = this.landingForm.appliedStrategyLocations.getValue().map(location => FishingArea.fromObject({location}));
     await this.tripService.save(trip).then(value => data.tripId = value.id);
-
     await super.onEntitySaved(data);
   }
 

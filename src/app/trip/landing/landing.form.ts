@@ -347,14 +347,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       }))
     })
     this.initFishingAreas();
-    // TODO force to set a least one value
-    /*
-    this.fishingAreasHelper.formArray.valueChanges.subscribe(() => {
-      if (this.fishingAreasHelper.size() === 0) {
-        this.fishingAreasHelper.resize(1);
-      }
-    });
-    */
   }
 
   toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
