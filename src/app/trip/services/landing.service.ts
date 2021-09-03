@@ -139,6 +139,12 @@ export const LandingFragments = {
       ...SampleFragment
     }
     samplesCount
+    #fishingAreas {
+    #  id
+    #  location {
+    #    ...LocationFragment
+    #  }
+    #}
   }`
 };
 

@@ -43,6 +43,7 @@ import {PmfmService} from '@app/referential/services/pmfm.service';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {PmfmIds} from '@app/referential/services/model/model.enum';
 import { ContextService } from '@app/shared/context.service';
+import {FishingArea} from '@app/trip/services/model/fishing-area.model';
 
 const moment = momentImported;
 
@@ -164,9 +165,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     await this.load(this.data && this.data.id, route.params);
   }
 
-  protected async onEntitySaved(data: any): Promise<void> {
+  protected async onEntitySaved(data: Landing): Promise<void> {
     const trip = new Trip();
+    trip.id = data.tripId;
     trip.program = ReferentialRef.fromObject(data.program);
+    trip.vesselSnapshot = data.vesselSnapshot;
     trip.departureDateTime = fromDateISOString(data.dateTime);
     trip.returnDateTime = fromDateISOString(data.dateTime);
     trip.departureLocation = data.location && ReferentialRef.fromObject(data.location);
@@ -174,7 +177,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     trip.landing = data && Landing.fromObject(data) || undefined;
     trip.observedLocationId = data.observedLocationId;
     trip.metiers = [this.landingForm.form.get("metier")?.value];
-    trip.fishingAreas = this.landingForm.fishingAreaItems.getValue();
+    trip.fishingAreas = this.landingForm.appliedStrategyLocations.getValue().map(location => FishingArea.fromObject({location}));
     await this.tripService.save(trip).then(value => data.tripId = value.id);
 
     await super.onEntitySaved(data);

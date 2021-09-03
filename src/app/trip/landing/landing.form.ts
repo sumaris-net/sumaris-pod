@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Optional} from '@angular/core';
 import {Moment} from 'moment';
 import {DateAdapter} from '@angular/material/core';
 import {debounceTime, map} from 'rxjs/operators';
@@ -6,23 +6,26 @@ import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../referentia
 import {LandingValidatorService} from '../services/validator/landing.validator';
 import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {FormArray, FormBuilder, FormControl, Validators} from '@angular/forms';
+import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {ModalController} from '@ionic/angular';
 import {
   ConfigService,
   EntityUtils,
-  FormArrayHelper, IReferentialRef,
-  isNil, isNotEmptyArray,
+  FormArrayHelper,
+  IReferentialRef,
+  isNil,
   isNotNil,
   isNotNilOrBlank,
   LoadResult,
-  LocalSettingsService, MatAutocompleteField,
+  LocalSettingsService,
+  MatAutocompleteField,
   Person,
   PersonService,
   PersonUtils,
   ReferentialRef,
-  ReferentialUtils, removeDuplicatesFromArray,
-  StatusIds, suggestFromArray,
+  ReferentialUtils,
+  StatusIds,
+  suggestFromArray,
   toBoolean,
   UserProfileLabel
 } from '@sumaris-net/ngx-components';
@@ -42,8 +45,10 @@ import {isNumeric} from 'rxjs/internal/util/isNumeric';
 import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
 import {BehaviorSubject} from 'rxjs';
 import {Program} from '@app/referential/services/model/program.model';
-import {AppliedStrategy} from '@app/referential/services/model/strategy.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {FishingArea} from '@app/trip/services/model/fishing-area.model';
+import {locationSharp} from 'ionicons/icons';
+import {FishingAreaValidatorOptions, FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
+import {LandingService} from '@app/trip/services/landing.service';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -61,7 +66,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   private _canEditStrategy: boolean;
 
   observersHelper: FormArrayHelper<Person>;
-  fishingAreasHelper: FormArrayHelper<ReferentialRef>;
+  fishingAreasHelper: FormArrayHelper<FishingArea>;
   observerFocusIndex = -1;
   mobile: boolean;
   strategyControl: FormControl;
@@ -70,7 +75,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   autocompleteFilters = {
     fishingArea: false
   };
-  fishingAreaItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+  appliedStrategyLocations: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
 
   get empty(): any {
     const value = this.value;
@@ -162,7 +167,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return this._showObservers;
   }
 
-  @Input() editor: AppRootDataEditor<any, any>;
+  @Input() protected editor: AppRootDataEditor<Landing, LandingService>
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -178,7 +183,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected configService: ConfigService,
     protected translate: TranslateService,
     protected modalCtrl: ModalController,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    protected fishingAreaValidatorService: FishingAreaValidatorService
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup(), {
       mapPmfms: pmfms => this.mapPmfms(pmfms)
@@ -199,6 +205,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   ngOnInit() {
     super.ngOnInit();
+
+    if (!this.editor) throw new Error("Missing mandatory 'editor' input!");
 
     // Default values
     this.showObservers = toBoolean(this.showObservers, true); // Will init the observers helper
@@ -333,18 +341,20 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         }));
 
     // set fishingAreas filter
-    this.editor.$strategy.subscribe(strategy => {
-      this.fishingAreaItems.next(strategy?.appliedStrategies.map(appliedStrategy => {
+    this.editor?.$strategy.subscribe(strategy => {
+      this.appliedStrategyLocations.next(strategy?.appliedStrategies.map(appliedStrategy => {
         return appliedStrategy?.location as ReferentialRef;
       }))
     })
     this.initFishingAreas();
-    // force to set a least one value
+    // TODO force to set a least one value
+    /*
     this.fishingAreasHelper.formArray.valueChanges.subscribe(() => {
       if (this.fishingAreasHelper.size() === 0) {
         this.fishingAreasHelper.resize(1);
       }
     });
+    */
   }
 
   toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
@@ -473,7 +483,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   }
   protected async suggestFishingAreas(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
     if (this.autocompleteFilters.fishingArea) {
-      return suggestFromArray(this.fishingAreaItems.getValue(), value, filter);
+      return suggestFromArray(this.appliedStrategyLocations.getValue(), value, filter);
     } else {
       return this.referentialRefService.suggest(value, {
         ...filter,
@@ -512,12 +522,12 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
   }
   protected initFishingAreas() {
-    this.fishingAreasHelper = new FormArrayHelper<ReferentialRef>(
+    this.fishingAreasHelper = new FormArrayHelper<FishingArea>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'fishingAreas'),
-      (fishingArea) => this.validatorService.getFishingAreaControl(fishingArea),
+      (fishingArea) => this.fishingAreaValidatorService.getFormGroup(fishingArea, {required: true}),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
-    {allowEmptyArray: true}
+    {allowEmptyArray: false}
     );
     if (this.fishingAreasHelper.size() === 0) {
       this.fishingAreasHelper.resize(1);

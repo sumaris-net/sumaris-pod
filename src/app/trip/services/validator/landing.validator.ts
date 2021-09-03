@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedValidators} from "@sumaris-net/ngx-components";
+import {SharedFormArrayValidators, SharedValidators} from '@sumaris-net/ngx-components';
 import {toBoolean, toNumber} from "@sumaris-net/ngx-components";
 import {ProgramProperties} from "../../../referential/services/config/program.config";
 import {MeasurementsValidatorService} from "./measurement.validator";
@@ -10,6 +10,7 @@ import {DataRootVesselEntityValidatorService} from "../../../data/services/valid
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
 import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
 import {Strategy} from "../../../referential/services/model/strategy.model";
+import {IWithObserversEntity} from '@app/data/services/model/model.utils';
 
 export interface LandingValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;

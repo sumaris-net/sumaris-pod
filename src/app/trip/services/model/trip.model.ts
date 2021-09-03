@@ -386,7 +386,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   metiers: ReferentialRef[] = null;
   operations?: Operation[] = null;
   operationGroups?: OperationGroup[] = null;
-  fishingAreas?: ReferentialRef[] = null;
+  fishingAreas?: FishingArea[] = null;
   fishingArea: FishingArea = null;
 
   landing?: Landing = null;
@@ -421,6 +421,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
     // Fishing area
     target.fishingArea = this.fishingArea && this.fishingArea.asObject(options) || undefined;
+    target.fishingAreas = this.fishingAreas && this.fishingAreas.map(p => p && p.asObject(options)) || undefined;
 
     // Landing
     target.landing = this.landing && this.landing.asObject(options) || undefined;
@@ -448,7 +449,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     if (source.operations) {
       this.operations = source.operations
         .map(Operation.fromObject)
-        .map((o:Operation) => {
+        .map((o: Operation) => {
           o.tripId = this.id;
           // Ling to trip's gear
           o.physicalGear = o.physicalGear && (this.gears || []).find(g => o.physicalGear.equals(g));
@@ -464,6 +465,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     }
 
     this.fishingArea = source.fishingArea && FishingArea.fromObject(source.fishingArea) || undefined;
+    this.fishingAreas = source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject) || [];
 
     this.landing = source.landing && Landing.fromObject(source.landing) || undefined;
     this.observedLocationId = source.observedLocationId;

@@ -1,12 +1,10 @@
-import {IReferentialRef, Person, ReferentialRef} from '@sumaris-net/ngx-components';
-import {FormBuilder, FormControl, Validators} from "@angular/forms";
-import {SharedFormArrayValidators, SharedValidators} from "@sumaris-net/ngx-components";
-import {RootDataEntity} from "../model/root-data-entity.model";
-import {IWithObserversEntity} from "../model/model.utils";
-import {Program} from "../../../referential/services/model/program.model";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {Optional} from "@angular/core";
-import {DataEntityValidatorOptions, DataEntityValidatorService} from "./data-entity.validator";
+import {LocalSettingsService, Person, SharedFormArrayValidators, SharedValidators} from '@sumaris-net/ngx-components';
+import {FormBuilder, FormControl, Validators} from '@angular/forms';
+import {RootDataEntity} from '../model/root-data-entity.model';
+import {IWithObserversEntity} from '../model/model.utils';
+import {Program} from '../../../referential/services/model/program.model';
+import {Optional} from '@angular/core';
+import {DataEntityValidatorOptions, DataEntityValidatorService} from './data-entity.validator';
 
 export interface DataRootEntityValidatorOptions extends DataEntityValidatorOptions {
   withObservers?: boolean;
@@ -46,8 +44,5 @@ export abstract class DataRootEntityValidatorService<T extends RootDataEntity<T>
 
   getObserverControl(observer?: Person): FormControl {
     return this.formBuilder.control(observer || null, [Validators.required, SharedValidators.entity]);
-  }
-  getFishingAreaControl(fishingArea?: ReferentialRef): FormControl {
-    return this.formBuilder.control(fishingArea || null, [Validators.required, SharedValidators.entity]);
   }
 }

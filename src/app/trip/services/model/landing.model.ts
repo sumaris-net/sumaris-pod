@@ -65,6 +65,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     // Parent link
     this.observedLocationId = source.observedLocationId;
     this.tripId = source.tripId;
+    console.info("TODO", source)
 
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
