@@ -67,10 +67,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Transactional
@@ -1292,7 +1289,10 @@ public class DataGraphQLService {
         if (landing.getMeasurementValues() != null) {
             return landing.getMeasurementValues();
         }
-        return measurementService.getLandingMeasurementsMap(landing.getId());
+        Map<Integer, String> result = new HashMap<>();
+        Optional.ofNullable(measurementService.getLandingMeasurementsMap(landing.getId())).ifPresent(result::putAll);
+        Optional.ofNullable(measurementService.getSurveyMeasurementsMap(landing.getId())).ifPresent(result::putAll);
+        return result;
     }
 
     // Measurement pmfm

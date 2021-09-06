@@ -48,6 +48,7 @@ public class PmfmVO extends ReferentialVO {
     private Boolean isCalculated; // from the method
 
     // Link to other entities
+    private Integer parameterGroupId;
     private Integer parameterId;
     private Integer matrixId;
     private Integer fractionId;

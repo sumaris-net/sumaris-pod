@@ -286,8 +286,8 @@ public class StrategyRepositoryImpl
         ParameterExpression<String> strategyLabelParam = builder.parameter(String.class);
 
         Join<Sample, Landing> landingInnerJoin = root.join(Sample.Fields.LANDING, JoinType.INNER);
-        Join<Landing, LandingMeasurement> strategyMeasurementInnerJoin = landingInnerJoin.joinList(Landing.Fields.MEASUREMENTS, JoinType.INNER);
-        Join<Landing, LandingMeasurement> tagIdInnerJoin = landingInnerJoin.joinList(Landing.Fields.MEASUREMENTS, JoinType.INNER);
+        Join<Landing, LandingMeasurement> strategyMeasurementInnerJoin = landingInnerJoin.joinList(Landing.Fields.LANDING_MEASUREMENTS, JoinType.INNER);
+        Join<Landing, LandingMeasurement> tagIdInnerJoin = landingInnerJoin.joinList(Landing.Fields.LANDING_MEASUREMENTS, JoinType.INNER);
 
         query.select(tagIdInnerJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE))
                 .distinct(true)

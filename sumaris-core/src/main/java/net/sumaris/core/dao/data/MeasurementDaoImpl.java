@@ -115,6 +115,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         // Landing
         result.put(LandingMeasurement.class, BeanUtils.getPropertyDescriptor(LandingMeasurement.class, LandingMeasurement.Fields.LANDING));
 
+        // Survey
+        result.put(SurveyMeasurement.class, BeanUtils.getPropertyDescriptor(SurveyMeasurement.class, SurveyMeasurement.Fields.LANDING));
+
         return result;
     }
 
@@ -326,6 +329,25 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
+    public List<MeasurementVO> getSurveyMeasurements(int landingId) {
+        return getMeasurementsByParentId(SurveyMeasurement.class,
+            MeasurementVO.class,
+            SurveyMeasurement.Fields.LANDING,
+            landingId,
+            SurveyMeasurement.Fields.ID
+        );
+    }
+
+    @Override
+    public Map<Integer, String> getSurveyMeasurementsMap(int landingId) {
+        return getMeasurementsMapByParentId(SurveyMeasurement.class,
+            SurveyMeasurement.Fields.LANDING,
+            landingId,
+            null
+        );
+    }
+
+    @Override
     public List<MeasurementVO> getSaleMeasurements(int saleId) {
         return getMeasurementsByParentId(SaleMeasurement.class,
                 MeasurementVO.class,
@@ -486,13 +508,25 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     @Override
     public List<MeasurementVO> saveLandingMeasurements(final int landingId, List<MeasurementVO> sources) {
         Landing parent = getById(Landing.class, landingId);
-        return saveMeasurements(LandingMeasurement.class, sources, parent.getMeasurements(), parent);
+        return saveMeasurements(LandingMeasurement.class, sources, parent.getLandingMeasurements(), parent);
     }
 
     @Override
     public Map<Integer, String> saveLandingMeasurementsMap(final int landingId, Map<Integer, String> sources) {
         Landing parent = getById(Landing.class, landingId);
-        return saveMeasurementsMap(LandingMeasurement.class, sources, parent.getMeasurements(), parent);
+        return saveMeasurementsMap(LandingMeasurement.class, sources, parent.getLandingMeasurements(), parent);
+    }
+
+    @Override
+    public List<MeasurementVO> saveSurveyMeasurements(int landingId, List<MeasurementVO> sources) {
+        Landing parent = getById(Landing.class, landingId);
+        return saveMeasurements(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
+    }
+
+    @Override
+    public Map<Integer, String> saveSurveyMeasurementsMap(int landingId, Map<Integer, String> sources) {
+        Landing parent = getById(Landing.class, landingId);
+        return saveMeasurementsMap(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
     }
 
     @Override

@@ -294,6 +294,7 @@ public class ReferentialDaoImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_SUFFIX, allEntries = true, condition = "#source.entityName == 'Pmfm'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_PREFIX, allEntries = true, condition = "#source.entityName == 'Pmfm'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_MATRIX, allEntries = true, condition = "#source.entityName == 'Pmfm'"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_PARAMETER_GROUP, allEntries = true, condition = "#source.entityName == 'Pmfm'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = "#source.entityName == 'Program'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.entityName == 'Program'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_LEVEL_BY_LABEL, key = "#source.label", condition = "#source.entityName == 'LocationLevel'"),

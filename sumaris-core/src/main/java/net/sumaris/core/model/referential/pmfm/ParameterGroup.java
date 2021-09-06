@@ -27,12 +27,9 @@ import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
-import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Quadruplet paramètre/support/méthode/fraction. Ce quadruplet est systématiquement associé aux résultats et décrit précisemment les conditions de mesure/d'analyse de ceux-ci.
@@ -41,13 +38,13 @@ import java.util.List;
 @ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "parameter")
+@Table(name = "parameter_group")
 @Cacheable
-public class Parameter implements IItemReferentialEntity {
+public class ParameterGroup implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PARAMETER_SEQ")
-    @SequenceGenerator(name = "PARAMETER_SEQ", sequenceName="PARAMETER_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PARAMETER_GROUP_SEQ")
+    @SequenceGenerator(name = "PARAMETER_GROUP_SEQ", sequenceName="PARAMETER_GROUP_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
     private Integer id;
 
@@ -75,23 +72,6 @@ public class Parameter implements IItemReferentialEntity {
     @Column(length = LENGTH_COMMENTS)
     private String comments;
 
-    @Column(name = "is_qualitative", nullable = false)
-    private Boolean isQualitative;
-
-    @Column(name = "is_alphanumeric", nullable = false)
-    private Boolean isAlphanumeric;
-
-    @Column(name = "is_boolean")
-    private Boolean isBoolean;
-
-    @Column(name = "is_date")
-    private Boolean isDate;
-
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = QualitativeValue.class, mappedBy = QualitativeValue.Fields.PARAMETER)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<QualitativeValue> qualitativeValues = new ArrayList<>();
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parameter_group_fk", nullable = false)
-    private ParameterGroup parameterGroup;
+    @Column(name = "parent_parameter_group_fk")
+    private Integer parentId;
 }

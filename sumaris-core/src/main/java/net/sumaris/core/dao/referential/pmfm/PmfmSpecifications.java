@@ -106,6 +106,8 @@ public interface PmfmSpecifications {
 
     boolean hasMatrixId(int pmfmId, int... matrixIds);
 
+    boolean hasParameterGroupId(int pmfmId, int... parameterGroupIds);
+
     String computeCompleteName(int pmfmId);
 
 }
