@@ -418,7 +418,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
   }
   addFishingArea() {
-    this.fishingAreasHelper.add();
+    this.fishingAreasHelper.resize(this.fishingAreasHelper.size() + 1);
   }
 
   enable(opts?: {
@@ -517,6 +517,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   protected initFishingAreas() {
     this.fishingAreasHelper = new FormArrayHelper<FishingArea>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'fishingAreas'),
+      //(fishingArea) => this.validatorService.getFishingAreaControl(fishingArea),
       (fishingArea) => this.fishingAreaValidatorService.getFormGroup(fishingArea, {required: true}),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,

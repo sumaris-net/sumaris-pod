@@ -5,6 +5,7 @@ import {IWithObserversEntity} from '../model/model.utils';
 import {Program} from '../../../referential/services/model/program.model';
 import {Optional} from '@angular/core';
 import {DataEntityValidatorOptions, DataEntityValidatorService} from './data-entity.validator';
+import {FishingArea} from '@app/trip/services/model/fishing-area.model';
 
 export interface DataRootEntityValidatorOptions extends DataEntityValidatorOptions {
   withObservers?: boolean;
