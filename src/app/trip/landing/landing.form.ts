@@ -282,7 +282,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       displayWith: PersonUtils.personToString
     });
 
-    // Combo: observers
+    // Combo: metier
     const metierAttributes = this.settings.getFieldDisplayAttributes('qualitativeValue');
     this.registerAutocompleteField('metier', {
       showAllOnFocus: false,
@@ -295,6 +295,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       attributes: metierAttributes
     });
 
+    // Combo: fishingAreas
     this.registerAutocompleteField('fishingAreas', {
       // Important, to get the current (focused) control value, in suggestObservers() function (otherwise it will received '*').
       showAllOnFocus: false,

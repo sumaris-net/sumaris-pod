@@ -123,6 +123,9 @@ export const LandingFragments = {
     rankOrder
     observedLocationId
     tripId
+    trip {
+      ...LandedTripFragment
+    }
     vesselSnapshot {
       ...VesselSnapshotFragment
     }
@@ -140,11 +143,7 @@ export const LandingFragments = {
       ...SampleFragment
     }
     samplesCount
-    trip {
-      ...TripFragment
-    }
-  }
-  ${TripFragments.trip}`
+  }`
 };
 
 const LandingQueries = {
@@ -158,7 +157,8 @@ const LandingQueries = {
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
-  ${DataFragments.sample}`,
+  ${DataFragments.sample}
+  ${TripFragments.landedTrip}`,
 
   loadAll: gql`query LightLandings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -186,7 +186,8 @@ const LandingQueries = {
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
-  ${DataFragments.sample}`
+  ${DataFragments.sample}
+  ${TripFragments.landedTrip}`
 };
 
 const LandingMutations: BaseEntityGraphqlMutations = {
@@ -200,7 +201,8 @@ const LandingMutations: BaseEntityGraphqlMutations = {
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
-  ${DataFragments.sample}`,
+  ${DataFragments.sample}
+  ${TripFragments.landedTrip}`,
 
   saveAll: gql`mutation SaveLandings($data:[LandingVOInput!]!){
     data: saveLandings(landings: $data){
@@ -212,7 +214,8 @@ const LandingMutations: BaseEntityGraphqlMutations = {
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
-  ${DataFragments.sample}`,
+  ${DataFragments.sample}
+  ${TripFragments.landedTrip}`,
 
   deleteAll: gql`mutation DeleteLandings($ids:[Int!]!){
     deleteLandings(ids: $ids)
@@ -230,7 +233,8 @@ const LandingSubscriptions: BaseEntityGraphqlSubscriptions = {
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
-  ${DataFragments.sample}`
+  ${DataFragments.sample}
+  ${TripFragments.landedTrip}`
 };
 
 

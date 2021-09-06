@@ -6,6 +6,7 @@ import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.
 import {IWithObserversEntity} from '@app/data/services/model/model.utils';
 import {EntityClass, fromDateISOString, Person, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils, toDateISOString, toNumber} from '@sumaris-net/ngx-components';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {Trip} from '@app/trip/services/model/trip.model';
 
 /**
  * Landing entity
@@ -22,6 +23,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
   measurementValues: MeasurementModelValues = null;
 
   tripId: number = null;
+  trip: Trip = null;
   observedLocationId: number = null;
   observers: Person[] = null;
   samples: Sample[] = null;
@@ -39,6 +41,9 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
 
     target.rankOrder = this.rankOrderOnVessel; // this.rankOrder is not persisted
+
+    // Trip
+    target.trip = this.trip && this.trip.asObject(opts) || undefined;
 
     // Samples
     target.samples = this.samples && this.samples.map(s => s.asObject(opts)) || undefined;
@@ -65,6 +70,9 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     // Parent link
     this.observedLocationId = source.observedLocationId;
     this.tripId = source.tripId;
+
+    // Trip
+    this.trip = source.trip && Trip.fromObject(source.trip) || undefined;
 
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;

@@ -68,6 +68,7 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
       measurementValues: this.formBuilder.group({}),
       observedLocationId: [toNumber(data && data.observedLocationId, null)],
       tripId: [toNumber(data && data.tripId, null)],
+      trip: [data && data.trip || null, SharedValidators.entity],
       comments: [data && data.comments || null],
 
       // Computed values (e.g. for BIO-PARAM program)
