@@ -176,7 +176,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     trip.landing = data && Landing.fromObject(data) || undefined;
     trip.observedLocationId = data.observedLocationId;
     trip.metiers = [this.landingForm.form.get("metier")?.value];
-    trip.fishingAreas = this.landingForm.appliedStrategyLocations.getValue().map(location => FishingArea.fromObject({location}));
+    trip.fishingAreas = (this.landingForm.appliedStrategyLocations.getValue() ||[]).map(location => FishingArea.fromObject({location}));
     data.trip = trip && Trip.fromObject(trip) || undefined;
     await super.onEntitySaved(data);
   }
