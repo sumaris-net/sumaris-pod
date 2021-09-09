@@ -1,9 +1,9 @@
-import {Injectable} from '@angular/core';
-import {FetchPolicy, FetchResult, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
-import {EMPTY, Observable} from 'rxjs';
-import {filter, first, map, tap} from 'rxjs/operators';
-import {ErrorCodes} from './trip.errors';
-import {DataFragments, Fragments} from './trip.queries';
+import { Injectable } from '@angular/core';
+import { FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { EMPTY, Observable } from 'rxjs';
+import { filter, first, map, tap } from 'rxjs/operators';
+import { ErrorCodes } from './trip.errors';
+import { DataFragments, Fragments } from './trip.queries';
 import {
   AccountService,
   BaseEntityGraphqlMutations,
@@ -28,21 +28,20 @@ import {
   LoadResult,
   MutableWatchQueriesUpdatePolicy,
   NetworkService,
-  QueryVariables
+  QueryVariables,
 } from '@sumaris-net/ngx-components';
-import {DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '../../data/services/model/data-entity.model';
-import {Operation, OperationFromObjectOptions, VesselPosition} from './model/trip.model';
-import {Measurement} from './model/measurement.model';
-import {Batch, BatchUtils} from './model/batch.model';
-import {Sample} from './model/sample.model';
-import {ReferentialFragments} from '../../referential/services/referential.fragments';
-import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum';
-import {SortDirection} from '@angular/material/sort';
-import {environment} from '../../../environments/environment';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {OperationFilter} from '@app/trip/services/filter/operation.filter';
-import {RefetchQueryDescription} from '@apollo/client/core/watchQueryOptions';
-import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
+import { DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '../../data/services/model/data-entity.model';
+import { Operation, OperationFromObjectOptions, VesselPosition } from './model/trip.model';
+import { Measurement } from './model/measurement.model';
+import { Batch, BatchUtils } from './model/batch.model';
+import { Sample } from './model/sample.model';
+import { ReferentialFragments } from '../../referential/services/referential.fragments';
+import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
+import { SortDirection } from '@angular/material/sort';
+import { environment } from '../../../environments/environment';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -895,7 +894,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
   }
 
-  protected getRefetchQueriesForMutation(opts?: EntitySaveOptions): ((result: FetchResult<{data: any}>) => RefetchQueryDescription) | RefetchQueryDescription {
+  protected getRefetchQueriesForMutation(opts?: EntitySaveOptions): ((result: FetchResult<{data: any}>) => InternalRefetchQueriesInclude) | InternalRefetchQueriesInclude {
     if (opts && opts.refetchQueries) return opts.refetchQueries;
 
     // Skip if update policy not used refecth queries

@@ -1,22 +1,18 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
-import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {ProductValidatorService} from "../services/validator/product.validator";
-import {IWithProductsEntity, Product, ProductFilter} from "../services/model/product.model";
-import {Platform} from "@ionic/angular";
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {BehaviorSubject} from "rxjs";
-import {IReferentialRef, referentialToString}  from "@sumaris-net/ngx-components";
-import {TableElement} from "@e-is/ngx-material-table";
-import {ProductSaleModal} from "../sale/product-sale.modal";
-import {isNotEmptyArray} from "@sumaris-net/ngx-components";
-import {SaleProductUtils} from "../services/model/sale-product.model";
-import {filterNotNil} from "@sumaris-net/ngx-components";
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {environment} from '@environments/environment';
-import {SamplesModal} from "../sample/samples.modal";
-import {LoadResult} from "@sumaris-net/ngx-components";
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, referentialToString } from '@sumaris-net/ngx-components';
+import { AppMeasurementsTable } from '../measurement/measurements.table.class';
+import { ProductValidatorService } from '../services/validator/product.validator';
+import { IWithProductsEntity, Product, ProductFilter } from '../services/model/product.model';
+import { Platform } from '@ionic/angular';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { BehaviorSubject } from 'rxjs';
+import { TableElement } from '@e-is/ngx-material-table';
+import { ProductSaleModal } from '../sale/product-sale.modal';
+import { SaleProductUtils } from '../services/model/sale-product.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { environment } from '@environments/environment';
+import { SamplesModal } from '../sample/samples.modal';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -94,12 +90,14 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
   ngOnInit() {
     super.ngOnInit();
 
-    this.registerAutocompleteField('parent', {
-      items: this.$parents,
-      attributes: this.parentAttributes,
-      columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
-      columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : undefined)
-    });
+    if (this.showParent && this.parentAttributes) {
+      this.registerAutocompleteField('parent', {
+        items: this.$parents,
+        attributes: this.parentAttributes,
+        columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
+        columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : undefined),
+      });
+    }
 
     const taxonGroupAttributes = this.settings.getFieldDisplayAttributes('taxonGroup');
     this.registerAutocompleteField('taxonGroup', {

@@ -1,29 +1,25 @@
-import {Injectable, Injector} from "@angular/core";
-import gql from "graphql-tag";
-import {EntityUtils, fillRankOrder, isNil, Trip} from "./trip.model";
-import {EditorDataService, isNotNil} from "../../shared/shared.module";
-import {environment} from "../../core/core.module";
-import {map} from "rxjs/operators";
-import {ErrorCodes} from "./trip.errors";
-import {AccountService} from "../../core/services/account.service";
-import {DataFragments, Fragments} from "./trip.queries";
-import {FetchPolicy} from "apollo-client";
-import {GraphqlService} from "../../core/services/graphql.service";
-import {dataIdFromObject} from "../../core/graphql/graphql.utils";
-import {RootDataService} from "./root-data-service.class";
-import {
-  DataEntityAsObjectOptions,
-  DataRootEntityUtils,
-  MINIFY_OPTIONS,
-  OPTIMISTIC_AS_OBJECT_OPTIONS,
-  SAVE_AS_OBJECT_OPTIONS
-} from "./model/base.model";
-import {NetworkService} from "../../core/services/network.service";
-import {Observable} from "rxjs";
-import {EntityStorage} from "../../core/services/entities-storage.service";
-import {DataQualityService} from "./trip.services";
-import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
-import {TripFilter, TripFragments} from "./trip.service";
+// TODO TO DELETE
+
+import { Injectable, Injector } from '@angular/core';
+import gql from 'graphql-tag';
+import { EntityUtils, fillRankOrder, isNil, Trip } from './trip.model';
+import { EditorDataService, isNotNil } from '../../shared/shared.module';
+import { environment } from '../../core/core.module';
+import { map } from 'rxjs/operators';
+import { ErrorCodes } from './trip.errors';
+import { AccountService } from '../../core/services/account.service';
+import { Fragments } from './trip.queries';
+import { FetchPolicy } from 'apollo-client';
+import { GraphqlService } from '../../core/services/graphql.service';
+import { dataIdFromObject } from '../../core/graphql/graphql.utils';
+import { RootDataService } from './root-data-service.class';
+import { DataEntityAsObjectOptions, DataRootEntityUtils, MINIFY_OPTIONS, OPTIMISTIC_AS_OBJECT_OPTIONS, SAVE_AS_OBJECT_OPTIONS } from './model/base.model';
+import { NetworkService } from '../../core/services/network.service';
+import { Observable } from 'rxjs';
+import { EntityStorage } from '../../core/services/entities-storage.service';
+import { DataQualityService } from './trip.services';
+import { VesselSnapshotFragments } from '../../referential/services/vessel-snapshot.service';
+import { TripFilter } from './trip.service';
 
 const LandedTripFragments = {
   trip: gql`fragment LandedTripFragment on TripVO {

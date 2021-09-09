@@ -390,6 +390,7 @@
     "AVATAR": "Avatar",
     "EMAIL": "Email",
     "USERNAME": "Identifiant",
+    "USERNAME_EXTRANET": "Identifiant Extranet",
     "PASSWORD": "Mot de passe",
     "FIRST_NAME": "Prénom",
     "LAST_NAME": "Nom",

@@ -1,33 +1,25 @@
-import {Injectable} from "@angular/core";
-import {
-  EditorDataService,
-  EditorDataServiceLoadOptions, isNil, isNilOrBlank, isNotNil,
-  LoadResult,
-  TableDataService
-} from "../../shared/shared.module";
-import {BaseDataService, Department, EntityUtils, environment} from "../../core/core.module";
-import {Operation, OperationGroup} from "./model/trip.model";
-import {OperationFilter} from "./operation.service";
-import {EMPTY, Observable} from "rxjs";
-import {GraphqlService} from "../../core/services/graphql.service";
-import {NetworkService} from "../../core/services/network.service";
-import {AccountService} from "../../core/services/account.service";
-import {EntityStorage} from "../../core/services/entities-storage.service";
-import gql from "graphql-tag";
-import {ReferentialFragments} from "../../referential/services/referential.queries";
-import {DataFragments, Fragments} from "./trip.queries";
-import {TripFragments} from "./trip.service";
-import {ErrorCodes} from "./trip.errors";
-import {map, throttleTime} from "rxjs/operators";
-import {
-  AcquisitionLevelCodes, DataEntity,
-  DataEntityAsObjectOptions,
-  MINIFY_OPTIONS, OPTIMISTIC_AS_OBJECT_OPTIONS,
-  SAVE_AS_OBJECT_OPTIONS
-} from "./model/base.model";
-import {Measurement} from "./model/measurement.model";
-import {Batch} from "./model/batch.model";
-import {dataIdFromObject} from "../../core/graphql/graphql.utils";
+// TODO TO DELETE
+
+import { Injectable } from '@angular/core';
+import { EditorDataService, EditorDataServiceLoadOptions, isNil, isNilOrBlank, isNotNil, LoadResult, TableDataService } from '../../shared/shared.module';
+import { BaseDataService, Department, EntityUtils, environment } from '../../core/core.module';
+import { Operation, OperationGroup } from './model/trip.model';
+import { OperationFilter } from './operation.service';
+import { EMPTY, Observable } from 'rxjs';
+import { GraphqlService } from '../../core/services/graphql.service';
+import { NetworkService } from '../../core/services/network.service';
+import { AccountService } from '../../core/services/account.service';
+import { EntityStorage } from '../../core/services/entities-storage.service';
+import gql from 'graphql-tag';
+import { ReferentialFragments } from '../../referential/services/referential.queries';
+import { DataFragments } from './trip.queries';
+import { TripFragments } from './trip.service';
+import { ErrorCodes } from './trip.errors';
+import { map, throttleTime } from 'rxjs/operators';
+import { AcquisitionLevelCodes, DataEntity, DataEntityAsObjectOptions, MINIFY_OPTIONS, OPTIMISTIC_AS_OBJECT_OPTIONS, SAVE_AS_OBJECT_OPTIONS } from './model/base.model';
+import { Measurement } from './model/measurement.model';
+import { Batch } from './model/batch.model';
+import { dataIdFromObject } from '../../core/graphql/graphql.utils';
 
 export const OperationGroupFragment = {
   operationGroup: gql`fragment OperationGroupFragment on OperationGroupVO {

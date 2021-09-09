@@ -1,10 +1,10 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
 
-import {MeasurementsForm} from '../measurement/measurements.form.component';
+import { MeasurementsForm } from '../measurement/measurements.form.component';
 import * as momentImported from 'moment';
-import {AcquisitionLevelCodes, SaleTypeIds} from '@app/referential/services/model/model.enum';
-import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
-import {FormBuilder, FormGroup} from '@angular/forms';
+import { AcquisitionLevelCodes, SaleTypeIds } from '@app/referential/services/model/model.enum';
+import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import {
   EntitiesStorage,
   EntityServiceLoadOptions,
@@ -17,33 +17,34 @@ import {
   isNotNilOrBlank,
   NetworkService,
   ReferentialRef,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
-import {TripForm} from '../trip/trip.form';
-import {BehaviorSubject} from 'rxjs';
-import {TripSaveOptions, TripService} from '../services/trip.service';
-import {ObservedLocationService} from '../services/observed-location.service';
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {OperationGroupTable} from '../operationgroup/operation-groups.table';
-import {MatTabChangeEvent, MatTabGroup} from '@angular/material/tabs';
-import {ProductsTable} from '../product/products.table';
-import {Product, ProductFilter, ProductUtils} from '../services/model/product.model';
-import {PacketsTable} from '../packet/packets.table';
-import {Packet, PacketFilter} from '../services/model/packet.model';
-import {OperationGroup, Trip} from '../services/model/trip.model';
-import {ObservedLocation} from '../services/model/observed-location.model';
-import {fillRankOrder, isRankOrderValid} from '@app/data/services/model/model.utils';
-import {SaleProductUtils} from '../services/model/sale-product.model';
-import {debounceTime, filter, first} from 'rxjs/operators';
-import {ExpenseForm} from '../expense/expense.form';
-import {FishingAreaForm} from '../fishing-area/fishing-area.form';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {Landing} from '../services/model/landing.model';
-import {Program} from '@app/referential/services/model/program.model';
-import {environment} from '@environments/environment';
-import {Sample} from '../services/model/sample.model';
-import {ExpectedSale} from '@app/trip/services/model/expected-sale.model';
+import { TripForm } from '../trip/trip.form';
+import { BehaviorSubject } from 'rxjs';
+import { TripSaveOptions, TripService } from '../services/trip.service';
+import { ObservedLocationService } from '../services/observed-location.service';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { OperationGroupTable } from '../operationgroup/operation-groups.table';
+import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
+import { ProductsTable } from '../product/products.table';
+import { Product, ProductFilter, ProductUtils } from '../services/model/product.model';
+import { PacketsTable } from '../packet/packets.table';
+import { Packet, PacketFilter } from '../services/model/packet.model';
+import { OperationGroup, Trip } from '../services/model/trip.model';
+import { ObservedLocation } from '../services/model/observed-location.model';
+import { fillRankOrder, isRankOrderValid } from '@app/data/services/model/model.utils';
+import { SaleProductUtils } from '../services/model/sale-product.model';
+import { debounceTime, filter, first } from 'rxjs/operators';
+import { ExpenseForm } from '../expense/expense.form';
+import { FishingAreaForm } from '../fishing-area/fishing-area.form';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { Landing } from '../services/model/landing.model';
+import { Program } from '@app/referential/services/model/program.model';
+import { environment } from '@environments/environment';
+import { Sample } from '../services/model/sample.model';
+import { ExpectedSale } from '@app/trip/services/model/expected-sale.model';
+import { LandedSaleForm } from '@app/trip/sale/landed-sale.form';
 
 const moment = momentImported;
 
@@ -84,6 +85,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   @ViewChild('operationGroupTable', {static: true}) operationGroupTable: OperationGroupTable;
   @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
   @ViewChild('packetsTable', {static: true}) packetsTable: PacketsTable;
+  @ViewChild('landedSaleForm', {static: true}) landedSaleForm: LandedSaleForm;
   @ViewChild('expenseForm', {static: true}) expenseForm: ExpenseForm;
 
   @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
@@ -144,7 +146,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
         this.operationGroupTable.onRefresh.emit();
         this.productsTable.onRefresh.emit();
         this.packetsTable.onRefresh.emit();
-        //this.landedSaleForm.onRefresh.emit();// TODO ? le onRefresh sur les sous tableaux ?
+        this.landedSaleForm.productsTable.onRefresh.emit();// TODO ? le onRefresh sur les sous tableaux ?
       })
     );
 
@@ -387,39 +389,44 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       fillRankOrder(allPackets);
 
     // Expected Sale
-    if (data && data.expectedSale && this.productSalePmfms) {
+    if (data && data.expectedSale) {
 
-      // fix sale date
-      data.expectedSale.saleDate = data.expectedSale.saleDate || data.returnDateTime;
+      this.landedSaleForm.value = data.expectedSale;
 
-      // keep sale object in safe place
-      this._expectedSale = data.expectedSale;
+      if (this.productSalePmfms) {
 
-      // Dispatch product and packet sales
-      if (isNotEmptyArray(data.expectedSale.products)) {
+        // fix sale date
+        data.expectedSale.saleDate = data.expectedSale.saleDate || data.returnDateTime;
 
-        // First, reset products and packets sales
-        allProducts.forEach(product => product.saleProducts = []);
-        allPackets.forEach(packet => packet.saleProducts = []);
+        // keep sale object in safe place
+        this._expectedSale = data.expectedSale;
 
-        data.expectedSale.products.forEach(saleProduct => {
-          if (isNil(saleProduct.batchId)) {
-            // = product
-            const productFound = allProducts.find(product => SaleProductUtils.isSaleOfProduct(product, saleProduct, this.productSalePmfms));
-            if (productFound) {
-              productFound.saleProducts.push(saleProduct);
+        // Dispatch product and packet sales
+        if (isNotEmptyArray(data.expectedSale.products)) {
+
+          // First, reset products and packets sales
+          allProducts.forEach(product => product.saleProducts = []);
+          allPackets.forEach(packet => packet.saleProducts = []);
+
+          data.expectedSale.products.forEach(saleProduct => {
+            if (isNil(saleProduct.batchId)) {
+              // = product
+              const productFound = allProducts.find(product => SaleProductUtils.isSaleOfProduct(product, saleProduct, this.productSalePmfms));
+              if (productFound) {
+                productFound.saleProducts.push(saleProduct);
+              }
+            } else {
+              // = packet
+              const packetFound = allPackets.find(packet => SaleProductUtils.isSaleOfPacket(packet, saleProduct));
+              if (packetFound) {
+                packetFound.saleProducts.push(saleProduct);
+              }
             }
-          } else {
-            // = packet
-            const packetFound = allPackets.find(packet => SaleProductUtils.isSaleOfPacket(packet, saleProduct));
-            if (packetFound) {
-              packetFound.saleProducts.push(saleProduct);
-            }
-          }
-        });
+          });
 
-        // need fill products.saleProducts.rankOrder
-        allProducts.forEach(p => fillRankOrder(p.saleProducts));
+          // need fill products.saleProducts.rankOrder
+          allProducts.forEach(p => fillRankOrder(p.saleProducts));
+        }
       }
     }
 

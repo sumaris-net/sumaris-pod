@@ -55,6 +55,7 @@
                      [canDelete]="canDelete"
                      [showPaginator]="false"
                      [showToolbar]="false"
+                     [paginator]='paginator'
                      (onOpenRow)="onOpenRow($event)"
   ></app-vessels-table>
 
@@ -63,7 +64,7 @@
 
 <!-- paginator -->
 <ion-footer>
-  <mat-paginator class="mat-paginator-footer"
+  <mat-paginator #paginator class="mat-paginator-footer"
                  [length]="table.totalRowCount" [pageSize]="table.defaultPageSize"
                  [pageSizeOptions]="table.defaultPageSizeOptions" showFirstLastButtons>
   </mat-paginator>

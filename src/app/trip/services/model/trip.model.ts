@@ -1,20 +1,20 @@
-import {Moment} from 'moment';
-import {DataEntity, DataEntityAsObjectOptions,} from '@app/data/services/model/data-entity.model';
-import {IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
-import {Sale} from './sale.model';
-import {EntityClass, EntityUtils, fromDateISOString, isEmptyArray, isNil, isNotNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
-import {FishingArea} from './fishing-area.model';
-import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
-import {IWithObserversEntity} from '@app/data/services/model/model.utils';
-import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
-import {Landing} from './landing.model';
-import {Metier} from '@app/referential/services/model/taxon.model';
-import {Sample} from './sample.model';
-import {Batch} from './batch.model';
-import {IWithProductsEntity, Product} from './product.model';
-import {IWithPacketsEntity, Packet} from './packet.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {ExpectedSale} from '@app/trip/services/model/expected-sale.model';
+import { Moment } from 'moment';
+import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
+import { IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
+import { Sale } from './sale.model';
+import { EntityClass, EntityUtils, fromDateISOString, isEmptyArray, isNil, isNotNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import { FishingArea } from './fishing-area.model';
+import { DataRootVesselEntity } from '@app/data/services/model/root-vessel-entity.model';
+import { IWithObserversEntity } from '@app/data/services/model/model.utils';
+import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
+import { Landing } from './landing.model';
+import { Metier } from '@app/referential/services/model/taxon.model';
+import { Sample } from './sample.model';
+import { Batch } from './batch.model';
+import { IWithProductsEntity, Product } from './product.model';
+import { IWithPacketsEntity, Packet } from './packet.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { ExpectedSale } from '@app/trip/services/model/expected-sale.model';
 
 /* -- Helper function -- */
 
@@ -220,49 +220,34 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
   }
 }
 
+@EntityClass({typename: 'OperationGroupVO'})
 export class OperationGroup extends DataEntity<OperationGroup>
   implements IWithProductsEntity<OperationGroup>, IWithPacketsEntity<OperationGroup> {
 
-  static TYPENAME = 'OperationGroupVO';
-
-  static fromObject(source: any): OperationGroup {
-    const res = new OperationGroup();
-    res.fromObject(source);
-    return res;
-  }
+  static fromObject: (source: any) => OperationGroup;
 
   comments: string;
   rankOrderOnPeriod: number;
   hasCatch: boolean;
 
-  metier: Metier;
-  physicalGear: PhysicalGear;
+  metier: Metier = null;
+  physicalGear: PhysicalGear = null;
   tripId: number;
   trip: RootDataEntity<any>;
 
-  measurements: Measurement[];
-  gearMeasurements: Measurement[];
+  measurements: Measurement[] = [];
+  gearMeasurements: Measurement[] = [];
 
   // all measurements in table
-  measurementValues: MeasurementModelValues | MeasurementFormValues;
+  measurementValues: MeasurementModelValues | MeasurementFormValues = {};
 
-  products: Product[];
-  samples: Sample[];
-  packets: Packet[];
-  fishingAreas: FishingArea[];
+  products: Product[] = [];
+  samples: Sample[] = [];
+  packets: Packet[] = [];
+  fishingAreas: FishingArea[] = [];
 
   constructor() {
-    super();
-    this.__typename = OperationGroup.TYPENAME;
-    this.metier = null;
-    this.physicalGear = null;
-    this.measurementValues = {};
-    this.measurements = [];
-    this.gearMeasurements = [];
-    this.products = [];
-    this.samples = [];
-    this.packets = [];
-    this.fishingAreas = [];
+    super(OperationGroup.TYPENAME);
   }
 
   asObject(opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
