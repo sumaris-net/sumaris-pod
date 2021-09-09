@@ -524,6 +524,8 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         await this.strategyService.save(strategyToSave);
       }
     }
+    this.selection.clear();
+    this.onRefresh.emit();
   }
 }
 

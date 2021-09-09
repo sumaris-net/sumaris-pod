@@ -120,6 +120,25 @@ export class SamplingLandingPage extends LandingPage {
     }
   }
 
+  protected async getValue(): Promise<Landing> {
+    const data = await super.getValue();
+
+    // update samples tag id on save
+    const landing = Landing.fromObject(data);
+    if (landing && landing.samples)
+    {
+      landing.samples.map(sample => {
+        if (sample.measurementValues && sample.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) && landing.measurementValues && landing.measurementValues.hasOwnProperty(PmfmIds.STRATEGY_LABEL))
+        {
+          const strategyLabel = landing.measurementValues[PmfmIds.STRATEGY_LABEL];
+          const tagIdConcatenatedWithStrategyLabel = sample.measurementValues[PmfmIds.TAG_ID] ? strategyLabel + "-" + sample.measurementValues[PmfmIds.TAG_ID] : null;
+          sample.measurementValues[PmfmIds.TAG_ID] = tagIdConcatenatedWithStrategyLabel;
+        }
+      });
+    }
+    return data;
+  }
+
   protected async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
 
@@ -132,6 +151,19 @@ export class SamplingLandingPage extends LandingPage {
       const recorderIsNotObserver = !(this.parent.observers && this.parent.observers.find(p => p.equals(data.recorderPerson)));
       this.warning = recorderIsNotObserver ? 'LANDING.ERROR.NOT_OBSERVER_ERROR' : null;
     }
+
+    // Update landing samples tag_id. We store the tag_id with a concatenation of sample label and sample tag_id but we only display sample tag_id
+    if (data.samples) {
+    data.samples.map(sample => {
+      if (sample.measurementValues.hasOwnProperty(PmfmIds.TAG_ID)) {
+        const storedTagId = sample.measurementValues[PmfmIds.TAG_ID];
+        if (storedTagId && storedTagId.length > 4 && storedTagId.split('-').length > 1) {
+          const tagIdWithoutSampleLabel = storedTagId.split('-')[1];
+          sample.measurementValues[PmfmIds.TAG_ID] = tagIdWithoutSampleLabel;
+        }
+      }
+    });
+  }
 
     await super.setValue(data);
   }
