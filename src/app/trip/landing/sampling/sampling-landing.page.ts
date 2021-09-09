@@ -4,7 +4,18 @@ import {BehaviorSubject, Subscription} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '../../../referential/services/model/pmfm-strategy.model';
 import {ParameterLabelGroups, PmfmIds} from '../../../referential/services/model/model.enum';
 import {PmfmService} from '../../../referential/services/pmfm.service';
-import {EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, ObjectMap, SharedValidators} from '@sumaris-net/ngx-components';
+import {
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  firstNotNilPromise,
+  fromDateISOString,
+  HistoryPageReference,
+  isNil,
+  isNotNil,
+  ObjectMap,
+  ReferentialRef,
+  SharedValidators
+} from '@sumaris-net/ngx-components';
 import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
 import {LandingPage} from '../landing.page';
 import {Landing} from '../../services/model/landing.model';
@@ -14,6 +25,8 @@ import {SamplingStrategyService} from '../../../referential/services/sampling-st
 import {Strategy} from '../../../referential/services/model/strategy.model';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
 import {SamplesTable} from '@app/trip/sample/samples.table';
+import {Trip} from '@app/trip/services/model/trip.model';
+import {FishingArea} from '@app/trip/services/model/fishing-area.model';
 
 
 @Component({
@@ -110,6 +123,23 @@ export class SamplingLandingPage extends LandingPage {
     await this.samplesTable.ready();
     this.showSamplesTable = this.samplesTable.$pmfms.getValue()?.length > 0;
     this.markForCheck();
+  }
+
+  protected async onEntitySaved(data: Landing): Promise<void> {
+    const trip = new Trip(); // = new ITrip()
+    trip.program = ReferentialRef.fromObject(data.program);
+    trip.vesselSnapshot = data.vesselSnapshot;
+    trip.departureDateTime = fromDateISOString(data.dateTime);
+    trip.returnDateTime = fromDateISOString(data.dateTime);
+    trip.departureLocation = data.location && ReferentialRef.fromObject(data.location);
+    trip.returnLocation = data.location && ReferentialRef.fromObject(data.location);
+    trip.landing = data && Landing.fromObject(data) || undefined;
+    trip.observedLocationId = data.observedLocationId;
+    trip.metiers = [this.landingForm.form.get("metier")?.value];
+    trip.fishingAreas = (this.landingForm.appliedStrategyLocations.getValue() ||[]).map(location => FishingArea.fromObject({location}));
+    console.info("data to save:", data)
+    data.trip = trip && Trip.fromObject(trip) || undefined;
+    await super.onEntitySaved(data);
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {

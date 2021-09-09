@@ -70,7 +70,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   observerFocusIndex = -1;
   mobile: boolean;
   strategyControl: FormControl;
-  mainMetierPmfmId: number;
 
   autocompleteFilters = {
     fishingArea: false
@@ -200,7 +199,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
-    this.mainMetierPmfmId = PmfmIds.MAIN_METIER;
   }
 
   ngOnInit() {
@@ -348,6 +346,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       }))
     })
     this.initFishingAreas();
+
+    console.info("TODO", this.strategyControl);
   }
 
   toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
@@ -370,13 +370,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       this.observersHelper.removeAllEmpty();
     }
 
-    // Load metier
-    const metierId = data.measurementValues && data.measurementValues[PmfmIds.MAIN_METIER.toString()];
-    if (isNotNilOrBlank(metierId) && isNumeric(metierId)) {
-      const metierRef = await this.referentialRefService.loadById(+metierId, Metier.ENTITY_NAME);
-      (data.measurementValues as any)[PmfmIds.MAIN_METIER.toString()] = metierRef.asObject();
-    }
-
     // Propagate the strategy
     const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()];
     this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
@@ -395,14 +388,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       const strategyLabel = EntityUtils.isNotEmpty(strategyValue, 'label') ? strategyValue.label : strategyValue as string;
       data.measurementValues = data.measurementValues || {};
       data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()] = strategyLabel;
-    }
-
-    if (this.showMetier) {
-      data.measurementValues = data.measurementValues || {};
-      const metier = data.measurementValues[PmfmIds.MAIN_METIER.toString()] as any;
-      if (ReferentialUtils.isNotEmpty(metier)) {
-        data.measurementValues[PmfmIds.MAIN_METIER.toString()] = metier.id;
-      }
     }
 
     // DEBUG
@@ -557,32 +542,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       pmfms = [strategyPmfm, ...pmfms];
     }
 
-    // Create the missing Pmfm, to hold metier (if need)
-    if (this.showMetier) {
-      const existingIndex = (pmfms || []).findIndex(pmfm => pmfm.id === PmfmIds.MAIN_METIER);
-      let metierPmfm: IPmfm;
-      if (existingIndex !== -1) {
-        // Remove existing, then copy it (to leave original unchanged)
-        metierPmfm = pmfms.splice(existingIndex, 1)[0].clone();
-      }
-      else {
-        metierPmfm = DenormalizedPmfmStrategy.fromObject({
-          id: PmfmIds.MAIN_METIER,
-          name: this.translate.instant('TRIP.METIERS'),
-          type: <PmfmType>'string'
-        });
-      }
-
-      metierPmfm.hidden = false; // Always display in measurement
-      metierPmfm.required = true; // Required
-
-      // Prepend to list
-      pmfms = [metierPmfm, ...pmfms];
-
-    }
-
     return pmfms;
   }
-
-
 }
