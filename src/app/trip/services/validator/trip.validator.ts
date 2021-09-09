@@ -14,8 +14,9 @@ import {Trip} from "../model/trip.model";
 import {
   DataRootEntityValidatorOptions,
   DataRootEntityValidatorService
-} from "../../../data/services/validator/root-data-entity.validator";
-import {ProgramProperties} from "../../../referential/services/config/program.config";
+} from '@app/data/services/validator/root-data-entity.validator';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {DataRootVesselEntityValidatorService} from '@app/data/services/validator/root-vessel-entity.validator';
 
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withSale?: boolean;
@@ -25,7 +26,7 @@ export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
 
 @Injectable({providedIn: 'root'})
 export class TripValidatorService<O extends TripValidatorOptions = TripValidatorOptions>
-  extends DataRootEntityValidatorService<Trip, O> {
+  extends DataRootVesselEntityValidatorService<Trip, O> {
 
   constructor(
     formBuilder: FormBuilder,
@@ -67,7 +68,6 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       super.getFormGroupConfig(data, opts),
       {
         __typename: [Trip.TYPENAME],
-        vesselSnapshot: [data && data.vesselSnapshot || null, Validators.compose([Validators.required, SharedValidators.entity])],
         departureDateTime: [data && data.departureDateTime || null, Validators.required],
         departureLocation: [data && data.departureLocation || null, Validators.compose([Validators.required, SharedValidators.entity])],
         returnDateTime: [data && data.returnDateTime || null, opts.isOnFieldMode ? null : Validators.required],

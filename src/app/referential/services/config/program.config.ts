@@ -349,18 +349,6 @@ export const ProgramProperties = Object.freeze({
     type: 'string',
     defaultValue: LocationLevelIds.ICES_DIVISION.toString()
   },
-  STRATEGY_EDITOR_PREDOC_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.program.strategy.predoc.enable',
-    label: 'PROGRAM.OPTIONS.STRATEGY_EDITOR_PREDOC_ENABLE',
-    type: 'boolean',
-    defaultValue: 'false'
-  },
-  STRATEGY_EDITOR_PREDOC_FETCH_SIZE: <FormFieldDefinition>{
-    key: 'sumaris.program.strategy.predoc.fetchSize',
-    label: 'PROGRAM.OPTIONS.STRATEGY_EDITOR_PREDOC_FETCH_SIZE',
-    type: 'integer',
-    defaultValue: '50'
-  },
 
   I18N_SUFFIX: <FormFieldDefinition>{
     key: "sumaris.i18nSuffix",
