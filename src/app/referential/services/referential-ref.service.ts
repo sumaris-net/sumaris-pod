@@ -220,7 +220,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     if (debug) console.debug(`[referential-ref-service] Loading ${uniqueEntityName} items (ref)...`, variables);
 
     // Online mode: use graphQL
-    const withTotal = !opts || opts.withTotal !== false;
+    const withTotal = !opts || opts.withTotal !== false; // default to true
     const query = withTotal ? LoadAllWithTotalQuery : LoadAllQuery;
     const { data, total } = await this.graphql.query<LoadResult<any>>({
       query,

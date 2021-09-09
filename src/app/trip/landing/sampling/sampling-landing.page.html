@@ -87,7 +87,7 @@
                               [showProgram]="false"
                               [showStrategy]="true"
                               [showMetier]="true"
-                              [editor]="this"
+                              [appliedStrategyLocations]="appliedStrategyLocations$|async"
                               (onSubmit)="save($event)"
                               [debug]="debug">
 
@@ -109,6 +109,7 @@
                 <ion-col class="ion-no-padding">
                   <app-strategy-summary-card #strategyCard
                                              [editor]="this"
+                                             [value]="$strategy|async"
                                              [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate"
                                              [calcifiedTypesDisplayed]="true">
                     <!-- calcified types-->

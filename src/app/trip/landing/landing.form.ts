@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Optional} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment';
 import {DateAdapter} from '@angular/material/core';
 import {debounceTime, map} from 'rxjs/operators';
@@ -6,9 +6,10 @@ import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '@app/referential
 import {LandingValidatorService} from '../services/validator/landing.validator';
 import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {FormArray, FormBuilder, FormControl, Validators} from '@angular/forms';
 import {ModalController} from '@ionic/angular';
 import {
+  ConfigService,
   EntityUtils,
   FormArrayHelper,
   IReferentialRef,
@@ -45,8 +46,7 @@ import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
 import {BehaviorSubject} from 'rxjs';
 import {Program} from '@app/referential/services/model/program.model';
 import {FishingArea} from '@app/trip/services/model/fishing-area.model';
-import {locationSharp} from 'ionicons/icons';
-import {FishingAreaValidatorOptions, FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
+import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
 import {LandingService} from '@app/trip/services/landing.service';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
@@ -74,8 +74,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   autocompleteFilters = {
     fishingArea: false
   };
-  appliedStrategyLocations: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
-
   get empty(): any {
     const value = this.value;
     return ReferentialUtils.isEmpty(value.location)
@@ -138,6 +136,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() locationLevelIds: number[];
   @Input() allowAddNewVessel: boolean;
   @Input() showMetier = false;
+  @Input() appliedStrategyLocations: ReferentialRef[] = null;
 
   @Input() set canEditStrategy(value: boolean) {
     if (this._canEditStrategy !== value) {
@@ -167,8 +166,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return this._showObservers;
   }
 
-  @Input() protected editor: AppRootDataEditor<Landing, LandingService>
-
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
@@ -189,13 +186,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup(), {
       mapPmfms: pmfms => this.mapPmfms(pmfms)
     });
-    // Add a strategy field (not in validator)
-    this.strategyControl = formBuilder.control(null, Validators.required);
 
     this._enable = false;
     this.mobile = this.settings.mobile;
 
-    // add missing control
+    // Add some missing controls
+    // Add a strategy field (not in validator)
+    this.strategyControl = formBuilder.control(null, Validators.required);
+    //this.form.addControl('strategy', this.strategyControl);
     this.form.addControl('metier', new FormControl());
 
     // Set default acquisition level
@@ -206,8 +204,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   ngOnInit() {
     super.ngOnInit();
-
-    if (!this.editor) throw new Error("Missing mandatory 'editor' input!");
 
     // Default values
     this.showObservers = toBoolean(this.showObservers, true); // Will init the observers helper
@@ -234,15 +230,16 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.registerAutocompleteField('strategy', {
       suggestFn: (value, filter) => {
         // Force to show all
-        value = typeof value === 'object' ? '*' : value;
-        return this.referentialRefService.suggest(value, {
-          entityName: 'Strategy',
-          searchAttribute: 'label',
-          levelLabel: this.$programLabel.getValue() // if empty, will be set in setProgram()
-        }, 'label', 'asc',
+        value = (typeof value === 'object') ? '*' : value;
+        return this.referentialRefService.suggest(value, filter, 'label', 'asc',
           {
             fetchPolicy: 'network-only' // Force network - fix IMAGINE 302
           });
+      },
+      filter: {
+        entityName: 'Strategy',
+        searchAttribute: 'label',
+        levelLabel: this.$programLabel.value // if not loaded yet, will be set in setProgramLabel()
       },
       attributes: ['label'],
       columnSizes: [12],
@@ -253,12 +250,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.registerAutocompleteField('vesselSnapshot', this.vesselSnapshotService.getAutocompleteAddOptions());
 
     // Combo location
+    const locationAttributes = this.settings.getFieldDisplayAttributes('location');
     this.registerAutocompleteField('location', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
         levelIds: this.locationLevelIds
-      }
+      },
+      attributes: locationAttributes
     });
 
     // Combo: observers
@@ -290,7 +289,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     // Combo: fishingAreas
     this.registerAutocompleteField('fishingAreas', {
-      // Important, to get the current (focused) control value, in suggestObservers() function (otherwise it will received '*').
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.suggestFishingAreas(value, filter),
       // Default filter. An excludedIds will be add dynamically
@@ -298,7 +296,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
         userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST'],
         levelIds: LocationLevelIds.LOCATIONS_AREA
-      }
+      },
+      attributes: locationAttributes
     });
 
 
@@ -334,14 +333,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           }
         }));
 
-    // set fishingAreas filter
-    this.registerSubscription(
-      this.editor?.$strategy.subscribe(strategy => {
-        this.appliedStrategyLocations.next(strategy?.appliedStrategies.map(appliedStrategy => {
-          return appliedStrategy?.location as ReferentialRef;
-        }))
-      })
-    );
     this.initFishingAreas();
   }
 
@@ -472,7 +463,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   }
   protected async suggestFishingAreas(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
     if (this.autocompleteFilters.fishingArea) {
-      return suggestFromArray(this.appliedStrategyLocations.getValue(), value, filter);
+      return suggestFromArray(this.appliedStrategyLocations, value, filter);
     } else {
       return this.referentialRefService.suggest(value, {
         ...filter,
@@ -481,12 +472,12 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
   }
 
-  protected setProgramLabel(program: string) {
-    super.setProgramLabel(program);
+  protected setProgramLabel(programLabel: string) {
+    super.setProgramLabel(programLabel);
 
     // Update the strategy filter (if autocomplete field exists. If not, program will set later in ngOnInit())
     if (this.autocompleteFields.strategy) {
-      this.autocompleteFields.strategy.filter.levelLabel = program;
+      this.autocompleteFields.strategy.filter.levelLabel = programLabel;
     }
   }
 
