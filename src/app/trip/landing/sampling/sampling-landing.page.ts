@@ -126,6 +126,7 @@ export class SamplingLandingPage extends LandingPage {
   }
 
   protected async onEntitySaved(data: Landing): Promise<void> {
+    /*
     const trip = new Trip(); // = new ITrip()
     trip.program = ReferentialRef.fromObject(data.program);
     trip.vesselSnapshot = data.vesselSnapshot;
@@ -139,6 +140,7 @@ export class SamplingLandingPage extends LandingPage {
     trip.fishingAreas = (this.landingForm.appliedStrategyLocations.getValue() ||[]).map(location => FishingArea.fromObject({location}));
     console.info("data to save:", data)
     data.trip = trip && Trip.fromObject(trip) || undefined;
+    */
     await super.onEntitySaved(data);
   }
 

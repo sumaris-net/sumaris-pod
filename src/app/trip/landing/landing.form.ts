@@ -49,6 +49,7 @@ import {FishingArea} from '@app/trip/services/model/fishing-area.model';
 import {locationSharp} from 'ionicons/icons';
 import {FishingAreaValidatorOptions, FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
 import {LandingService} from '@app/trip/services/landing.service';
+import {Trip} from '@app/trip/services/model/trip.model';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -389,6 +390,20 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       data.measurementValues = data.measurementValues || {};
       data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()] = strategyLabel;
     }
+    if (this.showMetier) {
+      data.trip = Trip.fromObject(<Trip>{
+        program: data.program,
+        vesselSnapshot: data.vesselSnapshot,
+        departureDateTime: data.dateTime,
+        returnDateTime: data.dateTime,
+        departureLocation: data.location,
+        returnLocation: data.location,
+        observedLocationId: data.observedLocationId,
+        metiers: [this.form.get("metier")?.value],
+        fishingAreas: (this.form.get('fishingAreas').value || [])
+      });
+      console.info("data to save:", data)
+    }
 
     // DEBUG
     console.debug('[landing-form] DEV Get getValue() result:', data);
@@ -500,8 +515,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.fishingAreasHelper = new FormArrayHelper<FishingArea>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'fishingAreas'),
       (fishingArea) => this.fishingAreaValidatorService.getFormGroup(fishingArea, {required: true}),
-      ReferentialUtils.equals,
-      (fishingArea) => false,
+      (o1, o2) => isNil(o1) && isNil(o2) || (o1 && o1.equals(o2)),
+      (fishingArea) => !fishingArea || ReferentialUtils.isEmpty(fishingArea.location),
     {allowEmptyArray: false}
     );
     if (this.fishingAreasHelper.size() === 0) {
