@@ -24,6 +24,7 @@ package net.sumaris.core.service.data.vessel;
 
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.vessel.VesselFeaturesRepository;
@@ -68,38 +69,21 @@ public class VesselServiceImpl implements VesselService {
 	protected MeasurementDao measurementDao;
 
 	@Override
-	public List<VesselSnapshotVO> findAllSnapshots(VesselFilterVO filter,
+	public List<VesselSnapshotVO> findAllSnapshots(@NonNull VesselFilterVO filter,
 												   net.sumaris.core.dao.technical.Page page,
 												   VesselFetchOptions fetchOptions) {
-
-		filter = VesselFilterVO.nullToEmpty(filter);
-
-		// If expected a date: use today
-		if (filter.getStartDate() == null && filter.getEndDate() == null) {
-			filter.setDate(new Date());
-		}
-
 		return vesselSnapshotRepository.findAll(filter, page, fetchOptions);
 	}
 
 	@Override
-	public Long countSnapshotsByFilter(VesselFilterVO filter) {
-		filter = VesselFilterVO.nullToEmpty(filter);
-
-		// If expected a date: use today
-		if (filter.getStartDate() == null && filter.getEndDate() == null) {
-			filter.setDate(new Date());
-		}
-
+	public Long countSnapshotsByFilter(@NonNull VesselFilterVO filter) {
 		return vesselSnapshotRepository.count(filter);
 	}
 
 	@Override
-	public List<VesselVO> findAll(VesselFilterVO filter,
-								  net.sumaris.core.dao.technical.Page page,
-								  VesselFetchOptions fetchOptions) {
-
-		filter = VesselFilterVO.nullToEmpty(filter);
+	public List<VesselVO> findAll(@NonNull VesselFilterVO filter,
+								  @NonNull net.sumaris.core.dao.technical.Page page,
+								  @NonNull VesselFetchOptions fetchOptions) {
 
 		// If expected a date: use today
 		boolean needDate = fetchOptions.isWithVesselFeatures() || fetchOptions.isWithVesselRegistrationPeriod();
@@ -114,8 +98,8 @@ public class VesselServiceImpl implements VesselService {
 	}
 
 	@Override
-	public Long countByFilter(VesselFilterVO filter) {
-		return vesselRepository.count(VesselFilterVO.nullToEmpty(filter));
+	public Long countByFilter(@NonNull VesselFilterVO filter) {
+		return vesselRepository.count(filter);
 	}
 
 	@Override

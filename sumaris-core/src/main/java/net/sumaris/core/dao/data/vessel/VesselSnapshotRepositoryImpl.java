@@ -22,6 +22,7 @@ package net.sumaris.core.dao.data.vessel;
  * #L%
  */
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
@@ -73,7 +74,9 @@ public class VesselSnapshotRepositoryImpl
     }
 
     @Override
-    public Page<VesselSnapshotVO> findAll(VesselFilterVO filter, Pageable pageable, VesselFetchOptions fetchOptions) {
+    public Page<VesselSnapshotVO> findAll(@NonNull VesselFilterVO filter,
+                                          @NonNull Pageable pageable,
+                                          @NonNull VesselFetchOptions fetchOptions) {
 
         CriteriaBuilder builder = this.getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Tuple> criteriaQuery = builder.createTupleQuery();
@@ -115,8 +118,9 @@ public class VesselSnapshotRepositoryImpl
     }
 
     @Override
-    public List<VesselSnapshotVO> findAll(VesselFilterVO filter, net.sumaris.core.dao.technical.Page page,
-                                          VesselFetchOptions fetchOptions) {
+    public List<VesselSnapshotVO> findAll(@NonNull VesselFilterVO filter,
+                                          @NonNull net.sumaris.core.dao.technical.Page page,
+                                          @NonNull VesselFetchOptions fetchOptions) {
 
         CriteriaBuilder builder = this.getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Tuple> criteriaQuery = builder.createTupleQuery();
@@ -153,7 +157,7 @@ public class VesselSnapshotRepositoryImpl
     }
 
     @Override
-    public Specification<VesselFeatures> toSpecification(VesselFilterVO filter, VesselFetchOptions fetchOptions) {
+    public Specification<VesselFeatures> toSpecification(@NonNull VesselFilterVO filter, VesselFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             // IDs
             .and(id(filter.getVesselFeaturesId()))

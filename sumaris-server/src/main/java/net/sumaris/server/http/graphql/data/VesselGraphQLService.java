@@ -53,6 +53,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -89,7 +90,9 @@ public class VesselGraphQLService {
             sort = sort.replaceFirst(VesselVO.Fields.STATUS_ID, StringUtils.doting(Vessel.Fields.STATUS, Status.Fields.ID));
         }
 
-        return vesselService.findAll(restrictVesselFilter(filter),
+        filter = fillVesselFilterDefaults(filter);
+
+        return vesselService.findAll(filter,
                 Page.builder()
                     .offset(offset)
                     .size(size)
@@ -110,15 +113,22 @@ public class VesselGraphQLService {
                                                          @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                                          @GraphQLEnvironment ResolutionEnvironment env
     ) {
+        // Add restriction to filter (e.g. program=SIH)
+        // and fill (or fix) dates
+        filter = fillVesselFilterDefaults(filter);
+
+        // Compute fetch options
+        VesselFetchOptions fetchOptions = getSnapshotFetchOptions(GraphQLUtils.fields(env));
+
         return vesselService.findAllSnapshots(
-                restrictVesselFilter(filter),
+                filter,
                 Page.builder()
                     .offset(offset)
                     .size(size)
                     .sortBy(sort)
                     .sortDirection(SortDirection.fromString(direction))
                     .build(),
-                getSnapshotFetchOptions(GraphQLUtils.fields(env))
+                fetchOptions
             );
     }
 
@@ -126,14 +136,22 @@ public class VesselGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public long countVesselSnapshots(@GraphQLArgument(name = "filter") VesselFilterVO filter) {
-        return vesselService.countSnapshotsByFilter(restrictVesselFilter(filter));
+        // Add restriction to filter (e.g. program=SIH)
+        // and fill (or fix) dates
+        filter = fillVesselFilterDefaults(filter);
+
+        return vesselService.countSnapshotsByFilter(filter);
     }
 
     @GraphQLQuery(name = "vesselsCount", description = "Get total vessels count")
     @Transactional(readOnly = true)
     @IsUser
     public long countVessels(@GraphQLArgument(name = "filter") VesselFilterVO filter) {
-        return vesselService.countByFilter(restrictVesselFilter(filter));
+        // Add restriction to filter (e.g. program=SIH)
+        // and fill (or fix) dates
+        filter = fillVesselFilterDefaults(filter);
+
+        return vesselService.countByFilter(filter);
     }
 
     @GraphQLQuery(name = "vessel", description = "Get a vessel")
@@ -284,15 +302,32 @@ public class VesselGraphQLService {
     }
 
     /**
-     * Restrict to vessel, depending of user access rights
+     * If need, restrict vessel program (to SIH), and dates (to today)
      * @param filter
      */
-    protected VesselFilterVO restrictVesselFilter(VesselFilterVO filter) {
+    protected VesselFilterVO fillVesselFilterDefaults(VesselFilterVO filter) {
         filter = VesselFilterVO.nullToEmpty(filter);
+
         // Filter on SIH program, when empty or not an admin
         if (StringUtils.isBlank(filter.getProgramLabel()) || !authService.isAdmin()) {
             filter.setProgramLabel(ProgramEnum.SIH.getLabel());
         }
+
+        // If expected a date: use today (at 0h0min)
+        if (filter.getStartDate() == null && filter.getEndDate() == null) {
+            filter.setDate(Dates.resetTime(new Date()));
+        }
+
+        // Reset hour in date (0h0min - to limit cache key changes)
+        else {
+            if (filter.getStartDate() != null) {
+                filter.setStartDate(Dates.resetTime(filter.getStartDate()));
+            }
+            if (filter.getEndDate() != null) {
+                filter.setEndDate(Dates.resetTime(filter.getEndDate()));
+            }
+        }
+
         return filter;
     }
 
