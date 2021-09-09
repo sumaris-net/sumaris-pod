@@ -4,8 +4,8 @@ import {Observable} from 'rxjs';
 import {QualityFlagIds} from '../../referential/services/model/model.enum';
 import {
   BaseEntityGraphqlQueries,
-  Department,
-  EntityAsObjectOptions, EntitySaveOptions,
+  EntityAsObjectOptions,
+  EntitySaveOptions,
   EntityUtils,
   FormErrors,
   IEntitiesService,
@@ -21,7 +21,7 @@ import {
 import {map} from 'rxjs/operators';
 import {ReferentialFragments} from '../../referential/services/referential.fragments';
 import {VesselFeatureQueries, VesselFeaturesFragments, VesselFeaturesService} from './vessel-features.service';
-import {RegistrationFragments, VesselRegistrationService, VesselRegistrationsQueries} from './vessel-registration.service';
+import {VesselRegistrationFragments, VesselRegistrationService, VesselRegistrationsQueries} from './vessel-registration.service';
 import {Vessel} from './model/vessel.model';
 import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
 import {SortDirection} from '@angular/material/sort';
@@ -31,6 +31,7 @@ import {BaseRootEntityGraphqlMutations} from '../../data/services/root-data-serv
 import {VESSEL_FEATURE_NAME} from './config/vessel.config';
 import {VesselFilter} from './filter/vessel.filter';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {environment} from '@environments/environment';
 
 
 export const VesselFragments = {
@@ -52,11 +53,11 @@ export const VesselFragments = {
       vesselType {
         ...ReferentialFragment
       }
-      features {
+      vesselFeatures {
         ...VesselFeaturesFragment
       }
-      registration{
-        ...RegistrationFragment
+      vesselRegistrationPeriod {
+        ...VesselRegistrationPeriodFragment
       }
       recorderDepartment {
         ...LightDepartmentFragment
@@ -83,11 +84,11 @@ export const VesselFragments = {
         vesselType {
             ...ReferentialFragment
         }
-        features {
+        vesselFeatures {
             ...VesselFeaturesFragment
         }
-        registration{
-            ...RegistrationFragment
+        vesselRegistrationPeriod {
+            ...VesselRegistrationPeriodFragment
         }
         recorderDepartment {
             ...LightDepartmentFragment
@@ -101,13 +102,13 @@ export const VesselFragments = {
 
 const VesselQueries: BaseEntityGraphqlQueries = {
   load: gql`query Vessel($id: Int!) {
-        data: vessel(vesselId: $id) {
+        data: vessel(id: $id) {
             ...VesselFragment
         }
     }
     ${VesselFragments.vessel}
     ${VesselFeaturesFragments.vesselFeatures}
-    ${RegistrationFragments.registration}
+    ${VesselRegistrationFragments.registration}
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
@@ -121,7 +122,7 @@ const VesselQueries: BaseEntityGraphqlQueries = {
     }
     ${VesselFragments.vessel}
     ${VesselFeaturesFragments.vesselFeatures}
-    ${RegistrationFragments.registration}
+    ${VesselRegistrationFragments.registration}
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
@@ -134,7 +135,7 @@ const VesselQueries: BaseEntityGraphqlQueries = {
     }
     ${VesselFragments.vessel}
     ${VesselFeaturesFragments.vesselFeatures}
-    ${RegistrationFragments.registration}
+    ${VesselRegistrationFragments.registration}
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
@@ -150,7 +151,7 @@ const VesselMutations: BaseRootEntityGraphqlMutations = {
     }
     ${VesselFragments.vessel}
     ${VesselFeaturesFragments.vesselFeatures}
-    ${RegistrationFragments.registration}
+    ${VesselRegistrationFragments.registration}
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
@@ -185,6 +186,7 @@ export class VesselService
       mutations: VesselMutations
     });
     this._featureName = VESSEL_FEATURE_NAME;
+    this._debug = !environment.production;
   }
 
   /**
@@ -249,7 +251,7 @@ export class VesselService
 
         // update features history FIXME: marche pas
         if (opts && opts.isNewFeatures) {
-          const lastFeatures = entities[entities.length - 1].features;
+          const lastFeatures = entities[entities.length - 1].vesselFeatures;
           this.vesselFeatureService.insertIntoMutableCachedQueries(proxy, {
             query: VesselFeatureQueries.loadAll,
             data: lastFeatures
@@ -258,7 +260,7 @@ export class VesselService
 
         // update registration history FIXME: marche pas
         if (opts && opts.isNewRegistration) {
-          const lastRegistration = entities[entities.length - 1].registration;
+          const lastRegistration = entities[entities.length - 1].vesselRegistrationPeriod;
           this.vesselRegistrationService.insertIntoMutableCachedQueries(proxy, {
             query: VesselRegistrationsQueries.loadAll,
             data: lastRegistration
@@ -282,17 +284,17 @@ export class VesselService
       // update previous features
       if (opts.isNewFeatures) {
         // set end date = new start date - 1
-        const newStartDate = entity.features.startDate.clone();
+        const newStartDate = entity.vesselFeatures.startDate.clone();
         newStartDate.subtract(1, "seconds");
-        opts.previousVessel.features.endDate = newStartDate;
+        opts.previousVessel.vesselFeatures.endDate = newStartDate;
 
       }
       // prepare previous registration period
       else if (opts.isNewRegistration) {
         // set registration end date = new registration start date - 1
-        const newRegistrationStartDate = entity.registration.startDate.clone();
+        const newRegistrationStartDate = entity.vesselRegistrationPeriod.startDate.clone();
         newRegistrationStartDate.subtract(1, "seconds");
-        opts.previousVessel.registration.endDate = newRegistrationStartDate;
+        opts.previousVessel.vesselRegistrationPeriod.endDate = newRegistrationStartDate;
       }
 
       // save both by calling saveAll
@@ -342,17 +344,17 @@ export class VesselService
       // update previous features
       if (opts.isNewFeatures) {
         // set end date = new start date - 1
-        const newStartDate = entity.features.startDate.clone();
+        const newStartDate = entity.vesselFeatures.startDate.clone();
         newStartDate.subtract(1, "seconds");
-        opts.previousVessel.features.endDate = newStartDate;
+        opts.previousVessel.vesselFeatures.endDate = newStartDate;
 
       }
       // prepare previous registration period
       else if (opts.isNewRegistration) {
         // set registration end date = new registration start date - 1
-        const newRegistrationStartDate = entity.registration.startDate.clone();
+        const newRegistrationStartDate = entity.vesselRegistrationPeriod.startDate.clone();
         newRegistrationStartDate.subtract(1, "seconds");
-        opts.previousVessel.registration.endDate = newRegistrationStartDate;
+        opts.previousVessel.vesselRegistrationPeriod.endDate = newRegistrationStartDate;
       }
 
       // save both by calling saveAll
@@ -422,41 +424,48 @@ export class VesselService
     return vessel.asObject({...MINIFY_OPTIONS, ...opts} as EntityAsObjectOptions);
   }
 
-  protected fillDefaultProperties(vessel: Vessel) {
+  protected fillDefaultProperties(entity: Vessel) {
 
     const person: Person = this.accountService.account;
 
     // Recorder department
-    if (person && person.department && (!vessel.recorderDepartment || vessel.recorderDepartment.id !== person.department.id)) {
-      if (!vessel.recorderDepartment) {
-        vessel.recorderDepartment = new Department();
+    if (person && person.department && (!entity.recorderDepartment || entity.recorderDepartment.id !== person.department.id)) {
+      if (!entity.recorderDepartment) {
+        entity.recorderDepartment = person.department;
       }
-      vessel.recorderDepartment.id = person.department.id;
-      if (vessel.features) {
-        if (!vessel.features.recorderDepartment) {
-          vessel.features.recorderDepartment = new Department();
+      else {
+        // Update the recorder department
+        entity.recorderDepartment.id = person.department.id;
+      }
+
+      if (entity.vesselFeatures) {
+        if (!entity.vesselFeatures.recorderDepartment) {
+          entity.vesselFeatures.recorderDepartment = person.department;
         }
-        vessel.features.recorderDepartment.id = person.department.id;
+        else {
+          // Update the VF recorder department
+          entity.vesselFeatures.recorderDepartment.id = person.department.id;
+        }
       }
     }
 
     // Recorder person
-    if (person && (!vessel.recorderPerson || vessel.recorderPerson.id !== person.id)) {
-      if (!vessel.recorderPerson) {
-        vessel.recorderPerson = new Person();
+    if (person && (!entity.recorderPerson || entity.recorderPerson.id !== person.id)) {
+      if (!entity.recorderPerson) {
+        entity.recorderPerson = new Person();
       }
-      vessel.recorderPerson.id = person.id;
-      if (vessel.features) {
-        if (!vessel.features.recorderPerson) {
-          vessel.features.recorderPerson = new Person();
+      entity.recorderPerson.id = person.id;
+      if (entity.vesselFeatures) {
+        if (!entity.vesselFeatures.recorderPerson) {
+          entity.vesselFeatures.recorderPerson = new Person();
         }
-        vessel.features.recorderPerson.id = person.id;
+        entity.vesselFeatures.recorderPerson.id = person.id;
       }
     }
 
     // Quality flag (set default)
-    if (vessel.features && isNil(vessel.features.qualityFlagId)) {
-      vessel.features.qualityFlagId = QualityFlagIds.NOT_QUALIFIED;
+    if (entity.vesselFeatures && isNil(entity.vesselFeatures.qualityFlagId)) {
+      entity.vesselFeatures.qualityFlagId = QualityFlagIds.NOT_QUALIFIED;
     }
 
   }
@@ -477,8 +486,8 @@ export class VesselService
 
     EntityUtils.copyIdAndUpdateDate(source, target);
     if (source) {
-      EntityUtils.copyIdAndUpdateDate(source.features, target.features);
-      EntityUtils.copyIdAndUpdateDate(source.registration, target.registration);
+      EntityUtils.copyIdAndUpdateDate(source.vesselFeatures, target.vesselFeatures);
+      EntityUtils.copyIdAndUpdateDate(source.vesselRegistrationPeriod, target.vesselRegistrationPeriod);
     }
 
   }

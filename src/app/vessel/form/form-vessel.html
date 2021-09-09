@@ -51,8 +51,8 @@
         <mat-date-field [placeholder]="'VESSEL.REGISTRATION.START_DATE'|translate"
                         formControlName="startDate"
                         [required]="true">
-          <mat-error *ngIf="form.get('registration.startDate').hasError('dateIsAfter')">
-            {{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: form.get('registration.startDate').errors.dateIsAfter }}
+          <mat-error *ngIf="form.get('vesselRegistrationPeriod.startDate').hasError('dateIsAfter')">
+            {{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: form.get('vesselRegistrationPeriod.startDate').errors.dateIsAfter }}
           </mat-error>
         </mat-date-field>
       </ion-col>
@@ -106,7 +106,7 @@
     </ion-row>
 
     <!-- Base port location -->
-    <ion-row [formGroup]="form.controls.features">
+    <ion-row [formGroup]="form.controls.vesselFeatures">
       <ion-col>
         <mat-autocomplete-field
           [placeholder]="'VESSEL.FEATURES.BASE_PORT_LOCATION'|translate"
@@ -119,16 +119,16 @@
     </ion-row>
 
     <!-- Features -->
-    <ion-row [formGroup]="form.controls.features">
+    <ion-row [formGroup]="form.controls.vesselFeatures">
       <!-- length over all -->
       <ion-col size="12" size-md="4">
         <mat-form-field>
           <input matInput type="number" step="0.1" min="0" autocomplete="off"  [placeholder]="'VESSEL.FEATURES.LENGTH_OVER_ALL'|translate"
                  formControlName="lengthOverAll" (keypress)="filterNumberInput($event, true)">
-          <mat-error *ngIf="form.get('features.lengthOverAll').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.get('features.lengthOverAll').hasError('pattern')">
+          <mat-error *ngIf="form.get('vesselFeatures.lengthOverAll').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.get('vesselFeatures.lengthOverAll').hasError('pattern')">
             {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{max: 2} }}</mat-error>
-          <mat-error *ngIf="form.get('features.lengthOverAll').hasError('min')">
+          <mat-error *ngIf="form.get('vesselFeatures.lengthOverAll').hasError('min')">
             {{ 'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
         </mat-form-field>
       </ion-col>
@@ -138,10 +138,10 @@
         <mat-form-field>
           <input matInput type="number" step="1" min="0" autocomplete="off" [placeholder]="'VESSEL.FEATURES.ADMINISTRATIVE_POWER'|translate"
                  formControlName="administrativePower" (keypress)="filterNumberInput($event, true)">
-          <mat-error *ngIf="form.get('features.administrativePower').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.get('features.administrativePower').hasError('pattern')">
+          <mat-error *ngIf="form.get('vesselFeatures.administrativePower').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.get('vesselFeatures.administrativePower').hasError('pattern')">
             {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{max: 2} }}</mat-error>
-          <mat-error *ngIf="form.get('features.administrativePower').hasError('min')">
+          <mat-error *ngIf="form.get('vesselFeatures.administrativePower').hasError('min')">
             {{ 'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
         </mat-form-field>
       </ion-col>
@@ -151,10 +151,10 @@
         <mat-form-field>
           <input type="number" step="0.1" min="0" autocomplete="off" matInput [placeholder]="'VESSEL.FEATURES.GROSS_TONNAGE_GT'|translate"
                  formControlName="grossTonnageGt" (keypress)="filterNumberInput($event, true)">
-          <mat-error *ngIf="form.get('features.grossTonnageGt').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.get('features.grossTonnageGt').hasError('pattern')">
+          <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGt').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGt').hasError('pattern')">
             {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{max: 2} }}</mat-error>
-          <mat-error *ngIf="form.get('features.grossTonnageGt').hasError('min')">
+          <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGt').hasError('min')">
             {{ 'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
         </mat-form-field>
       </ion-col>
@@ -164,8 +164,8 @@
         <mat-form-field>
           <input type="number" step="0.1" min="0" autocomplete="off" matInput [placeholder]="'VESSEL.FEATURES.GROSS_TONNAGE_GRT'|translate"
                  formControlName="grossTonnageGrt" (keypress)="filterNumberInput($event, true)">
-          <mat-error *ngIf="form.get('features.grossTonnageGrt').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.get('features.grossTonnageGrt').hasError('pattern')">
+          <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGrt').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGrt').hasError('pattern')">
             {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{max: 2} }}</mat-error>
           <mat-error *ngIf="form.get(['features.grossTonnageGrt').hasError('min')">
             {{ 'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
@@ -175,14 +175,14 @@
 
 
     <!-- Comments -->
-    <ion-row [formGroup]="form.controls.features">
+    <ion-row [formGroup]="form.controls.vesselFeatures">
       <ion-col>
         <mat-form-field appearance="outline">
           <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000" [placeholder]="'VESSEL.FEATURES.COMMENTS'|translate"
             formControlName="comments">
           </textarea>
           <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
-          <mat-error *ngIf="form.get('features.comments').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.get('vesselFeatures.comments').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>

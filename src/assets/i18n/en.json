@@ -1849,6 +1849,7 @@
     "DOWNLOAD_APP_HELP": "Free download.",
     "UPDATE_APP": "<b>Please upgrade {{name}}</b>",
     "UPDATE_APP_TO_VERSION": "<b>Please upgrade {{name}}</b> in version {{version}} (or more)",
-    "UPDATE_APP_HELP": "If you do not do this upgrade, communication with the network node may not work.."
+    "UPDATE_APP_HELP": "If you do not do this upgrade, communication with the network node may not work..",
+    "PLEASE_TYPE_MORE_CHARACTERS": "Please type at least {{minLength}} characters"
   }
 }

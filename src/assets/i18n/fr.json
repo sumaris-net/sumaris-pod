@@ -181,7 +181,10 @@
         "GUEST": "Libellé du profil Invité"
       },
       "VESSEL": {
-        "DEFAULT_NEW_VESSEL_STATUS": "Statut par défaut pour un nouveau navire"
+        "DEFAULT_NEW_VESSEL_STATUS": "Navire > Nouveau: Statut par défaut",
+        "DEFAULT_FILTER_COUNTRY_ID": "Navires: Pavillon par défaut (ID)",
+        "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
+        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour la recherche"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Référentiel > Programme des navires",
@@ -189,7 +192,7 @@
         "LOCATION_LEVEL_PORT_ID": "Référentiel > Niveau de lieu > Port",
         "LOCATION_LEVEL_AUCTION_ID": "Référentiel > Niveau de lieu > Criée",
         "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Référentiel > Niveau de lieu > Rectangle statistique CIEM/ICES",
-        "LOCATION_LEVEL_LOCATIONS_AREA_ID": "Stratégie > Niveau zone de pêche",
+        "LOCATION_LEVEL_LOCATIONS_AREA_ID": "Stratégie > Niveau(x) zone de pêche (ID)",
         "LOCATION_LEVEL_ICES_DIVISION_ID": "Référentiel > Niveau de lieu > Division CIEM/ICES",
         "TAXONOMIC_LEVEL_FAMILY_ID": "Référentiel > Niveau taxinomique > Famille",
         "TAXONOMIC_LEVEL_GENUS_ID": "Référentiel > Niveau taxinomique > Genre",
@@ -1087,7 +1090,10 @@
       "TITLE": "Navires",
       "FILTER": {
         "DATE": "Date de validité",
-        "SEARCH_TEXT": "Recherche : code, nom"
+        "SEARCH_TEXT": "Recherche : code, nom",
+        "REGISTRATION_LOCATION": "Pavillon",
+        "BASE_PORT_LOCATION": "Port d'attache",
+        "VESSEL_TYPE": "Type de navire"
       }
     },
     "ERROR": {
@@ -1179,7 +1185,7 @@
         "TITLE": "Nouveau PSFM"
       },
       "EDIT": {
-        "TITLE": "PSFM {{label}} - {{name}}"
+        "TITLE": "PSFM {{title}}"
       }
     },
     "MATRIX": {
@@ -1898,6 +1904,7 @@
     "DOWNLOAD_APP_HELP": "Téléchargement gratuit.",
     "UPDATE_APP": "<b>Veuillez mettre à jour {{name}}</b>",
     "UPDATE_APP_TO_VERSION": "<b>Veuillez mettre à jour {{name}}</b> (en v{{version}} ou +)",
-    "UPDATE_APP_HELP": "Cette mise à jour est <b>nécessaire pour se connecter correctement</b> au nœud réseau. En cas de problème pour l'installation, veuillez <b>contacter votre administrateur</b>."
+    "UPDATE_APP_HELP": "Cette mise à jour est <b>nécessaire pour se connecter correctement</b> au nœud réseau. En cas de problème pour l'installation, veuillez <b>contacter votre administrateur</b>.",
+    "PLEASE_TYPE_MORE_CHARACTERS": "Veuillez taper au moins {{minLength}} caractères"
   }
 }

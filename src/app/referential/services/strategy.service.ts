@@ -252,7 +252,8 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     };
 
     const now = this._debug && Date.now();
-    if (this._debug) console.debug(`[strategy-service] Loading analytic references...`, variables);
+    //if (this._debug)
+      console.debug(`[strategy-service] Loading analytic references...`, variables);
 
     const withTotal = (!opts || opts.withTotal !== false);
     const query = withTotal ? LoadAllAnalyticReferencesWithTotalQuery : LoadAllAnalyticReferencesQuery;
@@ -289,7 +290,8 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;
     return this.loadAllAnalyticReferences(0, !value ? 30 : 10, sortBy, sortDirection,
-      { ...filter, searchText: value}
+      { ...filter, searchText: value},
+      {withTotal: true}
     );
   }
 

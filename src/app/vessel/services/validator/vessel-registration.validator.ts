@@ -1,8 +1,8 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {VesselRegistration} from "../model/vessel.model";
-import {SharedValidators} from "@sumaris-net/ngx-components";
+import {VesselRegistrationPeriod} from "../model/vessel.model";
+import {SharedValidators, toNumber} from '@sumaris-net/ngx-components';
 
 @Injectable({providedIn: 'root'})
 export class VesselRegistrationValidatorService implements ValidatorService {
@@ -14,15 +14,15 @@ export class VesselRegistrationValidatorService implements ValidatorService {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: VesselRegistration, opts?: { required: boolean }): FormGroup {
+  getFormGroup(data?: VesselRegistrationPeriod, opts?: { required: boolean }): FormGroup {
     return this.formBuilder.group({
-      __typename: ['VesselRegistrationVO'],
-      id: [null],
-      startDate: [null, opts && opts.required ? Validators.required : null],
-      endDate: [null],
-      registrationCode: ['', opts && opts.required ? Validators.required : null],
-      intRegistrationCode: [''],
-      registrationLocation: ['', opts && opts.required ? Validators.compose([Validators.required, SharedValidators.entity]) : SharedValidators.entity]
+      __typename: [VesselRegistrationPeriod.TYPENAME],
+      id: [toNumber(data && data.id, null)],
+      startDate: [data?.startDate || null, opts && opts.required ? Validators.required : null],
+      endDate: [data?.endDate || null],
+      registrationCode: [data?.registrationCode || null, opts && opts.required ? Validators.required : null],
+      intRegistrationCode: [data?.intRegistrationCode || null],
+      registrationLocation: [data?.registrationLocation || null, opts && opts.required ? Validators.compose([Validators.required, SharedValidators.entity]) : SharedValidators.entity]
     });
   }
 }

@@ -2,14 +2,13 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {Moment} from 'moment';
 import {DateAdapter} from '@angular/material/core';
 import {debounceTime, map} from 'rxjs/operators';
-import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../referential/services/model/model.enum';
+import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '@app/referential/services/model/model.enum';
 import {LandingValidatorService} from '../services/validator/landing.validator';
 import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
 import {FormArray, FormBuilder, FormControl, Validators} from '@angular/forms';
 import {ModalController} from '@ionic/angular';
 import {
-  ConfigService,
   EntityUtils,
   FormArrayHelper,
   isNil,
@@ -157,7 +156,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected vesselSnapshotService: VesselSnapshotService,
     protected settings: LocalSettingsService,
     protected samplingStrategyService: SamplingStrategyService,
-    protected configService: ConfigService,
     protected translate: TranslateService,
     protected modalCtrl: ModalController,
     protected cd: ChangeDetectorRef
@@ -220,15 +218,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     });
 
     // Combo: vessels
-    const vesselField = this.registerAutocompleteField('vesselSnapshot', {
-      service: this.vesselSnapshotService,
-      attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
-      filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }
-    });
-    // Add base port location
-    vesselField.attributes = vesselField.attributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key));
+    this.registerAutocompleteField('vesselSnapshot', this.vesselSnapshotService.getAutocompleteAddOptions());
 
     // Combo location
     this.registerAutocompleteField('location', {
@@ -298,6 +288,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
             measControl.setValue(strategyLabel);
           }
         }));
+
   }
 
   async safeSetValue(data: Landing, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }) {
@@ -504,6 +495,5 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     return pmfms;
   }
-
 
 }
