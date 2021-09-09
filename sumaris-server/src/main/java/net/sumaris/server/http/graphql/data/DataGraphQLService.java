@@ -381,7 +381,7 @@ public class DataGraphQLService {
     }
 
     @GraphQLQuery(name = "trip", description = "Get physical gear's trip")
-    public TripVO getGearsByTrip(@GraphQLContext PhysicalGearVO physicalGear) {
+    public TripVO getTripByPhysicalGearId(@GraphQLContext PhysicalGearVO physicalGear) {
         if (physicalGear.getTripId() == null) return null;
         return tripService.get(physicalGear.getTripId());
     }
