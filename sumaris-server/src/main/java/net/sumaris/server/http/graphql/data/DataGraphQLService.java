@@ -999,6 +999,12 @@ public class DataGraphQLService {
         return result;
     }
 
+    @GraphQLQuery(name = "trip", description = "Get physical gear's trip")
+    public TripVO getTripByLanding(@GraphQLContext LandingVO landing) {
+        if (landing.getTripId() == null) return null;
+        return tripService.get(landing.getTripId());
+    }
+
     @GraphQLMutation(name = "saveLanding", description = "Create or update an landing")
     @IsUser
     public LandingVO saveLanding(@GraphQLArgument(name = "landing") LandingVO landing,
