@@ -14,7 +14,7 @@
   <!-- vessel registration -->
   <mat-label mat-menu-item class="mat-menu-title" translate>VESSEL.ACTION.REGISTRATION_DIVIDER</mat-label>
   <button mat-menu-item translate (click)="editRegistration()">VESSEL.ACTION.EDIT_REGISTRATION</button>
-  <button mat-menu-item translate *ngIf="!!data?.registration" (click)="newRegistration()">VESSEL.ACTION.NEW_REGISTRATION</button>
+  <button mat-menu-item translate *ngIf="!!data?.vesselRegistrationPeriod" (click)="newRegistration()">VESSEL.ACTION.NEW_REGISTRATION</button>
   <mat-divider></mat-divider>
 
   <!-- vessel features -->

@@ -86,6 +86,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   appliedPeriodsHelper: FormArrayHelper<AppliedPeriod>;
   calcifiedFractionsHelper: FormArrayHelper<PmfmStrategy>;
   sexAndAgeHelper: FormArrayHelper<PmfmStrategy>;
+  locationLevelIds: number[];
 
   autocompleteFilters = {
     analyticReference: false,
@@ -244,7 +245,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.analyticsReferencePatched = false;
 
     this.referentialRefService.loadAll(0, 0, null, null, {
-      entityName: 'Fraction'
+      entityName: 'Fraction',
+      // TODO BLA: Ne faut-il pas filtrer sur les fractions sur Individu ?
+      // levelId: MatrixIds.INDIVIDUAL
     })
       .then(({data}) => this.allFractionItems.next(data));
 
@@ -415,6 +418,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       suggestFn: (value, filter) => this.suggestLocations(value, {
         ...filter,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        // TODO BLA: pourquoi utiliser une constante globale,
+        //  et non pas un option de Program ?
         levelIds: LocationLevelIds.LOCATIONS_AREA
       }),
       mobile: this.settings.mobile
@@ -448,6 +453,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.i18nFieldPrefix = 'PROGRAM.STRATEGY.EDIT.';
       const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX) || '';
       this.i18nFieldPrefix += i18nSuffix !== 'legacy' && i18nSuffix || '';
+
+      // Get location level ids
+      this.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.STRATEGY_EDITOR_LOCATION_LEVEL_IDS);
 
       // Load items from historical data
       await this.loadFilteredItems(program);
@@ -640,6 +648,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param filter - filters to apply
    */
   protected async suggestLocations(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
+    filter = {
+      levelIds: this.locationLevelIds || [LocationLevelIds.ICES_DIVISION],
+      ...filter
+    }
+    // DEBUG
+    //console.debug("Suggest locations: ", filter);
     if (this.autocompleteFilters.location) {
       return suggestFromArray(this.locationItems.getValue(), value, filter);
     } else {

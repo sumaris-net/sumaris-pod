@@ -1,6 +1,7 @@
-import {Injectable} from "@angular/core";
+import {Injectable, Optional} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {SharedFormArrayValidators, SharedValidators} from '@sumaris-net/ngx-components';
+import {LocalSettingsService, SharedValidators} from '@sumaris-net/ngx-components';
 import {toBoolean, toNumber} from "@sumaris-net/ngx-components";
 import {ProgramProperties} from "../../../referential/services/config/program.config";
 import {MeasurementsValidatorService} from "./measurement.validator";
@@ -24,13 +25,10 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
 
   constructor(
     formBuilder: FormBuilder,
-    protected measurementsValidatorService: MeasurementsValidatorService
+    protected measurementsValidatorService: MeasurementsValidatorService,
+    @Optional() settings?: LocalSettingsService
   ) {
-    super(formBuilder);
-  }
-
-  getRowValidator(): FormGroup {
-    return super.getRowValidator();
+    super(formBuilder, settings);
   }
 
   getFormGroup(data?: Landing, opts?: O): FormGroup {
@@ -59,8 +57,6 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
 
     const formConfig = Object.assign(super.getFormGroupConfig(data), {
       __typename: [Landing.TYPENAME],
-      id: [toNumber(data && data.id, null)],
-      updateDate: [data && data.updateDate || null],
       location: [data && data.location || null, SharedValidators.entity],
       dateTime: [data && data.dateTime || null],
       rankOrder: [toNumber(data && data.rankOrder, null), Validators.compose([SharedValidators.integer, Validators.min(1)])],

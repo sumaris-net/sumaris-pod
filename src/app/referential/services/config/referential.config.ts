@@ -117,12 +117,6 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     key: 'sumaris.enumeration.LocationLevel.LOCATIONS_AREA.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_LOCATIONS_AREA_ID',
     type: 'string',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
     defaultValue: LocationLevelIds.LOCATIONS_AREA.join(',')
   },
   TAXONOMIC_LEVEL_FAMILY_ID: <FormFieldDefinition>{
@@ -333,20 +327,9 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
   }
 });
 
-export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = Object.freeze({
-
-  // Display attributes for vessel
-  FIELD_VESSEL_SNAPSHOT_ATTRIBUTES: <FormFieldDefinition>{
-    key: 'sumaris.field.vesselSnapshot.attributes',
-    label: 'SETTINGS.FIELDS.VESSEL.NAME',
-    type: 'enum',
-    values: [
-      {key: 'exteriorMarking,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.EXTERIOR_MARKING_NAME'},
-      {key: 'registrationCode,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.REGISTRATION_CODE_NAME'}
-    ]
-  },
+export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = Object.freeze(
   // Display attributes for referential useful entities
-  ... ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear', 'fraction']
+  ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear', 'fraction']
     // Allow user to choose how to display field (by code+label, code, etc)
     .reduce((res, fieldName) => {
       res[`FIELD_${changeCaseToUnderscore(fieldName).toUpperCase()}_ATTRIBUTES`] = {
@@ -362,4 +345,4 @@ export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = Object.freeze({
       };
       return res;
     }, {})
-});
+);

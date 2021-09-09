@@ -97,16 +97,16 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
       RESERVED_START_COLUMNS
         .concat([
           'status',
-          'features.exteriorMarking',
-          'registration.registrationCode'])
+          'vesselFeatures.exteriorMarking',
+          'vesselRegistrationPeriod.registrationCode'])
         .concat(platform.mobile ? [] : [
-          'features.startDate',
-          'features.endDate'
+          'vesselFeatures.startDate',
+          'vesselFeatures.endDate'
         ])
         .concat([
-          'features.name',
+          'vesselFeatures.name',
           'vesselType',
-          'features.basePortLocation'
+          'vesselFeatures.basePortLocation'
         ])
         .concat(platform.mobile ? [] : [
           'comments'
@@ -124,8 +124,13 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
       injector
     );
     this.i18nColumnPrefix = 'VESSEL.';
+    this.defaultSortBy = 'vesselFeatures.exteriorMarking';
+    this.defaultSortDirection = 'asc';
     this.filterForm = formBuilder.group({
       program: [null, SharedValidators.entity],
+      basePortLocation: [null, SharedValidators.entity],
+      registrationLocation: [null, SharedValidators.entity],
+      vesselType: [null, SharedValidators.entity],
       date: [null, SharedValidators.validDate],
       searchText: [null],
       statusId: [null],
@@ -150,7 +155,11 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
     super.ngOnInit();
 
     // Locations
-    this.registerAutocompleteField('location', {
+    const locationAttributes = this.settings.getFieldDisplayAttributes('location');
+
+    // Base port locations
+    this.registerAutocompleteField('basePortLocation', {
+      attributes: locationAttributes,
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
@@ -159,10 +168,32 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
       mobile: this.mobile
     });
 
+    // Registration locations
+    this.registerAutocompleteField('registrationLocation', {
+      attributes: locationAttributes,
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Location',
+        levelId: LocationLevelIds.COUNTRY
+      },
+      mobile: this.mobile
+    });
+
+    // Vessel type
+    this.registerAutocompleteField('vesselType', {
+      attributes: ['name'],
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'VesselType',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+      },
+      mobile: this.mobile
+    });
+
     // TODO fill vessel types
 
-    // Restore filter from settings, or load all vessels
-    this.restoreFilterOrLoad();
+    // Restore filter from settings, or load all
+    this.restoreFilterOrLoad({emitEvent: this.autoLoad});
   }
 
   async openNewRowDetail(): Promise<boolean> {

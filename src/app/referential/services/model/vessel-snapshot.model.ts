@@ -43,6 +43,7 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
   exteriorMarking: string;
   registrationId: number; // TODO remove this ?
   registrationCode: string;
+  intRegistrationCode: string;
   registrationStartDate: Moment;
   registrationEndDate: Moment;
   administrativePower: number;
@@ -101,6 +102,7 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
     super.fromObject(source);
     this.exteriorMarking = source.exteriorMarking;
     this.registrationCode = source.registrationCode;
+    this.intRegistrationCode = source.intRegistrationCode;
     this.name = source.name;
     this.comments = source.comments || undefined;
     this.vesselStatusId = source.vesselStatusId;

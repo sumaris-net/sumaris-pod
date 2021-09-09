@@ -2,14 +2,13 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Op
 import {Moment} from 'moment';
 import {DateAdapter} from '@angular/material/core';
 import {debounceTime, map} from 'rxjs/operators';
-import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../referential/services/model/model.enum';
+import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '@app/referential/services/model/model.enum';
 import {LandingValidatorService} from '../services/validator/landing.validator';
 import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
 import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {ModalController} from '@ionic/angular';
 import {
-  ConfigService,
   EntityUtils,
   FormArrayHelper,
   IReferentialRef,
@@ -120,6 +119,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   get observersForm(): FormArray {
     return this.form.controls.observers as FormArray;
   }
+
   get fishingAreasForm(): FormArray {
     return this.form.controls.fishingAreas as FormArray;
   }
@@ -183,8 +183,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected configService: ConfigService,
     protected translate: TranslateService,
     protected modalCtrl: ModalController,
-    protected cd: ChangeDetectorRef,
-    protected fishingAreaValidatorService: FishingAreaValidatorService
+    protected fishingAreaValidatorService: FishingAreaValidatorService,
+    protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup(), {
       mapPmfms: pmfms => this.mapPmfms(pmfms)
@@ -202,6 +202,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
     this.mainMetierPmfmId = PmfmIds.MAIN_METIER;
   }
+
 
   ngOnInit() {
     super.ngOnInit();
@@ -249,15 +250,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     });
 
     // Combo: vessels
-    const vesselField = this.registerAutocompleteField('vesselSnapshot', {
-      service: this.vesselSnapshotService,
-      attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
-      filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }
-    });
-    // Add base port location
-    vesselField.attributes = vesselField.attributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key));
+    this.registerAutocompleteField('vesselSnapshot', this.vesselSnapshotService.getAutocompleteAddOptions());
 
     // Combo location
     this.registerAutocompleteField('location', {
@@ -342,11 +335,13 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         }));
 
     // set fishingAreas filter
-    this.editor?.$strategy.subscribe(strategy => {
-      this.appliedStrategyLocations.next(strategy?.appliedStrategies.map(appliedStrategy => {
-        return appliedStrategy?.location as ReferentialRef;
-      }))
-    })
+    this.registerSubscription(
+      this.editor?.$strategy.subscribe(strategy => {
+        this.appliedStrategyLocations.next(strategy?.appliedStrategies.map(appliedStrategy => {
+          return appliedStrategy?.location as ReferentialRef;
+        }))
+      })
+    );
     this.initFishingAreas();
   }
 
@@ -417,6 +412,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       this.observerFocusIndex = this.observersHelper.size() - 1;
     }
   }
+
   addFishingArea() {
     this.fishingAreasHelper.add();
   }
@@ -514,6 +510,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       this.observersHelper.resize(0);
     }
   }
+
   protected initFishingAreas() {
     this.fishingAreasHelper = new FormArrayHelper<FishingArea>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'fishingAreas'),
@@ -586,6 +583,5 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     return pmfms;
   }
-
 
 }

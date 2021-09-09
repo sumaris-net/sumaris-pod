@@ -31,6 +31,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
   @Input() canEdit = false;
   @Input() canDelete = false;
   @Input() showError = true;
+  @Input() showToolbar = true;
   @Input() showPaginator = true;
 
   @Input() set program(program: Program) {

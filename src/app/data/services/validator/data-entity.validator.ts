@@ -15,7 +15,7 @@ export abstract class DataEntityValidatorService<T extends DataEntity<T>, O exte
 
   protected constructor(
     protected formBuilder: FormBuilder,
-    @Optional() protected settings?: LocalSettingsService
+    protected settings?: LocalSettingsService
     ) {
   }
 
