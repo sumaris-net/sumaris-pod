@@ -65,6 +65,8 @@ public abstract class DatabaseResource implements TestRule {
 
     /** Constant <code>HSQLDB_DATASOURCE_TYPE="hsqldb"</code> */
     public static final String HSQLDB_DATASOURCE_TYPE = "hsqldb";
+    public static final String ORACLE_DATASOURCE_TYPE = "oracle";
+    public static final String PGSQL_DATASOURCE_TYPE = "pgsql";
     /** Constant <code>HSQLDB_SRC_DATABASE_DIRECTORY= ie : "../sumaris-core/src/test/db"</code> */
     public static final String HSQLDB_SRC_DATABASE_DIRECTORY_PATTERN = "../%s/target/db";
     public static final String HSQLDB_SRC_DATABASE_NAME = "sumaris";
@@ -82,6 +84,8 @@ public abstract class DatabaseResource implements TestRule {
 
     private final String configFileSuffix;
 
+    private final String datasourcePlatform;
+
     private boolean withError = false;
 
     private Class<?> testClass;
@@ -90,12 +94,18 @@ public abstract class DatabaseResource implements TestRule {
      * <p>Constructor for DatabaseResource.</p>
      *
      * @param configFileSuffix a {@link String} object.
-     * @param needWrite a boolean.
+     * @param datasourcePlatform the datasource platform (e.g. 'oracle', 'hsqldb', 'pgsql')
+     * @param readOnly a boolean.
      */
     protected DatabaseResource(String configFileSuffix,
-                              boolean readOnly) {
+                               String datasourcePlatform,
+                               boolean readOnly) {
         this.configFileSuffix = configFileSuffix;
         this.readOnly = readOnly;
+        this.datasourcePlatform = datasourcePlatform != null ? datasourcePlatform :
+            ((ORACLE_DATASOURCE_TYPE.equals(configFileSuffix) || PGSQL_DATASOURCE_TYPE.equals(configFileSuffix))
+            ? configFileSuffix
+            : HSQLDB_DATASOURCE_TYPE);
     }
 
     /**
@@ -501,12 +511,12 @@ public abstract class DatabaseResource implements TestRule {
     }
 
     /**
-     * <p>getBuildEnvironment.</p>
+     * <p>getDatasourcePlatform.</p>
      *
      * @return a {@link String} object.
      */
     public String getDatasourcePlatform() {
-        return getDatasourcePlatform(null);
+        return getDatasourcePlatform(this.datasourcePlatform);
     }
 
     /**

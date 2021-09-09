@@ -144,14 +144,16 @@ public class ProgramRepositoryImpl
             target.setProperties(properties);
         }
 
-        // Location classifications (only IDs)
-        if (copyIfNull || source.getLocationClassifications() != null) {
-            target.setLocationClassificationIds(Beans.collectIds(source.getLocationClassifications()));
-        }
-
         // Other attributes
         target.setGearClassificationId(source.getGearClassification() != null ? source.getGearClassification().getId() : null);
         target.setTaxonGroupTypeId(source.getTaxonGroupType() != null ? source.getTaxonGroupType().getId() : null);
+
+        // Location classifications (only IDs)
+        if (fetchOptions != null && fetchOptions.isWithLocationClassifications()) {
+            if (copyIfNull || source.getLocationClassifications() != null) {
+                target.setLocationClassificationIds(Beans.collectIds(source.getLocationClassifications()));
+            }
+        }
 
         // locations
         if (fetchOptions != null && fetchOptions.isWithLocations()) {

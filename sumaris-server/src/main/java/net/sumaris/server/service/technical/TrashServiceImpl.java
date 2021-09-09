@@ -136,6 +136,11 @@ public class TrashServiceImpl implements TrashService {
     }
 
     @Override
+    public <V> List<V> findAll(String entityName, net.sumaris.core.dao.technical.Page page, Class<? extends V> clazz) {
+        return (List<V>)findAll(entityName, page.asPageable(), clazz).getContent();
+    }
+
+    @Override
     public <V> V getById(String entityName, Serializable id, Class<? extends V> clazz) {
         return findById(entityName, id, clazz)
                 .orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.trash.notfound")));

@@ -27,6 +27,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
@@ -35,6 +36,7 @@ import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.LockOptions;
 import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
@@ -42,18 +44,24 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
+import javax.persistence.criteria.*;
 import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.function.LongSupplier;
 import java.util.stream.Stream;
 
 /**
@@ -68,6 +76,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     private boolean debugEntityLoad = false;
     private boolean checkUpdateDate = true;
     private boolean lockForUpdate = false;
+    private boolean enablePageTotalElement = false;
 
     private EntityManager entityManager;
 
@@ -123,35 +132,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     @Override
     public V save(V vo) {
-        E entity = toEntity(vo);
-
-        boolean isNew = entity.getId() == null;
-
-        // Entity has update date
-        if (entity instanceof IUpdateDateEntityBean && vo instanceof IUpdateDateEntityBean) {
-
-            if (!isNew && isCheckUpdateDate()) {
-                // Check update date
-                Daos.checkUpdateDateForUpdate((IUpdateDateEntityBean) vo, (IUpdateDateEntityBean) entity);
-            }
-
-            // Update update_dt
-            ((IUpdateDateEntityBean) entity).setUpdateDate(getDatabaseCurrentTimestamp());
-        }
-
-        if (!isNew && isLockForUpdate()) {
-            lockForUpdate(entity);
-        }
-
-        onBeforeSaveEntity(vo, entity, isNew);
-
-        // Save entity
-        E savedEntity = super.save(entity);
-
-        // Update VO
-        onAfterSaveEntity(vo, savedEntity, isNew);
-
-        return vo;
+        return save(vo, isCheckUpdateDate());
     }
 
     public E toEntity(V vo) {
@@ -180,6 +161,38 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     public void toEntity(V source, E target, boolean copyIfNull) {
         Beans.copyProperties(source, target);
+    }
+
+    protected V save(V vo, boolean checkUpdateDate) {
+        E entity = toEntity(vo);
+
+        boolean isNew = entity.getId() == null;
+
+        // Entity has update date
+        if (entity instanceof IUpdateDateEntityBean && vo instanceof IUpdateDateEntityBean) {
+
+            if (!isNew && checkUpdateDate) {
+                // Check update date
+                Daos.checkUpdateDateForUpdate((IUpdateDateEntityBean) vo, (IUpdateDateEntityBean) entity);
+            }
+
+            // Update update_dt
+            ((IUpdateDateEntityBean) entity).setUpdateDate(getDatabaseCurrentTimestamp());
+        }
+
+        if (!isNew && isLockForUpdate()) {
+            lockForUpdate(entity);
+        }
+
+        onBeforeSaveEntity(vo, entity, isNew);
+
+        // Save entity
+        E savedEntity = super.save(entity);
+
+        // Update VO
+        onAfterSaveEntity(vo, savedEntity, isNew);
+
+        return vo;
     }
 
     protected void onBeforeSaveEntity(V vo, E entity, boolean isNew) {
@@ -359,6 +372,55 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         return this.getQuery(spec, Sort.unsorted()).getResultStream();
     }
 
+    protected <S> Stream<S> streamQuery(TypedQuery<S> query) {
+        return query.getResultList().stream();
+    }
+
+    protected <S extends E> TypedQuery<S> getQuery(@Nullable Specification<S> spec,
+                                                   net.sumaris.core.dao.technical.Page page,
+                                                   Class<S> domainClass) {
+        if (page == null) {
+            return getQuery(spec, domainClass, Pageable.unpaged());
+        }
+
+        return getQuery(spec, (int)page.getOffset(), page.getSize(), page.getSortBy(), page.getSortDirection(), domainClass);
+    }
+
+    protected <S extends E> TypedQuery<S> getQuery(@Nullable Specification<S> spec,
+                                                   int offset, int size,
+                                                   String sortBy, SortDirection sortDirection,
+                                                   Class<S> domainClass) {
+        CriteriaBuilder builder = this.getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<S> criteriaQuery = builder.createQuery(domainClass);
+        Root<S> root = criteriaQuery.from(domainClass);
+
+        Predicate predicate = spec != null ? spec.toPredicate(root, criteriaQuery, builder) : null;
+        if (predicate != null) criteriaQuery.where(predicate);
+
+        // Add sorting
+        addSorting(criteriaQuery, builder, root, sortBy, sortDirection);
+
+        TypedQuery<S> query = getEntityManager().createQuery(criteriaQuery);
+
+        // Bind parameters
+        applyBindings(query, spec);
+
+        // Set page
+        query.setFirstResult(offset);
+        query.setMaxResults(size);
+
+        return query;
+    }
+
+    protected <T> Page<T> readPage(TypedQuery<T> query, Pageable pageable, LongSupplier totalSupplier) {
+        if (pageable.isPaged()) {
+            query.setFirstResult((int)pageable.getOffset());
+            query.setMaxResults(pageable.getPageSize());
+        }
+
+        return PageableExecutionUtils.getPage(query.getResultList(), pageable, totalSupplier);
+    }
+
     protected void lockForUpdate(IEntity<?> entity) {
         lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
     }
@@ -416,6 +478,51 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
             else {
                 log.warn(message);
             }
+        }
+        return query;
+    }
+
+    /**
+     * Add a orderBy on query
+     *
+     * @param query         the query
+     * @param builder       criteria builder
+     * @param root          the root of the query
+     * @param pageable      page spec
+     * @param <T>           type of query
+     * @return the query itself
+     */
+    protected <T> CriteriaQuery<T> addSorting(CriteriaQuery<T> query,
+                                              CriteriaBuilder builder,
+                                              Root<?> root,
+                                              Pageable pageable) {
+        Sort sort = pageable.isPaged() ? pageable.getSort() : Sort.unsorted();
+        if (sort.isSorted()) {
+            query.orderBy(QueryUtils.toOrders(sort, root, builder));
+        }
+        return query;
+    }
+    /**
+     * Add a orderBy on query
+     *
+     * @param query         the query
+     * @param builder       criteria builder
+     * @param root          the root of the query
+     * @param sortAttribute the sort attribute (can be a nested attribute)
+     * @param sortDirection the direction
+     * @param <T>           type of query
+     * @return the query itself
+     */
+    protected <T> CriteriaQuery<T> addSorting(CriteriaQuery<T> query,
+                                              CriteriaBuilder builder,
+                                              Root<?> root, String sortAttribute, SortDirection sortDirection) {
+        // Add sorting
+        if (StringUtils.isNotBlank(sortAttribute)) {
+            Expression<?> sortExpression = Daos.composePath(root, sortAttribute);
+            query.orderBy(SortDirection.DESC.equals(sortDirection) ?
+                builder.desc(sortExpression) :
+                builder.asc(sortExpression)
+            );
         }
         return query;
     }

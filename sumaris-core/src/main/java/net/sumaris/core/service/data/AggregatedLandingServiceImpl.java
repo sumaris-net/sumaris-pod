@@ -35,7 +35,10 @@ import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.operation.OperationGroupRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
+import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.util.Dates;
@@ -122,7 +125,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 .endDate(endDate)
                 .build(),
             0, 1000, null, null,
-            defaultFetchOption).getContent();
+            defaultFetchOption);
 
         ConcurrentHashMap<VesselSnapshotVO, Map<Date, List<LandingVO>>> landingsByBateByVessel = new ConcurrentHashMap<>();
         observedLocations.parallelStream().forEach(observedLocation -> {
@@ -245,8 +248,10 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 .startDate(startDate)
                 .endDate(endDate)
                 .build(),
-            0, 1000, null, null,
-            defaultFetchOption).getContent();
+            Page.builder()
+                .offset(0).size(1000)
+                .build(),
+            defaultFetchOption);
 
         // Create observed location if missing
         Set<Date> existingDates = observedLocations.stream().map(ObservedLocationVO::getStartDateTime).map(Dates::resetTime).collect(Collectors.toSet());
