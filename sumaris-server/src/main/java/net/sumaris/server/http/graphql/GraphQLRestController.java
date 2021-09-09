@@ -28,7 +28,14 @@ import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.server.config.SumarisServerConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,15 +48,22 @@ import java.util.Map;
 public class GraphQLRestController {
 
     private final GraphQL graphQL;
-
     private final ObjectMapper objectMapper;
+    private boolean ready;
 
     @Autowired
     public GraphQLRestController(GraphQLSchema graphQLSchema,
-                                 ObjectMapper objectMapper) {
+                                 ObjectMapper objectMapper,
+                                 SumarisConfiguration configuration) {
         this.graphQL = GraphQL.newGraphQL(graphQLSchema).build();
         this.objectMapper = objectMapper;
+        this.ready = !configuration.enableConfigurationDbPersistence(); // Mark as ready, if configuration not loaded from DB
         log.info(String.format("Starting GraphQL endpoint {%s}...", GraphQLPaths.BASE_PATH));
+    }
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+        this.ready = true;
     }
 
     @PostMapping(value = GraphQLPaths.BASE_PATH,
@@ -63,6 +77,9 @@ public class GraphQLRestController {
             })
     @ResponseBody
     public Map<String, Object> indexFromAnnotated(@RequestBody Map<String, Object> request, HttpServletRequest rawRequest) {
+        if (!this.ready) {
+            throw new SumarisTechnicalException("Pod not ready. Please wait");
+        }
         ExecutionResult executionResult = graphQL.execute(ExecutionInput.newExecutionInput()
                 .query((String) request.get("query"))
                 .operationName((String) request.get("operationName"))

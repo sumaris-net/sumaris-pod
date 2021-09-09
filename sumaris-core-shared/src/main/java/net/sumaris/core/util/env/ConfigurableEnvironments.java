@@ -51,10 +51,19 @@ public class ConfigurableEnvironments {
             for (String key: source.getPropertyNames()) {
                 Object value = source.getProperty(key);
                 if (value != null) {
-                    log.info(" {}={}", key, value);
+                    //
                     target.setProperty(key, value.toString());
                 }
             }
+        }
+
+        // DEBUG
+        if (log.isDebugEnabled()) {
+            target.keySet().stream().map(Object::toString)
+                .forEach(key -> {
+                    Object value = target.getProperty(key);
+                    log.debug(" {}={}", key, value);
+                });
         }
 
         return target;

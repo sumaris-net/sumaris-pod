@@ -33,6 +33,7 @@ import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
@@ -42,6 +43,7 @@ import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.SaleTypeEnum;
+import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
@@ -104,19 +106,14 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public List<TripVO> getAllTrips(int offset, int size) {
-        return findByFilter(null, offset, size, null, null, DataFetchOptions.builder().build());
+    public List<TripVO> findAll(TripFilterVO filter, int offset, int size, String sortAttribute,
+                                SortDirection sortDirection, DataFetchOptions fieldOptions) {
+        return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fieldOptions);
     }
 
     @Override
-    public List<TripVO> findByFilter(TripFilterVO filter, int offset, int size) {
-        return findByFilter(filter, offset, size, null, null, DataFetchOptions.builder().build());
-    }
-
-    @Override
-    public List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute,
-                                     SortDirection sortDirection, DataFetchOptions fieldOptions) {
-        return tripRepository.findAll(filter != null ? filter : TripFilterVO.builder().build(), offset, size, sortAttribute, sortDirection, fieldOptions).getContent();
+    public List<TripVO> findAll(TripFilterVO filter, Page page, DataFetchOptions fieldOptions) {
+        return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), page, fieldOptions);
     }
 
     @Override
@@ -146,7 +143,7 @@ public class TripServiceImpl implements TripService {
 
             // Operation groups
             if (target.getLanding() != null) {
-                target.setOperationGroups(operationGroupService.getAllByTripId(id, fetchOptions));
+                target.setOperationGroups(operationGroupService.findAllByTripId(id, fetchOptions));
                 target.setMetiers(operationGroupService.getMetiersByTripId(id));
             }
 

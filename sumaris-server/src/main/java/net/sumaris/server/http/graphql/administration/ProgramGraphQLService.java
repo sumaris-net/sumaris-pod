@@ -402,8 +402,10 @@ public class ProgramGraphQLService {
         return ProgramFetchOptions.builder()
                 .withLocations(
                         fields.contains(StringUtils.slashing(ProgramVO.Fields.LOCATIONS, ReferentialVO.Fields.ID))
-                        || fields.contains(StringUtils.slashing(ProgramVO.Fields.LOCATION_CLASSIFICATIONS, ReferentialVO.Fields.ID))
-                        || fields.contains(ProgramVO.Fields.LOCATION_CLASSIFICATION_IDS)
+                )
+                .withLocationClassifications(
+                    fields.contains(StringUtils.slashing(ProgramVO.Fields.LOCATION_CLASSIFICATIONS, ReferentialVO.Fields.ID))
+                    || fields.contains(ProgramVO.Fields.LOCATION_CLASSIFICATION_IDS)
                 )
                 .withProperties(
                         fields.contains(ProgramVO.Fields.PROPERTIES)

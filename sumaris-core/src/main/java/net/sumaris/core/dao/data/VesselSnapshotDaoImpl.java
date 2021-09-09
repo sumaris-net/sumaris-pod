@@ -70,9 +70,10 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
 
     @Override
     public VesselSnapshotVO getByIdAndDate(int vesselId, Date date) {
-        VesselFilterVO filter = new VesselFilterVO();
-        filter.setVesselId(vesselId);
-        filter.setDate(date);
+        VesselFilterVO filter = VesselFilterVO.builder()
+            .vesselId(vesselId)
+            .startDate(date)
+            .build();
         List<VesselSnapshotVO> res = findByFilter(filter, 0, 1, VesselFeatures.Fields.START_DATE, SortDirection.DESC);
 
         // No result for this date

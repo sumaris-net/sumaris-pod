@@ -29,6 +29,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.service.AbstractServiceTest;
+import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;

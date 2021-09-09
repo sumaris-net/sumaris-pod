@@ -80,6 +80,16 @@ public class DatabaseFixtures {
 		}
 	}
 
+	public String getVesselRegistrationCode(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return "FRA000851751";
+			default:
+				return null;
+		}
+	}
+
 	public Integer getTripId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {

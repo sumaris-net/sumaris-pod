@@ -119,7 +119,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             this.dbVersion = event.getSchemaVersion();
 
             if (!configuration.enableConfigurationDbPersistence()) {
-                if (event instanceof SchemaReadyEvent) {
+                if (event instanceof SchemaReadyEvent && configuration.isProduction()) {
                     publisher.publishEvent(new ConfigurationReadyEvent(configuration));
                 }
             }
