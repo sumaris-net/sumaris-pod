@@ -23,6 +23,7 @@ package net.sumaris.core.service.data;
  */
 
 
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.TripSaveOptions;
@@ -44,16 +45,14 @@ import java.util.concurrent.CompletableFuture;
 public interface TripService extends IRootDataQualityService<TripVO> {
 
 	@Transactional(readOnly = true)
-	List<TripVO> getAllTrips(int offset, int size);
+	List<TripVO> findAll(TripFilterVO filter, Page page,
+						 DataFetchOptions fieldOptions);
 
 	@Transactional(readOnly = true)
-	List<TripVO> findByFilter(TripFilterVO filter, int offset, int size);
-
-	@Transactional(readOnly = true)
-	List<TripVO> findByFilter(TripFilterVO filter, int offset, int size,
-							  String sortAttribute,
-							  SortDirection sortDirection,
-							  DataFetchOptions fieldOptions);
+	List<TripVO> findAll(TripFilterVO filter, int offset, int size,
+						 String sortAttribute,
+						 SortDirection sortDirection,
+						 DataFetchOptions fieldOptions);
 
 	@Transactional(readOnly = true)
 	long countByFilter(TripFilterVO filter);

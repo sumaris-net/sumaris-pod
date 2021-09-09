@@ -27,7 +27,6 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.service.data.VesselService;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.data.VesselVO;
@@ -47,7 +46,7 @@ public class VesselServiceWriteTest extends AbstractServiceTest{
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private VesselService2 service;
+    private VesselService service;
 
     @Test
     public void save() {

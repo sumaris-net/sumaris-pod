@@ -34,6 +34,7 @@ import net.sumaris.core.model.data.VesselPhysicalMeasurement;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +50,7 @@ import java.util.stream.Collectors;
 
 @Service("vesselService2")
 @Slf4j
-public class VesselServiceImpl implements VesselService2 {
+public class VesselServiceImpl implements VesselService {
 
 	@Autowired
 	protected VesselRepository vesselRepository;
@@ -67,19 +68,48 @@ public class VesselServiceImpl implements VesselService2 {
 	protected MeasurementDao measurementDao;
 
 	@Override
-	public Page<VesselSnapshotVO> findSnapshotByFilter(VesselFilterVO filter, Pageable pageable,
-													   DataFetchOptions fetchOptions) {
-		return vesselSnapshotRepository
-			.findAll(VesselFilterVO.nullToEmpty(filter), pageable, fetchOptions);
+	public List<VesselSnapshotVO> findAllSnapshots(VesselFilterVO filter,
+												   net.sumaris.core.dao.technical.Page page,
+												   VesselFetchOptions fetchOptions) {
+
+		filter = VesselFilterVO.nullToEmpty(filter);
+
+		// If expected a date: use today
+		if (filter.getStartDate() == null && filter.getEndDate() == null) {
+			filter.setDate(new Date());
+		}
+
+		return vesselSnapshotRepository.findAll(filter, page, fetchOptions);
 	}
 
 	@Override
-	public Page<VesselVO> findAll(VesselFilterVO filter, Pageable pageable,
-								  DataFetchOptions fetchOptions) {
+	public Long countSnapshotsByFilter(VesselFilterVO filter) {
+		filter = VesselFilterVO.nullToEmpty(filter);
+
+		// If expected a date: use today
+		if (filter.getStartDate() == null && filter.getEndDate() == null) {
+			filter.setDate(new Date());
+		}
+
+		return vesselSnapshotRepository.count(filter);
+	}
+
+	@Override
+	public List<VesselVO> findAll(VesselFilterVO filter,
+								  net.sumaris.core.dao.technical.Page page,
+								  VesselFetchOptions fetchOptions) {
+
+		filter = VesselFilterVO.nullToEmpty(filter);
+
+		// If expected a date: use today
+		boolean needDate = fetchOptions.isWithVesselFeatures() || fetchOptions.isWithVesselRegistrationPeriod();
+		if (needDate && filter.getStartDate() == null && filter.getEndDate() == null) {
+			filter.setDate(new Date());
+		}
 
 		return vesselRepository.findAll(
-			VesselFilterVO.nullToEmpty(filter),
-			pageable,
+			filter,
+			page,
 			fetchOptions);
 	}
 
@@ -95,7 +125,7 @@ public class VesselServiceImpl implements VesselService2 {
 
 	@Override
 	public VesselSnapshotVO getSnapshotByIdAndDate(int vesselId, Date date) {
-		return vesselSnapshotRepository.getByVesselIdAndDate(vesselId, date, DataFetchOptions.MINIMAL)
+		return vesselSnapshotRepository.getByVesselIdAndDate(vesselId, date, VesselFetchOptions.DEFAULT)
 			.orElseGet(() -> {
 				VesselSnapshotVO unknownVessel = new VesselSnapshotVO();
 				unknownVessel.setId(vesselId);

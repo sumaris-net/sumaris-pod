@@ -71,7 +71,12 @@ public class VesselRegistrationPeriodRepositoryImpl
     }
 
     @Override
-    public Optional<VesselRegistrationPeriodVO> getByVesselIdAndDate(int vesselId, Date date) {
+    public Optional<VesselRegistrationPeriodVO> getLastByVesselId(int vesselId) {
+        return getByVesselIdAndDate(vesselId, null).map(this::toVO);
+    }
+
+    @Override
+    public Optional<VesselRegistrationPeriod> getByVesselIdAndDate(int vesselId, Date date) {
 
         Pageable pageable = Pageables.create(0, 1,
             VesselRegistrationPeriod.Fields.START_DATE,
@@ -79,14 +84,12 @@ public class VesselRegistrationPeriodRepositoryImpl
         Specification<VesselRegistrationPeriod> specification = vesselId(vesselId).and(atDate(date));
         Optional<VesselRegistrationPeriod> result = findAll(specification, pageable).get().findFirst();
 
-        // Nothing at this date: retry to get the last period
+        // Nothing found: retry without a date, if not already the case
         if (!result.isPresent() && date != null) {
-            specification = vesselId(vesselId);
-            result = findAll(specification, pageable).get().findFirst();
+            return getByVesselIdAndDate(vesselId, null);
         }
 
-        // Transform to VO
-        return result.map(this::toVO);
+        return result;
     }
 
     @Override

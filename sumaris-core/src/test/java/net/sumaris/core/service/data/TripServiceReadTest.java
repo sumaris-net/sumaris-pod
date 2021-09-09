@@ -23,6 +23,7 @@ package net.sumaris.core.service.data;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
@@ -58,61 +59,61 @@ public class TripServiceReadTest extends AbstractServiceTest{
     public void findTrips() throws ParseException {
 
         Date tripDay = Dates.parseDate("2018-03-03", "yyyy-MM-dd");
-        assertFindResultCount(TripFilterVO.builder()
+        assertFindAll(TripFilterVO.builder()
             .startDate(Dates.resetTime(tripDay))
             .endDate(Dates.lastSecondOfTheDay(tripDay))
             .build(),
             1);
 
-        assertFindResultCount(TripFilterVO.builder()
+        assertFindAll(TripFilterVO.builder()
             .startDate(Dates.parseDate("2018-01-01", "yyyy-MM-dd"))
             .endDate(Dates.parseDate("2018-03-30", "yyyy-MM-dd"))
             .build(),
             1);
 
-        assertFindResultCount(TripFilterVO.builder()
+        assertFindAll(TripFilterVO.builder()
             .startDate(Dates.parseDate("2018-01-01", "yyyy-MM-dd"))
             .endDate(Dates.parseDate("2018-05-30", "yyyy-MM-dd"))
             .build(),
             2);
 
-        assertFindResultCount(TripFilterVO.builder()
+        assertFindAll(TripFilterVO.builder()
             .startDate(Dates.parseDate("2018-02-28", "yyyy-MM-dd"))
             .endDate(Dates.parseDate("2018-04-18", "yyyy-MM-dd"))
             .build(),
             2);
 
-        assertFindResultCount(TripFilterVO.builder()
+        assertFindAll(TripFilterVO.builder()
             .startDate(Dates.parseDate("2018-02-28", "yyyy-MM-dd"))
             .build(),
             3);
 
-        assertFindResultCount(TripFilterVO.builder()
+        assertFindAll(TripFilterVO.builder()
             .startDate(Dates.parseDate("2018-03-03", "yyyy-MM-dd"))
             .build(),
             3);
 
-        assertFindResultCount(TripFilterVO.builder()
+        assertFindAll(TripFilterVO.builder()
             .startDate(Dates.parseDate("2018-03-04", "yyyy-MM-dd"))
             .build(),
             2);
 
-        assertFindResultCount(TripFilterVO.builder()
+        assertFindAll(TripFilterVO.builder()
             .endDate(Dates.parseDate("2018-03-04", "yyyy-MM-dd"))
             .build(),
             1);
 
-        assertFindResultCount(TripFilterVO.builder()
+        assertFindAll(TripFilterVO.builder()
             .endDate(Dates.parseDate("2018-04-20", "yyyy-MM-dd"))
             .build(),
             2);
 
-        assertFindResultCount(TripFilterVO.builder()
+        assertFindAll(TripFilterVO.builder()
             .recorderDepartmentId(1)
             .build(),
             1);
 
-        assertFindResultCount(TripFilterVO.builder()
+        assertFindAll(TripFilterVO.builder()
             .recorderPersonId(2)
             .build(),
             2);
@@ -205,8 +206,8 @@ public class TripServiceReadTest extends AbstractServiceTest{
         }
     }
 
-    private void assertFindResultCount(TripFilterVO filter, int expectedSize) {
-        List<TripVO> trips = service.findByFilter(filter, 0, 100);
+    private void assertFindAll(TripFilterVO filter, int expectedSize) {
+        List<TripVO> trips = service.findAll(filter, Page.builder().offset(0).size(100).build(), null);
         Assert.assertNotNull(trips);
         Assert.assertEquals(expectedSize, trips.size());
     }

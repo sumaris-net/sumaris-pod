@@ -83,13 +83,11 @@ public interface VesselRegistrationPeriodSpecifications {
         };
     }
 
-    default Optional<VesselRegistrationPeriodVO> getLastByVesselId(int vesselId) {
-        return getByVesselIdAndDate(vesselId, null);
-    }
+    Optional<VesselRegistrationPeriodVO> getLastByVesselId(int vesselId);
 
     Specification<VesselRegistrationPeriod> toSpecification(VesselFilterVO filter);
 
-    Optional<VesselRegistrationPeriodVO> getByVesselIdAndDate(int vesselId, Date date);
+    Optional<VesselRegistrationPeriod> getByVesselIdAndDate(int vesselId, Date date);
 
     Page<VesselRegistrationPeriodVO> findAll(VesselFilterVO filter, Pageable pageable);
 }

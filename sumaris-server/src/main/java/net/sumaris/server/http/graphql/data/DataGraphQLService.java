@@ -32,11 +32,9 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
-import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -155,16 +153,14 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "trips", description = "Search in trips")
     @Transactional(readOnly = true)
     @IsUser
-    public List<TripVO> findTripsByFilter(@GraphQLArgument(name = "filter") TripFilterVO filter,
-                                          @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                          @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                          @GraphQLArgument(name = "sortBy") String sort,
-                                          @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction,
-                                          @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
-                                          @GraphQLEnvironment() ResolutionEnvironment env
+    public List<TripVO> findAllTrips(@GraphQLArgument(name = "filter") TripFilterVO filter,
+                                     @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                     @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                     @GraphQLArgument(name = "sortBy") String sort,
+                                     @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction,
+                                     @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
+                                     @GraphQLEnvironment() ResolutionEnvironment env
     ) {
-
-
         SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
 
         // Read from trash
@@ -177,8 +173,8 @@ public class DataGraphQLService {
 
             // Call the trash service
             return trashService.findAll(Trip.class.getSimpleName(),
-                    Pageables.create(offset, size, sort, sortDirection),
-                    TripVO.class).getContent();
+                    Page.builder().offset(offset).size(size).sortBy(sort).sortDirection(sortDirection).build(),
+                    TripVO.class);
         }
 
         filter = fillRootDataFilter(filter, TripFilterVO.class);
@@ -188,9 +184,9 @@ public class DataGraphQLService {
 
         Set<String> fields = GraphQLUtils.fields(env);
 
-        final List<TripVO> result = tripService.findByFilter(filter,
-                offset, size, sort, sortDirection,
-                getFetchOptions(fields));
+        final List<TripVO> result = tripService.findAll(filter,
+            Page.builder().offset(offset).size(size).sortBy(sort).sortDirection(sortDirection).build(),
+            getFetchOptions(fields));
 
         // Add additional properties if needed
         fillTrips(result, fields);
@@ -688,7 +684,7 @@ public class DataGraphQLService {
     @IsUser
     public List<OperationGroupVO> getOperationGroupsByTrip(@GraphQLContext TripVO trip) {
         return Optional.ofNullable(trip.getOperationGroups())
-                .orElse(operationGroupService.getAllByTripId(trip.getId(), null));
+                .orElse(operationGroupService.findAllByTripId(trip.getId(), null));
     }
 
     @GraphQLQuery(name = "operationGroups", description = "Get trip's operation groups")
@@ -702,7 +698,13 @@ public class DataGraphQLService {
                                                              @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
         Preconditions.checkNotNull(filter, "Missing tripFilter or tripFilter.tripId");
         Preconditions.checkNotNull(filter.getTripId(), "Missing tripFilter or tripFilter.tripId");
-        return operationGroupService.getAllByTripId(filter.getTripId(), offset, size, sort, SortDirection.fromString(direction));
+        return operationGroupService.findAllByTripId(filter.getTripId(),
+            Page.builder()
+                .offset(offset)
+                .size(size)
+                .sortBy(sort)
+                .sortDirection(SortDirection.fromString(direction))
+                .build(), null);
     }
 
     /* -- Products -- */

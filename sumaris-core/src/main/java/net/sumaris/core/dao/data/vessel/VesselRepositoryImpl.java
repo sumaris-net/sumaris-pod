@@ -26,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
@@ -36,26 +35,23 @@ import net.sumaris.core.model.referential.VesselType;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.VesselVO;
+import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.query.QueryUtils;
-import org.springframework.data.support.PageableExecutionUtils;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class VesselRepositoryImpl
-    extends RootDataRepositoryImpl<Vessel, VesselVO, VesselFilterVO, DataFetchOptions>
+    extends RootDataRepositoryImpl<Vessel, VesselVO, VesselFilterVO, VesselFetchOptions>
     implements VesselSpecifications {
 
     private final VesselFeaturesRepository vesselFeaturesRepository;
@@ -80,55 +76,64 @@ public class VesselRepositoryImpl
     }
 
     @Override
-    public Page<VesselVO> findAll(VesselFilterVO filter, Pageable pageable, DataFetchOptions fetchOptions) {
-        Specification<Vessel> spec = toSpecification(filter, fetchOptions);
+    public List<VesselVO> findAll(VesselFilterVO filter, net.sumaris.core.dao.technical.Page page,
+                                          VesselFetchOptions fetchOptions) {
 
         CriteriaBuilder builder = this.getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<VesselQueryResult> criteriaQuery = builder.createQuery(VesselQueryResult.class);
+        CriteriaQuery<Tuple> criteriaQuery = builder.createTupleQuery();
 
         Root<Vessel> root = criteriaQuery.from(Vessel.class);
         Join<Vessel, VesselFeatures> featuresJoin = root.join(Vessel.Fields.VESSEL_FEATURES, JoinType.LEFT);
-        Join<Vessel, VesselRegistrationPeriod> vrpJoin = root.join(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
 
-        criteriaQuery.multiselect(root, featuresJoin, vrpJoin);
+        boolean fetchRegistrationPeriod = filter.getStartDate() != null || filter.getEndDate() != null;
+        if (fetchRegistrationPeriod) {
+            Join<Vessel, VesselRegistrationPeriod> vrpJoin = root.join(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
+            criteriaQuery.multiselect(root, featuresJoin, vrpJoin);
+        }
+        else {
+            criteriaQuery.multiselect(root, featuresJoin);
+        }
+        criteriaQuery.distinct(true);
+
+        // Apply specification
+        Specification<Vessel> spec = toSpecification(filter, fetchOptions);
         Predicate predicate = spec.toPredicate(root, criteriaQuery, builder);
-        if (predicate != null) {
-            criteriaQuery.where(predicate);
-        }
+        if (predicate != null) criteriaQuery.where(predicate);
 
-        Sort sort = pageable.isPaged() ? pageable.getSort() : Sort.unsorted();
-        if (sort.isSorted()) {
-            criteriaQuery.orderBy(QueryUtils.toOrders(sort, root, builder));
-        }
+        // Add sorting
+        addSorting(criteriaQuery, builder, root, page.getSortBy(), page.getSortDirection());
 
-
-        TypedQuery<VesselQueryResult> query = getEntityManager().createQuery(criteriaQuery);
+        TypedQuery<Tuple> query = getEntityManager().createQuery(criteriaQuery);
 
         // Bind parameters
         applyBindings(query, spec);
 
-        if (pageable.isPaged()) {
-            query.setFirstResult((int)pageable.getOffset());
-            query.setMaxResults(pageable.getPageSize());
-        }
+        // Set Limit
+        query.setFirstResult((int)page.getOffset());
+        query.setMaxResults(page.getSize());
 
-        List<VesselQueryResult> result = query.getResultList();
-
-        // Replace the count of total element, by the result size
-        final long fakeTotal =  pageable.getOffset() + result.size();
-
-        return PageableExecutionUtils.getPage(query.getResultList(), pageable, () -> fakeTotal)
-            .map(row -> toVO(row, fetchOptions, true));
-
+        return streamQuery(query)
+            .map(tuple -> toVO(tuple, fetchRegistrationPeriod, fetchOptions, true))
+            .collect(Collectors.toList());
     }
 
     @Override
-    public Specification<Vessel> toSpecification(VesselFilterVO filter, DataFetchOptions fetchOptions) {
+    public Specification<Vessel> toSpecification(VesselFilterVO filter, VesselFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
+            // by ID
             .and(id(filter.getVesselId()))
-            .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
-            .and(vesselFeatures(filter.getVesselFeaturesId()))
+            .and(vesselFeaturesId(filter.getVesselFeaturesId()))
+            // by locations
+            .and(registrationLocationId(filter.getRegistrationLocationId()))
+            .and(basePortLocationId(filter.getBasePortLocationId()))
+            // by status
             .and(statusIds(filter.getStatusIds()))
+            // by type
+            .and(vesselTypeId(filter.getVesselTypeId()))
+            // By period or single date
+            .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
+            .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate()))
+            // By text
             .and(searchText(filter.getSearchAttributes(), filter.getSearchText()));
     }
 
@@ -138,7 +143,7 @@ public class VesselRepositoryImpl
     }
 
     @Override
-    public void toVO(Vessel source, VesselVO target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+    public void toVO(Vessel source, VesselVO target, VesselFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // Status
@@ -154,16 +159,22 @@ public class VesselRepositoryImpl
             target.setRecorderDepartment(recorderDepartment);
         }
 
-        if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {
-            // Vessel features
-            target.setVesselFeatures(vesselFeaturesRepository.getLastByVesselId(source.getId(), DataFetchOptions.MINIMAL).orElse(null));
-
-            // Vessel registration period
-            target.setVesselRegistrationPeriod(vesselRegistrationPeriodRepository.getLastByVesselId(source.getId()).orElse(null));
+        // Vessel features
+        if (fetchOptions == null || fetchOptions.isWithVesselFeatures()) {
+            VesselFeaturesVO features = vesselFeaturesRepository.getLastByVesselId(source.getId(), DataFetchOptions.MINIMAL).orElse(null);
+            if (copyIfNull || features != null) {
+                target.setVesselFeatures(features);
+            }
         }
 
+        // Vessel registration period
+        if (fetchOptions == null || fetchOptions.isWithVesselFeatures()) {
+            VesselRegistrationPeriodVO period = vesselRegistrationPeriodRepository.getLastByVesselId(source.getId()).orElse(null);
+            if (copyIfNull || period != null) {
+                target.setVesselRegistrationPeriod(period);
+            }
+        }
     }
-
 
     @Override
     public void toEntity(VesselVO source, Vessel target, boolean copyIfNull) {
@@ -202,21 +213,34 @@ public class VesselRepositoryImpl
         super.onAfterSaveEntity(vo, savedEntity, isNew);
     }
 
-    protected VesselVO toVO(VesselQueryResult source, DataFetchOptions fetchOptions, boolean copyIfNull) {
+    protected VesselVO toVO(Tuple source,
+                            boolean hasRegistrationPeriodTuple,
+                            VesselFetchOptions fetchOptions, boolean copyIfNull) {
         VesselVO target = new VesselVO();
 
-        toVO(source.getVessel(), target, DataFetchOptions.builder()
-            .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
-            .withRecorderPerson(fetchOptions.isWithRecorderPerson())
-            .withChildrenEntities(false) // Do NOT fetch vesselFeatures and vesselRegistrationPeriod
+        Vessel srcVessel = source.get(0, Vessel.class);
+        toVO(srcVessel, target, VesselFetchOptions.builder()
+            .withRecorderDepartment(fetchOptions != null && fetchOptions.isWithRecorderDepartment())
+            .withRecorderPerson(fetchOptions != null && fetchOptions.isWithRecorderPerson())
+            // Do NOT fetch vesselFeatures and vesselRegistrationPeriod
+            .withVesselFeatures(false)
+            .withVesselRegistrationPeriod(!hasRegistrationPeriodTuple && fetchOptions != null && fetchOptions.isWithVesselRegistrationPeriod())
             .build(), copyIfNull);
 
-        if (fetchOptions.isWithChildrenEntities()) {
-            // Vessel features
-            target.setVesselFeatures(vesselFeaturesRepository.toVO(source.getVesselFeatures()));
+        // Vessel features
+        if (fetchOptions == null || fetchOptions.isWithVesselFeatures()) {
+            VesselFeatures sourceFeatures = source.get(1, VesselFeatures.class);
+            if (copyIfNull || sourceFeatures != null) {
+                target.setVesselFeatures(vesselFeaturesRepository.toVO(sourceFeatures));
+            }
+        }
 
-            // Vessel registration period
-            target.setVesselRegistrationPeriod(vesselRegistrationPeriodRepository.toVO(source.getVesselRegistrationPeriod()));
+        // Vessel registration period
+        if (hasRegistrationPeriodTuple && (fetchOptions == null || fetchOptions.isWithVesselRegistrationPeriod() && fetchOptions != null)) {
+            VesselRegistrationPeriod sourceRegistrationPeriod = source.get(2, VesselRegistrationPeriod.class);
+            if (copyIfNull || sourceRegistrationPeriod != null) {
+                target.setVesselRegistrationPeriod(vesselRegistrationPeriodRepository.toVO(sourceRegistrationPeriod));
+            }
         }
 
         return target;

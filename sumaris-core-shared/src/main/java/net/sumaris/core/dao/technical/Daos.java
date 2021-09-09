@@ -53,10 +53,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.From;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.Serializable;
@@ -1713,7 +1710,42 @@ public class Daos {
         }
     }
 
+    public static <S, T> Join<S, T> composeJoin(From<?, ?> root, String attributePath) {
+        return composeJoin(root, attributePath, JoinType.LEFT);
+    }
+
+    public static <S, T> Join<S, T> composeJoin(From<?, ?> root, String attributePath, JoinType joinType) {
+
+        String[] attributes = attributePath.split("\\.");
+        From<?, ?> from = root; // starting from root
+
+        for (int i = 0; i < attributes.length; i++) {
+            String attribute = attributes[i];
+            try {
+                // copy into a final var
+                final From<?, ?> finalForm = from;
+                // find a join (find it from existing joins of from)
+                from = from.getJoins().stream()
+                    .filter(j -> j.getAttribute().getName().equals(attribute))
+                    .findFirst()
+                    .orElseGet(() -> finalForm.join(attribute, joinType));
+            } catch (IllegalArgumentException ignored) {
+                throw new IllegalArgumentException(String.format("the join or attribute [%s] from [%s] doesn't exists", attribute, from.getJavaType()));
+            }
+        }
+
+        if (!(from instanceof Join)) {
+            throw new IllegalArgumentException(String.format("Invalid join [%s] : expected a Join class but found type [%s]", attributePath, from.getJavaType()));
+        }
+
+        return (Join<S, T>)from;
+    }
+
     public static <X> Path<X> composePath(Path<?> root, String attributePath) {
+        return composePath(root, attributePath, JoinType.LEFT);
+    }
+
+    public static <X> Path<X> composePath(Path<?> root, String attributePath, JoinType joinType) {
 
         String[] attributes = attributePath.split("\\.");
         Path<?> path = root; // starting from root
@@ -1733,7 +1765,7 @@ public class Daos {
                         path = from.getJoins().stream()
                             .filter(j -> j.getAttribute().getName().equals(attribute))
                             .findFirst()
-                            .orElseGet(() -> from.join(attribute, JoinType.LEFT));
+                            .orElseGet(() -> from.join(attribute, joinType));
                         continue;
                     } catch (IllegalArgumentException ignored) {
                     }

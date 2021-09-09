@@ -22,11 +22,9 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.util.Beans;
 
 import java.util.Date;
 import java.util.List;
@@ -36,6 +34,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldNameConstants
+@EqualsAndHashCode
 public class VesselFilterVO implements IRootDataFilter {
 
     public static VesselFilterVO nullToEmpty(VesselFilterVO f) {
@@ -47,21 +46,44 @@ public class VesselFilterVO implements IRootDataFilter {
     private Integer vesselId;
     private Integer vesselFeaturesId;
 
+    private Integer vesselTypeId;
+
     private String[] searchAttributes;
     private String searchText;
 
     private List<Integer> statusIds;
 
-    private Integer locationId; // TODO: use it in repository
     private Integer recorderDepartmentId; // TODO: use it in repository
     private Integer recorderPersonId; // TODO: use it in repository
 
     private Date startDate;
-    private Date endDate; // TODO: use it in repository
+    private Date endDate;
+
+    private Integer registrationLocationId;
+    private Integer basePortLocationId;
 
     public void setDate(Date date) {
         this.startDate = date;
         this.endDate = date;
+    }
+
+    /**
+     * @deprecated use basePortLocationId instead
+     * @return basePortLocationId
+     */
+    @Override
+    @Deprecated
+    public Integer getLocationId() {
+        return basePortLocationId;
+    }
+
+    /**
+     * @deprecated use basePortLocationId instead
+     */
+    @Override
+    @Deprecated
+    public void setLocationId(Integer locationId) {
+        basePortLocationId = locationId;
     }
 
     /**
@@ -71,5 +93,11 @@ public class VesselFilterVO implements IRootDataFilter {
     @Deprecated
     public Date getDate() {
         return this.startDate;
+    }
+
+    public VesselFilterVO clone() {
+        VesselFilterVO target = new VesselFilterVO();
+        Beans.copyProperties(this, target);
+        return target;
     }
 }

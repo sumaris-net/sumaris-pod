@@ -32,13 +32,15 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.*;
-import net.sumaris.core.service.data.*;
-import net.sumaris.core.service.data.vessel.VesselService2;
+import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.*;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
@@ -67,65 +69,71 @@ public class VesselGraphQLService {
     private VesselService vesselService;
 
     @Autowired
-    private VesselService2 vesselService2;
-
-    @Autowired
     private AuthService authService;
 
     /* -- Vessel -- */
 
-    @GraphQLQuery(name = "vesselSnapshots", description = "Search in vessel snapshots")
-    @Transactional(readOnly = true)
-    @IsUser
-    public List<VesselSnapshotVO> findVesselSnapshotsByFilter(@GraphQLArgument(name = "filter") VesselFilterVO filter,
-                                                              @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                              @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                              @GraphQLArgument(name = "sortBy", defaultValue = VesselSnapshotVO.Fields.EXTERIOR_MARKING) String sort,
-                                                              @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                                              @GraphQLEnvironment ResolutionEnvironment env
-    ) {
-        return vesselService2.findSnapshotByFilter(
-            restrictVesselFilter(filter),
-            Pageables.create(offset, size, sort, SortDirection.fromString(direction)),
-            /*Page.builder()
-                .offset(offset)
-                .size(size)
-                .sortBy(sort)
-                .sortDirection(SortDirection.fromString(direction))
-                .build(),*/
-            getFetchOptions(GraphQLUtils.fields(env))
-        )
-            .getContent();
-    }
-    
     @GraphQLQuery(name = "vessels", description = "Search in vessels")
     @Transactional(readOnly = true)
     @IsUser
-    public List<VesselVO> findVesselByFilter(@GraphQLArgument(name = "filter") VesselFilterVO filter,
-                                             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                             @GraphQLArgument(name = "sortBy") String sort,
-                                             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                             @GraphQLEnvironment ResolutionEnvironment env
+    public List<VesselVO> findAllVessels(@GraphQLArgument(name = "filter") VesselFilterVO filter,
+                                         @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                         @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                         @GraphQLArgument(name = "sortBy") String sort,
+                                         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                         @GraphQLEnvironment ResolutionEnvironment env) {
+
+        // Map sortAttribute into model property
+        if (StringUtils.isNotBlank(sort)) {
+            sort = sort.replaceFirst(VesselVO.Fields.VESSEL_REGISTRATION_PERIOD + "\\.", Vessel.Fields.VESSEL_REGISTRATION_PERIODS + ".");
+            sort = sort.replaceFirst(VesselVO.Fields.STATUS_ID, StringUtils.doting(Vessel.Fields.STATUS, Status.Fields.ID));
+        }
+
+        return vesselService.findAll(restrictVesselFilter(filter),
+                Page.builder()
+                    .offset(offset)
+                    .size(size)
+                    .sortBy(sort)
+                    .sortDirection(SortDirection.fromString(direction))
+                    .build(),
+            getVesselFetchOptions(GraphQLUtils.fields(env))
+        );
+    }
+
+    @GraphQLQuery(name = "vesselSnapshots", description = "Search in vessel snapshots")
+    @Transactional(readOnly = true)
+    @IsUser
+    public List<VesselSnapshotVO> findAllVesselSnapshots(@GraphQLArgument(name = "filter") VesselFilterVO filter,
+                                                         @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                         @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                         @GraphQLArgument(name = "sortBy", defaultValue = VesselSnapshotVO.Fields.EXTERIOR_MARKING) String sort,
+                                                         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                                         @GraphQLEnvironment ResolutionEnvironment env
     ) {
-        return vesselService2.findAll(restrictVesselFilter(filter),
-            Pageables.create(offset, size, sort, SortDirection.fromString(direction)),
-            /*Page.builder()
-                .offset(offset)
-                .size(size)
-                .sortBy(sort)
-                .sortDirection(SortDirection.fromString(direction))
-                .build(),*/
-            getFetchOptions(GraphQLUtils.fields(env))
-        )
-            .getContent();
+        return vesselService.findAllSnapshots(
+                restrictVesselFilter(filter),
+                Page.builder()
+                    .offset(offset)
+                    .size(size)
+                    .sortBy(sort)
+                    .sortDirection(SortDirection.fromString(direction))
+                    .build(),
+                getSnapshotFetchOptions(GraphQLUtils.fields(env))
+            );
+    }
+
+    @GraphQLQuery(name = "vesselSnapshotsCount", description = "Get total vessel snapshots count")
+    @Transactional(readOnly = true)
+    @IsUser
+    public long countVesselSnapshots(@GraphQLArgument(name = "filter") VesselFilterVO filter) {
+        return vesselService.countSnapshotsByFilter(restrictVesselFilter(filter));
     }
 
     @GraphQLQuery(name = "vesselsCount", description = "Get total vessels count")
     @Transactional(readOnly = true)
     @IsUser
     public long countVessels(@GraphQLArgument(name = "filter") VesselFilterVO filter) {
-        return vesselService2.countByFilter(restrictVesselFilter(filter));
+        return vesselService.countByFilter(restrictVesselFilter(filter));
     }
 
     @GraphQLQuery(name = "vessel", description = "Get a vessel")
@@ -138,7 +146,7 @@ public class VesselGraphQLService {
             id = vesselId;
             logDeprecatedUse("vessel(vesselId)", "1.11.0");
         }
-        return vesselService2.get(id);
+        return vesselService.get(id);
     }
 
     @GraphQLQuery(name = "vesselFeaturesHistory", description = "Get vessel features history")
@@ -155,10 +163,10 @@ public class VesselGraphQLService {
 
         vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
         Preconditions.checkNotNull(vesselId);
-        return vesselService2.getFeaturesByVesselId(vesselId,
+        return vesselService.getFeaturesByVesselId(vesselId,
             Pageables.create(offset, size, sort, SortDirection.fromString(direction)),
             //offset, size, sort, SortDirection.fromString(direction),
-            getFetchOptions(GraphQLUtils.fields(env)))
+            getFeaturesFetchOptions(GraphQLUtils.fields(env)))
             .getContent();
     }
 
@@ -173,7 +181,7 @@ public class VesselGraphQLService {
                                                                          @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
         vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
         Preconditions.checkNotNull(vesselId);
-        return vesselService2.getRegistrationPeriodsByVesselId(vesselId,
+        return vesselService.getRegistrationPeriodsByVesselId(vesselId,
             Pageables.create(offset, size, sort, SortDirection.fromString(direction))
             //offset, size, sort, SortDirection.fromString(direction)
             )
@@ -236,11 +244,43 @@ public class VesselGraphQLService {
                 || fields.contains(StringUtils.slashing(TripVO.Fields.VESSEL_SNAPSHOT, VesselSnapshotVO.Fields.NAME));
     }
 
-    protected DataFetchOptions getFetchOptions(Set<String> fields) {
+    protected VesselFetchOptions getVesselFetchOptions(Set<String> fields) {
+        return VesselFetchOptions.builder()
+            .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+            .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+            .withVesselFeatures(
+                fields.contains(StringUtils.slashing(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.NAME))
+                || fields.contains(StringUtils.slashing(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.EXTERIOR_MARKING))
+            )
+            .withVesselRegistrationPeriod(
+                fields.contains(StringUtils.slashing(VesselVO.Fields.VESSEL_REGISTRATION_PERIOD, VesselRegistrationPeriod.Fields.REGISTRATION_CODE))
+                || fields.contains(StringUtils.slashing(VesselVO.Fields.VESSEL_REGISTRATION_PERIOD, VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE))
+            )
+            .build();
+    }
+
+
+    protected VesselFetchOptions getSnapshotFetchOptions(Set<String> fields) {
+        return VesselFetchOptions.builder()
+            .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+            .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+            .withVesselFeatures(
+                fields.contains(VesselSnapshotVO.Fields.NAME)
+                    || fields.contains(VesselSnapshotVO.Fields.EXTERIOR_MARKING))
+            .withVesselRegistrationPeriod(
+                fields.contains(VesselSnapshotVO.Fields.REGISTRATION_CODE)
+                || fields.contains(VesselSnapshotVO.Fields.INT_REGISTRATION_CODE))
+            .withBasePortLocation(
+                fields.contains(StringUtils.slashing(VesselSnapshotVO.Fields.BASE_PORT_LOCATION, ReferentialVO.Fields.LABEL))
+            )
+            .build();
+    }
+
+    protected DataFetchOptions getFeaturesFetchOptions(Set<String> fields) {
         return DataFetchOptions.builder()
-                .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
-                .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
-                .build();
+            .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+            .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+            .build();
     }
 
     /**

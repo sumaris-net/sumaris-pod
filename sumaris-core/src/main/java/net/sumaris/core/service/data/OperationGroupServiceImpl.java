@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.operation.OperationGroupRepository;
-import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.data.GearUseMeasurement;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.VesselUseMeasurement;
@@ -46,7 +46,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author peck7 on 28/11/2019.
@@ -107,28 +110,33 @@ public class OperationGroupServiceImpl implements OperationGroupService {
         operationGroupRepository.updateUndefinedOperationDates(tripId, startDate, endDate);
     }
 
-    @Override
-    public List<OperationGroupVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+    public List<OperationGroupVO> findAllByTripId(int tripId, Page page) {
         return operationGroupRepository.findAll(
             OperationGroupFilterVO.builder().tripId(tripId).onlyDefined(true).build(),
-            offset,
-            size,
-            sortAttribute,
-            sortDirection,
-            null).getContent();
+            page,
+            null);
     }
 
     @Override
-    public List<OperationGroupVO> getAllByTripId(int tripId, DataFetchOptions fetchOptions) {
-        List<OperationGroupVO> result = operationGroupRepository.findAll(OperationGroupFilterVO.builder().tripId(tripId).onlyDefined(true).build(), fetchOptions);
+    public List<OperationGroupVO> findAllByTripId(int tripId, Page page, DataFetchOptions fetchOptions) {
+        List<OperationGroupVO> result = operationGroupRepository.findAll(
+            OperationGroupFilterVO.builder().tripId(tripId).onlyDefined(true).build(),
+            page,
+            fetchOptions);
 
+        // Fetch packets (because it cannot be called from repo)
         if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {
-            // Fetch packets (because it cannot be called from repo)
             result.stream()
-                    .filter(o -> o.getId() != null)
-                    .forEach(o -> o.setPackets(packetService.getAllByOperationId(o.getId())));
+                .filter(o -> o.getId() != null)
+                .forEach(o -> o.setPackets(packetService.getAllByOperationId(o.getId())));
         }
+
         return result;
+    }
+
+    @Override
+    public List<OperationGroupVO> findAllByTripId(int tripId, DataFetchOptions fetchOptions) {
+        return findAllByTripId(tripId, null, fetchOptions);
     }
 
     @Override
@@ -359,8 +367,6 @@ public class OperationGroupServiceImpl implements OperationGroupService {
     /**
      * Get all samples, in the sample tree parent/children
      *
-     * @param parent
-     * @return
      */
     protected List<SampleVO> getSamplesAsList(final OperationGroupVO parent) {
         final List<SampleVO> result = Lists.newArrayList();

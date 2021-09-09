@@ -61,7 +61,9 @@ public class VesselFeaturesRepositoryImpl
     @Override
     public Specification<VesselFeatures> toSpecification(VesselFilterVO filter, DataFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(vesselId(filter.getVesselId()));
+            .and(vesselId(filter.getVesselId()))
+            .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
+            ;
     }
 
     @Override
