@@ -48,6 +48,7 @@ import {Program} from '@app/referential/services/model/program.model';
 import {FishingArea} from '@app/trip/services/model/fishing-area.model';
 import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
 import {LandingService} from '@app/trip/services/landing.service';
+import {Trip} from '@app/trip/services/model/trip.model';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -69,7 +70,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   observerFocusIndex = -1;
   mobile: boolean;
   strategyControl: FormControl;
-  mainMetierPmfmId: number;
 
   autocompleteFilters = {
     fishingArea: false
@@ -198,9 +198,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
-    this.mainMetierPmfmId = PmfmIds.MAIN_METIER;
   }
-
 
   ngOnInit() {
     super.ngOnInit();
@@ -356,13 +354,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       this.observersHelper.removeAllEmpty();
     }
 
-    // Load metier
-    const metierId = data.measurementValues && data.measurementValues[PmfmIds.MAIN_METIER.toString()];
-    if (isNotNilOrBlank(metierId) && isNumeric(metierId)) {
-      const metierRef = await this.referentialRefService.loadById(+metierId, Metier.ENTITY_NAME);
-      (data.measurementValues as any)[PmfmIds.MAIN_METIER.toString()] = metierRef.asObject();
-    }
-
     // Propagate the strategy
     const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()];
     this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
@@ -384,11 +375,17 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
 
     if (this.showMetier) {
-      data.measurementValues = data.measurementValues || {};
-      const metier = data.measurementValues[PmfmIds.MAIN_METIER.toString()] as any;
-      if (ReferentialUtils.isNotEmpty(metier)) {
-        data.measurementValues[PmfmIds.MAIN_METIER.toString()] = metier.id;
-      }
+      data.trip = Trip.fromObject(<Trip>{
+        program: data.program,
+        vesselSnapshot: data.vesselSnapshot,
+        departureDateTime: data.dateTime,
+        returnDateTime: data.dateTime,
+        departureLocation: data.location,
+        returnLocation: data.location,
+        observedLocationId: data.observedLocationId,
+        metiers: [this.form.get("metier")?.value],
+        fishingAreas: (this.form.get('fishingAreas').value || [])
+      });
     }
 
     // DEBUG
@@ -506,8 +503,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.fishingAreasHelper = new FormArrayHelper<FishingArea>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'fishingAreas'),
       (fishingArea) => this.fishingAreaValidatorService.getFormGroup(fishingArea, {required: true}),
-      ReferentialUtils.equals,
-      ReferentialUtils.isEmpty,
+      (o1, o2) => isNil(o1) && isNil(o2) || (o1 && o1.equals(o2)),
+      (fishingArea) => !fishingArea || ReferentialUtils.isEmpty(fishingArea.location),
     {allowEmptyArray: false}
     );
     if (this.fishingAreasHelper.size() === 0) {
@@ -546,30 +543,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
       // Prepend to list
       pmfms = [strategyPmfm, ...pmfms];
-    }
-
-    // Create the missing Pmfm, to hold metier (if need)
-    if (this.showMetier) {
-      const existingIndex = (pmfms || []).findIndex(pmfm => pmfm.id === PmfmIds.MAIN_METIER);
-      let metierPmfm: IPmfm;
-      if (existingIndex !== -1) {
-        // Remove existing, then copy it (to leave original unchanged)
-        metierPmfm = pmfms.splice(existingIndex, 1)[0].clone();
-      }
-      else {
-        metierPmfm = DenormalizedPmfmStrategy.fromObject({
-          id: PmfmIds.MAIN_METIER,
-          name: this.translate.instant('TRIP.METIERS'),
-          type: <PmfmType>'string'
-        });
-      }
-
-      metierPmfm.hidden = false; // Always display in measurement
-      metierPmfm.required = true; // Required
-
-      // Prepend to list
-      pmfms = [metierPmfm, ...pmfms];
-
     }
 
     return pmfms;
