@@ -60,7 +60,7 @@ public class OperationGroupVO implements IDataVO<Integer> {
     private Integer tripId;
 
     @ToString.Exclude
-    private PhysicalGearVO physicalGear;
+    private PhysicalGearVO physicalGear; // todo to remove ?
     private Integer physicalGearId;
 
     private List<MeasurementVO> measurements;

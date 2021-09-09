@@ -55,10 +55,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -221,6 +218,11 @@ public class TripServiceImpl implements TripService {
         if (!isNew) {
             operationGroupService.updateUndefinedOperationDates(source.getId(), source.getDepartureDateTime(), source.getReturnDateTime());
         }
+
+
+        // Keep source parent information
+        finalOptions.setLandingId(source.getLandingId());
+        finalOptions.setObservedLocationId(source.getObservedLocationId());
 
         // Save
         TripVO result = tripRepository.save(source);
@@ -495,12 +497,11 @@ public class TripServiceImpl implements TripService {
 
         if (options.getWithLanding()) {
             // Landing
-            Preconditions.checkNotNull(trip.getLanding(), "The Landing object must be created first");
-            boolean createLanding = false;
-            if (trip.getLanding().getId() != null) {
+            Integer landingId = Optional.ofNullable(trip.getLandingId()).orElse(options.getLandingId());
+            if (landingId != null) {
 
                 // update update_date on landing
-                LandingVO landing = landingRepository.get(trip.getLanding().getId());
+                LandingVO landing = landingRepository.get(landingId);
 
                 if (landing.getTripId() == null) {
                     landing.setTripId(trip.getId());
@@ -509,22 +510,19 @@ public class TripServiceImpl implements TripService {
                 landing.setObservers(Beans.getSet(trip.getObservers()));
 
                 landingRepository.save(landing);
-
-            } else {
-
-                // a landing have to be created
-                createLanding = true;
-
+                trip.setLandingId(landing.getId());
             }
 
             // ObservedLocation
-            if (trip.getObservedLocationId() != null) {
+            Integer observedLocationId = Optional.ofNullable(trip.getObservedLocationId()).orElse(options.getObservedLocationId());
+            if (observedLocationId != null) {
 
                 // update update_date on observed_location
-                ObservedLocationVO observedLocation = observedLocationRepository.get(trip.getObservedLocationId());
+                ObservedLocationVO observedLocation = observedLocationRepository.get(observedLocationId);
                 observedLocationRepository.save(observedLocation);
+                trip.setObservedLocationId(observedLocation.getId());
 
-                if (createLanding) {
+                if (landingId == null) {
 
                     LandingVO landing = new LandingVO();
 
@@ -540,6 +538,7 @@ public class TripServiceImpl implements TripService {
 
                     LandingVO savedLanding = landingRepository.save(landing);
                     trip.setLanding(savedLanding);
+                    trip.setLandingId(savedLanding.getId());
                 }
 
             }

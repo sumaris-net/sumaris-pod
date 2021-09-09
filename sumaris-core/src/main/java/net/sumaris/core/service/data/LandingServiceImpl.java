@@ -35,7 +35,10 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
-import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.IMeasurementEntity;
+import net.sumaris.core.model.data.Landing;
+import net.sumaris.core.model.data.LandingMeasurement;
+import net.sumaris.core.model.data.SurveyMeasurement;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
@@ -171,10 +174,12 @@ public class LandingServiceImpl implements LandingService {
     public void delete(int id) {
 
         // Create events (before deletion, to be able to join VO)
+        Landing toDelete = null;
         LandingVO deletedVO = null;
         Integer tripId = null;
         if (enableTrash) {
-            deletedVO = get(id);
+            toDelete = landingRepository.getById(id);
+            deletedVO = landingRepository.toVO(toDelete);
             tripId = deletedVO.getTripId();
             if (tripId != null) {
                 deletedVO.setTrip(tripRepository.get(tripId)); // TODO full VO loading
@@ -186,10 +191,13 @@ public class LandingServiceImpl implements LandingService {
         }
 
         // Apply deletion
-        landingRepository.deleteById(id);
+        if (toDelete == null)
+            landingRepository.deleteById(id);
+        else
+            landingRepository.delete(toDelete);
 
         // Publish events
-        publisher.publishEvent(new EntityDeleteEvent(id, Trip.class.getSimpleName(), deletedVO));
+        publisher.publishEvent(new EntityDeleteEvent(id, Landing.class.getSimpleName(), deletedVO));
     }
 
     @Override

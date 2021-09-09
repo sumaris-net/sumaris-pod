@@ -49,4 +49,6 @@ public class TripSaveOptions implements ISaveOptions {
     @Builder.Default
     private Boolean withLanding = false;
 
+    private Integer landingId;
+    private Integer observedLocationId;
 }
