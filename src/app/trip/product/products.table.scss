@@ -4,6 +4,10 @@
   padding: 0 0px;
   z-index: 999;
 
+  .mat-column-taxonGroup {
+    min-width: 250px;
+  }
+
   .mat-column-endPosition,
   .mat-column-startPosition {
     padding-left: 0px;

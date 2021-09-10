@@ -84,7 +84,7 @@
       <ion-label translate>TRIP.PRODUCT.LIST.SALE_TYPE</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>{{ row.currentData.saleType | referentialToString }}</ion-label>
+      <ion-label style='font-size: 1rem !important;' [class.mat-form-field-disabled]='readOnly'>{{ row.currentData.saleType | referentialToString }}</ion-label>
     </mat-cell>
   </ng-container>
 
