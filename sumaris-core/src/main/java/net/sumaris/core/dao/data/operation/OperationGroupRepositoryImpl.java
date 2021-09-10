@@ -127,7 +127,6 @@ public class OperationGroupRepositoryImpl
         // Physical gear
         if (source.getPhysicalGear() != null) {
             target.setPhysicalGearId(source.getPhysicalGear().getId());
-            target.setPhysicalGear(physicalGearRepository.toVO(source.getPhysicalGear(), DataFetchOptions.builder().withRecorderDepartment(false).build()));
         }
 
         // Metier
@@ -213,14 +212,11 @@ public class OperationGroupRepositoryImpl
         }
 
         // Physical gear
-        if (copyIfNull || source.getPhysicalGearId() != null || (source.getPhysicalGear() != null && source.getPhysicalGear().getId() != null)) {
-            Integer physicalGearId = source.getPhysicalGearId() != null ? source.getPhysicalGearId() : (
-                source.getPhysicalGear() != null ? source.getPhysicalGear().getId() : null
-            );
-            if (physicalGearId == null) {
+        if (copyIfNull || source.getPhysicalGearId() != null) {
+            if (source.getPhysicalGearId() == null) {
                 target.setPhysicalGear(null);
             } else {
-                target.setPhysicalGear(getReference(PhysicalGear.class, physicalGearId));
+                target.setPhysicalGear(getReference(PhysicalGear.class, source.getPhysicalGearId()));
             }
         }
 

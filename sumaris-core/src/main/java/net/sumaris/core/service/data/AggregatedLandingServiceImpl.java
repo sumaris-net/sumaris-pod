@@ -624,7 +624,6 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         PhysicalGearVO physicalGear = new PhysicalGearVO();
         physicalGear.setGear(metier.getGear());
         physicalGear.setRankOrder(rankOrder);
-        operationGroup.setPhysicalGear(physicalGear);
         return operationGroup;
     }
 

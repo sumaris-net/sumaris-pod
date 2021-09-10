@@ -22,6 +22,7 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
+import io.leangen.graphql.annotations.GraphQLIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -49,6 +50,8 @@ public class TripSaveOptions implements ISaveOptions {
     @Builder.Default
     private Boolean withLanding = false;
 
+    @GraphQLIgnore
     private Integer landingId;
+    @GraphQLIgnore
     private Integer observedLocationId;
 }
