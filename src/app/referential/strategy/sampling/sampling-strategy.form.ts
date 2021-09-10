@@ -108,6 +108,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   };
   private analyticsReferencePatched: boolean;
   private fillEffortsCalled: boolean;
+  private isGenerateLabelButtonDisable = true;
 
   get value(): any {
     throw new Error("Not implemented! Please use getValue() instead, that is an async function");
@@ -945,38 +946,27 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return target;
   }
 
-  protected async onEditLabel(value: string) {
-    const taxonNameControl = this.taxonNamesHelper.at(0);
-    if (!value) return
-    const expectedLabelFormatRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] ___$/);
-    if (value.match(expectedLabelFormatRegex)) {
-      const currentViewTaxon = taxonNameControl?.value?.taxonName;
-      const isUnique = await this.isTaxonNameUnique(value.substring(3, 10), currentViewTaxon?.id);
-      if (!isUnique) {
-        taxonNameControl.setErrors({ uniqueTaxonCode: true });
-      } else {
-        SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
-        // We only compute next label when taxon has just been set. We don't compute when user remove previous computed label
-        if (this.form.value.label && this.form.value.label.length && this.form.value.label.length < value.length)
-        {
-          const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10).replace(/\s/g, '').toUpperCase(), 3));
-          const labelControl = this.form.get('label');
-          labelControl.setValue(computedLabel);
-        }
+  protected async generateLabelButtonClick() {
+    SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
+    SharedValidators.clearError(this.form.get("label"), 'unique');
+    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, this.form.get("label").value.substring(0, 10).replace(/\s/g, '').toUpperCase(), 3));
+    const labelControl = this.form.get('label');
+    labelControl.setValue(computedLabel);
+  }
 
-      }
-    }
-    const acceptedLabelFormatRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] \d\d\d$/);
-    if (value.match(acceptedLabelFormatRegex)) {
-      const currentViewTaxon = taxonNameControl?.value?.taxonName;
-      const isUnique = await this.isTaxonNameUnique(value.substring(3, 10), currentViewTaxon?.id);
+  protected async onEditLabel(value: string) {
+    if (!value) return
+    const expectedLabelFormatRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]/);
+    if (value.match(expectedLabelFormatRegex)) {
+      const taxonNameControl = this.taxonNamesHelper.at(0);
+      const isUnique = await this.isTaxonNameUnique(this.form.get("label").value.substring(3, 10), taxonNameControl?.value?.taxonName?.id);
       if (!isUnique) {
-        taxonNameControl.setErrors({ uniqueTaxonCode: true });
-      } else {
-        SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
-        const labelControl = this.form.get('label');
-        labelControl.setValue(value.replace(/\s/g, '').toUpperCase());
+        this.form.get("label").setErrors({ unique: true });
+        return;
       }
+      this.isGenerateLabelButtonDisable = false;
+    } else {
+      this.isGenerateLabelButtonDisable = true;
     }
   }
 
@@ -1084,8 +1074,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
       if (currentViewTaxonName  && currentViewTaxonName === previousFormTaxonName && yearMask && yearMask === previousFormYear) return; // Skip generate label when there is no update on year or taxon
       this.labelMask = newMask;
-
-
 
       if (errors && taxonNameControl) {
         const computedLabel = `${yearMask} `;
