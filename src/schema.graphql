@@ -603,7 +603,6 @@ type OperationGroupVO {
   metier: MetierVO
   "Get operation group's packets"
   packets: [PacketVO]
-  physicalGear: PhysicalGearVO
   physicalGearId: Int
   "Get operation group's products"
   products: [ProductVO]
@@ -699,6 +698,7 @@ type ParameterVO {
   level: ReferentialVO
   levelId: Int
   name: String
+  parameterGroupId: Int
   qualitativeValues: [ReferentialVO]
   rankOrder: Int
   statusId: Int
@@ -2037,7 +2037,6 @@ input OperationGroupVOInput {
   measurements: [MeasurementVOInput]
   metier: MetierVOInput
   packets: [PacketVOInput]
-  physicalGear: PhysicalGearVOInput
   physicalGearId: Int
   products: [ProductVOInput]
   qualificationComments: String
@@ -2127,6 +2126,7 @@ input ParameterVOInput {
   label: String
   levelId: Int
   name: String
+  parameterGroupId: Int
   qualitativeValues: [ReferentialVOInput]
   rankOrder: Int
   statusId: Int
@@ -2441,6 +2441,8 @@ input SampleFilterVOInput {
   recorderDepartmentId: Int
   recorderPersonId: Int
   startDate: Date
+  tagId: String
+  withTagId: Boolean
 }
 
 input SampleVOInput {
@@ -2751,8 +2753,13 @@ input VesselFeaturesVOInput {
 
 input VesselFilterVOInput {
   date: Date
+  endDate: Date
+  locationId: Int
   programLabel: String
+  recorderDepartmentId: Int
+  recorderPersonId: Int
   searchText: String
+  startDate: Date
   statusIds: [Int]
   vesselFeaturesId: Int
   vesselId: Int

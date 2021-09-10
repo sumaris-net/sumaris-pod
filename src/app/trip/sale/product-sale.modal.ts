@@ -1,11 +1,11 @@
-import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {ModalController} from '@ionic/angular';
-import {Subject, Subscription} from 'rxjs';
-import {AppFormUtils, referentialToString} from '@sumaris-net/ngx-components';
-import {ProductSaleForm} from './product-sale.form';
-import {Product} from '../services/model/product.model';
-import {PmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {TranslateService} from '@ngx-translate/core';
+import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { Subject, Subscription } from 'rxjs';
+import { AppFormUtils, referentialToString } from '@sumaris-net/ngx-components';
+import { ProductSaleForm } from './product-sale.form';
+import { Product } from '../services/model/product.model';
+import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-product-sale-modal',
@@ -64,6 +64,7 @@ export class ProductSaleModal implements OnInit, OnDestroy {
 
     if (this.productSaleForm.invalid) {
       AppFormUtils.logFormErrors(this.productSaleForm.form);
+      this.productSaleForm.markAsTouched({emitEvent: true});
       return;
     }
 

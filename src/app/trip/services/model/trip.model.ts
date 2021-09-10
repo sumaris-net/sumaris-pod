@@ -231,7 +231,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
   hasCatch: boolean;
 
   metier: Metier = null;
-  physicalGear: PhysicalGear = null;
+  physicalGearId: number;
   tripId: number;
   trip: RootDataEntity<any>;
 
@@ -254,11 +254,6 @@ export class OperationGroup extends DataEntity<OperationGroup>
     const target = super.asObject(opts);
 
     target.metier = this.metier && this.metier.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/} as ReferentialAsObjectOptions) || undefined;
-
-    // Physical gear
-    target.physicalGear = this.physicalGear && this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
-    if (target.physicalGear)
-      delete target.physicalGear.measurementValues;
 
     // Measurements
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;
@@ -303,7 +298,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
     this.tripId = source.tripId;
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
     this.metier = source.metier && Metier.fromObject(source.metier) || undefined;
-    this.physicalGear = (source.physicalGear || source.physicalGearId) ? PhysicalGear.fromObject(source.physicalGear || {id: source.physicalGearId}) : undefined;
+    this.physicalGearId = source.physicalGearId;
 
     // Measurements
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
@@ -311,7 +306,6 @@ export class OperationGroup extends DataEntity<OperationGroup>
     this.measurementValues = {
       ...MeasurementUtils.toMeasurementValues(this.measurements),
       ...MeasurementUtils.toMeasurementValues(this.gearMeasurements),
-      ...(this.physicalGear && this.physicalGear.measurementValues),
       ...source.measurementValues // important: keep at last assignment
     };
     if (Object.keys(this.measurementValues).length === 0) {

@@ -14,7 +14,7 @@ import { environment } from '@environments/environment';
 import { SamplesModal } from '../sample/samples.modal';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
-export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
+export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'saleType', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
 
 @Component({
@@ -33,9 +33,26 @@ export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // to
 })
 export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> implements OnInit, OnDestroy {
 
-  @Input() showParent = true;
   @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
   @Input() parentAttributes: string[];
+
+  @Input()
+  set showParent(value: boolean) {
+    this.setShowColumn('parent', value);
+  }
+
+  get showParent(): boolean {
+    return this.getShowColumn('parent');
+  }
+
+  @Input()
+  set showSaleType(value: boolean) {
+    this.setShowColumn('saleType', value);
+  }
+
+  get showSaleType(): boolean {
+    return this.getShowColumn('saleType');
+  }
 
   @Input() set parentFilter(productFilter: ProductFilter) {
     this.setFilter(productFilter);
@@ -90,6 +107,8 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
   ngOnInit() {
     super.ngOnInit();
 
+    this.allowRowDetail = false;
+
     if (this.showParent && this.parentAttributes) {
       this.registerAutocompleteField('parent', {
         items: this.$parents,
@@ -114,30 +133,6 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
         }));
 
     this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditProduct(row)));
-  }
-
-  /* -- protected methods -- */
-
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
-    return this.programRefService.suggestTaxonGroups(value,
-      {
-        program: this.programLabel,
-        searchAttribute: options && options.searchAttribute
-      });
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
-  private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-
-    if (this.platform.is('mobile')) {
-      // hide pmfms on mobile
-      return [];
-    }
-
-    return pmfms;
   }
 
   confirmEditCreate(event?: any, row?: TableElement<Product>): boolean {
@@ -219,6 +214,34 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
       this.markAsDirty();
     }
 
+  }
+
+  protected openRow(id: number, row: TableElement<Product>): Promise<boolean> {
+    return super.openRow(id, row);
+  }
+
+  /* -- protected methods -- */
+
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
+    return this.programRefService.suggestTaxonGroups(value,
+      {
+        program: this.programLabel,
+        searchAttribute: options && options.searchAttribute
+      });
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
+  private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
+
+    if (this.platform.is('mobile')) {
+      // hide pmfms on mobile
+      return [];
+    }
+
+    return pmfms;
   }
 
   private onStartEditProduct(row: TableElement<Product>) {

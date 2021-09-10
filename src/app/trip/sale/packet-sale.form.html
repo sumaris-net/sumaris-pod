@@ -38,7 +38,7 @@
 
     </ion-row>
 
-    <ion-row *ngFor="let saleForm of saleFormArray?.controls; index as i; first as first">
+    <ion-row *ngFor="let saleForm of saleFormArray?.controls; index as i; first as first; last as last">
 
       <!-- sale type -->
       <ion-col>
@@ -47,6 +47,7 @@
                                 [floatLabel]="first ? 'always' : 'never'"
                                 [config]="autocompleteFields.saleType"
                                 [tabindex]="tabindex+3+i*7"
+                                [appAutofocus]='last && adding'
                                 [required]="true">
           <ion-icon matPrefix name="card"></ion-icon>
         </mat-autocomplete-field>
