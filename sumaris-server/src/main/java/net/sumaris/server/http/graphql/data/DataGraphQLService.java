@@ -896,7 +896,7 @@ public class DataGraphQLService {
         return result;
     }
 
-    @GraphQLQuery(name = "trip", description = "Get physical gear's trip")
+    @GraphQLQuery(name = "trip", description = "Get landing's trip")
     public TripVO getTripByLanding(@GraphQLContext LandingVO landing) {
         if (landing.getTripId() == null) return null;
         return tripService.get(landing.getTripId());
