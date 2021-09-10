@@ -114,7 +114,7 @@
       "ITEMS_PER_PAGE":"Items per page",
       "NEXT_PAGE":"Next page",
       "PREVIOUS_PAGE":"Previous page",
-      "OF": "sur"
+      "OF": "on"
     },
     "TABLE": {
       "FILTERED_PARENTHESIS": "(filtered)"
@@ -978,7 +978,7 @@
     }
   },
   "FISHING_AREA": {
-    "TITLE": "Fishing area",
+    "TITLE": "Fishing area:",
     "LOCATION": "Location",
     "DISTANCE_TO_COAST_GRADIENT": "Distance to coast gradient",
     "DEPTH_GRADIENT": "Depth gradient",

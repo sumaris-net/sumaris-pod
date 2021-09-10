@@ -26,7 +26,7 @@ import {
   SuggestService,
 } from '@sumaris-net/ngx-components';
 import { ReferentialService } from './referential.service';
-import { LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, TaxonGroupIds, TaxonomicLevelIds } from './model/model.enum';
+import { LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, TaxonGroupIds, TaxonomicLevelIds, UnitIds } from './model/model.enum';
 import { Metier, TaxonNameRef } from './model/taxon.model';
 import { ReferentialFragments } from './referential.fragments';
 import { SortDirection } from '@angular/material/sort';
@@ -690,6 +690,9 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // Matrix
     MatrixIds.INDIVIDUAL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.FRACTION_INDIVIDUAL_ID);
+
+    // Units
+    UnitIds.NONE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.UNIT_NONE_ID);
 
     // Taxon group
     // TODO: add all enumerations

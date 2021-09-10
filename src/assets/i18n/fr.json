@@ -996,7 +996,7 @@
     }
   },
   "FISHING_AREA": {
-    "TITLE": "Zone de pêche",
+    "TITLE": "Zone de pêche :",
     "LOCATION": "Lieu",
     "DISTANCE_TO_COAST_GRADIENT": "Gradient de distance à la côte",
     "DEPTH_GRADIENT": "Gradient de profondeur",

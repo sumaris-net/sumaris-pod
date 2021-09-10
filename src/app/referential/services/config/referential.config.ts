@@ -353,6 +353,18 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: MatrixIds.INDIVIDUAL
   },
+  UNIT_NONE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Unit.NONE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.UNIT_NONE_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Unit',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: MatrixIds.INDIVIDUAL
+  },
   PARAMETER_GROUP_AGE_LABELS: <FormFieldDefinition>{
     key: 'sumaris.list.parameter.age.labels',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_AGE_LABELS',
