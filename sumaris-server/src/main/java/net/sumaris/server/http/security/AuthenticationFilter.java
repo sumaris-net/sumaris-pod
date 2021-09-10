@@ -50,11 +50,17 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
     private static final String TOKEN = "token";
     private static final String BASIC = "Basic";
 
+    private boolean ready = false;
     private boolean enableAuthBasic;
     private boolean enableAuthToken;
 
+
     protected AuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
         super(requiresAuthenticationRequestMatcher);
+    }
+
+    public void setReady(boolean ready) {
+        this.ready = ready;
     }
 
     public void setEnableAuthToken(boolean enableAuthToken) {
@@ -67,6 +73,11 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+
+        // When not ready, always auth as anonymous
+        if (!this.ready) {
+            getAuthenticationManager().authenticate(new UsernamePasswordAuthenticationToken(AnonymousUserDetails.TOKEN, AnonymousUserDetails.TOKEN));
+        }
 
         String authorization = request.getHeader(AUTHORIZATION);
         String[] values = StringUtils.isNotBlank(authorization)

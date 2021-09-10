@@ -35,6 +35,7 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.LandingMeasurement;
 import net.sumaris.core.model.data.Trip;
@@ -266,6 +267,8 @@ public class LandingServiceImpl implements LandingService {
             trip.setLandingId(source.getId());
             trip.setLanding(null);
 
+            fillDefaultProperties(source, trip);
+
             TripVO savedTrip = tripService.save(source.getTrip(), TripSaveOptions.builder()
                     .withLanding(false)
                     .withOperation(false)
@@ -301,9 +304,7 @@ public class LandingServiceImpl implements LandingService {
         if (sample == null) return;
 
         // Copy recorder department from the parent
-        if (sample.getRecorderDepartment() == null || sample.getRecorderDepartment().getId() == null) {
-            sample.setRecorderDepartment(parent.getRecorderDepartment());
-        }
+        DataBeans.setDefaultRecorderDepartment(sample, parent.getRecorderDepartment());
 
         // Fill matrix
         if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
@@ -318,6 +319,13 @@ public class LandingServiceImpl implements LandingService {
         }
 
         sample.setLandingId(parent.getId());
+    }
+
+    protected void fillDefaultProperties(LandingVO parent, TripVO trip) {
+        if (trip == null) return;
+
+        DataBeans.setDefaultRecorderDepartment(trip, parent.getRecorderDepartment());
+        DataBeans.setDefaultRecorderPerson(trip, parent.getRecorderPerson());
     }
 
     /**

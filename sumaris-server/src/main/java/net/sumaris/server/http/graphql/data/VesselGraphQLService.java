@@ -249,7 +249,7 @@ public class VesselGraphQLService {
         if (hasVesselFeaturesField(fields)) {
             beans.forEach(bean -> {
                 if (bean.getVesselSnapshot() != null && bean.getVesselSnapshot().getId() != null && bean.getVesselSnapshot().getName() == null) {
-                    bean.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), bean.getVesselDateTime()));
+                    bean.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), Dates.resetTime(bean.getVesselDateTime())));
                 }
             });
         }
