@@ -220,7 +220,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     if (debug) console.debug(`[referential-ref-service] Loading ${uniqueEntityName} items (ref)...`, variables);
 
     // Online mode: use graphQL
-    const withTotal = !opts || opts.withTotal !== false;
+    const withTotal = !opts || opts.withTotal !== false; // default to true
     const query = withTotal ? LoadAllWithTotalQuery : LoadAllQuery;
     const { data, total } = await this.graphql.query<LoadResult<any>>({
       query,
@@ -418,8 +418,8 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
   }
 
-  suggestTaxonNames(value: any, filter?: Partial<TaxonNameRefFilter>): Promise<LoadResult<TaxonNameRef>> {
-    if (ReferentialUtils.isNotEmpty(value)) return Promise.resolve({data: [value]});
+  async suggestTaxonNames(value: any, filter?: Partial<TaxonNameRefFilter>): Promise<LoadResult<TaxonNameRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;
     return this.loadAllTaxonNames(0, !value ? 20 : 10, undefined, undefined,
       {

@@ -116,8 +116,6 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureId = TripsPageSettingsEnum.FEATURE_ID;
 
-
-
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
@@ -145,13 +143,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     });
 
     // Combo: vessels
-    this.registerAutocompleteField('vesselSnapshot', {
-      service: this.vesselSnapshotService,
-      attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
-      filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }
-    });
+    this.registerAutocompleteField('vesselSnapshot', this.vesselSnapshotService.getAutocompleteAddOptions());
 
     // Combo: recorder department
     this.registerAutocompleteField('department', {

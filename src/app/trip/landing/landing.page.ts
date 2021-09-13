@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, ElementRef, Inject, Injector, OnInit, Optional, QueryList, ViewChild, ViewChildren} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, Optional, QueryList, ViewChild, ViewChildren} from '@angular/core';
 
 import {
   AppEditorOptions,
@@ -26,7 +26,7 @@ import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
 import {FormGroup} from '@angular/forms';
 import {ObservedLocationService} from '../services/observed-location.service';
 import {TripService} from '../services/trip.service';
-import {debounceTime, filter, tap, throttleTime} from 'rxjs/operators';
+import {debounceTime, filter, map, tap, throttleTime} from 'rxjs/operators';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
 import {Landing} from '../services/model/landing.model';
@@ -36,13 +36,13 @@ import {ProgramProperties} from '@app/referential/services/config/program.config
 import {Program} from '@app/referential/services/model/program.model';
 import {environment} from '@environments/environment';
 import {STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent} from '@app/data/strategy/strategy-summary-card.component';
-import {merge, Subscription} from 'rxjs';
+import {merge, Observable, Subscription} from 'rxjs';
 import {Strategy} from '@app/referential/services/model/strategy.model';
 import * as momentImported from 'moment';
 import {PmfmService} from '@app/referential/services/pmfm.service';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {PmfmIds} from '@app/referential/services/model/model.enum';
-import { ContextService } from '@app/shared/context.service';
+import {ContextService} from '@app/shared/context.service';
 
 const moment = momentImported;
 
@@ -85,6 +85,13 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   get form(): FormGroup {
     return this.landingForm.form;
+  }
+
+  get appliedStrategyLocations$(): Observable<ReferentialRef[]> {
+    return this.$strategy.pipe(
+      filter(isNotNil),
+      map(strategy => (strategy.appliedStrategies).map(a => a.location))
+    )
   }
 
   @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
@@ -346,15 +353,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     if (!strategy) return; // Skip if empty
 
+    // Propagate to form
     this.landingForm.strategyLabel = strategy.label;
-    if (this.strategyCard) {
-      this.strategyCard.value = strategy;
-    }
-    this.samplesTable.strategyLabel = strategy.label;
     this.landingForm.strategyControl.setValue(strategy);
 
-
-    // Set table defaults
+    // Propagate to table
+    this.samplesTable.strategyLabel = strategy.label;
     const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
     this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
     this.samplesTable.showTaxonGroupColumn = false;

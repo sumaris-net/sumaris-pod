@@ -181,7 +181,10 @@
         "GUEST": "Libellé du profil Invité"
       },
       "VESSEL": {
-        "DEFAULT_NEW_VESSEL_STATUS": "Statut par défaut pour un nouveau navire"
+        "DEFAULT_NEW_VESSEL_STATUS": "Navire > Nouveau: Statut par défaut",
+        "DEFAULT_FILTER_COUNTRY_ID": "Navires: Pavillon par défaut (id)",
+        "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
+        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour la recherche"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Référentiel > Programme des navires",
@@ -189,8 +192,8 @@
         "LOCATION_LEVEL_PORT_ID": "Référentiel > Niveau de lieu > Port",
         "LOCATION_LEVEL_AUCTION_ID": "Référentiel > Niveau de lieu > Criée",
         "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Référentiel > Niveau de lieu > Rectangle statistique CIEM/ICES",
-        "LOCATION_LEVEL_LOCATIONS_AREA_ID": "Stratégie > Niveau zone de pêche",
         "LOCATION_LEVEL_ICES_DIVISION_ID": "Référentiel > Niveau de lieu > Division CIEM/ICES",
+        "LOCATION_LEVEL_LOCATIONS_AREA_ID": "Stratégie > Niveau(x) de lieu pour les zones de pêche (ids)",
         "TAXONOMIC_LEVEL_FAMILY_ID": "Référentiel > Niveau taxinomique > Famille",
         "TAXONOMIC_LEVEL_GENUS_ID": "Référentiel > Niveau taxinomique > Genre",
         "TAXONOMIC_LEVEL_SPECIES_ID": "Référentiel > Niveau taxinomique > Espèce",
@@ -435,6 +438,7 @@
     "MAIN_METIER_PLACEHOLDER": "Métier principal",
     "SECONDARY_METIER_PLACEHOLDER": "Métier secondaire #{{rank}}",
     "METIERS": "Métiers :",
+    "METIER": "Métier :",
     "BTN_FILTER_METIER": "Restreindre aux métiers déjà pratiqués",
     "COMMENTS": "Commentaires",
     "QUALITY": "État de saisie",
@@ -808,6 +812,8 @@
       "TAB_GENERAL": "Détails",
       "OBSERVER_PLACEHOLDER": "Observateur #",
       "OBSERVERS": "Observateurs :",
+      "FISHING_AREA_PLACEHOLDER": "Zone de pêche #",
+      "FISHING_AREAS": "Zones de pêche :",
       "SAMPLING": {
         "TITLE": "{{location}} - {{dateTime}}",
         "TAB_LANDINGS": "Échantillonnages"
@@ -1087,7 +1093,10 @@
       "TITLE": "Navires",
       "FILTER": {
         "DATE": "Date de validité",
-        "SEARCH_TEXT": "Recherche : code, nom"
+        "SEARCH_TEXT": "Recherche : code, nom",
+        "REGISTRATION_LOCATION": "Pavillon",
+        "BASE_PORT_LOCATION": "Port d'attache",
+        "VESSEL_TYPE": "Type de navire"
       }
     },
     "ERROR": {
@@ -1179,7 +1188,7 @@
         "TITLE": "Nouveau PSFM"
       },
       "EDIT": {
-        "TITLE": "PSFM {{label}} - {{name}}"
+        "TITLE": "PSFM {{title}}"
       }
     },
     "MATRIX": {
@@ -1321,13 +1330,14 @@
       "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre d'échantillonnages ?",
       "LANDING_ONE_TAB_ENABLE": "Sortie > Débarquement : un seul onglet ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
-      "STRATEGY_EDITOR" : "Stratégie > éditeur",
+      "STRATEGY_EDITOR" : "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Par défaut",
         "SAMPLING": "Paramètres biologiques"
       },
-      "STRATEGY_EDITOR_PREDOC_ENABLE": "Stratégie > Editeur : Activer le pré-filtrage des champs",
-      "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Stratégie > Editeur : Nb stratégies lues pour le pré-filtrage des champs",
+      "STRATEGY_EDITOR_LOCATION_LEVEL_IDS": "Stratégie > Éditeur : Niveau(x) de lieu (ids)",
+      "STRATEGY_EDITOR_PREDOC_ENABLE": "Stratégie > Éditeur : Activer le pré-filtrage des champs",
+      "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Stratégie > Éditeur : Nb stratégies lues pour le pré-filtrage des champs",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
       "VESSEL_TYPE_ENABLE": "Navires > Activer le type de navire ?"
     },
@@ -1341,8 +1351,10 @@
       "SCIENTIFIC_TAXON_NAMES": "Espèces scientifiques",
       "BTN_APPLY_TO_SELECTED_PMFM": "Appliquer aux PSFMs sélectionnés",
       "BTN_REMOVE_TO_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
-      "DUPLICATION": "Duplication",
-      "DUPLICATION_SENTENCE": "Sélectionnez une année de suivie pour les nouvelles lignes de plan :",
+      "DUPLICATE_MODAL": {
+        "TITLE": "Duplication",
+        "HELP": "Sélectionnez une année de suivie pour les nouvelles lignes de plan :"
+      },
       "NEW": {
         "TITLE": "Nouvelle stratégie",
         "SAMPLING": {
@@ -1898,6 +1910,7 @@
     "DOWNLOAD_APP_HELP": "Téléchargement gratuit.",
     "UPDATE_APP": "<b>Veuillez mettre à jour {{name}}</b>",
     "UPDATE_APP_TO_VERSION": "<b>Veuillez mettre à jour {{name}}</b> (en v{{version}} ou +)",
-    "UPDATE_APP_HELP": "Cette mise à jour est <b>nécessaire pour se connecter correctement</b> au nœud réseau. En cas de problème pour l'installation, veuillez <b>contacter votre administrateur</b>."
+    "UPDATE_APP_HELP": "Cette mise à jour est <b>nécessaire pour se connecter correctement</b> au nœud réseau. En cas de problème pour l'installation, veuillez <b>contacter votre administrateur</b>.",
+    "PLEASE_TYPE_MORE_CHARACTERS": "Veuillez taper au moins {{minLength}} caractères"
   }
 }

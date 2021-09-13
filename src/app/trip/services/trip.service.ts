@@ -61,6 +61,7 @@ import {VESSEL_FEATURE_NAME} from '@app/vessel/services/config/vessel.config';
 import {TripFilter} from './filter/trip.filter';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {TrashRemoteService} from '@app/core/services/trash-remote.service';
+import {FishingArea} from '@app/trip/services/model/fishing-area.model';
 
 const moment = momentImported;
 
@@ -150,6 +151,9 @@ export const TripFragments = {
     metiers {
       ...MetierFragment
     }
+    fishingAreas {
+      ...FishingAreaFragment
+    }
   }
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
@@ -159,6 +163,7 @@ export const TripFragments = {
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${PhysicalGearFragments.physicalGear}
   ${Fragments.metier},
+  ${DataFragments.fishingArea},
   ${SaleFragments.lightSale}`,
 
   landedTrip: gql`fragment LandedTripFragment on TripVO {
@@ -214,7 +219,7 @@ export const TripFragments = {
     expectedSale {
       ...ExpectedSaleFragment
     }
-    fishingArea {
+    fishingAreas {
       ...FishingAreaFragment
     }
   }

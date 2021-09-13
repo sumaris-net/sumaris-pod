@@ -1,6 +1,5 @@
-import {FormFieldDefinition, FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
-import {LocationLevelIds} from "../model/model.enum";
-import {StatusIds}  from "@sumaris-net/ngx-components";
+import {FormFieldDefinition, StatusIds} from '@sumaris-net/ngx-components';
+import {LocationLevelIds} from '../model/model.enum';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 
@@ -343,6 +342,12 @@ export const ProgramProperties = Object.freeze({
       }
     ],
     defaultValue: "legacy"
+  },
+  STRATEGY_EDITOR_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.program.strategy.location.level.ids',
+    label: "PROGRAM.OPTIONS.STRATEGY_EDITOR_LOCATION_LEVEL_IDS",
+    type: 'string',
+    defaultValue: LocationLevelIds.ICES_DIVISION.toString()
   },
 
   I18N_SUFFIX: <FormFieldDefinition>{

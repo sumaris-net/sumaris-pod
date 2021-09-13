@@ -4,8 +4,9 @@ import {MeasurementModelValues, MeasurementValuesUtils} from './measurement.mode
 import {Sample} from './sample.model';
 import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
 import {IWithObserversEntity} from '@app/data/services/model/model.utils';
-import {EntityClass, fromDateISOString, Person, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils, toDateISOString, toNumber} from '@sumaris-net/ngx-components';
+import {EntityClass, EntityClasses, fromDateISOString, IEntity, Person, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils, toDateISOString, toNumber} from '@sumaris-net/ngx-components';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+
 
 /**
  * Landing entity
@@ -22,6 +23,8 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
   measurementValues: MeasurementModelValues = null;
 
   tripId: number = null;
+
+  trip: IEntity<any> = null;
   observedLocationId: number = null;
   observers: Person[] = null;
   samples: Sample[] = null;
@@ -39,6 +42,10 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
 
     target.rankOrder = this.rankOrderOnVessel; // this.rankOrder is not persisted
+
+    // Trip
+    target.tripId = this.tripId;
+    target.trip = this.trip && this.trip.asObject(opts) || undefined;
 
     // Samples
     target.samples = this.samples && this.samples.map(s => s.asObject(opts)) || undefined;
@@ -62,9 +69,10 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
       console.warn("Source as no measurementValues. Should never occur ! ", source);
     }
 
-    // Parent link
+    // Parent
     this.observedLocationId = source.observedLocationId;
     this.tripId = source.tripId;
+    this.trip = source.trip && EntityClasses.fromObject(source.trip, {entityName: 'Trip'}) || undefined;
 
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;

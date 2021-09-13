@@ -70,7 +70,6 @@ export const PmfmIds = {
   STRATEGY_LABEL: 359,
   AGE: 350,
   SEX: 80,
-  MAIN_METIER: 25,
 
   /* OBSDEB pmfms */
   PACKAGING: 177,

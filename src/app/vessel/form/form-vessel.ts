@@ -47,11 +47,11 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
   }
 
   get registrationForm(): FormGroup {
-    return this.form.controls.registration as FormGroup;
+    return this.form.controls.vesselRegistrationPeriod as FormGroup;
   }
 
   get featuresForm(): FormGroup {
-    return this.form.controls.features as FormGroup;
+    return this.form.controls.vesselFeatures as FormGroup;
   }
 
   constructor(
@@ -116,7 +116,6 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
     return this.accountService.isAdmin();
   }
 
-  referentialToString = referentialToString;
   filterNumberInput = AppFormUtils.filterNumberInput;
 
 

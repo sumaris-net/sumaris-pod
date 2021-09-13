@@ -1,19 +1,18 @@
 import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
 import {FormGroup, ValidationErrors} from '@angular/forms';
 import {BehaviorSubject, Subscription} from 'rxjs';
-import {DenormalizedPmfmStrategy} from '../../../referential/services/model/pmfm-strategy.model';
-import {ParameterLabelGroups, PmfmIds} from '../../../referential/services/model/model.enum';
-import {PmfmService} from '../../../referential/services/pmfm.service';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {ParameterLabelGroups, PmfmIds} from '@app/referential/services/model/model.enum';
+import {PmfmService} from '@app/referential/services/pmfm.service';
 import {EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, ObjectMap, SharedValidators} from '@sumaris-net/ngx-components';
 import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
 import {LandingPage} from '../landing.page';
 import {Landing} from '../../services/model/landing.model';
 import {filter, tap, throttleTime} from 'rxjs/operators';
 import {ObservedLocation} from '../../services/model/observed-location.model';
-import {SamplingStrategyService} from '../../../referential/services/sampling-strategy.service';
-import {Strategy} from '../../../referential/services/model/strategy.model';
+import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
+import {Strategy} from '@app/referential/services/model/strategy.model';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {SamplesTable} from '@app/trip/sample/samples.table';
 
 
 @Component({
@@ -201,7 +200,6 @@ export class SamplingLandingPage extends LandingPage {
       markForCheck: () => this.markForCheck()
     });
   }
-
 
   protected async computeTitle(data: Landing): Promise<string> {
 

@@ -8,7 +8,7 @@ import {AccountService}  from "@sumaris-net/ngx-components";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
 import {VesselRegistrationService} from "../services/vessel-registration.service";
-import {VesselRegistration} from "../services/model/vessel.model";
+import {VesselRegistrationPeriod} from "../services/model/vessel.model";
 import {referentialToString}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {VesselRegistrationFilter} from "../services/filter/vessel.filter";
@@ -19,7 +19,7 @@ import {VesselRegistrationFilter} from "../services/filter/vessel.filter";
   styleUrls: ['./vessel-registration-history.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistration, VesselRegistrationFilter> implements OnInit {
+export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrationPeriod, VesselRegistrationFilter> implements OnInit {
 
   referentialToString = referentialToString;
   isAdmin: boolean;
@@ -45,7 +45,7 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
         'registrationCode',
         'registrationLocation']
       ,
-      new EntitiesTableDataSource<VesselRegistration>(VesselRegistration, dataService, null, {
+      new EntitiesTableDataSource<VesselRegistrationPeriod>(VesselRegistrationPeriod, dataService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

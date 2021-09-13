@@ -22,7 +22,7 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_POD,
   NetworkService,
-  Person
+  Person, toDateISOString
 } from '@sumaris-net/ngx-components';
 import {BehaviorSubject, EMPTY, Observable} from 'rxjs';
 import {Landing} from './model/landing.model';
@@ -42,6 +42,9 @@ import {ReferentialFragments} from '@app/referential/services/referential.fragme
 import {LandingFilter} from './filter/landing.filter';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
+import {TripFragments, TripService} from '@app/trip/services/trip.service';
+import {Trip} from '@app/trip/services/model/trip.model';
+import {tar} from '@ionic/cli/lib/utils/archive';
 
 const moment = momentImported;
 
@@ -122,6 +125,9 @@ export const LandingFragments = {
     rankOrder
     observedLocationId
     tripId
+    trip {
+      ...LandedTripFragment
+    }
     vesselSnapshot {
       ...VesselSnapshotFragment
     }
@@ -153,7 +159,8 @@ const LandingQueries = {
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
-  ${DataFragments.sample}`,
+  ${DataFragments.sample}
+  ${TripFragments.landedTrip}`,
 
   loadAll: gql`query LightLandings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -181,7 +188,8 @@ const LandingQueries = {
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
-  ${DataFragments.sample}`
+  ${DataFragments.sample}
+  ${TripFragments.landedTrip}`
 };
 
 const LandingMutations: BaseEntityGraphqlMutations = {
@@ -195,7 +203,8 @@ const LandingMutations: BaseEntityGraphqlMutations = {
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
-  ${DataFragments.sample}`,
+  ${DataFragments.sample}
+  ${TripFragments.landedTrip}`,
 
   saveAll: gql`mutation SaveLandings($data:[LandingVOInput!]!){
     data: saveLandings(landings: $data){
@@ -207,7 +216,8 @@ const LandingMutations: BaseEntityGraphqlMutations = {
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
-  ${DataFragments.sample}`,
+  ${DataFragments.sample}
+  ${TripFragments.landedTrip}`,
 
   deleteAll: gql`mutation DeleteLandings($ids:[Int!]!){
     deleteLandings(ids: $ids)
@@ -225,7 +235,8 @@ const LandingSubscriptions: BaseEntityGraphqlSubscriptions = {
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
-  ${DataFragments.sample}`
+  ${DataFragments.sample}
+  ${TripFragments.landedTrip}`
 };
 
 
@@ -257,7 +268,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     injector: Injector,
     protected network: NetworkService,
     protected entities: EntitiesStorage,
-    protected programRefService: ProgramRefService
+    protected programRefService: ProgramRefService,
+    protected tripService: TripService
   ) {
     super(injector,
       Landing, LandingFilter,
@@ -761,7 +773,12 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     // Update samples (recursively)
     if (target.samples && source.samples) {
-      this.copyIdAndUpdateDateOnSamples(source.samples, target.samples, source);
+      this.copyIdAndUpdateDateOnSamples(source, source.samples, target.samples);
+    }
+
+    // Update trip
+    if (target.trip && source.trip) {
+      this.copyIdAndUpdateDateOnTrip(target, source.trip as Trip, target.trip as Trip);
     }
   }
 
@@ -789,26 +806,43 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     return entity;
   }
 
-  protected asObject(entity: Landing, opts?: DataEntityAsObjectOptions): any {
+  protected asObject(source: Landing, opts?: DataEntityAsObjectOptions): any {
     opts = {...MINIFY_OPTIONS, ...opts};
-    const copy: any = entity.asObject(opts);
+    const target: any = source.asObject(opts);
 
     if (opts.minify && !opts.keepEntityName && !opts.keepTypename) {
       // Clean vessel features object, before saving
       //copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
 
       // Comment because need to keep recorder person
-      copy.recorderPerson = entity.recorderPerson && <Person>{
-        id: entity.recorderPerson.id,
-        firstName: entity.recorderPerson.firstName,
-        lastName: entity.recorderPerson.lastName
+      target.recorderPerson = source.recorderPerson && <Person>{
+        id: source.recorderPerson.id,
+        firstName: source.recorderPerson.firstName,
+        lastName: source.recorderPerson.lastName
       };
 
       // Keep id only, on recorder department
-      copy.recorderDepartment = entity.recorderDepartment && {id: entity.recorderDepartment && entity.recorderDepartment.id} || undefined;
+      target.recorderDepartment = source.recorderDepartment && {id: source.recorderDepartment && source.recorderDepartment.id} || undefined;
+
+      // Fill trip properties
+      const targetTrip = target.trip;
+      if (targetTrip) {
+
+        // Fill defaults
+        targetTrip.departureDateTime = targetTrip.departureDateTime || target.dateTime;
+        targetTrip.returnDateTime = targetTrip.returnDateTime || targetTrip.departureDateTime || target.dateTime;
+        targetTrip.departureLocation = targetTrip.departureLocation || target.location;
+        targetTrip.returnLocation = targetTrip.returnLocation || targetTrip.departureLocation || target.location;
+
+        // Always override recorder department/person
+        targetTrip.program = target.program;
+        targetTrip.vesselSnapshot = target.vesselSnapshot;
+        targetTrip.recorderDepartment = target.recorderDepartment;
+        targetTrip.recorderPerson = target.recorderPerson;
+      }
     }
 
-    return copy;
+    return target;
   }
 
   protected fillDefaultProperties(entity: Landing, opts?: Partial<LandingSaveOptions>) {
@@ -830,6 +864,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     // Measurement: compute rankOrder
     // fillRankOrder(entity.measurements); // todo ? use measurements instead of measurementValues
+
   }
 
   protected async fillOfflineDefaultProperties(entity: Landing) {
@@ -854,7 +889,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
    * @param sources
    * @param targets
    */
-  protected copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[], savedLanding: Landing) {
+  protected copyIdAndUpdateDateOnSamples(savedLanding: Landing, sources: (Sample | any)[], targets: Sample[]) {
     // Update samples
     if (sources && targets) {
       targets.forEach(target => {
@@ -871,10 +906,15 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
         // Apply to children
         if (target.children && target.children.length) {
-          this.copyIdAndUpdateDateOnSamples(sources, target.children, savedLanding); // recursive call
+          this.copyIdAndUpdateDateOnSamples(savedLanding, sources, target.children); // recursive call
         }
       });
     }
+  }
+
+  copyIdAndUpdateDateOnTrip(savedLanding: Landing, source: Trip | undefined, target: Trip, ) {
+    this.tripService.copyIdAndUpdateDate(source, target);
+    savedLanding.tripId = target.id;
   }
 
   protected computeRankOrderAndSort(data: Landing[],

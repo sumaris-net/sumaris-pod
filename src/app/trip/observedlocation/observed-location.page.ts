@@ -457,7 +457,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
     return {
       ... (await super.computePageHistory(title)),
-      matIcon: 'verified_user'
+      icon: 'location'
     };
   }
 
