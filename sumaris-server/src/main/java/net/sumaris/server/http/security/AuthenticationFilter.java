@@ -76,7 +76,7 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
 
         // When not ready, always auth as anonymous
         if (!this.ready) {
-            getAuthenticationManager().authenticate(new UsernamePasswordAuthenticationToken(AnonymousUserDetails.TOKEN, AnonymousUserDetails.TOKEN));
+            return null;
         }
 
         String authorization = request.getHeader(AUTHORIZATION);

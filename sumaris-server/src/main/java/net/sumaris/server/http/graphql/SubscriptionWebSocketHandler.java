@@ -24,6 +24,8 @@ package net.sumaris.server.http.graphql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
@@ -56,16 +58,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
 
-    private final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-
     private final boolean debug;
 
     private List<WebSocketSession> sessions = new CopyOnWriteArrayList();
+
+    private Map<String, List<Subscription>> subscriptionsBySessionId = Maps.newConcurrentMap();
 
     private GraphQL graphQL;
 
@@ -92,7 +93,9 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         sessions.remove(session);
-        if (subscriptionRef.get() != null) subscriptionRef.get().cancel();
+
+        // Closing session's subscriptions
+        closeSubscriptions(session.getId());
     }
 
     @Override
@@ -113,7 +116,8 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
             handleInitConnection(session, request);
         }
         else if ("stop".equals(type)) {
-            if (subscriptionRef.get() != null) subscriptionRef.get().cancel();
+            // Closing session's subscriptions
+            closeSubscriptions(session.getId());
         }
         else if ("start".equals(type)) {
             handleStartConnection(session, request);
@@ -173,6 +177,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
+        final String sessionId = session.getId();
         String query = Objects.toString(payload.get("query"));
         ExecutionResult executionResult = graphQL.execute(ExecutionInput.newExecutionInput()
                 .query(query)
@@ -196,8 +201,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
         stream.subscribe(new Subscriber<ExecutionResult>() {
             @Override
             public void onSubscribe(Subscription subscription) {
-                subscriptionRef.set(subscription);
-                if (subscriptionRef.get() != null) subscriptionRef.get().request(1);
+                addSubscription(sessionId, subscription);
             }
 
             @Override
@@ -207,8 +211,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
                                     "type", "data",
                                     "payload", GraphQLHelper.processExecutionResult(result))
                 );
-
-                if (subscriptionRef.get() != null) subscriptionRef.get().request(1);
+                requestSubscription(sessionId, 1);
             }
 
             @Override
@@ -255,5 +258,27 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
 
     protected String getUnauthorizedErrorString() {
         return GraphQLHelper.toJsonErrorString(ErrorCodes.UNAUTHORIZED, "Authentication required");
+    }
+
+    protected void closeSubscriptions(String sessionId) {
+        // Closing session's subscriptions
+        List<Subscription> subscriptions = subscriptionsBySessionId.get(sessionId);
+        if (subscriptions != null) {
+            subscriptions.forEach(Subscription::cancel);
+        }
+    }
+
+    protected void addSubscription(String sessionId, Subscription subscription) {
+        // Closing session's subscriptions
+        List<Subscription> subscriptions = subscriptionsBySessionId.computeIfAbsent(sessionId, k -> Lists.newCopyOnWriteArrayList());
+        subscriptions.add(subscription);
+    }
+
+    protected void requestSubscription(String sessionId, int l) {
+        // Closing session's subscriptions
+        List<Subscription> subscriptions = subscriptionsBySessionId.get(sessionId);
+        if (subscriptions != null) {
+            subscriptions.forEach(s -> s.request(l));
+        }
     }
 }
