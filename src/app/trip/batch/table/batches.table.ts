@@ -261,7 +261,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
   }
 
   /**
-   * Allow to remove/Add some pmfms. Can be oerrive by subclasses
+   * Allow to remove/Add some pmfms. Can be override by subclasses
    * @param pmfms
    */
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {

@@ -31,7 +31,7 @@ import {Batch, BatchUtils, BatchWeight} from '../../services/model/batch.model';
 import {BatchGroupModal} from '../modal/batch-group.modal';
 import {BatchGroup} from '../../services/model/batch-group.model';
 import {SubBatch} from '../../services/model/subbatch.model';
-import {defer, Observable, Subject} from 'rxjs';
+import {BehaviorSubject, defer, Observable, Subject} from 'rxjs';
 import {map, takeUntil} from 'rxjs/operators';
 import {SubBatchesModal} from '../modal/sub-batches.modal';
 import {TaxonGroupRef} from '../../../referential/services/model/taxon.model';
@@ -111,6 +111,9 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   weightMethodForm: FormGroup;
   estimatedWeightPmfm: IPmfm;
   dynamicColumns: ColumnDefinition[];
+  nbDisplayedColumns: number;
+  hasIndividualMeasurement = true;
+  hasIndividualMeasurementByDefault: boolean;
 
   // TODO Top group header
   //showGroupHeader = false;
@@ -120,6 +123,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   @Input() useSticky = false;
   @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
+  @Input() asyncFormValues = new BehaviorSubject<{hasIndividualMeasurement?: boolean, hasIndividualMeasurementByDefault?: boolean}>({});
 
   @Input() set defaultTaxonGroups(value: string[]) {
     // If empty, replace with undefined (need by autoFill button - see template)
@@ -197,7 +201,25 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   ngOnInit() {
     this.inlineEdition = this.validatorService && !this.mobile;
     this.allowRowDetail = !this.inlineEdition;
+    this.registerSubscription(
+      this.asyncFormValues.subscribe(value => {
+          if (this.hasIndividualMeasurement !== (isNil(value.hasIndividualMeasurement) || value.hasIndividualMeasurement)) {
+            this.hasIndividualMeasurement = !this.hasIndividualMeasurement;
 
+            if ((this.mobile && this.hasIndividualMeasurement) || (!this.mobile && !this.hasIndividualMeasurement)) {
+              this.nbDisplayedColumns = 2;
+            } else if (this.mobile) {
+              this.nbDisplayedColumns = 1;
+            } else
+              this.nbDisplayedColumns = 5;
+            this.doRefresh();
+            this.autoFillTable();
+          }
+          if (isNotNil(value.hasIndividualMeasurementByDefault)) {
+            this.hasIndividualMeasurementByDefault = value.hasIndividualMeasurementByDefault;
+          }
+      })
+    )
     super.ngOnInit();
   }
 
@@ -221,6 +243,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         // For each group (one by qualitative value)
         this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
           const childLabel = `${batch.label}.${qv.label}`;
+          // tslint:disable-next-line:triple-equals
           const child = batch.children.find(c => c.label === childLabel || c.measurementValues[this.qvPmfm.id] == qv.id);
           if (child) {
 
@@ -338,6 +361,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         // For each group (one by qualitative value)
         this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
           const childLabel = `${batch.label}.${qv.label}`;
+          // tslint:disable-next-line:triple-equals
           const child = batch.children.find(c => c.label === childLabel || c.measurementValues[this.qvPmfm.id] == qv.id);
           if (child) {
 
@@ -777,6 +801,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         showTaxonName: this.showTaxonNameColumn,
         availableTaxonGroups: this.availableTaxonGroups,
         taxonGroupsNoWeight: this.taxonGroupsNoWeight,
+        hasIndividualMeasurement: this.hasIndividualMeasurement,
+        hasIndividualMeasurementByDefault: this.hasIndividualMeasurementByDefault,
         openSubBatchesModal: (parent) => this.openSubBatchesModalFromParentModal(parent),
         onDelete: (event, batchGroup) => this.deleteBatchGroup(event, batchGroup)
       },
@@ -897,6 +923,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         const qvChildren = children.filter(c => {
           const qvValue = c.measurementValues[this.qvPmfm.id];
           // WARN: use '==' a NOT '===' because id can be serialized as string
+          // tslint:disable-next-line:triple-equals
           return qvValue && (qvValue == qv.id || qvValue.id == qv.id);
         });
         const samplingIndividualCount = BatchUtils.sumObservedIndividualCount(qvChildren);

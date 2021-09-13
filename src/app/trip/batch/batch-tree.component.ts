@@ -1,28 +1,34 @@
 import {AfterViewInit, ChangeDetectionStrategy, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean} from "@sumaris-net/ngx-components";
-import {AlertController, ModalController} from "@ionic/angular";
-import {BehaviorSubject, defer} from "rxjs";
-import {FormGroup} from "@angular/forms";
-import {OperationService} from "../services/operation.service";
-import {debounceTime, filter, map, switchMap} from "rxjs/operators";
-import {TripService} from "../services/trip.service";
-import {Batch, BatchUtils} from "../services/model/batch.model";
-import {BatchGroup, BatchGroupUtils} from "../services/model/batch-group.model";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {BatchGroupsTable} from "./table/batch-groups.table";
-import {SubBatchesTable, SubBatchFilter} from "./table/sub-batches.table";
-import {CatchBatchForm} from "../catch/catch.form";
+import {
+  AppTabEditor,
+  AppTableUtils,
+  firstTruePromise,
+  InMemoryEntitiesService,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  PlatformService,
+  toBoolean,
+  UsageMode
+} from '@sumaris-net/ngx-components';
+import {AlertController, ModalController} from '@ionic/angular';
+import {BehaviorSubject, defer} from 'rxjs';
+import {FormGroup} from '@angular/forms';
+import {OperationService} from '../services/operation.service';
+import {debounceTime, filter, map, switchMap} from 'rxjs/operators';
+import {TripService} from '../services/trip.service';
+import {Batch, BatchUtils} from '../services/model/batch.model';
+import {BatchGroup, BatchGroupUtils} from '../services/model/batch-group.model';
+import {BatchGroupsTable} from './table/batch-groups.table';
+import {SubBatchesTable, SubBatchFilter} from './table/sub-batches.table';
+import {CatchBatchForm} from '../catch/catch.form';
 import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {ActivatedRoute, Router} from "@angular/router";
-import {TranslateService} from "@ngx-translate/core";
-import {UsageMode}  from "@sumaris-net/ngx-components";
-import {MatTabChangeEvent} from "@angular/material/tabs";
-import {firstTruePromise} from "@sumaris-net/ngx-components";
+import {ActivatedRoute, Router} from '@angular/router';
+import {TranslateService} from '@ngx-translate/core';
+import {MatTabChangeEvent} from '@angular/material/tabs';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {SubBatch, SubBatchUtils} from "../services/model/subbatch.model";
-import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
-import {AppTabEditor}  from "@sumaris-net/ngx-components";
-import {AppTableUtils}  from "@sumaris-net/ngx-components";
+import {SubBatch, SubBatchUtils} from '../services/model/subbatch.model';
 import {environment} from '@environments/environment';
 import {Program} from '@app/referential/services/model/program.model';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
@@ -32,7 +38,7 @@ import {ProgramRefService} from '@app/referential/services/program-ref.service';
   templateUrl: './batch-tree.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnInit, AfterViewInit{
+export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnInit, AfterViewInit {
 
   private _gearId: number;
 
@@ -51,7 +57,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() showCatchForm: boolean;
   @Input() showBatchTables: boolean;
   @Input() showSubBatchesTable: boolean;
-
+  @Input() hasIndividualMeasurement = new BehaviorSubject<boolean>(true);
+  @Input() asyncFormValues = new BehaviorSubject<any>({});
 
   get isNewData(): boolean {
     return false;
@@ -91,9 +98,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return super.dirty || (this.subBatchesService && this.subBatchesService.dirty);
   }
 
-  @ViewChild('catchBatchForm', { static: true }) catchBatchForm: CatchBatchForm;
-  @ViewChild('batchGroupsTable', { static: true }) batchGroupsTable: BatchGroupsTable;
-  @ViewChild('subBatchesTable', { static: false }) subBatchesTable: SubBatchesTable;
+  @ViewChild('catchBatchForm', {static: true}) catchBatchForm: CatchBatchForm;
+  @ViewChild('batchGroupsTable', {static: true}) batchGroupsTable: BatchGroupsTable;
+  @ViewChild('subBatchesTable', {static: false}) subBatchesTable: SubBatchesTable;
 
   constructor(
     protected route: ActivatedRoute,
@@ -107,9 +114,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     protected platform: PlatformService,
   ) {
     super(route, router, alertCtrl, translate,
-          {
-            tabCount: 2
-          });
+      {
+        tabCount: 2
+      });
 
     // Defaults
     this.mobile = this.platform.mobile;
@@ -127,6 +134,21 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     super.ngOnInit();
 
     this.registerForms();
+
+    this.registerSubscription(
+      this.asyncFormValues.pipe(
+        filter(() => !this.loading)
+      ).subscribe(
+        value => {
+          this.batchGroupsTable.asyncFormValues.next(value);
+          if (isNotNil(value.hasIndividualMeasurement) && !value.hasIndividualMeasurement) {
+            this.showSubBatchesTable = false;
+          } else {
+            this.showSubBatchesTable = !this.mobile;
+          }
+        }
+      )
+    );
   }
 
   ngAfterViewInit() {
@@ -166,9 +188,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
             // Will refresh the tables (inside the setter):
             .subscribe(rootBatches => this.subBatchesTable.availableParents = (rootBatches || []))
         );
-
-      }
-      else {
+      } else {
         this.subBatchesService = new InMemoryEntitiesService<SubBatch, SubBatchFilter>(
           SubBatch, SubBatchFilter, {
             equals: Batch.equals
@@ -330,8 +350,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       await AppTableUtils.waitIdle(this.subBatchesTable);
 
       this.subBatchesTable.markAsDirty();
-    }
-    else {
+    } else {
       await this.subBatchesService.saveAll(subbatches);
       //if (!this._dirty) this.markAsDirty();
     }
@@ -349,16 +368,15 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
 
-  autoFill(opts?: {defaultTaxonGroups?: string[]; }): Promise<void> {
+  autoFill(opts?: { defaultTaxonGroups?: string[]; }): Promise<void> {
     return this.batchGroupsTable.autoFillTable(opts);
   }
 
-  setSelectedTabIndex(value: number, opts?: {emitEvent?: boolean; realignInkBar?: boolean; }) {
+  setSelectedTabIndex(value: number, opts?: { emitEvent?: boolean; realignInkBar?: boolean; }) {
     if (!this.tabGroup) {
       // Juste remember the value, but do nothing else
       this.selectedTabIndex = value;
-    }
-    else {
+    } else {
       super.setSelectedTabIndex(value, {
         realignInkBar: this.showSubBatchesTable, // Tab header are visible only if subBatches table is visible
         ...opts
@@ -406,8 +424,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       }
 
       return this.subBatchesTable.value;
-    }
-    else {
+    } else {
       return this.subBatchesService.value;
     }
   }

@@ -33,7 +33,7 @@
       </ion-col>
     </ion-row>
 
-    <ion-row>
+    <ion-row *ngIf="hasIndividualMeasurement">
       <ion-col>
         <!-- Has individual measures ? -->
         <mat-form-field floatLabel="always">
@@ -102,7 +102,7 @@
                             [showTaxonGroup]="false"
                             [availableTaxonGroups]="[]"
                             [showTaxonName]="false"
-                            [showSampleBatch]="showChildrenSampleBatch"
+                            [showSampleBatch]="showChildrenSampleBatch && hasIndividualMeasurement"
                             [showWeight]="showChildrenWeight"
                             [showTotalIndividualCount]="showTotalIndividualCount"
                             [showIndividualCount]="showIndividualCount"

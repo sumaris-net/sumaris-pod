@@ -26,7 +26,7 @@ import {EntityServiceLoadOptions} from '@sumaris-net/ngx-components';
 import {AppEntityEditor} from '@sumaris-net/ngx-components';
 import {environment} from '@environments/environment';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {BehaviorSubject, Subject} from 'rxjs';
+import {BehaviorSubject, Subject, Subscription} from 'rxjs';
 import {Measurement} from '@app/trip/services/model/measurement.model';
 
 const moment = momentImported;
@@ -43,6 +43,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   private _lastOperationsTripId: number;
   acquisitionLevel = new BehaviorSubject<string>(AcquisitionLevelCodes.OPERATION);
 
+  individualMeasurementSubscription: Subscription;
   measurements: Measurement[];
   trip: Trip;
   $programLabel = new BehaviorSubject<string>(null);
@@ -289,6 +290,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             );
           }
 
+          // If PMFM "Has Individual measurement ?" exists, then use to enable/disable some column on catch tables
+          this.setSafeIndividualMeasurementSubscription();
+
           // Default
           if (isNil(samplingTypeControl) && isNil(isSamplingControl)) {
             if (this.debug) console.debug('[operation] Enable default tables (Nor SUMARiS nor ADAP pmfms were found)');
@@ -350,13 +354,19 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.registerSubscription(
         this.form.get('operationTypeId').valueChanges
           .pipe(
-            distinctUntilChanged((o1, o2) => EntityUtils.equals(o1, o2, 'id'))
+            distinctUntilChanged((o1, o2) => EntityUtils.equals(o1, o2, 'id')),
+            debounceTime(400)
           )
           .subscribe(() => {
             if (this.form.get('operationTypeId').value === 1) {
               this.tabGroup._tabs.last.disabled = false;
+              this.setSafeIndividualMeasurementSubscription();
             } else {
               this.tabGroup._tabs.last.disabled = true;
+              if (this.individualMeasurementSubscription) {
+                this.individualMeasurementSubscription.unsubscribe();
+                this.individualMeasurementSubscription = undefined;
+              }
             }
           })
       );
@@ -780,6 +790,38 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected setSafeIndividualMeasurementSubscription() {
+    if (!this.individualMeasurementSubscription) {
+      const formGroup = this.measurementsForm.form;
+      const hasIndividualMeasurementControl = formGroup && formGroup.controls[PmfmIds.HAS_INDIVIDUAL_MEASUREMENT];
+
+      if (isNotNil(hasIndividualMeasurementControl)) {
+        this.individualMeasurementSubscription =
+          hasIndividualMeasurementControl.valueChanges
+            .pipe(
+              debounceTime(400),
+              startWith<any, any>(hasIndividualMeasurementControl.value),
+              filter(isNotNil),
+              distinctUntilChanged()
+            )
+            .subscribe(hasIndividualMeasurement => {
+
+              if (this.debug) console.debug('[operation] Detected PMFM changes value for HAS_INDIVIDUAL_MEASUREMENT: ', hasIndividualMeasurement);
+              this.batchTree.asyncFormValues.next(
+                {
+                  hasIndividualMeasurement: hasIndividualMeasurement,
+                  hasIndividualMeasurementByDefault: hasIndividualMeasurement
+                }
+              );
+            });
+
+        this.registerSubscription(
+          this.individualMeasurementSubscription
+        );
+      }
+    }
   }
 
   memoryHide = false;

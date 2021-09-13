@@ -78,6 +78,9 @@ export const PmfmIds = {
   AVERAGE_PRICE_WEI: 272,
   SALE_ESTIMATED_RATIO: 278,
   SALE_RANK_ORDER: 279,
+
+  /* ACOST pmfms */
+  HAS_INDIVIDUAL_MEASUREMENT: 381,
 };
 
 export const QualitativeLabels = {
