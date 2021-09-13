@@ -79,6 +79,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   hasEffort = false;
   hasLanding = false;
+  isGenerateLabelButtonDisable = true;
 
   taxonNamesHelper: FormArrayHelper<TaxonNameStrategy>;
   departmentsHelper: FormArrayHelper<StrategyDepartment>;
@@ -108,7 +109,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   };
   private analyticsReferencePatched: boolean;
   private fillEffortsCalled: boolean;
-  private isGenerateLabelButtonDisable = true;
 
   get value(): any {
     throw new Error("Not implemented! Please use getValue() instead, that is an async function");

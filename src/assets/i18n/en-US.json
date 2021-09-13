@@ -1330,6 +1330,7 @@
       "EDIT": {
         "TITLE": "<small>{{program}}<br></small>Strategy {{label}}",
         "LABEL": "Code",
+        "GENERATE_LABEL_BUTTON": "generate label",
         "ANALYTIC_REFERENCE_PLACEHOLDER": "Analytic reference",
         "DEPARTMENTS": "Recorder(s) department(s) :",
         "DEPARTMENT_PLACEHOLDER": "Recorder department #",
