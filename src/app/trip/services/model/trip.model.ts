@@ -387,6 +387,10 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   operations?: Operation[] = null;
   operationGroups?: OperationGroup[] = null;
   fishingAreas?: FishingArea[] = null;
+
+  /**
+   * @deprecated
+   */
   fishingArea: FishingArea = null;
 
   landing?: Landing = null;
@@ -419,8 +423,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     target.operationGroups = this.operationGroups && this.operationGroups.filter(isNotNil).map(o => o.asObject(options)) || undefined;
     if (isEmptyArray(target.operationGroups)) delete target.operationGroups; // Clean if empty, for compat with previous version
 
-    // Fishing area
-    target.fishingArea = this.fishingArea && this.fishingArea.asObject(options) || undefined;
+    // Fishing areas
     target.fishingAreas = this.fishingAreas && this.fishingAreas.map(p => p && p.asObject(options)) || undefined;
 
     // Landing
@@ -464,7 +467,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
       this.returnDateTime = undefined;
     }
 
-    this.fishingArea = source.fishingArea && FishingArea.fromObject(source.fishingArea) || undefined;
+    // Fishing areas
     this.fishingAreas = source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject) || [];
 
     this.landing = source.landing && Landing.fromObject(source.landing) || undefined;

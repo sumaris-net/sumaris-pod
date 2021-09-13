@@ -1,12 +1,12 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment';
 import {DateAdapter} from '@angular/material/core';
-import {debounceTime, map} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, filter, map, mergeMap} from 'rxjs/operators';
 import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '@app/referential/services/model/model.enum';
 import {LandingValidatorService} from '../services/validator/landing.validator';
 import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {FormArray, FormBuilder, FormControl, Validators} from '@angular/forms';
+import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {ModalController} from '@ionic/angular';
 import {
   ConfigService,
@@ -14,8 +14,8 @@ import {
   FormArrayHelper,
   IReferentialRef,
   isNil,
+  isNilOrBlank,
   isNotNil,
-  isNotNilOrBlank,
   LoadResult,
   LocalSettingsService,
   MatAutocompleteField,
@@ -27,6 +27,7 @@ import {
   StatusIds,
   suggestFromArray,
   toBoolean,
+  toDateISOString,
   UserProfileLabel
 } from '@sumaris-net/ngx-components';
 import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
@@ -38,17 +39,14 @@ import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-str
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
 import {TranslateService} from '@ngx-translate/core';
-import {IPmfm, PmfmType} from '@app/referential/services/model/pmfm.model';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
 import {Metier} from '@app/referential/services/model/taxon.model';
-import {isNumeric} from 'rxjs/internal/util/isNumeric';
-import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
-import {BehaviorSubject} from 'rxjs';
 import {Program} from '@app/referential/services/model/program.model';
 import {FishingArea} from '@app/trip/services/model/fishing-area.model';
 import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
-import {LandingService} from '@app/trip/services/landing.service';
 import {Trip} from '@app/trip/services/model/trip.model';
+import {TripValidatorService} from '@app/trip/services/validator/trip.validator';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -67,7 +65,10 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   observersHelper: FormArrayHelper<Person>;
   fishingAreasHelper: FormArrayHelper<FishingArea>;
+  metiersHelper: FormArrayHelper<FishingArea>;
   observerFocusIndex = -1;
+  metierFocusIndex = -1;
+  fishingAreaFocusIndex = -1;
   mobile: boolean;
   strategyControl: FormControl;
 
@@ -118,8 +119,20 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return this.form.controls.observers as FormArray;
   }
 
+  get tripForm(): FormGroup {
+    return this.form.controls.trip as FormGroup;
+  }
+
+  get metiersForm(): FormArray {
+    return this.tripForm?.controls.metiers as FormArray;
+  }
+
   get fishingAreasForm(): FormArray {
-    return this.form.controls.fishingAreas as FormArray;
+    return this.tripForm?.controls.fishingAreas as FormArray;
+  }
+
+  get showTrip(): boolean {
+    return this.showMetier || this.showFishingArea;
   }
 
   @Input() i18nPrefix = LANDING_DEFAULT_I18N_PREFIX;
@@ -133,10 +146,12 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() showError = true;
   @Input() showButtons = true;
   @Input() showStrategy = false;
+  @Input() showMetier = false;
+  @Input() showFishingArea = false;
   @Input() locationLevelIds: number[];
   @Input() allowAddNewVessel: boolean;
-  @Input() showMetier = false;
-  @Input() appliedStrategyLocations: ReferentialRef[] = null;
+  @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
+  @Input() allowManyMetiers: boolean = null;
 
   @Input() set canEditStrategy(value: boolean) {
     if (this._canEditStrategy !== value) {
@@ -180,6 +195,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected configService: ConfigService,
     protected translate: TranslateService,
     protected modalCtrl: ModalController,
+    protected tripValidatorService: TripValidatorService,
     protected fishingAreaValidatorService: FishingAreaValidatorService,
     protected cd: ChangeDetectorRef
   ) {
@@ -190,14 +206,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this._enable = false;
     this.mobile = this.settings.mobile;
 
-    // Add some missing controls
-    // Add a strategy field (not in validator)
-    this.strategyControl = formBuilder.control(null, Validators.required);
-    //this.form.addControl('strategy', this.strategyControl);
-    this.form.addControl('metier', new FormControl());
-
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
+
+    // Add some missing controls (strategy, metier and fishing areas)
+    this.strategyControl = formBuilder.control(null, Validators.required);
+    //this.form.addControl('strategy', this.strategyControl);
+
+
   }
 
   ngOnInit() {
@@ -226,18 +242,10 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     // Combo: strategy
     this.registerAutocompleteField('strategy', {
-      suggestFn: (value, filter) => {
-        // Force to show all
-        value = (typeof value === 'object') ? '*' : value;
-        return this.referentialRefService.suggest(value, filter, 'label', 'asc',
-          {
-            fetchPolicy: 'network-only' // Force network - fix IMAGINE 302
-          });
-      },
+      suggestFn: (value, filter) => this.suggestStrategy(value, filter),
       filter: {
         entityName: 'Strategy',
-        searchAttribute: 'label',
-        levelLabel: this.$programLabel.value // if not loaded yet, will be set in setProgramLabel()
+        searchAttribute: 'label'
       },
       attributes: ['label'],
       columnSizes: [12],
@@ -276,7 +284,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     const metierAttributes = this.settings.getFieldDisplayAttributes('qualitativeValue');
     this.registerAutocompleteField('metier', {
       showAllOnFocus: false,
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
+      suggestFn: (value, filter) => this.suggestMetiers(value, filter),
       // Default filter. An excludedIds will be add dynamically
       filter: {
         entityName: 'Metier',
@@ -286,18 +294,17 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     });
 
     // Combo: fishingAreas
-    this.registerAutocompleteField('fishingAreas', {
+    this.registerAutocompleteField('fishingAreaLocation', {
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.suggestFishingAreas(value, filter),
       // Default filter. An excludedIds will be add dynamically
       filter: {
+        entityName: 'Location',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST'],
         levelIds: LocationLevelIds.LOCATIONS_AREA
       },
       attributes: locationAttributes
     });
-
 
     // Propagate program
     this.registerSubscription(
@@ -312,26 +319,50 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.registerSubscription(
       this.strategyControl.valueChanges
         .pipe(
-          debounceTime(250),
-          map(value => (value && typeof value === 'string') ? value : (value && value.label || undefined)),
-          // DEBUG
-          //tap(strategyLabel => console.debug('[landing-form] Sending strategy label: ' + strategyLabel))
+          filter(value => (typeof value === 'object') && isNotNil(value.label)),
+          map(value => value?.label),
+          distinctUntilChanged()
         )
-        .subscribe( async (strategyLabel) => {
-          this.strategyLabel = strategyLabel;
+        .subscribe(strategyLabel => this.strategyLabel = strategyLabel)
+    );
 
-          // Propagate to measurement values
+    this.registerSubscription(
+      this.$strategyLabel
+        .pipe(
+          mergeMap(_ => this.ready())
+        )
+        .subscribe(strategyLabel => {
 
-          // Wait while pmfms are loading
-          // Wait form controls ready, if need
-          if (!this._ready) await this.ready();
           const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
           if (measControl && measControl.value !== strategyLabel) {
+            // DEBUG
+            console.debug('[landing-form] Setting \'measurementValues.\'' + PmfmIds.STRATEGY_LABEL + '=' + strategyLabel);
+
             measControl.setValue(strategyLabel);
           }
-        }));
+        })
+      );
 
-    this.initFishingAreas();
+    // Init trip form (if enable)
+    if (this.showTrip) {
+      // DEBUG
+      //console.debug('[landing-form] Enable trip form');
+
+      let tripForm = this.tripForm;
+      if (!tripForm) {
+        tripForm = this.tripValidatorService.getFormGroup(null, {
+          withMetiers: this.showMetier,
+          withFishingAreas: this.showFishingArea,
+          withSale: false,
+          withObservers: false,
+          withMeasurements: false
+        });
+        this.form.addControl('trip', tripForm);
+      }
+
+      if (this.showMetier) this.initMetiers(tripForm);
+      if (this.showFishingArea) this.initFishingAreas(tripForm);
+    }
   }
 
   toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
@@ -354,10 +385,17 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       this.observersHelper.removeAllEmpty();
     }
 
+    // Trip
+    const trip = (data.trip as Trip);
+    if (trip) {
+      // Metier
+      //trip.metiers = data.trip && (data.trip as Trip).metiers[0];
+    }
+
     // Propagate the strategy
     const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()];
     this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
-    this.strategyLabel = strategyLabel;
+    //this.strategyLabel = strategyLabel;
 
     await super.safeSetValue(data, opts);
   }
@@ -374,17 +412,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()] = strategyLabel;
     }
 
-    if (this.showMetier) {
-      data.trip = Trip.fromObject(<Trip>{
-        program: data.program,
-        vesselSnapshot: data.vesselSnapshot,
-        departureDateTime: data.dateTime,
-        returnDateTime: data.dateTime,
+    if (this.showTrip) {
+      data.trip = Trip.fromObject({
+        ...data.trip,
+        // Override some editable properties
+        departureDateTime: toDateISOString(data.dateTime),
+        returnDateTime: toDateISOString(data.dateTime),
         departureLocation: data.location,
-        returnLocation: data.location,
-        observedLocationId: data.observedLocationId,
-        metiers: [this.form.get("metier")?.value],
-        fishingAreas: (this.form.get('fishingAreas').value || [])
+        returnLocation: data.location
       });
     }
 
@@ -401,8 +436,18 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
   }
 
+  addMetier() {
+    this.metiersHelper.add();
+    if (!this.mobile) {
+      this.metierFocusIndex = this.metiersHelper.size() - 1;
+    }
+  }
+
   addFishingArea() {
     this.fishingAreasHelper.add();
+    if (!this.mobile) {
+      this.fishingAreaFocusIndex = this.fishingAreasHelper.size() - 1;
+    }
   }
 
   enable(opts?: {
@@ -443,6 +488,20 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   /* -- protected method -- */
 
+  protected suggestStrategy(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
+    filter = {
+      ...filter,
+      levelLabel: this.$programLabel.value
+    }
+    if (isNilOrBlank(filter.levelLabel)) return undefined; // Program no loaded yet
+
+    // Force to show all
+    value = (typeof value === 'object') ? '*' : value;
+    return this.referentialRefService.suggest(value, filter, undefined, undefined,
+      { fetchPolicy: 'network-only' } // Force network - fix IMAGINE 302
+    );
+  }
+
   protected suggestObservers(value: any, filter?: any): Promise<LoadResult<Person>> {
     const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
     const newValue = currentControlValue ? '*' : value;
@@ -458,13 +517,41 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       excludedIds
     });
   }
+
+  protected suggestMetiers(value: any, filter?: any):  Promise<LoadResult<ReferentialRef>> {
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+
+    // Excluded existing observers, BUT keep the current control value
+    const excludedIds = (this.metiersForm.value || [])
+      .filter(ReferentialUtils.isNotEmpty)
+      .filter(item => !currentControlValue || currentControlValue !== item)
+      .map(item => parseInt(item.id));
+
+    return this.referentialRefService.suggest(value, {
+      ...filter,
+      excludedIds
+    });
+  }
+
   protected async suggestFishingAreas(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+
+    // Excluded existing locations, BUT keep the current control value
+    const excludedIds = (this.fishingAreasForm.value || [])
+      .map(fa => fa.location)
+      .filter(ReferentialUtils.isNotEmpty)
+      .filter(item => !currentControlValue || currentControlValue !== item)
+      .map(item => parseInt(item.id));
+
     if (this.autocompleteFilters.fishingArea) {
-      return suggestFromArray(this.appliedStrategyLocations, value, filter);
+      return suggestFromArray(this.filteredFishingAreaLocations, value, {
+        ...filter,
+        excludedIds
+      });
     } else {
       return this.referentialRefService.suggest(value, {
         ...filter,
-        entityName: 'Location'
+        excludedIds
       });
     }
   }
@@ -499,9 +586,22 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
   }
 
-  protected initFishingAreas() {
+  protected initMetiers(form: FormGroup) {
+    this.metiersHelper = new FormArrayHelper<FishingArea>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, form, 'metiers'),
+      (metier) => this.tripValidatorService.getMetierControl(metier),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {allowEmptyArray: false}
+    );
+    if (this.metiersHelper.size() === 0) {
+      this.metiersHelper.resize(1);
+    }
+  }
+
+  protected initFishingAreas(form: FormGroup) {
     this.fishingAreasHelper = new FormArrayHelper<FishingArea>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'fishingAreas'),
+      FormArrayHelper.getOrCreateArray(this.formBuilder, form, 'fishingAreas'),
       (fishingArea) => this.fishingAreaValidatorService.getFormGroup(fishingArea, {required: true}),
       (o1, o2) => isNil(o1) && isNil(o2) || (o1 && o1.equals(o2)),
       (fishingArea) => !fishingArea || ReferentialUtils.isEmpty(fishingArea.location),

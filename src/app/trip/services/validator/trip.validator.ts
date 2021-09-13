@@ -1,27 +1,20 @@
-import {Injectable} from "@angular/core";
-import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {
-  SharedFormArrayValidators,
-  SharedFormGroupValidators,
-  SharedValidators
-} from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {SaleValidatorService} from "./sale.validator";
-import {MeasurementsValidatorService} from "./measurement.validator";
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {Trip} from "../model/trip.model";
-import {
-  DataRootEntityValidatorOptions,
-  DataRootEntityValidatorService
-} from '@app/data/services/validator/root-data-entity.validator';
+import {Injectable} from '@angular/core';
+import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean} from '@sumaris-net/ngx-components';
+import {SaleValidatorService} from './sale.validator';
+import {MeasurementsValidatorService} from './measurement.validator';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {Trip} from '../model/trip.model';
+import {DataRootEntityValidatorOptions} from '@app/data/services/validator/root-data-entity.validator';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
 import {DataRootVesselEntityValidatorService} from '@app/data/services/validator/root-vessel-entity.validator';
+import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
 
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withSale?: boolean;
   withMeasurements?: boolean;
   withMetiers?: boolean;
+  withFishingAreas?: boolean;
 }
 
 @Injectable({providedIn: 'root'})
@@ -32,6 +25,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     formBuilder: FormBuilder,
     settings: LocalSettingsService,
     protected saleValidator: SaleValidatorService,
+    protected fishingAreaValidator: FishingAreaValidatorService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
     super(formBuilder, settings);
@@ -84,6 +78,11 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       formConfig.metiers = this.getMetiersArray(data);
     }
 
+    // Add fishing Ares
+    if (opts.withFishingAreas) {
+      formConfig.fishingAreas = this.getFishingAreasArray(data);
+    }
+
     return formConfig;
   }
 
@@ -127,15 +126,24 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     return opts;
   }
 
-  getMetiersArray(data?: Trip) {
+  getMetiersArray(data?: Trip, opts?: {required?: boolean}) {
     return this.formBuilder.array(
-      (data && data.metiers || []).map(metier => this.getMetierControl(metier)),
+      (data && data.metiers || []).map(metier => this.getMetierControl(metier, opts)),
       SharedFormArrayValidators.requiredArrayMinLength(1)
     );
   }
 
-  getMetierControl(value: any) {
-    return this.formBuilder.control(value || null, [Validators.required, SharedValidators.entity]);
+  getMetierControl(value: any, opts?: {required?: boolean}) {
+    const required = !opts || opts.required !== false;
+    return this.formBuilder.control(value || null, required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
+  }
+
+  getFishingAreasArray(data?: Trip, opts?: {required?: boolean}) {
+    const required = !opts || opts.required !== false;
+    return this.formBuilder.array(
+      (data && data.fishingAreas || []).map(fa => this.fishingAreaValidator.getFormGroup(fa)),
+      required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined
+    );
   }
 }
 

@@ -87,7 +87,9 @@
                               [showProgram]="false"
                               [showStrategy]="true"
                               [showMetier]="true"
-                              [appliedStrategyLocations]="appliedStrategyLocations$|async"
+                              [showFishingArea]="true"
+                              [allowManyMetiers]="false"
+                              [filteredFishingAreaLocations]="appliedStrategyLocations$|async"
                               (onSubmit)="save($event)"
                               [debug]="debug">
 

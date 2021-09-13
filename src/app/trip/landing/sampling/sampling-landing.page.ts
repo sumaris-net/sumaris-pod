@@ -13,9 +13,6 @@ import {ObservedLocation} from '../../services/model/observed-location.model';
 import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
 import {Strategy} from '@app/referential/services/model/strategy.model';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {SamplesTable} from '@app/trip/sample/samples.table';
-import {Trip} from '@app/trip/services/model/trip.model';
-import {FishingArea} from '@app/trip/services/model/fishing-area.model';
 
 
 @Component({

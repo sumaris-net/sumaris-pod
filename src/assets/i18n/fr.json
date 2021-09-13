@@ -438,6 +438,7 @@
     "MAIN_METIER_PLACEHOLDER": "Métier principal",
     "SECONDARY_METIER_PLACEHOLDER": "Métier secondaire #{{rank}}",
     "METIERS": "Métiers :",
+    "METIER": "Métier :",
     "BTN_FILTER_METIER": "Restreindre aux métiers déjà pratiqués",
     "COMMENTS": "Commentaires",
     "QUALITY": "État de saisie",

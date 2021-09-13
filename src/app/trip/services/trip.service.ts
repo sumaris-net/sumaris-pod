@@ -219,7 +219,7 @@ export const TripFragments = {
     expectedSale {
       ...ExpectedSaleFragment
     }
-    fishingArea {
+    fishingAreas {
       ...FishingAreaFragment
     }
   }
