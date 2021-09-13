@@ -25,6 +25,7 @@ package net.sumaris.core.model.data;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
@@ -101,10 +102,15 @@ public class Operation implements IDataEntity<Integer>,
     @JoinColumn(name = "quality_flag_fk", nullable = false)
     private QualityFlag qualityFlag;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Trip.class )
     @JoinColumn(name = "trip_fk", nullable = false)
     @ToString.Exclude
     private Trip trip;
+
+    @OneToOne(fetch = FetchType.LAZY, targetEntity = Operation.class )
+    @JoinColumn(name = "operation_fk")
+    @ToString.Exclude
+    private Operation parentOperation;
 
     @Column(name = "start_date_time", nullable = false)
     private Date startDateTime;
@@ -162,6 +168,9 @@ public class Operation implements IDataEntity<Integer>,
     @OneToMany(fetch = FetchType.LAZY, targetEntity = FishingArea.class, mappedBy = FishingArea.Fields.OPERATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<FishingArea> fishingAreas = new ArrayList<>();
+
+    @OneToOne(fetch = FetchType.LAZY, targetEntity = Operation.class, mappedBy = Fields.PARENT_OPERATION)
+    private Operation childOperation;
 
 
 }

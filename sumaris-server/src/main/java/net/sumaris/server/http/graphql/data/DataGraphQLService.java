@@ -743,13 +743,37 @@ public class DataGraphQLService {
         return operationService.findAllByTripId(trip.getId(), DataFetchOptions.DEFAULT);
     }
 
+    @GraphQLQuery(name = "operations", description = "Search in operations")
+    @Transactional(readOnly = true)
+    @IsUser
+    public List<OperationVO> findOperationsByFilter(@GraphQLArgument(name = "filter") OperationFilterVO filter,
+                                          @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                          @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                          @GraphQLArgument(name = "sortBy") String sort,
+                                          @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction,
+                                          @GraphQLEnvironment() ResolutionEnvironment env
+    ) {
+
+        Preconditions.checkNotNull(filter, "Missing filter");
+        Preconditions.checkArgument(filter.getTripId() != null || filter.getProgramLabel() != null, "Missing filter.programLabel or filter.tripId");
+
+        SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
+        sort = (sort.equals("endPosition") || sort.equals("startPosition") ? "id" : sort);
+
+        Set<String> fields = GraphQLUtils.fields(env);
+
+        return operationService.findAllByFilter(filter,
+                offset, size, sort, sortDirection,
+                getFetchOptions(fields));
+    }
+
     @GraphQLQuery(name = "operationsCount", description = "Get operations count")
     @Transactional(readOnly = true)
     @IsUser
     public long countOperations(@GraphQLArgument(name = "filter") OperationFilterVO filter) {
-        Preconditions.checkNotNull(filter, "Missing filter or filter.tripId");
-        Preconditions.checkNotNull(filter.getTripId(), "Missing filter or filter.tripId");
-        return operationService.countByTripId(filter.getTripId());
+        Preconditions.checkNotNull(filter, "Missing filter");
+        Preconditions.checkArgument(filter.getTripId() != null || filter.getProgramLabel() != null, "Missing filter.programLabel or filter.tripId");
+        return operationService.countByFilter(filter);
     }
 
     @GraphQLQuery(name = "operation", description = "Get an operation")
