@@ -574,7 +574,7 @@
         "OPERATIONS_LAYER": "Operations"
       },
       "LIST": {
-        "PHYSICAL_GEAR": "Used gear",
+        "GEAR": "Used gear",
         "METIER": "Metier",
         "TARGET_SPECIES": "Target species",
         "START_DATE_TIME": "Start",

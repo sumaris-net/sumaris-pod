@@ -30,8 +30,7 @@
 
     <ion-row>
       <ion-col>
-        <mat-swipe-field #datesSwipe
-                         formControlName="date"
+        <mat-swipe-field formControlName="date"
                          [items]="dates"
                          [displayWith]="displayDate()"
                          [compareWithFn]="compareDate()"

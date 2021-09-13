@@ -574,7 +574,7 @@
         "OPERATIONS_LAYER": "Opérations"
       },
       "LIST": {
-        "PHYSICAL_GEAR": "Engin utilisé",
+        "GEAR": "Engin utilisé",
         "METIER": "Métier",
         "TARGET_SPECIES": "Espèce cible",
         "START_DATE_TIME": "Début d'opération",
