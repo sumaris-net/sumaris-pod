@@ -182,7 +182,7 @@
       },
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Navire > Nouveau: Statut par défaut",
-        "DEFAULT_FILTER_COUNTRY_ID": "Navires: Pavillon par défaut (ID)",
+        "DEFAULT_FILTER_COUNTRY_ID": "Navires: Pavillon par défaut (id)",
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour la recherche"
       },
@@ -192,8 +192,8 @@
         "LOCATION_LEVEL_PORT_ID": "Référentiel > Niveau de lieu > Port",
         "LOCATION_LEVEL_AUCTION_ID": "Référentiel > Niveau de lieu > Criée",
         "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Référentiel > Niveau de lieu > Rectangle statistique CIEM/ICES",
-        "LOCATION_LEVEL_LOCATIONS_AREA_ID": "Stratégie > Niveau(x) zone de pêche (ID)",
         "LOCATION_LEVEL_ICES_DIVISION_ID": "Référentiel > Niveau de lieu > Division CIEM/ICES",
+        "LOCATION_LEVEL_LOCATIONS_AREA_ID": "Stratégie > Niveau(x) de lieu pour les zones de pêche (ids)",
         "TAXONOMIC_LEVEL_FAMILY_ID": "Référentiel > Niveau taxinomique > Famille",
         "TAXONOMIC_LEVEL_GENUS_ID": "Référentiel > Niveau taxinomique > Genre",
         "TAXONOMIC_LEVEL_SPECIES_ID": "Référentiel > Niveau taxinomique > Espèce",
@@ -1335,7 +1335,7 @@
         "LEGACY": "Par défaut",
         "SAMPLING": "Paramètres biologiques"
       },
-      "STRATEGY_EDITOR_LOCATION_LEVEL_IDS": "Stratégie > Éditeur : Niveau(x) de lieu",
+      "STRATEGY_EDITOR_LOCATION_LEVEL_IDS": "Stratégie > Éditeur : Niveau(x) de lieu (ids)",
       "STRATEGY_EDITOR_PREDOC_ENABLE": "Stratégie > Éditeur : Activer le pré-filtrage des champs",
       "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Stratégie > Éditeur : Nb stratégies lues pour le pré-filtrage des champs",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
@@ -1351,8 +1351,10 @@
       "SCIENTIFIC_TAXON_NAMES": "Espèces scientifiques",
       "BTN_APPLY_TO_SELECTED_PMFM": "Appliquer aux PSFMs sélectionnés",
       "BTN_REMOVE_TO_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
-      "DUPLICATION": "Duplication",
-      "DUPLICATION_SENTENCE": "Sélectionnez une année de suivie pour les nouvelles lignes de plan :",
+      "DUPLICATE_MODAL": {
+        "TITLE": "Duplication",
+        "HELP": "Sélectionnez une année de suivie pour les nouvelles lignes de plan :"
+      },
       "NEW": {
         "TITLE": "Nouvelle stratégie",
         "SAMPLING": {
