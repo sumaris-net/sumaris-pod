@@ -23,6 +23,7 @@ package net.sumaris.server.http.security;
  */
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -76,7 +77,7 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
 
         // When not ready, always auth as anonymous
         if (!this.ready) {
-            return null;
+            throw new AuthenticationServiceException("Cannot authenticate: not ready");
         }
 
         String authorization = request.getHeader(AUTHORIZATION);
