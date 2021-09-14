@@ -22,8 +22,12 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 
 import java.util.Date;
 
@@ -32,20 +36,20 @@ import java.util.Date;
  */
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@FieldNameConstants
 public class SaleFilterVO implements IRootDataFilter {
 
     private Date startDate;
-
     private Date endDate;
-
     private String programLabel;
-
     private Integer locationId;
-
     private Integer recorderDepartmentId;
-
     private Integer recorderPersonId;
 
+    // Parent
     private Integer tripId;
 
+    private DataQualityStatusEnum[] dataQualityStatus;
 }

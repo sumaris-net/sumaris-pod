@@ -134,7 +134,10 @@ public class VesselRepositoryImpl
             .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
             .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate()))
             // By text
-            .and(searchText(filter.getSearchAttributes(), filter.getSearchText()));
+            .and(searchText(filter.getSearchAttributes(), filter.getSearchText()))
+            // Quality
+            .and(inDataQualityStatus(filter.getDataQualityStatus()))
+            ;
     }
 
     @Override

@@ -28,6 +28,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -59,10 +60,11 @@ public class LandingFilterVO implements IRootDataFilter, IVesselFilter {
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;
 
-    private List<Integer> excludeVesselIds;
+    private Integer[] excludeVesselIds;
 
     // Parent
     private Integer observedLocationId;
     private Integer tripId;
 
+    private DataQualityStatusEnum[] dataQualityStatus;
 }

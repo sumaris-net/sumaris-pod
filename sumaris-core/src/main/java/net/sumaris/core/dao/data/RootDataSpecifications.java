@@ -48,41 +48,38 @@ public interface RootDataSpecifications<E extends IRootDataEntity<? extends Seri
     String PROGRAM_LABEL_PARAM = "programLabel";
 
     default Specification<E> hasRecorderPersonId(Integer recorderPersonId) {
-        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, RECORDER_PERSON_ID_PARAM);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(param),
                 criteriaBuilder.equal(root.get(E.Fields.RECORDER_PERSON).get(IEntity.Fields.ID), param)
             );
-        });
-        specification.addBind(RECORDER_PERSON_ID_PARAM, recorderPersonId);
-        return specification;
+        }).addBind(RECORDER_PERSON_ID_PARAM, recorderPersonId);
     }
 
     default Specification<E> hasProgramLabel(String programLabel) {
-        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> param = criteriaBuilder.parameter(String.class, PROGRAM_LABEL_PARAM);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(param),
                 criteriaBuilder.equal(root.get(E.Fields.PROGRAM).get(IItemReferentialEntity.Fields.LABEL), param)
             );
-        });
-        specification.addBind(PROGRAM_LABEL_PARAM, programLabel);
-        return specification;
+        }).addBind(PROGRAM_LABEL_PARAM, programLabel);
     }
 
-    default Specification<E> inDataQualityStatus(DataQualityStatusEnum... dataQualityStatus) {
-        if (ArrayUtils.isEmpty(dataQualityStatus)) return null;
-        if (dataQualityStatus.length == 1) {
-            return withDataQualityStatus(dataQualityStatus[0]);
-        }
+    default Specification<E> isValidated() {
+        return (root, query, criteriaBuilder) ->
+            // Validation date not null
+            criteriaBuilder.isNotNull(root.get(IRootDataEntity.Fields.VALIDATION_DATE));
+    }
 
-        return (root, query, criteriaBuilder) -> criteriaBuilder.or(
-                Arrays.stream(dataQualityStatus)
-                    .map(this::withDataQualityStatus)
-                    .filter(Objects::nonNull)
-                    .toArray(Predicate[]::new)
-            );
+    default Specification<E> isQualified() {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
+            // Qualification date not null
+            criteriaBuilder.isNotNull(root.get(IRootDataEntity.Fields.QUALIFICATION_DATE)),
+            // Quality flag != 0
+            criteriaBuilder.notEqual(criteriaBuilder.coalesce(root.get(IRootDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), QualityFlagEnum.NOT_QUALIFIED.getId()), QualityFlagEnum.NOT_QUALIFIED.getId())
+        );
     }
 
     default Specification<E> withDataQualityStatus(DataQualityStatusEnum status) {
@@ -101,18 +98,17 @@ public interface RootDataSpecifications<E extends IRootDataEntity<? extends Seri
         return null;
     }
 
-    default Specification<E> isValidated() {
-        return (root, query, criteriaBuilder) ->
-            // Validation date not null
-            criteriaBuilder.isNotNull(root.get(IRootDataEntity.Fields.VALIDATION_DATE));
-    }
+    default Specification<E> inDataQualityStatus(DataQualityStatusEnum... dataQualityStatus) {
+        if (ArrayUtils.isEmpty(dataQualityStatus)) return null;
+        if (dataQualityStatus.length == 1) {
+            return withDataQualityStatus(dataQualityStatus[0]);
+        }
 
-    default Specification<E> isQualified() {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
-            // Qualification date not null
-            criteriaBuilder.isNotNull(root.get(IRootDataEntity.Fields.QUALIFICATION_DATE)),
-            // Quality flag != 0
-            criteriaBuilder.notEqual(criteriaBuilder.coalesce(root.get(IRootDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), QualityFlagEnum.NOT_QUALIFIED.getId()), QualityFlagEnum.NOT_QUALIFIED.getId())
-        );
+        return (root, query, criteriaBuilder) -> criteriaBuilder.or(
+                Arrays.stream(dataQualityStatus)
+                    .map(this::withDataQualityStatus)
+                    .filter(Objects::nonNull)
+                    .toArray(Predicate[]::new)
+            );
     }
 }

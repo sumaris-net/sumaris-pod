@@ -85,7 +85,8 @@ public class LandingRepositoryImpl
             .and(hasLocationId(filter.getLocationId()))
             .and(inLocationIds(filter.getLocationIds()))
             .and(hasVesselId(filter.getVesselId()))
-            .and(hasExcludeVesselIds(filter.getExcludeVesselIds()));
+            .and(hasExcludeVesselIds(filter.getExcludeVesselIds()))
+            .and(inDataQualityStatus(filter.getDataQualityStatus()));
     }
 
     @Override

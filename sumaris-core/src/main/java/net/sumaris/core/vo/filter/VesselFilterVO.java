@@ -24,6 +24,7 @@ package net.sumaris.core.vo.filter;
 
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.util.Beans;
 
 import java.util.Date;
@@ -61,6 +62,7 @@ public class VesselFilterVO implements IRootDataFilter {
 
     private Integer registrationLocationId;
     private Integer basePortLocationId;
+    private DataQualityStatusEnum[] dataQualityStatus; // Not used
 
     public void setDate(Date date) {
         this.startDate = date;
