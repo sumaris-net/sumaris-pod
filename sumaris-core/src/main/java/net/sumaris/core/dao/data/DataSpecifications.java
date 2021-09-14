@@ -74,4 +74,21 @@ public interface DataSpecifications<E extends IDataEntity<? extends Serializable
             .addBind(RECORDER_DEPARTMENT_ID_PARAM, recorderDepartmentId);
     }
 
+    /**
+     * Control date is null
+     * @return
+     */
+    default Specification<E> isNotControlled() {
+        return (root, query, criteriaBuilder) ->
+            criteriaBuilder.isNull(root.get(IDataEntity.Fields.CONTROL_DATE));
+    }
+
+    /**
+     * Control date is not null
+     * @return
+     */
+    default Specification<E> isControlled() {
+        return (root, query, criteriaBuilder) ->
+            criteriaBuilder.isNotNull(root.get(IDataEntity.Fields.CONTROL_DATE));
+    }
 }

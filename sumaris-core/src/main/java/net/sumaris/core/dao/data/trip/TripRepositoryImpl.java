@@ -60,7 +60,9 @@ public class TripRepositoryImpl
             .and(id(filter.getTripId()))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationId(filter.getLocationId()))
-            .and(hasVesselId(filter.getVesselId()));
+            .and(hasVesselId(filter.getVesselId()))
+            .and(excludedIds(filter.getExcludedIds()))
+            .and(inDataQualityStatus(filter.getDataQualityStatus()));
     }
 
     @Override

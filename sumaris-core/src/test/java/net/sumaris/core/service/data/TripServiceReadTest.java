@@ -22,8 +22,10 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
+import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
@@ -119,6 +121,29 @@ public class TripServiceReadTest extends AbstractServiceTest{
             2);
     }
 
+    @Test
+    public void findTripsByQualityStatus() {
+
+        assertFindAll(TripFilterVO.builder()
+                .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.DRAFT})
+                .build(),
+            2);
+
+        assertFindAll(TripFilterVO.builder()
+                .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.CONTROLLED})
+                .build(),
+            1);
+
+        assertFindAll(TripFilterVO.builder()
+                .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.VALIDATED})
+                .build(),
+            0);
+
+        assertFindAll(TripFilterVO.builder()
+                .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.QUALIFIED})
+                .build(),
+            0);
+    }
 
     @Test
     public void getFullGraph() {
