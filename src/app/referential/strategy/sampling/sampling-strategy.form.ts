@@ -960,22 +960,25 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return target;
   }
 
-  protected async generateLabelButtonClick() {
-    SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
-    SharedValidators.clearError(this.form.get("label"), 'unique');
-    const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, this.form.get("label").value.substring(0, 10).replace(/\s/g, '').toUpperCase(), 3));
+  async generateLabelButtonClick() {
     const labelControl = this.form.get('label');
-    labelControl.setValue(computedLabel);
+    if (this.data?.label && this.data?.label.substring(0, 9) === labelControl.value.replace(' ', '').substring(0, 9)) {
+      labelControl.setValue(this.data.label);
+    } else {
+      const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, labelControl.value.replace(' ', '').substring(0, 9).toUpperCase(), 3));
+      labelControl.setValue(computedLabel);
+    }
   }
 
   protected async onEditLabel(value: string) {
-    if (!value) return
+    if (!value) return;
     const expectedLabelFormatRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]/);
     if (value.match(expectedLabelFormatRegex)) {
       const taxonNameControl = this.taxonNamesHelper.at(0);
       const isUnique = await this.isTaxonNameUnique(this.form.get("label").value.substring(3, 10), taxonNameControl?.value?.taxonName?.id);
       if (!isUnique) {
         this.form.get("label").setErrors({ unique: true });
+        this.isGenerateLabelButtonDisable = true;
         return;
       }
       this.isGenerateLabelButtonDisable = false;
@@ -1090,7 +1093,13 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.labelMask = newMask;
 
       if (errors && taxonNameControl) {
-        const computedLabel = `${yearMask} `;
+        console.log("label: ", labelControl.value)
+        let computedLabel: string;
+        if (labelControl.value.length > 3) {
+          computedLabel = `${yearMask} ${labelControl.value.replace(' ', '').substr(2, 7)}`;
+        } else {
+          computedLabel = `${yearMask} `;
+        }
         taxonNameControl.setErrors(errors);
         labelControl.setValue(computedLabel);
       } else {
