@@ -30,16 +30,24 @@
     }
   }
 
+  .mat-column-group {
+    margin-left: 5px;
+  }
+
   .mat-column-label,
   .mat-column-analyticReference {
-    min-width: 120px;
-    max-width: 120px;
+    min-width: 80px;
+    max-width: 80px;
   }
 
   .mat-column-effortQ1,
   .mat-column-effortQ2,
   .mat-column-effortQ3,
-  .mat-column-effortQ4,
+  .mat-column-effortQ4 {
+    min-width: 80px;
+    max-width: 80px;
+  }
+
   .mat-column-comment {
     width: 80px;
   }
