@@ -4,7 +4,7 @@ import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 
 import {ErrorCodes} from "../../trip/services/trip.errors";
-import {AccountService}  from "@sumaris-net/ngx-components";
+import {AccountService, LoadResult} from "@sumaris-net/ngx-components";
 import {ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType} from "./model/extraction-type.model";
 import {isNil, isNotNil, isNotNilOrBlank, trimEmptyToNull} from "@sumaris-net/ngx-components";
 import {GraphqlService}  from "@sumaris-net/ngx-components";
@@ -111,7 +111,7 @@ export class ExtractionService extends BaseGraphqlService {
     let now = Date.now();
     if (this._debug) console.debug("[extraction-service] Loading extraction types...");
 
-    return this.mutableWatchQuery<{ data: ExtractionType[] }>({
+    return this.mutableWatchQuery<LoadResult<ExtractionType>>({
       queryName: 'LoadExtractionTypes',
       query: LoadTypesQuery,
       arrayFieldName: 'data',
