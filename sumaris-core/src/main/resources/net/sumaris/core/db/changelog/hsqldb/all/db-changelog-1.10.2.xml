@@ -31,7 +31,7 @@
 	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
 	<!-- rename some properties -->
-	<changeSet id="benoit.lavenier@e-is.pro" author="1625816880600-301" runOnChange="true">
+	<changeSet author="benoit.lavenier@e-is.pro" id="1625816880600-301" runOnChange="true">
 		<preConditions onFail="MARK_RAN">
 			<and>
 				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
