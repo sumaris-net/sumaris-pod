@@ -19,33 +19,40 @@
   min-width: 100%;
   --mat-cell-vertical-padding: 4px;
 
+  .mat-cell {
+    padding-right: 10px;
+  }
+
   .mat-table-sticky {
     &.mat-column-id {
       left: 50px !important;
-      min-width: 80px;
-      max-width: 80px;
+      min-width: 40px;
+      max-width: 40px;
     }
     &.mat-column-label {
-      left: 130px !important;
+      left: 90px !important;
     }
-  }
-
-  .mat-column-group {
-    margin-left: 5px;
   }
 
   .mat-column-label,
   .mat-column-analyticReference {
-    min-width: 80px;
-    max-width: 80px;
+    min-width: 120px;
+    max-width: 120px;
   }
 
   .mat-column-effortQ1,
+  .mat-column-effortQ3 {
+    min-width: 80px;
+    max-width: 80px;
+    background-color: lightgray;
+    padding-left: 5px;
+  }
+
   .mat-column-effortQ2,
-  .mat-column-effortQ3,
   .mat-column-effortQ4 {
     min-width: 80px;
     max-width: 80px;
+    padding-left: 5px;
   }
 
   .mat-column-comment {
