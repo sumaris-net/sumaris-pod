@@ -41,7 +41,8 @@ import java.util.Objects;
 /**
  * @author peck7 on 28/08/2020.
  */
-public interface RootDataSpecifications<E extends IRootDataEntity<? extends Serializable>> extends DataSpecifications<E> {
+public interface RootDataSpecifications<E extends IRootDataEntity<? extends Serializable>>
+    extends DataSpecifications<E> {
 
 
     String RECORDER_PERSON_ID_PARAM = "recorderPersonId";
@@ -67,48 +68,5 @@ public interface RootDataSpecifications<E extends IRootDataEntity<? extends Seri
         }).addBind(PROGRAM_LABEL_PARAM, programLabel);
     }
 
-    default Specification<E> isValidated() {
-        return (root, query, criteriaBuilder) ->
-            // Validation date not null
-            criteriaBuilder.isNotNull(root.get(IRootDataEntity.Fields.VALIDATION_DATE));
-    }
 
-    default Specification<E> isQualified() {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
-            // Qualification date not null
-            criteriaBuilder.isNotNull(root.get(IRootDataEntity.Fields.QUALIFICATION_DATE)),
-            // Quality flag != 0
-            criteriaBuilder.notEqual(criteriaBuilder.coalesce(root.get(IRootDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), QualityFlagEnum.NOT_QUALIFIED.getId()), QualityFlagEnum.NOT_QUALIFIED.getId())
-        );
-    }
-
-    default Specification<E> withDataQualityStatus(DataQualityStatusEnum status) {
-        if (status != null) {
-            switch (status) {
-                case DRAFT:
-                    return isNotControlled();
-                case CONTROLLED:
-                    return isControlled();
-                case VALIDATED:
-                    return isValidated();
-                case QUALIFIED:
-                    return isQualified();
-            }
-        }
-        return null;
-    }
-
-    default Specification<E> inDataQualityStatus(DataQualityStatusEnum... dataQualityStatus) {
-        if (ArrayUtils.isEmpty(dataQualityStatus)) return null;
-        if (dataQualityStatus.length == 1) {
-            return withDataQualityStatus(dataQualityStatus[0]);
-        }
-
-        return (root, query, criteriaBuilder) -> criteriaBuilder.or(
-                Arrays.stream(dataQualityStatus)
-                    .map(this::withDataQualityStatus)
-                    .filter(Objects::nonNull)
-                    .toArray(Predicate[]::new)
-            );
-    }
 }

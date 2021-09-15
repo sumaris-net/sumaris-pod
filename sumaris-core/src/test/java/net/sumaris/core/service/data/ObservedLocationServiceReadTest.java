@@ -89,7 +89,7 @@ public class ObservedLocationServiceReadTest extends AbstractServiceTest{
     public void findByFilterWithDataQuality() {
 
         assertFindAll(ObservedLocationFilterVO.builder()
-            .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.DRAFT})
+            .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED})
             .build(),
             3);
 

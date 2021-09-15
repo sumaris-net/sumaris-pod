@@ -29,7 +29,7 @@
         <from alias="SL">&amp;rawSpeciesListTableName</from>
         <from join="true">INNER JOIN BATCH SAMPLE_BATCH ON SAMPLE_BATCH.ID = SL.SAMPLE_ID</from>
         <from join="true">INNER JOIN TAXON_GROUP TG ON TG.ID = SL.TAXON_GROUP_ID</from>
-        <from join="true">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = SL.REFERENCE_TAXON_ID AND TN.IS_REFERENT=True</from>
+        <from join="true">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = SL.REFERENCE_TAXON_ID AND TN.IS_REFERENT=true</from>
         <from join="true">LEFT OUTER JOIN PMFM ON PMFM.ID = SL.SUBSAMPLE_WEIGHT_PMFM_ID</from>
         <from join="true">LEFT OUTER JOIN METHOD ON METHOD.ID = PMFM.METHOD_FK</from>
       </subquery>

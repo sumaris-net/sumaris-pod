@@ -62,6 +62,7 @@ public class TripRepositoryImpl
             .and(hasLocationId(filter.getLocationId()))
             .and(hasVesselId(filter.getVesselId()))
             .and(excludedIds(filter.getExcludedIds()))
+            .and(hasObserverPersonIds(filter.getObserverPersonIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()));
     }
 

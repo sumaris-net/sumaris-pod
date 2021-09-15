@@ -34,7 +34,7 @@ import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
-import net.sumaris.core.extraction.dao.technical.XMLQuery;
+import net.sumaris.core.extraction.dao.technical.xml.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.ExtractionTripDao;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
@@ -50,7 +50,6 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
@@ -374,9 +373,7 @@ public class AggregationRdbTripDaoImpl<
         xmlQuery.setGroup("euMetierLevel6", rawStationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL6));
         xmlQuery.setGroup("gearType", rawStationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
 
-        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
-        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
-        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
+        setDbms(xmlQuery);
 
         return xmlQuery;
     }
@@ -532,9 +529,7 @@ public class AggregationRdbTripDaoImpl<
         xmlQuery.bind("speciesTaxonGroupTypeId", String.valueOf(TaxonGroupTypeEnum.FAO.getId()));
 
         // Enable/Disable group, on DBMS
-        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
-        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
-        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
+        setDbms(xmlQuery);
 
         // Enable/Disable group, on optional columns
         SumarisTableMetadata stationTable = databaseMetadata.getTable(stationTableName);
@@ -792,7 +787,7 @@ public class AggregationRdbTripDaoImpl<
     protected int execute(C context, XMLQuery xmlQuery) {
         String sqlQuery = xmlQuery.getSQLQueryAsString();
 
-        // Do column nanes replacement (e.g. see FREE extraction)
+        // Do column names replacement (e.g. see FREE extraction)
         sqlQuery = Daos.sqlReplaceColumnNames(sqlQuery, context.getColumnNamesMapping(), xmlQuery.isLowercase());
 
         return queryUpdate(sqlQuery);

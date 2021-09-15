@@ -30,13 +30,15 @@ import java.util.Date;
 
 public interface IRootDataEntity<ID extends Serializable>
         extends IDataEntity<ID>,
-        IWithRecorderPersonEntity<ID, Person> {
+        IWithRecorderPersonEntity<ID, Person>,
+        IWithDataQualityEntity<ID>{
 
-    interface Fields extends IDataEntity.Fields, IWithRecorderPersonEntity.Fields {
+    interface Fields extends IDataEntity.Fields,
+        IWithDataQualityEntity.Fields,
+        IWithRecorderPersonEntity.Fields {
         String PROGRAM = "program";
         String CREATION_DATE = "creationDate";
         String COMMENTS = "comments";
-        String VALIDATION_DATE = "validationDate";
     }
 
     Program getProgram();
@@ -50,8 +52,4 @@ public interface IRootDataEntity<ID extends Serializable>
     String getComments();
 
     void setComments(String comments);
-
-    Date getValidationDate() ;
-
-    void setValidationDate(Date validationDate);
 }

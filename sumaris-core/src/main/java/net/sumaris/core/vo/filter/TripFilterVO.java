@@ -45,22 +45,18 @@ public class TripFilterVO implements IRootDataFilter, IVesselFilter {
     }
 
     private Date startDate;
-
     private Date endDate;
 
     private String programLabel;
-
     private Integer recorderDepartmentId;
-
     private Integer recorderPersonId;
+    private Integer[] observerPersonIds;
 
     private Integer vesselId;
-
     private Integer locationId;
 
-    private Integer tripId;
-
     private Integer[] excludedIds;
+    private Integer tripId;
 
     private DataQualityStatusEnum[] dataQualityStatus;
 }

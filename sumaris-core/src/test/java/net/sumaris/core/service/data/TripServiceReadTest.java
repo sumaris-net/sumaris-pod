@@ -22,7 +22,6 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.data.DataQualityStatusEnum;
@@ -125,7 +124,7 @@ public class TripServiceReadTest extends AbstractServiceTest{
     public void findTripsByQualityStatus() {
 
         assertFindAll(TripFilterVO.builder()
-                .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.DRAFT})
+                .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED})
                 .build(),
             2);
 

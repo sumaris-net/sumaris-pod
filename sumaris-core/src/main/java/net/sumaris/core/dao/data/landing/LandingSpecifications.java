@@ -109,7 +109,9 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing> {
     }
 
     default Specification<Landing> hasExcludeVesselIds(Integer... excludeVesselIds) {
-        return hasExcludeVesselIds(ImmutableList.copyOf(excludeVesselIds));
+        if (ArrayUtils.isEmpty(excludeVesselIds)) return null;
+
+        return hasExcludeVesselIds(Arrays.asList(excludeVesselIds));
     }
 
     default Specification<Landing> hasExcludeVesselIds(List<Integer> excludeVesselIds) {

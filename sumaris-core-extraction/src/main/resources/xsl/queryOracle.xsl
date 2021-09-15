@@ -86,7 +86,7 @@
         </xsl:otherwise>
       </xsl:choose>
       <xsl:value-of select="./@table"/>
-      <xsl:text> AS (</xsl:text>
+      <xsl:text> AS </xsl:text>
     </xsl:if>
 
     <xsl:if test="not(./@type) or (./@type != 'drop' and ./@type != 'delete')">
@@ -170,7 +170,7 @@
 
     <!-- CREATE -->
     <xsl:if test="./@type = 'create'">
-      <xsl:text>)</xsl:text>
+      <xsl:text> </xsl:text>
     </xsl:if>
 
   </xsl:template>
