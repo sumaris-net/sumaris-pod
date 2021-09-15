@@ -1554,6 +1554,7 @@
         "PROCESSING_FREQUENCY_ENUM": {
           "NEVER": "Jamais",
           "MANUALLY": "Manuelle",
+          "HOURLY": "Toute les heures",
           "DAILY": "Journalière",
           "WEEKLY": "Hebdomadaire",
           "MONTHLY": "Mensuelle"
