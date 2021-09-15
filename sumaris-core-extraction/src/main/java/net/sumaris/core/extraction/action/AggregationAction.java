@@ -30,6 +30,7 @@ import net.sumaris.core.extraction.exception.UnknownFormatException;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.service.AggregationService;
 import net.sumaris.core.extraction.service.ExtractionProductService;
+import net.sumaris.core.extraction.service.ExtractionServiceLocator;
 import net.sumaris.core.extraction.vo.AggregationTypeVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
@@ -45,15 +46,15 @@ import java.util.stream.Collectors;
  *
  */
 @Slf4j
-public class AgggregationAction {
+public class AggregationAction {
 
     /**
      * <p>run.</p>
      */
     public void run() {
         ExtractionConfiguration config = ExtractionConfiguration.instance();
-        AggregationService aggregationService = ServiceLocator.instance().getService("aggregationService", AggregationService.class);
-        ExtractionProductService productService = ServiceLocator.instance().getService("extractionProductService", ExtractionProductService.class);
+        ExtractionProductService productService = ExtractionServiceLocator.extractionProductService();
+        AggregationService aggregationService = ExtractionServiceLocator.aggregationService();
 
         String formatLabel = config.getExtractionCliOutputFormat();
         AggregationTypeVO type = null;

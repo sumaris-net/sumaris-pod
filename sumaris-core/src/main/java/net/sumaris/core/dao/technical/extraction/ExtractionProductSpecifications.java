@@ -41,20 +41,18 @@ public interface ExtractionProductSpecifications {
     String PERSON_ID_ID_PARAM = "personId";
 
     default Specification<ExtractionProduct> withRecorderDepartmentId(Integer departmentId) {
-        BindableSpecification<ExtractionProduct> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> parameter = criteriaBuilder.parameter(Integer.class, DEPARTMENT_ID_PARAM);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(parameter),
                 criteriaBuilder.equal(root.get(ExtractionProduct.Fields.RECORDER_DEPARTMENT).get(IEntity.Fields.ID), parameter)
             );
-        });
-        specification.addBind(DEPARTMENT_ID_PARAM, departmentId);
-        return specification;
+        }).addBind(DEPARTMENT_ID_PARAM, departmentId);
     }
 
 
     default Specification<ExtractionProduct> withRecorderPersonIdOrPublic(Integer personId) {
-        BindableSpecification<ExtractionProduct> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> parameter = criteriaBuilder.parameter(Integer.class, PERSON_ID_ID_PARAM);
             return criteriaBuilder.or(
                     criteriaBuilder.isNull(parameter),
@@ -66,9 +64,7 @@ public interface ExtractionProductSpecifications {
                         criteriaBuilder.equal(root.get(ExtractionProduct.Fields.RECORDER_PERSON).get(IEntity.Fields.ID), parameter)
                     )
             );
-        });
-        specification.addBind(PERSON_ID_ID_PARAM, personId);
-        return specification;
+        }).addBind(PERSON_ID_ID_PARAM, personId);
     }
 
     List<ExtractionTableColumnVO> getColumnsByIdAndTableLabel(int id, String tableLabel);
