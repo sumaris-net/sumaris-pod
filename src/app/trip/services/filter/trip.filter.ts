@@ -1,5 +1,5 @@
 import {RootDataEntityFilter} from '../../../data/services/model/root-data-filter.model';
-import {EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isNotNil, ReferentialRef, ReferentialUtils, toDateISOString} from '@sumaris-net/ngx-components';
+import {EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isNotNil, Person, ReferentialRef, ReferentialUtils, toDateISOString} from '@sumaris-net/ngx-components';
 import {Moment} from 'moment';
 import {Trip} from '../model/trip.model';
 import {VesselSnapshot} from '../../../referential/services/model/vessel-snapshot.model';
@@ -16,6 +16,12 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
   location: ReferentialRef = null;
   startDate: Moment = null;
   endDate: Moment = null;
+  observers?: Person[];
+
+  constructor() {
+    super();
+    this.dataQualityStatus = 'VALIDATED';
+  }
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
@@ -24,6 +30,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.startDate);
     this.location = ReferentialRef.fromObject(source.location);
+    this.observers = source.observers && source.observers.map(Person.fromObject) || [];
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -38,10 +45,15 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
       // Location
       target.locationId = this.location && this.location.id || undefined;
       delete target.location;
+
+      // Observers
+      target.observerPersonIds = this.observers && this.observers.map(o => o && o.id).filter(isNotNil) || undefined;
+      delete target.observers;
     }
     else {
-      target.vesselSnapshot = this.vesselSnapshot && this.vesselSnapshot.asObject({...opts, ...NOT_MINIFY_OPTIONS});
-      target.location = this.location && this.location.asObject({...opts, ...NOT_MINIFY_OPTIONS});
+      target.vesselSnapshot = this.vesselSnapshot && this.vesselSnapshot.asObject(opts) || undefined;
+      target.location = this.location && this.location.asObject(opts) || undefined;
+      target.observers = this.observers && this.observers.map(o => o && o.asObject(opts)).filter(isNotNil) || [];
     }
     return target;
   }

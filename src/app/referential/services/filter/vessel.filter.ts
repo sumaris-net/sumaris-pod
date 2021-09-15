@@ -1,8 +1,8 @@
 import {VesselSnapshot} from '../model/vessel-snapshot.model';
 import {Moment} from 'moment';
 import {EntityAsObjectOptions, EntityClass, EntityFilter, EntityUtils, FilterFn, fromDateISOString, isNotNil, isNotNilOrBlank, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
-import {SynchronizationStatus} from '../../../data/services/model/root-data-entity.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {SynchronizationStatus} from "@app/data/services/model/model.utils";
 
 @EntityClass({typename: 'VesselFilterVO'})
 export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, VesselSnapshot> {

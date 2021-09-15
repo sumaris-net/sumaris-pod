@@ -225,14 +225,13 @@
         "TOKEN": "Cryptographique",
         "BASIC_AND_TOKEN": "Basique et cryptographique"
       },
-      "DATA_QUALITY_PROCESS_ENABLE": "Activer le processus qualité ?",
-      "DATA_SHOW_RECORDER": "Afficher le saisisseur ?",
-      "DATA_SHOW_OBSERVERS": "Afficher les observateurs ?",
+      "DATA_QUALITY_PROCESS_ENABLE": "Saisie > Activer le processus qualité ?",
+      "DATA_SHOW_RECORDER": "Saisie > Afficher le saisisseur ?",
+      "DATA_SHOW_OBSERVERS": "Saisie > Afficher les observateurs ?",
       "LANDING": {
         "FILTER_PROGRAM": "Sorties > Afficher le filtre sur le programme ?",
         "FILTER_LOCATION": "Sorties > Afficher le filtre sur les lieux ?",
-        "FILTER_PERIOD": "Sorties > Afficher le filtre sur la période ?",
-        "FILTER_OBSERVERS": "Sorties > Afficher le filtre sur les observateurs ?"
+        "FILTER_PERIOD": "Sorties > Afficher le filtre sur la période ?"
       }
     },
     "CACHE": {
@@ -831,6 +830,7 @@
       "QUALITY": "État",
       "LOCATION": "Lieu de la sortie",
       "OBSERVERS": "Observateurs",
+      "RECORDER_PERSON": "Saisisseur",
       "COMMENTS": "Commentaires",
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les sorties <b>non envoyées</b>)",
       "FILTER": {

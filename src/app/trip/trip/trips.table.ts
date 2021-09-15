@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {TripValidatorService} from '../services/validator/trip.validator';
 import {TripService} from '../services/trip.service';
@@ -6,7 +6,7 @@ import {TripFilter} from '../services/filter/trip.filter';
 import {ModalController} from '@ionic/angular';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
-import {FormBuilder} from '@angular/forms';
+import {FormArray, FormBuilder, FormControl} from '@angular/forms';
 import {
   ConfigService,
   EntitiesTableDataSource,
@@ -34,6 +34,7 @@ import {environment} from '@environments/environment';
 import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
 import {filter, tap} from 'rxjs/operators';
 import {BehaviorSubject} from 'rxjs';
+import {DataQualityStatusItems, DataQualityStatusItemsMap} from '@app/data/services/model/model.utils';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -55,8 +56,20 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
 
   $title = new BehaviorSubject<string>('');
   highlightedRow: TableElement<Trip>;
-  showRecorder = true;
-  showObservers = true;
+  statusList = DataQualityStatusItems;
+  statusById = DataQualityStatusItemsMap;
+
+  @Input() showQuality = true;
+  @Input() showRecorder = true;
+  @Input() showObservers = true;
+
+  get filterObserversForm(): FormArray {
+    return this.filterForm.controls.observers as FormArray;
+  }
+
+  get filterDataQualityControl(): FormControl {
+    return this.filterForm.controls.dataQualityStatus as FormControl;
+  }
 
   constructor(
     protected injector: Injector,
@@ -103,9 +116,9 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
       endDate: [null, SharedValidators.validDate],
       synchronizationStatus: [null],
       recorderDepartment: [null, SharedValidators.entity],
-      recorderPerson: [null, SharedValidators.entity]
-      // TODO: add observer filter ?
-      //,'observer': [null]
+      recorderPerson: [null, SharedValidators.entity],
+      observers: formBuilder.array([[null, SharedValidators.entity]]),
+      dataQualityStatus: [null]
     });
 
     this.autoLoad = false; // See restoreFilterOrLoad()
@@ -155,12 +168,13 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     });
 
     // Combo: recorder person
+    const personAttributes = this.settings.getFieldDisplayAttributes('person', ['lastName', 'firstName', 'department.name']);
     this.registerAutocompleteField('person', {
       service: this.personService,
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      attributes: ['lastName', 'firstName', 'department.name'],
+      attributes: personAttributes,
       displayWith: PersonUtils.personToString,
       mobile: this.mobile
     });
@@ -175,9 +189,14 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
             const title = config && config.getProperty(TRIP_CONFIG_OPTIONS.TRIP_NAME);
             this.$title.next(title);
 
+            this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
+            this.setShowColumn('quality', this.showQuality, {emitEvent: false});
+
+            // Recorder
             this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
             this.setShowColumn('recorderPerson', this.showRecorder, {emitEvent: false});
 
+            // Observers
             this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
             this.setShowColumn('observers', this.showObservers, {emitEvent: false});
 
@@ -188,9 +207,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
           })
         )
         .subscribe()
-    )
-
-
+    );
   }
 
   clickRow(event: MouseEvent|undefined, row: TableElement<Trip>): boolean {

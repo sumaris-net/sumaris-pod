@@ -21,8 +21,8 @@ import {
   UserEventService
 } from '@sumaris-net/ngx-components';
 import {BehaviorSubject} from 'rxjs';
-import {DataRootEntityUtils, RootDataEntity, SynchronizationStatus} from '../services/model/root-data-entity.model';
-import {qualityFlagToColor} from '../services/model/model.utils';
+import {DataRootEntityUtils, RootDataEntity} from '../services/model/root-data-entity.model';
+import {qualityFlagToColor, SynchronizationStatus} from '../services/model/model.utils';
 import {IDataSynchroService} from '../services/root-data-synchro-service.class';
 import * as momentImported from 'moment';
 import {TableElement} from '@e-is/ngx-material-table';

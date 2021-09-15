@@ -1,10 +1,64 @@
-import {IEntity}  from "@sumaris-net/ngx-components";
-import {Department}  from "@sumaris-net/ngx-components";
-import {Referential, ReferentialRef}  from "@sumaris-net/ngx-components";
-import {Person}  from "@sumaris-net/ngx-components";
-import {PredefinedColors} from "@ionic/core";
-import {QualityFlagIds} from "../../../referential/services/model/model.enum";
-import {StatusIds}  from "@sumaris-net/ngx-components";
+import {Department, IEntity, Person, Referential, ReferentialRef, StatusIds} from '@sumaris-net/ngx-components';
+import {PredefinedColors} from '@ionic/core';
+import {QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {StatusValue} from '../../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
+
+/* -- Enumerations -- */
+
+export type SynchronizationStatus = 'DIRTY' | 'READY_TO_SYNC' | 'SYNC' | 'DELETED';
+
+export const SynchronizationStatusEnum = Object.freeze({
+  DIRTY: <SynchronizationStatus>'DIRTY',
+  READY_TO_SYNC: <SynchronizationStatus>'READY_TO_SYNC',
+  SYNC: <SynchronizationStatus>'SYNC',
+  DELETED: <SynchronizationStatus>'DELETED'
+});
+
+export type DataQualityStatus = 'MODIFIED' | 'CONTROLLED' | 'VALIDATED' | 'QUALIFIED';
+
+export const DataQualityStatusEnum = Object.freeze({
+  MODIFIED: <DataQualityStatus>'MODIFIED',
+  CONTROLLED: <DataQualityStatus>'CONTROLLED',
+  VALIDATED: <DataQualityStatus>'VALIDATED',
+  QUALIFIED: <DataQualityStatus>'QUALIFIED',
+})
+
+export declare interface DataQualityStatusItem {
+  id: DataQualityStatus;
+  icon: string;
+  label: string;
+}
+
+export const DataQualityStatusItemsMap = Object.freeze({
+  MODIFIED: <DataQualityStatusItem>{
+    id: DataQualityStatusEnum.MODIFIED,
+    icon: 'pencil',
+    label: 'QUALITY.MODIFIED'
+  },
+  CONTROLLED: <DataQualityStatusItem>{
+    id: DataQualityStatusEnum.CONTROLLED,
+    icon: 'checkmark',
+    label: 'QUALITY.CONTROLLED'
+  },
+  VALIDATED: <DataQualityStatusItem>{
+    id: DataQualityStatusEnum.VALIDATED,
+    icon: 'checkmark-circle',
+    label: 'QUALITY.VALIDATED'
+  },
+  QUALIFIED: <DataQualityStatusItem>{
+    id: DataQualityStatusEnum.QUALIFIED,
+    icon: 'flag',
+    label: 'QUALITY.QUALIFIED'
+  }
+});
+
+export const DataQualityStatusItems = Object.freeze([
+  DataQualityStatusItemsMap.MODIFIED,
+  DataQualityStatusItemsMap.CONTROLLED,
+  DataQualityStatusItemsMap.VALIDATED,
+  DataQualityStatusItemsMap.QUALIFIED
+]);
+
 
 /* -- Interface -- */
 
@@ -82,4 +136,3 @@ export function statusToColor(statusId: number): PredefinedColors {
       return 'secondary';
   }
 }
-

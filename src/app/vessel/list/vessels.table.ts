@@ -14,7 +14,7 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {SharedValidators} from "@sumaris-net/ngx-components";
 import {isNil, isNotNil, toBoolean} from "@sumaris-net/ngx-components";
-import {statusToColor} from "../../data/services/model/model.utils";
+import {statusToColor, SynchronizationStatusEnum} from "../../data/services/model/model.utils";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
@@ -24,7 +24,6 @@ import {PlatformService}  from "@sumaris-net/ngx-components";
 import {AppRootTable} from "../../data/table/root-table.class";
 import {VESSEL_FEATURE_NAME} from "../services/config/vessel.config";
 import {StatusIds}  from "@sumaris-net/ngx-components";
-import {SynchronizationStatusEnum} from "../../data/services/model/root-data-entity.model";
 import {VesselFilter} from "../services/filter/vessel.filter";
 import {MatExpansionPanel} from "@angular/material/expansion";
 

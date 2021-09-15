@@ -45,8 +45,8 @@ import {VesselSnapshotFragments, VesselSnapshotService} from '@app/referential/s
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {TripValidatorService} from './validator/trip.validator';
 import {Operation, PhysicalGear, Trip} from './model/trip.model';
-import {DataRootEntityUtils, SynchronizationStatusEnum} from '@app/data/services/model/root-data-entity.model';
-import {fillRankOrder} from '@app/data/services/model/model.utils';
+import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
+import {fillRankOrder, SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
 import {SortDirection} from '@angular/material/sort';
 import {OverlayEventDetail} from '@ionic/core';
 import {TranslateService} from '@ngx-translate/core';

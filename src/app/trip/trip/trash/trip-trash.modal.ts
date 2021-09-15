@@ -22,10 +22,10 @@ import {TripFilter} from '../../services/filter/trip.filter';
 import {FormBuilder} from '@angular/forms';
 import {TranslateService} from '@ngx-translate/core';
 import {TableElement} from '@e-is/ngx-material-table';
-import {SynchronizationStatus} from '../../../data/services/model/root-data-entity.model';
 import {OperationService} from '../../services/operation.service';
 import {environment} from '@environments/environment';
 import {TrashRemoteService} from '@app/core/services/trash-remote.service';
+import {SynchronizationStatus} from "@app/data/services/model/model.utils";
 
 export interface TripTrashModalOptions {
   synchronizationStatus?: SynchronizationStatus;

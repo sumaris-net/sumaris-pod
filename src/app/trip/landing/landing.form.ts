@@ -50,6 +50,8 @@ import {TripValidatorService} from '@app/trip/services/validator/trip.validator'
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
+const TRIP_FORM_EXCLUDED_FIELD_NAMES = ['program', 'vesselSnapshot', 'departureDateTime', 'departureLocation', 'returnDateTime', 'returnLocation'];
+
 type FilterableFieldName = 'fishingArea';
 
 @Component({
@@ -350,13 +352,20 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
       let tripForm = this.tripForm;
       if (!tripForm) {
-        tripForm = this.tripValidatorService.getFormGroup(null, {
+        const tripFormConfig = this.tripValidatorService.getFormGroupConfig(null, {
           withMetiers: this.showMetier,
           withFishingAreas: this.showFishingArea,
           withSale: false,
           withObservers: false,
           withMeasurements: false
         });
+
+        // Excluded some trip's fields
+        TRIP_FORM_EXCLUDED_FIELD_NAMES
+          .filter(key => delete tripFormConfig[key]);
+
+        tripForm = this.formBuilder.group(tripFormConfig);
+
         this.form.addControl('trip', tripForm);
       }
 
@@ -388,14 +397,13 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     // Trip
     const trip = (data.trip as Trip);
     if (trip) {
-      // Metier
-      //trip.metiers = data.trip && (data.trip as Trip).metiers[0];
+      this.showMetier = (trip.metiers || []).length > 0;
+      this.showFishingArea = (trip.fishingAreas || []).length > 0;
     }
 
     // Propagate the strategy
     const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()];
     this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
-    //this.strategyLabel = strategyLabel;
 
     await super.safeSetValue(data, opts);
   }
@@ -416,6 +424,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       data.trip = Trip.fromObject({
         ...data.trip,
         // Override some editable properties
+        program: data.program,
+        vesselSnapshot: data.vesselSnapshot,
         departureDateTime: toDateISOString(data.dateTime),
         returnDateTime: toDateISOString(data.dateTime),
         departureLocation: data.location,
