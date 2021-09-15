@@ -109,6 +109,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   };
   private analyticsReferencePatched: boolean;
   private fillEffortsCalled: boolean;
+  isGenerateLabelButtonDisable = true;
 
   get value(): any {
     throw new Error("Not implemented! Please use getValue() instead, that is an async function");
@@ -359,9 +360,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }
     ]);
 
-    this.registerSubscription(this.form.get('label').valueChanges.subscribe(value => this.onEditLabel(value)));
+    this.registerSubscription(this.form.get('label').valueChanges.subscribe(() => this.onEditLabel()));
     // register year field changes
-    this.registerSubscription(this.form.get('year').valueChanges.subscribe(date => this.onDateChange(date)));
+    this.registerSubscription(this.form.get('year').valueChanges.subscribe(() => this.onDateChange()));
     this.registerSubscription(this.taxonNamesFormArray.valueChanges.subscribe(() => this.onTaxonChange()));
 
     const idControl = this.form.get('id');
@@ -959,41 +960,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return target;
   }
 
-  protected async onEditLabel(value: string) {
-    const taxonNameControl = this.taxonNamesHelper.at(0);
-    if (!value) return
-    const expectedLabelFormatRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] ___$/);
-    if (value.match(expectedLabelFormatRegex)) {
-      const currentViewTaxon = taxonNameControl?.value?.taxonName;
-      const isUnique = await this.isTaxonNameUnique(value.substring(3, 10), currentViewTaxon?.id);
-      if (!isUnique) {
-        taxonNameControl.setErrors({ uniqueTaxonCode: true });
-      } else {
-        SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
-        // We only compute next label when taxon has just been set. We don't compute when user remove previous computed label
-        if (this.form.value.label && this.form.value.label.length && this.form.value.label.length < value.length)
-        {
-          const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10).replace(/\s/g, '').toUpperCase(), 3));
-          const labelControl = this.form.get('label');
-          labelControl.setValue(computedLabel);
-        }
-
-      }
-    }
-    const acceptedLabelFormatRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] \d\d\d$/);
-    if (value.match(acceptedLabelFormatRegex)) {
-      const currentViewTaxon = taxonNameControl?.value?.taxonName;
-      const isUnique = await this.isTaxonNameUnique(value.substring(3, 10), currentViewTaxon?.id);
-      if (!isUnique) {
-        taxonNameControl.setErrors({ uniqueTaxonCode: true });
-      } else {
-        SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
-        const labelControl = this.form.get('label');
-        labelControl.setValue(value.replace(/\s/g, '').toUpperCase());
-      }
-    }
-  }
-
   private async isTaxonNameUnique(label: string, currentViewTaxonId?: number) {
     const taxonNamesItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
     const taxonNamesWithParentheseItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
@@ -1037,19 +1003,137 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return isUnique;
   }
 
-  protected async onDateChange(date?: Moment) {
-    await this.generateLabel(date);
+  async generateLabelButton() {
+    console.info("generateLabelButton")
+  }
+
+  protected async onEditLabel() {
+    console.info("onEditLabel")
+    if (this.analyticsReferencePatched && this.fillEffortsCalled) {
+      if (!this.program) return;
+    }
+  }
+
+  protected async onDateChange() {
+    console.info("onDateChange")
+    if (this.analyticsReferencePatched && this.fillEffortsCalled) {
+      if (!this.program) return;
+    }
   }
 
   protected async onTaxonChange() {
+    console.info("onTaxonChange ", this.taxonNamesHelper.at(0))
+    if (this.analyticsReferencePatched && this.fillEffortsCalled) {
+      if (!this.program) return;
+      const label = this.taxonNamesHelper.at(0)?.value && TaxonUtils.generateLabelFromName(this.taxonNamesHelper.at(0).value?.taxonName?.name);
+      if (!label) {
+        this.taxonNamesHelper.at(0).setErrors({cannotComputeTaxonCode: true});
+        return;
+      }
+      const isUnique = await this.isTaxonNameUnique(label, this.taxonNamesHelper.at(0).value?.taxonName?.id);
+      if (!isUnique) {
+        this.taxonNamesHelper.at(0).setErrors({uniqueTaxonCode: true});
+        return;
+      }
+      if (this.form.get('year').value) {
+        this.form.get('label').setValue(await this.strategyService.computeNextLabel(this.program.id, this.form.get('year').value.format('YY') + " " + label, 3));
+      }
+    }
+  }
+
+
+  //
+  protected async onEditLabelRemove(value: string) {
+    const taxonNameControl = this.taxonNamesHelper.at(0);
+    if (!value) return
+    const expectedLabelFormatRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] ___$/);
+    if (value.match(expectedLabelFormatRegex)) {
+      const currentViewTaxon = taxonNameControl?.value?.taxonName;
+      const isUnique = await this.isTaxonNameUnique(value.substring(3, 10), currentViewTaxon?.id);
+      if (!isUnique) {
+        taxonNameControl.setErrors({ uniqueTaxonCode: true });
+      } else {
+        SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
+        // We only compute next label when taxon has just been set. We don't compute when user remove previous computed label
+        if (this.form.value.label && this.form.value.label.length && this.form.value.label.length < value.length)
+        {
+          const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10).replace(/\s/g, '').toUpperCase(), 3));
+          const labelControl = this.form.get('label');
+          labelControl.setValue(computedLabel);
+        }
+
+      }
+    }
+    const acceptedLabelFormatRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] \d\d\d$/);
+    if (value.match(acceptedLabelFormatRegex)) {
+      const currentViewTaxon = taxonNameControl?.value?.taxonName;
+      const isUnique = await this.isTaxonNameUnique(value.substring(3, 10), currentViewTaxon?.id);
+      if (!isUnique) {
+        taxonNameControl.setErrors({ uniqueTaxonCode: true });
+      } else {
+        SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
+        const labelControl = this.form.get('label');
+        labelControl.setValue(value.replace(/\s/g, '').toUpperCase());
+      }
+    }
+  }
+
+  private async isTaxonNameUniqueRemove(label: string, currentViewTaxonId?: number) {
+    const taxonNamesItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+    const taxonNamesWithParentheseItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+    let isUnique = true;
+    if (label) {
+      await this.referentialRefService.loadAll(0, 1000, null, null, {
+        entityName: TaxonName.ENTITY_NAME,
+        searchText: TaxonUtils.generateNameSearchPatternFromLabel(label),
+        searchAttribute: 'name',
+        excludedIds: [currentViewTaxonId],
+        statusIds: [StatusIds.ENABLE],
+        levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
+      }).then(({data}) => taxonNamesItems.next(data));
+
+      if (taxonNamesItems && taxonNamesItems.value)
+      {
+        const filteredReferentTaxons = (await Promise.all(taxonNamesItems.value.map(taxonRef => (this.taxonNameService.load(taxonRef.id))))).filter(taxon => taxon.isReferent);
+        if (!(filteredReferentTaxons === null || filteredReferentTaxons.length === 0))
+        {
+          isUnique = false;
+        }
+        else {
+          // IMAGINE-511 - add a control on taxon unicity searching in taxon with parentheses
+          // should be replaced by generateNameSearchPatternFromLabel managing optional parentheses in searchText parameter
+          await this.referentialRefService.loadAll(0, 1000, null, null, {
+            entityName: TaxonName.ENTITY_NAME,
+            searchText: TaxonUtils.generateNameSearchPatternFromLabel(label, true),
+            searchAttribute: 'name',
+            excludedIds: [currentViewTaxonId],
+            statusIds: [StatusIds.ENABLE],
+            levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
+          }).then(({data}) => taxonNamesWithParentheseItems.next(data));
+          const filteredReferentTaxonsWithParenthese = (await Promise.all(taxonNamesWithParentheseItems.value.map(taxonRef => (this.taxonNameService.load(taxonRef.id))))).filter(taxon => taxon.isReferent);
+          if (!(filteredReferentTaxonsWithParenthese === null || filteredReferentTaxonsWithParenthese.length === 0))
+          {
+            isUnique = false;
+          }
+        }
+      }
+    }
+    return isUnique;
+  }
+
+  protected async onDateChangeRemove(date?: Moment) {
+    await this.generateLabelRemove(date);
+  }
+
+  protected async onTaxonChangeRemove() {
     if (!this.program) return; // Skip if program is missing
 
-    await this.generateLabel();
+    await this.generateLabelRemove();
 
     // TODO try to limit pmfms, by loading previous sampling strategies ?
   }
 
-  protected async generateLabel(date?: Moment) {
+  protected async generateLabelRemove(date?: Moment) {
     // Wait for asynchronous functions to be completed.
     if (this.analyticsReferencePatched && this.fillEffortsCalled) {
       date = fromDateISOString(date || this.form.get('year').value);
@@ -1113,6 +1197,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }
     }
   }
+  //
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------
   protected initTaxonNameHelper() {
