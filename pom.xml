@@ -222,7 +222,7 @@
     <!-- I18n configuration -->
     <i18n.bundles>fr_FR,en_GB</i18n.bundles>
     <i18n.silent>true</i18n.silent>
-    
+
     <!-- by default, use maven 2 source base dir -->
     <maven.src.dir>${basedir}/src</maven.src.dir>
     <java.main.dir>${maven.src.dir}/main/java</java.main.dir>
@@ -475,6 +475,16 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-test</artifactId>
         <version>${spring-boot.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
+        <version>${spring-boot.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-registry-prometheus</artifactId>
+        <version>1.6.6</version>
       </dependency>
 
       <!-- Cryptography -->
@@ -897,6 +907,10 @@
           <exclusion>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-cmds</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
