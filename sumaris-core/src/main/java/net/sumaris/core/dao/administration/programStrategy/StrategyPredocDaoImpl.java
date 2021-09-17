@@ -127,6 +127,9 @@ public class StrategyPredocDaoImpl extends HibernateDaoSupport implements Strate
                                 builder.in(root.get(Strategy.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
                         ));
 
+        // Get last created strategies first
+        query.orderBy(builder.desc(root.get(Strategy.Fields.CREATION_DATE)));
+
         return getEntityManager()
                 .createQuery(query)
                 .setParameter(programIdParam, programId)
@@ -155,6 +158,9 @@ public class StrategyPredocDaoImpl extends HibernateDaoSupport implements Strate
                                 // Referential status
                                 builder.in(strategyDepartmentInnerJoin.get(StrategyDepartment.Fields.DEPARTMENT).get(Strategy.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
                         ));
+
+        // Get last created strategies first
+        query.orderBy(builder.desc(root.get(Strategy.Fields.CREATION_DATE)));
 
         return getEntityManager()
                 .createQuery(query)
@@ -194,6 +200,9 @@ public class StrategyPredocDaoImpl extends HibernateDaoSupport implements Strate
                                 locationPredicate
                                 ));
 
+        // Get last created strategies first
+        query.orderBy(builder.desc(root.get(Strategy.Fields.CREATION_DATE)));
+
         return getEntityManager()
                 .createQuery(query)
                 .setParameter(programIdParam, programId)
@@ -227,6 +236,9 @@ public class StrategyPredocDaoImpl extends HibernateDaoSupport implements Strate
                                 // Taxon name
                                 builder.isTrue(taxonNameInnerJoin.get(TaxonName.Fields.IS_REFERENT))
                         ));
+
+        // Get last created strategies first
+        query.orderBy(builder.desc(root.get(Strategy.Fields.CREATION_DATE)));
 
         return getEntityManager()
                 .createQuery(query)
@@ -272,9 +284,11 @@ public class StrategyPredocDaoImpl extends HibernateDaoSupport implements Strate
             );
         }
 
-        query.distinct(true)
-             .select(pmfmStrategyInnerJoin.get(field).get(IEntity.Fields.ID))
+        query.select(pmfmStrategyInnerJoin.get(field).get(IEntity.Fields.ID))
              .where(predicate);
+
+        // Get last created strategies first
+        query.orderBy(builder.desc(root.get(Strategy.Fields.CREATION_DATE)));
 
         TypedQuery<Integer> typedQuery = getEntityManager().createQuery(query);
 
