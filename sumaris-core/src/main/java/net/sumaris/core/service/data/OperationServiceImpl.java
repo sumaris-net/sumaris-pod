@@ -91,14 +91,14 @@ public class OperationServiceImpl implements OperationService {
 
 
     @Override
-    public List<OperationVO> findAllByTripId(int tripId, @NonNull DataFetchOptions fetchOptions) {
+    public List<OperationVO> findAllByTripId(int tripId, @NonNull OperationFetchOptions fetchOptions) {
         return operationRepository.findAllVO(operationRepository.hasTripId(tripId), fetchOptions);
     }
 
     @Override
     public List<OperationVO> findAllByTripId(int tripId,
                                              int offset, int size, String sortAttribute, SortDirection sortDirection,
-                                             @NonNull DataFetchOptions fetchOptions) {
+                                             @NonNull OperationFetchOptions fetchOptions) {
         return operationRepository.findAllVO(operationRepository.hasTripId(tripId),
                 Pageables.create(offset, size, sortAttribute, sortDirection),
                 fetchOptions).getContent();
@@ -106,7 +106,7 @@ public class OperationServiceImpl implements OperationService {
 
     @Override
     public List<OperationVO> findAllByFilter(OperationFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection,
-                                             @NonNull DataFetchOptions fetchOptions) {
+                                             @NonNull OperationFetchOptions fetchOptions) {
         return operationRepository.findAll(filter != null ? filter : OperationFilterVO.builder().build(), offset, size, sortAttribute, sortDirection, fetchOptions).getContent();
     }
 

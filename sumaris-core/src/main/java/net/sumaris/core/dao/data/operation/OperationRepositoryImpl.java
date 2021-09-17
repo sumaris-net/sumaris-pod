@@ -30,6 +30,7 @@ import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.fishingArea.FishingAreaRepository;
 import net.sumaris.core.dao.data.physicalGear.PhysicalGearRepository;
 import net.sumaris.core.dao.data.sample.SampleRepository;
+import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.data.Operation;
@@ -40,6 +41,7 @@ import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.OperationFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
@@ -59,7 +61,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class OperationRepositoryImpl
-        extends DataRepositoryImpl<Operation, OperationVO, OperationFilterVO, DataFetchOptions>
+        extends DataRepositoryImpl<Operation, OperationVO, OperationFilterVO, OperationFetchOptions>
         implements OperationSpecifications {
 
     @Autowired
@@ -81,7 +83,11 @@ public class OperationRepositoryImpl
     private BatchRepository batchRepository;
 
     @Autowired
+    private TripRepository tripRepository;
+
+    @Autowired
     protected VesselPositionDao vesselPositionDao;
+
 
     protected OperationRepositoryImpl(EntityManager entityManager) {
         super(Operation.class, OperationVO.class, entityManager);
@@ -89,12 +95,18 @@ public class OperationRepositoryImpl
     }
 
     @Override
-    public void toVO(Operation source, OperationVO target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+    public void toVO(Operation source, OperationVO target, OperationFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // Trip
         if (source.getTrip() != null) {
             target.setTripId(source.getTrip().getId());
+            if (fetchOptions != null && fetchOptions.isWithTrip()){
+                target.setTrip(tripRepository.toVO(source.getTrip(), DataFetchOptions.builder()
+                        .withRecorderDepartment(false)
+                        .withRecorderPerson(false)
+                        .build()));
+            }
         }
 
         // Physical gear
@@ -147,15 +159,26 @@ public class OperationRepositoryImpl
         // ParentOperation
         if (source.getParentOperation() != null) {
             target.setParentOperationId(source.getParentOperation().getId());
-            target.setParentOperation(this.findById(target.getParentOperationId(), fetchOptions).orElse(null));
+            if (fetchOptions == null || fetchOptions.isWithLinkedOperation()) {
+                if (fetchOptions == null) {
+                    fetchOptions = OperationFetchOptions.builder().build();
+                }
+                fetchOptions.setWithLinkedOperation(false);
+                target.setParentOperation(this.findById(target.getParentOperationId(), fetchOptions).orElse(null));
+            }
         }
 
         // ChildOperation
-        if (fetchOptions != null && fetchOptions.isWithChildrenEntities() && target.getParentOperation() == null && source.getChildOperation() != null) {
+        if (target.getParentOperation() == null && source.getChildOperation() != null) {
             target.setChildOperationId(source.getChildOperation().getId());
-            target.setChildOperation(this.findById(target.getChildOperationId(), fetchOptions).orElse(null));
+            if (fetchOptions == null || fetchOptions.isWithLinkedOperation()) {
+                if (fetchOptions == null) {
+                    fetchOptions = OperationFetchOptions.builder().build();
+                }
+                fetchOptions.setWithLinkedOperation(false);
+                target.setChildOperation(this.findById(target.getChildOperationId(), fetchOptions).orElse(null));
+            }
         }
-
     }
 
     @Override
@@ -269,17 +292,16 @@ public class OperationRepositoryImpl
         }
 
         //Quality Flag
-        Integer qualityFlag = source.getQualityFlagId() ;
-        if (qualityFlag != null){
+        Integer qualityFlag = source.getQualityFlagId();
+        if (qualityFlag != null) {
             target.setQualityFlag(getReference(QualityFlag.class, qualityFlag));
-        }
-        else {
+        } else {
             target.setQualityFlag(getReference(QualityFlag.class, getConfig().getDefaultQualityFlagId()));
         }
     }
 
     @Override
-    protected Specification<Operation> toSpecification(OperationFilterVO filter, DataFetchOptions fetchOptions) {
+    protected Specification<Operation> toSpecification(OperationFilterVO filter, OperationFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
                 .and(hasTripId(filter.getTripId()))
                 .and(hasProgramLabel(filter.getProgramLabel()))
@@ -288,6 +310,9 @@ public class OperationRepositoryImpl
                 .and(notChildOperation(filter.getExcludeChildOperation()))
                 .and(hasNoChildOperation(filter.getExcludeChildOperation()))
                 .and(isBetweenDates(filter.getStartDate(), filter.getEndDate()))
+                .and(inGearIds(filter.getGearIds()))
+                .and(inTaxonGroupLabels(filter.getTaxonGroupLabels()))
+                .and(hasQualityFlagId(filter.getQualityFlagId()))
                 .or(includedIds(filter.getIncludedIds()));
     }
 
@@ -295,7 +320,7 @@ public class OperationRepositoryImpl
     protected void onAfterSaveEntity(OperationVO vo, Operation savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
 
-        if (vo.getParentOperation() == null && vo.getParentOperationId() != null){
+        if (vo.getParentOperation() == null && vo.getParentOperationId() != null) {
             vo.setParentOperation(this.get(vo.getParentOperationId()));
         }
     }

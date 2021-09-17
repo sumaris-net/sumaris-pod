@@ -24,19 +24,17 @@ package net.sumaris.core.dao.data.operation;
 
 import net.sumaris.core.dao.data.DataRepository;
 import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.OperationFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.filter.OperationFilterVO;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
-
 /**
  * @author peck7 on 01/09/2020.
  */
 public interface OperationRepository
-    extends DataRepository<Operation, OperationVO, OperationFilterVO, DataFetchOptions>,
+    extends DataRepository<Operation, OperationVO, OperationFilterVO, OperationFetchOptions>,
     OperationSpecifications {
 
     @Query("select p.id from Operation o inner join o.trip t inner join t.program p where o.id = :id")

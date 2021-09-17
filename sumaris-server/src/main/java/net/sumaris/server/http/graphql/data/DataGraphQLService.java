@@ -732,7 +732,7 @@ public class DataGraphQLService {
         Preconditions.checkNotNull(filter.getTripId(), "Missing filter or filter.tripId");
         return operationService.findAllByTripId(filter.getTripId(), offset, size, sort,
                 SortDirection.fromString(direction),
-                DataFetchOptions.DEFAULT);
+                OperationFetchOptions.DEFAULT);
     }
 
     @GraphQLQuery(name = "operations", description = "Get trip's operations")
@@ -740,7 +740,7 @@ public class DataGraphQLService {
         if (CollectionUtils.isNotEmpty(trip.getOperations())) {
             return trip.getOperations();
         }
-        return operationService.findAllByTripId(trip.getId(), DataFetchOptions.DEFAULT);
+        return operationService.findAllByTripId(trip.getId(), OperationFetchOptions.DEFAULT);
     }
 
     @GraphQLQuery(name = "operations", description = "Search in operations")
@@ -764,7 +764,7 @@ public class DataGraphQLService {
 
         return operationService.findAllByFilter(filter,
                 offset, size, sort, sortDirection,
-                getFetchOptions(fields));
+                getOperationFetchOptions(fields));
     }
 
     @GraphQLQuery(name = "operationsCount", description = "Get operations count")
@@ -1470,6 +1470,16 @@ public class DataGraphQLService {
                 .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
                 .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
                 .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+                .build();
+    }
+
+
+    protected OperationFetchOptions getOperationFetchOptions(Set<String> fields) {
+        return OperationFetchOptions.builder()
+                .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
+                .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+                .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+                .withTrip(fields.contains(StringUtils.slashing(IWithTripEntity.Fields.TRIP, IEntity.Fields.ID)))
                 .build();
     }
 

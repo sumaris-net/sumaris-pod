@@ -51,5 +51,9 @@ public class OperationFilterVO implements IDataFilter {
     private Boolean hasNoChildOperation;
     private Date startDate;
     private Date endDate;
+    private Integer[] gearIds;
+    private String[] taxonGroupLabels;
+    private Integer qualityFlagId;
+
 
 }

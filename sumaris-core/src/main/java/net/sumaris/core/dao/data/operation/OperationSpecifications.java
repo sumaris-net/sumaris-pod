@@ -26,8 +26,12 @@ import net.sumaris.core.dao.data.DataSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.vo.data.OperationVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -55,6 +59,9 @@ public interface OperationSpecifications
     String HAS_NO_CHILD_OPERATION_PARAM = "hasNoChildOperation";
     String START_DATE_PARAM = "startDate";
     String END_DATE_PARAM = "endDate";
+    String GEAR_IDS_PARAMETER = "gearIds";
+    String TAXON_GROUP_LABELS_PARAMETER = "targetSpecieIds";
+    String QUALITY_FLAG_ID_PARAMETER = "qualityFlagId";
 
     default Specification<Operation> hasTripId(Integer tripId) {
         if (tripId == null) return null;
@@ -146,6 +153,29 @@ public interface OperationSpecifications
         return specification;
     }
 
+    default Specification<Operation> inGearIds(Integer[] gearIds) {
+        if (ArrayUtils.isEmpty(gearIds)) return null;
+        return BindableSpecification.<Operation>where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, GEAR_IDS_PARAMETER);
+            Join<Operation, PhysicalGear> physicalGearJoin = root.join(Operation.Fields.PHYSICAL_GEAR, JoinType.INNER);
+
+            return criteriaBuilder.in(physicalGearJoin.get(PhysicalGear.Fields.GEAR).get(IEntity.Fields.ID)).value(param);
+        })
+                .addBind(GEAR_IDS_PARAMETER, Arrays.asList(gearIds));
+    }
+
+    default Specification<Operation> inTaxonGroupLabels(String[] taxonGroupLabels) {
+        if (ArrayUtils.isEmpty(taxonGroupLabels)) return null;
+        return BindableSpecification.<Operation>where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, TAXON_GROUP_LABELS_PARAMETER);
+            Join<Operation, Metier> metierJoin = root.join(Operation.Fields.METIER, JoinType.INNER);
+
+            return criteriaBuilder.in(metierJoin.get(Metier.Fields.TAXON_GROUP).get(TaxonGroup.Fields.LABEL)).value(param);
+        })
+
+                .addBind(TAXON_GROUP_LABELS_PARAMETER, Arrays.asList(taxonGroupLabels));
+    }
+
 
     default Specification<Operation> isBetweenDates(Date startDate, Date endDate) {
         BindableSpecification<Operation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
@@ -185,6 +215,19 @@ public interface OperationSpecifications
 
         specification.addBind(START_DATE_PARAM, startDate);
         specification.addBind(END_DATE_PARAM, endDate);
+        return specification;
+    }
+
+    default Specification<Operation> hasQualityFlagId(Integer qualityFlagId) {
+        if (qualityFlagId == null) return null;
+        BindableSpecification<Operation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, QUALITY_FLAG_ID_PARAMETER);
+            return criteriaBuilder.or(
+                    criteriaBuilder.isNull(param),
+                    criteriaBuilder.equal(root.get(Operation.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), param)
+            );
+        });
+        specification.addBind(QUALITY_FLAG_ID_PARAMETER, qualityFlagId);
         return specification;
     }
 
