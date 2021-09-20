@@ -23,9 +23,6 @@ import {environment} from '@environments/environment';
 import {VesselSnapshotFilter} from './filter/vessel.filter';
 import {ProgramLabel} from '@app/referential/services/model/model.enum';
 import {VESSEL_CONFIG_OPTIONS} from '@app/vessel/services/config/vessel.config';
-import {VesselFilter} from '@app/vessel/services/filter/vessel.filter';
-import {LocalSettings} from '../../../../ngx-sumaris-components/src/app/core/services/model/settings.model';
-import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
 import {filter, mergeMap} from 'rxjs/operators';
 
 
