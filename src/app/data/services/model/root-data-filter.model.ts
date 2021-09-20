@@ -7,7 +7,7 @@ import {EntityAsObjectOptions, EntityUtils}  from "@sumaris-net/ngx-components";
 import {FilterFn} from "@sumaris-net/ngx-components";
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {Moment} from 'moment';
-import {DataQualityStatus, SynchronizationStatus} from '@app/data/services/model/model.utils';
+import {DataQualityStatusIdType, SynchronizationStatus} from '@app/data/services/model/model.utils';
 
 export abstract class RootDataEntityFilter<
   T extends RootDataEntityFilter<T, E, EID, AS, FO>,
@@ -22,7 +22,7 @@ export abstract class RootDataEntityFilter<
   recorderPerson: Person;
   startDate?: Moment;
   endDate?: Moment;
-  dataQualityStatus?: DataQualityStatus;
+  dataQualityStatus?: DataQualityStatusIdType;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);

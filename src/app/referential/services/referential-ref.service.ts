@@ -245,7 +245,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // Add fetch more capability, if total was fetched
     if (withTotal) {
-      const nextOffset = offset + entities.length;
+      const nextOffset = (offset || 0) + entities.length;
       if (nextOffset < res.total) {
         res.fetchMore = () => this.loadAll(nextOffset, size, sortBy, sortDirection, filter, opts);
       }
@@ -297,7 +297,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     const res: LoadResult<ReferentialRef> = { data: entities, total };
 
     // Add fetch more function
-    const nextOffset = offset + entities.length;
+    const nextOffset = (offset || 0) + entities.length;
     if (nextOffset < total) {
       res.fetchMore = () => this.loadAll(nextOffset, size, sortBy, sortDirection, filter, opts);
     }

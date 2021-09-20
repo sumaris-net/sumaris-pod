@@ -1,7 +1,6 @@
 import {Department, IEntity, Person, Referential, ReferentialRef, StatusIds} from '@sumaris-net/ngx-components';
 import {PredefinedColors} from '@ionic/core';
 import {QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {StatusValue} from '../../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
 
 /* -- Enumerations -- */
 
@@ -14,49 +13,49 @@ export const SynchronizationStatusEnum = Object.freeze({
   DELETED: <SynchronizationStatus>'DELETED'
 });
 
-export type DataQualityStatus = 'MODIFIED' | 'CONTROLLED' | 'VALIDATED' | 'QUALIFIED';
+export type DataQualityStatusIdType = 'MODIFIED' | 'CONTROLLED' | 'VALIDATED' | 'QUALIFIED';
 
-export const DataQualityStatusEnum = Object.freeze({
-  MODIFIED: <DataQualityStatus>'MODIFIED',
-  CONTROLLED: <DataQualityStatus>'CONTROLLED',
-  VALIDATED: <DataQualityStatus>'VALIDATED',
-  QUALIFIED: <DataQualityStatus>'QUALIFIED',
+export const DataQualityStatusIds = Object.freeze({
+  MODIFIED: <DataQualityStatusIdType>'MODIFIED',
+  CONTROLLED: <DataQualityStatusIdType>'CONTROLLED',
+  VALIDATED: <DataQualityStatusIdType>'VALIDATED',
+  QUALIFIED: <DataQualityStatusIdType>'QUALIFIED',
 })
 
-export declare interface DataQualityStatusItem {
-  id: DataQualityStatus;
-  icon: string;
+export declare interface IDataQualityStatus {
+  id: DataQualityStatusIdType;
+  icon?: string;
   label: string;
 }
 
-export const DataQualityStatusItemsMap = Object.freeze({
-  MODIFIED: <DataQualityStatusItem>{
-    id: DataQualityStatusEnum.MODIFIED,
+export const DataQualityStatusEnum = Object.freeze({
+  MODIFIED: <IDataQualityStatus>{
+    id: DataQualityStatusIds.MODIFIED,
     icon: 'pencil',
     label: 'QUALITY.MODIFIED'
   },
-  CONTROLLED: <DataQualityStatusItem>{
-    id: DataQualityStatusEnum.CONTROLLED,
+  CONTROLLED: <IDataQualityStatus>{
+    id: DataQualityStatusIds.CONTROLLED,
     icon: 'checkmark',
     label: 'QUALITY.CONTROLLED'
   },
-  VALIDATED: <DataQualityStatusItem>{
-    id: DataQualityStatusEnum.VALIDATED,
+  VALIDATED: <IDataQualityStatus>{
+    id: DataQualityStatusIds.VALIDATED,
     icon: 'checkmark-circle',
     label: 'QUALITY.VALIDATED'
   },
-  QUALIFIED: <DataQualityStatusItem>{
-    id: DataQualityStatusEnum.QUALIFIED,
+  QUALIFIED: <IDataQualityStatus>{
+    id: DataQualityStatusIds.QUALIFIED,
     icon: 'flag',
     label: 'QUALITY.QUALIFIED'
   }
 });
 
-export const DataQualityStatusItems = Object.freeze([
-  DataQualityStatusItemsMap.MODIFIED,
-  DataQualityStatusItemsMap.CONTROLLED,
-  DataQualityStatusItemsMap.VALIDATED,
-  DataQualityStatusItemsMap.QUALIFIED
+export const DataQualityStatusList = Object.freeze([
+  DataQualityStatusEnum.MODIFIED,
+  DataQualityStatusEnum.CONTROLLED,
+  DataQualityStatusEnum.VALIDATED,
+  DataQualityStatusEnum.QUALIFIED
 ]);
 
 

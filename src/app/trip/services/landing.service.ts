@@ -294,7 +294,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
            dataFilter?: LandingFilter|any,
            opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
 
-    dataFilter = LandingFilter.fromObject(dataFilter);
+    dataFilter = this.asFilter(dataFilter);
 
     // Load offline
     const offline = this.network.offline
@@ -306,7 +306,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     }
 
     const groupByVessel = dataFilter && dataFilter.groupByVessel === true;
-    if (groupByVessel) {
+    if (groupByVessel || size === -1) {
       // sortBy = 'dateTime';
       // sortDirection = 'desc';
       size = 1000;

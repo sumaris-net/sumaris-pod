@@ -4,7 +4,7 @@ import {VesselValidatorService} from "../services/validator/vessel.validator";
 import {VesselService} from "../services/vessel-service";
 import {VesselModal, VesselModalOptions} from "../modal/vessel-modal";
 import {Vessel} from "../services/model/vessel.model";
-import {DefaultStatusList, ReferentialRef, referentialToString}  from "@sumaris-net/ngx-components";
+import {StatusList, ReferentialRef, referentialToString}  from "@sumaris-net/ngx-components";
 import {ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AccountService}  from "@sumaris-net/ngx-components";
@@ -47,7 +47,7 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
 
   locations: Observable<ReferentialRef[]>;
   vesselTypes: Observable<ReferentialRef[]>;
-  statusList = DefaultStatusList;
+  statusList = StatusList;
   statusById: any;
 
   @Input() canEdit: boolean;
