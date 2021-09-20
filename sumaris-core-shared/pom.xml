@@ -25,8 +25,6 @@
 
   <dependencies>
 
-    <!-- JDBC -->
-
     <!-- spring boot (need by class HibernateConfig) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

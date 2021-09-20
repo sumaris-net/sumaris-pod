@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.server.scheduler;
+package net.sumaris.server.job;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;

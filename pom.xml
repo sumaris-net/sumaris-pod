@@ -826,7 +826,6 @@
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
         <version>${pgsql.version}</version>
-        <classifier>jar</classifier>
       </dependency>
 
       <!-- LiquiBase -->
