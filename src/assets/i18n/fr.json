@@ -1364,6 +1364,7 @@
       "EDIT": {
         "TITLE": "<small>{{program}}<br></small>Stratégie {{label}}",
         "LABEL": "Code",
+        "GENERATE_LABEL_BUTTON": "générer le label",
         "ANALYTIC_REFERENCE_PLACEHOLDER": "Code analytique",
         "DEPARTMENTS": "Service(s) saisisseur(s) :",
         "DEPARTMENT_PLACEHOLDER": "Service saisisseur #",
