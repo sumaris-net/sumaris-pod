@@ -88,6 +88,7 @@ import org.junit.runners.Suite;
     ProgramServiceWriteTest.class,
     StrategyServiceReadTest.class,
     StrategyServiceWriteTest.class,
+    StrategyPredocServiceReadTest.class,
     // Service: data
     ObservedLocationServiceReadTest.class,
     ObservedLocationServiceWriteTest.class,
