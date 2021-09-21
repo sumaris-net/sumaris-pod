@@ -1132,17 +1132,27 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     if (date.isBefore(moment("1900-12-31T00:00:00.000Z", 'YYYY-MM-DD'))) return;
     const year = date.format('YY');
 
-    if (this.taxonNamesHelper.at(0).value?.taxonName) {
-      const label = TaxonUtils.generateLabelFromName(this.taxonNamesHelper.at(0).value?.taxonName?.name);
-      if (!label) {
-        this.taxonNamesHelper.at(0).setErrors({cannotComputeTaxonCode: true});
-        return;
+    const inputLabel = this.form.get('label');
+    let label = '';
+    if (inputLabel.value?.substring(3, 10))
+    {
+      // Label automatically or manually set
+      label = inputLabel.value?.substring(3, 10);
+    }
+    else {
+      if (this.taxonNamesHelper.at(0).value?.taxonName) {
+        label = TaxonUtils.generateLabelFromName(this.taxonNamesHelper.at(0).value?.taxonName?.name);
+        if (!label) {
+          this.taxonNamesHelper.at(0).setErrors({cannotComputeTaxonCode: true});
+          return;
+        }
+        const isUnique = await this.isTaxonNameUnique(label, this.taxonNamesHelper.at(0).value?.taxonName?.id);
+        if (!isUnique) {
+          this.taxonNamesHelper.at(0).setErrors({uniqueTaxonCode: true});
+          return;
+        }
       }
-      const isUnique = await this.isTaxonNameUnique(label, this.taxonNamesHelper.at(0).value?.taxonName?.id);
-      if (!isUnique) {
-        this.taxonNamesHelper.at(0).setErrors({uniqueTaxonCode: true});
-        return;
-      }
+    }
       // if current date and taxon code are same than stored data, set stored data
       if (this.data.label && this.data.label.substring(0, 2) === year && this.data.label.substring(2, 9) === label.toUpperCase()) {
         this.form.get('label').setValue(this.data.label);
@@ -1151,7 +1161,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }
       SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
       SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
-    }
   }
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------
