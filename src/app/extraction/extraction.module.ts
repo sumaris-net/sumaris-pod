@@ -9,7 +9,7 @@ import {ExtractionCriteriaValidatorService} from "./services/validator/extractio
 import {SelectProductModal} from "./product/modal/select-product.modal";
 import {ExtractionCriteriaForm} from "./form/extraction-criteria.form";
 import {ProductForm} from "./product/form/product.form";
-import {AppReferentialModule} from "../referential/app-referential.module";
+import {AppReferentialModule} from "../referential/referential.module";
 import {LeafletModule} from "@asymmetrik/ngx-leaflet";
 import {MarkdownModule} from "ngx-markdown";
 import {ExtractionHelpModal} from "./help/help.modal";

@@ -12,7 +12,7 @@ import {CommonModule} from "@angular/common";
 import {AppDataModule} from "../data/app-data.module";
 import {VesselFeaturesHistoryComponent} from "./page/vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./page/vessel-registration-history.component";
-import {AppReferentialModule} from "../referential/app-referential.module";
+import {AppReferentialModule} from "../referential/referential.module";
 import {AppCoreModule} from '@app/core/core.module';
 
 @NgModule({

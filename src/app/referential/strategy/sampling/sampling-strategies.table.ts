@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, 
 import {
   AppFormUtils,
   AppTable,
-  DefaultStatusList,
+  StatusList,
   EntitiesTableDataSource, firstArrayValue,
   fromDateISOString,
   isEmptyArray,
@@ -67,7 +67,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   readonly parameterGroupLabels: string[];
 
   errorDetails: any;
-  statusList = DefaultStatusList;
+  statusList = StatusList;
   statusById: any;
   parameterIdsByGroupLabel: ObjectMap<number[]>;
 

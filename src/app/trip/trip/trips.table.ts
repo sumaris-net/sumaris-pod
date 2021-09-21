@@ -34,7 +34,7 @@ import {environment} from '@environments/environment';
 import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
 import {filter, tap} from 'rxjs/operators';
 import {BehaviorSubject} from 'rxjs';
-import {DataQualityStatusItems, DataQualityStatusItemsMap} from '@app/data/services/model/model.utils';
+import {DataQualityStatusList, DataQualityStatusEnum} from '@app/data/services/model/model.utils';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -56,8 +56,8 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
 
   $title = new BehaviorSubject<string>('');
   highlightedRow: TableElement<Trip>;
-  statusList = DataQualityStatusItems;
-  statusById = DataQualityStatusItemsMap;
+  statusList = DataQualityStatusList;
+  statusById = DataQualityStatusEnum;
 
   @Input() showQuality = true;
   @Input() showRecorder = true;
