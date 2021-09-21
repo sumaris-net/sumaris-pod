@@ -74,7 +74,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   mobile: boolean;
   $program = new BehaviorSubject<Program>(null);
-  labelMask: (string | RegExp)[] = [/\d/, /\d/, ' ', /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, ' ', /\d/, /\d/, /\d/];
+  labelMask: (string | RegExp)[] = [/\d/, /\d/, ' ', /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, ' ', /\d/, /\d/, /\d/];
   data: SamplingStrategy;
 
   hasEffort = false;
@@ -359,10 +359,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }
     ]);
 
-    // this.registerSubscription(this.form.get('label').valueChanges.subscribe(() => this.onEditLabel()));
+    this.registerSubscription(this.form.get('label').valueChanges.subscribe(value => this.onEditLabel(value)));
     // register year field changes
-    // this.registerSubscription(this.form.get('year').valueChanges.subscribe(() => this.onDateChange()));
-    // this.registerSubscription(this.taxonNamesFormArray.valueChanges.subscribe(() => this.onTaxonChange()));
+    this.registerSubscription(this.form.get('year').valueChanges.subscribe(date => this.onDateChange(date)));
+    this.registerSubscription(this.taxonNamesFormArray.valueChanges.subscribe(() => this.onTaxonChange()));
 
     const idControl = this.form.get('id');
     this.form.get('label').setAsyncValidators([
@@ -959,6 +959,41 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return target;
   }
 
+  protected async onEditLabel(value: string) {
+    const taxonNameControl = this.taxonNamesHelper.at(0);
+    if (!value) return
+    const expectedLabelFormatRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] ___$/);
+    if (value.match(expectedLabelFormatRegex)) {
+      const currentViewTaxon = taxonNameControl?.value?.taxonName;
+      const isUnique = await this.isTaxonNameUnique(value.substring(3, 10), currentViewTaxon?.id);
+      if (!isUnique) {
+        taxonNameControl.setErrors({ uniqueTaxonCode: true });
+      } else {
+        SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
+        // We only compute next label when taxon has just been set. We don't compute when user remove previous computed label
+        // if (this.form.value.label && this.form.value.label.length && this.form.value.label.length < value.length)
+        // {
+        //   const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10).replace(/\s/g, '').toUpperCase(), 3));
+        //   const labelControl = this.form.get('label');
+        //   labelControl.setValue(computedLabel);
+        // }
+
+      }
+    }
+    const acceptedLabelFormatRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] \d\d\d$/);
+    if (value.match(acceptedLabelFormatRegex)) {
+      const currentViewTaxon = taxonNameControl?.value?.taxonName;
+      const isUnique = await this.isTaxonNameUnique(value.substring(3, 10), currentViewTaxon?.id);
+      if (!isUnique) {
+        taxonNameControl.setErrors({ uniqueTaxonCode: true });
+      } else {
+        SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
+        const labelControl = this.form.get('label');
+        labelControl.setValue(value.replace(/\s/g, '').toUpperCase());
+      }
+    }
+  }
+
   private async isTaxonNameUnique(label: string, currentViewTaxonId?: number) {
     const taxonNamesItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
     const taxonNamesWithParentheseItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
@@ -1002,7 +1037,92 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return isUnique;
   }
 
-  async generateLabelButton() {
+  protected async onDateChange(date?: Moment) {
+    let dateAsMoment: Moment;
+    if (typeof date === 'string') {
+      dateAsMoment = moment(date, 'YYYY-MM-DD');
+    } else {
+      dateAsMoment = date;
+    }
+    if (!dateAsMoment || dateAsMoment.isBefore(moment("1900-12-31T00:00:00.000Z", 'YYYY-MM-DD'))) return;
+    await this.generateLabel(dateAsMoment);
+  }
+
+  protected async onTaxonChange() {
+    if (!this.program) return; // Skip if program is missing
+
+    await this.generateLabel();
+
+    // TODO try to limit pmfms, by loading previous sampling strategies ?
+  }
+
+  protected async generateLabel(date?: Moment) {
+    // Wait for asynchronous functions to be completed.
+    if (this.analyticsReferencePatched && this.fillEffortsCalled) {
+      date = fromDateISOString(date || this.form.get('year').value);
+      if (!date || !this.program) return // Skip if year or program is missing
+      const yearMask = date.format('YY');
+
+      let errors: ValidationErrors;
+      const taxonNameControl = this.taxonNamesHelper.at(0);
+      const currentViewTaxon = taxonNameControl?.value?.taxonName;
+      const currentViewTaxonName = taxonNameControl?.value?.taxonName?.name;
+      const previousFormTaxonName = this.form.getRawValue().taxonNames[0]?.taxonName?.name?.clone;
+      const storedDataTaxonName = this.data.taxonNames[0]?.taxonName?.name;
+      const storedDataYear = this.data.appliedStrategies[0]?.appliedPeriods[0]?.startDate ? fromDateISOString(this.data.appliedStrategies[0].appliedPeriods[0].startDate).format('YY') : undefined;
+      let previousFormYear = undefined;
+      if (this.form.getRawValue().year && fromDateISOString(this.form.getRawValue().year)) {
+        previousFormYear = fromDateISOString(this.form.getRawValue().year).format('YY');
+      }
+      const labelControl = this.form.get('label');
+
+      // When taxon is changed first and returned to initial value, we set back initial sampling strategy label (with same year)
+      // if (currentViewTaxonName === storedDataTaxonName && yearMask === storedDataYear) {
+      //   // Strategy label is stored without any spaces. We must set the label back with specific pattern
+      //   let storedLabelToSetBack = this.data.label;
+      //   if (this.data.label && this.data.label.length === 12)
+      //   {
+      //     storedLabelToSetBack = this.data.label.substr(0, 2).concat(' ').concat(this.data.label.substr(2, 7)).concat(' ').concat(this.data.label.substr(9, 11));
+      //   }
+      //   labelControl.setValue(storedLabelToSetBack);
+      //   // @ts-ignore
+      //   this.labelMask = yearMask.split("")
+      //     .concat([' ', /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, ' ', /\d/, /\d/, /\d/]);
+      //   return;
+      // }
+      const label = currentViewTaxonName && TaxonUtils.generateLabelFromName(currentViewTaxonName);
+      const isUnique = await this.isTaxonNameUnique(label, currentViewTaxon?.id);
+
+      if (!label) {
+        errors = {cannotComputeTaxonCode: true};
+      } else if (!isUnique) {
+        errors = {uniqueTaxonCode: true};
+      }
+
+      // @ts-ignore
+      const newMask = yearMask.split("")
+        .concat([' ', /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, ' ', /\d/, /\d/, /\d/]);
+
+      if (currentViewTaxonName  && currentViewTaxonName === previousFormTaxonName && yearMask && yearMask === previousFormYear) return; // Skip generate label when there is no update on year or taxon
+      this.labelMask = newMask;
+
+
+
+      if (errors && taxonNameControl) {
+        const computedLabel = `${yearMask} `;
+        taxonNameControl.setErrors(errors);
+        labelControl.setValue(computedLabel);
+      } else {
+        //const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${yearMask}${label}`, 3));
+        SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
+        //console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
+        //labelControl.setValue(computedLabel);
+        labelControl.setValue(`${yearMask} ${label}`);
+      }
+    }
+  }
+
+  async generateLabelIncrementButton() {
     let date: Moment;
     if (typeof this.form.get('year').value === 'string') {
       date = moment(this.form.get('year').value, 'YYYY-MM-DD');
@@ -1016,13 +1136,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       const label = TaxonUtils.generateLabelFromName(this.taxonNamesHelper.at(0).value?.taxonName?.name);
       if (!label) {
         this.taxonNamesHelper.at(0).setErrors({cannotComputeTaxonCode: true});
-        this.form.get('label').setValue(year);
         return;
       }
       const isUnique = await this.isTaxonNameUnique(label, this.taxonNamesHelper.at(0).value?.taxonName?.id);
       if (!isUnique) {
         this.taxonNamesHelper.at(0).setErrors({uniqueTaxonCode: true});
-        this.form.get('label').setValue(year);
         return;
       }
       // if current date and taxon code are same than stored data, set stored data
@@ -1035,7 +1153,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
     }
   }
-
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------
   protected initTaxonNameHelper() {
