@@ -57,6 +57,7 @@ import {PmfmFilter, PmfmService} from '../../services/pmfm.service';
 import {SamplingStrategy, StrategyEffort} from '@app/referential/services/model/sampling-strategy.model';
 import {TaxonName} from '@app/referential/services/model/taxon-name.model';
 import {TaxonNameService} from '@app/referential/services/taxon-name.service';
+import { debounceTime } from 'rxjs/operators';
 
 const moment = momentImported;
 
@@ -256,16 +257,20 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     this.registerSubscription(
       merge(
+        this.weightPmfmStrategiesTable.onDirty,
+        this.lengthPmfmStrategiesTable.onDirty,
+        this.maturityPmfmStrategiesTable.onDirty,
         // Delete a row
-        this.weightPmfmStrategiesTable.onCancelOrDeleteRow,
+        /*this.weightPmfmStrategiesTable.onCancelOrDeleteRow,
         this.lengthPmfmStrategiesTable.onCancelOrDeleteRow,
         this.maturityPmfmStrategiesTable.onCancelOrDeleteRow,
 
         // Add a row
         this.weightPmfmStrategiesTable.onConfirmEditCreateRow,
         this.lengthPmfmStrategiesTable.onConfirmEditCreateRow,
-        this.maturityPmfmStrategiesTable.onConfirmEditCreateRow
+        this.maturityPmfmStrategiesTable.onConfirmEditCreateRow*/
       )
+        .pipe(debounceTime(100))
         .subscribe(() => this.onPmfmStrategyTablesChanges())
     );
 
@@ -331,16 +336,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     ]);
 
     this.form.setAsyncValidators([
-      async (control) => {
-        // allow user to save without valid pmfm table
-        await this.weightPmfmStrategiesTable.save();
-        await this.lengthPmfmStrategiesTable.save();
-        await this.maturityPmfmStrategiesTable.save();
+      async (form) => {
+        // DEBUG
+        console.debug("Validated form: checking more than 2 pmfms")
         //Check number of selected pmfms
         const minLength = 2;
-        const pmfms = control.get('pmfms').value.flat();
-        const sex = control.get('sex').value;
-        const age = control.get('age').value;
+        const pmfms = form.get('pmfms').value.flat();
+        const sex = form.get('sex').value;
+        const age = form.get('age').value;
         let length = 0;
         if (age) length++;
         if (sex) length++;
@@ -355,7 +358,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         if (length < minLength) {
           return <ValidationErrors>{ minLength: { minLength } };
         }
-        SharedValidators.clearError(control, 'minLength');
+        SharedValidators.clearError(form, 'minLength');
       }
     ]);
 
@@ -589,14 +592,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.weightPmfmStrategiesTable.save(),
       this.lengthPmfmStrategiesTable.save(),
       this.maturityPmfmStrategiesTable.save()
-        .catch((err) => {
-          console.error(err);
-        })
-    ]);
+    ])
+    .catch((err) => console.error(err));
   }
 
   async onPmfmStrategyTablesChanges() {
     const pmfms = [];
+
+    console.debug('onPmfmStrategyTablesChanges');
 
     // Save all pmfm strategy tables
     await this.savePmfmStrategyTables();

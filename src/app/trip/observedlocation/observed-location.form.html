@@ -104,7 +104,7 @@
       <ion-col >
         <mat-autocomplete-field [formControl]="observersHelper.at(i)"
                                 [placeholder]="('OBSERVED_LOCATION.EDIT.OBSERVER_PLACEHOLDER'|translate) + (i+1)"
-                                [appAutofocus]="observerFocusIndex === i"
+                                [autofocus]="observerFocusIndex === i"
                                 [config]="autocompleteFields.person"
                                 [tabindex]="tabindex+10+i*3"
                                 [i18nPrefix]="'USER.'"

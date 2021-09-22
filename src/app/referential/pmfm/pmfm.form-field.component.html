@@ -12,10 +12,10 @@
   <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
     <input matInput #matInput
            autocomplete="off" type="number"
-           [min]="pmfm.minValue"
-           [max]="pmfm.maxValue"
            pattern="[0-9]*"
            step="1"
+           [min]="pmfm.minValue"
+           [max]="pmfm.maxValue"
            [appAutofocus]="autofocus"
            [placeholder]="placeholder"
            (keydown.enter)="onPressEnter.emit($event)"
@@ -44,8 +44,10 @@
 
     <input matInput #matInput
            type="number"
-           autocomplete="off" [min]="pmfm.minValue" [max]="pmfm.maxValue"
            decimal="true"
+           autocomplete="off"
+           [min]="pmfm.minValue"
+           [max]="pmfm.maxValue"
            [appAutofocus]="autofocus"
            [placeholder]="placeholder"
            [step]="numberInputStep"
@@ -103,7 +105,8 @@
                    [required]="required"
                    [readonly]="readonly"
                    [compact]="compact"
-                   [tabindex]="tabindex">
+                   [tabindex]="tabindex"
+                   [autofocus]="autofocus">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
@@ -116,7 +119,8 @@
                        [required]="required"
                        [readonly]="readonly"
                        [compact]="compact"
-                       [tabindex]="tabindex">
+                       [tabindex]="tabindex"
+                       [autofocus]="autofocus">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>

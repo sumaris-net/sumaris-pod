@@ -38,127 +38,116 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-
-<mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
-           [class.no-header-row]="!showHeaderRow"
-           matSortDisableClear [trackBy]="trackByFn">
+<table mat-table matSort matSortDisableClear
+       [class.no-header-row]="!showHeaderRow"
+       [dataSource]="dataSource"
+       [matSortActive]="defaultSortBy"
+       [matSortDirection]="defaultSortDirection"
+       [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
-    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
+    <th mat-header-cell *matHeaderCellDef>
       <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
                     [indeterminate]="selection.hasValue() && !isAllSelected()">
       </mat-checkbox>
-    </mat-header-cell>
-    <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
+    </th>
+    <td mat-cell *matCellDef="let row">
       <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
       </mat-checkbox>
-    </mat-cell>
+    </td>
   </ng-container>
 
   <!-- Id column -->
   <ng-container matColumnDef="id">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.currentData?.id }}</mat-cell>
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label>#</ion-label>
+    </th>
+    <td mat-cell *matCellDef="let row">{{ row.currentData?.id }}</td>
   </ng-container>
 
   <!-- Fields-->
   <ng-container *ngFor="let definition of fieldDefinitions" [matColumnDef]="definition.key">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label>{{definition.label | translate}}</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" >
+    </th>
+    <td mat-cell *matCellDef="let row"
+        (click)="focusColumn=definition.key">
       <app-form-field floatLabel="never"
                       [formControl]="row.validator.controls[definition.key]"
                       [definition]="definition"
+                      [autofocus]="row.editing && focusColumn === definition.key"
                       [compact]="true">
       </app-form-field>
-    </mat-cell>
+    </td>
   </ng-container>
 
   <!-- Default value -->
   <ng-container matColumnDef="defaultValue">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label>{{fieldDefinitionsMap.defaultValue.label | translate}}</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" >
+    </th>
+    <td mat-cell *matCellDef="let row"
+        (click)="focusColumn='defaultValue'">
       <ng-container *ngIf="row.validator.controls.pmfm.value; let pmfm">
         <app-pmfm-field floatLabel="never"
                         [formControl]="row.validator.controls.defaultValue"
                         [pmfm]="pmfm"
+                        [autofocus]="row.editing && focusColumn === 'defaultValue'"
                         [compact]="true">
         </app-pmfm-field>
       </ng-container>
-    </mat-cell>
+    </td>
   </ng-container>
 
 
+  <!-- Row actions buttons -->
+  <app-actions-column *ngIf="showToolbar; else noToolbarActions"
+                      (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
+                      (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
+                      (backward)="confirmAndBackward($event.event, $event.row)"
+                      (forward)="confirmAndForward($event.event, $event.row)"
+                      [canCancel]="false">
+  </app-actions-column>
+
   <!-- Actions buttons column -->
-  <ng-container matColumnDef="actions">
-    <mat-header-cell  [hidden]="!inlineEdition"
-                      *matHeaderCellDef >
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition && showHeaderRow">
-
-      <ng-container *ngIf="showHeaderRow; else noHeaderRowActions">
-        <!-- undo or delete  -->
-        <button mat-icon-button color="light" *ngIf="row.validator.invalid"
-                [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-                (click)="cancelOrDelete($event, row)">
-          <mat-icon *ngIf="row.id !== -1 && (row.validator.invalid)">undo</mat-icon>
-          <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
-        </button>
-
-        <!-- validate -->
-        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
-                [title]="'COMMON.BTN_VALIDATE'|translate"
-                (click)="confirmEditCreate($event, row)">
-          <mat-icon>check</mat-icon>
-        </button>
-        <!-- add -->
-        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1"
-                [title]="'COMMON.BTN_ADD'|translate"
-                (click)="!showHeaderRow ? addRow() : confirmAndAdd($event, row)">
-          <mat-icon>add</mat-icon>
-        </button>
-      </ng-container>
-      <ng-template #noHeaderRowActions>
-
-        <!-- validate -->
-        <button mat-icon-button color="light" *ngIf="row.validator.valid"
-                [title]="'COMMON.BTN_VALIDATE'|translate"
-                (click)="confirmEditCreate($event, row)">
-          <mat-icon>check</mat-icon>
-        </button>
+  <ng-template #noToolbarActions>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>
+      </th>
+      <td mat-cell *matCellDef="let row">
 
         <!-- add -->
-        <button mat-icon-button color="light" [hidden]="!canEdit" *ngIf="!row.editing || row.validator.valid"
+        <button mat-icon-button color="light"
                 [title]="'COMMON.BTN_ADD'|translate"
-                (click)="addRow()">
+                (click)="confirmAndAdd($event, row)">
           <mat-icon>add</mat-icon>
         </button>
 
-        <!-- delete -->
-        <button mat-icon-button color="light" [hidden]="!canDelete"
-                [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+        <!-- delete  -->
+        <button mat-icon-button color="light"
+                [title]="'COMMON.BTN_DELETE'|translate"
                 (click)="deleteRow($event, row)">
           <mat-icon>close</mat-icon>
         </button>
 
-      </ng-template>
-
-    </mat-cell>
-  </ng-container>
+      </td>
+    </ng-container>
+  </ng-template>
 
   <ng-container *ngIf="showHeaderRow">
-    <mat-header-row *matHeaderRowDef="displayedColumns; sticky: sticky"></mat-header-row>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: sticky"></tr>
   </ng-container>
-  <mat-row *matRowDef="let row; columns: displayedColumns;"
-           [class.mat-row-error]="row.validator.invalid"
-           [class.mat-row-dirty]="row.validator.dirty"
-           [class.mat-row-disabled]="!row.editing"
-           (click)="clickRow($event, row)"></mat-row>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+      [class.mat-row-error]="row.validator.invalid"
+      [class.mat-row-dirty]="row.validator.dirty"
+      [class.mat-row-disabled]="!row.editing"
+      (click)="clickRow($event, row)"
+      [cdkTrapFocus]="row.editing && row.validator.invalid"></tr>
 
-</mat-table>
+</table>
 
+<ng-container *ngIf="loading$|async">
+  <ion-item>
+    <ion-skeleton-text animated></ion-skeleton-text>
+  </ion-item>
+</ng-container>
