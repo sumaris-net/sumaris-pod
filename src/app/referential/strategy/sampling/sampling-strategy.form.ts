@@ -1109,9 +1109,23 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
 
       if (errors && taxonNameControl) {
-        const computedLabel = `${yearMask} `;
-        taxonNameControl.setErrors(errors);
-        labelControl.setValue(computedLabel);
+        // if (this.data.label && this.data.label.substring(0, 2) === yearMask && this.data.label.substring(2, 9) === labelControl.value.toUpperCase().substring(2, 9)) {
+        //   labelControl.setValue(this.data.label);
+        // } else {
+          const computedLabel = `${yearMask} `;
+          if (!taxonNameControl.errors)
+          {
+
+            if ((this.data.label && this.data.label === labelControl.value) && (storedDataTaxonName && storedDataTaxonName === currentViewTaxonName))
+            {
+              // When function is called back after save, we do nothing
+            }
+            else {
+              labelControl.setValue(computedLabel);
+            }
+          }
+          taxonNameControl.setErrors(errors);
+        // }
       } else {
         //const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${yearMask}${label}`, 3));
         SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
@@ -1119,7 +1133,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         //labelControl.setValue(computedLabel);
         // if current date and taxon code are same than stored data, set stored data
         if (this.data.label && this.data.label.substring(0, 2) === yearMask && this.data.label.substring(2, 9) === label.toUpperCase()) {
-          this.form.get('label').setValue(this.data.label);
+          labelControl.setValue(this.data.label);
         } else {
           labelControl.setValue(`${yearMask} ${label}`);
         }
