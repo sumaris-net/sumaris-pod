@@ -1136,9 +1136,18 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         //labelControl.setValue(computedLabel);
         // if current date and taxon code are same than stored data, set stored data
         if (this.data.label && this.data.label.substring(0, 2) === yearMask && this.data.label.substring(2, 9) === label.toUpperCase()) {
-          labelControl.setValue(this.data.label);
+          // Complete label with '___' when increment isn't set in order to throw a warning in validator
+          if (this.data.label.length === 9)
+          {
+            labelControl.setValue(this.data.label + '___');
+          }
+          else
+          {
+            labelControl.setValue(this.data.label);
+          }
         } else {
-          labelControl.setValue(`${yearMask} ${label}`);
+          // Complete label with '___' when increment isn't set in order to throw a warning in validator
+          labelControl.setValue(`${yearMask} ${label} ___`);
         }
       }
     }
