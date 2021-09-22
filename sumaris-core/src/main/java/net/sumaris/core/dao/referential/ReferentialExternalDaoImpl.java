@@ -101,8 +101,18 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
                                             String sortAttribute,
                                             SortDirection sortDirection) {
 
-        if (!enableAnalyticReferences) throw new UnsupportedOperationException("Analytic references not supported");
-
+        if (!enableAnalyticReferences && config.isProduction()){
+            throw new UnsupportedOperationException("Analytic references not supported");
+        }
+        else if (!config.isProduction()){
+            ArrayList<ReferentialVO> referentialVOS = new ArrayList<ReferentialVO>();
+            ReferentialVO ref = new ReferentialVO();
+            ref.setLabel("UNK");
+            ref.setName("Unknown");
+            ref.setId(0);
+            referentialVOS.add(ref);
+            return referentialVOS;
+        }
         loadAnalyticReferences();
 
         // Prepare search pattern
