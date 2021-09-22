@@ -1117,7 +1117,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
         //console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
         //labelControl.setValue(computedLabel);
-        labelControl.setValue(`${yearMask} ${label}`);
+        // if current date and taxon code are same than stored data, set stored data
+        if (this.data.label && this.data.label.substring(0, 2) === yearMask && this.data.label.substring(2, 9) === label.toUpperCase()) {
+          this.form.get('label').setValue(this.data.label);
+        } else {
+          labelControl.setValue(`${yearMask} ${label}`);
+        }
       }
     }
   }
@@ -1133,11 +1138,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     const year = date.format('YY');
 
     const inputLabel = this.form.get('label');
+    const inputLabelValueWithoutSpaces = inputLabel.value?.replace(/\s/g, '').toUpperCase();
     let label = '';
-    if (inputLabel.value?.substring(3, 10))
+    if (inputLabelValueWithoutSpaces.substring(2, 9))
     {
       // Label automatically or manually set
-      label = inputLabel.value?.substring(3, 10);
+      label = inputLabelValueWithoutSpaces.substring(2, 9);
     }
     else {
       if (this.taxonNamesHelper.at(0).value?.taxonName) {
