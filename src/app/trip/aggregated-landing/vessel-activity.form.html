@@ -35,7 +35,7 @@
       <ion-col>
         <mat-autocomplete-field #metierField [formControl]="metiersHelper.at(i)"
                                 [placeholder]="(first && 'TRIP.MAIN_METIER_PLACEHOLDER' || 'TRIP.SECONDARY_METIER_PLACEHOLDER') |translate: {rank: i}"
-                                [appAutofocus]="metierFocusIndex === i"
+                                [autofocus]="metierFocusIndex === i"
                                 [config]="autocompleteFields.metier"
                                 [filter]="metierFilter"
                                 [tabindex]="tabindex+10+i*3"
