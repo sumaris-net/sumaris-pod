@@ -3,7 +3,7 @@ import {IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils} from './pmfm.model'
 import {PmfmValue, PmfmValueUtils} from './pmfm-value.model';
 import {MethodIds} from './model.enum';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {IReferentialRef} from '../../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
+import {IReferentialRef} from "@sumaris-net/ngx-components";
 
 
 @EntityClass({typename: "PmfmStrategyVO"})
