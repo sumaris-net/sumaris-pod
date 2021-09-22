@@ -1,5 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output} from '@angular/core';
 import {
+  AppFormUtils,
   AppInMemoryTable,
   AppTableDataSourceOptions,
   changeCaseToUnderscore,
@@ -28,7 +29,7 @@ import {ReferentialRefService} from '../services/referential-ref.service';
 import {BehaviorSubject, merge, Observable, of} from 'rxjs';
 import {PmfmFilter, PmfmService} from '../services/pmfm.service';
 import {Pmfm} from '../services/model/pmfm.model';
-import { debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { combineAll, debounceTime, distinctUntilChanged, filter, map, mergeAll, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 import {PmfmStrategy} from '../services/model/pmfm-strategy.model';
 import {PmfmValueUtils} from '../services/model/pmfm-value.model';
 import {Parameter} from '../services/model/parameter.model';
@@ -92,7 +93,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
 
   $acquisitionLevels = new BehaviorSubject<IReferentialRef[]>(undefined);
-  $loadingReferential = new BehaviorSubject<boolean>(true);
 
   fieldDefinitionsMap: FormFieldDefinitionMap = {};
   fieldDefinitions: FormFieldDefinition[] = [];
@@ -199,6 +199,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.inlineEdition = true;
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
+    this.saveBeforeDelete = true;
 
     this.debug = !environment.production;
 
@@ -360,14 +361,14 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       required: false
     }, true);
 
-    if (!this.allowEmpty) {
+    /*if (!this.allowEmpty) {
       this.registerSubscription(
         this.onBeforeDeleteRows.subscribe(event => {
           const canDelete = this.totalRowCount > 1;
           event.detail.success(canDelete);
         })
       )
-    }
+    }*/
   }
 
   setFilter(source: Partial<PmfmStrategyFilter>, opts?: { emitEvent: boolean }) {
@@ -469,36 +470,41 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.$acquisitionLevels.next(res?.data || []);
   }
 
-  async deleteRow(event: UIEvent, row: TableElement<PmfmStrategy>): Promise<boolean> {
+  async resetRow(event: UIEvent, row: TableElement<PmfmStrategy>): Promise<boolean> {
 
-    // If last row, and not allowed to remove the last row: reset instead of delete
-    if (!this.allowEmpty && this.totalRowCount === 1) {
-      row.validator?.reset(PmfmStrategy.fromObject({}).asObject());
-      return true;
-    }
-    if (row.editing && row.id === -1) {
-      this.cancelOrDelete(event, row);
-    }
-    else if (row.id !== -1) {
-      const rows = (await this.dataSource.getRows() || []).reduce(function(result, rowIter){
-        const currentDataWithId = rowIter.currentData;
-        if (rowIter.id === row.id){
-          currentDataWithId.id = -1;
-          rowIter.currentData = currentDataWithId;
-          row = rowIter;
-        }
-        result.push(currentDataWithId);
-        return result;
-      }, []);
-      this.dataSource.updateDatasource(rows);
-      this.memoryDataService.value[row.id].id = -1;
-      this.selection.clear();
-      this.selection.select(row);
-      await super.deleteSelection(event);
-      this.onCancelOrDeleteRow.next(row);
-    }
+    if (event?.defaultPrevented) return false;
+
+    console.debug("[pmfm-strategies-table] Resetting row");
+    if (event) event.preventDefault(); // Avoid clickRow to be executed
+
+
+    AppFormUtils.copyEntity2Form({}, row.validator);
+    row.validator.markAsUntouched();
+    row.validator.markAsPristine();
+    row.validator.disable();
+    this.editedRow = undefined;
 
     return true;
+  }
+
+  get valueChanges(): Observable<any[]> {
+    return merge(
+      this.dataSource.connect(null),
+      this.onStartEditingRow.pipe(
+        filter(row => !!row.validator),
+        mergeMap(row => row.validator.valueChanges
+          .pipe(
+            //debounceTime(250),
+            mergeMap((_) => this.dataSource.getRows()),
+            map((rows) => rows
+              .map(r => r.id === row.id ? row : r)
+            )
+          )
+        )
+      ))
+      .pipe(
+        map(rows => (rows || []).map(r => r.currentData))
+      );
   }
 
   /* -- protected functions -- */

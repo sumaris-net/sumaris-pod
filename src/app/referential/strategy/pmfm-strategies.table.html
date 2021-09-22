@@ -100,7 +100,7 @@
   </ng-container>
 
 
-  <!-- Row actions buttons -->
+  <!-- Actions buttons column (if  has toolbar) -->
   <app-actions-column *ngIf="showToolbar; else noToolbarActions"
                       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
                       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
@@ -109,7 +109,7 @@
                       [canCancel]="false">
   </app-actions-column>
 
-  <!-- Actions buttons column -->
+  <!-- Actions buttons column (if NO toolbar) -->
   <ng-template #noToolbarActions>
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef>
@@ -124,9 +124,16 @@
         </button>
 
         <!-- delete  -->
-        <button mat-icon-button color="light"
+        <button mat-icon-button color="light" *ngIf="allowEmpty || totalRowCount > 1"
                 [title]="'COMMON.BTN_DELETE'|translate"
                 (click)="deleteRow($event, row)">
+          <mat-icon>close</mat-icon>
+        </button>
+
+        <!-- reset row  -->
+        <button mat-icon-button color="light" *ngIf="!allowEmpty && totalRowCount === 1"
+                [title]="'COMMON.BTN_DELETE'|translate"
+                (click)="resetRow($event, row)">
           <mat-icon>close</mat-icon>
         </button>
 
