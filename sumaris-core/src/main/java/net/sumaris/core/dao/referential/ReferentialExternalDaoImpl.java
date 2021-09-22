@@ -25,6 +25,7 @@ package net.sumaris.core.dao.referential;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -88,7 +89,7 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
 
             // Load references
             if (this.enableAnalyticReferences) {
-                loadAnalyticReferences();
+                loadOrUpdateAnalyticReferences();
             }
         }
     }
@@ -101,19 +102,18 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
                                             String sortAttribute,
                                             SortDirection sortDirection) {
 
-        if (!enableAnalyticReferences && config.isProduction()){
-            throw new UnsupportedOperationException("Analytic references not supported");
+        if (!enableAnalyticReferences) {
+            if (config.isProduction()) throw new UnsupportedOperationException("Analytic references not supported");
+            // In DEV mode: return a fake UNK value
+            return ImmutableList.of(ReferentialVO.builder()
+                .id(-1)
+                .label("UNK")
+                .name("Unknown")
+                .build());
         }
-        else if (!config.isProduction()){
-            ArrayList<ReferentialVO> referentialVOS = new ArrayList<ReferentialVO>();
-            ReferentialVO ref = new ReferentialVO();
-            ref.setLabel("UNK");
-            ref.setName("Unknown");
-            ref.setId(0);
-            referentialVOS.add(ref);
-            return referentialVOS;
-        }
-        loadAnalyticReferences();
+
+        // Make sure references have been load, or refreshed
+        loadOrUpdateAnalyticReferences();
 
         // Prepare search pattern
         filter.setSearchText(StringUtils.trimToNull(filter.getSearchText()));
@@ -130,7 +130,7 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
     }
 
     // TODO NRannou: add cache (with a time to live) - or transcribing
-    public void loadAnalyticReferences() {
+    public void loadOrUpdateAnalyticReferences() {
 
         Date updateDate = new Date();
         int delta = DateUtil.getDifferenceInDays(analyticReferencesUpdateDate, updateDate);
