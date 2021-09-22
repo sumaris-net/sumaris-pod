@@ -474,30 +474,4 @@ export class PmfmService
 
   }
 
-  public getConvertedPmfm(pmfm: IPmfm): IPmfm {
-    // Weight pmfms are the only ones that can be converted yet.
-    if (pmfm.unitLabel === 'Kg' || pmfm.unitLabel === UnitLabel.KG || pmfm.unitLabel === UnitLabel.GRAM) {
-      const convertedPmfm = pmfm.clone();
-      // Retrieve software displayed unit in software properties
-      convertedPmfm.unitLabel = this.weightDisplayedUnit;
-      const conversionFn = function (number) {
-        return number * 1000;
-      }
-      convertedPmfm.minValue = isNotNil(convertedPmfm.minValue) ? conversionFn(convertedPmfm.minValue) : convertedPmfm.minValue;
-      convertedPmfm.maxValue = isNotNil(convertedPmfm.maxValue) ? conversionFn(convertedPmfm.maxValue) : convertedPmfm.maxValue;
-      if (UnitLabel.GRAM === pmfm.unitLabel && UnitLabel.KG === convertedPmfm.unitLabel) {
-        convertedPmfm.maximumNumberDecimals += 3;
-      }
-      if (UnitLabel.KG === pmfm.unitLabel && UnitLabel.GRAM === convertedPmfm.unitLabel) {
-        convertedPmfm.maximumNumberDecimals = isNotNil(convertedPmfm.maximumNumberDecimals) ? Math.max(convertedPmfm.maximumNumberDecimals - 3, 0) : convertedPmfm.maximumNumberDecimals;
-      }
-      if (convertedPmfm.maximumNumberDecimals === 0) {
-        convertedPmfm.type = 'integer';
-      }
-      return convertedPmfm;
-    }
-    // TODO : Manage length pmfms conversion...
-    return pmfm;
-  }
-
 }

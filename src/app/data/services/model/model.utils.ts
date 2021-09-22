@@ -1,7 +1,6 @@
 import {Department, IEntity, Person, Referential, ReferentialRef, StatusIds} from '@sumaris-net/ngx-components';
 import {PredefinedColors} from '@ionic/core';
 import {QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {StatusValue} from '../../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
 
 /* -- Enumerations -- */
 

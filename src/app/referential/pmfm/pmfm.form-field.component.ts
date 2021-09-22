@@ -4,7 +4,7 @@ import {FloatLabelType} from '@angular/material/form-field';
 import {AppFormUtils, ConfigService, filterNumberInput, focusInput, InputElement, isNil, LocalSettingsService, setTabIndex, toBoolean} from '@sumaris-net/ngx-components';
 import {IPmfm, PmfmUtils} from '../services/model/pmfm.model';
 import {PmfmValidators} from '../services/validator/pmfm.validators';
-import {PmfmLabelPatterns, UnitLabel, UnitLabelPatterns} from '../services/model/model.enum';
+import {ParameterLabelGroups, PmfmLabelPatterns, UnitLabel, UnitLabelPatterns} from '../services/model/model.enum';
 import {PmfmService} from '@app/referential/services/pmfm.service';
 import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
 
@@ -71,8 +71,12 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
     protected configService: ConfigService,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
-
+    this.configService.config.subscribe(config => {
+      this.weightDisplayedUnit = config && config.getProperty(DATA_CONFIG_OPTIONS.WEIGHT_DISPLAYED_UNIT);
+    });
   }
+
+  protected weightDisplayedUnit: string;
 
   ngOnInit() {
 
@@ -88,6 +92,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
       this.formControl.statusChanges.subscribe((_) => this.cd.markForCheck());
     }
     this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, {withUnit: !this.compact});
+    this.placeholder = this.placeholder.replace('kg', this.weightDisplayedUnit);
     this.required = toBoolean(this.required, this.pmfm.required);
 
     this.updateTabIndex();
@@ -116,29 +121,6 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
       }
     }
     this.type = type;
-
-    this.configService.config.subscribe(config => {
-      const weightDisplayedUnit = config && config.getProperty(DATA_CONFIG_OPTIONS.WEIGHT_DISPLAYED_UNIT);
-    });
-
-    if (this.pmfm.type === 'double') {
-      const convertedPmfm = this.pmfmService.getConvertedPmfm(this.pmfm);
-      if (convertedPmfm) {
-        this.pmfm = convertedPmfm;
-
-        const formGroup: FormGroup = this.formControl.parent as FormGroup;
-        //const formBuilder = this.formControl.formBuilder;
-        formGroup.addControl('convertedPmfmControl', new FormControl(''));
-        const convertedFormControl: FormControl = formGroup.get('convertedPmfmControl') as FormControl;
-        convertedFormControl.setValidators(PmfmValidators.create(this.pmfm));
-        //const pmfmFormControl = formGroup.controls[this.pmfm.id]; // Equivalent à this.formControl
-        convertedFormControl.valueChanges.subscribe(value => {
-          const convertedValue = 666; //convertedPmfm.convert(value);
-          convertedFormControl.setValue(convertedValue);
-          this.formControl.setValue(convertedValue);
-        });
-      }
-    }
   }
 
   writeValue(value: any): void {

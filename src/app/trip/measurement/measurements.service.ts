@@ -1,7 +1,7 @@
 import {BehaviorSubject, isObservable, Observable} from "rxjs";
 import {filter, first, map, switchMap, tap} from "rxjs/operators";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
+import {ConfigService, EntityUtils} from '@sumaris-net/ngx-components';
 import {Directive, EventEmitter, Injector, Input, Optional} from "@angular/core";
 import {firstNotNilPromise} from "@sumaris-net/ngx-components";
 import {IPmfm, PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
@@ -9,6 +9,8 @@ import {SortDirection} from "@angular/material/sort";
 import {IEntitiesService, LoadResult} from "@sumaris-net/ngx-components";
 import {isNil, isNotNil} from "@sumaris-net/ngx-components";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
+import {UnitLabel} from '@app/referential/services/model/model.enum';
+import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -23,6 +25,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
   private _onRefreshPmfms = new EventEmitter<any>();
   private _delegate: IEntitiesService<T, F>;
 
+  //protected configService: ConfigService;
   protected programRefService: ProgramRefService;
 
   loadingPmfms = false;
@@ -89,6 +92,9 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     return this._delegate;
   }
 
+  protected weightDisplayedUnit: string;
+  protected configService: ConfigService;
+
   constructor(
     injector: Injector,
     protected dataType: new() => T,
@@ -98,6 +104,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       requiredStrategy?: boolean;
       debug?: boolean;
     }) {
+
 
     this._delegate = delegate;
     this.programRefService = injector.get(ProgramRefService);
@@ -113,6 +120,11 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
         switchMap(() => this.watchProgramPmfms())
       )
       .subscribe(pmfms => this.applyPmfms(pmfms));
+
+    console.info ("configService: ", this. configService)
+    //this.configService.config.subscribe(config => {
+    //  this.weightDisplayedUnit = config && config.getProperty(DATA_CONFIG_OPTIONS.WEIGHT_DISPLAYED_UNIT);
+    //});
   }
 
   ngOnDestroy() {
@@ -178,12 +190,25 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     if (this._debug) console.debug("[meas-service] converting measurement values before saving...");
     const pmfms = this.$pmfms.getValue() || [];
     const dataToSaved = data.map(json => {
+      console.info('json: ', json)
       const entity = new this.dataType() as T;
       entity.fromObject(json);
+      console.info('entity: ', entity)
       // Adapt measurementValues to entity, but :
       // - keep the original JSON object measurementValues, because may be still used (e.g. in table without validator, in row.currentData)
       // - keep extra pmfm's values, because table can have filtered pmfms, to display only mandatory PMFM (e.g. physical gear table)
       entity.measurementValues = Object.assign({}, json.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, pmfms));
+      pmfms.forEach(pmfm => {
+        if (pmfm.unitLabel === UnitLabel.defaultWeight || pmfm.unitLabel === UnitLabel.KG || pmfm.unitLabel === UnitLabel.GRAM) {
+          console.info('pmfm: ', pmfm)
+          console.info('entity.measurementValues[pmfm.id.toString()]: ', entity.measurementValues[pmfm.id.toString()])
+          console.info('entity: ', entity.measurementValues[pmfm.id.toString()])
+          if (pmfm.unitLabel === UnitLabel.GRAM) {
+            entity.measurementValues[pmfm.id.toString()] = entity.measurementValues[pmfm.id.toString()] as number / 1000;
+          }
+        }
+      })
+
       return entity;
     });
 

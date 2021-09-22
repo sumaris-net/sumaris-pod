@@ -76,7 +76,6 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     key: 'sumaris.data.UnitLabel.weightUnit',
     label: 'CONFIGURATION.OPTIONS.DEFAULT_WEIGHT_UNIT',
     type: 'string',
-    defaultValue: UnitLabel.KG
+    defaultValue: UnitLabel.defaultWeight
   },
-
 });
