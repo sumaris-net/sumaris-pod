@@ -25,7 +25,7 @@ import {BatchTreeComponent} from './batch/batch-tree.component';
 import {BatchGroupForm} from './batch/form/batch-group.form';
 import {BatchGroupModal} from './batch/modal/batch-group.modal';
 import {SubBatchModal} from './batch/modal/sub-batch.modal';
-import {AppReferentialModule} from '../referential/app-referential.module';
+import {AppReferentialModule} from '../referential/referential.module';
 import {SampleForm} from './sample/sample.form';
 import {SampleModal} from './sample/sample.modal';
 import {SelectPhysicalGearModal} from './physicalgear/select-physical-gear.modal';

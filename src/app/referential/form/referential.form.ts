@@ -2,7 +2,7 @@ import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {ReferentialValidatorService} from "../services/validator/referential.validator";
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";
-import {DefaultStatusList, Referential, StatusValue}  from "@sumaris-net/ngx-components";
+import {StatusList, Referential, IStatus, splitById} from '@sumaris-net/ngx-components';
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {AppForm}  from "@sumaris-net/ngx-components";
@@ -20,8 +20,8 @@ import {AppForm}  from "@sumaris-net/ngx-components";
 })
 export class ReferentialForm extends AppForm<Referential> implements OnInit {
 
-  private _statusList = DefaultStatusList;
-  statusById: { [id: number]: StatusValue; };
+  private _statusList = StatusList;
+  statusById: { [id: number]: IStatus; };
 
   @Input() showError = true;
   @Input() showDescription = true;
@@ -29,16 +29,15 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
   @Input() entityName;
 
   @Input()
-  set statusList(values: StatusValue[]) {
+  set statusList(values: IStatus[]) {
     this._statusList = values;
 
     // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
+    this.statusById = splitById(values);
   }
 
-  get statusList(): StatusValue[] {
-    return this._statusList;
+  get statusList(): IStatus[] {
+    return this._statusList as IStatus[];
   }
 
   constructor(
@@ -54,10 +53,9 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
 
-    // Fill statusById
+    // Fill statusById, if not set by input
     if (this._statusList && !this.statusById) {
-      this.statusById = {};
-      this._statusList.forEach((status) => this.statusById[status.id] = status);
+      this.statusById = splitById(this._statusList);
     }
   }
 

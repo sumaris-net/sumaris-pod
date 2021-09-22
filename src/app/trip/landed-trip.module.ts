@@ -27,7 +27,7 @@ import {VesselActivityForm} from "./aggregated-landing/vessel-activity.form";
 import {AggregatedLandingModal} from "./aggregated-landing/aggregated-landing.modal";
 import {TripModule} from "./trip.module";
 import {CoreModule}  from "@sumaris-net/ngx-components";
-import {AppReferentialModule} from "../referential/app-referential.module";
+import {AppReferentialModule} from "../referential/referential.module";
 import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal";
 import {AppDataModule} from "../data/app-data.module";
 import {TranslateModule} from "@ngx-translate/core";

@@ -37,6 +37,9 @@
           </mat-form-field>
         </ng-template>
       </ion-col>
+      <ion-col size="2" size-md="2" size-lg="3" class="ion-no-padding">
+        <ion-button (click)="generateLabelIncrementButton()" translate>PROGRAM.STRATEGY.EDIT.GENERATE_LABEL_INCREMENT_BUTTON</ion-button>
+      </ion-col>
 
     </ion-row>
 
@@ -286,7 +289,7 @@
                                    [showDetailsColumns]="false"
                                    [showPmfmLabel]="false"
                                    [pmfmFilter]="pmfmFilters.length"
-                                   [allowNoRow]="false"
+                                   [allowEmpty]="false"
                                    [sticky]="true">
         </app-pmfm-strategies-table>
       </ion-col>
@@ -310,7 +313,7 @@
                                    [showDetailsColumns]="false"
                                    [showPmfmLabel]="false"
                                    [pmfmFilter]="pmfmFilters.weight"
-                                   [allowNoRow]="false"
+                                   [allowEmpty]="false"
                                    [sticky]="true">
         </app-pmfm-strategies-table>
       </ion-col>
@@ -347,7 +350,7 @@
                                    [showDetailsColumns]="false"
                                    [showPmfmLabel]="false"
                                    [pmfmFilter]="pmfmFilters.maturity"
-                                   [allowNoRow]="false"
+                                   [allowEmpty]="false"
                                    [sticky]="true">
         </app-pmfm-strategies-table>
       </ion-col>

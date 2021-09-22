@@ -4,17 +4,17 @@ import {
   AppTableDataSourceOptions,
   changeCaseToUnderscore,
   EntityClass,
-  EntityFilter, EntityUtils,
+  EntityFilter,
+  EntityUtils,
   FilterFn,
-  firstFalsePromise,
+  firstFalsePromise, firstNotNilPromise,
   FormFieldDefinition,
   FormFieldDefinitionMap,
   InMemoryEntitiesService,
-  IReferentialRef,
+  IReferentialRef, isEmptyArray,
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
@@ -25,10 +25,10 @@ import {TableElement} from '@e-is/ngx-material-table';
 import {environment} from '@environments/environment';
 import {PmfmStrategyValidatorService} from '../services/validator/pmfm-strategy.validator';
 import {ReferentialRefService} from '../services/referential-ref.service';
-import {BehaviorSubject, Observable, of} from 'rxjs';
+import {BehaviorSubject, merge, Observable, of} from 'rxjs';
 import {PmfmFilter, PmfmService} from '../services/pmfm.service';
 import {Pmfm} from '../services/model/pmfm.model';
-import {debounceTime, map, startWith, switchMap} from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 import {PmfmStrategy} from '../services/model/pmfm-strategy.model';
 import {PmfmValueUtils} from '../services/model/pmfm-value.model';
 import {Parameter} from '../services/model/parameter.model';
@@ -102,7 +102,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   @Input() withDetails = true;
   @Input() pmfmFilter: PmfmFilter;
   @Input() showPmfmLabel = true;
-  @Input() allowNoRow = false;
+  @Input() allowEmpty = false;
   @Input() canEdit = false;
   @Input() canDelete = false;
   @Input() sticky = false;
@@ -131,7 +131,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     return this.getShowColumn('id');
   }
 
-
   @Input()
   set showSelectColumn(value: boolean) {
     this.setShowColumn('select', value);
@@ -146,6 +145,19 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   @Output() get selectionChanges(): Observable<TableElement<PmfmStrategy>[]> {
     return this.selection.changed.pipe(
       map(_ => this.selection.selected)
+    );
+  }
+
+  get loading$() : Observable<boolean> {
+    return merge(
+      this.loadingSubject,
+      this.$acquisitionLevels
+        .pipe(
+          startWith(true),
+          filter(isNotNil),
+          map(_ => false))
+    ).pipe(
+      distinctUntilChanged()
     );
   }
 
@@ -173,8 +185,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         .concat(RESERVED_END_COLUMNS),
       PmfmStrategy,
       new InMemoryEntitiesService(PmfmStrategy, PmfmStrategyFilter, {
-        onLoad: (data) => this.onLoad(data),
-        onSave: (data) => this.onSave(data)
+        onLoad: (data) => this.onLoadData(data)
       }),
       validatorService,
       <AppTableDataSourceOptions<PmfmStrategy>>{
@@ -186,11 +197,13 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     this.i18nColumnPrefix = 'PROGRAM.STRATEGY.PMFM_STRATEGY.';
     this.inlineEdition = true;
+    this.defaultSortBy = 'id';
+    this.defaultSortDirection = 'asc';
 
     this.debug = !environment.production;
 
     // Loading referential items
-    this.loadReferential();
+    this.loadAcquisitionLevels();
   }
 
 
@@ -303,7 +316,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     // Acquisition number
     this.registerFormField('acquisitionNumber', {
       type: 'integer',
-      minValue: 1,
+      minValue: 0,
       defaultValue: 1,
       required: true
     });
@@ -329,8 +342,9 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         attributes: qvAttributes,
         items: this.onStartEditingRow
           .pipe(
+            tap(row => console.debug("Starting editing row")),
             switchMap(row => {
-              const control = row.validator && row.validator.get('pmfm');
+              const control = row.validator?.get('pmfm');
               if (control) {
                 return control.valueChanges.pipe(startWith(control.value));
               } else {
@@ -346,22 +360,38 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       required: false
     }, true);
 
-    if (!this.allowNoRow) {
-      this.addRow();
+    if (!this.allowEmpty) {
+      this.registerSubscription(
+        this.onBeforeDeleteRows.subscribe(event => {
+          const canDelete = this.totalRowCount > 1;
+          event.detail.success(canDelete);
+        })
+      )
     }
-
   }
 
-  protected async onLoad(data: PmfmStrategy[]): Promise<PmfmStrategy[]> {
+  setFilter(source: Partial<PmfmStrategyFilter>, opts?: { emitEvent: boolean }) {
+    const target = new PmfmStrategyFilter();
+    Object.assign(target, source);
+    super.setFilter(target, opts);
+  }
 
-    await this.waitReferentialReady();
+  protected async onLoadData(data: PmfmStrategy[]): Promise<PmfmStrategy[]> {
+
+    // Wait acquisition levels to be loaded
+    const acquisitionLevels = await firstNotNilPromise(this.$acquisitionLevels);
+
+    // Add at least one item
+    if (!this.allowEmpty && isEmptyArray(data)) {
+      console.debug("[pmfm-strategy-table] Force add empty PmfmSTrategy, because allowEmpty=false");
+      data = [new PmfmStrategy()];
+    }
 
     console.debug("[pmfm-strategy-table] Adapt loaded data to table...");
-
-    const acquisitionLevels = this.$acquisitionLevels.getValue();
-
     return data.map(source => {
-      const target: any = source instanceof PmfmStrategy ? source.asObject() : source;
+      const target = PmfmStrategy.fromObject(source);
+
+      // Convert acquisition level, from string to entity
       if (typeof target.acquisitionLevel === "string"){
         target.acquisitionLevel = acquisitionLevels.find(i => i.label === target.acquisitionLevel);
       }
@@ -375,20 +405,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     });
   }
 
-  protected async onSave(data: PmfmStrategy[]): Promise<PmfmStrategy[]> {
-    console.debug("[pmfm-strategy-table] Saving...", data);
-
-    // Convert to JSON
-    //return data.map(source => source instanceof PmfmStrategy ? source.asObject() : source);
-
-    return data;
-  }
-
-  setFilter(source: Partial<PmfmStrategyFilter>, opts?: { emitEvent: boolean }) {
-    const target = new PmfmStrategyFilter();
-    Object.assign(target, source);
-    super.setFilter(target, opts);
-  }
 
   protected async onRowCreated(row: TableElement<PmfmStrategy>): Promise<void> {
 
@@ -443,44 +459,24 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     }
   }
 
-
-  protected async waitReferentialReady(): Promise<void> {
-    // Wait end of loading referential
-    if (this.$loadingReferential.getValue()) {
-      await firstFalsePromise(this.$loadingReferential);
-    }
-  }
-
-  protected async loadReferential() {
-    console.debug("[pmfm-strategy-table] Loading referential items...");
-    this.markAsLoading();
-
-    this.$loadingReferential.next(true);
-
-    try {
-      await Promise.all([
-        this.loadAcquisitionLevels()
-      ]);
-
-      console.debug("[pmfm-strategy-table] Loaded referential items");
-    } catch (err) {
-      this.error = err && err.message || err;
-      this.markForCheck();
-    }
-    finally {
-      this.$loadingReferential.next(false);
-    }
-  }
-
   protected async loadAcquisitionLevels() {
+    this.markAsLoading();
+    console.debug("[pmfm-strategy-table] Loading acquisition levels...");
+
     const res = await this.referentialRefService.loadAll(0, 100, null, null, {
       entityName: 'AcquisitionLevel'
     }, {withTotal: false});
-    this.$acquisitionLevels.next(res && res.data || undefined);
+    this.$acquisitionLevels.next(res?.data || []);
   }
 
   async deleteRow(event: UIEvent, row: TableElement<PmfmStrategy>): Promise<boolean> {
-    if (row.editing) {
+
+    // If last row, and not allowed to remove the last row: reset instead of delete
+    if (!this.allowEmpty && this.totalRowCount === 1) {
+      row.validator?.reset(PmfmStrategy.fromObject({}).asObject());
+      return true;
+    }
+    if (row.editing && row.id === -1) {
       this.cancelOrDelete(event, row);
     }
     else if (row.id !== -1) {
