@@ -209,7 +209,7 @@
     <ng-container *ngIf="showMeasurements">
       <!-- If pmfms NOT loaded, display skeleton -->
       <ion-row *ngIf="$pmfms | async | arrayFilter: notHiddenPmfm; let pmfms; else measurementsSkeleton;"
-               [class.cdk-visually-hidden]="!(pmfms | isNotEmptyArray)">
+               [class.cdk-visually-hidden]="pmfms | isEmptyArray">
 
         <!-- measurement label (only on the first Pmfm) -->
         <ion-col size="12" size-md="2" size-lg="3">

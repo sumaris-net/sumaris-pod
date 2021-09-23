@@ -321,8 +321,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.registerSubscription(
       this.strategyControl.valueChanges
         .pipe(
-          filter(value => (typeof value === 'object') && isNotNil(value.label)),
-          map(value => value?.label),
+          filter(value => EntityUtils.isNotEmpty(value, 'label')),
+          map(value => value.label),
           distinctUntilChanged()
         )
         .subscribe(strategyLabel => this.strategyLabel = strategyLabel)
@@ -331,15 +331,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.registerSubscription(
       this.$strategyLabel
         .pipe(
-          mergeMap(_ => this.ready()),
-          map(_ => this.$strategyLabel.value)
+          mergeMap(value => this.ready().then(() => value))
         )
         .subscribe(strategyLabel => {
 
           const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
           if (measControl && measControl.value !== strategyLabel) {
             // DEBUG
-            //console.debug('[landing-form] Setting \'measurementValues.\'' + PmfmIds.STRATEGY_LABEL + '=' + strategyLabel);
+            console.debug('[landing-form] Setting measurementValues.' + PmfmIds.STRATEGY_LABEL + '=' + strategyLabel);
 
             measControl.setValue(strategyLabel);
           }
@@ -385,9 +384,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   async safeSetValue(data: Landing, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }) {
     if (!data) return;
 
-    // DEBUG
-    //console.debug('[landing-form] DEV safeSetValue', data);
-
     // Make sure to have (at least) one observer
     data.observers = data.observers && data.observers.length ? data.observers : [null];
 
@@ -420,6 +416,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     // Propagate the strategy
     const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()];
     this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
+
+    // DEBUG
+    console.debug('[landing-form] safeSetValue', data);
 
     await super.safeSetValue(data, opts);
   }
@@ -510,7 +509,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return modal.present();
   }
 
-  notHiddenPmfm(pmfm: IPmfm): boolean{
+  notHiddenPmfm(pmfm: IPmfm): boolean {
     return pmfm && pmfm.hidden !== true;
   }
 
