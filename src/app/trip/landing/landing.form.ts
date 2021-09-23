@@ -1,13 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {Moment} from 'moment';
-import {DateAdapter} from '@angular/material/core';
-import {debounceTime, distinctUntilChanged, filter, map, mergeMap} from 'rxjs/operators';
-import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '@app/referential/services/model/model.enum';
-import {LandingValidatorService} from '../services/validator/landing.validator';
-import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
-import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
-import {ModalController} from '@ionic/angular';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { Moment } from 'moment';
+import { DateAdapter } from '@angular/material/core';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
+import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
+import { LandingValidatorService } from '../services/validator/landing.validator';
+import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ModalController } from '@ionic/angular';
 import {
   ConfigService,
   EntityUtils,
@@ -30,23 +30,23 @@ import {
   toDateISOString,
   UserProfileLabel
 } from '@sumaris-net/ngx-components';
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {Landing} from '../services/model/landing.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
-import {VesselModal} from '@app/vessel/modal/vessel-modal';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
-import {TranslateService} from '@ngx-translate/core';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
-import {Metier} from '@app/referential/services/model/taxon.model';
-import {Program} from '@app/referential/services/model/program.model';
-import {FishingArea} from '@app/trip/services/model/fishing-area.model';
-import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
-import {Trip} from '@app/trip/services/model/trip.model';
-import {TripValidatorService} from '@app/trip/services/validator/trip.validator';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { Landing } from '../services/model/landing.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { VesselModal } from '@app/vessel/modal/vessel-modal';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
+import { TranslateService } from '@ngx-translate/core';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { Metier } from '@app/referential/services/model/taxon.model';
+import { Program } from '@app/referential/services/model/program.model';
+import { FishingArea } from '@app/trip/services/model/fishing-area.model';
+import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
+import { Trip } from '@app/trip/services/model/trip.model';
+import { TripValidatorService } from '@app/trip/services/validator/trip.validator';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -339,7 +339,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
           if (measControl && measControl.value !== strategyLabel) {
             // DEBUG
-            console.debug('[landing-form] Setting \'measurementValues.\'' + PmfmIds.STRATEGY_LABEL + '=' + strategyLabel);
+            //console.debug('[landing-form] Setting \'measurementValues.\'' + PmfmIds.STRATEGY_LABEL + '=' + strategyLabel);
 
             measControl.setValue(strategyLabel);
           }
@@ -385,6 +385,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   async safeSetValue(data: Landing, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }) {
     if (!data) return;
 
+    // DEBUG
+    //console.debug('[landing-form] DEV safeSetValue', data);
+
     // Make sure to have (at least) one observer
     data.observers = data.observers && data.observers.length ? data.observers : [null];
 
@@ -397,9 +400,21 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     // Trip
     const trip = (data.trip as Trip);
-    if (trip) {
-      this.showMetier = (trip.metiers || []).length > 0;
-      this.showFishingArea = (trip.fishingAreas || []).length > 0;
+
+    // Resize metiers array
+    this.showMetier = this.showMetier || (trip?.metiers || []).length > 0;
+    if (this.showMetier) {
+      this.metiersHelper.resize(Math.max(1, (trip?.metiers || []).length));
+    } else {
+      this.metiersHelper.removeAllEmpty();
+    }
+
+    // Resize fishing areas array
+    this.showFishingArea = this.showFishingArea || (trip?.fishingAreas || []).length > 0;
+    if (this.showFishingArea) {
+      this.fishingAreasHelper.resize(Math.max(1, (trip?.fishingAreas || []).length));
+    } else {
+      this.fishingAreasHelper.removeAllEmpty();
     }
 
     // Propagate the strategy
@@ -410,7 +425,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   }
 
   protected getValue(): Landing {
-    console.debug('[landing-form] DEV get value');
+    // DEBUG
+    //console.debug('[landing-form] get value');
+
     const data = super.getValue();
 
     // Re add the strategy label
@@ -435,7 +452,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
 
     // DEBUG
-    console.debug('[landing-form] DEV Get getValue() result:', data);
+    //console.debug('[landing-form] getValue() result:', data);
 
     return data;
   }
