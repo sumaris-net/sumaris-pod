@@ -893,6 +893,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOption(SumarisConfigurationOption.SEQUENCE_SUFFIX.getKey());
     }
 
+    public Integer getLockTimeout() {
+        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.LOCK_TIMEOUT.getKey());
+    }
+
     public String getCsvSeparator() {
         return applicationConfig.getOption(SumarisConfigurationOption.CSV_SEPARATOR.getKey());
     }

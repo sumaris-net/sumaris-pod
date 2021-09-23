@@ -23,6 +23,7 @@ package net.sumaris.core.dao.technical.jpa;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.querydsl.jpa.impl.JPAQuery;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
@@ -37,6 +38,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
 import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
@@ -54,6 +56,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.*;
 import javax.persistence.criteria.*;
 import javax.sql.DataSource;
@@ -76,7 +79,8 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     private boolean debugEntityLoad = false;
     private boolean checkUpdateDate = true;
     private boolean lockForUpdate = false;
-    private boolean enablePageTotalElement = false;
+    private LockModeType lockForUpdateMode = LockModeType.PESSIMISTIC_WRITE;
+    private Map<String, Object> lockForUpdateProperties = null;
 
     private EntityManager entityManager;
 
@@ -101,6 +105,12 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         this.entityManager = entityManager;
     }
 
+    @PostConstruct
+    protected void init() {
+        // Init lock timeout
+        lockForUpdateProperties = ImmutableMap.of("javax.persistence.lock.timeout", configuration.getLockTimeout());
+    }
+
     public boolean isCheckUpdateDate() {
         return checkUpdateDate;
     }
@@ -115,6 +125,14 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     public void setLockForUpdate(boolean lockForUpdate) {
         this.lockForUpdate = lockForUpdate;
+    }
+
+    public LockModeType getLockForUpdateMode() {
+        return lockForUpdateMode;
+    }
+
+    public void setLockForUpdateMode(LockModeType lockForUpdateMode) {
+        this.lockForUpdateMode = lockForUpdateMode;
     }
 
     public SumarisConfiguration getConfig() {
@@ -331,7 +349,21 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      */
     @SuppressWarnings("unchecked")
     protected <C> C find(Class<C> clazz, Serializable id) {
-        return this.entityManager.find(clazz, id);
+        return this.entityManager.find(clazz, id, LockModeType.OPTIMISTIC);
+    }
+
+    /**
+     * <p>find.</p>
+     *
+     * @param clazz a {@link Class} object.
+     * @param id    a {@link Serializable} object.
+     * @param lockModeType    a {@link LockModeType} object.
+     * @param <C>   a C object.
+     * @return a C object.
+     */
+    @SuppressWarnings("unchecked")
+    protected <C> C find(Class<C> clazz, Serializable id, LockModeType lockModeType) {
+        return this.entityManager.find(clazz, id, lockModeType);
     }
 
     /**
@@ -422,18 +454,26 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     protected void lockForUpdate(IEntity<?> entity) {
-        lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
+        lockForUpdate(entity, (LockModeType)null, (Map)null);
     }
 
     protected void lockForUpdate(IEntity<?> entity, LockModeType modeType) {
+        lockForUpdate(entity, modeType, (Map)null);
+    }
+
+    protected void lockForUpdate(IEntity<?> entity, LockModeType modeType, Map<String, Object> properties) {
+        modeType = modeType != null ? modeType : getLockForUpdateMode();
+
+        properties = properties != null ? properties : lockForUpdateProperties;
         // Lock entityName
         try {
-            entityManager.lock(entity, modeType);
+            entityManager.lock(entity, modeType, properties);
         } catch (LockTimeoutException e) {
             throw new DataLockedException(I18n.t("sumaris.persistence.error.locked",
                 getTableName(entity.getClass().getSimpleName()), entity.getId()), e);
         }
     }
+
 
     protected String getTableName(String entityName) {
         return I18n.t("sumaris.persistence.table." + entityName.substring(0, 1).toLowerCase() + entityName.substring(1));

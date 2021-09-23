@@ -86,7 +86,8 @@ public class OperationGroupRepositoryImpl
 
     protected OperationGroupRepositoryImpl(EntityManager entityManager) {
         super(Operation.class, OperationGroupVO.class, entityManager);
-        setLockForUpdate(true);
+        setLockForUpdate(false);
+        setCheckUpdateDate(false);
     }
 
     @Override

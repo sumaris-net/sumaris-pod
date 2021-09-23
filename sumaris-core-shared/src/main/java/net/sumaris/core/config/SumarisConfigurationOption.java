@@ -557,6 +557,12 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "_SEQ",
         String.class),
 
+    LOCK_TIMEOUT(
+        "javax.persistence.lock.timeout",
+        n("sumaris.config.option.javax.persistence.lock.timeout.description"),
+        "0",
+        Integer.class),
+
     ENABLE_TECHNICAL_TABLES_UPDATE(
         "sumaris.persistence.technicalTables.update",
         n("sumaris.config.option.persistence.technicalTables.update.description"),

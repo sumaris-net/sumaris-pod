@@ -68,6 +68,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceException;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -95,7 +96,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private Version dbVersion;
 
-    private final List<ConfigurationEventListener> listeners = Lists.newArrayList();
+    private final List<ConfigurationEventListener> listeners = new CopyOnWriteArrayList<>();
 
     @Autowired
     public ConfigurationServiceImpl(SumarisConfiguration configuration) {
@@ -407,7 +408,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         publisher.publishEvent(event);
 
         // Emit to registered listeners
-        for(ConfigurationEventListener listener: listeners) {
+        for (ConfigurationEventListener listener: listeners) {
             try {
                 listener.onUpdated(event);
             } catch (Throwable t) {
