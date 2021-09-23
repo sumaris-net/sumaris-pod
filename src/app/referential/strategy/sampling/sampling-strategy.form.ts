@@ -1029,14 +1029,31 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       dateAsMoment = date;
     }
     if (!dateAsMoment || dateAsMoment.isBefore(moment("1900-12-31T00:00:00.000Z", 'YYYY-MM-DD'))) return;
-    await this.generateLabel(dateAsMoment);
+    const storedDataYear = this.data.appliedStrategies[0]?.appliedPeriods[0]?.startDate ? fromDateISOString(this.data.appliedStrategies[0].appliedPeriods[0].startDate).format('YY') : undefined;
+    const formYear = dateAsMoment.format('YY');
+    if (storedDataYear === formYear)
+    {
+      // Don't call label generation when year hasn't changed
+    }
+    else
+    {
+      await this.generateLabel(dateAsMoment);
+    }
   }
 
   protected async onTaxonChange() {
     if (!this.program) return; // Skip if program is missing
-
-    await this.generateLabel();
-
+    const taxonNameControl = this.taxonNamesHelper.at(0);
+    const currentViewTaxonName = taxonNameControl?.value?.taxonName?.name;
+    const storedDataTaxonName = this.data.taxonNames[0]?.taxonName?.name;
+    if (currentViewTaxonName === storedDataTaxonName)
+    {
+      // Don't call label generation when taxon hasn't changed
+    }
+    else
+    {
+      await this.generateLabel();
+    }
     // TODO try to limit pmfms, by loading previous sampling strategies ?
   }
 
@@ -1116,7 +1133,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         //console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
         //labelControl.setValue(computedLabel);
         // if current date and taxon code are same than stored data, set stored data
-        if (this.data.label && this.data.label.substring(0, 2) === yearMask && this.data.label.substring(2, 9) === label.toUpperCase()) {
+        const formTaxon = labelControl.value.replace(/\s/g, '').toUpperCase().substring(2, 9);
+        if (this.data.label && this.data.label.substring(0, 2) === yearMask && this.data.label.substring(2, 9) === formTaxon && formTaxon === label) {
           // Complete label with '___' when increment isn't set in order to throw a warning in validator
           if (this.data.label.length === 9)
           {
@@ -1167,11 +1185,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }
     }
       // if current date and taxon code are same than stored data, set stored data
-      if (this.data.label && this.data.label.substring(0, 2) === year && this.data.label.substring(2, 9) === label.toUpperCase()) {
-        this.form.get('label').setValue(this.data.label);
-      } else {
+      // if (this.data.label && this.data.label.substring(0, 2) === year && this.data.label.substring(2, 9) === label.toUpperCase()) {
+      //   this.form.get('label').setValue(this.data.label);
+      // } else {
         this.form.get('label').setValue(await this.strategyService.computeNextLabel(this.program.id, year + label.toUpperCase(), 3));
-      }
+      // }
       SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
       SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
   }
