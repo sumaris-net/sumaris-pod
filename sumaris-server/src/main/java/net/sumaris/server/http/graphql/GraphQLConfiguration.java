@@ -23,6 +23,8 @@ package net.sumaris.server.http.graphql;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import graphql.GraphQL;
+import graphql.execution.SubscriptionExecutionStrategy;
 import graphql.schema.GraphQLSchema;
 import io.leangen.graphql.GraphQLSchemaGenerator;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
@@ -200,6 +202,13 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     @Bean
     public WebSocketHandler webSocketHandler() {
         return new PerConnectionWebSocketHandler(SubscriptionWebSocketHandler.class);
+    }
+
+    @Bean
+    public GraphQL webSocketGraphQL() {
+        return GraphQL.newGraphQL(graphQLSchema())
+            .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy())
+            .build();
     }
 }
 

@@ -22,7 +22,12 @@ package net.sumaris.server.http.security;
  * #L%
  */
 
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.server.config.SumarisServerConfiguration;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -39,6 +44,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -51,17 +57,29 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
     private static final String TOKEN = "token";
     private static final String BASIC = "Basic";
 
-    private boolean ready = false;
+    private SumarisServerConfiguration configuration;
+    private AtomicBoolean ready = new AtomicBoolean(false);
     private boolean enableAuthBasic;
     private boolean enableAuthToken;
 
 
-    protected AuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
+    protected AuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher, SumarisServerConfiguration configuration) {
         super(requiresAuthenticationRequestMatcher);
+        this.configuration = configuration;
     }
 
-    public void setReady(boolean ready) {
-        this.ready = ready;
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+
+        this.configuration = this.configuration != null ? this.configuration : SumarisServerConfiguration.getInstance();
+
+        // Update configuration
+        setEnableAuthBasic(configuration.enableAuthBasic());
+        setEnableAuthToken(configuration.enableAuthToken());
+
+        if (!this.ready.get()) {
+            this.ready.set(true);
+        }
     }
 
     public void setEnableAuthToken(boolean enableAuthToken) {
@@ -75,8 +93,8 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
-        // When not ready, always auth as anonymous
-        if (!this.ready) {
+        // When not ready, force to stop the security chain
+        if (!this.ready.get()) {
             throw new AuthenticationServiceException("Cannot authenticate: not ready");
         }
 

@@ -129,20 +129,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     AuthenticationFilter restAuthenticationFilter() throws Exception {
-        final AuthenticationFilter filter = new AuthenticationFilter(PROTECTED_URLS);
+        final AuthenticationFilter filter = new AuthenticationFilter(PROTECTED_URLS, configuration);
         filter.setAuthenticationManager(authenticationManager());
         filter.setAuthenticationSuccessHandler(successHandler());
         filter.setEnableAuthBasic(configuration.enableAuthBasic());
         filter.setEnableAuthToken(configuration.enableAuthToken());
-        filter.setReady(configurationService.isReady());
-        configurationService.addListener(new ConfigurationEventListener() {
-            @Override
-            public void onReady(ConfigurationReadyEvent event) {
-                filter.setEnableAuthBasic(configuration.enableAuthBasic());
-                filter.setEnableAuthToken(configuration.enableAuthToken());
-                filter.setReady(true);
-            }
-        });
         return filter;
     }
 
