@@ -898,6 +898,7 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "trip", description = "Get landing's trip")
     public TripVO getTripByLanding(@GraphQLContext LandingVO landing) {
+        if (landing.getTrip() != null) return landing.getTrip(); // Used updated entity, if exists (e.g. when saving)
         if (landing.getTripId() == null) return null;
         return tripService.get(landing.getTripId());
     }

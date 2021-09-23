@@ -168,10 +168,12 @@ public class LandingServiceImpl implements LandingService {
     public void delete(int id) {
 
         // Create events (before deletion, to be able to join VO)
+        Landing toDelete = null;
         LandingVO deletedVO = null;
         Integer tripId = null;
         if (enableTrash) {
-            deletedVO = get(id);
+            toDelete = landingRepository.getById(id);
+            deletedVO = landingRepository.toVO(toDelete);
             tripId = deletedVO.getTripId();
             if (tripId != null) {
                 deletedVO.setTrip(tripRepository.get(tripId)); // TODO full VO loading
@@ -183,10 +185,13 @@ public class LandingServiceImpl implements LandingService {
         }
 
         // Apply deletion
-        landingRepository.deleteById(id);
+        if (toDelete == null)
+            landingRepository.deleteById(id);
+        else
+            landingRepository.delete(toDelete);
 
         // Publish events
-        publisher.publishEvent(new EntityDeleteEvent(id, Trip.class.getSimpleName(), deletedVO));
+        publisher.publishEvent(new EntityDeleteEvent(id, Landing.class.getSimpleName(), deletedVO));
     }
 
     @Override
@@ -275,6 +280,7 @@ public class LandingServiceImpl implements LandingService {
                     .withOperationGroup(true)
                     .build());
 
+            source.setTripId(savedTrip.getId());
             source.setTrip(savedTrip);
         }
     }
