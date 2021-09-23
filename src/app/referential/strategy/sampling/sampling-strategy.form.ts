@@ -51,7 +51,7 @@ import {
   TaxonomicLevelIds
 } from '../../services/model/model.enum';
 import { ProgramProperties } from '../../services/config/program.config';
-import { BehaviorSubject, combineLatest } from 'rxjs';
+import { BehaviorSubject, combineLatest, merge } from 'rxjs';
 import { SamplingStrategyService } from '../../services/sampling-strategy.service';
 import { PmfmFilter, PmfmService } from '../../services/pmfm.service';
 import { SamplingStrategy, StrategyEffort } from '@app/referential/services/model/sampling-strategy.model';
@@ -265,8 +265,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       .then(map => this._$pmfmGroups.next(map));
 
     this.registerSubscription(this.form.get('age').valueChanges.subscribe(_ => this.loadFraction()));
-    this.taxonNamesFormArray.setAsyncValidators([
-      async (control) => {
+    this.taxonNamesFormArray.setAsyncValidators([async (_) => {
         this.loadFraction();
         return null;
       }
@@ -329,48 +328,15 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         })
     )
 
-    this.pmfmsForm.setAsyncValidators([async (form) => {
-        const pmfms = form.value.flat() as PmfmStrategy[];
-        if (isEmptyArray(pmfms)) {
-          if (isNotNil(this.data?.id) || this.form.touched) {
-            SharedValidators.clearError(form, 'minLength');
-            return <ValidationErrors>{ weightOrSize: true };
-          }
-          return null;
-        }
+    this.pmfmsForm.setAsyncValidators(form => this.validatePmfmsForm(form as FormArray));
 
-        let errors: ValidationErrors;
-        const pmfmGroups = await firstNotNilPromise(this._$pmfmGroups);
-        const weightPmfms = this.getPmfmsByType(pmfms, pmfmGroups.WEIGHT, ParameterLabelGroups.WEIGHT);
-        const lengthPmfms = this.getPmfmsByType(pmfms, pmfmGroups.LENGTH, ParameterLabelGroups.LENGTH);
-        const maturityPmfms = this.getPmfmsByType(pmfms, pmfmGroups.MATURITY, ParameterLabelGroups.MATURITY);
-
-        // Check weight OR length is present
-        if (isEmptyArray(weightPmfms) && isEmptyArray(lengthPmfms)) {
-          errors = {
-            weightOrSize: true
-          };
-        }
-        else {
-          SharedValidators.clearError(form, 'weightOrSize');
-        }
-
-        let length = (this.hasAge() ? 1 : 0)
-          + (this.hasSex() ? (1 + maturityPmfms.length) : 0)
-          + weightPmfms.length
-          + lengthPmfms.length;
-
-        if (length < MIN_PMFM_COUNT) {
-          errors = {
-            ...errors,
-            minLength: { minLength: MIN_PMFM_COUNT }
-          };
-        }
-        else {
-          SharedValidators.clearError(form, 'minLength');
-        }
-        return errors;
-    }]);
+    // Force pmfms validation, when sex/age changes
+    this.registerSubscription(
+      merge(
+        this.form.get('sex').valueChanges,
+        this.form.get('age').valueChanges
+      ).subscribe(() => this.pmfmsForm.updateValueAndValidity())
+    );
 
     this.registerSubscription(this.form.get('label').valueChanges.subscribe(value => this.onEditLabel(value)));
     // register year field changes
@@ -1357,6 +1323,52 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }
       return false;
     });
+  }
+
+  protected async validatePmfmsForm(form?: FormArray): Promise<ValidationErrors | null> {
+    form = form || this.pmfmsForm;
+    const pmfms = form.value.flat() as PmfmStrategy[];
+    if (isEmptyArray(pmfms)) {
+      if (isNotNil(this.data?.id) || this.form.touched) {
+        return <ValidationErrors>{
+          weightOrSize: true,
+          minLength: { minLength: this.minPmfmCount }
+        };
+      }
+      return null;
+    }
+
+    let errors: ValidationErrors;
+    const pmfmGroups = await firstNotNilPromise(this._$pmfmGroups);
+    const weightPmfms = this.getPmfmsByType(pmfms, pmfmGroups.WEIGHT, ParameterLabelGroups.WEIGHT);
+    const lengthPmfms = this.getPmfmsByType(pmfms, pmfmGroups.LENGTH, ParameterLabelGroups.LENGTH);
+    const maturityPmfms = this.getPmfmsByType(pmfms, pmfmGroups.MATURITY, ParameterLabelGroups.MATURITY);
+
+    // Check weight OR length is present
+    if (isEmptyArray(weightPmfms) && isEmptyArray(lengthPmfms)) {
+      errors = {
+        weightOrSize: true
+      };
+    }
+    else {
+      SharedValidators.clearError(form, 'weightOrSize');
+    }
+
+    let length = (this.hasAge() ? 1 : 0)
+      + (this.hasSex() ? (1 + maturityPmfms.length) : 0)
+      + weightPmfms.length
+      + lengthPmfms.length;
+
+    if (length < this.minPmfmCount) {
+      errors = {
+        ...errors,
+        minLength: { minLength: this.minPmfmCount }
+      };
+    }
+    else {
+      SharedValidators.clearError(form, 'minLength');
+    }
+    return errors;
   }
 
   selectInputContent = AppFormUtils.selectInputContent;
