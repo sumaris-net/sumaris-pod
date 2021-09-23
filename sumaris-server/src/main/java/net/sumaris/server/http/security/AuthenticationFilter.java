@@ -22,11 +22,13 @@ package net.sumaris.server.http.security;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import org.apache.commons.lang3.StringUtils;
+import org.nuiton.i18n.I18n;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -44,7 +46,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -52,13 +53,14 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 /**
  * @author peck7 on 03/12/2018.
  */
+@Slf4j
 public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     private static final String TOKEN = "token";
     private static final String BASIC = "Basic";
 
     private SumarisServerConfiguration configuration;
-    private AtomicBoolean ready = new AtomicBoolean(false);
+    private boolean ready = false;
     private boolean enableAuthBasic;
     private boolean enableAuthToken;
 
@@ -77,9 +79,8 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
         setEnableAuthBasic(configuration.enableAuthBasic());
         setEnableAuthToken(configuration.enableAuthToken());
 
-        if (!this.ready.get()) {
-            this.ready.set(true);
-        }
+        log.info("Started authenticated filer, using {authBasic: {}, authToken: {}}...", enableAuthBasic, enableAuthToken);
+        this.ready = true;
     }
 
     public void setEnableAuthToken(boolean enableAuthToken) {
@@ -94,8 +95,8 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
         // When not ready, force to stop the security chain
-        if (!this.ready.get()) {
-            throw new AuthenticationServiceException("Cannot authenticate: not ready");
+        if (!this.ready) {
+            throw new AuthenticationServiceException(I18n.l(request.getLocale(), "sumaris.error.starting"));
         }
 
         String authorization = request.getHeader(AUTHORIZATION);

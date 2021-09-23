@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableMap;
 import com.querydsl.jpa.impl.JPAQuery;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -79,8 +80,8 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     private boolean debugEntityLoad = false;
     private boolean checkUpdateDate = true;
     private boolean lockForUpdate = false;
-    private LockModeType lockForUpdateMode = LockModeType.PESSIMISTIC_WRITE;
-    private Map<String, Object> lockForUpdateProperties = null;
+    private LockModeType lockForUpdateMode;
+    private Map<String, Object> lockForUpdateProperties;
 
     private EntityManager entityManager;
 
@@ -107,8 +108,9 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     @PostConstruct
     protected void init() {
-        // Init lock timeout
-        lockForUpdateProperties = ImmutableMap.of("javax.persistence.lock.timeout", configuration.getLockTimeout());
+        // Set lock timeout - see lockForUpdate()
+        lockForUpdateProperties = ImmutableMap.of(SumarisConfigurationOption.LOCK_TIMEOUT.getKey(), configuration.getLockTimeout());
+        lockForUpdateMode = configuration.getLockModeType();
     }
 
     public boolean isCheckUpdateDate() {
@@ -473,7 +475,6 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
                 getTableName(entity.getClass().getSimpleName()), entity.getId()), e);
         }
     }
-
 
     protected String getTableName(String entityName) {
         return I18n.t("sumaris.persistence.table." + entityName.substring(0, 1).toLowerCase() + entityName.substring(1));

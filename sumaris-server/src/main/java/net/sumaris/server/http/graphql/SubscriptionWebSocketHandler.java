@@ -79,7 +79,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
 
     private Map<String, List<Subscription>> subscriptionsBySessionId = Maps.newConcurrentMap();
 
-    private AtomicBoolean ready = new AtomicBoolean(false);
+    private boolean ready = false;
 
     @Resource(name = "webSocketGraphQL")
     private GraphQL graphQL;
@@ -101,12 +101,12 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
                 @Override
                 public void onReady(ConfigurationReadyEvent event) {
                     configuration.removeListener(this);
-                    SubscriptionWebSocketHandler.this.ready.set(true);
+                    SubscriptionWebSocketHandler.this.ready = true;
                 }
             });
         }
         else {
-            ready.set(true);
+            ready = true;
         }
     }
 
@@ -159,8 +159,9 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
 
     protected void handleInitConnection(WebSocketSession session, Map<String, Object> request) {
         // When not ready, force to stop the security chain
-        if (!this.ready.get()) {
-            throw new AuthenticationServiceException("Cannot authenticate: not ready");
+        if (!this.ready) {
+            // TODO: use session locale ?
+            throw new AuthenticationServiceException(I18n.t("sumaris.error.starting"));
         }
 
         Map<String, Object> payload = (Map<String, Object>) request.get("payload");

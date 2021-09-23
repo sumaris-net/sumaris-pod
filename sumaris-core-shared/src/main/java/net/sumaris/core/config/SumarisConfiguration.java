@@ -43,6 +43,7 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.core.env.ConfigurableEnvironment;
 
+import javax.persistence.LockModeType;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -895,6 +896,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     public Integer getLockTimeout() {
         return applicationConfig.getOptionAsInt(SumarisConfigurationOption.LOCK_TIMEOUT.getKey());
+    }
+
+    public LockModeType getLockModeType() {
+        return LockModeType.valueOf(applicationConfig.getOption(SumarisConfigurationOption.LOCK_MODE_TYPE.getKey()));
     }
 
     public String getCsvSeparator() {
