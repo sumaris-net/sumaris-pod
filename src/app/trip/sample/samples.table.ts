@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Inj
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {SampleValidatorService} from '../services/validator/sample.validator';
 import {
-  AppFormUtils, AppValidatorService, ColorName,
+  AppFormUtils, AppValidatorService, ColorName, ConfigService,
   firstNotNilPromise,
   InMemoryEntitiesService,
   IReferentialRef,
@@ -28,7 +28,7 @@ import {ISampleModalOptions, SampleModal} from './sample.modal';
 import {FormGroup} from '@angular/forms';
 import {TaxonGroupRef, TaxonNameRef} from '../../referential/services/model/taxon.model';
 import {Sample} from '../services/model/sample.model';
-import {AcquisitionLevelCodes, ParameterGroups, PmfmIds} from '../../referential/services/model/model.enum';
+import {AcquisitionLevelCodes, ParameterGroups, PmfmIds, UnitLabel} from '../../referential/services/model/model.enum';
 import {ReferentialRefService} from '../../referential/services/referential-ref.service';
 import {environment} from '../../../environments/environment';
 import {debounceTime, filter, map, tap} from 'rxjs/operators';
@@ -39,6 +39,7 @@ import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
 import {BehaviorSubject, Observable, Subscription} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 import {MatMenu} from '@angular/material/menu';
+import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
 
 const moment = momentImported;
 
@@ -105,6 +106,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() modalOptions: Partial<ISampleModalOptions>;
   @Input() compactFields = true;
   @Input() showDisplayColumn = true;
+  private weightDisplayedUnit: string;
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.pmfmGroups$.getValue() !== value) {
@@ -155,6 +157,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   constructor(
     injector: Injector,
+    protected configService: ConfigService,
     @Optional() options?: SamplesTableOptions
   ) {
     super(injector,
@@ -203,6 +206,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         )
         .subscribe());
 
+    this.configService.config.subscribe(config => {
+      this.weightDisplayedUnit = config && config.getProperty(DATA_CONFIG_OPTIONS.WEIGHT_DISPLAYED_UNIT);
+    });
   }
 
   ngOnInit() {
@@ -230,7 +236,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
       showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/
     });
-
   }
 
   ngOnDestroy() {
@@ -592,6 +597,15 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
             pmfm.rankOrder = groupIndex;
             if (pmfm.id === PmfmIds.DRESSING) {
               pmfm.completeName = null;
+            }
+            // display configuration unit
+            if (group === 'WEIGHT') {
+              pmfm.completeName = pmfm.completeName?.replace(UnitLabel.KG, this.weightDisplayedUnit);
+              if (pmfm.unitLabel === UnitLabel.KG && this.weightDisplayedUnit === UnitLabel.GRAM) {
+                this.value.forEach(sample => {
+                  sample.measurementValues[pmfm.id.toString()] = sample.measurementValues[pmfm.id.toString()] * 1000;
+                })
+              }
             }
           }
 

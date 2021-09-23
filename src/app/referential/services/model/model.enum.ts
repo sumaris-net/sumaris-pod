@@ -151,6 +151,7 @@ export const UnitLabelPatterns = {
 export const UnitLabel = {
   DECIMAL_HOURS: 'h dec.',
   DATE_TIME: 'Date & Time',
+  defaultWeight: 'kg',
   KG: 'kg',
   GRAM: 'g'
 };
