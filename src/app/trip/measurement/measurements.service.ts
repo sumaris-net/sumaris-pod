@@ -191,10 +191,8 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     if (this._debug) console.debug("[meas-service] converting measurement values before saving...");
     const pmfms = this.$pmfms.getValue() || [];
     const dataToSaved = data.map(json => {
-      console.info('json: ', json)
       const entity = new this.dataType() as T;
       entity.fromObject(json);
-      console.info('entity: ', entity)
       // Adapt measurementValues to entity, but :
       // - keep the original JSON object measurementValues, because may be still used (e.g. in table without validator, in row.currentData)
       // - keep extra pmfm's values, because table can have filtered pmfms, to display only mandatory PMFM (e.g. physical gear table)
