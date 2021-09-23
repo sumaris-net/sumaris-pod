@@ -25,7 +25,6 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
   private _onRefreshPmfms = new EventEmitter<any>();
   private _delegate: IEntitiesService<T, F>;
 
-  //protected configService: ConfigService;
   protected programRefService: ProgramRefService;
 
   loadingPmfms = false;
@@ -93,10 +92,11 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
   }
 
   protected weightDisplayedUnit: string;
-  protected configService: ConfigService;
+  //protected configService: ConfigService;
 
   constructor(
     injector: Injector,
+    protected configService: ConfigService,
     protected dataType: new() => T,
     delegate?: IEntitiesService<T, F>,
     @Optional() protected options?: {
@@ -104,8 +104,6 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       requiredStrategy?: boolean;
       debug?: boolean;
     }) {
-
-
     this._delegate = delegate;
     this.programRefService = injector.get(ProgramRefService);
     this._requiredStrategy = options && options.requiredStrategy || false;
@@ -121,7 +119,6 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       )
       .subscribe(pmfms => this.applyPmfms(pmfms));
 
-    console.info ("configService: ", this. configService)
     //this.configService.config.subscribe(config => {
     //  this.weightDisplayedUnit = config && config.getProperty(DATA_CONFIG_OPTIONS.WEIGHT_DISPLAYED_UNIT);
     //});
@@ -201,13 +198,23 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       pmfms.forEach(pmfm => {
         if (pmfm.unitLabel === UnitLabel.defaultWeight || pmfm.unitLabel === UnitLabel.KG || pmfm.unitLabel === UnitLabel.GRAM) {
           console.info('pmfm: ', pmfm)
-          console.info('entity.measurementValues[pmfm.id.toString()]: ', entity.measurementValues[pmfm.id.toString()])
-          console.info('entity: ', entity.measurementValues[pmfm.id.toString()])
-          if (pmfm.unitLabel === UnitLabel.GRAM) {
-            entity.measurementValues[pmfm.id.toString()] = entity.measurementValues[pmfm.id.toString()] as number / 1000;
+          console.info('entity.measurementValues[pmfm.id.toString()]:  ', entity.measurementValues[pmfm.id.toString()])
+          console.info('entity: ', entity)
+          console.info('this.weightDisplayedUnit: ', this.weightDisplayedUnit)
+          this.configService.config.subscribe(config => {
+            this.weightDisplayedUnit = config && config.getProperty(DATA_CONFIG_OPTIONS.WEIGHT_DISPLAYED_UNIT);
+            if (this.weightDisplayedUnit === UnitLabel.GRAM && pmfm.unitLabel === UnitLabel.KG) {
+              console.info('test')
+              entity.measurementValues[pmfm.id.toString()] = entity.measurementValues[pmfm.id.toString()] as number / 1000;
+            }
+          })
+          //entity.measurementValues[pmfm.id.toString()] = entity.measurementValues[pmfm.id.toString()] as number / 1000;
+          if (this.weightDisplayedUnit === UnitLabel.GRAM && pmfm.unitLabel === UnitLabel.KG) {
+            //entity.measurementValues[pmfm.id.toString()] = entity.measurementValues[pmfm.id.toString()] as number / 1000;
           }
         }
       })
+      //pmfms.forEach(pmfm => console.info('entity.measurementValues[pmfm.id.toString()]: ', entity.measurementValues[pmfm.id.toString()]))
 
       return entity;
     });

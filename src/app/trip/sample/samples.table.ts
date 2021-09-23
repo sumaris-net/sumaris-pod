@@ -106,9 +106,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() modalOptions: Partial<ISampleModalOptions>;
   @Input() compactFields = true;
   @Input() showDisplayColumn = true;
-  private weightDisplayedUnit = "Kg";
-  private weightDisplayedUnitKg = "Kg";
-  private weightDisplayedUnitGram = "g";
+  private weightDisplayedUnit: string;
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.pmfmGroups$.getValue() !== value) {
@@ -602,8 +600,10 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
             }
             // display configuration unit
             if (group === 'WEIGHT') {
+              console.info('this.weightDisplayedUnit: ', this.weightDisplayedUnit)
+              pmfm.completeName = pmfm.completeName?.replace('kg', this.weightDisplayedUnit);
+              console.info('pmfm.completeName: ', pmfm.completeName)
               if (pmfm.unitLabel === UnitLabel.KG && this.weightDisplayedUnit === UnitLabel.GRAM) {
-                pmfm.completeName = pmfm.completeName?.replace('kg', this.weightDisplayedUnit);
                 this.value.forEach(sample => {
                   sample.measurementValues[pmfm.id.toString()] = sample.measurementValues[pmfm.id.toString()] * 1000;
                 })
