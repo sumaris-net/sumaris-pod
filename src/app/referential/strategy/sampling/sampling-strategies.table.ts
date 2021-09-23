@@ -44,6 +44,7 @@ import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
 import {StrategyModal} from '@app/referential/strategy/strategy.modal';
 import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from '@app/referential/services/model/strategy.model';
 import {PmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import { Operation } from '@app/trip/services/model/trip.model';
 
 const moment = momentImported;
 
@@ -65,6 +66,9 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
 
   readonly quarters = Object.freeze([1, 2, 3, 4]);
   readonly parameterGroupLabels: string[];
+
+
+  highlightedRow: TableElement<SamplingStrategy>;
 
   errorDetails: any;
   statusList = StatusList;
@@ -264,26 +268,10 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         .subscribe());
   }
 
+  clickRow(event: MouseEvent|undefined, row: TableElement<SamplingStrategy>): boolean {
+    this.highlightedRow = row;
 
-  protected setProgram(program: Program) {
-    if (program && isNotNil(program.id) && this._program !== program) {
-      console.debug('[strategy-table] Setting program:', program);
-
-      this._program = program;
-      this.settingsId = SamplingStrategiesPageSettingsEnum.PAGE_ID + '#' + program.id;
-
-      this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.';
-      // Add a i18n suffix (e.g. in Biological sampling program)
-      const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-      this.i18nColumnPrefix += i18nSuffix !== 'legacy' && i18nSuffix || '';
-
-      // Restore filter from settings, or load all
-      this.restoreFilterOrLoad(program.id);
-    }
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
+    return super.clickRow(event, row);
   }
 
   async deleteSelection(event: UIEvent): Promise<number> {
@@ -298,9 +286,9 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     // send error if one strategy has landing
     if (isNotEmptyArray(strategyLabelsWithData)) {
       this.errorDetails = {label: strategyLabelsWithData.join(', ')};
-      this.error = strategyLabelsWithData.length === 1
+      this.setError(strategyLabelsWithData.length === 1
         ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA'
-        : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA';
+        : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA');
       return 0;
     }
 
@@ -310,7 +298,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     //TODO FIX : After delete first time, _dirty = false; Cannot delete second times cause try to save
     super.markAsPristine();
 
-    this.error = null;
+    this.resetError();
   }
 
   closeFilterPanel(event?: UIEvent) {
@@ -352,6 +340,28 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   }
 
   /* -- protected methods -- */
+
+
+  protected setProgram(program: Program) {
+    if (program && isNotNil(program.id) && this._program !== program) {
+      console.debug('[strategy-table] Setting program:', program);
+
+      this._program = program;
+      this.settingsId = SamplingStrategiesPageSettingsEnum.PAGE_ID + '#' + program.id;
+
+      this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.';
+      // Add a i18n suffix (e.g. in Biological sampling program)
+      const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+      this.i18nColumnPrefix += i18nSuffix !== 'legacy' && i18nSuffix || '';
+
+      // Restore filter from settings, or load all
+      this.restoreFilterOrLoad(program.id);
+    }
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 
   protected async restoreFilterOrLoad(programId: number) {
     this.markAsLoading();

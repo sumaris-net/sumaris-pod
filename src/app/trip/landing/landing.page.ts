@@ -155,10 +155,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         .pipe(debounceTime(500))
         .subscribe(() => this.landingForm.canEditStrategy = this.samplesTable.empty)
     );
-
-    const presetStrategy = this.contextService.getValue('samplingStrategy');
-    this.setStrategy(presetStrategy);
-    this.contextService.resetValue('samplingStrategy');
   }
 
   protected registerForms() {
@@ -226,6 +222,14 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     // Landing as root
     else {
       // Specific conf
+    }
+
+    // Set contextual strategy
+    const contextualStrategy = this.contextService.getValue('strategy') as Strategy;
+    if (contextualStrategy) {
+      data.measurementValues = data.measurementValues || {};
+      data.measurementValues[PmfmIds.STRATEGY_LABEL] = contextualStrategy.label;
+      this.$strategyLabel.next(contextualStrategy.label);
     }
 
     this.showEntityMetadata = false;

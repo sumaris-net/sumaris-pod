@@ -53,7 +53,7 @@
       <mat-icon>library_add</mat-icon>
     </button>
 
-    <button mat-icon-button color="light" *ngIf="canEdit && selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
+    <button mat-icon-button color="light" *ngIf="canDelete && selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
             (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>
     </button>

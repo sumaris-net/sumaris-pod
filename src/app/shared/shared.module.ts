@@ -19,7 +19,7 @@ import { Context, ContextService } from './context.service';
     {
       provide: ContextService,
       useValue: new ContextService<Context>({})
-    },
+    }
   ],
 })
 export class AppSharedModule {

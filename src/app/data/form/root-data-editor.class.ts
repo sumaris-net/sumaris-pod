@@ -16,6 +16,7 @@ import {StrategyRefService} from "../../referential/services/strategy-ref.servic
 import {ProgramRefService} from "../../referential/services/program-ref.service";
 import {mergeMap} from "rxjs/internal/operators";
 import {Moment} from "moment";
+import { FormControl } from '@angular/forms';
 
 
 @Directive()
@@ -64,6 +65,10 @@ export abstract class AppRootDataEditor<
 
   get strategy(): Strategy {
     return this.$strategy.getValue();
+  }
+
+  get programControl(): FormControl {
+    return this.form.controls.program as FormControl;
   }
 
   protected constructor(
@@ -139,7 +144,7 @@ export abstract class AppRootDataEditor<
         // DEBUG
         //tap(strategy => console.debug("[root-data-editor] Received strategy: ", strategy)),
 
-        filter(strategy => strategy !== this.$strategy.getValue()),
+        filter(strategy => strategy !== this.$strategy.value),
         tap(strategy => this.$strategy.next(strategy))
       )
       .subscribe());
@@ -244,7 +249,7 @@ export abstract class AppRootDataEditor<
    */
   private startListenProgramChanges() {
     this.registerSubscription(
-      this.form.controls.program.valueChanges
+      this.programControl.valueChanges
         .subscribe(program => {
           if (ReferentialUtils.isNotEmpty(program)) {
             console.debug("[root-data-editor] Propagate program change: " + program.label);

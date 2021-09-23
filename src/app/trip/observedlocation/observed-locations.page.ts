@@ -34,6 +34,8 @@ import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
 import {ObservedLocationFilter, ObservedLocationOfflineFilter} from '../services/filter/observed-location.filter';
 import {filter, tap} from 'rxjs/operators';
 import {DataQualityStatusEnum, DataQualityStatusList} from '@app/data/services/model/model.utils';
+import { Strategy } from '@app/referential/services/model/strategy.model';
+import { ContextService } from '@app/shared/context.service';
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -86,6 +88,7 @@ export class ObservedLocationsPage extends
     protected programRefService: ProgramRefService,
     protected formBuilder: FormBuilder,
     protected configService: ConfigService,
+    protected context: ContextService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, platform, location, modalCtrl, settings,
@@ -213,6 +216,9 @@ export class ObservedLocationsPage extends
           })
         )
         .subscribe());
+
+    // Clear the context
+    this.resetContext();
   }
 
   clickRow(event: MouseEvent|undefined, row: TableElement<ObservedLocation>): boolean {
@@ -331,5 +337,9 @@ export class ObservedLocationsPage extends
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected resetContext() {
+    this.context.reset();
   }
 }

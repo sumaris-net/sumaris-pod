@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from "@angular/router";
 import { TableElement } from "@e-is/ngx-material-table/src/app/ngx-material-table/table-element";
-import { Subject } from "rxjs";
+import { Subject, Subscription } from 'rxjs';
 import {AppTable, isNotNil, EntityServiceLoadOptions, ReferentialUtils, AccountService, CompletableEvent, PlatformService} from '@sumaris-net/ngx-components';
 import { ProgramProperties, StrategyEditor } from "../services/config/program.config";
 import { Program } from "../services/model/program.model";
@@ -14,6 +14,8 @@ import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {MatExpansionPanel} from '@angular/material/expansion';
 import { ContextService } from '../../shared/context.service';
 import { SamplingStrategy } from '../services/model/sampling-strategy.model';
+import { ReferentialRef } from '../../../../ngx-sumaris-components/public_api';
+import { strategy } from '@angular-devkit/core/src/experimental/jobs';
 
 // app-strategies-page
 @Component({
@@ -22,7 +24,7 @@ import { SamplingStrategy } from '../services/model/sampling-strategy.model';
   styleUrls: ['strategies.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class StrategiesPage {
+export class StrategiesPage implements OnInit {
 
   data: Program;
   strategyEditor: StrategyEditor;
@@ -62,7 +64,7 @@ export class StrategiesPage {
     protected programRefService: ProgramRefService,
     protected accountService: AccountService,
     protected platformService: PlatformService,
-    @Inject(ContextService) protected contextService: ContextService,
+    @Inject(ContextService) protected context: ContextService,
     protected cd: ChangeDetectorRef,
   ) {
     this.mobile = platformService.mobile;
@@ -71,6 +73,12 @@ export class StrategiesPage {
     if (isNotNil(id)) {
       this.load(+id);
     }
+  }
+
+  ngOnInit() {
+
+    // Make to remove old contextual values
+    this.resetContext();
   }
 
   async load(id?: number, opts?: EntityServiceLoadOptions) {
@@ -87,6 +95,7 @@ export class StrategiesPage {
       this.strategyEditor = program.getProperty<StrategyEditor>(ProgramProperties.STRATEGY_EDITOR);
       this.i18nSuffix = program.getProperty<StrategyEditor>(ProgramProperties.I18N_SUFFIX);
       this.$title.next(program.label);
+
     } catch (err) {
       console.error(err);
       this.error = err && err.message || err;
@@ -119,8 +128,8 @@ export class StrategiesPage {
     });
   }
 
-  onNewDataFromRow(row: TableElement<SamplingStrategy>) {
-    this.contextService.setValue('samplingStrategy', row.currentData, { ttl: 60000 });
+  onNewDataFromRow<S extends Strategy<S>>(row: TableElement<S>) {
+    this.setContext(row.currentData);
     this.router.navigateByUrl('/observations/new');
   }
 
@@ -140,12 +149,20 @@ export class StrategiesPage {
     this.samplingTable?.resetFilter(event);
   }
 
-  async openStrategyModal(event: UIEvent) {
-    await this.samplingTable.openStrategyDuplicateYearSelectionModal(event, this.samplingTable.selection.selected);
+  async openStrategyDuplicateModal(event: UIEvent) {
+    await this.samplingTable?.openStrategyDuplicateYearSelectionModal(event, this.samplingTable.selection.selected);
   }
 
   protected canUserWrite(data: Program): boolean {
     return this.programService.canUserWrite(data);
   }
 
+  protected setContext<S extends Strategy<S>>(strategy: S) {
+    this.context.setValue('program', this.data?.clone(), { ttl: 60000 });
+    this.context.setValue('strategy', Strategy.fromObject(strategy), { ttl: 60000 });
+  }
+
+  protected resetContext() {
+    this.context.reset();
+  }
 }

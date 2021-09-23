@@ -35,6 +35,7 @@ import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
 import {filter, tap} from 'rxjs/operators';
 import {BehaviorSubject} from 'rxjs';
 import {DataQualityStatusList, DataQualityStatusEnum} from '@app/data/services/model/model.utils';
+import { ContextService } from '@app/shared/context.service';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -85,6 +86,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected configService: ConfigService,
+    protected context: ContextService,
     protected formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
   ) {
@@ -208,6 +210,9 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
         )
         .subscribe()
     );
+
+    // Clear the existing context
+    this.resetContext();
   }
 
   clickRow(event: MouseEvent|undefined, row: TableElement<Trip>): boolean {
@@ -258,5 +263,9 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected resetContext() {
+    this.context.reset();
   }
 }

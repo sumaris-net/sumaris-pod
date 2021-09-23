@@ -1,12 +1,15 @@
 import {Strategy} from "./strategy.model";
 import {Moment} from "moment";
-import {fromDateISOString} from "@sumaris-net/ngx-components";
+import { Entity, EntityClass, fromDateISOString } from '@sumaris-net/ngx-components';
 import {isNil, toNumber} from "@sumaris-net/ngx-components";
 
+@EntityClass({typename: 'SamplingStrategyVO'})
 export class SamplingStrategy extends Strategy<SamplingStrategy> {
 
-  static fromObject(source: any): SamplingStrategy {
-    if (!source || source instanceof SamplingStrategy) return source;
+  static fromObject: (source: any, opts?: any) => SamplingStrategy;
+
+  static clone(source: any): SamplingStrategy {
+    if (source instanceof SamplingStrategy) return source.clone();
     const res = new SamplingStrategy();
     res.fromObject(source);
     return res;
