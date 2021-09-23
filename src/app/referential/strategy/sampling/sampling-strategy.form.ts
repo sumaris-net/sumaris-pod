@@ -939,7 +939,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       } else {
         SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
         const labelControl = this.form.get('label');
-        labelControl.setValue(value.replace(/\s/g, '').toUpperCase());
+        labelControl.setValue(value?.replace(/\s/g, '').toUpperCase());
       }
     }
   }
@@ -1099,7 +1099,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         //console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
         //labelControl.setValue(computedLabel);
         // if current date and taxon code are same than stored data, set stored data
-        const formTaxon = labelControl.value.replace(/\s/g, '').toUpperCase().substring(2, 9);
+        const formTaxon = labelControl.value?.replace(/\s/g, '').toUpperCase().substring(2, 9);
         if (this.data.label && this.data.label.substring(0, 2) === yearMask && this.data.label.substring(2, 9) === formTaxon && formTaxon === label) {
           // Complete label with '___' when increment isn't set in order to throw a warning in validator
           if (this.data.label.length === 9)
