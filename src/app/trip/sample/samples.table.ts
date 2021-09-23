@@ -600,9 +600,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
             }
             // display configuration unit
             if (group === 'WEIGHT') {
-              console.info('this.weightDisplayedUnit: ', this.weightDisplayedUnit)
-              pmfm.completeName = pmfm.completeName?.replace('kg', this.weightDisplayedUnit);
-              console.info('pmfm.completeName: ', pmfm.completeName)
+              pmfm.completeName = pmfm.completeName?.replace(UnitLabel.KG, this.weightDisplayedUnit);
               if (pmfm.unitLabel === UnitLabel.KG && this.weightDisplayedUnit === UnitLabel.GRAM) {
                 this.value.forEach(sample => {
                   sample.measurementValues[pmfm.id.toString()] = sample.measurementValues[pmfm.id.toString()] * 1000;
