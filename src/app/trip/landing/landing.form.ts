@@ -75,7 +75,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   strategyControl: FormControl;
 
   autocompleteFilters = {
-    fishingArea: false
+    fishingArea: true
   };
   get empty(): any {
     const value = this.value;
