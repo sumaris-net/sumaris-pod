@@ -1,8 +1,8 @@
 import {BehaviorSubject, isObservable, Observable} from "rxjs";
 import {filter, first, map, switchMap, tap} from "rxjs/operators";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
-import {ConfigService, EntityUtils} from '@sumaris-net/ngx-components';
-import {Directive, EventEmitter, Injector, Input, Optional} from "@angular/core";
+import {ConfigService, EntityUtils, PlatformService} from '@sumaris-net/ngx-components';
+import {Directive, EventEmitter, Inject, Injector, Input, Optional} from '@angular/core';
 import {firstNotNilPromise} from "@sumaris-net/ngx-components";
 import {IPmfm, PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
 import {SortDirection} from "@angular/material/sort";
@@ -26,6 +26,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
   private _delegate: IEntitiesService<T, F>;
 
   protected programRefService: ProgramRefService;
+  protected configService: ConfigService;
 
   loadingPmfms = false;
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
@@ -92,11 +93,10 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
   }
 
   protected weightDisplayedUnit: string;
-  //protected configService: ConfigService;
+  // protected configService: ConfigService;
 
   constructor(
     injector: Injector,
-    protected configService: ConfigService,
     protected dataType: new() => T,
     delegate?: IEntitiesService<T, F>,
     @Optional() protected options?: {
@@ -106,6 +106,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     }) {
     this._delegate = delegate;
     this.programRefService = injector.get(ProgramRefService);
+    this.configService = injector.get(ConfigService);
     this._requiredStrategy = options && options.requiredStrategy || false;
     this._debug = options && options.debug;
 
@@ -119,9 +120,12 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       )
       .subscribe(pmfms => this.applyPmfms(pmfms));
 
-    //this.configService.config.subscribe(config => {
-    //  this.weightDisplayedUnit = config && config.getProperty(DATA_CONFIG_OPTIONS.WEIGHT_DISPLAYED_UNIT);
-    //});
+    if (this.configService)
+    {
+      this.configService.config.subscribe(config => {
+        this.weightDisplayedUnit = config && config.getProperty(DATA_CONFIG_OPTIONS.WEIGHT_DISPLAYED_UNIT);
+      });
+    }
   }
 
   ngOnDestroy() {
