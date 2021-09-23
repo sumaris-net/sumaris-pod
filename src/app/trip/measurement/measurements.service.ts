@@ -201,24 +201,11 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       entity.measurementValues = Object.assign({}, json.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, pmfms));
       pmfms.forEach(pmfm => {
         if (pmfm.unitLabel === UnitLabel.defaultWeight || pmfm.unitLabel === UnitLabel.KG || pmfm.unitLabel === UnitLabel.GRAM) {
-          console.info('pmfm: ', pmfm)
-          console.info('entity.measurementValues[pmfm.id.toString()]:  ', entity.measurementValues[pmfm.id.toString()])
-          console.info('entity: ', entity)
-          console.info('this.weightDisplayedUnit: ', this.weightDisplayedUnit)
-          this.configService.config.subscribe(config => {
-            this.weightDisplayedUnit = config && config.getProperty(DATA_CONFIG_OPTIONS.WEIGHT_DISPLAYED_UNIT);
-            if (this.weightDisplayedUnit === UnitLabel.GRAM && pmfm.unitLabel === UnitLabel.KG) {
-              console.info('test')
-              entity.measurementValues[pmfm.id.toString()] = entity.measurementValues[pmfm.id.toString()] as number / 1000;
-            }
-          })
-          //entity.measurementValues[pmfm.id.toString()] = entity.measurementValues[pmfm.id.toString()] as number / 1000;
           if (this.weightDisplayedUnit === UnitLabel.GRAM && pmfm.unitLabel === UnitLabel.KG) {
-            //entity.measurementValues[pmfm.id.toString()] = entity.measurementValues[pmfm.id.toString()] as number / 1000;
+            entity.measurementValues[pmfm.id.toString()] = entity.measurementValues[pmfm.id.toString()] as number / 1000;
           }
         }
       })
-      //pmfms.forEach(pmfm => console.info('entity.measurementValues[pmfm.id.toString()]: ', entity.measurementValues[pmfm.id.toString()]))
 
       return entity;
     });
