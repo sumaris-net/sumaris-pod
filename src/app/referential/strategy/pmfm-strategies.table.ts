@@ -104,7 +104,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   @Input() showPmfmLabel = true;
   @Input() allowEmpty = false;
   @Input() canEdit = false;
-  @Input() canDelete = false;
   @Input() sticky = false;
 
   @Input() set showDetailsColumns(value: boolean) {
@@ -360,15 +359,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       },
       required: false
     }, true);
-
-    /*if (!this.allowEmpty) {
-      this.registerSubscription(
-        this.onBeforeDeleteRows.subscribe(event => {
-          const canDelete = this.totalRowCount > 1;
-          event.detail.success(canDelete);
-        })
-      )
-    }*/
   }
 
   setFilter(source: Partial<PmfmStrategyFilter>, opts?: { emitEvent: boolean }) {

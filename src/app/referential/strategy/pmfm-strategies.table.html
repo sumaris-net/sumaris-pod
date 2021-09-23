@@ -114,10 +114,10 @@
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef>
       </th>
-      <td mat-cell *matCellDef="let row">
+      <td mat-cell *matCellDef="let row" >
 
         <!-- add -->
-        <button mat-icon-button color="light"
+        <button mat-icon-button color="light" [disabled]="!canEdit"
                 [title]="'COMMON.BTN_ADD'|translate"
                 (click)="confirmAndAdd($event, row)">
           <mat-icon>add</mat-icon>
@@ -125,6 +125,7 @@
 
         <!-- delete  -->
         <button mat-icon-button color="light" *ngIf="allowEmpty || totalRowCount > 1"
+                [disabled]="!canEdit"
                 [title]="'COMMON.BTN_DELETE'|translate"
                 (click)="deleteRow($event, row)">
           <mat-icon>close</mat-icon>
@@ -132,6 +133,7 @@
 
         <!-- reset row  -->
         <button mat-icon-button color="light" *ngIf="!allowEmpty && totalRowCount === 1"
+                [disabled]="!canEdit"
                 [title]="'COMMON.BTN_DELETE'|translate"
                 (click)="resetRow($event, row)">
           <mat-icon>close</mat-icon>
