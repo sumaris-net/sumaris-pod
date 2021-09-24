@@ -22,8 +22,9 @@ import {CacheService} from "ionic-cache";
 import {CryptoService}  from "@sumaris-net/ngx-components";
 import {BaseReferentialFilter} from "./filter/referential.filter";
 import {EntityClass}  from "@sumaris-net/ngx-components";
-import {UnitLabel} from '@app/referential/services/model/model.enum';
 import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
+import { ParameterLabelGroups, UnitLabel } from '@app/referential/services/model/model.enum';
+
 
 const LoadAllQuery = gql`query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
   data: pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -421,10 +422,12 @@ export class PmfmService
    * @param parameterLabelsMap
    * @param opts
    */
-  async loadIdsGroupByParameterLabels(parameterLabelsMap: ObjectMap<string[]>,
+  async loadIdsGroupByParameterLabels(parameterLabelsMap?: ObjectMap<string[]>,
                                       opts?: {
                                         cache?: boolean;
                                       }): Promise<ObjectMap<number[]>> {
+
+    parameterLabelsMap = parameterLabelsMap || ParameterLabelGroups;
 
     if (!opts || opts.cache !== false) {
       const cacheKey = [

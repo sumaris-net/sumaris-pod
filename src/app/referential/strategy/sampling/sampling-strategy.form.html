@@ -195,7 +195,6 @@
         <ion-label>&nbsp;</ion-label>
       </ion-col>
       <ion-col size="12" size-md="3" size-lg="2">
-        <!-- TODO BLA question: pourquoi un markAsDirty() sur un click -->
         <mat-date-short-field [placeholder]="i18nFieldPrefix + 'YEAR_PLACEHOLDER'|translate"
                               formControlName="year"
                               [required]="true" >
@@ -214,9 +213,6 @@
                  *ngFor="let appliedPeriodForm of appliedPeriodsForm.controls; index as i; first as first"
                  [class.ion-padding-start]="!first">
           <form [formGroup]="appliedPeriodForm">
-            <!-- DEBUG AppliedPeriod.startDate
-              <mat-date-field formControlName="startDate"></mat-date-field>
-            -->
             <mat-form-field>
               <input matInput
                      formControlName="acquisitionNumber"
@@ -250,31 +246,21 @@
       </ion-col>
     </ion-row>
 
-    <!-- Lengths Pmfms -->
-    <!-- <ion-item *ngIf="form.controls.pmfms.invalid && (form.touched)" hidden-xs hidden-sm hidden-mobile lines="none">
-      <div *ngIf="form.controls.pmfms.errors.required">
-        Name is required.
-      </div>
-    </ion-item> -->
-    <!-- <ion-item *ngIf="form.controls.pmfms.invalid && (form.touched)" lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
-    </ion-item> -->
     <ion-row>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
-      <ion-col *ngIf="form.touched">
-        <mat-error *ngIf="form.touched && form.hasError('minLength')">
-          {{'PROGRAM.STRATEGY.ERROR.PARAMETERS.MIN_LENGTH' | translate: form.errors.minLength }}
+      <ion-col *ngIf="form.touched || pmfmsForm.touched">
+        <mat-error *ngIf="pmfmsForm.hasError('required') || pmfmsForm.hasError('minLength')">
+          {{'PROGRAM.STRATEGY.ERROR.PARAMETERS.MIN_LENGTH' | translate: {minLength: minPmfmCount} }}
         </mat-error>
-        <mat-error *ngIf="form.touched && form.get('pmfms').hasError('weightOrSize')">
+        <mat-error *ngIf="pmfmsForm.hasError('weightOrSize')">
           {{'PROGRAM.STRATEGY.ERROR.PARAMETERS.WEIGHT_OR_LENGTH' | translate}}
         </mat-error>
       </ion-col>
     </ion-row>
     <ion-row>
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
+      <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
         <ion-label class="ion-float-end">{{i18nFieldPrefix + 'LENGTHS'|translate}}</ion-label>
       </ion-col>
       <ion-col>
@@ -298,7 +284,7 @@
 
     <!-- Weights Pmfms -->
     <ion-row>
-      <ion-col size="0" size-md="2" size-lg="3">
+      <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
         <ion-label class="ion-float-end">{{i18nFieldPrefix + 'WEIGHTS'|translate}}</ion-label>
       </ion-col>
       <ion-col>
@@ -322,7 +308,7 @@
 
     <!-- SEX -->
     <ion-row>
-      <ion-col size="0" size-md="2" size-lg="3">
+      <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
         <ion-label class="ion-float-end">{{i18nFieldPrefix + 'SEX'|translate}}</ion-label>
       </ion-col>
       <ion-col size="12" size-sm="auto">
@@ -335,7 +321,7 @@
 
     <!-- Maturity Pmfms -->
     <ion-row [hidden]="!hasSex()">
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
+      <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
         <ion-label class="ion-float-end">{{i18nFieldPrefix + 'MATURITIES'|translate}}</ion-label>
       </ion-col>
       <ion-col>
@@ -359,7 +345,7 @@
 
     <!-- AGE -->
     <ion-row>
-      <ion-col size="0" size-md="2" size-lg="3">
+      <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
         <ion-label class="ion-float-end">{{i18nFieldPrefix + 'AGE'|translate}}</ion-label>
       </ion-col>
       <ion-col size="12" size-sm="auto">
@@ -370,7 +356,7 @@
 
     <!-- Calcified Pmfms -->
     <ion-row [hidden]="!hasAge()" *ngFor="let pmfmsFraction of pmfmsFractionForm?.controls; index as i; first as first">
-      <ion-col size="0" size-md="2" size-lg="3">
+      <ion-col [size]="first ? 12 : 0" size-md="2" size-lg="3" class="ion-align-self-end">
         <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'CALCIFIED_TYPE'|translate}}</ion-label>
       </ion-col>
       <ion-col>
@@ -398,7 +384,7 @@
                 [disabled]="isFractionDisable(i)"
                 [tabindex]="tabindex+10++i*3+1"
                 [title]="'COMMON.BTN_ADD'|translate"
-                (click)="addPmfmStrategiesFraction()">
+                (click)="addCalcifiedFraction()">
           <mat-icon>add</mat-icon>
         </button>
 
@@ -414,7 +400,7 @@
 
     </ion-row>
 
-    <!-- Description -->
+    <!-- Comments -->
     <ion-row>
       <ion-col>
         <mat-form-field appearance="outline">

@@ -769,6 +769,9 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
   copyIdAndUpdateDate(source: Landing | undefined, target: Landing) {
     if (!source) return;
 
+    // DEBUG
+    //console.debug('[landing-service] copyIdAndUpdateDate', source, target);
+
     super.copyIdAndUpdateDate(source, target);
 
     // Update samples (recursively)
@@ -778,6 +781,9 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     // Update trip
     if (target.trip && source.trip) {
+      // DEBUG
+      //console.debug('[landing-service] copyIdAndUpdateDate -> trip', source.trip, target.trip);
+
       this.copyIdAndUpdateDateOnTrip(target, source.trip as Trip, target.trip as Trip);
     }
   }

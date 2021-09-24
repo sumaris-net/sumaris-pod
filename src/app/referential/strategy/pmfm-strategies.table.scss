@@ -26,6 +26,12 @@
   }
 
   &.no-header-row {
+
+    .mat-column-parameter {
+      min-width: 80px;
+      max-width: 80px;
+    }
+
     .mat-column-actions {
       min-width: 80px;
       max-width: 80px;
