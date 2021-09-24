@@ -13,9 +13,7 @@ import { StrategiesTable } from "./strategies.table";
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {MatExpansionPanel} from '@angular/material/expansion';
 import { ContextService } from '../../shared/context.service';
-import { SamplingStrategy } from '../services/model/sampling-strategy.model';
-import { ReferentialRef } from '../../../../ngx-sumaris-components/public_api';
-import { strategy } from '@angular-devkit/core/src/experimental/jobs';
+
 
 // app-strategies-page
 @Component({
