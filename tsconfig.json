@@ -40,6 +40,8 @@
     }
   },
   "angularCompilerOptions": {
+    //"enableIvy": "true",
+    //"compilationMode": "partial",
     "fullTemplateTypeCheck": true,
     "strictInjectionParameters": true
   }

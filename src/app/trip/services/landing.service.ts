@@ -1,4 +1,4 @@
-import {Injectable, Injector} from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import {
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlSubscriptions,
@@ -22,29 +22,29 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_POD,
   NetworkService,
-  Person, toDateISOString
+  Person
 } from '@sumaris-net/ngx-components';
-import {BehaviorSubject, EMPTY, Observable} from 'rxjs';
-import {Landing} from './model/landing.model';
-import {gql} from '@apollo/client/core';
-import {DataFragments, Fragments} from './trip.queries';
-import {ErrorCodes} from './trip.errors';
-import {filter, map} from 'rxjs/operators';
-import {BaseRootDataService} from '@app/data/services/root-data-service.class';
-import {Sample} from './model/sample.model';
-import {VesselSnapshotFragments} from '@app/referential/services/vessel-snapshot.service';
+import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
+import { Landing } from './model/landing.model';
+import { gql } from '@apollo/client/core';
+import { DataFragments, Fragments } from './trip.queries';
+import { ErrorCodes } from './trip.errors';
+import { filter, map, tap } from 'rxjs/operators';
+import { BaseRootDataService } from '@app/data/services/root-data-service.class';
+import { Sample } from './model/sample.model';
+import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import * as momentImported from 'moment';
-import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
+import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
 
-import {SortDirection} from '@angular/material/sort';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {ReferentialFragments} from '@app/referential/services/referential.fragments';
-import {LandingFilter} from './filter/landing.filter';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
-import {TripFragments, TripService} from '@app/trip/services/trip.service';
-import {Trip} from '@app/trip/services/model/trip.model';
-import {tar} from '@ionic/cli/lib/utils/archive';
+import { SortDirection } from '@angular/material/sort';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { ReferentialFragments } from '@app/referential/services/referential.fragments';
+import { LandingFilter } from './filter/landing.filter';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
+import { TripFragments, TripService } from '@app/trip/services/trip.service';
+import { Trip } from '@app/trip/services/model/trip.model';
+import { environment } from '@environments/environment';
 
 const moment = momentImported;
 
@@ -281,8 +281,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     );
   }
 
-  async loadAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
-    return firstNotNilPromise(this.watchAllByObservedLocation(filter, opts));
+  loadAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
+    return this.watchAllByObservedLocation(filter, opts).toPromise();
   }
 
   watchAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
@@ -317,61 +317,61 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       size: size || 20,
       sortBy: (sortBy !== 'id' && sortBy) || 'dateTime',
       sortDirection: sortDirection || 'asc',
-      filter: dataFilter && dataFilter.asPodObject()
+      filter: dataFilter?.asPodObject()
     };
 
     let now = this._debug && Date.now();
     if (this._debug) console.debug("[landing-service] Watching landings... using variables:", variables);
 
-    const fullLoad = (opts && opts.fullLoad === true);
+    const fullLoad = (opts && opts.fullLoad === true); // false by default
     const withTotal = (!opts || opts.withTotal !== false);
     const query = fullLoad ? LandingQueries.loadAllFullWithTotal :
-      (withTotal ? LandingQueries.loadAllWithTotal : LandingQueries.loadAll);
+      (withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll);
 
     return this.mutableWatchQuery<LoadResult<any>>({
-        queryName: 'LoadAll',
-        query,
-        arrayFieldName: "data",
-        totalFieldName: withTotal ? "total" : undefined,
-        insertFilterFn: dataFilter && dataFilter.asFilterFn(),
-        variables,
-        error: {code: ErrorCodes.LOAD_LANDINGS_ERROR, message: "LANDING.ERROR.LOAD_ALL_ERROR"},
-        fetchPolicy: opts && opts.fetchPolicy || undefined
-      })
-        .pipe(
-          // Skip update during load()
-          filter(() => !this.loading),
-          map(({data, total}) => {
-            let entities = (!opts || opts.toEntity !== false)
-              ? (data || []).map(Landing.fromObject)
-              : (data || []) as Landing[];
-            if (this._debug) {
-              if (now) {
-                console.debug(`[landing-service] Loaded {${entities.length || 0}} landings in ${Date.now() - now}ms`, entities);
-                now = undefined;
+      queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
+      query,
+      arrayFieldName: 'data',
+      totalFieldName: withTotal ? "total" : undefined,
+      insertFilterFn: dataFilter?.asFilterFn(),
+      variables,
+      error: {code: ErrorCodes.LOAD_LANDINGS_ERROR, message: "LANDING.ERROR.LOAD_ALL_ERROR"},
+      fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
+    })
+      .pipe(
+        // Skip update during load()
+        filter(() => !this.loading),
+        map(({data, total}) => {
+          let entities = (!opts || opts.toEntity !== false)
+            ? (data || []).map(Landing.fromObject)
+            : (data || []) as Landing[];
+          if (this._debug) {
+            if (now) {
+              console.debug(`[landing-service] Loaded {${entities.length || 0}} landings in ${Date.now() - now}ms`, entities);
+              now = undefined;
+            }
+          }
+
+          // Group by vessel (keep last landing)
+          if (isNotEmptyArray(entities) && groupByVessel) {
+            const landingByVesselMap = new Map<number, Landing>();
+            entities.forEach(landing => {
+              const existingLanding = landingByVesselMap.get(landing.vesselSnapshot.id);
+              if (!existingLanding || fromDateISOString(existingLanding.dateTime).isBefore(landing.dateTime)) {
+                landingByVesselMap.set(landing.vesselSnapshot.id, landing);
               }
-            }
+            });
+            entities = Object.values(landingByVesselMap);
+            total = entities.length;
+          }
 
-            // Group by vessel (keep last landing)
-            if (isNotEmptyArray(entities) && groupByVessel) {
-              const landingByVesselMap = new Map<number, Landing>();
-              entities.forEach(landing => {
-                const existingLanding = landingByVesselMap.get(landing.vesselSnapshot.id);
-                if (!existingLanding || fromDateISOString(existingLanding.dateTime).isBefore(landing.dateTime)) {
-                  landingByVesselMap.set(landing.vesselSnapshot.id, landing);
-                }
-              });
-              entities = Object.values(landingByVesselMap);
-              total = entities.length;
-            }
+          // Compute rankOrder, by tripId or observedLocationId
+          if (!opts || opts.computeRankOrder !== false) {
+            this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter);
+          }
 
-            // Compute rankOrder, by tripId or observedLocationId
-            if (!opts || opts.computeRankOrder !== false) {
-              this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter);
-            }
-
-            return {data: entities, total};
-          }));
+          return {data: entities, total};
+        }));
   }
 
 
@@ -467,7 +467,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         // Add to cache
         if (isNotEmptyArray(newSavedLandings)) {
           this.insertIntoMutableCachedQueries(proxy, {
-            queryName: 'LoadAll',
+            queries: this.getLoadQueries(),
             data: newSavedLandings
           });
         }
@@ -519,7 +519,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     // Transform into json
     const json = this.asObject(entity, MINIFY_ENTITY_FOR_POD);
-    if (this._debug) console.debug("[landing-service] Using minify object, to send:", json);
+    //if (this._debug)
+      console.debug("[landing-service] Saving landing (minified):", json);
 
     await this.graphql.mutate<{ data: any }>({
       mutation: this.mutations.save,
@@ -556,7 +557,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
           if (isNew) {
             // Cache load by parent
             this.insertIntoMutableCachedQueries(proxy, {
-              queryName: 'LoadAll',
+              queries: this.getLoadQueries(),
               data: savedEntity
             });
           }

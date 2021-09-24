@@ -26,7 +26,7 @@ import {SimpleReferentialTable} from "../list/referential-simple.table";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit {
+export class ParameterPage extends AppEntityEditor<Parameter> {
 
   canEdit: boolean;
   form: FormGroup;

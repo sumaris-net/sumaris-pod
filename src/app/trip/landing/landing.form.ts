@@ -14,7 +14,7 @@ import {
   FormArrayHelper,
   IReferentialRef,
   isNil,
-  isNilOrBlank,
+  isNilOrBlank, isNotEmptyArray,
   isNotNil,
   LoadResult,
   LocalSettingsService,
@@ -384,31 +384,38 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   async safeSetValue(data: Landing, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }) {
     if (!data) return;
 
-    // Make sure to have (at least) one observer
-    data.observers = data.observers && data.observers.length ? data.observers : [null];
 
     // Resize observers array
     if (this._showObservers) {
+      // Make sure to have (at least) one observer
+      data.observers = isNotEmptyArray(data.observers) ? data.observers : [null];
       this.observersHelper.resize(Math.max(1, data.observers.length));
     } else {
+      data.observers = [];
       this.observersHelper.removeAllEmpty();
     }
 
     // Trip
-    const trip = (data.trip as Trip);
+    let trip = (data.trip as Trip);
+    this.showMetier = this.showMetier || (trip?.metiers || []).length > 0;
+    this.showFishingArea = this.showFishingArea || (trip?.fishingAreas || []).length > 0;
+    if (!trip && (this.showMetier || this.showFishingArea)) {
+      trip = new Trip();
+      data.trip = trip;
+    }
 
     // Resize metiers array
-    this.showMetier = this.showMetier || (trip?.metiers || []).length > 0;
     if (this.showMetier) {
-      this.metiersHelper.resize(Math.max(1, (trip?.metiers || []).length));
+      trip.metiers = isNotEmptyArray(trip.metiers) ? trip.metiers : [null];
+      this.metiersHelper.resize(Math.max(1, trip.metiers.length));
     } else {
       this.metiersHelper.removeAllEmpty();
     }
 
     // Resize fishing areas array
-    this.showFishingArea = this.showFishingArea || (trip?.fishingAreas || []).length > 0;
     if (this.showFishingArea) {
-      this.fishingAreasHelper.resize(Math.max(1, (trip?.fishingAreas || []).length));
+      trip.fishingAreas = isNotEmptyArray(trip.fishingAreas) ? trip.fishingAreas : [null];
+      this.fishingAreasHelper.resize(Math.max(1, trip.fishingAreas.length));
     } else {
       this.fishingAreasHelper.removeAllEmpty();
     }
@@ -418,7 +425,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
 
     // DEBUG
-    console.debug('[landing-form] safeSetValue', data);
+    //console.debug('[landing-form] safeSetValue', data);
 
     await super.safeSetValue(data, opts);
   }

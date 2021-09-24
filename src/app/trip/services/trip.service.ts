@@ -446,7 +446,7 @@ export class TripService
       query,
       arrayFieldName: 'data',
       totalFieldName: withTotal ? 'total' : undefined,
-      insertFilterFn: dataFilter && dataFilter.asFilterFn(),
+      insertFilterFn: dataFilter?.asFilterFn(),
       variables,
       error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'

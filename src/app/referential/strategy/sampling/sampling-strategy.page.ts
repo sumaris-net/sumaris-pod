@@ -29,7 +29,7 @@ const moment = momentImported;
   templateUrl: 'sampling-strategy.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyService> implements OnInit {
+export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyService> {
 
   propertyDefinitions = Object.getOwnPropertyNames(ProgramProperties).map(name => ProgramProperties[name]);
   $program = new BehaviorSubject<Program>(null);

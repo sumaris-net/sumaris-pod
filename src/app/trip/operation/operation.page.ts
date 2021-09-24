@@ -37,7 +37,7 @@ const moment = momentImported;
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationPage extends AppEntityEditor<Operation, OperationService> implements OnInit, AfterViewInit, OnDestroy {
+export class OperationPage extends AppEntityEditor<Operation, OperationService> {
 
   private _lastOperationsTripId: number;
   readonly acquisitionLevel = AcquisitionLevelCodes.OPERATION;

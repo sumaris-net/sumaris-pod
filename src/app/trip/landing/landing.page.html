@@ -140,8 +140,7 @@
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
 
-  <app-form-buttons-bar (onCancel)="cancel()"
-                        (onSave)="save($event)"
+  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
                         [disabled]="!dirty || loading"
                         [disabledCancel]="!dirty || loading">
 

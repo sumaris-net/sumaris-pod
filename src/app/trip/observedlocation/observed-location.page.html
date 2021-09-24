@@ -142,10 +142,9 @@
 
 </ion-content>
 
-<ion-footer *ngIf="!mobile">
-  <app-form-buttons-bar (onCancel)="cancel()"
-                        (onSave)="save($event)"
-                        (close)="close($event)"
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+
+  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
                         [disabled]="!dirty || loading"
                         [disabledCancel]="!dirty || loading">
 
