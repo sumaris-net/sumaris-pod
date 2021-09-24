@@ -79,7 +79,7 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
         setEnableAuthBasic(configuration.enableAuthBasic());
         setEnableAuthToken(configuration.enableAuthToken());
 
-        log.info("Started authenticated filer, using {authBasic: {}, authToken: {}}...", enableAuthBasic, enableAuthToken);
+        log.info("Started authenticated filter, using {authBasic: {}, authToken: {}}...", enableAuthBasic, enableAuthToken);
         this.ready = true;
     }
 
