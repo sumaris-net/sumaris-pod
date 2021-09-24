@@ -50,6 +50,9 @@ public interface LandingService {
 	@Transactional(readOnly = true)
 	LandingVO get(Integer id);
 
+	@Transactional(readOnly = true)
+	LandingVO get(Integer landingId, DataFetchOptions fetchOptions);
+
 	List<LandingVO> saveAllByObservedLocationId(int observedLocationId, List<LandingVO> data);
 
 	LandingVO save(LandingVO data);

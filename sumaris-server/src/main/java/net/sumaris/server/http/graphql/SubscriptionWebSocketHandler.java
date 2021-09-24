@@ -29,28 +29,22 @@ import com.google.common.collect.Maps;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
-import graphql.execution.SubscriptionExecutionStrategy;
-import graphql.schema.GraphQLSchema;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationEventListener;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
-import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.service.technical.ConfigurationService;
-import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.core.util.Beans;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.util.security.AuthTokenVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.ehcache.spi.service.ServiceConfiguration;
 import org.nuiton.i18n.I18n;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -65,10 +59,10 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
@@ -160,8 +154,11 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
     protected void handleInitConnection(WebSocketSession session, Map<String, Object> request) {
         // When not ready, force to stop the security chain
         if (!this.ready) {
-            // TODO: use session locale ?
-            throw new AuthenticationServiceException(I18n.t("sumaris.error.starting"));
+            // Get user locale, from the session headers
+            Locale locale = Beans.getStream(session.getHandshakeHeaders().getAcceptLanguageAsLocales())
+                .findFirst()
+                .orElse(I18n.getDefaultLocale());
+            throw new AuthenticationServiceException(I18n.l(locale, "sumaris.error.starting"));
         }
 
         Map<String, Object> payload = (Map<String, Object>) request.get("payload");

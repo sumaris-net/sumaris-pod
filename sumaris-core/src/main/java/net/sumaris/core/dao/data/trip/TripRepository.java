@@ -27,8 +27,11 @@ import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.util.Collection;
 
 public interface TripRepository extends
     RootDataRepository<Trip, TripVO, TripFilterVO, DataFetchOptions>,
@@ -36,4 +39,12 @@ public interface TripRepository extends
 
     @Query("select p.id from Trip t inner join t.program p where t.id = :id")
     int getProgramIdById(@Param("id") int id);
+
+    @Modifying
+    @Query("delete from Trip t where t.id in (select l.trip.id from Landing l where l.id = :landingId)")
+    void deleteByLandingId(@Param("landingId") int landingId);
+
+    @Modifying
+    @Query("delete from Trip t where t.id in (select l.trip.id from Landing l where l.id in (:landingIds))")
+    void deleteByLandingIds(@Param("landingIds") Collection<Integer> landingIds);
 }

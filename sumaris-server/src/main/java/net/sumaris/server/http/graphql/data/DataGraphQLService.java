@@ -225,6 +225,18 @@ public class DataGraphQLService {
         return result;
     }
 
+    @GraphQLQuery(name = "landing", description = "Get trip's landing")
+    public LandingVO getTripLanding(@GraphQLContext TripVO trip) {
+        if (trip.getLanding() != null) return trip.getLanding();
+        if (trip.getLandingId() == null) return null;
+        LandingVO target = landingService.get(trip.getLandingId());
+
+        // Avoid trip to be reload from landing (in GraphQL fragment)
+        target.setTrip(trip);
+
+        return target;
+    }
+
     @GraphQLMutation(name = "saveTrip", description = "Create or update a trip")
     @IsUser
     public TripVO saveTrip(@GraphQLNonNull @GraphQLArgument(name = "trip") TripVO trip,
@@ -900,7 +912,12 @@ public class DataGraphQLService {
     public TripVO getTripByLanding(@GraphQLContext LandingVO landing) {
         if (landing.getTrip() != null) return landing.getTrip(); // Used updated entity, if exists (e.g. when saving)
         if (landing.getTripId() == null) return null;
-        return tripService.get(landing.getTripId());
+        TripVO target = tripService.get(landing.getTripId());
+
+        // Avoid landing to be reload from trip (in GraphQL fragment)
+        target.setLanding(landing);
+
+        return target;
     }
 
     @GraphQLMutation(name = "saveLanding", description = "Create or update an landing")
@@ -1190,6 +1207,7 @@ public class DataGraphQLService {
         return measurementService.getObservedLocationMeasurementsMap(observedLocation.getId());
     }
 
+    // Landing
     @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
     public Map<Integer, String> getLandingMeasurementsMap(@GraphQLContext LandingVO landing) {
         if (landing.getMeasurementValues() != null) {
@@ -1228,7 +1246,9 @@ public class DataGraphQLService {
         // Add vessel if need
         vesselGraphQLService.fillVesselSnapshot(trip, fields);
 
-        if (fields.contains(StringUtils.slashing(TripVO.Fields.LANDING, LandingVO.Fields.ID)) || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
+        if (fields.contains(StringUtils.slashing(TripVO.Fields.LANDING, LandingVO.Fields.ID))
+            || fields.contains(TripVO.Fields.LANDING_ID)
+            || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
             tripService.fillTripLandingLinks(trip);
         }
     }

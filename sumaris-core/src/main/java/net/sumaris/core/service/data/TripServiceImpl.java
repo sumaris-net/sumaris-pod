@@ -35,6 +35,9 @@ import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
@@ -55,6 +58,7 @@ import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -83,6 +87,7 @@ public class TripServiceImpl implements TripService {
     private final ReferentialService referentialService;
     private final FishingAreaService fishingAreaService;
     private final VesselService vesselService;
+    private boolean enableTrash = false;
 
     public TripServiceImpl(MeasurementDao measurementDao, SumarisConfiguration configuration, TripRepository tripRepository, SaleService saleService, ExpectedSaleService expectedSaleService,
                            OperationService operationService, OperationGroupService operationGroupService, PhysicalGearService physicalGearService, ApplicationEventPublisher publisher,
@@ -105,6 +110,11 @@ public class TripServiceImpl implements TripService {
         this.referentialService = referentialService;
     }
 
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    public void onConfigurationReady(ConfigurationEvent event) {
+        this.enableTrash = event.getConfiguration().enableEntityTrash();
+    }
+
     @Override
     public List<TripVO> findAll(TripFilterVO filter, int offset, int size, String sortAttribute,
                                 SortDirection sortDirection, DataFetchOptions fieldOptions) {
@@ -123,7 +133,7 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public TripVO get(int id) {
-        return get(id, DataFetchOptions.builder().build());
+        return get(id, DataFetchOptions.DEFAULT);
     }
 
     @Override
@@ -142,7 +152,7 @@ public class TripServiceImpl implements TripService {
             fillTripLandingLinks(target);
 
             // Operation groups
-            if (target.getLanding() != null) {
+            if (target.getLandingId() != null || target.getLanding() != null) {
                 target.setOperationGroups(operationGroupService.findAllByTripId(id, fetchOptions));
                 target.setMetiers(operationGroupService.getMetiersByTripId(id));
             }
@@ -173,7 +183,11 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(target.getId());
 
         landingRepository.findByTripId(target.getId()).ifPresent(landing -> {
-            target.setLanding(landingRepository.toVO(landing, DataFetchOptions.builder().withRecorderDepartment(false).withObservers(false).build()));
+            target.setLandingId(landing.getId());
+
+            // Should be not fetch here
+            //target.setLanding(landingRepository.toVO(landing, DataFetchOptions.builder().withRecorderDepartment(false).withObservers(false).build()));
+
             if (landing.getObservedLocation() != null) {
                 target.setObservedLocationId(landing.getObservedLocation().getId());
             }
@@ -332,7 +346,6 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public void delete(int id) {
-        boolean enableTrash = configuration.enableEntityTrash();
         log.info("Delete Trip#{} {trash: {}}", id, enableTrash);
 
         TripVO eventData = enableTrash ?
