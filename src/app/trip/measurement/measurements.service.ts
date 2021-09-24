@@ -200,7 +200,9 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       pmfms.forEach(pmfm => {
         if (pmfm.unitLabel === UnitLabel.defaultWeight || pmfm.unitLabel === UnitLabel.KG || pmfm.unitLabel === UnitLabel.GRAM) {
           if (this.weightDisplayedUnit === UnitLabel.GRAM && pmfm.unitLabel === UnitLabel.KG) {
-            entity.measurementValues[pmfm.id.toString()] = entity.measurementValues[pmfm.id.toString()] as number / 1000;
+            if (entity.measurementValues[pmfm.id.toString()]) {
+              entity.measurementValues[pmfm.id.toString()] = entity.measurementValues[pmfm.id.toString()] as number / 1000;
+            }
           }
         }
       })

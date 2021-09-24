@@ -603,7 +603,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
               pmfm.completeName = pmfm.completeName?.replace(UnitLabel.KG, this.weightDisplayedUnit);
               if (pmfm.unitLabel === UnitLabel.KG && this.weightDisplayedUnit === UnitLabel.GRAM) {
                 this.value.forEach(sample => {
-                  sample.measurementValues[pmfm.id.toString()] = sample.measurementValues[pmfm.id.toString()] * 1000;
+                  if (sample.measurementValues[pmfm.id.toString()]) {
+                    sample.measurementValues[pmfm.id.toString()] = sample.measurementValues[pmfm.id.toString()] * 1000;
+                  }
                 })
               }
             }
