@@ -1,8 +1,6 @@
-import { SamplingStrategy } from '@app/referential/services/model/sampling-strategy.model';
 import { BehaviorSubject, interval } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
-import { ReferentialRef } from '../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
 
 export type Context = {
   program?: Program,
