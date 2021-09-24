@@ -62,7 +62,7 @@ const LoadAllAnalyticReferencesWithTotalQuery: any = gql`query AnalyticReference
 ${ReferentialFragments.referential}`;
 
 const FindStrategiesReferentials: any = gql`
-  query StrategiesReferentials($programId: Int!, $locationClassification: String, $entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  query StrategiesReferentials($programId: Int!, $locationClassification: LocationClassificationEnum, $entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: strategiesReferentials(programId: $programId, locationClassification: $locationClassification, entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...ReferentialFragment
     }
@@ -237,22 +237,23 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
 
   async loadStrategiesReferentials(programId: number,
                                entityName: string,
-                               offset: number,
-                               size: number,
+                               locationClassification?: string,
+                               offset?: number,
+                               size?: number,
                                sortBy?: string,
-                               sortDirection?: SortDirection,
-                               locationClassification?: string
+                               sortDirection?: SortDirection
                                ): Promise<ReferentialRef[]> {
-    if (this._debug) console.debug(`[strategy-service] Loading strategies referentials (predoc) for ${entityName}...`);
+    //if (this._debug)
+      console.debug(`[strategy-service] Loading strategies referentials (predoc) for ${entityName}...`);
 
     const res = await this.graphql.query<LoadResult<ReferentialRef>>({
       query: FindStrategiesReferentials,
       variables: {
         programId: programId,
-        locationClassification : locationClassification,
+        locationClassification: locationClassification,
         entityName: entityName,
         offset: offset || 0,
-        size: size || 100,
+        size: size || 5,
         sortBy: sortBy || 'label',
         sortDirection: sortDirection || 'asc'
       },

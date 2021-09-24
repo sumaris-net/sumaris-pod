@@ -459,94 +459,35 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   async loadFilteredItems(program: Program): Promise<void> {
-
-    const sortFn = (a: ReferentialRef, b: ReferentialRef) => {
-      if (a.label < b.label) { return -1; }
-      if (a.label > b.label) { return 1; }
-      return 0;
-    };
-    const sortFnByName = (a: ReferentialRef, b: ReferentialRef) => {
-      if (a.name < b.name) { return -1; }
-      if (a.name > b.name) { return 1; }
-      return 0;
-    };
-
     // Get load options, from program properties
     const autoEnableFilter = program.getPropertyAsBoolean(ProgramProperties.STRATEGY_EDITOR_PREDOC_ENABLE);
     const fetchSize = program.getPropertyAsInt(ProgramProperties.STRATEGY_EDITOR_PREDOC_FETCH_SIZE);
 
-    // Load historical data
-    const {data} = await this.samplingStrategyService.loadAll(0, fetchSize, 'label', 'desc', {
-      levelId: program.id
-    }, {withTotal: false /*not need*/, withEffort: false /*not need*/, withParameterGroups: false/*not need*/});
-
-    if (isEmptyArray(data)) {
-      console.info('[sampling-strategy-form] No existing strategies found, for predoc. Skipping fields filtering');
-      return;
-    }
-    if (this.debug) console.debug('[sampling-strategy-form] Loaded strategies for predoc: ', data);
-
     // Departments
-    const departments: ReferentialRef[] = removeDuplicatesFromArray(
-      data.reduce((res, strategy) =>
-        res.concat(...strategy.departments), [])
-        .reduce((res, department: StrategyDepartment) => res.concat([department.department]), []),
-      'id');
-    departments.sort(sortFn);
+    const departments = await this.strategyService.loadStrategiesReferentials(program.id, 'Department');
     this.departmentItems.next(departments);
     this.autocompleteFilters.department = isNotEmptyArray(departments) && autoEnableFilter; // Enable filtering, if need by program
 
     // Locations
-    const locations: ReferentialRef[] = removeDuplicatesFromArray(
-      data.reduce((res, strategy) =>
-        res.concat(...strategy.appliedStrategies), [])
-        .reduce((res, appliedStrategy: AppliedStrategy) =>
-          res.concat([appliedStrategy.location]), []),
-      'id');
-    locations.sort(sortFn);
+    const locations = await this.strategyService.loadStrategiesReferentials(program.id, 'Location', 'SEA');
     this.locationItems.next(locations);
     this.autocompleteFilters.location = isNotEmptyArray(locations) && autoEnableFilter; // Enable filtering, if need by program
 
     // Taxons
-    const taxons: TaxonNameRef[] = removeDuplicatesFromArray(
-      data.reduce((res, strategy) =>
-        res.concat(...strategy.taxonNames), [])
-        .reduce((res, taxonName: TaxonNameStrategy): TaxonNameRef[] =>
-          res.concat([taxonName.taxonName]), []),
-      'id');
-    taxons.sort(sortFnByName);
+    const taxons = await this.strategyService.loadStrategiesReferentials(program.id, 'TaxonName') as TaxonNameRef[];
     this.taxonNameItems.next(taxons);
     this.autocompleteFilters.taxonName = isNotEmptyArray(taxons) && autoEnableFilter; // Enable filtering, if need by program
 
     // Fractions
-    const fractionIds: number[] = removeDuplicatesFromArray(data
-      .reduce((res, strategy) => res.concat(...strategy.pmfms), [])
-      .reduce((res, pmfmStrategy) => res.concat(pmfmStrategy.fraction && pmfmStrategy.fraction.id), [])
-    );
-    const fractions = isNotEmptyArray(fractionIds)
-      && (await this.referentialRefService.loadAll(0, fractionIds.length, null, null, { includedIds: fractionIds, entityName: 'Fraction' }, {withTotal: false})
-        .then(({data}) => data.sort(sortFnByName)))
-      || [];
+    const fractions = await this.strategyService.loadStrategiesReferentials(program.id, 'Fraction');
     this.fractionItems.next(fractions);
     this.autocompleteFilters.fraction = isNotEmptyArray(fractions) && autoEnableFilter; // Enable filtering, if need by program
 
     // Analytic References
     try {
-      const analyticReferences: ReferentialRef[] = (
-        await Promise.all(
-          data
-            .map(strategy => strategy.analyticReference)
-            .filter(isNotNilOrBlank)
-
-            .map(analyticReference =>
-              this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label: analyticReference })
-                .then(res => res && firstArrayValue(res.data)))
-        ))
-        .filter(isNotNil)
-        .sort(sortFn);
+      const analyticReferences = await this.strategyService.loadStrategiesReferentials(program.id, 'AnalyticReference');
       this.analyticsReferenceItems.next(removeDuplicatesFromArray(analyticReferences, 'id'));
       this.autocompleteFilters.analyticReference = isNotEmptyArray(analyticReferences) && autoEnableFilter; // Enable filtering, if need by program
-
     } catch (err) {
       console.debug('Error on load AnalyticReference');
     }
