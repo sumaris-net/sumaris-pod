@@ -34,7 +34,7 @@ import {environment} from '@environments/environment';
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
+export class PmfmPage extends AppEntityEditor<Pmfm> {
 
   canEdit: boolean;
   form: FormGroup;

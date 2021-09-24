@@ -2,7 +2,7 @@ import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, Vie
 import {VesselService} from '../services/vessel-service';
 import {VesselForm} from '../form/form-vessel';
 import {Vessel, VesselFeatures, VesselRegistrationPeriod} from '../services/model/vessel.model';
-import {AccountService}  from "@sumaris-net/ngx-components";
+import { AccountService, PlatformService } from '@sumaris-net/ngx-components';
 import {AppEntityEditor}  from "@sumaris-net/ngx-components";
 import {FormGroup, Validators} from "@angular/forms";
 import * as momentImported from "moment";
@@ -24,12 +24,15 @@ const moment = momentImported;
   templateUrl: './vessel.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselPage extends AppEntityEditor<Vessel, VesselService> implements OnInit, AfterViewInit {
+export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
+
+  private _editing = false;
 
   previousVessel: Vessel;
   isNewFeatures = false;
   isNewRegistration = false;
-  private _editing = false;
+  mobile = false;
+
   get editing(): boolean {
     return this._editing || this.isNewFeatures || this.isNewRegistration;
   }
@@ -54,6 +57,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
 
   constructor(
     private injector: Injector,
+    private platform: PlatformService,
     private accountService: AccountService,
     private vesselService: VesselService,
     private vesselFeaturesService: VesselFeaturesService,
@@ -62,6 +66,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
   ) {
     super(injector, Vessel, vesselService);
     this.defaultBackHref = '/vessels';
+    this.mobile = platform.mobile;
   }
 
   ngOnInit() {
@@ -79,7 +84,6 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
       this.featuresHistoryTable.setFilter(VesselFeaturesFilter.fromObject({vesselId: this.data.id}));
       this.registrationHistoryTable.setFilter(VesselRegistrationFilter.fromObject({vesselId: this.data.id}));
     }));
-
   }
 
   protected registerForms() {

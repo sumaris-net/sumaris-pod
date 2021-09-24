@@ -299,11 +299,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const query = withTotal ? OperationQueries.loadAllWithTotal : OperationQueries.loadAll;
     return this.mutableWatchQuery<LoadResult<any>>({
       queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
-      query: query,
+      query,
       arrayFieldName: 'data',
       totalFieldName: withTotal ? 'total' : undefined,
       insertFilterFn: dataFilter.asFilterFn(),
-      variables: variables,
+      variables,
       error: {code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR"},
       fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
     })

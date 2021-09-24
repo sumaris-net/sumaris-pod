@@ -26,8 +26,7 @@ export abstract class AppRootDataEditor<
   S extends IEntityService<T, ID> = IEntityService<T, any>,
   ID = number
   >
-  extends AppEntityEditor<T, S, ID>
-  implements OnInit {
+  extends AppEntityEditor<T, S, ID> {
 
   private _reloadProgram$ = new Subject();
   private _reloadStrategy$ = new Subject();

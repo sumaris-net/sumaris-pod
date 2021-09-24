@@ -4,8 +4,21 @@ import {MeasurementModelValues, MeasurementValuesUtils} from './measurement.mode
 import {Sample} from './sample.model';
 import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
 import {IWithObserversEntity} from '@app/data/services/model/model.utils';
-import {EntityClass, EntityClasses, fromDateISOString, IEntity, Person, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils, toDateISOString, toNumber} from '@sumaris-net/ngx-components';
+import {
+  EntityClass,
+  EntityClasses,
+  fromDateISOString,
+  IEntity,
+  isNotNil, isNotNilOrBlank,
+  Person,
+  ReferentialAsObjectOptions,
+  ReferentialRef,
+  ReferentialUtils,
+  toDateISOString,
+  toNumber
+} from '@sumaris-net/ngx-components';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
 
 
 /**
@@ -49,6 +62,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
 
     // Samples
     target.samples = this.samples && this.samples.map(s => s.asObject(opts)) || undefined;
+    target.samplesCount = this.samples && this.samples.filter(s => s.measurementValues && isNotNilOrBlank(s.measurementValues[PmfmIds.TAG_ID])).length || undefined;
 
     if (opts && opts.minify) {
       delete target.rankOrderOnVessel;
@@ -64,10 +78,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     this.rankOrder = source.rankOrder;
     this.rankOrderOnVessel = source.rankOrder; // Landing.rankOrder is stored in rankOrderOnVessel, this.rankOrder is computed by LandingService
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
-    this.measurementValues = source.measurementValues && {...source.measurementValues};
-    if (this.measurementValues === undefined) {
-      console.warn("Source as no measurementValues. Should never occur ! ", source);
-    }
+    this.measurementValues = {...source.measurementValues}; // Copy values
 
     // Parent
     this.observedLocationId = source.observedLocationId;
@@ -76,7 +87,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
 
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
-    this.samplesCount = toNumber(source.samplesCount, this.samples?.length);
+    this.samplesCount = toNumber(source.samplesCount, this.samples?.filter(s => s.measurementValues && isNotNilOrBlank(s.measurementValues[PmfmIds.TAG_ID])).length);
   }
 
   equals(other: Landing): boolean {

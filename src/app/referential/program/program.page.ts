@@ -50,7 +50,7 @@ export enum AnimationState {
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProgramPage extends AppEntityEditor<Program, ProgramService> implements OnInit {
+export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
 
   propertyDefinitions: FormFieldDefinition[];
   fieldDefinitions: FormFieldDefinitionMap = {};

@@ -487,7 +487,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected async getValue(): Promise<Landing> {
-    console.debug('[landing-page] DEV get value');
+    // DEBUG
+    //console.debug('[landing-page] getValue()');
+
     const data = await super.getValue();
 
     // Re add program, because program control can be disabled

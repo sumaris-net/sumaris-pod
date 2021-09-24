@@ -25,7 +25,7 @@ import {AppEntityEditor}  from "@sumaris-net/ngx-components";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductPage extends AppEntityEditor<ExtractionProduct> implements OnInit {
+export class ProductPage extends AppEntityEditor<ExtractionProduct> {
 
   columns: ExtractionColumn[];
 

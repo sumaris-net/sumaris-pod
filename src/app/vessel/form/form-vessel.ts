@@ -24,6 +24,7 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
   statusById: any;
 
   @Input() canEditStatus: boolean;
+  @Input() showError: boolean;
 
   @Input() set defaultStatus(value: number) {
     if (this._defaultStatus !== value) {
@@ -72,6 +73,7 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
     super.ngOnInit();
 
     // Compute defaults
+    this.showError = toBoolean(this.showError, true);
     this.canEditStatus = toBoolean(this.canEditStatus, !this._defaultStatus || this.isAdmin());
 
     // Combo location

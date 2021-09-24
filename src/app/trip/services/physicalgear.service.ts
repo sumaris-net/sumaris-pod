@@ -161,9 +161,9 @@ export class PhysicalGearService extends BaseGraphqlService
     }
 
     const tripFilter = TripFilter.fromObject({
-      vesselId: filter && filter.vesselId,
-      startDate: filter && filter.startDate,
-      endDate: filter && filter.endDate
+      vesselId: filter?.vesselId,
+      startDate: filter?.startDate,
+      endDate: filter?.endDate
     });
 
     const variables: any = {
