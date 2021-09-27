@@ -243,8 +243,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
                                sortBy?: string,
                                sortDirection?: SortDirection
                                ): Promise<ReferentialRef[]> {
-    //if (this._debug)
-      console.debug(`[strategy-service] Loading strategies referentials (predoc) for ${entityName}...`);
+    if (this._debug) console.debug(`[strategy-service] Loading strategies referentials (predoc) for ${entityName}...`);
 
     const res = await this.graphql.query<LoadResult<ReferentialRef>>({
       query: FindStrategiesReferentials,
@@ -253,7 +252,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
         locationClassification: locationClassification,
         entityName: entityName,
         offset: offset || 0,
-        size: size || 5,
+        size: size || 100,
         sortBy: sortBy || 'label',
         sortDirection: sortDirection || 'asc'
       },
@@ -285,8 +284,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     };
 
     const now = this._debug && Date.now();
-    //if (this._debug)
-      console.debug(`[strategy-service] Loading analytic references...`, variables);
+    if (this._debug) console.debug(`[strategy-service] Loading analytic references...`, variables);
 
     const withTotal = (!opts || opts.withTotal !== false);
     const query = withTotal ? LoadAllAnalyticReferencesWithTotalQuery : LoadAllAnalyticReferencesQuery;

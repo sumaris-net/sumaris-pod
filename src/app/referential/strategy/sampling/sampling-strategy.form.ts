@@ -464,28 +464,28 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     const fetchSize = program.getPropertyAsInt(ProgramProperties.STRATEGY_EDITOR_PREDOC_FETCH_SIZE);
 
     // Departments
-    const departments = await this.strategyService.loadStrategiesReferentials(program.id, 'Department');
+    const departments = await this.strategyService.loadStrategiesReferentials(program.id, 'Department', undefined, 0, fetchSize);
     this.departmentItems.next(departments);
     this.autocompleteFilters.department = isNotEmptyArray(departments) && autoEnableFilter; // Enable filtering, if need by program
 
     // Locations
-    const locations = await this.strategyService.loadStrategiesReferentials(program.id, 'Location', 'SEA');
+    const locations = await this.strategyService.loadStrategiesReferentials(program.id, 'Location', 'SEA', 0, fetchSize);
     this.locationItems.next(locations);
     this.autocompleteFilters.location = isNotEmptyArray(locations) && autoEnableFilter; // Enable filtering, if need by program
 
     // Taxons
-    const taxons = await this.strategyService.loadStrategiesReferentials(program.id, 'TaxonName') as TaxonNameRef[];
+    const taxons = await this.strategyService.loadStrategiesReferentials(program.id, 'TaxonName', undefined, 0, fetchSize) as TaxonNameRef[];
     this.taxonNameItems.next(taxons);
     this.autocompleteFilters.taxonName = isNotEmptyArray(taxons) && autoEnableFilter; // Enable filtering, if need by program
 
     // Fractions
-    const fractions = await this.strategyService.loadStrategiesReferentials(program.id, 'Fraction');
+    const fractions = await this.strategyService.loadStrategiesReferentials(program.id, 'Fraction', undefined, 0, fetchSize);
     this.fractionItems.next(fractions);
     this.autocompleteFilters.fraction = isNotEmptyArray(fractions) && autoEnableFilter; // Enable filtering, if need by program
 
     // Analytic References
     try {
-      const analyticReferences = await this.strategyService.loadStrategiesReferentials(program.id, 'AnalyticReference');
+      const analyticReferences = await this.strategyService.loadStrategiesReferentials(program.id, 'AnalyticReference', undefined, 0, fetchSize);
       this.analyticsReferenceItems.next(removeDuplicatesFromArray(analyticReferences, 'id'));
       this.autocompleteFilters.analyticReference = isNotEmptyArray(analyticReferences) && autoEnableFilter; // Enable filtering, if need by program
     } catch (err) {

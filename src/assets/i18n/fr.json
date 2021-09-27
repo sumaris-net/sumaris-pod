@@ -1337,7 +1337,7 @@
       },
       "STRATEGY_EDITOR_LOCATION_LEVEL_IDS": "Stratégie > Éditeur : Niveau(x) de lieu (ids)",
       "STRATEGY_EDITOR_PREDOC_ENABLE": "Stratégie > Éditeur : Activer le pré-filtrage des champs",
-      "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Stratégie > Éditeur : Nb stratégies lues pour le pré-filtrage des champs",
+      "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Stratégie > Éditeur : Nb éléments affichés pour le pré-filtrage des champs",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
       "VESSEL_TYPE_ENABLE": "Navires > Activer le type de navire ?"
     },

@@ -325,7 +325,7 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.program.strategy.predoc.fetchSize',
     label: 'PROGRAM.OPTIONS.STRATEGY_EDITOR_PREDOC_FETCH_SIZE',
     type: 'integer',
-    defaultValue: '50'
+    defaultValue: '100'
   },
   STRATEGY_EDITOR: <FormFieldDefinition>{
     key: "sumaris.program.strategy.editor",
