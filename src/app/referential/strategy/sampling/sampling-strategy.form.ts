@@ -935,7 +935,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       const currentViewTaxon = taxonNameControl?.value?.taxonName;
       const isUnique = await this.isTaxonNameUnique(value.substring(3, 10), currentViewTaxon?.id);
       if (!isUnique) {
-        taxonNameControl.setErrors({ uniqueTaxonCode: true });
+        //taxonNameControl.setErrors({ uniqueTaxonCode: true });
       } else {
         SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
         const labelControl = this.form.get('label');
