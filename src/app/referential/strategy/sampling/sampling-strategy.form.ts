@@ -1247,7 +1247,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   isLocationDisable(index: number): boolean {
-    return this.appliedStrategiesHelper.at(index).status === "DISABLED";
+    return this.appliedStrategiesHelper.at(index).status === "DISABLED" || (this.hasLanding);
   }
 
   isFractionDisable(index: number): boolean {
