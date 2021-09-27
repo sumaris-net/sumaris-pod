@@ -298,7 +298,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     // Combo: fishingAreas
     this.registerAutocompleteField('fishingAreaLocation', {
       showAllOnFocus: false,
-      suggestFn: (value, filter) => this.suggestFishingAreas(value, filter),
+      suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, filter),
       // Default filter. An excludedIds will be add dynamically
       filter: {
         entityName: 'Location',
@@ -567,7 +567,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     });
   }
 
-  protected async suggestFishingAreas(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
+  protected async suggestFishingAreaLocations(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
     const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
 
     // Excluded existing locations, BUT keep the current control value
@@ -577,7 +577,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       .filter(item => !currentControlValue || currentControlValue !== item)
       .map(item => parseInt(item.id));
 
-    if (this.autocompleteFilters.fishingArea) {
+    if (this.autocompleteFilters.fishingArea && isNotNil(this.filteredFishingAreaLocations)) {
       return suggestFromArray(this.filteredFishingAreaLocations, value, {
         ...filter,
         excludedIds

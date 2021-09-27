@@ -453,8 +453,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         data.measurementValues[PmfmIds.DRESSING] = previousSample.measurementValues[PmfmIds.DRESSING];
       } else if (this.currentSample) {
         const previousSample = await this.findRowBySample(this.currentSample);
-        if (previousSample)
-        {
+        if (previousSample) {
           data.measurementValues[PmfmIds.DRESSING] = previousSample.currentData?.measurementValues[PmfmIds.DRESSING];
         }
       }
