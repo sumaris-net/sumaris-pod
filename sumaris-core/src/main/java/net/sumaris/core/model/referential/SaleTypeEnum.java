@@ -30,7 +30,7 @@ import java.util.Arrays;
 /**
  * @author peck7 on 13/05/2020.
  */
-@EntityEnum(entity = SaleType.class)
+@EntityEnum(entity = SaleType.class, joinAttributes = SaleType.Fields.LABEL)
 public enum SaleTypeEnum implements Serializable {
 
     OTHER(4, "Other");

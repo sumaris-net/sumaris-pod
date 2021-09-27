@@ -1065,12 +1065,19 @@ public class DataGraphQLService {
             @GraphQLArgument(name = "aggregatedLandings") List<AggregatedLandingVO> aggregatedLandings,
             @GraphQLEnvironment ResolutionEnvironment env
     ) {
-        List<AggregatedLandingVO> result = aggregatedLandingService.saveAllByObservedLocationId(filter, aggregatedLandings);
+        List<AggregatedLandingVO> result = aggregatedLandingService.saveAll(filter, aggregatedLandings);
 
         fillVesselSnapshot(result, GraphQLUtils.fields(env));
 
         return result;
+    }
 
+    @GraphQLMutation(name = "deleteAggregatedLandings", description = "Delete many aggregated landings")
+    public void deleteAggregatedLandings(
+        @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
+        @GraphQLArgument(name = "vesselSnapshotIds") List<Integer> vesselSnapshotIds
+    ) {
+        aggregatedLandingService.deleteAll(filter, vesselSnapshotIds);
     }
 
     /* -- Measurements -- */
