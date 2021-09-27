@@ -1,11 +1,9 @@
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {ReferentialValidatorService} from "../services/validator/referential.validator";
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";
-import {DefaultStatusList, Referential, StatusValue}  from "@sumaris-net/ngx-components";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {AppForm}  from "@sumaris-net/ngx-components";
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { ReferentialValidatorService } from '../services/validator/referential.validator';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { AppForm, IStatus, LocalSettingsService, Referential, StatusList } from '@sumaris-net/ngx-components';
+import { ValidatorService } from '@e-is/ngx-material-table';
 
 @Component({
   selector: 'app-referential-form',
@@ -20,8 +18,8 @@ import {AppForm}  from "@sumaris-net/ngx-components";
 })
 export class ReferentialForm extends AppForm<Referential> implements OnInit {
 
-  private _statusList = DefaultStatusList;
-  statusById: { [id: number]: StatusValue; };
+  private _statusList = StatusList;
+  statusById: { [id: number]: IStatus; };
 
   @Input() showError = true;
   @Input() showDescription = true;
@@ -29,7 +27,7 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
   @Input() entityName;
 
   @Input()
-  set statusList(values: StatusValue[]) {
+  set statusList(values: Readonly<IStatus[]>) {
     this._statusList = values;
 
     // Fill statusById
@@ -37,7 +35,7 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
     this.statusList.forEach((status) => this.statusById[status.id] = status);
   }
 
-  get statusList(): StatusValue[] {
+  get statusList(): Readonly<IStatus[]> {
     return this._statusList;
   }
 

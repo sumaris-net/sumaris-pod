@@ -1,15 +1,15 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {StrategyValidatorService} from '../services/validator/strategy.validator';
-import {Strategy} from '../services/model/strategy.model';
-import {AppTable, DefaultStatusList, EntitiesTableDataSource, isNotNil, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from '@sumaris-net/ngx-components';
-import {StrategyService} from '../services/strategy.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ModalController, Platform} from '@ionic/angular';
-import {Location} from '@angular/common';
-import {Program} from '../services/model/program.model';
-import {environment} from '@environments/environment';
-import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { StrategyValidatorService } from '../services/validator/strategy.validator';
+import { Strategy } from '../services/model/strategy.model';
+import { AppTable, EntitiesTableDataSource, isNotNil, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, StatusList } from '@sumaris-net/ngx-components';
+import { StrategyService } from '../services/strategy.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ModalController, Platform } from '@ionic/angular';
+import { Location } from '@angular/common';
+import { Program } from '../services/model/program.model';
+import { environment } from '@environments/environment';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 
 
 @Component({
@@ -25,7 +25,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
 
   private _program: Program;
 
-  statusList = DefaultStatusList;
+  statusList = StatusList;
   statusById: any;
 
   @Input() canEdit = false;

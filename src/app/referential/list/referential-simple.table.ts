@@ -1,21 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {
-  AccountService,
-  AppInMemoryTable,
-  DefaultStatusList,
-  InMemoryEntitiesService,
-  LocalSettingsService,
-  Referential,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
-} from '@sumaris-net/ngx-components';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ModalController, Platform} from '@ionic/angular';
-import {Location} from '@angular/common';
-import {ReferentialValidatorService} from '../services/validator/referential.validator';
-import {ReferentialFilter} from '../services/filter/referential.filter';
-import {environment} from '@environments/environment';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { AccountService, AppInMemoryTable, InMemoryEntitiesService, LocalSettingsService, Referential, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, StatusList } from '@sumaris-net/ngx-components';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ModalController, Platform } from '@ionic/angular';
+import { Location } from '@angular/common';
+import { ReferentialValidatorService } from '../services/validator/referential.validator';
+import { ReferentialFilter } from '../services/filter/referential.filter';
+import { environment } from '@environments/environment';
 
 
 @Component({
@@ -35,7 +26,7 @@ import {environment} from '@environments/environment';
 })
 export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partial<ReferentialFilter>> {
 
-  statusList = DefaultStatusList;
+  statusList = StatusList;
   statusById: any;
 
   @Input() set entityName(entityName: string) {

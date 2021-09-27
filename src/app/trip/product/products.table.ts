@@ -245,8 +245,12 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
   }
 
   private onStartEditProduct(row: TableElement<Product>) {
-    if (this.filter && this.filter.parent && row.currentData && !row.currentData.parent) {
-      row.validator.patchValue({parent: this.filter.parent});
+    if (row.currentData && !row.currentData.parent) {
+      if (this.filter?.parent) {
+        row.validator.patchValue({ parent: this.filter.parent });
+      } else if (this.$parents.value?.length === 1) {
+        row.validator.patchValue({ parent: this.$parents.value[0] });
+      }
     }
   }
 }

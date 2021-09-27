@@ -169,7 +169,14 @@
         <!-- SUB-TAB: products -->
         <mat-tab label="{{'TRIP.LANDED_CATCH.TAB_PRODUCT'|translate}}">
           <ng-template mat-tab-label>
-            <ion-label translate>TRIP.LANDED_CATCH.TAB_PRODUCT</ion-label>
+            <ion-label
+              [matBadge]='productsTable?.value?.length'
+              [matBadgeHidden]="!productsTable?.value?.length"
+              matBadgeOverlap='false'
+              matBadgeColor="accent"
+              matBadgeSize="small"
+              matBadgePosition="above after"
+              translate>TRIP.LANDED_CATCH.TAB_PRODUCT</ion-label>
             <ion-icon slot="end" name="alert-circle" color="danger"
                       *ngIf="submitted && productsTable.invalid"></ion-icon>
           </ng-template>
@@ -188,7 +195,14 @@
 
         <mat-tab label="{{'TRIP.LANDED_CATCH.TAB_BATCH'|translate}}">
           <ng-template mat-tab-label>
-            <ion-label translate>TRIP.LANDED_CATCH.TAB_BATCH</ion-label>
+            <ion-label
+              [matBadge]='packetsTable?.value?.length'
+              [matBadgeHidden]="!packetsTable?.value?.length"
+              matBadgeOverlap='false'
+              matBadgeColor="accent"
+              matBadgeSize="small"
+              matBadgePosition="above after"
+              translate>TRIP.LANDED_CATCH.TAB_BATCH</ion-label>
             <ion-icon slot="end" name="alert-circle" color="danger"
                       *ngIf="submitted && packetsTable.invalid"></ion-icon>
           </ng-template>

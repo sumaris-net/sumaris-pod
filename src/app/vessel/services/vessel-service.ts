@@ -1,11 +1,11 @@
-import {Injectable, Injector} from '@angular/core';
-import {gql} from '@apollo/client/core';
-import {Observable} from 'rxjs';
-import {QualityFlagIds} from '../../referential/services/model/model.enum';
+import { Injectable, Injector } from '@angular/core';
+import { gql } from '@apollo/client/core';
+import { Observable } from 'rxjs';
+import { QualityFlagIds } from '../../referential/services/model/model.enum';
 import {
   BaseEntityGraphqlQueries,
-  Department,
-  EntityAsObjectOptions, EntitySaveOptions,
+  EntityAsObjectOptions,
+  EntitySaveOptions,
   EntityUtils,
   FormErrors,
   IEntitiesService,
@@ -16,21 +16,21 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   Person,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
-import {map} from 'rxjs/operators';
-import {ReferentialFragments} from '../../referential/services/referential.fragments';
-import {VesselFeatureQueries, VesselFeaturesFragments, VesselFeaturesService} from './vessel-features.service';
-import {RegistrationFragments, VesselRegistrationService, VesselRegistrationsQueries} from './vessel-registration.service';
-import {Vessel} from './model/vessel.model';
-import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
-import {SortDirection} from '@angular/material/sort';
-import {DataRootEntityUtils} from '../../data/services/model/root-data-entity.model';
-import {IDataSynchroService, RootDataSynchroService} from '../../data/services/root-data-synchro-service.class';
-import {BaseRootEntityGraphqlMutations} from '../../data/services/root-data-service.class';
-import {VESSEL_FEATURE_NAME} from './config/vessel.config';
-import {VesselFilter} from './filter/vessel.filter';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { map } from 'rxjs/operators';
+import { ReferentialFragments } from '../../referential/services/referential.fragments';
+import { VesselFeatureQueries, VesselFeaturesFragments, VesselFeaturesService } from './vessel-features.service';
+import { RegistrationFragments, VesselRegistrationService, VesselRegistrationsQueries } from './vessel-registration.service';
+import { Vessel } from './model/vessel.model';
+import { VesselSnapshot } from '../../referential/services/model/vessel-snapshot.model';
+import { SortDirection } from '@angular/material/sort';
+import { DataRootEntityUtils } from '../../data/services/model/root-data-entity.model';
+import { IDataSynchroService, RootDataSynchroService } from '../../data/services/root-data-synchro-service.class';
+import { BaseRootEntityGraphqlMutations } from '../../data/services/root-data-service.class';
+import { VESSEL_FEATURE_NAME } from './config/vessel.config';
+import { VesselFilter } from './filter/vessel.filter';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
 
 export const VesselFragments = {
@@ -182,9 +182,20 @@ export class VesselService
   ) {
     super(injector, Vessel, VesselFilter, {
       queries: VesselQueries,
-      mutations: VesselMutations
+      mutations: VesselMutations,
+      equalsFn: (e1, e2) => this.vesselEquals(e1, e2)
     });
     this._featureName = VESSEL_FEATURE_NAME;
+  }
+
+  private vesselEquals(e1: Vessel, e2: Vessel) {
+    return e1 && e2 && (
+      // check id equals
+      e1.id === e2.id ||
+      // or exteriorMarking and registrationCode equals
+      (e1.features?.exteriorMarking === e2.features?.exteriorMarking &&
+        e1.registration?.registrationCode === e2.registration?.registrationCode)
+    );
   }
 
   /**
@@ -422,41 +433,48 @@ export class VesselService
     return vessel.asObject({...MINIFY_OPTIONS, ...opts} as EntityAsObjectOptions);
   }
 
-  protected fillDefaultProperties(vessel: Vessel) {
+  protected fillDefaultProperties(entity: Vessel) {
 
     const person: Person = this.accountService.account;
 
     // Recorder department
-    if (person && person.department && (!vessel.recorderDepartment || vessel.recorderDepartment.id !== person.department.id)) {
-      if (!vessel.recorderDepartment) {
-        vessel.recorderDepartment = new Department();
+    if (person && person.department && (!entity.recorderDepartment || entity.recorderDepartment.id !== person.department.id)) {
+      if (!entity.recorderDepartment) {
+        entity.recorderDepartment = person.department;
       }
-      vessel.recorderDepartment.id = person.department.id;
-      if (vessel.features) {
-        if (!vessel.features.recorderDepartment) {
-          vessel.features.recorderDepartment = new Department();
+      else {
+        // Update the recorder department
+        entity.recorderDepartment.id = person.department.id;
+      }
+
+      if (entity.features) {
+        if (!entity.features.recorderDepartment) {
+          entity.features.recorderDepartment = person.department;
         }
-        vessel.features.recorderDepartment.id = person.department.id;
+        else {
+          // Update the VF recorder department
+          entity.features.recorderDepartment.id = person.department.id;
+        }
       }
     }
 
     // Recorder person
-    if (person && (!vessel.recorderPerson || vessel.recorderPerson.id !== person.id)) {
-      if (!vessel.recorderPerson) {
-        vessel.recorderPerson = new Person();
+    if (person && (!entity.recorderPerson || entity.recorderPerson.id !== person.id)) {
+      if (!entity.recorderPerson) {
+        entity.recorderPerson = new Person();
       }
-      vessel.recorderPerson.id = person.id;
-      if (vessel.features) {
-        if (!vessel.features.recorderPerson) {
-          vessel.features.recorderPerson = new Person();
+      entity.recorderPerson.id = person.id;
+      if (entity.features) {
+        if (!entity.features.recorderPerson) {
+          entity.features.recorderPerson = new Person();
         }
-        vessel.features.recorderPerson.id = person.id;
+        entity.features.recorderPerson.id = person.id;
       }
     }
 
     // Quality flag (set default)
-    if (vessel.features && isNil(vessel.features.qualityFlagId)) {
-      vessel.features.qualityFlagId = QualityFlagIds.NOT_QUALIFIED;
+    if (entity.features && isNil(entity.features.qualityFlagId)) {
+      entity.features.qualityFlagId = QualityFlagIds.NOT_QUALIFIED;
     }
 
   }

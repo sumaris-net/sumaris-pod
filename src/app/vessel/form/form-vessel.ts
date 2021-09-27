@@ -1,18 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {VesselValidatorService} from "../services/validator/vessel.validator";
-import {Vessel} from "../services/model/vessel.model";
-import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {DefaultStatusList, referentialToString}  from "@sumaris-net/ngx-components";
-import {Moment} from 'moment';
-import {DateAdapter} from "@angular/material/core";
-import {ReferentialRefService} from '../../referential/services/referential-ref.service';
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {FormGroup} from "@angular/forms";
-import {AppForm}  from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {toBoolean} from "@sumaris-net/ngx-components";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { VesselValidatorService } from '../services/validator/vessel.validator';
+import { Vessel } from '../services/model/vessel.model';
+import { LocationLevelIds } from '../../referential/services/model/model.enum';
+import { AccountService, AppForm, AppFormUtils, LocalSettingsService, referentialToString, StatusIds, StatusList, toBoolean } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
+import { DateAdapter } from '@angular/material/core';
+import { ReferentialRefService } from '../../referential/services/referential-ref.service';
+import { FormGroup } from '@angular/forms';
 
 
 @Component({
@@ -26,7 +20,7 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
   private _defaultStatus: number;
 
   data: Vessel;
-  statusList = DefaultStatusList;
+  statusList = StatusList;
   statusById: any;
 
   @Input() canEditStatus: boolean;

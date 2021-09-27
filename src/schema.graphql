@@ -455,6 +455,8 @@ type Mutation {
   controlTrip(trip: TripVOInput!): TripVO
   "Create an account"
   createAccount(account: AccountVOInput): AccountVO
+  "Delete many aggregated landings"
+  deleteAggregatedLandings(filter: AggregatedLandingFilterVOInput, vesselSnapshotIds: [Int]): Boolean!
   "Delete some aggregations"
   deleteAggregations(ids: [Int]): Boolean!
   "Delete an observed location"
