@@ -1242,12 +1242,16 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     };
   }
 
+  isGenerateLabelButtonDisable(): boolean {
+    return this.hasLanding;
+  }
+
   isDepartmentDisable(index: number): boolean {
     return this.departmentsHelper.at(index).status === "DISABLED";
   }
 
   isLocationDisable(index: number): boolean {
-    return this.appliedStrategiesHelper.at(index).status === "DISABLED" || (this.hasLanding);
+    return this.appliedStrategiesHelper.at(index).status === "DISABLED" || this.hasLanding;
   }
 
   isFractionDisable(index: number): boolean {
