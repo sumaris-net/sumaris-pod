@@ -62,6 +62,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   showBatchTables = false;
   enableSubBatchesTable = false;
 
+  useLinkedOperation = false;
+
   mobile: boolean;
   tempSubBatches: Batch[];
   sampleAcquisitionLevel: AcquisitionLevelType = AcquisitionLevelCodes.SURVIVAL_TEST;
@@ -350,30 +352,16 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.opeForm.$program.next(program);
 
     if (program.getProperty(ProgramProperties.TRIP_OPERATION_LINKED) === 'true') {
-
+      this.useLinkedOperation = true;
       this.registerSubscription(
         this.form.get('operationTypeId').valueChanges
           .pipe(
             distinctUntilChanged((o1, o2) => EntityUtils.equals(o1, o2, 'id')),
             debounceTime(400)
           )
-          .subscribe(() => {
-            if (this.form.get('operationTypeId').value === 1) {
-              this.tabGroup._tabs.last.disabled = false;
-              this.setSafeIndividualMeasurementSubscription();
-            } else {
-              this.tabGroup._tabs.last.disabled = true;
-              if (this.individualMeasurementSubscription) {
-                this.individualMeasurementSubscription.unsubscribe();
-                this.individualMeasurementSubscription = undefined;
-              }
-            }
-          })
+          .subscribe(() => this.setOperationTypeParams())
       );
-
-      if (this.form.get('operationTypeId').value !== 1) {
-        this.tabGroup._tabs.last.disabled = true;
-      }
+      this.setOperationTypeParams();
     }
 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
@@ -448,6 +436,10 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     if (this.isNewData && this.showBatchTables && isNotEmptyArray(this.batchTree.defaultTaxonGroups)) {
       this.batchTree.autoFill();
+    }
+
+    if (this.useLinkedOperation){
+      this.setOperationTypeParams();
     }
   }
 
@@ -562,6 +554,23 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     const canContinue = await savePromise;
     if (canContinue) {
       return this.load(undefined, {tripId: this.data.tripId, updateTabAndRoute: true});
+    }
+  }
+
+  protected setOperationTypeParams() {
+    if (this.opeForm.operationType === 1) {
+      this.tabGroup._tabs.last.disabled = false;
+      this.showBatchTables = true;
+      this.batchTree.enable();
+      this.setSafeIndividualMeasurementSubscription();
+    } else {
+      this.tabGroup._tabs.last.disabled = true;
+      this.showBatchTables = false;
+      this.batchTree.disable();
+      if (this.individualMeasurementSubscription) {
+        this.individualMeasurementSubscription.unsubscribe();
+        this.individualMeasurementSubscription = undefined;
+      }
     }
   }
 
@@ -716,6 +725,16 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     } else {
       data.samples = undefined;
+    }
+
+    //Apply updates on child operation if it exists
+    if (data.childOperation && (data.startDateTime !== data.childOperation.startDateTime || data.fishingStartDateTime !== data.childOperation.fishingStartDateTime)) {
+      data.childOperation.startDateTime = data.startDateTime;
+      data.childOperation.fishingStartDateTime = data.fishingStartDateTime;
+      data.childOperation.parentOperationId = data.id;
+      data.childOperation.parentOperation = data;
+
+      await this.dataService.save(data.childOperation);
     }
 
     return data;

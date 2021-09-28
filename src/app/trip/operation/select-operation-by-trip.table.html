@@ -1,14 +1,3 @@
-<mat-toolbar *ngIf="showToolbar">
-
-  <ion-item *ngIf="!mobile && error; let error" lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
-  </ion-item>
-
-  <div class="toolbar-spacer"></div>
-
-</mat-toolbar>
-
 <!-- error -->
 <ion-item *ngIf="mobile && error" lines="none">
   <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -19,30 +8,51 @@
       [formGroup]="filterForm"
       (ngSubmit)="onRefresh.emit()">
   <ion-grid>
-    <ion-row>
-<!--      <ion-col>-->
-<!--        &lt;!&ndash; search text &ndash;&gt;-->
-<!--        <mat-form-field>-->
-<!--          <input matInput-->
-<!--                 formControlName="searchText"-->
-<!--                 autocomplete="off"-->
-<!--                 [placeholder]=" 'TRIP.OPERATION.PARENT.FILTER.SEARCH_TEXT'|translate">-->
-<!--          <button mat-icon-button matSuffix tabindex="-1"-->
-<!--                  type="button"-->
-<!--                  (click)="clearControlValue($event, filterForm.controls.searchText)"-->
-<!--                  [hidden]="filterForm.controls.searchText.disabled || !filterForm.controls.searchText.value">-->
-<!--            <mat-icon>close</mat-icon>-->
-<!--          </button>-->
-<!--        </mat-form-field>-->
-<!--      </ion-col>-->
-        <ion-col>
-          <!-- Start date -->
-          <mat-date-field [placeholder]="'TRIP.OPERATION.PARENT.FILTER.START_DATE'|translate"
-                          formControlName="startDate"
-                          [clearable]="true">
-            <ion-icon matPrefix name="calendar-outline"></ion-icon>
-          </mat-date-field>
-        </ion-col>
+    <ion-row >
+      <ion-col>
+        <!-- Start date -->
+        <mat-date-field [placeholder]="'TRIP.OPERATION.PARENT.FILTER.START_DATE'|translate"
+                        formControlName="startDate"
+                        [clearable]="true">
+          <ion-icon matPrefix name="calendar-outline"></ion-icon>
+        </mat-date-field>
+      </ion-col>
+      <!-- gears -->
+      <ion-col>
+        <mat-form-field>
+          <mat-select formControlName="gearIds"
+                      [placeholder]=" 'TRIP.OPERATION.PARENT.FILTER.GEAR'|translate">
+            <mat-option [value]="null"><i><span translate>COMMON.EMPTY_OPTION</span></i></mat-option>
+            <mat-option *ngFor="let item of physicalGears" [value]="item.gear.id">
+              {{ item.gear.label }} - {{ item.gear.name }}
+            </mat-option>
+          </mat-select>
+
+          <button matSuffix mat-icon-button tabindex="-1"
+                  type="button"
+                  (click)="clearControlValue($event, filterForm.controls.gearIds)">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+      </ion-col>
+      <!-- target species -->
+      <ion-col *ngIf="_taxonGroupsSubject | async">
+        <mat-form-field>
+          <mat-select formControlName="taxonGroupLabels"
+                      [placeholder]=" 'TRIP.OPERATION.PARENT.FILTER.TARGET_SPECIE'|translate">
+            <mat-option [value]="null"><i><span translate>COMMON.EMPTY_OPTION</span></i></mat-option>
+            <mat-option *ngFor="let item of _taxonGroupsSubject.getValue()" [value]="item.label">
+              {{ item.label }} - {{ item.name }}
+            </mat-option>
+          </mat-select>
+
+          <button matSuffix mat-icon-button tabindex="-1"
+                  type="button"
+                  (click)="clearControlValue($event, filterForm.controls.taxonGroupLabels)">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+      </ion-col>
     </ion-row>
 
     <!-- TODO: add more filter fields ? -->
@@ -121,9 +131,12 @@
       </th>
       <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
         <ion-text>{{row.currentData.startDateTime|dateFormat:{time: true} }}</ion-text>
-        <ion-text *ngIf="mobile" class="computed"><br/><small>
-          {{ row.currentData.startDateTime | dateFromNow }}
-        </small>
+        <ion-text *ngIf="mobile"
+                  [class.computed]="row.currentData.startDateTime.isAfter(limitDateForLostOperation)"
+                  [class.warning]="row.currentData.startDateTime.isBefore(limitDateForLostOperation)"><br/>
+          <small>
+            {{ row.currentData.startDateTime | dateFromNow }}
+          </small>
         </ion-text>
       </td>
     </ng-container>
@@ -190,7 +203,7 @@
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled"
-        [class.mat-row-selected]="highlightedRow === row"
+        [class.mat-row-selected]="isCurrentData(row)"
         (click)="clickRow($event, row)">
     </tr>
 

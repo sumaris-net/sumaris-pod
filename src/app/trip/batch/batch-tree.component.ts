@@ -237,9 +237,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     target.children = batchGroups;
 
     // Prepare subbatches for model (set parent)
-    SubBatchUtils.linkSubBatchesToParent(batchGroups, subBatches, {
-      qvPmfm: this.batchGroupsTable.qvPmfm
-    });
+    if (subBatches){
+      SubBatchUtils.linkSubBatchesToParent(batchGroups, subBatches, {
+        qvPmfm: this.batchGroupsTable.qvPmfm
+      });
+    }
 
     // DEBUG
     if (this.debug) BatchUtils.logTree(target);

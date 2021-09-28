@@ -1,6 +1,6 @@
 import {Injectable, Optional} from '@angular/core';
-import {FetchPolicy, FetchResult, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
-import {EMPTY, Observable} from 'rxjs';
+import {FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {BehaviorSubject, EMPTY, Observable} from 'rxjs';
 import {filter, first, map, tap} from 'rxjs/operators';
 import {ErrorCodes} from './trip.errors';
 import {DataFragments, Fragments} from './trip.queries';
@@ -25,26 +25,28 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
+  JobUtils,
   LoadResult,
   MutableWatchQueriesUpdatePolicy,
   NetworkService,
   QueryVariables
 } from '@sumaris-net/ngx-components';
 import {DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '../../data/services/model/data-entity.model';
-import {Operation, OperationFromObjectOptions, VesselPosition} from './model/trip.model';
+import {Operation, OperationFromObjectOptions, Trip, VesselPosition} from './model/trip.model';
 import {Measurement} from './model/measurement.model';
 import {Batch, BatchUtils} from './model/batch.model';
 import {Sample} from './model/sample.model';
 import {ReferentialFragments} from '../../referential/services/referential.fragments';
-import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum';
+import {AcquisitionLevelCodes, QualityFlagIds} from '../../referential/services/model/model.enum';
 import {SortDirection} from '@angular/material/sort';
 import {environment} from '../../../environments/environment';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
-import {RefetchQueryDescription} from '@apollo/client/core/watchQueryOptions';
 import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {GeolocationOptions} from '@ionic-native/geolocation';
+import moment from 'moment';
+import {VesselSnapshotFragments} from '@app/referential/services/vessel-snapshot.service';
 
 
 export const recursiveFragments = {
@@ -149,6 +151,10 @@ export const OperationFragments = {
     parentOperation {
       ...LightOperationFragmentFields
     }
+    childOperationId
+    childOperation {
+      ...LightOperationFragmentFields
+    }
   }
   ${recursiveFragments.lightOperationFields}
   `,
@@ -157,6 +163,10 @@ export const OperationFragments = {
     ...OperationFragmentFields
     parentOperationId
     parentOperation {
+      ...OperationFragmentFields
+    }
+    childOperationId
+    childOperation {
       ...OperationFragmentFields
     }
   }
@@ -175,6 +185,54 @@ const OperationQueries = {
     total: operationsCount(filter: $filter)
   }
   ${OperationFragments.lightOperation}`,
+
+  loadAllWithTripWithTotal: gql`query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...LightOperationFragment
+      trip {
+           id
+        program {
+          id
+          label
+        }
+        departureDateTime
+        returnDateTime
+        creationDate
+        updateDate
+        controlDate
+        validationDate
+        qualificationDate
+        qualityFlagId
+        comments
+        departureLocation {
+          ...LocationFragment
+        }
+        returnLocation {
+          ...LocationFragment
+        }
+        vesselSnapshot {
+          ...LightVesselSnapshotFragment
+        }
+        recorderDepartment {
+          ...LightDepartmentFragment
+        }
+        recorderPerson {
+          ...LightPersonFragment
+        }
+        observers {
+          ...LightPersonFragment
+        }
+      }
+    }
+    total: operationsCount(filter: $filter)
+  }
+  ${OperationFragments.lightOperation}
+   ${Fragments.location}
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
+  ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${Fragments.referential}`,
+
 
   // Load many operations
   loadAll: gql`query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -275,6 +333,15 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     this._debug = !environment.production;
   }
 
+  async loadAll(offset: number,
+                size: number,
+                sortBy?: string,
+                sortDirection?: SortDirection,
+                dataFilter?: OperationFilter | any,
+                opts?: OperationServiceWatchOptions): Promise<LoadResult<Operation>> {
+    return firstNotNilPromise(this.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts));
+  }
+
   async loadAllByTrip(filter?: (OperationFilter | any) & { tripId: number; }, opts?: OperationServiceWatchOptions): Promise<LoadResult<Operation>> {
     return firstNotNilPromise(this.watchAllByTrip(filter, opts));
   }
@@ -329,7 +396,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     if (this._debug) console.debug('[operation-service] Loading operations... using options:', variables);
 
     const withTotal = opts && opts.withTotal === true;
-    const query = withTotal ? OperationQueries.loadAllWithTotal : OperationQueries.loadAll;
+    const query = (opts && opts.query) || (withTotal ? OperationQueries.loadAllWithTotal : OperationQueries.loadAll);
     return this.mutableWatchQuery<LoadResult<any>>({
       queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
       query: query,
@@ -377,6 +444,12 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       if (id < 0) {
         json = await this.entities.load<Operation>(id, Operation.TYPENAME);
         if (!json) throw {code: ErrorCodes.LOAD_OPERATION_ERROR, message: 'TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR'};
+        if (isNotNil(json.parentOperationId) && isNil(json.parentOperation)){
+          json.parentOperation = await this.entities.load<Operation>(json.parentOperationId, Operation.TYPENAME);
+        }
+        else if (isNotNil(json.childOperationId) && isNil(json.childOperation)){
+          json.childOperation = await this.entities.load<Operation>(json.childOperationId, Operation.TYPENAME);
+        }
       }
 
       // Load from pod
@@ -633,8 +706,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
                  opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
 
 
-    if (!dataFilter || isNil(dataFilter.tripId)) {
-      console.warn('[operation-service] Trying to load operations without \'filter.tripId\'. Skipping.');
+    if (!dataFilter || (isNil(dataFilter.tripId) && isNil(dataFilter.programLabel))) {
+      console.warn('[operation-service] Trying to load operations without \'filter.tripId\' and \'filter.programLabel\'. Skipping.');
       return EMPTY;
     }
     if (dataFilter.tripId >= 0) throw new Error('Invalid \'filter.tripId\': must be a local ID (id<0)!');
@@ -761,6 +834,48 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     return this.getDistanceBetweenPositions(actualCoords, {latitude, longitude});
   }
 
+  async executeImport(progression: BehaviorSubject<number>,
+                      opts?: {
+                        maxProgression?: number;
+                        filter: OperationFilter|any,
+                      }): Promise<void> {
+
+    const maxProgression = opts && opts.maxProgression || 100;
+    const filter = {
+      excludeChildOperation: true,
+      hasNoChildOperation: true,
+      startDate: moment().add(-15, 'day'),
+      qualityFlagId: QualityFlagIds.NOT_COMPLETED,
+        ...opts.filter
+    };
+
+    console.info('[operation-service] Importing operation...');
+
+    const res = await JobUtils.fetchAllPages((offset, size) =>
+        this.loadAll(offset, size, 'id', null, filter, {
+          debug: false,
+          fetchPolicy: 'network-only',
+          withTotal: (offset === 0), // Compute total only once
+          toEntity: false,
+          computeRankOrder: false,
+          query: OperationQueries.loadAllWithTripWithTotal
+        }),
+      progression,
+      {maxProgression: maxProgression * 0.9}
+    );
+
+    //Remove parent operation stayed saved locally which have a child synchronized
+    const resLocal = await this.entities.loadAll<Operation>(Operation.TYPENAME, {}, {fullLoad: false});
+    const ids = (resLocal && resLocal.data || []).filter(ope => !res.data.find(o => o.id === ope.id)).map(o => o.id);
+
+    if (ids.length > 0){
+      await this.entities.deleteMany(ids, {entityName: 'OperationVO', emitEvent: false});
+    }
+
+    // Save result locally
+    await this.entities.saveAll(res.data, {entityName: 'OperationVO', reset: true});
+  }
+
   /* -- protected methods -- */
 
   /**
@@ -781,6 +896,13 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Save response locally
     await this.entities.save(jsonLocal);
+
+    if (isNotNil(entity.parentOperation)){
+      entity.parentOperation.childOperationId = entity.id;
+      const jsonLocalParent = this.asObject(entity.parentOperation, {...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, batchAsTree: false, sampleAsTree: false});
+
+      await this.entities.save(jsonLocalParent);
+    }
 
     return entity;
   }
@@ -862,6 +984,10 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         console.debug('[Operation-service] Preparing batches to be saved locally:');
         BatchUtils.logTree(entity.catchBatch);
       }
+    }
+
+    if (isNotNil(entity.tripId) && isNil(entity.trip)){
+      entity.trip = await this.entities.load<Trip>(entity.tripId, Trip.TYPENAME);
     }
   }
 
@@ -951,7 +1077,9 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         const index = sources.findIndex(json => target.equals(json));
         if (index !== -1) {
           EntityUtils.copyIdAndUpdateDate(sources[index], target);
-          sources.splice(index, 1); // remove from sources list, as it has been found
+          const items = [...sources];
+          items.splice(index, 1); // remove from sources list, as it has been found
+          sources = items;
         } else {
           console.error('Batch NOT found ! ', target);
         }
@@ -985,7 +1113,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
   }
 
-  protected getRefetchQueriesForMutation(opts?: EntitySaveOptions): ((result: FetchResult<{ data: any }>) => RefetchQueryDescription) | RefetchQueryDescription {
+  protected getRefetchQueriesForMutation(opts?: EntitySaveOptions): ((result: FetchResult<{ data: any }>) => InternalRefetchQueriesInclude) | InternalRefetchQueriesInclude {
     if (opts && opts.refetchQueries) return opts.refetchQueries;
 
     // Skip if update policy not used refecth queries

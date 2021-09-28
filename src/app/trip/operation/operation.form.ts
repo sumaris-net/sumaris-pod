@@ -19,11 +19,11 @@ import {
   SharedValidators,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import {AbstractControl, FormGroup, RequiredValidator, ValidationErrors, Validators} from '@angular/forms';
+import {AbstractControl, FormGroup, ValidationErrors, Validators} from '@angular/forms';
 import {TranslateService} from '@ngx-translate/core';
 import {defaultOperationTypesList, Operation, OperationType, PhysicalGear, Trip, VesselPosition} from '../services/model/trip.model';
 import {BehaviorSubject, merge, Subject} from 'rxjs';
-import {distinctUntilChanged} from 'rxjs/operators';
+import {distinctUntilChanged, filter} from 'rxjs/operators';
 import {METIER_DEFAULT_FILTER, MetierService} from '@app/referential/services/metier.service';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
@@ -33,6 +33,9 @@ import {SelectOperationModal} from '@app/trip/operation/select-operation.modal';
 import {Program} from '@app/referential/services/model/program.model';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
 import {AcquisitionLevelCodes, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {PmfmService} from '@app/referential/services/pmfm.service';
+import {Router} from '@angular/router';
+import {start} from 'repl';
 
 
 const moment = momentImported;
@@ -64,7 +67,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   operationId: number;
   maxDistanceWarning: number;
   maxDistanceError: number;
-  typeOperation = 0;
+  operationType = 0;
   distanceError: boolean;
   distanceWarning: boolean;
   enableMetierFilter = false;
@@ -103,12 +106,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   constructor(
     protected dateFormat: DateFormatPipe,
+    protected router: Router,
     protected validatorService: OperationValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
     protected operationService: OperationService,
     protected metierService: MetierService,
+    protected pmfmService: PmfmService,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
     protected platform: PlatformService,
@@ -179,16 +184,21 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
             this._operationTypesList.forEach((operationType) => this.operationTypeById[operationType.id] = operationType);
           }
 
-          // Listen operation Type
-          this.registerSubscription(
-            this.form.get('operationTypeId').valueChanges
-              .pipe(
-                distinctUntilChanged((o1, o2) => EntityUtils.equals(o1, o2, 'id'))
-              )
-              .subscribe((operationType) => this.onOperationTypeChanged(operationType))
-          );
+          // Listen Type operation
+          // if (!this.mobile) {
+          //   this.registerSubscription(
+          //     this.form.get('typeOperationId').valueChanges
+          //       .pipe(
+          //         distinctUntilChanged((o1, o2) => EntityUtils.equals(o1, o2, 'key'))
+          //       )
+          //       .subscribe((typeOperation) => this.onTypeOperationChanged(typeOperation))
+          //   );
+          // }
           this.registerSubscription(
             this.form.get('parentOperation').valueChanges
+              .pipe(
+                filter(value => isNotNil(value))
+              )
               .subscribe((res) => this.setParentOperationLabel(res))
           );
         } else {
@@ -219,7 +229,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     if (trip) {
       // Propagate physical gears
-      this._physicalGearsSubject.next((trip.gears || []).map(ps => ps.clone()));
+      this._physicalGearsSubject.next((trip.gears || []).map(ps => PhysicalGear.fromObject(ps).clone()));
 
       // Use trip physical gear Object (if possible)
       const physicalGearControl = this.form.get('physicalGear');
@@ -228,8 +238,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         physicalGear = (trip.gears || []).find(g => g.id === physicalGear.id) || physicalGear;
         if (physicalGear) physicalGearControl.patchValue(physicalGear);
       }
-
-      this.setValidators();
     }
   }
 
@@ -250,13 +258,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
     // Set also the end date time
     if (fieldName === 'endPosition') {
-      const endDateTimeControlName = !this.$useLinkedOperation.getValue() || (this.typeOperation && this.typeOperation === 1) ? 'endDateTime' : 'fishingStartDateTime';
+      const endDateTimeControlName = !this.$useLinkedOperation.getValue() || (this.operationType && this.operationType === 1) ? 'endDateTime' : 'fishingStartDateTime';
       this.form.get(endDateTimeControlName).setValue(moment(), {emitEvent: false, onlySelf: true});
     }
     this.form.markAsDirty({onlySelf: true});
     this.updateDistance();
     this.form.updateValueAndValidity();
     this.markForCheck();
+    this.checkDistanceValidity();
   }
 
   copyPosition(event: UIEvent, source: string, target: string) {
@@ -277,6 +286,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     const endDate = this.form.get('fishingEndDateTime').value || this.trip.returnDateTime;
     const parentOperation = this.form.get('parentOperation').value;
+    const startDate = fromDateISOString(this._trip.departureDateTime).clone().add(-15, 'day');
 
     const modal = await this.modalCtrl.create({
       component: SelectOperationModal,
@@ -288,9 +298,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
           excludeChildOperation: true,
           hasNoChildOperation: true,
           endDate: endDate,
-          startDate: this._trip.departureDateTime.add(-15, 'day'),
-          includedIds: isNotNil(parentOperation) ? [parentOperation.id] : null
+          startDate: startDate,
+          includedIds: isNotNil(parentOperation) ? [parentOperation.id] : null,
+          gearIds: this._physicalGearsSubject.getValue().map(physicalGear => physicalGear.gear.id)
         },
+        physicalGears: this._physicalGearsSubject.getValue(),
         programLabel: this.programLabel,
         enableGeolocation: this.enableGeolocation
       },
@@ -307,7 +319,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   }
 
   async setParentOperationLabel(operation: Operation) {
-    console.debug('[operation-form] Update parent operation label');
+    if (this.debug) console.debug('[operation-form] Update parent operation label');
     const parentOperationLabelControl = this.form.get('parentOperationLabel');
     if (operation) {
       this.parentOperationLabel = await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', {
@@ -403,6 +415,15 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
   }
 
+  async updateParentOperation() {
+    console.debug(this.form.get('parentOperation'));
+    const parentOperation = this.form.get('parentOperation').value;
+
+    if (parentOperation) {
+      await this.router.navigateByUrl(`/trips/${parentOperation.tripId}/operation/${parentOperation.id}`);
+    }
+  }
+
   /* -- protected methods -- */
 
   protected async onPhysicalGearChanged(physicalGear) {
@@ -441,14 +462,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     let res;
     if (this.enableMetierFilter) {
-      res = await this.metierService.loadAll(0, 100, null, null,
+      res = await this.metierService.loadAlreadyPracticedMetierTaxonGroup(0, 100, null, null,
         {
           entityName: 'Metier',
           ...METIER_DEFAULT_FILTER,
           vesselId: this.trip.vesselSnapshot.id,
           startDate: this.startProgram as Moment,
           endDate: moment(),
-          searchJoin: 'TaxonGroup',
           programLabel: this.programLabel,
           gearIds: [gear.id],
           levelId: gear && gear.id || undefined
@@ -498,18 +518,16 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return res.data;
   }
 
-  protected onOperationTypeChanged(operationType) {
+  onOperationTypeChanged(obj: any) {
+
+    const operationType = obj && obj.key ? parseInt(obj.key) : obj;
+    this.form.get('operationTypeId').setValue(operationType, {emitEvent: true});
     const qualityFlagIdControl = this.form.get('qualityFlagId');
-    this.typeOperation = operationType;
+    this.operationType = operationType;
 
-    console.debug('[operation-form] type operation has changed', operationType);
+    console.debug('[operation-form] operation type has changed', operationType);
 
-    if (operationType === 0 && this.form.get('parentOperation').value && this.form.get('operationTypeId').pristine) {
-      this.form.get('operationTypeId').patchValue(1);
-      return;
-    }
-    //virage
-    else if (operationType === 1) {
+    if (operationType === 1) {
       this.hasChildOperation = true;
       this.acquisitionLevel.next(AcquisitionLevelCodes.CHILD_OPERATION);
 
@@ -518,6 +536,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       if (!this.form.get('parentOperation').value) {
         this.form.get('fishingEndDateTime').patchValue(this.form.get('startDateTime').value);
         this.form.get('startDateTime').patchValue(null);
+
+        this.addParentOperation();
       }
     }
     //filage
@@ -579,8 +599,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     let endDateTimeControlName; //
     let disabledEndDateTimeControlName;
+    const childOperation = this.form.get('childOperation').value;
 
-    if (!(this.$useLinkedOperation.getValue()) || this.typeOperation === 1) {
+    if (!(this.$useLinkedOperation.getValue()) || this.operationType === 1) {
       endDateTimeControlName = 'endDateTime';
       disabledEndDateTimeControlName = 'fishingStartDateTime';
     } else {
@@ -589,7 +610,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
 
     //Start date end child operation
-    if (this.typeOperation === 1) {
+    if (this.operationType === 1) {
       this.form.get('fishingEndDateTime').setValidators(Validators.required);
       this.form.get('parentOperationLabel').setValidators(Validators.required);
     } else {
@@ -606,7 +627,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       if (this.usageMode !== 'FIELD' && !control.value) {
         return <ValidationErrors>{required: true};
       }
-      if (!control.touched) return null;
+      if (!control.touched && !control.dirty) return null;
 
       const endDateTime = fromDateISOString(control.value);
 
@@ -619,6 +640,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       else if (endDateTime && this.trip.returnDateTime && endDateTime.isBefore(this.trip.returnDateTime) === false) {
         console.warn(`[operation] Invalid operation ` + endDateTimeControlName + `: after the trip! `, endDateTime, this.trip.returnDateTime);
         return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_TRIP')};
+      } else if (childOperation != null && endDateTime.isBefore(childOperation.fishingEndDateTime) === false) {
+        console.warn(`[operation] Invalid operation ` + endDateTimeControlName + `: after the child operation's start! `, endDateTime, childOperation.fishingEndDateTime);
+        return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION')};
       }
 
       // OK: clear existing errors

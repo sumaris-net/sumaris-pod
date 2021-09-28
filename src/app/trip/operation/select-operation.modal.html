@@ -9,9 +9,11 @@
 <ion-content class="ion-no-padding">
   <!-- main table -->
   <app-select-operation-by-trip-table #table
-                        [showToolbar]="false"
-                        [program]="programLabel"
-                        (onOpenRow)="selectRow($event)">
+                                      [showToolbar]="false"
+                                      [program]="programLabel"
+                                      [enableGeolocation]="enableGeolocation"
+                                      [physicalGears]="physicalGears"
+                                      (onOpenRow)="selectRow($event)">
   </app-select-operation-by-trip-table>
 </ion-content>
 

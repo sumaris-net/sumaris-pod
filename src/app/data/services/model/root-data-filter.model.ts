@@ -30,7 +30,7 @@ export abstract class RootDataEntityFilter<
     this.recorderPerson = Person.fromObject(source.recorderPerson)
       || isNotNil(source.recorderPersonId) && Person.fromObject({id: source.recorderPersonId}) || undefined;
     this.startDate = fromDateISOString(source.startDate);
-    this.endDate = fromDateISOString(source.startDate);
+    this.endDate = fromDateISOString(source.endDate);
   }
 
   asObject(opts?: AS): any {

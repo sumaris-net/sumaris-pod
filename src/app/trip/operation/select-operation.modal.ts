@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {ModalController} from "@ionic/angular";
 import {EntitiesTableDataSource, isNotNil} from '@sumaris-net/ngx-components';
-import {Operation} from '@app/trip/services/model/trip.model';
+import {Operation, PhysicalGear} from '@app/trip/services/model/trip.model';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 import {TableElement} from '@e-is/ngx-material-table';
 import {SelectOperationByTripTable} from '@app/trip/operation/select-operation-by-trip.table';
@@ -20,6 +20,8 @@ export class SelectOperationModal implements OnInit {
 
   @Input() filter: OperationFilter;
   @Input() programLabel: string;
+  @Input() enableGeolocation: boolean;
+  @Input() physicalGears: PhysicalGear[];
 
   get loading(): boolean {
     return this.table && this.table.loading;

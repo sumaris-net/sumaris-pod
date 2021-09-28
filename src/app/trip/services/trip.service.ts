@@ -12,7 +12,7 @@ import {
   Entity,
   EntitySaveOptions,
   EntityServiceLoadOptions,
-  EntityUtils, firstNotNilPromise,
+  EntityUtils,
   FormErrors,
   GraphqlService,
   IEntitiesService,
@@ -21,6 +21,7 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
+  JobUtils,
   LoadResult,
   LocalSettingsService,
   NetworkService,
@@ -40,7 +41,7 @@ import {
 } from '@app/data/services/model/data-entity.model';
 import {Observable} from 'rxjs';
 import {IDataEntityQualityService} from '@app/data/services/data-quality-service.class';
-import {OperationService, OperationServiceWatchOptions} from './operation.service';
+import {OperationService} from './operation.service';
 import {VesselSnapshotFragments, VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {TripValidatorService} from './validator/trip.validator';
@@ -58,10 +59,10 @@ import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {Sample} from './model/sample.model';
 import {ErrorCodes} from '@app/data/services/errors';
 import {VESSEL_FEATURE_NAME} from '@app/vessel/services/config/vessel.config';
-import {TripFilter} from './filter/trip.filter';
+import {TripFilter, TripOfflineFilter} from './filter/trip.filter';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {TrashRemoteService} from '@app/core/services/trash-remote.service';
-import {OperationFilter} from '@app/trip/services/filter/operation.filter';
+import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
 
 const moment = momentImported;
 
@@ -367,6 +368,7 @@ export class TripService
     protected programRefService: ProgramRefService,
     protected entities: EntitiesStorage,
     protected operationService: OperationService,
+    protected physicalGearService: PhysicalGearService,
     protected settings: LocalSettingsService,
     protected validatorService: TripValidatorService,
     protected userEventService: UserEventService,
@@ -397,6 +399,38 @@ export class TripService
     // FOR DEV ONLY
     this._debug = !environment.production;
     if (this._debug) console.debug('[trip-service] Creating service');
+  }
+
+  async loadAll(offset: number,
+                size: number,
+                sortBy?: string,
+                sortDirection?: SortDirection,
+                filter?: Partial<TripFilter>,
+                opts?: EntityServiceLoadOptions & {
+                  query?: any;
+                  debug?: boolean;
+                  withTotal?: boolean;
+                }
+  ): Promise<LoadResult<Trip>> {
+
+    const offlineData = this.network.offline || (filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || false;
+    if (offlineData) {
+
+      filter = this.asFilter(filter);
+
+      const variables = {
+        offset: offset || 0,
+        size: size >= 0 ? size : 1000,
+        sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
+        sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
+        trash: opts && opts.trash || false,
+        filter: filter.asFilterFn()
+      };
+
+      return this.entities.loadAll('TripVO', variables, {fullLoad: opts && opts.fullLoad});
+    }
+
+    return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
   }
 
   /**
@@ -775,7 +809,16 @@ export class TripService
     // Fill operations
     const res = await this.operationService.loadAllByTrip({tripId: localId},
       {fullLoad: true, computeRankOrder: false});
-    entity.operations = res && res.data || [];
+
+    const childOperations = res.data && res.data.filter(operation => operation.parentOperationId && operation.parentOperationId < 0);
+    const parentOperations = res.data && res.data.filter(operation => operation.childOperationId && operation.childOperationId < 0);
+
+    if (childOperations.filter(operation => !parentOperations.find(o => o.id === operation.parentOperationId)).length > 0) {
+      throw new Error('Could not synchronize child operation before its parent');
+    }
+
+    entity.operations = res && res.data.filter(operation => (!operation.parentOperationId || operation.parentOperationId > 0)
+      && (!operation.childOperationId || operation.childOperationId > 0)) || [];
 
     try {
 
@@ -794,11 +837,25 @@ export class TripService
       };
     }
 
+    for (const operation of parentOperations) {
+      const operationLocalId = operation.id;
+      operation.tripId = entity.id;
+      const savedOperation = await this.operationService.save(operation, opts);
+      childOperations.forEach(o => {
+        if (o.parentOperationId === operationLocalId) {
+          o.tripId = entity.id;
+          o.parentOperationId = savedOperation.id;
+          o.parentOperation = savedOperation;
+        }
+      });
+    }
+    await this.operationService.saveAll(childOperations, opts);
+
     try {
       if (this._debug) console.debug(`[trip-service] Deleting trip {${entity.id}} from local storage`);
 
-      // Delete trip's operations
-      await this.operationService.deleteLocally({tripId: localId});
+      // Delete trip's operations + parent operation
+      await this.operationService.deleteLocally({includedIds: parentOperations.map(o => o.id), tripId: localId});
 
       // Delete trip
       await this.entities.deleteById(localId, {entityName: Trip.TYPENAME});
@@ -1156,6 +1213,41 @@ export class TripService
       });
     }
   }
+
+  /**
+   * List of importation jobs.
+   * @protected
+   * @param opts
+   */
+  protected getImportJobs(opts: {
+    maxProgression: undefined;
+  }): Observable<number>[] {
+
+    const feature = this.settings.getOfflineFeature(this.featureName);
+    const tripFilter = TripOfflineFilter.toTripFilter(feature && feature.filter);
+    if (tripFilter) {
+      return [
+        ...super.getImportJobs(opts),
+        JobUtils.defer((p, o) => this.operationService.executeImport(p, {
+          ...o,
+          filter: {
+            programLabel: tripFilter.program.label,
+            startDate: tripFilter.startDate
+          }
+        }), opts),
+        JobUtils.defer((p, o) => this.physicalGearService.executeImport(p, {
+          ...o,
+          filter: {
+            program: tripFilter.program,
+            startDate: tripFilter.startDate
+          }
+        }), opts)
+      ];
+    } else {
+      return super.getImportJobs(opts);
+    }
+  }
+
 
   /**
    * Copy Id and update, in sample tree (recursively)

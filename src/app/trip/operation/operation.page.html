@@ -43,7 +43,13 @@
                 tappable class="text-1x"
                 [color]="isCurrentData(item) ? 'secondary100' : undefined"
                 (click)="onLastOperationClick($event, item.id)">
-        <ion-icon slot="start" name="navigate"></ion-icon>
+        <ion-icon *ngIf="!useLinkedOperation else linkedOperation" slot="start" name="navigate"></ion-icon>
+        <ng-template #linkedOperation>
+          <mat-icon *ngIf="item.operationTypeId === 0 else child" matPrefix svgIcon="down-arrow"></mat-icon>
+          <ng-template #child>
+            <mat-icon matPrefix svgIcon="rollback-arrow"></mat-icon>
+          </ng-template>
+        </ng-template>
         <ion-grid>
           <ion-row>
             <!-- FIXME: rankOrder cannot be safely computed, when using a page's offset -->
@@ -56,7 +62,8 @@
             <ion-col size="auto">
               <ion-text>
                 <small>
-                  <ion-icon name="time-outline"></ion-icon>&nbsp;{{item.startDateTime|dateFromNow}}
+                  <ion-icon name="time-outline"></ion-icon>&nbsp;
+                  {{item.startDateTime|dateFromNow}}
                 </small>
               </ion-text>
             </ion-col>

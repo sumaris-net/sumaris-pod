@@ -9,20 +9,25 @@ import {TranslateService} from '@ngx-translate/core';
 import {
   AccountService,
   AppTable,
-  EntitiesTableDataSource, EntityUtils, InMemoryEntitiesService,
+  EntitiesTableDataSource,
   LatLongPattern,
   LocalSettingsService,
+  NetworkService,
+  ReferentialRef,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
+  RESERVED_START_COLUMNS
 } from '@sumaris-net/ngx-components';
 import {environment} from '@environments/environment';
-import {Operation, OperationGroup, Trip} from '../services/model/trip.model';
+import {Operation, PhysicalGear, Trip} from '../services/model/trip.model';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 import {TripService} from '@app/trip/services/trip.service';
 import {debounceTime, distinctUntilChanged, filter} from 'rxjs/operators';
 import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
-import {Sample} from '@app/trip/services/model/sample.model';
-import {SortDirection} from '@angular/material/sort';
+import moment from 'moment/moment';
+import {Metier} from '@app/referential/services/model/taxon.model';
+import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {BehaviorSubject} from 'rxjs';
 
 @Component({
   selector: 'app-select-operation-by-trip-table',
@@ -36,9 +41,11 @@ import {SortDirection} from '@angular/material/sort';
 export class SelectOperationByTripTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
 
   private GROUP_BY_COLUMN = 'tripId';
+
+  limitDateForLostOperation = moment().add(-4, 'day');
   trips = new Array<Trip>();
   isGrouping = false;
-
+  _taxonGroupsSubject = new BehaviorSubject<ReferentialRef[]>(undefined);
   filterForm: FormGroup;
 
   displayAttributes: {
@@ -54,6 +61,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   @Input() showFilter = true;
   @Input() useSticky = true;
   @Input() enableGeolocation = false;
+  @Input() physicalGears: PhysicalGear[];
 
   get sortActive(): string {
     const sortActive = super.sortActive;
@@ -92,10 +100,12 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
     protected dataService: OperationService,
+    protected referentialRefService: ReferentialRefService,
     protected tripService: TripService,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected accountService: AccountService,
+    protected network: NetworkService,
     formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
   ) {
@@ -152,8 +162,9 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     });
 
     this.filterForm = formBuilder.group({
-      // 'searchText': [null],
-      'startDate' : null
+      'startDate': null,
+      'gearIds': [null],
+      'taxonGroupLabels': [null]
     });
 
     // Update filter when changes
@@ -166,13 +177,20 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
         // Applying the filter
         .subscribe((json) => this.setFilter({
             ...this.filter, // Keep previous filter
-            ...json},
+            ...json
+          },
           {emitEvent: this.mobile}))
     );
   }
 
   ngOnInit() {
     super.ngOnInit();
+    if (this.filter && this.filter.startDate) {
+      this.filterForm.get('startDate').setValue(this.filter.startDate, {emitEvent: false});
+    }
+    if (this.filter && this.filter.gearIds.length === 1) {
+      this.filterForm.get('gearIds').setValue(this.filter.gearIds[0], {emitEvent: false});
+    }
 
     this.displayAttributes = {
       gear: this.settings.getFieldDisplayAttributes('gear'),
@@ -183,32 +201,32 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
       this.settings.onChange.subscribe((settings) => {
         if (this.loading) return; // skip
         this.latLongPattern = settings.latLongFormat;
-
-        this.displayAttributes = {
-          gear: this.settings.getFieldDisplayAttributes('gear'),
-          taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
-        };
-
         this.markForCheck();
       }));
+
+    this.loadTaxonGroups();
 
     this.registerSubscription(
       this._dataSource.datasourceSubject.pipe(
         distinctUntilChanged()
       ).subscribe(async (data: any) => {
-        if (this.enableGeolocation && (this.sortActive === 'startPosition' || this.sortActive === 'endPosition')){
+        if (this.enableGeolocation && (this.sortActive === 'startPosition' || this.sortActive === 'endPosition')) {
           data = await this.dataService.sortByDistance(data, this.sortDirection, this.sortActive);
         }
-        if (!this.isGrouping){
+        if (!this.isGrouping) {
           this.isGrouping = true;
           const tripsIds = data.map(ope => ope.tripId).filter((v, i, a) => a.indexOf(v) === i);
 
-          if (!this.trips || this.trips.length === 0 || this.trips.length < tripsIds.length ){
-            const ids = tripsIds.filter((v) => this.trips && !this.trips.some(trip => trip.id === v));
-            const res =
-              await this.tripService.loadAll(0, 999, null, null,
-                {includedIds: ids});
-            this.trips = this.trips.concat(res.data);
+          if (!this.trips || this.trips.length === 0 || this.trips.length < tripsIds.length) {
+            if (this.network.offline) {
+              this.trips = data.map(operation => operation.trip);
+            } else {
+              const ids = tripsIds.filter((v) => this.trips && !this.trips.some(trip => trip.id === v));
+              const res =
+                await this.tripService.loadAll(0, 999, null, null,
+                  {includedIds: ids});
+              this.trips = this.trips.concat(res.data);
+            }
           }
           const operations = this.addGroups(data);
           this._dataSource.updateDatasource(operations, {emitEvent: false});
@@ -258,11 +276,42 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     return item.currentData && !item.currentData.id && item.currentData.trip;
   }
 
-  /* -- protected methods -- */
+  clearControlValue(event: UIEvent, formControl: AbstractControl): boolean {
+    if (event) event.stopPropagation(); // Avoid to enter input the field
+    formControl.setValue(null);
+    return false;
+  }
 
+  isCurrentData(row: any) {
+    return this.filter.includedIds && this.filter.includedIds.length > 0 && row.currentData.id === this.filter.includedIds[0];
+  }
+
+  /* -- protected methods -- */
   protected markForCheck() {
     this.cd.markForCheck();
   }
 
+  protected async loadTaxonGroups() {
+    const res = await this.referentialRefService.loadAll(0, 100, null, null,
+      {
+        entityName: 'Metier',
+        ...METIER_DEFAULT_FILTER,
+        searchJoin: 'TaxonGroup',
+        levelIds: this.physicalGears.map(physicalGear => physicalGear.gear.id),
+      },
+      {
+        withTotal: false
+      });
+    const metierTaxonGroups = (res.data || []).reduce((res, metier) => {
+      if (res.find(m => m.label === metier.label) === undefined){
+        return res.concat(metier);
+      }
+      else {
+        return res;
+      }
+    }, [] )
+
+    this._taxonGroupsSubject.next(metierTaxonGroups);
+  }
 }
 

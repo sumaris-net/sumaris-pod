@@ -1,5 +1,5 @@
 import {Moment} from 'moment';
-import {DataEntity, DataEntityAsObjectOptions,} from '@app/data/services/model/data-entity.model';
+import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
 import {Sale} from './sale.model';
 import {EntityClass, EntityUtils, fromDateISOString, isEmptyArray, isNil, isNotNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
@@ -15,6 +15,7 @@ import {IWithProductsEntity, Product} from './product.model';
 import {IWithPacketsEntity, Packet} from './packet.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {ExpectedSale} from '@app/trip/services/model/expected-sale.model';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
 
 /* -- Helper function -- */
 
@@ -70,7 +71,7 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
   metier: Metier = null;
   physicalGear: PhysicalGear = null;
   tripId: number = null;
-  trip: RootDataEntity<any> = null;
+  trip: Trip = null;
 
   measurements: Measurement[] = [];
   samples: Sample[] = null;
@@ -80,6 +81,8 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
   parentOperationId: number = null;
   parentOperation: Operation = null;
   qualityFlagId:  number = null;
+  childOperationId: number = null;
+  childOperation: Operation = null;
 
   constructor() {
     super(Operation.TYPENAME);
@@ -164,14 +167,18 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     target.fishingAreas = this.fishingAreas && this.fishingAreas.map(value => value.asObject(opts)) || undefined;
 
     //Parent Operation
-    target.parentOperationId = this.parentOperation && this.parentOperation.id
+    target.parentOperationId = this.parentOperationId || this.parentOperation && this.parentOperation.id;
+    target.childOperationId = this.childOperationId || this.childOperation && this.childOperation.id;
 
     if (opts.minify){
       delete target.operationTypeId;
       delete target.parentOperation;
+      delete target.childOperation;
+      delete target.trip;
     }
     else {
       target.parentOperation = this.parentOperation && this.parentOperation.asObject(opts) || undefined;
+      target.childOperation = this.childOperation && this.childOperation.asObject(opts) || undefined;
       target.operationTypeId = this.parentOperation ? 1 : 0;
     }
 
@@ -183,6 +190,7 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     this.hasCatch = source.hasCatch;
     this.comments = source.comments;
     this.tripId = source.tripId;
+    this.trip = source.trip && Trip.fromObject(source.trip) || undefined;
     this.physicalGear = (source.physicalGear || source.physicalGearId) ? PhysicalGear.fromObject(source.physicalGear || {id: source.physicalGearId}) : undefined;
     this.startDateTime = fromDateISOString(source.startDateTime);
     this.endDateTime = fromDateISOString(source.endDateTime);
@@ -245,6 +253,10 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     //Parent Operation
     this.parentOperationId = source.parentOperationId;
     this.parentOperation = (source.parentOperation || source.parentOperationId) ? Operation.fromObject(source.parentOperation || {id: source.parentOperationId}) : undefined;
+
+    //Child Operation
+    this.childOperationId = source.childOperationId;
+    this.childOperation = (source.childOperation || source.childOperationId) ? Operation.fromObject(source.childOperation || {id: source.childOperationId}) : undefined;
 
     this.operationTypeId = this.parentOperationId ? 1 : 0;
   }
@@ -504,6 +516,8 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
     this.landing = source.landing && Landing.fromObject(source.landing) || undefined;
     this.observedLocationId = source.observedLocationId;
+
+    this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot) || undefined;
 
     return this;
   }

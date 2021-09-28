@@ -4,6 +4,8 @@ import {Moment} from 'moment';
 import {Trip} from '../model/trip.model';
 import {VesselSnapshot} from '../../../referential/services/model/vessel-snapshot.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import moment from 'moment/moment';
+import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 
 @EntityClass({typename: 'TripFilterVO'})
@@ -78,5 +80,22 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     }
 
     return filterFns;
+  }
+}
+
+export class TripOfflineFilter {
+  programLabel?: string;
+  startDate?: Date | Moment;
+  endDate?: Date | Moment
+  periodDuration?: number;
+  periodDurationUnit?: DurationConstructor;
+
+  public static toTripFilter(f: TripOfflineFilter): TripFilter {
+    if (!f) return undefined;
+    return TripFilter.fromObject({
+      program: {label: f.programLabel},
+      startDate: f.startDate,
+      endDate: f.endDate
+    });
   }
 }

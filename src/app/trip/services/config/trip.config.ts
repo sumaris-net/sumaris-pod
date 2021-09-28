@@ -89,8 +89,8 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
 
   'OperationVO': <EntityStoreTypePolicy<Operation>>{
     mode: 'by-id',
-    skipNonLocalEntities: true,
-    lightFieldsExcludes: ["trip", "measurements", "samples", "batches", "catchBatch", "gearMeasurements", 'fishingAreas']
+    skipNonLocalEntities: false,
+    lightFieldsExcludes: ["samples", "catchBatch", "gearMeasurements", 'fishingAreas', 'childOperation', 'parentOperation']
   },
 
   'ObservedLocationVO': <EntityStoreTypePolicy<ObservedLocation>>{

@@ -39,6 +39,7 @@ import {TripTrashModal} from './trip/trash/trip-trash.modal';
 import {AppCoreModule} from '@app/core/core.module';
 import {SelectOperationModal} from '@app/trip/operation/select-operation.modal';
 import {SelectOperationByTripTable} from '@app/trip/operation/select-operation-by-trip.table';
+import {TripOfflineModal} from '@app/trip/trip/offline/trip-offline.modal';
 
 @NgModule({
   imports: [
@@ -57,6 +58,7 @@ import {SelectOperationByTripTable} from '@app/trip/operation/select-operation-b
     TripForm,
     TripPage,
     TripTrashModal,
+    TripOfflineModal,
     PhysicalGearTable,
     PhysicalGearForm,
     PhysicalGearModal,

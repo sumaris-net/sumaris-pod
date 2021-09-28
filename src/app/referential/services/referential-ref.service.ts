@@ -9,7 +9,7 @@ import {ReferentialService} from "./referential.service";
 import {IEntitiesService, LoadResult, SuggestService} from "@sumaris-net/ngx-components";
 import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, TaxonGroupIds, TaxonomicLevelIds} from './model/model.enum';
-import {Metier, TaxonNameRef} from "./model/taxon.model";
+import {Metier, TaxonGroupRef, TaxonNameRef} from './model/taxon.model';
 import {NetworkService}  from "@sumaris-net/ngx-components";
 import {EntitiesStorage}  from "@sumaris-net/ngx-components";
 import {ReferentialFragments} from "./referential.fragments";
@@ -71,6 +71,29 @@ const LoadAllWithTotalTaxonNamesQuery: any = gql`
   }
   ${ReferentialFragments.fullTaxonName}
 `;
+
+const LoadAllTaxonGroupsQuery: any = gql`
+  query TaxonGroups($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+    data: taxonGroups(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
+      ...TaxonGroupFragment
+    }
+  }
+  ${ReferentialFragments.taxonGroup}
+  ${ReferentialFragments.taxonName}
+`;
+
+
+const LoadAllWithTotalTaxonGroupsQuery: any = gql`
+  query TaxonGroups($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+    data: taxonGroups(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
+      ...TaxonGroupFragment
+    }
+      total: taxonGroupsCount(filter: $filter)
+  }
+  ${ReferentialFragments.taxonGroup}
+  ${ReferentialFragments.taxonName}
+`;
+
 
 export const ReferentialRefQueries: BaseEntityGraphqlQueries = {
   loadAll: LoadAllQuery,
@@ -430,6 +453,80 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       {
         withTotal: true
       });
+  }
+
+  async loadAllTaxonGroups(offset: number,
+                          size: number,
+                          sortBy?: string,
+                          sortDirection?: SortDirection,
+                          filter?: Partial<ReferentialRefFilter>,
+                          opts?: {
+                            [key: string]: any;
+                            fetchPolicy?: FetchPolicy;
+                            debug?: boolean;
+                            toEntity?: boolean;
+                            withTotal?: boolean;
+                          }): Promise<LoadResult<TaxonGroupRef>> {
+
+    filter = ReferentialRefFilter.fromObject(filter);
+    if (!filter) {
+      console.error("[referential-ref-service] Missing filter");
+      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
+    }
+
+    const variables: any = {
+      offset: offset || 0,
+      size: size || 100,
+      sortBy: sortBy || filter.searchAttribute || 'label',
+      sortDirection: sortDirection || 'asc'
+    };
+
+    const debug = this._debug && (!opts || opts.debug !== false);
+    const now = debug && Date.now();
+    if (debug) console.debug(`[referential-ref-service] Loading TaxonGroup items...`, variables);
+
+    let res: LoadResult<any>;
+
+    // Offline mode
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    if (offline) {
+      res = await this.entities.loadAll(TaxonGroupRef.TYPENAME, {
+        ...variables,
+        filter: filter.asFilterFn()
+      });
+    }
+
+    // Online mode
+    else {
+      res = await this.graphql.query<LoadResult<any>>({
+        query: opts && opts.withTotal ? LoadAllWithTotalTaxonGroupsQuery : LoadAllTaxonGroupsQuery,
+        variables: {
+          ...variables,
+          filter: filter.asPodObject()
+        },
+        error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+        fetchPolicy: opts && opts.fetchPolicy || "cache-first"
+      });
+    }
+
+    const entities = (!opts || opts.toEntity !== false) ?
+      (res && res.data || []).map(TaxonGroupRef.fromObject) :
+      (res && res.data || []) as TaxonGroupRef[];
+    if (debug) console.debug(`[referential-ref-service] TaxonName items loaded in ${Date.now() - now}ms`, entities);
+
+    const total = res.total || entities.length;
+    const end = offset + entities.length;
+
+    const result: any = {
+      data: entities,
+      total
+    };
+
+    if (end < result.total) {
+      offset = end;
+      result.fetchMore = () => this.loadAllTaxonGroups(offset, size, sortBy, sortDirection, filter, opts);
+    }
+    return result;
   }
 
   saveAll(data: ReferentialRef[], options?: any): Promise<ReferentialRef[]> {

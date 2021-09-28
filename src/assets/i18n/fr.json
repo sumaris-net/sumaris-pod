@@ -491,6 +491,10 @@
         "LOCAL_TRASH_CLEANED": "La corbeille locale a été vidée"
       }
     },
+    "OFFLINE_MODAL": {
+      "TITLE": "Configuration du mode hors-ligne",
+      "DURATION_PLACEHOLDER": "Période à importer"
+    },
     "ERROR": {
       "LOAD_TRIP_ERROR": "Erreur de chargement de la marée.",
       "LOAD_TRIPS_ERROR": "Erreur de chargement des marées.",
@@ -575,14 +579,18 @@
           "TITLE" : "Type d'opération :",
           "PARENT" : "Filage",
           "CHILD" : "Virage"
-        }
+        },
+        "BTN_EDIT_PARENT" : "Modifier le filage",
+        "BTN_SELECT_PARENT" : "Sélectionner le filage"
       },
       "PARENT": {
         "TITLE" : "Sélectionner filage",
         "TRIP" : "{{vessel}} - Marée {{departureDateTime}}",
         "FILTER" : {
           "SEARCH_TEXT" : "Recherche : code engin / espèce",
-          "START_DATE" : "Début de période"
+          "START_DATE" : "Début de période",
+          "GEAR" : "Engin",
+          "TARGET_SPECIE" : "Espèce cible"
         }
       },
       "MAP": {
@@ -612,6 +620,7 @@
         "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des opérations.",
         "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération.",
         "FIELD_DATE_BEFORE_PARENT_OPERATION": "Avant la date de fin du filage",
+        "FIELD_DATE_AFTER_CHILD_OPERATION": "Après le début du virage",
         "TOO_LONG_DISTANCE" : "Distance parcourue trop grande"
       }
     },

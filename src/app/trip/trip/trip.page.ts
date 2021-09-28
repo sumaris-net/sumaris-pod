@@ -160,7 +160,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
     this.operationsTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
 
-    this.operationsTable.$uselinkedOperations.next(this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_LINKED));
+    this.operationsTable.$uselinkedOperations.next(program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_LINKED));
 
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {
@@ -350,7 +350,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     const filter = <PhysicalGearFilter>{
       vesselId: vessel.id,
       endDate: date,
-      excludeTripId: trip.id
+      excludeTripId: trip.id,
+      startDate: moment().add(-15, 'day')
       // TODO startDate : endDate - 6 month ?
     };
     const modal = await this.modalCtrl.create({
