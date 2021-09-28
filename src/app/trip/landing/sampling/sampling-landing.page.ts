@@ -182,6 +182,7 @@ export class SamplingLandingPage extends LandingPage {
   protected computeSampleRowValidator(form: FormGroup, pmfms: DenormalizedPmfmStrategy[]): Subscription {
     console.debug('[sampling-landing-page] Adding row validator');
 
+      // FIXME useless code
       this.samplingStrategyService.computeNextSampleTagId(this.$strategyLabel.getValue(), '-').then(value => {
         if (this.samplesTable.editedRow.currentData && (!this.samplesTable.editedRow.currentData.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) || !this.samplesTable.editedRow.currentData.measurementValues[PmfmIds.TAG_ID])) {
           console.info("computeSampleRowValidator: " + value);
