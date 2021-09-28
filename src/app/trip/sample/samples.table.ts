@@ -1,6 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Optional, Output, TemplateRef, ViewChild} from '@angular/core';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {SampleValidatorService} from '../services/validator/sample.validator';
+import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
 import {
   AppFormUtils, AppValidatorService, ColorName, ConfigService,
   firstNotNilPromise,
@@ -40,6 +41,7 @@ import {BehaviorSubject, Observable, Subscription} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 import {MatMenu} from '@angular/material/menu';
 import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
+import {strategy} from '@angular-devkit/core/src/experimental/jobs';
 
 const moment = momentImported;
 
@@ -157,6 +159,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   constructor(
     injector: Injector,
+    protected samplingStrategyService: SamplingStrategyService,
     protected configService: ConfigService,
     @Optional() options?: SamplesTableOptions
   ) {
@@ -443,6 +446,30 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     // Default taxon group
     if (isNotNil(this.defaultTaxonGroup)) {
       data.taxonGroup = TaxonGroupRef.fromObject(this.defaultTaxonGroup);
+    }
+
+    // server call for first sample and increment from server call value
+    if (data.measurementValues.hasOwnProperty(PmfmIds.TAG_ID)) {
+      // skip first
+      if (data.rankOrder === 1) {
+        data.measurementValues[PmfmIds.TAG_ID] = (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', 4)).slice(-4);
+      } else if (data.rankOrder > 1 && !this.currentSample) {
+        data.measurementValues[PmfmIds.TAG_ID] = (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', 4)).slice(-4);
+      } else if (this.currentSample) {
+        const previousSample = await this.findRowBySample(this.currentSample);
+        if (previousSample) {
+          data.measurementValues[PmfmIds.TAG_ID] = parseInt(previousSample.currentData?.measurementValues[PmfmIds.TAG_ID]) + 1;
+        }
+        if (data.measurementValues[PmfmIds.TAG_ID] < 10) {
+          data.measurementValues[PmfmIds.TAG_ID] = '000' + data.measurementValues[PmfmIds.TAG_ID];
+        } else if (data.measurementValues[PmfmIds.TAG_ID] < 100) {
+          data.measurementValues[PmfmIds.TAG_ID] = '00' + data.measurementValues[PmfmIds.TAG_ID];
+        } else if (data.measurementValues[PmfmIds.TAG_ID] < 1000) {
+          data.measurementValues[PmfmIds.TAG_ID] = '0' + data.measurementValues[PmfmIds.TAG_ID];
+        } else {
+          data.measurementValues[PmfmIds.TAG_ID] = data.measurementValues[PmfmIds.TAG_ID].toString;
+        }
+      }
     }
 
     // Default presentation value
