@@ -62,7 +62,7 @@ import { PmfmStrategyValidatorService } from '@app/referential/services/validato
 
 const moment = momentImported;
 
-type FilterableFieldName = 'analyticReference' | 'location' | 'taxonName' | 'department' | 'fraction';
+type FilterableFieldName = 'analyticReference' | 'location' | 'taxonName' | 'department' | 'fraction' | 'lengthPmfm' | 'weightPmfm' | 'maturityPmfm';
 
 const MIN_PMFM_COUNT = 2;
 
@@ -87,6 +87,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   taxonNamesHelper: FormArrayHelper<TaxonNameStrategy>;
   departmentsHelper: FormArrayHelper<StrategyDepartment>;
   appliedStrategiesHelper: FormArrayHelper<AppliedStrategy>;
+  lengthPmfmsHelper: FormArrayHelper<PmfmStrategy>;
+  weightPmfmsHelper: FormArrayHelper<PmfmStrategy>;
+  maturityPmfmsHelper: FormArrayHelper<PmfmStrategy>;
   appliedPeriodsHelper: FormArrayHelper<AppliedPeriod>;
   pmfmsHelper: FormArrayHelper<PmfmStrategy>;
   calcifiedFractionsHelper: FormArrayHelper<PmfmStrategy>;
@@ -96,6 +99,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   autocompleteFilters = {
     analyticReference: false,
     location: false,
+    lengthPmfm: false,
+    weightPmfm: false,
+    maturityPmfm: false,
     taxonName: false,
     department: false,
     fraction: false
@@ -166,6 +172,18 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return MIN_PMFM_COUNT;
   }
 
+  get lengthPmfmsForm(): FormArray {
+    return this.form.controls.lengthPmfms as FormArray;
+  }
+
+  get weightPmfmsForm():  FormArray {
+    return this.form.controls.weightPmfms as FormArray;
+  }
+
+  get maturityPmfmsForm():  FormArray {
+    return this.form.controls.maturityPmfms as FormArray;
+  }
+
   @ViewChild('weightPmfmStrategiesTable', { static: true }) weightPmfmStrategiesTable: PmfmStrategiesTable;
   @ViewChild('lengthPmfmStrategiesTable', { static: true }) lengthPmfmStrategiesTable: PmfmStrategiesTable;
   @ViewChild('maturityPmfmStrategiesTable', { static: true }) maturityPmfmStrategiesTable: PmfmStrategiesTable;
@@ -174,6 +192,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   locationItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
   departmentItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
   fractionItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+  lengthPmfmsItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+  weightPmfmsItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+  maturityPmfmsItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
   taxonNameItems: BehaviorSubject<TaxonNameRef[]> = new BehaviorSubject(null);
 
   allFractionItems: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
@@ -246,6 +267,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.initAppliedStrategiesHelper();
     this.initAppliedPeriodHelper();
     this.initCalcifiedFractionsHelper();
+    this.initLengthPmfmsHelper();
+    this.initWeightPmfmsHelper();
+    this.initMaturityPmfmsHelper();
   }
 
 
@@ -305,16 +329,16 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Propagate table's pmfm into form
     this.registerSubscription(
       combineLatest([
-        this.weightPmfmStrategiesTable.valueChanges,
-        this.lengthPmfmStrategiesTable.valueChanges,
+        /*this.weightPmfmStrategiesTable.valueChanges,
+        this.lengthPmfmStrategiesTable.valueChanges,*/
         this.maturityPmfmStrategiesTable.valueChanges
       ])
         .pipe(
           debounceTime(250),
           // Concat pmfms, and filter not empty
-          map(([weights, lengths, maturities]) => [
-              ...weights,
-              ...lengths,
+          map(([/*weights, lengths,*/ maturities]) => [
+              /*...weights,
+              ...lengths,*/
               ...maturities
             ].filter(p => p.pmfm || p.parameter)
           )
@@ -424,6 +448,43 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       columnNames: ['REFERENTIAL.NAME'],
       mobile: this.settings.mobile
     });
+
+    // appliedStrategy autocomplete
+    this.registerAutocompleteField('lengthPmfm', {
+      // suggestFn: (value, filter) => this.suggestLengthPmfms(value, {
+      suggestFn: (value, filter) => this.suggestAgeFractions(value, {
+        ...filter,
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        includedIds: FractionIdGroups.CALCIFIED_STRUCTURE
+      }),
+      attributes: ['name'],
+      columnNames: ['REFERENTIAL.NAME'],
+      mobile: this.settings.mobile
+    });
+
+    // appliedStrategy autocomplete
+    this.registerAutocompleteField('weightPmfm', {
+      suggestFn: (value, filter) => this.suggestWeightPmfms(value, {
+        ...filter,
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        includedIds: FractionIdGroups.CALCIFIED_STRUCTURE
+      }),
+      attributes: ['name'],
+      columnNames: ['REFERENTIAL.NAME'],
+      mobile: this.settings.mobile
+    });
+
+    // appliedStrategy autocomplete
+    this.registerAutocompleteField('maturityPmfm', {
+      suggestFn: (value, filter) => this.suggestMaturityPmfms(value, {
+        ...filter,
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        includedIds: FractionIdGroups.CALCIFIED_STRUCTURE
+      }),
+      attributes: ['name'],
+      columnNames: ['REFERENTIAL.NAME'],
+      mobile: this.settings.mobile
+    });
   }
 
 
@@ -482,6 +543,21 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     const fractions = await this.strategyService.loadStrategiesReferentials(program.id, 'Fraction', undefined, 0, fetchSize);
     this.fractionItems.next(fractions);
     this.autocompleteFilters.fraction = isNotEmptyArray(fractions) && autoEnableFilter; // Enable filtering, if need by program
+
+    // Length pmfms
+    const lengthPmfms = await this.strategyService.loadStrategiesReferentials(program.id, 'Fraction', undefined, 0, fetchSize);
+    this.lengthPmfmsItems.next(lengthPmfms);
+    this.autocompleteFilters.lengthPmfm = isNotEmptyArray(lengthPmfms) && autoEnableFilter; // Enable filtering, if need by program
+
+    // Weight pmfms
+    const weightPmfms = await this.strategyService.loadStrategiesReferentials(program.id, 'Fraction', undefined, 0, fetchSize);
+    this.weightPmfmsItems.next(weightPmfms);
+    this.autocompleteFilters.weightPmfm = isNotEmptyArray(weightPmfms) && autoEnableFilter; // Enable filtering, if need by program
+
+    // Weight pmfms
+    const maturityPmfms = await this.strategyService.loadStrategiesReferentials(program.id, 'Fraction', undefined, 0, fetchSize);
+    this.maturityPmfmsItems.next(maturityPmfms);
+    this.autocompleteFilters.maturityPmfm = isNotEmptyArray(maturityPmfms) && autoEnableFilter; // Enable filtering, if need by program
 
     // Analytic References
     try {
@@ -580,6 +656,54 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   protected async suggestAgeFractions(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
     if (this.autocompleteFilters.fraction) {
       return suggestFromArray(this.fractionItems.getValue(), value, filter);
+    } else {
+      return this.referentialRefService.suggest(value, {
+        ...filter,
+        entityName: 'Fraction'
+      });
+    }
+  }
+
+  /**
+   * Suggest autocomplete values, for length pmfms
+   * @param value
+   * @param filter - filters to apply
+   */
+  protected async suggestLengthPmfms(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
+    if (this.autocompleteFilters.lengthPmfm) {
+      return suggestFromArray(this.lengthPmfmsItems.getValue(), value, filter);
+    } else {
+      return this.referentialRefService.suggest(value, {
+        ...filter,
+        entityName: 'Fraction'
+      });
+    }
+  }
+
+  /**
+   * Suggest autocomplete values, for weight pmfms
+   * @param value
+   * @param filter - filters to apply
+   */
+  protected async suggestWeightPmfms(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
+    if (this.autocompleteFilters.weightPmfm) {
+      return suggestFromArray(this.weightPmfmsItems.getValue(), value, filter);
+    } else {
+      return this.referentialRefService.suggest(value, {
+        ...filter,
+        entityName: 'Fraction'
+      });
+    }
+  }
+
+  /**
+   * Suggest autocomplete values, for maturity pmfms
+   * @param value
+   * @param filter - filters to apply
+   */
+  protected async suggestMaturityPmfms(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
+    if (this.autocompleteFilters.maturityPmfm) {
+      return suggestFromArray(this.maturityPmfmsItems.getValue(), value, filter);
     } else {
       return this.referentialRefService.suggest(value, {
         ...filter,
@@ -696,6 +820,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       const displayedLabel = data.label.substr(0, 2).concat(' ').concat(data.label.substr(2, 7)).concat(' ').concat(data.label.substr(9, 3));
       this.form.get('label').patchValue(displayedLabel);
     }
+
+
+
+    data.pmfms = isNotEmptyArray(data.pmfms) ? data.pmfms : [new PmfmStrategy()];
+    // Resize pmfms array
+    // FIXME CLT use pmfm helper (only one)
+    this.lengthPmfmsHelper.resize(Math.max(1, data.pmfms.length));
+    this.weightPmfmsHelper.resize(Math.max(1, data.pmfms.length));
 
 
     firstNotNilPromise(this._$pmfmGroups).then((pmfmGroups) => {
@@ -1141,6 +1273,18 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.appliedStrategiesHelper.add(new AppliedStrategy());
   }
 
+  addLengthPmfm() {
+    this.lengthPmfmsHelper.add(new PmfmStrategy());
+  }
+
+  addWeightPmfm() {
+    this.weightPmfmsHelper.add(new PmfmStrategy());
+  }
+
+  addMaturityPmfm() {
+    this.maturityPmfmsHelper.add(new PmfmStrategy());
+  }
+
   // appliedStrategies Helper -----------------------------------------------------------------------------------------------
   protected initAppliedPeriodHelper() {
     // Use the first applied strategy form group (created just before)
@@ -1200,6 +1344,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     if (minSize && this.pmfmStrategiesHelper.size() < minSize) {
       this.pmfmStrategiesHelper.resize(minSize);
     }
+    // Create at least one fishing Area
+    if (this.pmfmStrategiesHelper.size() === 0) {
+      this.pmfmStrategiesHelper.resize(1);
+    }
   }
 
   // Pièces calcifiées
@@ -1216,6 +1364,55 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Create at least one PmfmStrategiesFraction
     if (this.calcifiedFractionsHelper.size() === 0) {
       this.calcifiedFractionsHelper.resize(1);
+    }
+  }
+
+  // Length pmfms
+  protected initLengthPmfmsHelper() {
+    this.lengthPmfmsHelper = new FormArrayHelper<PmfmStrategy>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'lengthPmfms'),
+      (lengthPmfms) => this.formBuilder.control(lengthPmfms || null, [SharedValidators.entity]),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {
+        allowEmptyArray: false
+      }
+    );
+    // Create at least one PmfmStrategies
+    if (this.lengthPmfmsHelper.size() === 0) {
+      this.lengthPmfmsHelper.resize(1);
+    }
+  }
+  // Weight pmfms
+  protected initWeightPmfmsHelper() {
+    this.weightPmfmsHelper = new FormArrayHelper<PmfmStrategy>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'weightPmfms'),
+      (weightPmfms) => this.formBuilder.control(weightPmfms || null, [SharedValidators.entity]),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {
+        allowEmptyArray: false
+      }
+    );
+    // Create at least one PmfmStrategies
+    if (this.weightPmfmsHelper.size() === 0) {
+      this.weightPmfmsHelper.resize(1);
+    }
+  }
+  // Maurity pmfms
+  protected initMaturityPmfmsHelper() {
+    this.maturityPmfmsHelper = new FormArrayHelper<PmfmStrategy>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'maturityPmfms'),
+      (maturityPmfms) => this.formBuilder.control(maturityPmfms || null, [SharedValidators.entity]),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {
+        allowEmptyArray: false
+      }
+    );
+    // Create at least one PmfmStrategies
+    if (this.maturityPmfmsHelper.size() === 0) {
+      this.maturityPmfmsHelper.resize(1);
     }
   }
 
@@ -1256,6 +1453,18 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   isFractionDisable(index: number): boolean {
     return this.calcifiedFractionsHelper.at(index).status === "DISABLED";
+  }
+
+  isLengthPmfmDisable(index: number): boolean {
+    return this.lengthPmfmsHelper.at(index).status === "DISABLED";
+  }
+
+  isWeightPmfmDisable(index: number): boolean {
+    return this.weightPmfmsHelper.at(index).status === "DISABLED";
+  }
+
+  isMaturityPmfmDisable(index: number): boolean {
+    return this.maturityPmfmsHelper.at(index).status === "DISABLED";
   }
 
   hasSex(): boolean {
