@@ -732,7 +732,7 @@ public class DataGraphQLService {
         Preconditions.checkNotNull(filter.getTripId(), "Missing filter or filter.tripId");
         return operationService.findAllByTripId(filter.getTripId(), offset, size, sort,
                 SortDirection.fromString(direction),
-                DataFetchOptions.DEFAULT);
+                OperationFetchOptions.DEFAULT);
     }
 
     @GraphQLQuery(name = "operations", description = "Get trip's operations")
@@ -740,16 +740,40 @@ public class DataGraphQLService {
         if (CollectionUtils.isNotEmpty(trip.getOperations())) {
             return trip.getOperations();
         }
-        return operationService.findAllByTripId(trip.getId(), DataFetchOptions.DEFAULT);
+        return operationService.findAllByTripId(trip.getId(), OperationFetchOptions.DEFAULT);
+    }
+
+    @GraphQLQuery(name = "operations", description = "Search in operations")
+    @Transactional(readOnly = true)
+    @IsUser
+    public List<OperationVO> findOperationsByFilter(@GraphQLArgument(name = "filter") OperationFilterVO filter,
+                                          @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                          @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                          @GraphQLArgument(name = "sortBy") String sort,
+                                          @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction,
+                                          @GraphQLEnvironment() ResolutionEnvironment env
+    ) {
+
+        Preconditions.checkNotNull(filter, "Missing filter");
+        Preconditions.checkArgument(filter.getTripId() != null || filter.getProgramLabel() != null, "Missing filter.programLabel or filter.tripId");
+
+        SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
+        sort = (sort.equals("endPosition") || sort.equals("startPosition") ? "id" : sort);
+
+        Set<String> fields = GraphQLUtils.fields(env);
+
+        return operationService.findAllByFilter(filter,
+                offset, size, sort, sortDirection,
+                getOperationFetchOptions(fields));
     }
 
     @GraphQLQuery(name = "operationsCount", description = "Get operations count")
     @Transactional(readOnly = true)
     @IsUser
     public long countOperations(@GraphQLArgument(name = "filter") OperationFilterVO filter) {
-        Preconditions.checkNotNull(filter, "Missing filter or filter.tripId");
-        Preconditions.checkNotNull(filter.getTripId(), "Missing filter or filter.tripId");
-        return operationService.countByTripId(filter.getTripId());
+        Preconditions.checkNotNull(filter, "Missing filter");
+        Preconditions.checkArgument(filter.getTripId() != null || filter.getProgramLabel() != null, "Missing filter.programLabel or filter.tripId");
+        return operationService.countByFilter(filter);
     }
 
     @GraphQLQuery(name = "operation", description = "Get an operation")
@@ -1446,6 +1470,16 @@ public class DataGraphQLService {
                 .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
                 .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
                 .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+                .build();
+    }
+
+
+    protected OperationFetchOptions getOperationFetchOptions(Set<String> fields) {
+        return OperationFetchOptions.builder()
+                .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
+                .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+                .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+                .withTrip(fields.contains(StringUtils.slashing(IWithTripEntity.Fields.TRIP, IEntity.Fields.ID)))
                 .build();
     }
 

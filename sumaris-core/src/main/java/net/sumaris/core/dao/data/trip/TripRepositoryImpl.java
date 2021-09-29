@@ -41,8 +41,8 @@ import java.util.Objects;
 
 @Slf4j
 public class TripRepositoryImpl
-    extends RootDataRepositoryImpl<Trip, TripVO, TripFilterVO, DataFetchOptions>
-    implements TripSpecifications {
+        extends RootDataRepositoryImpl<Trip, TripVO, TripFilterVO, DataFetchOptions>
+        implements TripSpecifications {
 
     private final LocationRepository locationRepository;
     private final LandingRepository landingRepository;
@@ -57,10 +57,11 @@ public class TripRepositoryImpl
     @Override
     public Specification<Trip> toSpecification(TripFilterVO filter, DataFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(id(filter.getTripId()))
-            .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
-            .and(hasLocationId(filter.getLocationId()))
-            .and(hasVesselId(filter.getVesselId()));
+                .and(id(filter.getTripId()))
+                .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+                .and(hasLocationId(filter.getLocationId()))
+                .and(hasVesselId(filter.getVesselId()))
+                .and(includedIds(filter.getIncludedIds()));
     }
 
     @Override

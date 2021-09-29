@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.filter;
+package net.sumaris.core.model.data;
 
 /*-
  * #%L
@@ -22,28 +22,18 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.*;
-import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.IEntity;
 
-import java.util.Date;
+import java.io.Serializable;
+import java.util.List;
 
-@Data
-@FieldNameConstants
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class MetierFilterVO extends ReferentialFilterVO {
+public interface IWithTripEntity<T extends Serializable, B extends IEntity<Integer>> extends IEntity<T> {
 
-    public static MetierFilterVO nullToEmpty(MetierFilterVO filter) {
-        return filter == null ? new MetierFilterVO() : filter;
+    interface Fields extends IEntity.Fields {
+        String TRIP = "trip";
     }
 
-    // options used for predocumentation
-    private Date startDate;
-    private Date endDate;
-    private Integer vesselId;
-    private String programLabel;
-    private Integer excludedTripId; // optional
-    private Integer[] gearIds;
+    B getTrip();
 
+    void setTrip(B trip);
 }

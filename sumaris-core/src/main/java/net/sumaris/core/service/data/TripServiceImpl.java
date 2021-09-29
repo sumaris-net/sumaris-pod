@@ -152,7 +152,13 @@ public class TripServiceImpl implements TripService {
 
             // Operations
             else {
-                target.setOperations(operationService.findAllByTripId(id, fetchOptions));
+                OperationFetchOptions operationFetchOptions = OperationFetchOptions.builder()
+                        .withObservers(fetchOptions.isWithObservers())
+                        .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
+                        .withRecorderPerson(fetchOptions.isWithRecorderPerson())
+                        .build();
+
+                target.setOperations(operationService.findAllByTripId(id, operationFetchOptions));
             }
 
         }

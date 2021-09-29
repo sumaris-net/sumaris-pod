@@ -77,7 +77,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
 
     @Test
     public void b_getAll() {
-        List<OperationVO> operations = service.findAllByTripId(parent.getId(), DataFetchOptions.DEFAULT);
+        List<OperationVO> operations = service.findAllByTripId(parent.getId(), OperationFetchOptions.DEFAULT);
         Assert.assertNotNull(operations);
         Assert.assertEquals(3, operations.size());
 

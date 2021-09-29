@@ -34,13 +34,11 @@ import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.vo.data.TripVO;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
-import net.sumaris.core.vo.referential.MetierVO;
-import net.sumaris.core.vo.referential.ReferentialTypeVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.core.vo.referential.*;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.technical.ChangesPublisherService;
@@ -226,6 +224,23 @@ public class ReferentialGraphQLService {
         }
         // Should never occur !
         return null;
+    }
+
+    @GraphQLQuery(name = "taxonGroups", description = "Get taxon groups from a taxon name")
+    public List<TaxonGroupVO> getTaxonGroupByFilter  (@GraphQLArgument(name = "filter") ReferentialFilterVO filter,
+                                                      @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                      @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                      @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
+                                                      @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+        return taxonGroupService.findTargetSpeciesByFilter(
+                ReferentialFilterVO.nullToEmpty(filter),
+                offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+    }
+
+    @GraphQLQuery(name = "taxonGroupsCount", description = "Count taxonGroups")
+    @Transactional(readOnly = true)
+    public Long countTaxonGroups(@GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
+        return referentialService.countByFilter("TaxonGroup", filter);
     }
 
 }

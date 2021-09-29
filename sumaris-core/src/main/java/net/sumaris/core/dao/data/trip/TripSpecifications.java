@@ -26,15 +26,19 @@ import net.sumaris.core.dao.data.RootDataSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.Trip;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 
 public interface TripSpecifications extends RootDataSpecifications<Trip> {
 
     String VESSEL_ID_PARAM = "vesselId";
     String LOCATION_ID_PARAM = "locationId";
+    String INCLUDED_IDS_PARAMETER = "includedIds";
 
     default Specification<Trip> hasLocationId(Integer locationId) {
         BindableSpecification<Trip> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
@@ -82,6 +86,15 @@ public interface TripSpecifications extends RootDataSpecifications<Trip> {
                 return cb.lessThanOrEqualTo(root.get(Trip.Fields.DEPARTURE_DATE_TIME), endDate);
             }
         };
+    }
+
+    default Specification<Trip> includedIds(Integer[] includedIds) {
+        if (ArrayUtils.isEmpty(includedIds)) return null;
+        return BindableSpecification.<Trip>where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, INCLUDED_IDS_PARAMETER);
+            return criteriaBuilder.in(root.get(Trip.Fields.ID)).value(param);
+        })
+                .addBind(INCLUDED_IDS_PARAMETER, Arrays.asList(includedIds));
     }
 
 }
