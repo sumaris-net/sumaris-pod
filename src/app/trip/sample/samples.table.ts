@@ -457,17 +457,27 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         data.measurementValues[PmfmIds.TAG_ID] = (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', 4)).slice(-4);
       } else if (this.currentSample) {
         const previousSample = await this.findRowBySample(this.currentSample);
-        if (previousSample) {
-          data.measurementValues[PmfmIds.TAG_ID] = parseInt(previousSample.currentData?.measurementValues[PmfmIds.TAG_ID]) + 1;
+        if (previousSample) { // row exist
+          if (previousSample.currentData?.measurementValues[PmfmIds.TAG_ID] === '' || previousSample.currentData?.measurementValues[PmfmIds.TAG_ID] === null) { // no tag id
+            data.measurementValues[PmfmIds.TAG_ID] = '';
+          } else {
+            data.measurementValues[PmfmIds.TAG_ID] = parseInt(previousSample.currentData?.measurementValues[PmfmIds.TAG_ID]) + 1;
+          }
+        } else if (this.currentSample.measurementValues[PmfmIds.TAG_ID] !== null) { // row remove by user
+          data.measurementValues[PmfmIds.TAG_ID] = parseInt(this.currentSample.measurementValues[PmfmIds.TAG_ID]);
+        } else { // no tag id
+          data.measurementValues[PmfmIds.TAG_ID] = '';
         }
-        if (data.measurementValues[PmfmIds.TAG_ID] < 10) {
-          data.measurementValues[PmfmIds.TAG_ID] = '000' + data.measurementValues[PmfmIds.TAG_ID];
-        } else if (data.measurementValues[PmfmIds.TAG_ID] < 100) {
-          data.measurementValues[PmfmIds.TAG_ID] = '00' + data.measurementValues[PmfmIds.TAG_ID];
-        } else if (data.measurementValues[PmfmIds.TAG_ID] < 1000) {
-          data.measurementValues[PmfmIds.TAG_ID] = '0' + data.measurementValues[PmfmIds.TAG_ID];
-        } else {
-          data.measurementValues[PmfmIds.TAG_ID] = data.measurementValues[PmfmIds.TAG_ID].toString;
+        if (data.measurementValues[PmfmIds.TAG_ID] !== '') {
+          if (data.measurementValues[PmfmIds.TAG_ID] < 10) {
+            data.measurementValues[PmfmIds.TAG_ID] = '000' + data.measurementValues[PmfmIds.TAG_ID];
+          } else if (data.measurementValues[PmfmIds.TAG_ID] < 100) {
+            data.measurementValues[PmfmIds.TAG_ID] = '00' + data.measurementValues[PmfmIds.TAG_ID];
+          } else if (data.measurementValues[PmfmIds.TAG_ID] < 1000) {
+            data.measurementValues[PmfmIds.TAG_ID] = '0' + data.measurementValues[PmfmIds.TAG_ID];
+          } else {
+            data.measurementValues[PmfmIds.TAG_ID] = data.measurementValues[PmfmIds.TAG_ID].toString;
+          }
         }
       }
     }
@@ -482,6 +492,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         const previousSample = await this.findRowBySample(this.currentSample);
         if (previousSample) {
           data.measurementValues[PmfmIds.DRESSING] = previousSample.currentData?.measurementValues[PmfmIds.DRESSING];
+        } else {
+          data.measurementValues[PmfmIds.DRESSING] = this.currentSample.measurementValues[PmfmIds.DRESSING];
         }
       }
       this.currentSample = data;
