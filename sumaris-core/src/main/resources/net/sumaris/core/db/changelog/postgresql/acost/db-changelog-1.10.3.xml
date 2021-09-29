@@ -36,7 +36,7 @@
             <!-- Test if database is empty -->
             <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
             <!-- OR if expected production database -->
-            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+            <sqlCheck expectedResult="${sqlCheck.acost.expectedResult}">${sqlCheck.acost.sql}</sqlCheck>
         </or>
     </preConditions>
 
