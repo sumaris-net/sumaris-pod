@@ -129,7 +129,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
           }
 
           // Sort by trip date
-          if (dataFilter && dataFilter.vesselId && isNil(dataFilter.tripId)) {
+          if ((!opts || opts.toEntity !== false) && dataFilter && dataFilter.vesselId && isNil(dataFilter.tripId)) {
             data.sort(sortByTripDateFn);
           }
 

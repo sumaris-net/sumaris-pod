@@ -85,6 +85,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
 
 export class TripOfflineFilter {
   programLabel?: string;
+  vesselId?: number;
   startDate?: Date | Moment;
   endDate?: Date | Moment
   periodDuration?: number;
@@ -94,6 +95,7 @@ export class TripOfflineFilter {
     if (!f) return undefined;
     return TripFilter.fromObject({
       program: {label: f.programLabel},
+      vesselId: f.vesselId,
       startDate: f.startDate,
       endDate: f.endDate
     });

@@ -1232,6 +1232,7 @@ export class TripService
           ...o,
           filter: {
             programLabel: tripFilter.program.label,
+            vesselId: tripFilter.vesselId,
             startDate: tripFilter.startDate
           }
         }), opts),
@@ -1239,6 +1240,7 @@ export class TripService
           ...o,
           filter: {
             program: tripFilter.program,
+            vesselId: tripFilter.vesselId,
             startDate: tripFilter.startDate
           }
         }), opts)

@@ -27,6 +27,17 @@
       </ion-row>
       <ion-row class="ion-padding-start">
         <ion-col>
+          <mat-autocomplete-field
+            [placeholder]="'TRIP.VESSEL'|translate"
+            formControlName="vesselSnapshot"
+            [config]="autocompleteFields.vesselSnapshot"
+            [required]="true">
+            <ion-icon matPrefix name="boat"></ion-icon>
+          </mat-autocomplete-field>
+        </ion-col>
+      </ion-row>
+      <ion-row class="ion-padding-start">
+        <ion-col>
           <!-- Period duration -->
           <mat-form-field >
             <ion-icon matPrefix name="calendar-outline"></ion-icon>
