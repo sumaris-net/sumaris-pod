@@ -65,11 +65,13 @@
     <mat-cell *matCellDef="let row">
 
       <mat-autocomplete-field floatLabel="never" class="min-width-large ion-text-wrap"
-                              [appAutofocus]="row.id == -1 && row.editing"
+                              [autofocus]="row.id === -1 && row.editing"
                               [formControl]="row.validator.controls.metier"
                               [placeholder]="'TRIP.OPERATION.LIST.METIER'|translate"
-                              [required]="true" [readonly]="!row.editing"
-                              [config]="autocompleteFields.metier" (blur)="onMetierChange($event, row)">
+                              [readonly]="!row.editing"
+                              [config]="autocompleteFields.metier"
+                              (blur)="onMetierChange($event, row)"
+                              required>
       </mat-autocomplete-field>
 
     </mat-cell>

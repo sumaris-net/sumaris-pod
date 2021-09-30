@@ -9,7 +9,7 @@ import {
 } from "@sumaris-net/ngx-components";
 import {AggregatedLanding} from "@app/trip/services/model/aggregated-landing.model";
 import {Moment} from "moment";
-import {SynchronizationStatus} from "@app/data/services/model/root-data-entity.model";
+import {SynchronizationStatus} from "@app/data/services/model/model.utils";
 
 @EntityClass({typename: 'AggregatedLandingFilterVO'})
 export class AggregatedLandingFilter extends EntityFilter<AggregatedLandingFilter, AggregatedLanding> {

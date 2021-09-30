@@ -1,6 +1,6 @@
 import {concat, defer, Observable, of, timer} from 'rxjs';
 import {catchError, map, switchMap, tap} from 'rxjs/operators';
-import {DataRootEntityUtils, RootDataEntity, SynchronizationStatusEnum} from './model/root-data-entity.model';
+import {DataRootEntityUtils, RootDataEntity} from './model/root-data-entity.model';
 import {
   BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions, BaseEntityServiceOptions,
   chainPromises, EntitiesServiceWatchOptions,
@@ -29,6 +29,7 @@ import {FetchPolicy} from '@apollo/client/core';
 import {ObservedLocation} from '@app/trip/services/model/observed-location.model';
 import {RootDataEntityFilter} from './model/root-data-filter.model';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
 
 
 export interface IDataSynchroService<

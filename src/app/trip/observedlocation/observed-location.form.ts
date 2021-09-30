@@ -1,11 +1,11 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment';
 import {DateAdapter} from '@angular/material/core';
-import {debounceTime, filter, map, tap} from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
 import {ObservedLocationValidatorService} from '../services/validator/observed-location.validator';
 import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import {
   FormArrayHelper,
   fromDateISOString,
@@ -96,6 +96,10 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     return this.form.controls.measurementValues as FormGroup;
   }
 
+  get programControl(): FormControl {
+    return this.form.get('program') as FormControl;
+  }
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
@@ -165,7 +169,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
       this.form.get('program').valueChanges
         .pipe(
           debounceTime(250),
-          map(value => (value && typeof value === 'string') ? value : (value && value.label || undefined))
+          map(value => (value && typeof value === 'string') ? value : (value && value.label || undefined)),
+          distinctUntilChanged()
         )
         .subscribe(programLabel => this.programLabel = programLabel));
 

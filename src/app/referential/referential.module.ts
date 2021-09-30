@@ -31,6 +31,7 @@ import {TaxonNamePage} from "./taxon/taxon-name.page";
 import {ReferentialsPage} from '@app/referential/list/referentials.page';
 import {AppCoreModule} from '@app/core/core.module';
 import {StrategiesPage} from './strategy/strategies.page';
+import {StrategyModal} from '@app/referential/strategy/strategy.modal';
 
 @NgModule({
   imports: [
@@ -71,7 +72,8 @@ import {StrategiesPage} from './strategy/strategies.page';
     PmfmQvFormField,
     PmfmsTable,
     SelectPmfmModal,
-    TaxonNamePage
+    TaxonNamePage,
+    StrategyModal
   ],
   exports: [
     TranslateModule,
@@ -103,7 +105,8 @@ import {StrategiesPage} from './strategy/strategies.page';
     PmfmsTable,
     SelectPmfmModal,
     PmfmStrategiesTable,
-    TaxonNamePage
+    TaxonNamePage,
+    StrategyModal
   ]
 })
 export class AppReferentialModule {

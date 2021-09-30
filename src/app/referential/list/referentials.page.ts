@@ -7,7 +7,7 @@ import {ReferentialService} from '../services/referential.service';
 import {
   AccountService,
   AppTable, changeCaseToUnderscore,
-  DefaultStatusList,
+  StatusList,
   EntitiesTableDataSource, EntityUtils,
   firstNotNilPromise,
   isNil,
@@ -55,7 +55,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   $entities = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }[]>(undefined);
   $levels = new BehaviorSubject<ReferentialRef[]>(undefined);
   i18nLevelName: string;
-  statusList = DefaultStatusList;
+  statusList = StatusList;
   statusById: any;
   filterCriteriaCount = 0;
 

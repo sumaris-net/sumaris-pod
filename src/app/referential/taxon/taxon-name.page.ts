@@ -34,7 +34,7 @@ import {environment} from '@environments/environment';
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TaxonNamePage extends AppEntityEditor<TaxonName> implements OnInit {
+export class TaxonNamePage extends AppEntityEditor<TaxonName> {
 
   canEdit: boolean;
   form: FormGroup;
@@ -118,12 +118,6 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> implements OnInit 
     };
   }
 
-  /* -- protected methods -- */
-  protected canUserWrite(data: TaxonName): boolean {
-    return (this.isNewData && this.accountService.isAdmin())
-      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
-  }
-
   enable() {
     //When reload after save new Taxon name, super.enable() set referenceTaxonId to null, that why we save the value before.
     const referenceTaxonId = this.form.get('referenceTaxonId').value;
@@ -134,6 +128,13 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> implements OnInit 
       this.form.get('referenceTaxonId').setValue(referenceTaxonId);
       this.form.get('referenceTaxonId').disable();
     }
+  }
+
+  /* -- protected methods -- */
+
+  protected canUserWrite(data: TaxonName): boolean {
+    return (this.isNewData && this.accountService.isAdmin())
+      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
   }
 
   protected registerForms() {

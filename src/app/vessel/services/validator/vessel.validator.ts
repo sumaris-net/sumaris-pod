@@ -12,8 +12,8 @@ export class VesselValidatorService implements ValidatorService {
 
   constructor(
     private formBuilder: FormBuilder,
-    private featuresValidator: VesselFeaturesValidatorService,
-    private registrationValidator: VesselRegistrationValidatorService) {
+    private vesselFeaturesValidator: VesselFeaturesValidatorService,
+    private vesselRegistrationPeriodValidator: VesselRegistrationValidatorService) {
   }
 
   getRowValidator(): FormGroup {
@@ -22,14 +22,14 @@ export class VesselValidatorService implements ValidatorService {
 
   getFormGroup(data?: Vessel, opts?: any): FormGroup {
     return this.formBuilder.group({
-      __typename: ['VesselVO'],
-      id: [toNumber(data && data.id, null)],
-      updateDate: [ data && data.updateDate || null],
-      creationDate: [ data && data.creationDate || null],
-      features: this.featuresValidator.getFormGroup(data && data.features),
-      registration: this.registrationValidator.getFormGroup(data && data.registration, {required: true}),
-      statusId: [null, Validators.required],
-      vesselType: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      __typename: [Vessel.TYPENAME],
+      id: [toNumber(data?.id, null)],
+      updateDate: [ data?.updateDate || null],
+      creationDate: [ data?.creationDate || null],
+      vesselFeatures: this.vesselFeaturesValidator.getFormGroup(data?.vesselFeatures),
+      vesselRegistrationPeriod: this.vesselRegistrationPeriodValidator.getFormGroup(data?.vesselRegistrationPeriod, {required: true}),
+      statusId: [toNumber(data?.statusId, null), Validators.required],
+      vesselType: [data?.vesselType || null, Validators.compose([Validators.required, SharedValidators.entity])],
     });
   }
 }

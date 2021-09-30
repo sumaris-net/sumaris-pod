@@ -1036,7 +1036,7 @@ type Query {
   "Get taxon name count"
   taxonNameCount(filter: TaxonNameFilterVOInput): Long
   "Search in taxon names"
-  taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [TaxonNameVO]
+  taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonNameVO]
   "Get trash content"
   trashEntities(entityName: String, offset: Int = 0, size: Int = 1000, sortBy: String = "updateDate", sortDirection: String = "desc"): [String]
   "Get trash file content"
@@ -1050,11 +1050,11 @@ type Query {
   "Search in user events"
   userEvents(filter: UserEventFilterVOInput, page: PageInput): [UserEventVO]
   "Get a vessel"
-  vessel(vesselId: Int!): VesselVO
+  vessel(id: Int, vesselId: Int): VesselVO
   "Get vessel features history"
   vesselFeaturesHistory(filter: VesselFeaturesFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselFeaturesVO]
   "Get vessel registration history"
-  vesselRegistrationHistory(filter: VesselRegistrationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselRegistrationVO]
+  vesselRegistrationHistory(filter: VesselRegistrationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselRegistrationPeriodVO]
   "Search in vessel snapshots"
   vesselSnapshots(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "exteriorMarking", sortDirection: String = "asc"): [VesselSnapshotVO]
   "Search in vessels"
@@ -1440,7 +1440,7 @@ type VesselPositionVO {
   validationDate: Date
 }
 
-type VesselRegistrationVO {
+type VesselRegistrationPeriodVO {
   endDate: Date
   id: Int
   intRegistrationCode: String
@@ -1461,12 +1461,14 @@ type VesselSnapshotVO {
   grossTonnageGrt: Float
   grossTonnageGt: Float
   id: Int
+  intRegistrationCode: String
   lengthOverAll: Float
   "Get vessel's physical measurements"
   measurementValues: Map_Integer_StringScalar
   "Get vessel's physical measurements"
   measurements: [MeasurementVO]
   name: String
+  program: ProgramVO
   qualificationComments: String
   qualificationDate: Date
   qualityFlagId: Int
@@ -1485,7 +1487,6 @@ type VesselVO {
   comments: String
   controlDate: Date
   creationDate: Date
-  features: VesselFeaturesVO
   id: Int
   program: ProgramVO
   qualificationComments: String
@@ -1493,10 +1494,11 @@ type VesselVO {
   qualityFlagId: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
-  registration: VesselRegistrationVO
   statusId: Int
   updateDate: Date
   validationDate: Date
+  vesselFeatures: VesselFeaturesVO
+  vesselRegistrationPeriod: VesselRegistrationPeriodVO
   vesselType: ReferentialVO
 }
 
@@ -2441,6 +2443,8 @@ input SampleFilterVOInput {
   recorderDepartmentId: Int
   recorderPersonId: Int
   startDate: Date
+  tagId: String
+  withTagId: Boolean
 }
 
 input SampleVOInput {
@@ -2751,8 +2755,14 @@ input VesselFeaturesVOInput {
 
 input VesselFilterVOInput {
   date: Date
+  endDate: Date
+  locationId: Int
   programLabel: String
+  recorderDepartmentId: Int
+  recorderPersonId: Int
+  searchAttributes: [String]
   searchText: String
+  startDate: Date
   statusIds: [Int]
   vesselFeaturesId: Int
   vesselId: Int
@@ -2776,7 +2786,7 @@ input VesselRegistrationFilterVOInput {
   vesselId: Int
 }
 
-input VesselRegistrationVOInput {
+input VesselRegistrationPeriodVOInput {
   endDate: Date
   id: Int
   intRegistrationCode: String
@@ -2797,10 +2807,12 @@ input VesselSnapshotVOInput {
   grossTonnageGrt: Float
   grossTonnageGt: Float
   id: Int
+  intRegistrationCode: String
   lengthOverAll: Float
   measurementValues: Map_Integer_StringScalar
   measurements: [MeasurementVOInput]
   name: String
+  program: ProgramVOInput
   qualificationComments: String
   qualificationDate: Date
   qualityFlagId: Int
@@ -2819,7 +2831,6 @@ input VesselVOInput {
   comments: String
   controlDate: Date
   creationDate: Date
-  features: VesselFeaturesVOInput
   id: Int
   program: ProgramVOInput
   qualificationComments: String
@@ -2827,10 +2838,11 @@ input VesselVOInput {
   qualityFlagId: Int
   recorderDepartment: DepartmentVOInput
   recorderPerson: PersonVOInput
-  registration: VesselRegistrationVOInput
   statusId: Int
   updateDate: Date
   validationDate: Date
+  vesselFeatures: VesselFeaturesVOInput
+  vesselRegistrationPeriod: VesselRegistrationPeriodVOInput
   vesselType: ReferentialVOInput
 }
 

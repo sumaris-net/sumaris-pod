@@ -4,8 +4,22 @@ import {MeasurementModelValues, MeasurementValuesUtils} from './measurement.mode
 import {Sample} from './sample.model';
 import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
 import {IWithObserversEntity} from '@app/data/services/model/model.utils';
-import {EntityClass, fromDateISOString, Person, ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils, toDateISOString, toNumber} from '@sumaris-net/ngx-components';
+import {
+  EntityClass,
+  EntityClasses,
+  fromDateISOString,
+  IEntity,
+  isNotNil, isNotNilOrBlank,
+  Person,
+  ReferentialAsObjectOptions,
+  ReferentialRef,
+  ReferentialUtils,
+  toDateISOString,
+  toNumber
+} from '@sumaris-net/ngx-components';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
+
 
 /**
  * Landing entity
@@ -22,6 +36,8 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
   measurementValues: MeasurementModelValues = null;
 
   tripId: number = null;
+
+  trip: IEntity<any> = null;
   observedLocationId: number = null;
   observers: Person[] = null;
   samples: Sample[] = null;
@@ -40,8 +56,13 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
 
     target.rankOrder = this.rankOrderOnVessel; // this.rankOrder is not persisted
 
+    // Trip
+    target.tripId = this.tripId;
+    target.trip = this.trip && this.trip.asObject(opts) || undefined;
+
     // Samples
     target.samples = this.samples && this.samples.map(s => s.asObject(opts)) || undefined;
+    target.samplesCount = this.samples && this.samples.filter(s => s.measurementValues && isNotNilOrBlank(s.measurementValues[PmfmIds.TAG_ID])).length || undefined;
 
     if (opts && opts.minify) {
       delete target.rankOrderOnVessel;
@@ -54,20 +75,19 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     super.fromObject(source);
     this.dateTime = fromDateISOString(source.dateTime);
     this.location = source.location && ReferentialRef.fromObject(source.location);
+    this.rankOrder = source.rankOrder;
     this.rankOrderOnVessel = source.rankOrder; // Landing.rankOrder is stored in rankOrderOnVessel, this.rankOrder is computed by LandingService
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
-    this.measurementValues = source.measurementValues && {...source.measurementValues};
-    if (this.measurementValues === undefined) {
-      console.warn("Source as no measurementValues. Should never occur ! ", source);
-    }
+    this.measurementValues = {...source.measurementValues}; // Copy values
 
-    // Parent link
+    // Parent
     this.observedLocationId = source.observedLocationId;
     this.tripId = source.tripId;
+    this.trip = source.trip && EntityClasses.fromObject(source.trip, {entityName: 'Trip'}) || undefined;
 
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
-    this.samplesCount = toNumber(source.samplesCount, this.samples?.length);
+    this.samplesCount = toNumber(source.samplesCount, this.samples?.filter(s => s.measurementValues && isNotNilOrBlank(s.measurementValues[PmfmIds.TAG_ID])).length);
   }
 
   equals(other: Landing): boolean {

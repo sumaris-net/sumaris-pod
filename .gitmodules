@@ -1,0 +1,3 @@
+[submodule "ngx-sumaris-components"]
+	path = ngx-sumaris-components
+	url = https://gitlab.ifremer.fr/sih-public/sumaris/ngx-sumaris-components.git

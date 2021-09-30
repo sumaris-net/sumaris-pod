@@ -1,6 +1,9 @@
 import {Injectable, Optional} from '@angular/core';
 import {FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy} from '@apollo/client/core';
 import {BehaviorSubject, EMPTY, Observable} from 'rxjs';
+import {Injectable} from '@angular/core';
+import {FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {EMPTY, Observable} from 'rxjs';
 import {filter, first, map, tap} from 'rxjs/operators';
 import {ErrorCodes} from './trip.errors';
 import {DataFragments, Fragments} from './trip.queries';
@@ -31,15 +34,15 @@ import {
   NetworkService,
   QueryVariables
 } from '@sumaris-net/ngx-components';
-import {DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '../../data/services/model/data-entity.model';
-import {Operation, OperationFromObjectOptions, Trip, VesselPosition} from './model/trip.model';
 import {Measurement} from './model/measurement.model';
+import {DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
+import {Operation, OperationFromObjectOptions, Trip, VesselPosition} from './model/trip.model';
 import {Batch, BatchUtils} from './model/batch.model';
 import {Sample} from './model/sample.model';
-import {ReferentialFragments} from '../../referential/services/referential.fragments';
-import {AcquisitionLevelCodes, QualityFlagIds} from '../../referential/services/model/model.enum';
 import {SortDirection} from '@angular/material/sort';
-import {environment} from '../../../environments/environment';
+import {ReferentialFragments} from '@app/referential/services/referential.fragments';
+import {AcquisitionLevelCodes, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {environment} from '@environments/environment';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
@@ -131,7 +134,6 @@ export const recursiveFragments = {
       ...FishingAreaFragment
     }
   }
-
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.metier}
   ${ReferentialFragments.referential}
@@ -141,7 +143,6 @@ export const recursiveFragments = {
   ${DataFragments.batch}
   ${DataFragments.fishingArea}
   `
-
 };
 
 export const OperationFragments = {
@@ -399,11 +400,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const query = (opts && opts.query) || (withTotal ? OperationQueries.loadAllWithTotal : OperationQueries.loadAll);
     return this.mutableWatchQuery<LoadResult<any>>({
       queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
-      query: query,
+      query,
       arrayFieldName: 'data',
       totalFieldName: withTotal ? 'total' : undefined,
       insertFilterFn: dataFilter.asFilterFn(),
-      variables: variables,
+      variables,
       error: {code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: 'TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
     })
@@ -1113,7 +1114,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
   }
 
-  protected getRefetchQueriesForMutation(opts?: EntitySaveOptions): ((result: FetchResult<{ data: any }>) => InternalRefetchQueriesInclude) | InternalRefetchQueriesInclude {
+  protected getRefetchQueriesForMutation(opts?: EntitySaveOptions): ((result: FetchResult<{ data: any; }>) => InternalRefetchQueriesInclude) | InternalRefetchQueriesInclude {
     if (opts && opts.refetchQueries) return opts.refetchQueries;
 
     // Skip if update policy not used refecth queries

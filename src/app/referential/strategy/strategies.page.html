@@ -40,6 +40,12 @@
 
     <!-- if row selection -->
     <ng-template #hasSelection>
+      <!-- duplicate -->
+      <button mat-icon-button class="hidden-xs hidden-sm"
+              [title]="'COMMON.BTN_DUPLICATE'|translate"
+              (click)="openStrategyDuplicateModal($event)">
+        <mat-icon>library_add</mat-icon>
+      </button>
 
       <!-- delete -->
       <button mat-icon-button class="hidden-xs hidden-sm"

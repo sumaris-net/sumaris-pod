@@ -26,7 +26,7 @@ import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
 import {FormGroup} from '@angular/forms';
 import {ObservedLocationService} from '../services/observed-location.service';
 import {TripService} from '../services/trip.service';
-import {debounceTime, filter, tap, throttleTime} from 'rxjs/operators';
+import {debounceTime, filter, map, tap, throttleTime} from 'rxjs/operators';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
 import {Landing} from '../services/model/landing.model';
@@ -36,12 +36,13 @@ import {ProgramProperties} from '@app/referential/services/config/program.config
 import {Program} from '@app/referential/services/model/program.model';
 import {environment} from '@environments/environment';
 import {STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent} from '@app/data/strategy/strategy-summary-card.component';
-import {merge, Subscription} from 'rxjs';
+import {merge, Observable, Subscription} from 'rxjs';
 import {Strategy} from '@app/referential/services/model/strategy.model';
 import * as momentImported from 'moment';
 import {PmfmService} from '@app/referential/services/pmfm.service';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {PmfmIds} from '@app/referential/services/model/model.enum';
+import {ContextService} from '@app/shared/context.service';
 
 const moment = momentImported;
 
@@ -80,9 +81,17 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   showEntityMetadata = false;
   showQualityForm = false;
   i18nPrefix = LANDING_DEFAULT_I18N_PREFIX;
+  contextService: ContextService;
 
   get form(): FormGroup {
     return this.landingForm.form;
+  }
+
+  get appliedStrategyLocations$(): Observable<ReferentialRef[]> {
+    return this.$strategy.pipe(
+      filter(isNotNil),
+      map(strategy => (strategy.appliedStrategies).map(a => a.location))
+    )
   }
 
   @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
@@ -94,7 +103,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   constructor(
     injector: Injector,
-    @Optional() options: LandingEditorOptions
+    @Optional() options: LandingEditorOptions,
   ) {
     super(injector, Landing, injector.get(LandingService), {
       tabCount: 2,
@@ -107,6 +116,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.referentialRefService = injector.get(ReferentialRefService);
     this.vesselService = injector.get(VesselSnapshotService);
     this.platform = injector.get(PlatformService);
+    this.contextService = injector.get(ContextService);
+
 
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
@@ -211,6 +222,14 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     // Landing as root
     else {
       // Specific conf
+    }
+
+    // Set contextual strategy
+    const contextualStrategy = this.contextService.getValue('strategy') as Strategy;
+    if (contextualStrategy) {
+      data.measurementValues = data.measurementValues || {};
+      data.measurementValues[PmfmIds.STRATEGY_LABEL] = contextualStrategy.label;
+      this.$strategyLabel.next(contextualStrategy.label);
     }
 
     this.showEntityMetadata = false;
@@ -338,13 +357,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     if (!strategy) return; // Skip if empty
 
+    // Propagate to form
     this.landingForm.strategyLabel = strategy.label;
-    if (this.strategyCard) {
-      this.strategyCard.value = strategy;
-    }
-    this.samplesTable.strategyLabel = strategy.label;
+    this.landingForm.strategyControl.setValue(strategy);
 
-    // Set table defaults
+    // Propagate to table
+    this.samplesTable.strategyLabel = strategy.label;
     const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
     this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
     this.samplesTable.showTaxonGroupColumn = false;
@@ -354,7 +372,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     const strategyPmfmIds = strategyPmfms.map(pmfm => pmfm.id);
 
     // Retrieve additional pmfms, from data (= PMFMs NOT in the strategy)
-    const additionalPmfmIds = (this.data.samples || []).reduce((res, sample) => {
+    const additionalPmfmIds = (this.data?.samples || []).reduce((res, sample) => {
       const pmfmIds = Object.keys(sample.measurementValues || {}).map(id => +id);
       const newPmfmIds = pmfmIds.filter(id => !res.includes(id) && !strategyPmfmIds.includes(id));
       return newPmfmIds.length ? res.concat(...newPmfmIds) : res;
@@ -377,6 +395,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       ];
     }
 
+    this.markForCheck();
   }
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {
@@ -468,7 +487,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected async getValue(): Promise<Landing> {
-    console.debug('[landing-page] DEV get value');
+    // DEBUG
+    //console.debug('[landing-page] getValue()');
+
     const data = await super.getValue();
 
     // Re add program, because program control can be disabled

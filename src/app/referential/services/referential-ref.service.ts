@@ -8,8 +8,8 @@ import {Referential, ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-c
 import {ReferentialService} from "./referential.service";
 import {IEntitiesService, LoadResult, SuggestService} from "@sumaris-net/ngx-components";
 import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, TaxonGroupIds, TaxonomicLevelIds} from './model/model.enum';
-import {Metier, TaxonGroupRef, TaxonNameRef} from './model/taxon.model';
+import {FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, TaxonGroupIds, TaxonomicLevelIds} from './model/model.enum';
+import {Metier, TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
 import {NetworkService}  from "@sumaris-net/ngx-components";
 import {EntitiesStorage}  from "@sumaris-net/ngx-components";
 import {ReferentialFragments} from "./referential.fragments";
@@ -243,7 +243,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     if (debug) console.debug(`[referential-ref-service] Loading ${uniqueEntityName} items (ref)...`, variables);
 
     // Online mode: use graphQL
-    const withTotal = !opts || opts.withTotal !== false;
+    const withTotal = !opts || opts.withTotal !== false; // default to true
     const query = withTotal ? LoadAllWithTotalQuery : LoadAllQuery;
     const { data, total } = await this.graphql.query<LoadResult<any>>({
       query,
@@ -268,7 +268,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // Add fetch more capability, if total was fetched
     if (withTotal) {
-      const nextOffset = offset + entities.length;
+      const nextOffset = (offset || 0) + entities.length;
       if (nextOffset < res.total) {
         res.fetchMore = () => this.loadAll(nextOffset, size, sortBy, sortDirection, filter, opts);
       }
@@ -320,7 +320,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     const res: LoadResult<ReferentialRef> = { data: entities, total };
 
     // Add fetch more function
-    const nextOffset = offset + entities.length;
+    const nextOffset = (offset || 0) + entities.length;
     if (nextOffset < total) {
       res.fetchMore = () => this.loadAll(nextOffset, size, sortBy, sortDirection, filter, opts);
     }
@@ -441,8 +441,8 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
   }
 
-  suggestTaxonNames(value: any, filter?: Partial<TaxonNameRefFilter>): Promise<LoadResult<TaxonNameRef>> {
-    if (ReferentialUtils.isNotEmpty(value)) return Promise.resolve({data: [value]});
+  async suggestTaxonNames(value: any, filter?: Partial<TaxonNameRefFilter>): Promise<LoadResult<TaxonNameRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;
     return this.loadAllTaxonNames(0, !value ? 20 : 10, undefined, undefined,
       {
@@ -572,7 +572,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                                toEntity?: boolean;
                              }): Promise<{[key: string]: ReferentialRef[]}> {
     const entityName = filter && filter.entityName;
-    const groupKeys = Object.keys(groupBy.levelIds || groupBy.levelLabels); // AGE, SEX, MATURITY, etc
+    const groupKeys = Object.keys(groupBy.levelIds || groupBy.levelLabels); // AGE, SEX, MATURITY, etc
 
     // Check arguments
     if (!entityName) throw new Error("Missing 'filter.entityName' argument");
@@ -745,6 +745,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     LocationLevelIds.AUCTION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_AUCTION_ID);
     LocationLevelIds.ICES_RECTANGLE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_RECTANGLE_ID);
     LocationLevelIds.ICES_DIVISION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_DIVISION_ID);
+    LocationLevelIds.LOCATIONS_AREA = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_LOCATIONS_AREA_ID);
 
     // Taxonomic Levels
     TaxonomicLevelIds.FAMILY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_FAMILY_ID);
@@ -752,15 +753,19 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     TaxonomicLevelIds.SPECIES = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_SPECIES_ID);
     TaxonomicLevelIds.SUBSPECIES = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_SUBSPECIES_ID);
 
-    // Parameters
+    // Parameters Groups
     ParameterLabelGroups.AGE = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.PARAMETER_GROUP_AGE_LABELS);
     ParameterLabelGroups.SEX = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.PARAMETER_GROUP_SEX_LABELS);
     ParameterLabelGroups.WEIGHT = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.PARAMETER_GROUP_WEIGHT_LABELS);
     ParameterLabelGroups.LENGTH = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.PARAMETER_GROUP_LENGTH_LABELS);
     ParameterLabelGroups.MATURITY = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.PARAMETER_GROUP_MATURITY_LABELS);
 
+    // Fractions Groups
+    FractionIdGroups.CALCIFIED_STRUCTURE = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS);
+
     // PMFM
     PmfmIds.TAG_ID = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_TAG_ID);
+    PmfmIds.DRESSING = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_DRESSING);
     PmfmIds.STRATEGY_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_STRATEGY_LABEL_ID);
     PmfmIds.AGE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_AGE_ID);
     PmfmIds.SEX = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SEX_ID);

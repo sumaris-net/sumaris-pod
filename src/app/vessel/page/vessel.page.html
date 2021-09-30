@@ -14,7 +14,7 @@
   <!-- vessel registration -->
   <mat-label mat-menu-item class="mat-menu-title" translate>VESSEL.ACTION.REGISTRATION_DIVIDER</mat-label>
   <button mat-menu-item translate (click)="editRegistration()">VESSEL.ACTION.EDIT_REGISTRATION</button>
-  <button mat-menu-item translate *ngIf="!!data?.registration" (click)="newRegistration()">VESSEL.ACTION.NEW_REGISTRATION</button>
+  <button mat-menu-item translate *ngIf="!!data?.vesselRegistrationPeriod" (click)="newRegistration()">VESSEL.ACTION.NEW_REGISTRATION</button>
   <mat-divider></mat-divider>
 
   <!-- vessel features -->
@@ -42,12 +42,19 @@
         <ion-label translate>VESSEL.TAB_GENERAL</ion-label>
       </ng-template>
 
+      <!-- error -->
+      <ion-item *ngIf="error || vesselForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
+        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+        <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
+      </ion-item>
+
       <ion-grid class="ion-no-padding">
         <ion-row class="ion-no-padding">
           <ion-col class="ion-padding">
 
             <!-- main form -->
-            <form-vessel (onSubmit)="save($event)" #vesselForm>
+            <form-vessel (onSubmit)="save($event)" #vesselForm
+                         [showError]="false">
             </form-vessel>
 
           </ion-col>
@@ -102,5 +109,14 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-  <app-form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading "></app-form-buttons-bar>
+
+  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
+                        [disabled]="!dirty || loading"
+                        [disabledCancel]="!dirty || loading">
+    <!-- error -->
+    <ion-item *ngIf="error" lines="none">
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+  </app-form-buttons-bar>
 </ion-footer>

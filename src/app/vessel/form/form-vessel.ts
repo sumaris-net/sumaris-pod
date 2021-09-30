@@ -1,18 +1,12 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {VesselValidatorService} from "../services/validator/vessel.validator";
-import {Vessel} from "../services/model/vessel.model";
-import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {DefaultStatusList, referentialToString}  from "@sumaris-net/ngx-components";
+import {VesselValidatorService} from '../services/validator/vessel.validator';
+import {Vessel} from '../services/model/vessel.model';
+import {LocationLevelIds} from '../../referential/services/model/model.enum';
+import {AccountService, AppForm, AppFormUtils, LocalSettingsService, StatusIds, StatusList, toBoolean} from '@sumaris-net/ngx-components';
 import {Moment} from 'moment';
-import {DateAdapter} from "@angular/material/core";
+import {DateAdapter} from '@angular/material/core';
 import {ReferentialRefService} from '../../referential/services/referential-ref.service';
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {FormGroup} from "@angular/forms";
-import {AppForm}  from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {toBoolean} from "@sumaris-net/ngx-components";
+import {FormGroup} from '@angular/forms';
 
 
 @Component({
@@ -26,10 +20,11 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
   private _defaultStatus: number;
 
   data: Vessel;
-  statusList = DefaultStatusList;
+  statusList = StatusList;
   statusById: any;
 
   @Input() canEditStatus: boolean;
+  @Input() showError: boolean;
 
   @Input() set defaultStatus(value: number) {
     if (this._defaultStatus !== value) {
@@ -47,11 +42,11 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
   }
 
   get registrationForm(): FormGroup {
-    return this.form.controls.registration as FormGroup;
+    return this.form.controls.vesselRegistrationPeriod as FormGroup;
   }
 
   get featuresForm(): FormGroup {
-    return this.form.controls.features as FormGroup;
+    return this.form.controls.vesselFeatures as FormGroup;
   }
 
   constructor(
@@ -78,6 +73,7 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
     super.ngOnInit();
 
     // Compute defaults
+    this.showError = toBoolean(this.showError, true);
     this.canEditStatus = toBoolean(this.canEditStatus, !this._defaultStatus || this.isAdmin());
 
     // Combo location
@@ -116,7 +112,6 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
     return this.accountService.isAdmin();
   }
 
-  referentialToString = referentialToString;
   filterNumberInput = AppFormUtils.filterNumberInput;
 
 

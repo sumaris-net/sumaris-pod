@@ -32,7 +32,7 @@
                size="6" size-md=""
                [hidden]="!showTaxonGroup">
         <mat-autocomplete-field formControlName="taxonGroup"
-                                [appAutofocus]="enabled && focusFieldName === 'taxonGroup'"
+                                [autofocus]="enabled && focusFieldName === 'taxonGroup'"
                                 [placeholder]="i18nPrefix + 'TAXON_GROUP_PLACEHOLDER'|translate"
                                 [tabindex]="tabindex+2"
                                 [required]="showTaxonGroup"
@@ -45,7 +45,7 @@
                size="6" size-md=""
                *ngIf="showTaxonName">
         <mat-autocomplete-field formControlName="taxonName"
-                                [appAutofocus]="enabled && focusFieldName === 'taxonName'"
+                                [autofocus]="enabled && focusFieldName === 'taxonName'"
                                 [placeholder]="i18nPrefix + 'TAXON_NAME_PLACEHOLDER'|translate"
                                 [tabindex]="tabindex+3"
                                 [required]="showTaxonName"

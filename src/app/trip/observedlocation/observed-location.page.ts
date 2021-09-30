@@ -1,10 +1,10 @@
-import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
 import * as momentImported from 'moment';
-import {ObservedLocationForm} from './observed-location.form';
-import {ObservedLocationService} from '../services/observed-location.service';
-import {LandingsTable} from '../landing/landings.table';
-import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
-import {FormGroup} from '@angular/forms';
+import { ObservedLocationForm } from './observed-location.form';
+import { ObservedLocationService } from '../services/observed-location.service';
+import { LandingsTable } from '../landing/landings.table';
+import { AppRootDataEditor } from '../../data/form/root-data-editor.class';
+import { FormGroup } from '@angular/forms';
 import {
   Alerts,
   AppTable,
@@ -22,21 +22,21 @@ import {
   toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import {ModalController} from '@ionic/angular';
-import {SelectVesselsModal} from './vessels/select-vessel.modal';
-import {ObservedLocation} from '../services/model/observed-location.model';
-import {Landing} from '../services/model/landing.model';
-import {LandingEditor, ProgramProperties} from '../../referential/services/config/program.config';
-import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
-import {BehaviorSubject} from 'rxjs';
-import {filter, first, tap} from 'rxjs/operators';
-import {AggregatedLandingsTable} from '../aggregated-landing/aggregated-landings.table';
-import {Program} from '../../referential/services/model/program.model';
-import {ObservedLocationsPageSettingsEnum} from './observed-locations.page';
-import {environment} from '../../../environments/environment';
-import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
-import {LandingFilter} from '../services/filter/landing.filter';
-import {Browser} from 'leaflet';
+import { ModalController } from '@ionic/angular';
+import { SelectVesselsModal } from './vessels/select-vessel.modal';
+import { ObservedLocation } from '../services/model/observed-location.model';
+import { Landing } from '../services/model/landing.model';
+import { LandingEditor, ProgramProperties } from '../../referential/services/config/program.config';
+import { VesselSnapshot } from '../../referential/services/model/vessel-snapshot.model';
+import { BehaviorSubject } from 'rxjs';
+import { filter, first, tap } from 'rxjs/operators';
+import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
+import { Program } from '../../referential/services/model/program.model';
+import { ObservedLocationsPageSettingsEnum } from './observed-locations.page';
+import { environment } from '../../../environments/environment';
+import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
+import { LandingFilter } from '../services/filter/landing.filter';
+import { ContextService } from '@app/shared/context.service';
 
 const moment = momentImported;
 
@@ -79,12 +79,14 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     return this.landingsTable || this.aggregatedLandingsTable;
   }
 
+
   constructor(
     injector: Injector,
     dataService: ObservedLocationService,
     protected modalCtrl: ModalController,
     protected platform: PlatformService,
-    protected configService: ConfigService
+    protected configService: ConfigService,
+    protected context: ContextService
   ) {
     super(injector,
       ObservedLocation,
@@ -186,6 +188,15 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         // Location
         if (searchFilter.location) {
           data.location = ReferentialRef.fromObject(searchFilter.location);
+        }
+      }
+
+      // Set contextual program, if any
+      {
+        const contextualProgram = this.context.getValue('program') as Program;
+        if (contextualProgram?.label) {
+          data.program = ReferentialRef.fromObject(contextualProgram);;
+          this.$programLabel.next(data.program.label);
         }
       }
 
@@ -457,7 +468,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
     return {
       ... (await super.computePageHistory(title)),
-      matIcon: 'verified_user'
+      icon: 'location'
     };
   }
 

@@ -3,7 +3,7 @@ import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {
   AccountService,
   AppInMemoryTable,
-  DefaultStatusList,
+  StatusList,
   InMemoryEntitiesService,
   LocalSettingsService,
   Referential,
@@ -35,7 +35,7 @@ import {environment} from '@environments/environment';
 })
 export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partial<ReferentialFilter>> {
 
-  statusList = DefaultStatusList;
+  statusList = StatusList;
   statusById: any;
 
   @Input() set entityName(entityName: string) {

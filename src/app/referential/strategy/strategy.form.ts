@@ -32,7 +32,7 @@ import {ReferentialRefFilter} from "../services/filter/referential-ref.filter";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
+export class StrategyForm extends AppEntityEditor<Strategy> {
 
 
   private $isPmfmStrategyEmpty = new BehaviorSubject<boolean>(true);

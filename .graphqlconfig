@@ -9,6 +9,13 @@
           "user-agent": "JS GraphQL"
         },
         "introspect": false
+      },
+      "Other GraphQL Endpoint": {
+        "url": "http://192.168.0.29:8080/graphql",
+        "headers": {
+          "user-agent": "JS GraphQL"
+        },
+        "introspect": false
       }
     }
   }

@@ -1,10 +1,63 @@
-import {IEntity}  from "@sumaris-net/ngx-components";
-import {Department}  from "@sumaris-net/ngx-components";
-import {Referential, ReferentialRef}  from "@sumaris-net/ngx-components";
-import {Person}  from "@sumaris-net/ngx-components";
-import {PredefinedColors} from "@ionic/core";
-import {QualityFlagIds} from "../../../referential/services/model/model.enum";
-import {StatusIds}  from "@sumaris-net/ngx-components";
+import {Department, IEntity, Person, Referential, ReferentialRef, StatusIds} from '@sumaris-net/ngx-components';
+import {PredefinedColors} from '@ionic/core';
+import {QualityFlagIds} from '@app/referential/services/model/model.enum';
+
+/* -- Enumerations -- */
+
+export type SynchronizationStatus = 'DIRTY' | 'READY_TO_SYNC' | 'SYNC' | 'DELETED';
+
+export const SynchronizationStatusEnum = Object.freeze({
+  DIRTY: <SynchronizationStatus>'DIRTY',
+  READY_TO_SYNC: <SynchronizationStatus>'READY_TO_SYNC',
+  SYNC: <SynchronizationStatus>'SYNC',
+  DELETED: <SynchronizationStatus>'DELETED'
+});
+
+export type DataQualityStatusIdType = 'MODIFIED' | 'CONTROLLED' | 'VALIDATED' | 'QUALIFIED';
+
+export const DataQualityStatusIds = Object.freeze({
+  MODIFIED: <DataQualityStatusIdType>'MODIFIED',
+  CONTROLLED: <DataQualityStatusIdType>'CONTROLLED',
+  VALIDATED: <DataQualityStatusIdType>'VALIDATED',
+  QUALIFIED: <DataQualityStatusIdType>'QUALIFIED',
+})
+
+export declare interface IDataQualityStatus {
+  id: DataQualityStatusIdType;
+  icon?: string;
+  label: string;
+}
+
+export const DataQualityStatusEnum = Object.freeze({
+  MODIFIED: <IDataQualityStatus>{
+    id: DataQualityStatusIds.MODIFIED,
+    icon: 'pencil',
+    label: 'QUALITY.MODIFIED'
+  },
+  CONTROLLED: <IDataQualityStatus>{
+    id: DataQualityStatusIds.CONTROLLED,
+    icon: 'checkmark',
+    label: 'QUALITY.CONTROLLED'
+  },
+  VALIDATED: <IDataQualityStatus>{
+    id: DataQualityStatusIds.VALIDATED,
+    icon: 'checkmark-circle',
+    label: 'QUALITY.VALIDATED'
+  },
+  QUALIFIED: <IDataQualityStatus>{
+    id: DataQualityStatusIds.QUALIFIED,
+    icon: 'flag',
+    label: 'QUALITY.QUALIFIED'
+  }
+});
+
+export const DataQualityStatusList = Object.freeze([
+  DataQualityStatusEnum.MODIFIED,
+  DataQualityStatusEnum.CONTROLLED,
+  DataQualityStatusEnum.VALIDATED,
+  DataQualityStatusEnum.QUALIFIED
+]);
+
 
 /* -- Interface -- */
 
@@ -82,4 +135,3 @@ export function statusToColor(statusId: number): PredefinedColors {
       return 'secondary';
   }
 }
-

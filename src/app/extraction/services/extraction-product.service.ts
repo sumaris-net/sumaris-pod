@@ -343,7 +343,7 @@ export class ExtractionProductService extends BaseGraphqlService {
       mutation: SaveAggregation,
       variables: {
         type: json,
-        filter: filter
+        filter
       },
       error: {code: ErrorCodes.SAVE_AGGREGATION_ERROR, message: "ERROR.SAVE_DATA_ERROR"},
       update: (cache, {data}) => {

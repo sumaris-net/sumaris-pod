@@ -57,9 +57,18 @@ const LoadAllAnalyticReferencesWithTotalQuery: any = gql`query AnalyticReference
   data: analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
     ...ReferentialFragment
   }
-  count: analyticReferencesCount(filter: $filter)
+  total: analyticReferencesCount(filter: $filter)
 }
 ${ReferentialFragments.referential}`;
+
+const FindStrategiesReferentials: any = gql`
+  query StrategiesReferentials($programId: Int!, $locationClassification: LocationClassificationEnum, $entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: strategiesReferentials(programId: $programId, locationClassification: $locationClassification, entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...ReferentialFragment
+    }
+  }
+  ${ReferentialFragments.referential}
+`;
 
 const StrategyQueries: BaseEntityGraphqlQueries & { count: any; } = {
   load: gql`query Strategy($id: Int!) {
@@ -226,6 +235,34 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     return res && res.data;
   }
 
+  async loadStrategiesReferentials(programId: number,
+                               entityName: string,
+                               locationClassification?: string,
+                               offset?: number,
+                               size?: number,
+                               sortBy?: string,
+                               sortDirection?: SortDirection
+                               ): Promise<ReferentialRef[]> {
+    if (this._debug) console.debug(`[strategy-service] Loading strategies referentials (predoc) for ${entityName}...`);
+
+    const res = await this.graphql.query<LoadResult<ReferentialRef>>({
+      query: FindStrategiesReferentials,
+      variables: {
+        programId: programId,
+        locationClassification: locationClassification,
+        entityName: entityName,
+        offset: offset || 0,
+        size: size || 100,
+        sortBy: sortBy || 'label',
+        sortDirection: sortDirection || 'asc'
+      },
+      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR"},
+      fetchPolicy: 'network-only'
+    });
+
+    return (res && res.data || []) as ReferentialRef[];
+  }
+
   async loadAllAnalyticReferences(
     offset: number,
     size: number,
@@ -284,7 +321,8 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;
     return this.loadAllAnalyticReferences(0, !value ? 30 : 10, sortBy, sortDirection,
-      { ...filter, searchText: value}
+      { ...filter, searchText: value},
+      {withTotal: true}
     );
   }
 

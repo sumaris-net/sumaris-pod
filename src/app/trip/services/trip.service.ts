@@ -46,8 +46,8 @@ import {VesselSnapshotFragments, VesselSnapshotService} from '@app/referential/s
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {TripValidatorService} from './validator/trip.validator';
 import {Operation, PhysicalGear, Trip} from './model/trip.model';
-import {DataRootEntityUtils, SynchronizationStatusEnum} from '@app/data/services/model/root-data-entity.model';
-import {fillRankOrder} from '@app/data/services/model/model.utils';
+import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
+import {fillRankOrder, SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
 import {SortDirection} from '@angular/material/sort';
 import {OverlayEventDetail} from '@ionic/core';
 import {TranslateService} from '@ngx-translate/core';
@@ -62,6 +62,7 @@ import {VESSEL_FEATURE_NAME} from '@app/vessel/services/config/vessel.config';
 import {TripFilter, TripOfflineFilter} from './filter/trip.filter';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {TrashRemoteService} from '@app/core/services/trash-remote.service';
+import {FishingArea} from '@app/trip/services/model/fishing-area.model';
 import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
 
 const moment = momentImported;
@@ -152,6 +153,9 @@ export const TripFragments = {
     metiers {
       ...MetierFragment
     }
+    fishingAreas {
+      ...FishingAreaFragment
+    }
   }
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
@@ -161,6 +165,7 @@ export const TripFragments = {
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${PhysicalGearFragments.physicalGear}
   ${Fragments.metier},
+  ${DataFragments.fishingArea},
   ${SaleFragments.lightSale}`,
 
   landedTrip: gql`fragment LandedTripFragment on TripVO {
@@ -216,7 +221,7 @@ export const TripFragments = {
     expectedSale {
       ...ExpectedSaleFragment
     }
-    fishingArea {
+    fishingAreas {
       ...FishingAreaFragment
     }
   }
@@ -476,7 +481,7 @@ export class TripService
       query,
       arrayFieldName: 'data',
       totalFieldName: withTotal ? 'total' : undefined,
-      insertFilterFn: dataFilter && dataFilter.asFilterFn(),
+      insertFilterFn: dataFilter?.asFilterFn(),
       variables,
       error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'

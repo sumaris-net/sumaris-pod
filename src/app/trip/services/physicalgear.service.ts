@@ -171,6 +171,12 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
       return EMPTY;
     }
 
+    const tripFilter = TripFilter.fromObject({
+      vesselId: filter?.vesselId,
+      startDate: filter?.startDate,
+      endDate: filter?.endDate
+    });
+
     const variables: any = {
       offset: offset || 0,
       size: size >= 0 ? size : 1000,

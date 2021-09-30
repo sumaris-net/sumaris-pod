@@ -90,7 +90,7 @@
         <mat-autocomplete-field [formControl]="asFormGroup(compositionForm).controls.taxonGroup"
                                 [placeholder]="'PACKET.COMPOSITION.TAXON_GROUP'|translate"
                                 [floatLabel]="first ? 'always' : 'never'"
-                                [appAutofocus]="compositionFocusIndex === i"
+                                [autofocus]="compositionFocusIndex === i"
                                 [config]="autocompleteFields.taxonGroup"
                                 [required]="first"
                                 [tabindex]="tabindex+10+i*9"

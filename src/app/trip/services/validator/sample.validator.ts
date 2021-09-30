@@ -53,6 +53,7 @@ export class SampleValidatorService extends AppValidatorService implements Valid
 
   getI18nError(errorKey: string, errorContent?: any): any {
     if (errorKey === 'missingWeightOrSize') return this.translate.instant(errorContent);
+    if (errorKey === 'missingDressing') return this.translate.instant(errorContent);
     return super.getI18nError(errorKey, errorContent);
   }
 
