@@ -452,10 +452,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // appliedStrategy autocomplete
     this.registerAutocompleteField('lengthPmfm', {
       // suggestFn: (value, filter) => this.suggestLengthPmfms(value, {
-      suggestFn: (value, filter) => this.suggestAgeFractions(value, {
+      suggestFn: (value, filter) => this.suggestLengthPmfms(value, {
         ...filter,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        includedIds: FractionIdGroups.CALCIFIED_STRUCTURE
+        levelLabels: ParameterLabelGroups.LENGTH
       }),
       attributes: ['name'],
       columnNames: ['REFERENTIAL.NAME'],
@@ -467,7 +467,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       suggestFn: (value, filter) => this.suggestWeightPmfms(value, {
         ...filter,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        includedIds: FractionIdGroups.CALCIFIED_STRUCTURE
+        levelLabels: ParameterLabelGroups.WEIGHT
       }),
       attributes: ['name'],
       columnNames: ['REFERENTIAL.NAME'],
@@ -479,7 +479,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       suggestFn: (value, filter) => this.suggestMaturityPmfms(value, {
         ...filter,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        includedIds: FractionIdGroups.CALCIFIED_STRUCTURE
+        levelLabels: ParameterLabelGroups.MATURITY
       }),
       attributes: ['name'],
       columnNames: ['REFERENTIAL.NAME'],
@@ -545,17 +545,17 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.autocompleteFilters.fraction = isNotEmptyArray(fractions) && autoEnableFilter; // Enable filtering, if need by program
 
     // Length pmfms
-    const lengthPmfms = await this.strategyService.loadStrategiesReferentials(program.id, 'Fraction', undefined, 0, fetchSize);
+    const lengthPmfms = await this.strategyService.loadStrategiesReferentials(program.id, 'Pmfm', undefined, 0, fetchSize);
     this.lengthPmfmsItems.next(lengthPmfms);
     this.autocompleteFilters.lengthPmfm = isNotEmptyArray(lengthPmfms) && autoEnableFilter; // Enable filtering, if need by program
 
     // Weight pmfms
-    const weightPmfms = await this.strategyService.loadStrategiesReferentials(program.id, 'Fraction', undefined, 0, fetchSize);
+    const weightPmfms = await this.strategyService.loadStrategiesReferentials(program.id, 'Pmfm', undefined, 0, fetchSize);
     this.weightPmfmsItems.next(weightPmfms);
     this.autocompleteFilters.weightPmfm = isNotEmptyArray(weightPmfms) && autoEnableFilter; // Enable filtering, if need by program
 
     // Weight pmfms
-    const maturityPmfms = await this.strategyService.loadStrategiesReferentials(program.id, 'Fraction', undefined, 0, fetchSize);
+    const maturityPmfms = await this.strategyService.loadStrategiesReferentials(program.id, 'Pmfm', undefined, 0, fetchSize);
     this.maturityPmfmsItems.next(maturityPmfms);
     this.autocompleteFilters.maturityPmfm = isNotEmptyArray(maturityPmfms) && autoEnableFilter; // Enable filtering, if need by program
 
@@ -675,7 +675,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     } else {
       return this.referentialRefService.suggest(value, {
         ...filter,
-        entityName: 'Fraction'
+        entityName: 'Pmfm'
       });
     }
   }
@@ -691,7 +691,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     } else {
       return this.referentialRefService.suggest(value, {
         ...filter,
-        entityName: 'Fraction'
+        entityName: 'Pmfm'
       });
     }
   }
@@ -707,7 +707,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     } else {
       return this.referentialRefService.suggest(value, {
         ...filter,
-        entityName: 'Fraction'
+        entityName: 'Pmfm'
       });
     }
   }
