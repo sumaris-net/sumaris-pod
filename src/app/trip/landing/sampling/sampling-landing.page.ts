@@ -47,6 +47,9 @@ export class SamplingLandingPage extends LandingPage {
     // Check strategy effort
     this.$strategy.subscribe(strategy => this.checkStrategyEffort(strategy));
 
+    // Update strategy filtered fishing area locations
+    this.$strategy.subscribe(strategy => this.updateFilteredLocations(strategy));
+
     // Use landing location as default location for samples
     // TODO: BLA review this : a quoi sert defaultLocation ?
     this.registerSubscription(
@@ -71,6 +74,13 @@ export class SamplingLandingPage extends LandingPage {
 
   /* -- protected functions -- */
 
+
+  protected async updateFilteredLocations(strategy: Strategy): Promise<void> {
+    this.landingForm.filteredFishingAreaLocations = strategy.appliedStrategies.map(a => a.location);
+    console.debug('[sampling-landing-page] filteredFishingAreaLocations: ', this.landingForm.filteredFishingAreaLocations);
+    //this.landingForm.fishingAreasForm.markAsDirty();
+    this.markAsDirty();
+  }
 
   protected async checkStrategyEffort(strategy: Strategy): Promise<void> {
 
