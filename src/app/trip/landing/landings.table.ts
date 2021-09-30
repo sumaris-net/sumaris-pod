@@ -189,17 +189,27 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
       });
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = LANDING_TABLE_DEFAULT_I18N_PREFIX;
-    this.autoLoad = false; // waiting parent to be loaded, or the call of onRefresh.next()
+
+    this.readOnly = false; // Allow deletion
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
+    this.saveBeforeSort = false;
+    this.saveBeforeFilter = false;
+
+    //this.saveBeforeDelete = false;
+    this.saveBeforeDelete = true;
+
+    this.autoLoad = false; // waiting parent to be loaded, or the call of onRefresh.next()
+
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
     this.referentialRefService = injector.get(ReferentialRefService);
-    this.saveBeforeDelete = true;
+
+    this.defaultPageSize = -1; // Do not use paginator
+    this.defaultSortBy = 'id';
+    this.defaultSortDirection = 'asc';
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
-    this.defaultSortBy = 'id';
-    this.defaultSortDirection = 'asc';
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
