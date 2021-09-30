@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialEntities;
+import net.sumaris.core.dao.referential.ReferentialExternalDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -41,7 +42,7 @@ import net.sumaris.core.model.referential.location.LocationClassificationEnum;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -56,6 +57,9 @@ public class StrategyPredocDaoImpl extends HibernateDaoSupport implements Strate
 
     @Autowired
     private ReferentialDao referentialDao;
+
+    @Autowired
+    protected ReferentialExternalDao referentialExternalDao;
 
     @Override
     public List<ReferentialVO> findStrategiesReferentials(final String entityName,
@@ -311,18 +315,12 @@ public class StrategyPredocDaoImpl extends HibernateDaoSupport implements Strate
                                                                  int size,
                                                                  String sortAttribute,
                                                                  SortDirection sortDirection) {
-        return labels.stream()
-                .map(source -> {
-                    ReferentialVO target = new ReferentialVO();
-                    target.setId(source.hashCode());
-                    target.setLabel(source);
-                    return target;
-                })
-                .sorted(Beans.naturalComparator(sortAttribute, sortDirection))
-                .skip(offset)
-                .limit(size)
-                .collect(Collectors.toList()
-        );
+        ReferentialFilterVO filter = ReferentialFilterVO.builder()
+                .levelLabels(labels.toArray(new String[0]))
+                //.statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
+                .build();
+
+        return referentialExternalDao.findAnalyticReferencesByFilter(filter, offset, size, sortAttribute, sortDirection);
     }
 
     protected <T extends IReferentialEntity> List<ReferentialVO> findByIds(final Class<T> entityClass,
