@@ -66,10 +66,7 @@ import javax.persistence.criteria.Root;
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository("measurementDao")
@@ -643,8 +640,10 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         final Map<Integer, T> sourceToRemove = Beans.splitById(Beans.getList(target));
 
         MutableShort rankOrder = new MutableShort(1);
+        Date newUpdateDate = null;
+        String entityName = getEntityName(entityClass);
         List<V> result = Lists.newArrayList();
-        sources.forEach(source -> {
+        for (V source: sources) {
             if (isNotEmpty(source)) {
                 IMeasurementEntity entity = null;
 
@@ -683,7 +682,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 setParent(entity, getEntityClass(parent), parent.getId(), false);
 
                 // Update update_dt
-                Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+                newUpdateDate = newUpdateDate != null ? newUpdateDate : getDatabaseCurrentDate();
                 entity.setUpdateDate(newUpdateDate);
 
                 // Save entityName
@@ -695,10 +694,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 }
 
                 source.setUpdateDate(newUpdateDate);
-                source.setEntityName(getEntityName(entity));
-
+                source.setEntityName(entityName);
             }
-        });
+        }
 
         // Remove unused measurements
         if (MapUtils.isNotEmpty(sourceToRemove)) {
@@ -739,7 +737,11 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     /* -- protected methods -- */
 
     protected <T extends IMeasurementEntity> String getEntityName(T source) {
-        String classname = source.getClass().getSimpleName();
+        return getEntityName(source.getClass());
+    }
+
+    protected <T extends IMeasurementEntity> String getEntityName(Class<T> aClass) {
+        String classname = aClass.getSimpleName();
         int index = classname.indexOf("$HibernateProxy");
         if (index > 0) {
             return classname.substring(0, index);
@@ -769,7 +771,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             List<T> target,
             final IEntity<?> parent) {
 
-        final EntityManager session = getEntityManager();
+        final EntityManager em = getEntityManager();
 
         // Remember existing measurements, to be able to remove unused measurements
         // note: Need Beans.getList() to avoid NullPointerException if target=null
@@ -777,6 +779,8 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             StringUtils.doting(IMeasurementEntity.Fields.PMFM, IMeasurementEntity.Fields.ID));
         List<T> sourcesToRemove = Beans.getList(existingSources.values());
         short rankOrder = 1;
+        Date newUpdateDate = null;
+
         for (Integer pmfmId: sources.keySet()) {
             String value = sources.get(pmfmId);
 
@@ -823,21 +827,21 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 setParent(entity, getEntityClass(parent), parent.getId(), false);
 
                 // Update update_dt
-                Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+                newUpdateDate = newUpdateDate != null ? newUpdateDate : getDatabaseCurrentTimestamp();
                 entity.setUpdateDate(newUpdateDate);
 
                 // Save entity
                 if (isNew) {
-                    session.persist(entity);
+                    em.persist(entity);
                 } else {
-                    session.merge(entity);
+                    em.merge(entity);
                 }
             }
         }
 
         // Remove unused measurements
         if (CollectionUtils.isNotEmpty(sourcesToRemove)) {
-            sourcesToRemove.forEach(entity -> getEntityManager().remove(entity));
+            sourcesToRemove.forEach(em::remove);
         }
 
         return sources;
@@ -865,7 +869,8 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                                                                                           String parentPropertyName,
                                                                                           int parentId,
                                                                                           @Nullable String sortByPropertyName) {
-        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        EntityManager em = getEntityManager();
+        CriteriaBuilder builder = em.getCriteriaBuilder();
         CriteriaQuery<T> query = builder.createQuery(entityClass);
         Root<T> root = query.from(entityClass);
 
@@ -879,7 +884,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             query.orderBy(builder.asc(root.get(sortByPropertyName)));
         }
 
-        return getEntityManager().createQuery(query)
+        return em.createQuery(query)
                 .setParameter(idParam, parentId);
     }
 
@@ -887,7 +892,8 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                                                                                           String parentPropertyName,
                                                                                           Collection<Integer> parentIds,
                                                                                           @Nullable String sortByPropertyName) {
-        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        EntityManager em = getEntityManager();
+        CriteriaBuilder builder = em.getCriteriaBuilder();
         CriteriaQuery<T> query = builder.createQuery(entityClass);
         Root<T> root = query.from(entityClass);
 
@@ -899,7 +905,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             query.orderBy(builder.asc(root.get(sortByPropertyName)));
         }
 
-        return getEntityManager().createQuery(query);
+        return em.createQuery(query);
     }
 
     protected <T extends IMeasurementEntity, V extends MeasurementVO> List<V> toMeasurementVOs(List<T> sources, Class<? extends V> voClass) {

@@ -29,6 +29,7 @@ import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.Formula;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -96,6 +97,10 @@ public class VesselFeatures implements IDataEntity<Integer>,
     @Column(name = "end_date")
     private Date endDate;
 
+    @Formula("nvl(end_date, to_date(' 2100-01-01 00:00:00', 'syyyy-mm-dd hh24:mi:ss'))")
+    @Column(name = "nvl_end_date", insertable = false, updatable = false)
+    private Date nvlEndDate;
+
     private String name;
 
     @Column(name = "exterior_marking")
@@ -122,5 +127,4 @@ public class VesselFeatures implements IDataEntity<Integer>,
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselPhysicalMeasurement.class, mappedBy = VesselPhysicalMeasurement.Fields.VESSEL_FEATURES)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselPhysicalMeasurement> measurements = new ArrayList<>();
-
 }

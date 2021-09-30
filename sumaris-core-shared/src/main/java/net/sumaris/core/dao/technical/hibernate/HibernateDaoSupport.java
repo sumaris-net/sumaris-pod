@@ -57,6 +57,7 @@ import java.io.Serializable;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -257,6 +258,20 @@ public abstract class HibernateDaoSupport {
         try {
             final Dialect dialect = getSessionFactory().getJdbcServices().getDialect();
             return Daos.getDatabaseCurrentTimestamp(getDataSource(), dialect);
+        } catch (DataAccessResourceFailureException | SQLException e) {
+            throw new SumarisTechnicalException(e);
+        }
+    }
+
+    /**
+     * <p>getDatabaseCurrentDate.</p>
+     *
+     * @return a {@link Date} object.
+     */
+    protected Date getDatabaseCurrentDate() {
+        try {
+            final Dialect dialect = getSessionFactory().getJdbcServices().getDialect();
+            return Daos.getDatabaseCurrentDate(getDataSource(), dialect);
         } catch (DataAccessResourceFailureException | SQLException e) {
             throw new SumarisTechnicalException(e);
         }

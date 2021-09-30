@@ -40,6 +40,7 @@ import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
@@ -47,6 +48,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.Date;
 import java.util.List;
 
+@Ignore("Use only SIH Oracle database")
 @ActiveProfiles("oracle")
 @Slf4j
 public class VesselServiceReadOracleTest extends AbstractServiceTest{
@@ -156,6 +158,7 @@ public class VesselServiceReadOracleTest extends AbstractServiceTest{
         VesselFilterVO baseFilter = VesselFilterVO.builder()
             .programLabel(ProgramEnum.SIH.getLabel())
             .statusIds(ImmutableList.of(StatusEnum.ENABLE.getId()))
+            .startDate(new Date())
             .build();
 
         AssertVesselSpecification assertSpec = AssertVesselSpecification.builder()
@@ -170,7 +173,7 @@ public class VesselServiceReadOracleTest extends AbstractServiceTest{
         {
             VesselFilterVO filter = baseFilter.clone();
             filter.setSearchAttributes(new String[] {
-                StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
+                VesselRegistrationPeriod.Fields.REGISTRATION_CODE
             });
             filter.setSearchText("851*");
 
@@ -196,25 +199,27 @@ public class VesselServiceReadOracleTest extends AbstractServiceTest{
     }
 
     @Test
-    public void findAllSnapshotByRegistrationLocationId() {
+    public void countSnapshotsByFilterByRegistrationLocationId() {
 
+        Date today = new Date();
         VesselFilterVO filter = VesselFilterVO.builder()
             .programLabel(ProgramEnum.SIH.getLabel())
             .statusIds(ImmutableList.of(StatusEnum.ENABLE.getId()))
+            .startDate(today)
             .searchAttributes(new String[] {
-                StringUtils.doting(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
+                VesselRegistrationPeriod.Fields.REGISTRATION_CODE
             })
             .searchText("851751")
             .build();
 
         // Count FRA vessels
         filter.setRegistrationLocationId(12 /*= FRA country*/);
-        Long countFra = service.countByFilter(filter);
+        Long countFra = service.countSnapshotsByFilter(filter);
         log.info("FRA vessel count:{}", countFra);
 
         // Count NLD vessels
         filter.setRegistrationLocationId(30 /*= NLD*/);
-        Long countNld = service.countByFilter(filter);
+        Long countNld = service.countSnapshotsByFilter(filter);
         log.info("NLD vessel count={}", countNld);
 
         Assert.assertTrue(countFra > countNld);

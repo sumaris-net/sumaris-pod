@@ -186,7 +186,7 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
     public static Timestamp resetMillisecond(Date date) {
         if (date == null) return null;
         Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
+        calendar.setTimeInMillis(date.getTime());
         calendar.set(Calendar.MILLISECOND, 0);
 
         return new Timestamp(calendar.getTime().getTime());

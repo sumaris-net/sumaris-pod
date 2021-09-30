@@ -197,7 +197,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
             }
 
             // Update update_dt
-            ((IUpdateDateEntityBean) entity).setUpdateDate(getDatabaseCurrentTimestamp());
+            ((IUpdateDateEntityBean) entity).setUpdateDate(getDatabaseCurrentDate());
         }
 
         if (!isNew && isLockForUpdate()) {
@@ -472,7 +472,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
             entityManager.lock(entity, modeType, properties);
         } catch (LockTimeoutException e) {
             throw new DataLockedException(I18n.t("sumaris.persistence.error.locked",
-                getTableName(entity.getClass().getSimpleName()), entity.getId()), e);
+                getTableName(Daos.getEntityName(entity)), entity.getId()), e);
         }
     }
 
@@ -487,6 +487,18 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         try {
             final Dialect dialect = getSessionFactory().getJdbcServices().getDialect();
             return Daos.getDatabaseCurrentTimestamp(dataSource, dialect);
+        } catch (DataAccessResourceFailureException | SQLException e) {
+            throw new SumarisTechnicalException(e);
+        }
+    }
+
+    protected Date getDatabaseCurrentDate() {
+
+        if (dataSource == null) return new Date(System.currentTimeMillis());
+
+        try {
+            final Dialect dialect = getSessionFactory().getJdbcServices().getDialect();
+            return Daos.getDatabaseCurrentDate(dataSource, dialect);
         } catch (DataAccessResourceFailureException | SQLException e) {
             throw new SumarisTechnicalException(e);
         }

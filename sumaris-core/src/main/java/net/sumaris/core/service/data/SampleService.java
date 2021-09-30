@@ -67,6 +67,8 @@ public interface SampleService {
 
 	void delete(List<Integer> ids);
 
+	void deleteAllByLandingId(int landingId);
+
 	void treeToList(final SampleVO sample, final List<SampleVO> result);
 
 }

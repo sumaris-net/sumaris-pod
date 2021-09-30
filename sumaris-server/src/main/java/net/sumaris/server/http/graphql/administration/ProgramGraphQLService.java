@@ -173,10 +173,9 @@ public class ProgramGraphQLService {
 
     @GraphQLQuery(name = "taxonGroupType", description = "Get program's taxon group type")
     public ReferentialVO getProgramTaxonGroupType(@GraphQLContext ProgramVO program) {
-        if (program.getTaxonGroupTypeId() != null && program.getTaxonGroupType() == null) {
-            return referentialService.get(TaxonGroupType.class, program.getTaxonGroupTypeId());
-        }
-        return program.getTaxonGroupType();
+        if (program.getTaxonGroupType() != null) return program.getTaxonGroupType();
+        if (program.getTaxonGroupTypeId() == null) return null;
+        return referentialService.get(TaxonGroupType.class, program.getTaxonGroupTypeId());
     }
 
     @GraphQLQuery(name = "gearClassification", description = "Get program's gear classification")
@@ -200,17 +199,13 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "strategies", description = "Get program's strategies")
     public List<StrategyVO> getStrategiesByProgram(@GraphQLContext ProgramVO program,
                                                    @GraphQLEnvironment ResolutionEnvironment env) {
-        if (program.getStrategies() != null) {
-            return program.getStrategies();
-        }
+        if (program.getStrategies() != null) return program.getStrategies();
         return strategyService.findByProgram(program.getId(), getStrategyFetchOptions(GraphQLUtils.fields(env)));
     }
 
     @GraphQLQuery(name = "pmfms", description = "Get strategy's pmfms")
     public List<PmfmStrategyVO> getPmfmsByStrategy(@GraphQLContext StrategyVO strategy) {
-        if (strategy.getPmfms() != null) {
-            return strategy.getPmfms();
-        }
+        if (strategy.getPmfms() != null) return strategy.getPmfms();
         return strategyService.findPmfmsByFilter(PmfmStrategyFilterVO.builder()
                         .strategyId(strategy.getId()).build(),
                 PmfmStrategyFetchOptions.DEFAULT);
@@ -219,9 +214,7 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "denormalizedPmfms", description = "Get strategy's denormalized pmfms")
     public List<DenormalizedPmfmStrategyVO> getDenormalizedPmfmByStrategy(@GraphQLContext StrategyVO strategy,
                                                                           @GraphQLEnvironment ResolutionEnvironment env) {
-        if (strategy.getDenormalizedPmfms() != null) {
-            return strategy.getDenormalizedPmfms();
-        }
+        if (strategy.getDenormalizedPmfms() != null) return strategy.getDenormalizedPmfms();
         Set<String> fields = GraphQLUtils.fields(env);
         return strategyService.findDenormalizedPmfmsByFilter(PmfmStrategyFilterVO.builder().strategyId(strategy.getId()).build(),
                 PmfmStrategyFetchOptions.builder()

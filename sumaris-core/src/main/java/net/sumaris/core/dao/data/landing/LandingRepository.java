@@ -38,7 +38,7 @@ public interface LandingRepository extends
     RootDataRepository<Landing, LandingVO, LandingFilterVO, DataFetchOptions>,
     LandingSpecifications {
 
-    Optional<Landing> findByTripId(Integer tripId);
+    Optional<Landing> findFirstByTripId(Integer tripId);
 
     @Modifying
     @Query("delete from Landing l where l.id in (:ids)")

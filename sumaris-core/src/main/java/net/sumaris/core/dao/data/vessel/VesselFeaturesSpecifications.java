@@ -91,11 +91,28 @@ public interface VesselFeaturesSpecifications<
 
         return BindableSpecification.where((root, query, cb) -> {
                 ParameterExpression<Collection> param = cb.parameter(Collection.class, STATUS_IDS_PARAM);
-                return cb.in(root.get(VesselFeatures.Fields.VESSEL).get(Vessel.Fields.STATUS).get(Status.Fields.ID)).value(param);
+                return cb.in(Daos.composePath(root,
+                        StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.STATUS, Status.Fields.ID)))
+                    .value(param);
             })
             .addBind(STATUS_IDS_PARAM, statusIds);
     }
 
+    default Expression<Date> nvlFeaturesEndDate(Path<?> root, CriteriaBuilder cb) {
+        if (isOracleDatabase()) {
+            // When using Oracle (e.g. over a SIH-Agadgio schema): use NVL to allow use of index
+            return root.get(VesselFeatures.Fields.NVL_END_DATE);
+        }
+        return cb.coalesce(root.get(VesselFeatures.Fields.END_DATE), Daos.NVL_END_DATE_TIME);
+    }
+
+    default Expression<Date> nvlRegistrationEndDate(Path<VesselRegistrationPeriod> vrp, CriteriaBuilder cb) {
+        if (isOracleDatabase()) {
+            // When using Oracle (e.g. over a SIH-Agadgio schema): use NVL to allow use of index
+            return vrp.get(VesselRegistrationPeriod.Fields.NVL_END_DATE);
+        }
+        return cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.NVL_END_DATE_TIME);
+    }
     default Specification<VesselFeatures> betweenFeaturesDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {
@@ -104,7 +121,7 @@ public interface VesselFeaturesSpecifications<
             if (startDate != null && endDate != null) {
                 return cb.not(
                     cb.or(
-                        cb.lessThan(cb.coalesce(root.get(VesselFeatures.Fields.END_DATE), Daos.NVL_END_DATE_TIME), startDate),
+                        cb.lessThan(nvlFeaturesEndDate(root, cb), startDate),
                         cb.greaterThan(root.get(VesselFeatures.Fields.START_DATE), endDate)
                     )
                 );
@@ -112,7 +129,7 @@ public interface VesselFeaturesSpecifications<
 
             // Start date only
             else if (startDate != null) {
-                return cb.greaterThanOrEqualTo(cb.coalesce(root.get(VesselFeatures.Fields.END_DATE), Daos.NVL_END_DATE_TIME), startDate);
+                return cb.greaterThanOrEqualTo(nvlFeaturesEndDate(root, cb), startDate);
             }
 
             // End date only
@@ -126,17 +143,19 @@ public interface VesselFeaturesSpecifications<
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {
 
-            Join<Vessel, VesselRegistrationPeriod> vrp = Daos.composeJoin(root, VRP_PATH);
+            Join<?, VesselRegistrationPeriod> vrp = Daos.composeJoin(root, VRP_PATH);
 
             // Start + end date
             if (startDate != null && endDate != null) {
-                return cb.or(
+                return cb.and(
+                    cb.equal(vrp.get(VesselRegistrationPeriod.Fields.VESSEL), root.get(VesselFeatures.Fields.VESSEL)),
                     // without VRP
-                    cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
+                    //cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
+
                     // or NOT outside the start/end period
                     cb.not(
                         cb.or(
-                            cb.lessThan(cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.NVL_END_DATE_TIME), startDate),
+                            cb.lessThan(nvlRegistrationEndDate(vrp, cb), startDate),
                             cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
                         )
                     )
@@ -145,19 +164,21 @@ public interface VesselFeaturesSpecifications<
 
             // Start date only
             else if (startDate != null) {
-                return cb.or(
+                return cb.and(
+                    cb.equal(vrp.get(VesselRegistrationPeriod.Fields.VESSEL), root.get(VesselFeatures.Fields.VESSEL)),
                     // without VRP
-                    cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
+                    //cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
                     // VRP.end_date >= filter.startDate
-                    cb.greaterThanOrEqualTo(cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.NVL_END_DATE_TIME), startDate)
+                    cb.greaterThanOrEqualTo(nvlRegistrationEndDate(vrp, cb), startDate)
                 );
             }
 
             // End date only
             else {
-                return cb.or(
+                return cb.and(
+                    cb.equal(vrp.get(VesselRegistrationPeriod.Fields.VESSEL), root.get(VesselFeatures.Fields.VESSEL)),
                     // without VRP
-                    cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
+                    //cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
                     // VRP.start_date <=> filter.endDate
                     cb.lessThanOrEqualTo(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
                 );
@@ -169,12 +190,13 @@ public interface VesselFeaturesSpecifications<
         if (registrationLocationId == null) return null;
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Integer> param = cb.parameter(Integer.class, REGISTRATION_LOCATION_ID_PARAM);
+
             Root<LocationHierarchy> lh = query.from(LocationHierarchy.class);
+            Join<?, VesselRegistrationPeriod> vrp = Daos.composeJoin(root, VRP_PATH);
 
             return cb.and(
                 // LH.CHILD_LOCATION_FK = VRP.REGISTRATION_LOCATION_FK
-                cb.equal(lh.get(LocationHierarchy.Fields.CHILD_LOCATION),
-                    Daos.composePath(root, StringUtils.doting(VRP_PATH, VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION))),
+                cb.equal(lh.get(LocationHierarchy.Fields.CHILD_LOCATION), vrp.get(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION)),
 
                 // AND LH.PARENT_LOCATION_FK = registrationLocationId
                 cb.equal(Daos.composePath(lh, StringUtils.doting(LocationHierarchy.Fields.PARENT_LOCATION, Location.Fields.ID)), param)
@@ -213,7 +235,7 @@ public interface VesselFeaturesSpecifications<
             VesselFeatures.Fields.NAME
         };
 
-        BindableSpecification<VesselFeatures> specification = BindableSpecification.where((root, query, cb) -> {
+        return BindableSpecification.where((root, query, cb) -> {
             final ParameterExpression<String> prefixParam = cb.parameter(String.class, SEARCH_TEXT_PREFIX_PARAM);
 
             return cb.or(
@@ -222,11 +244,8 @@ public interface VesselFeaturesSpecifications<
                     prefixParam)
                 ).toArray(Predicate[]::new)
             );
-        });
-
-        specification.addBind(SEARCH_TEXT_PREFIX_PARAM, searchTextAsPrefix.toUpperCase());
-
-        return specification;
+        })
+            .addBind(SEARCH_TEXT_PREFIX_PARAM, searchTextAsPrefix.toUpperCase());
     }
 
     default Optional<V> getLastByVesselId(int vesselId, O fetchOptions) {
@@ -252,4 +271,6 @@ public interface VesselFeaturesSpecifications<
         }
         return result.get().findFirst();
     }
+
+    boolean isOracleDatabase();
 }

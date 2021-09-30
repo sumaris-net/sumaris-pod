@@ -24,9 +24,11 @@ package net.sumaris.core.dao.data.vessel;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
@@ -45,6 +47,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
@@ -56,21 +59,31 @@ import java.util.stream.Collectors;
 @Slf4j
 public class VesselSnapshotRepositoryImpl
     extends DataRepositoryImpl<VesselFeatures, VesselSnapshotVO, VesselFilterVO, VesselFetchOptions>
-    implements VesselFeaturesSpecifications<VesselFeatures, VesselSnapshotVO, VesselFilterVO, VesselFetchOptions> {
+    implements VesselSnapshotSpecifications {
 
     private final VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository;
     private final LocationRepository locationRepository;
     private final ReferentialDao referentialDao;
+    private final SumarisConfiguration configuration;
+    private boolean isOracleDatabase;
 
     @Autowired
     public VesselSnapshotRepositoryImpl(EntityManager entityManager,
                                         VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository,
                                         LocationRepository locationRepository,
-                                        ReferentialDao referentialDao) {
+                                        ReferentialDao referentialDao,
+                                        SumarisConfiguration configuration) {
         super(VesselFeatures.class, VesselSnapshotVO.class, entityManager);
         this.vesselRegistrationPeriodRepository = vesselRegistrationPeriodRepository;
         this.locationRepository = locationRepository;
         this.referentialDao = referentialDao;
+        this.configuration = configuration;
+    }
+
+
+    @PostConstruct
+    private void setup() {
+        isOracleDatabase = Daos.isOracleDatabase(configuration.getJdbcURL());
     }
 
     @Override
@@ -82,12 +95,11 @@ public class VesselSnapshotRepositoryImpl
         CriteriaQuery<Tuple> criteriaQuery = builder.createTupleQuery();
 
         Root<VesselFeatures> root = criteriaQuery.from(VesselFeatures.class);
-        Join<VesselFeatures, Vessel> vessel = root.join(VesselFeatures.Fields.VESSEL, JoinType.INNER);
-        Join<Vessel, VesselRegistrationPeriod> vrpJoin = vessel.join(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
+        Join<?, Vessel> vessel = Daos.composeJoin(root, VesselFeatures.Fields.VESSEL, JoinType.INNER);
+        Join<?, VesselRegistrationPeriod> vrp = Daos.composeJoin(root, VRP_PATH);
 
-        criteriaQuery.multiselect(root, vessel, vrpJoin);
-
-        criteriaQuery.distinct(true);
+        criteriaQuery.multiselect(root, vessel, vrp)
+            .distinct(true);
 
         // Apply specification
         Specification<VesselFeatures> spec = toSpecification(filter, fetchOptions);
@@ -112,6 +124,9 @@ public class VesselSnapshotRepositoryImpl
         // Bind parameters
         applyBindings(query, spec);
 
+        // Set hints
+        query.setHint("org.hibernate.comment", "+ INDEX(SIH2_ADAGIO_DBA.VESSEL_REGISTRATION_PERIOD IX_VESSEL_REG_PER_END_DATE)");
+
         return readPage(query, pageable, () -> count(spec))
             .map(tuple -> toVO(tuple, fetchOptions, true));
 
@@ -126,12 +141,11 @@ public class VesselSnapshotRepositoryImpl
         CriteriaQuery<Tuple> criteriaQuery = builder.createTupleQuery();
 
         Root<VesselFeatures> root = criteriaQuery.from(VesselFeatures.class);
-        Join<VesselFeatures, Vessel> vessel = root.join(VesselFeatures.Fields.VESSEL, JoinType.INNER);
-        Join<Vessel, VesselRegistrationPeriod> vrpJoin = vessel.join(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
+        Join<?, Vessel> vessel = Daos.composeJoin(root, VesselFeatures.Fields.VESSEL, JoinType.INNER);
+        Join<?, VesselRegistrationPeriod> vrp = Daos.composeJoin(root, VRP_PATH);
 
-        criteriaQuery.multiselect(root, vessel, vrpJoin);
-
-        criteriaQuery.distinct(true);
+        criteriaQuery.multiselect(root, vessel, vrp)
+            .distinct(true);
 
         // Apply specification
         Specification<VesselFeatures> spec = toSpecification(filter, fetchOptions);
@@ -150,6 +164,7 @@ public class VesselSnapshotRepositoryImpl
         // Set Limit
         query.setFirstResult((int)page.getOffset());
         query.setMaxResults(page.getSize());
+        query.setHint("org.hibernate.comment", "+ INDEX(SIH2_ADAGIO_DBA.VESSEL_REGISTRATION_PERIOD IX_VESSEL_REG_PER_END_DATE)");
 
         return streamQuery(query)
             .map(tuple -> toVO(tuple, fetchOptions, true))
@@ -205,15 +220,15 @@ public class VesselSnapshotRepositoryImpl
         return voPropertyNames;
     }
 
-    protected String toEntityPropertyName(String voPropertyName) {
+    protected String toEntityPropertyName(@NonNull String voPropertyName) {
         String fixedPropertyName = voPropertyName;
         switch (voPropertyName) {
             case VesselRegistrationPeriod.Fields.REGISTRATION_CODE:
             case VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE:
-                fixedPropertyName = StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, voPropertyName);
+                fixedPropertyName = StringUtils.doting(VRP_PATH, voPropertyName);
                 break;
         }
-        if (fixedPropertyName != voPropertyName) {
+        if (!voPropertyName.equals(fixedPropertyName)) {
             log.debug("Map property 'VesselSnapshotVO.{}' -> 'VesselFeatures.{}'", voPropertyName, fixedPropertyName);
             return fixedPropertyName;
         }
@@ -305,5 +320,10 @@ public class VesselSnapshotRepositoryImpl
                 }
             }
         }
+    }
+
+    @Override
+    public boolean isOracleDatabase() {
+        return isOracleDatabase;
     }
 }

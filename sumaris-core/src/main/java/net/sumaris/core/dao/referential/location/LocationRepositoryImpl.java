@@ -38,7 +38,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
-import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * @author peck7 on 18/08/2020.
@@ -89,7 +89,7 @@ public class LocationRepositoryImpl
         entity.setChildSurfaceRatio(childSurfaceRatio);
 
         // Update update_dt
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        Date newUpdateDate = getDatabaseCurrentDate();
         entity.setUpdateDate(newUpdateDate);
 
         getEntityManager().persist(entity);

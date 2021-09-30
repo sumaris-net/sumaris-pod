@@ -655,7 +655,7 @@ public class StrategyRepositoryImpl
             if (isNew) {
                 target = new StrategyDepartment();
                 target.setStrategy(parent);
-                target.setUpdateDate(getDatabaseCurrentTimestamp());
+                target.setUpdateDate(getDatabaseCurrentDate());
             }
             if (source.getLocation() != null) {
                 target.setLocation(getReference(Location.class, source.getLocation().getId()));

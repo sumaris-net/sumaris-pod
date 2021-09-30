@@ -145,6 +145,10 @@ public class SampleServiceImpl implements SampleService {
 				.forEach(this::delete);
 	}
 
+	@Override
+	public void deleteAllByLandingId(int landingId) {
+		sampleRepository.deleteByLandingId(landingId);
+	}
 
 	/**
 	 * Transform a samples (with children) into a falt list, sorted with parent always before children

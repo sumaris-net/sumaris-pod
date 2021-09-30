@@ -53,7 +53,7 @@ import org.springframework.lang.Nullable;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -186,7 +186,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         if (isLockForUpdate()) lockForUpdate(entity);
 
         // TODO CONTROL PROCESS HERE
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        Date newUpdateDate = getDatabaseCurrentDate();
         entity.setControlDate(newUpdateDate);
 
         // Update update_dt
@@ -225,7 +225,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         if (isLockForUpdate()) lockForUpdate(entity);
 
         // Update update_dt
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        Date newUpdateDate = getDatabaseCurrentDate();
         entity.setUpdateDate(newUpdateDate);
 
         int qualityFlagId = vo.getQualityFlagId() != null ? vo.getQualityFlagId() : 0;

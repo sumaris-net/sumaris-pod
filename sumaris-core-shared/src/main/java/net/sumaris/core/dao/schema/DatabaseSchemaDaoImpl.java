@@ -702,7 +702,7 @@ public class DatabaseSchemaDaoImpl
 
         // find db timezone offset in time format ex: '1:00' for 1 hour offset
         String dbOffsetAsString = (String) Daos.sqlUnique(getDataSource(), getTimezoneQuery(getDataSource().getConnection()));
-        log.info(I18n.t("sumaris.persistence.dbTimeZone", getDatabaseCurrentTimestamp(), dbOffsetAsString));
+        log.info(I18n.t("sumaris.persistence.dbTimeZone", getDatabaseCurrentDate(), dbOffsetAsString));
 
         // convert db time zone offset in raw offset in milliseconds
         int dbOffset = Integer.parseInt(dbOffsetAsString.substring(0, dbOffsetAsString.lastIndexOf(":"))) * 3600 * 1000;
