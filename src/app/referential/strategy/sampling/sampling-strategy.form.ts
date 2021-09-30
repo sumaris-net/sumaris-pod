@@ -59,6 +59,7 @@ import { TaxonName } from '@app/referential/services/model/taxon-name.model';
 import { TaxonNameService } from '@app/referential/services/taxon-name.service';
 import { debounceTime, map } from 'rxjs/operators';
 import { PmfmStrategyValidatorService } from '@app/referential/services/validator/pmfm-strategy.validator';
+import {Pmfm} from '@app/referential/services/model/pmfm.model';
 
 const moment = momentImported;
 
@@ -353,13 +354,19 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     )
 
     this.pmfmsForm.setAsyncValidators(form => this.validatePmfmsForm(form as FormArray));
+    this.lengthPmfmsForm.setAsyncValidators(form => this.validatePmfmsForm(form as FormArray));
+    this.weightPmfmsForm.setAsyncValidators(form => this.validatePmfmsForm(form as FormArray));
+    this.maturityPmfmsForm.setAsyncValidators(form => this.validatePmfmsForm(form as FormArray));
 
     // Force pmfms validation, when sex/age changes
     this.registerSubscription(
       merge(
         this.form.get('sex').valueChanges,
         this.form.get('age').valueChanges
-      ).subscribe(() => this.pmfmsForm.updateValueAndValidity())
+      ).subscribe(() => {
+        this.pmfmsForm.updateValueAndValidity();
+        this.validatePmfmsForm(this.pmfmsForm);
+      })
     );
 
     this.registerSubscription(this.form.get('label').valueChanges.subscribe(value => this.onEditLabel(value)));
@@ -824,11 +831,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
 
     data.pmfms = isNotEmptyArray(data.pmfms) ? data.pmfms : [new PmfmStrategy()];
-    // Resize pmfms array
-    // FIXME CLT use pmfm helper (only one)
-    this.lengthPmfmsHelper.resize(Math.max(1, data.pmfms.length));
-    this.weightPmfmsHelper.resize(Math.max(1, data.pmfms.length));
-
 
     firstNotNilPromise(this._$pmfmGroups).then((pmfmGroups) => {
       const pmfms = [];
@@ -836,17 +838,38 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       //WEIGHT
       const weightPmfmStrategy = this.getPmfmsByType(data.pmfms, pmfmGroups.WEIGHT, ParameterLabelGroups.WEIGHT);
       pmfms.push(weightPmfmStrategy.length > 0 ? weightPmfmStrategy : []);
-      this.weightPmfmStrategiesTable.value = weightPmfmStrategy.length > 0 ? weightPmfmStrategy : [new PmfmStrategy()];
+      this.weightPmfmsHelper.resize(Math.max(1, weightPmfmStrategy.length));
+      const weights = weightPmfmStrategy.map(pmfm => {
+        return {
+          id: pmfm.pmfm?.id,
+          name: pmfm.pmfm?.name,
+        };
+      });
+      this.weightPmfmsForm.patchValue(weights);
 
       // LENGTH
       const lengthPmfmStrategies = this.getPmfmsByType(data.pmfms, pmfmGroups.LENGTH, ParameterLabelGroups.LENGTH);
       pmfms.push(lengthPmfmStrategies.length > 0 ? lengthPmfmStrategies : []);
-      this.lengthPmfmStrategiesTable.value = lengthPmfmStrategies.length > 0 ? lengthPmfmStrategies : [new PmfmStrategy()];
+      this.lengthPmfmsHelper.resize(Math.max(1, lengthPmfmStrategies.length));
+      const lengths = lengthPmfmStrategies.map(pmfm => {
+        return {
+          id: pmfm.pmfm?.id,
+          name: pmfm.pmfm?.name,
+        };
+      });
+      this.lengthPmfmsForm.patchValue(lengths);
 
       // MATURITY
       const maturityPmfmStrategies = this.getPmfmsByType(data.pmfms, pmfmGroups.MATURITY, ParameterLabelGroups.MATURITY);
       pmfms.push(maturityPmfmStrategies.length > 0 ? maturityPmfmStrategies : []);
-      this.maturityPmfmStrategiesTable.value = maturityPmfmStrategies.length > 0 ? maturityPmfmStrategies : [new PmfmStrategy()];
+      this.maturityPmfmsHelper.resize(Math.max(1, maturityPmfmStrategies.length));
+      const maturities = maturityPmfmStrategies.map(pmfm => {
+        return {
+          id: pmfm.pmfm?.id,
+          name: pmfm.pmfm?.name,
+        };
+      });
+      this.maturityPmfmsForm.patchValue(maturities);
 
       this.pmfmsForm.patchValue(pmfms);
     });
@@ -1285,6 +1308,21 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.maturityPmfmsHelper.add(new PmfmStrategy());
   }
 
+  removeLengthPmfm(idx: number) {
+    this.lengthPmfmsHelper.removeAt(idx);
+    this.validatePmfmsForm(this.pmfmsForm);
+  }
+
+  removeWeightPmfm(idx: number) {
+    this.weightPmfmsHelper.removeAt(idx);
+    this.validatePmfmsForm(this.pmfmsForm);
+  }
+
+  removeMaturityPmfm(idx: number) {
+    this.maturityPmfmsHelper.removeAt(idx);
+    this.validatePmfmsForm(this.pmfmsForm);
+  }
+
   // appliedStrategies Helper -----------------------------------------------------------------------------------------------
   protected initAppliedPeriodHelper() {
     // Use the first applied strategy form group (created just before)
@@ -1499,22 +1537,24 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   protected async validatePmfmsForm(form?: FormArray): Promise<ValidationErrors | null> {
     form = form || this.pmfmsForm;
-    const pmfms = form.value.flat() as PmfmStrategy[];
-    if (isEmptyArray(pmfms)) {
-      if (isNotNil(this.data?.id) || this.form.touched) {
-        return <ValidationErrors>{
-          weightOrSize: true,
-          minLength: { minLength: this.minPmfmCount }
-        };
-      }
-      return null;
-    }
+    // const pmfms = form.value.flat() as PmfmStrategy[];
+    const weightPmfms = (this.weightPmfmsForm.value.flat() as PmfmStrategy[] || []).filter(elt => elt);
+    const lengthPmfms = (this.lengthPmfmsForm.value.flat() as PmfmStrategy[] || []).filter(elt => elt);
+    const maturityPmfms = (this.weightPmfmsForm.value.flat() as PmfmStrategy[] || []).filter(elt => elt);
+    // const pmfms = this.lengthPmfmsForm.value.flat() as PmfmStrategy[];
+    // if (isEmptyArray(weightPmfms) && isEmptyArray(lengthPmfms)) {
+    //   if (isNotNil(this.data?.id) || this.form.touched) {
+    //     return <ValidationErrors>{
+    //       weightOrSize: true,
+    //       minLength: { minLength: this.minPmfmCount }
+    //     };
+    //   }
+    //   return null;
+    // }
 
     let errors: ValidationErrors;
     const pmfmGroups = await firstNotNilPromise(this._$pmfmGroups);
-    const weightPmfms = this.getPmfmsByType(pmfms, pmfmGroups.WEIGHT, ParameterLabelGroups.WEIGHT);
-    const lengthPmfms = this.getPmfmsByType(pmfms, pmfmGroups.LENGTH, ParameterLabelGroups.LENGTH);
-    const maturityPmfms = this.getPmfmsByType(pmfms, pmfmGroups.MATURITY, ParameterLabelGroups.MATURITY);
+
 
     // Check weight OR length is present
     if (isEmptyArray(weightPmfms) && isEmptyArray(lengthPmfms)) {
@@ -1523,7 +1563,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       };
     }
     else {
-      SharedValidators.clearError(form, 'weightOrSize');
+      SharedValidators.clearError(this.pmfmsForm, 'weightOrSize');
+      // SharedValidators.clearError(form, 'weightOrSize');
     }
 
     let length = (this.hasAge() ? 1 : 0)
@@ -1538,9 +1579,13 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       };
     }
     else {
-      SharedValidators.clearError(form, 'minLength');
+      SharedValidators.clearError(this.pmfmsForm, 'minLength');
+      // SharedValidators.clearError(form, 'minLength');
     }
-    return errors;
+    this.pmfmsForm.setErrors(errors);
+    this.pmfmsForm.markAllAsTouched();
+    this.pmfmsForm.markAsDirty();
+    return null;
   }
 
   selectInputContent = AppFormUtils.selectInputContent;

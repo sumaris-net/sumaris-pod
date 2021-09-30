@@ -294,7 +294,7 @@
                 [disabled]="isLengthPmfmDisable(i)"
                 [tabindex]="tabindex+10++i*3+2"
                 [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="lengthPmfmsHelper.removeAt(i)">
+                (click)="removeLengthPmfm(i)">
           <mat-icon>close</mat-icon>
         </button>
       </ion-col>
@@ -326,18 +326,18 @@
 
       <ion-col size="auto" class="ion-align-self-center">
         <button type="button" mat-icon-button
-                [disabled]="isLengthPmfmDisable(i)"
+                [disabled]="isWeightPmfmDisable(i)"
                 [tabindex]="tabindex+10++i*3+1"
                 [title]="'COMMON.BTN_ADD'|translate"
-                (click)="addLengthPmfm()">
+                (click)="addWeightPmfm()">
           <mat-icon>add</mat-icon>
         </button>
 
         <button type="button" mat-icon-button
-                [disabled]="isLengthPmfmDisable(i)"
+                [disabled]="isWeightPmfmDisable(i)"
                 [tabindex]="tabindex+10++i*3+2"
                 [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="lengthPmfmsHelper.removeAt(i)">
+                (click)="removeWeightPmfm(i)">
           <mat-icon>close</mat-icon>
         </button>
       </ion-col>
@@ -413,7 +413,7 @@
                 [disabled]="isMaturityPmfmDisable(i)"
                 [tabindex]="tabindex+10++i*3+2"
                 [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="maturityPmfmsHelper.removeAt(i)">
+                (click)="removeMaturityPmfm(i)">
           <mat-icon>close</mat-icon>
         </button>
       </ion-col>
