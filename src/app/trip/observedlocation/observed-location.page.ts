@@ -191,15 +191,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         }
       }
 
-      // Set contextual program, if any
-      {
-        const contextualProgram = this.context.getValue('program') as Program;
-        if (contextualProgram?.label) {
-          data.program = ReferentialRef.fromObject(contextualProgram);;
-          this.$programLabel.next(data.program.label);
-        }
-      }
-
       this.showLandingTab = true;
 
       // Listen first opening the operations tab, then save
@@ -212,6 +203,15 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
           )
           .subscribe()
         );
+    }
+
+    // Set contextual program, if any
+    {
+      const contextualProgram = this.context.getValue('program') as Program;
+      if (contextualProgram?.label) {
+        data.program = ReferentialRef.fromObject(contextualProgram);;
+        this.$programLabel.next(data.program.label);
+      }
     }
   }
 

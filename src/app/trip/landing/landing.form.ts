@@ -64,6 +64,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   private _showObservers: boolean;
   private _canEditStrategy: boolean;
+  private _filteredFishingAreaLocations: ReferentialRef[] = null;
 
   observersHelper: FormArrayHelper<Person>;
   fishingAreasHelper: FormArrayHelper<FishingArea>;
@@ -75,7 +76,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   strategyControl: FormControl;
 
   autocompleteFilters = {
-    fishingArea: true
+    fishingArea: false
   };
   get empty(): any {
     const value = this.value;
@@ -152,8 +153,20 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() showFishingArea = false;
   @Input() locationLevelIds: number[];
   @Input() allowAddNewVessel: boolean;
-  @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
+
   @Input() allowManyMetiers: boolean = null;
+
+  @Input() set enableFishingAreFilter(value: boolean) {
+    this.setFieldFilterEnable('fishingArea', value);
+  }
+
+  @Input() set filteredFishingAreaLocations(value: ReferentialRef[]) {
+    this._filteredFishingAreaLocations = value;
+  }
+
+  get filteredFishingAreaLocations(): ReferentialRef[] {
+    return this._filteredFishingAreaLocations;
+  }
 
   @Input() set canEditStrategy(value: boolean) {
     if (this._canEditStrategy !== value) {
@@ -377,15 +390,11 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   }
 
   toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
-    this.autocompleteFilters[fieldName] = !this.autocompleteFilters[fieldName];
-    this.markForCheck();
-
-    if (field) field.reloadItems();
+    this.setFieldFilterEnable(fieldName, !this.isFieldFilterEnable(fieldName), field);
   }
 
   async safeSetValue(data: Landing, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }) {
     if (!data) return;
-
 
     // Resize observers array
     if (this._showObservers) {
@@ -500,6 +509,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
 
     // TODO BLA: same for strategy
+    if (this._canEditStrategy && this.strategyControl.disabled) {
+      this.strategyControl.enable(opts);
+    }
+  }
+
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.disable(opts);
+    this.strategyControl.disable(opts);
   }
 
   async addVesselModal(): Promise<any> {
@@ -523,6 +540,18 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   }
 
   /* -- protected method -- */
+
+  protected isFieldFilterEnable(fieldName: FilterableFieldName) {
+    return this.autocompleteFilters[fieldName];
+  }
+
+  protected setFieldFilterEnable(fieldName: FilterableFieldName, value: boolean, field?: MatAutocompleteField) {
+    if (this.autocompleteFilters[fieldName] !== value) {
+      this.autocompleteFilters[fieldName] = value;
+      this.markForCheck();
+      if (field) field.reloadItems();
+    }
+  }
 
   protected suggestStrategy(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
     filter = {

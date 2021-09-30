@@ -169,6 +169,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
 
+    // DEBUG
+    // console.debug(' Creating new landing entity');
+
     if (this.isOnFieldMode) {
       data.dateTime = moment();
     }
@@ -518,8 +521,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected computeSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
-    console.warn('[landing-page] No row validator override');
     // Can be override by subclasses (e.g auction control, biological sampling samples table)
+    console.warn('[landing-page] No row validator override');
     return null;
   }
 }

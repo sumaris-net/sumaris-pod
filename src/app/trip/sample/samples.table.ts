@@ -83,7 +83,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   // Top group header
   groupHeaderStartColSpan: number;
   groupHeaderEndColSpan: number;
-  pmfmGroups$ = new BehaviorSubject<ObjectMap<number[]>>(null);
+  $pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
   pmfmGroupColumns$ = new BehaviorSubject<GroupColumnDefinition[]>([]);
   groupHeaderColumnNames: string[] = [];
   footerColumns: string[] = ['footer-start'];
@@ -104,22 +104,21 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() defaultSampleDate: Moment;
   @Input() defaultTaxonGroup: ReferentialRef;
   @Input() defaultTaxonName: ReferentialRef;
-  @Input() defaultLocation: ReferentialRef;
   @Input() modalOptions: Partial<ISampleModalOptions>;
   @Input() compactFields = true;
   @Input() showDisplayColumn = true;
   private weightDisplayedUnit: string;
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
-    if (this.pmfmGroups$.getValue() !== value) {
+    if (this.$pmfmGroups.getValue() !== value) {
       this.showGroupHeader = true;
       this.showToolbar = false;
-      this.pmfmGroups$.next(value);
+      this.$pmfmGroups.next(value);
     }
   }
 
   get pmfmGroups(): ObjectMap<number[]> {
-    return this.pmfmGroups$.getValue();
+    return this.$pmfmGroups.getValue();
   }
 
   @Input()
@@ -246,8 +245,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     this.onPrepareRowForm.complete();
     this.onPrepareRowForm.unsubscribe();
-    this.pmfmGroups$.complete();
-    this.pmfmGroups$.unsubscribe();
+    this.$pmfmGroups.complete();
+    this.$pmfmGroups.unsubscribe();
     this.pmfmGroupColumns$.complete();
     this.pmfmGroupColumns$.unsubscribe();
   }
@@ -606,7 +605,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       console.debug("[samples-table] Computing Pmfm group header...");
 
       // Wait until map is loaded
-      const groupedPmfmIdsMap = await firstNotNilPromise(this.pmfmGroups$);
+      const groupedPmfmIdsMap = await firstNotNilPromise(this.$pmfmGroups);
 
       // Create a list of known pmfm ids
       const groupedPmfmIds = Object.values(groupedPmfmIdsMap).reduce((res, pmfmIds) => res.concat(...pmfmIds), []);

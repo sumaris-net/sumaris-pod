@@ -387,12 +387,6 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   operations?: Operation[] = null;
   operationGroups?: OperationGroup[] = null;
   fishingAreas?: FishingArea[] = null;
-
-  /**
-   * @deprecated
-   */
-  fishingArea: FishingArea = null;
-
   landing?: Landing = null;
   observedLocationId?: number = null;
 
