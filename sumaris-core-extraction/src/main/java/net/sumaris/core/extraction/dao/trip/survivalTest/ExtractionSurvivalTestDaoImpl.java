@@ -24,8 +24,7 @@ package net.sumaris.core.extraction.dao.trip.survivalTest;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.DatabaseType;
-import net.sumaris.core.extraction.dao.technical.XMLQuery;
+import net.sumaris.core.extraction.dao.technical.xml.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.specification.data.trip.SurvivalTestSpecification;
@@ -134,9 +133,7 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         xmlQuery.bind("sortingDateTimePmfmId", String.valueOf(PmfmEnum.SORTING_START_DATE_TIME.getId()));
         xmlQuery.bind("sortingEndDateTimePmfmId", String.valueOf(PmfmEnum.SORTING_END_DATE_TIME.getId()));
 
-        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
-        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
-        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
+        setDbms(xmlQuery);
 
         return xmlQuery;
     }
@@ -185,9 +182,7 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("survivalTestTableName", context.getSurvivalTestTableName());
 
-        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
-        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
-        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
+        setDbms(xmlQuery);
 
         // aggregate insertion
         execute(xmlQuery);
@@ -219,9 +214,7 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("releaseTableName", context.getReleaseTableName());
 
-        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
-        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
-        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
+        setDbms(xmlQuery);
 
         // aggregate insertion
         execute(xmlQuery);

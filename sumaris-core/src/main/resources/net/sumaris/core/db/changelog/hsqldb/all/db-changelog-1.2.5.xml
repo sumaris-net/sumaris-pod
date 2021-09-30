@@ -72,7 +72,7 @@
     </insert>
   </changeSet>
 
-  <changeSet id="benoit.lavenier@e-is.pro" author="1583765897856-303-1" runOnChange="true">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-303-1" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <and>
         <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
@@ -135,7 +135,7 @@
   </changeSet>
 
 
-  <changeSet id="benoit.lavenier@e-is.pro" author="1583765897856-305-1" runOnChange="true">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-305-1" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <and>
         <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>

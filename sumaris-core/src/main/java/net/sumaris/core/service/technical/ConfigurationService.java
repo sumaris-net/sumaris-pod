@@ -22,17 +22,29 @@ package net.sumaris.core.service.technical;
  * #L%
  */
 
+import com.google.common.base.Function;
+import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.event.config.ConfigurationEventListener;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional(readOnly = true)
 public interface ConfigurationService {
 
+    SumarisConfiguration getConfiguration();
+
     SoftwareVO getCurrentSoftware();
 
     boolean isReady();
 
     void applySoftwareProperties();
+
+    void addListener(ConfigurationEventListener listener);
+
+    void removeListener(ConfigurationEventListener listener);
+
+
 }
 
 

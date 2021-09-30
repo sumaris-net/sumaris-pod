@@ -207,13 +207,15 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
 
         // Create stop event, after a too long delay (to be sure old publisher are closed)
         Observable stop = Observable.just(Boolean.TRUE).delay(1, TimeUnit.HOURS);
-        stop.subscribe(o -> log.debug(String.format("Closing publisher on %s #%s: max time reached. (total publishers: %s)", entityClass.getSimpleName(), id, publisherCount.get() - 1)));
+        stop.subscribe(o -> log.debug("Closing publisher on {} #{}: max time reached. (total publishers: {})", entityClass.getSimpleName(), id, publisherCount.get() - 1));
 
         Observable<V> observable = Observable
                 .interval(intervalInSecond, TimeUnit.SECONDS)
                 .takeUntil(stop)
                 .observeOn(Schedulers.io())
                 .flatMap(n -> {
+                    log.debug("Refreshing {} #{}", entityClass.getSimpleName(), id);
+
                     // Try to find a newer bean
                     V newerVOOrNull = self.getIfNewer(entityClass, targetClass, id, lastUpdateDate.getTime());
 

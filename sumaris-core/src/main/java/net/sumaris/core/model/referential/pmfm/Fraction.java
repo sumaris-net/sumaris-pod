@@ -48,6 +48,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "fraction")
+@Cacheable
 public class Fraction implements IItemReferentialEntity {
 
     @Id

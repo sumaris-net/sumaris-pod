@@ -23,10 +23,7 @@ package net.sumaris.core.service.data;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
@@ -35,7 +32,9 @@ import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.operation.OperationGroupRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.util.Dates;
@@ -122,7 +121,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 .endDate(endDate)
                 .build(),
             0, 1000, null, null,
-            defaultFetchOption).getContent();
+            defaultFetchOption);
 
         ConcurrentHashMap<VesselSnapshotVO, Map<Date, List<LandingVO>>> landingsByBateByVessel = new ConcurrentHashMap<>();
         observedLocations.parallelStream().forEach(observedLocation -> {
@@ -245,8 +244,10 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 .startDate(startDate)
                 .endDate(endDate)
                 .build(),
-            0, 1000, null, null,
-            defaultFetchOption).getContent();
+            Page.builder()
+                .offset(0).size(1000)
+                .build(),
+            defaultFetchOption);
 
         // Create observed location if missing
         Set<Date> existingDates = observedLocations.stream().map(ObservedLocationVO::getStartDateTime).map(Dates::resetTime).collect(Collectors.toSet());
@@ -289,7 +290,12 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 }
                 if (!landingIdsToRemove.isEmpty()) {
                     // Delete remaining landings
-                    landingRepository.deleteByIdIn(landingIdsToRemove);
+                    // Delete linked trips
+                    tripRepository.deleteByLandingIds(landingIdsToRemove);
+
+                    // Delete landing
+                    landingRepository.deleteByIds(landingIdsToRemove);
+
                     // Add the observed location to check list
                     observationIdsToCheck.add(observedLocation.getId());
                 }
@@ -377,7 +383,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             landings = getLandings(observedLocationId);
         }
         // Delete landings
-        landingRepository.deleteByIdIn(Beans.collectIds(landings));
+        landingRepository.deleteByIds(Beans.collectIds(landings));
 
         // Delete observed location
         observedLocationRepository.deleteById(observedLocationId);

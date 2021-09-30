@@ -5,14 +5,17 @@
 
     <!-- integer -->
     <select alias="&amp;pmfmLabel%pmfmAlias%" group="integer%pmfmAlias%" type="number">
-        (SELECT
-            CAST(NUMERICAL_VALUE AS INT)
+        (SELECT CAST(NUMERICAL_VALUE AS INT)
         FROM VESSEL_USE_MEASUREMENT VUM
         WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;pmfmId%pmfmAlias%)
     </select>
 
     <!-- text -->
-    <select alias="&amp;pmfmLabel%pmfmAlias%" group="string%pmfmAlias%" type="text">(SELECT ALPHANUMERICAL_VALUE FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;pmfmId%pmfmAlias%)</select>
+    <select alias="&amp;pmfmLabel%pmfmAlias%" group="string%pmfmAlias%" type="text">
+      (SELECT ALPHANUMERICAL_VALUE
+      FROM VESSEL_USE_MEASUREMENT VUM
+      WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;pmfmId%pmfmAlias%)
+    </select>
 
     <!-- qualitative value -->
     <select alias="&amp;pmfmLabel%pmfmAlias%" group="qualitative_value%pmfmAlias%" type="text">
@@ -29,12 +32,19 @@
      WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;pmfmId%pmfmAlias%)
     </select>
 
-    <!-- date -->
-    <select alias="&amp;pmfmLabel%pmfmAlias%" group="date%pmfmAlias%" type="text"><![CDATA[
-        (SELECT
-            TO_CHAR(TIMESTAMP(REPLACE(REPLACE(VUM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')), 'YYYY-DD-MM')
-        FROM VESSEL_USE_MEASUREMENT VUM
-        WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;pmfmId%pmfmAlias%)
+  <!-- date -->
+  <select alias="&amp;pmfmLabel%pmfmAlias%" group="date%pmfmAlias%,hsqldb" type="text"><![CDATA[
+      (SELECT
+          TO_CHAR(TIMESTAMP(REPLACE(REPLACE(VUM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')), 'YYYY-DD-MM')
+      FROM VESSEL_USE_MEASUREMENT VUM
+      WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;pmfmId%pmfmAlias%)
     ]]>
-    </select>
+  </select>
+  <select alias="&amp;pmfmLabel%pmfmAlias%" group="date%pmfmAlias%,oracle,pgsql" type="text"><![CDATA[
+      (SELECT
+          TO_CHAR(TO_TIMESTAMP(REPLACE(REPLACE(VUM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')), 'YYYY-DD-MM')
+      FROM VESSEL_USE_MEASUREMENT VUM
+      WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;pmfmId%pmfmAlias%)
+    ]]>
+  </select>
 </query>

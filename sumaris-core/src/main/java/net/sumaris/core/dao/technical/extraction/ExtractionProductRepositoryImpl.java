@@ -24,6 +24,7 @@ package net.sumaris.core.dao.technical.extraction;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import lombok.NonNull;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.config.CacheConfiguration;
@@ -90,17 +91,34 @@ public class ExtractionProductRepositoryImpl
     }
 
     @Override
+    public boolean shouldQueryDistinct(String joinProperty) {
+        // When searching on 'processingFrequency.label' do NOT apply distinct
+        if (ExtractionProduct.Fields.PROCESSING_FREQUENCY.equalsIgnoreCase(joinProperty)) {
+            return false;
+        }
+        return super.shouldQueryDistinct(joinProperty);
+    }
+
+    @Override
     protected void toVO(ExtractionProduct source, ExtractionProductVO target, ExtractionProductFetchOptions fetchOptions, boolean copyIfNull) {
         // Status
         target.setStatusId(source.getStatus().getId());
 
         // Copy without/with documentation (can be very long)
+        List<String> excludedProperties = Lists.newArrayList();
         if (fetchOptions == null || !fetchOptions.isWithDocumentation()) {
-            Beans.copyProperties(source, target, ExtractionProduct.Fields.DOCUMENTATION);
+            excludedProperties.add(ExtractionProduct.Fields.DOCUMENTATION);
+        }
+        if (fetchOptions == null || !fetchOptions.isWithFilter()) {
+            excludedProperties.add(ExtractionProduct.Fields.FILTER);
+        }
+        if (excludedProperties.size() > 0) {
+            Beans.copyProperties(source, target, excludedProperties.toArray(new String[excludedProperties.size()]));
         }
         else {
             Beans.copyProperties(source, target);
         }
+
 
         // Processing frequency
         if (copyIfNull || source.getProcessingFrequency() != null) {

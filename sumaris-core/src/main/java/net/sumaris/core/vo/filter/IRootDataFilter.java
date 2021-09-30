@@ -22,6 +22,8 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
+import net.sumaris.core.model.data.DataQualityStatusEnum;
+
 import java.util.Date;
 
 /**
@@ -48,4 +50,8 @@ public interface IRootDataFilter extends IDataFilter {
     Integer getLocationId();
 
     void setLocationId(Integer locationId);
+
+    DataQualityStatusEnum[] getDataQualityStatus();
+
+    void setDataQualityStatus(DataQualityStatusEnum[] dataQualityStatus);
 }

@@ -48,24 +48,24 @@ public interface ProgramSpecifications {
     String UPDATE_DATE_GREATER_THAN_PARAM = "updateDateGreaterThan";
 
     default Specification<Program> hasProperty(String propertyLabel) {
-        BindableSpecification<Program> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        if (propertyLabel == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> param = criteriaBuilder.parameter(String.class, PROPERTY_LABEL_PARAM);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(param),
                 criteriaBuilder.equal(root.join(Program.Fields.PROPERTIES, JoinType.LEFT).get(ProgramProperty.Fields.LABEL), param)
             );
-        });
-        specification.addBind(PROPERTY_LABEL_PARAM, propertyLabel);
-        return specification;
+        })
+        .addBind(PROPERTY_LABEL_PARAM, propertyLabel);
     }
 
     default Specification<Program> newerThan(Date updateDate) {
-        BindableSpecification<Program> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        if (updateDate == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Date> updateDateParam = criteriaBuilder.parameter(Date.class, UPDATE_DATE_GREATER_THAN_PARAM);
             return criteriaBuilder.greaterThan(root.get(Program.Fields.UPDATE_DATE), updateDateParam);
-        });
-        specification.addBind(UPDATE_DATE_GREATER_THAN_PARAM, updateDate);
-        return specification;
+        })
+        .addBind(UPDATE_DATE_GREATER_THAN_PARAM, updateDate);
     }
 
     Optional<ProgramVO> findIfNewerByLabel(String label, Date updateDate, ProgramFetchOptions fetchOptions);

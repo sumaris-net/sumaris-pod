@@ -53,19 +53,19 @@ public interface AuthService extends IAuthService<PersonVO> {
     }
 
     default boolean isGuest() {
-        return hasAuthority(AUTHORITY_PREFIX + UserProfileEnum.GUEST.label);
+        return hasAuthority(AUTHORITY_PREFIX + UserProfileEnum.GUEST.name());
     }
 
     default boolean isUser() {
-        return hasAuthority(AUTHORITY_PREFIX + UserProfileEnum.USER.label);
+        return hasAuthority(AUTHORITY_PREFIX + UserProfileEnum.USER.name());
     }
 
     default boolean isSupervisor() {
-        return hasAuthority(AUTHORITY_PREFIX + UserProfileEnum.SUPERVISOR.label);
+        return hasAuthority(AUTHORITY_PREFIX + UserProfileEnum.SUPERVISOR.name());
     }
 
     default boolean isAdmin() {
-        return hasAuthority(AUTHORITY_PREFIX + UserProfileEnum.ADMIN.label);
+        return hasAuthority(AUTHORITY_PREFIX + UserProfileEnum.ADMIN.name());
     }
 
     AuthTokenVO createNewChallenge();

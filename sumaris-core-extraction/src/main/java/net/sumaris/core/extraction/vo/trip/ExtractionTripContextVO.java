@@ -74,4 +74,8 @@ public class ExtractionTripContextVO extends AggregationContextVO {
         return tripFilter != null && tripFilter.getLocationId() != null ? ImmutableList.of(tripFilter.getLocationId()) : null;
     }
 
+    public Integer getTripId() {
+        return tripFilter != null ? tripFilter.getTripId() : null;
+    }
+
 }

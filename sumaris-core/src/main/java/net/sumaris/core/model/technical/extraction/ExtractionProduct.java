@@ -89,9 +89,11 @@ public class ExtractionProduct implements IItemReferentialEntity,
     @Column(length = 10)
     private String version;
 
+    @Basic(fetch = FetchType.LAZY)
     @Lob
     private String documentation;
 
+    @Basic(fetch = FetchType.LAZY)
     @Lob
     private String filter;
 

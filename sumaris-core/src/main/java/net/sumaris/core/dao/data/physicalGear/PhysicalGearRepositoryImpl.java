@@ -67,9 +67,12 @@ public class PhysicalGearRepositoryImpl
     @Override
     public Specification<PhysicalGear> toSpecification(PhysicalGearFilterVO filter, DataFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
+            .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+            // Parent
             .and(hasVesselId(filter.getVesselId()))
             .and(hasTripId(filter.getTripId()))
-            .and(betweenDate(filter.getStartDate(), filter.getEndDate()));
+            // Quality
+            .and(inDataQualityStatus(filter.getDataQualityStatus()));
     }
 
     @Override

@@ -79,7 +79,7 @@ public class Program implements IItemReferentialEntity {
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Strategy> strategies = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.EAGER, targetEntity = ProgramProperty.class, mappedBy = ProgramProperty.Fields.PROGRAM)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ProgramProperty.class, mappedBy = ProgramProperty.Fields.PROGRAM)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<ProgramProperty> properties = new ArrayList<>();
 

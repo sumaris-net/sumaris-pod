@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.vo.administration;
 
 import lombok.Data;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.vo.filter.IRootDataFilter;
 
 import java.util.Date;
@@ -56,6 +57,8 @@ public class ExtractionStrategyFilterVO implements IRootDataFilter {
     private Integer recorderPersonId;
 
     private Integer locationId;
+
+    private DataQualityStatusEnum[] dataQualityStatus; // Not used yet
 
     public String toString(String separator) {
         separator = (separator == null) ? ", " : separator;

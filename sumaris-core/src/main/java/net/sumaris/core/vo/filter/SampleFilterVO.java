@@ -27,6 +27,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 
 import java.util.Date;
 
@@ -41,28 +42,21 @@ import java.util.Date;
 public class SampleFilterVO implements IRootDataFilter {
 
     private Date startDate;
-
     private Date endDate;
-
     private String programLabel;
-
     private Integer locationId;
-
     private Integer recorderDepartmentId;
-
     private Integer recorderPersonId;
 
+    // Parent entities
     private Integer operationId;
-
     private Integer landingId;
-
     private Integer observedLocationId;
-
     private Integer[] observedLocationIds;
-
     private Integer parentId;
 
     private String tagId;
     private Boolean withTagId;
 
+    private DataQualityStatusEnum[] dataQualityStatus;
 }

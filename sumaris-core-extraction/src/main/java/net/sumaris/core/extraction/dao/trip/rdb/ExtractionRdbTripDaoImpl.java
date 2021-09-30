@@ -25,12 +25,11 @@ package net.sumaris.core.extraction.dao.trip.rdb;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
-import net.sumaris.core.extraction.dao.technical.XMLQuery;
+import net.sumaris.core.extraction.dao.technical.xml.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.ExtractionTripDao;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
@@ -249,7 +248,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         execute(xmlQuery);
         long count = countFrom(context.getTripTableName());
 
-        // Clean row using generic tripFilter
+        // Clean row using generic filter
         if (count > 0) {
             count -= cleanRow(context.getTripTableName(), context.getFilter(), context.getTripSheetName());
         }
@@ -274,7 +273,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         // Bind some referential ids
         xmlQuery.bind("nbOperationPmfmId", String.valueOf(PmfmEnum.NB_OPERATION.getId()));
-        Integer countryLocationLevelId = getReferentialIdByUniqueLabel(LocationLevel.class, LocationLevelEnum.COUNTRY.getLabel());
+        Integer countryLocationLevelId = LocationLevelEnum.COUNTRY.getLabel() != null ? getReferentialIdByUniqueLabel(LocationLevel.class, LocationLevelEnum.COUNTRY.getLabel()) : LocationLevelEnum.COUNTRY.getId();
         xmlQuery.bind("countryLocationLevelId", String.valueOf(countryLocationLevelId));
 
         // Date filters
@@ -283,7 +282,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("endDateFilter", context.getEndDate() != null);
         xmlQuery.bind("endDate", Daos.getSqlToDate(context.getEndDate()));
 
-        // Program tripFilter
+        // Program filter
         xmlQuery.setGroup("programFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
         xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
 
@@ -291,17 +290,20 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("locationFilter", CollectionUtils.isNotEmpty(context.getLocationIds()));
         xmlQuery.bind("locationIds", Daos.getSqlInNumbers(context.getLocationIds()));
 
-        // Recorder Department tripFilter
+        // Recorder Department filter
         xmlQuery.setGroup("departmentFilter", CollectionUtils.isNotEmpty(context.getRecorderDepartmentIds()));
         xmlQuery.bind("recDepIds", Daos.getSqlInNumbers(context.getRecorderDepartmentIds()));
 
-        // Vessel tripFilter
+        // Vessel filter
         xmlQuery.setGroup("vesselFilter", CollectionUtils.isNotEmpty(context.getVesselIds()));
         xmlQuery.bind("vesselIds", Daos.getSqlInNumbers(context.getVesselIds()));
 
-        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
-        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
-        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
+        // Trip filter
+        xmlQuery.setGroup("tripFilter", context.getTripId() != null);
+        if (context.getTripId() != null) xmlQuery.bind("tripId", context.getTripId().toString());
+
+        // Database type
+        setDbms(xmlQuery);
 
         return xmlQuery;
     }
@@ -314,7 +316,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         execute(xmlQuery);
         long count = countFrom(context.getStationTableName());
 
-        // Clean row using generic tripFilter
+        // Clean row using generic filter
         if (count > 0) {
             count -= cleanRow(context.getStationTableName(), context.getFilter(), context.getStationSheetName());
         }
@@ -347,6 +349,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("mainWaterDepthPmfmId", String.valueOf(PmfmEnum.BOTTOM_DEPTH_M.getId()));
         xmlQuery.bind("selectionDevicePmfmId", String.valueOf(PmfmEnum.SELECTIVITY_DEVICE.getId()));
         xmlQuery.bind("normalProgressPmfmId", String.valueOf(PmfmEnum.TRIP_PROGRESS.getId()));
+
+        // Database type
+        setDbms(xmlQuery);
 
         return xmlQuery;
     }
@@ -427,9 +432,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("rawSpeciesListTableName", context.getRawSpeciesListTableName());
         xmlQuery.bind("speciesListTableName", context.getSpeciesListTableName());
 
-        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
-        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
-        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
+        setDbms(xmlQuery);
 
         return xmlQuery;
     }
@@ -442,7 +445,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         long count = countFrom(tableName);
 
-        // Clean row using generic tripFilter
+        // Clean row using generic filter
         if (count > 0) {
             count -= cleanRow(tableName, context.getFilter(), context.getSpeciesLengthSheetName());
         }

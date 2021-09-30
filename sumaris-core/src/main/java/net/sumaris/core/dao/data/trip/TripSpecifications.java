@@ -23,6 +23,7 @@ package net.sumaris.core.dao.data.trip;
  */
 
 import net.sumaris.core.dao.data.RootDataSpecifications;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.Trip;
@@ -38,7 +39,8 @@ public interface TripSpecifications extends RootDataSpecifications<Trip> {
 
     String VESSEL_ID_PARAM = "vesselId";
     String LOCATION_ID_PARAM = "locationId";
-    String INCLUDED_IDS_PARAMETER = "includedIds";
+    String OBSERVER_PERSON_IDS_PARAM = "observerPersonIds";
+    String INCLUDED_IDS_PARAM = "includedIds";
 
     default Specification<Trip> hasLocationId(Integer locationId) {
         BindableSpecification<Trip> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
@@ -88,13 +90,27 @@ public interface TripSpecifications extends RootDataSpecifications<Trip> {
         };
     }
 
+    default Specification<Trip> hasObserverPersonIds(Integer... observerPersonIds) {
+        if (ArrayUtils.isEmpty(observerPersonIds)) return null;
+
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+
+            // Avoid duplicated entries (because of inner join)
+            query.distinct(true);
+
+            ParameterExpression<Collection> parameter = criteriaBuilder.parameter(Collection.class, OBSERVER_PERSON_IDS_PARAM);
+            return criteriaBuilder.in(Daos.composeJoin(root, Trip.Fields.OBSERVERS).get(IEntity.Fields.ID))
+                .value(parameter);
+        }).addBind(OBSERVER_PERSON_IDS_PARAM, Arrays.asList(observerPersonIds));
+    }
+
     default Specification<Trip> includedIds(Integer[] includedIds) {
         if (ArrayUtils.isEmpty(includedIds)) return null;
         return BindableSpecification.<Trip>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, INCLUDED_IDS_PARAMETER);
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, INCLUDED_IDS_PARAM);
             return criteriaBuilder.in(root.get(Trip.Fields.ID)).value(param);
         })
-                .addBind(INCLUDED_IDS_PARAMETER, Arrays.asList(includedIds));
+                .addBind(INCLUDED_IDS_PARAM, Arrays.asList(includedIds));
     }
 
 }

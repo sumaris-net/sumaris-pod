@@ -27,6 +27,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 
 import java.util.Date;
 
@@ -41,17 +42,15 @@ import java.util.Date;
 public class AggregatedLandingFilterVO implements IRootDataFilter {
 
     private Date startDate;
-
     private Date endDate;
-
     private String programLabel;
-
     private Integer recorderDepartmentId;
-
     private Integer recorderPersonId;
-
     private Integer locationId;
 
     // Parent
     private Integer observedLocationId;
+
+    // Quality
+    private DataQualityStatusEnum[] dataQualityStatus; // NOT used
 }

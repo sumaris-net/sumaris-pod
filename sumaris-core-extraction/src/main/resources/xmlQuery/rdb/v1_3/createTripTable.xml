@@ -45,7 +45,10 @@
         (SELECT COUNT(O.ID) FROM OPERATION O WHERE O.TRIP_FK=T.ID)
       )
     </select>
-    <select alias="DAYS_AT_SEA" type="number">CAST(EXTRACT(DAY FROM(T.RETURN_DATE_TIME - T.DEPARTURE_DATE_TIME)) AS INT)</select>
+
+    <select alias="DAYS_AT_SEA" dbms="hsqldb,pgsql" type="number">CAST(EXTRACT(DAY FROM(T.RETURN_DATE_TIME - T.DEPARTURE_DATE_TIME)) AS INT)</select>
+    <select alias="DAYS_AT_SEA" dbms="oracle" type="number">FLOOR(T.RETURN_DATE_TIME - T.DEPARTURE_DATE_TIME)</select>
+
     <select alias="VESSEL_IDENTIFIER" type="number">T.VESSEL_FK</select> <!-- TODO à anonymiser (hash ?)-->
     <select alias="SAMPLING_COUNTRY" type="text">COALESCE(DL.LABEL, PL.LABEL)</select>
     <select alias="SAMPLING_METHOD" type="text">'Observer'</select><!-- TODO: ADAP - find it from a project's PMFM of type "Hidden" ? -->
@@ -88,6 +91,7 @@
     <where operator="AND" group="vesselFilter">
       <in field="T.VESSEL_FK"><![CDATA[&vesselIds]]></in>
     </where>
+    <where operator="AND" group="tripFilter"><![CDATA[T.ID = &tripId]]></where>
 
     <!-- Filter on controlled (finished) trips -->
     <where operator="AND" group="controlledFilter">T.CONTROL_DATE IS NOT NULL</where>

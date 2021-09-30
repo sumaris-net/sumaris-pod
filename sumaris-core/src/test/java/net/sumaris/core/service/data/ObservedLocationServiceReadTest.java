@@ -22,7 +22,9 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
+import lombok.NonNull;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -81,5 +83,38 @@ public class ObservedLocationServiceReadTest extends AbstractServiceTest{
                 .map(ObservedLocationVO::getRecorderPerson)
                 .map(PersonVO::getId)
                 .forEach(personId -> Assert.assertTrue(personId != null && personId == recorderPersonId));
+    }
+
+    @Test
+    public void findByFilterWithDataQuality() {
+
+        assertFindAll(ObservedLocationFilterVO.builder()
+            .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED})
+            .build(),
+            3);
+
+        assertFindAll(ObservedLocationFilterVO.builder()
+                .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.CONTROLLED})
+                .build(),
+            1);
+
+        assertFindAll(ObservedLocationFilterVO.builder()
+                .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.VALIDATED})
+                .build(),
+            0);
+
+        assertFindAll(ObservedLocationFilterVO.builder()
+                .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.QUALIFIED})
+                .build(),
+            0);
+    }
+
+    /* -- protected -- */
+
+    protected List<ObservedLocationVO> assertFindAll(@NonNull ObservedLocationFilterVO filter, int expectedSize) {
+        List<ObservedLocationVO> vos = service.findAll(filter, 0, 100);
+        Assert.assertNotNull(vos);
+        Assert.assertEquals(expectedSize, vos.size());
+        return vos;
     }
 }

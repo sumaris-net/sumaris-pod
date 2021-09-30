@@ -22,14 +22,17 @@ package net.sumaris.core.service.technical;
  * #L%
  */
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
 import net.sumaris.core.dao.technical.model.annotation.EntityEnums;
+import net.sumaris.core.event.config.ConfigurationEventListener;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.AbstractEntityEvent;
@@ -65,6 +68,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceException;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -76,7 +80,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private final SumarisConfiguration configuration;
     private final String currentSoftwareLabel;
-    private boolean ready = false;
+    private boolean ready;
 
     @Autowired
     private EntityManager entityManager;
@@ -92,12 +96,21 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private Version dbVersion;
 
+    private final List<ConfigurationEventListener> listeners = new CopyOnWriteArrayList<>();
+
     @Autowired
     public ConfigurationServiceImpl(SumarisConfiguration configuration) {
         this.configuration = configuration;
         this.currentSoftwareLabel = configuration.getAppName();
         Preconditions.checkNotNull(currentSoftwareLabel);
+        this.ready = !configuration.enableConfigurationDbPersistence(); // Mark as ready, if configuration not loaded from DB
     }
+
+    @Override
+    public SumarisConfiguration getConfiguration() {
+        return configuration;
+    }
+
 
     @Override
     public SoftwareVO getCurrentSoftware() {
@@ -119,8 +132,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             this.dbVersion = event.getSchemaVersion();
 
             if (!configuration.enableConfigurationDbPersistence()) {
-                if (event instanceof SchemaReadyEvent) {
-                    publisher.publishEvent(new ConfigurationReadyEvent(configuration));
+                if (event instanceof SchemaReadyEvent && configuration.isProduction()) {
+                    publishEvent(new ConfigurationReadyEvent(configuration));
                 }
             }
 
@@ -130,11 +143,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
                 // Publish ready event
                 if (event instanceof SchemaReadyEvent) {
-                    publisher.publishEvent(new ConfigurationReadyEvent(configuration));
+                    publishEvent(new ConfigurationReadyEvent(configuration));
                 }
                 // Publish update event
                 else {
-                    publisher.publishEvent(new ConfigurationUpdatedEvent(configuration));
+                    publishEvent(new ConfigurationUpdatedEvent(configuration));
                 }
             }
 
@@ -167,7 +180,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             configuration.cleanCache();
 
             // Publish update event
-            publisher.publishEvent(new ConfigurationUpdatedEvent(configuration));
+            publishEvent(new ConfigurationUpdatedEvent(configuration));
 
             // Mark as ready
             ready = true;
@@ -189,6 +202,18 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         if (isCurrent) {
             throw new DenyDeletionException("Cannot delete the current software", ImmutableList.of(String.valueOf(currentSoftware.getId())));
         }
+    }
+
+    @Override
+    public void addListener(ConfigurationEventListener listener) {
+        if (!listeners.contains(listener)) {
+            listeners.add(listener);
+        }
+    }
+
+    @Override
+    public void removeListener(ConfigurationEventListener listener) {
+        listeners.remove(listener);
     }
 
     @Override
@@ -378,6 +403,32 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
 
+    protected void publishEvent(ConfigurationUpdatedEvent event) {
+        // Emit to Spring event bus
+        publisher.publishEvent(event);
 
+        // Emit to registered listeners
+        for (ConfigurationEventListener listener: listeners) {
+            try {
+                listener.onUpdated(event);
+            } catch (Throwable t) {
+                log.error("Error on configuration updated event listener: " + t.getMessage(), t);
+            }
+        }
+    }
+
+    protected void publishEvent(ConfigurationReadyEvent event) {
+        // Emit to Spring event bus
+        publisher.publishEvent(event);
+
+        // Emit to registered listeners
+        for (ConfigurationEventListener listener: listeners) {
+            try {
+                listener.onReady(event);
+            } catch (Throwable t) {
+                log.error("Error on configuration ready event listener: " + t.getMessage(), t);
+            }
+        }
+    }
 
 }

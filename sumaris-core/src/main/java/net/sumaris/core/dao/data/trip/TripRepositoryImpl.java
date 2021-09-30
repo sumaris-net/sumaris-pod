@@ -57,11 +57,14 @@ public class TripRepositoryImpl
     @Override
     public Specification<Trip> toSpecification(TripFilterVO filter, DataFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-                .and(id(filter.getTripId()))
-                .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
-                .and(hasLocationId(filter.getLocationId()))
-                .and(hasVesselId(filter.getVesselId()))
-                .and(includedIds(filter.getIncludedIds()));
+            .and(id(filter.getTripId()))
+            .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+            .and(hasLocationId(filter.getLocationId()))
+            .and(hasVesselId(filter.getVesselId()))
+            .and(excludedIds(filter.getExcludedIds()))
+            .and(hasObserverPersonIds(filter.getObserverPersonIds()))
+            .and(inDataQualityStatus(filter.getDataQualityStatus()))
+            .and(includedIds(filter.getIncludedIds()));
     }
 
     @Override

@@ -23,17 +23,23 @@ package net.sumaris.server.http.graphql;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import graphql.ExecutionInput;
-import graphql.ExecutionResult;
-import graphql.GraphQL;
+import graphql.*;
 import graphql.schema.GraphQLSchema;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.service.technical.ConfigurationService;
+import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 @RestController
@@ -41,15 +47,23 @@ import java.util.Map;
 public class GraphQLRestController {
 
     private final GraphQL graphQL;
-
     private final ObjectMapper objectMapper;
+    private boolean ready = false;
+    private final ConfigurationService configurationService;
 
     @Autowired
     public GraphQLRestController(GraphQLSchema graphQLSchema,
-                                 ObjectMapper objectMapper) {
+                                 ObjectMapper objectMapper,
+                                 ConfigurationService configurationService) {
         this.graphQL = GraphQL.newGraphQL(graphQLSchema).build();
         this.objectMapper = objectMapper;
-        log.info(String.format("Starting GraphQL endpoint {%s}...", GraphQLPaths.BASE_PATH));
+        this.configurationService = configurationService;
+        log.info("Starting GraphQL endpoint {{}}...", GraphQLPaths.BASE_PATH);
+    }
+
+    @EventListener({ConfigurationReadyEvent.class})
+    protected void onConfigurationReady(ConfigurationReadyEvent event) {
+        ready = true;
     }
 
     @PostMapping(value = GraphQLPaths.BASE_PATH,
@@ -63,14 +77,22 @@ public class GraphQLRestController {
             })
     @ResponseBody
     public Map<String, Object> indexFromAnnotated(@RequestBody Map<String, Object> request, HttpServletRequest rawRequest) {
-        ExecutionResult executionResult = graphQL.execute(ExecutionInput.newExecutionInput()
+        ExecutionResult result;
+        if (!this.ready) {
+            result = new ExecutionResultImpl.Builder()
+                .addError(GraphqlErrorBuilder.newError().message(I18n.l(rawRequest.getLocale(), "sumaris.error.starting")).build())
+                .build();
+        }
+        else {
+            result = graphQL.execute(ExecutionInput.newExecutionInput()
                 .query((String) request.get("query"))
                 .operationName((String) request.get("operationName"))
                 .variables(GraphQLHelper.getVariables(request, objectMapper))
                 .context(rawRequest)
                 .build());
+        }
 
-        return GraphQLHelper.processExecutionResult(executionResult);
+        return GraphQLHelper.processExecutionResult(result);
     }
 
     /* -- private methods -- */
