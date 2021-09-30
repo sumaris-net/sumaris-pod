@@ -158,7 +158,9 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     });
 
     // Combo: vessels
-    this.registerAutocompleteField('vesselSnapshot', this.vesselSnapshotService.getAutocompleteAddOptions());
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts =>
+      this.registerAutocompleteField('vesselSnapshot', opts)
+    );
 
     // Combo: recorder department
     this.registerAutocompleteField('department', {

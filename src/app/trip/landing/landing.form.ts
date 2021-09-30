@@ -255,7 +255,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     });
 
     // Combo: vessels
-    this.registerAutocompleteField('vesselSnapshot', this.vesselSnapshotService.getAutocompleteAddOptions());
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts =>
+      this.registerAutocompleteField('vesselSnapshot', opts)
+    );
 
     // Combo location
     const locationAttributes = this.settings.getFieldDisplayAttributes('location');
