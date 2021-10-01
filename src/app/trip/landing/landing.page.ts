@@ -16,7 +16,7 @@ import {
   isNotNilOrBlank,
   PlatformService,
   ReferentialRef,
-  ReferentialUtils,
+  ReferentialUtils, removeDuplicatesFromArray,
   UsageMode
 } from '@sumaris-net/ngx-components';
 import {LandingForm} from './landing.form';
@@ -85,13 +85,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   get form(): FormGroup {
     return this.landingForm.form;
-  }
-
-  get appliedStrategyLocations$(): Observable<ReferentialRef[]> {
-    return this.$strategy.pipe(
-      filter(isNotNil),
-      map(strategy => (strategy.appliedStrategies).map(a => a.location))
-    )
   }
 
   @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
@@ -397,6 +390,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         ...additionalPmfms
       ];
     }
+
+    // Applying filtered location
+    const fishingAreaLocations = removeDuplicatesFromArray((strategy.appliedStrategies || []).map(a => a.location), 'id');
+    this.landingForm.filteredFishingAreaLocations = fishingAreaLocations;
+    this.landingForm.enableFishingAreaFilter = isNotEmptyArray(fishingAreaLocations); // Enable filter should be done AFTER setting locations, to reload items
 
     this.markForCheck();
   }

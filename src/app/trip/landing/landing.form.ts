@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { Moment } from 'moment';
 import { DateAdapter } from '@angular/material/core';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
@@ -64,7 +64,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   private _showObservers: boolean;
   private _canEditStrategy: boolean;
-  private _filteredFishingAreaLocations: ReferentialRef[] = null;
 
   observersHelper: FormArrayHelper<Person>;
   fishingAreasHelper: FormArrayHelper<FishingArea>;
@@ -153,19 +152,11 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() showFishingArea = false;
   @Input() locationLevelIds: number[];
   @Input() allowAddNewVessel: boolean;
-
   @Input() allowManyMetiers: boolean = null;
+  @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
 
-  @Input() set enableFishingAreFilter(value: boolean) {
+  @Input() set enableFishingAreaFilter(value: boolean) {
     this.setFieldFilterEnable('fishingArea', value);
-  }
-
-  @Input() set filteredFishingAreaLocations(value: ReferentialRef[]) {
-    this._filteredFishingAreaLocations = value;
-  }
-
-  get filteredFishingAreaLocations(): ReferentialRef[] {
-    return this._filteredFishingAreaLocations;
   }
 
   @Input() set canEditStrategy(value: boolean) {
