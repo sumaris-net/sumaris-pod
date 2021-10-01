@@ -900,26 +900,20 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       PmfmStrategy.fromObject(<PmfmStrategy>{ pmfm: { id: PmfmIds.TAG_ID } }),
       // Add dressing Pmfm
       PmfmStrategy.fromObject(<PmfmStrategy>{ pmfm: { id: PmfmIds.DRESSING } }),
-      // Add weights Pmfm
-      //...this.weightPmfmsForm.value,
-      // Add length Pmfm
-      //...this.lengthPmfmsForm.value
     ];
     const weightPmfms = (this.weightPmfmsForm.value.flat() as PmfmStrategy[] || []).filter(elt => elt);
     const lengthPmfms = (this.lengthPmfmsForm.value.flat() as PmfmStrategy[] || []).filter(elt => elt);
     const maturityPmfms = (this.maturityPmfmsForm.value.flat() as PmfmStrategy[] || []).filter(elt => elt);
 
+    // Add weights Pmfm
     weightPmfms.map(pmfm => pmfmStrategies.push(PmfmStrategy.fromObject(<PmfmStrategy>{ pmfm: { id: pmfm.id } })));
+    // Add length Pmfm
     lengthPmfms.map(pmfm => pmfmStrategies.push(PmfmStrategy.fromObject(<PmfmStrategy>{ pmfm: { id: pmfm.id } })));
 
     // Add SEX Pmfm
     if (this.hasSex()) {
       pmfmStrategies.push(PmfmStrategy.fromObject(<PmfmStrategy>{ pmfm: { id: PmfmIds.SEX } }));
-
       // Add maturity pmfms
-      // pmfmStrategies = pmfmStrategies.concat(
-      //   ...this.maturityPmfmsForm.value
-      // );
       maturityPmfms.map(pmfm => pmfmStrategies.push(PmfmStrategy.fromObject(<PmfmStrategy>{ pmfm: { id: pmfm.id } })));
     }
 
@@ -964,14 +958,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         taxonNameControl.setErrors({ uniqueTaxonCode: true });
       } else {
         SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
-        // We only compute next label when taxon has just been set. We don't compute when user remove previous computed label
-        // if (this.form.value.label && this.form.value.label.length && this.form.value.label.length < value.length)
-        // {
-        //   const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, value.substring(0, 10).replace(/\s/g, '').toUpperCase(), 3));
-        //   const labelControl = this.form.get('label');
-        //   labelControl.setValue(computedLabel);
-        // }
-
       }
     }
     const acceptedLabelFormatRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] \d\d\d$/);
@@ -1087,20 +1073,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }
       const labelControl = this.form.get('label');
 
-      // When taxon is changed first and returned to initial value, we set back initial sampling strategy label (with same year)
-      // if (currentViewTaxonName === storedDataTaxonName && yearMask === storedDataYear) {
-      //   // Strategy label is stored without any spaces. We must set the label back with specific pattern
-      //   let storedLabelToSetBack = this.data.label;
-      //   if (this.data.label && this.data.label.length === 12)
-      //   {
-      //     storedLabelToSetBack = this.data.label.substr(0, 2).concat(' ').concat(this.data.label.substr(2, 7)).concat(' ').concat(this.data.label.substr(9, 11));
-      //   }
-      //   labelControl.setValue(storedLabelToSetBack);
-      //   // @ts-ignore
-      //   this.labelMask = yearMask.split("")
-      //     .concat([' ', /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, ' ', /\d/, /\d/, /\d/]);
-      //   return;
-      // }
       const label = currentViewTaxonName && TaxonUtils.generateLabelFromName(currentViewTaxonName);
       const isUnique = await this.isTaxonNameUnique(label, currentViewTaxon?.id);
 
