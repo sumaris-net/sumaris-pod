@@ -425,8 +425,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         levelLabels: ParameterLabelGroups.LENGTH
       }),
-      attributes: ['name'],
-      columnNames: ['REFERENTIAL.NAME'],
+      attributes: ['name', 'unit.label', 'matrix.name', 'fraction.name', 'method.name'],
+      columnNames: ['REFERENTIAL.NAME', 'REFERENTIAL.PMFM.UNIT', 'REFERENTIAL.PMFM.MATRIX', 'REFERENTIAL.PMFM.FRACTION', 'REFERENTIAL.PMFM.METHOD'],
       mobile: this.settings.mobile
     });
 
@@ -437,8 +437,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         levelLabels: ParameterLabelGroups.WEIGHT
       }),
-      attributes: ['name'],
-      columnNames: ['REFERENTIAL.NAME'],
+      attributes: ['name', 'unit.label', 'matrix.name', 'fraction.name', 'method.name'],
+      columnNames: ['REFERENTIAL.NAME', 'REFERENTIAL.PMFM.UNIT', 'REFERENTIAL.PMFM.MATRIX', 'REFERENTIAL.PMFM.FRACTION', 'REFERENTIAL.PMFM.METHOD'],
       mobile: this.settings.mobile
     });
 
@@ -449,8 +449,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         levelLabels: ParameterLabelGroups.MATURITY
       }),
-      attributes: ['name'],
-      columnNames: ['REFERENTIAL.NAME'],
+      attributes: ['name', 'unit.label', 'matrix.name', 'fraction.name', 'method.name'],
+      columnNames: ['REFERENTIAL.NAME', 'REFERENTIAL.PMFM.UNIT', 'REFERENTIAL.PMFM.MATRIX', 'REFERENTIAL.PMFM.FRACTION', 'REFERENTIAL.PMFM.METHOD'],
       mobile: this.settings.mobile
     });
   }
@@ -629,10 +629,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param filter - filters to apply
    */
   protected async suggestLengthPmfms(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
-    if (this.autocompleteFilters.lengthPmfm) {
+    /*if (this.autocompleteFilters.lengthPmfm) {
       return suggestFromArray(this.lengthPmfmsItems.getValue(), value, filter);
-    } else {
-      return this.referentialRefService.suggest(value, {
+    } else*/ {
+      return this.pmfmService.suggest(value, {
         ...filter,
         entityName: 'Pmfm'
       });
@@ -645,10 +645,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param filter - filters to apply
    */
   protected async suggestWeightPmfms(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
-    if (this.autocompleteFilters.weightPmfm) {
+    /*if (this.autocompleteFilters.weightPmfm) {
       return suggestFromArray(this.weightPmfmsItems.getValue(), value, filter);
-    } else {
-      return this.referentialRefService.suggest(value, {
+    } else*/ {
+      return this.pmfmService.suggest(value, {
         ...filter,
         entityName: 'Pmfm'
       });
@@ -661,10 +661,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param filter - filters to apply
    */
   protected async suggestMaturityPmfms(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
-    if (this.autocompleteFilters.maturityPmfm) {
+    /*if (this.autocompleteFilters.maturityPmfm) {
       return suggestFromArray(this.maturityPmfmsItems.getValue(), value, filter);
-    } else {
-      return this.referentialRefService.suggest(value, {
+    } else*/ {
+      return this.pmfmService.suggest(value, {
         ...filter,
         entityName: 'Pmfm'
       });
