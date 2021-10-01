@@ -350,7 +350,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     }
 
     // Fishing area
-    this.fishingAreaForm.value = data && data.fishingArea || {};
+    this.fishingAreaForm.value = data && data.fishingAreas && data.fishingAreas[0] || {};
 
     // Trip measurements todo filter ????????
     const tripMeasurements = data && data.measurements || [];

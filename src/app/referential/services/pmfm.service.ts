@@ -1,29 +1,36 @@
-import {Injectable} from "@angular/core";
-import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {ErrorCodes} from "./errors";
-import {AccountService, ConfigService, MINIFY_ENTITY_FOR_POD} from '@sumaris-net/ngx-components';
-import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {environment} from '@environments/environment';
-import {ReferentialService} from "./referential.service";
-import {IPmfm, Pmfm} from './model/pmfm.model';
-import {Observable, of} from "rxjs";
-import {ReferentialFragments} from "./referential.fragments";
-import {map} from "rxjs/operators";
-import {ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {SortDirection} from "@angular/material/sort";
-import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
-import {EntityServiceLoadOptions, IEntitiesService, IEntityService, LoadResult, SuggestService} from "@sumaris-net/ngx-components";
-import {isNil, isNotNil} from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
-import {ReferentialRefService} from "./referential-ref.service";
-import {ObjectMap} from "@sumaris-net/ngx-components";
-import {CacheService} from "ionic-cache";
-import {CryptoService}  from "@sumaris-net/ngx-components";
-import {BaseReferentialFilter} from "./filter/referential.filter";
-import {EntityClass}  from "@sumaris-net/ngx-components";
-import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
-import { ParameterLabelGroups, UnitLabel } from '@app/referential/services/model/model.enum';
+import { Injectable } from '@angular/core';
+import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { ErrorCodes } from './errors';
+import {
+  AccountService,
+  BaseGraphqlService,
+  CryptoService,
+  EntityClass,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  GraphqlService,
+  IEntitiesService,
+  IEntityService,
+  isNil,
+  isNotNil,
+  LoadResult,
+  MINIFY_ENTITY_FOR_POD,
+  ObjectMap,
+  ReferentialUtils,
+  StatusIds,
+  SuggestService
+} from '@sumaris-net/ngx-components';
+import { environment } from '@environments/environment';
+import { ReferentialService } from './referential.service';
+import { Pmfm } from './model/pmfm.model';
+import { Observable, of } from 'rxjs';
+import { ReferentialFragments } from './referential.fragments';
+import { map } from 'rxjs/operators';
+import { SortDirection } from '@angular/material/sort';
+import { ReferentialRefService } from './referential-ref.service';
+import { CacheService } from 'ionic-cache';
+import { BaseReferentialFilter } from './filter/referential.filter';
+import { ParameterLabelGroups } from '@app/referential/services/model/model.enum';
 
 
 const LoadAllQuery = gql`query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -176,17 +183,11 @@ export class PmfmService
     protected accountService: AccountService,
     protected referentialService: ReferentialService,
     protected referentialRefService: ReferentialRefService,
-    protected configService: ConfigService,
     protected cache: CacheService,
     protected cryptoService: CryptoService
   ) {
     super(graphql, environment);
-    this.configService.config.subscribe(config => {
-      this.weightDisplayedUnit = config && config.getProperty(DATA_CONFIG_OPTIONS.WEIGHT_DISPLAYED_UNIT);
-    });
   }
-
-  protected weightDisplayedUnit: string;
 
   async existsByLabel(label: string, opts?: { excludedId?: number; }): Promise<boolean> {
     if (isNil(label)) return false;

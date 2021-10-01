@@ -156,8 +156,8 @@ export class StrategiesPage implements OnInit {
   }
 
   protected setContext<S extends Strategy<S>>(strategy: S) {
-    this.context.setValue('program', this.data?.clone(), { ttl: 60000 });
-    this.context.setValue('strategy', Strategy.fromObject(strategy), { ttl: 60000 });
+    this.context.setValue('program', this.data?.clone());
+    this.context.setValue('strategy', Strategy.fromObject(strategy));
   }
 
   protected resetContext() {

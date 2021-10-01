@@ -130,19 +130,16 @@ export class VesselSnapshotService
   extends BaseGraphqlService<VesselSnapshot, VesselSnapshotFilter>
   implements SuggestService<VesselSnapshot, VesselSnapshotFilter> {
 
-  private showBasePortLocation = false;
   private defaultFilter: Partial<VesselSnapshotFilter> = null;
   private defaultLoadOptions: Partial<VesselServiceLoadOptions> = null;
   private minSearchTextLength: number = 0;
   private _started = false;
   private _startPromise: Promise<any>;
 
-  private get onNeedUpdateDefaults(): Observable<any>{
+  private get onConfigOrSettingsChanges(): Observable<any>{
       return merge(
         this.configService.config,
         this.settings.onChange
-      ).pipe(
-        filter(() => this._started)
       );
   }
 
@@ -166,21 +163,28 @@ export class VesselSnapshotService
     console.info('[vessel-snapshot-service] Starting service...');
 
     // Restoring local settings
-    this._startPromise = this.settings.ready()
+    this._startPromise = Promise.all([
+      this.settings.ready(),
+      this.configService.ready()
+    ])
+      .then(_ => this.initDefaults())
       // Init default values (filter and options)
-      .then(() => this.initDefaults())
       .then(_ => {
+        // Listen for config or settings changes, then update defaults
+        this.onConfigOrSettingsChanges
+          .pipe(filter(_ => this._started))
+          .subscribe(() => this.initDefaults());
+
         this._started = true;
         this._startPromise = undefined;
-
-        // Listen need update events
-        this.onNeedUpdateDefaults.subscribe(() => this.initDefaults());
       });
+
     return this._startPromise;
   }
 
   ready(): Promise<void> {
     if (this._started) return Promise.resolve();
+    if (this._startPromise) return this._startPromise;
     return this.start();
   }
 
@@ -199,6 +203,8 @@ export class VesselSnapshotService
                 sortDirection?: SortDirection,
                 filter?: Partial<VesselSnapshotFilter>,
                 opts?: VesselServiceLoadOptions): Promise<LoadResult<VesselSnapshot>> {
+
+    if (!this._started) await this.ready();
 
     filter = this.asFilter({
       ...this.defaultFilter,
@@ -269,12 +275,16 @@ export class VesselSnapshotService
     return res;
   }
 
-  async suggest(value: any, filter?: VesselSnapshotFilter): Promise<LoadResult<VesselSnapshot>> {
-    if (ReferentialUtils.isNotEmpty(value)) return Promise.resolve({data: [value]});
+  async suggest(value: any, filter?: Partial<VesselSnapshotFilter>): Promise<LoadResult<VesselSnapshot>> {
+    if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
+
+    // Make sure service has been started, before using defaults (e.g. minSearchTextLength)
+    if (!this._started) await this.ready();
+
     const searchText = (typeof value === "string" && value !== '*') && value || undefined;
 
     // Not enough character to launch the search
-    if ((searchText && searchText.length || 0) < this.minSearchTextLength) return Promise.resolve({data: undefined});
+    if ((searchText && searchText.length || 0) < this.minSearchTextLength) return {data: undefined};
 
     // Exclude search on name, when NOT the first display attributes
     let searchAttributes = filter.searchAttributes;
@@ -287,6 +297,8 @@ export class VesselSnapshotService
         ...filter,
         searchText,
         searchAttributes
+      }, {
+        fetchPolicy: "cache-first"
       }
     );
   }
@@ -353,10 +365,14 @@ export class VesselSnapshotService
     return VesselSnapshotFilter.fromObject(source);
   }
 
-  getAutocompleteAddOptions(fieldName?: string, defaultAttributes?: string[]): MatAutocompleteFieldAddOptions {
+  async getAutocompleteFieldOptions(fieldName?: string, defaultAttributes?: string[]): Promise<MatAutocompleteFieldAddOptions> {
+
+    // Make sure defaults have been loaded
+    if (!this._started) await this.ready();
+
     const baseAttributes = this.settings.getFieldDisplayAttributes(fieldName || 'vesselSnapshot', defaultAttributes || VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES);
 
-    const displayAttributes = this.showBasePortLocation
+    const displayAttributes = this.defaultLoadOptions?.withBasePortLocation
       ? baseAttributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))
       : baseAttributes;
 
@@ -376,8 +392,11 @@ export class VesselSnapshotService
 
   /* -- protected methods -- */
 
-  async initDefaults(config?: Configuration) {
-    config = config || await firstNotNilPromise(this.configService.config);
+  async initDefaults() {
+    // DEBUG
+    console.debug("[vessel-snapshot-service] Init defaults load options")
+
+    const config = await firstNotNilPromise(this.configService.config);
 
     const withBasePortLocation = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.VESSEL_BASE_PORT_LOCATION_VISIBLE)
 

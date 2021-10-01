@@ -207,7 +207,7 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
 
     // Add a Pmfm for the strategy label, if missing
     if (!pmfmIds.includes(PmfmIds.STRATEGY_LABEL)) {
-      console.debug(`[simple-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.STRATEGY_LABEL}} to hold the strategy label, on ${AcquisitionLevelCodes.LANDING}`);
+      console.debug(`[sampling-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.STRATEGY_LABEL}} to hold the strategy label, on ${AcquisitionLevelCodes.LANDING}`);
       target.pmfms.push(PmfmStrategy.fromObject({
         pmfm: {id: PmfmIds.STRATEGY_LABEL},
         acquisitionLevel: AcquisitionLevelCodes.LANDING,
@@ -219,7 +219,7 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
 
     // Add a TAG_ID Pmfm, if missing
     if (!pmfmIds.includes(PmfmIds.TAG_ID)) {
-      console.debug(`[simple-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.TAG_ID}} to hold the strategy label, on ${AcquisitionLevelCodes.SAMPLE}`);
+      console.debug(`[sampling-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.TAG_ID}} to hold the tag id, on ${AcquisitionLevelCodes.SAMPLE}`);
       target.pmfms.push(PmfmStrategy.fromObject({
         pmfm: {id: PmfmIds.TAG_ID},
         acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
@@ -229,9 +229,9 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
       }));
     }
 
-    // Add a DRESSEING_ID Pmfm, if missing
+    // Add a DRESSING_ID Pmfm, if missing
     if (!pmfmIds.includes(PmfmIds.DRESSING)) {
-      console.debug(`[simple-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.DRESSING}} to hold the strategy label, on ${AcquisitionLevelCodes.SAMPLE}`);
+      console.debug(`[sampling-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.DRESSING}} to hold the dressing, on ${AcquisitionLevelCodes.SAMPLE}`);
       target.pmfms.push(PmfmStrategy.fromObject({
         pmfm: {id: PmfmIds.DRESSING},
         acquisitionLevel: AcquisitionLevelCodes.SAMPLE,

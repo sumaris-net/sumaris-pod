@@ -158,6 +158,7 @@
           <ion-col size="12" size-lg="6">
             <!-- Vessel -->
             <mat-autocomplete-field
+              *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
               [placeholder]="'TRIP.TABLE.FILTER.VESSEL'|translate"
               formControlName="vesselSnapshot"
               [config]="autocompleteFields.vesselSnapshot"
@@ -527,3 +528,10 @@
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
+
+<ng-template #fieldSkeleton>
+  <mat-form-field>
+    <input matInput hidden>
+    <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
+  </mat-form-field>
+</ng-template>
