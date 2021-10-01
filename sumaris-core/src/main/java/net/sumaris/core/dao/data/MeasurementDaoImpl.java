@@ -112,6 +112,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         // Sale
         result.put(SaleMeasurement.class, BeanUtils.getPropertyDescriptor(SaleMeasurement.class, SaleMeasurement.Fields.SALE));
 
+        // ExpectedSale
+        result.put(SaleMeasurement.class, BeanUtils.getPropertyDescriptor(SaleMeasurement.class, SaleMeasurement.Fields.EXPECTED_SALE));
+
         // Landing
         result.put(LandingMeasurement.class, BeanUtils.getPropertyDescriptor(LandingMeasurement.class, LandingMeasurement.Fields.LANDING));
 
@@ -367,20 +370,20 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public List<MeasurementVO> getExpectedSaleMeasurements(int saleId) {
+    public List<MeasurementVO> getExpectedSaleMeasurements(int expectedSaleId) {
         return getMeasurementsByParentId(SaleMeasurement.class,
             MeasurementVO.class,
             SaleMeasurement.Fields.EXPECTED_SALE,
-            saleId,
+            expectedSaleId,
             SaleMeasurement.Fields.ID
         );
     }
 
     @Override
-    public Map<Integer, String> getExpectedSaleMeasurementsMap(int saleId) {
+    public Map<Integer, String> getExpectedSaleMeasurementsMap(int expectedSaleId) {
         return getMeasurementsMapByParentId(SaleMeasurement.class,
             SaleMeasurement.Fields.EXPECTED_SALE,
-            saleId,
+            expectedSaleId,
             null
         );
     }
@@ -494,14 +497,14 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public List<MeasurementVO> saveExpectedSaleMeasurements(int saleId, List<MeasurementVO> sources) {
-        ExpectedSale parent = getById(ExpectedSale.class, saleId);
+    public List<MeasurementVO> saveExpectedSaleMeasurements(int expectedSaleId, List<MeasurementVO> sources) {
+        ExpectedSale parent = getById(ExpectedSale.class, expectedSaleId);
         return saveMeasurements(SaleMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
-    public Map<Integer, String> saveExpectedSaleMeasurementsMap(int saleId, Map<Integer, String> sources) {
-        ExpectedSale parent = getById(ExpectedSale.class, saleId);
+    public Map<Integer, String> saveExpectedSaleMeasurementsMap(int expectedSaleId, Map<Integer, String> sources) {
+        ExpectedSale parent = getById(ExpectedSale.class, expectedSaleId);
         return saveMeasurementsMap(SaleMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 

@@ -95,10 +95,10 @@ public interface MeasurementDao {
     Map<Integer, String> saveSaleMeasurementsMap(int saleId, Map<Integer, String> sources);
 
     // Expected Sale
-    List<MeasurementVO> getExpectedSaleMeasurements(int saleId);
-    Map<Integer, String> getExpectedSaleMeasurementsMap(int saleId);
-    List<MeasurementVO> saveExpectedSaleMeasurements(int saleId, List<MeasurementVO> sources);
-    Map<Integer, String> saveExpectedSaleMeasurementsMap(int saleId, Map<Integer, String> sources);
+    List<MeasurementVO> getExpectedSaleMeasurements(int expectedSaleId);
+    Map<Integer, String> getExpectedSaleMeasurementsMap(int expectedSaleId);
+    List<MeasurementVO> saveExpectedSaleMeasurements(int expectedSaleId, List<MeasurementVO> sources);
+    Map<Integer, String> saveExpectedSaleMeasurementsMap(int expectedSaleId, Map<Integer, String> sources);
 
     // Landing
     List<MeasurementVO> saveLandingMeasurements(int landingId, List<MeasurementVO> sources);

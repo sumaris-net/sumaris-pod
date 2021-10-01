@@ -59,8 +59,6 @@ public class OperationGroupVO implements IDataVO<Integer> {
     private TripVO trip;
     private Integer tripId;
 
-    @ToString.Exclude
-    private PhysicalGearVO physicalGear;
     private Integer physicalGearId;
 
     private List<MeasurementVO> measurements;

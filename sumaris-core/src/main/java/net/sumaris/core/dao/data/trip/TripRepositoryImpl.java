@@ -132,7 +132,7 @@ public class TripRepositoryImpl
                     landing.setTrip(savedEntity);
                     landingRepository.save(landing);
                 }
-                if (landing.getObservedLocation() == null) {
+                if (landing.getObservedLocation() != null) {
                     observedLocationId = landing.getObservedLocation().getId();
                 }
             }

@@ -37,6 +37,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
@@ -466,18 +467,7 @@ public class Beans {
 
         return Arrays.stream(bean.getClass().getDeclaredFields())
             .filter(field -> !ArrayUtils.contains(ignoredAttributes, field.getName()))
-            .allMatch(field -> {
-                Object property = getProperty(bean, field.getName());
-                if (property == null)
-                    return true;
-                if (property instanceof Collection)
-                    return CollectionUtils.isEmpty((Collection<?>) property);
-                if (property.getClass().isArray())
-                    return ArrayUtils.isEmpty((Object[]) property);
-//                if (!property.getClass().isPrimitive())
-//                    log.warn(String.format("Unable to determinate if %s is null", property));
-                return false;
-            });
+            .allMatch(field -> ObjectUtils.isEmpty((Object) getProperty(bean, field.getName())));
     }
 
     /**
