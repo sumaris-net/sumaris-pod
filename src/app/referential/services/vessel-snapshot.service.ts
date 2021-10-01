@@ -2,13 +2,17 @@ import {Injectable} from '@angular/core';
 import {FetchPolicy, gql} from '@apollo/client/core';
 import {ErrorCodes} from './errors';
 import {
-  BaseEntityGraphqlQueries,
-  BaseGraphqlService, ConfigService, Configuration,
+  BaseGraphqlService,
+  ConfigService,
   EntitiesStorage,
-  EntityServiceLoadOptions, firstNotNilPromise,
-  GraphqlService, isNotNil,
+  EntityServiceLoadOptions,
+  firstNotNilPromise,
+  GraphqlService,
+  isNotNil,
   JobUtils,
-  LoadResult, LocalSettingsService, MatAutocompleteFieldAddOptions,
+  LoadResult,
+  LocalSettingsService,
+  MatAutocompleteFieldAddOptions,
   NetworkService,
   ReferentialRef,
   ReferentialUtils,
@@ -23,7 +27,7 @@ import {environment} from '@environments/environment';
 import {VesselSnapshotFilter} from './filter/vessel.filter';
 import {ProgramLabel} from '@app/referential/services/model/model.enum';
 import {VESSEL_CONFIG_OPTIONS} from '@app/vessel/services/config/vessel.config';
-import {filter, mergeMap} from 'rxjs/operators';
+import {filter} from 'rxjs/operators';
 
 
 export const VesselSnapshotFragments = {
@@ -115,9 +119,8 @@ const LoadQueries = {
     }
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${ReferentialFragments.referential}
-  ${ReferentialFragments.location}`
-}
+  ${ReferentialFragments.referential}`
+};
 
 export declare interface VesselServiceLoadOptions extends EntityServiceLoadOptions {
   debug?: boolean;
@@ -136,11 +139,11 @@ export class VesselSnapshotService
   private _started = false;
   private _startPromise: Promise<any>;
 
-  private get onConfigOrSettingsChanges(): Observable<any>{
-      return merge(
-        this.configService.config,
-        this.settings.onChange
-      );
+  private get onConfigOrSettingsChanges(): Observable<any> {
+    return merge(
+      this.configService.config,
+      this.settings.onChange
+    );
   }
 
   constructor(
@@ -153,7 +156,7 @@ export class VesselSnapshotService
     super(graphql, environment);
 
     // Start
-    this.start()
+    this.start();
   }
 
   start(): Promise<void> {
@@ -213,7 +216,7 @@ export class VesselSnapshotService
     opts = {
       ...this.defaultLoadOptions,
       ...opts
-    }
+    };
 
     const variables: any = {
       offset: offset || 0,
@@ -224,7 +227,7 @@ export class VesselSnapshotService
 
     const debug = this._debug && (!opts || opts.debug !== false);
     const now = debug && Date.now();
-    if (debug) console.debug("[vessel-snapshot-service] Loading vessel snapshots using options:", variables);
+    if (debug) console.debug('[vessel-snapshot-service] Loading vessel snapshots using options:', variables);
 
     const withTotal = (!opts || opts.withTotal !== false);
     let res: LoadResult<VesselSnapshot>;
@@ -251,7 +254,7 @@ export class VesselSnapshotService
           ...variables,
           filter: filter?.asPodObject()
         },
-        error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_ERROR"},
+        error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: 'VESSEL.ERROR.LOAD_ERROR'},
         fetchPolicy: opts && opts.fetchPolicy || undefined /*use default*/
       });
     }
@@ -261,7 +264,7 @@ export class VesselSnapshotService
       (res?.data || []) as VesselSnapshot[];
 
     const total = res?.total || entities.length;
-    res = {total,  data: entities};
+    res = {total, data: entities};
 
     // Add fetch more capability, if total was fetched
     if (withTotal) {
@@ -281,7 +284,7 @@ export class VesselSnapshotService
     // Make sure service has been started, before using defaults (e.g. minSearchTextLength)
     if (!this._started) await this.ready();
 
-    const searchText = (typeof value === "string" && value !== '*') && value || undefined;
+    const searchText = (typeof value === 'string' && value !== '*') && value || undefined;
 
     // Not enough character to launch the search
     if ((searchText && searchText.length || 0) < this.minSearchTextLength) return {data: undefined};
@@ -298,7 +301,7 @@ export class VesselSnapshotService
         searchText,
         searchAttributes
       }, {
-        fetchPolicy: "cache-first"
+        fetchPolicy: 'cache-first'
       }
     );
   }
@@ -314,11 +317,11 @@ export class VesselSnapshotService
     const offline = (id < 0) || (this.network.offline && (!opts || opts.fetchPolicy !== 'network-only'));
     if (offline) {
       const data = await this.entities.load<VesselSnapshot>(id, VesselSnapshot.TYPENAME);
-      if (!data) throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
+      if (!data) throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'};
       return ((!opts || opts.toEntity !== false) ? VesselSnapshot.fromObject(data) : data as VesselSnapshot) || null;
     }
 
-    const { data } = await this.graphql.query<{ data: any[]; }>({
+    const {data} = await this.graphql.query<{ data: any[] }>({
       query: LoadQueries.load,
       variables: {
         vesselId: id,
@@ -327,13 +330,13 @@ export class VesselSnapshotService
       fetchPolicy: opts && opts.fetchPolicy || undefined
     });
     const res = data && data[0];
-    return res && ((!opts || opts.toEntity !== false) ? VesselSnapshot.fromObject(res) : res as VesselSnapshot)  || null;
+    return res && ((!opts || opts.toEntity !== false) ? VesselSnapshot.fromObject(res) : res as VesselSnapshot) || null;
   }
 
   async executeImport(progression: BehaviorSubject<number>,
-    opts?: {
-      maxProgression?: number;
-    }): Promise<void> {
+                      opts?: {
+                        maxProgression?: number;
+                      }): Promise<void> {
 
     const maxProgression = opts && opts.maxProgression || 100;
     const filter: Partial<VesselSnapshotFilter> = {
@@ -341,12 +344,12 @@ export class VesselSnapshotService
       program: ReferentialRef.fromObject({label: ProgramLabel.SIH})
     };
 
-    console.info("[vessel-snapshot-service] Importing vessels (snapshot)...");
+    console.info('[vessel-snapshot-service] Importing vessels (snapshot)...');
 
     const res = await JobUtils.fetchAllPages((offset, size) =>
         this.loadAll(offset, size, 'id', null, filter, {
           debug: false,
-          fetchPolicy: "network-only",
+          fetchPolicy: 'network-only',
           withTotal: (offset === 0), // Compute total only once
           toEntity: false
         }),
@@ -394,11 +397,11 @@ export class VesselSnapshotService
 
   async initDefaults() {
     // DEBUG
-    console.debug("[vessel-snapshot-service] Init defaults load options")
+    console.debug('[vessel-snapshot-service] Init defaults load options');
 
     const config = await firstNotNilPromise(this.configService.config);
 
-    const withBasePortLocation = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.VESSEL_BASE_PORT_LOCATION_VISIBLE)
+    const withBasePortLocation = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.VESSEL_BASE_PORT_LOCATION_VISIBLE);
 
     // Set filter, with registration location
     const defaultRegistrationLocationId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_COUNTRY_ID);

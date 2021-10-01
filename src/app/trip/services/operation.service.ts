@@ -1,9 +1,6 @@
 import {Injectable, Optional} from '@angular/core';
 import {FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy} from '@apollo/client/core';
 import {BehaviorSubject, EMPTY, Observable} from 'rxjs';
-import {Injectable} from '@angular/core';
-import {FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy} from '@apollo/client/core';
-import {EMPTY, Observable} from 'rxjs';
 import {filter, first, map, tap} from 'rxjs/operators';
 import {ErrorCodes} from './trip.errors';
 import {DataFragments, Fragments} from './trip.queries';
