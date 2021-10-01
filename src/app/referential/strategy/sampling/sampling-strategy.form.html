@@ -265,12 +265,12 @@
         <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'LENGTHS'|translate}}</ion-label>
       </ion-col>
       <ion-col>
-        <mat-autocomplete-field #lengthPmfmField
+        <mat-autocomplete-field #lengthPmfmField  class="mat-autocomplete-panel-full-size"
                                 [formControl]="lengthPmfmsHelper.at(i)"
-                                [placeholder]="(i18nFieldPrefix + 'LENGTHS'|translate) + (i+1)"
+                                [placeholder]="(i18nFieldPrefix + 'LENGTHS_PLACEHOLDER'|translate) + (i+1)"
                                 [config]="autocompleteFields.lengthPmfm"
                                 [tabindex]="tabindex+10+i*3"
-                                [required]="true">
+                                [required]="false">
 <!--          <button matAfter type="button" mat-icon-button-->
 <!--                  tabindex="-1"-->
 <!--                  [disabled]="disabled"-->
@@ -308,12 +308,12 @@
         <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'WEIGHTS'|translate}}</ion-label>
       </ion-col>
       <ion-col>
-        <mat-autocomplete-field #weightPmfmField
+        <mat-autocomplete-field #weightPmfmField  class="mat-autocomplete-panel-full-size"
                                 [formControl]="weightPmfmsHelper.at(i)"
-                                [placeholder]="(i18nFieldPrefix + 'WEIGHTS'|translate) + (i+1)"
+                                [placeholder]="(i18nFieldPrefix + 'WEIGHTS_PLACEHOLDER'|translate) + (i+1)"
                                 [config]="autocompleteFields.weightPmfm"
                                 [tabindex]="tabindex+10+i*3"
-                                [required]="true">
+                                [required]="false">
 <!--          <button matAfter type="button" mat-icon-button-->
 <!--                  tabindex="-1"-->
 <!--                  [disabled]="disabled"-->
@@ -363,9 +363,9 @@
         <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'MATURITIES'|translate}}</ion-label>
       </ion-col>
       <ion-col>
-        <mat-autocomplete-field #maturityPmfmField
+        <mat-autocomplete-field #maturityPmfmField  class="mat-autocomplete-panel-full-size"
                                 [formControl]="maturityPmfmsHelper.at(i)"
-                                [placeholder]="(i18nFieldPrefix + 'MATURITIES'|translate) + (i+1)"
+                                [placeholder]="(i18nFieldPrefix + 'MATURITIES_PLACEHOLDER'|translate) + (i+1)"
                                 [config]="autocompleteFields.maturityPmfm"
                                 [tabindex]="tabindex+10+i*3"
                                 [required]="false">

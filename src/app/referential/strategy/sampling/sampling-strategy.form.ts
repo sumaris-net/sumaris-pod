@@ -19,7 +19,6 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
   LoadResult,
   LocalSettingsService,
   MatAutocompleteField,
@@ -208,6 +207,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     } else if (this.hasLanding) {
       this.taxonNamesFormArray.disable();
       this.appliedStrategiesForm.disable();
+      this.lengthPmfmsForm.disable();
+      this.weightPmfmsForm.disable();
+      this.maturityPmfmsForm.disable();
       const form = this.form;
       form.get('analyticReference').disable();
       form.get('year').disable();
@@ -628,13 +630,24 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param value
    * @param filter - filters to apply
    */
-  protected async suggestLengthPmfms(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
+  protected async suggestLengthPmfms(value: any, filter: any): Promise<LoadResult<IReferentialRef>> {
+
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+    const newValue = currentControlValue ? '*' : value;
+
+    // Excluded existing locations, BUT keep the current control value
+    const excludedIds = (this.lengthPmfmsForm.value || [])
+      .filter(ReferentialUtils.isNotEmpty)
+      .filter(item => !currentControlValue || currentControlValue !== item)
+      .map(item => parseInt(item.id));
+
     /*if (this.autocompleteFilters.lengthPmfm) {
       return suggestFromArray(this.lengthPmfmsItems.getValue(), value, filter);
     } else*/ {
-      return this.pmfmService.suggest(value, {
+      return this.pmfmService.suggest(newValue, {
         ...filter,
-        entityName: 'Pmfm'
+        excludedIds,
+        entityName: Pmfm.ENTITY_NAME
       });
     }
   }
@@ -645,12 +658,22 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param filter - filters to apply
    */
   protected async suggestWeightPmfms(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+    const newValue = currentControlValue ? '*' : value;
+
+    // Excluded existing locations, BUT keep the current control value
+    const excludedIds = (this.weightPmfmsForm.value || [])
+      .filter(ReferentialUtils.isNotEmpty)
+      .filter(item => !currentControlValue || currentControlValue !== item)
+      .map(item => parseInt(item.id));
+
     /*if (this.autocompleteFilters.weightPmfm) {
       return suggestFromArray(this.weightPmfmsItems.getValue(), value, filter);
     } else*/ {
-      return this.pmfmService.suggest(value, {
+      return this.pmfmService.suggest(newValue, {
         ...filter,
-        entityName: 'Pmfm'
+        excludedIds,
+        entityName: Pmfm.ENTITY_NAME
       });
     }
   }
@@ -661,12 +684,22 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param filter - filters to apply
    */
   protected async suggestMaturityPmfms(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+    const newValue = currentControlValue ? '*' : value;
+
+    // Excluded existing locations, BUT keep the current control value
+    const excludedIds = (this.maturityPmfmsForm.value || [])
+      .filter(ReferentialUtils.isNotEmpty)
+      .filter(item => !currentControlValue || currentControlValue !== item)
+      .map(item => parseInt(item.id));
+
     /*if (this.autocompleteFilters.maturityPmfm) {
       return suggestFromArray(this.maturityPmfmsItems.getValue(), value, filter);
     } else*/ {
-      return this.pmfmService.suggest(value, {
+      return this.pmfmService.suggest(newValue, {
         ...filter,
-        entityName: 'Pmfm'
+        excludedIds,
+        entityName: Pmfm.ENTITY_NAME
       });
     }
   }
@@ -676,18 +709,32 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    * @param value
    * @param filter - filters to apply
    */
-  protected async suggestDepartments(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
+  protected async suggestDepartments(value: any, filter: any): Promise<LoadResult<IReferentialRef>> {
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+    const newValue = currentControlValue ? '*' : value;
+
+    // Excluded existing locations, BUT keep the current control value
+    const excludedIds = (this.departmentsFormArray.value || [])
+      .map(pmfmDepartment => pmfmDepartment?.department)
+      .filter(ReferentialUtils.isNotEmpty)
+      .filter(item => !currentControlValue || currentControlValue !== item)
+      .map(item => parseInt(item.id));
+
     if (this.autocompleteFilters.department) {
-      return suggestFromArray(this.departmentItems.getValue(), value, filter);
-    } else {
-      return this.referentialRefService.suggest(value, {
+      return suggestFromArray(this.departmentItems.getValue(), newValue, {
         ...filter,
+        excludedIds
+      });
+    } else {
+      return this.referentialRefService.suggest(newValue, {
+        ...filter,
+        excludedIds,
         entityName: 'Department'
       });
     }
   }
 
-  protected async suggestTaxonName(value: string, filter: any): Promise<LoadResult<TaxonNameRef>> {
+  protected async suggestTaxonName(value: any, filter: any): Promise<LoadResult<TaxonNameRef>> {
     if (this.autocompleteFilters.taxonName) {
       return suggestFromArray(this.taxonNameItems.getValue(), value, filter);
     } else {
@@ -792,6 +839,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         return {
           id: pmfm.pmfm?.id,
           name: pmfm.pmfm?.name,
+          unit: pmfm.pmfm?.unit,
+          method: pmfm.pmfm?.method,
+          fraction: pmfm.pmfm?.fraction,
+          matrix: pmfm.pmfm?.matrix,
         };
       });
       this.lengthPmfmsForm.patchValue(lengths);
@@ -803,6 +854,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         return {
           id: pmfm.pmfm?.id,
           name: pmfm.pmfm?.name,
+          unit: pmfm.pmfm?.unit,
+          method: pmfm.pmfm?.method,
+          fraction: pmfm.pmfm?.fraction,
+          matrix: pmfm.pmfm?.matrix,
         };
       });
       this.weightPmfmsForm.patchValue(weights);
@@ -814,6 +869,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         return {
           id: pmfm.pmfm?.id,
           name: pmfm.pmfm?.name,
+          unit: pmfm.pmfm?.unit,
+          method: pmfm.pmfm?.method,
+          fraction: pmfm.pmfm?.fraction,
+          matrix: pmfm.pmfm?.matrix,
         };
       });
       this.maturityPmfmsForm.patchValue(maturities);

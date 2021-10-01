@@ -1,9 +1,8 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Output, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Output, ViewChild } from '@angular/core';
 import {
   AppFormUtils,
   AppTable,
-  StatusList,
-  EntitiesTableDataSource, firstArrayValue,
+  EntitiesTableDataSource,
   fromDateISOString,
   isEmptyArray,
   isNotEmptyArray,
@@ -18,33 +17,31 @@ import {
   SharedValidators,
   sleep,
   StatusIds,
+  StatusList,
   toBoolean
 } from '@sumaris-net/ngx-components';
-import {Program} from '../../services/model/program.model';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ModalController, Platform} from '@ionic/angular';
-import {Location} from '@angular/common';
-import {LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds} from '../../services/model/model.enum';
-import {ReferentialFilter} from '../../services/filter/referential.filter';
-import {ReferentialRefService} from '../../services/referential-ref.service';
-import {ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME} from '../../services/config/program.config';
-import {environment} from '@environments/environment';
-import {SamplingStrategy} from '../../services/model/sampling-strategy.model';
-import {SamplingStrategyService} from '../../services/sampling-strategy.service';
-import {StrategyService} from '../../services/strategy.service';
+import { Program } from '../../services/model/program.model';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ModalController, Platform } from '@ionic/angular';
+import { Location } from '@angular/common';
+import { LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds } from '../../services/model/model.enum';
+import { ReferentialFilter } from '../../services/filter/referential.filter';
+import { ReferentialRefService } from '../../services/referential-ref.service';
+import { ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME } from '../../services/config/program.config';
+import { environment } from '@environments/environment';
+import { SamplingStrategy } from '../../services/model/sampling-strategy.model';
+import { SamplingStrategyService } from '../../services/sampling-strategy.service';
+import { StrategyService } from '../../services/strategy.service';
 import * as momentImported from 'moment';
-import {AbstractControl, FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {ParameterService} from '@app/referential/services/parameter.service';
-import {debounceTime, filter, tap} from 'rxjs/operators';
-import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
-import {MatExpansionPanel} from '@angular/material/expansion';
-import {TableElement} from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
-import {Subject} from 'rxjs';
-import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
-import {StrategyModal} from '@app/referential/strategy/strategy.modal';
-import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from '@app/referential/services/model/strategy.model';
-import {PmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import { Operation } from '@app/trip/services/model/trip.model';
+import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ParameterService } from '@app/referential/services/parameter.service';
+import { debounceTime, filter, tap } from 'rxjs/operators';
+import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { TableElement } from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
+import { Subject } from 'rxjs';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { StrategyModal } from '@app/referential/strategy/strategy.modal';
 
 const moment = momentImported;
 
@@ -110,11 +107,11 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     modalCtrl: ModalController,
     localSettingsService: LocalSettingsService,
     injector: Injector,
-    dataService: SamplingStrategyService,
+    protected samplingStrategyService: SamplingStrategyService,
+    protected strategyService: StrategyService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService,
     protected parameterService: ParameterService,
-    protected strategyService: StrategyService,
     protected formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
   ) {
@@ -139,7 +136,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
           'effortQ3',
           'effortQ4'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource(SamplingStrategy, dataService, null, {
+      new EntitiesTableDataSource(SamplingStrategy, samplingStrategyService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
@@ -458,84 +455,41 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   // INFO CLT : Imagine 355. Sampling strategy can be duplicated with selected year.
   // We keep initial strategy and remove year related data like efforts.
   // We update year-related values like applied period as done in sampling-strategy.form.ts getValue()
-  async openStrategyDuplicateYearSelectionModal(event: UIEvent, strategiesToDuplicate: TableElement<SamplingStrategy>[]) {
+  async openStrategyDuplicateYearSelectionModal(event: UIEvent, rows: TableElement<SamplingStrategy>[]) {
     const modal = await this.modalCtrl.create({
       component: StrategyModal,
     });
 
     // Open the modal
     await modal.present();
-    const userDate = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
 
-    if (userDate && userDate.data) {
-      for (const strategyToDuplicate of strategiesToDuplicate) {
-        const initialStrategy = SamplingStrategy.fromObject(strategyToDuplicate.currentData);
-        const strategyToSave = new Strategy();
-        const year = typeof(userDate.data) === 'string' ? fromDateISOString(userDate.data).format('YY').toString() : userDate.data.format('YY').toString();
-        const strategyToSaveLabel = await this.strategyService.computeNextLabel(this.program.id, year + initialStrategy.label.substring(2, 9), 3);
+    if (data) {
+      const strategies = rows
+        .map(row => row.currentData)
+        .map(SamplingStrategy.fromObject);
+      const year = fromDateISOString(data).format('YY').toString();
 
-        strategyToSave.label = strategyToSaveLabel;
-        strategyToSave.name = strategyToSaveLabel;
-        strategyToSave.description = strategyToSaveLabel;
-        strategyToSave.analyticReference = initialStrategy.analyticReference;
-        strategyToSave.programId = initialStrategy.programId;
+      this.selection.clear();
 
-        strategyToSave.appliedStrategies = (initialStrategy.appliedStrategies || []).map(initialAppliedStrategy => {
-          const strategyToSaveAppliedStrategy = new AppliedStrategy();
-          strategyToSaveAppliedStrategy.id = undefined;
-          strategyToSaveAppliedStrategy.updateDate = undefined;
-          strategyToSaveAppliedStrategy.location = initialAppliedStrategy.location;
-          if (isNotEmptyArray(initialAppliedStrategy.appliedPeriods)) {
-            strategyToSaveAppliedStrategy.appliedPeriods = initialAppliedStrategy.appliedPeriods.map(initialAppliedStrategyPeriod => {
-              const startMonth = (initialAppliedStrategyPeriod.startDate?.month()) + 1;
-              const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`)?.utc();
-              const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
-              const appliedPeriod = AppliedPeriod.fromObject({acquisitionNumber: initialAppliedStrategyPeriod.acquisitionNumber});
-              appliedPeriod.startDate = startDate;
-              appliedPeriod.endDate = endDate;
-              appliedPeriod.appliedStrategyId = undefined;
-              return appliedPeriod;
-            });
-          } else {
-            strategyToSaveAppliedStrategy.appliedPeriods = [];
-          }
-          return strategyToSaveAppliedStrategy;
-        })
-
-        strategyToSave.pmfms = initialStrategy.pmfms && initialStrategy.pmfms.map(pmfmStrategy => {
-          const pmfmStrategyCloned = pmfmStrategy.clone();
-          pmfmStrategyCloned.id = undefined;
-          pmfmStrategyCloned.strategyId = undefined;
-          return PmfmStrategy.fromObject(pmfmStrategyCloned)
-        }) || [];
-        strategyToSave.departments = initialStrategy.departments && initialStrategy.departments.map(department => {
-          const departmentCloned = department.clone();
-          departmentCloned.id = undefined;
-          departmentCloned.strategyId = undefined;
-          return StrategyDepartment.fromObject(departmentCloned)
-        }) || [];
-        strategyToSave.taxonNames = initialStrategy.taxonNames && initialStrategy.taxonNames.map(taxonNameStrategy => {
-          const taxonNameStrategyCloned = taxonNameStrategy.clone();
-          taxonNameStrategyCloned.strategyId = undefined;
-          return TaxonNameStrategy.fromObject(taxonNameStrategyCloned)
-        }) || [];
-        strategyToSave.id = undefined;
-        strategyToSave.updateDate = undefined;
-        strategyToSave.comments = initialStrategy.comments;
-        strategyToSave.creationDate = undefined;
-        strategyToSave.statusId = initialStrategy.statusId;
-        strategyToSave.validityStatusId = initialStrategy.validityStatusId;
-        strategyToSave.levelId = initialStrategy.levelId;
-        strategyToSave.parentId = initialStrategy.parentId;
-        strategyToSave.entityName = initialStrategy.entityName;
-        strategyToSave.denormalizedPmfms = undefined;
-        strategyToSave.gears = undefined;
-        strategyToSave.taxonGroups = undefined;
-        await this.strategyService.save(strategyToSave);
-      }
+      await this.duplicateStrategies(strategies, year);
     }
-    this.selection.clear();
-    this.onRefresh.emit();
+  }
+
+  async duplicateStrategies(sources: SamplingStrategy[], year: string) {
+
+    try {
+      this.markAsLoading();
+
+      // Do save
+      // This should refresh the table (because of the watchAll updated throught the cache update)
+      await this.samplingStrategyService.duplicateAllToYear(sources, year);
+    }
+    catch (err) {
+      this.setError(err && err.message || err, {emitEvent: false});
+      this.markAsLoaded();
+    }
+
   }
 }
 
