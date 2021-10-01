@@ -182,14 +182,6 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       // - keep the original JSON object measurementValues, because may be still used (e.g. in table without validator, in row.currentData)
       // - keep extra pmfm's values, because table can have filtered pmfms, to display only mandatory PMFM (e.g. physical gear table)
       entity.measurementValues = Object.assign({}, json.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, pmfms));
-     /* pmfms.forEach(pmfm => {
-        if (pmfm.unitLabel === UnitLabel.defaultWeight || pmfm.unitLabel === UnitLabel.KG || pmfm.unitLabel === UnitLabel.GRAM) {
-          if (this.weightDisplayedUnit === UnitLabel.GRAM && pmfm.unitLabel === UnitLabel.KG) {
-            entity.measurementValues[pmfm.id.toString()] = entity.measurementValues[pmfm.id.toString()] as number / 1000;
-          }
-        }
-      })*/
-
       return entity;
     });
 

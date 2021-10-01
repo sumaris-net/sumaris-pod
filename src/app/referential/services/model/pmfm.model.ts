@@ -211,18 +211,15 @@ export abstract class PmfmUtils {
   }
 
   static isNumeric(pmfm: IPmfm): boolean {
-    // TODO simplify (remove isNotNil())
-    return isNotNil(pmfm.type) && (pmfm.type === 'integer' || pmfm.type === 'double');
+    return pmfm.type === 'integer' || pmfm.type === 'double';
   }
 
   static isAlphanumeric(pmfm: IPmfm): boolean {
-    // TODO simplify (remove isNotNil())
-    return isNotNil(pmfm.type) && (pmfm.type === 'string');
+    return pmfm.type === 'string';
   }
 
   static isDate(pmfm: IPmfm): boolean {
-    // TODO simplify (remove isNotNil())
-    return isNotNil(pmfm.type) && (pmfm.type === 'date');
+    return pmfm.type === 'date';
   }
 
   static isWeight(pmfm: IPmfm): boolean {
@@ -230,8 +227,7 @@ export abstract class PmfmUtils {
   }
 
   static hasParameterLabelIncludes(pmfm: Pmfm, labels: string[]): boolean {
-    // TODO simplify (remove isNotNil())
-    return pmfm && isNotNil(pmfm.parameter) && labels.includes(pmfm.parameter.label);
+    return pmfm && labels.includes(pmfm.parameter.label);
   }
 
   static isComputed(pmfm: IPmfm) {
