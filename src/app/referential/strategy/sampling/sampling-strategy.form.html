@@ -260,50 +260,89 @@
         </mat-error>
       </ion-col>
     </ion-row>
-    <ion-row>
+    <ion-row *ngFor="let lengthPmfmForm of lengthPmfmsForm?.controls; index as i; first as first">
       <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-        <ion-label class="ion-float-end">{{i18nFieldPrefix + 'LENGTHS'|translate}}</ion-label>
+        <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'LENGTHS'|translate}}</ion-label>
       </ion-col>
       <ion-col>
-        <app-pmfm-strategies-table #lengthPmfmStrategiesTable
-                                   [canEdit]="enabled && !hasLanding"
-                                   [showToolbar]="false"
-                                   [showHeaderRow]="false"
-                                   [withDetails]="false"
-                                   [showSelectColumn]="false"
-                                   [showIdColumn]="false"
-                                   [showDetailsColumns]="false"
-                                   [showPmfmLabel]="false"
-                                   [pmfmFilter]="pmfmFilters.length"
-                                   [allowEmpty]="false"
-                                   [sticky]="true">
-        </app-pmfm-strategies-table>
+        <mat-autocomplete-field #lengthPmfmField  class="mat-autocomplete-panel-full-size"
+                                [formControl]="lengthPmfmsHelper.at(i)"
+                                [placeholder]="(i18nFieldPrefix + 'LENGTHS_PLACEHOLDER'|translate) + (i+1)"
+                                [config]="autocompleteFields.lengthPmfm"
+                                [tabindex]="tabindex+10+i*3"
+                                [required]="false">
+<!--          <button matAfter type="button" mat-icon-button-->
+<!--                  tabindex="-1"-->
+<!--                  [disabled]="disabled"-->
+<!--                  [title]="'COMMON.BTN_FILTER'|translate"-->
+<!--                  (click)="toggleFilter('lengthPmfm', lengthPmfmField)"-->
+<!--                  [color]="autocompleteFilters.lengthPmfm ? 'primary' : undefined">-->
+<!--            <mat-icon>filter_list_alt</mat-icon>-->
+<!--          </button>-->
+        </mat-autocomplete-field>
+      </ion-col>
+
+      <ion-col size="auto" class="ion-align-self-center">
+        <button type="button" mat-icon-button
+                [disabled]="isLengthPmfmDisable(i)"
+                [tabindex]="tabindex+10++i*3+1"
+                [title]="'COMMON.BTN_ADD'|translate"
+                (click)="addLengthPmfm()">
+          <mat-icon>add</mat-icon>
+        </button>
+
+        <button type="button" mat-icon-button
+                [disabled]="isLengthPmfmDisable(i)"
+                [tabindex]="tabindex+10++i*3+2"
+                [title]="'COMMON.BTN_DELETE'|translate"
+                (click)="removeLengthPmfm(i)">
+          <mat-icon>close</mat-icon>
+        </button>
       </ion-col>
     </ion-row>
     <ion-row style="height: 15px"></ion-row>
 
     <!-- Weights Pmfms -->
-    <ion-row>
+    <ion-row *ngFor="let weightPmfmForm of weightPmfmsForm?.controls; index as i; first as first">
       <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-        <ion-label class="ion-float-end">{{i18nFieldPrefix + 'WEIGHTS'|translate}}</ion-label>
+        <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'WEIGHTS'|translate}}</ion-label>
       </ion-col>
       <ion-col>
-        <app-pmfm-strategies-table #weightPmfmStrategiesTable
-                                   [canEdit]="enabled && !hasLanding"
-                                   [showToolbar]="false"
-                                   [showHeaderRow]="false"
-                                   [withDetails]="false"
-                                   [showSelectColumn]="false"
-                                   [showIdColumn]="false"
-                                   [showDetailsColumns]="false"
-                                   [showPmfmLabel]="false"
-                                   [pmfmFilter]="pmfmFilters.weight"
-                                   [allowEmpty]="false"
-                                   [sticky]="true">
-        </app-pmfm-strategies-table>
+        <mat-autocomplete-field #weightPmfmField  class="mat-autocomplete-panel-full-size"
+                                [formControl]="weightPmfmsHelper.at(i)"
+                                [placeholder]="(i18nFieldPrefix + 'WEIGHTS_PLACEHOLDER'|translate) + (i+1)"
+                                [config]="autocompleteFields.weightPmfm"
+                                [tabindex]="tabindex+10+i*3"
+                                [required]="false">
+<!--          <button matAfter type="button" mat-icon-button-->
+<!--                  tabindex="-1"-->
+<!--                  [disabled]="disabled"-->
+<!--                  [title]="'COMMON.BTN_FILTER'|translate"-->
+<!--                  (click)="toggleFilter('weightPmfm', weightPmfmField)"-->
+<!--                  [color]="autocompleteFilters.weightPmfm ? 'primary' : undefined">-->
+<!--            <mat-icon>filter_list_alt</mat-icon>-->
+<!--          </button>-->
+        </mat-autocomplete-field>
+      </ion-col>
+
+      <ion-col size="auto" class="ion-align-self-center">
+        <button type="button" mat-icon-button
+                [disabled]="isWeightPmfmDisable(i)"
+                [tabindex]="tabindex+10++i*3+1"
+                [title]="'COMMON.BTN_ADD'|translate"
+                (click)="addWeightPmfm()">
+          <mat-icon>add</mat-icon>
+        </button>
+
+        <button type="button" mat-icon-button
+                [disabled]="isWeightPmfmDisable(i)"
+                [tabindex]="tabindex+10++i*3+2"
+                [title]="'COMMON.BTN_DELETE'|translate"
+                (click)="removeWeightPmfm(i)">
+          <mat-icon>close</mat-icon>
+        </button>
       </ion-col>
     </ion-row>
-    <ion-row style="height: 15px"></ion-row>
 
     <!-- SEX -->
     <ion-row>
@@ -319,24 +358,44 @@
     </ion-row>
 
     <!-- Maturity Pmfms -->
-    <ion-row [hidden]="!hasSex()">
+    <ion-row [hidden]="!hasSex()" *ngFor="let maturityPmfmForm of maturityPmfmsForm?.controls; index as i; first as first">
       <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-        <ion-label class="ion-float-end">{{i18nFieldPrefix + 'MATURITIES'|translate}}</ion-label>
+        <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'MATURITIES'|translate}}</ion-label>
       </ion-col>
       <ion-col>
-        <app-pmfm-strategies-table #maturityPmfmStrategiesTable
-                                   [canEdit]="enabled && !hasLanding"
-                                   [showToolbar]="false"
-                                   [showHeaderRow]="false"
-                                   [withDetails]="false"
-                                   [showSelectColumn]="false"
-                                   [showIdColumn]="false"
-                                   [showDetailsColumns]="false"
-                                   [showPmfmLabel]="false"
-                                   [pmfmFilter]="pmfmFilters.maturity"
-                                   [allowEmpty]="false"
-                                   [sticky]="true">
-        </app-pmfm-strategies-table>
+        <mat-autocomplete-field #maturityPmfmField  class="mat-autocomplete-panel-full-size"
+                                [formControl]="maturityPmfmsHelper.at(i)"
+                                [placeholder]="(i18nFieldPrefix + 'MATURITIES_PLACEHOLDER'|translate) + (i+1)"
+                                [config]="autocompleteFields.maturityPmfm"
+                                [tabindex]="tabindex+10+i*3"
+                                [required]="false">
+<!--          <button matAfter type="button" mat-icon-button-->
+<!--                  tabindex="-1"-->
+<!--                  [disabled]="disabled"-->
+<!--                  [title]="'COMMON.BTN_FILTER'|translate"-->
+<!--                  (click)="toggleFilter('maturityPmfm', maturityPmfmField)"-->
+<!--                  [color]="autocompleteFilters.maturityPmfm ? 'primary' : undefined">-->
+<!--            <mat-icon>filter_list_alt</mat-icon>-->
+<!--          </button>-->
+        </mat-autocomplete-field>
+      </ion-col>
+
+      <ion-col size="auto" class="ion-align-self-center">
+        <button type="button" mat-icon-button
+                [disabled]="isMaturityPmfmDisable(i)"
+                [tabindex]="tabindex+10++i*3+1"
+                [title]="'COMMON.BTN_ADD'|translate"
+                (click)="addMaturityPmfm()">
+          <mat-icon>add</mat-icon>
+        </button>
+
+        <button type="button" mat-icon-button
+                [disabled]="isMaturityPmfmDisable(i)"
+                [tabindex]="tabindex+10++i*3+2"
+                [title]="'COMMON.BTN_DELETE'|translate"
+                (click)="removeMaturityPmfm(i)">
+          <mat-icon>close</mat-icon>
+        </button>
       </ion-col>
     </ion-row>
     <ion-row style="height: 15px"></ion-row>
